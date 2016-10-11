@@ -146,6 +146,18 @@ if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" ]; then
     echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
 fi
 
+# Display the Sage startup banner, used in src/bin/sage
+sage_banner() {
+    if [ "$SAGE_BANNER" = "bare" ]; then
+        cat "$SAGE_ROOT/VERSION.txt"
+    elif [ "$SAGE_BANNER" != "no" ]; then
+        # This file sage-banner is not yet available during the build
+        # of Sage, so we ignore errors from cat.
+        cat "$SAGE_LOCAL/bin/sage-banner" 2>/dev/null
+    fi
+}
+
+
 # Don't execute the commands more than once for the same version of
 # sage-env.  Check this after checking the validity of SAGE_ROOT, but
 # before modifying its value.
@@ -173,13 +185,17 @@ export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
 export SAGE_ROOT="$NEW_SAGE_ROOT"
 
+# SAGE_LOCAL is the installation prefix and can be customized
+if [ -z "$SAGE_LOCAL" ]; then
+    export SAGE_LOCAL="$SAGE_ROOT/local"
+fi
 
 # sage-env must know where the Sage's script files are
 if [ -z "$SAGE_SCRIPTS_DIR" ]; then
     if [ -f "`dirname $0`/sage-env" ]; then
         SAGE_SCRIPTS_DIR=`dirname $0`
-    elif [ -f "$SAGE_ROOT/local/bin/sage-env" ]; then
-        SAGE_SCRIPTS_DIR="$SAGE_ROOT/local/bin"
+    elif [ -f "$SAGE_LOCAL/bin/sage-env" ]; then
+        SAGE_SCRIPTS_DIR="$SAGE_LOCAL/bin"
     elif [ -f "$SAGE_ROOT/src/bin/sage-env" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_ROOT/src/bin"
     else
@@ -244,8 +260,8 @@ if [ 1 = 2 ]; then
     echo "if you use sh, bash or a similar shell"
 fi
 
-# Setting Sage-related location environment variables.
-export SAGE_LOCAL="$SAGE_ROOT/local"
+# Setting Sage-related location environment variables,
+# depending on SAGE_ROOT and SAGE_LOCAL which are already defined.
 export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
@@ -260,12 +276,6 @@ if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
 fi 
 export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
-
-if [ "$SAGE_BANNER" = "bare" ]; then
-    export SAGE_BANNER_TEXT=$(cat "$SAGE_ROOT/VERSION.txt")
-elif [ "$SAGE_BANNER" != "no" ]; then
-    export SAGE_BANNER_TEXT=$(cat "$SAGE_LOCAL/bin/sage-banner")
-fi
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.
@@ -364,9 +374,22 @@ if [ "$SAGE_STARTUP_FILE" = "" ]; then
     export SAGE_STARTUP_FILE
 fi
 
-IPYTHONDIR=`find "$SAGE_SPKG_INST" -name "ipython*"`
-if [ -n "$IPYTHONDIR" ]; then
-    export IPYTHONDIR="$DOT_SAGE/${IPYTHONDIR##*/}"
+if [ -z "$IPYTHONDIR" ]; then
+    # We hardcode a version number in the directory name. The idea is
+    # that we keep using the same version number as long as that is
+    # possible. Only when some future IPython version really requires
+    # a new structure for the $IPYTHONDIR should this version number be
+    # changed to the new IPython version.
+    export IPYTHONDIR="$DOT_SAGE/ipython-5.0.0"
+fi
+
+if [ -z "$JUPYTER_CONFIG_DIR" ]; then
+    # We hardcode a version number in the directory name. The idea is
+    # that we keep using the same version number as long as that is
+    # possible. Only when some future Jupyter version really requires
+    # a new structure for the $JUPYTER_CONFIG_DIR should this version
+    # number be changed to the new jupyter_core version.
+    export JUPYTER_CONFIG_DIR="$DOT_SAGE/jupyter-4.1"
 fi
 
 if [ "$PYTHON_EGG_CACHE" = "" ]; then
@@ -405,9 +428,9 @@ export LDFLAGS
 # variable MPLCONFIGDIR. Note that we can't find the version number by
 # importing matplotlib, because that could create matplotlib's standard
 # config directory. So we use pkg_resources.
-"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
+"$SAGE_LOCAL/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
 if [ $? -eq 0 ]; then
-    MPLVERSION=`"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; print (pkg_resources.get_distribution("matplotlib").version)'`
+    MPLVERSION=`"$SAGE_LOCAL/bin/python" -c 'import pkg_resources; print (pkg_resources.get_distribution("matplotlib").version)'`
     MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
     export MPLCONFIGDIR
     # The directory is created when Sage starts (see sage.misc.misc).
@@ -445,7 +468,7 @@ if [ -d "$DOT_SAGE" ] ; then
 	fi
     fi
 fi
-MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
+export MAXIMA_PREFIX="$SAGE_LOCAL"
 
 PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
 
@@ -577,6 +600,11 @@ if [ -n "$CFLAGS" -a -z "$CXXFLAGS" ]; then
     export CXXFLAGS="$CFLAGS"
 fi
 
+if [ "$UNAME" = "Darwin" ]; then
+    # Trac #21175 - export empty ARCHFLAGS for the benefit of Perl modules
+    ARCHFLAGS="" && export ARCHFLAGS
+fi
+
 if [ "$CP" = "" ]; then
     CP="cp"  && export CP
 fi
@@ -638,6 +666,8 @@ if [ "${MAKEFLAGS-__unset__}" != "__unset__" ]; then
     MAKE=`echo "$MAKE" | sed 's/ .*//'`
 fi
 export MAKE
+
+export PIP_INSTALL="sage-pip-install"
 
 # When building documentation, use MathJax by default. To turn it off,
 # set SAGE_DOC_MATHJAX to be "no" or "False".

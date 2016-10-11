@@ -44,24 +44,25 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import math
 
 import sage.rings.real_double
 import sage.rings.complex_double
 
-from matrix cimport Matrix
+from .matrix cimport Matrix
 from sage.structure.element cimport ModuleElement,Vector
-from constructor import matrix
+from .constructor import matrix
 from sage.modules.free_module_element import vector
 cimport sage.structure.element
-from matrix_space import MatrixSpace
+from .matrix_space import MatrixSpace
 from sage.misc.decorators import rename_keyword
 
 cimport numpy as cnumpy
 
-numpy=None
-scipy=None
+numpy = None
+scipy = None
 
 # This is for the Numpy C API to work
 cnumpy.import_array()
@@ -664,7 +665,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         an identity matrix can hit the minimum with the right norm.  ::
 
             sage: A = matrix(RDF, 10, [1/(i+j+1) for i in range(10) for j in range(10)])
-            sage: A.condition()  # tol 1e-4
+            sage: A.condition()  # tol 2e-4
             16332197709146.014
             sage: id = identity_matrix(CDF, 10)
             sage: id.condition(p=1)
@@ -1005,7 +1006,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: B.rank()
             12
             sage: A = B.change_ring(RDF)
-            sage: A.condition() > 1.6e16 or A.condition()
+            sage: A.condition() > 1.59e16 or A.condition()
             True
 
             sage: A.singular_values(eps=None)  # abs tol 7e-16
@@ -2466,7 +2467,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.is_unitary(algorithm='orthonormal')
             False
 
-        The QR decoposition will produce a unitary matrix as Q and the
+        The QR decomposition will produce a unitary matrix as Q and the
         SVD decomposition will create two unitary matrices, U and V. ::
 
             sage: A = matrix(CDF, [[   1 - I,   -3*I,  -2 + I,        1, -2 + 3*I],
@@ -3758,7 +3759,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A=matrix(CDF, 2, [1,2+I,3*I,4]); A
             [        1.0 2.0 + 1.0*I]
             [      3.0*I         4.0]
-            sage: A.exp()  # tol 1e-14
+            sage: A.exp()  # tol 1.1e-14
             [-19.614602953804912 + 12.517743846762578*I   3.7949636449582176 + 28.88379930658099*I]
             [ -32.383580980922254 + 21.88423595789845*I   2.269633004093535 + 44.901324827684824*I]
 

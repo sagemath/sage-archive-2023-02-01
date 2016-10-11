@@ -189,7 +189,7 @@ Orthogonal Polynomials
 
    .. math::
 
-     P_n^{(\alpha,\beta)} (z) = \frac{\Gamma (\alpha+n+1)}{n!\Gamma (\alpha+\beta+n+1)} \sum_{m=0}^n {n\choose m} \frac{\Gamma (\alpha + \beta + n + m + 1)}{\Gamma (\alpha + m + 1)} \left(\frac{z-1}{2}\right)^m .
+     P_n^{(\alpha,\beta)} (z) = \frac{\Gamma (\alpha+n+1)}{n!\Gamma (\alpha+\beta+n+1)} \sum_{m=0}^n \binom{n}{m} \frac{\Gamma (\alpha + \beta + n + m + 1)}{\Gamma (\alpha + m + 1)} \left(\frac{z-1}{2}\right)^m .
 
 
 
@@ -303,9 +303,11 @@ Willis of the University of Nebraska at Kearney.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 import warnings
 
+from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.polynomial.polynomial_element import Polynomial
@@ -612,10 +614,31 @@ class Func_chebyshev_T(ChebyshevFunction):
             sage: chebyshev_T2 = Func_chebyshev_T()
             sage: chebyshev_T2(1,x)
             x
+            sage: chebyshev_T(x, x)._sympy_()
+            chebyshevt(x, x)
         """
-        ChebyshevFunction.__init__(self, "chebyshev_T", nargs=2,
+        ChebyshevFunction.__init__(self, 'chebyshev_T', nargs=2,
                                      conversions=dict(maxima='chebyshev_t',
-                                                      mathematica='ChebyshevT'))
+                                                      mathematica='ChebyshevT',
+                                                      sympy='chebyshevt'))
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_T)
+            T_n
+        """
+        return r"T_n"
+
+    def _print_latex_(self, n, z):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_T(3, x, hold=True))
+            T_{3}\left(x\right)
+        """
+        return r"T_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
     def _eval_special_values_(self, n, x):
         """
@@ -732,7 +755,7 @@ class Func_chebyshev_T(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_T`` using an explicit formula.
-        See [ASHandbook]_ 227 (p. 782) for details for the recurions.
+        See [ASHandbook]_ 227 (p. 782) for details for the recursions.
         See also [EffCheby]_ for fast evaluation techniques.
 
         INPUT:
@@ -763,7 +786,7 @@ class Func_chebyshev_T(ChebyshevFunction):
             return parent(x).one()
 
         res = parent(x).zero()
-        for j in xrange(0, n//2+1):
+        for j in range(n // 2 + 1):
             f = factorial(n-1-j) / factorial(j) / factorial(n-2*j)
             res += (-1)**j * (2*x)**(n-2*j) * f
         res *= n/2
@@ -833,7 +856,6 @@ class Func_chebyshev_T(ChebyshevFunction):
             return 2*a*a - 1, both and 2*a*b - x
         else:
             return 2*a*b - x, both and 2*b*b - 1
-
 
     def _eval_numpy_(self, n, x):
         """
@@ -911,15 +933,36 @@ class Func_chebyshev_U(ChebyshevFunction):
             sage: chebyshev_U2 = Func_chebyshev_U()
             sage: chebyshev_U2(1,x)
             2*x
+            sage: chebyshev_U(x, x)._sympy_()
+            chebyshevu(x, x)
         """
-        ChebyshevFunction.__init__(self, "chebyshev_U", nargs=2,
+        ChebyshevFunction.__init__(self, 'chebyshev_U', nargs=2,
                                      conversions=dict(maxima='chebyshev_u',
-                                                      mathematica='ChebyshevU'))
+                                                      mathematica='ChebyshevU',
+                                                      sympy='chebyshevu'))
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_U)
+            U_n
+        """
+        return r"U_n"
+
+    def _print_latex_(self, n, z):
+        r"""
+        TESTS::
+
+            sage: latex(chebyshev_U(3, x, hold=True))
+            U_{3}\left(x\right)
+        """
+        return r"U_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_U`` using an explicit formula.
-        See [ASHandbook]_ 227 (p. 782) for details on the recurions.
+        See [ASHandbook]_ 227 (p. 782) for details on the recursions.
         See also [EffCheby]_ for the recursion formulas.
 
         INPUT:
@@ -948,7 +991,7 @@ class Func_chebyshev_U(ChebyshevFunction):
             return -self.eval_formula(-n-2, x)
 
         res = parent(x).zero()
-        for j in xrange(0, n//2+1):
+        for j in range(n // 2 + 1):
             f = binomial(n-j, j)
             res += (-1)**j * (2*x)**(n-2*j) * f
         return res
@@ -1293,10 +1336,12 @@ class Func_hermite(GinacFunction):
 
             sage: loads(dumps(hermite))
             hermite
+            sage: hermite(x, x)._sympy_()
+            hermite(x, x)
         """
         GinacFunction.__init__(self, "hermite", nargs=2, latex_name=r"H",
                 conversions={'maxima':'hermite', 'mathematica':'HermiteH',
-                    'maple':'HermiteH'}, preserved_arg=2)
+                    'maple':'HermiteH', 'sympy':'hermite'}, preserved_arg=2)
 
 hermite = Func_hermite()
 
@@ -1453,10 +1498,12 @@ class Func_ultraspherical(GinacFunction):
 
             sage: loads(dumps(ultraspherical))
             gegenbauer
+            sage: ultraspherical(x, x, x)._sympy_()
+            gegenbauer(x, x, x)
         """
         GinacFunction.__init__(self, "gegenbauer", nargs=3, latex_name=r"C",
                 conversions={'maxima':'ultraspherical', 'mathematica':'GegenbauerC',
-                    'maple':'GegenbauerC'})
+                    'maple':'GegenbauerC', 'sympy':'gegenbauer'})
 
 ultraspherical = Func_ultraspherical()
 gegenbauer = Func_ultraspherical()
@@ -1476,10 +1523,12 @@ class Func_laguerre(OrthogonalFunction):
 
             sage: loads(dumps(laguerre))
             laguerre
+            sage: laguerre(x, x)._sympy_()
+            laguerre(x, x)
         """
         OrthogonalFunction.__init__(self, "laguerre", nargs=2, latex_name=r"L",
                 conversions={'maxima':'laguerre', 'mathematica':'LaguerreL',
-                    'maple':'LaguerreL'})
+                    'maple':'LaguerreL', 'sympy':'laguerre'})
 
     def _maxima_init_evaled_(self, n, x):
         """
@@ -1630,10 +1679,12 @@ class Func_gen_laguerre(OrthogonalFunction):
 
             sage: loads(dumps(gen_laguerre))
             gen_laguerre
+            sage: gen_laguerre(x, x, x)._sympy_()
+            assoc_laguerre(x, x, x)
         """
         OrthogonalFunction.__init__(self, "gen_laguerre", nargs=3, latex_name=r"L",
                 conversions={'maxima':'gen_laguerre', 'mathematica':'LaguerreL',
-                    'maple':'LaguerreL'})
+                    'maple':'LaguerreL', 'sympy':'assoc_laguerre'})
 
     def _maxima_init_evaled_(self, n, a, x):
         """
@@ -1711,7 +1762,8 @@ class Func_gen_laguerre(OrthogonalFunction):
             sage: gen_laguerre(10, 1, 1+I)
             25189/2100*I + 11792/2835
         """
-        return sum([binomial(n+a,n-k)*(-1)**k/factorial(k)*x**k for k in xrange(n+1)])
+        return sum(binomial(n+a,n-k)*(-1)**k/factorial(k)*x**k
+                   for k in range(n + 1))
 
     def _evalf_(self, n, a, x, **kwds):
         """

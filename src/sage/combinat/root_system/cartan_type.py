@@ -464,7 +464,10 @@ this data.
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-from types import ClassType as classobj
+from six.moves import range
+from six.moves.builtins import sorted
+from six import class_types
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
@@ -475,7 +478,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
 from sage.sets.family import Family
 from sage.misc.decorators import rename_keyword
-from six.moves.builtins import sorted
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above
@@ -986,8 +988,8 @@ class CartanType_abstract(object):
 
             sage: C = CartanType(["A",3,1])
             sage: class MyCartanType:
-            ...       def my_method(self):
-            ...           return 'I am here!'
+            ....:     def my_method(self):
+            ....:         return 'I am here!'
             sage: C._add_abstract_superclass(MyCartanType)
             sage: C.__class__
             <class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass_with_superclass'>
@@ -1000,7 +1002,7 @@ class CartanType_abstract(object):
         .. TODO:: Generalize to :class:`SageObject`?
         """
         from sage.structure.dynamic_class import dynamic_class
-        assert isinstance(classes, (tuple, type, classobj))
+        assert isinstance(classes, (tuple, class_types))
         if not isinstance(classes, tuple):
             classes = (classes,)
         bases = (self.__class__,) + classes

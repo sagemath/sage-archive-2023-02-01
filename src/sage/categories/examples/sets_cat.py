@@ -483,7 +483,7 @@ class PrimeNumbers_Wrapper(PrimeNumbers_Abstract):
             sage: P.category()
             Category of sets
             sage: P(13) == 13
-            False
+            True
             sage: ZZ(P(13)) == 13
             True
             sage: P(13) + 1 == 14
@@ -494,8 +494,6 @@ class PrimeNumbers_Wrapper(PrimeNumbers_Abstract):
         from sage.categories.homset import Hom
         self.mor = Hom(self, IntegerRing())(lambda z: z.value)
         self._populate_coercion_lists_(embedding=self.mor)
-
-
 
     def _repr_(self):
         """

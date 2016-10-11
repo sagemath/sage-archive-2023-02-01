@@ -47,8 +47,8 @@ References:
 Functions
 ---------
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import, division
+from six.moves import range
 
 from sage.arith.all import is_prime_power
 from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -119,7 +119,7 @@ def resolvable_balanced_incomplete_block_design(v,k,existence=False):
     if k==2:
         if existence:
             return True
-        classes = [[[(c+i)%(v-1),(c+v-i)%(v-1)] for i in range(1,v//2)]
+        classes = [[[(c+i)%(v-1),(c+v-i)%(v-1)] for i in range(1, v//2)]
                    for c in range(v-1)]
         for i,classs in enumerate(classes):
             classs.append([v-1,i])
@@ -211,7 +211,7 @@ def kirkman_triple_system(v,existence=False):
         q = (v-1)//2
         K = GF(q,'x')
         a = K.primitive_element()
-        t = (q-1)/6
+        t = (q - 1) // 6
 
         # m is the solution of a^m=(a^t+1)/2
         from sage.groups.generic import discrete_log
@@ -222,7 +222,7 @@ def kirkman_triple_system(v,existence=False):
         first_class = [[(0,1),(0,2),'inf']]
         b0 = K.one(); b1 = a**t; b2 = a**m
         first_class.extend([(b0*a**i,1),(b1*a**i,1),(b2*a**i,2)]
-                            for i in range(t)+range(2*t,3*t)+range(4*t,5*t))
+                            for i in list(range(t))+list(range(2*t,3*t))+list(range(4*t,5*t)))
         b0 = a**(m+t); b1=a**(m+3*t); b2=a**(m+5*t)
         first_class.extend([[(b0*a**i,2),(b1*a**i,2),(b2*a**i,2)]
                             for i in range(t)])
@@ -252,7 +252,7 @@ def kirkman_triple_system(v,existence=False):
         q = v//3
         K = GF(q,'x')
         a = K.primitive_element()
-        t = (q-1)/6
+        t = (q - 1) // 6
         A0 = [(0,0),(0,1),(0,2)]
         B  = [[(a**i,j),(a**(i+2*t),j),(a**(i+4*t),j)] for j in range(3)
               for i in range(t)]
@@ -272,7 +272,7 @@ def kirkman_triple_system(v,existence=False):
         classes = [[[relabel[action(p,x)] for x in tr] for tr in B0]
                    for p in K]
 
-        for i in range(t)+range(2*t,3*t)+range(4*t,5*t):
+        for i in list(range(t))+list(range(2*t,3*t))+list(range(4*t,5*t)):
             classes.append([[relabel[action(p,x)] for x in A[i]] for p in K])
 
         KTS = BalancedIncompleteBlockDesign(v,[tr for cl in classes for tr in cl],k=3,lambd=1,copy=False)
@@ -333,7 +333,7 @@ def kirkman_triple_system(v,existence=False):
             B.pop(0)
 
         # Pasting the KTS(n') without {x,x',\infty} blocks
-        classes = [[] for i in range((v-1)/2)]
+        classes = [[] for i in range((v-1) // 2)]
         gdd = {4:gdd4, 7: gdd7}
         for B in PBD_4_7((v-1)//2,check=False):
             for i,classs in enumerate(gdd[len(B)]):
@@ -466,7 +466,7 @@ def PBD_4_7(v,check=True, existence=False):
         # Beth/Jungnickel/Lenz: take KTS(15) and extend each of the 7 classes
         # with a new point. Make those new points a 7-set.
         KTS15 = kirkman_triple_system(15)
-        blocks = [S+[i+15] for i,classs in enumerate(KTS15._classes) for S in classs]+[range(15,22)]
+        blocks = [S+[i+15] for i,classs in enumerate(KTS15._classes) for S in classs]+[list(range(15, 22))]
 
     elif v == 34:
         # [BJL99] (p527,vol1), but originally Brouwer
@@ -481,7 +481,7 @@ def PBD_4_7(v,check=True, existence=False):
         D = [[(x+i,  y+i)     for x,y in D]+[33]   for i in range(9)]
 
         blocks = [[int(x) if not isinstance(x,tuple) else (x[1]%3)*9+(x[0]%9) for x in S]
-                  for S in A+B+C+D+[range(27,34)]]
+                  for S in A+B+C+D+[list(range(27,34))]]
     elif v == 46:
         # [BJL99] (p527,vol1), but originally Brouwer
         A = [(1,0),(3,0),(9,0),(0,1)]
@@ -497,7 +497,7 @@ def PBD_4_7(v,check=True, existence=False):
         E = [[(x+i,  y+i) for x,y in E]+[45]   for i in range(13)]
 
         blocks = [[int(x) if not isinstance(x,tuple) else (x[1]%3)*13+(x[0]%13) for x in S]
-                  for S in A+B+C+D+E+[range(39,46)]]
+                  for S in A+B+C+D+E+[list(range(39, 46))]]
 
     elif v == 58:
         # [BJL99] (p527,vol1), but originally Brouwer
@@ -516,7 +516,7 @@ def PBD_4_7(v,check=True, existence=False):
         F = [[(x+i,  y+i) for x,y in F]+[57]   for i in range(17)]
 
         blocks = [[int(x) if not isinstance(x,tuple) else (x[1]%3)*17+(x[0]%17) for x in S]
-                  for S in A+B+C+D+E+F+[range(51,58)]]
+                  for S in A+B+C+D+E+F+[list(range(51,58))]]
 
     elif v == 70:
         # [BJL99] (p527,vol1), but originally Brouwer
@@ -538,7 +538,7 @@ def PBD_4_7(v,check=True, existence=False):
 
         blocks = [[int(x) if not isinstance(x,tuple) else (x[1]%3)*21+(x[0]%21)
                    for x in S]
-                  for S in A+B+C+D+E+F+H+[range(63,70)]]
+                  for S in A+B+C+D+E+F+H+[list(range(63,70))]]
 
     elif v == 82:
         # This construction is Theorem IX.3.16 from [BJL99] (p.627).
@@ -567,7 +567,7 @@ def PBD_4_7(v,check=True, existence=False):
             for i in range(5):
                 GDD2.append([x+i*15 if x<15 else x+60 for x in B])
 
-        GDD2.append(range(75,82))
+        GDD2.append(list(range(75,82)))
         blocks = GDD2
 
     elif v == 94:
@@ -608,11 +608,11 @@ def PBD_4_7(v,check=True, existence=False):
                for i,classs in enumerate(rBIBD4._classes)
                for S in classs]
         if points_to_add == 7:
-            GDD.append(range(40,40+points_to_add))
+            GDD.append(list(range(40, 40 + points_to_add)))
             groups = [[x] for x in range(40+points_to_add)]
         else:
             groups = [[x] for x in range(40)]
-            groups.append(range(40,40+points_to_add))
+            groups.append(list(range(40,40+points_to_add)))
         GDD = GroupDivisibleDesign(40+points_to_add,
                                    groups = groups,
                                    blocks = GDD,
@@ -622,10 +622,10 @@ def PBD_4_7(v,check=True, existence=False):
 
         return PBD_4_7_from_Y(GDD,check=check)
 
-    elif v%6 == 1 and GDD_4_2((v-1)/6,existence=True):
+    elif v % 6 == 1 and GDD_4_2((v - 1) // 6, existence=True):
         # VII.5.17 from [BJL99]
-        gdd = GDD_4_2((v-1)/6)
-        return PBD_4_7_from_Y(gdd,check=check)
+        gdd = GDD_4_2((v - 1) // 6)
+        return PBD_4_7_from_Y(gdd, check=check)
 
     elif v == 202:
         # IV.4.5.p from [BJL99]
@@ -647,8 +647,8 @@ def PBD_4_7(v,check=True, existence=False):
         # construction on the truncated transversal design (which is a GDD).
         #
         # We write vv = 4g+u while satisfying the hypotheses.
-        vv = (v-1)/3
-        for g in range((vv+5-1)//5,vv//4+1):
+        vv = (v - 1) // 3
+        for g in range((vv + 5 - 1) // 5, vv // 4 + 1):
             u = vv-4*g
             if (orthogonal_array(5,g,existence=True) and
                 PBD_4_7(3*g+1,existence=True)        and

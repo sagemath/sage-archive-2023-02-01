@@ -1039,7 +1039,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1]])
             sage: p.triangulations_list()
             [(<0,1,2>, <1,2,3>), (<0,1,3>, <0,2,3>)]
-            sage: map(list, p.triangulations_list() )
+            sage: list(map(list, p.triangulations_list()))
             [[(0, 1, 2), (1, 2, 3)], [(0, 1, 3), (0, 2, 3)]]
             sage: p.set_engine('topcom')       # optional - topcom
             sage: p.triangulations_list()      # optional - topcom

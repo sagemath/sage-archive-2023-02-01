@@ -1713,7 +1713,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Do not add redundant elements (notice only one copy of each constraint is added)::
 
             sage: lp = MixedIntegerLinearProgram(solver="GLPK", check_redundant=True)
-            sage: for each in xrange(10): lp.add_constraint(lp[0]-lp[1],min=1)
+            sage: for each in range(10): lp.add_constraint(lp[0]-lp[1],min=1)
             sage: lp.show()
             Maximization:
             <BLANKLINE>
@@ -1725,7 +1725,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         We check for constant multiples of constraints as well::
 
-            sage: for each in xrange(10): lp.add_constraint(2*lp[0]-2*lp[1],min=2)
+            sage: for each in range(10): lp.add_constraint(2*lp[0]-2*lp[1],min=2)
             sage: lp.show()
             Maximization:
             <BLANKLINE>
@@ -1737,7 +1737,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         But if the constant multiple is negative, we should add it anyway (once)::
 
-              sage: for each in xrange(10): lp.add_constraint(-2*lp[0]+2*lp[1],min=-2)
+              sage: for each in range(10): lp.add_constraint(-2*lp[0]+2*lp[1],min=-2)
               sage: lp.show()
               Maximization:
               <BLANKLINE>
@@ -1942,7 +1942,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(check_redundant=True, solver='GLPK')
             sage: x, y = p[0], p[1]
             sage: p.add_constraint(x + y, max = 10)
-            sage: for each in xrange(10): p.add_constraint(x - y, max = 10)
+            sage: for each in range(10): p.add_constraint(x - y, max = 10)
             sage: p.add_constraint(x, max = 4)
             sage: p.number_of_constraints()
             3
@@ -1956,7 +1956,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         We should now be able to add the old constraint back in::
 
-            sage: for each in xrange(10): p.add_constraint(x - y, max = 10)
+            sage: for each in range(10): p.add_constraint(x - y, max = 10)
             sage: p.number_of_constraints()
             3
         """
@@ -2291,7 +2291,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         r"""
         Sets the maximum value of a variable.
 
-        INPUT
+        INPUT:
 
         - ``v`` -- a variable.
 
@@ -2487,11 +2487,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         The following command::
 
-            sage: s = p.sum([v[i] for i in xrange(90)])
+            sage: s = p.sum(v[i] for i in range(90))
 
         is much more efficient than::
 
-            sage: s = sum([v[i] for i in xrange(90)])
+            sage: s = sum(v[i] for i in range(90))
         """
         d = {}
         for v in L:

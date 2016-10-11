@@ -9,7 +9,7 @@ A vector space morphism is a homomorphism between vector spaces, better known
 as a linear transformation.  These are a specialization of Sage's free module
 homomorphisms.  (A free module is like a vector space, but with scalars from a
 ring that may not be a field.)  So references to free modules in the
-documentation or error messages should be understood as simply reflectng a
+documentation or error messages should be understood as simply reflecting a
 more general situation.
 
 Creation
@@ -385,7 +385,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
       ``images`` is a list, or tuple, of codomain elements, equal in number
       to the size of the basis of the domain.  Each basis element of the domain
       is mapped to the corresponding element of the ``images`` list, and the
-      linear transformation returned is the unique linear transfromation that
+      linear transformation returned is the unique linear transformation that
       extends this mapping.
 
     OUTPUT:

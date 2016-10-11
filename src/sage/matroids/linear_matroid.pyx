@@ -108,15 +108,15 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 include 'sage/data_structures/bitset.pxi'
 
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
-from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
-from set_system cimport SetSystem
-from utilities import newlabel, spanning_stars, spanning_forest, lift_cross_ratios
+from .lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
+from .set_system cimport SetSystem
+from .utilities import newlabel, spanning_stars, spanning_forest, lift_cross_ratios
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.graph import Graph
 
@@ -1887,7 +1887,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         A linear matroid `N = M([A\ \ b])`, where `A` is a matrix such that
         the current matroid is `M[A]`, and `b` is either given by ``col`` or
-        is a weighted combination of columns of `A`, the weigths being given
+        is a weighted combination of columns of `A`, the weights being given
         by ``chain``.
 
         .. SEEALSO::
@@ -2054,7 +2054,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         A list of linear matroids `N = M([A b])`, where `A` is a matrix such
         that the current matroid is `M[A]`, and `b` is a weighted combination
-        of columns of `A`, the weigths being given by the elements of
+        of columns of `A`, the weights being given by the elements of
         ``chains``.
 
         EXAMPLES::

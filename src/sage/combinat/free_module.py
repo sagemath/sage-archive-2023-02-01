@@ -20,7 +20,6 @@ from sage.misc.misc import repr_lincomb
 from sage.modules.module import Module
 from sage.rings.all import Integer
 import sage.structure.element
-from sage.combinat.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.combinat.cartesian_product import CartesianProduct_iters
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -1266,7 +1265,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         return x
 
     # What semantic do we want for containment?
-    # Accepting anything that can be coerced is not reasonnable, especially
+    # Accepting anything that can be coerced is not reasonable, especially
     # if we allow coercion from the enumerated set.
     # Accepting anything that can be converted is an option, but that would
     # be expensive. So far, x in self if x.parent() == self
@@ -2195,7 +2194,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         def _tensor_of_elements(self, elements):
             """
             Returns the tensor product of the specified elements.
-            The result should be in self.
+            The result should be in ``self``.
 
             EXAMPLES::
 

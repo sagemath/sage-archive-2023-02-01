@@ -55,6 +55,9 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function
 
+from six.moves import range
+from six import itervalues
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
@@ -296,8 +299,8 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
 
     prod = (M*M.transpose()).dict()
     if (len(prod) != n or
-        set(prod.itervalues()) != {n} or
-        any( (i,i) not in prod for i in range(n) )):
+        set(itervalues(prod)) != {n} or
+        any((i, i) not in prod for i in range(n))):
         if verbose:
             print("The product M*M.transpose() is not equal to nI")
         return False
@@ -310,13 +313,13 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
             return False
 
     if skew:
-        for i in xrange(n-1):
-            for j in xrange(i+1, n):
+        for i in range(n-1):
+            for j in range(i+1, n):
                 if M[i,j] != -M[j,i]:
                     if verbose:
                         print("The matrix is not skew")
                     return False
-        for i in xrange(n):
+        for i in range(n):
             if M[i,i] != 1:
                 if verbose:
                     print("The matrix is not skew - diagonal entries must be all 1")
@@ -714,7 +717,7 @@ def RSHCD_324(e):
         sage: from sage.combinat.matrices.hadamard_matrix import RSHCD_324, is_hadamard_matrix
         sage: for e in [1,-1]: # long time
         ....:     M = RSHCD_324(e) # long time
-        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in xrange(324)]))) # long time
+        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in range(324)]))) # long time
         ....:     print(set(map(sum,M))) # long time
         True True True
         set([18])

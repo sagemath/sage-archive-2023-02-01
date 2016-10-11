@@ -72,7 +72,7 @@ The following example shows all these steps::
     Optimal solution found.
     sage: print('Objective Value: {}'.format(round(opt,3)))
     Objective Value: 3.0
-    sage: map(lambda x: round(x,3), p.get_values(x).itervalues())
+    sage: [round(x,3) for x in p.get_values(x).values()]
     [-1.0, 2.0]
     sage: p.show()
     Maximization:
@@ -1107,11 +1107,11 @@ cdef class SemidefiniteProgram(SageObject):
 
         The following command::
 
-            sage: s = p.sum([v[i] for i in xrange(90)])
+            sage: s = p.sum(v[i] for i in range(90))
 
         is much more efficient than::
 
-            sage: s = sum([v[i] for i in xrange(90)])
+            sage: s = sum(v[i] for i in range(90))
         """
         d = {}
         for v in L:

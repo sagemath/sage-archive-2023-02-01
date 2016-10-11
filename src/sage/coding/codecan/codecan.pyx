@@ -51,10 +51,6 @@ AUTHORS:
 
 - Thomas Feulner (2012-11-15): initial version
 
-REFERENCES:
-
-[Feu2009]_
-
 EXAMPLES:
 
 Get the canonical form of the Simplex code::
@@ -297,7 +293,7 @@ cdef class InnerGroup:
                     factor = d.get(self.get_rep(i))
                     if factor and not factor.is_zero():
                         m.rescale_row(i, factor)
-                for i in d.iterkeys():
+                for i in d:
                     first_nz_rep = self.join_rows(first_nz_rep, i)
                 # rescale the already fixed part by column multiplications
                 for col in fixed_minimized_cols:
@@ -835,16 +831,15 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         # finally compare the new column with the best candidate
         if self._is_candidate_initialized:
-            cmp_res = cmp(self._matrix.column(pos), self._best_candidate.column(
-                self._inner_min_order_best[ len(self._fixed_minimized) ]))
-            if cmp_res > 0:
+            A = self._matrix.column(pos)
+            B = self._best_candidate.column(
+                self._inner_min_order_best[len(self._fixed_minimized)])
+            if B < A:
                 return False
-            if cmp_res < 0:
+            if A < B:
                 # the next leaf will become the next candidate
                 self._is_candidate_initialized = False
         return True
-
-
 
     cdef bint _refine(self, bint *part_changed,
                       bint inner_group_changed, bint first_step):

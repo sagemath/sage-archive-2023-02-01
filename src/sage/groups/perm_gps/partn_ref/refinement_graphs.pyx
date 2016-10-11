@@ -91,7 +91,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
                 G_in = copy(G_in)
                 to = G_in.relabel(return_map=True)
                 frm = {}
-                for v in to.iterkeys():
+                for v in to:
                     frm[to[v]] = v
                 if first:
                     partition = [[to[v] for v in cell] for cell in partn]
@@ -274,8 +274,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: GD = DenseGraph(20)
         sage: GS = SparseGraph(20)
         sage: for i,j,_ in G.edge_iterator():
-        ...    GD.add_arc(i,j); GD.add_arc(j,i)
-        ...    GS.add_arc(i,j); GS.add_arc(j,i)
+        ....:  GD.add_arc(i,j); GD.add_arc(j,i)
+        ....:  GS.add_arc(i,j); GS.add_arc(j,i)
         sage: Pi=[range(20)]
         sage: a,b = st(G, Pi)
         sage: asp,bsp = st(GS, Pi)
@@ -382,7 +382,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
             G_in = copy(G_in)
             to = G_in.relabel(return_map=True)
             frm = {}
-            for v in to.iterkeys():
+            for v in to:
                 frm[to[v]] = v
             partition = [[to[v] for v in cell] for cell in partition]
         else:
@@ -459,7 +459,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
     return_tuple = [list_of_gens]
     if dict_rep:
         ddd = {}
-        for v in frm.iterkeys():
+        for v in frm:
             ddd[frm[v]] = v if v != 0 else n
         return_tuple.append(ddd)
     if lab:
@@ -745,16 +745,16 @@ def all_labeled_graphs(n):
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in [1..5]:  # long time (4s on sage.math, 2011)
-        ...    Glist[n] = all_labeled_graphs(n)
-        ...    Giso[n] = []
-        ...    for g in Glist[n]:
-        ...        a, b = st(g, [range(n)])
-        ...        inn = False
-        ...        for gi in Giso[n]:
-        ...            if b == gi:
-        ...                inn = True
-        ...        if not inn:
-        ...            Giso[n].append(b)
+        ....:  Glist[n] = all_labeled_graphs(n)
+        ....:  Giso[n] = []
+        ....:  for g in Glist[n]:
+        ....:      a, b = st(g, [range(n)])
+        ....:      inn = False
+        ....:      for gi in Giso[n]:
+        ....:          if b == gi:
+        ....:              inn = True
+        ....:      if not inn:
+        ....:          Giso[n].append(b)
         sage: for n in Giso:  # long time
         ....:    print("{} {}".format(n, len(Giso[n])))
         1 1
@@ -1548,7 +1548,7 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
     ::
 
         sage: for n in [0..7]:
-        ...     generate_dense_graphs_vert_addition(n)
+        ....:   generate_dense_graphs_vert_addition(n)
         1
         2
         4

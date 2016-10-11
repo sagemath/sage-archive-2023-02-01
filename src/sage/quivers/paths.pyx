@@ -265,7 +265,7 @@ cdef class QuiverPath(MonoidElement):
         """
         Comparison for :class:`QuiverPaths`.
 
-        The following data (listed in order of preferance) is used for
+        The following data (listed in order of preference) is used for
         comparison:
 
         - **Negative** length of the paths

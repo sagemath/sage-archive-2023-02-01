@@ -20,7 +20,6 @@ from sage.rings.real_mpfr cimport RealNumber
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
-from sage.libs.pari.pari_instance import PariInstance
 from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
@@ -96,6 +95,8 @@ cdef class SymbolicRing(CommutativeRing):
             2
             sage: SR.coerce(-infinity)
             -Infinity
+            sage: SR.coerce(unsigned_infinity)
+            Infinity
             sage: SR.has_coerce_map_from(ZZ['t'])
             True
             sage: SR.has_coerce_map_from(ZZ['t,u,v'])
@@ -114,8 +115,13 @@ cdef class SymbolicRing(CommutativeRing):
             True
             sage: SR.has_coerce_map_from(ComplexBallField())
             True
+            sage: SR.has_coerce_map_from(UnsignedInfinityRing)
+            True
 
-        TESTS:
+        TESTS::
+
+            sage: SR.has_coerce_map_from(pari)
+            False
 
         Check if arithmetic with bools works (see :trac:`9560`)::
 
@@ -177,7 +183,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing)
+                                        RLF, CLF, AA, QQbar, InfinityRing,
+                                        UnsignedInfinityRing)
             from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
             from sage.interfaces.maxima import Maxima
@@ -190,14 +197,12 @@ cdef class SymbolicRing(CommutativeRing):
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R) or is_LaurentPolynomialRing(R):
                 base = R.base_ring()
                 return base is not self and self.has_coerce_map_from(base)
-            elif (R is InfinityRing
+            elif (R is InfinityRing or R is UnsignedInfinityRing
                   or is_RealIntervalField(R) or is_ComplexIntervalField(R)
                   or isinstance(R, RealBallField)
                   or isinstance(R, ComplexBallField)
                   or is_IntegerModRing(R) or is_FiniteField(R)):
                 return True
-            elif isinstance(R, (Maxima, PariInstance)):
-                return False
             elif isinstance(R, GenericSymbolicSubring):
                 return True
 

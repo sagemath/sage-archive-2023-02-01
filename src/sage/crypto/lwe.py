@@ -95,6 +95,7 @@ REFERENCES:
    LWE-Encryption with Uniform Secret. Cryptology ePrint Archive, Report
    2013/164. 2013.  2013/164. http://eprint.iacr.org/2013/164
 """
+from six.moves import range
 
 from sage.functions.log import exp, log
 from sage.functions.other import sqrt, floor, ceil
@@ -757,7 +758,7 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
         f = lambda a_c: a_c
     else:
         f = balance_sample
-    return [f(lwe()) for _ in xrange(m)]
+    return [f(lwe()) for _ in range(m)]
 
 def balance_sample(s, q=None):
     r"""
@@ -776,7 +777,7 @@ def balance_sample(s, q=None):
     EXAMPLE::
 
         sage: from sage.crypto.lwe import balance_sample, samples, Regev
-        sage: map(balance_sample, samples(10, 5, Regev))
+        sage: list(map(balance_sample, samples(10, 5, Regev)))
         [((-9, -4, -4, 4, -4), 4), ((-8, 11, 12, -11, -11), -7),
         ...
         ((-11, 12, 0, -6, -3), 7), ((-7, 14, 8, 11, -8), -12)]
@@ -785,7 +786,7 @@ def balance_sample(s, q=None):
         sage: from sage.crypto.lwe import balance_sample, DiscreteGaussianDistributionPolynomialSampler, RingLWE, samples
         sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 5)
         sage: rlwe = RingLWE(20, 257, D)
-        sage: map(balance_sample, samples(10, 8, rlwe))
+        sage: list(map(balance_sample, samples(10, 8, rlwe)))
         [((-7, -37, -64, 107, -91, -24, 120, 54), (74, 83, 18, 55, -53, 43, 4, 10)),
         ...
         ((-63, 34, 82, -112, 49, 89, -72, -41), (117, 43, 13, -37, 102, 55, -97, 56))]

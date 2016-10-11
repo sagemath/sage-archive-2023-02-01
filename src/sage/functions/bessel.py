@@ -125,7 +125,7 @@ EXAMPLES:
         sage: bessel_J(0, x)
         bessel_J(0, x)
         sage: bessel_J(0, 0)
-        bessel_J(0, 0)
+        1
         sage: bessel_J(0, x).diff(x)
         -1/2*bessel_J(1, x) + 1/2*bessel_J(-1, x)
 
@@ -224,11 +224,12 @@ from sage.symbolic.expression import Expression
 
 # remove after deprecation period
 from sage.calculus.calculus import maxima
-from sage.functions.other import real, imag
+from sage.functions.trig import sin, cos
+from sage.functions.other import real, imag, sqrt
 from sage.misc.sage_eval import sage_eval
 from sage.rings.real_mpfr import RealField
 from sage.plot.plot import plot
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
 
 
 class Function_Bessel_J(BuiltinFunction):
@@ -335,11 +336,46 @@ class Function_Bessel_J(BuiltinFunction):
 
             sage: sage.functions.bessel.Function_Bessel_J()
             bessel_J
+            sage: bessel_J(x, x)._sympy_()
+            besselj(x, x)
         """
         BuiltinFunction.__init__(self, "bessel_J", nargs=2,
                                  conversions=dict(mathematica='BesselJ',
                                                   maxima='bessel_j',
                                                   sympy='besselj'))
+
+    def _eval_(self, n, x):
+        """
+        EXAMPLES::
+
+            sage: n = var('n')
+            sage: bessel_J(0, 0)
+            1
+            sage: bessel_J(I, 0)
+            bessel_J(I, 0)
+            sage: bessel_J(5/2, 0)
+            0
+            sage: bessel_J(-5/2, 0)
+            Infinity
+            sage: bessel_J(1/2, x)
+            sqrt(2)*sqrt(1/(pi*x))*sin(x)
+            sage: bessel_J(-1/2, x)
+            sqrt(2)*sqrt(1/(pi*x))*cos(x)
+            sage: bessel_J(n, 0)
+            bessel_J(n, 0)
+        """
+        from sage.rings.infinity import unsigned_infinity
+        if not isinstance(x, Expression) and x == 0:
+            if n == 0:
+                return ZZ(1)
+            elif n.real() > 0 or n in ZZ:
+                return ZZ(0)
+            elif n.real() < 0:
+                return unsigned_infinity
+        if n == QQ(1)/2:
+            return sqrt(2/pi/x) * sin(x)
+        elif n == QQ(-1)/2:
+            return sqrt(2/pi/x) * cos(x)
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
@@ -515,11 +551,37 @@ class Function_Bessel_Y(BuiltinFunction):
 
             sage: sage.functions.bessel.Function_Bessel_Y()(0, x)
             bessel_Y(0, x)
+            sage: bessel_Y(x, x)._sympy_()
+            bessely(x, x)
         """
         BuiltinFunction.__init__(self, "bessel_Y", nargs=2,
                                  conversions=dict(mathematica='BesselY',
                                                   maxima='bessel_y',
                                                   sympy='bessely'))
+
+    def _eval_(self, n, x):
+        """
+        EXAMPLES::
+
+            sage: bessel_Y(1, 0)
+            Infinity
+            sage: bessel_Y(I,0)
+            bessel_Y(I, 0)
+            sage: bessel_Y(1/2, x)
+            -sqrt(2)*sqrt(1/(pi*x))*cos(x)
+            sage: bessel_Y(-1/2, x)
+            sqrt(2)*sqrt(1/(pi*x))*sin(x)
+        """
+        from sage.rings.infinity import infinity, unsigned_infinity
+        if not isinstance(x, Expression) and x == 0:
+            if n == 0:
+                return -infinity
+            elif n.real() > 0 or n.real() < 0:
+                return unsigned_infinity
+        if n == QQ(1)/2:
+            return -sqrt(2/pi/x) * cos(x)
+        elif n == QQ(-1)/2:
+            return sqrt(2/pi/x) * sin(x)
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
@@ -688,6 +750,8 @@ class Function_Bessel_I(BuiltinFunction):
 
             sage: bessel_I(1,x)
             bessel_I(1, x)
+            sage: bessel_I(x, x)._sympy_()
+            besseli(x, x)
         """
         BuiltinFunction.__init__(self, "bessel_I", nargs=2,
                                  conversions=dict(mathematica='BesselI',
@@ -698,26 +762,42 @@ class Function_Bessel_I(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: y=var('y')
-            sage: bessel_I(y,x)
+            sage: n,y = var('n,y')
+            sage: bessel_I(y, x)
             bessel_I(y, x)
-            sage: bessel_I(0.0, 1.0)
-            1.26606587775201
+            sage: bessel_I(0, 0)
+            1
+            sage: bessel_I(7/2, 0)
+            0
+            sage: bessel_I(-7/2, 0)
+            Infinity
             sage: bessel_I(1/2, 1)
             sqrt(2)*sinh(1)/sqrt(pi)
             sage: bessel_I(-1/2, pi)
             sqrt(2)*cosh(pi)/pi
+            sage: bessel_I(n, 0)
+            bessel_I(n, 0)
         """
-        # special identities
-        if n == Integer(1) / Integer(2):
+        from sage.rings.infinity import unsigned_infinity
+        if not isinstance(x, Expression) and x == 0:
+            if n == 0:
+                return ZZ(1)
+            elif n.real() > 0 or n in ZZ:
+                return ZZ(0)
+            elif n.real() < 0:
+                return unsigned_infinity
+        if n == QQ(1)/2:
             return sqrt(2 / (pi * x)) * sinh(x)
-        elif n == -Integer(1) / Integer(2):
+        elif n == -QQ(1)/2:
             return sqrt(2 / (pi * x)) * cosh(x)
+
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
+            sage: bessel_I(0.0, 1.0)
+            1.26606587775201
             sage: bessel_I(1,3).n(digits=20)
             3.9533702174026093965
         """
@@ -793,9 +873,9 @@ class Function_Bessel_K(BuiltinFunction):
         -1/2*bessel_K(3, x) - 1/2*bessel_K(1, x)
 
         sage: bessel_K(1/2, x)
-        bessel_K(1/2, x)
+        sqrt(1/2)*sqrt(pi)*e^(-x)/sqrt(x)
         sage: bessel_K(1/2, -1)
-        bessel_K(1/2, -1)
+        -I*sqrt(1/2)*sqrt(pi)*e
         sage: bessel_K(1/2, 1)
         sqrt(1/2)*sqrt(pi)*e^(-1)
 
@@ -869,6 +949,8 @@ class Function_Bessel_K(BuiltinFunction):
 
             sage: sage.functions.bessel.Function_Bessel_K()
             bessel_K
+            sage: bessel_K(x, x)._sympy_()
+            besselk(x, x)
         """
         BuiltinFunction.__init__(self, "bessel_K", nargs=2,
                                  conversions=dict(mathematica='BesselK',
@@ -879,16 +961,23 @@ class Function_Bessel_K(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: bessel_K(1,0)
-            bessel_K(1, 0)
-            sage: bessel_K(1.0, 0.0)
-            +infinity
-            sage: bessel_K(-1, 1).n(128)
-            0.60190723019723457473754000153561733926
+            sage: n = var('n')
+            sage: bessel_K(1, 0)
+            Infinity
+            sage: bessel_K(1/2, x)
+            sqrt(1/2)*sqrt(pi)*e^(-x)/sqrt(x)
+            sage: bessel_K(n, 0)
+            bessel_K(n, 0)
         """
-        # special identity
-        if n == Integer(1) / Integer(2) and x > 0:
+        from sage.rings.infinity import unsigned_infinity
+        if not isinstance(x, Expression) and x == 0:
+            if n == 0:
+                return infinity
+            elif n.real() > 0 or n.real() < 0:
+                return unsigned_infinity
+        if n == QQ(1)/2 or n == -QQ(1)/2 and x > 0:
             return sqrt(pi / 2) * exp(-x) * x ** (-Integer(1) / Integer(2))
+
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
@@ -896,6 +985,8 @@ class Function_Bessel_K(BuiltinFunction):
 
             sage: bessel_K(0.0, 1.0)
             0.421024438240708
+            sage: bessel_K(-1, 1).n(128)
+            0.60190723019723457473754000153561733926
             sage: bessel_K(0, RealField(128)(1))
             0.42102443824070833333562737921260903614
         """
@@ -1151,8 +1242,7 @@ class Function_Struve_H(BuiltinFunction):
         BuiltinFunction.__init__(self, 'struve_H', nargs=2,
                                  conversions=dict(maple='StruveH',
                                                   mathematica='StruveH',
-                                                  maxima='struve_h',
-                                                  sympy='struveh'))
+                                                  maxima='struve_h'))
 
     def _eval_(self, a, z):
         """
@@ -1265,8 +1355,7 @@ class Function_Struve_L(BuiltinFunction):
         BuiltinFunction.__init__(self, 'struve_L', nargs=2,
                                  conversions=dict(maple='StruveL',
                                                   mathematica='StruveL',
-                                                  maxima='struve_l',
-                                                  sympy='struvel'))
+                                                  maxima='struve_l'))
 
     def _eval_(self, a, z):
         """

@@ -30,6 +30,7 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.matrix.constructor import matrix, diagonal_matrix
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -424,32 +425,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             wd.append(tmp * symbolic_sum(binomial(i-1, s) * (-1) ** s * q ** (i - d - s), s, 0, i-d))
         return wd
 
-    def weight_enumerator(self):
-        r"""
-        Returns the polynomial whose coefficient to `x^i` is the number of codewords of weight `i` in ``self``.
-
-        Computing the weight enumerator for a GRS code is very fast. Note that
-        for random linear codes, it is computationally hard.
-
-        EXAMPLES::
-
-            sage: F = GF(11)
-            sage: n, k = 10, 5
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C.weight_enumerator()
-            62200*x^10 + 61500*x^9 + 29250*x^8 + 6000*x^7 + 2100*x^6 + 1
-        """
-        PolRing = ZZ['x']
-        x = PolRing.gen()
-        s = var('s')
-        wd = self.weight_distribution()
-        d = self.minimum_distance()
-        n = self.length()
-        w_en = PolRing(1)
-        for i in range(n + 1 - d):
-            w_en += wd[i + d] * x ** (i + d)
-        return w_en
-
     def _punctured_form(self, points):
         r"""
         Returns a representation of self as a
@@ -513,11 +488,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 
 
-
-
-####################### encoders ###############################
-
-
 ####################### encoders ###############################
 
 
@@ -557,7 +527,6 @@ class GRSEvaluationVectorEncoder(Encoder):
             Evaluation vector-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
         """
         super(GRSEvaluationVectorEncoder, self).__init__(code)
-        self._R = code.base_field()['x']
 
     def __eq__(self, other):
         r"""
@@ -647,6 +616,10 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     - ``code`` -- The associated code of this encoder.
 
+    - ``polynomial_ring`` -- (default: ``None``)  A polynomial ring to specify
+      the message space of ``self``, if needed. It is set to `F[x]` (where `F`
+      is the base field of ``code``) if default value is kept.
+
     EXAMPLES::
 
         sage: F = GF(59)
@@ -663,21 +636,58 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         sage: E = C.encoder("EvaluationPolynomial")
         sage: E
         Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+
+    We can also specify another polynomial ring::
+
+        sage: R = PolynomialRing(F, 'y')
+        sage: E = C.encoder("EvaluationPolynomial", polynomial_ring=R)
+        sage: E.message_space()
+        Univariate Polynomial Ring in y over Finite Field of size 59
     """
 
-    def __init__(self, code):
+    def __init__(self, code, polynomial_ring = None):
         r"""
-        EXAMPLES::
+        TESTS:
+
+        If ``polynomial_ring`` is not a polynomial ring, an exception is raised::
 
             sage: F = GF(59)
             sage: n, k = 40, 12
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C)
-            sage: E
-            Evaluation polynomial-style encoder for [40, 12, 29] Generalized Reed-Solomon Code over Finite Field of size 59
+            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C, polynomial_ring = F)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial_ring has to be a univariate polynomial ring
+
+        Same if ``polynomial_ring`` is a multivariate polynomial ring::
+
+            sage: Fxy.<x,y> = F[]
+            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C, polynomial_ring = Fxy)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial_ring has to be a univariate polynomial ring
+
+        ``polynomial_ring``'s base field and ``code``'s base field have to be the same::
+
+            sage: Gx.<x> = GF(7)[]
+            sage: E = codes.encoders.GRSEvaluationPolynomialEncoder(C, polynomial_ring = Gx)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial_ring's base field has to be the same as code's
+
         """
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
         super(GRSEvaluationPolynomialEncoder, self).__init__(code)
-        self._R = code.base_field()['x']
+        if polynomial_ring is None:
+            self._polynomial_ring = code.base_field()['x']
+        else:
+            if not isinstance(polynomial_ring, PolynomialRing_commutative):
+                raise ValueError("polynomial_ring has to be a univariate polynomial ring")
+            elif not len(polynomial_ring.variable_names()) == 1:
+                raise ValueError("polynomial_ring has to be a univariate polynomial ring")
+            if not polynomial_ring.base_ring() == code.base_field():
+                raise ValueError("polynomial_ring's base field has to be the same as code's")
+            self._polynomial_ring = polynomial_ring
 
     def __eq__(self, other):
         r"""
@@ -694,9 +704,14 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             False
             sage: D1.__eq__(D2)
             True
+            sage: R = PolynomialRing(F, 'y')
+            sage: D3 = codes.encoders.GRSEvaluationPolynomialEncoder(C, polynomial_ring=R)
+            sage: D1.__eq__(D3)
+            False
         """
-        return isinstance(other, GRSEvaluationPolynomialEncoder) \
+        return (isinstance(other, GRSEvaluationPolynomialEncoder)
                 and self.code() == other.code()
+                and self.polynomial_ring() == other.polynomial_ring())
 
     def _repr_(self):
         r"""
@@ -770,6 +785,20 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             Traceback (most recent call last):
             ...
             ValueError: The value to encode must be in Univariate Polynomial Ring in x over Finite Field of size 11
+
+        TESTS:
+
+        The bug described in :trac:`20744` is now fixed::
+
+            sage: F = GF(11)
+            sage: Fm.<my_variable> = F[]
+            sage: n, k = 10 , 5
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: E = C.encoder("EvaluationPolynomial", polynomial_ring = Fm)
+            sage: p = my_variable^2 + 3*my_variable + 10
+            sage: c = E.encode(p)
+            sage: c in C
+            True
         """
         M = self.message_space()
         if p not in M:
@@ -831,7 +860,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         c = [c[i]/col_mults[i] for i in range(C.length())]
         points = [(alphas[i], c[i]) for i in range(C.dimension())]
 
-        Pc = self._R.lagrange_polynomial(points)
+        Pc = self.polynomial_ring().lagrange_polynomial(points)
         return Pc
 
     def message_space(self):
@@ -847,7 +876,9 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: E.message_space()
             Univariate Polynomial Ring in x over Finite Field of size 11
         """
-        return self._R
+        return self._polynomial_ring
+
+    polynomial_ring = message_space
 
 
 
@@ -898,7 +929,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSBerlekampWelchDecoder(C)
             Traceback (most recent call last):
             ...
@@ -1013,8 +1044,8 @@ class GRSBerlekampWelchDecoder(Decoder):
         S  = S.basis_matrix().row(0)
         R = C.base_field()['x']
 
-        Q0 = R(S.list_from_positions(xrange(0, l0+1)))
-        Q1 = R(S.list_from_positions(xrange(l0+1, l0+l1+2)))
+        Q0 = R(S.list_from_positions(range(l0 + 1)))
+        Q1 = R(S.list_from_positions(range(l0 + 1, l0 + l1 + 2)))
 
         f, rem = (-Q0).quo_rem(Q1)
         if not rem.is_zero():
@@ -1213,7 +1244,7 @@ class GRSGaoDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSGaoDecoder(C)
             Traceback (most recent call last):
             ...
@@ -1586,7 +1617,7 @@ class GRSErrorErasureDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSErrorErasureDecoder(C)
             Traceback (most recent call last):
             ...
@@ -1795,10 +1826,6 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
     This algorithm uses early terminated extended euclidean algorithm
     to solve the key equations, as described in [R06]_, pp. 183-195.
 
-    REFERENCES:
-
-        .. [R06] Ron Roth, Introduction to Coding Theory, Cambridge University Press, 2006
-
     INPUT:
 
     - ``code`` -- The associated code of this decoder.
@@ -1833,7 +1860,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
         If ``code`` is not a GRS code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             Traceback (most recent call last):
             ...

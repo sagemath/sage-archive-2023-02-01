@@ -145,7 +145,7 @@ You can work with subcones that form faces of other cones::
 If you need to know inclusion relations between faces, you can use ::
 
     sage: L = four_rays.face_lattice()
-    sage: map(len, L.level_sets())
+    sage: list(map(len, L.level_sets()))
     [1, 4, 4, 1]
     sage: face = L.level_sets()[2][0]
     sage: face.rays()
@@ -2450,7 +2450,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             N(1, 0)
             in 2-d lattice N
 
-        ... or you can see indices of the rays of the orginal cone that
+        ... or you can see indices of the rays of the original cone that
         correspond to the above ray::
 
             sage: face.ambient_ray_indices()
@@ -5732,7 +5732,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
             ])
 
     # Now we actually compute the thing. To avoid recursion (and the
-    # associated "maximum recustion depth exceeded" error), we loop
+    # associated "maximum recursion depth exceeded" error), we loop
     # until we have a valid cone and occasionally throw everything out
     # and start over from scratch.
     while True:

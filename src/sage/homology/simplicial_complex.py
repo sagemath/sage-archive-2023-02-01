@@ -146,8 +146,8 @@ We can also make mutable copies of an immutable simplicial complex
     sage: S == T
     True
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 # possible future directions for SimplicialComplex:
 #
@@ -525,7 +525,7 @@ class Simplex(SageObject):
             sage: len(Simplex(10).faces())
             11
         """
-        return [self.face(i) for i in range(self.dimension()+1)]
+        return [self.face(i) for i in range(self.dimension() + 1)]
 
     def dimension(self):
         """
@@ -1006,7 +1006,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             else:
                 vertices = tuple(vertex_set)
         except TypeError:  # vertex_set is an integer
-            vertices = tuple(range(vertex_set+1))
+            vertices = tuple(range(vertex_set + 1))
         gen_dict = {}
         for v in vertices:
             if name_check:
@@ -1280,7 +1280,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             # sub_facets is the dictionary of facets in the subcomplex
             sub_facets = {}
             dimension = max([face.dimension() for face in self._facets])
-            for i in range(-1, dimension+1):
+            for i in range(-1, dimension + 1):
                 Faces[i] = set([])
                 sub_facets[i] = set([])
             for f in self._facets:
@@ -1324,7 +1324,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             [(), (2,), (0,), (1,), (1, 2), (0, 2), (0, 1)]
         """
         Fs = self.faces()
-        dim_index = xrange(-1, self.dimension()+1)
+        dim_index = range(-1, self.dimension() + 1)
         if not increasing:
             dim_index = reversed(dim_index)
         for i in dim_index:
@@ -1476,7 +1476,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         d = self.dimension()
         f = self.f_vector()  # indexed starting at 0, since it's a Python list
         h = []
-        for j in range(0, d+2):
+        for j in range(0, d + 2):
             s = 0
             for i in range(-1, j):
                 s += (-1)**(j-i-1) * binomial(d-i, j-i-1) * f[i+1]
@@ -1506,7 +1506,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         d = self.dimension()
         h = self.h_vector()
         g = [1]
-        for i in range(1, floor((d+1)/2) + 1):
+        for i in range(1, (d + 1) // 2 + 1):
             g.append(h[i] - h[i-1])
         return g
 
@@ -2095,7 +2095,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                                                sort_facets=False, is_mutable=False)
         # now construct the range of dimensions in which to compute
         if dimensions is None:
-            dimensions = range(0, self.dimension()+1)
+            dimensions = list(range(self.dimension() + 1))
             first = 0
         else:
             augmented = False
@@ -2160,7 +2160,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 col = 0
                 if len(old) and len(current):
                     for simplex in current:
-                        for i in range(n+1):
+                        for i in range(n + 1):
                             face_i = simplex.face(i)
                             try:
                                 matrix_data[(old[face_i], col)] = (-1)**i
@@ -2302,7 +2302,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             else:
                 low = dim - 1
                 high = dim + 2
-            dims = range(low, high)
+            dims = list(range(low, high))
         else:
             dims = None
 
@@ -2344,7 +2344,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                             algorithm=algorithm)
 
         if dim is None:
-            dim = range(self.dimension()+1)
+            dim = list(range(self.dimension() + 1))
         zero = HomologyGroup(0, base_ring)
         if isinstance(dim, (list, tuple)):
             # Fix non-reduced answer.
@@ -2561,7 +2561,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             if self._graph is not None:
                 d = new_face.dimension()+1
                 for i in range(d):
-                    for j in range(i+1, d):
+                    for j in range(i + 1, d):
                         self._graph.add_edge(new_face[i], new_face[j])
             self._complex = {}
             self.__contractible = None
@@ -2832,9 +2832,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
             S = self.link(F)
             H = S.homology(base_ring=base_ring)
             if base_ring.is_field():
-                return all( H[j].dimension() == 0 for j in xrange(S.dimension()) )
+                return all( H[j].dimension() == 0 for j in range(S.dimension()) )
             else:
-                return not any( H[j].invariants() for j in xrange(S.dimension()) )
+                return not any( H[j].invariants() for j in range(S.dimension()) )
 
         @parallel(ncpus=ncpus)
         def all_homologies_in_list_vanish(Fs):
@@ -2863,7 +2863,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if not set(self.vertices()).issuperset(sub_vertex_set):
             raise ValueError("input must be a subset of the vertex set")
         faces = []
-        for i in range(self.dimension()+1):
+        for i in range(self.dimension() + 1):
             for j in self.faces()[i]:
                 if j.set().issubset(sub_vertex_set):
                     faces.append(j)
@@ -3228,7 +3228,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         dimension = self.dimension()
         set_mnf = set()
 
-        for dim in range(dimension+1):
+        for dim in range(dimension + 1):
             face_sets = frozenset(f.set() for f in face_dict[dim])
             for candidate in combinations(vertices, dim + 1):
                 set_candidate = frozenset(candidate)

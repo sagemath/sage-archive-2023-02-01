@@ -69,6 +69,7 @@ from cpython.int cimport PyInt_Check
 from cpython.long cimport PyLong_Check
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.complex cimport PyComplex_RealAsDouble, PyComplex_ImagAsDouble
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
@@ -237,21 +238,83 @@ cdef class gen(gen_auto):
         s = repr(self)
         return (objtogen, (s,))
 
-    cpdef _add_(self, right):
-        sig_on()
-        return P.new_gen(gadd(self.g, (<gen>right).g))
+    def __add__(left, right):
+        """
+        Return ``left`` plus ``right``.
 
-    cpdef _sub_(self, right):
-        sig_on()
-        return P.new_gen(gsub(self.g, (<gen> right).g))
+        EXAMPLES::
 
-    cpdef _mul_(self, right):
+            sage: pari(15) + pari(6)
+            21
+            sage: pari("x^3+x^2+x+1") + pari("x^2")
+            x^3 + 2*x^2 + x + 1
+            sage: RR("2e20") + pari("1e20")
+            3.00000000000000 E20
+            sage: int(-2) + pari(3)
+            1
+        """
+        cdef gen t0, t1
+        try:
+            t0 = objtogen(left)
+            t1 = objtogen(right)
+        except Exception:
+            return NotImplemented
         sig_on()
-        return P.new_gen(gmul(self.g, (<gen>right).g))
+        return P.new_gen(gadd(t0.g, t1.g))
 
-    cpdef _div_(self, right):
+    def __sub__(left, right):
+        """
+        Return ``left`` minus ``right``.
+
+        EXAMPLES::
+
+            sage: pari(15) - pari(6)
+            9
+            sage: pari("x^3+x^2+x+1") - pari("x^2")
+            x^3 + x + 1
+            sage: RR("2e20") - pari("1e20")
+            1.00000000000000 E20
+            sage: int(-2) - pari(3)
+            -5
+        """
+        cdef gen t0, t1
+        try:
+            t0 = objtogen(left)
+            t1 = objtogen(right)
+        except Exception:
+            return NotImplemented
         sig_on()
-        return P.new_gen(gdiv(self.g, (<gen>right).g))
+        return P.new_gen(gsub(t0.g, t1.g))
+
+    def __mul__(left, right):
+        cdef gen t0, t1
+        try:
+            t0 = objtogen(left)
+            t1 = objtogen(right)
+        except Exception:
+            return NotImplemented
+        sig_on()
+        return P.new_gen(gmul(t0.g, t1.g))
+
+    def __div__(left, right):
+        cdef gen t0, t1
+        try:
+            t0 = objtogen(left)
+            t1 = objtogen(right)
+        except Exception:
+            return NotImplemented
+        sig_on()
+        return P.new_gen(gdiv(t0.g, t1.g))
+
+    def __truediv__(left, right):
+        cdef gen t0, t1
+        try:
+            t0 = objtogen(left)
+            t1 = objtogen(right)
+        except Exception:
+            return NotImplemented
+        sig_on()
+        return P.new_gen(gdiv(t0.g, t1.g))
 
     def _add_one(gen self):
         """
@@ -271,9 +334,9 @@ cdef class gen(gen_auto):
         sig_on()
         return P.new_gen(gaddsg(1, self.g))
 
-    def __mod__(self, other):
+    def __mod__(left, right):
         """
-        Return ``self`` modulo ``other``.
+        Return ``left`` modulo ``right``.
 
         EXAMPLES::
 
@@ -286,15 +349,19 @@ cdef class gen(gen_auto):
             sage: int(-2) % pari(3)
             1
         """
-        cdef gen selfgen = objtogen(self)
-        cdef gen othergen = objtogen(other)
+        cdef gen t0, t1
+        try:
+            t0 = objtogen(left)
+            t1 = objtogen(right)
+        except Exception:
+            return NotImplemented
         sig_on()
-        return P.new_gen(gmod(selfgen.g, othergen.g))
+        return P.new_gen(gmod(t0.g, t1.g))
 
-    def __pow__(self, n, m):
+    def __pow__(left, right, m):
         """
-        Return ``self`` to the power ``n`` (if ``m`` is ``None``) or
-        ``Mod(self, m)^n`` if ``m`` is not ``None``.
+        Return ``left`` to the power ``right`` (if ``m`` is ``None``) or
+        ``Mod(left, m)^right`` if ``m`` is not ``None``.
 
         EXAMPLES::
 
@@ -309,14 +376,18 @@ cdef class gen(gen_auto):
             sage: pari(2) ^ int(-5)
             1/32
         """
-        cdef gen t0 = objtogen(self)
-        cdef gen t1 = objtogen(n)
+        cdef gen t0, t1
+        try:
+            t0 = objtogen(left)
+            t1 = objtogen(right)
+        except Exception:
+            return NotImplemented
         if m is not None:
             t0 = t0.Mod(m)
         sig_on()
         return P.new_gen(gpow(t0.g, t1.g, prec_bits_to_words(0)))
 
-    def __neg__(gen self):
+    def __neg__(self):
         sig_on()
         return P.new_gen(gneg(self.g))
 
@@ -363,7 +434,7 @@ cdef class gen(gen_auto):
         sig_on()
         return P.new_gen(gshift(t0.g, n))
 
-    def __invert__(gen self):
+    def __invert__(self):
         sig_on()
         return P.new_gen(ginv(self.g))
 
@@ -574,7 +645,7 @@ cdef class gen(gen_auto):
             sage: K.<a> = QuadraticField(-65)
             sage: G = K.pari_bnf().bnf_get_gen(); G
             [[3, 2; 0, 1], [2, 1; 0, 1]]
-            sage: map(lambda J: K.ideal(J), G)
+            sage: [K.ideal(J) for J in G]
             [Fractional ideal (3, a + 2), Fractional ideal (2, a + 1)]
         """
         sig_on()
@@ -800,7 +871,7 @@ cdef class gen(gen_auto):
             TypeError: PARI object of type 't_INT' cannot be indexed
             sage: m = pari("[[1,2;3,4],5]") ; m[0][1,0]
             3
-            sage: v = pari(xrange(20))
+            sage: v = pari(range(20))
             sage: v[2:5]
             [2, 3, 4]
             sage: v[:]
@@ -857,8 +928,8 @@ cdef class gen(gen_auto):
 
         elif isinstance(n, slice):
             l = glength(self.g)
-            start,stop,step = n.indices(l)
-            inds = xrange(start,stop,step)
+            start, stop, step = n.indices(l)
+            inds = xrange(start, stop, step)
             k = len(inds)
             # fast exit
             if k==0:
@@ -1019,7 +1090,7 @@ cdef class gen(gen_auto):
 
         TESTS::
 
-            sage: v = pari(xrange(10)) ; v
+            sage: v = pari(range(10)) ; v
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: v[:] = [20..29]
             sage: v
@@ -1095,7 +1166,7 @@ cdef class gen(gen_auto):
     def __len__(gen self):
         return glength(self.g)
 
-    cpdef _richcmp_(left, right, int op):
+    def __richcmp__(left, right, int op):
         """
         Compare ``left`` and ``right`` using ``op``.
 
@@ -1155,20 +1226,32 @@ cdef class gen(gen_auto):
             sage: pari('O(2)') == 0
             True
         """
+        cdef gen t0, t1
+        try:
+            t0 = objtogen(left)
+            t1 = objtogen(right)
+        except Exception:
+            return NotImplemented
         cdef bint r
-        cdef GEN x = (<gen>left).g
-        cdef GEN y = (<gen>right).g
+        cdef GEN x = t0.g
+        cdef GEN y = t1.g
         sig_on()
-        if op == 2:    # ==
+        if op == Py_EQ:
             r = (gequal(x, y) != 0)
-        elif op == 3:  # !=
+        elif op == Py_NE:
             r = (gequal(x, y) == 0)
-        else:
-            r = rich_to_bool(op, gcmp(x, y))
+        elif op == Py_LE:
+            r = (gcmp(x, y) <= 0)
+        elif op == Py_GE:
+            r = (gcmp(x, y) >= 0)
+        elif op == Py_LT:
+            r = (gcmp(x, y) < 0)
+        else:  # Py_GT
+            r = (gcmp(x, y) > 0)
         sig_off()
         return r
 
-    cpdef int _cmp_(left, right) except -2:
+    def __cmp__(gen self, gen other):
         """
         Compare ``left`` and ``right``.
 
@@ -1226,11 +1309,9 @@ cdef class gen(gen_auto):
             x
             sage: cmp(x, y)
             1
-
         """
-        cdef int r
         sig_on()
-        r = cmp_universal(left.g, (<gen>right).g)
+        cdef int r = cmp_universal(self.g, other.g)
         sig_off()
         return r
 
@@ -1552,7 +1633,7 @@ cdef class gen(gen_auto):
         """
         return gentoobj(self, locals)
 
-    sage = _sage_ = _eval_ = python
+    sage = _eval_ = python
 
     def __long__(gen self):
         """

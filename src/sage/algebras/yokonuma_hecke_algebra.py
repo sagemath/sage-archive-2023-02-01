@@ -126,7 +126,7 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
     @staticmethod
     def __classcall_private__(cls, d, n, q=None, R=None):
         """
-        Standardize input to ensure a unqiue representation.
+        Standardize input to ensure a unique representation.
 
         TESTS::
 
@@ -385,7 +385,7 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
         if g1 == one:
             return self.monomial((tuple(t), g2))
         ret = self.monomial((tuple(t), g1))
-        # We have to revserse the reduced word due to Sage's convention
+        # We have to reverse the reduced word due to Sage's convention
         #   for permutation multiplication
         for i in g2.reduced_word():
             ret = self.linear_combination((self._product_by_basis_gen(m, i), c)

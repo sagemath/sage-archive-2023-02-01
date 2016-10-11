@@ -48,7 +48,7 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.rings.number_field.number_field import NumberField, QuadraticField
@@ -658,7 +658,7 @@ def _exceptionals(E, L, patience=1000):
 
         unexc = [] # Primes we discover are unexceptional go here.
 
-        for l in D.iterkeys():
+        for l in D:
             tr = GF(l)(trace)
             det = GF(l)(determinant)
             disc = GF(l)(discriminant)
@@ -699,7 +699,7 @@ def _exceptionals(E, L, patience=1000):
         if (D == {}) or (patience == 0):
             break
 
-    for l in D.iterkeys():
+    for l in D:
         output.append(l)
 
     output.sort()
@@ -826,7 +826,7 @@ def _semistable_reducible_primes(E):
     Kgal = K.galois_closure('b')
     maps = K.embeddings(Kgal)
 
-    for i in xrange(2 ** (K.degree() - 1)):
+    for i in range(2 ** (K.degree() - 1)):
         ## We iterate through all possible characters. ##
 
         # Here, if i = i_{l-1} i_{l-2} cdots i_1 i_0 in binary, then i
@@ -838,7 +838,7 @@ def _semistable_reducible_primes(E):
         phi2y = 1
 
         # We compute the two algebraic characters at x and y:
-        for j in xrange(K.degree()):
+        for j in range(K.degree()):
             if i % 2 == 1:
                 phi1x *= maps[j](x)
                 phi1y *= maps[j](y)
@@ -1035,7 +1035,7 @@ def _possible_normalizers(E, SA):
 
     # We find the element a of the selmer group corresponding to v:
     a = 1
-    for i in xrange(len(selmer_group)):
+    for i in range(len(selmer_group)):
         if v[i] == 1:
             a *= selmer_group[i]
 

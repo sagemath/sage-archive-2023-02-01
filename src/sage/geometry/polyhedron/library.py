@@ -143,7 +143,7 @@ def project_points(*points):
 
     Check that it is (almost) an isometry::
 
-        sage: V = map(vector, IntegerVectors(n=5,length=3))
+        sage: V = list(map(vector, IntegerVectors(n=5,length=3)))
         sage: P = project_points(*V)
         sage: for i in range(21):
         ....:     for j in range(21):

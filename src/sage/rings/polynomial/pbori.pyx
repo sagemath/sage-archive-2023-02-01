@@ -161,7 +161,7 @@ user too::
 
 ::
 
-    sage: [Variable(i, r) for i in xrange(r.ngens())]
+    sage: [Variable(i, r) for i in range(r.ngens())]
     [x(0), x(1), y(0), y(1), y(2)]
 
 For details on this interface see:
@@ -3139,8 +3139,8 @@ cdef class BooleanPolynomial(MPolynomial):
             0
         """
         cdef int res
-        from itertools import izip
-        for lm, rm in izip(left, right):
+        from builtins import zip
+        for lm, rm in zip(left, right):
             res = cmp(lm, rm)
             if res != 0:
                 return res
@@ -4611,7 +4611,7 @@ cdef class BooleanPolynomial(MPolynomial):
             r =  new_BS_from_PBSet(pb_zeros(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
             L= []
             for e in r:
-                l = [0 for _ in xrange(n)]
+                l = [0] * n
                 for i in e.iterindex():
                     l[i] = 1
                 L.append(tuple(l))

@@ -67,7 +67,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, division
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
@@ -1222,7 +1222,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ...           if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
             ...           if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
 
-            sage: for t in xrange(200):
+            sage: for t in range(200):
             ....:     n = randint(1,2^63)
             ....:     K = Integers(n)
             ....:     b = K.random_element()
@@ -1405,7 +1405,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         positive representative in `-n/2 < x \leq n/2`.
 
         This is used so that the same square root is always returned,
-        despite the possibly probabalistic nature of the underlying
+        despite the possibly probabilistic nature of the underlying
         algorithm.
         """
         if self.lift() > self.__modulus.sageInteger >> 1:
@@ -1828,7 +1828,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         - ``k`` - Integer of type ``long``
 
-        OUTPUT
+        OUTPUT:
 
         - Result of type ``IntegerMod_gmp``
 
@@ -2507,7 +2507,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: e = Mod(8, 2^5 - 1)
             sage: e >> 3
             1
-            sage: int(e)/int(2^3)
+            sage: int(e)/int(2^3)  # optional - python2
             1
         """
         if k == 0:

@@ -563,12 +563,13 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     sage: C.unrank(54213)
                     ('a', 86, [7, 5, 4, 4])
                 """
+                from builtins import zip
                 from sage.rings.integer_ring import ZZ
                 x = self(x)
                 b = ZZ.one()
                 rank = ZZ.zero()
-                for f,c in itertools.izip(reversed(x.cartesian_factors()),
-                                          reversed(self.cartesian_factors())):
+                for f, c in zip(reversed(x.cartesian_factors()),
+                                reversed(self.cartesian_factors())):
                     rank += b * c.rank(f)
                     b *= c.cardinality()
                 return rank

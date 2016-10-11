@@ -3,7 +3,7 @@ Scheme morphism
 
 .. NOTE::
 
-    You should never create the morphisms directy. Instead, use the
+    You should never create the morphisms directly. Instead, use the
     :meth:`~sage.schemes.generic.scheme.hom` and
     :meth:`~sage.structure.parent.Hom` methods that are inherited by
     all schemes.
@@ -983,7 +983,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         INPUT:
 
-        - ``x`` -- a point in the domain or a list or tuple that defines a point in the domain.
+        - ``x`` -- a point in the domain or a list or tuple that
+          defines a point in the domain.
 
         OUTPUT:
 
@@ -1026,10 +1027,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             defined by:
               x, but a `pushforward` method is not properly implemented
 
-        ::
-
         It is possible to avoid the checks on the resulting point which can be
-        useful for indeterminacies, but be careful!!
+        useful for indeterminacies, but be careful!! ::
 
             sage: PS.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(PS,PS)
@@ -1038,16 +1037,12 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: f(P,check=False)
             (0 : 0)
 
-        ::
-
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
             sage: X=P.subscheme(x^2-y^2);
             sage: H=Hom(X,X)
             sage: f=H([x^2,y^2,z^2]);
             sage: f([4,4,1])
             (16 : 16 : 1)
-
-        ::
 
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
             sage: X=P.subscheme(x^2-y^2);
@@ -1111,9 +1106,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               x, but a `pushforward` method is not properly implemented
 
         It is possible to avoid the checks on the resulting point which can be
-        useful for indeterminacies, but be careful!!
-
-        ::
+        useful for indeterminacies, but be careful!! ::
 
             sage: PS.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(PS,PS)
@@ -1428,6 +1421,18 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             Scheme endomorphism of Affine Space of dimension 2 over Algebraic Field
               Defn: Defined on coordinates by sending (x, y) to
                     (1.122462048309373?*x/y, y + 1)
+
+        ::
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: H = End(A)
+            sage: phi = H([x/y, y])
+            sage: emb = K.embeddings(QQbar)[0]
+            sage: phi.change_ring(emb)
+            Scheme endomorphism of Affine Space of dimension 2 over Algebraic Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x/y, y)
         """
         K = self.codomain().base_ring()
         T = self.domain().change_ring(R)
@@ -1439,7 +1444,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         if isinstance(R, Morphism):
             if R.domain() == self.base_ring():
-                R = self.coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
+                R = self.domain().ambient_space().coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
         G = []
         for f in self:
             if isinstance(f, FractionFieldElement):

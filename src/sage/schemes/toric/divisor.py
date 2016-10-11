@@ -1135,7 +1135,7 @@ class ToricDivisor_generic(Divisor_generic):
         .. NOTE::
 
             * For a QQ-Cartier divisor, some positive integral
-              multiple is Cartier. We return wheher this associtated
+              multiple is Cartier. We return whether this associated
               divisor is ample, i.e. corresponds to an ample line bundle.
 
             * In the orbifold case, the ample cone is an open
@@ -1220,7 +1220,7 @@ class ToricDivisor_generic(Divisor_generic):
         .. NOTE::
 
             * For a `\QQ`-Cartier divisor, some positive integral multiple is
-              Cartier. We return wheher this associtated divisor is nef.
+              Cartier. We return whether this associated divisor is nef.
 
             * The nef cone is the closure of the ample cone.
 
@@ -1556,8 +1556,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        - :class:`simplicial complex
-        <sage.homology.simplicial_complex.SimplicialComplex>`.
+        - :class:`simplicial complex <sage.homology.simplicial_complex.SimplicialComplex>`.
 
         EXAMPLES::
 
@@ -1606,7 +1605,7 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D._sheaf_cohomology( SimplicialComplex([[1,2],[2,3],[3,1]]) )
             (0, 0, 1)
 
-        A more complicated example to test that trac #10731 is fixed::
+        A more complicated example to test that :trac:`10731` is fixed::
 
             sage: cell24 = Polyhedron(vertices=[
             ...    (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
@@ -1646,10 +1645,10 @@ class ToricDivisor_generic(Divisor_generic):
 
         ALGORITHM:
 
-        See :meth:`cohomology` and note that every `d`-tuple
-        (`d`=dimension of the variety) of rays determines one vertex
-        in the chamber decomposition if none of the hyperplanes are
-        parallel.
+        See :meth:`cohomology` and note that every `d`-tuple (where
+        `d` is the dimension of the variety) of rays determines one
+        vertex in the chamber decomposition if none of the hyperplanes
+        are parallel.
 
         EXAMPLES::
 

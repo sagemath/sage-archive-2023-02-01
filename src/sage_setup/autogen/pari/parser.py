@@ -41,7 +41,7 @@ def pari_share():
 
         sage: from sage_setup.autogen.pari.parser import pari_share
         sage: pari_share()
-        '.../local/share/pari'
+        '.../share/pari'
     """
     SAGE_LOCAL = os.environ["SAGE_LOCAL"]
     return os.path.join(SAGE_LOCAL, "share", "pari")

@@ -2117,12 +2117,12 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         Rbasis = R.basis()
         n = len(Rbasis)
         from sage.matrix.all import MatrixSpace
-        M = MatrixSpace(ZZ,n)([R.coordinates(_) for _ in self.basis()])
+        M = MatrixSpace(ZZ, n)([R.coordinates(_) for _ in self.basis()])
 
         D = M.hermite_form()
-        d = [D[i,i] for i in range(n)]
-        coord_ranges = [range((-di+2)//2,(di+2)//2) for di in d]
-        combo = lambda c: sum([c[i]*Rbasis[i] for i in range(n)])
+        d = [D[i, i] for i in range(n)]
+        coord_ranges = [list(range((-di+2)//2,(di+2)//2)) for di in d]
+        combo = lambda c: sum(c[i] * Rbasis[i] for i in range(n))
         return xmrange_iter(coord_ranges, combo)
 
     def invertible_residues(self, reduce=True):
@@ -2264,11 +2264,12 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         new_basis = [prod([g[j]**V[i, j] for j in range(n)]) for i in range(n)]
 
         if reduce:
-            combo = lambda c: self.small_residue(prod([new_basis[i]**c[i] for i in range(n)]))
+            combo = lambda c: self.small_residue(prod(new_basis[i] ** c[i]
+                                                      for i in range(n)))
         else:
-            combo = lambda c: prod([new_basis[i]**c[i] for i in range(n)])
+            combo = lambda c: prod(new_basis[i] ** c[i] for i in range(n))
 
-        coord_ranges = [range(A[i,i]) for i in range(n)]
+        coord_ranges = [list(range(A[i, i])) for i in range(n)]
 
         return xmrange_iter(coord_ranges, combo)
 

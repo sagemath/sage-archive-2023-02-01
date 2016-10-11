@@ -164,7 +164,7 @@ from sage.libs.gmp.mpq cimport mpq_neg
 from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
-from sage.libs.pari.gen cimport objtogen as pari_objtogen, gen as pari_gen
+from sage.libs.pari.gen cimport objtogen, gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
 from sage.libs.pari.stack cimport new_gen
 from sage.libs.flint.ulong_extras cimport *
@@ -5178,7 +5178,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if not self%4 in [0,1]:
             raise ValueError("class_number only defined for integers congruent to 0 or 1 modulo 4")
         flag =  self < 0 and proof
-        return pari_objtogen(self).qfbclassno(flag).sage()
+        return objtogen(self).qfbclassno(flag).sage()
 
     def radical(self, *args, **kwds):
         r"""

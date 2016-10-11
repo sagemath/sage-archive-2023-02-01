@@ -157,6 +157,10 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             Return the Bruhat poset of ``self``.
 
+            .. SEEALSO::
+
+                :meth:`bhz_poset`, :meth:`shard_poset`, :meth:`weak_poset`
+
             EXAMPLES::
 
                 sage: W = WeylGroup(["A", 2])
@@ -225,6 +229,10 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             Another implementation for the symmetric groups is
             available as :func:`~sage.combinat.shard_order.shard_poset`.
 
+            .. SEEALSO::
+
+                :meth:`bhz_poset`, :meth:`bruhat_poset`, :meth:`weak_poset`
+
             EXAMPLES::
 
                 sage: W = CoxeterGroup(['A',3], base_ring=ZZ)
@@ -257,6 +265,57 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 return Gu.issubset(Gv) and Nu.issubset(Nv)
 
             return LatticePoset([self, shard_comparison])
+
+        def bhz_poset(self):
+            """
+            Return the Bergeron-Hohlweg-Zabrocki partial order on the Coxeter
+            group.
+
+            This is a partial order on the elements of a finite
+            Coxeter group `W`, which is distinct from the Bruhat
+            order, the weak order and the shard intersection order. It
+            was defined in [BHZ05]_.
+
+            This partial order is not a lattice, as there is no unique
+            maximal element.
+
+            .. SEEALSO::
+
+                :meth:`bruhat_poset`, :meth:`shard_poset`, :meth:`weak_poset`
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], base_ring=ZZ)
+                sage: P = W.bhz_poset(); P
+                Finite poset containing 24 elements
+                sage: P.relations_number()
+                103
+                sage: P.chain_polynomial()
+                34*q^4 + 90*q^3 + 79*q^2 + 24*q + 1
+                sage: len(P.maximal_elements())
+                13
+
+            REFERENCE:
+
+            .. [BHZ05] \N. Bergeron, C. Hohlweg, and M. Zabrocki, *Posets
+               related to the Connectivity Set of Coxeter Groups*.
+               :arxiv:`math/0509271v3`
+            """
+            def covered_by(ux, vy):
+                u, iu, Su = ux
+                v, iv, Sv = vy
+                if len(Sv) != len(Su) + 1:
+                    return False
+                if not all(u in Sv for u in Su):
+                    return False
+                return all((v * iu).has_descent(x, positive=True) for x in Su)
+
+            vertices = [(u, u.inverse(),
+                         tuple(set(u.reduced_word_reverse_iterator())))
+                        for u in self]
+            dg = DiGraph([vertices, covered_by])
+            dg.relabel(lambda x: x[0])
+            return Poset(dg, cover_relations=True)
 
         def degrees(self):
             """
@@ -345,6 +404,10 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             this poset, `u` is smaller than `v` if some reduced word
             of `u` is a right (resp. left) factor of some reduced word
             of `v`.
+
+            .. SEEALSO::
+
+                :meth:`bhz_poset`, :meth:`bruhat_poset`, :meth:`shard_poset`
 
             EXAMPLES::
 

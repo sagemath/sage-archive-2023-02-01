@@ -24,7 +24,7 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "CR_template.pxi"
 
-from sage.libs.pari import pari
+from sage.libs.pari.pari_instance cimport pari_instance
 from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.padics.pow_computer cimport PowComputer_class
@@ -223,7 +223,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
                 I : [&=...] INT(lg=2):... (0,lgefint=2):... 
         """
         if exactzero(self.ordp):
-            return pari.zero()
+            return pari_instance.zero()
         else:
             return new_gen_from_padic(self.ordp, self.relprec,
                                       self.prime_pow.prime.value,

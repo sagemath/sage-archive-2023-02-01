@@ -3516,7 +3516,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m.type()
             't_FRAC'
         """
-        #cdef PariInstance P = sage.libs.pari.pari_instance.pari
         return new_gen_from_mpq_t(self.value)
 
     def _interface_init_(self, I=None):

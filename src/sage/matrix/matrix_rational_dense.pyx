@@ -84,7 +84,6 @@ from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
 # PARI C library
-from sage.libs.pari import pari
 from sage.libs.pari.gen cimport gen
 from sage.libs.pari.convert_gmp cimport (INTFRAC_to_mpq,
            _new_GEN_from_mpq_t_matrix, rational_matrix)

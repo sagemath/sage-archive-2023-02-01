@@ -375,11 +375,11 @@ def tropical_plucker_relation(a, lusztig_datum):
                   2*t1+t2+t4+2*t5+t6+min(t1+t3,2*t3,t3+t5,t1+t5))
         pi4 = min(2*t1+2*t2+3*t3+t4+min(t1+t2+3*t3+t4,
                                         t1+t2+3*min(t3,t5)+t6,
-                                        min(t1+t3,2*t2,t3+t5,t1+t5)+t4+2*t5+t6),
+                                        min(t1+t3,2*t3,t3+t5,t1+t5)+t4+2*t5+t6),
                   2*t6+3*min(t1+t2+2*min(t3,t5),min(t1,t3)+t4+2*t5))
         return (t2+3*t3+2*t4+3*t5+t6-pi3,
                 pi3-pi2,
-                3*pi2-pi2-pi4,
+                3*pi2-pi3-pi4,
                 pi4-pi1-pi2,
                 3*pi1-pi4,
                 t1+t2+2*t3+t4+t5-pi1)

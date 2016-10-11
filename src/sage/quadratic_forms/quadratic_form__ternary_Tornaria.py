@@ -544,7 +544,7 @@ def representation_number_list(self, B):
 
     """
     ans = pari(1).concat(self._pari_().qfrep(B-1, 1) * 2)
-    return ans._sage_()
+    return ans.sage()
 
 
 def representation_vector_list(self, B, maxvectors = 10**8):
@@ -576,7 +576,7 @@ def representation_vector_list(self, B, maxvectors = 10**8):
         raise RuntimeError("insufficient number of vectors")
     ms = [[] for _ in range(B)]
     ms[0] = [vector([0] * self.dim())]
-    for v in vs._sage_().columns():
+    for v in vs.sage().columns():
         ms[int(self(v))] += [v, -v]
     return ms
 

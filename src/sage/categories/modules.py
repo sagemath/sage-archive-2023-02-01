@@ -18,7 +18,6 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.homsets import HomsetsCategory
 from .category import Category, JoinCategory
 from .category_types import Category_module, Category_over_base_ring
-import sage.categories.coercion_methods
 from sage.categories.tensor import TensorProductsCategory, tensor
 from .dual import DualObjectsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -529,9 +528,7 @@ class Modules(Category_module):
             return tensor([self, self])
 
     class ElementMethods:
-
-        __mul__ = sage.categories.coercion_methods.Modules__mul__
-        __rmul__ = sage.categories.coercion_methods.Modules__rmul__
+        pass
 
     class Homsets(HomsetsCategory):
         r"""

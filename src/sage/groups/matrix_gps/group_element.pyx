@@ -23,9 +23,15 @@ there::
     sage: g + h
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand type(s) for +:
-    'sage.groups.matrix_gps.group_element.MatrixGroupElement_gap' and
-    'sage.groups.matrix_gps.group_element.MatrixGroupElement_gap'
+    TypeError: unsupported operand parent(s) for '+':
+    'Matrix group over Finite Field of size 3 with 2 generators (
+    [1 0]  [1 1]
+    [0 1], [0 1]
+    )' and
+    'Matrix group over Finite Field of size 3 with 2 generators (
+    [1 0]  [1 1]
+    [0 1], [0 1]
+    )'
 
     sage: g.matrix() + h.matrix()
     [2 0]

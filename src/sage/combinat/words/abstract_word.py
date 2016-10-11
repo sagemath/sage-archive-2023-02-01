@@ -52,7 +52,7 @@ class Word_class(SageObject):
             Finite words over Set of Python objects of type 'object'
             sage: Word(range(12)).parent()
             Finite words over Set of Python objects of type 'object'
-            sage: Word(range(4), alphabet=range(6)).parent()
+            sage: Word(range(4), alphabet=list(range(6))).parent()
             Finite words over {0, 1, 2, 3, 4, 5}
             sage: Word(iter('abac'), alphabet='abc').parent()
             Finite words over {'a', 'b', 'c'}

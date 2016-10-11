@@ -362,7 +362,7 @@ def tropical_plucker_relation(a, lusztig_datum):
                 t1+t2+t3-pi1)
     elif a == (-1, -3): # G2
         t1,t2,t3,t4,t5,t6 = lusztig_datum
-        pi1 = min(t1+t2+3*t3+t4,
+        pi1 = min(t1+t2+2*t3+t4,
                   t1+t2+2*min(t3,t5)+t6,
                   min(t1,t3)+t4+2*t5+t6)
         pi2 = min(2*t1+2*t2+3*t3+t4,

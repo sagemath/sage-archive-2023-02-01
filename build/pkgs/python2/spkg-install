@@ -86,6 +86,14 @@ build()
         exit 1
     fi
 
+    # On OS X, test to see if _scproxy built before installing.
+    if [ "$UNAME" = "Darwin" ]; then
+        if [ -z `find build -name _scproxy.so` ]; then
+            echo >&2 "Error: the _scproxy module failed to build."
+            exit 1
+        fi
+    fi
+
     # Remove old libraries
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
@@ -155,10 +163,6 @@ if [ "$UNAME" = "Darwin" ]; then
         echo "_scproxy module imported OK"
     else
         echo >&2 "_scproxy module failed to import"
-        echo >&2 "uninstalling..."
-        rm -f "$SAGE_LOCAL"/lib/libpython*
-        rm -f "$SAGE_LOCAL"/lib/python
-        rm -f "$SAGE_LOCAL"/bin/python*
         import_errors=true
     fi
 fi

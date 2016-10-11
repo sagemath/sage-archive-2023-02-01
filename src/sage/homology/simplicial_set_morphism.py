@@ -446,7 +446,9 @@ class SimplicialSetMorphism(Morphism):
                 self._is_identity = True
                 Morphism.__init__(self, Hom(domain, codomain, SimplicialSets()))
                 return
-            if constant:
+            if constant is not None:
+                # If self._constant is set, it should be a vertex in
+                # the codomain, the target of the constant map.
                 self._constant = constant
                 Morphism.__init__(self, Hom(domain, codomain, SimplicialSets()))
                 return
@@ -462,7 +464,7 @@ class SimplicialSetMorphism(Morphism):
                 for i in range(domain.dimension()+1):
                     for s in domain.n_cells(i):
                         data[s] = s
-            if constant:
+            if constant is not None:
                 self._constant = constant
                 check = False
                 data = {sigma: constant.apply_degeneracies(*range(sigma.dimension()-1,-1,-1))
@@ -870,7 +872,7 @@ class SimplicialSetMorphism(Morphism):
             False
         """
         try:
-            return bool(self._constant)
+            return self._constant is not None
         except AttributeError:
             pass
         if not self.domain().is_finite():

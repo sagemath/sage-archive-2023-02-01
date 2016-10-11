@@ -2997,6 +2997,57 @@ class SimplicialSet_arbitrary(Parent):
                     category = SimplicialSets()
         return SimplicialSetHomset(self, other, category=category)
 
+    def rename_latex(self, s):
+        """
+        Rename or set the LaTeX name for this simplicial set.
+
+        INPUT:
+
+        - ``s`` -- string, the LaTeX representation. Or ``s`` can be
+          ``None``, in which case the LaTeX name is unset.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: X = SimplicialSet({v: None}, latex_name='*')
+            sage: latex(X)
+            *
+            sage: X.rename_latex('x_0')
+            sage: latex(X)
+            x_0
+        """
+        self._latex_name = s
+
+    def _latex_(self):
+        r"""
+        LaTeX representation.
+
+        If ``latex_name`` is set when the simplicial set is defined,
+        or if :meth:`rename_latex` is used to set the LaTeX name, use
+        that. Otherwise, use its string representation.
+
+        EXAMPLES::
+
+            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: v = AbstractSimplex(0)
+            sage: X = SimplicialSet({v: None}, latex_name='*')
+            sage: latex(X)
+            *
+            sage: X.rename_latex('y_0')
+            sage: latex(X)
+            y_0
+            sage: X.rename_latex(None)
+            sage: latex(X)
+            Simplicial set with 1 non-degenerate simplex
+            sage: X.rename('v')
+            sage: latex(X)
+            v
+        """
+        if hasattr(self, '_latex_name') and self._latex_name is not None:
+            return self._latex_name
+        return str(self)
+
     def _repr_(self):
         """
         Print representation.
@@ -3716,87 +3767,6 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         if base_ring is None:
             base_ring = QQ
         return algebraic_topological_model_delta_complex(self, base_ring)
-
-    def _repr_(self):
-        """
-        Print representation.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
-            sage: v = AbstractSimplex(0)
-            sage: w = AbstractSimplex(0)
-            sage: degen = v.apply_degeneracies(0)
-            sage: tau = AbstractSimplex(2)
-            sage: SimplicialSet({tau: (degen, degen, degen), w: None})
-            Simplicial set with 3 non-degenerate simplices
-            sage: SimplicialSet({w: None})
-            Simplicial set with 1 non-degenerate simplex
-
-        Test names and renaming::
-
-            sage: SimplicialSet({w: None}, name='pt')
-            pt
-            sage: K = SimplicialSet({w: None}, name='pt')
-            sage: K.rename('point')
-            sage: K
-            point
-        """
-        num = len(self.nondegenerate_simplices())
-        if num == 1:
-            return "Simplicial set with 1 non-degenerate simplex"
-        return "Simplicial set with {} non-degenerate simplices".format(num)
-
-    def rename_latex(self, s):
-        """
-        Rename or set the LaTeX name for this simplicial set.
-
-        INPUT:
-
-        - ``s`` -- string, the LaTeX representation. Or ``s`` can be
-          ``None``, in which case the LaTeX name is unset.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
-            sage: v = AbstractSimplex(0)
-            sage: X = SimplicialSet({v: None}, latex_name='*')
-            sage: latex(X)
-            *
-            sage: X.rename_latex('x_0')
-            sage: latex(X)
-            x_0
-        """
-        self._latex_name = s
-
-    def _latex_(self):
-        r"""
-        LaTeX representation.
-
-        If ``latex_name`` is set when the simplicial set is defined,
-        or if :meth:`rename_latex` is used to set the LaTeX name, use
-        that. Otherwise, use its string representation.
-
-        EXAMPLES::
-
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
-            sage: v = AbstractSimplex(0)
-            sage: X = SimplicialSet({v: None}, latex_name='*')
-            sage: latex(X)
-            *
-            sage: X.rename_latex('y_0')
-            sage: latex(X)
-            y_0
-            sage: X.rename_latex(None)
-            sage: latex(X)
-            Simplicial set with 1 non-degenerate simplex
-            sage: X.rename('v')
-            sage: latex(X)
-            v
-        """
-        if self._latex_name is not None:
-            return self._latex_name
-        return str(self)
 
 
 # TODO: possibly turn SimplicialSet into a function, for example

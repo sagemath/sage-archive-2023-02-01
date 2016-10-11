@@ -29,6 +29,7 @@ from pyparsing import OneOrMore, nestedExpr
 
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
+from sage.rings.infinity import Infinity
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex
@@ -73,6 +74,8 @@ class Nerve(SimplicialSet_arbitrary):
         """
         category = SimplicialSets().Pointed()
         Parent.__init__(self, category=category)
+        self.rename("Nerve of {}".format(str(monoid)))
+        self.rename_latex("B{}".format(latex(monoid)))
 
         e = AbstractSimplex(0, name=str(monoid.one()),
                             latex_name=latex(monoid.one()))
@@ -245,22 +248,6 @@ class Nerve(SimplicialSet_arbitrary):
         self._simplex_data = face_dict.items()
         return K
 
-    def _repr_(self):
-        """
-        Print representation
-
-        EXAMPLES::
-
-            sage: M = FiniteMonoids().example()
-            sage: M.nerve()
-            Nerve of An example of a finite multiplicative monoid: the integers modulo 12
-
-            sage: M.rename('Z12')
-            sage: M.nerve()
-            Nerve of Z12
-        """
-        return "Nerve of {}".format(str(self._monoid))
-
 
 ########################################################################
 # Catalog of examples. These are accessed via simplicial_set_catalog.py.
@@ -361,10 +348,19 @@ def RealProjectiveSpace(n):
         RP^5
         sage: latex(RP5)
         RP^{5}
+
+        sage: BC2 = simplicial_sets.RealProjectiveSpace(Infinity)
+        sage: latex(BC2)
+        RP^{\infty}
     """
-    X = AbelianGroup([2]).nerve().n_skeleton(n)
-    X.rename('RP^{}'.format(n))
-    X.rename_latex('RP^{{{}}}'.format(n))
+    if n == Infinity:
+        X = AbelianGroup([2]).nerve()
+        X.rename('RP^oo')
+        X.rename_latex('RP^{\\infty}')
+    else:
+        X = AbelianGroup([2]).nerve().n_skeleton(n)
+        X.rename('RP^{}'.format(n))
+        X.rename_latex('RP^{{{}}}'.format(n))
     return X
 
 
@@ -609,22 +605,22 @@ def ComplexProjectiveSpace(n):
                                        f2_1.apply_degeneracies(1),
                                        f3_110,
                                        f2_1.apply_degeneracies(0))},
-                          name='CP^2', base_point=v)
-        K.rename_latex('CP^{2}')
+                           base_point=v, name='CP^2',
+                           latex_name='CP^{2}')
         return K
     if n == 3:
         file = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'CP3.txt')
         data = simplicial_data_from_kenzo_output(file)
         v = [_ for _ in data.keys() if _.dimension() == 0][0]
-        K = SimplicialSet_finite(data, name='CP^3', base_point=v)
-        K.rename_latex('CP^{3}')
+        K = SimplicialSet_finite(data, base_point=v, name='CP^3',
+                                 latex_name='CP^{3}')
         return K
     if n == 4:
         file = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'CP4.txt')
         data = simplicial_data_from_kenzo_output(file)
         v = [_ for _ in data.keys() if _.dimension() == 0][0]
-        K = SimplicialSet_finite(data, name='CP^4', base_point=v)
-        K.rename_latex('CP^{4}')
+        K = SimplicialSet_finite(data, base_point=v, name='CP^4',
+                                 latex_name='CP^{4}')
         return K
 
 

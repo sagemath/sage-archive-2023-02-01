@@ -5890,7 +5890,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
             9
             sage: SemistandardTableaux(4, max_entry=10).cardinality()
             4225
-            sage: ns = range(1, 6)
+            sage: ns = list(range(1, 6))
             sage: ssts = [ SemistandardTableaux(n) for n in ns ]
             sage: all(sst.cardinality() == len(sst.list()) for sst in ssts)
             True

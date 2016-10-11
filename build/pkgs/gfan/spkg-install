@@ -34,20 +34,16 @@ export CC CXX CFLAGS CXXFLAGS LDFLAGS
 
 cd src
 
-# Patch the Makefile so it can build in Sage:
-echo "Copying a revised Makefile, to improve portability..."
-patch -p1 <../patches/Makefile.patch
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error: Patch to improve portability did not copy correctly."
-    exit 1
-fi
-
-echo "Copying patched file to fix an issue with GCC 4.7.0..."
-patch -p1 <../patches/app_minkowski.cpp.patch
-if [[ $? -ne 0 ]]; then
-    echo >&2 "Error: Patch to fix GCC 4.7.0 issue did not copy correctly."
-    exit 1
-fi
+# Patch sources. Note that some patches (in the patches/src directory)
+# have been applied to the source tarball.
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
 echo "Now building gfan..."
 # We don't use the makefile to install gfan so we don't need to set PREFIX

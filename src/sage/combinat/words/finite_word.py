@@ -1381,7 +1381,6 @@ class FiniteWord_class(Word_class):
         from sage.functions.all import log
         return log(pn, base=d)/n
 
-    @cached_method
     def rauzy_graph(self, n):
         r"""
         Return the Rauzy graph of the factors of length ``n`` of ``self``.
@@ -1618,10 +1617,12 @@ class FiniteWord_class(Word_class):
                 for w in self.left_special_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            in_d = g.in_degree
-            for v in g:
-                if in_d(v) > 1:
+            left_extensions = defaultdict(set)
+            for w in self.factor_iterator(n+1):
+                v = w[1:]
+                left_extensions[v].add(w[0])
+            for v in left_extensions:
+                if len(left_extensions[v]) > 1:
                     yield v
 
     def left_special_factors(self, n=None):
@@ -1684,10 +1685,12 @@ class FiniteWord_class(Word_class):
                 for w in self.right_special_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            out_d = g.out_degree
-            for v in g:
-                if out_d(v) > 1:
+            right_extensions = defaultdict(set)
+            for w in self.factor_iterator(n+1):
+                v = w[:-1]
+                right_extensions[v].add(w[-1])
+            for v in right_extensions:
+                if len(right_extensions[v]) > 1:
                     yield v
 
     def right_special_factors(self, n=None):
@@ -1773,11 +1776,15 @@ class FiniteWord_class(Word_class):
                 for w in self.bispecial_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            in_d = g.in_degree
-            out_d = g.out_degree
-            for v in g:
-                if out_d(v) > 1 and in_d(v) > 1:
+            left_extensions = defaultdict(set)
+            right_extensions = defaultdict(set)
+            for w in self.factor_iterator(n+2):
+                v = w[1:-1]
+                left_extensions[v].add(w[0])
+                right_extensions[v].add(w[-1])
+            for v in left_extensions:
+                if (len(left_extensions[v]) > 1 and
+                    len(right_extensions[v]) > 1):
                     yield v
 
     def bispecial_factors(self, n=None):
@@ -1848,8 +1855,8 @@ class FiniteWord_class(Word_class):
             sage: [w.number_of_left_special_factors(i) for i in range(10)]
             [1, 2, 2, 4, 2, 4, 4, 2, 2, 4]
         """
-        L = self.rauzy_graph(n).in_degree()
-        return sum(1 for i in L if i>1)
+        it = self.left_special_factors_iterator(n)
+        return sum(1 for _ in it)
 
     def number_of_right_special_factors(self, n):
         r"""
@@ -1879,8 +1886,8 @@ class FiniteWord_class(Word_class):
             sage: [w.number_of_right_special_factors(i) for i in range(10)]
             [1, 2, 2, 4, 2, 4, 4, 2, 2, 4]
         """
-        L = self.rauzy_graph(n).out_degree()
-        return sum(1 for i in L if i>1)
+        it = self.right_special_factors_iterator(n)
+        return sum(1 for _ in it)
 
     def commutes_with(self, other):
         r"""
@@ -4724,7 +4731,7 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: W = Words(list('abc')+range(6))
+            sage: W = Words(list('abc') + list(range(6)))
             sage: u = W('abc')
             sage: v = W(range(5))
             sage: u.overlap_partition(v)

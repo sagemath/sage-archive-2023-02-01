@@ -10088,7 +10088,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
             sage: A = Automaton([(j, j+1, 0) for j in range(3)],
             ....:               initial_states=[0],
-            ....:               final_states=range(3))
+            ....:               final_states=list(range(3)))
             sage: A.number_of_words()
             1/2*0^(n - 2)*(n - 1)*n + 0^(n - 1)*n + 0^n
 
@@ -10750,7 +10750,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 ....:         - 2*h*p[i]^h * (1 - p[i])/(1 - p[i]^h)^2
                 ....:         for i in range(r)
                 ....:         ) * theory_expectation^2
-                ....:     alphabet = range(r)
+                ....:     alphabet = list(range(r))
                 ....:     counters = [
                 ....:         transducers.CountSubblockOccurrences([j]*h,
                 ....:                     alphabet)
@@ -10796,7 +10796,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 ....:     p = R.gens()
                 ....:     def is_zero(polynomial):
                 ....:         return polynomial in (sum(p) - 1) * R
-                ....:     alphabet = range(r)
+                ....:     alphabet = list(range(r))
                 ....:     counters = [
                 ....:         transducers.Wait([0, 1])(
                 ....:             transducers.CountSubblockOccurrences(

@@ -253,8 +253,8 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
         sage: enumerate_totallyreal_fields_prim(2, 10)
         [[5, x^2 - x - 1], [8, x^2 - 2]]
-        sage: enumerate_totallyreal_fields_prim(2, 10)[0][1].parent()
-        Interface to the PARI C library
+        sage: type(enumerate_totallyreal_fields_prim(2, 10)[0][1])
+        <type 'sage.libs.pari.gen.gen'>
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][0].parent()
         Integer Ring
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][1].parent()

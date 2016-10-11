@@ -1,9 +1,8 @@
 from .types cimport *
-from sage.structure.element cimport RingElement
 cimport cython
 
 
-cdef class gen_auto(RingElement):
+cdef class gen_auto:
     cdef GEN g
     cdef pari_sp b
     cdef dict refers_to

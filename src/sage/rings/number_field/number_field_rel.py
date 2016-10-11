@@ -1707,9 +1707,8 @@ class NumberField_relative(NumberField_generic):
             Number Field in a with defining polynomial x^2 + 2 over its base field
             sage: K.pari_absolute_base_polynomial()
             y^2 + 3
-            sage: K.pari_absolute_base_polynomial().parent()
-            Interface to the PARI C library
-
+            sage: type(K.pari_absolute_base_polynomial())
+            <type 'sage.libs.pari.gen.gen'>
             sage: z = ZZ['z'].0
             sage: K.<a, b, c> = NumberField([z^2 + 2, z^2 + 3, z^2 + 5]); K
             Number Field in a with defining polynomial z^2 + 2 over its base field
@@ -1719,8 +1718,8 @@ class NumberField_relative(NumberField_generic):
             Number Field in b with defining polynomial z^2 + 3 over its base field
             sage: len(QQ['y'](K.pari_absolute_base_polynomial()).roots(K.base_field()))
             4
-            sage: K.pari_absolute_base_polynomial().parent()
-            Interface to the PARI C library
+            sage: type(K.pari_absolute_base_polynomial())
+            <type 'sage.libs.pari.gen.gen'>
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         return abs_base.pari_polynomial('y')

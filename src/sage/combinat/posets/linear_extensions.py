@@ -25,6 +25,7 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.rings.rational_field import QQ
 from sage.categories.posets import Posets
@@ -589,9 +590,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         d = dict([x,dict([y,[]] for y in self)] for x in self)
         if action == 'promotion':
-            R = range(self.poset().cardinality())
+            R = list(range(self.poset().cardinality()))
         else:
-            R = range(self.poset().cardinality()-1)
+            R = list(range(self.poset().cardinality() - 1))
         if labeling == 'source':
             for x in self:
                 for i in R:

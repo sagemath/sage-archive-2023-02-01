@@ -60,7 +60,7 @@ if [[ "$V" = 0 && $use_prefix = true ]]; then
     echo "[$logname] installing. Log file: $logfile"
     # Use verbose mode for output to logfiles.
     export V=1
-    ( exec> $logfile 2>&1 ; eval "$cmd" )
+    ( exec>> $logfile 2>&1 ; eval "$cmd" )
     status=$?
     if [[ $status != 0 ]]; then
 	echo "  [$logname] error installing, exit status $status. Log file: $logfile"

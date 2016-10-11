@@ -5145,7 +5145,8 @@ def sort_complex_numbers_for_display(nums):
     if isinstance(nums[0], tuple):
         return sorted(nums, key=lambda t: _key_complex_for_display(t[0]))
     else:
-        return sorted(nums, key=lambda t: _key_complex_for_display(t))
+        return sorted(nums, key=_key_complex_for_display)
+
 
 def fundamental_discriminant(D):
     r"""

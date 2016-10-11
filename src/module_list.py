@@ -135,7 +135,7 @@ except ValueError:
 # at the very end of the list.
 library_order_list = singular_libs + [
     "ec", "ecm",
-] + linbox_libs  + gsl_libs + [
+] + linbox_libs + fflas_ffpack_libs + gsl_libs + [
     "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
     "arb", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
     "brial",

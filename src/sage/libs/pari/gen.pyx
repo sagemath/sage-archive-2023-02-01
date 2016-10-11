@@ -4768,14 +4768,6 @@ cpdef gentoobj(gen z, locals={}):
     See the ``python`` method of :class:`gen` for documentation and
     examples.
     """
-    from sage.rings.integer import Integer
-    from sage.rings.rational import Rational
-    from sage.rings.infinity import Infinity
-    from sage.rings.all import RealField, ComplexField, QuadraticField
-    from sage.matrix.constructor import matrix
-    from sage.rings.padics.factory import Qp
-    from sage.misc.sage_eval import sage_eval
-
     cdef GEN g = z.g
     cdef long t = typ(g)
     cdef long tx, ty
@@ -4783,10 +4775,13 @@ cpdef gentoobj(gen z, locals={}):
     cdef Py_ssize_t i, j, nr, nc
 
     if t == t_INT:
-         return Integer(z)
+        from sage.rings.integer import Integer
+        return Integer(z)
     elif t == t_FRAC:
-         return Rational(z)
+        from sage.rings.rational import Rational
+        return Rational(z)
     elif t == t_REAL:
+        from sage.rings.all import RealField
         prec = prec_words_to_bits(z.precision())
         return RealField(prec)(z)
     elif t == t_COMPLEX:
@@ -4806,10 +4801,12 @@ cpdef gentoobj(gen z, locals={}):
             else:
                 prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
 
+            from sage.rings.all import RealField, ComplexField
             R = RealField(prec)
             C = ComplexField(prec)
             return C(R(real), R(imag))
         else:
+            from sage.rings.all import QuadraticField
             K = QuadraticField(-1, 'i')
             return K([gentoobj(real), gentoobj(imag)])
     elif t == t_VEC or t == t_COL:
@@ -4820,18 +4817,23 @@ cpdef gentoobj(gen z, locals={}):
         nc = lg(g)-1
         nr = 0 if nc == 0 else lg(gel(g,1))-1
         L = [gentoobj(z[i,j], locals) for i in range(nr) for j in range(nc)]
+        from sage.matrix.constructor import matrix
         return matrix(nr, nc, L)
     elif t == t_PADIC:
+        from sage.rings.integer import Integer
+        from sage.rings.padics.factory import Qp
         p = z.padicprime()
         K = Qp(Integer(p), precp(g))
         return K(z.lift())
     elif t == t_INFINITY:
+        from sage.rings.infinity import Infinity
         if inf_get_sign(g) >= 0:
             return Infinity
         else:
             return -Infinity
     
     # Fallback (e.g. polynomials): use string representation
+    from sage.misc.sage_eval import sage_eval
     return sage_eval(str(z), locals=locals)
 
 

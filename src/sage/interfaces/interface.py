@@ -44,7 +44,7 @@ import six
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import RingElement, parent
+from sage.structure.element import Element, parent
 
 import sage.misc.sage_eval
 
@@ -476,7 +476,7 @@ class Interface(ParentWithBase):
             sage: args, kwds = gap._convert_args_kwds(args, kwds)
             sage: args
             [5]
-            sage: map(type, args)
+            sage: list(map(type, args))
             [<class 'sage.interfaces.gap.GapElement'>]
             sage: type(kwds['x'])
             <class 'sage.interfaces.gap.GapElement'>
@@ -650,12 +650,13 @@ class InterfaceFunctionElement(SageObject):
 def is_InterfaceElement(x):
     return isinstance(x, InterfaceElement)
 
-class InterfaceElement(RingElement):
+
+class InterfaceElement(Element):
     """
     Interface element.
     """
     def __init__(self, parent, value, is_name=False, name=None):
-        RingElement.__init__(self, parent)
+        Element.__init__(self, parent)
         self._create = value
         if parent is None: return     # means "invalid element"
         # idea: Joe Wetherell -- try to find out if the output

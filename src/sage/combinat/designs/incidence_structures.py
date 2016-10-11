@@ -164,7 +164,7 @@ class IncidenceStructure(object):
 
             sage: V = GF(5)
             sage: e0,e1,e2,e3,e4 = V
-            sage: [e0,e1,e2,e3,e4] == range(5)   # coercion makes them equal
+            sage: [e0,e1,e2,e3,e4] == list(range(5)) # coercion makes them equal
             True
             sage: blocks = [[e0,e1,e2],[e0,e1],[e2,e4]]
             sage: I = IncidenceStructure(V, blocks)
@@ -1508,7 +1508,7 @@ class IncidenceStructure(object):
             sage: D.is_t_design(return_parameters=True)
             (True, (1, 4, 2, 1))
 
-            sage: D = IncidenceStructure(4, [range(4)])
+            sage: D = IncidenceStructure(4, [list(range(4))])
             sage: D.is_t_design(return_parameters=True)
             (True, (4, 4, 4, 1))
 
@@ -1516,7 +1516,7 @@ class IncidenceStructure(object):
 
             sage: blocks = designs.steiner_quadruple_system(8)
             sage: S4_8 = IncidenceStructure(8, blocks)
-            sage: R = range(15)
+            sage: R = list(range(15))
             sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(3,v,k,l)]
             [(8, 4, 1)]
             sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(2,v,k,l)]
@@ -1762,7 +1762,7 @@ class IncidenceStructure(object):
             gB = []
             for b in gblcks:
                 gB.append([x-1 for x in b])
-            return IncidenceStructure(range(v), gB, name=None, check=False)
+            return IncidenceStructure(list(range(v)), gB, name=None, check=False)
         else:
             return IncidenceStructure(
                           incidence_matrix=self.incidence_matrix().transpose(),
@@ -1788,7 +1788,7 @@ class IncidenceStructure(object):
 
         A non self-dual example::
 
-            sage: IS = IncidenceStructure(range(4), [[0,1,2,3],[1,2,3]])
+            sage: IS = IncidenceStructure(list(range(4)), [[0,1,2,3],[1,2,3]])
             sage: IS.automorphism_group().cardinality()
             6
             sage: IS.dual().automorphism_group().cardinality()

@@ -583,9 +583,6 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             return element.coefficient([])
 
     class ElementMethods:
-
-        __mul__ = Magmas.ElementMethods.__mul__.__func__
-
         def _mul_(self, other):
             r"""
             Return the product of two elements ``self`` and ``other``.

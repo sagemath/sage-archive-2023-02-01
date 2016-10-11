@@ -4652,9 +4652,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         .. SEEALSO::
 
-            :meth:`cross_positive_operator_gens`,
-            :meth:`positive_operator_gens`,
-            :meth:`Z_operator_gens`
+            :meth:`cross_positive_operators_gens`,
+            :meth:`positive_operators_gens`,
+            :meth:`Z_operators_gens`
 
         REFERENCES:
 
@@ -5180,7 +5180,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         # explicit conversion, we return ``0`` when we have no rays.
         return L(sum(terms))
 
-    def positive_operator_gens(self, K2=None):
+    def positive_operators_gens(self, K2=None):
         r"""
         Compute minimal generators of the positive operators on this cone.
 
@@ -5226,9 +5226,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         .. SEEALSO::
 
-            :meth:`cross_positive_operator_gens`,
+            :meth:`cross_positive_operators_gens`,
             :meth:`lyapunov_like_basis`,
-            :meth:`Z_operator_gens`
+            :meth:`Z_operators_gens`
 
         REFERENCES:
 
@@ -5249,11 +5249,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         matrices::
 
             sage: K = Cone([(1,)])
-            sage: K.positive_operator_gens()
+            sage: K.positive_operators_gens()
             [[1]]
 
             sage: K = Cone([(1,0),(0,1)])
-            sage: K.positive_operator_gens()
+            sage: K.positive_operators_gens()
             [
             [1 0]  [0 1]  [0 0]  [0 0]
             [0 0], [0 0], [1 0], [0 1]
@@ -5262,19 +5262,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The trivial cone in a trivial space has no positive operators::
 
             sage: K = Cone([], ToricLattice(0))
-            sage: K.positive_operator_gens()
+            sage: K.positive_operators_gens()
             []
 
         Every operator is positive on the trivial cone::
 
             sage: K = Cone([(0,)])
-            sage: K.positive_operator_gens()
+            sage: K.positive_operators_gens()
             [[1], [-1]]
 
             sage: K = Cone([(0,0)])
             sage: K.is_trivial()
             True
-            sage: K.positive_operator_gens()
+            sage: K.positive_operators_gens()
             [
             [1 0]  [-1  0]  [0 1]  [ 0 -1]  [0 0]  [ 0  0]  [0 0]  [ 0  0]
             [0 0], [ 0  0], [0 0], [ 0  0], [1 0], [-1  0], [0 1], [ 0 -1]
@@ -5285,13 +5285,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = Cone([(1,),(-1,)])
             sage: K.is_full_space()
             True
-            sage: K.positive_operator_gens()
+            sage: K.positive_operators_gens()
             [[1], [-1]]
 
             sage: K = Cone([(1,0),(-1,0),(0,1),(0,-1)])
             sage: K.is_full_space()
             True
-            sage: K.positive_operator_gens()
+            sage: K.positive_operators_gens()
             [
             [1 0]  [-1  0]  [0 1]  [ 0 -1]  [0 0]  [ 0  0]  [0 0]  [ 0  0]
             [0 0], [ 0  0], [0 0], [ 0  0], [1 0], [-1  0], [0 1], [ 0 -1]
@@ -5301,7 +5301,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         right half-plane [OrlitzkyPosZ]_::
 
             sage: K = Cone([(1,0),(0,1),(0,-1)])
-            sage: K.positive_operator_gens()
+            sage: K.positive_operators_gens()
             [
             [1 0]  [0 0]  [ 0  0]  [0 0]  [ 0  0]
             [0 0], [1 0], [-1  0], [0 1], [ 0 -1]
@@ -5315,7 +5315,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=3)
             sage: K2 = random_cone(max_ambient_dim=3)
-            sage: pi_gens = K1.positive_operator_gens(K2)
+            sage: pi_gens = K1.positive_operators_gens(K2)
             sage: L = ToricLattice(K1.lattice_dim() * K2.lattice_dim())
             sage: pi_cone = Cone([ g.list() for g in pi_gens ],
             ....:                lattice=L,
@@ -5332,7 +5332,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: L = ToricLattice(K.lattice_dim()**2)
             sage: pi_cone = Cone([ g.list() for g in pi_gens ],
             ....:                lattice=L,
@@ -5356,7 +5356,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: n = K.lattice_dim()
             sage: m = K.dim()
             sage: l = K.lineality()
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: L = ToricLattice(n**2)
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
@@ -5374,7 +5374,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: n = K.lattice_dim()
             sage: m = K.dim()
             sage: l = K.lineality()
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: L = ToricLattice(n**2)
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
@@ -5392,7 +5392,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.is_trivial()
             True
             sage: L = ToricLattice(n^2)
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
             ....:                check=False)
@@ -5402,7 +5402,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = K.dual()
             sage: K.is_full_space()
             True
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
             ....:                check=False)
@@ -5410,7 +5410,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
             sage: K = Cone([(1,0),(0,1),(0,-1)])
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                check=False)
             sage: pi_cone.dim() == 3
@@ -5422,7 +5422,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
             sage: n = K.lattice_dim()
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: L = ToricLattice(n**2)
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
@@ -5440,7 +5440,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.is_trivial()
             True
             sage: L = ToricLattice(n^2)
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
             ....:                check=False)
@@ -5450,7 +5450,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = K.dual()
             sage: K.is_full_space()
             True
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
             ....:                check=False)
@@ -5458,7 +5458,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
             sage: K = Cone([(1,0),(0,1),(0,-1)])
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: pi_cone = Cone([g.list() for g in pi_gens], check=False)
             sage: pi_cone.lineality() == 2
             True
@@ -5468,7 +5468,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: L = ToricLattice(K.lattice_dim()**2)
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
@@ -5484,11 +5484,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: L = ToricLattice(K.lattice_dim()**2)
             sage: p = SymmetricGroup(K.lattice_dim()).random_element().matrix()
             sage: pK = Cone([ p*k for k in K ], K.lattice(), check=False)
-            sage: pi_gens = pK.positive_operator_gens()
+            sage: pi_gens = pK.positive_operators_gens()
             sage: actual = Cone([g.list() for g in pi_gens],
             ....:               lattice=L,
             ....:               check=False)
-            sage: pi_gens = K.positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
             sage: expected = Cone([(p*g*p.inverse()).list() for g in pi_gens],
             ....:                 lattice=L,
             ....:                 check=False)
@@ -5507,11 +5507,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: m = K2.lattice_dim()
             sage: L = ToricLattice(n*m)
             sage: W = VectorSpace(F, n*m)
-            sage: pi_gens = K1.positive_operator_gens(K2)
+            sage: pi_gens = K1.positive_operators_gens(K2)
             sage: pi_fwd = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
             ....:                check=False)
-            sage: pi_gens = K2.dual().positive_operator_gens(K1.dual())
+            sage: pi_gens = K2.dual().positive_operators_gens(K1.dual())
             sage: pi_back = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
             ....:                check=False)
@@ -5533,7 +5533,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K2 = random_cone(max_ambient_dim=3,
             ....:                  strictly_convex=True,
             ....:                  solid=True)
-            sage: pi_gens = K1.positive_operator_gens(K2)
+            sage: pi_gens = K1.positive_operators_gens(K2)
             sage: L = ToricLattice(K1.lattice_dim() * K2.lattice_dim())
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
@@ -5553,7 +5553,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K2 = random_cone(max_ambient_dim=3,
             ....:                  strictly_convex=True,
             ....:                  solid=True)
-            sage: pi_gens = K1.positive_operator_gens(K2)
+            sage: pi_gens = K1.positive_operators_gens(K2)
             sage: F = K1.lattice().base_field()
             sage: m = K1.lattice_dim()
             sage: n = K2.lattice_dim()
@@ -5611,7 +5611,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         M = MatrixSpace(F, m, n)
         return [ M(v.list()) for v in pi_cone ]
 
-    def cross_positive_operator_gens(self):
+    def cross_positive_operators_gens(self):
         r"""
         Compute minimal generators of the cross-positive operators on this
         cone.
@@ -5650,8 +5650,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         .. SEEALSO::
 
            :meth:`lyapunov_like_basis`,
-           :meth:`positive_operator_gens`,
-           :meth:`Z_operator_gens`
+           :meth:`positive_operators_gens`,
+           :meth:`Z_operators_gens`
 
         REFERENCES:
 
@@ -5669,13 +5669,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         elements are nonnegative::
 
             sage: K = Cone([(1,0),(0,1)])
-            sage: K.cross_positive_operator_gens()
+            sage: K.cross_positive_operators_gens()
             [
             [0 1]  [0 0]  [1 0]  [-1  0]  [0 0]  [ 0  0]
             [0 0], [1 0], [0 0], [ 0  0], [0 1], [ 0 -1]
             ]
             sage: K = Cone([(1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1)])
-            sage: all([ c[i][j] >= 0 for c in K.cross_positive_operator_gens()
+            sage: all([ c[i][j] >= 0 for c in K.cross_positive_operators_gens()
             ....:                    for i in range(c.nrows())
             ....:                    for j in range(c.ncols())
             ....:                    if i != j ])
@@ -5685,7 +5685,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         operators::
 
             sage: K = Cone([], ToricLattice(0))
-            sage: K.cross_positive_operator_gens()
+            sage: K.cross_positive_operators_gens()
             []
 
         Every operator is a cross-positive operator on the ambient
@@ -5694,13 +5694,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = Cone([(1,),(-1,)])
             sage: K.is_full_space()
             True
-            sage: K.cross_positive_operator_gens()
+            sage: K.cross_positive_operators_gens()
             [[1], [-1]]
 
             sage: K = Cone([(1,0),(-1,0),(0,1),(0,-1)])
             sage: K.is_full_space()
             True
-            sage: K.cross_positive_operator_gens()
+            sage: K.cross_positive_operators_gens()
             [
             [1 0]  [-1  0]  [0 1]  [ 0 -1]  [0 0]  [ 0  0]  [0 0]  [ 0  0]
             [0 0], [ 0  0], [0 0], [ 0  0], [1 0], [-1  0], [0 1], [ 0 -1]
@@ -5710,7 +5710,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         operators on the right half-plane [OrlitzkyPosZ]_::
 
             sage: K = Cone([(1,0),(0,1),(0,-1)])
-            sage: K.cross_positive_operator_gens()
+            sage: K.cross_positive_operators_gens()
             [
             [1 0]  [-1  0]  [0 0]  [ 0  0]  [0 0]  [ 0  0]
             [0 0], [ 0  0], [1 0], [-1  0], [0 1], [ 0 -1]
@@ -5725,7 +5725,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: lls = span([ vector(l.list())
             ....:              for l in K.lyapunov_like_basis() ])
             sage: cs  = span([ vector(c.list())
-            ....:               for c in K.cross_positive_operator_gens() ])
+            ....:               for c in K.cross_positive_operators_gens() ])
             sage: cs == lls
             True
 
@@ -5736,7 +5736,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
-            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_gens = K.cross_positive_operators_gens()
             sage: dcs = K.discrete_complementarity_set()
             sage: all([ s*(g*x) >= 0 for g in cp_gens for (x,s) in dcs ])
             True
@@ -5747,7 +5747,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
             sage: L = ToricLattice(K.lattice_dim()**2)
-            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_gens = K.cross_positive_operators_gens()
             sage: cp_cone = Cone([g.list() for g in cp_gens],
             ....:                    lattice=L,
             ....:                    check=False)
@@ -5764,8 +5764,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
-            sage: pi_gens = K.positive_operator_gens()
-            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: pi_gens = K.positive_operators_gens()
+            sage: cp_gens = K.cross_positive_operators_gens()
             sage: L = ToricLattice(K.lattice_dim()**2)
             sage: pi_cone = Cone([g.list() for g in pi_gens],
             ....:                lattice=L,
@@ -5788,7 +5788,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.is_trivial()
             True
             sage: L = ToricLattice(n^2)
-            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_gens = K.cross_positive_operators_gens()
             sage: cp_cone = Cone([g.list() for g in cp_gens],
             ....:                lattice=L,
             ....:                check=False)
@@ -5798,7 +5798,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = K.dual()
             sage: K.is_full_space()
             True
-            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_gens = K.cross_positive_operators_gens()
             sage: cp_cone = Cone([g.list() for g in cp_gens],
             ....:                lattice=L,
             ....:                check=False)
@@ -5806,7 +5806,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
             sage: K = Cone([(1,0),(0,1),(0,-1)])
-            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_gens = K.cross_positive_operators_gens()
             sage: cp_cone = Cone([g.list() for g in cp_gens ], check=False)
             sage: cp_cone.dim() == 3
             True
@@ -5819,11 +5819,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: L = ToricLattice(K.lattice_dim()**2)
             sage: p = SymmetricGroup(K.lattice_dim()).random_element().matrix()
             sage: pK = Cone([ p*k for k in K ], K.lattice(), check=False)
-            sage: cp_gens = pK.cross_positive_operator_gens()
+            sage: cp_gens = pK.cross_positive_operators_gens()
             sage: actual = Cone([g.list() for g in cp_gens],
             ....:               lattice=L,
             ....:               check=False)
-            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_gens = K.cross_positive_operators_gens()
             sage: expected = Cone([(p*g*p.inverse()).list() for g in cp_gens],
             ....:                 lattice=L,
             ....:                 check=False)
@@ -5839,11 +5839,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: n = K.lattice_dim()
             sage: L = ToricLattice(n**2)
             sage: W = VectorSpace(F, n**2)
-            sage: cp_gens = K.cross_positive_operator_gens()
+            sage: cp_gens = K.cross_positive_operators_gens()
             sage: cp_cone = Cone([g.list() for g in cp_gens],
             ....:                lattice=L,
             ....:                check=False)
-            sage: cp_gens = K.dual().cross_positive_operator_gens()
+            sage: cp_gens = K.dual().cross_positive_operators_gens()
             sage: cp_star = Cone([g.list() for g in cp_gens],
             ....:                lattice=L,
             ....:                check=False)
@@ -5892,13 +5892,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         M = MatrixSpace(F, n)
         return [ M(v.list()) for v in cp_cone ]
 
-    def Z_operator_gens(self):
+    def Z_operators_gens(self):
         r"""
         Compute minimal generators of the Z-operators on this cone.
 
         The Z-operators on a cone generalize the Z-matrices over the
         nonnegative orthant. They are simply negations of the
-        :meth:`cross_positive_operator_gens`.
+        :meth:`cross_positive_operators_gens`.
 
         OUTPUT:
 
@@ -5918,9 +5918,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         .. SEEALSO::
 
-           :meth:`cross_positive_operator_gens`,
+           :meth:`cross_positive_operators_gens`,
            :meth:`lyapunov_like_basis`,
-           :meth:`positive_operator_gens`
+           :meth:`positive_operators_gens`
 
         REFERENCES:
 
@@ -5937,12 +5937,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
-            sage: Z_gens = K.Z_operator_gens()
+            sage: Z_gens = K.Z_operators_gens()
             sage: dcs = K.discrete_complementarity_set()
             sage: all([ s*(z*x) <= 0 for z in Z_gens for (x,s) in dcs ])
             True
         """
-        return [ -cp for cp in self.cross_positive_operator_gens() ]
+        return [ -cp for cp in self.cross_positive_operators_gens() ]
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,

@@ -29,7 +29,7 @@ Functions, Classes and Methods
 from __future__ import print_function, absolute_import
 from six.moves import range
 
-# import sage   # WHAT !!!
+import sage   # WHAT !!!
 
 
 def repr_short_to_parent(s):

@@ -74,8 +74,9 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 # PARI C library
 from sage.libs.pari import pari
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.convert_sage cimport (_new_GEN_from_fmpz_mat_t,
-           _new_GEN_from_fmpz_mat_t_rotate90, integer_matrix, INT_to_mpz)
+from sage.libs.pari.convert_gmp cimport INT_to_mpz
+from sage.libs.pari.convert_flint cimport (_new_GEN_from_fmpz_mat_t,
+           _new_GEN_from_fmpz_mat_t_rotate90, integer_matrix)
 from sage.libs.pari.stack cimport clear_stack
 from sage.libs.pari.paridecl cimport *
 #########################################################

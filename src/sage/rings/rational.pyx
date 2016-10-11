@@ -61,7 +61,7 @@ from integer cimport Integer
 
 from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.convert_sage cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
+from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
 
 from integer_ring import ZZ
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction

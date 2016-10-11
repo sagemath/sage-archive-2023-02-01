@@ -22,7 +22,7 @@ include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.paripriv cimport *
-from sage.libs.pari.convert_sage cimport _new_GEN_from_mpz_t
+from sage.libs.pari.convert_gmp cimport _new_GEN_from_mpz_t
 from sage.libs.pari.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
 from sage.libs.pari.gen cimport gen as pari_gen, objtogen as pari_objtogen
 

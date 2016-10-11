@@ -165,7 +165,7 @@ from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
 from sage.libs.pari.gen cimport objtogen as pari_objtogen, gen as pari_gen
-from sage.libs.pari.convert_sage cimport INT_to_mpz, new_gen_from_mpz_t
+from sage.libs.pari.convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
 from sage.libs.pari.stack cimport new_gen
 from sage.libs.flint.ulong_extras cimport *
 

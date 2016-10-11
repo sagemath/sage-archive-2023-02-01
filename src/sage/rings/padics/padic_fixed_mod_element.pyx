@@ -24,7 +24,7 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "FM_template.pxi"
 
-from sage.libs.pari.convert_sage cimport new_gen_from_padic
+from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
 
 cdef class PowComputer_(PowComputer_base):

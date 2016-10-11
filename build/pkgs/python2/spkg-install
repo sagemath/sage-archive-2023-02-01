@@ -155,6 +155,10 @@ if [ "$UNAME" = "Darwin" ]; then
         echo "_scproxy module imported OK"
     else
         echo >&2 "_scproxy module failed to import"
+        echo >&2 "uninstalling..."
+        rm -f "$SAGE_LOCAL"/lib/libpython*
+        rm -f "$SAGE_LOCAL"/lib/python
+        rm -f "$SAGE_LOCAL"/bin/python*
         import_errors=true
     fi
 fi

@@ -175,6 +175,8 @@ class PariInstanceArgument(PariArgumentObject):
     """
     def __init__(self):
         PariArgument.__init__(self, iter(["self"]), None, 0)
+    def convert_code(self):
+        return "        cdef PariInstance pari_instance = <PariInstance>self\n"
     def _typerepr(self):
         return "PariInstance"
 

@@ -133,9 +133,9 @@ class Decoder(SageObject):
             sage: D.input_space()
             Vector space of dimension 4 over Finite Field of size 2
             sage: D.connected_encoder()
-            Generator matrix-based encoder for Linear code of length 4, dimension 2 over Finite Field of size 2
+            Generator matrix-based encoder for [4, 2] linear code over GF(2)
             sage: D.code()
-            Linear code of length 4, dimension 2 over Finite Field of size 2
+            [4, 2] linear code over GF(2)
         """
         self.decoder_type = self._instance_decoder_type
         self._code = code
@@ -228,7 +228,7 @@ class Decoder(SageObject):
             sage: C = LinearCode(G)
             sage: D = C.decoder()
             sage: D.connected_encoder()
-            Generator matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+            Generator matrix-based encoder for [7, 4] linear code over GF(2)
         """
         return self.code().encoder(encoder_name=self._connected_encoder_name)
 
@@ -270,7 +270,7 @@ class Decoder(SageObject):
             sage: C = LinearCode(G)
             sage: D = C.decoder()
             sage: D.code()
-            Linear code of length 7, dimension 4 over Finite Field of size 2
+            [7, 4] linear code over GF(2)
         """
         return self._code
 

@@ -84,7 +84,7 @@ class Encoder(SageObject):
         We can check its parameters::
 
             sage: E.code()
-            Linear code of length 4, dimension 2 over Finite Field of size 2
+            [4, 2] linear code over GF(2)
         """
         self._code = code
 

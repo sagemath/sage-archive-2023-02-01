@@ -277,7 +277,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             was defined in [BHZ05]_.
 
             This partial order is not a lattice, as there is no unique
-            maximal element.
+            maximal element. It can be succintly defined as follows.
+
+            Let `u` and `v` be two elements of the Coxeter group `W`. Let
+            `S(u)` be the support of `u`. Then `u \leq v` if and only
+            if `v_{S(u)} = u` (here `v = v^I v_I` denotes the usual
+            parabolic decomposition with respect to the standard parabolic
+            subgroup `W_I`).
 
             .. SEEALSO::
 

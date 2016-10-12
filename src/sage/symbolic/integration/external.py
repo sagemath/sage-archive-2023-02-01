@@ -111,12 +111,10 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
             result = expression._fricas_().integrate("{}={}..{}".format(v, a, b), '"noPole"')
         else:
             result = expression._fricas_().integrate("{}={}..{}".format(v, a, b))
-            
+
     locals = {str(v): v for v in expression.variables()}
     if str(result) == "potentialPole":
         raise ValueError("The integrand has a potential pole"
                          " in the integration interval")
-    try:
-        return result.sage()
-    except:
-        raise ValueError("Unable to parse: {}".format(result))
+
+    return result.sage()

@@ -301,6 +301,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                related to the Connectivity Set of Coxeter Groups*.
                :arxiv:`math/0509271v3`
             """
+            from sage.graphs.digraph import DiGraph
+
             def covered_by(ux, vy):
                 u, iu, Su = ux
                 v, iv, Sv = vy

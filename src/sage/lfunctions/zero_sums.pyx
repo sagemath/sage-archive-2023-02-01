@@ -266,7 +266,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             try:
                 z = ZZ(s)
                 return PlusInfinity()
-            except:
+            except Exception:
                 pass
 
         if imag(s)==0:

@@ -1352,7 +1352,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     img_k = ETuple(dict([(inject_dict[a],k[a]) for a in xrange(m)]),n)
                     x[img_k] = tmp_x[k]
             # otherwise just pass along a dict for conversions 
-            except:
+            except Exception:
                 x = x.dict()
         elif isinstance(x, PolyDict):
             x = x.dict()

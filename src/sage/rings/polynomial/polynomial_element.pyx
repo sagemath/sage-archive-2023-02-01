@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 Univariate Polynomial Base Class
 
@@ -60,6 +61,7 @@ import sage.rings.complex_field
 import sage.rings.fraction_field_element
 import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
+from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
 from sage.misc.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
@@ -8657,6 +8659,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of logarithm of this polynomial,
         truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (1 + x)._log_series(3)
+            -0.5000000000000000*x^2 + x
         """
         raise NotImplementedError
 
@@ -8664,6 +8672,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of exponential of this polynomial,
         truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: x._exp_series(3)
+            0.5000000000000000*x^2 + x + 1.000000000000000
         """
         raise NotImplementedError
 
@@ -8671,6 +8685,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of arctangent of this polynomial,
         truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._atan_series(4)
+            -1/3*x^3 + x
         """
         raise NotImplementedError
 
@@ -8678,6 +8698,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of hyperbolic arctangent of this
         polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._atanh_series(4)
+            1/3*x^3 + x
         """
         raise NotImplementedError
 
@@ -8685,6 +8711,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of arcsine of this polynomial,
         truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._asin_series(4)
+            1/6*x^3 + x
         """
         raise NotImplementedError
 
@@ -8692,6 +8724,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of hyperbolic arcsine of this
         polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._asinh_series(4)
+            -1/6*x^3 + x
         """
         raise NotImplementedError
 
@@ -8699,6 +8737,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of tangent of this polynomial,
         truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._tan_series(4)
+            1/3*x^3 + x
         """
         raise NotImplementedError
 
@@ -8706,6 +8750,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of sine of this polynomial, truncated
         to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._sin_series(4)
+            -1/6*x^3 + x
         """
         raise NotImplementedError
 
@@ -8713,6 +8763,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of cosine of this polynomial,
         truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._cos_series(4)
+            -1/2*x^2 + 1
         """
         raise NotImplementedError
 
@@ -8720,6 +8776,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of hyperbolic sine of this
         polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._sinh_series(4)
+            1/6*x^3 + x
         """
         raise NotImplementedError
 
@@ -8727,6 +8789,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of hyperbolic cosine of this
         polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._cosh_series(4)
+            1/2*x^2 + 1
         """
         raise NotImplementedError
 
@@ -8734,6 +8802,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the power series expansion of hyperbolic tangent of this
         polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._tanh_series(4)
+            -1/3*x^3 + x
         """
         raise NotImplementedError
 

@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 r"""
 Generic structures for linear codes
@@ -1416,7 +1415,7 @@ class AbstractLinearCode(Module):
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
-            ValueError: Passed Decoder name not known
+            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['Syndrome', 'NearestNeighbor']
         """
         if decoder_name is None:
             decoder_name = self._default_decoder_name
@@ -1425,7 +1424,7 @@ class AbstractLinearCode(Module):
             D = decClass(self, **kwargs)
             return D
         else:
-            raise ValueError("Passed Decoder name not known")
+            raise ValueError("There is no Decoder named '%s'. The known Decoders are: %s" % (decoder_name, self.decoders_available()))
 
     def decoders_available(self, classes=False):
         r"""
@@ -1732,7 +1731,7 @@ class AbstractLinearCode(Module):
             sage: C.encoder('NonExistingEncoder')
             Traceback (most recent call last):
             ...
-            ValueError: Passed Encoder name not known
+            ValueError: There is no Encoder named 'NonExistingEncoder'. The known Encoders are: ['GeneratorMatrix', 'Systematic']
         """
         if encoder_name is None:
             encoder_name = self._default_encoder_name
@@ -1741,7 +1740,7 @@ class AbstractLinearCode(Module):
             E = encClass(self, **kwargs)
             return E
         else:
-            raise ValueError("Passed Encoder name not known")
+            raise ValueError("There is no Encoder named '%s'. The known Encoders are: %s" % (encoder_name, self.encoders_available()))
 
     def encoders_available(self, classes=False):
         r"""

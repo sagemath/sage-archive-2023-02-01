@@ -302,6 +302,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                :arxiv:`math/0509271v3`
             """
             from sage.graphs.digraph import DiGraph
+            from sage.combinat.posets.posets import Poset
 
             def covered_by(ux, vy):
                 u, iu, Su = ux

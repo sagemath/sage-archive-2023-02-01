@@ -443,11 +443,12 @@ class AbstractLinearCode(Module):
 
     def __init__(self, base_field, length, default_encoder_name, default_decoder_name):
         """
-        Initializes mandatory parameters for a Linear Code object.
+        Initializes mandatory parameters that any linear code shares.
 
         This method only exists for inheritance purposes as it initializes
-        parameters that need to be known by every linear code. An abstract
-        linear code object should never be created.
+        parameters that need to be known by every linear code. The class
+        `:class:sage.coding.linear_code.AbstractLinearCode` should never be
+        directly instantiated.
 
         INPUT:
 
@@ -461,9 +462,10 @@ class AbstractLinearCode(Module):
 
         EXAMPLES:
 
-        We first create a new LinearCode subclass::
+        The following example demonstrates how to subclass `AbstractLinearCode`
+        for representing a new family of codes. The example family is non-sensical::
 
-            sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
+            sage: class MyCodeFamily(sage.coding.linear_code.AbstractLinearCode):
             ....:   def __init__(self, field, length, dimension, generator_matrix):
             ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "GeneratorMatrix", "Syndrome")
             ....:       self._dimension = dimension
@@ -473,11 +475,11 @@ class AbstractLinearCode(Module):
             ....:   def _repr_(self):
             ....:       return "Dummy code of length %d, dimension %d over %s" % (self.length(), self.dimension(), self.base_field())
 
-        We now create a member of our newly made class::
+        We now instantiate a member of our newly made code family::
 
             sage: generator_matrix = matrix(GF(17), 5, 10,
             ....:                           {(i,i):1 for i in range(5)})
-            sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
+            sage: C = MyCodeFamily(GF(17), 10, 5, generator_matrix)
 
         We can check its existence and parameters::
 
@@ -487,7 +489,7 @@ class AbstractLinearCode(Module):
         We can check that it is truly a part of the framework category::
 
             sage: C.parent()
-            <class '__main__.CodeExample_with_category'>
+            <class '__main__.MyCodeFamily_with_category'>
             sage: C.category()
             Category of facade finite dimensional vector spaces with basis over Finite Field of size 17
 
@@ -505,7 +507,7 @@ class AbstractLinearCode(Module):
         If the length field is neither a Python int nor a Sage Integer, it will
         raise a exception::
 
-            sage: C = CodeExample(GF(17), 10.0, 5, generator_matrix)
+            sage: C = MyCodeFamily(GF(17), 10.0, 5, generator_matrix)
             Traceback (most recent call last):
             ...
             ValueError: length must be a Python int or a Sage Integer
@@ -514,7 +516,7 @@ class AbstractLinearCode(Module):
         (See :trac:`21326`), it will raise an exception::
 
             sage: empty_generator_matrix = Matrix(GF(17),0,1)
-            sage: C = CodeExample(GF(17), 0, 1, empty_generator_matrix)
+            sage: C = MyCodeFamily(GF(17), 0, 1, empty_generator_matrix)
             Traceback (most recent call last):
             ...
             ValueError: length must be a non-zero positive integer
@@ -522,7 +524,7 @@ class AbstractLinearCode(Module):
         If the name of the default decoder is not known by the class, it will raise
         a exception::
 
-            sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
+            sage: class MyCodeFamily2(sage.coding.linear_code.AbstractLinearCode):
             ....:   def __init__(self, field, length, dimension, generator_matrix):
             ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "GeneratorMatrix", "Fail")
             ....:       self._dimension = dimension
@@ -532,7 +534,7 @@ class AbstractLinearCode(Module):
             ....:   def _repr_(self):
             ....:       return "Dummy code of length %d, dimension %d over %s" % (self.length(), self.dimension(), self.base_field())
 
-            sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
+            sage: C = MyCodeFamily2(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
             ValueError: You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders
@@ -540,7 +542,7 @@ class AbstractLinearCode(Module):
         If the name of the default encoder is not known by the class, it will raise
         an exception::
 
-            sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
+            sage: class MyCodeFamily3(sage.coding.linear_code.AbstractLinearCode):
             ....:   def __init__(self, field, length, dimension, generator_matrix):
             ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "Fail", "Syndrome")
             ....:       self._dimension = dimension
@@ -550,7 +552,7 @@ class AbstractLinearCode(Module):
             ....:   def _repr_(self):
             ....:       return "Dummy code of length %d, dimension %d over %s" % (self.length(), self.dimension(), self.base_field())
 
-            sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
+            sage: C = MyCodeFamily3(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
             ValueError: You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders
@@ -4004,14 +4006,14 @@ class LinearCodeSystematicEncoder(Encoder):
     An exception is thrown if :class:`LinearCodeSystematicEncoder` is the default encoder but no
     parity check matrix has been specified for the code::
 
-        sage: class BadCodeExample(sage.coding.linear_code.AbstractLinearCode):
+        sage: class BadCodeFamily(sage.coding.linear_code.AbstractLinearCode):
         ....:   def __init__(self, field, length):
         ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self, field, length, "Systematic", "Syndrome")
         ....:
         ....:   def _repr_(self):
         ....:       return "I am a badly defined code"
         ....:
-        sage: BadCodeExample(GF(3), 5).generator_matrix()
+        sage: BadCodeFamily(GF(3), 5).generator_matrix()
         Traceback (most recent call last):
         ...
         ValueError: a parity check matrix must be specified if LinearCodeSystematicEncoder is the default encoder

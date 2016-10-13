@@ -984,7 +984,7 @@ exec 7>&-
 
 
 dnl AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([build/make/Makefile-auto])
+AC_CONFIG_FILES([build/make/Makefile-auto src/Makefile])
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl Create basic directories needed for Sage

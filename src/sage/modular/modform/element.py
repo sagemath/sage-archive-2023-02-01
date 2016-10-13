@@ -835,7 +835,7 @@ class ModularForm_abstract(ModuleElement):
         from sage.lfunctions.all import Dokchitser
 
         # compute the requested embedding
-        C = rings.ComplexField(prec)
+        C = ComplexField(prec)
         if conjugate is not None:
             from sage.misc.superseded import deprecation
             deprecation(19668, "The argument 'conjugate' for 'lseries' is deprecated -- use the synonym 'embedding'")
@@ -851,7 +851,7 @@ class ModularForm_abstract(ModuleElement):
         # key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
         N = self.level()
-        e = C.gen()**l * C(N)**(1 - rings.QQ(l)/2) * self.atkin_lehner_eigenvalue(N, embedding=emb)
+        e = C.gen()**l * C(N)**(1 - QQ(l)/2) * self.atkin_lehner_eigenvalue(N, embedding=emb)
 
         if self.is_cuspidal():
             poles = []  # cuspidal
@@ -1377,7 +1377,7 @@ class Newform(ModularForm_abstract):
         # consistently
         A = M.ambient()
         X = Ms.free_module().base_extend(self.hecke_eigenvalue_field())
-        p = rings.ZZ(2)
+        p = ZZ(2)
         while X.rank() > r:
             assert p <= M.sturm_bound()
             X = (A.hecke_matrix(p) - self[p]).kernel_on(X)
@@ -1683,7 +1683,7 @@ class Newform(ModularForm_abstract):
 
         """
         # normalise d
-        d = rings.ZZ(d)
+        d = ZZ(d)
         N = self.level()
         if not d.divides(N):
             raise ValueError('d (= {}) does not divide the level (= {})'.format(d, N))
@@ -2102,9 +2102,9 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             raise NotImplementedError("Don't know how to compute Atkin-Lehner matrix acting on this space" \
                 + " (try using a newform constructor instead)")
         if f == self:
-            return rings.QQ.one()
+            return QQ.one()
         elif f == -self:
-            return rings.QQ(-1)
+            return QQ(-1)
         else:
             raise ValueError("%r is not an eigenform for W_%r" % (self, d))
 

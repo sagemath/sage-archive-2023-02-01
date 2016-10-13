@@ -10,6 +10,7 @@ AUTHORS:
 
 EXAMPLES::
 
+    sage: from mac_lane import * # optional: standalone
     sage: R.<x> = QQ[]
     sage: v0 = pAdicValuation(QQ, 2)
     sage: v = GaussValuation(R, v0); v
@@ -40,68 +41,38 @@ polynomial rings::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Fix doctests so they work in standalone mode (when invoked with sage -t, they run within the mac_lane/ directory)
+import sys, os
+if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
+    sys.path.append(os.getcwd())
+    sys.path.append(os.path.dirname(os.getcwd()))
+
 from developing_valuation import DevelopingValuation
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.factory import UniqueFactory
 
-##METACLASS HACK
-import inspect, types, __builtin__
+class GaussValuationFactory(UniqueFactory):
+    def create_key(self, domain, v=None):
+        if not domain.ngens() == 1:
+            raise NotImplementedError("only implemented for univariate rings")
 
-############## preliminary: two utility functions #####################
-def skip_redundant(iterable, skipset=None):
-   "Redundant items are repeated items or items in the original skipset."
-   if skipset is None: skipset = set()
-   for item in iterable:
-       if item not in skipset:
-           skipset.add(item)
-           yield item
+        from sage.rings.padics.padic_generic import pAdicGeneric
+        from padic_valuation import pAdicValuation
+        if v is None:
+            v = pAdicValuation(domain.base_ring())
+        if not v.domain() is domain.base_ring():
+            raise ValueError("the domain of v must be the base ring of domain")
 
+        return (domain, v)
 
-def remove_redundant(metaclasses):
-   skipset = set([types.ClassType])
-   for meta in metaclasses: # determines the metaclasses to be skipped
-       skipset.update(inspect.getmro(meta)[1:])
-   return tuple(skip_redundant(metaclasses, skipset))
+    def create_object(self, version, key, **extra_args):
+        return GaussValuation_generic(*key)
 
-##################################################################
-## now the core of the module: two mutually recursive functions ##
-##################################################################
+GaussValuation = GaussValuationFactory("GaussValuation")
 
-memoized_metaclasses_map = {}
-
-def get_noconflict_metaclass(bases, left_metas, right_metas):
-    """Not intended to be used outside of this module, unless you know
-    what you are doing."""
-    # make tuple of needed metaclasses in specified priority order
-    metas = left_metas + tuple(map(type, bases)) + right_metas
-    needed_metas = remove_redundant(metas)
-
-    # return existing confict-solving meta, if any
-    if needed_metas in memoized_metaclasses_map:
-      return memoized_metaclasses_map[needed_metas]
-    # nope: compute, memoize and return needed conflict-solving meta
-    elif not needed_metas:         # wee, a trivial case, happy us
-        meta = type
-    elif len(needed_metas) == 1: # another trivial case
-       meta = needed_metas[0]
-    # check for recursion, can happen i.e. for Zope ExtensionClasses
-    elif needed_metas == bases: 
-        raise TypeError("Incompatible root metatypes", needed_metas)
-    else: # gotta work ...
-        metaname = '_' + ''.join([m.__name__ for m in needed_metas])
-        meta = classmaker()(metaname, needed_metas, {})
-    memoized_metaclasses_map[needed_metas] = meta
-    return meta
-
-def classmaker(left_metas=(), right_metas=()):
-   def make_class(name, bases, adict):
-       metaclass = get_noconflict_metaclass(bases, left_metas, right_metas)
-       return metaclass(name, bases, adict)
-   return make_class
-##END METACLASS HACK
-
-class GaussValuation(UniqueRepresentation, DevelopingValuation):
+class GaussValuation_generic(DevelopingValuation):
     """
     A Gauss valuation on a polynomial ring ``domain``.
 
@@ -115,6 +86,7 @@ class GaussValuation(UniqueRepresentation, DevelopingValuation):
 
     EXAMPLES::
 
+        sage: from mac_lane import * # optional: standalone
         sage: R = Zp(3,5)
         sage: S.<x> = R[]
         sage: v0 = pAdicValuation(R)
@@ -126,39 +98,22 @@ class GaussValuation(UniqueRepresentation, DevelopingValuation):
         Gauss valuation induced by 5-adic valuation
 
     """
-    __metaclass__ = classmaker()
-
     def __init__(self, domain, v=None):
         """
         Initialization.
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: type(v)
             <class 'sage.rings.padics.gauss_valuation.GaussValuation'>
 
         """
-        if not domain.ngens() == 1:
-            raise NotImplementedError("only implemented for univariate rings")
-
-        from sage.rings.padics.padic_generic import pAdicGeneric
-        from padic_valuation import pAdicValuation
-        if v is None:
-            v = pAdicValuation(domain.base_ring())
-        if not v.domain() is domain.base_ring():
-            raise ValueError("the domain of v must be the base ring of domain")
-
         DevelopingValuation.__init__(self, domain, domain.gen())
 
         self._base_valuation = v
-
-    def __hash__(self):
-        return hash(self.domain())
-
-    def _cache_key(self):
-        return (self.domain(),)
 
     def value_group(self):
         """
@@ -173,10 +128,11 @@ class GaussValuation(UniqueRepresentation, DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: v.value_group()
-            Fractional ideal (1)
+            DiscreteValueGroup(1)
 
         """
         return self._base_valuation.value_group()
@@ -187,6 +143,7 @@ class GaussValuation(UniqueRepresentation, DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: v
@@ -203,6 +160,7 @@ class GaussValuation(UniqueRepresentation, DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: v.uniformizer()
@@ -224,6 +182,7 @@ class GaussValuation(UniqueRepresentation, DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: v.shift(x, -2)
@@ -272,6 +231,7 @@ class GaussValuation(UniqueRepresentation, DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S, pAdicValuation(R))

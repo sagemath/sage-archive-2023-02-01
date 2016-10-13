@@ -29,6 +29,12 @@ TODO: Check that things work out when v is a pseudo-valuation!
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Fix doctests so they work in standalone mode (when invoked with sage -t, they run within the mac_lane/ directory)
+import sys, os
+if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
+    sys.path.append(os.getcwd())
+    sys.path.append(os.path.dirname(os.getcwd()))
+
 from discrete_valuation import DiscreteValuation
 from sage.misc.abstract_method import abstract_method
 
@@ -174,8 +180,8 @@ class DevelopingValuation(DiscreteValuation):
         if f.is_constant():
             raise ValueError("f must not be constant")
 
-        from sage.misc.cachefunc import _cache_key
-        key = _cache_key(f)
+        from sage.misc.cachefunc import cache_key
+        key = cache_key(f)
 
         if self.equivalence_decomposition.is_in_cache(key):
             F = self.equivalence_decomposition(f)

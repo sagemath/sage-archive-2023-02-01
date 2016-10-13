@@ -18,6 +18,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Fix doctests so they work in standalone mode (when invoked with sage -t, they run within the mac_lane/ directory)
+import sys, os
+if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
+    sys.path.append(os.getcwd())
+    sys.path.append(os.path.dirname(os.getcwd()))
+
 from discrete_valuation import DiscreteValuation, DiscretePseudoValuation
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
@@ -31,7 +37,7 @@ class PadicValuationFactory(UniqueFactory):
 
     - ``R`` -- a ring
 
-    - ``prime`` -- a prime or ``None`` (default: ``None``), if ``None``, tries
+    - ``prime`` -- a prime or ``None`` (default: ``None``), if ``None``, try
       to automatically determine the appropriate prime for ``R``
 
     EXAMPLES::
@@ -52,6 +58,7 @@ class PadicValuationFactory(UniqueFactory):
 
     A case that took very long due to the hashing of number fields::
 
+        sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: Delta1= x^12 + 20*x^11 + 154*x^10 + 664*x^9 + 1873*x^8 + 3808*x^7 + 5980*x^6 + 7560*x^5 + 7799*x^4 + 6508*x^3 + 4290*x^2 + 2224*x + 887 
         sage: K.<theta>=NumberField(x^9-2)
@@ -59,9 +66,9 @@ class PadicValuationFactory(UniqueFactory):
         sage: G=Delta1.change_ring(K)
         sage: v0=GaussValuation(G.parent(),vK)
         sage: V=v0.mac_lane_step(G)
-        sage: while len(V)==1:V=V[0].mac_lane_step(G)
+        sage: while len(V) == 1: V=V[0].mac_lane_step(G)
         sage: v=V[0]
-        sage: while v(v.phi())<50: v=v.mac_lane_step(G)[0]
+        sage: while v(v.phi()) < 50: v=v.mac_lane_step(G)[0]
         sage: F=v.phi()
         sage: L.<alpha>=K.extension(F)
         sage: vK.mac_lane_approximants(F)
@@ -85,7 +92,7 @@ class PadicValuationFactory(UniqueFactory):
                     prime = R.prime()
             if prime != R.prime():
                 raise NotImplementedError("p-adic valuation not implemented for this ring")
-            return (R, None), {}
+            return (R, prime), {}
         elif is_NumberField(R):
             if prime is None:
                 raise ValueError("prime must be specified for this ring")
@@ -112,17 +119,10 @@ class PadicValuationFactory(UniqueFactory):
         else:
             R = extra_args['R']
             return pAdicValuation_number_field(R, prime)
-            # TODO:
-            # The code below tries to turn a relative extension into an absolute extension and then speed up PARI through the maximize_at_primes=(p,) switch. However, in large examples this crashes PARI.
-            #if R.base() is R.base_ring():
-            #    return pAdicValuation_number_field(R, prime)
-            #else:
-            #    return pAdicValuation_number_field_relative(R, prime)
 
 pAdicValuation = PadicValuationFactory("pAdicValuation")
 
-
-class pAdicValuation_base(WithEqualityById, DiscreteValuation):
+class pAdicValuation_base(DiscreteValuation):
     """
     Common base class for `p`-adic valuations on integral domains.
 
@@ -164,8 +164,9 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
 
         TESTS::
 
-            sage: type(pAdicValuation(ZZ, 3))
-            <class 'sage.rings.padics.padic_valuation.pAdicValuation_int'>
+            sage: from sage.rings.padics.padic_valuation import pAdicValuation_int # optional: integrated
+            sage: isinstance(pAdicValuation(ZZ, 3), pAdicValuation_int)
+            True
 
         """
         DiscreteValuation.__init__(self, ring)
@@ -184,7 +185,17 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
         return self._prime
 
     def value_group(self):
-        return self._value_group(1)
+        r"""
+        Return the value group \ZZ of this valuation.
+
+        EXAMPLES::
+
+            sage: pAdicValuation(ZZ, 3).value_group()
+            DiscreteValueGroup(1)
+
+        """
+        from discrete_value_group import DiscreteValueGroup
+        return DiscreteValueGroup(1)
 
     def _repr_(self):
         """
@@ -263,7 +274,8 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
 
     def uniformizer(self):
         """
-        Return a uniformizer of this valuation, i.e., `p` as an element of the domain.
+        Return a uniformizer of this `p`-adic valuation, i.e., `p` as an
+        element of the domain.
 
         EXAMPLES::
 
@@ -286,11 +298,11 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
 
         """
         from sage.rings.all import GF
-        return GF(self._prime,names=('u',))
+        return GF(self._prime)
 
     def shift(self, c, v):
         """
-        Multiply ``c`` by a ``v``th power of the uniformizer.
+        Multiply ``c`` by a ``v``-th power of the uniformizer.
 
         INPUT:
 
@@ -327,7 +339,29 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
 
     def is_unramified(self, G, include_steps=False, assume_squarefree=False):
         """
-        Return whether ``G`` defines an unramified extension.
+        Return whether ``G`` defines an unramified extension of the `p`-adic
+        completion of the domain this valuation.
+
+        INPUT:
+
+        - ``G`` -- a monic polynomial over the domain of this valuation
+
+        - ``include_steps`` -- a boolean (default: ``False``); whether or not
+          to include the approximate valuations that were used to determine
+          the result in the return value.
+
+        - ``assume_squarefree`` -- a boolean (default: ``False``); whether or
+          not to assume that ``G`` is square-free over the `p`-adic completion
+          of the domain of this valuation. Setting this to ``True`` can
+          significantly improve the performance.
+
+        EXAMPLES:
+
+        We consider an extension as unramified if its ramification index is 1.
+        Hence, a trivial extension is unramified::
+
+            sage: pass
+
 
         NOTE: It is not enough to check whether ``G`` is irreducible in
         reduction for this.
@@ -520,15 +554,15 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
 
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + 1 + O(2^10)) = 1/2 ]]
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2 ]]
             sage: v.mac_lane_approximants(G, precision_cap = infinity)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + 1 + O(2^10)) = 1/2, v((1 + O(2^10))*x^2 + 1 + O(2^10)) = +Infinity ]]
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2, v((1 + O(2^10))*x^2 + (1 + O(2^10))) = +Infinity ]]
 
             sage: G = x^4 + 2*x^3 + 2*x^2 - 2*x + 2
             sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4 ]]
             sage: v.mac_lane_approximants(G,infinity)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + 2 + O(2^11)) = +Infinity ]]
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + (2 + O(2^11))) = +Infinity ]]
 
         The factorization of primes in the Gaussian integers can be read off
         the Mac Lane approximants::
@@ -558,9 +592,9 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
             sage: R.<x>=k[]
             sage: G = x^2 + 1
             sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + O(5^4)) = 1 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + O(5^4)) = 1 ])
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + O(5^4)) = 1 ])
             sage: w1, w2 = v.mac_lane_approximants(G,precision_cap=2); w1,w2
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + 5 + 2*5^2 + O(5^4)) = 3 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + O(5^4)) = 3 ])
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + O(5^4))) = 3 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + O(5^4)) = 3 ])
 
         Note how the latter give a better approximation to the factors of `x^2 + 1`::
 
@@ -572,8 +606,8 @@ class pAdicValuation_base(WithEqualityById, DiscreteValuation):
         In this example, the process stops with a factorization of `x^2 + 1`::
 
             sage: v.mac_lane_approximants(G, precision_cap=infinity)
-            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) = +Infinity ],
-             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)) = +Infinity ]]
+            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
 
         This obviously cannot happen over the rationals where we only get an
         approximate factorization::
@@ -716,8 +750,9 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         TESTS::
 
-            sage: type(pAdicValuation(Qp(2))) #indirect doctest
-            <class 'sage.rings.padics.padic_valuation.pAdicValuation_padic'>
+            sage: from sage.rings.padics.padic_valuation import padicValuation_padic # optional: integrated
+            sage: isinstance(pAdicValuation(Qp(2)), pAdicValuation_padic)
+            True
 
         """
         pAdicValuation_base.__init__(self, R, R.prime())
@@ -893,3 +928,8 @@ class pAdicValuation_number_field(pAdicValuation_base):
             return self.domain().zero()
 
         return self._valuation.lift(x)(self.domain().gen())
+
+# Fix doctests so they work in standalone mode
+import sys, os
+if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
+    sys.path.append(os.path.dirname(os.getcwd()))

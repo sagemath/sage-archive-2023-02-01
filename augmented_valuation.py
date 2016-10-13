@@ -365,7 +365,8 @@ class AugmentedValuation(DevelopingValuation):
         base = self._base_valuation.value_group()
         if self._mu is infinity:
             return base
-        return base + base.number_field().ideal(self._mu)
+        from discrete_value_group import DiscreteValueGroup
+        return base + DiscreteValueGroup(self._mu)
 
     def valuations(self, f):
         """
@@ -755,7 +756,7 @@ class AugmentedValuation(DevelopingValuation):
 
         assert self.value_group().numerator() == 1
         assert self._base_valuation.value_group().numerator() == 1
-        return ZZ(self.value_group().denominator().gen(0)) // ZZ(self._base_valuation.value_group().denominator().gen(0))
+        return ZZ(self.value_group().denominator()) // ZZ(self._base_valuation.value_group().denominator())
 
     @cached_method
     def psi(self):

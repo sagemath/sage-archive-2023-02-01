@@ -54,20 +54,72 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.factory import UniqueFactory
 
 class GaussValuationFactory(UniqueFactory):
-    def create_key(self, domain, v=None):
+    r"""
+    Create a Gauss valuation on ``domain``.
+
+    INPUT:
+
+    - ``domain`` -- a univariate polynomial ring
+
+    - ``v`` -- a valuation on the base ring of ``domain``, the underlying
+      valuation on the constants of the polynomial ring (if unspecified take
+      the canonical valuation on the valued ring ``domain``.)
+
+    EXAMPLES:
+
+    The Gauss valuation is the minimum of the valuation of the coefficients::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: v = pAdicValuation(QQ, 2)
+        sage: R.<x> = QQ[]
+        sage: w = GaussValuation(R, v)
+        sage: w(2)
+        1
+        sage: w(x)
+        0
+        sage: w(x + 2)
+        0
+
+    """
+    def create_key(self, domain, v = None):
+        r"""
+        Normalize and check the parameters to create a Gauss valuation.
+
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 2)
+            sage: R.<x> = ZZ[]
+            sage: GaussValuation.create_key(R, v)
+            Traceback (most recent call last):
+            ...
+            ValueError: the domain of v must be the base ring of domain
+
+        """
         if not domain.ngens() == 1:
             raise NotImplementedError("only implemented for univariate rings")
 
-        from sage.rings.padics.padic_generic import pAdicGeneric
-        from padic_valuation import pAdicValuation
         if v is None:
-            v = pAdicValuation(domain.base_ring())
+            v = domain.base_ring().valuation()
+
         if not v.domain() is domain.base_ring():
             raise ValueError("the domain of v must be the base ring of domain")
 
         return (domain, v)
 
     def create_object(self, version, key, **extra_args):
+        r"""
+        Create a Gauss valuation from the normalized parameters.
+
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 2)
+            sage: R.<x> = QQ[]
+            sage: GaussValuation.create_object(0, (R, v))
+            Gauss valuation induced by 2-adic valuation
+
+        """
         return GaussValuation_generic(*key)
 
 GaussValuation = GaussValuationFactory("GaussValuation")
@@ -104,11 +156,14 @@ class GaussValuation_generic(DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from sage.rings.padics import GaussValuation # optional: integrated
+            sage: from sage.rings.padics.gauss_valuation import GaussValuation_generic # optional: integrated
             sage: from mac_lane import * # optional: standalone
+            sage: from mac_lane.gauss_valuation import GaussValuation_generic # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
-            sage: type(v)
-            <class 'sage.rings.padics.gauss_valuation.GaussValuation'>
+            sage: isinstance(v, GaussValuation_generic)
+            True
 
         """
         DevelopingValuation.__init__(self, domain, domain.gen())
@@ -356,7 +411,7 @@ class GaussValuation_generic(DevelopingValuation):
             sage: F = v.reduce(f); F
             x^2 + 2*x + 1
             sage: g = v.lift(F); g
-            (1 + O(3^5))*x^2 + (2 + O(3^5))*x + 1 + O(3^5)
+            (1 + O(3^5))*x^2 + (2 + O(3^5))*x + (1 + O(3^5))
             sage: v.is_equivalent(f,g)
             True
 
@@ -435,9 +490,9 @@ class GaussValuation_generic(DevelopingValuation):
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: v.equivalence_unit(2)
-            3^2 + O(3^7)
+            (3^2 + O(3^7))
             sage: v.equivalence_unit(-2)
-            3^-2 + O(3^3)
+            (3^-2 + O(3^3))
 
         """
         ret = self._base_valuation.domain().one()
@@ -509,3 +564,6 @@ class GaussValuation_generic(DevelopingValuation):
     def change_ring(self, base_ring):
         base_valuation = self._base_valuation.change_ring(base_ring)
         return GaussValuation(self.domain().change_ring(base_ring), base_valuation)
+
+    def is_gauss_valuation(self):
+        return True

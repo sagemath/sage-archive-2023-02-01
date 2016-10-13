@@ -528,7 +528,7 @@ class DevelopingValuation(DiscreteValuation):
             if not self.is_equivalence_irreducible(f):
                 raise NotImplementedError("is_minimal() only implemented for equivalence-irreducible polynomials")
             from gauss_valuation import GaussValuation
-            if isinstance(self,GaussValuation):
+            if self.is_gauss_valuation():
                 return f.is_monic() and self.reduce(f).is_irreducible()
             if self.is_equivalent(self.phi(), f):
                 # TODO: reference new Lemma
@@ -819,8 +819,7 @@ class DevelopingValuation(DiscreteValuation):
             elif m is infinity or m > max([self.constant_valuation()(c) for c in f.list()[:f.degree()+1]]):
                 f= self.domain()(f.list()[:f.degree()+1])
             else:
-                print "WARNING: DROPPING LEADING ZEROS!"
-                #raise ValueError("f must not have leading zero coefficients")
+                raise ValueError("f must not have leading zero coefficients")
 
         return f
 

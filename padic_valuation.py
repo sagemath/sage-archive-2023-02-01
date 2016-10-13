@@ -104,7 +104,7 @@ class PadicValuationFactory(UniqueFactory):
                 raise ValueError("prime does not define a valuation on this number field.")
             if len(normalized_prime) > 1:
                 raise ValueError("prime does not define a unique valuation on this number field.")
-            return (id(R), normalized_prime[0]), {"R":R}
+            return (R, normalized_prime[0])
         else:
             raise NotImplementedError("p-adic valuation not implemented for this ring")
 
@@ -117,7 +117,6 @@ class PadicValuationFactory(UniqueFactory):
         elif isinstance(R, pAdicGeneric):
             return pAdicValuation_padic(R)
         else:
-            R = extra_args['R']
             return pAdicValuation_number_field(R, prime)
 
 pAdicValuation = PadicValuationFactory("pAdicValuation")

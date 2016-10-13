@@ -906,3 +906,7 @@ class AugmentedValuation(DevelopingValuation):
 
     def uniformizer(self):
         return self.element_with_valuation(1/self.E())
+
+    def is_gauss_valuation(self):
+        # Is this correct? Can there be trivial augmentations?
+        return False

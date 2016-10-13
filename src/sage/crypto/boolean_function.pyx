@@ -22,6 +22,7 @@ EXAMPLES::
 
 AUTHOR:
 
+- Rusydi H. Makarim (2016-10-13): add functions related to linear structures
 - Rusydi H. Makarim (2016-07-09): add is_plateaued()
 - Yann Laigle-Chapuy (2010-02-26): add basic arithmetic
 - Yann Laigle-Chapuy (2009-08-28): first implementation
@@ -847,7 +848,7 @@ cdef class BooleanFunction(SageObject):
 
     def autocorrelation(self):
         r"""
-        Return the autocorrelation fo the function, defined by
+        Return the autocorrelation of the function, defined by
 
         .. math:: \Delta_f(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus f(i\oplus j)}.
 
@@ -1046,6 +1047,67 @@ cdef class BooleanFunction(SageObject):
         """
         W = self.absolute_walsh_spectrum()
         return (len(W) == 1) or (len(W) == 2 and 0 in W)
+
+    def has_linear_structure(self):
+        """
+        Return ``True`` if this function has a linear structure.
+
+        An `n`-variable Boolean function `f` has a linear structure if
+        there exists a nonzero `a \in \mathbb{F}_2^n` such that
+        `f(x \oplus a) \oplus f(x)` is a constant function.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction, random_boolean_function
+            sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+            sage: f.has_linear_structure()
+            True
+            sage: f.autocorrelation()
+            (16, -16, 0, 0, 0, 0, 0, 0, -16, 16, 0, 0, 0, 0, 0, 0)
+            sage: g = random_boolean_function(4)
+            sage: g.has_linear_structure()
+            False
+            sage: g.autocorrelation()
+            (16, 0, -8, 0, -8, 0, 8, 0, 0, 0, 0, 8, 0, 8, 0, -8)
+        """
+        a = self.autocorrelation()
+        nvars = self._nvariables
+        for i in xrange(1, 1<<nvars):
+            if abs(a[i]) == 1<<nvars:
+                return True
+        return False
+
+    def linear_structures(self):
+        """
+        Return all linear structures of this Boolean function as a vector subspace
+        of `\mathbb{F}_2^n`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+            sage: LS = f.linear_structures()
+            sage: LS
+
+            Vector space of degree 4 and dimension 2 over Finite Field of size 2
+            Basis matrix:
+            [1 0 0 0]
+            [0 0 0 1]
+            sage: LS.list()
+            [(0, 0, 0, 0), (1, 0, 0, 0), (0, 0, 0, 1), (1, 0, 0, 1)]
+        """
+        from sage.modules.free_module import VectorSpace
+
+        a = self.autocorrelation()
+        l = []
+        nvars = self.nvariables()
+        for i in xrange(1<<nvars):
+            if abs(a[i]) == 1<<nvars:
+                bitval = ZZ(i).bits()
+                bitval += [0]*(nvars-len(bitval))
+                l.append(bitval)
+        V = VectorSpace(GF(2), nvars)
+        return V.subspace(l)
 
     def __setitem__(self, i, y):
         """

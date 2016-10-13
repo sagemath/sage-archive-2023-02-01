@@ -16,6 +16,7 @@ sage.rings.padics.padic_valuation = padic_valuation
 # Implement Qp/Zp.valuation
 sage.rings.padics.padic_generic.pAdicGeneric.valuation = lambda self: pAdicValuation(self)
 
-# fix pAdicValuation pickling
+# fix unpickling of factories
 from sage.structure.factory import register_factory_unpickle
 register_factory_unpickle("pAdicValuation", pAdicValuation)
+register_factory_unpickle("GaussValuation", GaussValuation)

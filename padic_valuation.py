@@ -707,7 +707,7 @@ class pAdicValuation_base(DiscreteValuation):
                 leaves.extend(v.mac_lane_step(G))
 
     def change_ring(self, base_ring):
-        return pAdicValuation(base_ring)
+        return pAdicValuation(base_ring, self.prime())
 
     def extension(self, L, algorithm="mac_lane"):
         K = self.domain()

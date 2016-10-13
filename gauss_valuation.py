@@ -1,8 +1,9 @@
 """
 Gauss valuations on polynomial rings
 
-This file implements Gauss valuations for polynomial rings, i.e. valuations
-which assign to a polynomial the minimal valuation of its coefficients.
+This file implements Gauss valuations for polynomial rings, i.e. discrete
+valuations which assign to a polynomial the minimal valuation of its
+coefficients.
 
 AUTHORS:
 
@@ -63,7 +64,7 @@ class GaussValuationFactory(UniqueFactory):
 
     - ``v`` -- a valuation on the base ring of ``domain``, the underlying
       valuation on the constants of the polynomial ring (if unspecified take
-      the canonical valuation on the valued ring ``domain``.)
+      the natural valuation on the valued ring ``domain``.)
 
     EXAMPLES:
 
@@ -132,9 +133,7 @@ class GaussValuation_generic(DevelopingValuation):
 
     - ``domain`` -- a polynomial ring over a valued ring `R`
 
-    - ``v`` -- a discrete valuation on `R` or ``None`` (default: ``None``), if
-      ``None`` and the ring comes with a natural valuation (such as a `p`-adic
-      ring), then this one is used
+    - ``v`` -- a discrete valuation on `R`
 
     EXAMPLES::
 
@@ -149,8 +148,12 @@ class GaussValuation_generic(DevelopingValuation):
         sage: v = GaussValuation(S, pAdicValuation(QQ, 5)); v
         Gauss valuation induced by 5-adic valuation
 
+    TESTS::
+
+        sage: TestSuite(v).run(skip="_test_category")
+
     """
-    def __init__(self, domain, v=None):
+    def __init__(self, domain, v):
         """
         Initialization.
 
@@ -173,13 +176,6 @@ class GaussValuation_generic(DevelopingValuation):
     def value_group(self):
         """
         Return the value group of this valuation.
-
-        OUTPUT:
-
-        Currently, there is no support for additive subgroups of `\QQ`.
-        Therefore we create this value group as a fractional ideal of `\QQ`.
-        However, `\QQ` does not support fractional ideals, so we use fractional
-        ideals of the trivial extensions `\QQ[x]/(x)`
 
         EXAMPLES::
 
@@ -205,7 +201,7 @@ class GaussValuation_generic(DevelopingValuation):
             Gauss valuation induced by 5-adic valuation
 
         """
-        return "Gauss valuation induced by %s"%self._base_valuation
+        return "Gauss valuation induced by %r"%self._base_valuation
 
     @cached_method
     def uniformizer(self):
@@ -220,6 +216,8 @@ class GaussValuation_generic(DevelopingValuation):
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: v.uniformizer()
             5
+            sage: v.uniformizer().parent() is S
+            True
 
         """
         return self.domain()(self._base_valuation.uniformizer())
@@ -233,7 +231,7 @@ class GaussValuation_generic(DevelopingValuation):
 
         - ``f`` -- a polynomial in the domain of this valuation
 
-        - ``s`` -- an integer
+        - ``s`` -- an element of the :meth:`value_group`
 
         EXAMPLES::
 
@@ -269,6 +267,8 @@ class GaussValuation_generic(DevelopingValuation):
             raise ValueError("f must be in the domain of this valuation")
         if -s > self(f) and self.domain().base_ring() is not self.domain().base_ring().fraction_field():
             raise ValueError("-s must not exceed the valuation of f")
+        if s not in self.value_group():
+            raise ValueError("s must be in the value group of this valuation")
 
         return f.map_coefficients(lambda c:self._base_valuation.shift(c, s))
 
@@ -338,7 +338,8 @@ class GaussValuation_generic(DevelopingValuation):
     @cached_method
     def residue_ring(self):
         """
-        Return the residue ring of this valuation.
+        Return the residue ring of this valuation, i.e., the elements of
+        valuation zero module the elements of positive valuation.
 
         EXAMPLES::
 
@@ -360,7 +361,7 @@ class GaussValuation_generic(DevelopingValuation):
 
         OUTPUT:
 
-        A polynomial over the residue field of this valuation
+        A polynomial in the :meth:`residue_ring` of this valuation.
 
         EXAMPLES::
 
@@ -369,6 +370,8 @@ class GaussValuation_generic(DevelopingValuation):
             sage: f = x^2 + 2*x + 16
             sage: v.reduce(f)
             x^2
+            sage: v.reduce(f).parent() is v.residue_ring()
+            True
 
         The reduction is only defined for integral elements::
 
@@ -396,7 +399,7 @@ class GaussValuation_generic(DevelopingValuation):
 
         INPUT::
 
-        - ``reduction`` -- a polynomial over the residue ring of this valuation
+        - ``reduction`` -- a polynomial over the :meth:`residue_ring` of this valuation
 
         OUTPUT:
 
@@ -413,6 +416,8 @@ class GaussValuation_generic(DevelopingValuation):
             sage: g = v.lift(F); g
             (1 + O(3^5))*x^2 + (2 + O(3^5))*x + (1 + O(3^5))
             sage: v.is_equivalent(f,g)
+            True
+            sage: g.parent() is v.domain()
             True
 
         .. SEEALSO::
@@ -431,7 +436,7 @@ class GaussValuation_generic(DevelopingValuation):
 
         INPUT:
 
-        - ``F`` -- an irreducible non-constant polynomial in
+        - ``F`` -- an irreducible non-constant monic polynomial in
           :meth:`residue_ring` of this valuation
 
         OUTPUT:
@@ -464,8 +469,8 @@ class GaussValuation_generic(DevelopingValuation):
 
     def constant_valuation(self):
         """
-        Return the restriction of this valuations to the constants of the
-        polynomial ring.
+        Return the restriction of this valuations to the constants of its
+        domain.
 
         EXAMPLES::
 
@@ -483,7 +488,7 @@ class GaussValuation_generic(DevelopingValuation):
 
         INPUT:
 
-        - ``s`` -- an integer
+        - ``s`` -- an element of the :meth:`value_group`
 
         EXAMPLES::
 
@@ -509,7 +514,7 @@ class GaussValuation_generic(DevelopingValuation):
 
         OUTPUT:
 
-        Returns ``True`` since a Gauss valuation always is.
+        ``True`` since a Gauss valuation always is commensurable inductive.
 
         EXAMPLES::
 
@@ -562,8 +567,33 @@ class GaussValuation_generic(DevelopingValuation):
         return ZZ.one()
 
     def change_ring(self, base_ring):
+        r"""
+        Change the base ring of this valuation to ``base_ring``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(ZZ, 2)
+            sage: R.<x> = ZZ[]
+            sage: w = GaussValuation(R, v)
+            sage: w.change_ring(QQ)
+            Gauss valuation induced by 2-adic valuation
+
+        """
         base_valuation = self._base_valuation.change_ring(base_ring)
         return GaussValuation(self.domain().change_ring(base_ring), base_valuation)
 
     def is_gauss_valuation(self):
+        r"""
+        Return whether this valuation is a Gauss valuation.
+
+        EXAMPLES::
+
+            sage: R.<u> = Qq(4,5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v.is_gauss_valuation()
+            True
+
+        """
         return True

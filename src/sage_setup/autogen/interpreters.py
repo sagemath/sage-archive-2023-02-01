@@ -109,6 +109,8 @@ from jinja2.runtime import StrictUndefined
 from collections import defaultdict
 from distutils.extension import Extension
 
+from os.path import getmtime
+
 ##############################
 # This module is used during the Sage build process, so it should not
 # use any other Sage modules.  (In particular, it MUST NOT use any

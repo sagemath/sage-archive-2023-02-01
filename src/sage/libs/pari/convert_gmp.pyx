@@ -31,7 +31,8 @@ from .stack cimport new_gen
 
 cdef gen new_gen_from_mpz_t(mpz_t value):
     """
-    Create a new gen from a given MPIR-integer ``value``.
+    Create a new PARI gen of type ``t_INT`` from a given
+    GMP integer ``value``.
 
     EXAMPLES::
 
@@ -73,7 +74,8 @@ cdef inline GEN _new_GEN_from_mpz_t(mpz_t value):
 
 cdef gen new_gen_from_mpq_t(mpq_t value):
     """
-    Create a new gen from a given MPIR-rational ``value``.
+    Create a new PARI gen of type ``t_INT`` or ``t_FRAC`` from a given
+    GMP rational ``value``.
 
     EXAMPLES::
 
@@ -119,6 +121,10 @@ cdef inline GEN _new_GEN_from_mpq_t(mpq_t value):
 
 cdef gen new_gen_from_padic(long ordp, long relprec,
                             mpz_t prime, mpz_t p_pow, mpz_t unit):
+    """
+    Create a new PARI gen of type ``t_PADIC`` from the given input data
+    as GMP integers.
+    """
     cdef GEN z
     sig_on()
     z = cgetg(5, t_PADIC)
@@ -130,6 +136,13 @@ cdef gen new_gen_from_padic(long ordp, long relprec,
 
 
 cdef GEN _new_GEN_from_mpq_t_matrix(mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
+    """
+    Create a new PARI ``t_MAT`` from a given
+    2-dimensional array of GMP rationals ``mpq_t``.
+
+    For internal use only; this directly uses the PARI stack.
+    One should call ``sig_on()`` before and ``sig_off()`` after.
+    """
     cdef GEN x
     # Allocate zero matrix
     cdef GEN A = zeromatcopy(nr, nc)
@@ -143,6 +156,19 @@ cdef GEN _new_GEN_from_mpq_t_matrix(mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
 
 cdef gen rational_matrix(mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
     """
+    Create a new PARI matrix of type ``t_MAT`` from a given
+    array of GMP rationals ``mpq_t``.
+    
+    INPUT:
+
+    - ``B`` -- a 2-dimensional array of ``mpq_t`` values. This array is
+      accessed as ``B[i][j]``, where ``i`` is the row index and ``j``
+      the column index.
+
+    - ``nr`` -- number of rows of this matrix
+
+    - ``nc`` -- number of columns of this matrix
+
     EXAMPLES::
 
         sage: matrix(QQ,2,[1..6])._pari_()   # indirect doctest
@@ -155,7 +181,7 @@ cdef gen rational_matrix(mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
 
 cdef inline void INT_to_mpz(mpz_ptr value, GEN g):
     """
-    Store a PARI ``t_INT`` as an ``mpz_t``.
+    Convert a PARI ``t_INT`` to a GMP integer, stored in ``value``.
     """
     if typ(g) != t_INT:
         pari_err(e_TYPE, <char*>"conversion to mpz", g)
@@ -169,7 +195,8 @@ cdef inline void INT_to_mpz(mpz_ptr value, GEN g):
 
 cdef void INTFRAC_to_mpq(mpq_ptr value, GEN g):
     """
-    Store a PARI ``t_INT`` or ``t_FRAC`` as an ``mpq_t``.
+    Convert a PARI ``t_INT`` or ``t_FRAC`` to a GMP rational, stored in
+    ``value``.
     """
     if typ(g) == t_FRAC:
         INT_to_mpz(mpq_numref(value), gel(g, 1))

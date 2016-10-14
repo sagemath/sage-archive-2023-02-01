@@ -135,7 +135,7 @@ cdef gen new_gen_from_padic(long ordp, long relprec,
     return new_gen(z)
 
 
-cdef GEN _new_GEN_from_mpq_t_matrix(mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
+cdef GEN _new_GEN_from_mpq_t_matrix(mpq_t** B, long nr, long nc):
     """
     Create a new PARI ``t_MAT`` from a given
     2-dimensional array of GMP rationals ``mpq_t``.
@@ -146,7 +146,7 @@ cdef GEN _new_GEN_from_mpq_t_matrix(mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
     cdef GEN x
     # Allocate zero matrix
     cdef GEN A = zeromatcopy(nr, nc)
-    cdef Py_ssize_t i, j
+    cdef long i, j
     for i in range(nr):
         for j in range(nc):
             x = _new_GEN_from_mpq_t(B[i][j])
@@ -154,7 +154,7 @@ cdef GEN _new_GEN_from_mpq_t_matrix(mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
     return A
 
 
-cdef gen rational_matrix(mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
+cdef gen rational_matrix(mpq_t** B, long nr, long nc):
     """
     Create a new PARI matrix of type ``t_MAT`` from a given
     array of GMP rationals ``mpq_t``.

@@ -406,10 +406,7 @@ information. You can use the existing functions of Sage as templates.
   should usually go to this block. This is also right place for most
   tests of input validation; for example if the function accepts
   ``direction='up'`` and ``direction='down'``, you can use this block to check
-<<<<<<< a53ff2a703a6aa9509d81aecd3c3f388263c5775
-=======
   that ``direction='junk'`` raises an exception.
->>>>>>> Less duplication.
 
   For the purposes of removal, A "TESTS" block is a block starting
   with "TEST:" or "TESTS:" (or the same with two colons), on a line on
@@ -527,6 +524,11 @@ indentation:
 
         TESTS::
 
+<<<<<<< 546dd66dc1e622d5826df273d79fd83021c735bb
+=======
+	TESTS::
+
+>>>>>>> Minor changes.
             sage: A.point(42, 0)  # Check for corner case y=0
             xxx
         """
@@ -1170,8 +1172,15 @@ Some decisions are arbitrary, but common conventions make life easier.
 
 * Function parameter names:
     
+<<<<<<< 546dd66dc1e622d5826df273d79fd83021c735bb
   * Use ``algorithm`` if there are several algorithms or backend
     programs to select from. Do not use ``method`` or ``implementation``.
   * Use ``certificate`` if the function can optionally return some
     kind of certificate together with the result. Do not use ``certify``.
 >>>>>>> Minor addition.
+=======
+  * Use ``algorithm`` (instead of ``method``) if there are several
+    algorithms or backend programs to select from.
+  * Use ``certificate`` (instead of ``certify``) if the function can
+    optionally return some kind of certificate together with the result.
+>>>>>>> Minor changes.

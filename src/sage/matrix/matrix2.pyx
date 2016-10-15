@@ -10456,7 +10456,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
     def is_similar(self, other, transformation=False):
         r"""
-        Returns ``True`` if ``self`` and ``other`` are similar,
+        Return ``True`` if ``self`` and ``other`` are similar,
         i.e. related by a change-of-basis matrix.
 
         INPUT:
@@ -10471,13 +10471,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         OUTPUT:
 
-        Two matrices, $A$ and $B$ are similar if there is an invertible
-        matrix $S$ such that $A=S^{-1}BS$.  $S$ can be interpreted as a
-        change-of-basis matrix if $A$ and $B$ are viewed as matrix
+        Two matrices, `A` and `B` are similar if there is an invertible
+        matrix `S` such that `A=S^{-1}BS`.  `S` can be interpreted as a
+        change-of-basis matrix if `A` and `B` are viewed as matrix
         representations of the same linear transformation.
 
         When ``transformation=False`` this method will return ``True`` if
-        such a matrix $S$ exists, otherwise it will return ``False``.  When
+        such a matrix `S` exists, otherwise it will return ``False``.  When
         ``transformation=True`` the method returns a pair.  The first part
         of the pair is ``True`` or ``False`` depending on if the matrices
         are similar.  The second part of the pair is the change-of-basis
@@ -10488,8 +10488,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         it will satisfy ``self = S.inverse()*other*S``.
 
         The base rings for the matrices are promoted to their fraction
-        fields for the similarity check using rational form. Matrices
-        that are similar over the rationals are promoted to the field
+        fields for the similarity check using rational form.
+
+        Matrices that are similar over the rationals are promoted to the field
         of algebraic numbers (``QQbar``) for computation of the
         similarity transformation.
 
@@ -10652,7 +10653,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ValueError: base ring of a matrix needs a fraction field,
             maybe the ring is not an integral domain
 
-        Rectangular matrices and mismatched sizes return quickly.  ::
+        Rectangular matrices and mismatched sizes raise errors.  ::
 
             sage: A = matrix(3, 2, range(6))
             sage: B = copy(A)
@@ -10687,6 +10688,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.change_ring(QQbar).is_similar(B)
             True
 
+        TESTS:
+
         Inputs are checked.  ::
 
             sage: A = matrix(ZZ, 2, 2, range(4))
@@ -10698,62 +10701,67 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.is_similar(B, transformation='junk')
             Traceback (most recent call last):
             ...
-            ValueError: transformation keyword must be True or False, not junk
+            ValueError: transformation keyword must be True or False
 
         AUTHOR:
 
         - Rob Beezer (2011-03-15, 2015-05-25)
-
         """
-        import sage.matrix.matrix
-        import sage.rings.qqbar
-        if not sage.matrix.matrix.is_Matrix(other):
+        from sage.matrix.matrix import is_Matrix
+
+        if not is_Matrix(other):
             raise TypeError('similarity requires a matrix as an argument, not {0}'.format(other))
         if transformation not in [True, False]:
-            raise ValueError('transformation keyword must be True or False, not {0}'.format(transformation))
-        # easy false situations
+            raise ValueError('transformation keyword must be True or False')
         if not self.is_square() or not other.is_square():
-            if transformation:
-                return (False, None)
-            else:
-                return False
+            raise ValueError('similarity only makes sense for square matrices')
         if self.nrows() != other.nrows():
-            if transformation:
-                return (False, None)
-            else:
-                return False
+            raise ValueError('matrices do not have the same size')
+
         # convert to fraction fields for base rings
         try:
             A = self.matrix_over_field()
             B = other.matrix_over_field()
         except TypeError:
-            mesg = "base ring of a matrix needs a fraction field, " + \
-                   "maybe the ring is not an integral domain"
+            mesg = "base ring of a matrix needs a fraction field, "
+            mesg += "maybe the ring is not an integral domain"
             raise ValueError(mesg)
         if A.base_ring() != B.base_ring():
-            mesg = 'matrices need to have entries with identical fraction fields, not {} and {}'
+            mesg = 'matrices need to have entries with identical '
+            mesg += 'fraction fields, not {} and {}'
             raise TypeError(mesg.format(A.base_ring(), B.base_ring()))
+        # base rings are equal now, via above check
+
         similar = (A.rational_form() == B.rational_form())
-        if not(transformation):
+        if not transformation:
             return similar
-        elif not(similar):
+        elif not similar:
             return (False, None)
         else:
-            # move rationals to algebraically closed algebraic numbers
-            # so as to contain potential complex eigenvalues
-            # base rings are equal now, via above check
-            if A.base_ring() == QQ:
-                A = A.change_ring(sage.rings.qqbar.QQbar)
-                B = B.change_ring(sage.rings.qqbar.QQbar)
-            # require identical base fields
             # rational form routine does not provide transformation
             # so if possible, get transformations to Jordan form
+
+            # first try to look for Jordan forms over the fraction field
             try:
                 _, SA = A.jordan_form(transformation=True)
                 _, SB = B.jordan_form(transformation=True)
-            except Exception:
+                return (True, SB * SA.inverse())
+            except ValueError, RuntimeError:
+                pass
+
+            # now move to the algebraic closure
+            # so as to contain potential complex eigenvalues
+            ring = A.base_ring()
+            closure = ring.algebraic_closure()
+            A = A.change_ring(closure)
+            B = B.change_ring(closure)
+
+            try:
+                _, SA = A.jordan_form(transformation=True)
+                _, SB = B.jordan_form(transformation=True)
+                return (True, SB * SA.inverse())
+            except ValueError, RuntimeError:
                 raise RuntimeError('unable to compute transformation for similar matrices')
-            return (True, SB*SA.inverse())
 
     def symplectic_form(self):
         r"""

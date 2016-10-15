@@ -201,6 +201,7 @@ public:
 	// differentiation and series expansion
 	ex diff(const symbol & s, unsigned nth = 1) const;
 	ex series(const ex & r, int order, unsigned options = 0) const;
+        void useries(fmpq_poly_t& fp, int order) const { return bp->useries(fp, order); }
 
 	// rational functions
 	ex normal(int level = 0, bool noexpand_combined=false,

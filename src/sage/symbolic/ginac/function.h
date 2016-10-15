@@ -358,6 +358,7 @@ public:
 	ex evalf(int level=0, PyObject* parent=nullptr) const override;
 	long calchash() const override;
 	ex series(const relational & r, int order, unsigned options = 0) const override;
+        void useries(fmpq_poly_t& fp, int order) const override;
         ex subs(const exmap & m, unsigned options = 0) const override;
 	ex thiscontainer(const exvector & v) const override;
 	ex thiscontainer(std::unique_ptr<exvector> vp) const override;

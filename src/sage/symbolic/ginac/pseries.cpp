@@ -22,6 +22,7 @@
  */
 
 #include "pseries.h"
+#include "useries.h"
 #include "add.h"
 #include "inifcns.h" // for Order function
 #include "lst.h"
@@ -1261,7 +1262,18 @@ ex ex::series(const ex & r, int order, unsigned options) const
 	else
 		throw (std::logic_error("ex::series(): expansion point has unknown type"));
 	
-	e = bp->series(rel_, order, options);
+        if ((options & series_options::try_univariate_flint) != 0u) {
+                options &= ~series_options::try_univariate_flint;
+	        if (useries_can_handle(*this)) {
+                        try {
+                                return GiNaC::useries(*this, rel_, order, options);
+                        }
+                        catch(flint_error) {
+                                return bp->series(rel_, order, options);
+                        }
+                }
+        }
+        e = bp->series(rel_, order, options);
 	return e;
 }
 

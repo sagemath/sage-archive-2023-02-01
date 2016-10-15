@@ -2011,6 +2011,20 @@ long numeric::to_long() const {
         }
 }
 
+const mpz_t& numeric::as_mpz() const
+{
+        if (t != MPZ)
+                throw std::runtime_error("mpz_t requested from non-mpz numeric");
+        return v._bigint;
+}
+
+const mpq_t& numeric::as_mpq() const
+{
+        if (t != MPQ)
+                throw std::runtime_error("mpq_t requested from non-mpq numeric");
+        return v._bigrat;
+}
+
 #ifdef PYNAC_HAVE_LIBGIAC
 giac::gen* numeric::to_giacgen(giac::context* cptr) const
 {

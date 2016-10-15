@@ -92,7 +92,8 @@ public:
 		 *  themselves as step functions, if this option is not passed.  If
 		 *  it is passed and expansion at a point on a cut is performed, then
 		 *  the analytic continuation of the function is expanded. */
-		suppress_branchcut = 0x0001
+		suppress_branchcut = 0x0001,
+                try_univariate_flint = 0x0002
 	};
 };
 

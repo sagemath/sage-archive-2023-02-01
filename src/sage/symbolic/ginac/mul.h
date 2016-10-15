@@ -62,6 +62,7 @@ public:
 	ex real_part() const override;
 	ex imag_part() const override;
 	ex series(const relational & s, int order, unsigned options = 0) const override;
+        void useries(fmpq_poly_t& fp, int order) const override;
 	ex normal(exmap & repl, exmap & rev_lookup, int level = 0, unsigned options = 0) const override;
 	numeric integer_content() const override;
 	ex smod(const numeric &xi) const override;

@@ -156,6 +156,7 @@ protected:
 	{
 		return 0;
 	}
+        void useries(fmpq_poly_t& fp, int order) const override;
 	bool is_equal_same_type(const basic &other) const override;
 	long calchash() const override;
 
@@ -213,7 +214,11 @@ public:
 	}
 	long to_long() const;
 	double to_double() const;
-	PyObject* to_pyobject() const;
+	bool is_mpz() const { return t == MPZ; }
+	bool is_mpq() const { return t == MPQ; }
+        const mpz_t& as_mpz() const;
+        const mpq_t& as_mpq() const;
+        PyObject* to_pyobject() const;
         bool is_pyobject() const
         {
                 return t == PYOBJECT;

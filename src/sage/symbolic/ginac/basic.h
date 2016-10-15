@@ -38,6 +38,7 @@
 #include "ptr.h"
 #include "assertion.h"
 #include "registrar.h"
+#include "flint/fmpq_poly.h"
 
 #ifdef PYNAC_HAVE_LIBGIAC
 namespace giac
@@ -238,6 +239,7 @@ protected:
 	virtual ex derivative(const symbol & s) const;
 public:
 	virtual ex series(const relational & r, int order, unsigned options = 0) const;
+        virtual void useries(fmpq_poly_t& fp, int order) const {}
 
 	// rational functions
 	virtual ex normal(exmap & repl, exmap & rev_lookup, int level = 0, unsigned options = 0) const;

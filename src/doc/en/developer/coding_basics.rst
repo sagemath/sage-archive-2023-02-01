@@ -524,8 +524,8 @@ indentation:
 
 	TESTS::
 
-	    sage: A.point(42, 0)  # Check for corner case y=0
-	    xxx
+            sage: A.point(42, 0)  # Check for corner case y=0
+            xxx
         """
         <body of the function>
 
@@ -1122,7 +1122,7 @@ to look polished and professional.
 
 * Function parameter names:
     
-  * Use ``algorithm`` if there are several algorithms or backend
-    programs to select from. Do not use ``method`` or ``implementation``.
-  * Use ``certificate`` if the function can optionally return some
-    kind of certificate together with the result. Do not use ``certify``.
+  * Use ``algorithm`` (instead of ``method``) if there are several
+    algorithms or backend programs to select from.
+  * Use ``certificate`` (instead of ``certify``) if the function can
+    optionally return some kind of certificate together with the result.

@@ -397,11 +397,11 @@ information. You can use the existing functions of Sage as templates.
   for help via ``foo?``: they are stripped by the function
   :func:`sage.misc.sagedoc.skip_TESTS_block`.
 
-  Special and corner cases, something like number zero, graph without any
-  edges, empty poset, one-element group etc. should usually go to this block.
-  This is also right place for most tests of input validation; for example
-  if the function accepts ``direction='up'`` and ``direction='down'``,
-  use this block to check that ``direction='junk'`` raises an exception.
+  Special and corner cases, like number zero, one-element group etc.
+  should usually go to this block. This is also right place for most
+  tests of input validation; for example if the function accepts
+  ``direction='up'`` and ``direction='down'``, you can use this block to check
+  that ``direction='junk'`` raises an exception.
 
   For the purposes of removal, A "TESTS" block is a block starting
   with "TEST:" or "TESTS:" (or the same with two colons), on a line on
@@ -1080,7 +1080,7 @@ to look polished and professional.
 
   * Translate *ä* and *ö* to *ae* and *oe*, like ``moebius_function``
     for Möbius function.
-  * Translate *á* to *a* like ``lovasz_number`` for Lovász number.
+  * Translate *á* to *a*, like ``lovasz_number`` for Lovász number.
 
 * Function parameter names:
     

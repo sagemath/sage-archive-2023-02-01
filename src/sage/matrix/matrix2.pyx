@@ -10632,6 +10632,21 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             RuntimeError: Some eigenvalue does not exist in
             Finite Field in a of size 7^2.
 
+        An example over a finite field of prime order, which uses the
+        algebraic closure of this field to find the change-of-basis
+        matrix::
+
+            sage: cox = posets.TamariLattice(3).coxeter_transformation()
+            sage: M = cox.change_ring(GF(3))
+            sage: M.is_similar(M**3, True)  # long time
+            (
+                  [1 0 0 0 0]
+                  [0 1 1 0 2]
+                  [0 0 0 0 1]
+                  [1 2 0 2 1]
+            True, [0 0 1 0 0]
+            )
+
         Inexact rings and fields are not supported.  ::
 
             sage: A = matrix(CDF, 2, 2, range(4))

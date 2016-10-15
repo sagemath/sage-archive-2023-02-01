@@ -1108,3 +1108,21 @@ Global Options
 Global options for classes can be defined in Sage using
 :class:`~sage.structure.global_options.GlobalOptions`.
 
+Miscellanous minor things
+=========================
+
+Some decisions are arbitrary, but common convention makes the program
+to look polished and professional.
+
+* Non-ASCII names in identifiers:
+
+  * Translate *ä* and *ö* to *ae* and *oe*, like ``moebius_function``
+    for Möbius function.
+  * Translate *á* to *a* like ``lovasz_number`` for Lovász number.
+
+* Function parameter names:
+    
+  * Use ``algorithm`` if there are several algorithms or backend
+    programs to select from. Do not use ``method`` or ``implementation``.
+  * Use ``certificate`` if the function can optionally return some
+    kind of certificate together with the result. Do not use ``certify``.

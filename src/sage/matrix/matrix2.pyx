@@ -10658,11 +10658,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A = matrix(3, 2, range(6))
             sage: B = copy(A)
             sage: A.is_similar(B)
-            False
+            Traceback (most recent call last):
+            ...
+            ValueError: similarity only makes sense for square matrices
             sage: A = matrix(2, 2, range(4))
             sage: B = matrix(3, 3, range(9))
             sage: A.is_similar(B, transformation=True)
-            (False, None)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrices do not have the same size
 
         If the fraction fields of the entries are unequal, it is an error.  ::
 
@@ -10746,21 +10750,20 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 _, SA = A.jordan_form(transformation=True)
                 _, SB = B.jordan_form(transformation=True)
                 return (True, SB * SA.inverse())
-            except ValueError, RuntimeError:
+            except (ValueError, RuntimeError):
                 pass
 
             # now move to the algebraic closure
             # so as to contain potential complex eigenvalues
-            ring = A.base_ring()
-            closure = ring.algebraic_closure()
-            A = A.change_ring(closure)
-            B = B.change_ring(closure)
-
             try:
+                ring = A.base_ring()
+                closure = ring.algebraic_closure()
+                A = A.change_ring(closure)
+                B = B.change_ring(closure)
                 _, SA = A.jordan_form(transformation=True)
                 _, SB = B.jordan_form(transformation=True)
                 return (True, SB * SA.inverse())
-            except ValueError, RuntimeError:
+            except (ValueError, RuntimeError, NotImplementedError):
                 raise RuntimeError('unable to compute transformation for similar matrices')
 
     def symplectic_form(self):

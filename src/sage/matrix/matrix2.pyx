@@ -10653,6 +10653,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ValueError: base ring of a matrix needs a fraction field,
             maybe the ring is not an integral domain
 
+        Mismatched sizes return False. ::
+
+            sage: A = matrix(2, 2, range(4))
+            sage: B = matrix(3, 3, range(9))
+            sage: A.is_similar(B, transformation=True)
+            (False, None)
+
         Rectangular matrices and mismatched sizes raise errors.  ::
 
             sage: A = matrix(3, 2, range(6))
@@ -10661,12 +10668,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             Traceback (most recent call last):
             ...
             ValueError: similarity only makes sense for square matrices
-            sage: A = matrix(2, 2, range(4))
-            sage: B = matrix(3, 3, range(9))
-            sage: A.is_similar(B, transformation=True)
-            Traceback (most recent call last):
-            ...
-            ValueError: matrices do not have the same size
 
         If the fraction fields of the entries are unequal, it is an error.  ::
 
@@ -10719,8 +10720,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             raise ValueError('transformation keyword must be True or False')
         if not self.is_square() or not other.is_square():
             raise ValueError('similarity only makes sense for square matrices')
+
         if self.nrows() != other.nrows():
-            raise ValueError('matrices do not have the same size')
+            return (False, None) if transformation else False
 
         # convert to fraction fields for base rings
         try:

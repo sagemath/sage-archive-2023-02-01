@@ -406,6 +406,10 @@ information. You can use the existing functions of Sage as templates.
   should usually go to this block. This is also right place for most
   tests of input validation; for example if the function accepts
   ``direction='up'`` and ``direction='down'``, you can use this block to check
+<<<<<<< a53ff2a703a6aa9509d81aecd3c3f388263c5775
+=======
+  that ``direction='junk'`` raises an exception.
+>>>>>>> Less duplication.
 
   For the purposes of removal, A "TESTS" block is a block starting
   with "TEST:" or "TESTS:" (or the same with two colons), on a line on
@@ -1112,15 +1116,12 @@ Miscellanous minor things
 
 <<<<<<< 5a7fda606713004f46e77f226ead55b4103245d4
 Some decisions are arbitrary, but common conventions make life easier.
-=======
-Some decisions are arbitrary, but common convention makes the program
-to look polished and professional.
->>>>>>> Minor addition.
 
 * Non-ASCII names in identifiers:
 
   * Translate *ä* and *ö* to *ae* and *oe*, like ``moebius_function``
     for Möbius function.
+<<<<<<< a53ff2a703a6aa9509d81aecd3c3f388263c5775
 <<<<<<< 5a7fda606713004f46e77f226ead55b4103245d4
   * Translate *á* to *a*, like ``lovasz_number`` for Lovász number.
 
@@ -1163,6 +1164,9 @@ to look polished and professional.
     to return a copy.
 =======
   * Translate *á* to *a* like ``lovasz_number`` for Lovász number.
+=======
+  * Translate *á* to *a*, like ``lovasz_number`` for Lovász number.
+>>>>>>> Less duplication.
 
 * Function parameter names:
     

@@ -37,7 +37,8 @@ def sage_inputhook(context):
             if f in r:
                 return  # IPython signalled us to stop
         except select.error as e:
-            if e[0] != errno.EINTR: raise
+            if e[0] != errno.EINTR:
+                raise
 
 
 register('sage', sage_inputhook)

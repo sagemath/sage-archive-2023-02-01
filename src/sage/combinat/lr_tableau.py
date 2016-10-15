@@ -6,7 +6,7 @@ the sequence of partitions `(\mu^{(1)},\ldots,\mu^{(k)})` if,
 when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,\ldots,
 |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`, is Yamanouchi.
 
-Authors:
+AUTHORS:
 
 - Maria Gillespie and Anne Schilling (2016): initial version
 """
@@ -31,27 +31,26 @@ from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableList
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux
 from sage.combinat.partition import Partition
+from sage.libs.symmetrica.all import kostka_tab
 
 class LittlewoodRichardsonTableau(SemistandardTableau):
     r"""
     A semistandard tableau is Littlewood-Richardson with respect to
-    the sequence of partitions `(\mu^{(1)},\ldots,\mu^{(k)})` if,
-    when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,\ldots,
-    |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`, is Yamanouchi.
+    the sequence of partitions `(\mu^{(1)}, \ldots, \mu^{(k)})` if,
+    when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,
+    \ldots, |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`, is Yamanouchi.
 
     INPUT:
 
-    - ``t`` -- Littlewood-Richardson tableau; the input is supposed to be a list
-      of lists specifying the rows of the tableau
+    - ``t`` -- Littlewood-Richardson tableau; the input is supposed to be
+      a list of lists specifying the rows of the tableau
 
     EXAMPLES::
 
         sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableau
         sage: LittlewoodRichardsonTableau([[1,1,3],[2,3],[4]], [[2,1],[2,1]])
         [[1, 1, 3], [2, 3], [4]]
-
     """
-
     @staticmethod
     def __classcall_private__(cls, t, weight):
         r"""
@@ -61,7 +60,6 @@ class LittlewoodRichardsonTableau(SemistandardTableau):
 
         TESTS::
 
-            sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
             sage: LR = LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
             sage: t = LR([[1, 1, 3], [2, 3], [4]])
             sage: t.check()
@@ -80,16 +78,10 @@ class LittlewoodRichardsonTableau(SemistandardTableau):
 
     def __init__(self, parent, t):
         r"""
-        Initialization of Littlewood-Richardson tableau ``t``.
-
-        INPUT:
-
-        - ``t`` -- Littlewood-Richardson tableau; the input is supposed to be a list
-          of lists specifying the rows of the tableau
+        Initialize ``self``.
 
         TESTS::
 
-            sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
             sage: LR = LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
             sage: t = LR([[1, 1, 3], [2, 3], [4]])
             sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableau
@@ -104,7 +96,7 @@ class LittlewoodRichardsonTableau(SemistandardTableau):
         """
         self._shape = parent._shape
         self._weight = parent._weight
-        super(LittlewoodRichardsonTableau, self).__init__(parent, t)
+        super(LittlewoodRichardsonTableau, self).__init__(parent, list(t))
 
     def check(self):
         r"""
@@ -118,38 +110,39 @@ class LittlewoodRichardsonTableau(SemistandardTableau):
 
         TESTS::
 
-            sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
             sage: LR = LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
             sage: LR([[1, 1, 2], [3, 3], [4]])
             Traceback (most recent call last):
             ...
-            ValueError: not a proper Littlewood-Richardson tableau of the correct weight
+            ValueError: [[1, 1, 2], [3, 3], [4]] is not an element of
+             Littlewood-Richardson Tableaux of shape [3, 2, 1] and weight ([2, 1], [2, 1]).
             sage: LR([[1, 1, 2, 3], [3], [4]])
             Traceback (most recent call last):
             ...
-            ValueError: shape of the parent does not agree with the shape of the tableau
+            ValueError: [[1, 1, 2, 3], [3], [4]] is not an element of
+             Littlewood-Richardson Tableaux of shape [3, 2, 1] and weight ([2, 1], [2, 1]).
             sage: LR([[1, 1, 3], [3, 3], [4]])
             Traceback (most recent call last):
             ...
             ValueError: weight of the parent does not agree with the weight of the tableau
         """
-        t = SemistandardTableau(list(self))
-        if not [i for a in self.parent()._weight for i in a] == t.weight():
+        super(LittlewoodRichardsonTableau, self).check()
+        if not [i for a in self.parent()._weight for i in a] == self.weight():
             raise ValueError("weight of the parent does not agree "
                              "with the weight of the tableau")
-        if not t.shape() == self.parent()._shape:
+        if not self.shape() == self.parent()._shape:
             raise ValueError("shape of the parent does not agree "
                              "with the shape of the tableau")
-        heights = [a.length() for a in self._weight]
-        if not is_littlewood_richardson(self,heights):
-            raise ValueError("not a proper Littlewood-Richardson tableau of the correct weight")
 
 class LittlewoodRichardsonTableaux(SemistandardTableaux):
     r"""
-    A semistandard tableau is Littlewood-Richardson with respect to
-    the sequence of partitions `(\mu^{(1)},\ldots,\mu^{(k)})` (called weight) if,
-    when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,\ldots,
-    |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`, is Yamanouchi.
+    Littlewood-Richardson tableaux.
+
+    A semistandard tableau `t` is *Littlewood-Richardson* with respect to
+    the sequence of partitions `(\mu^{(1)},\ldots,\mu^{(k)})` (called the
+    weight) if `t` is Yamanouchi when restricted to each alphabet
+    `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1, \ldots,
+    |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`.
 
     INPUT:
 
@@ -158,7 +151,6 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
 
     EXAMPLES::
 
-        sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
         sage: LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
         Littlewood-Richardson Tableaux of shape [3, 2, 1] and weight ([2, 1], [2, 1])
     """
@@ -169,18 +161,17 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
 
         TESTS::
 
-            sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
             sage: LR = LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
             sage: TestSuite(LR).run()
             sage: LittlewoodRichardsonTableaux([3,2,1],[[2,1]])
             Traceback (most recent call last):
             ...
-            ValueError: The sizes of shapes and sequence of weights do not match
+            ValueError: the sizes of shapes and sequence of weights do not match
         """
         shape = Partition(shape)
         weight = tuple(Partition(a) for a in weight)
         if shape.size() != sum(a.size() for a in weight):
-            raise ValueError("The sizes of shapes and sequence of weights do not match")
+            raise ValueError("the sizes of shapes and sequence of weights do not match")
         return super(LittlewoodRichardsonTableaux, cls).__classcall__(cls, shape, weight)
 
     def __init__(self, shape, weight):
@@ -194,19 +185,18 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
 
         TESTS::
 
-            sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
             sage: LR = LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
             sage: TestSuite(LR).run()
         """
         self._shape = shape
         self._weight = weight
-        super(LittlewoodRichardsonTableaux, self).__init__(category = FiniteEnumeratedSets())
+        self._heights = [a.length() for a in self._weight]
+        super(LittlewoodRichardsonTableaux, self).__init__(category=FiniteEnumeratedSets())
 
     def _repr_(self):
         """
         TESTS::
 
-            sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
             sage: LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
             Littlewood-Richardson Tableaux of shape [3, 2, 1] and weight ([2, 1], [2, 1])
         """
@@ -216,18 +206,35 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
         r"""
         TESTS::
 
-            sage: from sage.combinat.lr_tableau import LittlewoodRichardsonTableaux
-            sage: LR = LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
+            sage: LR = LittlewoodRichardsonTableaux([3,2,1], [[2,1],[2,1]])
             sage: LR.list()
             [[[1, 1, 3], [2, 3], [4]], [[1, 1, 3], [2, 4], [3]]]
         """
-        s = [[i for i in a] for a in self._weight]
-        mu = sum((a for a in s),[])
-        T = SemistandardTableaux(shape=self._shape,eval=mu)
-        heights = [a.length() for a in self._weight]
-        for t in T:
-            if is_littlewood_richardson(t,heights):
-                yield self(t)
+        exp = [i for a in self._weight for i in a]
+        for t in kostka_tab(self._shape, exp):
+            if is_littlewood_richardson(t, self._heights):
+                yield self.element_class(self, t)
+
+    def __contains__(self, t):
+        """
+        Check if ``t`` is contained in ``self``.
+
+        TESTS::
+
+            sage: LR = LittlewoodRichardsonTableaux([3,2,1], [[2,1],[2,1]])
+            sage: SST = SemistandardTableaux([3,2,1], [2,1,2,1])
+            sage: [t for t in SST if t in LR]
+            [[[1, 1, 3], [2, 3], [4]], [[1, 1, 3], [2, 4], [3]]]
+            sage: [t for t in SST if t in LR] == LR.list()
+            True
+
+            sage: LR = LittlewoodRichardsonTableaux([3,2,1], [[2,1],[2,1]])
+            sage: T = [[1,1,3], [2,3], [4]]
+            sage: T in LR
+            True
+        """
+        return (SemistandardTableaux.__contains__(self, t)
+                and is_littlewood_richardson(t, self._heights))
 
     Element = LittlewoodRichardsonTableau
 
@@ -235,10 +242,12 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
 
 def is_littlewood_richardson(t, heights):
     """
-    Return whether semistandard tableau ``t`` is Littleword-Richardson with respect to ``heights``.
+    Return whether semistandard tableau ``t`` is Littleword-Richardson
+    with respect to ``heights``.
 
-    A tableau is Littlewood-Richardson with respect to `heights = (h_1,h_2,\ldots)`
-    if each subtableau with respect to the alphabets `\{1,2,\ldots,h_1\}`,`\{h_1+1,\ldots, h_1+h_2\}`,
+    A tableau is Littlewood-Richardson with respect to ``heights`` given by
+    `(h_1,h_2,\ldots)` if each subtableau with respect to the alphabets
+    `\{1, 2, \ldots, h_1\}`,`\{h_1+1, \ldots, h_1+h_2\}`,
     etc. is Yamanouchi.
 
     EXAMPLES::
@@ -253,10 +262,14 @@ def is_littlewood_richardson(t, heights):
     """
     from sage.combinat.words.word import Word
     partial = [sum(heights[i] for i in range(j)) for j in range(len(heights)+1)]
-    w = t.to_word()
+    try:
+        w = t.to_word()
+    except AttributeError:  # Not an instance of Tableau
+        w = sum(reversed(t), [])
     for i in range(len(heights)):
-        alphabet = range(partial[i]+1,partial[i+1]+1)
+        alphabet = set(range(partial[i]+1, partial[i+1]+1))
         subword = Word([j for j in w if j in alphabet])
         if not subword.is_yamanouchi():
             return False
     return True
+

@@ -523,18 +523,8 @@ indentation:
 
         TESTS::
 
-<<<<<<< 819a98910a4f8dcb80c41a3a2f300edfc57cb01d
             sage: A.point(42, 0)  # Check for corner case y=0
             xxx
-=======
-        .. [BCDT] Breuil, Conrad, Diamond, Taylor,
-           "Modularity ...."
-
-	TESTS::
-
-	    sage: A.point(42, 0)  # Check for corner case y=0
-	    xxx
->>>>>>> Devel manual: docstring writing
         """
         <body of the function>
 
@@ -1120,12 +1110,18 @@ Global options for classes can be defined in Sage using
 Miscellanous minor things
 =========================
 
+<<<<<<< 5a7fda606713004f46e77f226ead55b4103245d4
 Some decisions are arbitrary, but common conventions make life easier.
+=======
+Some decisions are arbitrary, but common convention makes the program
+to look polished and professional.
+>>>>>>> Minor addition.
 
 * Non-ASCII names in identifiers:
 
   * Translate *ä* and *ö* to *ae* and *oe*, like ``moebius_function``
     for Möbius function.
+<<<<<<< 5a7fda606713004f46e77f226ead55b4103245d4
   * Translate *á* to *a*, like ``lovasz_number`` for Lovász number.
 
 * Common function keyword arguments:
@@ -1165,3 +1161,13 @@ Some decisions are arbitrary, but common conventions make life easier.
 
   * ``inplace``, a Boolean: whether to modify the object in-place or
     to return a copy.
+=======
+  * Translate *á* to *a* like ``lovasz_number`` for Lovász number.
+
+* Function parameter names:
+    
+  * Use ``algorithm`` if there are several algorithms or backend
+    programs to select from. Do not use ``method`` or ``implementation``.
+  * Use ``certificate`` if the function can optionally return some
+    kind of certificate together with the result. Do not use ``certify``.
+>>>>>>> Minor addition.

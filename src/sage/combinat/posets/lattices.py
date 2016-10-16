@@ -154,6 +154,7 @@ def MeetSemilattice(data=None, *args, **options):
     """
     if isinstance(data,FiniteMeetSemilattice) and len(args) == 0 and len(options) == 0:
         return data
+
     P = Poset(data, *args, **options)
     try:
         P._hasse_diagram.meet_matrix()
@@ -161,7 +162,9 @@ def MeetSemilattice(data=None, *args, **options):
         error.x = P._vertex_to_element(error.x)
         error.y = P._vertex_to_element(error.y)
         raise
-    return FiniteMeetSemilattice(P)
+
+    elements = P._elements if 'linear_extension' in options else None
+    return FiniteMeetSemilattice(P, elements=elements)
 
 class FiniteMeetSemilattice(FinitePoset):
     """
@@ -379,6 +382,7 @@ def JoinSemilattice(data=None, *args, **options):
     """
     if isinstance(data,FiniteJoinSemilattice) and len(args) == 0 and len(options) == 0:
         return data
+
     P = Poset(data, *args, **options)
     try:
         P._hasse_diagram.join_matrix()
@@ -387,7 +391,8 @@ def JoinSemilattice(data=None, *args, **options):
         error.y = P._vertex_to_element(error.y)
         raise
 
-    return FiniteJoinSemilattice(P)
+    elements = P._elements if 'linear_extension' in options else None
+    return FiniteJoinSemilattice(P, elements=elements)
 
 class FiniteJoinSemilattice(FinitePoset):
     """
@@ -558,8 +563,13 @@ def LatticePoset(data=None, *args, **options):
         Join of Category of finite lattice posets and Category of finite enumerated sets and Category of facade sets
         sage: parent(L[0])
         Integer Ring
-        sage: TestSuite(L).run(skip = ['_test_an_element']) # is_parent_of is not yet implemented
 
+    TESTS::
+
+        sage: TestSuite(L).run(skip = ['_test_an_element']) # is_parent_of is not yet implemented
+        sage: L = LatticePoset( ([0, 1,3,2, 10], [[0,1],[0,3],[0,2], [1,10],[3,10],[2,10]]), linear_extension=True)
+        sage: L.list()  # Trac #20434
+        [0, 1, 3, 2, 10]
     """
     if isinstance(data,FiniteLatticePoset) and len(args) == 0 and len(options) == 0:
         return data
@@ -573,7 +583,9 @@ def LatticePoset(data=None, *args, **options):
             error.x = P._vertex_to_element(error.x)
             error.y = P._vertex_to_element(error.y)
             raise
-    return FiniteLatticePoset(P, category = FiniteLatticePosets(), facade = P._is_facade)
+
+    elements = P._elements if 'linear_extension' in options else None
+    return FiniteLatticePoset(P, category = FiniteLatticePosets(), elements=elements)
 
 class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
     """

@@ -306,14 +306,41 @@ class AugmentedValuation(DevelopingValuation):
             [ Gauss valuation induced by 2-adic valuation, v((1 + O(2^5))*x^2 + (1 + O(2^5))*x + u + O(2^5)) = 1/2 ]
 
         """
-        vals = [self]
-        v = self
-        while isinstance(v, AugmentedValuation):
-            v = v._base_valuation
-            vals.append(v)
-        vals.reverse()
+        vals = self._augmentations()
         vals = [ "v(%s) = %s"%(v._phi, v._mu) if isinstance(v, AugmentedValuation) else str(v) for v in vals ]
         return "[ %s ]"%", ".join(vals)
+
+    def _augmentations(self):
+        return self._base_valuation._augmentations() + [self]
+
+    def _richcmp_(self, other, op):
+        if op == 2: # ==
+            if not isinstance(other, AugmentedValuation):
+                return False
+            if self.phi() != other.phi() or self._mu != other._mu or self._base_valuation != other._base_valuation:
+                return False
+            return True
+        if op == 3: # !=
+            return not (self == other)
+        return DevelopingValuation._richcmp_(self, other, op)
+
+    def __hash__(self):
+        r"""
+        The hash value of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import *
+            sage: v = pAdicValuation(QQ, 2)
+            sage: hash(v) == hash(v)
+            True
+
+        """
+        vals = self._augmentations()
+        return hash((vals[0]) + ((v.phi(), v._mu) for v in vals[1:]))
+
+    def _cmp_(self, other):
+        raise NotImplementedError("No total ordering for this valuation.")
 
     @cached_method
     def constant_valuation(self):

@@ -597,3 +597,11 @@ class GaussValuation_generic(DevelopingValuation):
 
         """
         return True
+
+    def _augmentations(self):
+        r"""
+        EXAMPLES::
+
+            sage: TODO
+        """
+        return [self]

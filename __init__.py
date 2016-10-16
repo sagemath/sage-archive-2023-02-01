@@ -1,17 +1,14 @@
+from .valuation_space import DiscretePseudoValuationSpace, DiscreteValuationSpace
+from .trivial_valuation import TrivialDiscreteValuation, TrivialDiscretePseudoValuation
 from .padic_valuation import pAdicValuation
 from .gauss_valuation import GaussValuation
-import discrete_valuation, padic_valuation
+from .value_group import DiscreteValuationCodomain, DiscreteValueGroup
+import valuation, padic_valuation, mac_lane
 
 # =================
 # MONKEY PATCH SAGE
 # =================
-import sys
 import sage
-# Register all modules within sage (to make doctests pass)
-sys.modules['sage.rings.padics.discrete_valuation'] = discrete_valuation
-sage.rings.padics.discrete_valuation = discrete_valuation
-sys.modules['sage.rings.padics.padic_valuation'] = padic_valuation
-sage.rings.padics.padic_valuation = padic_valuation
 
 # Implement Qp/Zp.valuation
 sage.rings.padics.padic_generic.pAdicGeneric.valuation = lambda self: pAdicValuation(self)

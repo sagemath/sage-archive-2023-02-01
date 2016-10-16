@@ -35,7 +35,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.getcwd())
     sys.path.append(os.path.dirname(os.getcwd()))
 
-from discrete_valuation import DiscreteValuation
+from .valuation import DiscretePseudoValuation
 from sage.misc.abstract_method import abstract_method
 
 from sage.misc.cachefunc import cached_method
@@ -60,7 +60,7 @@ def _lift_to_maximal_precision(c):
     """
     return c if c.parent().is_exact() else c.lift_to_precision()
 
-class DevelopingValuation(DiscreteValuation):
+class DevelopingValuation(DiscretePseudoValuation):
     """
     An abstract base class for a discrete valuation of polynomials defined over
     the polynomial ring ``domain`` by the `\phi`-adic development.
@@ -101,7 +101,7 @@ class DevelopingValuation(DiscreteValuation):
         if not phi.leading_coefficient().is_one():
             raise ValueError("phi must be monic")
 
-        DiscreteValuation.__init__(self, domain)
+        DiscretePseudoValuation.__init__(self, domain)
 
         self._phi = phi
 
@@ -1051,7 +1051,7 @@ class DevelopingValuation(DiscreteValuation):
             if phi == self.phi():
                 # self.phi() always is a key over self but it will not lead to an extension of this valuation
                 from gauss_valuation import GaussValuation
-                if isinstance(self,GaussValuation): # unless in the first step
+                if self.is_gauss_valuation(): # unless in the first step
                     pass
                 elif len(F)==1: # unless this is the only factor, a terminating case which should give a valuation with v(phi)=infinity
                     pass
@@ -1094,7 +1094,7 @@ class DevelopingValuation(DiscreteValuation):
                 if phi.degree() == base.phi().degree():
                     assert new_mu > self(phi)
                     from gauss_valuation import GaussValuation
-                    if not isinstance(base, GaussValuation):
+                    if not base.is_gauss_valuation():
                         base = base._base_valuation
 
                 new_leaf = base.extension(phi, new_mu)

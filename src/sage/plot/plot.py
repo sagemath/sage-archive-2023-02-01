@@ -180,7 +180,7 @@ have a preference::
     g = plot(x**2,(x,300,500),ticks=[100,50000])
     sphinx_plot(g)
 
-To change the tick positions on one axis only, use the following notation::
+To change the ticks on one axis only, use the following notation::
 
     sage: plot(x^2,(x,300,500),ticks=[None,50000])
     Graphics object consisting of 1 graphics primitive
@@ -2759,6 +2759,9 @@ def list_plot(data, plotjoined=False, **kwargs):
 
     The ``plotjoined=True`` option tells ``list_plot`` to plot a line
     joining all the data.
+
+    For other keyword options that the ``list_plot`` function can
+    take, refer to the method :meth:`~sage.plot.graphics.Graphics.show`.
 
     It is possible to pass empty dictionaries, lists, or tuples to
     ``list_plot``. Doing so will plot nothing (returning an empty plot).

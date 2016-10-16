@@ -13,7 +13,8 @@ def lifting(p, t, A, G):
     if t == 0:
         return matrix(A.parent().base(), A.ncols(), 0)
 
-    assert (A*G % p**(t-1)).is_zero(), "A*G is not zero mod %s^%s" % (str(p),str(t-1))
+    assert (A*G % p**(t-1)).is_zero(),\
+        "A*G is not zero mod %s^%s" % (str(p), str(t-1))
 
     P = A.parent()
     ZZX = P.base()
@@ -62,7 +63,8 @@ def compute_M(p, t, A):
 
     OUTPUT:
 
-    A matrix `F`. The columns of `\begin{pmatrix}p^tI& F\end{pmatrix}` are generators of `M_t(A)`.
+    A matrix `F`. The columns of `\begin{pmatrix}p^tI& F\end{pmatrix}`
+    are generators of `M_t(A)`.
 
     EXAMPLES::
 
@@ -182,12 +184,14 @@ class Compute_nu(SageObject):
           d,u,v = xgcd(g2.leading_coefficient(), p)
           tmp_h = p*r + g2
           h = u*tmp_h + v*p*prev_nu*X**(tmp_h.degree()-prev_nu.degree())
-          replacements.append(h % p**t)           #reduce coefficients mod p^t to keep coefficients small
+          replacements.append(h % p**t)
+           #reduce coefficients mod p^t to keep coefficients small
           g = g.quo_rem(h)[1]
           p_prt = self._ZX(p_part(g,p))
 
       replacements = list(set(replacements))
-      assert all( g.is_monic() for g in replacements), "Something went wrong in find_monic_replacements"
+      assert all( g.is_monic() for g in replacements),\
+          "Something went wrong in find_monic_replacements"
       return replacements
 
 
@@ -212,7 +216,8 @@ class Compute_nu(SageObject):
 
         # find nu	
         while len(generators) > 1:
-          f = list(set(generators) - set([g]))[0]  #take first element in generators not equal g
+          f = list(set(generators) - set([g]))[0]
+          #take first element in generators not equal g
           generators.remove(f)
           r = (f.quo_rem(g)[1]) % p**t
           generators = generators + self.find_monic_replacements(p, t, [r], prev_nu)
@@ -225,7 +230,8 @@ class Compute_nu(SageObject):
 
 
     def compute_mccoy_column(self, p, t, poly):
-         assert (poly(self._B) % p**t).is_zero(), "%s not in (%s^%s)-ideal" % (str(poly), str(p), str(t))
+         assert (poly(self._B) % p**t).is_zero(),\
+             "%s not in (%s^%s)-ideal" % (str(poly), str(p), str(t))
          chi_B = self._ZX(self._B.characteristic_polynomial())
          column = [poly]
          #print poly
@@ -234,27 +240,35 @@ class Compute_nu(SageObject):
 
            column.append(q)
 
-         assert (self._A * matrix(self._ZX, (self._A).ncols(), 1, column) % p**t).is_zero(), "McCoy column is not correct"
+         assert (self._A * matrix(self._ZX,
+                                  (self._A).ncols(), 1, column) % p**t).is_zero(),\
+                                  "McCoy column is not correct"
          return  matrix(self._ZX, self._A.ncols(), 1, column)
 
 
     def p_minimal_polynomials(self, p, upto=None, steps=False):
        r"""
-       Returns index set `\mathcal{S}` and monic polynomials `\nu_s` for `s\in \mathcal{S}` such that
-       `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]`
+       Returns index set `\mathcal{S}` and monic polynomials
+       `\nu_s` for `s\in \mathcal{S}` such that `N_{p^t}(B) = \mu_B
+       \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}}
+       p^{t-s}\nu_s \mathbb{Z}[X]`
 
        INPUT:
 
        - ``p`` -- an integer prime
 
-       - ``upto`` -- a nonnegative integer
-                     - Default is  ``None``: Returns `\mathcal{S}` such that `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]` holds for all `t \ge \max\{s\in \mathcal{S}\}`.
+       - ``upto`` -- a nonnegative integer Default is ``None``: Returns
+                     - `\mathcal{S}` such that `N_{p^t}(B) = \mu_B
+                     - \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in
+                     - \mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]` holds
+                     - for all `t \ge \max\{s\in \mathcal{S}\}`.
 
        - ``steps`` -- show computation steps
 
        OUTPUT:
 
-       A list (index set `\mathcal{S}`) together with a dictionary (keys=indices in `\mathcal{S}`, values=polynomials `\nu_s` )
+       A list (index set `\mathcal{S}`) together with a dictionary
+       (keys=indices in `\mathcal{S}`, values=polynomials `\nu_s` )
 
        """
 
@@ -308,8 +322,9 @@ class Compute_nu(SageObject):
 
     def null_ideal(self, b=0):
         r"""
-        Return the ideal `N_{b}(B)=\{ f\in \mathbb{Z}[X] \mid \exists M\in\mathbb{Z}^{n\times n}\colon f \operatorname{adj}(X-B) \equiv
-        \chi_B M \pmod{b}\}`.
+        Return the ideal `N_{b}(B)=\{ f\in \mathbb{Z}[X] \mid \exists
+        M\in\mathbb{Z}^{n\times n}\colon f \operatorname{adj}(X-B)
+        \equiv \chi_B M \pmod{b}\}`.
 
         INPUT:
 
@@ -345,11 +360,13 @@ class Compute_nu(SageObject):
           for s in calS+ [t]:
             #print s
             #print p_polys[s]
-            generators = generators + [self._ZX(cofactor*p**(t-s)*p_polys[s]) for s in calS]
+            generators = generators + \
+                [self._ZX(cofactor*p**(t-s)*p_polys[s]) for s in calS]
             #print "Generators after: %s" % str(generators)
 
 
-        assert all((g(self._B) % b).is_zero() for g in generators), "Polynomials not in %s-ideal" % str(b)
+        assert all((g(self._B) % b).is_zero() for g in generators), \
+            "Polynomials not in %s-ideal" % str(b)
 
         return self._ZX.ideal(generators)
 

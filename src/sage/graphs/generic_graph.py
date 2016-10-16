@@ -20989,6 +20989,12 @@ class GenericGraph(GenericGraph_pyx):
         except ImportError:
             have_bliss = False
 
+        # See trac #21704
+        if self.has_multiple_edges():
+            if algorithm == 'bliss':
+                raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
+            have_bliss = False
+
         if (algorithm == 'bliss'           or  # explicit request; or
             (algorithm is None             and # default choice
              have_bliss and

@@ -9,10 +9,9 @@ from sage.structure.sage_object import SageObject
 from time import time
 
 
-def lifting(p,t,A,G):
+def lifting(p, t, A, G):
     if t == 0:
         return matrix(A.parent().base(), A.ncols(), 0)
-
 
     assert (A*G % p**(t-1)).is_zero(), "A*G is not zero mod %s^%s" % (str(p),str(t-1))
 
@@ -45,7 +44,7 @@ def lifting(p,t,A,G):
     assert (A*F % (p**t)).is_zero(), "A*F=%s" % str(A*F)
 
     return F
-  
+
 
 @cached_function
 def compute_M(p, t, A):
@@ -113,9 +112,8 @@ def compute_M(p, t, A):
     assert (A*F % (p**t)).is_zero(), "A*F=%s" % str(A*F)
     return matrix.block([[F, p*G]])
 
- 
 
-def p_part(f,p):
+def p_part(f, p):
     ZZX = f.parent()
     (X,) = ZZX.gens()
     p_prt = 0
@@ -126,9 +124,6 @@ def p_part(f,p):
             p_prt = p_prt + coeff//p*X**i
 
     return p_prt
-    
-   
-  
 
 
 class Compute_nu(SageObject):
@@ -169,41 +164,39 @@ class Compute_nu(SageObject):
 
 
     # ersetzt Polynome im p^t-Ideal durch normierte (Lemma 5.4)
-    def find_monic_replacements(self,p,t,poly_set,prev_nu):
+    def find_monic_replacements(self, p, t, poly_set, prev_nu):
       assert all((f(self._B) % p**t).is_zero()
                    for f in poly_set)
-            
+
       (X,) = self._ZX.gens()
-  
-      replacements=[]
+
+      replacements = []
       for f in poly_set:
         g = self._ZX(f)
         nu = self._ZX(prev_nu)
-        p_prt = self._ZX(p_part(g,p))
-      
+        p_prt = self._ZX(p_part(g, p))
+
         while g != p*p_prt:
           r = p_prt.quo_rem(nu)[1]
-          g2 = g-p*p_prt
-          d,u,v = xgcd(g2.leading_coefficient(),p)
+          g2 = g - p*p_prt
+          d,u,v = xgcd(g2.leading_coefficient(), p)
           tmp_h = p*r + g2
           h = u*tmp_h + v*p*prev_nu*X**(tmp_h.degree()-prev_nu.degree())
           replacements.append(h % p**t)           #reduce coefficients mod p^t to keep coefficients small
           g = g.quo_rem(h)[1]
           p_prt = self._ZX(p_part(g,p))
-      
+
       replacements = list(set(replacements))
       assert all( g.is_monic() for g in replacements), "Something went wrong in find_monic_replacements"
       return replacements
-      
 
 
-    
     # Algorithm 2
-    def current_nu(self,p,t,pt_generators,prev_nu):
+    def current_nu(self, p, t, pt_generators, prev_nu):
         assert all((g(self._B) % p**t).is_zero()
                    for g in pt_generators)
 
-        generators = self.find_monic_replacements(p,t, pt_generators, prev_nu)
+        generators = self.find_monic_replacements(p, t, pt_generators, prev_nu)
 
         print "------------------------------------------"
         print pt_generators
@@ -216,109 +209,101 @@ class Compute_nu(SageObject):
         for f in generators:
           if f.degree() < g.degree():
             g=f
-        
+
         # find nu	
-        while len(generators)>1: 
+        while len(generators) > 1:
           f = list(set(generators) - set([g]))[0]  #take first element in generators not equal g
           generators.remove(f)
           r = (f.quo_rem(g)[1]) % p**t
-          generators = generators + self.find_monic_replacements(p,t,[r],prev_nu)
-          print generators  
+          generators = generators + self.find_monic_replacements(p, t, [r], prev_nu)
+          print generators
 
           if generators[-1].degree() < g.degree():
             g=generators[-1]
-   
-        return generators[0]
-      
-      
-      
 
-    def compute_mccoy_column(self, p,t,poly):
+        return generators[0]
+
+
+    def compute_mccoy_column(self, p, t, poly):
          assert (poly(self._B) % p**t).is_zero(), "%s not in (%s^%s)-ideal" % (str(poly), str(p), str(t))
          chi_B = self._ZX(self._B.characteristic_polynomial())
          column = [poly]
          #print poly
-         for b in self._A[:,0].list():
+         for b in self._A[:, 0].list():
 	   q,r = (poly*b).quo_rem(chi_B)
 
            column.append(q)
-         
-         assert (self._A * matrix(self._ZX, (self._A).ncols(), 1, column) % p**t).is_zero(), "McCoy column is not correct" 
-         return  matrix(self._ZX, self._A.ncols(), 1, column)    
-      
-   
-   
-    def p_minimal_polynomials(self,p, upto=None,steps=False):
+
+         assert (self._A * matrix(self._ZX, (self._A).ncols(), 1, column) % p**t).is_zero(), "McCoy column is not correct"
+         return  matrix(self._ZX, self._A.ncols(), 1, column)
+
+
+    def p_minimal_polynomials(self, p, upto=None, steps=False):
        r"""
        Returns index set `\mathcal{S}` and monic polynomials `\nu_s` for `s\in \mathcal{S}` such that
        `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]`
-       
+
        INPUT:
-       
+
        - ``p`` -- an integer prime
-       
+
        - ``upto`` -- a nonnegative integer
                      - Default is  ``None``: Returns `\mathcal{S}` such that `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]` holds for all `t \ge \max\{s\in \mathcal{S}\}`.
-                      
-       - ``steps`` -- show computation steps                    
-                              
+
+       - ``steps`` -- show computation steps
+
        OUTPUT:
-       
-       A list (index set `\mathcal{S}`) together with a dictionary (keys=indices in `\mathcal{S}`, values=polynomials `\nu_s` ) 
-      
+
+       A list (index set `\mathcal{S}`) together with a dictionary (keys=indices in `\mathcal{S}`, values=polynomials `\nu_s` )
+
        """
 
        mu_B = self._B.minimal_polynomial()
        deg_mu = mu_B.degree()
-     
+
        t = 0
        calS = []
        p_min_polys = {}
        nu = self._ZX(1)
        d=self._A.ncols()
        G = matrix(self._ZX,d,0)
-     
-     
+
+
        while True:
          deg_prev_nu = nu.degree()
-         t= t+1
+         t = t + 1
          if steps:
            print "------------------------------------------"
-           print "p=%s, t=%s:" % (str(p),str(t))
+           print "p=%s, t=%s:" % (str(p), str(t))
 
-         if steps: 
+         if steps:
            print "Result of lifting:"
            print "F="
-           print lifting(p, t, self._A,G)
-    
-         nu = self.current_nu(p,t, list(lifting(p, t, self._A,G)[0]), nu)
+           print lifting(p, t, self._A, G)
+
+         nu = self.current_nu(p,t, list(lifting(p, t, self._A, G)[0]), nu)
          if steps:
            print "nu=%s" % str(nu)
          if nu.degree() >= deg_mu:
            return calS, p_min_polys
-               
-	 
+
+	
          if nu.degree() == deg_prev_nu:
            calS.remove(t-1)
            G = G.matrix_from_columns(range(G.ncols()-1))
            del p_min_polys[t-1]
 
-         if steps: 
+         if steps:
 	   print "corresponding columns for G"
 	   print self.compute_mccoy_column(p,t,nu)
-	   
-         G = matrix.block([[p * G, self.compute_mccoy_column(p,t,nu)]])
+	
+         G = matrix.block([[p * G, self.compute_mccoy_column(p, t, nu)]])
          calS.append(t)
          p_min_polys[t] = nu
 
          # allow early stopping for small t
-         if t == upto:        
+         if t == upto:
            return calS, p_min_polys
-
-
-
-
-      
 
 
     def null_ideal(self, b=0):
@@ -327,9 +312,9 @@ class Compute_nu(SageObject):
         \chi_B M \pmod{b}\}`.
 
         INPUT:
-        
+
         - ``b`` -- an integer (Default value is 0)
-                               
+
         OUTPUT:
 
         An ideal in `\mathbb{Z}[X]`.
@@ -360,45 +345,22 @@ class Compute_nu(SageObject):
           for s in calS+ [t]:
             #print s
             #print p_polys[s]
-            generators = generators + [self._ZX( cofactor*p**(t-s)*p_polys[s] ) for s in calS]
+            generators = generators + [self._ZX(cofactor*p**(t-s)*p_polys[s]) for s in calS]
             #print "Generators after: %s" % str(generators)
-        
+
 
         assert all((g(self._B) % b).is_zero() for g in generators), "Polynomials not in %s-ideal" % str(b)
 
         return self._ZX.ideal(generators)
-      
+
 
     # which primes we need to checke
     def prime_candidates(self):
-       F,T = (self._B).frobenius(2)
+       F, T = (self._B).frobenius(2)
        factorization = list(factor(T.det()))
-       
+
        primes = []
-       for (p,t) in factorization:
+       for (p, t) in factorization:
 	 primes.append(p)
-	 
+
        return primes
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

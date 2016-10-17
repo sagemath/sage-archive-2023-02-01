@@ -335,7 +335,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 ValueError: The trivial pseudo-valuation that is infinity everywhere does not have a value group.
 
             """
-            return DiscreteValueGroup(self(self.uniformizer))
+            from value_group import DiscreteValueGroup
+            return DiscreteValueGroup(self(self.uniformizer()))
 
         def shift(self, x, s):
             r"""
@@ -355,16 +356,19 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 sage: v.shift(1, 10)
                 1024
                 sage: v.shift(1, -10)
+                Traceback (most recent call last):
+                ...
+                TypeError: no conversion of this rational to integer
 
             """
             x = self.domain().coerce(x)
-            from sage.rings.all import QQ
+            from sage.rings.all import QQ, ZZ
             s = QQ.coerce(s)
             if s == 0:
                 return x
             if s not in self.value_group():
                 raise ValueError("s must be in the value group of this valuation")
-            return self.domain()(x * (self.uniformizer()**n))
+            return self.domain()(x * (self.uniformizer() ** ZZ(s/self.value_group().gen())))
 
         @abstract_method
         def residue_ring(self):
@@ -379,7 +383,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
                 sage: from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 2).residue_ring()
-
+                Finite Field of size 2
                 sage: TrivialValuation(QQ).residue_ring()
                 Rational Field
 
@@ -387,11 +391,12 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             may not::
 
                 sage: TrivialPseudoValuation(QQ).residue_ring()
-                Zero ring
-
+                Quotient of Rational Field by the ideal (1)
                 sage: TrivialValuation(ZZ).residue_ring()
-
+                Integer Ring
                 sage: GaussValuation(ZZ['x'], pAdicValuation(ZZ, 2)).residue_ring()
+                Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+
 
             """
 
@@ -405,13 +410,16 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
                 sage: from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 2)
-                sage: v.reduce(1)
+                sage: v.reduce(2)
                 0
                 sage: v.reduce(1)
                 1
                 sage: v.reduce(1/3)
                 1
                 sage: v.reduce(1/2)
+                Traceback (most recent call last):
+                ...
+                ValueError: reduction is only defined for elements of non-negative valuation
 
             """
 
@@ -544,15 +552,21 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 return
 
             S = tester.some_elements(self.domain().some_elements())
-            V = tester.some_elements(self.value_group())
+            V = tester.some_elements(self.value_group().some_elements())
             from sage.categories.cartesian_product import cartesian_product
             for x, n in tester.some_elements(cartesian_product([S,V])):
                 v = self(x)
+                from sage.categories.fields import Fields
                 if n < 0 and -n > v and not self.domain() in Fields():
                     continue
-                tester.assertEqual(self.shift(x, n), v + n)
+                y = self.shift(x, n)
+                tester.assertIs(y.parent(), self.domain())
+                tester.assertEqual(self(y), v + n)
                 # shifts preserve reductions
-                tester.assertEqual(self.reduce(self.shift(self.shift(x, n), -n)), self.reduce(x))
+                z = self.shift(y, -n)
+                tester.assertEqual(self(z), v)
+                if v >= 0:
+                    tester.assertEqual(self.reduce(z), self.reduce(x))
 
         def _test_residue_ring(self, **options):
             r"""
@@ -566,6 +580,12 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             tester = self._tester(**options)
+
+            r = self.residue_ring()
+            if r.zero() == r.one():
+                # residue ring is the zero rng
+                tester.assertGreater(self(1), 0)
+                return
 
             c = self.residue_ring().characteristic()
             if c != 0:
@@ -590,10 +610,13 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         self.reduce(x)
                     continue
                 if self(x) == 0:
-                    tester.assertNotEqual(self.reduce(x), 0)
+                    y = self.reduce(x)
+                    tester.assertIn(y, self.residue_ring())
+                    tester.assertNotEqual(y, 0)
                     if x.is_unit() and ~x in self.domain():
-                        tester.assertTrue(self.reduce(x).is_unit())
-                        tester.assertEqual(~self.reduce(x), self.reduce(~x))
+                        tester.assertTrue(y.is_unit())
+                        tester.assertIn(~y, self.residue_ring())
+                        tester.assertEqual(~y, self.reduce(~x))
                 if self(x) > 0:
                     tester.assertEqual(self.reduce(x), 0)
 
@@ -727,7 +750,7 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
 
                 sage: from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 2).residue_field()
-
+                Finite Field of size 2
                 sage: TrivialValuation(QQ).residue_field()
                 Rational Field
 
@@ -735,8 +758,13 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
             field::
 
                 sage: TrivialValuation(ZZ).residue_field()
-
+                Traceback (most recent call last):
+                ...
+                ValueError: The residue ring of this valuation is not a field.
                 sage: GaussValuation(ZZ['x'], pAdicValuation(ZZ, 2)).residue_field()
+                Traceback (most recent call last):
+                ...
+                ValueError: The residue ring of this valuation is not a field.
 
             """
             ret = self.residue_ring()

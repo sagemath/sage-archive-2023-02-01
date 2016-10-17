@@ -1,5 +1,5 @@
 """
-Augmented valuations polynomial rings
+Augmented valuations on polynomial rings
 
 Implements inductive valuations as defined in [ML1936].
 
@@ -93,7 +93,7 @@ class AugmentedValuation(DevelopingValuation):
         self._base_valuation = v
         self._mu = mu
 
-        if check and not self.residue_field().has_coerce_map_from(v.residue_field()):
+        if check and not self.constant_valuation().residue_field().has_coerce_map_from(v.constant_valuation().residue_field()):
             raise ValueError("the residue field `%s` does not embed into `%s`"%(v.residue_field(), self.residue_field()))
 
     def __hash__(self):
@@ -397,7 +397,7 @@ class AugmentedValuation(DevelopingValuation):
         base = self._base_valuation.value_group()
         if self._mu is infinity:
             return base
-        from discrete_value_group import DiscreteValueGroup
+        from value_group import DiscreteValueGroup
         return base + DiscreteValueGroup(self._mu)
 
     def valuations(self, f):
@@ -535,16 +535,16 @@ class AugmentedValuation(DevelopingValuation):
         # if this extends a trivial valuation, then this is very easy: just
         # return the constant coefficient in the phi-adic expansion; everything
         # else must have positive valuation
-        if self._base_valuation.value_group() == 0:
+        if self._base_valuation.value_group().is_trivial():
             assert self.valuations(f).next() == 0
-            if self.value_group() == 0:
+            if self.value_group().is_trivial():
                 raise NotImplementedError
             return self.residue_ring()(self.coefficients(f).next())(self.residue_field_generator())
 
         # if this is an infinite valuation, then we can simply drop all but the
         # constant term
         if self._mu is infinity:
-            return self.residue_ring()(self._base_valuation.reduce(self.coefficients(f).next())(self.residue_field().gen()))
+            return self.residue_ring()(self._base_valuation.reduce(self.coefficients(f).next())(self.constant_valuation().residue_field().gen()))
 
         CV = zip(self.coefficients(f), self.valuations(f))
         # rewrite as sum of f_i phi^{i tau}, i.e., drop most coefficients
@@ -783,7 +783,7 @@ class AugmentedValuation(DevelopingValuation):
         """
         from sage.rings.all import ZZ
 
-        if self._base_valuation.value_group() == 0:
+        if self._base_valuation.value_group().is_trivial():
             return ZZ.zero()
 
         assert self.value_group().numerator() == 1
@@ -853,11 +853,11 @@ class AugmentedValuation(DevelopingValuation):
                 v = v._base_valuation
             generator = 'u%s'%level
         if self.psi().degree() == 1:
-            ret = self._base_valuation.residue_field()
+            ret = self._base_valuation.constant_valuation().residue_field()
             #ret.gen = "use augmented_valuation.residue_field_generator() instead" # temporary hack to find bugs when .gen() is used - .residue_field_generator() instead
             return ret
         else:
-            return self._base_valuation.residue_field().extension(self.psi(), names=generator)
+            return self._base_valuation.constant_valuation().residue_field().extension(self.psi(), names=generator)
 
     @cached_method
     def residue_field_generator(self):
@@ -911,6 +911,8 @@ class AugmentedValuation(DevelopingValuation):
             2
 
         """
+        if self._base_valuation.is_trivial():
+            raise ValueError("there is no ramification over a trivial valuation")
         return self.tau() * self._base_valuation.E()
 
     def F(self):
@@ -931,13 +933,15 @@ class AugmentedValuation(DevelopingValuation):
             1
 
         """
+        if self._base_valuation.is_trivial():
+            raise ValueError("there is no residual degree over a trivial valuation")
         return self.psi().degree() * self._base_valuation.F()
 
     def change_ring(self, base_ring):
         return AugmentedValuation(self._base_valuation.change_ring(base_ring), self.phi().change_ring(base_ring), self._mu)
 
     def uniformizer(self):
-        return self.element_with_valuation(1/self.E())
+        return self.element_with_valuation(self.value_group()._generator)
 
     def is_gauss_valuation(self):
         # Is this correct? Can there be trivial augmentations?

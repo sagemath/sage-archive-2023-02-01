@@ -253,9 +253,10 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base):
 
             sage: from mac_lane import * # optional: standalone
             sage: TrivialPseudoValuation(QQ).residue_ring()
+            Quotient of Rational Field by the ideal (1)
 
         """
-        return self.domain().quo(self.one())
+        return self.domain().quo(self.domain().one())
 
     def reduce(self, x):
         r"""
@@ -266,6 +267,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base):
             sage: from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: v.reduce(1)
+            0
 
         """
         self.domain().coerce(x)

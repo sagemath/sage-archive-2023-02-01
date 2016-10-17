@@ -324,22 +324,6 @@ class GaussValuation_generic(DevelopingValuation):
             yield self._base_valuation(self.domain().base_ring()(c))
 
     @cached_method
-    def residue_field(self):
-        """
-        Return the residue field of this valuation, i.e., the base ring of the
-        residue polynomial ring of this valuation.
-
-        EXAMPLES::
-
-            sage: S.<x> = Qp(2,5)[]
-            sage: v = GaussValuation(S)
-            sage: v.residue_field()
-            Finite Field of size 2
-
-        """
-        return self._base_valuation.residue_field()
-
-    @cached_method
     def residue_ring(self):
         """
         Return the residue ring of this valuation, i.e., the elements of
@@ -353,7 +337,7 @@ class GaussValuation_generic(DevelopingValuation):
             Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
 
         """
-        return self.domain().change_ring(self.residue_field())
+        return self.domain().change_ring(self._base_valuation.residue_ring())
 
     def reduce(self, f):
         """
@@ -395,7 +379,7 @@ class GaussValuation_generic(DevelopingValuation):
         if not all([v>=0 for v in self.valuations(f)]):
             raise ValueError("reduction not defined for non-integral elements")
 
-        return f.map_coefficients(lambda c:self._base_valuation.reduce(c), self.residue_field())
+        return f.map_coefficients(lambda c:self._base_valuation.reduce(c), self.constant_valuation().residue_field())
 
     def lift(self, reduction):
         """
@@ -609,3 +593,6 @@ class GaussValuation_generic(DevelopingValuation):
             sage: TODO
         """
         return [self]
+
+    def is_trivial(self):
+        return self._base_valuation.is_trivial()

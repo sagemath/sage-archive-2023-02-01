@@ -481,9 +481,9 @@ class pAdicValuation_base(DiscretePseudoValuation):
             1
 
         """
-        if x.parent() is not self.domain():
-            raise ValueError("x must be in the domain of the valuation")
-
+        x = self.domain().coerce(x)
+        if self(x) < 0:
+            raise ValueError("reduction is only defined for elements of non-negative valuation")
         return self.residue_field()(x)
 
     def lift(self, x):
@@ -521,56 +521,19 @@ class pAdicValuation_base(DiscretePseudoValuation):
         """
         return self.domain()(self._prime)
 
-    def residue_field(self):
+    def residue_ring(self):
         """
-        Return the residue field of the ring of integers of this valuation.
+        Return the residue field of this valuation.
 
         EXAMPLES::
 
             sage: v = pAdicValuation(ZZ, 3)
-            sage: v.residue_field()
+            sage: v.residue_ring()
             Finite Field of size 3
 
         """
         from sage.rings.all import GF
         return GF(self._prime)
-
-    def shift(self, c, v):
-        """
-        Multiply ``c`` by a ``v``-th power of the uniformizer.
-
-        INPUT:
-
-        - ``c`` -- an element of the domain of this valuation
-
-        - ``v`` -- an integer
-
-        OUTPUT:
-
-        If the resulting element has negative valation, then it will be brought
-        to the fraction field, otherwise it is an element of the domain.
-
-        EXAMPLES::
-
-            sage: v = pAdicValuation(ZZ, 3)
-            sage: v.shift(2,3)
-            54
-            sage: v.shift(2,-3)
-            2/27
-
-        """
-        from sage.rings.all import ZZ
-        if c.parent() is not self.domain():
-            raise ValueError("c must be in the domain of the valuation")
-        if not v in ZZ:
-            raise ValueError("v must be an integer")
-        v = ZZ(v)
-
-        c = self.domain().fraction_field()(c)
-        ret = c*self.uniformizer()**v
-
-        if self(c) >= -v: ret = self.domain()(ret)
-        return ret
 
     def is_unramified(self, G, include_steps=False, assume_squarefree=False):
         """
@@ -1011,9 +974,7 @@ class pAdicValuation_padic(pAdicValuation_base):
             1
 
         """
-        if x.parent() is not self.domain():
-            raise ValueError("x must be in the domain of the valuation")
-
+        x = self.domain().coerce(x)
         return self.residue_field()(x.residue())
 
     def lift(self, x):
@@ -1143,8 +1104,7 @@ class pAdicValuation_number_field(pAdicValuation_base):
             return ret*self._valuation.E()
 
     def reduce(self, x):
-        if x.parent() is not self.domain():
-            raise ValueError("x must be in the domain of the valuation")
+        x = self.domain().coerce(x)
 
         if self(x)>0:
             return self.residue_field().zero()

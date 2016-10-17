@@ -10,6 +10,7 @@ from .augmented_valuation import AugmentedValuation
 # local file and the instances that come from the mac_lane import define
 # different types)
 from .trivial_valuation import TrivialDiscreteValuation, TrivialDiscretePseudoValuation
+from .function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base
 
 # =================
 # MONKEY PATCH SAGE
@@ -55,6 +56,7 @@ sage.rings.valuation.gauss_valuation = sys.modules['sage.rings.valuation.gauss_v
 sage.rings.valuation.valuation = sys.modules['sage.rings.valuation.valuation'] = valuation
 sage.rings.valuation.valuation_space = sys.modules['sage.rings.valuation.valuation_space'] = valuation_space
 sage.rings.valuation.augmented_valuation = sys.modules['sage.rings.valuation.augmented_valuation'] = augmented_valuation
+sage.rings.function_field.function_field_valuation = sys.modules['sage.rings.function_field.function_field_valuation'] = function_field_valuation
 
 # fix unpickling of factories
 from sage.structure.factory import register_factory_unpickle
@@ -62,3 +64,4 @@ register_factory_unpickle("pAdicValuation", pAdicValuation)
 register_factory_unpickle("GaussValuation", GaussValuation)
 register_factory_unpickle("TrivialValuation", TrivialValuation)
 register_factory_unpickle("TrivialPseudoValuation", TrivialPseudoValuation)
+register_factory_unpickle("FunctionFieldValuation", FunctionFieldValuation)

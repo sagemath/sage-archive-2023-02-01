@@ -108,8 +108,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Trivial pseudo-valuation on Rational Field
 
         """
-        from trivial_valuation import TrivialDiscretePseudoValuation
-        return self.__make_element_class__(TrivialDiscretePseudoValuation)(self.domain())
+        from trivial_valuation import TrivialPseudoValuation
+        return TrivialPseudoValuation(self.domain())
 
     def _repr_(self):
         r"""
@@ -337,6 +337,84 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             """
             return DiscreteValueGroup(self(self.uniformizer))
 
+        def shift(self, x, s):
+            r"""
+            Return a modified version of ``x`` whose valuation is increased by
+            ``s``.
+
+            The element returned has essentially the same reduction, i.e., if
+            ``x`` has valuation `v`, then the reduction of ``x`` in the residue
+            ring of elements of valuation `\ge v` module elements of valuation
+            `> v` is naturally the same as the reduction of ``shift(x, s)`` in
+            the correspoding residue ring of elements of valuation `\ge v + s`.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 2)
+                sage: v.shift(1, 10)
+                1024
+                sage: v.shift(1, -10)
+
+            """
+            x = self.domain().coerce(x)
+            from sage.rings.all import QQ
+            s = QQ.coerce(s)
+            if s == 0:
+                return x
+            if s not in self.value_group():
+                raise ValueError("s must be in the value group of this valuation")
+            return self.domain()(x * (self.uniformizer()**n))
+
+        @abstract_method
+        def residue_ring(self):
+            r"""
+            Return the residue ring of this valuation, i.e., the elements of
+            non-negative valuation module the elements of positive valuation.
+
+            This is identical to :meth:`residue_field` when a residue field
+            exists.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: pAdicValuation(QQ, 2).residue_ring()
+
+                sage: TrivialValuation(QQ).residue_ring()
+                Rational Field
+
+            Note that a residue ring always exists, even when a residue field
+            may not::
+
+                sage: TrivialPseudoValuation(QQ).residue_ring()
+                Zero ring
+
+                sage: TrivialValuation(ZZ).residue_ring()
+
+                sage: GaussValuation(ZZ['x'], pAdicValuation(ZZ, 2)).residue_ring()
+
+            """
+
+        @abstract_method
+        def reduce(self, x):
+            r"""
+            Return the image of ``x`` in the :meth:`residue_ring` of this
+            valuation.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 2)
+                sage: v.reduce(1)
+                0
+                sage: v.reduce(1)
+                1
+                sage: v.reduce(1/3)
+                1
+                sage: v.reduce(1/2)
+
+            """
+
         def _test_add(self, **options):
             r"""
             Check that the (strict) triangle equality is satisfied for the
@@ -448,6 +526,77 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 # check that the uniformizer generates the value group
                 tester.assertEqual(self.value_group().gen(), self(self.uniformizer()))
 
+        def _test_shift(self, **options):
+            r"""
+            Check correctness of shifts.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_shift()
+
+            """
+            tester = self._tester(**options)
+
+            if self.is_trivial():
+                # trivial valuations can not perform non-trivial shifts
+                return
+
+            S = tester.some_elements(self.domain().some_elements())
+            V = tester.some_elements(self.value_group())
+            from sage.categories.cartesian_product import cartesian_product
+            for x, n in tester.some_elements(cartesian_product([S,V])):
+                v = self(x)
+                if n < 0 and -n > v and not self.domain() in Fields():
+                    continue
+                tester.assertEqual(self.shift(x, n), v + n)
+                # shifts preserve reductions
+                tester.assertEqual(self.reduce(self.shift(self.shift(x, n), -n)), self.reduce(x))
+
+        def _test_residue_ring(self, **options):
+            r"""
+            Check the correctness of residue fields.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_residue_ring()
+
+            """
+            tester = self._tester(**options)
+
+            c = self.residue_ring().characteristic()
+            if c != 0:
+                tester.assertGreater(self(c), 0)
+
+        def _test_reduce(self, **options):
+            r"""
+            Check the correctness of reductions.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_reduce()
+
+            """
+            tester = self._tester(**options)
+
+            for x in tester.some_elements(self.domain().some_elements()):
+                if self(x) < 0:
+                    with tester.assertRaises(ValueError):
+                        self.reduce(x)
+                    continue
+                if self(x) == 0:
+                    tester.assertNotEqual(self.reduce(x), 0)
+                    if x.is_unit() and ~x in self.domain():
+                        tester.assertTrue(self.reduce(x).is_unit())
+                        tester.assertEqual(~self.reduce(x), self.reduce(~x))
+                if self(x) > 0:
+                    tester.assertEqual(self.reduce(x), 0)
+
 class DiscreteValuationSpace(DiscretePseudoValuationSpace):
     r"""
     The space of discrete valuations on ``domain``.
@@ -538,8 +687,8 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
             Trivial valuation on Rational Field
 
         """
-        from trivial_valuation import TrivialDiscreteValuation
-        return self.__make_element_class__(TrivialDiscreteValuation)(self.domain())
+        from trivial_valuation import TrivialValuation
+        return TrivialValuation(self.domain())
 
     class ElementMethods(DiscretePseudoValuationSpace.ElementMethods):
         r"""
@@ -569,6 +718,33 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
             """
             return True
 
+        def residue_field(self):
+            r"""
+            Return the residue field of this valuation, i.e., the elements of
+            non-negative valuation module the elements of positive valuation.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: pAdicValuation(QQ, 2).residue_field()
+
+                sage: TrivialValuation(QQ).residue_field()
+                Rational Field
+
+            Note that discrete valuations do not always define a residue
+            field::
+
+                sage: TrivialValuation(ZZ).residue_field()
+
+                sage: GaussValuation(ZZ['x'], pAdicValuation(ZZ, 2)).residue_field()
+
+            """
+            ret = self.residue_ring()
+            from sage.categories.fields import Fields
+            if ret not in Fields():
+                raise ValueError("The residue ring of this valuation is not a field.")
+            return ret
+
         def _test_no_infinite_nonzero(self, **options):
             r"""
             Check that only zero is sent to infinity.
@@ -585,3 +761,27 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
             for x in tester.some_elements(self.domain().some_elements()):
                 if self(x) is infinity:
                     tester.assertEqual(x, 0)
+
+        def _test_residue_field(self, **options):
+            r"""
+            Check the correctness of residue fields.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_residue_field()
+
+            """
+            tester = self._tester(**options)
+            try:
+                k = self.residue_field()
+            except ValueError:
+                from sage.categories.fields import Fields
+                # a discrete valuation on a field has a residue field
+                tester.assertFalse(self.domain() in Fields())
+                return
+
+            c = self.residue_field().characteristic()
+            if c != 0:
+                tester.assertGreater(self(c), 0)

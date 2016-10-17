@@ -121,7 +121,10 @@ class GaussValuationFactory(UniqueFactory):
             Gauss valuation induced by 2-adic valuation
 
         """
-        return GaussValuation_generic(*key)
+        domain, v = key
+        from sage.rings.valuation.valuation_space import DiscreteValuationSpace
+        parent = DiscreteValuationSpace(domain)
+        return GaussValuation_generic(parent, v)
 
 GaussValuation = GaussValuationFactory("GaussValuation")
 
@@ -153,7 +156,7 @@ class GaussValuation_generic(DevelopingValuation):
         sage: TestSuite(v).run(skip="_test_category")
 
     """
-    def __init__(self, domain, v):
+    def __init__(self, parent, v):
         """
         Initialization.
 
@@ -169,7 +172,8 @@ class GaussValuation_generic(DevelopingValuation):
             True
 
         """
-        DevelopingValuation.__init__(self, domain, domain.gen())
+        domain = parent.domain()
+        DevelopingValuation.__init__(self, parent, domain.gen())
 
         self._base_valuation = v
 

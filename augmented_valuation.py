@@ -83,7 +83,12 @@ class AugmentedValuation(DevelopingValuation):
             if mu <= v(phi):
                 raise ValueError("the value of the key polynomial must strictly increase but `%s` does not exceed `%s`."%(phi, v(phi)))
 
-        DevelopingValuation.__init__(self, v.domain(), phi)
+        if mu < infinity:
+            parent = v.parent()
+        else:
+            from valuation_space import DiscretePseudoValuationSpace
+            parent = DiscretePseudoValuationSpace(v.domain())
+        DevelopingValuation.__init__(self, parent, phi)
 
         self._base_valuation = v
         self._mu = mu

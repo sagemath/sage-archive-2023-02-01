@@ -1,14 +1,215 @@
-from discrete_valuation import DiscreteValuation
+# -*- coding: utf-8 -*-
+r"""
+Discrete valuations on function fields
 
-from sage.rings.all import ZZ, infinity
+AUTHORS:
 
-class RationalFunctionFieldValuation(DiscreteValuation):
+- Julian Rueth (2016-10-16): initial version
+
+"""
+#*****************************************************************************
+#       Copyright (C) 2016 Julian Rüth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+# Fix doctests so they work in standalone mode (when invoked with sage -t, they run within the mac_lane/ directory)
+import sys, os
+if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
+    sys.path.append(os.getcwd())
+    sys.path.append(os.path.dirname(os.getcwd()))
+
+from sage.structure.factory import UniqueFactory
+
+from valuation import DiscretePseudoValuation
+from trivial_valuation import TrivialValuation
+
+class FunctionFieldValuationFactory(UniqueFactory):
+    r"""
+    Create a valuation on ``domain`` corresponding to ``prime``.
+
+    INPUT:
+
+    - ``domain`` -- a function field
+
+    - ``prime`` -- a place of the function field or a valuation on a subring
+
+    EXAMPLES::
+    
+        sage: from mac_lane import * # optional: standalone
+        sage: K.<x> = FunctionField(QQ)
+    
+    We create a valuation that correspond to a finite rational place of a function
+    field::
+
+        sage: v = FunctionFieldValuation(K, 1); v
+        sage: v(x)
+        0
+        sage: v(x - 1)
+        1
+
+    A place can also be specified with an irreducible polynomial::
+
+        sage: v = FunctionFieldValuation(K, x - 1); v
+    
+    Similarly, for a finite non-rational place::
+        
+        sage: v = FunctionFieldValuation(K, x^2 + 1); v
+        sage: v(x^2 + 1)
+        1
+        sage: v(x)
+        0
+
+    Or for the infinite place::
+    
+        sage: v = FunctionFieldValuation(K, 1/x); v
+        sage: v(x)
+        -1
+    
+    Instead of specifying a generator of a place, we can define a valuation on a
+    rational function field by giving a discrete valuation on the underlying
+    polynomial ring::
+    
+        sage: R.<x> = QQ[]
+        sage: w = GaussValuation(R, TrivialValuation(QQ)).extend(x - 1, 1)
+        sage: v = FunctionFieldValuation(K, w); v
+    
+    Note that this allows us to specify valuations which do not correspond to a
+    place of the function field::
+    
+        sage: w = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: v = FunctionFieldValuation(K, w); v
+
+    """
+    def create_key(self, domain, prime):
+        r"""
+        Create a unique key which identifies the valuation given by ``prime``
+        on ``domain``.
+
+        TESTS:
+
+        We specify a valuation on a function field by two different means and
+        get the same object::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, x - 1) # indirect doctest
+
+            sage: R.<x> = QQ[]
+            sage: w = GaussValuation(R, TrivialValuation(QQ)).extend(x - 1, 1)
+            sage: FunctionFieldValuation(K, w) is v
+            True
+        
+        """
+        from sage.categories.function_fields import FunctionFields
+        from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
+        if domain not in FunctionFields():
+            raise ValueError("Domain must be a function field.")
+
+        if prime in domain:
+            # prime defines a place
+            return self.create_key_from_place(domain, prime)
+        elif prime in DiscretePseudoValuationSpace(domain._ring):
+            # prime is a discrete (pseudo-)valuation on the polynomial ring
+            # that the domain is constructed from
+            return self.create_key_from_valuation(domain, prime)
+        elif prime in DiscretePseudoValuationSpace(domain.base_field()):
+            # prime is a discrete (pseudo-)valuation on the domain or a subfield
+            # that has a unique extension
+            return self.create_key_from_valuation(domain, prime)
+        elif domain.base_field() is not domain:
+            # prime might define a valuation on a subfield of domain that has a
+            # unique extension
+            base_valuation = FunctionFieldValuation(domain.base_field(), prime)
+            return create_key(domain, base_valuation)
+
+        raise NotImplementedError("argument must be a place or a pseudo-valuation on an underlying polynomial ring")
+
+    def create_key_from_place(self, domain, generator):
+        r"""
+        Create a unique key which identifies the valuation at the place
+        specified by ``generator``.
+
+        TESTS:
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, 1/x) # indirect doctest
+
+        """
+        if generator not in domain.base_field():
+            raise NotImplementedError("a place must be defined over a rational function field")
+
+        if domain.base_field() is not domain:
+            # if this is an extension field, construct the unique place over
+            # the place on the subfield
+            return self.create_key(domain.base_field(), FunctionFieldValuation(domain.base_field(), generator))
+
+        if generator in domain.constant_base_field():
+            # generator is a constant, we associate to it the place which
+            # corresponds to the polynomial (x - generator)
+            return self.create_key(domain, domain.gen() - generator)
+
+        if generator in domain._ring:
+            # generator is a polynomial
+            generator = domain._ring(generator)
+            if not generator.is_monic() or not generator.is_irreducible():
+                raise ValueError("place must be defined by a monic irreducible polynomial")
+            # we construct the corresponding valuation on the polynomial ring
+            # with v(generator) = 1
+            from sage.rings.valuation.gauss_valuation import GaussValuation
+            valuation = GaussValuation(domain._ring, TrivialValuation(domain.constant_base_field())).extension(generator, 1)
+            return self.create_key(domain, valuation)
+        elif generator == ~domain.gen():
+            # generator is 1/x, the infinite place
+            return (domain, ~domain.gen())
+        else:
+            raise ValueError("a place must be given by an irreducible polynomial or the inverse of the generator")
+
+    def create_key_from_valuation(self, domain, valuation):
+        r"""
+        Create a unique key which identifies the valuation which extends
+        ``valuation``.
+
+        TESTS:
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<x> = QQ[]
+            sage: w = GaussValuation(R, TrivialValuation(QQ)).extend(x - 1, 1)
+            sage: v = FunctionFieldValuation(K, w)
+
+        """
+        raise NotImplementedError()
+
+    def create_object(self, key, **extra_args):
+        r"""
+        Create the valuation specified by ``key``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: w = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = FunctionFieldValuation(K, w); v
+
+        """
+        raise NotImplementedError()
+
+FunctionFieldValuation = FunctionFieldValuationFactory("FunctionFieldValuation")
+
+from sage.rings.all import QQ, ZZ, infinity
+
+class RationalFunctionFieldValuation(DiscretePseudoValuation):
     def __init__(self, domain, base_valuation):
         if base_valuation.domain() is not domain._ring:
             raise ValueError
 
         self._base_valuation = base_valuation
-        DiscreteValuation.__init__(self, domain)
+        DiscretePseudoValuation.__init__(self, domain)
 
     def _call_(self, x):
         return self._base_valuation(x.numerator()) - self._base_valuation(x.denominator())
@@ -39,6 +240,7 @@ class RationalFunctionFieldValuation(DiscreteValuation):
         return self._base_valuation.value_group()
 
     def residue_field(self):
+        # This is incorrect. For classical valuations on function fields, this is not correct.
         from sage.rings.all import FunctionField
         return FunctionField(self._base_valuation.residue_field(), names=self.domain().variable_names())
 
@@ -165,7 +367,7 @@ class RationalFunctionFieldValuation(DiscreteValuation):
     def uniformizer(self):
         return self.domain()(self._base_valuation.uniformizer())
 
-class FunctionFieldPolymodValuation(DiscreteValuation):
+class FunctionFieldPolymodValuation(DiscretePseudoValuation):
     def __init__(self, domain, base_valuation):
         from sage.rings.all import infinity
         if base_valuation.domain() is not domain._ring:
@@ -174,7 +376,7 @@ class FunctionFieldPolymodValuation(DiscreteValuation):
             raise ValueError
 
         self._base_valuation = base_valuation
-        DiscreteValuation.__init__(self, domain)
+        DiscretePseudoValuation.__init__(self, domain)
 
     def _call_(self, x):
         return self._base_valuation(x.element())
@@ -251,46 +453,3 @@ class FunctionFieldPolymodValuation(DiscreteValuation):
 
     def _repr_(self):
         return "Valuation on rational function field induced by %s"%self._base_valuation
-
-from sage.structure.unique_representation import UniqueRepresentation
-class TrivialValuation(UniqueRepresentation, DiscreteValuation):
-    from gauss_valuation import classmaker
-    __metaclass__ = classmaker()
-
-    def __init__(self, domain):
-        DiscreteValuation.__init__(self, domain)
-
-    def _call_(self, x):
-        if x.is_zero():
-            return infinity
-        else:
-            return ZZ.zero()
-
-    def shift(self, x, v):
-        if x.parent() is not self.domain():
-            raise ValueError
-
-        if v == 0:
-            return x
-        else:
-            raise ValueError
-
-    def value_group(self):
-        return self._value_group(0)
-
-    def residue_field(self):
-        if self.domain().is_field():
-            return self.domain()
-        else:
-            raise NotImplementedError("residue ring is not a field")
-
-    def reduce(self, x):
-        if x.parent() is not self.domain():
-            raise ValueError
-
-        return x
-
-    lift = reduce
-
-    def _repr_(self):
-        return "Trivial valuation"

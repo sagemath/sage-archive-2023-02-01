@@ -35,7 +35,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.getcwd())
     sys.path.append(os.path.dirname(os.getcwd()))
 
-from .valuation import DiscretePseudoValuation
+from valuation import DiscretePseudoValuation
 from sage.misc.abstract_method import abstract_method
 
 from sage.misc.cachefunc import cached_method
@@ -80,7 +80,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         `(1 + O(2^5))*x`-adic valuation of Univariate Polynomial Ring in x over 2-adic Ring with capped relative precision 5
 
     """
-    def __init__(self, domain, phi):
+    def __init__(self, parent, phi):
         """
         Initialization.
 
@@ -94,6 +94,8 @@ class DevelopingValuation(DiscretePseudoValuation):
             <class 'sage.rings.padics.developing_valuation.DevelopingValuation'>
 
         """
+        domain = parent.domain()
+
         if phi.parent() is not domain:
             raise ValueError("phi must be in the domain of the valuation")
         if phi.is_constant():
@@ -101,7 +103,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         if not phi.leading_coefficient().is_one():
             raise ValueError("phi must be monic")
 
-        DiscretePseudoValuation.__init__(self, domain)
+        DiscretePseudoValuation.__init__(self, parent)
 
         self._phi = phi
 

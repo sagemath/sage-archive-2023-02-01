@@ -353,3 +353,15 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
 
         """
         return self._generator
+
+    def some_elements(self):
+        r"""
+        Return some typical elements in this group.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: DiscreteValueGroup(-3/8).some_elements()
+
+        """
+        return [self._generator, -self._generator] + [x for x in QQ.some_elements() if x in self]

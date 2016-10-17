@@ -1111,15 +1111,12 @@ Global options for classes can be defined in Sage using
 Miscellanous minor things
 =========================
 
-<<<<<<< 5a7fda606713004f46e77f226ead55b4103245d4
 Some decisions are arbitrary, but common conventions make life easier.
 
 * Non-ASCII names in identifiers:
 
   * Translate *ä* and *ö* to *ae* and *oe*, like ``moebius_function``
     for Möbius function.
-<<<<<<< a53ff2a703a6aa9509d81aecd3c3f388263c5775
-<<<<<<< 5a7fda606713004f46e77f226ead55b4103245d4
   * Translate *á* to *a*, like ``lovasz_number`` for Lovász number.
 
 * Common function keyword arguments:
@@ -1159,30 +1156,3 @@ Some decisions are arbitrary, but common conventions make life easier.
 
   * ``inplace``, a Boolean: whether to modify the object in-place or
     to return a copy.
-=======
-  * Translate *á* to *a* like ``lovasz_number`` for Lovász number.
-=======
-  * Translate *á* to *a*, like ``lovasz_number`` for Lovász number.
->>>>>>> Less duplication.
-
-* Function parameter names:
-    
-<<<<<<< d4254a41a9a3d0d4160ed4542d8a155285484aab
-<<<<<<< 546dd66dc1e622d5826df273d79fd83021c735bb
-  * Use ``algorithm`` if there are several algorithms or backend
-    programs to select from. Do not use ``method`` or ``implementation``.
-  * Use ``certificate`` if the function can optionally return some
-    kind of certificate together with the result. Do not use ``certify``.
->>>>>>> Minor addition.
-=======
-  * Use ``algorithm`` (instead of ``method``) if there are several
-    algorithms or backend programs to select from.
-  * Use ``certificate`` (instead of ``certify``) if the function can
-    optionally return some kind of certificate together with the result.
->>>>>>> Minor changes.
-=======
-  * Use ``algorithm`` if there are several algorithms or backend programs
-    to select from.
-  * Use ``certificate`` if the function can optionally return some kind
-    of certificate together with the result.
->>>>>>> Reviewers comments.

@@ -37,6 +37,7 @@ def sage_src_pari():
     """
     return os.path.join('sage', 'libs', 'cypari2')
 
+
 def pari_share():
     r"""
     Return the directory where the PARI data files are stored.

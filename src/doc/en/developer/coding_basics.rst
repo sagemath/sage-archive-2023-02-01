@@ -283,7 +283,7 @@ information. You can use the existing functions of Sage as templates.
    They should have good coverage of the functionality in question.
 
 -  A **SEEALSO** block (highly recommended) with links to related parts of
-   Sage. This helps users find the features that interests them and discover
+   Sage. This helps users find the features that interest them and discover
    the new ones. ::
 
        .. SEEALSO::
@@ -524,11 +524,6 @@ indentation:
 
         TESTS::
 
-<<<<<<< 546dd66dc1e622d5826df273d79fd83021c735bb
-=======
-	TESTS::
-
->>>>>>> Minor changes.
             sage: A.point(42, 0)  # Check for corner case y=0
             xxx
         """
@@ -1172,6 +1167,7 @@ Some decisions are arbitrary, but common conventions make life easier.
 
 * Function parameter names:
     
+<<<<<<< d4254a41a9a3d0d4160ed4542d8a155285484aab
 <<<<<<< 546dd66dc1e622d5826df273d79fd83021c735bb
   * Use ``algorithm`` if there are several algorithms or backend
     programs to select from. Do not use ``method`` or ``implementation``.
@@ -1184,3 +1180,9 @@ Some decisions are arbitrary, but common conventions make life easier.
   * Use ``certificate`` (instead of ``certify``) if the function can
     optionally return some kind of certificate together with the result.
 >>>>>>> Minor changes.
+=======
+  * Use ``algorithm`` if there are several algorithms or backend programs
+    to select from.
+  * Use ``certificate`` if the function can optionally return some kind
+    of certificate together with the result.
+>>>>>>> Reviewers comments.

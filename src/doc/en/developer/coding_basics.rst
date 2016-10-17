@@ -1121,8 +1121,33 @@ to look polished and professional.
   * Translate *á* to *a*, like ``lovasz_number`` for Lovász number.
 
 * Function parameter names:
-    
-  * Use ``algorithm`` if there are several algorithms or backend programs
-    to select from.
-  * Use ``certificate`` if the function can optionally return some kind
-    of certificate together with the result.
+
+  * ``algorithm``, a string or ``None``: Choose between various
+    implementation or algorithm. Use ``None`` as a default that
+    selects a sensible default, which could depend on installed
+    optional packages.
+
+  * ``certificate``, a Boolean with ``False`` as default: Whether the
+    function should return some kind of certificate together with the
+    result. With ``certificate=True`` the return value should be a
+    pair `(r, c)` where `r` is the result that would be given with
+    ``certificate=False`` and `c` is the certificate or ``None`` if
+    there is no meaningfull certificate.
+
+  * ``proof``, a Boolean with ``True`` as default: If ``True``,
+    require a mathematically proven computation. If ``False``, a
+    probabilistic algorithm or an algorithm relying to non-proved
+    hypothesis like RH can be used.
+
+  * ``check``, a Boolean: Do some additional checks to verify the
+    input parameters. This should not otherwise influence the
+    functioning of the code: if code works with ``check=True``, it should
+    also work with ``check=False``.
+
+  * ``coerce``, a Boolean: Convert the input parameters to a suitable
+    parent. This is typically used in constructors. You can call a
+    method with ``coerce=False`` to skip some checks if the parent is
+    known to be correct.
+
+  * ``inplace``, a Boolean: Whether to modify the object in-place or
+    to return a copy.

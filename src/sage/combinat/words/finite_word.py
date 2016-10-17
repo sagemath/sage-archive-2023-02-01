@@ -543,19 +543,19 @@ class FiniteWord_class(Word_class):
             self._len = Integer(sum(1 for _ in self))
         return self._len
 
-    def content(self, n = None):
+    def content(self, n=None):
         r"""
-        Return content of word `self`.
+        Return content of ``self``.
 
         INPUT:
 
-        - ``self`` -- a word
-        - ``n``    -- an integer specifying the maximal letter in the alphabet (optional)
+        - ``n``    -- (optional) an integer specifying the maximal
+          letter in the alphabet
 
         OUTPUT:
 
-        - a list where the `i`-th entry indiciates the multiplicity of the `i`-th
-          letter in the alphabet in ``self``
+        - a list where the `i`-th entry indiciates the multiplicity
+          of the `i`-th letter in the alphabet in ``self``
 
         EXAMPLES::
 
@@ -581,18 +581,18 @@ class FiniteWord_class(Word_class):
             alphabet = sorted(self.letters())
         return [self.count(i) for i in alphabet]
 
-    def is_yamanouchi(self, n = None):
+    def is_yamanouchi(self, n=None):
         r"""
-        Return whether `self` is Yamanouchi.
+        Return whether ``self`` is Yamanouchi.
 
-        A word is Yamanouchi if, when read from right to left, it
-        always has weakly more `i`s than `i+1`s for all `i` that
-        appear in `self`.
+        A word `w` is Yamanouchi if, when read from right to left, it
+        always has weakly more `i`'s than `i+1`'s for all `i` that
+        appear in `w`.
 
         INPUT:
 
-        - ``self`` -- a word
-        - ``n``    -- an integer specifying the maximal letter in the alphabet (optional)
+        - ``n``    -- (optional) an integer specifying the maximal
+          letter in the alphabet
 
         EXAMPLES::
 
@@ -616,15 +616,15 @@ class FiniteWord_class(Word_class):
         """
         from sage.combinat.words.word import Word
         if n is not None:
-            w = Word(self, alphabet = range(1,n+1))
+            w = Word(self, alphabet=list(range(1,n+1)))
         elif not self.parent().alphabet().cardinality() == +Infinity:
             w = self
         else:
-            w = Word(self, alphabet = sorted(self.letters()))
+            w = Word(self, alphabet=sorted(self.letters()))
         l = w.length()
-        for a in xrange(l-1,-1,-1):
+        for a in range(l-1,-1,-1):
             mu = w.parent()(self[a:]).content()
-            if not all(mu[i]>=mu[i+1] for i in xrange(len(mu)-1)):
+            if not all(mu[i] >= mu[i+1] for i in range(len(mu)-1)):
                 return False
         return True
 

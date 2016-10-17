@@ -205,7 +205,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 if not valuation.is_discrete_valuation():
                     raise ValueError("valuation must be a discrete valuation but %r is not."%(valuation,))
             return domain, valuation
-        raise NotImplementedError()
+        raise NotImplementedError("automatic extension of valuations to the full domain not implemented yet")
 
     def create_object(self, version, key, **extra_args):
         r"""
@@ -261,6 +261,21 @@ class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
 
     """
 
+class ClassicalRationalFunctionFieldValuation_base(RationalFunctionFieldValuation_base):
+    r"""
+    Base class for discrete valuations on rational function fields that come
+    from points on the projective line.
+
+    TESTS::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: K.<x> = FunctionField(QQ)
+        sage: v = FunctionFieldValuation(K, x) # indirect doctest
+        sage: isinstance(v, ClassicalRationalFunctionFieldValuation_base)
+        True
+
+    """
+
 class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
     r"""
     Base class for function field valuation induced by a valuation on the
@@ -305,6 +320,28 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         """
         return self.domain()(self._base_valuation.uniformizer())
 
+    def lift(self, F):
+        r"""
+        Return a lift of ``F`` to the :meth:`domain` of this valuation such
+        that :meth:`reduce` returns the original element.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, x)
+            sage: v.lift(0)
+            0
+            sage: v.lift(1)
+            1
+
+        """
+        F = self.residue_ring().coerce(F)
+        if F in self._base_valuation.residue_ring():
+            f = self._base_valuation.lift(F)
+            return self.domain()(f)
+        raise NotImplementedError("lifting not implemented for this valuation")
+
     def shift(self, f, s):
         if s == 0:
             return f
@@ -336,12 +373,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         ret = base.reduce(num) / base.reduce(den)
         assert not ret.is_zero()
         return self.residue_field()(ret)
-
-    def lift(self, F):
-        if F.parent() is not self.residue_field():
-            raise ValueError
-
-        return self.domain()(self._base_valuation.lift(F.numerator()) / self._base_valuation.lift(F.denominator()))
 
     def mac_lane_approximants(self, G, precision_cap=None, assume_squarefree=False):
         """
@@ -444,7 +475,7 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             return FunctionFieldPolymodValuation(L, W[0])
         else: raise ValueError()
 
-class InfiniteRationalFunctionFieldValuation(RationalFunctionFieldValuation_base):
+class InfiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValuation_base):
     r"""
     Valuation of the infinite place of a function field.
 
@@ -547,7 +578,27 @@ class InfiniteRationalFunctionFieldValuation(RationalFunctionFieldValuation_base
         from sage.rings.function_field.function_field_valuation import FunctionFieldValuation
         return FunctionFieldValuation(self.domain(), self.domain().gen()).reduce(f.element()(~self.domain().gen()))
 
-class FiniteRationalFunctionFieldValuation(RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base):
+    def lift(self, F):
+        r"""
+        Lift ``F`` from :meth:`residue_ring` to :meth:`domain` such that
+        :meth:`reduce` of the lift produces ``F``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(GF(2))
+            sage: v = FunctionFieldValuation(K, 1/x)
+
+            sage: v.lift(v.residue_ring().one())
+            1
+
+        """
+        F = self.residue_ring().coerce(F)
+        # the infinite place has a trivial residue field extension
+        assert F in self.domain()
+        return self.domain()(F)
+
+class FiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base):
     r"""
     Valuation of a finite place of a function field.
 
@@ -626,9 +677,6 @@ class FunctionFieldPolymodValuation(InducedFunctionFieldValuation_base):
 
     def value_group(self):
         return self._base_valuation.value_group()
-
-    def residue_field(self):
-        return self._base_valuation.residue_field()
 
     def reduce(self, f):
         return self.residue_field()(self._base_valuation._base_valuation.reduce(f.element()))

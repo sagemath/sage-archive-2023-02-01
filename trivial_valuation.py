@@ -273,6 +273,21 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base):
         self.domain().coerce(x)
         return self.residue_ring().zero()
 
+    def lift(self, X):
+        r"""
+        Return a lift of ``X`` to the domain of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialPseudoValuation(QQ)
+            sage: v.lift(v.residue_ring().zero())
+            0
+
+        """
+        self.residue_ring().coerce(X) # ignore the output
+        return self.domain().zero()
+
 class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base):
     r"""
     The trivial valuation that is zero on non-zero elements.
@@ -372,6 +387,20 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base):
 
         """
         return self.domain().coerce(x)
+
+    def lift(self, X):
+        r"""
+        Return a lift of ``X`` to the domain of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialPseudoValuation(QQ)
+            sage: v.lift(v.residue_ring().zero())
+            0
+
+        """
+        return self.residue_ring().coerce(X)
 
 TrivialValuation = TrivialValuationFactory(TrivialDiscreteValuation, DiscreteValuationSpace, "TrivialValuation")
 TrivialPseudoValuation = TrivialValuationFactory(TrivialDiscretePseudoValuation, DiscretePseudoValuationSpace, "TrivialPseudoValuation")

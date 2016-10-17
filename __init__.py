@@ -10,7 +10,7 @@ from .augmented_valuation import AugmentedValuation
 # local file and the instances that come from the mac_lane import define
 # different types)
 from .trivial_valuation import TrivialDiscreteValuation, TrivialDiscretePseudoValuation
-from .function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base
+from .function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, ClassicalRationalFunctionFieldValuation_base
 
 # =================
 # MONKEY PATCH SAGE
@@ -45,6 +45,11 @@ def __init__(self, *args, **kwargs):
 sage.rings.function_field.function_field.RationalFunctionField.__init__ = __init__
 del(__init__)
 del(to_polynomial)
+
+# implement principal_part for newton polygons
+import sage.geometry.newton_polygon
+sage.geometry.newton_polygon.NewtonPolygon_element.principal_part = lambda self: sage.geometry.newton_polygon.NewtonPolygon(self.vertices(), last_slope=0)
+sage.geometry.newton_polygon.NewtonPolygon_element.sides = lambda self: zip(self.vertices(), self.vertices()[1:])
 
 import imp, sys
 # register modules at some standard places so imports work as exepcted

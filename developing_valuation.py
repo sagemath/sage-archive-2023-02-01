@@ -931,8 +931,8 @@ class DevelopingValuation(DiscretePseudoValuation):
         if f.parent() is not self.domain():
             raise ValueError("f must be in the domain of the valuation")
 
-        from newton_polygon import NewtonPolygon
-        return NewtonPolygon(self.valuations(f))
+        from sage.geometry.newton_polygon import NewtonPolygon
+        return NewtonPolygon(enumerate(self.valuations(f)))
 
     def _call_(self, f):
         """
@@ -1065,7 +1065,7 @@ class DevelopingValuation(DiscretePseudoValuation):
             NP = w.newton_polygon(G).principal_part()
             verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi),NP),level=2,caller_name="mac_lane_step")
             # assert len(NP)
-            if not NP:
+            if not NP.slopes():
                 q,r = G.quo_rem(phi)
                 assert not r.is_zero()
                 phi = phi.coefficients(sparse=False)
@@ -1086,7 +1086,7 @@ class DevelopingValuation(DiscretePseudoValuation):
                 ret.append(w)
                 continue
 
-            for i in range(len(NP.slopes())):
+            for i in range(len(NP.slopes(repetition=False))):
                 slope = NP.slopes()[i]
                 verbose("Slope = %s"%slope,level=3,caller_name="mac_lane_step")
                 side = NP.sides()[i]
@@ -1100,7 +1100,7 @@ class DevelopingValuation(DiscretePseudoValuation):
                         base = base._base_valuation
 
                 new_leaf = base.extension(phi, new_mu)
-                assert slope is -infinity or 0 in new_leaf.newton_polygon(G).slopes()
+                assert slope is -infinity or 0 in new_leaf.newton_polygon(G).slopes(repetition=False)
                 ret.append(new_leaf)
 
         assert ret

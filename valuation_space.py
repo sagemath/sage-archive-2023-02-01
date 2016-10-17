@@ -423,6 +423,21 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
 
+        @abstract_method
+        def lift(self, X):
+            r"""
+            Return a lift of ``X`` in :meth:`domain` which reduces down to
+            ``X`` again via :meth:`reduce`.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 2)
+                sage: v.lift(v.residue_ring().one())
+                1
+
+            """
+
         def _test_add(self, **options):
             r"""
             Check that the (strict) triangle equality is satisfied for the
@@ -619,6 +634,26 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         tester.assertEqual(~y, self.reduce(~x))
                 if self(x) > 0:
                     tester.assertEqual(self.reduce(x), 0)
+
+        def _test_lift(self, **options):
+            r"""
+            Check the correctness of lifts.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_lift()
+
+            """
+            tester = self._tester(**options)
+
+            for X in tester.some_elements(self.residue_ring().some_elements()):
+                x = self.lift(X)
+                y = self.reduce(x)
+                tester.assertEqual(X, y)
+                if X != 0:
+                    tester.assertEqual(self(x), 0)
 
 class DiscreteValuationSpace(DiscretePseudoValuationSpace):
     r"""

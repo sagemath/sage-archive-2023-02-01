@@ -652,8 +652,8 @@ class AugmentedValuation(DevelopingValuation):
                 raise ValueError("any reduction is constant in this valuation")
             if self.phi() != self.domain().gen():
                 raise NotImplementedError
-            constant = F[0].lift()
-            assert constant.is_constant()
+            constant = self.constant_valuation().lift(F[0])
+            assert constant in self.domain().base_ring()
             return self.domain()(constant[0])
 
         R0 = self._base_valuation.residue_ring()

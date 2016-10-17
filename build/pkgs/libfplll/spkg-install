@@ -76,3 +76,8 @@ if [ $? -ne 0 ]; then
     echo "Error installing fplll"
     exit 1
 fi
+
+
+# Pretend that the "fplll" package is not installed. This is needed to
+# support renaming libfplll -> fplll in the future.
+rm -f "$SAGE_SPKG_INST/"fplll-*

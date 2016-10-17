@@ -283,7 +283,7 @@ information. You can use the existing functions of Sage as templates.
    They should have good coverage of the functionality in question.
 
 -  A **SEEALSO** block (highly recommended) with links to related parts of
-   Sage. This helps users find the features that interests them and discover
+   Sage. This helps users find the features that interest them and discover
    the new ones. ::
 
        .. SEEALSO::
@@ -522,7 +522,7 @@ indentation:
 
         ...
 
-	TESTS::
+        TESTS::
 
             sage: A.point(42, 0)  # Check for corner case y=0
             xxx
@@ -1122,7 +1122,7 @@ to look polished and professional.
 
 * Function parameter names:
     
-  * Use ``algorithm`` (instead of ``method``) if there are several
-    algorithms or backend programs to select from.
-  * Use ``certificate`` (instead of ``certify``) if the function can
-    optionally return some kind of certificate together with the result.
+  * Use ``algorithm`` if there are several algorithms or backend programs
+    to select from.
+  * Use ``certificate`` if the function can optionally return some kind
+    of certificate together with the result.

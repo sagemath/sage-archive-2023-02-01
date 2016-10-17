@@ -5079,7 +5079,7 @@ class Permutations(UniqueRepresentation, Parent):
                 # Because of UniqueRepresentation, we require the elements
                 #   to be hashable
                 if len(set(n)) == len(n):
-                    if list(n) == range(1, len(n)+1):
+                    if list(n) == list(range(1, len(n)+1)):
                         if k is None:
                             return StandardPermutations_n(len(n))
                         else:

@@ -4,6 +4,7 @@ from .padic_valuation import pAdicValuation
 from .gauss_valuation import GaussValuation
 from .value_group import DiscreteValuationCodomain, DiscreteValueGroup
 from .function_field_valuation import FunctionFieldValuation
+from .augmented_valuation import AugmentedValuation
 
 # fix unpickling and type checks of classes (otherwise, the instances of the
 # local file and the instances that come from the mac_lane import define
@@ -53,6 +54,7 @@ sage.rings.valuation = sys.modules['sage.rings.valuation'] = imp.new_module('sag
 sage.rings.valuation.gauss_valuation = sys.modules['sage.rings.valuation.gauss_valuation'] = gauss_valuation
 sage.rings.valuation.valuation = sys.modules['sage.rings.valuation.valuation'] = valuation
 sage.rings.valuation.valuation_space = sys.modules['sage.rings.valuation.valuation_space'] = valuation_space
+sage.rings.valuation.augmented_valuation = sys.modules['sage.rings.valuation.augmented_valuation'] = augmented_valuation
 
 # fix unpickling of factories
 from sage.structure.factory import register_factory_unpickle

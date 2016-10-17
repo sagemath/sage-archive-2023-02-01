@@ -362,6 +362,7 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
 
             sage: from mac_lane import * # optional: standalone
             sage: DiscreteValueGroup(-3/8).some_elements()
+            [3/8, -3/8, 0, 42, 3/2, -3/2, 9/8, -9/8]
 
         """
         return [self._generator, -self._generator] + [x for x in QQ.some_elements() if x in self]

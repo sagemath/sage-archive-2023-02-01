@@ -46,6 +46,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
     field::
 
         sage: v = FunctionFieldValuation(K, 1); v
+        (x - 1)-adic valuation
         sage: v(x)
         0
         sage: v(x - 1)
@@ -54,10 +55,12 @@ class FunctionFieldValuationFactory(UniqueFactory):
     A place can also be specified with an irreducible polynomial::
 
         sage: v = FunctionFieldValuation(K, x - 1); v
+        (x - 1)-adic valuation
     
     Similarly, for a finite non-rational place::
         
         sage: v = FunctionFieldValuation(K, x^2 + 1); v
+        (x^2 + 1)-adic valuation
         sage: v(x^2 + 1)
         1
         sage: v(x)
@@ -180,12 +183,15 @@ class FunctionFieldValuationFactory(UniqueFactory):
             sage: K.<x> = FunctionField(QQ)
             sage: R.<x> = QQ[]
             sage: w = GaussValuation(R, TrivialValuation(QQ)).extend(x - 1, 1)
-            sage: v = FunctionFieldValuation(K, w)
+            sage: v = FunctionFieldValuation(K, w) # indirect doctest
 
         """
+        if valuation.domain() is domain._ring:
+            # TODO: check validity
+            return domain, valuation
         raise NotImplementedError()
 
-    def create_object(self, key, **extra_args):
+    def create_object(self, version, key, **extra_args):
         r"""
         Create the valuation specified by ``key``.
 
@@ -194,22 +200,29 @@ class FunctionFieldValuationFactory(UniqueFactory):
             sage: from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: w = GaussValuation(R, pAdicValuation(QQ, 2))
-            sage: v = FunctionFieldValuation(K, w); v
+            sage: v = FunctionFieldValuation(K, w); v # indirect doctest
 
         """
-        raise NotImplementedError()
+        domain, valuation = key
+        if valuation in domain:
+            assert(valuation == ~domain.gen())
+            raise NotImplementedError
+        from sage.rings.valuation.valuation_space import DiscreteValuationSpace
+        parent = DiscreteValuationSpace(domain)
+        return parent.__make_element_class__(RationalFunctionFieldValuation)(parent, valuation)
 
 FunctionFieldValuation = FunctionFieldValuationFactory("FunctionFieldValuation")
 
 from sage.rings.all import QQ, ZZ, infinity
 
 class RationalFunctionFieldValuation(DiscretePseudoValuation):
-    def __init__(self, domain, base_valuation):
+    def __init__(self, parent, base_valuation):
+        domain = parent.domain()
         if base_valuation.domain() is not domain._ring:
             raise ValueError
 
         self._base_valuation = base_valuation
-        DiscretePseudoValuation.__init__(self, domain)
+        DiscretePseudoValuation.__init__(self, parent)
 
     def _call_(self, x):
         return self._base_valuation(x.numerator()) - self._base_valuation(x.denominator())
@@ -348,6 +361,12 @@ class RationalFunctionFieldValuation(DiscretePseudoValuation):
                 leaves.extend(v.mac_lane_step(G))
 
     def _repr_(self):
+        from sage.rings.valuation.augmented_valuation import AugmentedValuation
+        if isinstance(self._base_valuation, AugmentedValuation):
+            from sage.rings.valuation.gauss_valuation import GaussValuation
+            if self._base_valuation._base_valuation == GaussValuation(self.domain()._ring, TrivialValuation(self.domain().constant_field())):
+                if self._base_valuation._mu == 1:
+                    return "(%r)-adic valuation"%(self._base_valuation.phi())
         return "Valuation on rational function field induced by %s"%self._base_valuation
 
     def extension(self, L, algorithm="mac_lane"):

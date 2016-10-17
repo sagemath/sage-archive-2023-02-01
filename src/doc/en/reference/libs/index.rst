@@ -29,7 +29,6 @@ to be aware of the modules described in this chapter.
    sage/libs/eclib/newforms
    sage/libs/eclib/homspace
    sage/libs/eclib/constructor
-   sage/libs/gmp/rational_reconstruction
    sage/libs/lcalc/lcalc_Lfunction
    sage/libs/ratpoints
    sage/libs/singular/function

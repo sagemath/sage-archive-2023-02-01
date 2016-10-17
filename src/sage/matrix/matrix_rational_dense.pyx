@@ -58,7 +58,7 @@ include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
-from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.randomize cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *

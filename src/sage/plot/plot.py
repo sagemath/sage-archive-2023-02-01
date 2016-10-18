@@ -2761,7 +2761,7 @@ def list_plot(data, plotjoined=False, **kwargs):
     joining all the data.
 
     For other keyword options that the ``list_plot`` function can
-    take, refer to the method :meth:`~sage.plot.graphics.Graphics.show`.
+    take, refer to :func:`~sage.plot.plot.plot`.
 
     It is possible to pass empty dictionaries, lists, or tuples to
     ``list_plot``. Doing so will plot nothing (returning an empty plot).
@@ -3930,4 +3930,3 @@ from .text import text, Text as GraphicPrimitive_Text
 from .polygon import polygon, Polygon as GraphicPrimitive_Polygon
 from .circle import circle, Circle as GraphicPrimtive_Circle
 from .contour_plot import contour_plot, implicit_plot, ContourPlot as GraphicPrimitive_ContourPlot
-

@@ -2417,7 +2417,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         r"""
         Return the lattice with Alan Day's doubling construction of subset `S`.
 
-        The subset `S` is assumed to be convex and connected.
+        The subset `S` is assumed to be convex (i.e. if
+        `a, c \in S` and `a < b < c` in the lattice, then `b \in S`)
+        and connected (i.e. if `a, b \in S` then there is a chain
+        `a=e_1, e_2, \ldots, e_n=b` such that `e_i` either covers or
+        is covered by `e_{i+1}`).
 
         .. image:: ../../../media/day-doubling.png
 
@@ -2425,15 +2429,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         the lattice. Here we formulate it in a format more suitable
         for computation.
 
-        Let `L` be a lattice and `S` a convex subset of it. Resulting lattice
-        `L[S]` has elements `(e, 1)` and `(e, 2)` for each `e \in S`, and
-        `(e, 0)` for each `e \in L \setminus S`. If `x \le y` in `L`, then in
-        the new lattice we have
+        Let `L` be a lattice and `S` a convex subset of it. Resulting
+        lattice `L[S]` has elements `(e, 0)` for each `e \in L` and
+        `(e, 1)` for each `e \in S`. If `x \le y` in `L`, then in the
+        new lattice we have
 
-        * `(x, 0) \le (y, 0), (y, 1), (y, 2)`
-        * `(x, 1) \le (y, 1)` and `(x, 2) \le (y, 2)`
-        * `(x, 1) \le (x, 2)`
-        * `(x, 1), (x, 2) \le (y, 0)`
+        * `(x, 0), (x, 1) \le (y, 0), (y, 1)`
+        * `(x, 0) \le (x, 1)`
 
         INPUT:
 
@@ -2446,9 +2448,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L2 = L.day_doubling(['a', 'b', 'c', 'd']); L2
             Finite lattice containing 12 elements
             sage: L2.upper_covers((1, 0))
-            [(2, 0), ('a', 1), ('b', 1)]
-            sage: L2.upper_covers(('b', 1))
-            [('d', 1), ('b', 2), ('c', 1)]
+            [(2, 0), ('a', 0), ('b', 0)]
+            sage: L2.upper_covers(('b', 0))
+             [('d', 0), ('b', 1), ('c', 0)]
 
         TESTS::
 
@@ -2459,7 +2461,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.day_doubling([]).list()
             [('a', 0), ('b', 0)]
             sage: L.day_doubling(['a', 'b']).list()
-            [('a', 1), ('a', 2), ('b', 1), ('b', 2)]
+            [('a', 0), ('a', 1), ('b', 0), ('b', 1)]
         """
         # Rationale for naming of elements: a lattice can have
         # elements 1, (1, 1), (1, (1, 1)) and so on. We can't just
@@ -2481,17 +2483,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         g.relabel(lambda e: (e, 0))
 
         for e in S:
-            g.delete_vertex((e, 0))
-            g.add_edge((e, 1), (e, 2))
+            g.add_edge((e, 0), (e, 1))
             for e_up in self.upper_covers(e):
                 if e_up in S:
                     g.add_edge((e, 1), (e_up, 1))
-                    g.add_edge((e, 2), (e_up, 2))
                 else:
-                    g.add_edge((e, 2), (e_up, 0))
-            for e_down in self.lower_covers(e):
-                if e_down not in S:
-                    g.add_edge((e_down, 0), (e, 1))
+                    g.delete_edge((e, 0), (e_up, 0))
+                    g.add_edge((e, 1), (e_up, 0))
 
         return LatticePoset(g)
 

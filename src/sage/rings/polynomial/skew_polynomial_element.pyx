@@ -2130,7 +2130,7 @@ cdef class SkewPolynomial(AlgebraElement):
 
         OUTPUT:
 
-        List of values of ``self`` at the `eval_pts`.
+        List of values of ``self`` at the ``eval_pts``.
 
         .. TODO::
 
@@ -2138,7 +2138,7 @@ cdef class SkewPolynomial(AlgebraElement):
             repeatedly. If fast skew polynomial multiplication is available, an
             asymptotically faster method is possible using standard divide and
             conquer techniques and
-            :meth:`SkewPolynomialRing.minimal_vanishing_polynomial`.
+            :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general.minimal_vanishing_polynomial`.
 
         EXAMPLES::
 

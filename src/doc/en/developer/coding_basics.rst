@@ -1084,11 +1084,11 @@ to look polished and professional.
 
 * Common function keyword arguments:
 
-This is a list of some keyword arguments that many functions and
-methods take.  For consistency, you should use the keywords from the
-list below with the meaning as explained here. Do not use a
-different keyword with the same meaning (for example, do not use
-``method``; use ``algorithm`` instead).
+  This is a list of some keyword arguments that many functions and
+  methods take.  For consistency, you should use the keywords from the
+  list below with the meaning as explained here. Do not use a
+  different keyword with the same meaning (for example, do not use
+  ``method``; use ``algorithm`` instead).
 
   * ``algorithm``, a string or ``None``: Choose between various
     implementation or algorithm. Use ``None`` as a default that

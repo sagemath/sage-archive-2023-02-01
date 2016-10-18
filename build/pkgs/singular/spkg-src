@@ -1,60 +1,130 @@
 #!/usr/bin/env bash
 
-VERSION="3-1-7"
-PATCHLEVEL="p1"
+if [ "$SAGE_DISTFILES" = "" ]; then
+    echo >&2 "SAGE_DISTFILES undefined ... exiting";
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
 
 if [ $# -ne 0 ]; then
-    UPSTREAM_SOURCE_DIRECTORY=$1
+    UPSTREAM_SOURCE_DIRECTORY=`cd "$1" && pwd -P`
     echo "Using tarballs from $UPSTREAM_SOURCE_DIRECTORY instead of downloading"
 fi
 
-SPKG_ROOT=`pwd`
-
 set -e
-shopt -s extglob
+umask 0022
+
+
+SAGEVERSION=`cat $(dirname "$0")/package-version.txt`
+VERSION=`echo "$SAGEVERSION" | sed 's/[.]p[0-9]*$//'`
+PKGNAME="singular-$VERSION"
+DOTVERSION=`echo "$VERSION" | sed 's/p.*//'`
+DASHVERSION=`echo "$DOTVERSION" | sed 's/[.]/-/g'`
+TARBALL_SRC="singular-${VERSION}.tar.gz"
+TARBALL_SHR="singular-${DOTVERSION}-share.tar.gz"
+TARGET="$SAGE_DISTFILES/$PKGNAME.tar.bz2"
+
+echo >&2 "Creating tarball $TARGET..."
 
 # Remove old sources and download new
-rm -rf src
-mkdir src
-cd src
+SPKG_ROOT="$SAGE_ROOT/local/var/tmp/singular"
 
-URL="http://www.mathematik.uni-kl.de/ftp/pub/Math/Singular/SOURCES"
+rm -rf "$SPKG_ROOT"
+mkdir -p "$SPKG_ROOT/$PKGNAME"
+cd "$SPKG_ROOT/$PKGNAME"
+
+URL="http://www.mathematik.uni-kl.de/ftp/pub/Math/Singular/SOURCES/$DASHVERSION"
 if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
-    tar xzf <( curl -L "$URL/$VERSION/Singular-$VERSION$PATCHLEVEL.tar.gz" )
-    tar xzf <( curl -L "$URL/$VERSION/Singular-$VERSION-share.tar.gz" )
+    if [ -z "$SINGULAR_GIT_COMMIT" ]; then
+        tar xzf <( curl -L "$URL/$TARBALL_SRC" )
+    else
+        git clone https://github.com/Singular/Sources/ singular.git
+        cd singular.git
+        # The following is inspired from make_tar.sh
+        #sh make_tar.sh
+        #begin make_tar.sh
+        git checkout "$SINGULAR_GIT_COMMIT" 
+        git checkout-index -a -f --prefix=singular-$DOTVERSION/
+        rm singular-$DOTVERSION/.gdbinit singular-$DOTVERSION/*/.gdbinit singular-$DOTVERSION/*/*/.gdbinit singular-$DOTVERSION/*/*/*/.gdbinit
+        rm singular-$DOTVERSION/IntegerProgramming/README
+        rm -rf singular-$DOTVERSION/modules
+        rm -rf singular-$DOTVERSION/factory/old
+        cd singular-$DOTVERSION
+        autoreconf -fiv
+        cd ..
+        rm -rf singular-$DOTVERSION/autom4te.cache
+        rm -rf singular-$DOTVERSION/*/autom4te.cache
+        rm -rf singular-$DOTVERSION/*/*/autom4te.cache
+        rm -rf singular-$DOTVERSION/omalloc/Misc
+        rm -rf singular-$DOTVERSION/Singular/LIB/surfex
+        rm -rf singular-$DOTVERSION/Singular/cnf2ideal.py
+        rm -rf singular-$DOTVERSION/kernel/old singular-$DOTVERSION/kernel/sample
+        rm -rf singular-$DOTVERSION/dox/Doxyfile.html.all singular-$DOTVERSION/dox/Doxyfile.in1 singular-$DOTVERSION/dox/Doxyfile.latex.short singular-$DOTVERSION/dox/readme
+        rm -rf singular-$DOTVERSION/factory/ConwayList.txt
+        rm -rf singular-$DOTVERSION/logo  singular-$DOTVERSION/standalone.test  singular-$DOTVERSION/templates  singular-$DOTVERSION/tests
+        #end make_tar.sh
+        mv singular-$DOTVERSION ../
+        cd ..
+        rm -rf singular.git
+    fi
+    tar xzf <( curl -L "$URL/$TARBALL_SHR" )
 else
-    tar xzf "$UPSTREAM_SOURCE_DIRECTORY/Singular-$VERSION$PATCHLEVEL.tar.gz"
-    tar xzf "$UPSTREAM_SOURCE_DIRECTORY/Singular-$VERSION-share.tar.gz"
+    tar xzf "$UPSTREAM_SOURCE_DIRECTORY/$TARBALL_SRC"
+    tar xzf "$UPSTREAM_SOURCE_DIRECTORY/$TARBALL_SHR"
 fi
 
+# Make everything writable
+chmod -R u+w *
+
 ### Sanitize upstream shared (documentation) dir
-if [ ! -d Singular ]; then
+if [ ! -d share/singular ]; then
     echo "Singular directory not in Singular shared tarball, aborting"
     exit 1
 fi
 mkdir shared
-cp "Singular/$VERSION/doc/singular.idx" shared/
-cp "Singular/$VERSION/info/singular.hlp" shared/
-rm -r Singular
+mv "share/singular/singular.idx" shared/
+mv "share/info/singular.hlp" shared/
+rm -r share
 
 
 # Sanitize upstream sources
-if [ ! -d "Singular-$VERSION" ]; then
-    echo "Singular-$VERSION directory not in Singular tarball, aborting"
+if [ ! -d "singular-$DOTVERSION" ]; then
+    echo "singular-$DOTVERSION directory not in Singular tarball, aborting"
     exit 1
 fi
-mv "Singular-$VERSION" latest
+mv "singular-$DOTVERSION" latest
+
+# Patching
 cd latest
-rm -r ntl
-rm -r modules
-rm -r MP
-rm -r Tst
-gzip -9 omalloc/Misc/dlmalloc/malloc.ps
-rm -r Singular/LIB/surfex
+for patch in "${SAGE_ROOT}"/build/pkgs/singular/patches/src/*.patch; do
+    patch -p1 <"$patch"
+done
+cd ..
 
+# We need to run autoreconf -fiv in xalloc directory for debug builds
+# To prevent libtool to choke because different versions got used
+# we run it everywhere
+cd latest/
+autoreconf -fiv
+cd xalloc
+autoreconf -fiv
+cd ..
+rm -rf autom4te.cache
+rm -rf */autom4te.cache
+rm -rf */*/autom4te.cache
+cd ..
 
-### Finished creating the src/ directory
+# Touch autotools files to make sure nothing gets autoregenerated during make
+# It indeed seems autotools leave them in a broken state
+cd latest
+touch configure.ac aclocal.m4 configure Makefile.am Makefile.in _config.h.in
+touch */configure.ac */aclocal.m4 */configure */Makefile.am */Makefile.in */_config.h.in
+cd ..
 
-# Make everything writable
+### Create actual upstream package
 cd "$SPKG_ROOT"
-chmod -R u+w src
+tar c "$PKGNAME" | bzip2 -c --best >"$TARGET"
+cd "$SAGE_ROOT"
+rm -rf "$SPKG_ROOT"
+
+echo "Now run 'sage --package fix-checksum singular'"

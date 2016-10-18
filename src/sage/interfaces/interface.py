@@ -733,6 +733,7 @@ class InterfaceElement(Element):
             PolynomialRing( Rationals, ["x"] )
             sage: S = singular.ring(0, ('x'))
             sage: loads(dumps(S))
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 1
             //        block   1 : ordering lp

@@ -3246,7 +3246,7 @@ def binomial(x, m, **kwds):
 
         sage: K.<x,y> = Integers(7)[]
         sage: binomial(y,3)
-        -y^3 + 3*y^2 - 2*y
+        6*y^3 + 3*y^2 + 5*y
         sage: binomial(y,3).parent()
         Multivariate Polynomial Ring in x, y over Ring of integers modulo 7
 

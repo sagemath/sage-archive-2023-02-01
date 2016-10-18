@@ -472,7 +472,7 @@ fi
 
 if [ "$1" = '-singular' -o "$1" = '--singular' ]; then
     shift
-    exec singular "$@"
+    exec Singular "$@"
 fi
 
 if [ "$1" = '-sqlite3' -o "$1" = '--sqlite3' ]; then

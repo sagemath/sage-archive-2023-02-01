@@ -1228,6 +1228,49 @@ class SBox(SageObject):
                     ret.append((j, i, c))
         return ret
 
+    def has_linear_structure(self):
+        """
+        Return ``True`` if there exists a nonzero component function of this
+        S-Box that has a linear structure.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
+            sage: S.has_linear_structure()
+            True
+        """
+        m = self.m
+        for i in range(1, 1<<m):
+            if self.component_function(i).has_linear_structure():
+                return True
+        return False
+
+    def is_linear_structure(self, a, b):
+        r"""
+        Return ``True`` if `a` is a linear structure of the component function
+        `b \cdot S(x)` where S is this `m \times n` S-Box.
+
+        INPUT:
+
+        - ``a`` -- either an integer or a tuple of `\GF{2}` elements of
+          length ``self.m``
+        - ``b`` -- either an integer or a tuple of `\GF{2}` elements of
+          length ``self.n``
+
+        EXAMPLES::
+
+            sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
+            sage: S.component_function(1).autocorrelation()
+            (16, -16, 0, 0, 0, 0, 0, 0, -16, 16, 0, 0, 0, 0, 0, 0)
+            sage: S.is_linear_structure(1, 1)
+            True
+            sage: S.is_linear_structure([1, 0, 0, 1], [0, 0, 0, 1])
+            True
+            sage: S.is_linear_structure([0, 1, 1, 1], 1)
+            False
+        """
+        return self.component_function(b).is_linear_structure(a)
+
     def max_degree(self):
         """
         Return the maximal algebraic degree of all its component functions.

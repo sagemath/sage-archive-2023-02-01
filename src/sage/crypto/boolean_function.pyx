@@ -1048,6 +1048,43 @@ cdef class BooleanFunction(SageObject):
         W = self.absolute_walsh_spectrum()
         return (len(W) == 1) or (len(W) == 2 and 0 in W)
 
+    def is_linear_structure(self, val):
+        """
+        Return ``True`` if ``val`` is a linear structure of this Boolean
+        function.
+
+        INPUT:
+
+        - ``val`` -- either an integer or a tuple/list of ``GF(2)`` elements
+          of length ``self.nvariables()``
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+            sage: f.is_linear_structure(1)
+            True
+            sage: f.is_linear_structure([1, 0, 0, 1])
+            True
+            sage: f.is_linear_structure(7)
+            False
+        """
+        nvars = self._nvariables
+        i = -1
+
+        if isinstance(val, (int, long, Integer)):
+            i = ZZ(val)
+        elif len(val) == nvars:
+            i = ZZ(val, base=2)
+        else:
+            raise TypeError("cannot compute is_linear_structure() using parameter %s" % (val,))
+
+        a = self.autocorrelation()
+        try:
+            return abs(a[i]) == 1<<nvars
+        except IndexError:
+            return False
+
     def has_linear_structure(self):
         """
         Return ``True`` if this function has a linear structure.
@@ -1058,22 +1095,21 @@ cdef class BooleanFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.boolean_function import BooleanFunction, random_boolean_function
+            sage: from sage.crypto.boolean_function import BooleanFunction
             sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
             sage: f.has_linear_structure()
             True
             sage: f.autocorrelation()
             (16, -16, 0, 0, 0, 0, 0, 0, -16, 16, 0, 0, 0, 0, 0, 0)
-            sage: g = random_boolean_function(4)
+            sage: g = BooleanFunction([0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1])
             sage: g.has_linear_structure()
             False
             sage: g.autocorrelation()
-            (16, 0, -8, 0, -8, 0, 8, 0, 0, 0, 0, 8, 0, 8, 0, -8)
+            (16, 4, 4, 4, 4, -4, -4, -4, -4, 4, -4, -4, -4, 4, -4, -4)
         """
-        a = self.autocorrelation()
         nvars = self._nvariables
-        for i in xrange(1, 1<<nvars):
-            if abs(a[i]) == 1<<nvars:
+        for i in range(1, 1<<nvars):
+            if self.is_linear_structure(i):
                 return True
         return False
 
@@ -1087,10 +1123,9 @@ cdef class BooleanFunction(SageObject):
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
             sage: LS = f.linear_structures()
-            sage: LS
-
-            Vector space of degree 4 and dimension 2 over Finite Field of size 2
-            Basis matrix:
+            sage: LS.dimension()
+            2
+            sage: LS.basis_matrix()
             [1 0 0 0]
             [0 0 0 1]
             sage: LS.list()
@@ -1098,14 +1133,8 @@ cdef class BooleanFunction(SageObject):
         """
         from sage.modules.free_module import VectorSpace
 
-        a = self.autocorrelation()
-        l = []
         nvars = self.nvariables()
-        for i in xrange(1<<nvars):
-            if abs(a[i]) == 1<<nvars:
-                bitval = ZZ(i).bits()
-                bitval += [0]*(nvars-len(bitval))
-                l.append(bitval)
+        l = [ZZ(i).digits(base=2, padto=nvars) for i in range(1<<nvars) if self.is_linear_structure(i)]
         V = VectorSpace(GF(2), nvars)
         return V.subspace(l)
 

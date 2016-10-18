@@ -1239,8 +1239,8 @@ class SBox(SageObject):
             sage: S.has_linear_structure()
             True
         """
-        m = self.m
-        for i in range(1, 1<<m):
+        n = self.n
+        for i in range(1, 1<<n):
             if self.component_function(i).has_linear_structure():
                 return True
         return False

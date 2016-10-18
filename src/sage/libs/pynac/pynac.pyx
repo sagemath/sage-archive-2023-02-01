@@ -583,7 +583,7 @@ def tolerant_is_symbol(a):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import tolerant_is_symbol
+        sage: from sage.libs.pynac.pynac import tolerant_is_symbol
         sage: tolerant_is_symbol(var("x"))
         True
         sage: tolerant_is_symbol(None)

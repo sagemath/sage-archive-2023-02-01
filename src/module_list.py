@@ -134,7 +134,7 @@ library_order_list = [
     "singular", "ec", "ecm",
 ] + linbox_libs  + gsl_libs + [
     "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
-    "arb", "fplll", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
+    "arb", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
     "brial",
     "brial_groebner",
     "m4rie",
@@ -604,9 +604,6 @@ ext_modules = [
               sources = ["sage/libs/flint/arith.pyx"],
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],
               extra_compile_args = ["-std=c99", "-D_XPG6"]),
-
-    Extension('sage.libs.fplll.fplll',
-              sources = ['sage/libs/fplll/fplll.pyx']),
 
     Extension("sage.libs.glpk.error",
              ["sage/libs/glpk/error.pyx"]),
@@ -1268,19 +1265,6 @@ ext_modules = [
     ###############################
 
     Extension('*', ['sage/quivers/*.pyx']),
-
-    ################################
-    ##
-    ## sage.repl
-    ##
-    ################################
-
-    Extension('sage.repl.inputhook',
-              sources = ['sage/repl/inputhook.pyx']),
-
-    Extension('sage.repl.readline_extra_commands',
-              sources = ['sage/repl/readline_extra_commands.pyx'],
-              libraries = ['readline']),
 
     ################################
     ##

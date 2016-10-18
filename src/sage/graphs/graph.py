@@ -417,6 +417,7 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -2132,7 +2133,7 @@ class Graph(GenericGraph):
 
           - ``'bitset'`` -- encodes adjacencies into bitsets and uses fast
             bitset operations to test if the input graph contains a
-            triangle. This method is generaly faster than stantard matrix
+            triangle. This method is generally faster than standard matrix
             multiplication.
 
         EXAMPLE:
@@ -2163,7 +2164,7 @@ class Graph(GenericGraph):
 
         Comparison of algorithms::
 
-            sage: for i in xrange(10): # long test
+            sage: for i in range(10): # long test
             ...       G = graphs.RandomBarabasiAlbert(50,2)
             ...       bm = G.is_triangle_free(algorithm='matrix')
             ...       bb = G.is_triangle_free(algorithm='bitset')
@@ -2751,7 +2752,7 @@ class Graph(GenericGraph):
         ch = ((self.am()).charpoly()).coefficients(sparse=False)
         n = self.order()
 
-        for i in xrange(n-1,-1,-2):
+        for i in range(n-1,-1,-2):
             if ch[i] != 0:
                 return n-i
 
@@ -3076,7 +3077,7 @@ class Graph(GenericGraph):
 
         The same goes for the CubeGraph in any dimension ::
 
-            sage: all(len(graphs.CubeGraph(i).strong_orientation().strongly_connected_components()) == 1 for i in xrange(2,6))
+            sage: all(len(graphs.CubeGraph(i).strong_orientation().strongly_connected_components()) == 1 for i in range(2,6))
             True
 
         A multigraph also has a strong orientation ::
@@ -3331,7 +3332,7 @@ class Graph(GenericGraph):
 
         As previously for random graphs, but more intensively::
 
-            sage: for i in xrange(30):      # long time (up to 6s on sage.math, 2012)
+            sage: for i in range(30):      # long time (up to 6s on sage.math, 2012)
             ...       g = graphs.RandomGNP(40, .4)
             ...       b = lambda v : ceil(g.degree(v)/2)
             ...       D = g.bounded_outdegree_orientation(b)
@@ -3403,6 +3404,118 @@ class Graph(GenericGraph):
 
         return D
 
+    @doc_index("Connectivity, orientations, trees")
+    def orientations(self, implementation='c_graph', data_structure=None, sparse=None):
+        r"""
+        Return an iterator over orientations of ``self``.
+
+        An *orientation* of an undirected graph is a directed
+        graph such that every edge is assigned a direction.
+        Hence there are `2^s` oriented digraphs for a simple
+        graph with `s` edges.
+
+        INPUT:
+
+        - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
+          ``"dense"``; see the documentation of :class:`Graph` or
+          :class:`DiGraph`; default is the data structure of ``self``
+
+        - ``sparse`` -- (optional) boolean; ``sparse=True`` is an alias for
+          ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+          ``data_structure="dense"``
+
+        .. WARNING::
+
+            This always considers mutliple edges of graphs as
+            distinguishable, and hence, may have repeated digraphs.
+
+        EXAMPLES::
+
+            sage: G = Graph([[1,2,3], [(1, 2, 'a'), (1, 3, 'b')]], format='vertices_and_edges')
+            sage: it = G.orientations()
+            sage: D = next(it)
+            sage: D.edges()
+            [(1, 2, 'a'), (1, 3, 'b')]
+            sage: D = next(it)
+            sage: D.edges()
+            [(1, 2, 'a'), (3, 1, 'b')]
+
+        TESTS::
+
+            sage: G = Graph()
+            sage: D = [g for g in G.orientations()]
+            sage: len(D)
+            1
+            sage: D[0]
+            Digraph on 0 vertices
+
+            sage: G = Graph(5)
+            sage: it = G.orientations()
+            sage: D = next(it)
+            sage: D.size()
+            0
+
+            sage: G = Graph([[1,2,'a'], [1,2,'b']], multiedges=True)
+            sage: len(list(G.orientations()))
+            4
+
+            sage: G = Graph([[1,2], [1,1]], loops=True)
+            sage: len(list(G.orientations()))
+            2
+
+            sage: G = Graph([[1,2],[2,3]])
+            sage: next(G.orientations())
+            Digraph on 3 vertices
+            sage: G = graphs.PetersenGraph()
+            sage: next(G.orientations())
+            An orientation of Petersen graph: Digraph on 10 vertices
+        """
+        if sparse is not None:
+            if data_structure is not None:
+                raise ValueError("cannot specify both 'sparse' and 'data_structure'")
+            data_structure = "sparse" if sparse else "dense"
+        if data_structure is None:
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            if isinstance(self._backend, DenseGraphBackend):
+                data_structure = "dense"
+            elif isinstance(self._backend, SparseGraphBackend):
+                data_structure = "sparse"
+            else:
+                data_structure = "static_sparse"
+
+        name = self.name()
+        if name != '':
+            name = 'An orientation of ' + name
+
+        if self.num_edges() == 0:
+            D = DiGraph(name=name,
+                        pos=self._pos,
+                        multiedges=self.allows_multiple_edges(),
+                        loops=self.allows_loops(),
+                        implementation=implementation,
+                        data_structure=data_structure)
+            if hasattr(self, '_embedding'):
+                D._embedding = copy(self._embedding)
+            yield D
+            return
+
+        from itertools import product
+        E = [[(u,v,label), (v,u,label)] if u != v else [(u,v,label)]
+             for u,v,label in self.edges()]
+        verts = self.vertices()
+        for edges in product(*E):
+            D = DiGraph(data=[verts, edges],
+                        format='vertices_and_edges',
+                        name=name,
+                        pos=self._pos,
+                        multiedges=self.allows_multiple_edges(),
+                        loops=self.allows_loops(),
+                        implementation=implementation,
+                        data_structure=data_structure)
+            if hasattr(self, '_embedding'):
+                D._embedding = copy(self._embedding)
+            yield D
 
     ### Coloring
 
@@ -3508,18 +3621,18 @@ class Graph(GenericGraph):
 
         A complete multipartite graph with k parts has chromatic number k::
 
-            sage: all(graphs.CompleteMultipartiteGraph([5]*i).chromatic_number() == i for i in xrange(2,5))
+            sage: all(graphs.CompleteMultipartiteGraph([5]*i).chromatic_number() == i for i in range(2,5))
             True
 
         The complete graph has the largest chromatic number from all the graphs
         of order n. Namely its chromatic number is n::
 
-            sage: all(graphs.CompleteGraph(i).chromatic_number() == i for i in xrange(10))
+            sage: all(graphs.CompleteGraph(i).chromatic_number() == i for i in range(10))
             True
 
         The Kneser graph with parameters (n,2) for n > 3 has chromatic number n-2::
 
-            sage: all(graphs.KneserGraph(i,2).chromatic_number() == i-2 for i in xrange(4,6))
+            sage: all(graphs.KneserGraph(i,2).chromatic_number() == i-2 for i in range(4,6))
             True
 
         A snark has chromatic index 4 hence its line graph has chromatic number 4::
@@ -4344,7 +4457,7 @@ class Graph(GenericGraph):
 
             sage: g = 3 * graphs.PetersenGraph()
             sage: n = g.order()/3
-            sage: f = [[i,i+n,i+2*n] for i in xrange(n)]
+            sage: f = [[i,i+n,i+2*n] for i in range(n)]
             sage: isr = g.independent_set_of_representatives(f)
             sage: c = [floor(i/n) for i in isr]
             sage: color_classes = [[],[],[]]
@@ -5436,17 +5549,17 @@ class Graph(GenericGraph):
 
         By definition the clique number of a complete graph is its order::
 
-            sage: all(graphs.CompleteGraph(i).clique_number() == i for i in xrange(1,15))
+            sage: all(graphs.CompleteGraph(i).clique_number() == i for i in range(1,15))
             True
 
         A non-empty graph without edges has a clique number of 1::
 
-            sage: all((i*graphs.CompleteGraph(1)).clique_number() == 1 for i in xrange(1,15))
+            sage: all((i*graphs.CompleteGraph(1)).clique_number() == 1 for i in range(1,15))
             True
 
         A complete multipartite graph with k parts has clique number k::
 
-            sage: all((i*graphs.CompleteMultipartiteGraph(i*[5])).clique_number() == i for i in xrange(1,6))
+            sage: all((i*graphs.CompleteMultipartiteGraph(i*[5])).clique_number() == i for i in range(1,6))
             True
 
         TESTS::

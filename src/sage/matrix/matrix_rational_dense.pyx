@@ -1027,7 +1027,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [ -53/5   55/3   61/3]
             [   5/3 -37/45 -73/45]
             [   -27   76/3   67/3]
-            sage: (pari(a)*pari(a))._sage_() == a*a
+            sage: (pari(a)*pari(a)).sage() == a*a
             True
         """
         if self._nrows <= 6 and self._ncols <= 6 and right._nrows <= 6 and right._ncols <= 6 and \
@@ -1251,7 +1251,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             True
 
         Computed result is the negative of the pivot basis, which
-        is just slighltly more efficient to compute. ::
+        is just slightly more efficient to compute. ::
 
             sage: A.right_kernel_matrix(basis='pivot') == -A.right_kernel_matrix(basis='computed')
             True
@@ -2304,7 +2304,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         ::
 
-            sage: A = matrix(QQ,2,3,xrange(6))
+            sage: A = matrix(QQ, 2, 3, xrange(6))
             sage: type(A)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: B = A.transpose()

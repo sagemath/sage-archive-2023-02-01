@@ -33,8 +33,7 @@ EXAMPLES::
     sage: pari('5! + 10/x')
     (120*x + 10)/x
     sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
-    83.8179442684285  # 32-bit
-    84.1818153922297  # 64-bit
+    85.6215190762676
     sage: f = pari('x^3-1')
     sage: v = f.factor(); v
     [x - 1, 1; x^2 + x + 1, 1]
@@ -43,7 +42,7 @@ EXAMPLES::
     sage: v[1]
     [1, 1]~
 
-Arithmetic obeys the usual coercion rules::
+Arithmetic operations cause all arguments to be converted to PARI::
 
     sage: type(pari(1) + 1)
     <type 'sage.libs.pari.gen.gen'>
@@ -118,7 +117,7 @@ bogus 11 bits. The function p.python() returns a Sage object with
 exactly the same precision as the Pari object p. So
 pari(s).python() is definitely not equal to s, since it has 64 bits
 of precision, including the bogus 11 bits. The correct way of
-avoiding this is to coerce pari(s).python() back into a domain with
+avoiding this is to convert pari(s).python() back into a domain with
 the right precision. This has to be done by the user (or by Sage
 functions that use Pari library functions in gen.pyx). For
 instance, if we want to use the Pari library to compute sqrt(pi)
@@ -214,6 +213,7 @@ from sage.libs.flint.fmpz_mat cimport *
 from sage.libs.pari.gen cimport gen, objtogen
 from sage.libs.pari.handle_error cimport _pari_init_error_handling
 from sage.misc.superseded import deprecation, deprecated_function_alias
+from sage.env import CYGWIN_VERSION
 
 # real precision in decimal digits: see documentation for
 # get_real_precision() and set_real_precision().  This variable is used
@@ -476,7 +476,19 @@ cdef class PariInstance(PariInstance_auto):
         mem = MemoryInfo()
 
         pari_init_opts(size, maxprime, INIT_DFTm)
-        paristack_setsize(size, mem.virtual_memory_limit() // 4)
+        
+        sizemax = mem.virtual_memory_limit() // 4
+
+        if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
+            # Cygwin's mmap is broken for large NORESERVE mmaps (>~ 4GB) See
+            # http://trac.sagemath.org/ticket/20463 So we set the max stack
+            # size to a little below 4GB (putting it right on the margin proves
+            # too fragile)
+            #
+            # The underlying issue is fixed in Cygwin v2.5.2
+            sizemax = min(sizemax, 0xf0000000)
+
+        paristack_setsize(size, sizemax)
 
         # Disable PARI's stack overflow checking which is incompatible
         # with multi-threading.
@@ -496,12 +508,10 @@ cdef class PariInstance(PariInstance_auto):
         pariOut.puts = sage_puts
         pariOut.flush = sage_flush
 
-        # Display only 15 digits
-        self._real_precision = 15
-        sd_format("g.15", d_SILENT)
+        # Use 15 decimal digits as default precision
+        self.set_real_precision(15)
 
-        # Init global prec variable (PARI's precision is always a
-        # multiple of the machine word size)
+        # Init global prec variable with the precision in words
         global prec
         prec = prec_bits_to_words(64)
 
@@ -573,37 +583,6 @@ cdef class PariInstance(PariInstance_auto):
 
     def __hash__(self):
         return 907629390   # hash('pari')
-
-    cpdef _coerce_map_from_(self, x):
-        """
-        Return ``True`` if ``x`` admits a coercion map into the
-        PARI interface.
-
-        This currently always returns ``True``.
-
-        EXAMPLES::
-
-            sage: pari._coerce_map_from_(ZZ)
-            True
-            sage: pari.coerce_map_from(ZZ)
-            Call morphism:
-              From: Integer Ring
-              To:   Interface to the PARI C library
-        """
-        return True
-
-    def __richcmp__(left, right, int op):
-        """
-        EXAMPLES::
-
-            sage: pari == pari
-            True
-            sage: pari == gp
-            False
-            sage: pari == 5
-            False
-        """
-        return (<Parent>left)._richcmp(right, op)
 
     def set_debug_level(self, level):
         """
@@ -704,7 +683,6 @@ cdef class PariInstance(PariInstance_auto):
         cdef gen y = gen.__new__(gen)
         y.g = self.deepcopy_to_python_heap(x, &address)
         y.b = address
-        y._parent = self
         # y.refers_to (a dict which is None now) is initialised as needed
         return y
 
@@ -931,7 +909,6 @@ cdef class PariInstance(PariInstance_auto):
         cdef gen p = gen.__new__(gen)
         p.g = g
         p.b = 0
-        p._parent = self
         p.refers_to = {-1: parent}
         return p
 
@@ -1034,18 +1011,6 @@ cdef class PariInstance(PariInstance_auto):
         sig_on()
         cdef GEN g = self._new_GEN_from_mpq_t_matrix(B, nr, nc)
         return self.new_gen(g)
-
-    cdef _coerce_c_impl(self, x):
-        """
-        Implicit canonical coercion into a PARI object.
-        """
-        try:
-            return self(x)
-        except (TypeError, AttributeError):
-            raise TypeError("no canonical coercion of %s into PARI" % x)
-
-    cdef _an_element_c_impl(self):  # override this in Cython
-        return self.PARI_ZERO
 
     cpdef gen zero(self):
         """

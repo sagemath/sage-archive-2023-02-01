@@ -19,6 +19,7 @@ AUTHOR:
 include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
 
+from cpython.int cimport PyInt_AS_LONG
 from sage.misc.long cimport pyobject_to_long
 
 from sage.libs.gmp.mpz cimport *
@@ -467,9 +468,15 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             sage: f(-2/3)       # indirect doctest
             -5/9
+
+        TESTS:
+
+            sage: t(-sys.maxint-1r) == t(-sys.maxint-1)
+            True
         """
         cdef Polynomial_rational_flint f
         cdef Rational r
+        cdef mpz_t tmpz
 
         if len(x) == 1:
             a = x[0]
@@ -480,16 +487,25 @@ cdef class Polynomial_rational_flint(Polynomial):
                     (<Polynomial_rational_flint> a).__poly)
                 sig_off()
                 return f
-            if isinstance(a, Rational):
+            elif isinstance(a, Rational):
                 r = Rational.__new__(Rational)
                 sig_str("FLINT exception")
                 fmpq_poly_evaluate_mpq(r.value, self.__poly, (<Rational> a).value)
                 sig_off()
                 return r
-            if isinstance(a, Integer):
+            elif isinstance(a, Integer):
                 r = Rational.__new__(Rational)
                 sig_str("FLINT exception")
                 fmpq_poly_evaluate_mpz(r.value, self.__poly, (<Integer> a).value)
+                sig_off()
+                return r
+            elif isinstance(a, int):
+                r = Rational.__new__(Rational)
+                sig_str("FLINT exception")
+                mpz_init(tmpz)
+                mpz_set_si(tmpz, PyInt_AS_LONG(a))
+                fmpq_poly_evaluate_mpz(r.value, self.__poly, tmpz)
+                mpz_clear(tmpz)
                 sig_off()
                 return r
 

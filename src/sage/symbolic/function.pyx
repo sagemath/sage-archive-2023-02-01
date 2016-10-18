@@ -665,7 +665,7 @@ cdef class Function(SageObject):
             sage: ff = erf._fast_float_()
             sage: ff.is_pure_c()
             False
-            sage: ff(1.5)
+            sage: ff(1.5) # tol 1e-15
             0.9661051464753108
             sage: erf(1.5)
             0.966105146475311
@@ -917,7 +917,7 @@ cdef class BuiltinFunction(Function):
             6.0
             sage: assert type(_) is float
 
-            sage: cos(1jr)
+            sage: cos(1jr)  # abstol 1e-15
             (1.5430806348152437-0j)
             sage: assert type(_) is complex
 

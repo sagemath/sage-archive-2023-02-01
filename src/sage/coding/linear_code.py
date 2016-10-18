@@ -108,10 +108,10 @@ http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.h
 
 REFERENCES:
 
-- [HP] W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
+.. [HP] \W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
   Cambridge Univ. Press, 2003.
 
-- [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
+.. [Gu] \GUAVA manual, http://www.gap-system.org/Packages/guava.html
 
 AUTHORS:
 
@@ -206,6 +206,7 @@ TESTS::
 # python3
 from __future__ import division, print_function
 from __future__ import absolute_import
+from six.moves import range
 
 from sage.modules.module import Module
 from sage.categories.modules import Modules
@@ -242,8 +243,10 @@ from sage.categories.cartesian_product import cartesian_product
 def _dump_code_in_leon_format(C):
     r"""
     Writes a file in Sage's temp directory representing the code C, returning
-    the absolute path to the file. This is the Sage translation of the
-    GuavaToLeon command in Guava's codefun.gi file.
+    the absolute path to the file.
+
+    This is the Sage translation of the GuavaToLeon command in Guava's
+    codefun.gi file.
 
     INPUT:
 
@@ -317,9 +320,6 @@ def _gap_minimal_weight_vector(Gmat, n, k, F, algorithm=None):
     - The code in the default case allows one (for free) to also compute the
       message vector `m` such that `m\*G = v`, and the (minimum) distance, as
       a triple.  however, this output is not implemented.
-    - The binary case can presumably be done much faster using Robert Miller's
-      code (see the docstring for the spectrum method). This is also not (yet)
-      implemented.
 
     EXAMPLES::
 
@@ -798,7 +798,7 @@ class AbstractLinearCode(Module):
 
     def assmus_mattson_designs(self, t, mode=None):
         r"""
-        Assmus and Mattson Theorem (section 8.4, page 303 of [HP]): Let
+        Assmus and Mattson Theorem (section 8.4, page 303 of [HP]_): Let
         `A_0, A_1, ..., A_n` be the weights of the codewords in a binary
         linear `[n , k, d]` code `C`, and let `A_0^*, A_1^*, ..., A_n^*` be
         the weights of the codewords in its dual `[n, n-k, d^*]` code `C^*`.
@@ -838,7 +838,7 @@ class AbstractLinearCode(Module):
             k =       i   (k not to be confused with dim(C))
             b =       Ai
             lambda = b*binomial(k,t)/binomial(v,t) (by Theorem 8.1.6,
-                                                       p 294, in [HP])
+                                                       p 294, in [HP]_)
 
         Setting the ``mode="verbose"`` option prints out the values of the
         parameters.
@@ -873,17 +873,13 @@ class AbstractLinearCode(Module):
             sage: blocks = [c.support() for c in C if c.hamming_weight()==8]; len(blocks)  # long time computation
             759
 
-        REFERENCE:
-
-        - [HP] W. C. Huffman and V. Pless, Fundamentals of ECC,
-          Cambridge Univ. Press, 2003.
         """
         C = self
         ans = []
         G = C.generator_matrix()
         n = len(G.columns())
         Cp = C.dual_code()
-        wts = C.spectrum()
+        wts = C.weight_distribution()
         d = min([i for i in range(1,len(wts)) if wts[i]!=0])
         if t>=d:
             return 0
@@ -893,7 +889,7 @@ class AbstractLinearCode(Module):
                 print("The weight w={} codewords of C* form a t-(v,k,lambda) design, where\n \
                         t={}, v={}, k={}, lambda={}. \nThere are {} block of this design.".format(\
                         w,t,n,w,wts[w]*binomial(w,t)//binomial(n,t),wts[w]))
-        wtsp = Cp.spectrum()
+        wtsp = Cp.weight_distribution()
         dp = min([i for i in range(1,len(wtsp)) if wtsp[i]!=0])
         nonzerowtsp = [i for i in range(len(wtsp)) if wtsp[i]!=0 and i<=n-t and i>=dp]
         s = len([i for i in range(1,n) if wtsp[i]!=0 and i<=n-t and i>0])
@@ -979,9 +975,9 @@ class AbstractLinearCode(Module):
 
         REFERENCE:
 
-        - I. Duursma, "Combinatorics of the two-variable zeta function",
-          Finite fields and applications, 109-136, Lecture Notes in
-          Comput. Sci., 2948, Springer, Berlin, 2004.
+        .. [Du04] \I. Duursma, "Combinatorics of the two-variable zeta function",
+           Finite fields and applications, 109-136, Lecture Notes in
+           Comput. Sci., 2948, Springer, Berlin, 2004.
         """
         n = self.length()
         k = self.dimension()
@@ -1131,7 +1127,7 @@ class AbstractLinearCode(Module):
     def characteristic_polynomial(self):
         r"""
         Returns the characteristic polynomial of a linear code, as defined in
-        van Lint's text [vL].
+        van Lint's text [vL]_.
 
         EXAMPLES::
 
@@ -1141,8 +1137,8 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        - van Lint, Introduction to coding theory, 3rd ed., Springer-Verlag
-          GTM, 86, 1999.
+        .. [vL] \J. van Lint, Introduction to coding theory, 3rd ed., Springer-Verlag
+           GTM, 86, 1999.
         """
         R = PolynomialRing(QQ,"x")
         x = R.gen()
@@ -1466,7 +1462,7 @@ class AbstractLinearCode(Module):
             2
         """
         C = self
-        A = C.spectrum()
+        A = C.weight_distribution()
         n = C.length()
         V = VectorSpace(QQ,n+1)
         S = V(A).nonzero_positions()
@@ -1480,8 +1476,8 @@ class AbstractLinearCode(Module):
 
         A linear code `C` over a field is called *projective* when its dual `Cd`
         has minimum weight `\geq 3`, i.e. when no two coordinate positions of
-        `C` are linearly independent (cf. definition 3 from [BS11] or 9.8.1 from
-        [BH12]).
+        `C` are linearly independent (cf. definition 3 from [BS11]_ or 9.8.1 from
+        [BH12]_).
 
         EXAMPLE::
 
@@ -1880,7 +1876,7 @@ class AbstractLinearCode(Module):
             sage: C = random_matrix(GF(25,'a'), 2, 7).row_space()
             sage: C = LinearCode(C.basis_matrix())
             sage: Clist = C.list()
-            sage: all([C[i]==Clist[i] for i in xrange(len(C))])
+            sage: all([C[i]==Clist[i] for i in range(len(C))])
             True
 
         Check that only the indices less than the size of the code are
@@ -1915,7 +1911,7 @@ class AbstractLinearCode(Module):
         a = F.primitive_element()
         m = F.degree()
         p = F.prime_subfield().order()
-        A = [a**k for k in xrange(m)]
+        A = [a ** k for k in range(m)]
         G = self.generator_matrix()
         N = self.dimension()*F.degree() # the total length of p-adic vector
         Z = Zp(p, N)
@@ -1924,7 +1920,7 @@ class AbstractLinearCode(Module):
         codeword = 0
         row = 0
         for g in G:
-            codeword += sum([ivec[j+row*m]*A[j] for j in xrange(m)])*g
+            codeword += sum(ivec[j+row*m]*A[j] for j in range(m)) * g
             row += 1
 
         # The codewords for a specific code can not change. So, we set them
@@ -2359,6 +2355,12 @@ class AbstractLinearCode(Module):
         distance is found, then the stored value will be returned without
         recomputing the minimum distance again.
 
+        .. NOTE::
+
+            When using GAP, this raises a ``NotImplementedError`` if
+            the base field of the code has size greater than 256 due
+            to limitations in GAP.
+
         INPUT:
 
         - ``algorithm`` - Method to be used, ``None``, ``"gap"``, or
@@ -2405,6 +2407,15 @@ class AbstractLinearCode(Module):
             Traceback (most recent call last):
             ...
             ValueError: The algorithm argument must be one of None, 'gap' or 'guava'; got 'something'
+
+        The field must be size at most 256::
+
+            sage: C = codes.random_linear_code(GF(257,"a"), 5, 2)
+            sage: C.minimum_distance()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the GAP algorithm that Sage is using
+             is limited to computing with fields of size at most 256
         """
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
@@ -2415,6 +2426,11 @@ class AbstractLinearCode(Module):
 
         F = self.base_ring()
         q = F.order()
+        if q > 256:
+            raise NotImplementedError("the GAP algorithm that Sage is using "
+                                      "is limited to computing with fields "
+                                      "of size at most 256")
+
         G = self.generator_matrix()
         n = self.length()
         k = self.dimension()
@@ -2562,7 +2578,7 @@ class AbstractLinearCode(Module):
         k = len(G.rows())
         if "gap" in algorithm:
             gap.load_package('guava')
-            wts = self.spectrum()                                            # bottleneck 1
+            wts = self.weight_distribution()                          # bottleneck 1
             nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
             Sn = SymmetricGroup(n)
             Gp = gap("SymmetricGroup(%s)"%n)               # initializing G in gap
@@ -2753,6 +2769,21 @@ class AbstractLinearCode(Module):
         """
         return self.minimum_distance() / self.length()
 
+
+    def rate(self):
+        r"""
+        Return the ratio of the number of information symbols to
+        the code length.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: C.rate()
+            4/7
+        """
+        return self.dimension() / self.length()
+
+
     def redundancy_matrix(self):
         r"""
         Returns the non-identity columns of a systematic generator matrix for
@@ -2812,8 +2843,9 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        .. [D] \I. Duursma, "Extremal weight enumerators and ultraspherical
-           polynomials"
+        .. [D] \I. Duursma
+           "Extremal weight enumerators and ultraspherical polynomials"
+           Discrete Mathematics 268 (1), 103-127
 
         EXAMPLES::
 
@@ -2865,11 +2897,6 @@ class AbstractLinearCode(Module):
 
         - The polynomial `Q(T)` as in Duursma [D]_
 
-        REFERENCES:
-
-        - [D] - I. Duursma, "Extremal weight enumerators and ultraspherical
-          polynomials"
-
         EXAMPLES::
 
             sage: C1 = codes.HammingCode(GF(2), 3)
@@ -2890,14 +2917,14 @@ class AbstractLinearCode(Module):
         d0 = self.divisor()
         if i==1 or i==2:
             if d>d0:
-                c0 = QQ((n-d)*rising_factorial(d-d0,d0+1)*self.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
+                c0 = QQ((n-d)*rising_factorial(d-d0,d0+1)*self.weight_distribution()[d])/rising_factorial(n-d0-1,d0+2)
             else:
-                c0 = QQ((n-d)*self.spectrum()[d])/rising_factorial(n-d0-1,d0+2)
+                c0 = QQ((n-d)*self.weight_distribution()[d])/rising_factorial(n-d0-1,d0+2)
         if i==3 or i==4:
             if d>d0:
-                c0 = rising_factorial(d-d0,d0+1)*self.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
+                c0 = rising_factorial(d-d0,d0+1)*self.weight_distribution()[d]/((q-1)*rising_factorial(n-d0,d0+1))
             else:
-                c0 = self.spectrum()[d]/((q-1)*rising_factorial(n-d0,d0+1))
+                c0 = self.weight_distribution()[d]/((q-1)*rising_factorial(n-d0,d0+1))
         v, m = self.sd_duursma_data(i, warn=False)
         if m<0 or v<0:
             raise NotImplementedError("This combination of length and minimum distance is not supported.")
@@ -2959,11 +2986,6 @@ class AbstractLinearCode(Module):
             sage: C = LinearCode(G)  # the "hexacode"
             sage: C.sd_zeta_polynomial(4)
             1
-
-        REFERENCES:
-
-        - [D] I. Duursma, "Extremal weight enumerators and ultraspherical
-          polynomials"
         """
         deprecation(21165, "AbstractLinearCode.sd_zeta_polynomial() will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() instead")
         if not self.base_field().cardinality() <= 4:
@@ -2993,7 +3015,7 @@ class AbstractLinearCode(Module):
         constructed is actually only isomorphic to the shortened code defined
         in this way.
 
-        By Theorem 1.5.7 in [HP], `C_L` is `((C^\perp)^L)^\perp`. This is used
+        By Theorem 1.5.7 in [HP]_, `C_L` is `((C^\perp)^L)^\perp`. This is used
         in the construction below.
 
         INPUT:
@@ -3017,7 +3039,7 @@ class AbstractLinearCode(Module):
     @cached_method
     def weight_distribution(self, algorithm=None):
         r"""
-        Returns the weight distribution, or spectrum of ``self`` as a list.
+        Returns the weight distribution, or spectrum, of ``self`` as a list.
 
         The weight distribution a code of length `n` is the sequence `A_0,
         A_1,..., A_n` where `A_i` is the number of codewords of weight `i`.
@@ -3103,7 +3125,7 @@ class AbstractLinearCode(Module):
             # version of the Guava libraries, so gives us the location of the Guava binaries too.
             guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
-            input = code2leon(self) + "::code"
+            input = _dump_code_in_leon_format(self) + "::code"
             import os
             import subprocess
             lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
@@ -3181,7 +3203,7 @@ class AbstractLinearCode(Module):
     def support(self):
         r"""
         Returns the set of indices `j` where `A_j` is nonzero, where
-        spectrum(self) = `[A_0,A_1,...,A_n]`.
+        `A_j` is the number of codewords in `self` of Hamming weight `j`.
 
         OUTPUT:
 
@@ -3190,7 +3212,7 @@ class AbstractLinearCode(Module):
         EXAMPLES::
 
             sage: C = codes.HammingCode(GF(2), 3)
-            sage: C.spectrum()
+            sage: C.weight_distribution()
             [1, 0, 0, 7, 7, 0, 0, 1]
             sage: C.support()
             [0, 3, 4, 7]
@@ -3198,7 +3220,7 @@ class AbstractLinearCode(Module):
         n = self.length()
         F = self.base_ring()
         V = VectorSpace(F,n+1)
-        return V(self.spectrum()).support()
+        return V(self.weight_distribution()).support()
 
     def syndrome(self, r):
         r"""
@@ -3281,23 +3303,31 @@ class AbstractLinearCode(Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.unencode(c, nocheck)
 
-    def weight_enumerator(self, names="xy", name2=None):
+    def weight_enumerator(self, names=None, name2=None, bivariate=True):
         """
-        Returns the weight enumerator of the code.
+        Return the weight enumerator polynomial of ``self``.
+
+        This is the bivariate, homogeneous polynomial in `x` and `y` whose
+        coefficient to `x^i y^{n-i}` is the number of codewords of `self` of
+        Hamming weight `i`. Here, `n` is the length of `self`.
 
         INPUT:
 
-        - ``names`` - String of length 2, containing two variable names
-          (default: ``"xy"``). Alternatively, it can be a variable name or
-          a string, or a tuple of variable names or strings.
+        - ``names`` - (default: ``"xy"``) The names of the variables in the
+          homogeneous polynomial. Can be given as a single string of length 2,
+          or a single string with a comma, or as a tuple or list of two strings.
 
-        - ``name2`` - string or symbolic variable (default: ``None``).
-          If ``name2`` is provided then it is assumed that ``names``
-          contains only one variable.
+        - ``name2`` - Deprecated, (default: ``None``) The string name of the
+          second variable.
+
+        - ``bivariate`` - (default: `True`) Whether to return a bivariate,
+          homogeneous polynomial or just a univariate polynomial. If set to
+          ``False``, then ``names`` will be interpreted as a single variable
+          name and default to ``"x"``.
 
         OUTPUT:
 
-        - Polynomial over `\QQ`
+        - The weight enumerator polynomial over `\ZZ`.
 
         EXAMPLES::
 
@@ -3306,24 +3336,34 @@ class AbstractLinearCode(Module):
             x^7 + 7*x^4*y^3 + 7*x^3*y^4 + y^7
             sage: C.weight_enumerator(names="st")
             s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
+            sage: C.weight_enumerator(names="var1, var2")
+            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: (var1, var2) = var('var1, var2')
-            sage: C.weight_enumerator((var1, var2))
+            sage: C.weight_enumerator(names=(var1, var2))
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-            sage: C.weight_enumerator(var1, var2)
-            var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-
+            sage: C.weight_enumerator(bivariate=False)
+            x^7 + 7*x^4 + 7*x^3 + 1
         """
-        if name2 is not None:
-            # We assume that actual variable names or strings are provided
-            # for names if names2 is also provided. That is, names is not
-            # a tuple or a list. Otherwise, PolynomialRing will return error
-            names = (names, name2)
-        spec = self.spectrum()
+        if names is None:
+            if bivariate:
+                names = "xy"
+            else:
+                names = "x"
+        else:
+            if name2 is not None:
+                from sage.misc.superseded import deprecation
+                deprecation(21576, "Optional argument name2 is deprecated. You should just give a tuple to `names`.")
+                names = (names, name2)
+        spec = self.weight_distribution()
         n = self.length()
-        R = PolynomialRing(QQ,2,names)
-        x,y = R.gens()
-        we = sum([spec[i]*x**(n-i)*y**i for i in range(n+1)])
-        return we
+        if bivariate:
+            R = PolynomialRing(ZZ,2,names)
+            x,y = R.gens()
+            return sum(spec[i]*x**(n-i)*y**i for i in range(n+1))
+        else:
+            R = PolynomialRing(ZZ,names)
+            x, = R.gens()
+            return sum(spec[i]*x**(n-i) for i in range(n+1))
 
     @cached_method
     def zero(self):
@@ -3362,7 +3402,7 @@ class AbstractLinearCode(Module):
             sage: C = codes.HammingCode(GF(2), 3)
             sage: C.zeta_polynomial()
             2/5*T^2 + 2/5*T + 1/5
-            sage: C = best_known_linear_code(6,3,GF(2))  # optional - gap_packages (Guava package)
+            sage: C = codes.databases.best_linear_code_in_guava(6,3,GF(2))  # optional - gap_packages (Guava package)
             sage: C.minimum_distance()                   # optional - gap_packages (Guava package)
             3
             sage: C.zeta_polynomial()                    # optional - gap_packages (Guava package)
@@ -3379,8 +3419,8 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        - I. Duursma, "From weight enumerators to zeta functions", in
-          Discrete Applied Mathematics, vol. 111, no. 1-2, pp. 55-73, 2001.
+        .. [Du01] \I. Duursma, "From weight enumerators to zeta functions", in
+           Discrete Applied Mathematics, vol. 111, no. 1-2, pp. 55-73, 2001.
         """
         n = self.length()
         q = (self.base_ring()).order()
@@ -3432,8 +3472,6 @@ class AbstractLinearCode(Module):
         RT = PolynomialRing(QQ,"%s"%name)
         T = RT.gen()
         return P/((1-T)*(1-q*T))
-
-    weight_distribution = spectrum
 
 def LinearCodeFromVectorSpace(V, d=None):
     """
@@ -3973,7 +4011,7 @@ class LinearCodeSystematicEncoder(Encoder):
 
 
     We exemplify how to use :class:`LinearCodeSystematicEncoder` as the default
-    encoder. The following class is the dual of the repitition code::
+    encoder. The following class is the dual of the repetition code::
 
         sage: class DualRepetitionCode(sage.coding.linear_code.AbstractLinearCode):
         ....:   def __init__(self, field, length):

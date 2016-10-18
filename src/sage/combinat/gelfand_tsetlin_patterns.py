@@ -37,6 +37,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
@@ -784,7 +785,7 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
                             yield self.element_class(self, list(x))
                     n += 1
                 return
-            for x in xrange(self._k+1):
+            for x in range(self._k+1):
                 yield self.element_class(self, [[x]])
             n = 2
             while not self._strict or n <= self._k+1:
@@ -799,7 +800,7 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
             return
         if self._n == 1:
             if self._k is not None:
-                for x in xrange(self._k+1):
+                for x in range(self._k+1):
                     yield self.element_class(self, [[x]])
             else:
                 k = 1

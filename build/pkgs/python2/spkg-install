@@ -56,6 +56,10 @@ if [ "$UNAME" = Darwin ]; then
     mkdir "$CUR"/include
     cp -rp "${xcode}"/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr/include/openssl "$CUR"/include
     export CFLAGS="-I$CUR/include"
+    if [ $MACOSX_VERSION -ge 16 ]; then
+        echo "OS X 10.$[$MACOSX_VERSION-4] Building with clang."
+        CC=clang
+    fi
 elif [ "$UNAME" = SunOS ]; then
     # Enable some C99 features on Solaris. This in particular enables
     # the isinf() and isfinite() functions. It works both for C and

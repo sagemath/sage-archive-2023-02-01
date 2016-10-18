@@ -8,6 +8,8 @@ AUTHORS:
 - Tomas Kalvoda (2015-04-01): Add :meth:`exp_polar()` (:trac:`18085`)
 
 """
+from six.moves import range
+
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
 from sage.symbolic.constants import pi as const_pi
@@ -95,6 +97,8 @@ class Function_exp(GinacFunction):
             \left(e^{\sqrt{x}}\right)^{x}
             sage: latex(exp(sqrt(x)^x))
             e^{\left(\sqrt{x}^{x}\right)}
+            sage: exp(x)._sympy_()
+            exp(x)
 
         Test conjugates::
 
@@ -183,6 +187,8 @@ class Function_log(GinacFunction):
             \log\left(x\right)
             sage: latex(log(1/4))
             \log\left(\frac{1}{4}\right)
+            sage: log(x)._sympy_()
+            log(x)
             sage: loads(dumps(ln(x)+1))
             log(x) + 1
 
@@ -398,6 +404,8 @@ class Function_polylog(GinacFunction):
 
             sage: latex(polylog(5, x))
             {\rm Li}_{5}(x)
+            sage: polylog(x, x)._sympy_()
+            polylog(x, x)
 
         TESTS:
 
@@ -599,12 +607,15 @@ class Function_lambert_w(BuiltinFunction):
 
             sage: lambert_w(0, 1.0)
             0.567143290409784
+            sage: lambert_w(x, x)._sympy_()
+            LambertW(x, x)
         """
         BuiltinFunction.__init__(self, "lambert_w", nargs=2,
                                  conversions={'mathematica': 'ProductLog',
                                               'maple': 'LambertW',
                                               'matlab': 'lambertw',
-                                              'maxima': 'generalized_lambert_w'})
+                                              'maxima': 'generalized_lambert_w',
+                                              'sympy': 'LambertW'})
 
     def __call__(self, *args, **kwds):
         r"""
@@ -1015,8 +1026,11 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
             sage: loads(dumps(harmonic_number(x,5)))
             harmonic_number(x, 5)
+            sage: harmonic_number(x, x)._sympy_()
+            harmonic(x, x)
         """
-        BuiltinFunction.__init__(self, "harmonic_number", nargs=2)
+        BuiltinFunction.__init__(self, "harmonic_number", nargs=2,
+                conversions={'sympy':'harmonic'})
 
     def __call__(self, z, m=1, **kwds):
         r"""
@@ -1065,7 +1079,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             return harmonic_m1._eval_(z)
 
         if z in ZZ and z >= 0:
-            return sum(1/(k**m) for k in xrange(1,z+1))
+            return sum(1 / (k ** m) for k in range(1, z + 1))
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
         """
@@ -1198,11 +1212,14 @@ class Function_harmonic_number(BuiltinFunction):
             sage: k=var('k')
             sage: loads(dumps(sum(1/k,k,1,x)))
             harmonic_number(x)
+            sage: harmonic_number(x)._sympy_()
+            harmonic(x)
         """
         BuiltinFunction.__init__(self, "harmonic_number", nargs=1,
                                  conversions={'mathematica':'HarmonicNumber',
                                               'maple':'harmonic',
-                                              'maxima':'harmonic_number'})
+                                              'maxima':'harmonic_number',
+                                              'sympy':'harmonic'})
 
     def _eval_(self, z, **kwds):
         """

@@ -156,7 +156,7 @@ protected:
 	{
 		return 0;
 	}
-        void useries(fmpq_poly_t& fp, int order) const override;
+        void useries(flint_series_t& fp, int order) const override;
 	bool is_equal_same_type(const basic &other) const override;
 	long calchash() const override;
 

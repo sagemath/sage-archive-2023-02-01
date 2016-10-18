@@ -23,6 +23,7 @@
 
 #include "pseries.h"
 #include "useries.h"
+#include "useries-flint.h"
 #include "add.h"
 #include "inifcns.h" // for Order function
 #include "lst.h"

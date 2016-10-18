@@ -24,6 +24,7 @@
 #define __PYNAC_USERIES_CPP__
 
 #include "useries.h"
+#include "useries-flint.h"
 #include "add.h"
 #include "mul.h"
 #include "power.h"
@@ -32,13 +33,6 @@
 #include "relational.h"
 #include "inifcns.h"
 #include "utils.h"
-
-#include "gmp.h"
-#include "flint/fmpq_poly.h"
-#include "flint/fmpq.h"
-
-extern "C" void fmpq_get_mpz_frac(mpz_t a, mpz_t b, fmpq_t c);
-extern "C" void fmpq_init_set_mpz_frac_readonly(fmpq_t z, const mpz_t p, const mpz_t q);
 
 #include <unordered_map>
 
@@ -67,76 +61,76 @@ static void check_poly_ccoeff_one(fmpq_poly_t fp)
         fmpq_clear(c);
 }
 
-static void exp_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void exp_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_exp_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_exp_series(fp.ft, arg.ft, order);
 }
 
-static void log_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void log_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_one(arg);
-        fmpq_poly_log_series(fp, arg, order);
+        check_poly_ccoeff_one(arg.ft);
+        fmpq_poly_log_series(fp.ft, arg.ft, order);
 }
 
-static void sin_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void sin_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_sin_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_sin_series(fp.ft, arg.ft, order);
 }
 
-static void cos_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void cos_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_cos_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_cos_series(fp.ft, arg.ft, order);
 }
 
-static void tan_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void tan_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_tan_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_tan_series(fp.ft, arg.ft, order);
 }
 
-static void sinh_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void sinh_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_sinh_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_sinh_series(fp.ft, arg.ft, order);
 }
 
-static void cosh_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void cosh_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_cosh_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_cosh_series(fp.ft, arg.ft, order);
 }
 
-static void tanh_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void tanh_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_tanh_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_tanh_series(fp.ft, arg.ft, order);
 }
 
-static void asin_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void asin_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_asin_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_asin_series(fp.ft, arg.ft, order);
 }
 
-static void asinh_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void asinh_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_asinh_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_asinh_series(fp.ft, arg.ft, order);
 }
 
-static void atan_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void atan_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_atan_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_atan_series(fp.ft, arg.ft, order);
 }
 
-static void atanh_useries(fmpq_poly_t& fp, fmpq_poly_t& arg, int order)
+static void atanh_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_atanh_series(fp, arg, order);
+        check_poly_ccoeff_zero(arg.ft);
+        fmpq_poly_atanh_series(fp.ft, arg.ft, order);
 }
 
 using usfun_t = decltype(exp_useries);
@@ -215,45 +209,41 @@ bool useries_can_handle(ex the_ex) {
 ex useries(ex the_ex, const relational & r, int order, unsigned options)
 {
         symbol x = ex_to<symbol>(r.lhs());
-        fmpq_poly_t fp;
-        fmpq_poly_init(fp);
-        fmpq_poly_set_ui(fp, 0);
+        flint_series_t fp;
+        fmpq_poly_set_ui(fp.ft, 0);
         the_ex.useries(fp, order);
         epvector epv;
 
         for (slong n=0; n<order; n++) {
                 fmpq_t c;
                 fmpq_init(c);
-                fmpq_poly_get_coeff_fmpq(c, fp, n);
+                fmpq_poly_get_coeff_fmpq(c, fp.ft, n);
                 if (not fmpq_is_zero(c)) {
                         mpq_t gc;
                         mpq_init(gc);
                         fmpq_get_mpq(gc, c);
                         numeric nc(gc); // numeric clears gc
-                        epv.push_back(expair(nc, numeric(n)));
+                        epv.push_back(expair(nc, numeric(n + fp.offset)));
                 }
                 fmpq_clear(c);
         }
-        fmpq_poly_clear(fp);
-        epv.push_back(expair(Order(_ex1), order));
+        epv.push_back(expair(Order(_ex1), order + fp.offset));
         return pseries(r, epv);
 }
 
-void symbol::useries(fmpq_poly_t& fp, int order) const
+void symbol::useries(flint_series_t& fp, int order) const
 {
-        fmpq_poly_set_str(fp, "2  0 1");
+        fmpq_poly_set_str(fp.ft, "2  0 1");
 }
 
-void add::useries(fmpq_poly_t& fp, int order) const
+void add::useries(flint_series_t& fp, int order) const
 {
-        fmpq_poly_set_ui(fp, 0);
+        fmpq_poly_set_ui(fp.ft, 0);
         for (const auto & elem : seq) {
 		const ex& t = recombine_pair_to_ex(elem);
-                fmpq_poly_t fp1;
-                fmpq_poly_init(fp1);
+                flint_series_t fp1;
                 t.useries(fp1, order);
-                fmpq_poly_add(fp, fp, fp1);
-                fmpq_poly_clear(fp1);
+                fmpq_poly_add(fp.ft, fp.ft, fp1.ft);
         }
         ex ovcoeff = op(nops());
         if (not is_exactly_a<numeric>(ovcoeff))
@@ -262,26 +252,22 @@ void add::useries(fmpq_poly_t& fp, int order) const
         if (oc.is_zero())
                 return;
 
-        fmpq_poly_t fp1;
-        fmpq_poly_init(fp1);
+        flint_series_t fp1;
         if (oc.is_mpz())
-                fmpq_poly_set_mpz(fp1, oc.as_mpz());
+                fmpq_poly_set_mpz(fp1.ft, oc.as_mpz());
         else
-                fmpq_poly_set_mpq(fp1, oc.as_mpq());
-        fmpq_poly_add(fp, fp, fp1);
-        fmpq_poly_clear(fp1);
+                fmpq_poly_set_mpq(fp1.ft, oc.as_mpq());
+        fmpq_poly_add(fp.ft, fp.ft, fp1.ft);
 }
 
-void mul::useries(fmpq_poly_t& fp, int order) const
+void mul::useries(flint_series_t& fp, int order) const
 {
-        fmpq_poly_set_ui(fp, 1);
+        fmpq_poly_set_ui(fp.ft, 1);
         for (const auto & elem : seq) {
 		const ex& t = recombine_pair_to_ex(elem);
-                fmpq_poly_t fp1;
-                fmpq_poly_init(fp1);
+                flint_series_t fp1;
                 t.useries(fp1, order);
-                fmpq_poly_mullow(fp, fp, fp1, order+2);
-                fmpq_poly_clear(fp1);
+                fmpq_poly_mullow(fp.ft, fp.ft, fp1.ft, order+2);
         }
         ex ovcoeff = op(nops());
         if (not is_exactly_a<numeric>(ovcoeff))
@@ -291,22 +277,20 @@ void mul::useries(fmpq_poly_t& fp, int order) const
                 return;
 
         if (oc.is_mpz())
-                fmpq_poly_scalar_mul_mpz(fp, fp, oc.as_mpz());
+                fmpq_poly_scalar_mul_mpz(fp.ft, fp.ft, oc.as_mpz());
         else
-                fmpq_poly_scalar_mul_mpq(fp, fp, oc.as_mpq());
+                fmpq_poly_scalar_mul_mpq(fp.ft, fp.ft, oc.as_mpq());
 }
 
-void power::useries(fmpq_poly_t& fp, int order) const
+void power::useries(flint_series_t& fp, int order) const
 {
-        fmpq_poly_t fp1;
-        fmpq_poly_init(fp1);
+        flint_series_t fp1;
         basis.useries(fp1, order);
         if (not is_exactly_a<numeric>(exponent)) {
-                fmpq_poly_log_series(fp1, fp1, order);
+                fmpq_poly_log_series(fp1.ft, fp1.ft, order);
                 exponent.useries(fp, order);
-                fmpq_poly_mullow(fp, fp, fp1, order+2);
-                fmpq_poly_exp_series(fp, fp, order);
-                fmpq_poly_clear(fp1);
+                fmpq_poly_mullow(fp.ft, fp.ft, fp1.ft, order+2);
+                fmpq_poly_exp_series(fp.ft, fp.ft, order);
                 return;
         }
         numeric nexp = ex_to<numeric>(exponent);
@@ -316,7 +300,7 @@ void power::useries(fmpq_poly_t& fp, int order) const
                 if (den == 2) { // exponent of form n/2
                         fmpq_t c;
                         fmpq_init(c);
-                        fmpq_poly_get_coeff_fmpq(c, fp1, 0);
+                        fmpq_poly_get_coeff_fmpq(c, fp1.ft, 0);
                         mpz_t cnum, cden;
                         mpz_init(cnum);
                         mpz_init(cden);
@@ -331,61 +315,54 @@ void power::useries(fmpq_poly_t& fp, int order) const
                         mpz_clear(cnum);
                         mpz_clear(cden);
 
-                        fmpq_poly_scalar_div_fmpq(fp1, fp1, c);
-                        fmpq_poly_sqrt_series(fp1, fp1, order);
-                        fmpq_poly_scalar_mul_fmpq(fp1, fp1, cc);
+                        fmpq_poly_scalar_div_fmpq(fp1.ft, fp1.ft, c);
+                        fmpq_poly_sqrt_series(fp1.ft, fp1.ft, order);
+                        fmpq_poly_scalar_mul_fmpq(fp1.ft, fp1.ft, cc);
                         if (num > 0)
-                                fmpq_poly_pow(fp, fp1, num);
+                                fmpq_poly_pow(fp.ft, fp1.ft, num);
                         else {
-                                fmpq_poly_inv_series(fp1, fp1, order);
-                                fmpq_poly_pow(fp, fp1, -num);
+                                fmpq_poly_inv_series(fp1.ft, fp1.ft, order);
+                                fmpq_poly_pow(fp.ft, fp1.ft, -num);
                         }
                         fmpq_clear(c);
-                        fmpq_poly_clear(fp1);
                         return;
                 }
-                fmpq_poly_log_series(fp1, fp1, order);
-                fmpq_poly_scalar_mul_mpq(fp1, fp1, nexp.as_mpq());
-                fmpq_poly_exp_series(fp, fp1, order);
-                fmpq_poly_clear(fp1);
+                fmpq_poly_log_series(fp1.ft, fp1.ft, order);
+                fmpq_poly_scalar_mul_mpq(fp1.ft, fp1.ft, nexp.as_mpq());
+                fmpq_poly_exp_series(fp.ft, fp1.ft, order);
                 return;
         }
         // integer exponent
         int expint = nexp.to_int();
         if (expint > 0) {
-                fmpq_poly_pow(fp, fp1, expint);
-                fmpq_poly_clear(fp1);
+                fmpq_poly_pow(fp.ft, fp1.ft, expint);
                 return;
         }
         else if (expint < 0) {
-                check_poly_ccoeff_one(fp1);
-                fmpq_poly_inv_series(fp1, fp1, order);
-                fmpq_poly_pow(fp, fp1, -expint);
-                fmpq_poly_clear(fp1);
+                check_poly_ccoeff_one(fp1.ft);
+                fmpq_poly_inv_series(fp1.ft, fp1.ft, order);
+                fmpq_poly_pow(fp.ft, fp1.ft, -expint);
                 return;
         }
-        fmpq_poly_set_str(fp, "1 1");
-        fmpq_poly_clear(fp1);
+        fmpq_poly_set_str(fp.ft, "1 1");
 }
 
-void function::useries(fmpq_poly_t& fp, int order) const
+void function::useries(flint_series_t& fp, int order) const
 {
         auto search = funcmap.find(serial);
         if (search == funcmap.end())
                 throw std::runtime_error("can't happen in function::useries");
-        fmpq_poly_t fp1;
-        fmpq_poly_init(fp1);
+        flint_series_t fp1;
         seq[0].useries(fp1, order);
         (*search->second)(fp, fp1, order);
-        fmpq_poly_clear(fp1);
 }
 
-void numeric::useries(fmpq_poly_t& fp, int order) const
+void numeric::useries(flint_series_t& fp, int order) const
 {
         if (is_mpz())
-                fmpq_poly_set_mpz(fp, as_mpz());
+                fmpq_poly_set_mpz(fp.ft, as_mpz());
         else
-                fmpq_poly_set_mpq(fp, as_mpq());
+                fmpq_poly_set_mpq(fp.ft, as_mpq());
 }
 
 } // namespace GiNaC

@@ -1,6 +1,6 @@
 /** @file useries.h
  *
- *  Interface to class for extended truncated univariate power series. */
+ *  Special declarations for flint series. */
 
 /*
  *  Copyright (C) 2016  Ralf Stephan <ralf@ark.in-berlin.de>
@@ -20,18 +20,34 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef __PYNAC_USERIES_H__
-#define __PYNAC_USERIES_H__
+#ifndef __PYNAC_USERIES_FLINT_H__
+#define __PYNAC_USERIES_FLINT_H__
 
-#include "pseries.h"
-#include "expairseq.h"
+#include "gmp.h"
+#include "flint/fmpq_poly.h"
+#include "flint/fmpq.h"
+
+extern "C" void fmpq_get_mpz_frac(mpz_t a, mpz_t b, fmpq_t c);
+extern "C" void fmpq_init_set_mpz_frac_readonly(fmpq_t z, const mpz_t p, const mpz_t q);
+
+#include <stdexcept>
 
 
 namespace GiNaC {
 
-bool useries_can_handle(ex the_ex);
-ex useries(ex the_ex, const relational & r, int order, unsigned options = 0);
+class flint_error : public std::runtime_error {
+    public:
+        flint_error() : std::runtime_error("") {}
+};
+
+class flint_series_t {
+    public:
+        flint_series_t() : offset(0) { fmpq_poly_init(ft); }
+        ~flint_series_t() { fmpq_poly_clear(ft); }
+        int offset;
+        fmpq_poly_t ft;
+};
 
 } // namespace GiNaC
 
-#endif // ndef __PYNAC_USERIES_H__
+#endif // ndef __PYNAC_USERIES_FLINT_H__

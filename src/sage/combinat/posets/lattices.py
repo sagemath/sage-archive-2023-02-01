@@ -2238,7 +2238,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L2.upper_covers((1, 0))
             [(2, 0), ('a', 0), ('b', 0)]
             sage: L2.upper_covers(('b', 0))
-             [('d', 0), ('b', 1), ('c', 0)]
+            [('d', 0), ('b', 1), ('c', 0)]
 
         TESTS::
 

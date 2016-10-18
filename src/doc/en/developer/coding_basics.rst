@@ -1073,7 +1073,7 @@ Global options for classes can be defined in Sage using
 Miscellanous minor things
 =========================
 
-Some decisions are arbitrary, but common convention make life easier.
+Some decisions are arbitrary, but common conventions make life easier.
 
 * Non-ASCII names in identifiers:
 

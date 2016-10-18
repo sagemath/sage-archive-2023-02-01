@@ -517,6 +517,39 @@ class GrowthDiagram(SageObject):
                                    for j in range(self._lambda[r]-self._mu[r])]
                                   for r in range(len(self._lambda))][::-1]])._repr_diagram()
 
+    def __eq__(self, other):
+        r"""
+        Return True if the other growth diagram has the same shape
+        and the same filling.
+
+        EXAMPLES:
+
+        Equality ignores zeros in fillings::
+
+            sage: G1 = GrowthDiagramRSK({(0, 1): 1, (1, 0): 1})
+            sage: G2 = GrowthDiagramRSK({(0, 0): 0, (0, 1): 1, (1, 0): 1})
+            sage: G1 == G2
+            True
+
+        Growth diagrams with different shapes are different::
+
+            sage: G1 = GrowthDiagramRSK([[0,1,0],[1,0]])
+            sage: G2 = GrowthDiagramRSK([[0,1,0],[1]])
+            sage: G1 == G2
+            False
+
+        Growth diagrams with different rules are different::
+
+            sage: G1 = GrowthDiagramRSK({(0, 1): 1, (1, 0): 1})
+            sage: G2 = GrowthDiagramBinWord({(0, 1): 1, (1, 0): 1})
+            sage: G1 == G2
+            False
+        """
+        return (self.parent() == other.parent() and
+                self._lambda == other._lambda and
+                self._mu == other._mu and
+                self._filling == other._filling)
+
     def _half_perimeter(self):
         r"""
         Return half the perimeter of the shape of the growth diagram.
@@ -750,11 +783,11 @@ class GrowthDiagram(SageObject):
                                 F[(i,j)] = int(v)
                 else:
                     # it is dict of coordinates
-                    F = filling
+                    F = {(i,j): v for ((i,j), v) in filling.iteritems()
+                         if v != 0}
             except StopIteration:
                 # it is an empty dict of coordinates
                 F = filling
-
 
         else:
             # it is a sequence

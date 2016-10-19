@@ -263,7 +263,16 @@ class Function_cot(GinacFunction):
             sage: diff(cot(x), x)
             -cot(x)^2 - 1
 
-        TESTS:
+        TESTS::
+
+            sage: cot(float(0))
+            Infinity
+            sage: cot(SR(0))
+            Infinity
+            sage: cot(float(0.1))
+            9.966644423259238
+            sage: type(_)
+            <type 'float'>
 
         Test complex input::
 
@@ -885,16 +894,12 @@ class Function_arctan2(GinacFunction):
             sage: arctan2(0, -log(2)).n()
             3.14159265358979
 
-        Check if atan2(0,0) throws error of :trac:`11423`::
+        Check that atan2(0,0) returns NaN :trac:`21614`::
 
             sage: atan2(0,0)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: arctan2_eval(): arctan2(0,0) encountered
-
+            NaN
             sage: atan2(0,0,hold=True)
             arctan2(0, 0)
-
             sage: atan2(0,0,hold=True).n()
             Traceback (most recent call last):
             ...

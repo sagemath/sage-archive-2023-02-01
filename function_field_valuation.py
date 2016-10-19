@@ -303,6 +303,26 @@ class ClassicalRationalFunctionFieldValuation_base(RationalFunctionFieldValuatio
         sage: TestSuite(v).run()
 
     """
+    def _test_classical_residue_field(self, **options):
+        r"""
+        Check correctness of the residue field of a discrete valuation at a
+        classical point.
+
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, x^2 + 1)
+            sage: v._test_classical_residue_field()
+
+        """
+        tester = self._tester(**options)
+
+        try:
+            tester.assertTrue(self.domain().constant_field().is_subring(self.residue_field()))
+        except NotImplementedError:
+            # is_injective is often not implemented by morphisms
+            pass
 
 class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
     r"""

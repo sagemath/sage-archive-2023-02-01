@@ -15,20 +15,20 @@ AUTHORS:
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
 generalisation of the Robinson-Schensted-Knuth correspondence between
 matrices with non-negative integer entries and pairs of semistandard
-Young tableau of the same shape.
+Young tableaux of the same shape.
 
 The main fact is that many correspondences similar to RSK can be
-defined by providing a so-called 'forward' rule that assigns to a
-three given vertices x,y and t of a certain directed graph (in the
-case of Robinson-Schensted: the directed graph corresponding to
+defined by providing a so-called 'forward' rule: a function whose
+input are three vertices x, y and t of a certain directed graph (in
+the case of Robinson-Schensted: the directed graph corresponding to
 Young's lattice) and an integer (in the case of Robinson-Schensted:
-zero or one) a fourth vertex z.  This rule should be invertible in
-the following sense: there is a so-called 'backward' rule that
-recovers the integer and t given z,x and y.
+zero or one), and whose output is a fourth vertex z.  This rule
+should be invertible in the following sense: there is a so-called
+'backward' rule that recovers the integer and t given z, x and y.
 
 The classical Robinson-Schensted-Knuth correspondence is provided by
 :class:`GrowthDiagramRSK`.  Note that a growth diagram is printed
-with matrix coordinates, the origin is in the top-left corner::
+with matrix coordinates, the origin being in the top-left corner::
 
     sage: w = [2,3,6,1,4,5]; G = GrowthDiagramRSK(w); G
     0  0  0  1  0  0
@@ -62,7 +62,7 @@ origin are obtained by using the method
 
 However, in the case of a rectangular filling, it is more practical
 to split this sequence of labels in two.  We then obtain the `P` and
-`Q` symbol::
+`Q` symbols::
 
     sage: [G.P_symbol(), G.Q_symbol()]
     [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
@@ -79,7 +79,7 @@ generalised permutation::
     1 2 4
     4 2 3
 
-as a dictionary of coordinates, subtracting one from all entries
+as a dictionary of coordinates, subtracting `1` from all entries
 because lists in SageMath are zero-based::
 
     sage: w = {(1-1,4-1):1, (2-1,2-1):1, (4-1,3-1):1}
@@ -124,7 +124,7 @@ particular, we have implemented local rules for the variation of RSK
 originally due to Burge (:class:`GrowthDiagramBurge`), a
 correspondence producing binary words originally due to Viennot
 (:class:`GrowthDiagramBinWord`), and a correspondence producing
-domino tableau (:class:`GrowthDiagramDomino`) originally due to
+domino tableaux (:class:`GrowthDiagramDomino`) originally due to
 Barbasch and Vogan.
 
 REFERENCES:
@@ -275,10 +275,12 @@ class GrowthDiagram(SageObject):
 
     def conjugate(self):
         r"""
-        Return the growth diagram with the filling reflected on the main
-        diagonal.
+        Return the conjugate growth diagram of ``self``. This is
+        the growth diagram with the filling reflected over the
+        main diagonal.
 
-        When the filling is a permutation, the conjugate filling corresponds to its inverse.
+        When the filling is a permutation, the conjugate filling
+        corresponds to its inverse.
 
         EXAMPLES::
 
@@ -324,7 +326,7 @@ class GrowthDiagram(SageObject):
             In the literature the label on the corner opposite of the
             origin of a rectangular filling is often called the shape
             of the filling.  This method returns the shape of the
-            region.
+            region instead.
 
         EXAMPLES::
 
@@ -519,8 +521,8 @@ class GrowthDiagram(SageObject):
 
     def __eq__(self, other):
         r"""
-        Return True if the other growth diagram has the same shape
-        and the same filling.
+        Return ``True`` if the growth diagram ``other`` has the same
+        shape and the same filling as ``self``.
 
         EXAMPLES:
 

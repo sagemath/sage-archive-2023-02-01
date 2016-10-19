@@ -463,6 +463,8 @@ cdef class PariInstance(PariInstance_auto):
         -  ``maxprime`` -- unsigned long, upper limit on a
            precomputed prime number table (default: 500000)
 
+        For more information about how precision works in the PARI
+        interface, see :mod:`sage.libs.pari.pari_instance`.
 
         .. note::
 

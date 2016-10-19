@@ -511,17 +511,17 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         if L is self.domain():
             return self
         if L in FunctionFields():
-            if L.has_coerce_map_from(K):
+            if K.is_subring(K):
                 if L.base() is K:
                     # L is a simple extension of the domain of this valuation
                     W = self.mac_lane_approximants(L.polynomial(), precision_cap=infinity)
                     if len(W) > 1:
                         raise ValueError("valuation %r on %r does not uniquely extend to %r"%(self, K, L))
                     return FunctionFieldValuation(L, W[0])
-                elif L.base() is not L and L.base().has_coerce_map_from(K):
+                elif L.base() is not L and K.is_subring(L):
                     # recursively call this method for the tower of fields
                     return self.extension(L.base()).extension(L)
-                elif L.constant_field() is not K.constant_field() and L.constant_field().has_coerce_map_from(K.constant_field()):
+                elif L.constant_field() is not K.constant_field() and K.constant_field().is_subring(L):
                     # extend the underlying valuation on the polynomial ring
                     w = self._base_valuation.extension(L._ring)
                     return FunctionFieldValuation(L, w)

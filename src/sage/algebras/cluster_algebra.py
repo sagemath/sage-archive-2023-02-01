@@ -347,7 +347,7 @@ from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
-from six.move import range as xrange
+from six.moves import range as xrange
 
 ##############################################################################
 # Helper functions

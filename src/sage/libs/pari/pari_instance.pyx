@@ -473,9 +473,7 @@ cdef class PariInstance(PariInstance_auto):
            Python/PARI object is computed, it it copied to its own
            space in the Python heap, and the memory it occupied on the
            PARI stack is freed. Thus it is not necessary to make the
-           stack very large. Also, unlike in PARI, if the stack does
-           overflow, in most cases the PARI stack is automatically
-           increased and the relevant step of the computation rerun.
+           stack very large.
 
            This design obviously involves some performance penalties
            over the way PARI works, but it scales much better and is

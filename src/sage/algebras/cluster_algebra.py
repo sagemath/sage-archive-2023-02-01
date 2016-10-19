@@ -347,6 +347,7 @@ from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
+from six.move import range as xrange
 
 ##############################################################################
 # Helper functions
@@ -361,7 +362,7 @@ def _mutation_parse(mutate):
         - mutate at all sinks/sources
 
     Possible things to implement later include:
-        - mutate at a cluster variariable
+        - mutate at a cluster variable
         - mutate at a g-vector (it is hard to distinguish this case from a generic sequence)
         - urban renewals
         - other?
@@ -486,7 +487,7 @@ class ClusterAlgebraElement(ElementWrapper):
         r"""
         Return the quotient of ``self`` and ``other``.
 
-        WARNING:
+        .. WARNING::
 
             The result of a division is not guaranteed to be inside
             meth:`parent` therefore this method does not return an instance of
@@ -553,13 +554,13 @@ def g_vector(self):
         sage: sum(A.initial_cluster_variables()).g_vector()
         Traceback (most recent call last):
         ...
-        ValueError: This element is not homogeneous.
+        ValueError: This element is not homogeneous
     """
     components = self.homogeneous_components()
     if len(components) == 1:
         return components.keys()[0]
     else:
-        raise ValueError("This element is not homogeneous.")
+        raise ValueError("This element is not homogeneous")
 
 def F_polynomial(self):
     r"""
@@ -574,7 +575,7 @@ def F_polynomial(self):
         sage: sum(A.initial_cluster_variables()).F_polynomial()
         Traceback (most recent call last):
         ...
-        ValueError: This element is not homogeneous.
+        ValueError: This element is not homogeneous
     """
     if self.is_homogeneous():
         subs_dict = dict()
@@ -585,7 +586,7 @@ def F_polynomial(self):
             subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
         return self.lift().substitute(subs_dict)
     else:
-        raise ValueError("This element is not homogeneous.")
+        raise ValueError("This element is not homogeneous")
 
 def is_homogeneous(self):
     r"""
@@ -655,7 +656,7 @@ class ClusterAlgebraSeed(SageObject):
         - ``path`` -- a list (default ``[]``): the mutation sequence from the initial
           seed of ``parent`` to ``self``.
 
-        WARNING:
+        .. WARNING::
 
             Seeds should **not** be created manually: no test is performed to
             assert that they are built from consistent data nor that they
@@ -814,7 +815,7 @@ class ClusterAlgebraSeed(SageObject):
         r"""
         Return the length of a mutation sequence from the initial seed of :meth:`parent` to ``self``.
 
-        WARNING:
+        .. WARNING::
 
             This is the length of the mutation sequence returned by
             :meth:`path_from_initial_seed` which need not be the shortest
@@ -840,7 +841,7 @@ class ClusterAlgebraSeed(SageObject):
         r"""
         Return a mutation sequence from the initial seed of :meth:`parent` to ``self``.
 
-        WARNING:
+        .. WARNING::
 
             This is the path used to compute ``self`` and it does not have to
             be the shortest possible.
@@ -1057,12 +1058,12 @@ class ClusterAlgebraSeed(SageObject):
             sage: S.mutate(5)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot mutate in direction 5.
+            ValueError: Cannot mutate in direction 5
         """
         n = self.parent().rk()
 
         if k not in xrange(n):
-            raise ValueError('Cannot mutate in direction ' + str(k) + '.')
+            raise ValueError('Cannot mutate in direction ' + str(k))
 
         # store new mutation path
         if self._path != [] and self._path[-1] == k:
@@ -1088,11 +1089,11 @@ class ClusterAlgebraSeed(SageObject):
 
         # path to new g-vector (we store the shortest encountered so far)
         g_vector = self.g_vector(k)
-        if not self.parent()._path_dict.has_key(g_vector) or len(self.parent()._path_dict[g_vector]) > len(self._path):
+        if not g_vector in self.parent()._path_dict or len(self.parent()._path_dict[g_vector]) > len(self._path):
             self.parent()._path_dict[g_vector] = copy(self._path)
 
         # compute F-polynomials
-        if mutating_F and not self.parent()._F_poly_dict.has_key(g_vector):
+        if mutating_F and not g_vector in self.parent()._F_poly_dict:
             self.parent()._F_poly_dict[g_vector] = self._mutated_F(k, old_g_vector)
 
         # compute new C-matrix
@@ -1504,12 +1505,12 @@ class ClusterAlgebra(Parent):
             sage: A.set_current_seed(B.initial_seed())
             Traceback (most recent call last):
             ...
-            ValueError: This is not a seed in this cluster algebra.
+            ValueError: This is not a seed in this cluster algebra
         """
         if self.contains_seed(seed):
             self._seed = seed
         else:
-            raise ValueError("This is not a seed in this cluster algebra.")
+            raise ValueError("This is not a seed in this cluster algebra")
 
     def contains_seed(self, seed):
         r"""
@@ -1577,7 +1578,7 @@ class ClusterAlgebra(Parent):
 
     def g_vectors(self, mutating_F=True):
         r"""
-        Return an itareator producing all the g-vectors of ``self``.
+        Return an iterator producing all the g-vectors of ``self``.
 
         INPUT:
 
@@ -1615,7 +1616,7 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-        This method does not usethe caching framework provided by ``self`` but
+        This method does not use the caching framework provided by ``self`` but
         recomputes all the cluster variables from scratch. On the other hand it
         stores the results so that other methods like :meth:`cluster_variables_so_far`
         can access them afterwards.
@@ -1710,13 +1711,13 @@ class ClusterAlgebra(Parent):
             sage: A.F_polynomial((-1, 1))
             Traceback (most recent call last):
             ...
-            KeyError: 'The g-vector (-1, 1) has not been found yet.'
+            KeyError: 'The g-vector (-1, 1) has not been found yet'
             sage: A.initial_seed().mutate(0,mutating_F=False)
             sage: A.F_polynomial((-1, 1))
             Traceback (most recent call last):
             ...
-            KeyError: 'The F-polynomial with g-vector (-1, 1) has not been computed yet.
-            You can compute it by mutating from the initial seed along the sequence [0].'
+            KeyError: 'The F-polynomial with g-vector (-1, 1) has not been computed yet;
+            you can compute it by mutating from the initial seed along the sequence [0]'
             sage: A.initial_seed().mutate(0)
             sage: A.F_polynomial((-1, 1))
             u0 + 1
@@ -1726,12 +1727,12 @@ class ClusterAlgebra(Parent):
             return self._F_poly_dict[g_vector]
         except KeyError:
             if g_vector in self._path_dict:
-                msg = "The F-polynomial with g-vector %s has not been computed yet. "%str(g_vector)
-                msg += "You can compute it by mutating from the initial seed along the sequence "
-                msg += str(self._path_dict[g_vector]) + "."
+                msg = "The F-polynomial with g-vector %s has not been computed yet; "%str(g_vector)
+                msg += "you can compute it by mutating from the initial seed along the sequence "
+                msg += str(self._path_dict[g_vector])
                 raise KeyError(msg)
             else:
-                raise KeyError("The g-vector %s has not been found yet."%str(g_vector))
+                raise KeyError("The g-vector %s has not been found yet"%str(g_vector))
 
     def find_g_vector(self, g_vector, depth=infinity):
         r"""
@@ -1761,7 +1762,7 @@ class ClusterAlgebra(Parent):
             sage: A.find_g_vector((1, 1), depth=4)
             Traceback (most recent call last):
             ...
-            ValueError: (1, 1) is not the g-vector of any cluster variable of a Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring.
+            ValueError: (1, 1) is not the g-vector of any cluster variable of a Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
         """
         g_vector = tuple(g_vector)
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
@@ -1777,7 +1778,7 @@ class ClusterAlgebra(Parent):
                 # all the seeds of self and did not find g_vector.
                 # Do some house cleaning before failing
                 self.reset_exploring_iterator()
-                raise ValueError("%s is not the g-vector of any cluster variable of a %s."%(str(g_vector), str(self)[2:]))
+                raise ValueError("%s is not the g-vector of any cluster variable of a %s"%(str(g_vector), str(self)[2:]))
         return copy(self._path_dict.get(g_vector, None))
 
     def ambient(self):
@@ -1863,7 +1864,7 @@ class ClusterAlgebra(Parent):
         if isinstance(self.base(), LaurentPolynomialRing_generic):
             return self.retract(self.base().gen(j))
         else:
-            raise ValueError("generator not defined")
+            raise ValueError("Generator not defined")
 
     def coefficients(self):
         r"""
@@ -2144,7 +2145,7 @@ class ClusterAlgebra(Parent):
         """
         n = self.rk()
         if k not in xrange(n):
-            raise ValueError('Cannot mutate in direction ' + str(k) + '.')
+            raise ValueError('Cannot mutate in direction ' + str(k))
 
         # save computed data
         old_F_poly_dict = copy(self._F_poly_dict)
@@ -2189,7 +2190,7 @@ class ClusterAlgebra(Parent):
             self._path_dict[new_g_vect] = new_path
 
             #compute new F-polynomial
-            if old_F_poly_dict.has_key(old_g_vect):
+            if old_g_vect in old_F_poly_dict:
                 h = -min(0, old_g_vect[k])
                 new_F_poly = old_F_poly_dict[old_g_vect](F_subs)*Ugen[k]**h*(Ugen[k]+1)**old_g_vect[k]
                 self._F_poly_dict[new_g_vect] = new_F_poly
@@ -2211,9 +2212,9 @@ class ClusterAlgebra(Parent):
             sage: A.upper_cluster_algebra()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Not implemented yet.
+            NotImplementedError: Not implemented yet
         """
-        raise NotImplementedError("Not implemented yet.")
+        raise NotImplementedError("Not implemented yet")
 
     def upper_bound(self):
         r"""
@@ -2225,9 +2226,9 @@ class ClusterAlgebra(Parent):
             sage: A.upper_bound()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Not implemented yet.
+            NotImplementedError: Not implemented yet
         """
-        raise NotImplementedError("Not implemented yet.")
+        raise NotImplementedError("Not implemented yet")
 
     def lower_bound(self):
         r"""
@@ -2239,9 +2240,9 @@ class ClusterAlgebra(Parent):
             sage: A.lower_bound()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Not implemented yet.
+            NotImplementedError: Not implemented yet
         """
-        raise NotImplementedError("Not implemented yet.")
+        raise NotImplementedError("Not implemented yet")
 
     def theta_basis_element(self, g_vector):
         r"""
@@ -2253,9 +2254,9 @@ class ClusterAlgebra(Parent):
             sage: A.theta_basis_element((1,0,0,0))
             Traceback (most recent call last):
             ...
-            NotImplementedError: Not implemented yet.
+            NotImplementedError: Not implemented yet
         """
-        raise NotImplementedError("Not implemented yet.")
+        raise NotImplementedError("Not implemented yet")
 
 ####
 # Methods only defined for special cases

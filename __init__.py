@@ -51,6 +51,35 @@ import sage.geometry.newton_polygon
 sage.geometry.newton_polygon.NewtonPolygon_element.principal_part = lambda self: sage.geometry.newton_polygon.NewtonPolygon(self.vertices(), last_slope=0)
 sage.geometry.newton_polygon.NewtonPolygon_element.sides = lambda self: zip(self.vertices(), self.vertices()[1:])
 
+# implement coercion of function fields that comes from coercion of their base fields
+def _coerce_map_from_(target, source):
+    from sage.categories.function_fields import FunctionFields
+    if source in FunctionFields():
+        if source.base_field() is source and target.base_field() is target:
+            if source.variable_name() == target.variable_name():
+                # source and target are rational function fields in the same variable
+                base_coercion = target.constant_field().coerce_map_from(source.constant_field())
+                if base_coercion is not None:
+                    return source.hom([target.gen()], base_morphism=base_coercion)
+        if source.base_field() is not source and target.base_field() is not target:
+            # source and target are extensions of rational function fields
+            base_coercion = target.base_field().coerce_map_from(source.base_field())
+            if base_coercion is not None:
+                # The base field of source coerces into the base field of target.
+                if source.polynomial().map_coefficients(base_coercion)(target.gen()) == 0:
+                    # The defining polynomial of source has a root in target,
+                    # therefore there is a map. To be sure that it is
+                    # canonical, we require a root of the defining polynomial
+                    # of target to be a root of the defining polynomial of
+                    # source (and that the variables are named equally):
+                    if source.variable_name() == target.variable_name():
+                        return source.hom([target.gen()], base_morphism=base_coercion)
+
+sage.rings.function_field.function_field.FunctionField._coerce_map_from_ = _coerce_map_from_
+
+del(_coerce_map_from_)
+
+
 import imp, sys
 # register modules at some standard places so imports work as exepcted
 r"""

@@ -79,7 +79,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
     polynomial ring::
     
         sage: R.<x> = QQ[]
-        sage: w = GaussValuation(R, TrivialValuation(QQ)).extension(x - 1, 1)
+        sage: w = GaussValuation(R, TrivialValuation(QQ)).augmentation(x - 1, 1)
         sage: v = FunctionFieldValuation(K, w); v
         (x - 1)-adic valuation
     
@@ -89,6 +89,29 @@ class FunctionFieldValuationFactory(UniqueFactory):
         sage: w = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: v = FunctionFieldValuation(K, w); v
         2-adic valuation
+
+    Note that classical valuations at finite places or the infinite place are
+    always normalized such that the uniformizing element has valuation 1::
+
+        sage: K.<t> = FunctionField(GF(3))
+        sage: M.<x> = FunctionField(K)
+        sage: v = FunctionFieldValuation(M, x^3 - t)
+        sage: v(x^3 - t)
+        1
+
+    However, if such a valuation comes out of a base change of the ground
+    field, this is not the case anymore. In the example below, the unique
+    extension of ``v`` to ``L`` still has valuation 1 on ``x^3 - t`` but it has
+    valuation ``1/3`` on its uniformizing element  ``x - w``::
+
+        sage: R.<w> = K[]
+        sage: L.<w> = K.extension(w^3 - t)
+        sage: N.<x> = FunctionField(L)
+        sage: w = v.extension(N) # optional: integrated
+        sage: w(x^3 - t) # optional: integrated
+        1
+        sage: w(x - w) # optional: integrated
+        1/3
 
     """
     def create_key(self, domain, prime):
@@ -106,7 +129,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
             sage: v = FunctionFieldValuation(K, x - 1) # indirect doctest
 
             sage: R.<x> = QQ[]
-            sage: w = GaussValuation(R, TrivialValuation(QQ)).extension(x - 1, 1)
+            sage: w = GaussValuation(R, TrivialValuation(QQ)).augmentation(x - 1, 1)
             sage: FunctionFieldValuation(K, w) is v
             True
         
@@ -163,12 +186,14 @@ class FunctionFieldValuationFactory(UniqueFactory):
         if generator in domain._ring:
             # generator is a polynomial
             generator = domain._ring(generator)
-            if not generator.is_monic() or not generator.is_irreducible():
-                raise ValueError("place must be defined by a monic irreducible polynomial")
+            if not generator.is_monic():
+                raise ValueError("place must be defined by a monic polynomiala but %r is not monic"%(generator,))
+            if not generator.is_irreducible():
+                raise ValueError("place must be defined by an irreducible polynomial but %r factors over %r"%(generator, domain._ring))
             # we construct the corresponding valuation on the polynomial ring
             # with v(generator) = 1
             from sage.rings.valuation.gauss_valuation import GaussValuation
-            valuation = GaussValuation(domain._ring, TrivialValuation(domain.constant_base_field())).extension(generator, 1)
+            valuation = GaussValuation(domain._ring, TrivialValuation(domain.constant_base_field())).augmentation(generator, 1)
             return self.create_key(domain, valuation)
         elif generator == ~domain.gen():
             # generator is 1/x, the infinite place
@@ -186,7 +211,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
             sage: from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<x> = QQ[]
-            sage: w = GaussValuation(R, TrivialValuation(QQ)).extension(x - 1, 1)
+            sage: w = GaussValuation(R, TrivialValuation(QQ)).augmentation(x - 1, 1)
             sage: v = FunctionFieldValuation(K, w) # indirect doctest
 
         """
@@ -244,6 +269,7 @@ class FunctionFieldValuation_base(DiscretePseudoValuation):
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, FunctionFieldValuation_base)
         True
+        sage: TestSuite(v).run()
 
     """
 
@@ -254,10 +280,11 @@ class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
     TESTS::
 
         sage: from mac_lane import * # optional: standalone
-        sage: K.<x> = FunctionField(QQ)
+        sage: K.<x> = FunctionField(GF(2))
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, RationalFunctionFieldValuation_base)
         True
+        sage: TestSuite(v).run()
 
     """
 
@@ -269,10 +296,11 @@ class ClassicalRationalFunctionFieldValuation_base(RationalFunctionFieldValuatio
     TESTS::
 
         sage: from mac_lane import * # optional: standalone
-        sage: K.<x> = FunctionField(QQ)
+        sage: K.<x> = FunctionField(GF(5))
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, ClassicalRationalFunctionFieldValuation_base)
         True
+        sage: TestSuite(v).run()
 
     """
 
@@ -285,7 +313,8 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         sage: from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
-        sage: TestSuite(FunctionFieldValuation(K, x)).run() # indirect doctest
+        sage: v = FunctionFieldValuation(K, x^2 + 1) # indirect doctest
+        sage: TestSuite(v).run()
 
     """
     def __init__(self, parent, base_valuation):
@@ -342,18 +371,33 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             return self.domain()(f)
         raise NotImplementedError("lifting not implemented for this valuation")
 
-    def shift(self, f, s):
-        if s == 0:
-            return f
-        elif s < 0:
-            return f/self._base_valuation.element_with_valuation(-s)
-        else:
-            return f*self._base_valuation.element_with_valuation(s)
-
     def value_group(self):
+        r"""
+        Return the value group of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: FunctionFieldValuation(K, x).value_group()
+            Additive Abelian Group generated by 1
+
+        """
         return self._base_valuation.value_group()
 
     def reduce(self, f):
+        r"""
+        Return the reduction of ``f`` in :meth:`residue_ring`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, x^2 + 1)
+            sage: v.reduce(x)
+            u1
+
+        """
         f = self.domain().coerce(f)
 
         if self(f) > 0:
@@ -384,19 +428,19 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         sage: R.<y> = K[]
         sage: F = y^21 + x*y^20 + (x^3 + x + 1)*y^18 + (x^3 + 1)*y^17 + (x^4 + x)*y^16 + (x^7 + x^6 + x^3 + x + 1)*y^15 + x^7*y^14 + (x^8 + x^7 + x^6 + x^4 + x^3 + 1)*y^13 + (x^9 + x^8 + x^4 + 1)*y^12 + (x^11 + x^9 + x^8 + x^5 + x^4 + x^3 + x^2)*y^11 + (x^12 + x^9 + x^8 + x^7 + x^5 + x^3 + x + 1)*y^10 + (x^14 + x^13 + x^10 + x^9 + x^8 + x^7 + x^6 + x^3 + x^2 + 1)*y^9 + (x^13 + x^9 + x^8 + x^6 + x^4 + x^3 + x)*y^8 + (x^16 + x^15 + x^13 + x^12 + x^11 + x^7 + x^3 + x)*y^7 + (x^17 + x^16 + x^13 + x^9 + x^8 + x)*y^6 + (x^17 + x^16 + x^12 + x^7 + x^5 + x^2 + x + 1)*y^5 + (x^19 + x^16 + x^15 + x^12 + x^6 + x^5 + x^3 + 1)*y^4 + (x^18 + x^15 + x^12 + x^10 + x^9 + x^7 + x^4 + x)*y^3 + (x^22 + x^21 + x^20 + x^18 + x^13 + x^12 + x^9 + x^8 + x^7 + x^5 + x^4 + x^3)*y^2 + (x^23 + x^22 + x^20 + x^17 + x^15 + x^14 + x^12 + x^9)*y + x^25 + x^23 + x^19 + x^17 + x^15 + x^13 + x^11 + x^5
         sage: x = K._ring.gen()
-        sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).extension(x,1))
+        sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).augmentation(x,1))
         sage: v0.mac_lane_approximants(F, assume_squarefree=True) # assume_squarefree for speed, not tested - factorization over function fields over finite fields is missing
         [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y + x + 1) = 3/2 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y) = 4/3, v(y^3 + x^4) = 13/3 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y + x) = 2 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y^15 + y^13 + (x + 1)*y^12 + x*y^11 + (x + 1)*y^10 + y^9 + y^8 + x*y^6 + x*y^5 + y^4 + y^3 + y^2 + (x + 1)*y + x + 1) = 2 ]]
-        sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).extension(x+1,1))
+        sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).augmentation(x+1,1))
         sage: v0.mac_lane_approximants(F, assume_squarefree=True) # not tested, factorization over function fields over finite fields is missing
         [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y) = 7/2, v(y^2 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1) = 15/2 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y + x^2 + 1) = 7/2 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y) = 3/4, v(y^4 + x^3 + x^2 + x + 1) = 15/4 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y^13 + x*y^12 + y^10 + (x + 1)*y^9 + (x + 1)*y^8 + x*y^7 + x*y^6 + (x + 1)*y^4 + y^3 + (x + 1)*y^2 + 1) = 2 ]]
-        sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).extension(x^3+x^2+1,1))
+        sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).augmentation(x^3+x^2+1,1))
         sage: v0.mac_lane_approximants(F, assume_squarefree=True) # not tested, factorization over function fields over finite fields is missing
         [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x^3 + x^2 + 1) = 1 ], v(y + x^3 + x^2 + x) = 2, v(y^2 + (x^6 + x^4 + 1)*y + x^14 + x^10 + x^9 + x^8 + x^5 + x^4 + x^3 + x^2 + x) = 5 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x^3 + x^2 + 1) = 1 ], v(y^2 + (x^7 + x^5 + x^4 + x^3 + x^2 + x)*y + x^7 + x^5 + x + 1) = 3 ],
@@ -411,7 +455,7 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             sage: S.<y> = K[]
             sage: F = y^2 - x^2 - x^3 - 3
             sage: v0 = GaussValuation(K._ring,pAdicValuation(QQ,3))
-            sage: v1 = v0.extension(K._ring.gen(),1/3)
+            sage: v1 = v0.augmentation(K._ring.gen(),1/3)
             sage: mu0 = FunctionFieldValuation(K, v1)
             sage: mu0.mac_lane_approximants(F)
             [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ],
@@ -461,19 +505,27 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             return repr(self._base_valuation.constant_valuation())
         return "Valuation on rational function field induced by %s"%self._base_valuation
 
-    def extension(self, L, algorithm="mac_lane"):
+    def extension(self, L):
         K = self.domain()
-        if L is K:
+        from sage.categories.function_fields import FunctionFields
+        if L is self.domain():
             return self
-        if L.base() is not K:
-            raise ValueError("L must be a simple finite extension of %s"%K)
-
-        if algorithm == "mac_lane":
-            W = self.mac_lane_approximants(L.polynomial(),precision_cap=infinity)
-            if len(W) > 1:
-                raise ValueError("extension to %s is not unique"%L)
-            return FunctionFieldPolymodValuation(L, W[0])
-        else: raise ValueError()
+        if L in FunctionFields():
+            if L.has_coerce_map_from(K):
+                if L.base() is K:
+                    # L is a simple extension of the domain of this valuation
+                    W = self.mac_lane_approximants(L.polynomial(), precision_cap=infinity)
+                    if len(W) > 1:
+                        raise ValueError("valuation %r on %r does not uniquely extend to %r"%(self, K, L))
+                    return FunctionFieldValuation(L, W[0])
+                elif L.base() is not L and L.base().has_coerce_map_from(K):
+                    # recursively call this method for the tower of fields
+                    return self.extension(L.base()).extension(L)
+                elif L.constant_field() is not K.constant_field() and L.constant_field().has_coerce_map_from(K.constant_field()):
+                    # extend the underlying valuation on the polynomial ring
+                    w = self._base_valuation.extension(L._ring)
+                    return FunctionFieldValuation(L, w)
+        raise NotImplementedError("extension of %r from %r to %r not implemented"%(self, K, L))
 
 class InfiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValuation_base):
     r"""
@@ -606,8 +658,32 @@ class FiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValuati
 
         sage: from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
-        sage: FunctionFieldValuation(K, x + 1) # indirect doctest
+        sage: v = FunctionFieldValuation(K, x + 1); v # indirect doctest
         (x + 1)-adic valuation
+
+    A finite place with residual degree::
+
+        sage: w = FunctionFieldValuation(K, x^2 + 1); w
+        (x^2 + 1)-adic valuation
+
+    A finite place with ramification::
+
+        sage: K.<t> = FunctionField(GF(3))
+        sage: L.<x> = FunctionField(K)
+        sage: u = FunctionFieldValuation(L, x^3 - t); u
+        (x^3 + 2*t)-adic valuation
+
+    A finite place with residual degree and ramification::
+
+        sage: q = FunctionFieldValuation(L, x^6 - t); q
+        (x^6 + 2*t)-adic valuation
+
+    TESTS::
+
+        sage: TestSuite(v).run()
+        sage: TestSuite(w).run()
+        sage: TestSuite(u).run()
+        sage: TestSuite(q).run()
 
     """
     def _call_(self, f):
@@ -663,17 +739,6 @@ class FunctionFieldPolymodValuation(InducedFunctionFieldValuation_base):
         if type(self) != type(other):
             return cmp(type(self),type(other))
         return cmp(self._base_valuation,other._base_valuation)
-
-    def shift(self, f, v):
-        if f.parent() is not self.domain():
-            raise ValueError
-
-        if v == 0:
-            return f
-        elif v < 0:
-            return f/self._base_valuation.element_with_valuation(-v)
-        else:
-            return f*self._base_valuation.element_with_valuation(v)
 
     def value_group(self):
         return self._base_valuation.value_group()

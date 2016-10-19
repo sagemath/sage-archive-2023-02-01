@@ -571,6 +571,11 @@ class GaussValuation_generic(DevelopingValuation):
         base_valuation = self._base_valuation.change_ring(base_ring)
         return GaussValuation(self.domain().change_ring(base_ring), base_valuation)
 
+    def extension(self, ring):
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if is_PolynomialRing(ring) and len(ring.gens()) == 1:
+            return GaussValuation(ring, self._base_valuation.extension(ring.base()))
+
     def is_gauss_valuation(self):
         r"""
         Return whether this valuation is a Gauss valuation.

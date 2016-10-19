@@ -342,7 +342,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         return h
 
     @cached_method
-    def extension(self, phi, mu, check=True):
+    def augmentation(self, phi, mu, check=True):
         """
         Return the inductive valuation which extends this valuation by mapping
         ``phi`` to ``mu``.
@@ -1009,7 +1009,7 @@ class DevelopingValuation(DiscretePseudoValuation):
             sage: S.<y>=K[]
             sage: F=y^2-x^2-x^3-3
             sage: v0=GaussValuation(K._ring,pAdicValuation(QQ,3))
-            sage: v1=v0.extension(K._ring.gen(),1/3)
+            sage: v1=v0.augmentation(K._ring.gen(),1/3)
             sage: from sage.rings.padics.function_field_valuation import RationalFunctionFieldValuation
             sage: mu0=RationalFunctionFieldValuation(K,v1)
             sage: eta0=GaussValuation(S,mu0)
@@ -1032,7 +1032,7 @@ class DevelopingValuation(DiscretePseudoValuation):
             raise ValueError("G must not have valuation infinity")
 
         if self.is_key(G):
-            return [self.extension(G, infinity)]
+            return [self.augmentation(G, infinity)]
 
         F = self.equivalence_decomposition(G)
         assert len(F), "%s factored as a unit %s"%(G,F)
@@ -1048,7 +1048,7 @@ class DevelopingValuation(DiscretePseudoValuation):
                 prec = min([c.precision_absolute() for c in phi.list()])
                 g = G.map_coefficients(lambda c:c.add_bigoh(prec))
                 assert self.is_key(g)
-                return [self.extension(g, infinity)]
+                return [self.augmentation(g, infinity)]
 
             if phi == self.phi():
                 # self.phi() always is a key over self but it will not lead to an extension of this valuation
@@ -1061,7 +1061,7 @@ class DevelopingValuation(DiscretePseudoValuation):
                     continue
 
             verbose("Determining the valuation for %s"%phi,level=2,caller_name="mac_lane_step")
-            w = self.extension(phi, self(phi), check=False)
+            w = self.augmentation(phi, self(phi), check=False)
             NP = w.newton_polygon(G).principal_part()
             verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi),NP),level=2,caller_name="mac_lane_step")
             # assert len(NP)
@@ -1082,7 +1082,7 @@ class DevelopingValuation(DiscretePseudoValuation):
                         phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
 
                 phi = G.parent()(phi)
-                w = self._base_valuation.extension(phi, infinity)
+                w = self._base_valuation.augmentation(phi, infinity)
                 ret.append(w)
                 continue
 
@@ -1099,7 +1099,7 @@ class DevelopingValuation(DiscretePseudoValuation):
                     if not base.is_gauss_valuation():
                         base = base._base_valuation
 
-                new_leaf = base.extension(phi, new_mu)
+                new_leaf = base.augmentation(phi, new_mu)
                 assert slope is -infinity or 0 in new_leaf.newton_polygon(G).slopes(repetition=False)
                 ret.append(new_leaf)
 

@@ -438,6 +438,60 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
 
+        def extension(self, ring):
+            r"""
+            Return the unique extension of this valuation to ``ring``.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 2)
+                sage: w = v.extension(QQ)
+                sage: w.domain()
+                Rational Field
+
+            """
+            if ring is self.domain():
+                return self
+            raise NotImplementedError("extending %r from %r to %r not implemented"%(self, self.domain(), ring))
+
+        def restriction(self, ring):
+            r"""
+            Return the restriction of this valuation to ``ring``.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 2)
+                sage: w = v.restriction(ZZ)
+                sage: w.domain()
+                Integer Ring
+
+            """
+            if ring is self.domain():
+                return self
+            raise NotImplementedError("restricting %r from %r to %r not implemented"%(self, self.domain(), ring))
+
+        def change_ring(self, ring):
+            r"""
+            Return this valuation over ``ring``.
+
+            Unlike :meth:`extension` or meth:`reduction`, this might not be
+            completely sane mathematically. It is essentially a conversion of
+            this valuation into another space of valuations.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 3)
+                sage: v.change_ring(ZZ)
+                3-adic valuation
+
+            """
+            if ring is self.domain():
+                return self
+            raise NotImplementedError("changing %r from %r to %r not implemented"%(self, self.domain(), ring))
+
         def _test_add(self, **options):
             r"""
             Check that the (strict) triangle equality is satisfied for the
@@ -778,8 +832,9 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
 
         def residue_field(self):
             r"""
-            Return the residue field of this valuation, i.e., the elements of
-            non-negative valuation module the elements of positive valuation.
+            Return the residue field of this valuation, i.e., the field of
+            fractions of the :meth:`residue_ring`, the elements of non-negative
+            valuation module the elements of positive valuation.
 
             EXAMPLES::
 
@@ -789,24 +844,21 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
                 sage: TrivialValuation(QQ).residue_field()
                 Rational Field
 
-            Note that discrete valuations do not always define a residue
-            field::
-
                 sage: TrivialValuation(ZZ).residue_field()
-                Traceback (most recent call last):
-                ...
-                ValueError: The residue ring of this valuation is not a field.
+                Rational Field
                 sage: GaussValuation(ZZ['x'], pAdicValuation(ZZ, 2)).residue_field()
-                Traceback (most recent call last):
-                ...
-                ValueError: The residue ring of this valuation is not a field.
+                Rational function field in x over Finite Field of size 2
 
             """
             ret = self.residue_ring()
             from sage.categories.fields import Fields
-            if ret not in Fields():
-                raise ValueError("The residue ring of this valuation is not a field.")
-            return ret
+            if ret in Fields():
+                return ret
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            if is_PolynomialRing(ret):
+                from sage.rings.function_field.all import FunctionField
+                return FunctionField(ret.base_ring().fraction_field(), names=(ret.variable_name(),))
+            return ret.fraction_field()
 
         def _test_no_infinite_nonzero(self, **options):
             r"""

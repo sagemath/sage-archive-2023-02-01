@@ -905,15 +905,25 @@ class pAdicValuation_base(DiscretePseudoValuation):
             for v in expandables:
                 leaves.extend(v.mac_lane_step(G))
 
-    def change_ring(self, base_ring):
-        return pAdicValuation(base_ring, self.prime())
+    def change_ring(self, ring):
+        return pAdicValuation(ring, self.prime())
 
-    def extension(self, L, algorithm="mac_lane"):
+    def extension(self, ring):
+        if ring.has_coerce_map_from(self.domain()):
+            return pAdicValuation(ring, self)
+        raise NotImplementedError
+
+    def restriction(self, ring):
+        if self.domain().has_coerce_map_from(ring):
+            return pAdicValuation(ring, self.prime())
+
         K = self.domain()
         if L is K:
             return self
+        if L is K.fraction_field():
+            return pAdicValuation(L, self)
         if L.base_ring() is not K:
-            raise ValueError("L must be a simple finite extension of %s"%K)
+            raise ValueError("L must be a simple finite extension of %r but %r is not"%(K, L))
 
         if algorithm == "ideal":
             I = L.ideal(self.prime()).factor()
@@ -1013,19 +1023,6 @@ class pAdicValuation_padic(pAdicValuation_base):
         """
         return self.domain().uniformizer()
 
-    def residue_field(self):
-        """
-        Return the residue field of the ring of integers of this valuation.
-
-        EXAMPLES::
-
-            sage: v = pAdicValuation(Zp(3))
-            sage: v.residue_field()
-            Finite Field of size 3
-
-        """
-        return self.domain().residue_field()
-
     def shift(self, c, v):
         """
         Multiply ``c`` by a ``v``th power of the uniformizer.
@@ -1077,10 +1074,6 @@ class pAdicValuation_number_field(pAdicValuation_base):
         self._valuation = self._valuation[0]
         assert E == self._valuation.E()
         assert F == self._valuation.F()
-
-    @cached_method
-    def residue_field(self):
-        return self._valuation.residue_field()
 
     def _repr_(self):
         return "%r-adic valuation"%(self._valuation)

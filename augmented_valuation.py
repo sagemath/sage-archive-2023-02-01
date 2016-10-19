@@ -650,11 +650,27 @@ class AugmentedValuation(DevelopingValuation):
                 raise NotImplementedError
             if not F.is_constant():
                 raise ValueError("any reduction is constant in this valuation")
-            if self.phi() != self.domain().gen():
+            F = F[0]
+            if self.phi() == self.domain().gen():
+                # this is a valuation of the form [p-adic valuation, v(x) = 1]
+                constant = self.constant_valuation().lift(F)
+                assert constant in self.domain().base_ring()
+                return self.domain()(constant)
+            else:
+                if self.phi().degree() == 1:
+                    # this is a classical valuation of a rational point, of the
+                    # form [trivial, v(x + 1) = 1]
+                    assert self.domain().base_ring() is self.residue_field()
+                    return self.domain()(F)
+                if self.phi().change_variable_name(self.residue_field().polynomial().variable_name()) == self.residue_field().polynomial():
+                    # this is a classical valuation of a point, of the from
+                    # [trivial, v(x^2 + 1) = 1]
+                    if hasattr(F, 'polynomial'):
+                        u = F.polynomial()
+                    if hasattr(F, 'element'):
+                        u = F.element()
+                    return self.domain()(u.change_variable_name(self.phi().variable_name()))
                 raise NotImplementedError
-            constant = self.constant_valuation().lift(F[0])
-            assert constant in self.domain().base_ring()
-            return self.domain()(constant[0])
 
         R0 = self._base_valuation.residue_ring()
 
@@ -937,8 +953,8 @@ class AugmentedValuation(DevelopingValuation):
             raise ValueError("there is no residual degree over a trivial valuation")
         return self.psi().degree() * self._base_valuation.F()
 
-    def change_ring(self, base_ring):
-        return AugmentedValuation(self._base_valuation.change_ring(base_ring), self.phi().change_ring(base_ring), self._mu)
+    def extension(self, ring):
+        return AugmentedValuation(self._base_valuation.extension(ring), self.phi().change_ring(ring.base_ring()), self._mu)
 
     def uniformizer(self):
         return self.element_with_valuation(self.value_group()._generator)

@@ -96,7 +96,7 @@ because lists in SageMath are zero-based::
      [[None, None, 1, 4], [None, None], [None, 2], [3], [5]])
 
 Moreover, we are not forced to use rectangular fillings.  For
-example, the Stanley-Sundaram correspondence between (skew)
+example, consider the Stanley-Sundaram correspondence between (skew)
 oscillating tableaux and (partial) perfect matchings.  Again, from
 Tom Roby's thesis::
 

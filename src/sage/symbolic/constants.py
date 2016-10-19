@@ -568,7 +568,7 @@ class Pi(Constant):
             <mi>&pi;</mi>
 
         """
-        conversions = dict(axiom='%pi', maxima='%pi', giac='pi', gp='Pi', kash='PI',
+        conversions = dict(axiom='%pi', fricas='%pi', maxima='%pi', giac='pi', gp='Pi', kash='PI',
                            mathematica='Pi', matlab='pi', maple='pi',
                            octave='pi', pari='Pi', pynac='Pi')
         Constant.__init__(self, name, conversions=conversions,

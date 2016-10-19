@@ -563,7 +563,7 @@ echo "Finished extraction"
 if [ ! -f spkg-install ]; then
     echo '#!/usr/bin/env bash' > spkg-install
     if [ -x configure ]; then
-        echo './configure --prefix="$SAGE_LOCAL" && make && make install' >> spkg-install
+        echo './configure --prefix="$SAGE_LOCAL" && make && $SAGE_SUDO make install' >> spkg-install
     elif [ -f setup.py ]; then
         echo 'python setup.py install' >> spkg-install
     else
@@ -630,15 +630,38 @@ export rsync_proxy=$http_proxy
 ##################################################################
 # Actually install
 ##################################################################
+if [ -r spkg-build ]; then
+    # Package has both spkg-build and spkg-install
+    if [ ! -x spkg-build ]; then
+	echo >&2 "WARNING: spkg-build is not executable, making it executable"
+	chmod +x spkg-build
+    fi
+fi
+
 if [ ! -x spkg-install ]; then
     echo >&2 "WARNING: spkg-install is not executable, making it executable"
     chmod +x spkg-install
 fi
 
-time ./spkg-install
-if [ $? -ne 0 ]; then
-    error_msg "Error installing package $PKG_NAME" "make"
-    exit 1
+if [ -x spkg-build ]; then
+    # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
+    time ./spkg-build
+    if [ $? -ne 0 ]; then
+	error_msg "Error building package $PKG_NAME" "make"
+	exit 1
+    fi
+    time $SAGE_SUDO ./spkg-install
+    if [ $? -ne 0 ]; then
+	error_msg "Error installing package $PKG_NAME" "make"
+	exit 1
+    fi
+else
+    # Package only has spkg-install
+    time ./spkg-install
+    if [ $? -ne 0 ]; then
+	error_msg "Error installing package $PKG_NAME" "make"
+	exit 1
+    fi
 fi
 
 echo "Successfully installed $PKG_NAME"

@@ -12,12 +12,11 @@ Pynac interface
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 
 from cpython cimport *
 from libc cimport math
-
-from .ginac cimport *
 
 from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.all cimport *
@@ -35,12 +34,12 @@ from sage.rings.complex_field import ComplexField
 from sage.rings.all import CC
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
-from sage.symbolic.substitution_map cimport SubstitutionMap, new_SubstitutionMap_from_GExMap
 from sage.symbolic.function import get_sfunction_from_serial
 from sage.symbolic.function cimport Function
-from sage.symbolic.constants_c cimport PynacConstant
+from sage.symbolic.substitution_map cimport new_SubstitutionMap_from_GExMap
+from sage.symbolic import ring
 
-from . import ring
+from .constant cimport PynacConstant
 
 from sage.rings.integer cimport Integer
 
@@ -105,7 +104,7 @@ def unpack_operands(Expression ex):
     """
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import unpack_operands
+        sage: from sage.libs.pynac.pynac import unpack_operands
         sage: t = SR._force_pyobject((1, 2, x, x+1, x+2))
         sage: unpack_operands(t)
         (1, 2, x, x + 1, x + 2)
@@ -201,7 +200,7 @@ def paramset_from_Expression(Expression e):
     """
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import paramset_from_Expression
+        sage: from sage.libs.pynac.pynac import paramset_from_Expression
         sage: f = function('f')
         sage: paramset_from_Expression(f(x).diff(x))
         [0L] # 32-bit
@@ -227,7 +226,7 @@ cdef int py_get_ginac_serial():
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import get_ginac_serial
+        sage: from sage.libs.pynac.pynac import get_ginac_serial
         sage: get_ginac_serial() >= 35
         True
     """
@@ -240,7 +239,7 @@ def get_ginac_serial():
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.get_ginac_serial() >= 35
+        sage: sage.libs.pynac.pynac.get_ginac_serial() >= 35
         True
     """
     return py_get_ginac_serial()
@@ -258,7 +257,7 @@ def get_fn_serial():
 
     EXAMPLE::
 
-        sage: from sage.symbolic.pynac import get_fn_serial
+        sage: from sage.libs.pynac.pynac import get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: get_fn_serial() > 125
         True
@@ -381,7 +380,7 @@ cdef stdstring* py_latex_variable(char* var_name) except +:
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_latex_variable_for_doctests
+        sage: from sage.libs.pynac.pynac import py_latex_variable_for_doctests
         sage: py_latex_variable = py_latex_variable_for_doctests
 
         sage: py_latex_variable('a')
@@ -408,9 +407,9 @@ def py_latex_variable_for_doctests(x):
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.py_latex_variable_for_doctests('x')
+        sage: sage.libs.pynac.pynac.py_latex_variable_for_doctests('x')
         x
-        sage: sage.symbolic.pynac.py_latex_variable_for_doctests('sigma')
+        sage: sage.libs.pynac.pynac.py_latex_variable_for_doctests('sigma')
         \sigma
     """
     assert isinstance(x, str)
@@ -432,7 +431,7 @@ def py_print_function_pystring(id, args, fname_paren=False):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_print_function_pystring, get_ginac_serial, get_fn_serial
+        sage: from sage.libs.pynac.pynac import py_print_function_pystring, get_ginac_serial, get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: var('x,y,z')
         (x, y, z)
@@ -494,7 +493,7 @@ def py_latex_function_pystring(id, args, fname_paren=False):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_latex_function_pystring, get_ginac_serial, get_fn_serial
+        sage: from sage.libs.pynac.pynac import py_latex_function_pystring, get_ginac_serial, get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: var('x,y,z')
         (x, y, z)
@@ -584,7 +583,7 @@ def tolerant_is_symbol(a):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import tolerant_is_symbol
+        sage: from sage.libs.pynac.pynac import tolerant_is_symbol
         sage: tolerant_is_symbol(var("x"))
         True
         sage: tolerant_is_symbol(None)
@@ -627,7 +626,7 @@ def py_print_fderivative_for_doctests(id, params, args):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_print_fderivative_for_doctests as py_print_fderivative, get_ginac_serial, get_fn_serial
+        sage: from sage.libs.pynac.pynac import py_print_fderivative_for_doctests as py_print_fderivative, get_ginac_serial, get_fn_serial
         sage: var('x,y,z')
         (x, y, z)
         sage: from sage.symbolic.function import get_sfunction_from_serial
@@ -702,7 +701,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_latex_fderivative_for_doctests as py_latex_fderivative, get_ginac_serial, get_fn_serial
+        sage: from sage.libs.pynac.pynac import py_latex_fderivative_for_doctests as py_latex_fderivative, get_ginac_serial, get_fn_serial
 
         sage: var('x,y,z')
         (x, y, z)
@@ -905,12 +904,12 @@ def test_binomial(n, k):
 
     EXAMPLES::
 
-        sage: import sage.symbolic.pynac
-        sage: sage.symbolic.pynac.test_binomial(5,2)
+        sage: import sage.libs.pynac.pynac
+        sage: sage.libs.pynac.pynac.test_binomial(5,2)
         10
-        sage: sage.symbolic.pynac.test_binomial(-5,3)
+        sage: sage.libs.pynac.pynac.test_binomial(-5,3)
         -35
-        sage: -sage.symbolic.pynac.test_binomial(3-(-5)-1, 3)
+        sage: -sage.libs.pynac.pynac.test_binomial(3-(-5)-1, 3)
         -35
     """
     return py_binomial(n, k)
@@ -962,7 +961,7 @@ cdef object py_real(object x) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_real_for_doctests as py_real
+        sage: from sage.libs.pynac.pynac import py_real_for_doctests as py_real
         sage: py_real(I)
         0
         sage: py_real(CC(1,5))
@@ -1005,7 +1004,7 @@ def py_real_for_doctests(x):
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_real_for_doctests
+        sage: from sage.libs.pynac.pynac import py_real_for_doctests
         sage: py_real_for_doctests(I)
         0
     """
@@ -1020,7 +1019,7 @@ cdef object py_imag(object x) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_imag_for_doctests as py_imag
+        sage: from sage.libs.pynac.pynac import py_imag_for_doctests as py_imag
         sage: py_imag(I)
         1
         sage: py_imag(CC(1,5))
@@ -1061,7 +1060,7 @@ def py_imag_for_doctests(x):
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_imag_for_doctests
+        sage: from sage.libs.pynac.pynac import py_imag_for_doctests
         sage: py_imag_for_doctests(I)
         1
     """
@@ -1094,7 +1093,7 @@ cdef bint py_is_integer(object x) except +:
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_is_integer_for_doctests
+        sage: from sage.libs.pynac.pynac import py_is_integer_for_doctests
         sage: py_is_integer = py_is_integer_for_doctests
 
         sage: py_is_integer(1r)
@@ -1125,11 +1124,11 @@ def py_is_integer_for_doctests(x):
 
     TESTS::
 
-        sage: sage.symbolic.pynac.py_is_integer_for_doctests(1r)
+        sage: sage.libs.pynac.pynac.py_is_integer_for_doctests(1r)
         True
-        sage: sage.symbolic.pynac.py_is_integer_for_doctests(1/3)
+        sage: sage.libs.pynac.pynac.py_is_integer_for_doctests(1/3)
         False
-        sage: sage.symbolic.pynac.py_is_integer_for_doctests(2)
+        sage: sage.libs.pynac.pynac.py_is_integer_for_doctests(2)
         True
     """
     return py_is_integer(x)
@@ -1159,7 +1158,7 @@ def py_is_crational_for_doctest(x):
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_is_crational_for_doctest
+        sage: from sage.libs.pynac.pynac import py_is_crational_for_doctest
         sage: py_is_crational_for_doctest(1)
         True
         sage: py_is_crational_for_doctest(-2r)
@@ -1210,7 +1209,7 @@ cdef object py_numer(object n) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_numer_for_doctests as py_numer
+        sage: from sage.libs.pynac.pynac import py_numer_for_doctests as py_numer
         sage: py_numer(2r)
         2
         sage: py_numer(3)
@@ -1245,7 +1244,7 @@ def py_numer_for_doctests(n):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_numer_for_doctests
+        sage: from sage.libs.pynac.pynac import py_numer_for_doctests
         sage: py_numer_for_doctests(2/3)
         2
     """
@@ -1258,7 +1257,7 @@ cdef object py_denom(object n) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_denom_for_doctests as py_denom
+        sage: from sage.libs.pynac.pynac import py_denom_for_doctests as py_denom
         sage: py_denom(5)
         1
         sage: py_denom(2/3)
@@ -1280,7 +1279,7 @@ def py_denom_for_doctests(n):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_denom_for_doctests
+        sage: from sage.libs.pynac.pynac import py_denom_for_doctests
         sage: py_denom_for_doctests(2/3)
         3
     """
@@ -1295,7 +1294,7 @@ def py_is_cinteger_for_doctest(x):
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_is_cinteger_for_doctest
+        sage: from sage.libs.pynac.pynac import py_is_cinteger_for_doctest
         sage: py_is_cinteger_for_doctest(1)
         True
         sage: py_is_cinteger_for_doctest(long(-3))
@@ -1315,7 +1314,7 @@ cdef object py_float(object n, PyObject* kwds) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_float_for_doctests as py_float
+        sage: from sage.libs.pynac.pynac import py_float_for_doctests as py_float
         sage: py_float(I, {'parent':ComplexField(10)})
         1.0*I
         sage: py_float(pi, {'parent':RealField(100)})
@@ -1343,7 +1342,7 @@ def py_float_for_doctests(n, kwds):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_float_for_doctests
+        sage: from sage.libs.pynac.pynac import py_float_for_doctests
         sage: py_float_for_doctests(pi, {'parent':RealField(80)})
         3.1415926535897932384626
     """
@@ -1363,7 +1362,7 @@ cdef object py_tgamma(object x) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_tgamma_for_doctests as py_tgamma
+        sage: from sage.libs.pynac.pynac import py_tgamma_for_doctests as py_tgamma
         sage: py_tgamma(4)
         6
         sage: py_tgamma(1/2)
@@ -1396,7 +1395,7 @@ def py_tgamma_for_doctests(x):
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_tgamma_for_doctests
+        sage: from sage.libs.pynac.pynac import py_tgamma_for_doctests
         sage: py_tgamma_for_doctests(3)
         2
     """
@@ -1408,7 +1407,7 @@ cdef object py_factorial(object x) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_factorial_py as py_factorial
+        sage: from sage.libs.pynac.pynac import py_factorial_py as py_factorial
         sage: py_factorial(4)
         24
         sage: py_factorial(-2/3)
@@ -1437,7 +1436,7 @@ def py_factorial_py(x):
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_factorial_py
+        sage: from sage.libs.pynac.pynac import py_factorial_py
         sage: py_factorial_py(3)
         6
     """
@@ -1462,7 +1461,7 @@ def doublefactorial(n):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import doublefactorial
+        sage: from sage.libs.pynac.pynac import doublefactorial
         sage: doublefactorial(-1)
         1
         sage: doublefactorial(0)
@@ -1549,7 +1548,7 @@ cdef object py_stieltjes(object x) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_stieltjes_for_doctests as py_stieltjes
+        sage: from sage.libs.pynac.pynac import py_stieltjes_for_doctests as py_stieltjes
         sage: py_stieltjes(0)
         0.577215664901533
         sage: py_stieltjes(1.0)
@@ -1577,7 +1576,7 @@ def py_stieltjes_for_doctests(x):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_stieltjes_for_doctests
+        sage: from sage.libs.pynac.pynac import py_stieltjes_for_doctests
         sage: py_stieltjes_for_doctests(0.0)
         0.577215664901533
     """
@@ -1592,7 +1591,7 @@ cdef object py_zeta(object x) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_zeta_for_doctests as py_zeta
+        sage: from sage.libs.pynac.pynac import py_zeta_for_doctests as py_zeta
         sage: py_zeta(CC.0)
         0.00330022368532410 - 0.418155449141322*I
         sage: py_zeta(CDF(5))
@@ -1611,7 +1610,7 @@ def py_zeta_for_doctests(x):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_zeta_for_doctests
+        sage: from sage.libs.pynac.pynac import py_zeta_for_doctests
         sage: py_zeta_for_doctests(CC.0)
         0.00330022368532410 - 0.418155449141322*I
     """
@@ -1632,7 +1631,7 @@ cdef object py_exp(object x) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_exp_for_doctests as py_exp
+        sage: from sage.libs.pynac.pynac import py_exp_for_doctests as py_exp
         sage: py_exp(CC(1))
         2.71828182845905
         sage: py_exp(CC(.5*I))
@@ -1659,7 +1658,7 @@ def py_exp_for_doctests(x):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_exp_for_doctests
+        sage: from sage.libs.pynac.pynac import py_exp_for_doctests
         sage: py_exp_for_doctests(CC(2))
         7.38905609893065
     """
@@ -1673,7 +1672,7 @@ cdef object py_log(object x) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_log_for_doctests as py_log
+        sage: from sage.libs.pynac.pynac import py_log_for_doctests as py_log
         sage: py_log(CC(e))
         1.00000000000000
         sage: py_log(CC.0)
@@ -1732,7 +1731,7 @@ def py_log_for_doctests(x):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_log_for_doctests
+        sage: from sage.libs.pynac.pynac import py_log_for_doctests
         sage: py_log_for_doctests(CC(e))
         1.00000000000000
     """
@@ -1778,7 +1777,7 @@ cdef object py_atan2(object x, object y) except +:
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_atan2_for_doctests as py_atan2
+        sage: from sage.libs.pynac.pynac import py_atan2_for_doctests as py_atan2
         sage: py_atan2(0, 1)
         1.57079632679490
         sage: py_atan2(0.r, 1.r)
@@ -1819,7 +1818,7 @@ def py_atan2_for_doctests(x, y):
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_atan2_for_doctests
+        sage: from sage.libs.pynac.pynac import py_atan2_for_doctests
         sage: py_atan2_for_doctests(0., 1.)
         1.57079632679490
     """
@@ -1884,7 +1883,7 @@ cdef object py_lgamma(object x) except +:
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_lgamma_for_doctests as py_lgamma
+        sage: from sage.libs.pynac.pynac import py_lgamma_for_doctests as py_lgamma
         sage: py_lgamma(4)
         1.79175946922805
         sage: py_lgamma(4.r)  # abs tol 2e-14
@@ -1913,7 +1912,7 @@ def py_lgamma_for_doctests(x):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_lgamma_for_doctests
+        sage: from sage.libs.pynac.pynac import py_lgamma_for_doctests
         sage: py_lgamma_for_doctests(CC(I))
         -0.650923199301856 - 1.87243664726243*I
     """
@@ -1938,7 +1937,7 @@ cdef object py_mod(object x, object n) except +:
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_mod_for_doctests as py_mod
+        sage: from sage.libs.pynac.pynac import py_mod_for_doctests as py_mod
         sage: py_mod(I.parent(5), 4)
         1
         sage: py_mod(3, -2)
@@ -1972,7 +1971,7 @@ def py_mod_for_doctests(x, n):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_mod_for_doctests
+        sage: from sage.libs.pynac.pynac import py_mod_for_doctests
         sage: py_mod_for_doctests(5, 2)
         1
     """
@@ -2018,7 +2017,7 @@ cdef object py_li(object x, object n, object parent) except +:
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_li_for_doctests as py_li
+        sage: from sage.libs.pynac.pynac import py_li_for_doctests as py_li
         sage: py_li(0,2,RR)
         0.000000000000000
         sage: py_li(-1,2,RR)
@@ -2040,7 +2039,7 @@ def py_li_for_doctests(x, n, parent):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_li_for_doctests
+        sage: from sage.libs.pynac.pynac import py_li_for_doctests
         sage: py_li_for_doctests(0,2,float)
         0.000000000000000
     """
@@ -2050,7 +2049,7 @@ cdef object py_psi(object x) except +:
     """
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_psi_for_doctests as py_psi
+        sage: from sage.libs.pynac.pynac import py_psi_for_doctests as py_psi
         sage: py_psi(0)
         Traceback (most recent call last):
         ...
@@ -2074,7 +2073,7 @@ def py_psi_for_doctests(x):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_psi_for_doctests
+        sage: from sage.libs.pynac.pynac import py_psi_for_doctests
         sage: py_psi_for_doctests(2)
         0.422784335098467
     """
@@ -2084,7 +2083,7 @@ cdef object py_psi2(object n, object x) except +:
     """
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_psi2_for_doctests as py_psi2
+        sage: from sage.libs.pynac.pynac import py_psi2_for_doctests as py_psi2
         sage: py_psi2(2, 1)
         -2.40411380631919
     """
@@ -2102,7 +2101,7 @@ def py_psi2_for_doctests(n, x):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_psi2_for_doctests
+        sage: from sage.libs.pynac.pynac import py_psi2_for_doctests
         sage: py_psi2_for_doctests(1, 2)
         0.644934066848226
     """
@@ -2112,7 +2111,7 @@ cdef object py_li2(object x) except +:
     """
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_li2_for_doctests as py_li2
+        sage: from sage.libs.pynac.pynac import py_li2_for_doctests as py_li2
         sage: py_li2(-1.1)
         -0.890838090262283
     """
@@ -2131,7 +2130,7 @@ def py_li2_for_doctests(x):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_li2_for_doctests
+        sage: from sage.libs.pynac.pynac import py_li2_for_doctests
         sage: py_li2_for_doctests(-1.1)
         -0.890838090262283
     """
@@ -2174,7 +2173,7 @@ def py_eval_unsigned_infinity_for_doctests():
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_eval_unsigned_infinity_for_doctests as py_eval_unsigned_infinity
+        sage: from sage.libs.pynac.pynac import py_eval_unsigned_infinity_for_doctests as py_eval_unsigned_infinity
         sage: py_eval_unsigned_infinity()
         Infinity
     """
@@ -2193,7 +2192,7 @@ def py_eval_infinity_for_doctests():
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_eval_infinity_for_doctests as py_eval_infinity
+        sage: from sage.libs.pynac.pynac import py_eval_infinity_for_doctests as py_eval_infinity
         sage: py_eval_infinity()
         +Infinity
     """
@@ -2212,7 +2211,7 @@ def py_eval_neg_infinity_for_doctests():
 
     TESTS::
 
-        sage: from sage.symbolic.pynac import py_eval_neg_infinity_for_doctests as py_eval_neg_infinity
+        sage: from sage.libs.pynac.pynac import py_eval_neg_infinity_for_doctests as py_eval_neg_infinity
         sage: py_eval_neg_infinity()
         -Infinity
     """
@@ -2277,7 +2276,7 @@ def register_symbol(obj, conversions):
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.register_symbol(SR(5),{'maxima':'five'})
+        sage: sage.libs.pynac.pynac.register_symbol(SR(5),{'maxima':'five'})
         sage: SR(maxima_calculus('five'))
         5
     """
@@ -2309,10 +2308,10 @@ def init_pynac_I():
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.init_pynac_I()
-        sage: type(sage.symbolic.pynac.I)
+        sage: sage.libs.pynac.pynac.init_pynac_I()
+        sage: type(sage.libs.pynac.pynac.I)
         <type 'sage.symbolic.expression.Expression'>
-        sage: type(sage.symbolic.pynac.I.pyobject())
+        sage: type(sage.libs.pynac.pynac.I.pyobject())
         <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
 
     TESTS:

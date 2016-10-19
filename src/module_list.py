@@ -639,6 +639,8 @@ ext_modules = [
     Extension('sage.libs.ppl',
               sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),
 
+    Extension('*', ['sage/libs/pynac/*.pyx']),
+
     Extension('sage.libs.ratpoints',
               sources = ["sage/libs/ratpoints.pyx"],
               libraries = ["ratpoints"]),

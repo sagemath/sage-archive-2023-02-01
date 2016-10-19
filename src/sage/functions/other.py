@@ -6,8 +6,8 @@ from six.moves import range
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.symbolic.pynac import register_symbol, symbol_table
-from sage.symbolic.pynac import py_factorial_py
+from sage.libs.pynac.pynac import (register_symbol, symbol_table,
+        py_factorial_py, I)
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
@@ -2104,7 +2104,6 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
             else:
                  return ComplexField(prec)(x).sqrt(all=all)
         if x == -1:
-            from sage.symbolic.pynac import I
             z = I
         else:
             z = SR(x) ** one_half

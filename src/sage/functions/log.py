@@ -1185,7 +1185,7 @@ harmonic_number = Function_harmonic_number_generalized()
 
 def _swap_harmonic(a,b): return harmonic_number(b,a)
 
-from sage.symbolic.pynac import register_symbol
+from sage.libs.pynac.pynac import register_symbol
 
 register_symbol(_swap_harmonic,{'maxima':'gen_harmonic_number'})
 register_symbol(_swap_harmonic,{'maple':'harmonic'})

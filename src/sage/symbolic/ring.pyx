@@ -13,7 +13,7 @@ The symbolic ring
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .ginac cimport *
+from sage.libs.pynac.pynac cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber

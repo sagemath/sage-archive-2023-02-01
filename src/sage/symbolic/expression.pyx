@@ -158,6 +158,7 @@ from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 from sage.arith.numerical_approx cimport digits_to_bits
+from sage.libs.pynac.pynac cimport *
 
 
 cpdef bint is_Expression(x):
@@ -5170,7 +5171,7 @@ cdef class Expression(CommutativeRingElement):
             sage: type(u._unpack_operands()[0])
             <type 'tuple'>
         """
-        from sage.symbolic.pynac import unpack_operands
+        from sage.libs.pynac.pynac import unpack_operands
         return unpack_operands(self)
 
     def operands(self):
@@ -5283,7 +5284,7 @@ cdef class Expression(CommutativeRingElement):
                 raise RuntimeError("cannot find SFunction in table")
 
             if is_a_fderivative(self._gobj):
-                from sage.symbolic.pynac import paramset_from_Expression
+                from sage.libs.pynac.pynac import paramset_from_Expression
                 parameter_set = paramset_from_Expression(self)
                 res = FDerivativeOperator(res, parameter_set)
 

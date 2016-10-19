@@ -30,7 +30,6 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.algebras import Algebras
 from sage.categories.associative_algebras import AssociativeAlgebras
 from sage.matrix.constructor import Matrix
-from sage.functions.other import sqrt
 
 class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     r"""
@@ -693,7 +692,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             A_quo = self.semisimple_quotient()
             idempotents_quo = A_quo.central_orthogonal_idempotents()
             # Dimension of simple modules
-            dim_simples = [sqrt(A_quo.principal_ideal(e).dimension())
+            dim_simples = [A_quo.principal_ideal(e).dimension().sqrt()
                           for e in idempotents_quo]
             # Orthogonal idempotents
             idempotents = self.orthogonal_idempotents_central_mod_radical()

@@ -84,16 +84,18 @@ Check that :trac:`20088` is fixed::
     sage: ((1+x).series(x)^pi).series(x,3)
     1 + (pi)*x + (-1/2*pi + 1/2*pi^2)*x^2 + Order(x^3)
 """
-########################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2015 Ralf Stephan <ralf@ark.in-berlin.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#   as published by the Free Software Foundation; either version 2 of
-#   the License, or (at your option) any later version.
-#                   http://www.gnu.org/licenses/
-########################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-from .ginac cimport *
+from sage.libs.pynac.pynac cimport *
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 
 cdef class SymbolicSeries(Expression):

@@ -208,6 +208,9 @@ bool useries_can_handle(ex the_ex) {
 
 ex useries(ex the_ex, const relational & r, int order, unsigned options)
 {
+        if (order == 0)
+                // send residues to the old code
+                throw flint_error(); 
         symbol x = ex_to<symbol>(r.lhs());
         flint_series_t fp;
         fmpq_poly_set_ui(fp.ft, 0);
@@ -227,13 +230,14 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
                 }
                 fmpq_clear(c);
         }
-        epv.push_back(expair(Order(_ex1), order + fp.offset));
+        epv.push_back(expair(Order(_ex1), order));
         return pseries(r, epv);
 }
 
 void symbol::useries(flint_series_t& fp, int order) const
 {
-        fmpq_poly_set_str(fp.ft, "2  0 1");
+        fmpq_poly_set_str(fp.ft, "1  1");
+        fp.offset = 1;
 }
 
 void add::useries(flint_series_t& fp, int order) const
@@ -243,6 +247,14 @@ void add::useries(flint_series_t& fp, int order) const
 		const ex& t = recombine_pair_to_ex(elem);
                 flint_series_t fp1;
                 t.useries(fp1, order);
+                if (fp.offset < fp1.offset) {
+                        fmpq_poly_shift_left(fp1.ft, fp1.ft, fp1.offset-fp.offset);
+                        fp1.offset = fp.offset;
+                }
+                else if (fp.offset > fp1.offset) {
+                        fmpq_poly_shift_left(fp.ft, fp.ft, fp.offset-fp1.offset);
+                        fp.offset = fp1.offset;
+                }
                 fmpq_poly_add(fp.ft, fp.ft, fp1.ft);
         }
         ex ovcoeff = op(nops());
@@ -267,7 +279,9 @@ void mul::useries(flint_series_t& fp, int order) const
 		const ex& t = recombine_pair_to_ex(elem);
                 flint_series_t fp1;
                 t.useries(fp1, order);
+                long newoff = fp1.offset + fp.offset;
                 fmpq_poly_mullow(fp.ft, fp.ft, fp1.ft, order+2);
+                fp.offset = newoff;
         }
         ex ovcoeff = op(nops());
         if (not is_exactly_a<numeric>(ovcoeff))
@@ -280,6 +294,21 @@ void mul::useries(flint_series_t& fp, int order) const
                 fmpq_poly_scalar_mul_mpz(fp.ft, fp.ft, oc.as_mpz());
         else
                 fmpq_poly_scalar_mul_mpq(fp.ft, fp.ft, oc.as_mpq());
+}
+
+long fmpq_poly_ldegree(fmpq_poly_t fp)
+{
+        long len = fmpq_poly_length(fp);
+        for (slong n=0; n<=len; n++) {
+                fmpq_t c;
+                fmpq_init(c);
+                fmpq_poly_get_coeff_fmpq(c, fp, n);
+                if (not fmpq_is_zero(c)) {
+                        return n;
+                }
+                fmpq_clear(c);
+        }
+        return 0;
 }
 
 void power::useries(flint_series_t& fp, int order) const
@@ -334,14 +363,20 @@ void power::useries(flint_series_t& fp, int order) const
         }
         // integer exponent
         int expint = nexp.to_int();
+        long ldeg = fmpq_poly_ldegree(fp1.ft);
         if (expint > 0) {
                 fmpq_poly_pow(fp.ft, fp1.ft, expint);
+                fp.offset = fp1.offset * expint;
                 return;
         }
         else if (expint < 0) {
-                check_poly_ccoeff_one(fp1.ft);
-                fmpq_poly_inv_series(fp1.ft, fp1.ft, order);
+                if (ldeg) {
+                        fmpq_poly_shift_right(fp1.ft, fp1.ft, ldeg);
+                        fp1.offset = ldeg;
+                }
+                fmpq_poly_inv_series(fp1.ft, fp1.ft, order - fp1.offset*expint);
                 fmpq_poly_pow(fp.ft, fp1.ft, -expint);
+                fp.offset = fp1.offset * expint;
                 return;
         }
         fmpq_poly_set_str(fp.ft, "1 1");

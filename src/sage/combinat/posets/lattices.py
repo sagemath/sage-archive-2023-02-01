@@ -2217,7 +2217,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         the lattice. Here we formulate it in a format more suitable
         for computation.
 
-        Let `L` be a lattice and `S` a convex subset of it. Resulting
+        Let `L` be a lattice and `S` a convex subset of it. The resulting
         lattice `L[S]` has elements `(e, 0)` for each `e \in L` and
         `(e, 1)` for each `e \in S`. If `x \le y` in `L`, then in the
         new lattice we have

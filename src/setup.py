@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import os, sys, time, errno, platform, subprocess, glob
+import os, sys, time, errno, platform, subprocess
 from distutils.core import setup, DistutilsSetupError
 
 def excepthook(*exc):
@@ -641,34 +641,62 @@ print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t
 
 
 #########################################################
-### Clean
+### Install Jupyter kernel spec and clean stale files
 #########################################################
 
-print('Cleaning up stale installed files....')
-t = time.time()
-from sage_setup.clean import clean_install_dir
-output_dirs = SITE_PACKAGES + glob.glob(os.path.join(build_base, 'lib*'))
-for output_dir in output_dirs:
-    print('- cleaning {0}'.format(output_dir))
-    clean_install_dir(output_dir, python_packages, python_modules,
-            ext_modules, python_data_files)
-print('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
-
-
-#########################################################
-### Install also Jupyter kernel spec
-#########################################################
-
-# We cannot just add the installation of the kernel spec to data_files
-# since the file is generated, not copied.
 class sage_install(install):
     def run(self):
         install.run(self)
         self.install_kernel_spec()
+        log.warn('Cleaning up stale installed files....')
+        t = time.time()
+        self.clean_stale_files()
+        log.warn('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
     def install_kernel_spec(self):
+        """
+        Install the Jupyter kernel spec.
+
+        .. NOTE::
+
+            The files are generated, not copied. Therefore, we cannot
+            use ``data_files`` for this.
+        """
         from sage.repl.ipython_kernel.install import SageKernelSpec
         SageKernelSpec.update()
+
+    def clean_stale_files(self):
+        """
+        Remove stale installed files.
+
+        This removes files which are built/installed but which do not
+        exist in the Sage sources (typically because some source file
+        has been deleted). Files are removed from the build directory
+        ``build/lib-*`` and from the install directory ``site-packages``.
+        """
+        dist = self.distribution
+        cmd_build_py = dist.command_obj["build_py"]
+
+        # Determine all Python modules inside all packages
+        py_modules = []
+        for package in dist.packages:
+            package_dir = cmd_build_py.get_package_dir(package)
+            py_modules += cmd_build_py.find_package_modules(package, package_dir)
+        # modules is a list of triples (package, module, module_file).
+        # Construct the complete module name from this.
+        py_modules = ["{0}.{1}".format(*m) for m in py_modules]
+
+        # Clean install directory (usually, purelib and platlib are the same)
+        # and build directory.
+        output_dirs = [self.install_purelib, self.install_platlib, self.build_lib]
+        from sage_setup.clean import clean_install_dir
+        for output_dir in set(output_dirs):
+            log.warn('- cleaning {0}'.format(output_dir))
+            clean_install_dir(output_dir,
+                    dist.packages,
+                    py_modules,
+                    dist.ext_modules,
+                    dist.data_files)
 
 
 #########################################################

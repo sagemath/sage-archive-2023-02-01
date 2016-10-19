@@ -44,9 +44,13 @@ if [ $(echo "$name" | wc -l) -gt 1 ]; then
     echo >&2 "line as the package name: $name"
 fi
 
+# We should avoid running pip while uninstalling a package because that
+# is prone to race conditions. Therefore, we use a lockfile while
+# running pip. This is implemented in the Python script pip-lock.
+
 # Keep uninstalling as long as it succeeds
 while true; do
-    out=$(pip uninstall --disable-pip-version-check -y "$name" 2>&1)
+    out=$(pip-lock uninstall --disable-pip-version-check -y "$name" 2>&1)
     if [ $? -ne 0 ]; then
         break
     fi
@@ -62,6 +66,7 @@ if [[ "$out" != *"not installed" ]]; then
     exit 1
 fi
 
-# Finally actually do the installation
+# Finally actually do the installation (the "SHARED" tells pip-lock
+# to apply a shared lock)
 echo "Installing package $name using pip"
-exec pip install $pip_install_flags .
+exec pip-lock SHARED install $pip_install_flags .

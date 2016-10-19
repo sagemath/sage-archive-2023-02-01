@@ -80,7 +80,11 @@ if [ "$UNAME" = "Darwin" ]; then
     if [ $MACOSX_VERSION -ge 14 ]; then
         echo "OS X 10.$[$MACOSX_VERSION-4] Configuring R without aqua support."
         R_CONFIGURE="--with-aqua=no $R_CONFIGURE"
-    fi 
+    fi
+    if [ $MACOSX_VERSION -ge 16 ]; then
+        echo "OS X 10.$[$MACOSX_VERSION-4] Building with clang."
+        CC=clang
+    fi
 fi
 
 if [ "$UNAME" = "CYGWIN" ]; then

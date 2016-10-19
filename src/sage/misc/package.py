@@ -43,7 +43,7 @@ Functions
 #*****************************************************************************
 from __future__ import print_function
 
-from sage.env import SAGE_ROOT
+from sage.env import SAGE_ROOT, SAGE_PKGS
 
 import json
 import os
@@ -59,7 +59,6 @@ except ImportError:
 
 DEFAULT_PYPI = 'https://pypi.python.org/pypi'
 PIP_VERSION = re.compile("^([^\s]+) \(([^\s]+)\)$", re.MULTILINE)
-SAGE_PKGS = os.path.join(SAGE_ROOT, "build", "pkgs")
 
 def pkgname_split(name):
     r"""

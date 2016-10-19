@@ -709,6 +709,52 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 if X != 0:
                     tester.assertEqual(self(x), 0)
 
+        def _test_restriction(self, **options):
+            r"""
+            Check the correctness of reductions.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_restriction()
+
+            """
+            tester = self._tester(**options)
+
+            tester.assertEqual(self.restriction(self.domain()), self)
+
+        def _test_extension(self, **options):
+            r"""
+            Check the correctness of extensions.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_extension()
+
+            """
+            tester = self._tester(**options)
+
+            tester.assertEqual(self.extension(self.domain()), self)
+
+        def _test_change_ring(self, **options):
+            r"""
+            Check the correctness of :meth:`change_ring`.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_change_ring()
+
+            """
+            tester = self._tester(**options)
+
+            tester.assertEqual(self.change_ring(self.domain()), self)
+
+
 class DiscreteValuationSpace(DiscretePseudoValuationSpace):
     r"""
     The space of discrete valuations on ``domain``.

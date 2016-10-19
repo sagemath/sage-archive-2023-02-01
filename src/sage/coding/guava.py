@@ -42,7 +42,7 @@ from .linear_code import LinearCode
 def QuasiQuadraticResidueCode(p):
     r"""
     A (binary) quasi-quadratic residue code (or QQR code), as defined by
-    Proposition 2.2 in [BM]_, has a generator matrix in the block form `G=(Q,N)`.
+    Proposition 2.2 in [BM2003]_, has a generator matrix in the block form `G=(Q,N)`.
     Here `Q` is a `p \times p` circulant matrix whose top row
     is `(0,x_1,...,x_{p-1})`, where `x_i=1` if and only if `i`
     is a quadratic residue `\mod p`, and `N` is a `p \times p` circulant
@@ -63,11 +63,9 @@ def QuasiQuadraticResidueCode(p):
 
     REFERENCES:
 
-    .. [BM] Bazzi and Mitter, {\it Some constructions of codes from group actions}, (preprint
-      March 2003, available on Mitter's MIT website).
+    - [BM2003]_
 
-    .. [Jresidue] \D. Joyner, {\it On quadratic residue codes and hyperelliptic curves},
-      (preprint 2006)
+    - [Joy2006]_
 
     These are self-orthogonal in general and self-dual when $p \\equiv 3 \\pmod 4$.
 

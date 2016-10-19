@@ -812,7 +812,7 @@ class DiCyclicGroup(PermutationGroup_unique):
     group of order 12 that is not the dihedral group `D_6`
     nor the alternating group `A_4`.  This group of order 12 is
     also the semi-direct product of of `C_2` by `C_4`,
-    `C_3\rtimes C_4`.  [CONRAD2009]_
+    `C_3\rtimes C_4`.  [Con]_
 
 
     When the order of the group is a
@@ -894,12 +894,6 @@ class DiCyclicGroup(PermutationGroup_unique):
 
         sage: groups.permutation.DiCyclic(6)
         Diyclic group of order 24 as a permutation group
-
-    REFERENCES:
-
-    .. [CONRAD2009] `Groups of order 12
-       <http://www.math.uconn.edu/~kconrad/blurbs/grouptheory/group12.pdf>`_.
-       Keith Conrad, accessed 21 October 2009.
 
     AUTHOR:
 
@@ -1192,13 +1186,13 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 
     EXAMPLES:
 
-    As is noted in [1], `Dih(C_3 \times C_3)` has the presentation
+    As is noted in [TW1980]_, `Dih(C_3 \times C_3)` has the presentation
 
     .. MATH::
 
         \langle a, b, c\mid a^{3}, b^{3}, c^{2}, ab = ba, ac = ca^{-1}, bc = cb^{-1} \rangle
 
-    Note also the fact, verified by [1]_, that the dihedralization of
+    Note also the fact, verified by [TW1980]_, that the dihedralization of
     `C_3 \times C_3` is the only nonabelian group of order 18
     with no element of order 6. ::
 
@@ -1300,10 +1294,6 @@ class GeneralDihedralGroup(PermutationGroup_generic):
         Traceback (most recent call last):
         ...
         ValueError: all direct factors must be greater than 1
-
-    REFERENCES:
-
-    .. [1] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva Publishing, 1980)
 
     AUTHOR:
 
@@ -1499,8 +1489,8 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
 
         This family is notable because, for odd `p`, these are the
         only `p`-groups with a cyclic subgroup of index `p`, a
-        result proven in [GORENSTEIN]_. It is also shown in
-        [GORENSTEIN]_ that this is one of four families containing
+        result proven in [Gor1980]_. It is also shown in
+        [Gor1980]_ that this is one of four families containing
         nonabelian 2-groups with a cyclic subgroup of index 2
         (with the others being the dicyclic groups, the dihedral
         groups, and the semidihedral groups).
@@ -1515,7 +1505,7 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
         relation shows that none of these elements are powers of
         any other. Thus, there are `p` cyclic maximal subgroups in
         each split metacyclic group. It is also proven in
-        [GORENSTEIN]_ that this family has commutator subgroup
+        [Gor1980]_ that this family has commutator subgroup
         of order `p`, and the Frattini subgroup is equal to the
         center, with this group being cyclic of order `p^{m-2}`.
         These characteristics are necessary to identify these
@@ -1570,10 +1560,6 @@ class SplitMetacyclicGroup(PermutationGroup_unique):
             Traceback (most recent call last):
             ...
             ValueError: if prime is odd, the exponent must be greater than 2, not 2
-
-        REFERENCES:
-
-        .. [GORENSTEIN] Daniel Gorenstein, Finite Groups (New York: Chelsea Publishing, 1980)
 
         AUTHOR:
 
@@ -1651,7 +1637,7 @@ class SemidihedralGroup(PermutationGroup_unique):
 
         EXAMPLES:
 
-        In [GORENSTEIN]_ it is shown that the semidihedral groups
+        In [Gor1980]_ it is shown that the semidihedral groups
         have center of order 2. It is also shown that they have a
         Frattini subgroup equal to their commutator, which is a
         cyclic subgroup of order `2^{m-2}`. ::

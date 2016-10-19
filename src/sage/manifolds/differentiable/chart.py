@@ -19,7 +19,7 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 1 of [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*,
+- Chap. 1 of [Lee2013]_ \J.M. Lee : *Introduction to Smooth Manifolds*,
   2nd ed., Springer (New York) (2013)
 
 """

@@ -253,27 +253,23 @@ Patashnik in their book Concrete Mathematics.
 
 REFERENCES:
 
-.. [ASHandbook] Abramowitz and Stegun: Handbook of Mathematical Functions,
-    http://www.math.sfu.ca/ cbm/aands/
+- [AS1964]_
 
-.. :wikipedia:`Chebyshev_polynomials`
+- :wikipedia:`Chebyshev_polynomials`
 
-.. :wikipedia:`Legendre_polynomials`
+- :wikipedia:`Legendre_polynomials`
 
-.. :wikipedia:`Hermite_polynomials`
+- :wikipedia:`Hermite_polynomials`
 
-.. http://mathworld.wolfram.com/GegenbauerPolynomial.html
+- http://mathworld.wolfram.com/GegenbauerPolynomial.html
 
-.. :wikipedia:`Jacobi_polynomials`
+- :wikipedia:`Jacobi_polynomials`
 
-.. :wikipedia:`Laguerre_polynomia`
+- :wikipedia:`Laguerre_polynomia`
 
-.. :wikipedia:`Associated_Legendre_polynomials`
+- :wikipedia:`Associated_Legendre_polynomials`
 
-.. [EffCheby] Wolfram Koepf: Effcient Computation of Chebyshev Polynomials
-    in Computer Algebra
-    Computer Algebra Systems: A Practical Guide.
-    John Wiley, Chichester (1999): 79-99.
+- [Koe1999]_
 
 AUTHORS:
 
@@ -592,7 +588,7 @@ class Func_chebyshev_T(ChebyshevFunction):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.31 page 778 and 6.1.22 page 256.
+    - [AS1964]_ 22.5.31 page 778 and 6.1.22 page 256.
 
     EXAMPLES::
 
@@ -643,7 +639,7 @@ class Func_chebyshev_T(ChebyshevFunction):
     def _eval_special_values_(self, n, x):
         """
         Values known for special values of x.
-        For details see [ASHandbook]_ 22.4 (p. 777)
+        For details see [AS1964]_ 22.4 (p. 777)
 
         EXAMPLES:
 
@@ -755,8 +751,8 @@ class Func_chebyshev_T(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_T`` using an explicit formula.
-        See [ASHandbook]_ 227 (p. 782) for details for the recursions.
-        See also [EffCheby]_ for fast evaluation techniques.
+        See [AS1964]_ 227 (p. 782) for details for the recurions.
+        See also [Koe1999]_ for fast evaluation techniques.
 
         INPUT:
 
@@ -913,7 +909,7 @@ class Func_chebyshev_U(ChebyshevFunction):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.8.3 page 783 and 6.1.22 page 256.
+    - [AS1964]_ 22.8.3 page 783 and 6.1.22 page 256.
 
     EXAMPLES::
 
@@ -962,8 +958,8 @@ class Func_chebyshev_U(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_U`` using an explicit formula.
-        See [ASHandbook]_ 227 (p. 782) for details on the recursions.
-        See also [EffCheby]_ for the recursion formulas.
+        See [AS1964]_ 227 (p. 782) for details on the recurions.
+        See also [Koe1999]_ for the recursion formulas.
 
         INPUT:
 
@@ -1124,7 +1120,7 @@ class Func_chebyshev_U(ChebyshevFunction):
     def _eval_special_values_(self, n, x):
         """
         Values known for special values of x.
-        See [ASHandbook]_ 22.4 (p.777).
+        See [AS1964]_ 22.4 (p.777).
 
         EXAMPLES::
 
@@ -1287,7 +1283,7 @@ class Func_hermite(GinacFunction):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.40 and 22.5.41, page 779.
+    - [AS1964]_ 22.5.40 and 22.5.41, page 779.
 
     EXAMPLES::
 
@@ -1356,7 +1352,7 @@ def jacobi_P(n, a, b, x):
 
     REFERENCE:
 
-    - Table on page 789 in [ASHandbook]_.
+    - Table on page 789 in [AS1964]_.
 
     EXAMPLES::
 
@@ -1395,7 +1391,7 @@ def legendre_P(n, x):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.35 page 779.
+    - [AS1964]_ 22.5.35 page 779.
 
     EXAMPLES::
 
@@ -1447,7 +1443,7 @@ class Func_ultraspherical(GinacFunction):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.27
+    - [AS1964]_ 22.5.27
 
     EXAMPLES::
 
@@ -1513,7 +1509,7 @@ class Func_laguerre(OrthogonalFunction):
     """
     REFERENCE:
  
-    - [ASHandbook]_ 22.5.16, page 778 and page 789.
+    - [AS1964]_ 22.5.16, page 778 and page 789.
     """
     def __init__(self):
         r"""
@@ -1669,7 +1665,7 @@ class Func_gen_laguerre(OrthogonalFunction):
     """
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.16, page 778 and page 789.
+    - [AS1964]_ 22.5.16, page 778 and page 789.
     """
     def __init__(self):
         r"""

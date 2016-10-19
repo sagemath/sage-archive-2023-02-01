@@ -8,7 +8,7 @@ dimension `k=\frac{q^{r}-1}{q-1} - r` and minimum distance
 
 REFERENCES:
 
-.. [R06] Ron Roth, Introduction to Coding Theory, Cambridge University Press, 2006
+- [Rot2006]_
 """
 from __future__ import absolute_import
 
@@ -133,8 +133,8 @@ class HammingCode(AbstractLinearCode):
         is not a binary code is not really well documented.
         Regarding the choice of projective geometry, one might check:
 
-        - the note over section 2.3 in [R06]_, pages 47-48
-        - the dedicated paragraph in [HP]_, page 30
+        - the note over section 2.3 in [Rot2006]_, pages 47-48
+        - the dedicated paragraph in [HP2003]_, page 30
 
         EXAMPLES::
 

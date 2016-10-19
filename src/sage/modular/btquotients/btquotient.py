@@ -3311,7 +3311,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         Bruhat-Tits tree are equivalent under the arithmetic group in
         question. The computation boils down to an application of the
         LLL short-vector algorithm to a particular lattice; for
-        details see [FM]_.
+        details see [FM2014]_.
 
         INPUT:
 
@@ -3343,7 +3343,6 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: X._are_equivalent(M1,M2, as_edges=True)
             sage: X._are_equivalent(M1,M2) == False
             False
-
         """
         try:
             return self._cached_equivalent[(v1, v2, as_edges)]

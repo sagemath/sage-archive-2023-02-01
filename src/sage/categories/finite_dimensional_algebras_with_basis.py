@@ -12,12 +12,7 @@ Finite dimensional algebras with basis
 
 REFERENCES:
 
-..  [CR62] Curtis, Charles W.; Reiner, Irving
-    "Representation theory of finite groups and associative
-    algebras."
-    Pure and Applied Mathematics, Vol. XI Interscience Publishers, a
-    division of John Wiley & Sons, New York-London 1962
-    pp 545--547
+- [CR1962]_
 """
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
@@ -74,18 +69,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                This implementation handles algebras over fields of
                characteristic zero (using Dixon's lemma) or fields of
                characteristic `p` in which we can compute `x^{1/p}`
-               [FR85]_, [Eb89]_.
-
-            REFERENCES:
-
-            .. [Eb89] Eberly, Wayne. "Computations for algebras and group
-               representations". Ph.D. Thesis, University of Toronto, 1989.
-               http://www.cpsc.ucalgary.ca/~eberly/Research/Papers/phdthesis.pdf
-
-            .. [FR85] Friedl, Katalin, and Lajos Rónyai. "Polynomial time
-               solutions of some problems of computational algebra". Proceedings
-               of the seventeenth annual ACM symposium on Theory of computing.
-               ACM, 1985.
+               [FR1985]_, [Eb1989]_.
 
             OUTPUT:
 
@@ -476,7 +460,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             `f_k` by idempotent lifting of `(1-f) g (1-f)`, where `g`
             is any lift of `\overline{e_k}` and `f=\sum_{i<k} f_i`.
 
-            See [CR62]_ for correctness and termination proofs.
+            See [CR1962]_ for correctness and termination proofs.
 
             .. SEEALSO::
 
@@ -565,7 +549,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Iterate the formula `1 - (1 - x^2)^2` until having an
             idempotent.
 
-            See [CR62]_ for correctness and termination proofs.
+            See [CR1962]_ for correctness and termination proofs.
 
             EXAMPLES::
 

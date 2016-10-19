@@ -179,19 +179,21 @@ AUTHORS:
 
 REFERENCES:
 
-.. [AS-Bessel] \F. W. J. Olver: 9. Bessel Functions of Integer Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
-    http://people.math.sfu.ca/~cbm/aands/page_355.htm
-.. [AS-Spherical] \H. A. Antosiewicz: 10. Bessel Functions of Fractional Order, in Abramowitz and Stegun: Handbook of Mathematical Functions
-    http://people.math.sfu.ca/~cbm/aands/page_435.htm
-.. [AS-Struve] \M. Abramowitz: 12. Struve Functions and Related Functions, in Abramowitz and Stegun: Handbook of Mathematical Functions
-   http://people.math.sfu.ca/~cbm/aands/page_495.htm
-.. [DLMF-Bessel] \F. W. J. Olver and L. C. Maximon: 10. Bessel Functions, in NIST Digital Library of Mathematical Functions
-    http://dlmf.nist.gov/10
-.. [DLMF-Struve] \R. B. Paris: 11. Struve and Related Functions, in NIST Digital Library of Mathematical Functions
-    http://dlmf.nist.gov/11
-.. _`mpmath Library`: https://github.com/fredrik-johansson/mpmath
-.. [WP-Bessel] :wikipedia:`Bessel_function`
-.. [WP-Struve] :wikipedia:`Struve_function`
+- [AS-Bessel]_
+
+- [AS-Spherical]_
+
+- [AS-Struve]_
+
+- [DLMF-Bessel]_
+
+- [DLMF-Struve]_
+
+.. _`mpmath library`: http://mpmath.org
+
+- [WP-Bessel]_
+
+- [WP-Struve]_
 """
 
 #*****************************************************************************

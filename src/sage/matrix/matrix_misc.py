@@ -272,7 +272,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
     ``A.permanental_minor(i)``).
 
     The algorithm implemented by that function has been developed by P. Butera
-    and M. Pernici, see [ButPer]. Its complexity is `O(2^n m^2 n)` where `m` and
+    and M. Pernici, see [BP2015]. Its complexity is `O(2^n m^2 n)` where `m` and
     `n` are the number of rows and columns of `A`.  Moreover, if `A` is a banded
     matrix with width `w`, that is `A_{ij}=0` for `|i - j| > w` and `w < n/2`,
     then the complexity of the algorithm is `O(4^w (w+1) n^2)`.
@@ -418,7 +418,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
         `k` rows of `A`;  `\eta_i` is associated to the i-th column;
         nilpotency avoids having twice the same column in a product of `A`'s.
 
-        For more details, see the article [ButPer].
+        For more details, see the article [BP2015]_.
 
         From a technical point of view, the product in
         `K[\eta_1, \ldots, \eta_n][t]` is implemented as a subroutine in
@@ -432,11 +432,6 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
         to the key `6 = (110)_2` while `\eta_0 \eta_3` has key `9 = (1001)_2`.
         In particular all operations on monomials are implemented via bitwise
         operations on the keys.
-
-    REFERENCES:
-
-    .. [ButPer] \P. Butera and M. Pernici "Sums of permanental minors
-       using Grassmann algebra", :arxiv:`1406.5337`
     """
     if permanent_only:
         prec = None

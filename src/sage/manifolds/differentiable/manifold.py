@@ -2,7 +2,7 @@ r"""
 Differentiable Manifolds
 
 Given a non-discrete topological field `K` (in most applications, `K = \RR` or
-`K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
+`K = \CC`; see however [Ser1992]_ for `K = \QQ_p` and [Ber2008]_ for other fields),
 a *differentiable manifold over* `K` is a topological manifold `M` over `K`
 equipped with an atlas whose transitions maps are of class `C^k` (i.e.
 `k`-times  continuously differentiable) for a fixed positive integer `k`
@@ -310,20 +310,12 @@ AUTHORS:
 
 REFERENCES:
 
-.. [1] \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
-   (New York) (2012); :doi:`10.1007/978-1-4419-9982-5`
-.. [2] \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
-   vol. 1, Interscience Publishers (New York) (1963)
-.. [3] \D. Huybrechts : *Complex Geometry*, Springer (Berlin) (2005);
-   :doi:`10.1007/b137952`
-.. [4] \J.-P. Serre : *Lie Algebras and Lie Groups*, 2nd ed., Springer
-   (Berlin) (1992); :doi:`10.1007/978-3-540-70634-2`
-.. [5] \W. Bertram : *Differential Geometry, Lie Groups and Symmetric Spaces
-   over General Base Fields and Rings*, Memoirs of the American Mathematical
-   Society, vol. 192 (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
-.. [6] \M. Berger & B. Gostiaux : *Differential Geometry: Manifolds, Curves and
-   Surfaces*, Springer (New York) (1988); :doi:`10.1007/978-1-4612-1033-7`
-
+- [Lee2013]_
+- [KN1963]_
+- [Huy2005]_
+- [Ser1992]_
+- [Ber2008]_
+- [BG1988]_
 """
 
 #*****************************************************************************
@@ -352,7 +344,7 @@ class DifferentiableManifold(TopologicalManifold):
     Differentiable manifold over a topological field `K`.
 
     Given a non-discrete topological field `K` (in most applications,
-    `K = \RR` or `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for
+    `K = \RR` or `K = \CC`; see however [Ser1992]_ for `K = \QQ_p` and [Ber2008]_ for
     other fields), a *differentiable manifold over* `K` is a topological
     manifold `M` over `K` equipped with an atlas whose transitions maps are of
     class `C^k` (i.e. `k`-times  continuously differentiable) for a fixed

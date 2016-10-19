@@ -2696,7 +2696,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         - ``prune`` -- (default: ``0``) The optional parameter
           ``prune`` can be set to any positive number to invoke the
-          Volume Heuristic from [SH95]_. This can significantly reduce
+          Volume Heuristic from [SH1995]_. This can significantly reduce
           the running time, and hence allow much bigger block size,
           but the quality of the reduction is of course not as good in
           general. Higher values of ``prune`` mean better quality, and
@@ -2707,7 +2707,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         - ``use_givens`` -- Use Given's orthogonalization. This is a
           bit slower, but generally much more stable, and is really
           the preferred orthogonalization strategy. For a nice
-          description of this, see Chapter 5 of [GL96]_.
+          description of this, see Chapter 5 of [GL1996]_.
 
         fpLLL SPECIFIC INPUT:
 
@@ -2743,16 +2743,6 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         ALGORITHM:
 
         Calls either NTL or fpLLL.
-
-        REFERENCES:
-
-        .. [SH95] \C. P. Schnorr and H. H. Hörner. *Attacking the
-            Chor-Rivest Cryptosystem by Improved Lattice Reduction*.
-            Advances in Cryptology - EUROCRYPT '95. LNCS Volume 921,
-            1995, pp 1-12.
-
-        .. [GL96] \G. Golub and C. van Loan. *Matrix Computations*.
-            3rd edition, Johns Hopkins Univ. Press, 1996.
         """
         if delta is None:
             delta = 0.99

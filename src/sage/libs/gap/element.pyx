@@ -1993,7 +1993,8 @@ cdef class GapElement_Function(GapElement):
             ....:         pass
 
             sage: libgap_exec = libgap.eval("Exec")
-            sage: libgap_exec('echo hello from the shell > /dev/null')
+            sage: libgap_exec('echo hello from the shell')
+            hello from the shell
         """
         cdef libGAP_Obj result = NULL
         cdef libGAP_Obj arg_list

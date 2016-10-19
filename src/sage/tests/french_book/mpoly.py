@@ -15,7 +15,7 @@ Sage example in ./mpoly.tex, line 40::
 Sage example in ./mpoly.tex, line 44::
 
   sage: x = R.gens()
-  sage: sum(x[i] for i in xrange(5))
+  sage: sum(x[i] for i in range(5))
   x0 + x1 + x2 + x3 + x4
 
 Sage example in ./mpoly.tex, line 52::

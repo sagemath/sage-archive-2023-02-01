@@ -112,7 +112,6 @@ sagelib: \
 		$(inst_eclib) \
 		$(inst_ecm) \
 		$(inst_flint) \
-		$(inst_libfplll) \
 		$(inst_libgd) \
 		$(inst_givaro) \
 		$(inst_glpk) \

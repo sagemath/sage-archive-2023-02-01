@@ -1975,7 +1975,7 @@ class FSMState(sage.structure.sage_object.SageObject):
                 left.initial_probability == right.initial_probability)
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True.
 
@@ -1990,10 +1990,13 @@ class FSMState(sage.structure.sage_object.SageObject):
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import FSMState
-            sage: FSMState('A').__nonzero__()
+            sage: bool(FSMState('A'))
             True
         """
         return True  # A state cannot be zero (see __init__)
+
+
+    __nonzero__ = __bool__
 
 
     def _epsilon_successors_(self, fsm=None):
@@ -2502,7 +2505,7 @@ class FSMTransition(sage.structure.sage_object.SageObject):
         return (not (left == right))
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True.
 
@@ -2517,10 +2520,12 @@ class FSMTransition(sage.structure.sage_object.SageObject):
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMTransition
-            sage: FSMTransition('A', 'B', 0).__nonzero__()
+            sage: bool(FSMTransition('A', 'B', 0))
             True
         """
         return True  # A transition cannot be zero (see __init__)
+
+    __nonzero__ = __bool__
 
 
 #*****************************************************************************
@@ -3918,7 +3923,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
     #*************************************************************************
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True if the finite state machine consists of at least
         one state.
@@ -3933,10 +3938,13 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         TESTS::
 
-            sage: FiniteStateMachine().__nonzero__()
+            sage: bool(FiniteStateMachine())
             False
         """
         return len(self._states_) > 0
+
+
+    __nonzero__ = __bool__
 
 
     def __eq__(left, right):
@@ -9103,7 +9111,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             if not first_letters:
                 return tuple()
             first_item = first_letters.pop()
-            if all([item == first_item for item in first_letters]):
+            if all(item == first_item for item in first_letters):
                 return (first_item,)
             return tuple()
 
@@ -10080,7 +10088,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
             sage: A = Automaton([(j, j+1, 0) for j in range(3)],
             ....:               initial_states=[0],
-            ....:               final_states=range(3))
+            ....:               final_states=list(range(3)))
             sage: A.number_of_words()
             1/2*0^(n - 2)*(n - 1)*n + 0^(n - 1)*n + 0^n
 
@@ -10742,7 +10750,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 ....:         - 2*h*p[i]^h * (1 - p[i])/(1 - p[i]^h)^2
                 ....:         for i in range(r)
                 ....:         ) * theory_expectation^2
-                ....:     alphabet = range(r)
+                ....:     alphabet = list(range(r))
                 ....:     counters = [
                 ....:         transducers.CountSubblockOccurrences([j]*h,
                 ....:                     alphabet)
@@ -10788,7 +10796,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 ....:     p = R.gens()
                 ....:     def is_zero(polynomial):
                 ....:         return polynomial in (sum(p) - 1) * R
-                ....:     alphabet = range(r)
+                ....:     alphabet = list(range(r))
                 ....:     counters = [
                 ....:         transducers.Wait([0, 1])(
                 ....:             transducers.CountSubblockOccurrences(

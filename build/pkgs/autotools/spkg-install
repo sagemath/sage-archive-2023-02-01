@@ -107,7 +107,7 @@ cd "$BUILD"
     echo "SAGE_LOCAL = $SAGE_LOCAL"
     # Force the use of bash as shell (/bin/sh on OpenSolaris has
     # problems with very long command lines used in some make rules).
-    echo "SHELL = `which bash`"
+    echo "SHELL = bash"
     echo
     cat "$SRC/../Makefile.build"
 ) >Makefile

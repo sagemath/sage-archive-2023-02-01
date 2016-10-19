@@ -2,8 +2,6 @@
 """
 Elements of modular forms spaces
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2004-2008 William Stein <wstein@gmail.com>
 #
@@ -13,11 +11,12 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six.moves import range
 
 import sage.modular.hecke.element as element
-import sage.rings.all as rings
 
+from sage.rings.all import ZZ, QQ, Integer, RealField, ComplexField
 from sage.rings.fast_arith import prime_range
 from sage.rings.morphism import RingHomomorphism
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
@@ -300,8 +299,8 @@ class ModularForm_abstract(ModuleElement):
             self.__coefficients
         except AttributeError:
             self.__coefficients = {}
-        if isinstance(X, rings.Integer):
-            X = range(1,X+1)
+        if isinstance(X, Integer):
+            X = list(range(1, X + 1))
         Y = [n for n in X   if  not (n in self.__coefficients.keys())]
         v = self._compute(Y)
         for i in range(len(v)):
@@ -479,7 +478,7 @@ class ModularForm_abstract(ModuleElement):
         """
         if prec is None:
             prec = self.parent().prec()
-        prec = rings.Integer(prec)
+        prec = Integer(prec)
         try:
             current_prec, f = self.__q_expansion
         except AttributeError:
@@ -636,7 +635,7 @@ class ModularForm_abstract(ModuleElement):
             -1.35975973348831 + 1.09365931898146e-16*I
 
         """
-        R = rings.RealField(prec)
+        R = RealField(prec)
 
         N = self.level()
         if not self.character().is_trivial():
@@ -847,16 +846,16 @@ class ModularForm_abstract(ModuleElement):
         if isinstance(embedding, RingHomomorphism):
             # Target of embedding might have precision less than desired, so
             # need to refine
-            emb = NumberFieldEmbedding(K, rings.ComplexField(prec), embedding(K.gen()))
+            emb = NumberFieldEmbedding(K, ComplexField(prec), embedding(K.gen()))
         else:
-            emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
+            emb = self.base_ring().embeddings(ComplexField(prec))[embedding]
 
         s = 'coeff = %s;' % [emb(_) for _ in coeffs]
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
         L.check_functional_equation()
-        if K == rings.QQ:
+        if K == QQ:
             L.rename('L-series associated to the cusp form %s'%self)
         else:
             L.rename('L-series associated to the cusp form %s, %s=%s' \
@@ -918,7 +917,7 @@ class ModularForm_abstract(ModuleElement):
         """
         from sage.lfunctions.all import Dokchitser
         weight = self.weight()
-        C = rings.ComplexField(prec)
+        C = ComplexField(prec)
         if self.level() != 1:
             raise NotImplementedError("Symmetric square L-functions only implemented for level 1")
 
@@ -927,9 +926,9 @@ class ModularForm_abstract(ModuleElement):
             # Target of embedding might have precision less than desired, so
             # need to refine
             K = self.base_ring()
-            emb = NumberFieldEmbedding(K, rings.ComplexField(prec), embedding(K.gen()))
+            emb = NumberFieldEmbedding(K, ComplexField(prec), embedding(K.gen()))
         else:
-            emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
+            emb = self.base_ring().embeddings(ComplexField(prec))[embedding]
 
         if chi is None:
             eps = 1
@@ -937,7 +936,7 @@ class ModularForm_abstract(ModuleElement):
         else:
             assert chi.is_primitive()
             chi = chi.change_ring(C)
-            eps = chi.gauss_sum()**3 / chi.base_ring()(chi.conductor())**rings.QQ( (3, 2) )
+            eps = chi.gauss_sum()**3 / chi.base_ring()(chi.conductor())**QQ( (3, 2) )
             N = chi.conductor()**3
 
         L = Dokchitser(N, [0, 1, -weight + 2], 2 * weight - 1, eps, prec=prec)
@@ -950,7 +949,7 @@ class ModularForm_abstract(ModuleElement):
         # utility function for Dirichlet convolution of series
         def dirichlet_convolution(A, B):
             return [sum(A[d-1] * B[n/d - 1] for d in divisors(n))
-                for n in xrange(1, 1 + min(len(A), len(B)))]
+                for n in range(1, 1 + min(len(A), len(B)))]
 
         # The Dirichlet series for \zeta(2 s - 2 k + 2)
         riemann_series = [ n**(weight - 1) if n.is_square() else 0
@@ -963,7 +962,7 @@ class ModularForm_abstract(ModuleElement):
 
         # If the base ring is QQ we pass the coefficients to GP/PARI as exact
         # rationals. Otherwise, need to use the embedding.
-        if self.base_ring() != rings.QQ:
+        if self.base_ring() != QQ:
             dirichlet_series = map(emb, dirichlet_series)
 
         if chi is not None:
@@ -1025,10 +1024,10 @@ class ModularForm_abstract(ModuleElement):
             sage: (X(F + G) + X(F - G) - 2*X(F) - 2*X(G)).abs() < 1e-25
             True
         """
-        pi = rings.RealField(prec).pi()
+        pi = RealField(prec).pi()
         L = self.symsquare_lseries(prec=prec, embedding=embedding)
         k = self.weight()
-        return (rings.ZZ(k - 1).factorial() / 2**(2*k - 1) / pi**(k+1)) * L(k).real_part()
+        return (ZZ(k - 1).factorial() / 2**(2*k - 1) / pi**(k+1)) * L(k).real_part()
 
 class Newform(ModularForm_abstract):
     def __init__(self, parent, component, names, check=True):
@@ -1652,7 +1651,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             newparent = ModularForms(newchar, self.weight() + other.weight(), base_ring = newchar.base_ring())
             verbose("parent is %s" % newparent)
         else:
-            newparent = ModularForms(self.group(), self.weight() + other.weight(), base_ring = rings.ZZ)
+            newparent = ModularForms(self.group(), self.weight() + other.weight(), base_ring = ZZ)
         m = newparent.sturm_bound()
         newqexp = self.qexp(m) * other.qexp(m)
 
@@ -1800,7 +1799,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             M = constructor(Gamma1(level), self.weight(), base_ring=R)
         bound = M.sturm_bound() + 1
         S = PowerSeriesRing(R, 'q')
-        f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)
+        f_twist = S([self[i] * chi(i) for i in range(bound)], prec=bound)
         return M(f_twist)
 
 
@@ -1989,7 +1988,7 @@ class EisensteinSeries(ModularFormElement):
         """
         if prec is None:
             prec = self.parent().prec()
-        F = self._compute(range(prec))
+        F = self._compute(list(range(prec)))
         R = self.parent()._q_expansion_ring()
         return R(F, prec)
 

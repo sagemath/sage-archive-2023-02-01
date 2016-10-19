@@ -220,12 +220,10 @@ from sage.categories.sets_cat import Sets
 from sage.combinat.tableau import Tableau, Tableaux, Tableaux_size, Tableaux_all, StandardTableau,\
         StandardTableaux, StandardTableaux_size, StandardTableaux_all, StandardTableaux_shape
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.misc.prandom import random
-from sage.misc.sage_unittest import TestSuite
 from sage.arith.all import factorial
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
@@ -3245,7 +3243,8 @@ class StandardTableauTuples_level_size(StandardTableauTuples):
             return self.element_class(self, sum([[[[1],[2]]]],[[] for i in range(self.level()-1)]))
         else:
             return self.element_class(self, sum([[[[1]]],
-                      [[range(2,self.size()),[self.size()]]]],[[] for i in range(self.level()-2)]))
+                      [[list(range(2,self.size())),
+                        [self.size()]]]],[[] for i in range(self.level()-2)]))
 
 class StandardTableauTuples_shape(StandardTableauTuples):
     """

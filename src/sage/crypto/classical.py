@@ -42,6 +42,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 # TODO: check off this todo list:
 # - methods to cryptanalyze the Hill, substitution, transposition, and
@@ -278,7 +279,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         # List L of invertible linear coefficients modulo n, where n is the
         # alphabet size. Each e in L satisfies gcd(e, n) = 1.
         n = A.ngens()
-        self._invertible_A = [i for i in xrange(n) if gcd(i, n) == 1]
+        self._invertible_A = [i for i in range(n) if gcd(i, n) == 1]
         # Initialize the affine cryptosystem with the plaintext, ciphertext,
         # and key spaces.
         SymmetricKeyCryptosystem.__init__(
@@ -551,7 +552,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         # Compute the rank R_{chi^2}(M) of M with secret key (a,b).
         Rank = []
         for a in self._invertible_A:
-            for b in xrange(self.alphabet_size()):
+            for b in range(self.alphabet_size()):
                 # observed frequency tally
                 OM = pdict[(a, b)].frequency_distribution().function()
                 for e in Alph:
@@ -760,7 +761,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         # Compute the rank R_{RSS}(M) of M with secret key (a,b).
         Rank = []
         for a in self._invertible_A:
-            for b in xrange(self.alphabet_size()):
+            for b in range(self.alphabet_size()):
                 # observed frequency tally
                 OM = pdict[(a, b)].frequency_distribution().function()
                 for e in Alph:
@@ -964,7 +965,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         # leave it as is.
         [D.setdefault((a, b), self.deciphering(a, b, C))
              for a in self._invertible_A
-                 for b in xrange(self.alphabet_size())]
+                 for b in range(self.alphabet_size())]
 
         if ranking == "none":
             return D
@@ -1209,7 +1210,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         And here is a list of those integers::
 
             sage: n = A.alphabet_size()
-            sage: L = [i for i in xrange(n) if gcd(i, n) == 1]; L
+            sage: L = [i for i in range(n) if gcd(i, n) == 1]; L
             [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25]
 
         Then a secret key `(a,b)` of this shift cryptosystem is
@@ -2177,7 +2178,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             EA[e] *= L
         # the rank R(M, k) of M for each key
         Rank = []
-        for key in xrange(self.alphabet_size()):
+        for key in range(self.alphabet_size()):
             # observed frequency tally
             OM = pdict[key].frequency_distribution().function()
             for e in Alph:
@@ -2421,7 +2422,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             EA[e] *= L
         # the rank R(M, k) of M for each key
         Rank = []
-        for key in xrange(self.alphabet_size()):
+        for key in range(self.alphabet_size()):
             # observed frequency tally
             OM = pdict[key].frequency_distribution().function()
             for e in Alph:
@@ -2483,7 +2484,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: K = 7
             sage: C = S.enciphering(K, P)
             sage: Dict = S.brute_force(C)
-            sage: for k in xrange(len(Dict)):
+            sage: for k in range(len(Dict)):
             ....:     if Dict[k] == P:
             ....:         print("key = " + str(k))
             key = 7
@@ -2495,7 +2496,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: K = 5
             sage: C = S.enciphering(K, P)
             sage: Dict = S.brute_force(C)
-            sage: for k in xrange(len(Dict)):
+            sage: for k in range(len(Dict)):
             ....:     if Dict[k] == P:
             ....:         print("key = " + str(k))
             key = 5
@@ -2507,7 +2508,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             sage: K = 1
             sage: C = S.enciphering(K, P)
             sage: Dict = S.brute_force(C)
-            sage: for k in xrange(len(Dict)):
+            sage: for k in range(len(Dict)):
             ....:     if Dict[k] == P:
             ....:         print("key = " + str(k))
             key = 1
@@ -2659,7 +2660,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
         # are supported by this shift cryptosystem, it can be a waste of
         # time optimizing the code when the largest alphabet size is less
         # than 100.
-        for k in xrange(self.alphabet_size()):
+        for k in range(self.alphabet_size()):
             D.setdefault(k, self.deciphering(k, C))
 
         if ranking == "none":

@@ -1377,7 +1377,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1, 2, 4, 6, 3, 5]).rank()
             10
             sage: perms = Permutations(6).list()
-            sage: [p.rank() for p in perms ] == range(factorial(6))
+            sage: [p.rank() for p in perms] == list(range(factorial(6)))
             True
         """
         n = len(self)
@@ -2120,7 +2120,7 @@ class Permutation(CombinatorialElement):
 
             sage: Permutation([2,3,1,4]).longest_increasing_subsequence_length()
             3
-            sage: all([i.longest_increasing_subsequence_length() == len(RSK(i)[0][0]) for i in Permutations(5)])
+            sage: all(i.longest_increasing_subsequence_length() == len(RSK(i)[0][0]) for i in Permutations(5))
             True
             sage: Permutation([]).longest_increasing_subsequence_length()
             0
@@ -4163,7 +4163,7 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: p = Permutation([2,1,3])
-            sage: a = range(3)
+            sage: a = list(range(3))
             sage: p.action(a)
             [1, 0, 2]
             sage: b = [1,2,3,4]
@@ -4173,7 +4173,7 @@ class Permutation(CombinatorialElement):
             ValueError: len(a) must equal len(self)
 
             sage: q = Permutation([2,3,1])
-            sage: a = range(3)
+            sage: a = list(range(3))
             sage: q.action(a)
             [1, 2, 0]
         """
@@ -4701,9 +4701,9 @@ class Permutation(CombinatorialElement):
 
             sage: Permutation([3, 4, 6, 1, 5, 7, 2, 8]).hyperoctahedral_double_coset_type()
             [3, 1]
-            sage: all([p.hyperoctahedral_double_coset_type() ==
-            ....:      p.inverse().hyperoctahedral_double_coset_type()
-            ....:       for p in Permutations(4)])
+            sage: all(p.hyperoctahedral_double_coset_type() ==
+            ....:     p.inverse().hyperoctahedral_double_coset_type()
+            ....:     for p in Permutations(4))
             True
             sage: Permutation([]).hyperoctahedral_double_coset_type()
             []
@@ -6944,7 +6944,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
     if n != M.ncols():
         raise ValueError("The matrix is expected to be square")
 
-    if not all([x >= 0 for x in M.list()]):
+    if not all(x >= 0 for x in M.list()):
         raise ValueError("The matrix should have nonnegative entries")
 
     if check and not M.is_bistochastic(normalized = False):

@@ -635,8 +635,8 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             ...
             TypeError: Cannot substitute in 1/x in
             <class 'sage.rings.asymptotic.growth_group.Variable'>.
-            > *previous* TypeError: unsupported operand parent(s) for '/':
-            'Integer Ring' and '<type 'str'>'
+            > *previous* TypeError: unsupported operand type(s) for /:
+            'sage.rings.integer.Integer' and 'str'
             sage: Variable('1/x')._substitute_({'x': 0})
             Traceback (most recent call last):
             ...

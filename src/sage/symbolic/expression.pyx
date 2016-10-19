@@ -456,6 +456,7 @@ cdef class Expression(CommutativeRingElement):
          * a string representation of self stored in a Pynac archive.
 
         TESTS::
+
             sage: var('x,y,z')
             (x, y, z)
             sage: t = 2*x*y^z+3
@@ -465,7 +466,6 @@ cdef class Expression(CommutativeRingElement):
             (0,
              ['x', 'y', 'z'],
              ...)
-
         """
         cdef GArchive ar
         ar.archive_ex(self._gobj, "sage_ex")
@@ -4319,6 +4319,15 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x+sqrt(2)*x)^2).expand()
             2*sqrt(2)*x^2 + 3*x^2
 
+        Check that :trac:`21360` is fixed::
+
+            sage: ((x^(x/2) + 1)^2).expand()
+            2*x^(1/2*x) + x^x + 1
+            sage: ((x^(1/2*x))^2).expand()
+            x^x
+            sage: ((x^(2*x))^2).expand()
+            x^(4*x)
+
         Check that exactness is preserved::
 
             sage: ((x+1.001)^2).expand()
@@ -5153,7 +5162,7 @@ cdef class Expression(CommutativeRingElement):
             (1, 2, x, x + 1, x + 2)
             sage: type(t._unpack_operands())
             <type 'tuple'>
-            sage: map(type, t._unpack_operands())
+            sage: list(map(type, t._unpack_operands()))
             [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
             sage: u = SR._force_pyobject((t, x^2))
             sage: u._unpack_operands()
@@ -10100,6 +10109,14 @@ cdef class Expression(CommutativeRingElement):
             x^3*y^17 + x*y^19 + y^20)*(x^10 - x^9*y + x^8*y^2 - x^7*y^3 +
             x^6*y^4 - x^5*y^5 + x^4*y^6 - x^3*y^7 + x^2*y^8 - x*y^9 +
             y^10)*(x^6 - x^3*y^3 + y^6)*(x^2 - x*y + y^2)*(x + y)
+
+        TESTS:
+
+        Check that :trac:`21529` is fixed::
+
+            sage: f(x) = function('f')(x)
+            sage: (f(x).diff(x)^2-1).factor()
+            (diff(f(x), x) + 1)*(diff(f(x), x) - 1)
         """
         from sage.calculus.calculus import symbolic_expression_from_maxima_string, symbolic_expression_from_string
         if len(dontfactor) > 0:
@@ -10114,7 +10131,7 @@ cdef class Expression(CommutativeRingElement):
                 f = self.polynomial(QQ)
                 w = repr(f.factor())
                 return symbolic_expression_from_string(w)
-            except TypeError:
+            except (TypeError, NotImplementedError):
                 pass
             return self.parent()(self._maxima_().factor())
 

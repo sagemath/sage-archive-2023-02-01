@@ -259,7 +259,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
 
         sage: libgap.eval('if 4>3 then\nPrint("hi");\nfi')
         NULL
-        sage: libgap.eval('1+1')   # testing that we have sucessfully recovered
+        sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
 
         sage: libgap.eval('if 4>3 thenPrint("hi");\nfi')
@@ -269,7 +269,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         if 4>3 thenPrint("hi");
         fi;
                        ^
-        sage: libgap.eval('1+1')   # testing that we have sucessfully recovered
+        sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
     """
     initialize()

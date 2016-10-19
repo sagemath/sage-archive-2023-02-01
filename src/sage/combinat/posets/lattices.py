@@ -78,6 +78,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.vertical_decomposition` | Return the vertical decomposition of the lattice.
+    :meth:`~FiniteLatticePoset.canonical_joinands` | Return the canonical joinands of an element.
 
 **Miscellaneous**
 
@@ -110,6 +111,7 @@ from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.combinat.posets.elements import (LatticePosetElement,
                                            MeetSemilatticeElement,
                                            JoinSemilatticeElement)
+from sage.combinat.posets.hasse_diagram import LatticeError
 
 ####################################################################################
 
@@ -129,34 +131,37 @@ def MeetSemilattice(data=None, *args, **options):
 
     Using data that defines a poset::
 
-          sage: MeetSemilattice([[1,2],[3],[3]])
-          Finite meet-semilattice containing 4 elements
+        sage: MeetSemilattice([[1,2],[3],[3]])
+        Finite meet-semilattice containing 4 elements
 
-          sage: MeetSemilattice([[1,2],[3],[3]], cover_relations = True)
-          Finite meet-semilattice containing 4 elements
+        sage: MeetSemilattice([[1,2],[3],[3]], cover_relations = True)
+        Finite meet-semilattice containing 4 elements
 
     Using a previously constructed poset::
 
-          sage: P = Poset([[1,2],[3],[3]])
-          sage: L = MeetSemilattice(P); L
-          Finite meet-semilattice containing 4 elements
-          sage: type(L)
-          <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
+        sage: P = Poset([[1,2],[3],[3]])
+        sage: L = MeetSemilattice(P); L
+        Finite meet-semilattice containing 4 elements
+        sage: type(L)
+        <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
 
     If the data is not a lattice, then an error is raised::
 
-          sage: elms = [1,2,3,4,5,6,7]
-          sage: rels = [[1,2],[3,4],[4,5],[2,5]]
-          sage: MeetSemilattice((elms, rels))
-          Traceback (most recent call last):
-          ...
-          ValueError: Not a meet semilattice.
+        sage: MeetSemilattice({'a': ['b', 'c'], 'b': ['d', 'e'],
+        ....:                  'c': ['d', 'e'], 'd': ['f'], 'e': ['f']})
+        Traceback (most recent call last):
+        ...
+        LatticeError: no meet for e and d
     """
     if isinstance(data,FiniteMeetSemilattice) and len(args) == 0 and len(options) == 0:
         return data
     P = Poset(data, *args, **options)
-    if not P.is_meet_semilattice():
-        raise ValueError("Not a meet semilattice.")
+    try:
+        P._hasse_diagram.meet_matrix()
+    except LatticeError as error:
+        error.x = P._vertex_to_element(error.x)
+        error.y = P._vertex_to_element(error.y)
+        raise
     return FiniteMeetSemilattice(P)
 
 class FiniteMeetSemilattice(FinitePoset):
@@ -277,7 +282,7 @@ class FiniteMeetSemilattice(FinitePoset):
         """
         Return the pseudocomplement of ``element``, if it exists.
 
-        The pseudocomplement is the greatest element whose
+        The (meet-)pseudocomplement is the greatest element whose
         meet with given element is the bottom element. I.e.
         in a meet-semilattice with bottom element `\hat{0}`
         the pseudocomplement of an element `e` is the element
@@ -343,42 +348,46 @@ def JoinSemilattice(data=None, *args, **options):
 
     - ``data``, ``*args``, ``**options`` -- data and options that will
       be passed down to :func:`Poset` to construct a poset that is
-      also a join semilattice.
+      also a join semilattice
 
-    .. seealso:: :func:`Poset`, :func:`MeetSemilattice`, :func:`LatticePoset`
+    .. SEEALSO:: :func:`Poset`, :func:`MeetSemilattice`, :func:`LatticePoset`
 
     EXAMPLES:
 
     Using data that defines a poset::
 
-          sage: JoinSemilattice([[1,2],[3],[3]])
-          Finite join-semilattice containing 4 elements
+        sage: JoinSemilattice([[1,2],[3],[3]])
+        Finite join-semilattice containing 4 elements
 
-          sage: JoinSemilattice([[1,2],[3],[3]], cover_relations = True)
-          Finite join-semilattice containing 4 elements
+        sage: JoinSemilattice([[1,2],[3],[3]], cover_relations = True)
+        Finite join-semilattice containing 4 elements
 
     Using a previously constructed poset::
 
-          sage: P = Poset([[1,2],[3],[3]])
-          sage: J = JoinSemilattice(P); J
-          Finite join-semilattice containing 4 elements
-          sage: type(J)
-          <class 'sage.combinat.posets.lattices.FiniteJoinSemilattice_with_category'>
+        sage: P = Poset([[1,2],[3],[3]])
+        sage: J = JoinSemilattice(P); J
+        Finite join-semilattice containing 4 elements
+        sage: type(J)
+        <class 'sage.combinat.posets.lattices.FiniteJoinSemilattice_with_category'>
 
     If the data is not a lattice, then an error is raised::
 
-          sage: elms = [1,2,3,4,5,6,7]
-          sage: rels = [[1,2],[3,4],[4,5],[2,5]]
-          sage: JoinSemilattice((elms, rels))
-          Traceback (most recent call last):
-          ...
-          ValueError: Not a join semilattice.
+        sage: JoinSemilattice({'a': ['b', 'c'], 'b': ['d', 'e'],
+        ....:                  'c': ['d', 'e'], 'd': ['f'], 'e': ['f']})
+        Traceback (most recent call last):
+        ...
+        LatticeError: no join for b and c
     """
     if isinstance(data,FiniteJoinSemilattice) and len(args) == 0 and len(options) == 0:
         return data
     P = Poset(data, *args, **options)
-    if not P.is_join_semilattice():
-        raise ValueError("Not a join semilattice.")
+    try:
+        P._hasse_diagram.join_matrix()
+    except LatticeError as error:
+        error.x = P._vertex_to_element(error.x)
+        error.y = P._vertex_to_element(error.y)
+        raise
+
     return FiniteJoinSemilattice(P)
 
 class FiniteJoinSemilattice(FinitePoset):
@@ -509,9 +518,12 @@ def LatticePoset(data=None, *args, **options):
 
     OUTPUT:
 
-        FiniteLatticePoset -- an instance of :class:`FiniteLatticePoset`
+    An instance of :class:`FiniteLatticePoset`.
 
-    .. seealso:: :class:`Posets`, :class:`FiniteLatticePosets`, :func:`JoinSemiLattice`, :func:`MeetSemiLattice`
+    .. SEEALSO::
+
+        :class:`Posets`, :class:`FiniteLatticePosets`,
+        :func:`JoinSemiLattice`, :func:`MeetSemiLattice`
 
     EXAMPLES:
 
@@ -538,7 +550,7 @@ def LatticePoset(data=None, *args, **options):
         sage: LatticePoset((elms, rels))
         Traceback (most recent call last):
         ...
-        ValueError: Not a lattice.
+        ValueError: not a meet-semilattice: no bottom element
 
     Creating a facade lattice::
 
@@ -553,9 +565,15 @@ def LatticePoset(data=None, *args, **options):
     if isinstance(data,FiniteLatticePoset) and len(args) == 0 and len(options) == 0:
         return data
     P = Poset(data, *args, **options)
-    if not P.is_lattice():
-        raise ValueError("Not a lattice.")
-
+    if P.cardinality() != 0:
+        if not P.has_bottom():
+            raise ValueError("not a meet-semilattice: no bottom element")
+        try:
+            P._hasse_diagram.join_matrix()
+        except LatticeError as error:
+            error.x = P._vertex_to_element(error.x)
+            error.y = P._vertex_to_element(error.y)
+            raise
     return FiniteLatticePoset(P, category = FiniteLatticePosets(), facade = P._is_facade)
 
 class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
@@ -1218,16 +1236,28 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
          self.meet(x, element)==self.bottom() and
          self.join(x, element)==self.top()]
 
-    def is_pseudocomplemented(self):
+    def is_pseudocomplemented(self, certificate=False):
         """
         Return ``True`` if the lattice is pseudocomplemented, and ``False``
         otherwise.
 
-        A lattice is pseudocomplemented if every element `e` has a
+        A lattice is (meet-)pseudocomplemented if every element `e` has a
         pseudocomplement `e^\star`, i.e. the greatest element such that
         the meet of `e` and `e^\star` is the bottom element.
 
         See :wikipedia:`Pseudocomplement`.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where ``e`` is an element without a
+          pseudocomplement. If ``certificate=False`` return ``True``
+          or ``False``.
 
         EXAMPLES::
 
@@ -1238,8 +1268,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: L = LatticePoset({1: [2, 3], 2: [4, 5, 6], 3: [6], 4: [7],
             ....:                   5: [7], 6: [7]})
-            sage: L.is_pseudocomplemented()  # Element 3 has no pseudocomplement
+            sage: L.is_pseudocomplemented()
             False
+            sage: L.is_pseudocomplemented(certificate=True)
+            (False, 3)
 
         .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement()`.
 
@@ -1249,7 +1281,14 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
         """
         H = self._hasse_diagram
-        return all(H.pseudocomplement(e) is not None for e in H)
+        for e in H:
+            if H.pseudocomplement(e) is None:
+                if certificate:
+                    return (False, self._vertex_to_element(e))
+                return False
+        if certificate:
+            return (True, None)
+        return True
 
     def is_orthocomplemented(self, unique=False):
         """
@@ -1696,13 +1735,26 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                             self._vertex_to_element(nonmodular[1])))
         return False
 
-    def is_supersolvable(self):
+    def is_supersolvable(self, certificate=False):
         """
-        Return ``True`` if ``self`` is a supersolvable lattice and
+        Return ``True`` if the lattice is supersolvable, and
         ``False`` otherwise.
 
         A lattice `L` is *supersolvable* if there exists a maximal chain `C`
-        such that every `x \in C` is a modular element in `L`.
+        such that every `x \in C` is a modular element in `L`. Equivalent
+        definition is that the sublattice generated by `C` and any other chain
+        is distributive.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(False, None)`` or
+          ``(True, C)``, where ``C`` is a maximal chain of modular elements.
+          If ``certificate=False`` return ``True`` or ``False``.
 
         EXAMPLES::
 
@@ -1714,13 +1766,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_supersolvable()
             False
 
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_supersolvable()
-            True
-
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
             sage: L.is_supersolvable()
             True
+            sage: L.is_supersolvable(certificate=True)
+            (True, [1, 2, 5, 7])
             sage: L.is_modular()
             False
 
@@ -1733,21 +1783,26 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: LatticePoset({}).is_supersolvable()
+            sage: LatticePoset().is_supersolvable()
             True
         """
         from sage.misc.cachefunc import cached_function
 
         if not self.is_ranked():
+            if certificate:
+                return (False, None)
             return False
 
         if self.cardinality() == 0:
+            if certificate:
+                return (True, [])
             return True
 
         H = self._hasse_diagram
         height = self.height()
         n = H.order()
         cur = H.maximal_elements()[0]
+        cert = [cur]
         next_ = [H.neighbor_in_iterator(cur)]
 
         @cached_function
@@ -1763,11 +1818,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 cur = next(next_[-1])
             except StopIteration:
                 next_.pop()
+                cert.pop()
                 if not next_:
                     return False
                 continue
             if is_modular_elt(cur):
                 next_.append(H.neighbor_in_iterator(cur))
+                cert.append(cur)
+        if certificate:
+            return (True, [self._vertex_to_element(e) for e in reversed(cert)])
         return True
 
     def vertical_decomposition(self, elements_only=False):
@@ -2250,6 +2309,65 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not certificate:
             return True
         return (True, [self[e] for e in cert])
+
+    def canonical_joinands(self, e):
+        r"""
+        Return the canonical joinands of `e`.
+
+        The canonical joinands of an element `e` in the lattice `L` is the
+        subset `S \subseteq L` such that 1) the join of `S` is `e`, and
+        2) if the join of some other subset `S'` of is also `e`, then for
+        every element `s \in S` there is an element `s' \in S'` such that
+        `s \le s'`.
+
+        Informally said this is the set of lowest possible elements
+        with given join. It exists for every element if and only if
+        the lattice is join-semidistributive. Canonical joinands are
+        always join-irreducibles.
+
+        INPUT:
+
+        - ``e`` -- an element of the lattice
+
+        OUTPUT:
+
+        - canonical joinands as a list, if it exists; if not, ``None``
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [5], 4: [6],
+            ....:                   5: [7], 6: [7]})
+            sage: L.canonical_joinands(7)
+            [3, 4]
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [6], 4: [6],
+            ....: 5: [6]})
+            sage: L.canonical_joinands(6) is None
+            True
+
+        TESTS::
+
+            LatticePoset({1: []}).canonical_joinands(1)
+            [1]
+        """
+        # Algorithm: Make dual of interval from the bottom element to e.
+        # Now compute kappa function for every atom of that lattice, i.e.
+        # kind of "restricted" dual kappa for elements covered by e.
+        # This is done implicitly here.
+        H = self._hasse_diagram
+        e = self._element_to_vertex(e)
+        joinands = []
+        for a in H.neighbors_in(e):
+            below_a = list(H.depth_first_search(a, neighbors=H.neighbors_in))
+            go_down = lambda v: [v_ for v_ in H.neighbors_in(v) if v_ not in below_a]
+            result = None
+            for v in H.depth_first_search(e, neighbors=go_down):
+                if H.in_degree(v) == 1 and next(H.neighbor_in_iterator(v)) in below_a:
+                    if result is not None:
+                        return None
+                    result = v
+            joinands.append(result)
+        return [self._vertex_to_element(v) for v in joinands]
 
 def _log_2(n):
     """

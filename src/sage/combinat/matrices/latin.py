@@ -129,8 +129,8 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.matrix.all import matrix
 from sage.rings.all import ZZ
@@ -2358,7 +2358,7 @@ def alternating_group_bitrade_generators(m):
 
     a = tuple(range(1, 2*m+1 + 1))
 
-    b = tuple(range(m+1, 0, -1) + range(2*m+2, 3*m+1 + 1))
+    b = tuple(range(m + 1, 0, -1)) + tuple(range(2*m+2, 3*m+1 + 1))
 
     a = PermutationGroupElement(a)
     b = PermutationGroupElement(b)

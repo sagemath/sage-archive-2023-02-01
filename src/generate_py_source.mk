@@ -1,19 +1,10 @@
-.PHONY: all sage clean
+# This Makefile is called by setup.py
+# to build some generated Python/Cython sources.
 
-all: sage
-
-sage: sage/libs/pari/auto_gen.pxi sage/ext/interpreters/__init__.py
-	python -u setup.py install
-
-clean:
-	@echo "Deleting Sage library build artifacts..."
-	rm -rf c_lib build
-	find . -name '*.pyc' | xargs rm -f
-	rm -f sage/libs/pari/auto_*
-	rm -rf sage/ext/interpreters
-
+all: sage/libs/pari/auto_gen.pxi sage/ext/interpreters/__init__.py
 
 # Auto-generated files
+# TODO: Adjustments for VPATH builds will be necessary.
 sage/libs/pari/auto_gen.pxi: $(SAGE_LOCAL)/share/pari/pari.desc \
         sage/libs/pari/decl.pxi sage_setup/autogen/pari/*.py
 	python -c "from sage_setup.autogen.pari import rebuild; rebuild()"

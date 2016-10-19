@@ -12,13 +12,13 @@ parent and :class:`ParentLibGAP` ::
     sage: from sage.groups.libgap_wrapper import ElementLibGAP, ParentLibGAP
     sage: from sage.groups.group import Group
     sage: class FooElement(ElementLibGAP):
-    ...       pass
+    ....:     pass
     sage: class FooGroup(Group, ParentLibGAP):
-    ...       Element = FooElement
-    ...       def __init__(self):
-    ...           lg = libgap(libgap.CyclicGroup(3))    # dummy
-    ...           ParentLibGAP.__init__(self, lg)
-    ...           Group.__init__(self)
+    ....:     Element = FooElement
+    ....:     def __init__(self):
+    ....:         lg = libgap(libgap.CyclicGroup(3))    # dummy
+    ....:         ParentLibGAP.__init__(self, lg)
+    ....:         Group.__init__(self)
 
 Note how we call the constructor of both superclasses to initialize
 ``Group`` and ``ParentLibGAP`` separately. The parent class implements
@@ -96,13 +96,13 @@ class ParentLibGAP(SageObject):
         sage: from sage.groups.libgap_wrapper import ElementLibGAP, ParentLibGAP
         sage: from sage.groups.group import Group
         sage: class FooElement(ElementLibGAP):
-        ...       pass
+        ....:     pass
         sage: class FooGroup(Group, ParentLibGAP):
-        ...       Element = FooElement
-        ...       def __init__(self):
-        ...           lg = libgap(libgap.CyclicGroup(3))    # dummy
-        ...           ParentLibGAP.__init__(self, lg)
-        ...           Group.__init__(self)
+        ....:     Element = FooElement
+        ....:     def __init__(self):
+        ....:         lg = libgap(libgap.CyclicGroup(3))    # dummy
+        ....:         ParentLibGAP.__init__(self, lg)
+        ....:         Group.__init__(self)
         sage: FooGroup()
         <pc group of size 3 with 1 generators>
     """
@@ -411,13 +411,13 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         sage: from sage.groups.libgap_wrapper import ElementLibGAP, ParentLibGAP
         sage: from sage.groups.group import Group
         sage: class FooElement(ElementLibGAP):
-        ...       pass
+        ....:     pass
         sage: class FooGroup(Group, ParentLibGAP):
-        ...       Element = FooElement
-        ...       def __init__(self):
-        ...           lg = libgap(libgap.CyclicGroup(3))    # dummy
-        ...           ParentLibGAP.__init__(self, lg)
-        ...           Group.__init__(self)
+        ....:     Element = FooElement
+        ....:     def __init__(self):
+        ....:         lg = libgap(libgap.CyclicGroup(3))    # dummy
+        ....:         ParentLibGAP.__init__(self, lg)
+        ....:         Group.__init__(self)
         sage: FooGroup()
         <pc group of size 3 with 1 generators>
         sage: FooGroup().gens()

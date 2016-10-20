@@ -18,7 +18,7 @@ https://github.com/symengine/symengine/blob/master/symengine/tests/basic/
 TESTS::
 
     sage: def test(ex, coeff, value):
-    ....:     assert(ex.series(x, coeff+2).coefficient(x,coeff) == value)
+    ....:     assert(ex.series(x, coeff+3).coefficient(x,coeff) == value)
 
     sage: test(sin(x), 9, 1/362880)
     sage: test(sin(x)+cos(x), 8, 1/40320)
@@ -45,12 +45,18 @@ TESTS::
     sage: test(log(exp(x)), 1, 1)
     sage: test(exp(sin(x)), 10, -2951/3628800)
     sage: test(cos(x)^sin(x), 16, 1381/2661120)
-    sage: test(atan(x), 19, -1/19)
-    sage: test(atan(x/(1-x)), 33, 65536/33)
     sage: test(tan(x), 13, 21844/6081075)
     sage: test(tan(x/(1-x)), 12, 1303712/14175)
+    sage: test(cot(x), 13, -4/18243225)
+    sage: test(cot(log(1+x)), 8, 4399/41472)
+    sage: test(sec(x), 14, 199360981/87178291200)
+    sage: test(sec(x*sqrt(1-x)), 11, -21463/103680)
+    sage: test(csc(x), 13, 8191/37362124800)
+    sage: test(csc(x/(1-x)), 14, 355857510913/100590336000)
     sage: test(asin(x), 15, 143/10240)
     sage: test(asin(x/(1-x)), 16, 1259743/2048)
+    sage: test(atan(x), 19, -1/19)
+    sage: test(atan(x/(1-x)), 33, 65536/33)
     sage: test(sinh(x), 9, 1/362880)
     sage: test(sinh(x/(1-x)), 10, 325249/40320)
     sage: test(cosh(x), 10, 1/3628800)

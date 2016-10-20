@@ -121,7 +121,7 @@ static void cot_useries(flint_series_t& fp, flint_series_t& arg, int order)
         fmpq_poly_tan_series(fp.ft, arg.ft, order);
         long ldeg = fmpq_poly_ldegree(fp.ft);
         fmpq_poly_shift_right(fp.ft, fp.ft, ldeg);
-        fmpq_poly_inv_series(fp.ft, fp.ft, order);
+        fmpq_poly_inv_series(fp.ft, fp.ft, order-ldeg);
         fp.offset = -ldeg;
 }
 
@@ -131,7 +131,7 @@ static void sec_useries(flint_series_t& fp, flint_series_t& arg, int order)
         fmpq_poly_cos_series(fp.ft, arg.ft, order);
         long ldeg = fmpq_poly_ldegree(fp.ft);
         fmpq_poly_shift_right(fp.ft, fp.ft, ldeg);
-        fmpq_poly_inv_series(fp.ft, fp.ft, order);
+        fmpq_poly_inv_series(fp.ft, fp.ft, order-ldeg);
         fp.offset = -ldeg;
 }
 
@@ -141,8 +141,20 @@ static void csc_useries(flint_series_t& fp, flint_series_t& arg, int order)
         fmpq_poly_sin_series(fp.ft, arg.ft, order);
         long ldeg = fmpq_poly_ldegree(fp.ft);
         fmpq_poly_shift_right(fp.ft, fp.ft, ldeg);
-        fmpq_poly_inv_series(fp.ft, fp.ft, order);
+        fmpq_poly_inv_series(fp.ft, fp.ft, order-ldeg);
         fp.offset = -ldeg;
+}
+
+static void asin_useries(flint_series_t& fp, flint_series_t& arg, int order)
+{
+        check_poly_ccoeff_zero(arg);
+        fmpq_poly_asin_series(fp.ft, arg.ft, order);
+}
+
+static void atan_useries(flint_series_t& fp, flint_series_t& arg, int order)
+{
+        check_poly_ccoeff_zero(arg);
+        fmpq_poly_atan_series(fp.ft, arg.ft, order);
 }
 
 static void sinh_useries(flint_series_t& fp, flint_series_t& arg, int order)
@@ -163,22 +175,40 @@ static void tanh_useries(flint_series_t& fp, flint_series_t& arg, int order)
         fmpq_poly_tanh_series(fp.ft, arg.ft, order);
 }
 
-static void asin_useries(flint_series_t& fp, flint_series_t& arg, int order)
+static void coth_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
         check_poly_ccoeff_zero(arg);
-        fmpq_poly_asin_series(fp.ft, arg.ft, order);
+        fmpq_poly_tanh_series(fp.ft, arg.ft, order);
+        long ldeg = fmpq_poly_ldegree(fp.ft);
+        fmpq_poly_shift_right(fp.ft, fp.ft, ldeg);
+        fmpq_poly_inv_series(fp.ft, fp.ft, order-ldeg);
+        fp.offset = -ldeg;
+}
+
+static void sech_useries(flint_series_t& fp, flint_series_t& arg, int order)
+{
+        check_poly_ccoeff_zero(arg);
+        fmpq_poly_cosh_series(fp.ft, arg.ft, order);
+        long ldeg = fmpq_poly_ldegree(fp.ft);
+        fmpq_poly_shift_right(fp.ft, fp.ft, ldeg);
+        fmpq_poly_inv_series(fp.ft, fp.ft, order-ldeg);
+        fp.offset = -ldeg;
+}
+
+static void csch_useries(flint_series_t& fp, flint_series_t& arg, int order)
+{
+        check_poly_ccoeff_zero(arg);
+        fmpq_poly_sinh_series(fp.ft, arg.ft, order);
+        long ldeg = fmpq_poly_ldegree(fp.ft);
+        fmpq_poly_shift_right(fp.ft, fp.ft, ldeg);
+        fmpq_poly_inv_series(fp.ft, fp.ft, order-ldeg);
+        fp.offset = -ldeg;
 }
 
 static void asinh_useries(flint_series_t& fp, flint_series_t& arg, int order)
 {
         check_poly_ccoeff_zero(arg);
         fmpq_poly_asinh_series(fp.ft, arg.ft, order);
-}
-
-static void atan_useries(flint_series_t& fp, flint_series_t& arg, int order)
-{
-        check_poly_ccoeff_zero(arg);
-        fmpq_poly_atan_series(fp.ft, arg.ft, order);
 }
 
 static void atanh_useries(flint_series_t& fp, flint_series_t& arg, int order)
@@ -202,6 +232,9 @@ static std::unordered_map<unsigned int,usfun_t*> funcmap {{
         {sinh_SERIAL::serial, &sinh_useries},
         {cosh_SERIAL::serial, &cosh_useries},
         {tanh_SERIAL::serial, &tanh_useries},
+        {coth_SERIAL::serial, &coth_useries},
+        {sech_SERIAL::serial, &sech_useries},
+        {csch_SERIAL::serial, &csch_useries},
         {asinh_SERIAL::serial, &asinh_useries},
         {atanh_SERIAL::serial, &atanh_useries},
 }};

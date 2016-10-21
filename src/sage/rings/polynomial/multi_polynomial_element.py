@@ -629,7 +629,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         OUTPUT: coefficient in base ring
 
-        .. seealso::
+        .. SEEALSO::
 
            For coefficients in a base ring of fewer variables, look
            at :meth:`coefficient`.
@@ -776,7 +776,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         OUTPUT: element of the parent of self
 
-        .. seealso::
+        .. SEEALSO::
 
            For coefficients of specific monomials, look at
            :meth:`monomial_coefficient`.

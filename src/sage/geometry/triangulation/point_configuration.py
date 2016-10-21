@@ -403,7 +403,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         r"""
         Return the center used for star triangulations.
 
-        .. seealso:: :meth:`restrict_to_star_triangulations`.
+        .. SEEALSO:: :meth:`restrict_to_star_triangulations`.
 
         OUTPUT:
 

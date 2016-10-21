@@ -253,7 +253,7 @@ class RootSystem(UniqueRepresentation, SageObject):
     The coweight lattice and space are defined similarly. Note that, to
     limit confusion, all the output have been tweaked appropriately.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :mod:`sage.combinat.root_system`
         - :class:`RootSpace`
@@ -285,7 +285,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         Straighten arguments to enable unique representation
 
-        .. seealso:: :class:`UniqueRepresentation`
+        .. SEEALSO:: :class:`UniqueRepresentation`
 
         TESTS::
 

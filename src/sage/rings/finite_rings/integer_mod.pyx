@@ -648,7 +648,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: prod([Zmod(1568).unit_gens()[i] ** v[i] for i in [0..2]])
             3
 
-        .. seealso::
+        .. SEEALSO::
 
             The method :meth:`log`.
 

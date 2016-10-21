@@ -302,7 +302,7 @@ def installed_packages(exclude_pip=True):
         sage: installed_packages()
         {...'arb': ...'pynac': ...}
 
-    .. seealso::
+    .. SEEALSO::
 
         :func:`list_packages`
     """

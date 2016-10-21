@@ -839,7 +839,7 @@ def FriendshipGraph(n):
     - The friendship graph `F_n` obtained from `n` copies of the cycle
       graph `C_3`.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`GraphGenerators.ButterflyGraph`
 

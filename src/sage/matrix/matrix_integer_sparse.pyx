@@ -602,7 +602,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         The examples above show that :trac:`10626` has been implemented.
 
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`elementary_divisors`
         """

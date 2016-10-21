@@ -99,7 +99,7 @@ class Posets(object):
         sage: Posets(3)
         Posets containing 3 elements
 
-    .. seealso:: :class:`~sage.categories.posets.Posets`, :class:`FinitePosets`, :func:`Poset`
+    .. SEEALSO:: :class:`~sage.categories.posets.Posets`, :class:`FinitePosets`, :func:`Poset`
 
     TESTS::
 

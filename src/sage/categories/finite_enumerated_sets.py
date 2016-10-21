@@ -250,7 +250,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             - ``self.__iter__()``    (but see below)
             - ``self.unrank()``
 
-            .. seealso:: :meth:`_list_from_iterator`, :meth:`_cardinality_from_list`,
+            .. SEEALSO:: :meth:`_list_from_iterator`, :meth:`_cardinality_from_list`,
                 :meth:`_iterator_from_list`, and :meth:`_unrank_from_list`
 
             EXAMPLES::
@@ -531,7 +531,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             :meth:`._cardinality_from_iterator`, or if ``self`` is too
             big.
 
-            .. seealso:: :class:`TestSuite`.
+            .. SEEALSO:: :class:`TestSuite`.
 
             EXAMPLES::
 

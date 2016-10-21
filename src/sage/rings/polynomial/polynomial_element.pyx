@@ -3251,7 +3251,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         documentation for the global derivative() function for more
         details.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`_derivative`
 
@@ -3296,7 +3296,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Otherwise, _derivative(var) is called recursively for each of the
         coefficients of this polynomial.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`derivative`
 

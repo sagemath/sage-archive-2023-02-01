@@ -44,7 +44,7 @@ class SageTimeit:
         sage: timeit("a = 2\nb=131\nfactor(a^b-1)", number=25)
         25 loops, best of 3: ... per loop
 
-    .. seealso:: :func:`runsnake`
+    .. SEEALSO:: :func:`runsnake`
     """
     def eval(self, code, globs=None, locals=None, **kwds):
         r"""

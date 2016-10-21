@@ -189,7 +189,7 @@ class ModularForm_abstract(ModuleElement):
         """
         Same as ``self.q_expansion(prec)``.
 
-        .. seealso:: :meth:`q_expansion`
+        .. SEEALSO:: :meth:`q_expansion`
 
         EXAMPLES::
 

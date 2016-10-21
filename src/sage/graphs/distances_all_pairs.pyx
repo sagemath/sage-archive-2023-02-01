@@ -1614,7 +1614,7 @@ def floyd_warshall(gg, paths = True, distances = False):
         sage: u,v = g.random_vertex(), g.random_vertex()
         sage: p = [v]
         sage: while p[0] is not None:
-        ...     p.insert(0,path[u][p[0]])
+        ....:   p.insert(0,path[u][p[0]])
         sage: len(p) == dist[u][v] + 2
         True
 

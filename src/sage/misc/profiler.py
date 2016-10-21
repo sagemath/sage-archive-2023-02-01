@@ -30,7 +30,7 @@ class Profiler:
     EXAMPLE::
 
         sage: def f():                        # not tested
-        ...       p = Profiler()              # not tested
+        ....:     p = Profiler()              # not tested
 
     Calling ``p(message)`` creates a checkpoint::
 

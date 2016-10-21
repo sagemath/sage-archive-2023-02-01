@@ -1176,9 +1176,9 @@ class NumberFieldIdeal(Ideal_generic):
             sage: G = K.S_class_group(S)
             sage: I0 = G.0.ideal(); I1 = G.1.ideal()
             sage: for p in prime_range(100):
-            ...       for P in K.primes_above(p):
-            ...           v = P.S_ideal_class_log(S)
-            ...           assert(G(P) == G(I0^v[0] * I1^v[1]))
+            ....:     for P in K.primes_above(p):
+            ....:         v = P.S_ideal_class_log(S)
+            ....:         assert(G(P) == G(I0^v[0] * I1^v[1]))
         """
         from sage.modules.free_module_element import vector
         from sage.rings.finite_rings.integer_mod_ring import Zmod

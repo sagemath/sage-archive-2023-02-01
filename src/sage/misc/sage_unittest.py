@@ -200,10 +200,10 @@ class TestSuite(object):
         We now show (and test) some standard error reports::
 
             sage: class Blah(SageObject):
-            ...       def _test_a(self, tester): pass
-            ...       def _test_b(self, tester): tester.fail()
-            ...       def _test_c(self, tester): pass
-            ...       def _test_d(self, tester): tester.fail()
+            ....:     def _test_a(self, tester): pass
+            ....:     def _test_b(self, tester): tester.fail()
+            ....:     def _test_c(self, tester): pass
+            ....:     def _test_d(self, tester): tester.fail()
 
             sage: TestSuite(Blah()).run()
             Failure in _test_b:
@@ -461,8 +461,8 @@ class InstanceTester(unittest.TestCase):
 
             sage: from sage.misc.sage_unittest import InstanceTester
             sage: class MyParent(Parent):
-            ...       def some_elements(self):
-            ...           return [1,2,3,4,5]
+            ....:     def some_elements(self):
+            ....:         return [1,2,3,4,5]
             ...
             sage: tester = InstanceTester(MyParent())
             sage: list(tester.some_elements())

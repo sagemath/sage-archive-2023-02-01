@@ -534,11 +534,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         ::
 
             sage: class MyInt(int):
-            ...       pass
+            ....:     pass
             sage: class MyLong(long):
-            ...       pass
+            ....:     pass
             sage: class MyFloat(float):
-            ...       pass
+            ....:     pass
             sage: ZZ(MyInt(3))
             3
             sage: ZZ(MyLong(4))

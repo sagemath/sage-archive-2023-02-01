@@ -274,8 +274,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: z = CIF(0, 2*pi/1000).exp()
             sage: g = Graphics()
             sage: for i in range(40):
-            ...       z = z^2
-            ...       g += z.plot(color=(1./(40-i), 0, 1))
+            ....:     z = z^2
+            ....:     g += z.plot(color=(1./(40-i), 0, 1))
             ...
             sage: g
             Graphics object consisting of 80 graphics primitives
@@ -2106,12 +2106,12 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
 
         sage: c_CIFE = sage.rings.complex_interval.create_ComplexIntervalFieldElement
         sage: for kp in range(2,6):
-        ...       s = '1.' + '0'*10**kp + '1'
-        ...       try:
-        ...           assert c_CIFE(s,0).real()-1 != 0
-        ...           assert c_CIFE(0,s).imag()-1 != 0
-        ...       except TypeError:
-        ...           pass
+        ....:     s = '1.' + '0'*10**kp + '1'
+        ....:     try:
+        ....:         assert c_CIFE(s,0).real()-1 != 0
+        ....:         assert c_CIFE(0,s).imag()-1 != 0
+        ....:     except TypeError:
+        ....:         pass
 
     """
     if s_imag is None:

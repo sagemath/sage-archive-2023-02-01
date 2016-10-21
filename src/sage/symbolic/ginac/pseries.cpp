@@ -1263,7 +1263,8 @@ ex ex::series(const ex & r, int order, unsigned options) const
 	else
 		throw (std::logic_error("ex::series(): expansion point has unknown type"));
 	
-        if ((options & series_options::try_univariate_flint) != 0u) {
+        if ((options & series_options::try_univariate_flint) != 0u
+                        and rel_.rhs().is_zero()) {
                 options &= ~series_options::try_univariate_flint;
 	        if (useries_can_handle(*this)) {
                         try {

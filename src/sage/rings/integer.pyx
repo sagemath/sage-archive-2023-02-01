@@ -156,7 +156,7 @@ from sage.structure.parent cimport Parent
 include "sage/ext/python_debug.pxi"
 from sage.libs.pari.paridecl cimport *
 from sage.rings.rational cimport Rational
-from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
 from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.libs.gmp.mpq cimport mpq_neg

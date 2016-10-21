@@ -2458,10 +2458,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
 
             sage: L = LatticePoset({'a': ['b']})
-            sage: L.day_doubling([]).list()
-            [('a', 0), ('b', 0)]
-            sage: L.day_doubling(['a', 'b']).list()
-            [('a', 0), ('a', 1), ('b', 0), ('b', 1)]
+            sage: set(L.day_doubling([]).list()) == set([('a', 0), ('b', 0)])
+            True
+            sage: set(L.day_doubling(['a', 'b']).list()) == set([('a', 0), ('a', 1), ('b', 0), ('b', 1)])
+            True
         """
         # Rationale for naming of elements: a lattice can have
         # elements 1, (1, 1), (1, (1, 1)) and so on. We can't just

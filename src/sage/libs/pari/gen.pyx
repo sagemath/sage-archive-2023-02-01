@@ -4187,11 +4187,13 @@ cdef class gen(gen_auto):
             [257, 1; 1601, 1; 25601, 1; 76001, 1; 133842787352016..., 1]
         """
         cdef GEN g
+        global factor_proven
+        cdef int saved_factor_proven = factor_proven
+
         if limit == 0:
             deprecation(20205, "factor(..., lim=0) is deprecated, use an explicit limit instead")
             limit = maxprime()
-        global factor_proven
-        cdef int saved_factor_proven = factor_proven
+
         try:
             if proof is not None:
                 factor_proven = 1 if proof else 0

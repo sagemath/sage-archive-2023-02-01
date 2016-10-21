@@ -161,7 +161,7 @@ user too::
 
 ::
 
-    sage: [Variable(i, r) for i in xrange(r.ngens())]
+    sage: [Variable(i, r) for i in range(r.ngens())]
     [x(0), x(1), y(0), y(1), y(2)]
 
 For details on this interface see:
@@ -1370,6 +1370,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: B.<x,y> = BooleanPolynomialRing(2)
             sage: B._singular_() # indirect doctest
+            polynomial ring, over a field, global ordering
             //   characteristic : 2
             //   number of vars : 2
             //        block   1 : ordering lp
@@ -4611,7 +4612,7 @@ cdef class BooleanPolynomial(MPolynomial):
             r =  new_BS_from_PBSet(pb_zeros(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
             L= []
             for e in r:
-                l = [0 for _ in xrange(n)]
+                l = [0] * n
                 for i in e.iterindex():
                     l[i] = 1
                 L.append(tuple(l))

@@ -139,9 +139,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
     REFERENCES:
 
-    .. [GPV08] Craig Gentry, Chris Peikert, Vinod Vaikuntanathan. *How to Use a
-               Short Basis: Trapdoors for Hard Lattices and New Cryptographic
-               Constructions*. STOC 2008. http://www.cc.gatech.edu/~cpeikert/pubs/trap_lattice.pdf
+    - [GPV2008]_
 
     .. automethod:: __init__
     .. automethod:: __call__

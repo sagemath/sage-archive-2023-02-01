@@ -16,9 +16,9 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 1 of [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential
+- Chap. 1 of [KN1963]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential
   Geometry*, vol. 1, Interscience Publishers (New York) (1963)
-- Chaps. 2 and 3 of [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*,
+- Chaps. 2 and 3 of [Lee2013]_ \J.M. Lee : *Introduction to Smooth Manifolds*,
   2nd ed., Springer (New York) (2013)
 
 """

@@ -350,6 +350,106 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
         _list_default  = list # needed by the check system.
 
+        def unrank_range(self, start=None, stop=None, step=None):
+            r"""
+            Return the range of elements of ``self`` starting at ``start``,
+            ending at ``stop``, and stepping by ``step``.
+
+            See also ``unrank()``.
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSet([1,2,3])
+                sage: F.unrank_range(1)
+                [2, 3]
+                sage: F.unrank_range(stop=2)
+                [1, 2]
+                sage: F.unrank_range(stop=2, step=2)
+                [1]
+                sage: F.unrank_range(start=1, step=2)
+                [2]
+                sage: F.unrank_range(stop=-1)
+                [1, 2]
+
+                sage: F = FiniteEnumeratedSet([1,2,3,4])
+                sage: F.unrank_range(stop=10)
+                [1, 2, 3, 4]
+            """
+            try:
+                return self._list[start:stop:step]
+            except AttributeError:
+                pass
+            card = self.cardinality() # This may set the list
+            try:
+                return self._list[start:stop:step]
+            except AttributeError:
+                pass
+            if start is None and stop is not None and stop >= 0 and step is None:
+                if stop < card:
+                    it = self.__iter__()
+                    return [next(it) for j in range(stop)]
+                return self.list()
+            return self.list()[start:stop:step]
+
+        def iterator_range(self, start=None, stop=None, step=None):
+            r"""
+            Iterate over the range of elements of ``self`` starting
+            at ``start``, ending at ``stop``, and stepping by ``step``.
+
+            .. SEEALSO::
+
+                ``unrank()``, ``unrank_range()``
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSet([1,2,3])
+                sage: list(F.iterator_range(1))
+                [2, 3]
+                sage: list(F.iterator_range(stop=2))
+                [1, 2]
+                sage: list(F.iterator_range(stop=2, step=2))
+                [1]
+                sage: list(F.iterator_range(start=1, step=2))
+                [2]
+                sage: list(F.iterator_range(start=1, stop=2))
+                [2]
+                sage: list(F.iterator_range(start=0, stop=1))
+                [1]
+                sage: list(F.iterator_range(start=0, stop=3, step=2))
+                [1, 3]
+                sage: list(F.iterator_range(stop=-1))
+                [1, 2]
+
+                sage: F = FiniteEnumeratedSet([1,2,3,4])
+                sage: list(F.iterator_range(start=1, stop=3))
+                [2, 3]
+                sage: list(F.iterator_range(stop=10))
+                [1, 2, 3, 4]
+            """
+            L = None
+            try:
+                L = self._list
+            except AttributeError:
+                pass
+            card = self.cardinality() # This may set the list
+            try:
+                L = self._list
+            except AttributeError:
+                pass
+            if L is None and start is None and stop is not None and stop >= 0 and step is None:
+                if stop < card:
+                    it = self.__iter__()
+                    for j in range(stop):
+                        yield next(it)
+                    return
+                for x in self:
+                    yield x
+                return
+            if L is None:
+                L = self.list()
+            for x in L[start:stop:step]:
+                yield x
+
         def _random_element_from_unrank(self):
             """
             A random element in ``self``.

@@ -926,7 +926,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         cutoff value, based on the size of the matrix, the largest
         singular value and the smallest nonzero value representable
         by the 53-bit precision values used.  See the discussion
-        at page 268 of [WATKINS]_.
+        at page 268 of [Wat2010]_.
 
         See the examples for a way to use the "verbose" facility
         to easily watch the zero cutoffs in action.
@@ -1042,11 +1042,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             Traceback (most recent call last):
             ...
             ValueError: could not convert string to float: junk
-
-        REFERENCES:
-
-        .. [WATKINS] Watkins, David S. Fundamentals of Matrix Computations,
-           Third Edition.  Wiley, Hoboken, New Jersey, 2010.
 
         AUTHOR:
 

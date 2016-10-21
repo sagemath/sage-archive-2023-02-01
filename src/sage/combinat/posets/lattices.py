@@ -42,6 +42,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
     :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
     :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_semidistributive` | Return ``True`` if the lattice is both join- and meet-semidistributive.
     :meth:`~FiniteLatticePoset.is_join_semidistributive` | Return ``True`` if the lattice is join-semidistributive.
     :meth:`~FiniteLatticePoset.is_meet_semidistributive` | Return ``True`` if the lattice is meet-semidistributive.
     :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
@@ -78,6 +79,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.vertical_decomposition` | Return the vertical decomposition of the lattice.
+    :meth:`~FiniteLatticePoset.canonical_joinands` | Return the canonical joinands of an element.
 
 **Miscellaneous**
 
@@ -281,7 +283,7 @@ class FiniteMeetSemilattice(FinitePoset):
         """
         Return the pseudocomplement of ``element``, if it exists.
 
-        The pseudocomplement is the greatest element whose
+        The (meet-)pseudocomplement is the greatest element whose
         meet with given element is the bottom element. I.e.
         in a meet-semilattice with bottom element `\hat{0}`
         the pseudocomplement of an element `e` is the element
@@ -703,6 +705,174 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return [self._vertex_to_element(e) for e in H
                 if H.in_degree(e) == 1 and H.out_degree(e) == 1]
 
+    def is_join_distributive(self, certificate=False):
+        """
+        Return ``True`` if the lattice is join-distributive and ``False``
+        otherwise.
+
+        A lattice is *join-distributive* if every interval from an element
+        to the join of the element's upper covers is a distributive lattice.
+        Actually this distributive sublattice is then a Boolean lattice.
+
+        They are also called as *Dilworth's lattices* and *upper locally
+        distributive lattices*. They can be characterized in many other
+        ways, see [DIL1940]_.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where `e` is an element such that the interval
+          from `e` to the meet of upper covers of `e` is not distributive.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO::
+
+            :meth:`is_meet_distributive`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [5, 7],
+            ....:                   4: [6, 7], 5: [8, 9], 6: [9], 7: [9, 10],
+            ....:                   8: [11], 9: [11], 10: [11]})
+            sage: L.is_join_distributive()
+            True
+
+            sage: L = LatticePoset({1: [2], 2: [3, 4], 3: [5], 4: [6],
+            ....:                   5: [7], 6: [7]})
+            sage: L.is_join_distributive()
+            False
+            sage: L.is_join_distributive(certificate=True)
+            (False, 2)
+
+        TESTS::
+
+            sage: E = LatticePoset()
+            sage: E.is_join_distributive()
+            True
+            sage: E.is_join_distributive(certificate=True)
+            (True, None)
+
+            sage: L = LatticePoset({1: []})
+            sage: L.is_join_distributive()
+            True
+            sage: L.is_join_distributive(certificate=True)
+            (True, None)
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3: [5, 6],
+            ....:                   4: [6], 5: [7], 6:[7]})
+            sage: L.is_join_distributive()
+            False
+            sage: L.is_join_distributive(certificate=True)
+            (False, 1)
+
+        REFERENCES:
+
+        .. [DIL1940] Lattice with Unique Irreducible Decompositions
+           R. P. Dilworth, 1940 (Annals of Mathematics 41, 771-777)
+           With comments by B. Monjardet
+           http://cams.ehess.fr/docannexe.php?id=1145
+        """
+        if ((self.is_ranked() and len(self.meet_irreducibles()) == self.rank())
+            or self.cardinality() == 0):
+            return (True, None) if certificate else True
+        if not certificate:
+            return False
+
+        # A lattice that is not join-distributive is either not upper
+        # semimodular or contains a diamond as a covering sublattice.
+        result = self.is_upper_semimodular(certificate=True)
+        if result[0] == False:
+            return (False, self.meet(result[1]))
+
+        M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
+        return (False, diamond[0])
+
+    def is_meet_distributive(self, certificate=False):
+        """
+        Return ``True`` if the lattice is meet-distributive and ``False``
+        otherwise.
+
+        A lattice is *meet-distributive* if every interval to an element
+        from the meet of the element's lower covers is a distributive lattice.
+        Actually this distributive sublattice is then a Boolean lattice.
+
+        They are also called as *lower locally distributive lattices*.
+        They can be characterized in many other ways, see [DIL1940]_.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where `e` is an element such that the interval
+          to `e` from the meet of lower covers of `e` is not distributive.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO::
+
+            :meth:`is_join_distributive`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3: [5, 6, 7],
+            ....:                   4: [7], 5: [9, 8], 6: [10, 8], 7:
+            ....:                   [9, 10], 8: [11], 9: [11], 10: [11]})
+            sage: L.is_meet_distributive()
+            True
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [5], 4: [6],
+            ....:                   5: [6], 6: [7]})
+            sage: L.is_meet_distributive()
+            False
+            sage: L.is_meet_distributive(certificate=True)
+            (False, 6)
+
+        TESTS::
+
+            sage: E = LatticePoset()
+            sage: E.is_meet_distributive()
+            True
+            sage: E.is_meet_distributive(certificate=True)
+            (True, None)
+
+            sage: L = LatticePoset({1: []})
+            sage: L.is_meet_distributive()
+            True
+            sage: L.is_meet_distributive(certificate=True)
+            (True, None)
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [5, 6], 4: [7],
+            ....:                   5: [7], 6: [7]})
+            sage: L.is_meet_distributive()
+            False
+            sage: L.is_meet_distributive(certificate=True)
+            (False, 7)
+        """
+        if ((self.is_ranked() and len(self.join_irreducibles()) == self.rank())
+            or self.cardinality() == 0):
+            return (True, None) if certificate else True
+        if not certificate:
+            return False
+
+        # A lattice that is not meet-distributive is either not lower
+        # semimodular or contains a diamond as a covering sublattice.
+        result = self.is_lower_semimodular(certificate=True)
+        if result[0] == False:
+            return (False, self.join(result[1]))
+
+        M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
+        return (False, diamond[4])
+
     def is_distributive(self):
         r"""
         Return ``True`` if the lattice is distributive, and ``False``
@@ -728,6 +898,49 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return (self.is_graded() and
          self.rank() == len(self.join_irreducibles()) ==
          len(self.meet_irreducibles()))
+
+    def is_semidistributive(self):
+        """
+        Return ``True`` if the lattice is both join- and meet-semidistributive,
+        and ``False`` otherwise.
+
+        .. SEEALSO::
+
+            :meth:`is_join_semidistributive`, :meth:`is_meet_semidistributive`
+
+        EXAMPLES:
+
+        Tamari lattices are typical examples of semidistributive but not distributive
+        (and hence not modular) lattices::
+
+            sage: T4 = Posets.TamariLattice(4)
+            sage: T4.is_semidistributive(), T4.is_distributive()
+            (True, False)
+
+        Smallest non-selfdual example::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [5], 4: [6], 5: [7], 6: [7]})
+            sage: L.is_semidistributive()
+            True
+
+        The diamond is not semidistributive::
+
+            sage: L = Posets.DiamondPoset(5)
+            sage: L.is_semidistributive()
+            False
+
+        TESTS::
+
+            sage: LatticePoset().is_semidistributive()
+            True
+            sage: LatticePoset({1: []}).is_semidistributive()
+            True
+        """
+        H = self._hasse_diagram
+        # See trac #21528 for explanation.
+        return ( (H.in_degree_sequence().count(1) ==
+                 H.out_degree_sequence().count(1)) and
+                 self.is_meet_semidistributive() )
 
     def is_meet_semidistributive(self):
         r"""
@@ -1235,16 +1448,28 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
          self.meet(x, element)==self.bottom() and
          self.join(x, element)==self.top()]
 
-    def is_pseudocomplemented(self):
+    def is_pseudocomplemented(self, certificate=False):
         """
         Return ``True`` if the lattice is pseudocomplemented, and ``False``
         otherwise.
 
-        A lattice is pseudocomplemented if every element `e` has a
+        A lattice is (meet-)pseudocomplemented if every element `e` has a
         pseudocomplement `e^\star`, i.e. the greatest element such that
         the meet of `e` and `e^\star` is the bottom element.
 
         See :wikipedia:`Pseudocomplement`.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where ``e`` is an element without a
+          pseudocomplement. If ``certificate=False`` return ``True``
+          or ``False``.
 
         EXAMPLES::
 
@@ -1255,8 +1480,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: L = LatticePoset({1: [2, 3], 2: [4, 5, 6], 3: [6], 4: [7],
             ....:                   5: [7], 6: [7]})
-            sage: L.is_pseudocomplemented()  # Element 3 has no pseudocomplement
+            sage: L.is_pseudocomplemented()
             False
+            sage: L.is_pseudocomplemented(certificate=True)
+            (False, 3)
 
         .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement()`.
 
@@ -1266,7 +1493,14 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
         """
         H = self._hasse_diagram
-        return all(H.pseudocomplement(e) is not None for e in H)
+        for e in H:
+            if H.pseudocomplement(e) is None:
+                if certificate:
+                    return (False, self._vertex_to_element(e))
+                return False
+        if certificate:
+            return (True, None)
+        return True
 
     def is_orthocomplemented(self, unique=False):
         """
@@ -1713,13 +1947,26 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                             self._vertex_to_element(nonmodular[1])))
         return False
 
-    def is_supersolvable(self):
+    def is_supersolvable(self, certificate=False):
         """
-        Return ``True`` if ``self`` is a supersolvable lattice and
+        Return ``True`` if the lattice is supersolvable, and
         ``False`` otherwise.
 
         A lattice `L` is *supersolvable* if there exists a maximal chain `C`
-        such that every `x \in C` is a modular element in `L`.
+        such that every `x \in C` is a modular element in `L`. Equivalent
+        definition is that the sublattice generated by `C` and any other chain
+        is distributive.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(False, None)`` or
+          ``(True, C)``, where ``C`` is a maximal chain of modular elements.
+          If ``certificate=False`` return ``True`` or ``False``.
 
         EXAMPLES::
 
@@ -1731,13 +1978,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_supersolvable()
             False
 
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_supersolvable()
-            True
-
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
             sage: L.is_supersolvable()
             True
+            sage: L.is_supersolvable(certificate=True)
+            (True, [1, 2, 5, 7])
             sage: L.is_modular()
             False
 
@@ -1750,21 +1995,26 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: LatticePoset({}).is_supersolvable()
+            sage: LatticePoset().is_supersolvable()
             True
         """
         from sage.misc.cachefunc import cached_function
 
         if not self.is_ranked():
+            if certificate:
+                return (False, None)
             return False
 
         if self.cardinality() == 0:
+            if certificate:
+                return (True, [])
             return True
 
         H = self._hasse_diagram
         height = self.height()
         n = H.order()
         cur = H.maximal_elements()[0]
+        cert = [cur]
         next_ = [H.neighbor_in_iterator(cur)]
 
         @cached_function
@@ -1780,11 +2030,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 cur = next(next_[-1])
             except StopIteration:
                 next_.pop()
+                cert.pop()
                 if not next_:
                     return False
                 continue
             if is_modular_elt(cur):
                 next_.append(H.neighbor_in_iterator(cur))
+                cert.append(cur)
+        if certificate:
+            return (True, [self._vertex_to_element(e) for e in reversed(cert)])
         return True
 
     def vertical_decomposition(self, elements_only=False):
@@ -2267,6 +2521,65 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not certificate:
             return True
         return (True, [self[e] for e in cert])
+
+    def canonical_joinands(self, e):
+        r"""
+        Return the canonical joinands of `e`.
+
+        The canonical joinands of an element `e` in the lattice `L` is the
+        subset `S \subseteq L` such that 1) the join of `S` is `e`, and
+        2) if the join of some other subset `S'` of is also `e`, then for
+        every element `s \in S` there is an element `s' \in S'` such that
+        `s \le s'`.
+
+        Informally said this is the set of lowest possible elements
+        with given join. It exists for every element if and only if
+        the lattice is join-semidistributive. Canonical joinands are
+        always join-irreducibles.
+
+        INPUT:
+
+        - ``e`` -- an element of the lattice
+
+        OUTPUT:
+
+        - canonical joinands as a list, if it exists; if not, ``None``
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [5], 4: [6],
+            ....:                   5: [7], 6: [7]})
+            sage: L.canonical_joinands(7)
+            [3, 4]
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [6], 4: [6],
+            ....: 5: [6]})
+            sage: L.canonical_joinands(6) is None
+            True
+
+        TESTS::
+
+            LatticePoset({1: []}).canonical_joinands(1)
+            [1]
+        """
+        # Algorithm: Make dual of interval from the bottom element to e.
+        # Now compute kappa function for every atom of that lattice, i.e.
+        # kind of "restricted" dual kappa for elements covered by e.
+        # This is done implicitly here.
+        H = self._hasse_diagram
+        e = self._element_to_vertex(e)
+        joinands = []
+        for a in H.neighbors_in(e):
+            below_a = list(H.depth_first_search(a, neighbors=H.neighbors_in))
+            go_down = lambda v: [v_ for v_ in H.neighbors_in(v) if v_ not in below_a]
+            result = None
+            for v in H.depth_first_search(e, neighbors=go_down):
+                if H.in_degree(v) == 1 and next(H.neighbor_in_iterator(v)) in below_a:
+                    if result is not None:
+                        return None
+                    result = v
+            joinands.append(result)
+        return [self._vertex_to_element(v) for v in joinands]
 
 def _log_2(n):
     """

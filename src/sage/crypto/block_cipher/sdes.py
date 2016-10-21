@@ -34,14 +34,14 @@ from sage.structure.sage_object import SageObject
 class SimplifiedDES(SageObject):
     r"""
     This class implements the Simplified Data Encryption Standard (S-DES)
-    described in [Sch96]_. Schaefer's S-DES is for educational purposes
+    described in [Sch1996]_. Schaefer's S-DES is for educational purposes
     only and is not secure for practical purposes. S-DES is a version of
     the DES with all parameters significantly reduced, but at the same time
     preserving the structure of DES. The goal of S-DES is to allow a
     beginner to understand the structure of DES, thus laying a foundation
     for a thorough study of DES. Its goal is as a teaching tool in the same
     spirit as Phan's
-    :mod:`Mini-AES <sage.crypto.block_cipher.miniaes>` [Pha02]_.
+    :mod:`Mini-AES <sage.crypto.block_cipher.miniaes>` [Pha2002]_.
 
     EXAMPLES:
 
@@ -74,14 +74,6 @@ class SimplifiedDES(SageObject):
         sage: plaintxt = sdes(C, K, algorithm="decrypt")
         sage: plaintxt == P
         True
-
-    REFERENCES:
-
-    .. [Pha02] \R. C.-W. Phan. Mini advanced encryption standard (mini-AES): a
-      testbed for cryptanalysis students. Cryptologia, 26(4):283--306, 2002.
-
-    .. [Sch96] \E. Schaefer. A simplified data encryption algorithm.
-      Cryptologia, 20(1):77--84, 1996.
     """
 
     def __init__(self):

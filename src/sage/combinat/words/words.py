@@ -857,22 +857,22 @@ class FiniteWords(AbstractLanguage):
 
         If the alphabet is a subset of [0, 255], then it uses char as datatype::
 
-            sage: type(Word([0,1,1,2,0], alphabet=range(256)))
+            sage: type(Word([0,1,1,2,0], alphabet=list(range(256))))
             <class 'sage.combinat.words.word.FiniteWord_char'>
 
         If the alphabet is a subset of [0, 255], then the letters must
         convert to an unsigned char. Otherwise an error is raised before
         the check is done::
 
-            sage: type(Word([0,1,1,2,0,257], alphabet=range(256)))
+            sage: type(Word([0,1,1,2,0,257], alphabet=list(range(256))))
             Traceback (most recent call last):
             ...
             OverflowError: value too large to convert to unsigned char
-            sage: type(Word([0,1,1,2,0,258], alphabet=range(257)))
+            sage: type(Word([0,1,1,2,0,258], alphabet=list(range(257))))
             Traceback (most recent call last):
             ...
             ValueError: 258 not in alphabet!
-            sage: type(Word([0,1,1,2,0,103], alphabet=range(100)))
+            sage: type(Word([0,1,1,2,0,103], alphabet=list(range(100))))
             Traceback (most recent call last):
             ...
             ValueError: 103 not in alphabet!
@@ -2084,22 +2084,22 @@ class FiniteOrInfiniteWords(AbstractLanguage):
 
         If the alphabet is a subset of [0, 255], then it uses char as datatype::
 
-            sage: type(Word([0,1,1,2,0], alphabet=range(256)))
+            sage: type(Word([0,1,1,2,0], alphabet=list(range(256))))
             <class 'sage.combinat.words.word.FiniteWord_char'>
 
         If the alphabet is a subset of [0, 255], then the letters must
         convert to an unsigned char. Otherwise an error is raised before
         the check is done::
 
-            sage: type(Word([0,1,1,2,0,257], alphabet=range(256)))
+            sage: type(Word([0,1,1,2,0,257], alphabet=list(range(256))))
             Traceback (most recent call last):
             ...
             OverflowError: value too large to convert to unsigned char
-            sage: type(Word([0,1,1,2,0,258], alphabet=range(257)))
+            sage: type(Word([0,1,1,2,0,258], alphabet=list(range(257))))
             Traceback (most recent call last):
             ...
             ValueError: 258 not in alphabet!
-            sage: type(Word([0,1,1,2,0,103], alphabet=range(100)))
+            sage: type(Word([0,1,1,2,0,103], alphabet=list(range(100))))
             Traceback (most recent call last):
             ...
             ValueError: 103 not in alphabet!

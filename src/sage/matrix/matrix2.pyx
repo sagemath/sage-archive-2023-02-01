@@ -366,7 +366,7 @@ cdef class Matrix(matrix1.Matrix):
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.pari.all import pari
+                from sage.libs.pari import pari
                 A = pari(self.lift())
                 b = pari(B).lift()
                 if b.type() == "t_MAT":
@@ -597,8 +597,8 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: A = matrix(ZZ, 2, range(6))
-            sage: B = matrix(QQ, 2, [5, 1/3, 2/7, 11/2, -3/2, 8])
+            sage: A = matrix(ZZ, 2, 3, range(6))
+            sage: B = matrix(QQ, 2, 3, [5, 1/3, 2/7, 11/2, -3/2, 8])
             sage: C = A.elementwise_product(B)
             sage: C
             [   0  1/3  4/7]
@@ -661,7 +661,7 @@ cdef class Matrix(matrix1.Matrix):
         Some pairs of rings do not have a common parent where
         multiplication makes sense.  This will raise an error. ::
 
-            sage: A = matrix(QQ, 3, range(6))
+            sage: A = matrix(QQ, 3, 2, range(6))
             sage: B = matrix(GF(3), 3, [2]*6)
             sage: A.elementwise_product(B)
             Traceback (most recent call last):
@@ -672,9 +672,9 @@ cdef class Matrix(matrix1.Matrix):
         Notice how if base rings are unequal, both operands must be sparse
         to get a sparse result. ::
 
-            sage: A = matrix(ZZ, 5, range(30), sparse=False)
-            sage: B = matrix(ZZ, 5, range(30), sparse=True)
-            sage: C = matrix(QQ, 5, range(30), sparse=True)
+            sage: A = matrix(ZZ, 5, 6, range(30), sparse=False)
+            sage: B = matrix(ZZ, 5, 6, range(30), sparse=True)
+            sage: C = matrix(QQ, 5, 6, range(30), sparse=True)
             sage: A.elementwise_product(C).is_dense()
             True
             sage: B.elementwise_product(C).is_sparse()
@@ -1246,7 +1246,7 @@ cdef class Matrix(matrix1.Matrix):
 
             r_k(A) = \sum_{j=0}^k (-1)^j \binom{m-j}{k-j} \binom{n-j}{k-j} (k-j)! r_j(B)
 
-        see [Riordan] or the introductory text [Allenby]. This can be done
+        see [Rio1958]_ or the introductory text [AS2011]_. This can be done
         setting the argument ``use_complement`` to ``True``.
 
         An example with an exotic matrix (for which only Butera-Pernici and
@@ -1290,13 +1290,6 @@ cdef class Matrix(matrix1.Matrix):
             ....:     v = m.rook_vector(complement=True, use_complement=False)
             ....:     if v != [1, 16, 78, 128, 53]:
             ....:         print("ERROR with algorithm={} use_complement=False".format(algorithm))
-
-        REFERENCES:
-
-        .. [Riordan] \J. Riordan, "An Introduction to Combinatorial Analysis",
-           Dover Publ. (1958)
-
-        .. [Allenby] \R.B.J.T Allenby and A. Slomson, "How to count", CRC Press (2011)
 
         AUTHORS:
 
@@ -1731,7 +1724,7 @@ cdef class Matrix(matrix1.Matrix):
         `n \times n` matrix `U` and any alternating `n \times n`
         matrix `A`.
 
-        See [Kn95]_, [DW95]_ and [Rote2001]_, just to name three
+        See [Knu1995]_, [DW1995]_ and [Rot2001]_, just to name three
         sources, for further properties of Pfaffians.
 
         ALGORITHM:
@@ -1742,29 +1735,10 @@ cdef class Matrix(matrix1.Matrix):
         is alternating, a non-discrete base ring might prevent Sage
         from being able to check this).
 
-        REFERENCES:
-
-        .. [Kn95] Donald E. Knuth, *Overlapping Pfaffians*,
-           :arxiv:`math/9503234v1`.
-
-        .. [Rote2001] Gunter Rote,
-           *Division-Free Algorithms for the Determinant and the
-           Pfaffian: Algebraic and Combinatorial Approaches*,
-           H. Alt (Ed.): Computational Discrete Mathematics, LNCS
-           2122, pp. 119–135, 2001.
-           http://page.mi.fu-berlin.de/rote/Papers/pdf/Division-free+algorithms.pdf
-
-        .. [DW95] Andreas W.M. Dress, Walter Wenzel,
-           *A Simple Proof of an Identity Concerning Pfaffians of
-           Skew Symmetric Matrices*,
-           Advances in Mathematics, volume 112, Issue 1, April
-           1995, pp. 120-134.
-           http://www.sciencedirect.com/science/article/pii/S0001870885710298
-
         .. TODO::
 
             Implement faster algorithms, including a division-free one.
-            Does [Rote2001]_, section 3.3 give one?
+            Does [Rot2001]_, section 3.3 give one?
 
             Check the implementation of the matchings used here for
             performance?
@@ -1929,7 +1903,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: m = matrix(ZZ, 3, range(9))
+            sage: m = matrix(ZZ, 3, 3, range(9))
             sage: phi = ZZ.hom(GF(5))
             sage: m.apply_morphism(phi)
             [0 1 2]
@@ -1977,7 +1951,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: m = matrix(ZZ, 3, range(9))
+            sage: m = matrix(ZZ, 3, 3, range(9))
             sage: k.<a> = GF(9)
             sage: f = lambda x: k(x)
             sage: n = m.apply_map(f); n
@@ -2101,7 +2075,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(QQ, 4, range(16))
+            sage: a = matrix(QQ, 4, 4, range(16))
             sage: a.minimal_polynomial('z')
             z^3 - 30*z^2 - 80*z
             sage: a.minpoly()
@@ -2317,7 +2291,7 @@ cdef class Matrix(matrix1.Matrix):
         not cached::
 
             sage: M = MatrixSpace(RR, 2)
-            sage: A = M(range(0, 2^2))
+            sage: A = M(range(2^2))
             sage: type(A)
             <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
             sage: A.charpoly('x')
@@ -2718,7 +2692,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(3,range(9)); a
+            sage: a = matrix(3,3,range(9)); a
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -2912,15 +2886,15 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: matrix(QQ,3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(QQ,3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 - 12*Z^2 - 18*Z
-            sage: matrix(ZZ,3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(ZZ,3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 - 12*Z^2 - 18*Z
-            sage: matrix(GF(7),3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(GF(7),3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 + 2*Z^2 + 3*Z
-            sage: matrix(QQ['x'],3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(QQ['x'],3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 - 12*Z^2 - 18*Z
-            sage: matrix(ZZ['ZZ'],3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(ZZ['ZZ'],3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 - 12*Z^2 - 18*Z
         """
         if self._nrows != self._ncols:
@@ -3026,7 +3000,7 @@ cdef class Matrix(matrix1.Matrix):
 
         ::
 
-            sage: A = matrix(ZZ,3,range(9))
+            sage: A = matrix(ZZ,3,3,range(9))
             sage: A.right_nullity()
             1
         """
@@ -4153,7 +4127,7 @@ cdef class Matrix(matrix1.Matrix):
         :meth:`right_kernel_matrix` method, which does not
         cache its results and is more flexible. ::
 
-            sage: A = matrix(QQ, 3, range(9))
+            sage: A = matrix(QQ, 3, 3, range(9))
             sage: K1 = A.right_kernel(basis='echelon')
             sage: K1
             Vector space of degree 3 and dimension 1 over Rational Field
@@ -4582,7 +4556,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -4619,7 +4593,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -4717,7 +4691,7 @@ cdef class Matrix(matrix1.Matrix):
         EXAMPLES::
 
             sage: A = matrix(ZZ, 4, [3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
-            sage: B = matrix(QQ, 6, range(36))
+            sage: B = matrix(QQ, 6, 6, range(36))
             sage: B*11
             [  0  11  22  33  44  55]
             [ 66  77  88  99 110 121]
@@ -5184,7 +5158,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -5233,7 +5207,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -5435,7 +5409,7 @@ cdef class Matrix(matrix1.Matrix):
 
         The same computation, but with implicit base change to a field.  ::
 
-            sage: A = matrix(ZZ,3,range(9)); A
+            sage: A = matrix(ZZ,3,3,range(9)); A
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -6536,7 +6510,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(QQ,3,range(9)); a
+            sage: a = matrix(QQ,3,3,range(9)); a
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -6549,7 +6523,7 @@ cdef class Matrix(matrix1.Matrix):
         An immutable matrix cannot be transformed into echelon form. Use
         ``self.echelon_form()`` instead::
 
-            sage: a = matrix(QQ,3,range(9)); a.set_immutable()
+            sage: a = matrix(QQ,3,3,range(9)); a.set_immutable()
             sage: a.echelonize()
             Traceback (most recent call last):
             ...
@@ -6563,7 +6537,7 @@ cdef class Matrix(matrix1.Matrix):
         Echelon form over the integers is what is also classically often
         known as Hermite normal form::
 
-            sage: a = matrix(ZZ,3,range(9))
+            sage: a = matrix(ZZ,3,3,range(9))
             sage: a.echelonize(); a
             [ 3  0 -3]
             [ 0  1  2]
@@ -6586,7 +6560,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Echelon form is not defined over arbitrary rings::
 
-            sage: a = matrix(Integers(9),3,range(9))
+            sage: a = matrix(Integers(9),3,3,range(9))
             sage: a.echelon_form()
             Traceback (most recent call last):
             ...
@@ -6749,7 +6723,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -7109,8 +7083,8 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: output2.base_ring() is K
             True
 
-        The following is the first half of example 5 in [H] *except* that we
-        have transposed ``self``; [H] uses column operations and we use row.
+        The following is the first half of example 5 in [Hes2002]_ *except* that we
+        have transposed ``self``; [Hes2002]_ uses column operations and we use row.
 
         ::
 
@@ -7182,16 +7156,13 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         NOTES:
 
          - For consistency with LLL and other algorithms in Sage, we have opted
-           for row operations; however, references such as [H] transpose and use
+           for row operations; however, references such as [Hes2002]_ transpose and use
            column operations.
 
         REFERENCES:
 
-        .. [H] \F. Hess, "Computing Riemann-Roch spaces in algebraic function
-          fields and related topics," J. Symbolic Comput. 33 (2002), no. 4,
-          425--445.
-
-        .. [K] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
+        - [Hes2002]_
+        - [Kal1980]_
 
         """
         from sage.matrix.matrix_misc import row_reduced_form
@@ -7611,7 +7582,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         EXAMPLES::
 
-            sage: a = matrix(ZZ,4,range(16))
+            sage: a = matrix(ZZ,4,4,range(16))
             sage: a._multiply_strassen(a,2)
             [ 56  62  68  74]
             [152 174 196 218]
@@ -7693,7 +7664,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         EXAMPLES::
 
-            sage: A = matrix(QQ, 3, range(9))
+            sage: A = matrix(QQ, 3, 3, range(9))
             sage: A.matrix_window(1,1, 2, 1)
             Matrix window of size 2 x 1 at (1,1):
             [0 1 2]
@@ -8161,7 +8132,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         The input is checked to be sure it is a matrix.  ::
 
-            sage: A = matrix(QQ, 2, range(4))
+            sage: A = matrix(QQ, 2, 2, range(4))
             sage: A.tensor_product('junk')
             Traceback (most recent call last):
             ...
@@ -8285,7 +8256,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         EXAMPLES::
 
-            sage: m = matrix(QQ,2,range(4))
+            sage: m = matrix(QQ,2,2,range(4))
             sage: m.is_one()
             False
             sage: m = matrix(QQ,2,[5,0,0,5])
@@ -8316,7 +8287,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         EXAMPLES::
 
-            sage: m = matrix(QQ,2,range(4))
+            sage: m = matrix(QQ,2,2,range(4))
             sage: m.is_scalar(5)
             False
             sage: m = matrix(QQ,2,[5,0,0,5])
@@ -8487,7 +8458,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Hermitian matrices are normal.  ::
 
-            sage: A = matrix(QQ, 5, range(25)) + I*matrix(QQ, 5, range(0, 50, 2))
+            sage: A = matrix(QQ, 5, 5, range(25)) + I*matrix(QQ, 5, 5, range(0, 50, 2))
             sage: B = A*A.conjugate_transpose()
             sage: B.is_hermitian()
             True
@@ -8504,7 +8475,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Skew-symmetric matrices are normal.  ::
 
-            sage: A = matrix(QQ, 5, range(25))
+            sage: A = matrix(QQ, 5, 5, range(25))
             sage: B = A - A.transpose()
             sage: B.is_skew_symmetric()
             True
@@ -9047,7 +9018,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         ALGORITHM:
 
-        "Modified Gram-Schmidt," Algorithm 8.1 of [TREFETHEN-BAU]_.
+        "Modified Gram-Schmidt," Algorithm 8.1 of [TB1997]_.
 
         EXAMPLES:
 
@@ -9202,7 +9173,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Inexact rings are caught and ``CDF`` suggested.  ::
 
-            sage: A = matrix(RealField(100), 2, range(4))
+            sage: A = matrix(RealField(100), 2, 2, range(4))
             sage: A.QR()
             Traceback (most recent call last):
             ...
@@ -9210,7 +9181,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Without a fraction field, we cannot hope to run the algorithm. ::
 
-            sage: A = matrix(Integers(6), 2, range(4))
+            sage: A = matrix(Integers(6), 2, 2, range(4))
             sage: A.QR()
             Traceback (most recent call last):
             ...
@@ -9219,13 +9190,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         The biggest obstacle is making unit vectors, thus requiring square
         roots, though some small cases pass through.  ::
 
-            sage: A = matrix(ZZ, 3, range(9))
+            sage: A = matrix(ZZ, 3, 3, range(9))
             sage: A.QR()
             Traceback (most recent call last):
             ...
             TypeError: QR decomposition unable to compute square roots in Rational Field
 
-            sage: A = matrix(ZZ, 2, range(4))
+            sage: A = matrix(ZZ, 2, 2, range(4))
             sage: Q, R = A.QR()
             sage: Q
             [0 1]
@@ -9233,12 +9204,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: R
             [2 3]
             [0 1]
-
-        REFERENCES:
-
-        .. [TREFETHEN-BAU] Trefethen, Lloyd N., Bau, David, III
-           "Numerical Linear Algebra"
-           SIAM, Philadelphia, 1997.
 
         AUTHOR:
 
@@ -9413,7 +9378,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Without a fraction field, we cannot hope to proceed. ::
 
-            sage: A = matrix(Integers(6), 2, range(4))
+            sage: A = matrix(Integers(6), 2, 2, range(4))
             sage: A._gram_schmidt_noscale()
             Traceback (most recent call last):
             ...
@@ -9861,7 +9826,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [0 1 1 0]
             [0 0 1 0]
             [0 0 0 1]
-            sage: b = matrix(ZZ,3,range(9)); b
+            sage: b = matrix(ZZ,3,3,range(9)); b
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -11585,7 +11550,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
             "Gaussian Elimination with Partial Pivoting,"
-            Algorithm 21.1 of [TREFETHEN-BAU]_.
+            Algorithm 21.1 of [TB1997]_.
 
         EXAMPLES:
 
@@ -13526,8 +13491,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
         ZigZag form, and its computation, are due to Arne Storjohann
-        and are  described in [STORJOHANN-THESIS]_ and
-        [STORJOHANN-ISACC98]_, where the former is more
+        and are  described in [Sto2000]_ and
+        [Sto1998]_, where the former is more
         representative of the code here.
 
         EXAMPLE:
@@ -13790,8 +13755,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
         ZigZag form, and its computation, are due to Arne Storjohann
-        and are  described in [STORJOHANN-THESIS]_ and
-        [STORJOHANN-ISACC98]_, where the former is more
+        and are  described in [Sto2000]_ and
+        [Sto1998]_, where the former is more
         representative of the code here.
 
         EXAMPLES:
@@ -13980,18 +13945,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ValueError: 'subdivide' keyword must be True or False, not garbage
 
-        .. rubric:: Citations
-
-        .. [STORJOHANN-THESIS] \A. Storjohann, Algorithms
-           for Matrix Canonical Forms. PhD Thesis. Department
-           of Computer Science, Swiss Federal Institute of
-           Technology -- ETH, 2000.
-
-        .. [STORJOHANN-ISACC98] \A. Storjohann, An O(n^3)
-           algorithm for Frobenius normal form. Proceedings
-           of the International Symposium on Symbolic and
-           Algebraic Computation (ISSAC'98), ACM Press, 1998, pp. 101-104.
-
         AUTHOR:
 
         - Rob Beezer (2011-06-09)
@@ -14081,7 +14034,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         We begin with ZigZag form, which is due to Arne Storjohann
         and is documented at :meth:`zigzag_form`.  Then we eliminate
         ''corner'' entries enroute to rational form via an additional
-        algorithm of Storjohann's [STORJOHANN-EMAIL]_.
+        algorithm of Storjohann's [Sto2011]_.
 
         EXAMPLES:
 
@@ -14376,10 +14329,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             Traceback (most recent call last):
             ...
             ValueError: 'subdivide' keyword must be True or False, not garbage
-
-        .. rubric:: Citations
-
-        .. [STORJOHANN-EMAIL] \A. Storjohann, Email Communication. 30 May 2011.
 
         AUTHOR:
 

@@ -425,32 +425,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             wd.append(tmp * symbolic_sum(binomial(i-1, s) * (-1) ** s * q ** (i - d - s), s, 0, i-d))
         return wd
 
-    def weight_enumerator(self):
-        r"""
-        Returns the polynomial whose coefficient to `x^i` is the number of codewords of weight `i` in ``self``.
-
-        Computing the weight enumerator for a GRS code is very fast. Note that
-        for random linear codes, it is computationally hard.
-
-        EXAMPLES::
-
-            sage: F = GF(11)
-            sage: n, k = 10, 5
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C.weight_enumerator()
-            62200*x^10 + 61500*x^9 + 29250*x^8 + 6000*x^7 + 2100*x^6 + 1
-        """
-        PolRing = ZZ['x']
-        x = PolRing.gen()
-        s = var('s')
-        wd = self.weight_distribution()
-        d = self.minimum_distance()
-        n = self.length()
-        w_en = PolRing(1)
-        for i in range(n + 1 - d):
-            w_en += wd[i + d] * x ** (i + d)
-        return w_en
-
     def _punctured_form(self, points):
         r"""
         Returns a representation of self as a
@@ -922,12 +896,7 @@ class GRSBerlekampWelchDecoder(Decoder):
     decoding algorithm to correct errors in codewords.
 
     This algorithm recovers the error locator polynomial by solving a linear system.
-    See [HJ04]_ pp. 51-52 for details.
-
-    REFERENCES:
-
-    .. [HJ04] Tom Hoeholdt and Joern Justesen, A Course In Error-Correcting Codes,
-       EMS, 2004
+    See [HJ2004]_ pp. 51-52 for details.
 
     INPUT:
 
@@ -1223,26 +1192,13 @@ class GRSBerlekampWelchDecoder(Decoder):
         return (self.code().minimum_distance()-1)//2
 
 
-
-
-
-
-
-
-
-
-
 class GRSGaoDecoder(Decoder):
     r"""
     Decoder for Generalized Reed-Solomon codes which uses Gao
     decoding algorithm to correct errors in codewords.
 
     Gao decoding algorithm uses early terminated extended Euclidean algorithm
-    to find the error locator polynomial. See [G02]_ for details.
-
-    REFERENCES:
-
-    .. [G02] Shuhong Gao, A new algorithm for decoding Reed-Solomon Codes, January 31, 2002
+    to find the error locator polynomial. See [Ga02]_ for details.
 
     INPUT:
 
@@ -1850,7 +1806,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
     correct errors in codewords.
 
     This algorithm uses early terminated extended euclidean algorithm
-    to solve the key equations, as described in [R06]_, pp. 183-195.
+    to solve the key equations, as described in [Rot2006]_, pp. 183-195.
 
     INPUT:
 

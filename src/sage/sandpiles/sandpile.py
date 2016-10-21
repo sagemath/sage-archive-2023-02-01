@@ -2230,8 +2230,7 @@ class Sandpile(DiGraph):
 
         REFERENCES:
 
-        .. [Levine2014] Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-           Priezzhev and Ruelle, Communications in Mathematical Physics.
+        - [Lev2014]_
         """
         st = deepcopy(state)
         V = self.vertices()
@@ -2323,8 +2322,7 @@ class Sandpile(DiGraph):
 
         REFERENCES:
 
-        .. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-           Priezzhev and Ruelle, Communications in Mathematical Physics.
+        - [Lev2014]_
         """
         return self._stationary_density
 
@@ -4125,8 +4123,7 @@ class SandpileConfig(dict):
 
         REFERENCES:
 
-        .. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-           Priezzhev and Ruelle, Communications in Mathematical Physics.
+        - [Lev2014]_
         """
         if v==self.sandpile().sink():
             return 1
@@ -6896,9 +6893,7 @@ def wilmes_algorithm(M):
 
     REFERENCES:
 
-    .. [Primer2013] Perlman, Perkinson, and Wilmes.  Primer for the algebraic
-       geometry of sandpiles. Tropical and Non-Archimedean Geometry, Contemp.
-       Math., 605, Amer. Math. Soc., Providence, RI, 2013.
+    - [PPW2013]_
     """
     # find the gcd of the row-sums, and perform the corresponding row
     # operations on M

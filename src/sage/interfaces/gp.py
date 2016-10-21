@@ -984,8 +984,7 @@ class GpElement(ExpectElement):
         # Multiplying by CC(1) is necessary here since
         # sage: pari(gp(1+I)).sage().parent()
         # Maximal Order in Number Field in i with defining polynomial x^2 + 1
-
-        return CC((CC(1)*pari(self))._sage_())
+        return CC((CC(1)*pari(self)).sage())
 
     def _complex_double_(self, CDF):
         """

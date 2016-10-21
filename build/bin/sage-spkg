@@ -266,17 +266,23 @@ elif [ -z "$PKG_HAS_PATH" ]; then
 
         # Warning for experimental packages
         if [ x`cat "$PKG_SCRIPTS/type"` = x"experimental" ]; then
-            echo "=========================== WARNING ==========================="
-            echo "You are about to download and install an experimental package."
-            echo "This probably won't work at all for you! There is no guarantee"
-            echo "that it will build correctly, or behave as expected."
-            echo "Use at your own risk!"
-            echo "==============================================================="
-            echo "Are you sure you want to continue [Y/n]?"
-            read -p "Answer: " answer
+	    # We use /dev/tty here because our output may be redirected
+	    # to a logfile, or line-buffered.
+            cat > /dev/tty <<EOF
+=========================== WARNING ===========================
+You are about to download and install the experimental package
+$PKG_NAME.  This probably won't work at all for you! There
+is no guarantee that it will build correctly, or behave as
+expected. Use at your own risk!
+===============================================================
+EOF
+            read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
             case "$answer" in
                 n*|N*) exit 0;;
             esac
+	    # Confirm the user's input.  (This gives important
+	    # feedback to the user when output is redirected to a logfile.)
+	    echo > /dev/tty "OK, installing $PKG_NAME now..."
         fi
 
     else
@@ -356,38 +362,41 @@ if [ ! -f "$PKG_SRC" ]; then
                         # Add a deprecation note for other packages,
                         # since old-style packages are deprecated.
                         if [ $repo = experimental ]; then
-                            echo "================================ WARNING ================================="
-                            echo "You are about to download and install an unmaintained experimental"
-                            echo "package. This probably won't work at all for you! There is no guarantee"
-                            echo "that it will build correctly, or behave as expected. Use at your own risk!"
-                            echo
-                            echo "This package will be removed in future versions of SageMath. If you care"
-                            echo "about this package, you should make a proper new-style package instead."
-                            echo "For more information about making Sage packages, see"
-                            echo "http://doc.sagemath.org/html/en/developer/packaging.html"
-                            echo "=========================================================================="
-                            echo "Are you sure you want to continue [Y/n]?"
-                            read -p "Answer: " answer
-                            case "$answer" in
-                                n*|N*) exit 0;;
-                            esac
+                            echo > /dev/tty "================================ WARNING ================================="
+                            echo > /dev/tty "You are about to download and install an unmaintained experimental"
+                            echo > /dev/tty "package. This probably won't work at all for you! There is no guarantee"
+                            echo > /dev/tty "that it will build correctly, or behave as expected. Use at your own risk!"
+                            echo > /dev/tty
+                            echo > /dev/tty "This package will be removed in future versions of SageMath. If you care"
+                            echo > /dev/tty "about this package, you should make a proper new-style package instead."
+                            echo > /dev/tty "For more information about making Sage packages, see"
+                            echo > /dev/tty "http://doc.sagemath.org/html/en/developer/packaging.html"
+                            echo > /dev/tty "=========================================================================="
+			    read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+			    case "$answer" in
+				n*|N*) exit 0;;
+			    esac
+			    # Confirm the user's input.  (This gives important
+			    # feedback to the user when output is redirected to a logfile.)
+			    echo > /dev/tty "OK, installing $PKG_NAME now..."
                         else
                             # Deprecated since Sage 6.9, Trac #19158
-                            echo "================================== NOTE =================================="
-                            echo "You are about to download and install an old-style package. While this"
-                            echo "might still work fine, old-style packages are unmaintained and deprecated."
-                            echo
-                            echo "This package will be removed in future versions of SageMath. If you care"
-                            echo "about this package, you should make a proper new-style package instead."
-                            echo "For more information about making Sage packages, see"
-                            echo "http://doc.sagemath.org/html/en/developer/packaging.html"
-                            echo "=========================================================================="
-                            echo
-                            echo "Are you sure (automatically continuing in 30 seconds) [Y/n]?"
-                            read -t 30 -p "Answer: " answer
-                            case "$answer" in
-                                n*|N*) exit 0;;
-                            esac
+                            echo > /dev/tty "================================== NOTE =================================="
+                            echo > /dev/tty "You are about to download and install an old-style package. While this"
+                            echo > /dev/tty "might still work fine, old-style packages are unmaintained and deprecated."
+                            echo > /dev/tty
+                            echo > /dev/tty "This package will be removed in future versions of SageMath. If you care"
+                            echo > /dev/tty "about this package, you should make a proper new-style package instead."
+                            echo > /dev/tty "For more information about making Sage packages, see"
+                            echo > /dev/tty "http://doc.sagemath.org/html/en/developer/packaging.html"
+                            echo > /dev/tty "=========================================================================="
+			    read -t 30 -p "Are you sure (automatically continuing in 30 seconds) [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+			    case "$answer" in
+				n*|N*) exit 0;;
+			    esac
+			    # Confirm the user's input.  (This gives important
+			    # feedback to the user when output is redirected to a logfile.)
+			    echo > /dev/tty "OK, installing $PKG_NAME now..."
                         fi
                     fi
                     PKG_URL="$MIRROR/$repo/$pkg.spkg"

@@ -651,31 +651,7 @@ class DifferentialForm(AlgebraElement):
             ...
             TypeError: Cannot add forms of degree 1 and 2
 
-        """
-
-        if self.is_zero():
-            return other
-        if other.is_zero():
-            return self
-
-        if self._degree != other._degree:
-            raise TypeError("Cannot add forms of degree %s and %s" % \
-                    (self._degree, other._degree))
-
-        sumform = DifferentialForm(self.parent(), self._degree)
-        sumform._components = self._components.copy()
-        for comp, fun in other._components.items():
-            sumform[comp] += fun
-
-        sumform._cleanup()
-        return sumform
-
-
-    def _sub_(self, other):
-        r"""
-        Subtract other from self.
-
-        EXAMPLES::
+        Subtraction is implemented by adding the negative::
 
             sage: x, y, z = var('x, y, z')
             sage: F = DifferentialForms()
@@ -699,10 +675,24 @@ class DifferentialForm(AlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: Cannot add forms of degree 1 and 2
-
         """
-        return self._add_(-other)
 
+        if self.is_zero():
+            return other
+        if other.is_zero():
+            return self
+
+        if self._degree != other._degree:
+            raise TypeError("Cannot add forms of degree %s and %s" % \
+                    (self._degree, other._degree))
+
+        sumform = DifferentialForm(self.parent(), self._degree)
+        sumform._components = self._components.copy()
+        for comp, fun in other._components.items():
+            sumform[comp] += fun
+
+        sumform._cleanup()
+        return sumform
 
     def _cleanup(self):
         r"""

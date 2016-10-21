@@ -422,10 +422,10 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         EXAMPLES::
 
             sage: A = matrix(ZZ, [[4, 7, 9, 7, 5, 0],
-            ...                   [1, 0, 5, 8, 9, 1],
-            ...                   [0, 1, 0, 1, 9, 7],
-            ...                   [4, 7, 6, 5, 1, 4]],
-            ...              sparse = True)
+            ....:                 [1, 0, 5, 8, 9, 1],
+            ....:                 [0, 1, 0, 1, 9, 7],
+            ....:                 [4, 7, 6, 5, 1, 4]],
+            ....:            sparse = True)
 
             sage: result = A._right_kernel_matrix(algorithm='pari')
             sage: result[0]

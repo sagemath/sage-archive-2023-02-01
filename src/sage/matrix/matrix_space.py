@@ -478,13 +478,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             sage: x = polygen(QQ)
             sage: for R in [ZZ, QQ, RealField(100), ComplexField(100), RDF, CDF,
-            ...             SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'),
-            ...             NumberField(x^3+2,'a'), CyclotomicField(4),
-            ...             PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
-            ...       A = MatrixSpace(R,60,30,sparse=False)(0)
-            ...       B = A.augment(A)
-            ...       A = MatrixSpace(R,60,30,sparse=True)(0)
-            ...       B = A.augment(A)
+            ....:           SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'),
+            ....:           NumberField(x^3+2,'a'), CyclotomicField(4),
+            ....:           PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
+            ....:     A = MatrixSpace(R,60,30,sparse=False)(0)
+            ....:     B = A.augment(A)
+            ....:     A = MatrixSpace(R,60,30,sparse=True)(0)
+            ....:     B = A.augment(A)
 
         Check that :trac:`13012` is fixed::
 

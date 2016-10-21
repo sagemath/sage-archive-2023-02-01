@@ -6411,8 +6411,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         # we only check for even rank intervals. See for example
         # Richard Ehrenborg, k-Eulerian Posets (Order 18: 227-236, 2001)
         # http://www.ms.uky.edu/~jrge/Papers/k-Eulerian.pdf
-        for rank_diff in xrange(2, k+1, 2):
-            for level in xrange(0, height-rank_diff):
+        for rank_diff in range(2, k + 1, 2):
+            for level in range(height - rank_diff):
                 for i in levels[level]:
                     for j in levels[level+rank_diff]:
                         if H.is_lequal(i, j) and M[i, j] != 1:

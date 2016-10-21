@@ -1764,11 +1764,8 @@ class ClusterSeed(SageObject):
         else:
             try:    # are c vectors being tracked?
                 exp = self.c_vector(k)
-            except:    # if not try and reconstruct them
-                try:
-                    exp = self.c_matrix().column(k)
-                except:
-                    raise ValueError("Unable to calculate coefficients without c vectors enabled.")
+            except Exception:    # if not try and reconstruct them
+                exp = self.c_matrix().column(k)
 
             return prod( self.y(i)**exp[i] for i in range(self._m) )
 

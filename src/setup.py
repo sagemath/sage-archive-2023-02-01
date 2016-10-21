@@ -29,7 +29,7 @@ def excepthook(*exc):
     try:
         logfile = os.path.join(os.environ['SAGE_LOGS'],
                 "sagelib-%s.log" % os.environ['SAGE_VERSION'])
-    except:
+    except Exception:
         pass
     else:
         print("Please email sage-devel (http://groups.google.com/group/sage-devel)", file=sys.stderr)

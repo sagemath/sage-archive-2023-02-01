@@ -2447,10 +2447,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:                   2: [3], 'c': [4], 'd': [4], 3: [4]})
             sage: L2 = L.day_doubling(['a', 'b', 'c', 'd']); L2
             Finite lattice containing 12 elements
-            sage: L2.upper_covers((1, 0))
-            [(2, 0), ('a', 0), ('b', 0)]
-            sage: L2.upper_covers(('b', 0))
-             [('d', 0), ('b', 1), ('c', 0)]
+            sage: set(L2.upper_covers((1, 0))) == set([(2, 0), ('a', 0), ('b', 0)])
+            True
+            sage: set(L2.upper_covers(('b', 0))) == set([('d', 0), ('b', 1), ('c', 0)])
+            True
 
         TESTS::
 

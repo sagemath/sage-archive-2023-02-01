@@ -24,7 +24,9 @@ For now, only single-root cyclic codes (i.e. whose length `n` and field order
 
 REFERENCES:
 
-- [R06]_
+    .. [R06] Ron Roth, Introduction to Coding Theory,
+       Cambridge University Press, 2006
+
 
 TESTS:
 

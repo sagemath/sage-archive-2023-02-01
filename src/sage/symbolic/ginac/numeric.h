@@ -216,6 +216,7 @@ public:
 	double to_double() const;
 	bool is_mpz() const { return t == MPZ; }
 	bool is_mpq() const { return t == MPQ; }
+        const numeric to_bigint() const;
         const mpz_t& as_mpz() const;
         const mpq_t& as_mpq() const;
         PyObject* to_pyobject() const;

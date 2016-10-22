@@ -2011,6 +2011,32 @@ long numeric::to_long() const {
         }
 }
 
+// Use this only if o was tested integer.
+const numeric numeric::to_bigint() const {
+        switch (t) {
+            case MPZ: return *this;
+            case MPQ: 
+                if (not denom().is_equal(*_num1_p))
+                    throw std::runtime_error("not integer in numeric::to_mpz_num()");
+                return numer();
+            case PYOBJECT:
+                {
+                PyObject* m = PyImport_ImportModule("sage.rings.integer");
+                if (m == nullptr)
+                        py_error("Error importing sage.rings.integer");
+                PyObject* Integer = PyObject_GetAttrString(m, "Integer");
+                if (Integer == nullptr)
+                        py_error("Error getting Integer attribute");
+                PyObject* ans = PyObject_CallFunctionObjArgs(Integer, v._pyobject, NULL);
+                Py_DECREF(m);
+                Py_DECREF(Integer);
+                return ans;
+                }
+            default:
+                stub("invalid type: operator long int() type not handled");
+        }
+}
+
 const mpz_t& numeric::as_mpz() const
 {
         if (t != MPZ)

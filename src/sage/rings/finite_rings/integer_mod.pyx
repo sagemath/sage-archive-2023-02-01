@@ -1714,10 +1714,10 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         This is to support prime finite fields, which are implemented as
         `IntegerMod` ring.
 
-        Example::
+        EXAMPLES::
 
-            sage: F.<a>=GF(13)
-            sage: V=F.vector_space()
+            sage: F.<a> = GF(13)
+            sage: V = F.vector_space()
             sage: V(a)
             (1)
         """

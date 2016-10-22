@@ -231,7 +231,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         - ``reverse`` - if True, act on vectors in reversed order
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(2^4)
             sage: b = k.random_element()

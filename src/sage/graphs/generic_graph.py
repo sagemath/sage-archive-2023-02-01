@@ -20588,9 +20588,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_hamiltonian()
             True
         """
-        if self.order() < 2:
-            raise ValueError("is_hamiltonian is not defined for empty or one-element graph")
-
         from sage.categories.sets_cat import EmptySetError
         try:
             tsp = self.traveling_salesman_problem(use_edge_labels = False)

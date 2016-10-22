@@ -1,5 +1,18 @@
 r"""
 Sage's IPython Configuration
+
+TESTS:
+
+We check that Sage stdin can be piped in; In that case the IPython simple prompt
+is being used::
+
+    sage: import subprocess
+    sage: output = subprocess.check_output(
+    ....:     'echo "nth_prime(100000)" | sage',
+    ....:     shell=True,
+    ....: )
+    sage: 'In [1]: \n1299709' in out
+    True
 """
 
 #*****************************************************************************
@@ -54,7 +67,7 @@ class SageIpythonConfiguration(object):
             sage: sage_ipython_config._allow_ansi()
             False
         """
-        return (not self._doctest_mode()) and sys.stdout.isatty()
+        return (not self._doctest_mode()) and sys.stdin.isatty() and sys.stdout.isatty()
 
     def colors(self):
         """

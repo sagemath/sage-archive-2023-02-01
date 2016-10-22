@@ -1637,7 +1637,7 @@ class Graph(GenericGraph):
 
             sage: graphs.EmptyGraph().is_tree()
             False
-            sage: graphs.EmptyGraph().is_tree()
+            sage: graphs.EmptyGraph().is_tree(certificate=True)
             (False, None)
         """
         if not output in ['vertex', 'edge']:

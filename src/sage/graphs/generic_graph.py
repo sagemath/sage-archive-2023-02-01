@@ -3283,11 +3283,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: o.out_degree()
             [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
         """
+        from sage.graphs.digraph import DiGraph
+
         if self.size() == 0:
             return DiGraph(self.order())
 
         g=copy(self)
-        from sage.graphs.digraph import DiGraph
         d=DiGraph()
         d.add_vertices(g.vertex_iterator())
 
@@ -6373,6 +6374,9 @@ class GenericGraph(GenericGraph_pyx):
         self._scream_if_not_simple(allow_loops=True)
         g=self
 
+        if self.order() == 0:
+            raise ValueError("max cut is not defined for the empty graph")
+
         if vertices:
             value_only=False
 
@@ -7008,18 +7012,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_hamiltonian()
             Traceback (most recent call last):
             ...
-            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
+            ValueError: the traveling salesman problem is not defined for empty or one-element graph
             sage: G.add_vertex(0)
             sage: G.is_hamiltonian()
             Traceback (most recent call last):
             ...
-            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
+            ValueError: the traveling salesman problem is not defined for empty or one-element graph
             sage: G.add_edge(0,0,1)
             sage: G.add_edge(0,0,2)
             sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
             Traceback (most recent call last):
             ...
-            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
+            ValueError: the traveling salesman problem is not defined for empty or one-element graph
             sage: G.add_vertex(1)
             sage: G.is_hamiltonian()
             False
@@ -7068,9 +7072,7 @@ class GenericGraph(GenericGraph_pyx):
         ########################
 
         if self.order() < 2:
-            raise ValueError("The traveling salesman problem (or finding "+
-                 "Hamiltonian cycle) is not well defined for graphs with "+
-                 "less than 2 vertices")
+            raise ValueError("the traveling salesman problem is not defined for empty or one-element graph")
 
         #####################
         # 2-vertices graphs #
@@ -7457,6 +7459,9 @@ class GenericGraph(GenericGraph_pyx):
             (True, ['010', '110', '100', '000', '001', '101', '111', '011'])
 
         """
+        if self.order() < 2:
+            raise ValueError("the traveling salesman problem is not defined for empty or one-element graph")
+
         if algorithm=='tsp':
             from sage.numerical.mip import MIPSolverException
 
@@ -13092,6 +13097,9 @@ class GenericGraph(GenericGraph_pyx):
 
         if (implementation in ['sparse_copy','dense_copy'] and nodes is not None):
             raise ValueError("'sparse_copy','dense_copy' do not support 'nodes' different from 'None'")
+
+        if self.order() == 0:
+            return {}
 
         def coeff_from_triangle_count(v,count):
             dv = self.degree(v)
@@ -20580,6 +20588,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_hamiltonian()
             True
         """
+        if self.order() < 2:
+            raise ValueError("is_hamiltonian is not defined for empty or one-element graph")
+
         from sage.categories.sets_cat import EmptySetError
         try:
             tsp = self.traveling_salesman_problem(use_edge_labels = False)

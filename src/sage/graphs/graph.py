@@ -6775,6 +6775,8 @@ class Graph(GenericGraph):
             sage: for u,v in combinations(G,2):
             ....:     assert T.flow(u,v,use_edge_labels=True) == G.flow(u,v,use_edge_labels=True)
         """
+        if self.order() == 0:
+            return Graph()
         if not self.is_connected():
             g = Graph()
             for cc in self.connected_components_subgraphs():

@@ -3283,6 +3283,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: o.out_degree()
             [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
         """
+        if self.size() == 0:
+            return DiGraph(self.order())
+
         g=copy(self)
         from sage.graphs.digraph import DiGraph
         d=DiGraph()
@@ -3685,6 +3688,9 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: float() argument must be a string or a number
         """
+        if self.order() == 0:
+            return []
+
         if weight_function is None:
             if self.weighted():
                 weight_function = lambda e:e[2]
@@ -9424,6 +9430,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: v in g
             True
         """
+        if self.size() == 0:
+            raise ValueError("can't get a random vertex from the empty graph.")
         from sage.misc.prandom import randint
         it = self.vertex_iterator(**kwds)
         for i in range(0, randint(0, self.order() - 1)):
@@ -9496,6 +9504,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.random_edge()
             (3, 4, None)
         """
+        if self.size() == 0:
+            raise ValueError("can't get a random edge from the empty graph.")
+
         from sage.misc.prandom import randint
         it = self.edge_iterator(**kwds)
         for i in range(0, randint(0, self.size() - 1)):
@@ -13539,7 +13550,7 @@ class GenericGraph(GenericGraph_pyx):
             ValueError: This method has no meaning on empty graphs.
         """
         if self.order() == 0:
-            raise ValueError("This method has no meaning on empty graphs.")
+            raise ValueError("radius is not defined for the empty graph.")
 
         return min(self.eccentricity(by_weight=by_weight,
                                      weight_function=weight_function,
@@ -13636,11 +13647,11 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: Algorithm 'iFUB' does not work on weighted graphs.
         """
+        if self.order() == 0:
+            raise ValueError("diameter is not defined for the empty graph.")
+
         if weight_function is not None:
             by_weight = True
-
-        if self.order() == 0:
-            raise ValueError("This method has no meaning on empty graphs.")
 
         if algorithm==None and not by_weight:
             algorithm = 'iFUB'
@@ -15895,7 +15906,7 @@ class GenericGraph(GenericGraph_pyx):
         by_weight = by_weight or (weight_function is not None)
 
         if self.order() < 2:
-            raise ValueError("The graph must have at least two vertices for this value to be defined")
+            raise ValueError("Wiener index is not defined for empty or one-element graph.")
 
         if algorithm=='BFS' or (algorithm is None and not by_weight):
             if by_weight:
@@ -21081,6 +21092,8 @@ class GenericGraph(GenericGraph_pyx):
         containing said boolean and the requested data. If the graph is not
         a Cayley graph, each of the data will be ``None``.
 
+        The empty graph is defined be not a Cayley graph.
+
         .. NOTE::
 
             For this routine to work on all graphs, the optional packages
@@ -21167,6 +21180,9 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         """
+        if self.order() == 0:
+            return False
+
         compute_map = mapping or generators
         certificate = return_group or compute_map
         c, G, map, genset = False, None, None, None

@@ -106,8 +106,7 @@ def regexp(expr, item):
 
     REFERENCES:
 
-    .. [GH2005] Gerhard Haring. [Online] Available:
-        http://lists.initd.org/pipermail/pysqlite/2005-November/000253.html
+    - [Ha2005]_
 
     EXAMPLES::
 

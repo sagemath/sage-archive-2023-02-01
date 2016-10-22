@@ -381,8 +381,7 @@ def carmichael_lambda(n):
 
     REFERENCES:
 
-    .. [Carmichael2010] Carmichael function,
-      http://en.wikipedia.org/wiki/Carmichael_function
+    - :wikipedia:`Carmichael_function`
     """
     n = Integer(n)
     # sanity check

@@ -1,0 +1,75 @@
+From bebd5a0361ed499fa0769cad9424e1bb193acd7c Mon Sep 17 00:00:00 2001
+From: Hans Schoenemann <hannes@mathematik.uni-kl.de>
+Date: Thu, 8 Sep 2016 12:50:54 +0200
+Subject: [PATCH] simplified xalloc (removed omConfig.h)
+
+---
+ Singular/misc_ip.cc | 2 +-
+ xalloc/Makefile.am  | 1 -
+ xalloc/configure.ac | 6 +++---
+ xalloc/omalloc.h    | 2 --
+ 4 files changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/Singular/misc_ip.cc b/Singular/misc_ip.cc
+index cbcc077..1f3b9a5 100644
+--- a/Singular/misc_ip.cc
++++ b/Singular/misc_ip.cc
+@@ -780,7 +780,7 @@ char * versionString(/*const bool bShowDetails = false*/ )
+   StringSetS("");
+   StringAppend("Singular for %s version %s (%d, %d bit) %s #%s",
+                S_UNAME, VERSION, // SINGULAR_VERSION,
+-               SINGULAR_VERSION, SIZEOF_VOIDP*8,
++               SINGULAR_VERSION, sizeof(void*)*8,
+ #ifdef MAKE_DISTRIBUTION
+ 	       VERSION_DATE, GIT_VERSION);
+ #else
+diff --git a/xalloc/Makefile.am latest/xalloc/Makefile.am
+index 509b5e4..85c1235 100644
+--- a/xalloc/Makefile.am
++++ b/xalloc/Makefile.am
+@@ -19,5 +19,4 @@ libomalloc_la_CPPFLAGS  = ${AM_CPPFLAGS}
+ omTables_CPPFLAGS = ${AM_CPPFLAGS}
+ 
+ CLEANFILES = $(BUILT_SOURCES)
+-DISTCLEANFILES = omConfig.h
+ 
+diff --git a/xalloc/configure.ac latest/xalloc/configure.ac
+index 6c566e4..8bd839e 100644
+--- a/xalloc/configure.ac
++++ b/xalloc/configure.ac
+@@ -10,7 +10,7 @@ AC_INIT([xmalloc],[4.0])
+ AC_CONFIG_MACRO_DIR([../m4])
+ AC_CONFIG_AUX_DIR([../build-aux])
+ AC_CONFIG_SRCDIR(dummy.c)
+-AC_CONFIG_HEADER([_config.h])
++#AC_CONFIG_HEADER([_config.h])
+ 
+ AC_PROG_CC
+ AC_PROG_CXX
+@@ -25,11 +25,11 @@ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+ AM_SANITY_CHECK
+ 
+ # Add pre'prefixed config
+-AX_PREFIX_CONFIG_H([omConfig.h],[],[_config.h])
++#AX_PREFIX_CONFIG_H([omConfig.h],[],[_config.h])
+ 
+ # SING_CHECK_SET_ARGS()
+ 
+-AC_SUBST(VERSION)
++#AC_SUBST(VERSION)
+ 
+ CPPFLAGS="-I.. -I. $CPPFLAGS"
+ AC_PROG_MAKE_SET
+diff --git a/xalloc/omalloc.h latest/xalloc/omalloc.h
+index b907ecc..a52d932 100644
+--- a/xalloc/omalloc.h
++++ b/xalloc/omalloc.h
+@@ -8,8 +8,6 @@
+ */
+ #include <stdlib.h>
+ #include <string.h>
+-#include <omalloc/omConfig.h>
+-
+ #ifdef __cplusplus
+ extern "C" {
+ #endif

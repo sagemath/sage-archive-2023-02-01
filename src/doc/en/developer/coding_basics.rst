@@ -306,7 +306,9 @@ information. You can use the existing functions of Sage as templates.
        `p`. For any odd integer `k` between 1 and `p - 1`, inclusive,
        `g^k` is a generator modulo `p` if and only if `\gcd(k, p-1) = 1`.
 
-       REFERENCES:
+   The bibliographical reference should go in Sage's master
+   bibliography file,
+   :file:`SAGE_ROOT/src/doc/en/reference/references/index.rst`::
 
        .. [Nat2000] \M. B. Nathanson. Elementary Methods in Number Theory.
           Springer, 2000.
@@ -357,27 +359,30 @@ information. You can use the existing functions of Sage as templates.
 
 - A **REFERENCES** block to list related books or papers (optional)
 
-  It should cite the books/research papers relevant to the code, e.g. the source
-  of the algorithm that it implements. ::
+  Almost all bibliographic information should be put in the master bibliography
+  file, see below. Citations will then link to the master bibliography where the
+  reader can find the bibliographic details (see below for citation syntax).
+  REFERENCE blocks in individual docstrings are therefore usually not necessary.
 
-      This docstring is referencing [SC]_. Just remember that references
-      are global, so we can also reference to [Nat2000]_ in the ALGORITHM
-      block, even if it is in a separate file. However we would not
-      include the reference here since it would cause a conflict.
+  Nevertheless, a REFERENCE block can be useful if there are relevant sources
+  which are not explicitly mentioned in the docstring or if the docstring is
+  particularly long. In that case, add the bibliographic information to the
+  master bibliography file, if not already present, and add a reference block to
+  your docstring as follows::
 
       REFERENCES:
 
-      .. [SC] Conventions for coding in sage.
-         http://doc.sagemath.org/html/en/developer/conventions.html.
+      For more information, see [Str1969]_, or one of the following references:
 
-  When abbreviating the first name of an author, be sure to put a
-  backslash in front of it. This ensures that the letter (``C.``
-  in the example below) will not be interpreted as a list
-  enumerator::
+      - [Sto2000]_
 
-      .. [Gauss] \C. F. Gauss, Disquisitiones Arithmeticae, 1801.
+      - [Voe2003]_
 
-  See the `Sphinx/ReST markup for citations <http://sphinx.pocoo.org/rest.html#citations>`_. For links toward trac tickets or wikipedia, see :ref:`chapter-sage_manuals_links`.
+  Note the trailing underscores which makes the citations into hyperlinks. See
+  below for more about the master bibliography file. For more about citations,
+  see the `Sphinx/ReST markup for citations
+  <http://sphinx.pocoo.org/rest.html#citations>`_. For links to trac tickets or
+  wikipedia, see :ref:`chapter-sage_manuals_links`.
 
 - A **TESTS** block (optional)
 
@@ -391,8 +396,6 @@ information. You can use the existing functions of Sage as templates.
   its own, and ending with an unindented line (that is, the same level
   of indentation as "TESTS") matching one of the following:
 
-  one of the following ways:
-
   - a line which starts with whitespace and then a Sphinx directive
     of the form ".. foo:", optionally followed by other text.
 
@@ -404,6 +407,41 @@ information. You can use the existing functions of Sage as templates.
     followed by a string of hyphens, equal signs, or other
     characters which are valid markers for ReST headers:
     ``- = ` : ' " ~ _ ^ * + # < >``.
+
+Sage's master **BIBLIOGRAPHY** file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  All bibliographical references should be stored in the master
+  bibliography file,
+  :file:`SAGE_ROOT/src/doc/en/reference/references/index.rst`, in the
+  format ::
+
+      .. [Gau1801] \C. F. Gauss, *Disquisitiones Arithmeticae*, 1801.
+
+      .. [RSA1978] \R. Rivest, A. Shamir, L. Adleman,
+                   "A Method for Obtaining Digital Signatures and
+                   Public-Key Cryptosystems".
+                   Communications of the ACM **21** (February 1978),
+                   120–126. :doi:`10.1145/359340.359342`.
+
+  The part in brackets is the citation key: given these examples, you
+  could then use ``[Gau1801]_`` in a docstring to provide a link to the
+  first reference. Note the trailing underscore which makes the citation a
+  hyperlink.
+
+  When possible, the key should have this form: for a single author, use the
+  first three letters of the family name followed by the year; for multiple
+  authors, use the first letter of each of the family names followed by the
+  year. Note that the year should be four digits, not just the last two -- Sage
+  already has references from both 1910 and 2010, for example.
+
+  When abbreviating the first name of an author in a bibliography
+  listing, be sure to put a backslash in front of it. This ensures
+  that the letter (``C.`` in the example above) will not be
+  interpreted as a list enumerator.
+
+  For more about citations, see the `Sphinx/ReST markup for citations
+  <http://sphinx.pocoo.org/rest.html#citations>`_.
 
 Template
 ^^^^^^^^
@@ -462,17 +500,18 @@ indentation:
 
         .. NOTE::
 
-            This function uses the algorithm of [BCDT]_ to determine
+            This function uses the algorithm of [BCDT2001]_ to determine
             whether an elliptic curve `E` over `Q` is modular.
 
         ...
 
-        REFERENCES:
-
-        .. [BCDT] Breuil, Conrad, Diamond, Taylor,
-           "Modularity ...."
         """
         <body of the function>
+
+The master bibliography file would contain ::
+
+        .. [BCDT2001] Breuil, Conrad, Diamond, Taylor,
+                      "Modularity ...."
 
 You are strongly encouraged to:
 

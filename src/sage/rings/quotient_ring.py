@@ -1174,6 +1174,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: S = R.quotient_ring(x^2+y^2)
             sage: S._singular_()
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 2
             //        block   1 : ordering dp

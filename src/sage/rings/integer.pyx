@@ -164,14 +164,12 @@ from sage.libs.gmp.mpq cimport mpq_neg
 from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
-from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz
+from sage.libs.pari.gen cimport objtogen, gen as pari_gen
+from sage.libs.pari.convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
+from sage.libs.pari.stack cimport new_gen
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
-
-import sage.libs.pari.pari_instance
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
@@ -232,7 +230,7 @@ cdef set_from_pari_gen(Integer self, pari_gen x):
             # x = (f modulo defining polynomial of finite field);
             # we extract f.
             sig_on()
-            x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
+            x = new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
         else:
             raise TypeError("Unable to coerce PARI %s to an Integer"%x)
 
@@ -5180,7 +5178,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if not self%4 in [0,1]:
             raise ValueError("class_number only defined for integers congruent to 0 or 1 modulo 4")
         flag =  self < 0 and proof
-        return pari(self).qfbclassno(flag).sage()
+        return objtogen(self).qfbclassno(flag).sage()
 
     def radical(self, *args, **kwds):
         r"""
@@ -5604,7 +5602,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1041334
 
         """
-        return pari.new_gen_from_mpz_t(self.value)
+        return new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self, I=None):
         """

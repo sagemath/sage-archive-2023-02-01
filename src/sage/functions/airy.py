@@ -165,7 +165,8 @@ class FunctionAiryAiSimple(BuiltinFunction):
                                  latex_name=r'\operatorname{Ai}',
                                  conversions=dict(mathematica='AiryAi',
                                                   maxima='airy_ai',
-                                                  sympy='airyai'))
+                                                  sympy='airyai',
+                                                  fricas='airyAi'))
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -270,7 +271,8 @@ class FunctionAiryAiPrime(BuiltinFunction):
                                  latex_name=r"\operatorname{Ai}'",
                                  conversions=dict(mathematica='AiryAiPrime',
                                                   maxima='airy_dai',
-                                                  sympy='airyaiprime'))
+                                                  sympy='airyaiprime',
+                                                  fricas='airyAiPrime'))
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -592,7 +594,8 @@ class FunctionAiryBiSimple(BuiltinFunction):
                                  latex_name=r'\operatorname{Bi}',
                                  conversions=dict(mathematica='AiryBi',
                                                   maxima='airy_bi',
-                                                  sympy='airybi'))
+                                                  sympy='airybi',
+                                                  fricas='airyBi'))
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -699,7 +702,8 @@ class FunctionAiryBiPrime(BuiltinFunction):
                                  latex_name=r"\operatorname{Bi}'",
                                  conversions=dict(mathematica='AiryBiPrime',
                                                   maxima='airy_dbi',
-                                                  sympy='airybiprime'))
+                                                  sympy='airybiprime',
+                                                  fricas='airyBiPrime'))
 
     def _derivative_(self, x, diff_param=None):
         """

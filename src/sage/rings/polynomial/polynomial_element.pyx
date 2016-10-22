@@ -4276,7 +4276,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ALGORITHM:
 
-        Algorithm 3.1.2 in [GTM138]_.
+        Algorithm 3.1.2 in [Coh1993]_.
 
         EXAMPLES::
 
@@ -4296,11 +4296,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
              (-113*x^6 - 106*x^5 - 133*x^4 - 101*x^3 - 42*x^2 - 41*x)*T - 34*x^6 + 13*x^5 + 54*x^4 + 126*x^3 + 134*x^2 - 5*x - 50)
             sage: (-x^2 - 4*x - 5)^(3-2+1) * p == quo*q + rem
             True
-
-        REFERENCES:
-
-        .. [GTM138] Henri Cohen. A Course in Computational Number Theory.
-           Graduate Texts in Mathematics, vol. 138. Springer, 1993.
         """
         if other.is_zero():
             raise ZeroDivisionError("Pseudo-division by zero is not possible")

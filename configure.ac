@@ -933,10 +933,12 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
         DEPS=""
     fi
 
+    # Below we have to obscure A""M_V_at, or autoconf would complain:
+    # "error: possibly undefined macro: A""M_V_at"
     if [ "$TYPE" = pip ]; then
         # Special rules using PIP
         echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7 "	\$(A""M_V_at)sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Add a target to remove the "installed" file for "sage -f"
@@ -946,21 +948,21 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     elif [ "$TYPE" = script ]; then
         # Just run the spkg-install script
         echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	cd '$SAGE_ROOT' && \\"
+        echo >&7 "	\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
         echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
         echo >&7 "	    sage-logger -p '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Just run the spkg-uninstall script if it exists
         echo >&7 "$PKG_NAME-clean:"
-        echo >&7 "	-cd '$SAGE_ROOT' && \\"
+        echo >&7 "	-\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
         echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
         echo >&7 "	    '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'"
         echo >&7
     else
         # Normal Sage packages
         echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
+        echo >&7 "	+\$(A""M_V_at)sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
         echo >&7
 
         # Add a target with just the bare package name for "sage -i"

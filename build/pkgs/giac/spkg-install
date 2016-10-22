@@ -53,16 +53,16 @@ done
 echo "Configuring giac..."
 
 
-#    --disable-gmpxx  (broken built)
+#    --disable-ao     (avoid libao deps)
 
-./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-gmpxx
+./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-ao
 
 if [ $? -ne 0 ]; then
     exit 1
 fi
 
 #############################################################
-#   Build and Install
+#   Build
 #############################################################
 
 echo "Building  giac..."
@@ -72,6 +72,27 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+#############################################################
+#   Clean old install
+#############################################################
+echo "Cleaning giac..."
+rm -f ${SAGE_LOCAL}/lib/libgiac*
+rm -f ${SAGE_LOCAL}/bin/icas
+rm -f ${SAGE_LOCAL}/bin/xcas
+rm -f ${SAGE_LOCAL}/bin/cas_help
+rm -f ${SAGE_LOCAL}/bin/pgiac
+rm -f ${SAGE_LOCAL}/bin/en_cas_help
+rm -f ${SAGE_LOCAL}/bin/es_cas_help
+rm -f ${SAGE_LOCAL}/bin/fr_cas_help
+rm -f ${SAGE_LOCAL}/bin/giac
+rm -f ${SAGE_LOCAL}/bin/xcasnew
+rm -rf ${SAGE_LOCAL}/share/giac
+rm -rf ${SAGE_LOCAL}/share/doc/giac
+rm -rf ${SAGE_LOCAL}/include/giac
+
+#############################################################
+#   Install
+#############################################################
 echo "Installing giac..."
 $MAKE install
 if [ $? -ne 0 ]; then
@@ -79,14 +100,4 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-
-#############################################################
-#   Build dir for the pexpect interface
-#############################################################
-# create the script_subdirectory for the pexpect giac interface by running a trivial instruction
-sage -c "giac(1)"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error running the pexpect interface of giac"
-    exit 1
-fi
 

@@ -51,7 +51,7 @@ class Encoder(SageObject):
 
     REFERENCES:
 
-    .. [Nielsen] Johan S. R. Nielsen, (https://bitbucket.org/jsrn/codinglib/)
+    - [Nie]_
     """
 
     def __init__(self, code):
@@ -217,7 +217,7 @@ class Encoder(SageObject):
 
         AUTHORS:
 
-            This function is taken from codinglib [Nielsen]_
+            This function is taken from codinglib [Nie]_
 
         EXAMPLES::
 
@@ -244,7 +244,7 @@ class Encoder(SageObject):
 
         AUTHORS:
 
-            This function is taken from codinglib [Nielsen]_
+            This function is taken from codinglib [Nie]_
 
         INPUT:
 

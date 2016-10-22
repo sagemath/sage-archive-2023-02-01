@@ -18,11 +18,9 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 2 of [Lee2011]_ \J.M. Lee: *Introduction to Topological Manifolds*,
-  2nd ed., Springer (New York) (2011)
+- Chap. 2 of [Lee2011]_
+- Chap. 1 of [Lee2013]_
 
-- Chap. 1 of [Lee2013]_ \J.M. Lee : *Introduction to Smooth Manifolds*,
-  2nd ed., Springer (New York) (2013)
 """
 
 #*****************************************************************************
@@ -2343,7 +2341,7 @@ class RealChart(Chart):
         if fixed_coords is not None:
             if len(fixed_coords) != nc - len(coords):
                 raise ValueError("bad number of fixed coordinates")
-            for fc, val in fixed_coords.iteritems():
+            for fc, val in fixed_coords.items():
                 xx0[self._xx.index(fc)] = val
         ind_a = [chart._xx.index(ac) for ac in ambient_coords]
         resu = Graphics()

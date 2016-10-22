@@ -311,6 +311,7 @@ REFERENCES:
 - [Lee2013]_
 - [KN1963]_
 - [Huy2005]_
+
 """
 
 #*****************************************************************************
@@ -872,7 +873,7 @@ class TopologicalManifold(ManifoldSubset):
             sd._subsets.add(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
-        for chart, restrictions in coord_def.iteritems():
+        for chart, restrictions in coord_def.items():
             if chart not in self._atlas:
                 raise ValueError("the {} does not belong to ".format(chart) +
                                  "the atlas of {}".format(self))

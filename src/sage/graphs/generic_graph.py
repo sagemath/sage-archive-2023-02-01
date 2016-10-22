@@ -13547,10 +13547,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.radius()
             Traceback (most recent call last):
             ...
-            ValueError: This method has no meaning on empty graphs.
+            ValueError: radius is not defined for the empty graph
         """
         if self.order() == 0:
-            raise ValueError("radius is not defined for the empty graph.")
+            raise ValueError("radius is not defined for the empty graph")
 
         return min(self.eccentricity(by_weight=by_weight,
                                      weight_function=weight_function,
@@ -13640,7 +13640,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.diameter()
             Traceback (most recent call last):
             ...
-            ValueError: This method has no meaning on empty graphs.
+            ValueError: diameter is not defined for the empty graph
             sage: g = Graph([(1,2,{'weight':1})])
             sage: g.diameter(algorithm='iFUB', weight_function=lambda e:e[2]['weight'])
             Traceback (most recent call last):
@@ -13648,7 +13648,7 @@ class GenericGraph(GenericGraph_pyx):
             ValueError: Algorithm 'iFUB' does not work on weighted graphs.
         """
         if self.order() == 0:
-            raise ValueError("diameter is not defined for the empty graph.")
+            raise ValueError("diameter is not defined for the empty graph")
 
         if weight_function is not None:
             by_weight = True
@@ -15906,7 +15906,7 @@ class GenericGraph(GenericGraph_pyx):
         by_weight = by_weight or (weight_function is not None)
 
         if self.order() < 2:
-            raise ValueError("Wiener index is not defined for empty or one-element graph.")
+            raise ValueError("Wiener index is not defined for empty or one-element graph")
 
         if algorithm=='BFS' or (algorithm is None and not by_weight):
             if by_weight:
@@ -16003,8 +16003,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.average_distance()
             Traceback (most recent call last):
             ...
-            ValueError: The graph must have at least two vertices for this value to be defined
+            ValueError: average distance is not defined for empty or one-element graph
         """
+        if self.order() < 2:
+            raise ValueError("average distance is not defined for empty or one-element graph")
         return 2 * self.wiener_index() / (self.order()*(self.order()-1))
 
     def szeged_index(self):

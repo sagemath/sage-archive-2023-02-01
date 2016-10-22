@@ -229,7 +229,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``reverse`` - if True, act on vectors in reversed order
+        - ``reverse`` -- if True, act on vectors in reversed order
 
         EXAMPLES::
 
@@ -319,7 +319,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``var`` - default: ``None`` - a string for a new variable name to use.
+        - ``var`` -- default: ``None`` - a string for a new variable name to use.
 
         EXAMPLES::
 
@@ -364,11 +364,11 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``var`` - string (default: 'x')
+        - ``var`` -- string (default: 'x')
 
-        - ``algorithm`` - string (default: 'matrix')
+        - ``algorithm`` -- string (default: 'matrix')
 
-          - 'matrix' - return the charpoly computed from the matrix of
+          - 'matrix' -- return the charpoly computed from the matrix of
             left multiplication by self
 
           - 'pari' -- use pari's charpoly routine on polymods, which
@@ -551,7 +551,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
                This option is not implemented!
 
-        -  ``all`` - bool (default: ``False``); if ``True``, return all
+        -  ``all`` -- bool (default: ``False``); if ``True``, return all
            square roots of ``self``, instead of just one.
 
         .. WARNING::
@@ -598,17 +598,17 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``n`` - integer `\geq 1`
+        - ``n`` -- integer `\geq 1`
 
-        - ``extend`` - bool (default: ``False``); if ``True``, return an `n`\th
+        - ``extend`` -- bool (default: ``False``); if ``True``, return an `n`\th
           root in an extension ring, if necessary. Otherwise, raise a
           ValueError if the root is not in the base ring.  Warning:
           this option is not implemented!
 
-        - ``all`` - bool (default: ``False``); if ``True``, return all `n`\th
+        - ``all`` -- bool (default: ``False``); if ``True``, return all `n`\th
           roots of ``self``, instead of just one.
 
-        - ``algorithm`` - string (default: ``None``); 'Johnston' is the only
+        - ``algorithm`` -- string (default: ``None``); 'Johnston' is the only
           currently supported option.  For IntegerMod elements, the problem
           is reduced to the prime modulus case using CRT and `p`-adic logs,
           and then this algorithm used.
@@ -721,7 +721,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``k`` - integer (default: 1, must fit in C int type)
+        - ``k`` -- integer (default: 1, must fit in C int type)
 
         Note that if `k` is negative, then this computes the appropriate root.
 
@@ -755,7 +755,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``k`` - integer (default: 1, must fit in C int type)
+        - ``k`` -- integer (default: 1, must fit in C int type)
 
         Note that if `k` is negative, then this computes the appropriate power.
 

@@ -391,9 +391,11 @@ void power::useries(flint_series_t& fp, int order) const
         flint_series_t fp1;
         basis.useries(fp1, order);
         if (not is_exactly_a<numeric>(exponent)) {
+                check_poly_ccoeff_one(fp1);
                 fmpq_poly_log_series(fp1.ft, fp1.ft, order);
                 exponent.useries(fp, order);
                 fmpq_poly_mullow(fp.ft, fp.ft, fp1.ft, order+2);
+                check_poly_ccoeff_zero(fp);
                 fmpq_poly_exp_series(fp.ft, fp.ft, order);
                 return;
         }
@@ -431,6 +433,7 @@ void power::useries(flint_series_t& fp, int order) const
                         fmpq_clear(c);
                         return;
                 }
+                check_poly_ccoeff_one(fp1);
                 fmpq_poly_log_series(fp1.ft, fp1.ft, order);
                 fmpq_poly_scalar_mul_mpq(fp1.ft, fp1.ft, nexp.as_mpq());
                 fmpq_poly_exp_series(fp.ft, fp1.ft, order);

@@ -164,12 +164,12 @@ def ChessboardGraphGenerator(dim_list,
     if knight and ( not knight_x in ZZ or not knight_y in ZZ or knight_x < 1 or knight_y < 1 ):
         raise ValueError('The knight_x and knight_y values must be integers of value >= 1.')
 
-    # We build the set of vertices of the d-dimensionnal chessboard
+    # We build the set of vertices of the d-dimensional chessboard
     from itertools import product
     V = [list(x) for x in list(product(*[range(_) for _ in dim]))]
 
     from sage.combinat.combination import Combinations
-    combin = Combinations(range(nb_dim),2)
+    combin = Combinations(range(nb_dim), 2)
 
     from sage.graphs.graph import Graph
     G = Graph()

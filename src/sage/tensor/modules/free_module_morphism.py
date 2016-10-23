@@ -972,7 +972,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             NotImplementedError: FiniteRankFreeModuleMorphism.is_surjective()
              has not been implemented yet
 
-        except for the identity endomorphisme (!)::
+        except for the identity endomorphism (!)::
 
             sage: End(M).one().is_surjective()
             True

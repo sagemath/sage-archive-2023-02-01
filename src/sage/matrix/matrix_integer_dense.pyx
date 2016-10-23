@@ -85,6 +85,8 @@ include "sage/ext/stdsage.pxi"
 
 
 from sage.arith.multi_modular cimport MultiModularBasis
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_mat cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF

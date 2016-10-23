@@ -1,4 +1,3 @@
-# distutils: language = c++
 r"""
 Farey Symbol for arithmetic subgroups of `{\rm PSL}_2(\ZZ)`
 

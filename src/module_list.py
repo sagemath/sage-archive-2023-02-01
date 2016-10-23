@@ -100,12 +100,6 @@ aliases = dict(
 )
 
 #########################################################
-### C++11 workaround https://trac.sagemath.org/ticket/20926
-#########################################################
-
-nocxx11_args = ['-std=c++98']
-
-#########################################################
 ### M4RI flags
 #########################################################
 
@@ -448,8 +442,7 @@ ext_modules = [
               sources = ['sage/graphs/base/dense_graph.pyx']),
 
     Extension('sage.graphs.base.boost_graph',
-              sources = ['sage/graphs/base/boost_graph.pyx'],
-              language = 'c++'),
+              sources = ['sage/graphs/base/boost_graph.pyx']),
 
     ################################
     ##
@@ -870,7 +863,7 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
-              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
+              extra_compile_args = m4ri_extra_compile_args,
               libraries = ['iml', 'ntl', 'gmp', 'm', 'flint'] + cblas_libs,
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs),
@@ -990,9 +983,7 @@ ext_modules = [
               sources = ['sage/modular/arithgroup/congroup.pyx']),
 
     Extension('sage.modular.arithgroup.farey_symbol',
-              sources = ['sage/modular/arithgroup/farey_symbol.pyx',
-                         'sage/modular/arithgroup/farey.cpp',
-                         'sage/modular/arithgroup/sl2z.cpp']),
+              sources = ['sage/modular/arithgroup/farey_symbol.pyx']),
 
     Extension('sage.modular.arithgroup.arithgroup_element',
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
@@ -1579,8 +1570,7 @@ ext_modules = [
               include_dirs = m4ri_include_dirs + png_include_dirs,
               depends = [SAGE_INC + "/polybori/" + hd + ".h" for hd in ["polybori", "config"] ] +
                         [SAGE_INC + '/m4ri/m4ri.h'],
-              extra_compile_args = m4ri_extra_compile_args,
-              language = 'c++'),
+              extra_compile_args = m4ri_extra_compile_args),
 
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',
               sources = ['sage/rings/polynomial/polynomial_real_mpfr_dense.pyx'],

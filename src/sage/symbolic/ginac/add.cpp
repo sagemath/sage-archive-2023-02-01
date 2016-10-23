@@ -453,27 +453,25 @@ ex add::eval_infinity(epvector::const_iterator infinity_iter) const
 
 ex add::conjugate() const
 {
-	std::unique_ptr<exvector> v(nullptr);
-	for (size_t i=0; i<nops(); ++i) {
-		if (v) {
-			v->push_back(op(i).conjugate());
-			continue;
-		}
-		ex term = op(i);
-		ex ccterm = term.conjugate();
-		if (are_ex_trivially_equal(term, ccterm))
-			continue;
-		v.reset(new exvector);
-		v->reserve(nops());
-		for (size_t j=0; j<i; ++j)
-			v->push_back(op(j));
-		v->push_back(ccterm);
-	}
-	if (v) {
-		ex result = add(*v);
-		return result;
-	}
-	return *this;
+        for (const auto& elem : seq) {
+                ex term = recombine_pair_to_ex(elem);
+                if (not are_ex_trivially_equal(term, term.conjugate())) {
+                        epvector v;
+                        v.reserve(seq.size());
+                        bool first_ccterm_seen = false;
+                        for (const auto& elem1 : seq) {
+                                if (first_ccterm_seen or &elem1 == &elem) {
+                                        v.push_back(split_ex_to_pair(recombine_pair_to_ex(elem1).conjugate()));
+                                        first_ccterm_seen = true;
+                                }
+                                else
+                                        v.push_back(elem1);
+                        }
+                        return (new add(v, overall_coeff.conjugate()))
+                                -> setflag(status_flags::dynallocated);
+                }
+        }
+        return *this;
 }
 
 ex add::real_part() const

@@ -319,6 +319,7 @@ see :trac:`11645`::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 import os
 import re
@@ -1743,7 +1744,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         # Singular 4 puts parentheses around floats and sign outside them
         charstr = self.parent().eval('charstr(basering)').split(',',1)
         if charstr[0] in ['real', 'complex']:
-              for i in range(coeff_start, 2*coeff_start):
+              for i in range(coeff_start, 2 * coeff_start):
                   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 
         if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
@@ -1947,8 +1948,8 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             from sage.matrix.constructor import matrix
             from sage.rings.integer_ring import ZZ
             A =  matrix(ZZ, int(self.nrows()), int(self.ncols()))
-            for i in xrange(A.nrows()):
-                for j in xrange(A.ncols()):
+            for i in range(A.nrows()):
+                for j in range(A.ncols()):
                     A[i,j] = sage.rings.integer.Integer(str(self[i+1,j+1]))
             return A
         elif typ == 'string':
@@ -2107,7 +2108,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             l = self.ncols()
         else:
             l = len(self)
-        for i in range(1, l+1):
+        for i in range(1, l + 1):
             yield self[i]
 
     def _singular_(self):

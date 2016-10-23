@@ -1930,7 +1930,7 @@ class NumberField_relative(NumberField_generic):
         """
         Return the defining polynomial of this relative number field.
 
-        This is exactly the same as ``relative_polynomal()``.
+        This is exactly the same as ``relative_polynomial()``.
 
         EXAMPLES::
 

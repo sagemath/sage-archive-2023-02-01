@@ -123,5 +123,5 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
             pass
         if isinstance(A, (list, tuple)):
             from sage.matrix.constructor import matrix
-            A = matrix([f.element() for f in A])
+            A = matrix([self.codomain().coordinate_vector(f) for f in A])
         return morphism.HeckeModuleMorphism_matrix(self, A, name)

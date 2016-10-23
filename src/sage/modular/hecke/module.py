@@ -1783,6 +1783,13 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         return self.submodule(self.free_module().zero_submodule(), check=False)
 
+    def _pushout_(self,other):
+        if not isinstance(other,HeckeModule_free_module):
+            return None
+        if self.ambient()!=other.ambient():
+            return None
+        return self.ambient().submodule(self.basis()+other.basis())
+
 def _dict_set(v, n, key, val):
     r"""
     Rough-and-ready implementation of a two-layer-deep dictionary.

@@ -74,15 +74,16 @@ AUTHORS:
 
 import itertools
 
+from sage.graphs.graph import Graph
 from sage.misc.latex import latex
-from sage.structure.parent import Parent
 from sage.sets.set import Set
-from sage.homology.simplicial_set import AbstractSimplex, \
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+
+from .simplicial_set import AbstractSimplex, \
     SimplicialSet_arbitrary, SimplicialSet_finite, \
     standardize_degeneracies, face_degeneracies
-from sage.homology.simplicial_set_examples import Empty
-from sage.graphs.graph import Graph
-from sage.structure.unique_representation import UniqueRepresentation
+from .simplicial_set_examples import Empty
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
@@ -97,7 +98,30 @@ lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
 # often (-1, Empty()): the (-1)-skeleton is the empty simplicial
 # set. It gets used and updated in the n_skeleton method.
 
-class SubSimplicialSet(SimplicialSet_finite):
+class SubSimplicialSet(SimplicialSet_finite, UniqueRepresentation):
+    @staticmethod
+    def __classcall__(self, data, ambient=None):
+        """
+        Convert ``data`` from a dict to a tuple.
+
+        TESTS::
+
+            sage: from sage.homology.simplicial_set_constructions import SubSimplicialSet
+            sage: K = simplicial_sets.Simplex(2)
+            sage: e = K.n_cells(1)[0]
+            sage: A = SubSimplicialSet({e: K.faces(e)}, ambient=K)
+            sage: B = SubSimplicialSet({e: list(K.faces(e))}, ambient=K)
+            sage: A == B
+            True
+        """
+        L = []
+        for x in data:
+            if data[x] is None:
+                L.append((x, None))
+            else:
+                L.append((x, tuple(data[x])))
+        return super(SubSimplicialSet, self).__classcall__(self, tuple(L), ambient)
+
     def __init__(self, data, ambient=None):
         r"""
         Return a finite simplicial set as a subsimplicial set of another
@@ -129,7 +153,20 @@ class SubSimplicialSet(SimplicialSet_finite):
               Defn: [v_0, sigma_3] --> [v_0, sigma_3]
             sage: Y.ambient_space()
             Disjoint union: (S^3 u Klein bottle)
+
+        TESTS::
+
+            sage: T = simplicial_sets.Torus()
+            sage: latex(T.n_skeleton(2))
+            S^{1} \times S^{1}
+
+            sage: T.n_skeleton(1).n_skeleton(1) == T.n_skeleton(1)
+            True
+
+            sage: T.n_skeleton(1) is T.n_skeleton(1)
+            True
         """
+        data = dict(data)
         if ambient is None:
             ambient = self
         if (ambient.is_pointed()
@@ -138,8 +175,10 @@ class SubSimplicialSet(SimplicialSet_finite):
             SimplicialSet_finite.__init__(self, data, base_point=ambient.base_point())
         else:
             SimplicialSet_finite.__init__(self, data)
-        if self == ambient and hasattr(ambient, '__custom_name'):
-            self.rename(str(ambient))
+        if self == ambient:
+            if hasattr(ambient, '__custom_name'):
+                self.rename(str(ambient))
+            self._latex_name = latex(ambient)
         # When constructing the inclusion map, we do not need to check
         # the validity of the morphism, and more importantly, we
         # cannot check it in the infinite case: the appropriate data
@@ -147,7 +186,7 @@ class SubSimplicialSet(SimplicialSet_finite):
         self._inclusion = self.Hom(ambient)({x:x for x in data}, check=False)
 
     def inclusion_map(self):
-        """
+        r"""
         Return the inclusion map from this subsimplicial set into its
         ambient space.
 
@@ -160,6 +199,12 @@ class SubSimplicialSet(SimplicialSet_finite):
               From: Simplicial set with 3 non-degenerate simplices
               To:   RP^6
               Defn: [1, f, f * f] --> [1, f, f * f]
+
+        `RP^6` itself is constructed as a subsimplicial set of
+        `RP^\infty`::
+
+            sage: latex(RP6.inclusion_map())
+            RP^{6} \to RP^{\infty}
         """
         return self._inclusion
 
@@ -913,6 +958,21 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
             S^2 x Klein bottle x Classifying space of Multiplicative Abelian group isomorphic to C2
         """
         return ' x '.join([str(X) for X in self._factors])
+
+    def _latex_(self):
+        """
+        LaTeX representation
+
+        EXAMPLES::
+
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: latex(S2.product(S2))
+            S^{2} \times S^{2}
+            sage: RPoo = simplicial_sets.RealProjectiveSpace(Infinity)
+            sage: latex(S2.product(RPoo, S2))
+            S^{2} \times RP^{\infty} \times S^{2}
+        """
+        return ' \\times '.join([latex(X) for X in self._factors])
 
 
 class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplicialSets_finite):
@@ -1732,6 +1792,20 @@ class QuotientOfSimplicialSet(PushoutOfSimplicialSets):
         """
         return 'Quotient: ({}/{})'.format(self.ambient(), self.subcomplex())
 
+    def _latex_(self):
+        """
+        LaTeX representation
+
+        EXAMPLES::
+
+            sage: RPoo = simplicial_sets.RealProjectiveSpace(Infinity)
+            sage: RP3 = RPoo.n_skeleton(3)
+            sage: RP3.rename_latex('RP^{3}')
+            sage: latex(RPoo.quotient(RP3))
+            RP^{\infty} / RP^{3}
+        """
+        return '{} / {}'.format(latex(self.ambient()), latex(self.subcomplex()))
+
 
 class QuotientOfSimplicialSet_finite(QuotientOfSimplicialSet,
                                      PushoutOfSimplicialSets_finite):
@@ -1855,6 +1929,19 @@ class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
         s += ')'
         return s
 
+    def _latex_(self):
+        """
+        LaTeX representation
+
+        EXAMPLES::
+
+            sage: RP4 = simplicial_sets.RealProjectiveSpace(4)
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: latex(S1.smash_product(RP4, S1))
+            S^{1} \wedge RP^{4} \wedge S^{1}
+        """
+        return ' \\wedge '.join([latex(X) for X in self._factors])
+
 
 class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
     @staticmethod
@@ -1946,6 +2033,19 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         s += ' v '.join([str(X) for X in self._factors])
         s += ')'
         return s
+
+    def _latex_(self):
+        """
+        LaTeX representation
+
+        EXAMPLES::
+
+            sage: RP4 = simplicial_sets.RealProjectiveSpace(4)
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: latex(S1.wedge(RP4, S1))
+            S^{1} \vee RP^{4} \vee S^{1}
+        """
+        return ' \\vee '.join([latex(X) for X in self._factors])
 
 
 class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSets_finite):
@@ -2127,6 +2227,19 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         s += ')'
         return s
 
+    def _latex_(self):
+        """
+        LaTeX representation
+
+        EXAMPLES::
+
+            sage: RP4 = simplicial_sets.RealProjectiveSpace(4)
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: latex(S1.disjoint_union(RP4, S1))
+            S^{1} \amalg RP^{4} \amalg S^{1}
+        """
+        return ' \\amalg '.join([latex(X) for X in self._factors])
+
 
 class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,
                                            PushoutOfSimplicialSets_finite):
@@ -2258,6 +2371,17 @@ class ConeOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             Cone of 3-simplex
         """
         return 'Cone of {}'.format(self._X)
+
+    def _latex_(self):
+        """
+        LaTeX representation
+
+        EXAMPLES::
+
+            sage: latex(simplicial_sets.Simplex(3).cone())
+            C \Delta^{3}
+        """
+        return 'C {}'.format(latex(self._X))
 
 
 class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
@@ -2437,6 +2561,17 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
         """
         return 'Reduced cone of {}'.format(self._X)
 
+    def _latex_(self):
+        """
+        LaTeX representation
+
+        EXAMPLES::
+
+            sage: latex(simplicial_sets.Sphere(4).cone())
+            C S^{4}
+        """
+        return 'C {}'.format(latex(self._X))
+
 
 class ReducedConeOfSimplicialSet_finite(ReducedConeOfSimplicialSet,
                                         QuotientOfSimplicialSet_finite):
@@ -2604,6 +2739,52 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
         self._n_skeleton = (n, ans)
         return ans
 
+    def _repr_or_latex_(self, output_type=None):
+        r"""
+        Print representation, for either :meth:`_repr_` or :meth:`_latex_`.
+
+        INPUT:
+
+        - ``output_type`` -- either ``"latex"`` for LaTeX output or
+          anything else for ``str`` output.
+
+        We use `S` to denote unreduced suspension, `\Sigma` for
+        reduced suspension.
+
+        EXAMPLES:
+
+            sage: T = simplicial_sets.Torus()
+            sage: K = T.suspension(10)
+            sage: K._repr_or_latex_()
+            'Sigma^10(Torus)'
+            sage: K._repr_or_latex_('latex')
+            '\\Sigma^{10}(S^{1} \\times S^{1})'
+        """
+        latex_output = (output_type == 'latex')
+        X = self._X
+        if self._reduced:
+            # Reduced suspension.
+            if latex_output:
+                symbol = '\\Sigma'
+            else:
+                symbol = 'Sigma'
+        else:
+            # Unreduced suspension.
+            symbol = 'S'
+        idx = 1
+        while isinstance(X, SuspensionOfSimplicialSet):
+            idx += 1
+            X = X._X
+        if latex_output:
+            X = latex(X)
+            exp = '^{{{}}}'
+        else:
+            exp = '^{}'
+        if idx > 1:
+            return ('{}' + exp + '({})').format(symbol, idx, X)
+        else:
+            return ('{}({})').format(symbol, X)
+
     def _repr_(self):
         r"""
         Print representation
@@ -2622,21 +2803,27 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             sage: K.suspension()
             S(2-simplex)
         """
-        X = self._X
-        if self._reduced:
-            # Reduced suspension.
-            symbol = 'Sigma'
-        else:
-            # Unreduced suspension.
-            symbol = 'S'
-        idx = 1
-        while isinstance(X, SuspensionOfSimplicialSet):
-            idx += 1
-            X = X._X
-        if idx > 1:
-            return '{}^{}({})'.format(symbol, idx, X)
-        else:
-            return '{}({})'.format(symbol, X)
+        return self._repr_or_latex_()
+
+    def _latex_(self):
+        r"""
+        LaTeX representation
+
+        We use `S` to denote unreduced suspension, `\Sigma` for
+        reduced suspension.
+
+        EXAMPLES:
+
+            sage: S2 = simplicial_sets.Sphere(2)
+            sage: latex(S2.suspension(3))
+            \Sigma^{3}(S^{2})
+            sage: K = simplicial_sets.Simplex(2)
+            sage: latex(K.suspension(3))
+            S^{3}(\Delta^{2})
+            sage: latex(K.suspension())
+            S(\Delta^{2})
+        """
+        return self._repr_or_latex_('latex')
 
 
 class SuspensionOfSimplicialSet_finite(SuspensionOfSimplicialSet,

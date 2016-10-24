@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 r"""
-Examples of simplicial sets
+Examples of simplicial sets.
+
+These are accessible via ``simplicial_sets.Sphere(3)``,
+``simplicial_sets.Torus()``, etc.  Type ``simplicial_sets.[TAB]`` to
+see a complete list.
 
 AUTHORS:
 
@@ -27,18 +31,20 @@ import re
 import os
 from pyparsing import OneOrMore, nestedExpr
 
-from sage.structure.parent import Parent
-from sage.rings.integer import Integer
-from sage.rings.infinity import Infinity
+from sage.env import SAGE_ENV
+from sage.graphs.graph import Graph
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex
-from sage.graphs.graph import Graph
-from sage.env import SAGE_ENV
-from sage.homology.delta_complex import delta_complexes
-import sage.homology.simplicial_complexes_catalog as simplicial_complexes
-from sage.homology.simplicial_set import AbstractSimplex, \
+from sage.rings.infinity import Infinity
+from sage.rings.integer import Integer
+from sage.structure.parent import Parent
+
+from .delta_complex import delta_complexes
+from .simplicial_set import AbstractSimplex, \
     SimplicialSet_arbitrary, SimplicialSet_finite
+
+import sage.homology.simplicial_complexes_catalog as simplicial_complexes
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
@@ -317,7 +323,7 @@ def ClassifyingSpace(group):
         sage: BK = simplicial_sets.ClassifyingSpace(Klein4)
         sage: BK
         Classifying space of Multiplicative Abelian group isomorphic to C2 x C2
-        sage: BK.homology(range(5), base_ring=GF(2))
+        sage: BK.homology(range(5), base_ring=GF(2))  # long time (1 second)
         {0: Vector space of dimension 0 over Finite Field of size 2,
          1: Vector space of dimension 2 over Finite Field of size 2,
          2: Vector space of dimension 3 over Finite Field of size 2,
@@ -358,7 +364,7 @@ def RealProjectiveSpace(n):
         X.rename('RP^oo')
         X.rename_latex('RP^{\\infty}')
     else:
-        X = AbelianGroup([2]).nerve().n_skeleton(n)
+        X = RealProjectiveSpace(Infinity).n_skeleton(n)
         X.rename('RP^{}'.format(n))
         X.rename_latex('RP^{{{}}}'.format(n))
     return X
@@ -535,12 +541,12 @@ def ComplexProjectiveSpace(n):
         sage: CP3.f_vector()
         [1, 0, 3, 10, 25, 30, 15]
 
-        sage: K = CP3.suspension()
-        sage: R = K.cohomology_ring(GF(2))
-        sage: R.gens()
+        sage: K = CP3.suspension() # long time (1 second)
+        sage: R = K.cohomology_ring(GF(2)) # long time
+        sage: R.gens()        # long time
         (h^{0,0}, h^{3,0}, h^{5,0}, h^{7,0})
-        sage: x = R.gens()[1]
-        sage: x.Sq(2)
+        sage: x = R.gens()[1] # long time
+        sage: x.Sq(2)         # long time
         h^{5,0}
 
         sage: simplicial_sets.ComplexProjectiveSpace(4).f_vector()

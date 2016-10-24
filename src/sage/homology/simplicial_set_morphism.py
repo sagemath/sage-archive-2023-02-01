@@ -32,14 +32,16 @@ This module implements morphisms and homsets of simplicial sets.
 
 import itertools
 
-from sage.homology.simplicial_set import SimplicialSet_arbitrary
-from sage.matrix.constructor import matrix, zero_matrix
-from sage.rings.integer_ring import ZZ
-from sage.homology.chain_complex_morphism import ChainComplexMorphism
-from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom, Homset
+from sage.categories.morphism import Morphism
 from sage.categories.simplicial_sets import SimplicialSets
-from sage.homology.homology_morphism import InducedHomologyMorphism
+from sage.matrix.constructor import matrix, zero_matrix
+from sage.misc.latex import latex
+from sage.rings.integer_ring import ZZ
+
+from .chain_complex_morphism import ChainComplexMorphism
+from .homology_morphism import InducedHomologyMorphism
+from .simplicial_set import SimplicialSet_arbitrary
 
 class SimplicialSetHomset(Homset):
     r"""
@@ -295,6 +297,20 @@ class SimplicialSetHomset(Homset):
             except ValueError:
                 # Not a valid morphism.
                 pass
+
+    def _latex_(self):
+        """
+        LaTeX representation
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_sets.Sphere(1)
+            sage: T = simplicial_sets.Torus()
+            sage: H = Hom(S1, T)
+            sage: latex(H)
+            \operatorname{Map} (S^{1}, S^{1} \times S^{1})
+        """
+        return '\\operatorname{{Map}} ({}, {})'.format(latex(self.domain()), latex(self.codomain()))
 
 
 class SimplicialSetMorphism(Morphism):
@@ -1423,3 +1439,16 @@ class SimplicialSetMorphism(Morphism):
         d = self._dictionary
         keys = sorted(d.keys())
         return "{} --> {}".format(keys, [d[x] for x in keys])
+
+    def _latex_(self):
+        """
+        LaTeX representation.
+
+        EXAMPLES::
+
+            sage: eta = simplicial_sets.HopfMap()
+            sage: eta.domain().rename_latex('S^{3}')
+            sage: latex(eta)
+            S^{3} \to S^{2}
+        """
+        return '{} \\to {}'.format(latex(self.domain()), latex(self.codomain()))

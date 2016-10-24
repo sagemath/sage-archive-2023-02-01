@@ -3159,7 +3159,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         elif self.is_ranked():
             return self.rank_function()(element)
         else:
-            raise ArithmeticError("the poset is not ranked")
+            raise ValueError("the poset is not ranked")
 
     def is_ranked(self):
         r"""
@@ -4487,22 +4487,22 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: C2.star_product(C1)
             Traceback (most recent call last):
             ...
-            ArithmeticError: 'other' has less than two elements
+            ValueError: 'other' has less than two elements
             sage: C1.star_product(C2)
             Traceback (most recent call last):
             ...
-            ArithmeticError: the poset has less than two elements
+            ValueError: the poset has less than two elements
         """
         if not hasattr(other, 'hasse_diagram'):
             raise TypeError("'other' is not a finite poset")
         if not self.is_bounded():
-            raise ArithmeticError("the poset is not bounded")
+            raise ValueError("the poset is not bounded")
         if not other.is_bounded():
-            raise ArithmeticError("'other' is not bounded")
+            raise ValueError("'other' is not bounded")
         if self.cardinality() < 2:
-            raise ArithmeticError("the poset has less than two elements")
+            raise ValueError("the poset has less than two elements")
         if other.cardinality() < 2:
-            raise ArithmeticError("'other' has less than two elements")
+            raise ValueError("'other' has less than two elements")
         if labels not in ['pairs', 'integers']:
             raise ValueError("labels must be either 'pairs' or 'integers'")
 
@@ -5720,7 +5720,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         maxi = hasse.top()
         mini = hasse.bottom()
         if (mini is None) or (maxi is None):
-            raise ArithmeticError("the poset is not bounded")
+            raise ValueError("the poset is not bounded")
         return sum(q**(len(ch)+1) for ch in hasse.chains(exclude=[mini, maxi]))
 
     def h_polynomial(self):
@@ -5771,7 +5771,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         maxi = hasse.top()
         mini = hasse.bottom()
         if (mini is None) or (maxi is None):
-            raise ArithmeticError("the poset is not bounded")
+            raise ValueError("the poset is not bounded")
         f = sum(q**(len(ch)) for ch in hasse.chains(exclude=[mini, maxi]))
         d = f.degree()
         f = (1-q)**d * q * f(q=q/(1-q))
@@ -5841,10 +5841,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         maxi = hasse.top()
         mini = hasse.bottom()
         if (mini is None) or (maxi is None):
-            raise ArithmeticError("the poset is not bounded")
+            raise ValueError("the poset is not bounded")
         rk = hasse.rank_function()
         if rk is None:
-            raise ArithmeticError("the poset is not ranked")
+            raise ValueError("the poset is not ranked")
         n = rk(maxi)
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if n == 0:
@@ -5916,10 +5916,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         maxi = hasse.top()
         mini = hasse.bottom()
         if (mini is None) or (maxi is None):
-            raise ArithmeticError("the poset is not bounded")
+            raise ValueError("the poset is not bounded")
         rk = hasse.rank_function()
         if rk is None:
-            raise ArithmeticError("the poset is not ranked")
+            raise ValueError("the poset is not ranked")
         n = rk(maxi)
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if n == 0:
@@ -5969,9 +5969,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         hasse = self._hasse_diagram
         rk = hasse.rank_function()
         if not self.is_graded():
-            raise ArithmeticError("the poset is not graded")
+            raise ValueError("the poset is not graded")
         if not self.has_bottom():
-            raise ArithmeticError("the poset has not a bottom element")
+            raise ValueError("the poset has not a bottom element")
         n = rk(hasse.maximal_elements()[0])
         x0 = hasse.minimal_elements()[0]
         q = polygen(ZZ, 'q')
@@ -6249,9 +6249,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
         """
         if not self.is_connected():
-            raise ArithmeticError("the poset is not connected")
+            raise ValueError("the poset is not connected")
         if not self.is_graded():
-            raise ArithmeticError("the poset is not graded")
+            raise ValueError("the poset is not graded")
         levels = self._hasse_diagram.level_sets()
         h = len(levels)
         for i in range(h // 2):
@@ -6372,7 +6372,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().is_eulerian()
             Traceback (most recent call last):
             ...
-            ArithmeticError: the poset is not bounded
+            ValueError: the poset is not bounded
 
             sage: Poset({1: []}).is_eulerian()
             True
@@ -6380,7 +6380,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Posets.PentagonPoset().is_eulerian()
             Traceback (most recent call last):
             ...
-            ArithmeticError: the poset is not graded
+            ValueError: the poset is not graded
 
             sage: Posets.BooleanLattice(3).is_eulerian(k=123, certificate=True)
             (True, None)
@@ -6394,9 +6394,9 @@ class FinitePoset(UniqueRepresentation, Parent):
                 raise ValueError("parameter 'k' must be positive, not {0}".format(k))
 
         if not self.is_bounded():
-            raise ArithmeticError("the poset is not bounded")
+            raise ValueError("the poset is not bounded")
         if not self.is_ranked():
-            raise ArithmeticError("the poset is not graded")
+            raise ValueError("the poset is not graded")
 
         n = self.cardinality()
         if n == 1:
@@ -6948,7 +6948,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         - Travis Scrimshaw (27-12-2014)
         """
         if not self.is_ranked():
-            raise ArithmeticError("the poset is not ranked")
+            raise ValueError("the poset is not ranked")
         if q is None:
             q = PolynomialRing(ZZ, 'q').gen(0)
         poly = self._kl_poly(x, y, canonical_labels)

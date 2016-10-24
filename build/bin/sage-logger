@@ -44,12 +44,20 @@ fi
 # Use sed option to reduce buffering, to make the output appear more
 # smoothly. For GNU sed, this is the --unbuffered option.
 # For BSD sed (which is also on OS X), this is the -l option.
-if sed </dev/null 2>/dev/null --unbuffered ""; then
-    SED="sed --unbuffered"
-elif sed </dev/null 2>/dev/null -l ""; then
-    SED="sed -l"
+if [ -n "$prefix" ]; then
+    if sed </dev/null 2>/dev/null --unbuffered ""; then
+        SED="sed --unbuffered"
+    elif sed </dev/null 2>/dev/null -l ""; then
+        SED="sed -l"
+    else
+        SED="sed"
+    fi
+
+    # eval needed to get the quoting around the regexp right
+    SED="eval $SED 's/^/$prefix/'"
 else
-    SED="sed"
+    # Make SED a useless use of cat
+    SED=cat
 fi
 
 mkdir -p "$logdir"
@@ -73,7 +81,7 @@ else
     # We trap SIGINT such that SIGINT interrupts the main process being
     # run, not the logging.
     ( exec 2>&1; eval "$cmd" ) | \
-	( trap '' SIGINT; tee -a "$logfile" | $SED "s/^/$prefix/" )
+	( trap '' SIGINT; tee -a "$logfile" | $SED )
 
     pipestatus=(${PIPESTATUS[*]})
 

@@ -282,7 +282,7 @@ expected. Use at your own risk!
 EOF
 		read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
 		case "$answer" in
-		    n*|N*) exit 0;;
+		    n*|N*) exit 1;;
 		esac
 		# Confirm the user's input.  (This gives important
 		# feedback to the user when output is redirected to a logfile.)
@@ -380,7 +380,7 @@ if [ ! -f "$PKG_SRC" ]; then
 				echo > /dev/tty "=========================================================================="
 				read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
 				case "$answer" in
-				    n*|N*) exit 0;;
+				    n*|N*) exit 1;;
 				esac
 				# Confirm the user's input.  (This gives important
 				# feedback to the user when output is redirected to a logfile.)
@@ -398,7 +398,7 @@ if [ ! -f "$PKG_SRC" ]; then
 				echo > /dev/tty "=========================================================================="
 				read -t 30 -p "Are you sure (automatically continuing in 30 seconds) [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
 				case "$answer" in
-				    n*|N*) exit 0;;
+				    n*|N*) exit 1;;
 				esac
 				# Confirm the user's input.  (This gives important
 				# feedback to the user when output is redirected to a logfile.)

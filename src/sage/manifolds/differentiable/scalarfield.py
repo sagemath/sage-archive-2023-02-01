@@ -871,3 +871,61 @@ class DiffScalarField(ScalarField):
         return self._lie_derivatives[id(vector)][1]
 
     lie_der = lie_derivative
+
+    def hodge_dual(self, metric):
+        r"""
+        Compute the Hodge dual of the scalar field with respect to some
+        metric.
+
+        If `M` is the domain of the scalar field (denoted by `f`), `n` is the
+        dimension of `M` and `g` is a pseudo-Riemannian metric on `M`, the
+        *Hodge dual* of `f` w.r.t. `g` is the `n`-form `*f` defined by
+
+        .. MATH::
+
+            *f = f \epsilon,
+
+        where `\epsilon` is the volume `n`-form associated with `g` (see
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.volume_form`).
+
+        INPUT:
+
+        - ``metric``: a pseudo-Riemannian metric defined on the same manifold
+          as the current scalar field; must be an instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+
+        OUTPUT:
+
+        - the `n`-form `*f`
+
+        EXAMPLES:
+
+        Hodge dual of a scalar field in the Euclidean space `R^3`::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.metric('g')
+            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
+            sage: f = M.scalar_field(function('F')(x,y,z), name='f')
+            sage: sf = f.hodge_dual(g) ; sf
+            3-form *f on the 3-dimensional differentiable manifold M
+            sage: sf.display()
+            *f = F(x, y, z) dx/\dy/\dz
+            sage: ssf = sf.hodge_dual(g) ; ssf
+            Scalar field **f on the 3-dimensional differentiable manifold M
+            sage: ssf.display()
+            **f: M --> R
+               (x, y, z) |--> F(x, y, z)
+            sage: ssf == f # must hold for a Riemannian metric
+            True
+
+        Instead of calling the method :meth:`hodge_dual` on the scalar field,
+        one can invoke the method
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
+        of the metric::
+
+            sage: f.hodge_dual(g) == g.hodge_star(f)
+            True
+
+        """
+        return metric.hodge_star(self)

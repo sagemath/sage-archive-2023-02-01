@@ -3282,6 +3282,14 @@ class GenericGraph(GenericGraph_pyx):
             [2, 2, 2, 2, 2, 1, 1, 1, 1, 1]
             sage: o.out_degree()
             [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
+
+        TESTS::
+
+            sage: E0 = Graph(); E4 = Graph(4)  # See trac #21741
+            sage: E0.eulerian_orientation()
+            Digraph on 0 vertices
+            sage: E4.eulerian_orientation()
+            Digraph on 4 vertices
         """
         from sage.graphs.digraph import DiGraph
 
@@ -3688,6 +3696,9 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: float() argument must be a string or a number
+
+            sage: graphs.EmptyGraph().min_spanning_tree()
+            []
         """
         if self.order() == 0:
             return []
@@ -6366,6 +6377,12 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.max_cut()
            12
 
+        TESTS::
+
+            sage: graphs.EmptyGraph().max_cut()
+            Traceback (most recent call last):
+            ...
+            ValueError: max cut is not defined for the empty graph
         """
         self._scream_if_not_simple(allow_loops=True)
         g=self
@@ -9430,9 +9447,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: v = g.random_vertex()
             sage: v in g
             True
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().random_vertex()
+            Traceback (most recent call last):
+            ...
+            ValueError: can't get a random vertex from the empty graph
         """
         if self.size() == 0:
-            raise ValueError("can't get a random vertex from the empty graph.")
+            raise ValueError("can't get a random vertex from the empty graph")
         from sage.misc.prandom import randint
         it = self.vertex_iterator(**kwds)
         for i in range(0, randint(0, self.order() - 1)):
@@ -9504,9 +9528,16 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.random_edge()
             (3, 4, None)
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().random_edge()
+            Traceback (most recent call last):
+            ...
+            ValueError: can't get a random edge from the empty graph
         """
         if self.size() == 0:
-            raise ValueError("can't get a random edge from the empty graph.")
+            raise ValueError("can't get a random edge from the empty graph")
 
         from sage.misc.prandom import randint
         it = self.edge_iterator(**kwds)
@@ -11099,7 +11130,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.average_degree() == 2*g.size()/g.order()
             True
         """
-
         return 2*Integer(self.size())/Integer(self.order())
 
     def degree_histogram(self):
@@ -13064,6 +13094,11 @@ class GenericGraph(GenericGraph_pyx):
             ....:     if max(coeffs_v) - min(coeffs_v) > 1E-12:
             ....:         print("Error for v=",v)
             ....:         print("min=",min(coeffs_v),"max=",max(coeffs_v))
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().clustering_coeff()
+            {}
         """
         from sage.rings.integer import Integer
         if return_vertex_weights is not None:
@@ -15905,6 +15940,11 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: BFS algorithm does not work on weighted graphs.
+
+            sage: graphs.EmptyGraph().wiener_index()
+            Traceback (most recent call last):
+            ...
+            ValueError: Wiener index is not defined for empty or one-element graph
         """
         by_weight = by_weight or (weight_function is not None)
 
@@ -21171,9 +21211,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.CompleteBipartiteGraph(50, 50).is_cayley()
             True
 
+        TESTS::
+
+            sage: graphs.EmptyGraph().is_cayley()
+            False
+            sage: graphs.EmptyGraph().is_cayley(return_group = True,
+            ....:                               mapping = False,
+            ....:                               generators = True)
+            (False, False, False)
         """
         if self.order() == 0:
-            return False
+            n = return_group + mapping + generators
+            if n == 0:
+                return False
+            return tuple([False] * (n+1))
 
         compute_map = mapping or generators
         certificate = return_group or compute_map

@@ -2424,6 +2424,11 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
+
+        Check the empty graph::
+
+            sage: graphs.EmptyGraph().is_triangle_free()
+            True
         """
         if self.order() == 0:
             return True
@@ -6793,6 +6798,11 @@ class Graph(GenericGraph):
           Computer Science Review
           vol 4, number 1, pages 41--59, 2010
           http://www.lirmm.fr/~paul/md-survey.pdf
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().modular_decomposition() # optional -- modular_decomposition
+            ()
         """
         try:
             from sage.graphs.modular_decomposition import modular_decomposition
@@ -6842,6 +6852,11 @@ class Graph(GenericGraph):
 
             sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime() # optional - modular_decomposition
             False
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().is_prime()
+            True
         """
         if self.order() == 0:
             return True
@@ -7020,6 +7035,9 @@ class Graph(GenericGraph):
             sage: from itertools import combinations
             sage: for u,v in combinations(G,2):
             ....:     assert T.flow(u,v,use_edge_labels=True) == G.flow(u,v,use_edge_labels=True)
+
+            sage: graphs.EmptyGraph().gomory_hu_tree()
+            Graph on 0 vertices
         """
         if self.order() == 0:
             return Graph()

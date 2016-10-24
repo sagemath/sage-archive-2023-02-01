@@ -2714,7 +2714,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return ``True`` if ``elms`` is an antichain of the poset
         and ``False`` otherwise.
 
-        Set of elements are an *antichain* of a poset if they are 
+        Set of elements are an *antichain* of a poset if they are
         pairwise incomparable.
 
         EXAMPLES::

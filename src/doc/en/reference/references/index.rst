@@ -960,8 +960,11 @@ REFERENCES:
              of three spherical harmonics', Comput. Phys. Commun.,
              Volume 25, pp. 81-85 (1982)
 
-.. [Lee2011] \J. M. Lee, *Introduction to Topological Manifolds*,
-             Springer-Verlag, GTM volume 202, 2011.
+.. [Lee1997] \J. M. Lee, *Riemannian Manifolds*, Springer (New York) (1997);
+             :doi:`10.1007/b98852`
+
+.. [Lee2011] \J. M. Lee, *Introduction to Topological Manifolds*, 2nd ed.,
+             Springer (New York) (2011); :doi:`10.1007/978-1-4419-7940-7`
 
 .. [Lee2013] \J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed.,
              Springer (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`

@@ -273,7 +273,7 @@ class SimplicialSets(Category_singleton):
                   the default, simplify as much as GAP is able to.
 
                 Algorithm: we compute the edge-path group -- see
-                Section 19 of [Kan]_ and
+                Section 19 of [Kan1958]_ and
                 :wikipedia:`Fundamental_group`. Choose a spanning tree
                 for the connected component of the 1-skeleton
                 containing the base point, and then the group's
@@ -283,11 +283,6 @@ class SimplicialSets(Category_singleton):
                 its faces are `e_0`, `e_1`, and `e_2`, then we impose
                 the relation `e_0 e_1^{-1} e_2 = 1`, where we first
                 set `e_i=1` if `e_i` is degenerate.
-
-                REFERENCES:
-
-                .. [Kan] \D. M. Kan, *A combinatorial definition of homotopy
-                   groups*, Ann. Math. (2) 67 (1958), 282-312.
 
                 EXAMPLES::
 

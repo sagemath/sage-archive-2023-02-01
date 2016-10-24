@@ -53,7 +53,7 @@ AUTHORS:
 
 REFERENCES:
 
-[Feu2009]_
+- [Feu2009]
 
 EXAMPLES:
 

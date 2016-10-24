@@ -146,8 +146,8 @@ We can also make mutable copies of an immutable simplicial complex
     sage: S == T
     True
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 # possible future directions for SimplicialComplex:
 #
@@ -525,7 +525,7 @@ class Simplex(SageObject):
             sage: len(Simplex(10).faces())
             11
         """
-        return [self.face(i) for i in range(self.dimension()+1)]
+        return [self.face(i) for i in range(self.dimension() + 1)]
 
     def dimension(self):
         """
@@ -606,7 +606,7 @@ class Simplex(SageObject):
 
         :type rename_vertices: boolean; optional, default ``True``
 
-        Algorithm: see Hatcher, p. 277-278 [Hat]_ (who in turn refers to
+        Algorithm: see Hatcher, p. 277-278 [Hat2002]_ (who in turn refers to
         Eilenberg-Steenrod, p. 68): given ``S = Simplex(m)`` and
         ``T = Simplex(n)``, then `S \times T` can be
         triangulated as follows: for each path `f` from `(0,0)` to
@@ -1006,7 +1006,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             else:
                 vertices = tuple(vertex_set)
         except TypeError:  # vertex_set is an integer
-            vertices = tuple(range(vertex_set+1))
+            vertices = tuple(range(vertex_set + 1))
         gen_dict = {}
         for v in vertices:
             if name_check:
@@ -1280,7 +1280,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             # sub_facets is the dictionary of facets in the subcomplex
             sub_facets = {}
             dimension = max([face.dimension() for face in self._facets])
-            for i in range(-1, dimension+1):
+            for i in range(-1, dimension + 1):
                 Faces[i] = set([])
                 sub_facets[i] = set([])
             for f in self._facets:
@@ -1324,7 +1324,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             [(), (2,), (0,), (1,), (1, 2), (0, 2), (0, 1)]
         """
         Fs = self.faces()
-        dim_index = xrange(-1, self.dimension()+1)
+        dim_index = range(-1, self.dimension() + 1)
         if not increasing:
             dim_index = reversed(dim_index)
         for i in dim_index:
@@ -1476,7 +1476,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         d = self.dimension()
         f = self.f_vector()  # indexed starting at 0, since it's a Python list
         h = []
-        for j in range(0, d+2):
+        for j in range(0, d + 2):
             s = 0
             for i in range(-1, j):
                 s += (-1)**(j-i-1) * binomial(d-i, j-i-1) * f[i+1]
@@ -1506,7 +1506,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         d = self.dimension()
         h = self.h_vector()
         g = [1]
-        for i in range(1, floor((d+1)/2) + 1):
+        for i in range(1, (d + 1) // 2 + 1):
             g.append(h[i] - h[i-1])
         return g
 
@@ -1885,8 +1885,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         If the simplicial complex `M` happens to be a pseudomanifold
         (see :meth:`is_pseudomanifold`), then this instead constructs
-        Datta's one-point suspension (see p. 434 in the cited
-        article): choose a vertex `u` in `M` and choose a new vertex
+        Datta's one-point suspension (see [Dat2007]_, p. 434):
+        choose a vertex `u` in `M` and choose a new vertex
         `w` to add.  Denote the join of simplices by "`*`".  The
         facets in the one-point suspension are of the two forms
 
@@ -1894,11 +1894,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
           `u`
 
         - `w * \beta` where `\beta` is any facet of `M`.
-
-        REFERENCES:
-
-        - Basudeb Datta, "Minimal triangulations of manifolds",
-          J. Indian Inst. Sci. 87 (2007), no. 4, 429-449.
 
         EXAMPLES::
 
@@ -2095,7 +2090,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                                                sort_facets=False, is_mutable=False)
         # now construct the range of dimensions in which to compute
         if dimensions is None:
-            dimensions = range(0, self.dimension()+1)
+            dimensions = list(range(self.dimension() + 1))
             first = 0
         else:
             augmented = False
@@ -2160,7 +2155,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 col = 0
                 if len(old) and len(current):
                     for simplex in current:
-                        for i in range(n+1):
+                        for i in range(n + 1):
                             face_i = simplex.face(i)
                             try:
                                 matrix_data[(old[face_i], col)] = (-1)**i
@@ -2302,7 +2297,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             else:
                 low = dim - 1
                 high = dim + 2
-            dims = range(low, high)
+            dims = list(range(low, high))
         else:
             dims = None
 
@@ -2344,7 +2339,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                             algorithm=algorithm)
 
         if dim is None:
-            dim = range(self.dimension()+1)
+            dim = list(range(self.dimension() + 1))
         zero = HomologyGroup(0, base_ring)
         if isinstance(dim, (list, tuple)):
             # Fix non-reduced answer.
@@ -2369,7 +2364,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         coefficients in ``base_ring``.
 
         The term "algebraic topological model" is defined by Pilarczyk
-        and Réal [PR]_.
+        and Réal [PR2015]_.
 
         INPUT:
 
@@ -2561,7 +2556,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             if self._graph is not None:
                 d = new_face.dimension()+1
                 for i in range(d):
-                    for j in range(i+1, d):
+                    for j in range(i + 1, d):
                         self._graph.add_edge(new_face[i], new_face[j])
             self._complex = {}
             self.__contractible = None
@@ -2832,9 +2827,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
             S = self.link(F)
             H = S.homology(base_ring=base_ring)
             if base_ring.is_field():
-                return all( H[j].dimension() == 0 for j in xrange(S.dimension()) )
+                return all( H[j].dimension() == 0 for j in range(S.dimension()) )
             else:
-                return not any( H[j].invariants() for j in xrange(S.dimension()) )
+                return not any( H[j].invariants() for j in range(S.dimension()) )
 
         @parallel(ncpus=ncpus)
         def all_homologies_in_list_vanish(Fs):
@@ -2863,7 +2858,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if not set(self.vertices()).issuperset(sub_vertex_set):
             raise ValueError("input must be a subset of the vertex set")
         faces = []
-        for i in range(self.dimension()+1):
+        for i in range(self.dimension() + 1):
             for j in self.faces()[i]:
                 if j.set().issubset(sub_vertex_set):
                     faces.append(j)
@@ -2917,11 +2912,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         REFERENCES:
 
-        .. [BW96] Anders Bjorner and Michelle L. Wachs.
-           *Shellable nonpure complexes and posets. I*.
-           Trans. of Amer. Math. Soc. **348** No. 4. (1996)
+        - [BW1996]_
         """
-        # Quick check by Lemma 2.2 in [BW96]
+        # Quick check by Lemma 2.2 in [BW1996]
         if self.dimension() != len(list(shelling_order[0])) - 1:
             return False
 
@@ -2955,7 +2948,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                force, hence can be very slow.
 
             2. This is shellability in the general (nonpure) sense of
-               Bjorner and Wachs [BW96]_. This method does not check purity.
+               Bjorner and Wachs [BW1996]_. This method does not check purity.
 
         .. SEEALSO::
 
@@ -2980,7 +2973,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X.is_shellable()
             False
 
-        Examples from Figure 1 in [BW96]_::
+        Examples from Figure 1 in [BW1996]_::
 
             sage: X = SimplicialComplex([[1,2,3], [3,4], [4,5], [5,6], [4,6]])
             sage: X.is_shellable()
@@ -3228,7 +3221,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         dimension = self.dimension()
         set_mnf = set()
 
-        for dim in range(dimension+1):
+        for dim in range(dimension + 1):
             face_sets = frozenset(f.set() for f in face_dict[dim])
             for candidate in combinations(vertices, dim + 1):
                 set_candidate = frozenset(candidate)
@@ -3644,13 +3637,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         REFERENCES:
 
-        .. [BP2000] \V. M. Bukhshtaber and T. E. Panov, "Moment-angle complexes
-           and combinatorics of simplicial manifolds," *Uspekhi
-           Mat. Nauk* 55 (2000), 171--172.
-
-        .. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
-           manifolds and complexes into a cubic lattice", *Uspekhi
-           Mat. Nauk* 47 (1992), 219-220.
+        - [BP2000]_
+        - [SS1992]_
 
         EXAMPLES::
 
@@ -4251,7 +4239,7 @@ def facets_for_RP4():
     a certain subgroup `G` of the symmetric group `S_{16}`. Then the set
     of all facets is the `G`-orbit of the two given facets.
 
-    See the description in Example 3.12 in Datta [Da2007]_.
+    See the description in Example 3.12 in Datta [Dat2007]_.
 
     EXAMPLES::
 

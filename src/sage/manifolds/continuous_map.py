@@ -12,9 +12,9 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 1 of [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential
+- Chap. 1 of [KN1963]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential
   Geometry*, vol. 1, Interscience Publishers (New York) (1963)
-- [Lee11]_ \J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
+- [Lee2011]_ \J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
   Springer (New York) (2011)
 
 """

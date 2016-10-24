@@ -1,6 +1,13 @@
 # cython: cdivision = True
 """
-Convert PARI objects to/from Python integers
+Convert PARI objects to/from Python/C native types
+
+This modules contains the following conversion routines:
+
+- integers, long integers <-> PARI integers
+- list of integegers -> PARI polynomials
+- doubles -> PARI reals
+- pairs of doubles -> PARI complex numbers
 
 PARI integers are stored as an array of limbs of type ``pari_ulong``
 (which are 32-bit or 64-bit integers). Depending on the kernel
@@ -21,6 +28,7 @@ some bit shuffling.
 
 #*****************************************************************************
 #       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2016 Luca De Feo <luca.defeo@polytechnique.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,13 +36,16 @@ some bit shuffling.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, division, print_function
 
 include "cysignals/signals.pxi"
+
 from cpython.int cimport PyInt_AS_LONG
 from libc.limits cimport LONG_MIN, LONG_MAX
+
 from .paridecl cimport *
-from .pari_instance cimport pari_instance as P
+from .stack cimport new_gen
 
 cdef extern from "longintrepr.h":
     cdef _PyLong_New(Py_ssize_t s)
@@ -46,6 +57,10 @@ cdef extern from "longintrepr.h":
     cdef long PyLong_SHIFT
     cdef digit PyLong_MASK
 
+
+####################################
+# Integers
+####################################
 
 cpdef integer_to_gen(x):
     """
@@ -75,12 +90,11 @@ cpdef integer_to_gen(x):
     """
     if isinstance(x, int):
         sig_on()
-        return P.new_gen(stoi(PyInt_AS_LONG(x)))
+        return new_gen(stoi(PyInt_AS_LONG(x)))
     elif isinstance(x, long):
         sig_on()
-        return P.new_gen(PyLong_AsGEN(x))
+        return new_gen(PyLong_AsGEN(x))
     raise TypeError("integer_to_gen() needs an int or long argument, not {}".format(type(x).__name__))
-
 
 cpdef gen_to_integer(gen x):
     """
@@ -329,3 +343,67 @@ cdef PyLong_FromGEN(GEN g):
         L.ob_size = -sizedigits_final
 
     return x
+
+
+####################################
+# Other basic types
+####################################
+
+cdef gen new_t_POL_from_int_star(int* vals, unsigned long length, long varnum):
+    """
+    Note that degree + 1 = length, so that recognizing 0 is easier.
+
+    varnum = 0 is the general choice (creates a variable in x).
+    """
+    cdef GEN z
+    cdef unsigned long i
+
+    sig_on()
+    z = cgetg(length + 2, t_POL)
+    if length == 0:
+        # Polynomial is zero
+        z[1] = evalvarn(varnum) + evalsigne(0)
+    else:
+        z[1] = evalvarn(varnum) + evalsigne(1)
+        for i in range(length):
+            set_gel(z, i+2, stoi(vals[i]))
+
+    return new_gen(z)
+
+
+cdef gen new_gen_from_double(double x):
+    # Pari has an odd concept where it attempts to track the accuracy
+    # of floating-point 0; a floating-point zero might be 0.0e-20
+    # (meaning roughly that it might represent any number in the
+    # range -1e-20 <= x <= 1e20).
+
+    # Pari's dbltor converts a floating-point 0 into the Pari real
+    # 0.0e-307; Pari treats this as an extremely precise 0.  This
+    # can cause problems; for instance, the Pari incgam() function can
+    # be very slow if the first argument is very precise.
+
+    # So we translate 0 into a floating-point 0 with 53 bits
+    # of precision (that's the number of mantissa bits in an IEEE
+    # double).
+    cdef GEN g
+
+    sig_on()
+    if x == 0:
+        g = real_0_bit(-53)
+    else:
+        g = dbltor(x)
+    return new_gen(g)
+
+
+cdef gen new_t_COMPLEX_from_double(double re, double im):
+    sig_on()
+    cdef GEN g = cgetg(3, t_COMPLEX)
+    if re == 0:
+        set_gel(g, 1, gen_0)
+    else:
+        set_gel(g, 1, dbltor(re))
+    if im == 0:
+        set_gel(g, 2, gen_0)
+    else:
+        set_gel(g, 2, dbltor(im))
+    return new_gen(g)

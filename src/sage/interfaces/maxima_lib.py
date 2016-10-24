@@ -1342,7 +1342,7 @@ def mdiff_to_sage(expr):
         sage: f.ecl()
         <ECL: ((%DERIVATIVE SIMP) (($F SIMP) $X) $X 4)>
         sage: mdiff_to_sage(f.ecl())
-        D[0, 0, 0, 0](f)(x)
+        diff(f(x), x, x, x, x)
     """
     return max_to_sr(expr.cadr()).diff(*[max_to_sr(e) for e in expr.cddr()])
 
@@ -1619,7 +1619,8 @@ def sr_to_max(expr):
             return maxima(expr).ecl()
 
 # This goes from EclObject to SR
-max_to_pynac_table = sage.symbolic.pynac.symbol_table['maxima']
+from sage.libs.pynac.pynac import symbol_table
+max_to_pynac_table = symbol_table['maxima']
 
 
 def max_to_sr(expr):

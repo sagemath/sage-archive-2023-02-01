@@ -134,10 +134,9 @@ import sage.misc.weak_dict
 
 import operator
 
-import sage.libs.pari.pari_instance
 from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
@@ -1467,15 +1466,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: rt2
             1.41421356237310
             sage: rt2.python()
-            1.414213562373095048801688724              # 32-bit
-            1.4142135623730950488016887242096980786    # 64-bit
+            1.41421356237309505
             sage: rt2.python().prec()
-            96                                         # 32-bit
-            128                                        # 64-bit
+            64
             sage: pari(rt2.python()) == rt2
             True
-            sage: for i in xrange(1, 1000):
-            ...       assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
+            sage: for i in range(100, 200):
+            ....:     assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
             sage: (-3.1415)._pari_().python()
             -3.14150000000000000
         """
@@ -3074,8 +3071,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(70)(pi)._pari_().python().prec()
             96                                         # 32-bit
             128                                        # 64-bit
-            sage: for i in xrange(1, 1000):
-            ...       assert(RR(i).sqrt() == RR(i).sqrt()._pari_().python())
+            sage: for i in range(100, 200):
+            ....:     assert(RR(i).sqrt() == RR(i).sqrt()._pari_().python())
 
         TESTS:
 
@@ -3137,8 +3134,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
             mpz_clear(mantissa)
 
-        cdef PariInstance P = sage.libs.pari.pari_instance.pari
-        return P.new_gen(pari_float)
+        return new_gen(pari_float)
 
     def _mpmath_(self, prec=None, rounding=None):
         """

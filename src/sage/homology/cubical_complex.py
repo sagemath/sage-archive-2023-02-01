@@ -8,7 +8,7 @@ AUTHORS:
 
 This module implements the basic structure of finite cubical
 complexes.  For full mathematical details, see Kaczynski, Mischaikow,
-and Mrozek [KMM]_, for example.
+and Mrozek [KMM2004]_, for example.
 
 Cubical complexes are topological spaces built from gluing together
 cubes of various dimensions; the collection of cubes must be closed
@@ -54,11 +54,6 @@ square in `\RR^3`: the same unit square as ``S1``, but embedded in
 `\RR^3` with `z`-coordinate equal to 2.  Thus ``X`` is homeomorphic to
 ``S1`` (in fact, they're "cubically equivalent"), and this is
 reflected in the fact that they have isomorphic homology groups.
-
-REFERENCES:
-
-.. [KMM] Tomasz Kaczynski, Konstantin Mischaikow, and Marian Mrozek,
-         "Computational Homology", Springer-Verlag (2004).
 
 .. note::
 
@@ -571,7 +566,7 @@ class Cube(SageObject):
 
         - a list containing triples ``(coeff, left, right)``
 
-        This uses the algorithm described by Pilarczyk and Réal [PR]_
+        This uses the algorithm described by Pilarczyk and Réal [PR2015]_
         on p. 267; the formula is originally due to Serre.  Calling
         this method ``alexander_whitney`` is an abuse of notation,
         since the actual Alexander-Whitney map goes from `C(K \times
@@ -1605,7 +1600,7 @@ class CubicalComplex(GenericCellComplex):
         coefficients in ``base_ring``.
 
         The term "algebraic topological model" is defined by Pilarczyk
-        and Réal [PR]_.
+        and Réal [PR2015]_.
 
         INPUT:
 

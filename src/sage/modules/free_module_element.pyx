@@ -104,6 +104,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import itervalues
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -2579,7 +2580,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             0
 
         The cross product is defined for degree seven vectors as well.
-        [WIKIPEDIA:CROSSPRODUCT]_
+        [Crossproduct]_
         The 3-D cross product is achieved using the quaternians,
         whereas the 7-D cross product is achieved using the octions. ::
 
@@ -2630,11 +2631,6 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             Traceback (most recent call last):
             ...
             TypeError: Cross product only defined for vectors of length three or seven, not (7 and 3)
-
-        REFERENCES:
-
-        .. [WIKIPEDIA:CROSSPRODUCT] Algebraic Properties of the Cross Product
-           http://en.wikipedia.org/wiki/Cross_product
 
         AUTHOR:
 
@@ -4919,7 +4915,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             d = d.denominator()
         except AttributeError:
             return d
-        for y in self._entries.itervalues():
+        for y in itervalues(self._entries):
             d = d.lcm(y.denominator())
         return d
 

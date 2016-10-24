@@ -1,5 +1,5 @@
 r"""
-Fast word datatype using an array of unsigned char.
+Fast word datatype using an array of unsigned char
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -264,6 +264,23 @@ cdef class WordDatatype_char(WordDatatype):
             True
             sage: w > w[1:] or w[1:] < w
             False
+
+        Testing that :trac:`21609` is fixed::
+
+            sage: w = Word([1,2], alphabet=[1,2])
+            sage: z = Word([1,1], alphabet=[1,2])
+            sage: (w<w, z<z, w<z, z<w)
+            (False, False, False, True)
+            sage: (w<=w, z<=z, w<=z, z<=w)
+            (True, True, False, True)
+            sage: (w==w, z==z, w==z, z==w)
+            (True, True, False, False)
+            sage: (w!=w, z!=z, w!=z, z!=w)
+            (False, False, True, True)
+            sage: (w>w, z>z, w>z, z>w)
+            (False, False, True, False)
+            sage: (w>=w, z>=z, w>=z, z>=w)
+            (True, True, True, False)
         """
         # 0: <
         # 1: <=
@@ -282,7 +299,7 @@ cdef class WordDatatype_char(WordDatatype):
         if test < 0:
             return op < 2 or op == 3
         elif test > 0:
-            return op > 3
+            return op > 2
         else:
             return op == 1 or op == 2 or op == 5
 

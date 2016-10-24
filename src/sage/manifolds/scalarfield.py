@@ -18,9 +18,9 @@ AUTHORS:
 
 REFERENCES:
 
-- [Lee11]_ \J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
+- [Lee2011]_ \J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
   Springer (New York) (2011)
-- [KN63]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+- [KN1963]_ \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
   vol. 1, Interscience Publishers (New York) (1963)
 
 """
@@ -35,6 +35,8 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+
+from six import itervalues
 
 from sage.structure.element import CommutativeAlgebraElement
 from sage.symbolic.expression import Expression
@@ -690,7 +692,7 @@ class ScalarField(CommutativeAlgebraElement):
             # undefined scalar field
             return True
         iszero = True
-        for funct in self._express.itervalues():
+        for funct in itervalues(self._express):
             iszero = iszero and funct.is_zero()
         self._is_zero = iszero
         return not iszero

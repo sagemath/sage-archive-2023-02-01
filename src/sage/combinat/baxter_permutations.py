@@ -1,11 +1,12 @@
 """
 Baxter permutations
 """
+from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.combinat.permutation import Permutation, Permutations
+from sage.combinat.permutation import Permutations
 
 from sage.rings.integer_ring import ZZ
 
@@ -167,12 +168,12 @@ class BaxterPermutations_size(BaxterPermutations):
              [2, 1, 3, 4], [1, 4, 3, 2], [4, 1, 3, 2], [1, 3, 4, 2], [1, 3, 2, 4],
              [4, 3, 1, 2], [3, 4, 1, 2], [3, 1, 2, 4], [1, 2, 4, 3], [1, 4, 2, 3],
              [4, 1, 2, 3], [1, 2, 3, 4]]
-            sage: [len(BaxterPermutations(n)) for n in xrange(9)]
+            sage: [len(BaxterPermutations(n)) for n in range(9)]
             [1, 1, 2, 6, 22, 92, 422, 2074, 10754]
 
         TESTS::
 
-            sage: all(a in BaxterPermutations(n) for n in xrange(7)
+            sage: all(a in BaxterPermutations(n) for n in range(7)
             ....:     for a in BaxterPermutations(n))
             True
 
@@ -231,7 +232,7 @@ class BaxterPermutations_size(BaxterPermutations):
 
         EXAMPLES::
 
-            sage: [BaxterPermutations(n).cardinality() for n in xrange(13)]
+            sage: [BaxterPermutations(n).cardinality() for n in range(13)]
             [1, 1, 2, 6, 22, 92, 422, 2074, 10754, 58202, 326240, 1882960, 11140560]
 
             sage: BaxterPermutations(3r).cardinality()
@@ -246,7 +247,7 @@ class BaxterPermutations_size(BaxterPermutations):
                     binomial(self._n + 1, k + 1) *
                     binomial(self._n + 1, k + 2)) //
                    ((self._n + 1) * binomial(self._n + 1, 2))
-                   for k in xrange(self._n))
+                   for k in range(self._n))
 
 
 class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):

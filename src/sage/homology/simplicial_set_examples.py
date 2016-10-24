@@ -521,13 +521,7 @@ def ComplexProjectiveSpace(n):
 
     This is only defined when `n` is at most 4. It is constructed
     using the simplicial set decomposition provided by Kenzo, as
-    described by Sergeraert [Ser]_
-
-    REFERENCES:
-
-    .. [Ser] \F. Sergeraert, *Triangulations of complex projective
-       spaces* in Scientific contributions in honor of Mirian
-       Andrés Gómez, pp 507-519, Univ. La Rioja Serv. Publ., Logroño (2010).
+    described by Sergeraert [Ser2010]_
 
     EXAMPLES::
 
@@ -710,7 +704,7 @@ def HopfMap():
     Return a simplicial model of the Hopf map `S^3 \to S^2`
 
     This is taken from Exemple II.1.19 in the thesis of Clemens Berger
-    [Ber91]_.
+    [Ber1991]_.
 
     The Hopf map is a fibration `S^3 \to S^2`. If it is viewed as
     attaching a 4-cell to the 2-sphere, the resulting adjunction space
@@ -737,11 +731,6 @@ def HopfMap():
         [1, 0, 5, 9, 6]
         sage: CP2.f_vector()
         [1, 0, 2, 3, 3]
-
-    REFERENCES:
-
-    .. [Ber91] \C. Berger, "Une version effective du théorème de
-       Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
     """
     # The 2-sphere and its simplices.
     S2 = Sphere(2)

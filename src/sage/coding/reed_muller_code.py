@@ -77,7 +77,7 @@ def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
     The ordering `i(a)` is the one used by Sage when listing the elements
     of a Finite Field with a call to the method ``list``.
 
-    In case the polynomial `f` does not exist, this method returns an arbitray polynomial.
+    In case the polynomial `f` does not exist, this method returns an arbitrary polynomial.
 
     INPUT:
 
@@ -568,7 +568,7 @@ class ReedMullerVectorEncoder(Encoder):
 
         If ``code`` is not a Reed-Muller code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.encoders.ReedMullerVectorEncoder(C)
             Traceback (most recent call last):
             ...
@@ -743,7 +743,7 @@ class ReedMullerPolynomialEncoder(Encoder):
 
         If ``code`` is not a Reed-Muller code, an error is raised::
 
-            sage: C  = codes.RandomLinearCode(10, 4, GF(11))
+            sage: C  = codes.random_linear_code(GF(11), 10, 4)
             sage: codes.encoders.ReedMullerPolynomialEncoder(C)
             Traceback (most recent call last):
             ...

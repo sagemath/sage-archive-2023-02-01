@@ -18,6 +18,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.coxeter_groups import CoxeterGroups
@@ -814,6 +815,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             rt = self * roots[i]
             return roots.index(rt)
 
+
 def _matrix_test_right_descent(M, i, n, zero):
     """
     Test if the matrix ``M`` has a right ``i``-descent.
@@ -847,11 +849,10 @@ def _matrix_test_right_descent(M, i, n, zero):
         ....:  for i in range(3)]
         [True, False, True]
     """
-    for j in xrange(n):
+    for j in range(n):
         c = M[j, i]
         if c < zero:
             return True
         elif c > zero:
             return False
     raise AssertionError('a zero column, so there must be a bug')
-

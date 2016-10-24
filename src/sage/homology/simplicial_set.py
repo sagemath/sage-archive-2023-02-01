@@ -27,7 +27,7 @@ satisfying the *simplicial identities*:
     d_i s_j &= s_{j} d_{i-1} \ \  \text{if } i>j+1 \\
     s_i s_j &= s_{j+1} s_{i} \ \  \text{if } i<j+1
 
-See :wikipedia:`Simplicial_set`, Peter May's seminal book [May67]_, or
+See :wikipedia:`Simplicial_set`, Peter May's seminal book [May1967]_, or
 Greg Friedman's "Illustrated introduction" :arxiv:`0809.4221` for more
 information.
 
@@ -234,11 +234,6 @@ copy of the integers::
 
     sage: X.homology(1)
     Z
-
-REFERENCES:
-
-.. [May67] \J. P. May, Simplicial Objects in Algebraic Topology,
-   University of Chicago Press (1967)
 """
 #*****************************************************************************
 #  Copyright (C) 2016 John H. Palmieri <palmieri at math.washington.edu>
@@ -3734,7 +3729,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         with coefficients in ``base_ring``.
 
         The term "algebraic topological model" is defined by Pilarczyk
-        and Réal [PR]_.
+        and Réal [PR2015]_.
 
         INPUT:
 

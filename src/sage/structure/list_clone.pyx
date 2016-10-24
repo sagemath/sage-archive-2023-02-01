@@ -3,7 +3,7 @@ Elements, Array and Lists With Clone Protocol
 
 This module defines several classes which are subclasses of
 :class:`Element<sage.structure.element.Element>` and which roughly implement
-the "prototype" design pattern (see [Pro]_, [GOF]_). Those classes are
+the "prototype" design pattern (see [Prototype_pattern]_, [GHJV1994]_). Those classes are
 intended to be used to model *mathematical* objects, which are by essence
 immutable. However, in many occasions, one wants to construct the
 data-structure encoding of a new mathematical object by small modifications of
@@ -123,12 +123,8 @@ Finally, as an alternative to the ``with`` syntax one can use::
 
 REFERENCES:
 
-    .. [Pro] Prototype pattern
-       http://en.wikipedia.org/wiki/Prototype_pattern
-
-    .. [GOF] Design Patterns: Elements of Reusable Object-Oriented
-       Software. E. Gamma; R. Helm; R. Johnson; J. Vlissides (1994).
-       Addison-Wesley. ISBN 0-201-63361-2.
+- [Prototype_pattern]_
+- [GHJV1994]_
 
 AUTHORS:
 
@@ -160,7 +156,7 @@ cdef class ClonableElement(Element):
     Abstract class for elements with clone protocol
 
     This class is a subclass of :class:`Element<sage.structure.element.Element>`
-    and implements the "prototype" design pattern (see [Pro]_, [GOF]_). The role
+    and implements the "prototype" design pattern (see [Prototype_pattern]_, [GHJV1994]_). The role
     of this class is:
 
     - to manage copy and mutability and hashing of elements
@@ -949,10 +945,10 @@ cdef class ClonableArray(ClonableElement):
                  self._needs_check, self._is_immutable, dic))
 
 
-##### Needed for unpikling #####
+##### Needed for unpickling #####
 def _make_array_clone(clas, parent, list, needs_check, is_immutable, dic):
     """
-    Helpler to unpikle :class:`list_clone` instances.
+    Helpler to unpickle :class:`list_clone` instances.
 
     TESTS::
 
@@ -1730,10 +1726,10 @@ cdef class ClonableIntArray(ClonableElement):
                  self._needs_check, self._is_immutable, dic))
 
 
-##### Needed for unpikling #####
+##### Needed for unpickling #####
 def _make_int_array_clone(clas, parent, lst, needs_check, is_immutable, dic):
     """
-    Helpler to unpikle :class:`list_clone` instances.
+    Helpler to unpickle :class:`list_clone` instances.
 
     TESTS::
 

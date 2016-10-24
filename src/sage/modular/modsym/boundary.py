@@ -95,7 +95,7 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 __doc_exclude = ['repr_lincomb', 'QQ']
 
 # Python imports
@@ -581,7 +581,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             return sum([c*self._coerce_in_manin_symbol(v) for c, v in S])
 
         elif is_FreeModuleElement(x):
-            y = dict([(i,x[i]) for i in xrange(len(x))])
+            y = dict([(i,x[i]) for i in range(len(x))])
             return BoundarySpaceElement(self, y)
 
         raise TypeError("Coercion of %s (of type %s) into %s not (yet) defined."%(x, type(x), self))
@@ -618,7 +618,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             if self._is_equiv(cusp, g[i]):
                 return i
         return -1
@@ -860,7 +860,7 @@ class BoundarySpace_wtk_g1(BoundarySpace):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             t, eps = self._is_equiv(cusp, g[i])
             if t:
                 return i, eps
@@ -1059,7 +1059,7 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             t, eps = self._is_equiv(cusp, g[i])
             if t:
                 return i, eps
@@ -1285,7 +1285,7 @@ class BoundarySpace_wtk_eps(BoundarySpace):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             t, s = self._is_equiv(cusp, g[i])
             if t:
                 return i, self.__eps(s)

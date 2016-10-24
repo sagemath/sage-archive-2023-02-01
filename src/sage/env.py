@@ -90,7 +90,7 @@ _add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 
 # bunch of sage directories and files
 _add_variable_or_fallback('SAGE_ROOT',       None)
-_add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
+_add_variable_or_fallback('SAGE_LOCAL',      None)
 _add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
 _add_variable_or_fallback('SAGE_INC',        opj('$SAGE_LOCAL', 'include'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
@@ -106,7 +106,11 @@ _add_variable_or_fallback('SITE_PACKAGES',   sitepackages_dirs)
 
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
 
-_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_SRC', 'build', 'cythonized'))
+_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_ROOT', 'src', 'build', 'cythonized'))
+
+# Used by sage/misc/package.py.  Should be SAGE_SRC_ROOT in VPATH.
+_add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_ROOT', 'build', 'pkgs'))
+
 
 _add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
 _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
@@ -143,6 +147,19 @@ if ' ' in DOT_SAGE:
         print("is to set the environment variable HOME to a")
         print("directory with no spaces that you have write")
         print("permissions to before you start sage.")
+
+
+CYGWIN_VERSION = None
+if UNAME[:6] == 'CYGWIN':
+    import re
+    _uname = os.uname()
+    if len(_uname) >= 2:
+        m = re.match(r'(\d+\.\d+\.\d+)\(.+\)', _uname[2])
+        if m:
+            CYGWIN_VERSION = tuple(map(int, m.group(1).split('.')))
+
+        del m
+    del _uname, re
 
 # things that need DOT_SAGE
 _add_variable_or_fallback('PYTHON_EGG_CACHE',   opj('$DOT_SAGE', '.python-eggs'))

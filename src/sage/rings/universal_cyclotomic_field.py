@@ -179,7 +179,7 @@ gap = gap3 = None
 def late_import():
     r"""
     This function avoids importing libgap on startup. It is called once through
-    the constrcturo of :class:`UniversalCyclotomicField`.
+    the constructor of :class:`UniversalCyclotomicField`.
 
     EXAMPLES::
 
@@ -829,7 +829,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             1/2*E(3) - 1/2*E(3)^2
         """
         P = self.parent()
-        return P.element_class(P, self._obj._add_(other._obj))
+        return P.element_class(P, self._obj + other._obj)
 
     def _sub_(self, other):
         r"""
@@ -839,7 +839,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             -E(15)^2 - E(15)^11 + E(15)^13 - E(15)^14
         """
         P = self.parent()
-        return P.element_class(P, self._obj._sub_(other._obj))
+        return P.element_class(P, self._obj - other._obj)
 
     def __neg__(self):
         r"""
@@ -865,7 +865,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             3*E(4)
         """
         P = self.parent()
-        return P.element_class(P, self._obj._mul_(other._obj))
+        return P.element_class(P, self._obj * other._obj)
 
     def _div_(self, other):
         r"""
@@ -878,7 +878,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         P = self.parent()
         try:
-            return P.element_class(P, self._obj._div_(other._obj))
+            return P.element_class(P, self._obj / other._obj)
         except ValueError:
             raise ZeroDivisionError("division by zero")
 

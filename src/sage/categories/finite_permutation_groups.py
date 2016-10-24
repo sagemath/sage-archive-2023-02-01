@@ -186,8 +186,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
 
             REFERENCES:
 
-             .. [Ker1991] \A. Kerber. Algebraic combinatorics via finite group actions, 2.2 p. 70.
-               BI-Wissenschaftsverlag, Mannheim, 1991.
+            - [Ke1991]_
 
             AUTHORS:
 

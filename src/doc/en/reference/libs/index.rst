@@ -55,7 +55,6 @@ to be aware of the modules described in this chapter.
    sage/libs/pari/convert
    sage/libs/pari/handle_error
    sage/rings/pari_ring
-   sage/libs/fplll/fplll
    sage/libs/readline
    sage/libs/gap/context_managers
    sage/libs/gap/gap_functions

@@ -426,13 +426,6 @@ cdef balanced_list_sum(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff
         return balanced_list_sum(L, offset, k, cutoff) + balanced_list_sum(L, offset + k, count - k, cutoff)
 
 
-#################################################################
-# 32/64-bit computer?
-#################################################################
-is_64_bit = sys.maxsize >= 9223372036854775807
-is_32_bit = not is_64_bit
-
-
 cpdef list normalize_index(object key, int size):
     """
     Normalize an index key and return a valid index or list of indices

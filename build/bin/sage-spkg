@@ -70,7 +70,7 @@ Options:
    -s: do not delete the temporary build directory
    -c: after installing, run the test suite for the package
    -d: only download the package
-
+   -y: automatically reply "y" for all prompts regarding dangerous packages
 EOF
 }
 
@@ -175,10 +175,13 @@ fi
 
 # Parse options
 INFO=0
+YES=0
 while true; do
     case "$1" in
         --info)
             INFO=1;;
+        -y)
+            YES=1;;
         -d)
             SAGE_INSTALL_FETCH_ONLY=1;;
         -s)

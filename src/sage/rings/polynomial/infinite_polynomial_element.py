@@ -1029,8 +1029,8 @@ class InfinitePolynomial_sparse(RingElement):
         # These are the occurring shifts:
         Lsmall = sorted(Fsmall.keys())
         Lbig   = sorted(Fbig.keys())
-        P = range(Lbig[-1] + 1)
-        gens = range(PARENT.ngens())
+        P = list(range(Lbig[-1] + 1))
+        gens = list(range(PARENT.ngens()))
         if Lsmall[0] == 0:
             if 0 not in Fbig:
                 return (None, 1, 1)

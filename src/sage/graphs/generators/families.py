@@ -2688,10 +2688,12 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     Return a strongly regular graph of S6 type from [Mu07]_ on `n^d((n^d-1)/(n-1)+1)` vertices
 
     The construction depends upon a number of parameters, two of then, `n` and `d`, mandatory,
-    and the other two, `\Phi` and `\Sigma`, are mappings defined in [Mu07]_.
-    These graphs have parameters
-    `(n^d(\frac{n^d-1}{n-1}+1), \frac{n^d-1}{n-1}n^{d-1} - 1,\mui - 2,\mu)`, with
-    `\mu=\frac{n^{d-1}-1}{n-1}n^{d-1}`.
+    and `\Phi` and `\Sigma` are mappings defined in [Mu07]_.
+    Let `m=\frac{n^d-1}{n-1}+1`. Then these graphs have parameters
+    `(mn^d, n^{d-1}(m-1) - 1,\mu - 2,\mu)`, with `\mu=\frac{n^{d-1}-1}{n-1}n^{d-1}`.
+    Let `L` be the complete graph on `M:=\{0,..., m-1\}` with the matching
+    `\{(2i,2i+1) | i=0,...,m/2\}` removed.
+
 
     INPUT:
 
@@ -2701,30 +2703,26 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
 
     - ``Phi`` is an optional parameter of the construction; it must be either
 
-        - 'fixed'-- this will generate a fixed default `\Phi_i`, or
+        - 'fixed'-- this will generate fixed default `\Phi_i`, for `i \in M`, or
 
         - 'random'-- `\Phi_i` are generated at random, or
 
-        - A dictionary describing the `\Phi_i` functions;
-          Phi[(i, T)] should  be in `{0,..., (n^d-1)/(n-1) - 1}`, and T
-          a tuple in ascending order. Also, each `\Phi_i` must be injective.
+        - A dictionary describing the functions `\Phi_i`; for `i \in M`,
+          Phi[(i, T)] in `M`, for each edge T of `L` on `i`.
+          Also, each `\Phi_i` must be injective.
 
     - ``Sigma`` is an optional parameter of the construction; it must be either
 
-        - 'fixed'-- this will generate a fixed default `\Sigma_{ij}`, or
+        - 'fixed'-- this will generate a fixed default `\Sigma`, or
 
-        - 'random'-- `\Sigma_{ij}` are generated at random (from `\Phi` if `\Phi` is given), or
-
-        - A dictionary describing the `\Sigma_{ij}`: Sigma[(i, j, n)] = m where i, j
-          in some T in L, n in phi[(i, T)], m in phi[(j, T)]. A
-          value must be given for all keys of this form. Also, `\Sigma_{ij}`
-          must be equal to `\Sigma_{ji}^{-1}`.
+        - 'random'-- `\Sigma` is generated at random.
 
     - ``verbose`` (Boolean)-- default is False. If True, print progress information
 
     .. TODO::
 
-        Provide an example demonstrating how to use the parameter Sigma.
+        Implement the possibility to explicitly supply the parameter `\Sigma`
+        of the construction.
 
     EXAMPLES::
 
@@ -2737,6 +2735,10 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
 
     TESTS::
 
+        sage: graphs.MuzychukS6Graph(2,2,Phi='random',Sigma='random').is_strongly_regular(parameters=True)
+        (16, 5, 0, 2)
+        sage: graphs.MuzychukS6Graph(3,3,Phi='random',Sigma='random').is_strongly_regular(parameters=True)
+        (378, 116, 34, 36)
         sage: graphs.MuzychukS6Graph(3,2)
         Traceback (most recent call last):
         ...
@@ -2749,18 +2751,14 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
         Traceback (most recent call last):
         ...
         AssertionError: d must be at least 2
-        sage: graphs.MuzychukS6Graph(3,3,Sigma=dict())
-        Traceback (most recent call last):
-        ...
-        AssertionError: Sigma may only be given if Phi is
-        sage: graphs.MuzychukS6Graph(3,3,Sigma=42)
-        Traceback (most recent call last):
-        ...
-        AssertionError: Sigma must be a dictionary or 'random' or 'fixed'
         sage: graphs.MuzychukS6Graph(3,3,Phi=42)
         Traceback (most recent call last):
         ...
         AssertionError: Phi must be a dictionary or 'random' or 'fixed'
+        sage: graphs.MuzychukS6Graph(3,3,Sigma=42)
+        Traceback (most recent call last):
+        ...
+        ValueError: Sigma must be 'random' or 'fixed'
 
     REFERENCE:
 
@@ -2782,12 +2780,11 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     from sage.rings.rational_field import QQ
     from sage.rings.integer_ring import ZZ
     from time import time
+    from __builtin__ import range # we cannot use xrange here
 
     assert is_even(n * (d-1)), 'n must be even or d must be odd'
     assert is_prime_power(n),  'n must be a prime power'
     assert d > 1,              'd must be at least 2'
-    assert isinstance(Phi, dict) or not isinstance(Sigma, dict),\
-            'Sigma may only be given if Phi is'
     t = time()
 
     #build L, L_i and the design
@@ -2899,22 +2896,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
                     sigma[(i, j, tuple(hyp))] = val
                     sigma[(j, i, tuple(val))] = hyp
     else:
-        assert isinstance(Sigma, dict), \
-            "Sigma must be a dictionary or 'random' or 'fixed'"
-        correctKeys =      [(line[0], line[1], n) for line in L.edges()
-                            for n in range(len(ParClasses)) if
-                            ParClasses[n] in phi[(line[1], line)]]
-        correctKeys.extend([(line[1], line[0], n) for line in L.edges()
-                            for n in range(len(ParClasses)) if
-                            ParClasses[n] in phi[(line[0], line)]])
-        assert set(Sigma.keys()) == set(correct(Keys)), \
-        'the keys in Sigma must be \
-        {(i, j, n) | i, j in line in L, and n in phi[i, line]}'
-        for key in Sigma.keys():
-            assert key == Sigma[(key[1], key[0], Sigma[key])], \
-            'Sigma_ij must be (Sigma_ji)^(-1)'
-        sigma = dict(((i, j, tuple(ParClasses[x])), ParClasses[y])
-                             for ((i, j, x), y) in Sigma.items())
+        raise ValueError("Sigma must be 'random' or 'fixed'")
     if verbose:
         print('finished sigma at %f (+%f)' % (time() - t, time() - t1))
     t1 = time()

@@ -10,6 +10,10 @@
 #   -c: after installing, run the test suite for the spkg. This should
 #       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
 #   -d: only download the package
+#   -y: automatically reply "y" for all prompts regarding
+#       experimental and old-style packages
+#   -n: automatically reply "n" for all prompts regarding
+#       experimental and old-style packages
 #
 #  A package may assume that the following environment
 #  variables are defined:
@@ -70,8 +74,10 @@ Options:
    -s: do not delete the temporary build directory
    -c: after installing, run the test suite for the package
    -d: only download the package
-   -y: automatically reply "y" for all prompts regarding dangerous packages
-   -n: automatically reply "n" for all prompts regarding dangerous packages
+   -y: automatically reply "y" for all prompts regarding
+       experimental and old-style packages
+   -n: automatically reply "n" for all prompts regarding
+       experimental and old-style packages
 EOF
 }
 

@@ -307,7 +307,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         EXAMPLES::
 
-            sage: M = Matrix(QQ, 3, 6, xrange(18), sparse=true); M
+            sage: M = Matrix(QQ, 3, 6, range(18), sparse=true); M
             [ 0  1  2  3  4  5]
             [ 6  7  8  9 10 11]
             [12 13 14 15 16 17]

@@ -52,7 +52,7 @@ class Primes(Set_generic, UniqueRepresentation):
         sage: len(P)
         Traceback (most recent call last):
         ...
-        NotImplementedError: an infinite set
+        NotImplementedError: infinite set
     """
 
     @staticmethod

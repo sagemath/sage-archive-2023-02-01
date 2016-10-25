@@ -297,11 +297,11 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: next(P.iterator_range(stop=-3))
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: infinite list
+                NotImplementedError: cannot list an infinite set
                 sage: next(P.iterator_range(start=-3))
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: infinite list
+                NotImplementedError: cannot list an infinite set
             """
             if stop is None:
                 if start is None:
@@ -369,15 +369,15 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: P.unrank_range(3)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: infinite list
+                NotImplementedError: cannot list an infinite set
                 sage: P.unrank_range(stop=-3)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: infinite list
+                NotImplementedError: cannot list an infinite set
                 sage: P.unrank_range(start=-3)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: infinite list
+                NotImplementedError: cannot list an infinite set
             """
             if stop is None:
                 return self.list()[start::step]
@@ -422,13 +422,13 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: P[3:]
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: infinite list
+                NotImplementedError: cannot list an infinite set
                 sage: P[3]
                 [1, 1]
                 sage: P[-1]
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: infinite list
+                NotImplementedError: cannot list an infinite set
 
             ::
 
@@ -476,9 +476,10 @@ class EnumeratedSets(CategoryWithAxiom):
             try:
                 c = self.cardinality()
                 if c is Infinity:
-                    raise NotImplementedError('an infinite set')
+                    raise NotImplementedError('infinite set')
                 return int(c)
             except AttributeError:
+                return len(self.list())
 
         def list(self):
             r"""

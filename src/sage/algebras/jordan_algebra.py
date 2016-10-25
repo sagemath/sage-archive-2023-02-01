@@ -323,7 +323,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
             sage: J.gens()
             Traceback (most recent call last):
             ...
-            NotImplementedError: an infinite set
+            NotImplementedError: infinite set
         """
         return tuple(self.algebra_generators())
 

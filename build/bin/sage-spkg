@@ -106,6 +106,16 @@ lookup_param()
     sed -n "s/^${param} *= *//p" $file
 }
 
+write_to_tty()
+{
+    # Try writing to terminal.  Suppress the possible error message
+    if ! ( cat > /dev/tty ) 2> /dev/null ; then
+	# Fall back to writing to stdout
+	cat
+	return 1
+    fi
+}
+
 # Handle -n, -t, -q options for recursive make
 # See Trac #12016.
 if echo "$MAKE $MAKEFLAGS -$MAKEFLAGS" |grep '[ ]-[A-Za-z]*[qnt]' >/dev/null; then
@@ -275,7 +285,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
 	    if [ $YES != 1 ]; then
 		# We use /dev/tty here because our output may be redirected
 		# to a logfile, or line-buffered.
-		cat > /dev/tty <<EOF
+		write_to_tty <<EOF
 =========================== WARNING ===========================
 You are about to download and install the experimental package
 $PKG_NAME.  This probably won't work at all for you! There
@@ -283,7 +293,16 @@ is no guarantee that it will build correctly, or behave as
 expected. Use at your own risk!
 ===============================================================
 EOF
-		read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+		if [ $? -ne 0 ]; then
+		    echo "Terminal not available for prompting.  Use 'sage -i -y $PKG_BASE'"
+		    echo "to install experimental packages in non-interactive mode."
+		    YES=-1
+		fi
+		if [ $YES != -1 ]; then
+		    read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+		else
+		    answer=n
+		fi
 		case "$answer" in
 		    n*|N*) exit 1;;
 		esac
@@ -381,42 +400,58 @@ if [ ! -f "$PKG_SRC" ]; then
 			    # Add a deprecation note for other packages,
 			    # since old-style packages are deprecated.
 			    if [ $repo = experimental ]; then
-				echo > /dev/tty "================================ WARNING ================================="
-				echo > /dev/tty "You are about to download and install an unmaintained experimental"
-				echo > /dev/tty "package. This probably won't work at all for you! There is no guarantee"
-				echo > /dev/tty "that it will build correctly, or behave as expected. Use at your own risk!"
-				echo > /dev/tty
-				echo > /dev/tty "This package will be removed in future versions of SageMath. If you care"
-				echo > /dev/tty "about this package, you should make a proper new-style package instead."
-				echo > /dev/tty "For more information about making Sage packages, see"
-				echo > /dev/tty "http://doc.sagemath.org/html/en/developer/packaging.html"
-				echo > /dev/tty "=========================================================================="
-				read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+				write_to_tty <<EOF
+================================ WARNING =================================
+You are about to download and install an unmaintained experimental
+package. This probably won't work at all for you! There is no guarantee
+that it will build correctly, or behave as expected. Use at your own risk!
+
+This package will be removed in future versions of SageMath. If you care
+about this package, you should make a proper new-style package instead.
+For more information about making Sage packages, see
+http://doc.sagemath.org/html/en/developer/packaging.html
+==========================================================================
+EOF
+				if [ $? -ne 0 ]; then
+				    echo "Terminal not available for prompting.  Use 'sage -i -y $PKG_BASE'"
+				    echo "to install experimental packages in non-interactive mode."
+				    YES=-1
+				fi
+				if [ $YES != -1 ]; then
+				    read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+				else
+				    answer=n
+				fi
 				case "$answer" in
 				    n*|N*) exit 1;;
 				esac
-				# Confirm the user's input.  (This gives important
-				# feedback to the user when output is redirected to a logfile.)
-				echo > /dev/tty "OK, installing $PKG_NAME now..."
 			    else
 				# Deprecated since Sage 6.9, Trac #19158
-				echo > /dev/tty "================================== NOTE =================================="
-				echo > /dev/tty "You are about to download and install an old-style package. While this"
-				echo > /dev/tty "might still work fine, old-style packages are unmaintained and deprecated."
-				echo > /dev/tty
-				echo > /dev/tty "This package will be removed in future versions of SageMath. If you care"
-				echo > /dev/tty "about this package, you should make a proper new-style package instead."
-				echo > /dev/tty "For more information about making Sage packages, see"
-				echo > /dev/tty "http://doc.sagemath.org/html/en/developer/packaging.html"
-				echo > /dev/tty "=========================================================================="
-				read -t 30 -p "Are you sure (automatically continuing in 30 seconds) [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+				write_to_tty <<EOF
+================================== NOTE ==================================
+You are about to download and install an old-style package. While this
+might still work fine, old-style packages are unmaintained and deprecated.
+
+This package will be removed in future versions of SageMath. If you care
+about this package, you should make a proper new-style package instead.
+For more information about making Sage packages, see
+http://doc.sagemath.org/html/en/developer/packaging.html
+==========================================================================
+EOF
+				if [ $? = 0 -a $YES != -1 ]; then
+				   read -t 30 -p "Are you sure (automatically continuing in 30 seconds) [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+				elif [ $YES = -1 ]; then
+				    answer=n
+				else
+				    answer=y
+				fi
 				case "$answer" in
 				    n*|N*) exit 1;;
 				esac
-				# Confirm the user's input.  (This gives important
-				# feedback to the user when output is redirected to a logfile.)
-				echo > /dev/tty "OK, installing $PKG_NAME now..."
 			    fi
+			    # Confirm the user's input.  (This gives important
+			    # feedback to the user when output is redirected to a logfile.)
+			    echo > /dev/tty "OK, installing $PKG_NAME now..."
 			fi
                     fi
                     PKG_URL="$MIRROR/$repo/$pkg.spkg"

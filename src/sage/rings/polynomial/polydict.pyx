@@ -389,7 +389,8 @@ cdef class PolyDict:
             H[ETuple(f)] = val
         return PolyDict(H, zero=self.__zero, force_etuples=False)
 
-    def latex(PolyDict self, vars, atomic_exponents=True, atomic_coefficients=True, cmpfn = None):
+    def latex(PolyDict self, vars, atomic_exponents=True,
+              atomic_coefficients=True, cmpfn=None, sortkey=None):
         r"""
         Return a nice polynomial latex representation of this PolyDict, where
         the vars are substituted in.
@@ -427,8 +428,10 @@ cdef class PolyDict:
         n = len(vars)
         poly = ""
         E = self.__repn.keys()
-        if cmpfn:
-            E.sort(cmp = cmpfn, reverse=True)
+        if sortkey:
+            E.sort(key=sortkey, reverse=True)
+        elif cmpfn:
+            E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
         try:
@@ -476,7 +479,8 @@ cdef class PolyDict:
         return poly
 
 
-    def poly_repr(PolyDict self, vars, atomic_exponents=True, atomic_coefficients=True, cmpfn = None):
+    def poly_repr(PolyDict self, vars, atomic_exponents=True,
+                  atomic_coefficients=True, cmpfn=None, sortkey=None):
         """
         Return a nice polynomial string representation of this PolyDict, where
         the vars are substituted in.
@@ -484,8 +488,8 @@ cdef class PolyDict:
         INPUT:
 
         - ``vars`` -- list
-        - ``atomic_exponents`` -- bool (default: True)
-        - ``atomic_coefficients`` -- bool (default: True)
+        - ``atomic_exponents`` -- bool (default: ``True``)
+        - ``atomic_coefficients`` -- bool (default: ``True``)
 
         EXAMPLES::
 
@@ -494,7 +498,7 @@ cdef class PolyDict:
             sage: f.poly_repr(['a','WW'])
             '2*a^2*WW^3 + 4*a^2*WW + 3*a*WW^2'
 
-        When atomic_exponents is False, the exponents are surrounded
+        When atomic_exponents is ``False``, the exponents are surrounded
         in parenthesis, since ^ has such high precedence. ::
 
             # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
@@ -517,8 +521,10 @@ cdef class PolyDict:
         n = len(vars)
         poly = ""
         E = self.__repn.keys()
-        if cmpfn:
-            E.sort(cmp = cmpfn, reverse=True)
+        if sortkey:
+            E.sort(key=sortkey, reverse=True)
+        elif cmpfn:
+            E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
         try:

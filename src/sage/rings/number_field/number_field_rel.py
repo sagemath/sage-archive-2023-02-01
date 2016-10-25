@@ -2282,12 +2282,10 @@ class NumberField_relative(NumberField_generic):
             sage: L.relative_discriminant()
             Fractional ideal (2)
         """
-        nf = self._pari_base_nf()
         base = self.base_field()
-        abs_base, _, to_base = self.absolute_base_field()
+        nf = base.pari_nf()
         D, d = nf.rnfdisc(self.pari_relative_polynomial())
-        D = [to_base(abs_base(x, check=False)) for x in abs_base.pari_zk() * D]
-        return base.ideal(D)
+        return base.ideal(nf.idealhnf(D))
 
     def discriminant(self):
         """

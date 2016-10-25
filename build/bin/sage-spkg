@@ -306,6 +306,11 @@ fi
 
 if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     cat "$PKG_SCRIPTS/SPKG.txt"
+    if [ -r "$PKG_SCRIPTS/type" ] ; then
+	echo "== Type =="
+	echo
+	cat "$PKG_SCRIPTS/type"
+    fi
     exit 0
 fi
 

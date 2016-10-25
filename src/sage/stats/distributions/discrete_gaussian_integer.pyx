@@ -73,10 +73,7 @@ We construct a sampler with `c\%1 != 0`::
 
 REFERENCES:
 
-.. [DDLL13] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
-   Lyubashevsky. *Lattice Signatures and Bimodal Gaussians*; in Advances in
-   Cryptology – CRYPTO 2013; Lecture Notes in Computer Science Volume 8042,
-   2013, pp 40-56 http://www.di.ens.fr/~lyubash/papers/bimodal.pdf
+- [DDLL2013]_
 
 """
 #******************************************************************************
@@ -169,20 +166,20 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
         - ``"uniform+logtable"`` - samples are drawn from a uniform distribution and
           accepted with probability proportional to `\exp(-(x-c)²/(2σ²))` where
           `\exp(-(x-c)²/(2σ²))` is computed using logarithmically many calls to
-          Bernoulli distributions. See [DDLL13]_ for details.  Only
+          Bernoulli distributions. See [DDLL2013]_ for details.  Only
           integer-valued `c` are supported.
 
         - ``"uniform+online"`` - samples are drawn from a uniform distribution and
           accepted with probability proportional to `\exp(-(x-c)²/(2σ²))` where
           `\exp(-(x-c)²/(2σ²))` is computed in each invocation. Typically this
-          is very slow.  See [DDLL13]_ for details.  Any real-valued `c` is
+          is very slow.  See [DDLL2013]_ for details.  Any real-valued `c` is
           accepted.
 
         - ``"sigma2+logtable"`` - samples are drawn from an easily samplable
           distribution with `σ = k·σ_2` with `σ_2 = \sqrt{1/(2\log 2)}` and accepted
           with probability proportional to `\exp(-(x-c)²/(2σ²))` where
           `\exp(-(x-c)²/(2σ²))` is computed using  logarithmically many calls to Bernoulli
-          distributions (but no calls to `\exp`). See [DDLL13]_ for details. Note that this
+          distributions (but no calls to `\exp`). See [DDLL2013]_ for details. Note that this
           sampler adjusts `σ` to match `k·σ_2` for some integer `k`.
           Only integer-valued `c` are supported.
 

@@ -75,9 +75,10 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Running the notebook:"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
-    echo "                         'default', 'sagenb', and 'jupyter'). See the output"
-    echo "                         of sage --notebook --help for more details and"
-    echo "                         examples of how to pass optional arguments"
+    echo "                         'default', 'sagenb', 'jupyter' and 'export')."
+    echo "                         See the output of sage --notebook --help"
+    echo "                         for more details and examples of how to pass"
+    echo "                         optional arguments"
     echo "  -bn, -build-and-notebook [...] -- build the Sage library then start"
     echo "                         the Sage notebook"
     echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
@@ -472,7 +473,7 @@ fi
 
 if [ "$1" = '-singular' -o "$1" = '--singular' ]; then
     shift
-    exec singular "$@"
+    exec Singular "$@"
 fi
 
 if [ "$1" = '-sqlite3' -o "$1" = '--sqlite3' ]; then

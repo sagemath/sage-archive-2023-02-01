@@ -912,7 +912,8 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve()
             glp_exact: 3 rows, 2 columns, 6 non-zeros
             GNU MP bignum library is being used
-            ...
+            *     2:   objval =                      2   (0)
+            *     2:   objval =                      2   (0)
             OPTIMAL SOLUTION FOUND
             2.0
             sage: lp.get_values([x, y])
@@ -948,7 +949,8 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve() == test # yes, we want an exact comparison here
             glp_exact: 1 rows, 1 columns, 1 non-zeros
             GNU MP bignum library is being used
-            ...
+            *     0:   objval =                      0   (0)
+            *     1:   objval =   9.00719925474095e+15   (0)
             OPTIMAL SOLUTION FOUND
             True
             sage: lp.get_values(x) == test # yes, we want an exact comparison here
@@ -1004,8 +1006,8 @@ cdef class GLPKBackend(GenericBackend):
         Same, now with a time limit::
 
             sage: p.solver_parameter("mip_gap_tolerance",1)
-            sage: p.solver_parameter("timelimit",0.01)
-            sage: p.solve() # rel tol 1
+            sage: p.solver_parameter("timelimit",3.0)
+            sage: p.solve() # rel tol 100
             1
         """
 
@@ -1606,7 +1608,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
             sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 2)
-            Writing problem data to...
+            Writing problem data to ...
             17 records were written
         """
         glp_write_mps(self.lp, modern, NULL,  filename)
@@ -2243,7 +2245,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.solve()
             0
             sage: p.print_ranges()
-            Write sensitivity analysis report to...
+            Write sensitivity analysis report to ...
             GLPK ... - SENSITIVITY ANALYSIS REPORT                                                                         Page   1
             <BLANKLINE>
             Problem:

@@ -3201,6 +3201,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
         sage: FG(ZZ).parent()
         Gap
         sage: FS(QQ['t'])
+        polynomial ring, over a field, global ordering
         //   characteristic : 0
         //   number of vars : 1
         //        block   1 : ordering lp

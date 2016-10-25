@@ -1023,7 +1023,7 @@ class FanMorphism(FreeModuleMorphism):
         If no cone was specified, this function computes the index of the
         image of ``self`` in the codomain. If a cone `\sigma` was given, the
         index of ``self`` over `\sigma` is computed in the sense of
-        Definition 2.1.7 of [HLY]: if `\sigma'` is any cone of the
+        Definition 2.1.7 of [HLY2002]_: if `\sigma'` is any cone of the
         :meth:`domain_fan` of ``self`` whose relative interior is mapped to the
         relative interior of `\sigma`, it is the index of the image of
         `N'(\sigma')` in `N(\sigma)`, where `N'` and `N` are domain and codomain
@@ -1164,17 +1164,9 @@ class FanMorphism(FreeModuleMorphism):
         If a fan morphism `\phi: \Sigma \to \Sigma'` is a bundle, then
         `X_\Sigma` is a fiber bundle over `X_{\Sigma'}` with fibers
         `X_{\Sigma_0, N_0}`, where `N_0` is the kernel lattice of `\phi`. See
-        [CLS11]_ for more details.
+        [CLS2011]_ for more details.
 
         .. seealso:: :meth:`is_fibration`, :meth:`kernel_fan`.
-
-        REFERENCES:
-
-        ..  [CLS11]
-            David A. Cox, John Little, and Hal Schenck.
-            *Toric Varieties*.
-            Volume 124 of *Graduate Studies in Mathematics*.
-            American Mathematical Society, Providence, RI, 2011.
 
         EXAMPLES:
 
@@ -1263,18 +1255,10 @@ class FanMorphism(FreeModuleMorphism):
         X_{\Sigma'}` is a fibration in the sense that it is surjective and all
         of its fibers have the same dimension, namely `\dim X_\Sigma -
         \dim X_{\Sigma'}`. These fibers do *not* have to be isomorphic, i.e. a
-        fibration is not necessarily a fiber bundle. See [HLY02]_ for more
+        fibration is not necessarily a fiber bundle. See [HLY2002]_ for more
         details.
 
         .. seealso:: :meth:`is_bundle`, :meth:`primitive_preimage_cones`.
-
-        REFERENCES:
-
-        ..  [HLY02]
-            Yi Hu, Chien-Hao Liu, and Shing-Tung Yau.
-            Toric morphisms and fibrations of toric Calabi-Yau hypersurfaces.
-            *Adv. Theor. Math. Phys.*, 6(3):457-506, 2002.
-            arXiv:math/0010082v2 [math.AG].
 
         EXAMPLES:
 

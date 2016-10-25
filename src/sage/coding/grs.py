@@ -896,12 +896,7 @@ class GRSBerlekampWelchDecoder(Decoder):
     decoding algorithm to correct errors in codewords.
 
     This algorithm recovers the error locator polynomial by solving a linear system.
-    See [HJ04]_ pp. 51-52 for details.
-
-    REFERENCES:
-
-    .. [HJ04] Tom Hoeholdt and Joern Justesen, A Course In Error-Correcting Codes,
-       EMS, 2004
+    See [HJ2004]_ pp. 51-52 for details.
 
     INPUT:
 
@@ -1197,26 +1192,13 @@ class GRSBerlekampWelchDecoder(Decoder):
         return (self.code().minimum_distance()-1)//2
 
 
-
-
-
-
-
-
-
-
-
 class GRSGaoDecoder(Decoder):
     r"""
     Decoder for Generalized Reed-Solomon codes which uses Gao
     decoding algorithm to correct errors in codewords.
 
     Gao decoding algorithm uses early terminated extended Euclidean algorithm
-    to find the error locator polynomial. See [G02]_ for details.
-
-    REFERENCES:
-
-    .. [G02] Shuhong Gao, A new algorithm for decoding Reed-Solomon Codes, January 31, 2002
+    to find the error locator polynomial. See [Ga02]_ for details.
 
     INPUT:
 
@@ -1824,7 +1806,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
     correct errors in codewords.
 
     This algorithm uses early terminated extended euclidean algorithm
-    to solve the key equations, as described in [R06]_, pp. 183-195.
+    to solve the key equations, as described in [Rot2006]_, pp. 183-195.
 
     INPUT:
 

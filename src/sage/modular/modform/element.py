@@ -583,7 +583,7 @@ class ModularForm_abstract(ModuleElement):
 
         ALGORITHM:
 
-        We use the series expression from [Cremona]_, Chapter II,
+        We use the series expression from [Cre1997]_, Chapter II,
         Proposition 2.10.3.  The algorithm sums the first `T` terms of
         this series, where `T` is chosen in such a way that the result
         would approximate `P_f(M)` with an absolute error of at most
@@ -591,11 +591,6 @@ class ModularForm_abstract(ModuleElement):
 
         Since the actual precision is finite, the output is currently
         *not* guaranteed to be correct to ``prec`` bits of precision.
-
-        REFERENCE:
-
-        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
-           Curves.  Cambridge University Press, 1997.
 
         TESTS::
 
@@ -1401,7 +1396,7 @@ class Newform(ModularForm_abstract):
 
         - ``level`` -- (optional) the level `N` of the twisted form.
           By default, the algorithm tries to compute `N` using
-          [Atkin-Li]_, Theorem 3.1.
+          [AL1978]_, Theorem 3.1.
 
         - ``check`` -- (optional) boolean; if ``True`` (default), ensure that
           the space of modular symbols that is computed is genuinely simple and
@@ -1473,7 +1468,7 @@ class Newform(ModularForm_abstract):
             epsilon_chi = G(epsilon) * G(chi)
             N_epsilon_chi = epsilon_chi.conductor()
             for q in N_chi.prime_divisors():
-                # See [Atkin-Li], Theorem 3.1.
+                # See [AL1978], Theorem 3.1.
                 alpha = N_epsilon.valuation(q)
                 beta = N_chi.valuation(q)
                 gamma = N.valuation(q)
@@ -1712,8 +1707,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         - ``level`` -- (optional) the level `N` of the twisted form.
           By default, the algorithm chooses some not necessarily
-          minimal value for `N` using [Atkin-Li]_, Proposition 3.1,
-          (See also [Koblitz]_, Proposition III.3.17, for a simpler
+          minimal value for `N` using [AL1978]_, Proposition 3.1,
+          (See also [Kob1993]_, Proposition III.3.17, for a simpler
           but slightly weaker bound.)
 
         OUTPUT:
@@ -1760,12 +1755,9 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         REFERENCES:
 
-        .. [Atkin-Li] \A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
-           of newforms and pseudo-eigenvalues of `W`-operators.
-           Inventiones math. 48 (1978), 221-243.
+        - [AL1978]_
 
-        .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
-           Modular Forms.  Springer GTM 97, 1993.
+        - [Kob1993]_
 
         AUTHORS:
 
@@ -1787,14 +1779,14 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         constructor = CuspForms if self.is_cuspidal() else ModularForms
         if epsilon is not None:
             if level is None:
-                # See [Atkin-Li], Proposition 3.1.
+                # See [AL1978], Proposition 3.1.
                 level = lcm([N, epsilon.conductor() * Q, Q**2])
             G = DirichletGroup(level, base_ring=R)
             M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
         else:
             from sage.modular.arithgroup.all import Gamma1
             if level is None:
-                # See [Atkin-Li], Proposition 3.1.
+                # See [AL1978], Proposition 3.1.
                 level = lcm([N, Q]) * Q
             M = constructor(Gamma1(level), self.weight(), base_ring=R)
         bound = M.sturm_bound() + 1

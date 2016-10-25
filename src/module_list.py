@@ -58,6 +58,12 @@ linbox_libs = list(linbox_pc['libraries'])
 linbox_library_dirs = list(linbox_pc['library_dirs'])
 linbox_cflags = pkgconfig.cflags('linbox').split()
 
+# Singular
+singular_pc = pkgconfig.parse('Singular')
+singular_libs = list(singular_pc['libraries'])
+singular_library_dirs = list(singular_pc['library_dirs'])
+singular_cflags = pkgconfig.cflags('Singular').split()
+
 # PNG image library
 png_pc = pkgconfig.parse('libpng')
 png_libs = list(png_pc['libraries'])
@@ -88,6 +94,9 @@ aliases = dict(
     LINBOX_CFLAGS=linbox_cflags,
     LINBOX_LIBRARIES=linbox_libs,
     LINBOX_LIBDIR=linbox_library_dirs,
+    SINGULAR_CFLAGS=singular_cflags,
+    SINGULAR_LIBRARIES=singular_libs,
+    SINGULAR_LIBDIR=singular_library_dirs
 )
 
 #########################################################
@@ -112,12 +121,6 @@ except ValueError:
     pass
 
 #########################################################
-### Singular
-#########################################################
-
-singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
-
-#########################################################
 ### Library order
 #########################################################
 
@@ -130,8 +133,8 @@ singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
 # listed here will be added at the end of the list (without changing
 # their relative order). There is one exception: stdc++ is always put
 # at the very end of the list.
-library_order_list = [
-    "singular", "ec", "ecm",
+library_order_list = singular_libs + [
+    "ec", "ecm",
 ] + linbox_libs  + gsl_libs + [
     "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
     "arb", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
@@ -190,20 +193,7 @@ ext_modules = [
                language='c++',
                libraries = ["flint", "gmp", "gmpxx", "m", "ntl"]),
 
-    Extension('sage.algebras.letterplace.free_algebra_letterplace',
-              sources = ['sage/algebras/letterplace/free_algebra_letterplace.pyx'],
-              libraries = singular_libs,
-              language="c++"),
-
-    Extension('sage.algebras.letterplace.free_algebra_element_letterplace',
-              sources = ['sage/algebras/letterplace/free_algebra_element_letterplace.pyx'],
-              libraries = singular_libs,
-              language="c++"),
-
-    Extension('sage.algebras.letterplace.letterplace_ideal',
-              sources = ['sage/algebras/letterplace/letterplace_ideal.pyx'],
-              libraries = singular_libs,
-              language="c++"),
+    Extension('*', sources = ['sage/algebras/letterplace/*.pyx']),
 
     Extension('sage.algebras.quatalg.quaternion_algebra_cython',
                sources = ['sage/algebras/quatalg/quaternion_algebra_cython.pyx'],
@@ -626,10 +616,7 @@ ext_modules = [
                       libraries = ["homfly", "gc"],
                       package="libhomfly"),
 
- #    Extension('sage.libs.linbox.linbox',
- #             sources = ['sage/libs/linbox/linbox.pyx']),
-
-    Extension('*',['sage/libs/linbox/*.pyx']),
+    Extension('*', ['sage/libs/linbox/*.pyx']),
 
     Extension('sage.libs.lcalc.lcalc_Lfunction',
               sources = ['sage/libs/lcalc/lcalc_Lfunction.pyx'],
@@ -647,25 +634,12 @@ ext_modules = [
     Extension('sage.libs.lrcalc.lrcalc',
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
-    Extension('sage.libs.pari.closure',
-              sources = ["sage/libs/pari/closure.pyx"]),
-
-    Extension('sage.libs.pari.convert',
-              sources = ["sage/libs/pari/convert.pyx"]),
-
-    Extension('sage.libs.pari.gen',
-              sources = ["sage/libs/pari/gen.pyx"]),
-
-    Extension('sage.libs.pari.handle_error',
-              sources = ["sage/libs/pari/handle_error.pyx"]),
-
-    Extension('sage.libs.pari.pari_instance',
-              sources = ["sage/libs/pari/pari_instance.pyx"],
-              extra_compile_args = ["-std=c99", "-D_XPG6"],
-              libraries = ['flint']),
+    Extension('*', ['sage/libs/pari/*.pyx']),
 
     Extension('sage.libs.ppl',
               sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),
+
+    Extension('*', ['sage/libs/pynac/*.pyx']),
 
     Extension('sage.libs.ratpoints',
               sources = ["sage/libs/ratpoints.pyx"],
@@ -675,35 +649,7 @@ ext_modules = [
               sources = ['sage/libs/readline.pyx'],
               libraries = ['readline']),
 
-    Extension('sage.libs.singular.singular',
-              sources = ['sage/libs/singular/singular.pyx'],
-              libraries = singular_libs,
-              language="c++"),
-
-    Extension('sage.libs.singular.polynomial',
-              sources = ['sage/libs/singular/polynomial.pyx'],
-              libraries = singular_libs,
-              language="c++"),
-
-    Extension('sage.libs.singular.ring',
-              sources = ['sage/libs/singular/ring.pyx'],
-              libraries = singular_libs,
-              language="c++"),
-
-    Extension('sage.libs.singular.groebner_strategy',
-              sources = ['sage/libs/singular/groebner_strategy.pyx'],
-              libraries = singular_libs,
-              language="c++"),
-
-    Extension('sage.libs.singular.function',
-              sources = ['sage/libs/singular/function.pyx'],
-              libraries = singular_libs,
-              language="c++"),
-
-    Extension('sage.libs.singular.option',
-              sources = ['sage/libs/singular/option.pyx'],
-              libraries = singular_libs,
-              language="c++"),
+    Extension('*', sources = ['sage/libs/singular/*.pyx']),
 
     Extension('sage.libs.symmetrica.symmetrica',
               sources = ["sage/libs/symmetrica/symmetrica.pyx"],
@@ -970,9 +916,7 @@ ext_modules = [
               sources = ['sage/matrix/matrix_modn_sparse.pyx']),
 
     Extension('sage.matrix.matrix_mpolynomial_dense',
-              sources = ['sage/matrix/matrix_mpolynomial_dense.pyx'],
-              libraries = singular_libs,
-              language="c++"),
+              sources = ['sage/matrix/matrix_mpolynomial_dense.pyx']),
 
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
@@ -1569,19 +1513,13 @@ ext_modules = [
               sources = ['sage/rings/polynomial/multi_polynomial.pyx']),
 
     Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
-              sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
-              libraries = singular_libs,
-              language="c++"),
+              sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx']),
 
     Extension('sage.rings.polynomial.plural',
-              sources = ['sage/rings/polynomial/plural.pyx'],
-              libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
-              language="c++"),
+              sources = ['sage/rings/polynomial/plural.pyx']),
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
-              sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = singular_libs,
-              language="c++"),
+              sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx']),
 
     Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
               sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']),

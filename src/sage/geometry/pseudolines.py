@@ -7,7 +7,7 @@ arrangement of pseudolines in several different ways, and to translate one
 description into another, as well as to display *Wiring diagrams* via the
 :meth:`show <sage.geometry.pseudolines.PseudolineArrangement.show>` method.
 
-In the following, we try to stick to the terminology given in [Felsner]_, which
+In the following, we try to stick to the terminology given in [Fe1997]_, which
 can be checked in case of doubt. And please fix this module's documentation
 afterwards :-)
 
@@ -110,7 +110,7 @@ corresponds in the wiring diagram to a line going up while the line immediately
 above it goes down -- those two lines cross. Each time such a pattern is found
 it yields a new transposition, and the matrix can be updated so that this
 pattern disappears. A more detailed description of this algorithm is given in
-[Felsner]_.
+[Fe1997]_.
 
 ::
 
@@ -148,14 +148,6 @@ And finally build the line arrangement::
     sage: print(p)
     Arrangement of pseudolines of size 20
     sage: p.show(figsize=[20,8])
-
-
-References
-^^^^^^^^^^
-
-.. [Felsner] On the Number of Arrangements of Pseudolines,
-  Stefan Felsner,
-  http://page.math.tu-berlin.de/~felsner/Paper/numarr.pdf
 
 Author
 ^^^^^^

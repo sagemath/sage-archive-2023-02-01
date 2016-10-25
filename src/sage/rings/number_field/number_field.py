@@ -3452,7 +3452,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         OUTPUT:
 
         The PARI number field obtained by calling the PARI function
-        ``nfinit()`` with ``self.pari_polynomial('y')`` as argument.
+        :pari:`nfinit` with ``self.pari_polynomial('y')`` as argument.
 
         .. NOTE::
 
@@ -6299,7 +6299,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         ALGORITHM:
 
-        We use the PARI function ``nfrootsof1`` in all cases. This is
+        We use the PARI function :pari:`nfrootsof1` in all cases. This is
         required (even for cyclotomic fields) in order to be consistent
         with the full unit group, which is also computed by PARI.
 

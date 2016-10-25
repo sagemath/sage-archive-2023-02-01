@@ -100,7 +100,7 @@ class LittlewoodRichardsonTableau(SemistandardTableau):
 
     def check(self):
         r"""
-        Check that ``self`` is a valid Littelwood-Richardson tableau.
+        Check that ``self`` is a valid Littlewood-Richardson tableau.
 
         EXAMPLES::
 
@@ -273,3 +273,117 @@ def is_littlewood_richardson(t, heights):
             return False
     return True
 
+# jake's additions here
+
+from sage.libs.lrcalc.lrcalc import lrskew
+import itertools
+from sage.combinat.skew_tableau import SkewTableau
+
+def LRtabs_single(outer, weight, containing_inner=None, shift=0):
+    """
+    An iterator for the Yamanouchi skew tableaux of specified
+    outer shape ``outer`` and weight, but with arbitrary inner shape.
+
+    The optional argument ``containing_inner`` specifies a minimal inner
+    shape, i.e. the output tableaux must fit inside the skew shape
+    ``outer``/``containing_inner``, (though they do not need to fill
+    it up).
+
+    The optional argument ``shift``, a positive integer, increases
+    all the entries of the tableau by that amount.
+    """
+
+
+    # TODO: fix lrcalc to check this condition!
+    # (this appears to be a bug in lrcalc)
+    if not Partition(outer).contains(weight):
+        return
+
+    # The highest-weight standard tableau of shape w (for use below)
+    w = SkewTableau([[i+1]*val for i, val in enumerate(weight)])
+    w = w.standardization()
+
+    # Step 1. From lrcalc, get an iterator for the LR tableaux of
+    # skew shape = outer/weight, and arbitrary content
+    related_tabs = lrskew(outer, weight)
+
+    # Step 2. Convert them to the desired tableaux using JDT
+    for t in related_tabs:
+        # Shuffle t with w (returns (rect(t),std))
+        # Note: std now has shape outer/(something) and content = weight
+        std = w.shuffle(t.standardization())[1] # shuffle returns (rect(t),std)
+
+        # Step 3. Check the inner shape (if necessary)
+        if (containing_inner is not None) and not(std.inner_shape().contains(containing_inner)):
+            continue
+
+        # Step 4. Destandardize (shifting if necessary)
+        yield _destandardize(std, weight, shift)
+
+def LRtabs_multi(outer, weights, inner=[]):
+    """
+    An iterator for the LR tableaux of skew shape outer/inner,
+    which are unions of Yamanouchi sub-tableaux of the specified
+    weights.
+
+    Example usage:
+        sage: LRtabs_multi([7, 4, 2], [[2, 1], [3, 2], [2]], [2, 1])
+        ...
+        Returns: the 25 tableaux of shape [7, 4, 2] / [2, 1], such that
+            the subtableau of {1, 2}'s is LR of content [2, 1]
+            the subtableau of {3, 4}'s is LR of content [3, 2]
+            the subtableau of    {5}'s is LR of content [2]
+
+    This should be equivalent to calling
+        ``LittlewoodRichardsonTableax(outer, [inner]+weights)``
+    except that the inner shape is left blank.
+
+    The algorithm proceeds by starting with an empty tableau of
+    shape = outer, then successively attaching, along the inner
+    edge, an LR tableau of the next required weight (working backwards).
+    """
+    shift = sum([len(w) for w in weights])
+    start = SkewTableau([[None]*l for l in outer])
+    return _LRtabs_multi_recursive(start, list(reversed(weights)), inner, shift)
+
+# This function builds up the tableaux by starting at the outer edge,
+# then successively attaching, along the inner edge, an LR tableau 
+# of the next required weight
+def _LRtabs_multi_recursive(partial_tab, weights, inner, shift):
+    if weights == []:
+        if partial_tab.inner_shape() == inner:
+            yield partial_tab
+        return
+
+    w = weights[0]
+    for t in LRtabs_single(partial_tab.inner_shape(), w, inner, shift-len(w)):
+        for res in _LRtabs_multi_recursive(_tableauJoin(t, partial_tab),
+                                           weights[1:],
+                                           inner,
+                                           shift-len(w)):
+            yield res
+
+def _tableauJoin(t1, t2):
+    """
+    A helper function:
+    Concatenate the rows of t1 and t2, dropping any None's from t2.
+    (Intended for the case where t1.outer_shape() == t2.inner_shape().)
+    """
+    return SkewTableau([[e1 for e1 in row1]+[e2 for e2 in row2 if e2 is not None] for (row1, row2) in itertools.izip_longest(t1, t2, fillvalue=[])])
+
+def _destandardize(T, beta, shift=0):
+    """
+    A helper function:
+    Convert a standard tableau back to a semistandard one
+    of specified content ``beta`` and entries in the alphabet
+    {``shift``+1, ..., ``shift``+``len(beta)``}.
+
+    NOTE:
+    There is no error-checking! It just changes the entries
+    1, ..., beta[0] to 1's, then beta[0]+1, ..., beta[1] to 2's, and so on.
+    """
+    S = [[e for e in row] for row in T]
+    conversion = [i+1 for i, val in enumerate(beta) for _ in range(val)]
+    for (r, c) in T.cells():
+        S[r][c] = conversion[T[r][c]-1]+shift
+    return SkewTableau(S)

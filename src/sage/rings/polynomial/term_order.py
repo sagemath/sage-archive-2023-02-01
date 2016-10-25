@@ -1031,7 +1031,7 @@ class TermOrder(SageObject):
         return -self.compare_tuples_lex(f,g)
 
     def sortkey_neglex(self, f):
-        return -f  # we should rather introduce a switch for reversion ?
+        return tuple(-v for v in f)
 
     def compare_tuples_negdegrevlex(self,f,g):
         """

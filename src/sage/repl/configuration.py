@@ -11,7 +11,7 @@ is being used::
     ....:     'echo "nth_prime(100000)" | sage',
     ....:     shell=True,
     ....: )
-    sage: 'In [1]: \n1299709' in out
+    sage: 'In [1]: \n1299709' in output
     True
 """
 

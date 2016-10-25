@@ -71,6 +71,7 @@ Options:
    -c: after installing, run the test suite for the package
    -d: only download the package
    -y: automatically reply "y" for all prompts regarding dangerous packages
+   -n: automatically reply "n" for all prompts regarding dangerous packages
 EOF
 }
 
@@ -182,6 +183,8 @@ while true; do
             INFO=1;;
         -y)
             YES=1;;
+	-n)
+	    YES=-1;;
         -d)
             SAGE_INSTALL_FETCH_ONLY=1;;
         -s)
@@ -323,6 +326,11 @@ if [ ! -f "$PKG_SRC" ]; then
     else
         # Handle all the legacy cruft. This branch can be deleted once
         # we get rid of old-style spkgs
+	if [ $YES = -1 ]; then
+	    # User provided -n option, so don't even try to download the package"
+	    echo "Old-style packages disabled by use of '-n' option"
+	    exit 1
+	fi
         if [ $INFO -eq 0 ]; then
             echo "Attempting to download package $PKG_NAME"
         else

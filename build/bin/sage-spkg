@@ -268,7 +268,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
         echo "Found local metadata for $PKG_NAME"
 
         # Warning for experimental packages
-        if [ x`cat "$PKG_SCRIPTS/type"` = x"experimental" ]; then
+        if [ x`cat "$PKG_SCRIPTS/type"` = x"experimental" -a $INFO = 0 ]; then
 	    if [ $YES != 1 ]; then
 		# We use /dev/tty here because our output may be redirected
 		# to a logfile, or line-buffered.

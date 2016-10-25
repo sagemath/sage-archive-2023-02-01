@@ -1784,9 +1784,30 @@ class HeckeModule_free_module(HeckeModule_generic):
         return self.submodule(self.free_module().zero_submodule(), check=False)
 
     def _pushout_(self,other):
-        if not isinstance(other,HeckeModule_free_module):
+        r"""
+        Compute the sum of two Hecke modules that are contained in the same
+        ambient module.
+
+        INPUT:
+
+        - ``self`` - a Hecke module
+        - ``other `` - another Hecke module that has the same ambient module
+            as ``self``
+
+        OUTPUT:
+
+        - The Hecke module that is the sum of ``self`` and ``other``
+
+        EXAMPLE::
+
+            sage: from sage.categories.pushout import pushout
+            sage: M = ModularSymbols(Gamma0(3),weight=22,sign=1)
+            sage: pushout(M.cuspidal_submodule(),M.eisenstein_submodule())
+            Modular Symbols subspace of dimension 8 of Modular Symbols space of dimension 8 for Gamma_0(3) of weight 22 with sign 1 over Rational Field
+        """
+        if not isinstance(other, HeckeModule_free_module):
             return None
-        if self.ambient()!=other.ambient():
+        if self.ambient() != other.ambient():
             return None
         return self.ambient().submodule(self.basis()+other.basis())
 

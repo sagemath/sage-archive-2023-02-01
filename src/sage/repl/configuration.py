@@ -3,15 +3,15 @@ Sage's IPython Configuration
 
 TESTS:
 
-We check that Sage stdin can be piped in; In that case the IPython simple prompt
-is being used::
+We check that Sage stdin can be piped in even if stdout is a tty; In that case
+the IPython simple prompt is being used::
 
-    sage: import subprocess
-    sage: output = subprocess.check_output(
-    ....:     'echo "nth_prime(100000)" | sage',
-    ....:     shell=True,
+    sage: cmd = 'print([sys.stdin.isatty(), sys.stdout.isatty()])'
+    sage: import pexpect
+    sage: output = pexpect.run(
+    ....:     'bash -c \'echo "{0}" | sage\''.format(cmd),
     ....: )
-    sage: 'In [1]: \n1299709' in output
+    sage: 'In [1]: [False, True]' in output
     True
 """
 

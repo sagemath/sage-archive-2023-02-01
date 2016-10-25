@@ -1232,6 +1232,21 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             return False
         return W.from_reduced_word(Qi for i, Qi in enumerate(Q) if i not in F) == self.pi()
 
+    @cached_method
+    def __len__(self):
+        """
+        Return the number of elements in self.
+
+        EXAMPLES::
+            sage: W = CoxeterGroup(['A',2])
+            sage: w = W.from_reduced_word([1,1,1])
+            sage: SC = SubwordComplex([1,2,2,2,1], w)
+            sage: len(SC)
+            2
+        """
+        return len(self.list())
+
+    @cached_method
     def list(self):
         r"""
         Return the list of facets of ``self``.

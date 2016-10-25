@@ -1218,6 +1218,18 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         return AbelianGroup_subgroup(self, gensH, names)
 
     @cached_method
+    def __len__(self):
+        """
+        Return the number of elements of self.
+
+        EXAMPLES::
+            sage: G = AbelianGroup([2,3], names = "ab")
+            sage: len(G)
+            6
+        """
+        return len(self.list())
+
+    @cached_method
     def list(self):
         """
         Return tuple of all elements of this group.

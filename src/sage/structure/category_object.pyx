@@ -205,7 +205,7 @@ cdef class CategoryObject(SageObject):
             Category of magmas
             sage: P._refine_category_(EnumeratedSets())
             sage: P.category()
-            Join of Category of magmas and Category of enumerated sets
+            Category of enumerated magmas
             sage: P._refine_category_([Semigroups(), CommutativeAdditiveSemigroups()])
             sage: P.category()
             Join of Category of semigroups and Category of commutative additive semigroups and Category of enumerated sets

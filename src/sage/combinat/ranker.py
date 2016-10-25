@@ -213,18 +213,6 @@ def unrank(L, i):
         sage: unrank(IntegerModRing(29), 10)
         10
 
-    An old parent with unranking implemented in ``__getitem__``::
-
-        sage: M = MatrixSpace(GF(3), 2, 2)
-        sage: hasattr(M, "unrank")
-        False
-        sage: M[42]
-        [1 0]
-        [2 1]
-        sage: unrank(M, 42)
-        [1 0]
-        [2 1]
-
     An iterable::
 
         sage: unrank(NN,4)
@@ -261,11 +249,6 @@ def unrank(L, i):
         Traceback (most recent call last):
         ...
         IndexError: index out of range
-
-        sage: M[100]
-        Traceback (most recent call last):
-        ...
-        IndexError: list index out of range
     """
     if L in EnumeratedSets:
         return L.unrank(i)

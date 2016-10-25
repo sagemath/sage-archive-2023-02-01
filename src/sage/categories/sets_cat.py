@@ -755,6 +755,10 @@ class Sets(Category_singleton):
             """
             return self._with_axiom('Infinite')
 
+        @cached_method
+        def Enumerated(self):
+            return self._with_axiom('Enumerated')
+
         def Facade(self):
             r"""
             Return the full subcategory of the facade objects of ``self``.
@@ -1707,7 +1711,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 raising ``NotImplementedError`` could be provided instead.
             """
 
-
+    Enumerated = LazyImport('sage.categories.enumerated_sets', 'EnumeratedSets', at_startup=True)
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
     Topological = LazyImport('sage.categories.topological_spaces',
@@ -2070,7 +2074,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     [('a', 1, 'a'), ('a', 1, 'b'), ('a', 2, 'a'), ('a', 2, 'b'), ('a', 3, 'a'), ('a', 3, 'b'),
                      ('b', 1, 'a'), ('b', 1, 'b'), ('b', 2, 'a'), ('b', 2, 'b'), ('b', 3, 'a'), ('b', 3, 'b')]
                     sage: C.__iter__.__module__
-                    'sage.categories.enumerated_sets'
+                    'sage.categories.sets_cat'
 
                     sage: F22 = GF(2).cartesian_product(GF(2))
                     sage: list(F22)

@@ -10,12 +10,13 @@ Enumerated Sets
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_cat import EmptySetError
 from sage.categories.cartesian_product import CartesianProductsCategory
 
-class EnumeratedSets(Category_singleton):
+class EnumeratedSets(CategoryWithAxiom):
     """
     The category of enumerated sets
 
@@ -165,6 +166,9 @@ class EnumeratedSets(Category_singleton):
             +------------------------+---------------------------------+
             | ``list`                | ``_iterator_from_next``         |
             +------------------------+---------------------------------+
+
+            It is also possible to override ``__iter__`` method itself. Then
+            the methods of the first column are defined using  ``__iter__``
 
             If none of these are provided, raise a ``NotImplementedError``.
 
@@ -454,23 +458,128 @@ class EnumeratedSets(Category_singleton):
                 return self.list()[i]
             return self.unrank(i)
 
-        def list(self):
+        def __len__(self):
             """
-            Return an error since the cardinality of ``self`` is not known.
+            Returns the number of elements of self.
+
+            This naively counts the number of elements of the list from self.
+            If self is not finite, then either NotImplementedError is raised,
+            or it would take forever.
 
             EXAMPLES::
 
-                sage: class broken(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...
-                sage: broken().list()
+                sage: len(GF(5))
+                5
+                sage: len(MatrixSpace(GF(2), 3, 3))
+                512
+            """
+            return len(self.list())
+
+        def list(self):
+            r"""
+            Return a list of the elements of self.
+
+            The elements of set ``x`` is created and cashed on the fist call
+            of ``x.list()``. Then each call of ``x.list()`` returns a new list
+            from the cashed result. Thus in looping, it may be better to do
+            ``for e in x:``, not ``for e in x.list():``.
+
+            If ``x`` is known to be infinite, then NotImplementedError exception
+            is raised. Otherwise it simply tries to list all elements using an
+            iterator defined for ``x``.
+
+            EXAMPLES::
+
+                sage: (GF(3)^2).list()
+                [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]
+                sage: R = Integers(11)
+                sage: R.list()
+                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                sage: l = R.list(); l
+                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                sage: l.remove(0); l
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                sage: R.list()
+                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+            """
+            try: # shortcut
+                if self._list is not None:
+                    return list(self._list)
+            except AttributeError:
+                pass
+
+            try:
+                if not self.is_finite():
+                    raise NotImplementedError('cannot list an infinite set')
+            except:
+                pass
+            return self._list_from_iterator()
+        _list_default  = list # needed by the check system.
+
+        def _list_from_iterator(self):
+            r"""
+            Return a list of the elements of self after cached.
+
+            TESTS:
+
+            Trying to list an infinite vector space raises an error
+            instead of running forever (see :trac:`10470`)::
+
+                sage: (QQ^2).list()  # indirect test
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: unknown cardinality
+                AttributeError: 'FreeModule_ambient_field_with_category' object has no attribute 'list'
+
+            Here we test that for an object that does not know whether it
+            is finite or not.  Calling ``x.list()`` simply tries to create
+            the list (but here it fails, since the object is not
+            iterable). This was fixed :trac:`11350` ::
+
+                sage: R.<t,p> = QQ[]
+                sage: Q = R.quotient(t^2-t+1)
+                sage: Q.is_finite()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+                sage: Q.list()   # indirect test
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'QuotientRing_generic_with_category' object has no attribute 'list'
+
+            Here is another example. We artificially create a version of
+            the ring of integers that does not know whether it is finite
+            or not::
+
+                sage: from sage.rings.integer_ring import IntegerRing_class
+                sage: class MyIntegers_class(IntegerRing_class):
+                ....:      def is_finite(self):
+                ....:          raise NotImplementedError
+                sage: MyIntegers = MyIntegers_class()
+                sage: MyIntegers.is_finite()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            Asking for ``list(MyIntegers)`` will also raise an exception::
+
+                sage: list(MyIntegers)  # indirect test
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
             """
-            raise NotImplementedError("unknown cardinality")
-        _list_default  = list # needed by the check system.
+            try:
+                if self._list is not None:
+                    return list(self._list)
+            except AttributeError:
+                pass
+            result = list(self.__iter__())
+            try:
+                self._list = result
+            except AttributeError:
+                pass
+            return list(result)
 
         def _first_from_iterator(self):
             """
@@ -517,7 +626,6 @@ class EnumeratedSets(Category_singleton):
                 el = next(it)
             return next(it)
         next = _next_from_iterator
-
 
         def _unrank_from_iterator(self, r):
             """
@@ -580,7 +688,6 @@ class EnumeratedSets(Category_singleton):
                     return counter
                 counter += 1
             return None
-
         rank = _rank_from_iterator
 
         def _iterator_from_list(self):

@@ -345,6 +345,21 @@ class GroupMixinLibGAP(object):
             yield self(iterator.NextIterator(), check=False)
 
     @cached_method
+    def __len__(self):
+        """
+        Return the number of elements in self.
+
+        EXAMPLES::
+
+            sage: F = GF(3)
+            sage: gens = [matrix(F,2, [1,-1,0,1]), matrix(F, 2, [1,1,-1,1])]
+            sage: G = MatrixGroup(gens)
+            sage: len(G)
+            48
+        """
+        return len(self.list())
+
+    @cached_method
     def list(self):
         """
         List all elements of this group.
@@ -357,7 +372,7 @@ class GroupMixinLibGAP(object):
         EXAMPLES::
 
             sage: F = GF(3)
-            sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
+            sage: gens = [matrix(F,2, [1,0,-1,1]), matrix(F, 2, [1,1,0,1])]
             sage: G = MatrixGroup(gens)
             sage: G.cardinality()
             24

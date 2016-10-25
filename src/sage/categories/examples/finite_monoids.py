@@ -29,7 +29,7 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
         An example of a finite multiplicative monoid: the integers modulo 12
 
         sage: S.category()
-        Category of finitely generated finite monoids
+        Category of finitely generated finite enumerated monoids
 
     We conclude by running systematic tests on this monoid::
 

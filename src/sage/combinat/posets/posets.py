@@ -763,7 +763,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         [[5, 4], [5, 3], [4, 1], [0, 2], [0, 3], [2, 1], [3, 1]]
         sage: TestSuite(P).run()
         sage: P.category()
-        Join of Category of finite posets and Category of finite enumerated sets
+        Category of finite enumerated posets
         sage: P.__class__
         <class 'sage.combinat.posets.posets.FinitePoset_with_category'>
 
@@ -784,15 +784,13 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         sage: P = Poset(DiGraph({'a':['b'],'b':['c'],'c':['d']}), facade=False)
         sage: P.category()
-        Join of Category of finite posets and Category of finite enumerated sets
+        Category of finite enumerated posets
         sage: parent(P[0]) is P
         True
 
         sage: Q = Poset(DiGraph({'a':['b'],'b':['c'],'c':['d']}), facade=True)
         sage: Q.category()
-        Join of Category of finite posets
-            and Category of finite enumerated sets
-            and Category of facade sets
+        Category of facade finite enumerated posets
         sage: parent(Q[0]) is str
         True
         sage: TestSuite(Q).run(skip = ['_test_an_element']) # is_parent_of is not yet implemented
@@ -801,9 +799,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         sage: PQ = Poset(P, facade=True)
         sage: PQ.category()
-        Join of Category of finite posets
-            and Category of finite enumerated sets
-            and Category of facade sets
+        Category of facade finite enumerated posets
         sage: parent(PQ[0]) is str
         True
         sage: PQ is Q
@@ -813,8 +809,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         sage: QP = Poset(Q, facade = False)
         sage: QP.category()
-        Join of Category of finite posets
-            and Category of finite enumerated sets
+        Category of finite enumerated posets
         sage: parent(QP[0]) is QP
         True
 
@@ -2519,7 +2514,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - If ``certificate=True`` return ``(h, c)``, where ``h`` is the 
+        - If ``certificate=True`` return ``(h, c)``, where ``h`` is the
           height and ``c`` is a chain of maximum cardinality.
           If ``certificate=False`` return only the height.
 
@@ -2546,7 +2541,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         n = height - 2
         previous = levels[-1][0]
         max_chain = [previous]
-        
+
         while n >= 0:
             for i in levels[n]:
                 if self.covers(i, previous):
@@ -4157,7 +4152,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
     _mul_ = product
-    
+
     def disjoint_union(self, other, labels='pairs'):
         """
         Return a poset isomorphic to disjoint union (also called direct

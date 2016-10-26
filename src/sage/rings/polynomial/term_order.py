@@ -1004,10 +1004,11 @@ class TermOrder(SageObject):
         elif sf < sg:
             return -1
         elif sf == sg:
-            return -self.compare_tuples_lex(f.reversed(),g.reversed())
+            return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
     def sortkey_degrevlex(self, f):
-        return (sum(f.nonzero_values(sort=False)), f.reversed())
+        return (sum(f.nonzero_values(sort=False)),
+                tuple(-v for v in f.reversed()))
 
     def compare_tuples_neglex(self,f,g):
         """
@@ -1059,7 +1060,7 @@ class TermOrder(SageObject):
         elif sf < sg:
             return 1
         elif sf == sg:
-            return (-1)*self.compare_tuples_lex(f.reversed(),g.reversed())
+            return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
     def sortkey_negdegrevlex(self, f):
         return (-sum(f.nonzero_values(sort=False)),
@@ -1125,7 +1126,7 @@ class TermOrder(SageObject):
             return self.compare_tuples_neglex(f,g)
 
     def sortkey_negdeglex(self, f):
-        return (sum(f.nonzero_values(sort=False)), f)
+        return (sum(f.nonzero_values(sort=False)), tuple(-v for v in f))
 
     def compare_tuples_wdegrevlex(self,f,g):
         """
@@ -1154,10 +1155,11 @@ class TermOrder(SageObject):
         elif sf < sg:
             return -1
         elif sf == sg:
-            return -self.compare_tuples_lex(f.reversed(),g.reversed())
+            return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
     def sortkey_wdegrevlex(self, f):
-        return (sum(l * r for (l, r) in zip(f, self._weights)), f.reversed())
+        return (sum(l * r for (l, r) in zip(f, self._weights)),
+                tuple(-v for v in f.reversed()))
 
     def compare_tuples_wdeglex(self,f,g):
         """
@@ -1250,10 +1252,11 @@ class TermOrder(SageObject):
         elif sf < sg:
             return 1
         elif sf == sg:
-            return (-1)*self.compare_tuples_lex(f.reversed(),g.reversed())
+            return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
     def sortkey_negwdeglex(self, f):
-        return (-sum(l * r for (l, r) in zip(f, self._weights)), f.reversed())
+        return (-sum(l * r for (l, r) in zip(f, self._weights)),
+                tuple(-v for v in f.reversed()))
 
     def compare_tuples_block(self, f,g):
         """

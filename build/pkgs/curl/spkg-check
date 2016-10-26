@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 cd src
-$MAKE check
+$MAKE check V=1

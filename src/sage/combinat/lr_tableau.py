@@ -8,7 +8,7 @@ when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,\ldots,
 
 AUTHORS:
 
-- Maria Gillespie and Anne Schilling (2016): initial version
+- Maria Gillespie, Jake Levinson, Anne Schilling (2016): initial version
 """
 #*****************************************************************************
 #       Copyright (C) 2016 Maria Gillespie

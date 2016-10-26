@@ -1680,7 +1680,7 @@ cdef class Matrix(matrix0.Matrix):
         """
         if isinstance(columns, range):
             columns = list(columns)
-        elif not (isinstance(columns, list) or isinstance(columns, tuple)):
+        elif not isinstance(columns, (list, tuple)):
             raise TypeError("columns (=%s) must be a list of integers" % columns)
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
@@ -1751,7 +1751,7 @@ cdef class Matrix(matrix0.Matrix):
         """
         if isinstance(dcols, range):
             dcols = list(dcols)
-        elif not (isinstance(dcols, list) or isinstance(dcols, tuple)):
+        elif not isinstance(dcols, (list, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=dcols))
         cdef list cols, diff_cols
 
@@ -1780,7 +1780,7 @@ cdef class Matrix(matrix0.Matrix):
         """
         if isinstance(rows, range):
             rows = list(rows)
-        elif not (isinstance(rows, list) or isinstance(rows, tuple)):
+        elif not isinstance(rows, (list, tuple)):
             raise TypeError("rows must be a list of integers")
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
@@ -1850,7 +1850,7 @@ cdef class Matrix(matrix0.Matrix):
         """
         if isinstance(drows, range):
             drows = list(drows)
-        elif not (isinstance(drows, list) or isinstance(drows, tuple)):
+        elif not isinstance(drows, (list, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=drows))
         cdef list rows, diff_rows
 

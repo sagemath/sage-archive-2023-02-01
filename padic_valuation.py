@@ -25,6 +25,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.path.dirname(os.getcwd()))
 
 from valuation import DiscretePseudoValuation
+from limit_valuation import LimitValuationFiniteExtension
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById
@@ -262,14 +263,14 @@ class PadicValuationFactory(UniqueFactory):
             v = GaussValuation(G.parent(), v)
         # Then, we lift valuations defined on polynmial rings which are subrings of K[x] to K[x]
         if v.domain() != G.parent():
-            v = v.change_ring(K)
+            v = v.extension(G.parent())
         assert(v.domain() is G.parent())
 
         # To obtain uniqueness of p-adic valuations, we need a canonical
         # description of v. We consider all extensions of vK to L and select
         # the one approximated by v.
         vK = v.constant_valuation()
-        candidates = vK.mac_lane_approximants(G)
+        candidates = vK.extensions(L)
 
         # We make use of the partial order on discrete pseudo-valuations to
         # single out our candidate
@@ -908,10 +909,23 @@ class pAdicValuation_base(DiscretePseudoValuation):
     def change_ring(self, ring):
         return pAdicValuation(ring, self.prime())
 
-    def extension(self, ring):
-        if ring.has_coerce_map_from(self.domain()):
-            return pAdicValuation(ring, self)
-        raise NotImplementedError
+    def extensions(self, ring):
+        if self.domain() is ring:
+            return [self]
+        if self.domain().fraction_field() is not self.domain():
+            if self.domain().fraction_field().is_subring(ring):
+                return pAdicValuation(self.domain().fraction_field(), self).extensions(ring)
+        if self.domain().is_subring(ring):
+            from sage.rings.number_field.number_field import is_NumberField
+            if is_NumberField(ring):
+                if ring.base() is self.domain():
+                    from valuation_space import DiscreteValuationSpace
+                    from limit_valuation import LimitValuationFiniteExtension
+                    parent = DiscreteValuationSpace(ring)
+                    return [parent.__make_element_class__(pAdicLimitValuation)(parent, approximant, ring.relative_polynomial()) for approximant in self.mac_lane_approximants(ring.relative_polynomial())]
+                if ring.base() is not ring and self.domain().is_subring(ring.base()):
+                    return sum([w.extensions(ring) for w in self.extensions(ring.base())], [])
+        raise NotImplementedError("extensions of %r from %r to %r not implemented"%(self, self.domain(), ring))
 
     def restriction(self, ring):
         if self.domain().has_coerce_map_from(ring):
@@ -1145,3 +1159,7 @@ class pAdicValuation_number_field(pAdicValuation_base):
                 return repr(unique_approximant[0])
             return "[ %s ]-adic valuation"%(", ".join("v(%r) = %r" if (isinstance(v, AugmentedValuation) and v.domain() == self._valuation.domain()) else repr(v) for v in unique_approximant))
         return "%s-adic valuation"%(self._valuation)
+
+class pAdicLimitValuation(LimitValuationFiniteExtension):
+    def _to_approximation_domain(self, f):
+        return f.polynomial(self.domain().variable_name())

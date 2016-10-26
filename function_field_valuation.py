@@ -27,6 +27,7 @@ from sage.rings.all import QQ, ZZ, infinity
 
 from valuation import DiscretePseudoValuation
 from trivial_valuation import TrivialValuation
+from limit_valuation import LimitValuationFiniteExtension
 
 class FunctionFieldValuationFactory(UniqueFactory):
     r"""
@@ -113,6 +114,19 @@ class FunctionFieldValuationFactory(UniqueFactory):
         sage: w(x - w) # optional: integrated
         1/3
 
+    There are several ways to create valuations on extensions of rational
+    function fields::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x); L
+        Function field in y defined by y^2 - x
+
+    A place that has a unique extension can just be defined downstairs::
+
+        sage: v = FunctionFieldValuation(L, x); v
+        (x - 1)-adic valuation
+
     """
     def create_key(self, domain, prime):
         r"""
@@ -176,7 +190,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
         if domain.base_field() is not domain:
             # if this is an extension field, construct the unique place over
             # the place on the subfield
-            return self.create_key(domain.base_field(), FunctionFieldValuation(domain.base_field(), generator))
+            return self.create_key(domain, FunctionFieldValuation(domain.base_field(), generator))
 
         if generator in domain.constant_base_field():
             # generator is a constant, we associate to it the place which
@@ -197,7 +211,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
             return self.create_key(domain, valuation)
         elif generator == ~domain.gen():
             # generator is 1/x, the infinite place
-            return (domain, ~domain.gen())
+            return domain, ~domain.gen()
         else:
             raise ValueError("a place must be given by an irreducible polynomial or the inverse of the generator")
 
@@ -215,11 +229,13 @@ class FunctionFieldValuationFactory(UniqueFactory):
             sage: v = FunctionFieldValuation(K, w) # indirect doctest
 
         """
+        if valuation.domain() is domain:
+            return domain, valuation
         if valuation.domain() is domain._ring:
             if domain.base_field() is not domain:
-                # on a extension of the form K[x]/(G), a valuation on K[x] must
+                # on an extension of the form K[x]/(G), a valuation on K[x] must
                 # send exactly (G) to infinity
-                G = L.polynomial()
+                G = domain.polynomial()
                 if valuation(G) != infinity:
                     raise ValueError("valuation must be a pseudo-valuation which sends the defining polynomial to infinity but %r sends %r to %r"%(valuation, G, valuation(G)))
                 if valuation.constant_valuation().domain() is not domain.base_field():
@@ -230,7 +246,12 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 if not valuation.is_discrete_valuation():
                     raise ValueError("valuation must be a discrete valuation but %r is not."%(valuation,))
             return domain, valuation
-        raise NotImplementedError("automatic extension of valuations to the full domain not implemented yet")
+
+        if valuation.domain().is_subring(domain.base_field()):
+            # valuation is defined on a subring of this function field, try to lift it
+            return self.create_key(domain, valuation.extension(domain))
+
+        raise NotImplementedError("extension of valuation from %r to %r not implemented yet"%(valuation.domain(), domain))
 
     def create_object(self, version, key, **extra_args):
         r"""
@@ -247,14 +268,16 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         """
         domain, valuation = key
+        from sage.rings.valuation.valuation_space import DiscreteValuationSpace
+        parent = DiscreteValuationSpace(domain)
+        if valuation in domain:
+            assert(valuation == ~domain.gen())
+            return parent.__make_element_class__(InfiniteRationalFunctionFieldValuation)(parent)
+        if domain is valuation.domain():
+            return valuation
         if domain.base_field() is domain:
-            from sage.rings.valuation.valuation_space import DiscreteValuationSpace
-            parent = DiscreteValuationSpace(domain)
-            if valuation in domain:
-                assert(valuation == ~domain.gen())
-                return parent.__make_element_class__(InfiniteRationalFunctionFieldValuation)(parent)
             return parent.__make_element_class__(FiniteRationalFunctionFieldValuation)(parent, valuation)
-        raise NotImplementedError
+        raise NotImplementedError("valuation on %r from %r on %r"%(domain, valuation, valuation.domain()))
 
 FunctionFieldValuation = FunctionFieldValuationFactory("FunctionFieldValuation")
 
@@ -272,6 +295,63 @@ class FunctionFieldValuation_base(DiscretePseudoValuation):
         sage: TestSuite(v).run()
 
     """
+    def _extensions_from_constant_field(self, L):
+        raise NotImplementedError
+
+    def extensions(self, L):
+        K = self.domain()
+        from sage.categories.function_fields import FunctionFields
+        if L is self.domain():
+            return self
+        if L in FunctionFields():
+            if K.is_subring(K):
+                if L.base() is K:
+                    # L is a simple extension of the domain of this valuation
+                    W = self.mac_lane_approximants(L.polynomial())
+                    from valuation_space import DiscreteValuationSpace
+                    parent = DiscreteValuationSpace(L)
+                    return [parent.__make_element_class__(FunctionFieldLimitValuation)(parent, w, L.polynomial()) for w in W]
+                elif L.base() is not L and K.is_subring(L):
+                    # recursively call this method for the tower of fields
+                    from operator import add
+                    return reduce(add, A, [])
+                elif L.constant_field() is not K.constant_field() and K.constant_field().is_subring(L):
+                    return self._extensions_from_constant_field(L)
+        raise NotImplementedError("extension of %r from %r to %r not implemented"%(self, K, L))
+
+    def mac_lane_approximants(self, G, precision_cap=None, assume_squarefree=False):
+        # TODO: move this to discrete valuation
+        R = G.parent()
+        if R.base_ring() is not self.domain():
+            raise ValueError("G must be defined over the domain of this valuation")
+        if not assume_squarefree and not G.is_squarefree():
+            raise ValueError("G must be squarefree")
+
+        from sage.rings.all import infinity
+        from gauss_valuation import GaussValuation
+
+        leaves = [ GaussValuation(R, self)]
+        while True:
+            ef = [ v.E()*v.F() for v in leaves]
+            if sum(ef) == G.degree():
+                if precision_cap is None or all([v(v.phi())>precision_cap for v in leaves]):
+                    return leaves
+
+            expandables = []
+            new_leaves = []
+            for v in leaves:
+                if v(G) is infinity:
+                    new_leaves.append(v)
+                else:
+                    expandables.append(v)
+            leaves = new_leaves
+
+            if not expandables:
+                return leaves
+
+            for v in expandables:
+                leaves.extend(v.mac_lane_step(G))
+
 
 class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
     r"""
@@ -288,7 +368,7 @@ class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
 
     """
 
-class ClassicalRationalFunctionFieldValuation_base(RationalFunctionFieldValuation_base):
+class ClassicalFunctionFieldValuation_base(FunctionFieldValuation_base):
     r"""
     Base class for discrete valuations on rational function fields that come
     from points on the projective line.
@@ -298,7 +378,7 @@ class ClassicalRationalFunctionFieldValuation_base(RationalFunctionFieldValuatio
         sage: from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(GF(5))
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
-        sage: isinstance(v, ClassicalRationalFunctionFieldValuation_base)
+        sage: isinstance(v, ClassicalFunctionFieldValuation_base)
         True
         sage: TestSuite(v).run()
 
@@ -350,7 +430,7 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         """
         domain = parent.domain()
         if base_valuation.domain() is not domain._ring:
-            raise ValueError
+            raise ValueError("base valuation must be defined on %r but %r is defined on %r"%(domain._ring, base_valuation, base_valuation.domain()))
 
         self._base_valuation = base_valuation
         RationalFunctionFieldValuation_base.__init__(self, parent)
@@ -449,19 +529,19 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         sage: F = y^21 + x*y^20 + (x^3 + x + 1)*y^18 + (x^3 + 1)*y^17 + (x^4 + x)*y^16 + (x^7 + x^6 + x^3 + x + 1)*y^15 + x^7*y^14 + (x^8 + x^7 + x^6 + x^4 + x^3 + 1)*y^13 + (x^9 + x^8 + x^4 + 1)*y^12 + (x^11 + x^9 + x^8 + x^5 + x^4 + x^3 + x^2)*y^11 + (x^12 + x^9 + x^8 + x^7 + x^5 + x^3 + x + 1)*y^10 + (x^14 + x^13 + x^10 + x^9 + x^8 + x^7 + x^6 + x^3 + x^2 + 1)*y^9 + (x^13 + x^9 + x^8 + x^6 + x^4 + x^3 + x)*y^8 + (x^16 + x^15 + x^13 + x^12 + x^11 + x^7 + x^3 + x)*y^7 + (x^17 + x^16 + x^13 + x^9 + x^8 + x)*y^6 + (x^17 + x^16 + x^12 + x^7 + x^5 + x^2 + x + 1)*y^5 + (x^19 + x^16 + x^15 + x^12 + x^6 + x^5 + x^3 + 1)*y^4 + (x^18 + x^15 + x^12 + x^10 + x^9 + x^7 + x^4 + x)*y^3 + (x^22 + x^21 + x^20 + x^18 + x^13 + x^12 + x^9 + x^8 + x^7 + x^5 + x^4 + x^3)*y^2 + (x^23 + x^22 + x^20 + x^17 + x^15 + x^14 + x^12 + x^9)*y + x^25 + x^23 + x^19 + x^17 + x^15 + x^13 + x^11 + x^5
         sage: x = K._ring.gen()
         sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).augmentation(x,1))
-        sage: v0.mac_lane_approximants(F, assume_squarefree=True) # assume_squarefree for speed, not tested - factorization over function fields over finite fields is missing
+        sage: v0.mac_lane_approximants(F, assume_squarefree=True) # optional: integrated; assumes squarefree for speed
         [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y + x + 1) = 3/2 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y) = 4/3, v(y^3 + x^4) = 13/3 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y + x) = 2 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y^15 + y^13 + (x + 1)*y^12 + x*y^11 + (x + 1)*y^10 + y^9 + y^8 + x*y^6 + x*y^5 + y^4 + y^3 + y^2 + (x + 1)*y + x + 1) = 2 ]]
         sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).augmentation(x+1,1))
-        sage: v0.mac_lane_approximants(F, assume_squarefree=True) # not tested, factorization over function fields over finite fields is missing
+        sage: v0.mac_lane_approximants(F, assume_squarefree=True) # optional: integrated; assumes squarefree for speed
         [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y) = 7/2, v(y^2 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1) = 15/2 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y + x^2 + 1) = 7/2 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y) = 3/4, v(y^4 + x^3 + x^2 + x + 1) = 15/4 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y^13 + x*y^12 + y^10 + (x + 1)*y^9 + (x + 1)*y^8 + x*y^7 + x*y^6 + (x + 1)*y^4 + y^3 + (x + 1)*y^2 + 1) = 2 ]]
         sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).augmentation(x^3+x^2+1,1))
-        sage: v0.mac_lane_approximants(F, assume_squarefree=True) # not tested, factorization over function fields over finite fields is missing
+        sage: v0.mac_lane_approximants(F, assume_squarefree=True) # optional: integrated; assumes squarefree for speed
         [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x^3 + x^2 + 1) = 1 ], v(y + x^3 + x^2 + x) = 2, v(y^2 + (x^6 + x^4 + 1)*y + x^14 + x^10 + x^9 + x^8 + x^5 + x^4 + x^3 + x^2 + x) = 5 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x^3 + x^2 + 1) = 1 ], v(y^2 + (x^7 + x^5 + x^4 + x^3 + x^2 + x)*y + x^7 + x^5 + x + 1) = 3 ],
          [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x^3 + x^2 + 1) = 1 ], v(y^3 + (x^8 + x^5 + x^4 + x^3 + x + 1)*y^2 + (x^7 + x^6 + x^5)*y + x^8 + x^5 + x^4 + x^3 + 1) = 3 ],
@@ -525,29 +605,12 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             return repr(self._base_valuation.constant_valuation())
         return "Valuation on rational function field induced by %s"%self._base_valuation
 
-    def extension(self, L):
-        K = self.domain()
-        from sage.categories.function_fields import FunctionFields
-        if L is self.domain():
-            return self
-        if L in FunctionFields():
-            if K.is_subring(K):
-                if L.base() is K:
-                    # L is a simple extension of the domain of this valuation
-                    W = self.mac_lane_approximants(L.polynomial(), precision_cap=infinity)
-                    if len(W) > 1:
-                        raise ValueError("valuation %r on %r does not uniquely extend to %r"%(self, K, L))
-                    return FunctionFieldValuation(L, W[0])
-                elif L.base() is not L and K.is_subring(L):
-                    # recursively call this method for the tower of fields
-                    return self.extension(L.base()).extension(L)
-                elif L.constant_field() is not K.constant_field() and K.constant_field().is_subring(L):
-                    # extend the underlying valuation on the polynomial ring
-                    w = self._base_valuation.extension(L._ring)
-                    return FunctionFieldValuation(L, w)
-        raise NotImplementedError("extension of %r from %r to %r not implemented"%(self, K, L))
+    def _extensions_from_constant_field(self, L):
+        # extend the underlying valuation on the polynomial ring
+        W = self._base_valuation.extensions(L._ring)
+        return [FunctionFieldValuation(L, w) for w in W]
 
-class InfiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValuation_base):
+class InfiniteRationalFunctionFieldValuation(RationalFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base):
     r"""
     Valuation of the infinite place of a function field.
 
@@ -645,7 +708,7 @@ class InfiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValua
         if self(f) < 0:
             raise ValueError("reduction is only defined for elements of non-negative valuation")
         if self(f) > 0:
-            return self.domain().zero()
+            return self.residue_ring().zero()
 
         from sage.rings.function_field.function_field_valuation import FunctionFieldValuation
         return FunctionFieldValuation(self.domain(), self.domain().gen()).reduce(f.element()(~self.domain().gen()))
@@ -670,7 +733,7 @@ class InfiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValua
         assert F in self.domain()
         return self.domain()(F)
 
-class FiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base):
+class FiniteRationalFunctionFieldValuation(ClassicalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
     r"""
     Valuation of a finite place of a function field.
 
@@ -702,8 +765,8 @@ class FiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValuati
 
         sage: TestSuite(v).run()
         sage: TestSuite(w).run()
-        sage: TestSuite(u).run()
-        sage: TestSuite(q).run()
+        sage: TestSuite(u).run() # long time
+        sage: TestSuite(q).run() # long time
 
     """
     def _call_(self, f):
@@ -734,6 +797,10 @@ class FiniteRationalFunctionFieldValuation(ClassicalRationalFunctionFieldValuati
 
         """
         return self._base_valuation.residue_field()
+
+class FunctionFieldLimitValuation(LimitValuationFiniteExtension):
+    def _to_approximation_domain(self, f):
+        return f.element()
 
 class FunctionFieldPolymodValuation(InducedFunctionFieldValuation_base):
     def __init__(self, domain, base_valuation):
@@ -771,39 +838,6 @@ class FunctionFieldPolymodValuation(InducedFunctionFieldValuation_base):
             raise ValueError
 
         return self.domain()(self._base_valuation._base_valuation.lift(F.element()))
-
-    def mac_lane_approximants(self, G, precision_cap=None, assume_squarefree=False):
-        # TODO: move this to discrete valuation
-        R = G.parent()
-        if R.base_ring() is not self.domain():
-            raise ValueError("G must be defined over the domain of this valuation")
-        if not assume_squarefree and not G.is_squarefree():
-            raise ValueError("G must be squarefree")
-
-        from sage.rings.all import infinity
-        from gauss_valuation import GaussValuation
-
-        leaves = [ GaussValuation(R, self)]
-        while True:
-            ef = [ v.E()*v.F() for v in leaves]
-            if sum(ef) == G.degree():
-                if precision_cap is None or all([v(v.phi())>precision_cap for v in leaves]):
-                    return leaves
-
-            expandables = []
-            new_leaves = []
-            for v in leaves:
-                if v(G) is infinity:
-                    new_leaves.append(v)
-                else:
-                    expandables.append(v)
-            leaves = new_leaves
-
-            if not expandables:
-                return leaves
-
-            for v in expandables:
-                leaves.extend(v.mac_lane_step(G))
 
     def _repr_(self):
         return "Valuation on rational function field induced by %s"%self._base_valuation

@@ -195,7 +195,17 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         """
         if isinstance(x.parent(), DiscretePseudoValuationSpace):
-            return self(x.change_ring(self.domain()))
+            if x.domain() is not self.domain():
+                try:
+                    return self(x.change_ring(self.domain()))
+                except NotImplementedError:
+                    pass
+            else:
+                # If this is an element of a discrete pseudo-valuation space over the same domain,
+                # then we treat it as an element of this space (see __contains__), i.e., we do not
+                # actually change x.parent() to self here if it is, e.g., a discrete valuation space.
+                # This might be surprising but is how facades work for example.
+                return x
         raise ValueError("element can not be converted into the space of %r"%(self,))
 
     class ElementMethods:
@@ -451,8 +461,26 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 Rational Field
 
             """
+            extensions = self.extensions(ring)
+            assert(len(extensions))
+            if len(extensions) > 1:
+                raise ValueError("there is no unique extension of %r from %r to %r"%(self, self.domain(), ring))
+            return extensions[0]
+
+        def extensions(self, ring):
+            r"""
+            Return the extensions of this valuation to ``ring``.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 2)
+                sage: v.extensions(QQ)
+                [2-adic valuation]
+
+            """
             if ring is self.domain():
-                return self
+                return [self]
             raise NotImplementedError("extending %r from %r to %r not implemented"%(self, self.domain(), ring))
 
         def restriction(self, ring):
@@ -738,6 +766,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester = self._tester(**options)
 
             tester.assertEqual(self.extension(self.domain()), self)
+            tester.assertEqual(self.extensions(self.domain()), [self])
 
         def _test_change_ring(self, **options):
             r"""
@@ -782,9 +811,6 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
         """
         DiscretePseudoValuationSpace.__init__(self, domain)
 
-        # discrete valuations are discrete pseudo-valuations
-        self.register_embedding(self.hom(lambda x:x, DiscretePseudoValuationSpace(domain)))
-
     def _element_constructor_(self, x):
         r"""
         Create an element in this space from ``x``.
@@ -814,11 +840,17 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
             True
 
         """
-        # We try to convert discrete pseudo-valuations that claims to be a
-        # valuation into this space
+        # We accept any discrete pseudo-valuation that claims to be a discrete valuation
         if isinstance(x.parent(), DiscretePseudoValuationSpace) and x.is_discrete_valuation():
-            # after we base-changed them into our domain
-            return DiscretePseudoValuationSpace(self.domain())(x)
+            if x.domain() is not self.domain():
+                # after we base-changed them into our domain
+                return DiscretePseudoValuationSpace(self.domain())(x)
+            # If this is a valuation in a discrete pseudo-valuation space over the same domain,
+            # then we treat it as an element of this space (see __contains__), i.e., we do not
+            # actually change x.parent() to self here if it is, e.g., a
+            # discrete pseudo-valuation space.  This might be surprising but is
+            # also how facades work for example.
+            return x
         raise ValueError("element does not convert to a discrete valuation in %r"%(self,))
 
     def _repr_(self):

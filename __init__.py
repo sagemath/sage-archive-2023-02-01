@@ -10,7 +10,8 @@ from .augmented_valuation import AugmentedValuation
 # local file and the instances that come from the mac_lane import define
 # different types)
 from .trivial_valuation import TrivialDiscreteValuation, TrivialDiscretePseudoValuation
-from .function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, ClassicalRationalFunctionFieldValuation_base
+from .function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, FunctionFieldLimitValuation
+from .limit_valuation import LimitValuation_base
 
 # =================
 # MONKEY PATCH SAGE

@@ -677,7 +677,7 @@ class AugmentedValuation(DevelopingValuation):
         # in the last step of reduce, the f_iQ^i are reduced, and evaluated at
         # the generator of the residue field
         # here, we undo this:
-        coeffs = [ R0(c if self.psi().degree()==1 else list(c._vector_())) for c in F.coefficients(sparse=False) ]
+        coeffs = [ R0(c if self.psi().degree()==1 else list(c._vector_() if hasattr(c, '_vector_') else c.list())) for c in F.coefficients(sparse=False) ]
         coeffs = [ self._base_valuation.lift(c) for c in coeffs ]
         # now the coefficients correspond to the expansion with (f_iQ^i)(Q^{-1} phi)^i
 
@@ -962,3 +962,6 @@ class AugmentedValuation(DevelopingValuation):
     def is_gauss_valuation(self):
         # Is this correct? Can there be trivial augmentations?
         return False
+
+    def _make_monic_integral(self, G):
+        return self._base_valuation._make_monic_integral(G)

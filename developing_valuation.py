@@ -236,8 +236,8 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         """
         # defined on p.497 of [ML1936']
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of the valuation")
+
+        f = self.domain().coerce(f)
 
         if f.is_zero():
             return False
@@ -531,7 +531,10 @@ class DevelopingValuation(DiscretePseudoValuation):
                 raise NotImplementedError("is_minimal() only implemented for equivalence-irreducible polynomials")
             from gauss_valuation import GaussValuation
             if self.is_gauss_valuation():
-                return f.is_monic() and self.reduce(f).is_irreducible()
+                if f.is_monic():
+                    if self(f) < 0:
+                        raise NotImplementedError("Investigate what is the right behaviour here")
+                    return self.reduce(f).is_irreducible()
             if self.is_equivalent(self.phi(), f):
                 # TODO: reference new Lemma
                 return f.degree() == self.phi().degree()
@@ -542,7 +545,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
     @cached_method
     def equivalence_decomposition(self, f):
-        """
+        r"""
         Return an equivalence decomposition of ``f``, i.e., a polynomial
         `g(x)=e(x)\prod_i \phi_i(x)` with `e(x)` an equivalence unit (see
         :meth:`is_equivalence_unit()`) and the `\phi_i` key polynomials (see
@@ -639,8 +642,6 @@ class DevelopingValuation(DiscretePseudoValuation):
             raise ValueError("f must be in the domain of the valuation")
         if f.is_zero():
             raise ValueError("equivalence decomposition of zero is not defined")
-        if any([self.constant_valuation()(c)<0 for c in f.list()]):
-            raise ValueError("f must be integral")
 
         from sage.structure.factorization import Factorization
         if not self.domain().base_ring().is_field():
@@ -690,8 +691,7 @@ class DevelopingValuation(DiscretePseudoValuation):
                 F.append((self.phi(),phi_divides))
 
         ret = Factorization(F, unit=unit)
-        # assert self.is_equivalent(ret.prod(), f0) -- this might fail because of leading zeros
-        assert self((ret.prod() - f0).map_coefficients(lambda c:_lift_to_maximal_precision(c)))
+        assert self.is_equivalent(ret.prod(), f0) # this might fail because of leading zeros
         assert self.is_equivalence_unit(ret.unit())
         return ret
 
@@ -1000,6 +1000,11 @@ class DevelopingValuation(DiscretePseudoValuation):
         """
         return self.domain().change_ring(self.residue_field())
 
+    def _make_monic_integral(self, G):
+        if G.is_monic() and self(G) >= 0:
+            return G
+        raise NotImplementedError("The polynomial %r is not monic integral and %r does not provide the means to rewrite it to a monic integral polynomial."%(G, self))
+
     def mac_lane_step(self, G, assume_squarefree=False):
         r"""
 
@@ -1019,10 +1024,18 @@ class DevelopingValuation(DiscretePseudoValuation):
         """
         from sage.misc.misc import verbose
         verbose("Expanding %s towards %s"%(self,G),caller_name="mac_lane_step")
-        assert not G.is_constant()
         R = G.parent()
         if R is not self.domain():
             raise ValueError("G must be defined over the domain of this valuation")
+        if not G.is_monic():
+            # G must be monic, there is no fundamental reason for this, but the implementation makes this assumption in some places.
+            # We try to turn G into a monic integral polynomial that describes the same extension
+            return self.mac_lane_step(self._make_monic_integral(G), assume_squarefree=assume_squarefree)
+        if self(G) < 0:
+            # G must be integral, otherwise, e.g., the effective degree is too low
+            # We try to turn G into a monic integral polynomial that describes the same extension
+            return self.mac_lane_step(self._make_monic_integral(G), assume_squarefree=assume_squarefree)
+        assert not G.is_constant()
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
 
@@ -1035,7 +1048,7 @@ class DevelopingValuation(DiscretePseudoValuation):
             return [self.augmentation(G, infinity)]
 
         F = self.equivalence_decomposition(G)
-        assert len(F), "%s factored as a unit %s"%(G,F)
+        assert len(F), "%s equivalence-decomposese as an equivalence-unit %s"%(G,F)
 
         ret = []
         for phi,e in F:

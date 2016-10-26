@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ] ; then
+    echo >&2 "Error - SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+cd src
+
+# Patch sources.
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+	    --enable-utf --enable-unicode-properties --enable-jit
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring pcre."
+    exit 1
+fi
+
+$MAKE V=1
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building pcre."
+    exit 1
+fi
+
+$MAKE install V=1
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing pcre."
+    exit 1
+fi

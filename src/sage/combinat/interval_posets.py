@@ -1635,7 +1635,7 @@ class TamariIntervalPoset(Element):
             sage: ip.min_linear_extension()
             [1, 2, 3, 5, 4]
         """
-        # The min linear extension is build by postfix-reading the
+        # The min linear extension is built by postfix-reading the
         # final forest of ``self``.
         final_forest = DiGraph([list(self),
                                 self.decreasing_cover_relations()],
@@ -1685,7 +1685,7 @@ class TamariIntervalPoset(Element):
             sage: ip.max_linear_extension()
             [5, 3, 2, 1, 4]
         """
-        # The max linear extension is build by right-to-left
+        # The max linear extension is built by right-to-left
         # postfix-reading the initial forest of ``self``.
         initial_forest = DiGraph([list(self),
                                   self.increasing_cover_relations()],
@@ -2721,7 +2721,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def from_minimal_schnyder_wood(graph):
         """
-        Return a Tamari interval build from a minimal Schnyder wood.
+        Return a Tamari interval built from a minimal Schnyder wood.
 
         This is an implementation of Bernardi and Bonichon's bijection
         [BerBon]_.

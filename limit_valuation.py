@@ -498,6 +498,11 @@ class LimitValuationFiniteExtension(LimitValuation_base):
             sage: w._approximation
             [ Gauss valuation induced by 5-adic valuation, v(t + 7) = 2 ]
 
+        ALGORITHM:
+
+            The reduction is correct for an equivalence-unit, see
+            :meth:`_improve_approximation_for_call`.
+
         """
         g = self._to_approximation_domain(f)
         if self._approximation(g) > 0:

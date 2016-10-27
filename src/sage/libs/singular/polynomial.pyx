@@ -22,7 +22,7 @@ plusminus_pattern = re.compile("([^\(^])([\+\-])")
 from sage.libs.singular.decl cimport number, ideal
 from sage.libs.singular.decl cimport currRing, rChangeCurrRing
 from sage.libs.singular.decl cimport p_Copy, p_Add_q, p_Neg, pp_Mult_nn, p_GetCoeff, p_IsConstant, p_Cmp, pNext
-from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, p_Deg, p_Totaldegree, p_WTotaldegree, p_WDegree, p_LDeg, p_FDeg
+from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, p_Deg, p_Totaldegree, p_WTotaldegree, p_WDegree
 from sage.libs.singular.decl cimport n_Delete, idInit, fast_map_common_subexp, id_Delete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omFree
 from sage.libs.singular.decl cimport p_GetComp, p_SetComp
@@ -532,7 +532,6 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
         return -1
     if(r != currRing): rChangeCurrRing(r)
     if x == NULL:
-        #return p_Deg(p, r)
         while p:  
             _deg = p_WDegree(p,r)
           

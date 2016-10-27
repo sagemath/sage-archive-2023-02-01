@@ -228,14 +228,14 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
     A variation of the blob cube featuring heterogeneously sized blobs::
 
-        sage: F = x^2 + y^2 + z^2 +sin(4*x) + sin(4*y) + sin(4*z) - 1
+        sage: F = x^2 + y^2 + z^2 + sin(4*x) + sin(4*y) + sin(4*z) - 1
         sage: implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), color='lavenderblush')
         Graphics3d Object
 
     .. PLOT::
 
         x, y, z = var('x,y,z')
-        F = x**2 + y**2 + z**2 +sin(4*x) + sin(4*y) + sin(4*z) - 1
+        F = x**2 + y**2 + z**2 + sin(4*x) + sin(4*y) + sin(4*z) - 1
         G = implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), color='lavenderblush')
         sphinx_plot(G)
 
@@ -313,14 +313,14 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         G = implicit_plot3d(x**2 + y**2 - z**2 -0.3, (x,-2,2), (y,-2,2), (z,-1.8,1.8), color='honeydew')
         sphinx_plot(G)
 
-    Dupin cycloid (https://en.wikipedia.org/wiki/Dupin_cyclide) ::
+    Dupin cyclide (https://en.wikipedia.org/wiki/Dupin_cyclide) ::
 
         sage: x, y, z , a, b, c, d = var('x,y,z,a,b,c,d')
         sage: a = 3.5
         sage: b = 3
-        sage: c = sqrt(a**2 - b**2)
+        sage: c = sqrt(a^2 - b^2)
         sage: d = 2
-        sage: F = (x**2 + y**2 + z**2 + b**2 - d**2)**2 - 4*(a*x-c*d)**2 - 4*b**2*y**2
+        sage: F = (x^2 + y^2 + z^2 + b^2 - d^2)^2 - 4*(a*x-c*d)^2 - 4*b^2*y^2
         sage: implicit_plot3d(F, (x,-6,6), (y,-6,6), (z,-6,6), color='seashell')
         Graphics3d Object
 
@@ -403,7 +403,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         G = implicit_plot3d(F, (x,-2,2), (y,-2,2), (z,-2,2), color='mediumvioletred')
         sphinx_plot(G)
 
-    Chutmov::
+    Chmutov::
 
         sage: F = x^4 + y^4 + z^4 - (x^2 + y^2 + z^2 - 0.3)
         sage: implicit_plot3d(F, (x,-1.5,1.5), (y,-1.5,1.5), (z,-1.5,1.5), color='lightskyblue')
@@ -416,7 +416,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         G = implicit_plot3d(F, (x,-1.5,1.5), (y,-1.5,1.5), (z,-1.5,1.5), color='lightskyblue')
         sphinx_plot(G)
 
-    Further Chutmov::
+    Further Chmutov::
 
         sage: F = 2*(x^2*(3-4*x^2)^2+y^2*(3-4*y^2)^2+z^2*(3-4*z^2)^2) - 3
         sage: implicit_plot3d(F, (x,-1.3,1.3), (y,-1.3,1.3), (z,-1.3,1.3), color='darksalmon')

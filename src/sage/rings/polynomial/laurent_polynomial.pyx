@@ -1545,12 +1545,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         try:
-            cmpfn = self.parent().term_order().compare_tuples
+            key = self.parent().term_order().sortkey
         except AttributeError:
-            cmpfn = None
+            key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self._prod.poly_repr(self.parent().variable_names(),
-                                    atomic_coefficients=atomic, cmpfn=cmpfn)
+                                    atomic_coefficients=atomic, sortkey=key)
 
     def _latex_(self):
         """
@@ -1566,12 +1566,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         try:
-            cmpfn = self.parent().term_order().compare_tuples
+            key = self.parent().term_order().sortkey
         except AttributeError:
-            cmpfn = None
+            key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self._prod.latex(self.parent().variable_names(),
-                                atomic_coefficients=atomic, cmpfn=cmpfn)
+                                atomic_coefficients=atomic, sortkey=key)
 
     def __invert__(LaurentPolynomial_mpair self):
         """

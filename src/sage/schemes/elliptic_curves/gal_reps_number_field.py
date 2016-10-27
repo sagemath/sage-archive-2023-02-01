@@ -322,6 +322,19 @@ class GaloisRepresentation(SageObject):
             sage: rho = E.galois_representation()
             sage: rho.isogeny_bound()
             [0]
+
+        An example (an elliptic curve with everywhere good reduction
+        over an imaginary quadratic field with quite large
+        discriminant), which failed until fixed at :trac:`21776`::
+
+            sage: K.<a> = NumberField(x^2 - x + 112941801)
+            sage: E = EllipticCurve([a+1,a-1,a,-23163076*a + 266044005933275,57560769602038*a - 836483958630700313803])
+            sage: E.conductor().norm()
+            1
+            sage: GR = E.galois_representation()
+            sage: GR.isogeny_bound()
+            []
+
         """
         if self.E.has_rational_cm():
             return [0]
@@ -533,7 +546,7 @@ def _maybe_borels(E, L, patience=100):
         L.remove(2)
         include_2 = not E.division_polynomial(2).is_irreducible()
 
-    for P in K.primes_of_degree_one_iter():
+    for P in deg_one_primes_iter(K):
         if not (L and patience): # stop if no primes are left, or
                                  # patience is exhausted
             break
@@ -645,7 +658,7 @@ def _exceptionals(E, L, patience=1000):
     for l in L:
         D[l] = [True, True, True]
 
-    for P in K.primes_of_degree_one_iter():
+    for P in deg_one_primes_iter(K):
         try:
             trace = E.change_ring(P.residue_field()).trace_of_frobenius()
         except ArithmeticError: # Bad reduction at P.
@@ -658,7 +671,7 @@ def _exceptionals(E, L, patience=1000):
 
         unexc = [] # Primes we discover are unexceptional go here.
 
-        for l in D:
+        for l in D.iterkeys():
             tr = GF(l)(trace)
             det = GF(l)(determinant)
             disc = GF(l)(discriminant)
@@ -699,7 +712,7 @@ def _exceptionals(E, L, patience=1000):
         if (D == {}) or (patience == 0):
             break
 
-    for l in D:
+    for l in D.iterkeys():
         output.append(l)
 
     output.sort()
@@ -760,6 +773,14 @@ def _tr12(tr, det):
     det3 = det**3
     return ((tr * (tr**2 - 3 * det))**2 - 2 * det3)**2 - 2 * det3**2
 
+from sage.arith.all import primes
+def deg_one_primes_iter(K):
+    start = 2
+    if K.is_totally_imaginary():
+        start = K.discriminant().abs()//4
+    for p in primes(start=start,stop=10**10):
+        for P in K.primes_above(p, degree=1):
+            yield P
 
 def _semistable_reducible_primes(E):
     r"""Find a list containing all semistable primes l unramified in K/QQ
@@ -785,7 +806,8 @@ def _semistable_reducible_primes(E):
 
     E = _over_numberfield(E)
     K = E.base_field()
-    deg_one_primes = K.primes_of_degree_one_iter()
+
+    deg_one_primes = deg_one_primes_iter(K)
 
     bad_primes = set([]) # This will store the output.
 
@@ -826,7 +848,7 @@ def _semistable_reducible_primes(E):
     Kgal = K.galois_closure('b')
     maps = K.embeddings(Kgal)
 
-    for i in range(2 ** (K.degree() - 1)):
+    for i in xrange(2 ** (K.degree() - 1)):
         ## We iterate through all possible characters. ##
 
         # Here, if i = i_{l-1} i_{l-2} cdots i_1 i_0 in binary, then i
@@ -838,7 +860,7 @@ def _semistable_reducible_primes(E):
         phi2y = 1
 
         # We compute the two algebraic characters at x and y:
-        for j in range(K.degree()):
+        for j in xrange(K.degree()):
             if i % 2 == 1:
                 phi1x *= maps[j](x)
                 phi1y *= maps[j](y)
@@ -976,7 +998,7 @@ def _possible_normalizers(E, SA):
     traces_list = []
     W = V.zero_subspace()
 
-    deg_one_primes = K.primes_of_degree_one_iter()
+    deg_one_primes = deg_one_primes_iter(K)
 
     while W.dimension() < V.dimension() - 1:
         P = next(deg_one_primes)
@@ -1035,7 +1057,7 @@ def _possible_normalizers(E, SA):
 
     # We find the element a of the selmer group corresponding to v:
     a = 1
-    for i in range(len(selmer_group)):
+    for i in xrange(len(selmer_group)):
         if v[i] == 1:
             a *= selmer_group[i]
 

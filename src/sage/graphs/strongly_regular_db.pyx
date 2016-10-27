@@ -1547,9 +1547,9 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
 
 def is_switch_skewhad(int v, int k, int l, int mu):
     r"""
-    Test whether some `switch skewhad^2+*` is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some ``switch skewhad^2+*`` is `(v,k,\lambda,\mu)`-strongly regular.
 
-    The `switch skewhad^2+*` graphs appear on `Andries Brouwer's database
+    The ``switch skewhad^2+*`` graphs appear on `Andries Brouwer's database
     <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
     adding an isolated vertex to the complement of
     :func:`~sage.graphs.graph_generators.GraphGenerators.SquaredSkewHadamardMatrixGraph`,

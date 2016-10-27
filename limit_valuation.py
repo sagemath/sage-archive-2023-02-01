@@ -325,13 +325,25 @@ class LimitValuation_base(DiscretePseudoValuation):
 
 class LimitValuationFiniteExtension(LimitValuation_base):
     r"""
-    A limit valuation that comes from a finite simple extension of the form
-    `L=K[x]/(G)`.
+    A valuation on a quotient of the form `L=K[x]/(G)` with an irreducible `G`.
 
-    Starting from ``approximation``, the approximation used to perform
-    computations is improved using the Mac Lane algorithm. The initial value of
-    ``approximation`` must already have the final residue field and
-    ramification index and it must approximate a unique extension on `L`.
+    Internally, this valuation is represented as a limit of valuations on
+    `K[x]` which sends `G` to infinity.  Starting from an ``approximation``,
+    i.e., one element of the sequence that the limit taken over, that
+    approximation is used to perform computations and it is improved using the
+    Mac Lane algorithm whenever a better approximation is needed.
+    
+    INPUT:
+
+    - ``parent`` -- the containing valuation space (usually the space of
+      discrete valuations on `L`)
+
+    - ``approximation`` -- a Gauss valuation or an augmentation thereof; a
+      discrete valuation on `K[x]` which already has the residue field, and
+      ramification index of the limit and which approximates exactly one
+      valuation on `L`.
+
+    - ``G`` -- an irreducible polynomial in `K[x]`
 
     TESTS::
 
@@ -427,15 +439,41 @@ class LimitValuationFiniteExtension(LimitValuation_base):
             sage: w._approximation
             [ Gauss valuation induced by 5-adic valuation, v(t + 7) = 2 ]
 
+        ALGORITHM:
+
+            Write `L=K[x]/(G)` and consider `g` a representative of the class
+            of ``f`` in `K[x]` (of minimal degree.) Write `v` for
+            ``self._approximation` and `\phi` for the last key polynomial of
+            `v`. With repeated quotient and remainder `g` has a unique
+            expansion as `g=\sum a_i\phi^i`. Suppose that `g` is an
+            equivalence-unit with respect to ``self._approximation``, i.e.,
+            `v(a_0) < v(a_i\phi^i)` for all `i\ne 0`. If we denote the limit
+            valuation as `w`, then `v(a_i\phi^i)=w(a_i\phi^i)` since the
+            valuation of key polynomials does not change during augmentations
+            (Theorem 6.4 in [ML1936'].) By the strict triangle inequality,
+            `w(g)=v(g)`.
+            Note that any `g` which  is not in `(G)` is an equivalence-unit
+            after finitely many steps of the Mac Lane algorithm. Indeed,
+            otherwise the valuation of `g` would be infinite (follows from
+            Theorem 5.1 in [ML1936']) since the valuation of the key
+            polynomials increases.
+
         """
         from sage.rings.all import infinity
         if self._approximation._mu == infinity:
+            # an infinite valuation can not be improved further
             return
+
         if f == 0:
+            # zero always has infinite valuation (actually, this might
+            # not be desirable for inexact zero elements with leading
+            # zero coefficients.)
             return
+
         g = self._to_approximation_domain(f)
         if self._approximation.is_equivalence_unit(g):
-           return
+            # see ALGORITHM above
+            return
 
         self._improve_approximation()
         return self._improve_approximation_for_call(f)

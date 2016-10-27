@@ -75,7 +75,9 @@ Options:
    -c: after installing, run the test suite for the package
    -d: only download the package
    -y: automatically reply "y" for all prompts regarding
-       experimental and old-style packages
+       experimental and old-style packages; warning: there
+       is no guarantee that these packages will build correctly;
+       use at your own risk"
    -n: automatically reply "n" for all prompts regarding
        experimental and old-style packages
 EOF

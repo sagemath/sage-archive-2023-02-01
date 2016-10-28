@@ -1,11 +1,11 @@
+# This is here in Cython so we can access the interpreter globals
+# cython: old_style_globals=True
 """
 The ``timeit`` command
 
 This uses the function :func:`~sage.misc.sage_timeit.sage_timeit`.
 """
 from __future__ import absolute_import
-
-# This is here in Cython so we can get the interpreter globals
 
 from . import sage_timeit
 

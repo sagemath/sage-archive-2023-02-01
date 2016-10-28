@@ -1,0 +1,76 @@
+From 3e4e107715ac7f99f53785e4991887253183205c Mon Sep 17 00:00:00 2001
+From: Robert Dodier <robert_dodier@users.sourceforge.net>
+Date: Wed, 18 May 2016 17:35:55 -0700
+Subject: [PATCH] In eigenvectors, iterate over all eigenvalues.
+
+Fixes SF bug #3008: "Eigenvectors are missing", #3085: "missed eigenvectors",
+#3149: "eigenvectors does not show eigenvectors with eigenvalue zero".
+---
+ share/matrix/eigen.mac |  3 +--
+ tests/rtest15.mac      | 39 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 2 deletions(-)
+
+diff --git a/share/matrix/eigen.mac b/share/matrix/eigen.mac
+index ae1c51a..eddf05d 100644
+--- a/share/matrix/eigen.mac
++++ b/share/matrix/eigen.mac
+@@ -119,8 +119,7 @@ eigenvectors(mat):=
+ 		nondiagonalizable:false,
+ 		eigvecs:[],realonly:false,algebraic:true,
+ 		for index1 thru count do 
+-		(count:mi(count-part(multiplicities,index1)+1),
+-		mmatrx:matrx-part(eigvals,1,index1)*vectr,
++		(mmatrx:matrx-part(eigvals,1,index1)*vectr,
+ 		equations:[],
+ 		for index2 thru dimnsn do
+ 		equations:cons(mmatrx[index2,1],equations),%rnum:0,
+diff --git a/tests/rtest15.mac b/tests/rtest15.mac
+index 137a4b1..6e512ae 100644
+--- a/tests/rtest15.mac
++++ b/tests/rtest15.mac
+@@ -1363,3 +1363,42 @@ trigrat(e^x * sin(x));
+ trigrat(f^x * sin(x));
+ %i*abs(f)^x*sin(x)*sin(atan2(0, f)*x) + abs(f)^x*sin(x)*cos(atan2(0, f)*x);
+ 
++(check_eigenvectors (M) := block ([vals, vecs, mults, eqns],
++  [[vals, mults], vecs] : eigenvectors (M),
++  eqns : [lsum (m, m, mults) = length (M),
++          apply ("*", map (lambda ([v, m], v^m), vals, mults)) = determinant (M),
++          length (vecs) = length (vals),
++          every (lambda ([mults1, vecs1], length (vecs1) <= mults1), mults, vecs),
++          every (lambda ([val, vecs1], every (lambda ([vec], transpose (M . vec) = val * matrix (vec)), vecs1)), vals, vecs)],
++  if apply ("and", eqns)
++  then true
++  else [M, eqns]),
++ 0);
++0;
++
++/* SF bug #3008: "Eigenvectors are missing" */
++
++eigenvectors (matrix([1, 1, 0], [0, 1, 0], [0, 0, 2]));
++[[[1, 2], [2, 1]], [[[1, 0, 0]], [[0, 0, 1]]]];
++
++check_eigenvectors (matrix([1, 1, 0], [0, 1, 0], [0, 0, 2]));
++true;
++
++/* SF bug #3085: "missed eigenvectors" */
++
++eigenvectors (matrix([3,1,0,0,0], [1,3,0,0,0], [0,0,2,1,1], [0,0,1,2,1], [0,0,1,1,2]));
++[[[2, 1, 4], [1, 2, 2]],
++ [[[1, - 1, 0, 0, 0]],
++  [[0, 0, 1, 0, - 1], [0, 0, 0, 1, - 1]],
++  [[1, 1, 0, 0, 0], [0, 0, 1, 1, 1]]]];
++
++check_eigenvectors (matrix([3,1,0,0,0], [1,3,0,0,0], [0,0,2,1,1], [0,0,1,2,1], [0,0,1,1,2]));
++true;
++
++/* SF bug #3149: "eigenvectors does not show eigenvectors with eigenvalue zero" */
++
++eigenvectors (matrix([2,3,1],[4,4,2],[-4,-8,-2]));
++[[[2, 0], [2, 1]], [[[1, 1, - 3]], [[1, 0, - 2]]]];
++
++check_eigenvectors (matrix([2,3,1],[4,4,2],[-4,-8,-2]));
++true;
+-- 
+2.10.1
+

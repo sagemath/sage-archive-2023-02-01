@@ -1087,7 +1087,7 @@ class MaximaLibElement(MaximaAbstractElement):
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: sol = maxima_lib(sin(x) == 0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == pi*z54]]
+            [[x == pi*z...]]
         """
         if options.find("use_grobner=true") != -1:
             cmd=EclObject([[max_to_poly_solve], self.ecl(), sr_to_max(vars),

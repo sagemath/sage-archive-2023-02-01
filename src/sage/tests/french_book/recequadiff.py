@@ -195,14 +195,14 @@ Sage example in ./recequadiff.tex, line 567::
 Sage example in ./recequadiff.tex, line 575::
 
   sage: Sol(x) = solve(sol, y)[0]; Sol(x)
-  log(y(x)) == (_C + x)*a + log(b*y(x) - a)
+  log(y(x)) == _C*a + a*x + log(b*y(x) - a)
 
 Sage example in ./recequadiff.tex, line 582::
 
   sage: Sol(x) = Sol(x).lhs()-Sol(x).rhs(); Sol(x)
-  -(_C + x)*a - log(b*y(x) - a) + log(y(x))
+  -_C*a - a*x - log(b*y(x) - a) + log(y(x))
   sage: Sol = Sol.simplify_log(); Sol(x)
-  -(_C + x)*a + log(y(x)/(b*y(x) - a))
+  -_C*a - a*x + log(y(x)/(b*y(x) - a))
   sage: solve(Sol, y)[0].simplify()
   y(x) == a*e^(_C*a + a*x)/(b*e^(_C*a + a*x) - 1)
 

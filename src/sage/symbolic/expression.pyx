@@ -11573,14 +11573,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (n,k,j)=var('n,k,j')
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
-            -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
+            -(-1)^(-j)*sum((-1)^k*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
             sage: assume(j>-1)
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
             1
             sage: forget()
             sage: assume(n>=j)
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
-            -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
+            -(-1)^(-j)*sum((-1)^k*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
             sage: forget()
             sage: assume(j==-1)
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
@@ -11588,7 +11588,7 @@ cdef class Expression(CommutativeRingElement):
             sage: forget()
             sage: assume(j<-1)
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
-            -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
+            -(-1)^(-j)*sum((-1)^k*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
             sage: forget()
 
         Check that :trac:`16176` is fixed::

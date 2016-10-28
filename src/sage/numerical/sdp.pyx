@@ -94,7 +94,7 @@ of primal and dual problems. Thus we can get the optimizer `X` of the dual probl
 as follows, as diagonal blocks, one per each constraint, via :meth:`~SemidefiniteProgram.dual_variable`.
 E.g.::
 
-    sage: p.dual_variable(1)  # rel tol 1e-05
+    sage: p.dual_variable(1)  # rel tol 1e-04
     [ 85555.0 -85555.0]
     [-85555.0  85555.0]
 

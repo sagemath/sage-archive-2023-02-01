@@ -594,6 +594,7 @@ class ActiveTaskCounterDarwin(object):
             sage: from sage.parallel.map_reduce import ActiveTaskCounterDarwin as ATC
             sage: t = ATC(4)
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
+            running ._test_new() . . . pass
         """
         self._active_tasks = Value(ctypes.c_int, task_number)
         self._lock = Lock()
@@ -724,6 +725,7 @@ class ActiveTaskCounterPosix(object):
             sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
             sage: t = ATC(4)
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
+            running ._test_new() . . . pass
         """
         self._active_tasks = Semaphore(task_number)
 

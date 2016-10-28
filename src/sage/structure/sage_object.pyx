@@ -48,6 +48,23 @@ cdef class SageObject:
     .. automethod:: _ascii_art_
     .. automethod:: _cache_key
     """
+    def _test_new(self, **options):
+        """
+        Check that ``cls.__new__(cls)`` does not crash Python,
+        where ``cls = type(self)``.
+
+        It is perfectly legal for ``__new__`` to raise ordinary
+        exceptions.
+
+        EXAMPLES::
+
+            sage: SageObject()._test_new()
+        """
+        cdef type cls = type(self)
+        try:
+            cls.__new__(cls)
+        except Exception:
+            pass
 
     #######################################################################
     # Textual representation code

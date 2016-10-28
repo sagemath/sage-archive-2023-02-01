@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+pip install --verbose --ignore-installed --no-deps --isolated git+https://github.com/sebasguts/PyNormaliz

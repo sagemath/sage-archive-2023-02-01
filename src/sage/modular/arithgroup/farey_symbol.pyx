@@ -43,6 +43,7 @@ from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from cpython.object cimport PyObject_RichCompare
+from sage.structure.sage_object import richcmp_step
 from itertools import groupby
 
 cdef class Farey:
@@ -504,11 +505,16 @@ cdef class Farey:
         """
         if not isinstance(other, Farey):
             return NotImplemented
-        return PyObject_RichCompare([self.coset_reps(), self.cusps(),
-                                     self.fractions()],
-                                    [other.coset_reps(), other.cusps(),
-                                     other.fractions()],
-                                    op)
+
+        step = richcmp_step(self.coset_reps(), other.coset_reps(), op)
+        if not(step is None):
+            return step
+
+        step = richcmp_step(self.cusps(), other.cusps(), op)
+        if not(step is None):
+            return step
+
+        return PyObject_RichCompare(self.fractions(), other.fractions(), op)
 
     def __reduce__(self):
         r"""

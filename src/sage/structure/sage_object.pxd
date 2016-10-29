@@ -9,6 +9,64 @@ cdef extern from "Python.h":
 cdef class SageObject:
     pass
 
+cpdef inline richcmp_step(x, y, int op):
+    """
+    Like ``richcmp(x, y, op)`` but assumed to be only a non-final step in
+    a sequence of several comparison checks.
+
+    INPUT:
+
+    - ``op`` -- a rich comparison operation (e.g. ``Py_EQ``)
+
+    OUTPUT: ``True``, ``False`` or ``None`` (meaning maybe)
+
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import (richcmp_step,
+        ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
+        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
+        ....:     print(richcmp_step(3, 4, op))
+        True
+        True
+        False
+        True
+        False
+        False
+        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
+        ....:     print(richcmp_step(4, 4, op))
+        None
+        None
+        None
+        None
+        None
+        None
+        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
+        ....:     print(richcmp_step(5, 4, op))
+        False
+        False
+        False
+        True
+        True
+        True
+    """
+    if op == Py_EQ:
+        if richcmp(x, y, op):
+            return None  # means maybe
+        else:
+            return False
+    elif op == Py_NE:
+        if richcmp(x, y, op):
+            return True
+        else:
+            return None  # means maybe
+    elif op in [Py_LT, Py_GT, Py_LE, Py_GE]:
+        if richcmp(x, y, Py_EQ):
+            return None  # means maybe
+        elif richcmp(x, y, op):
+            return True
+        else:
+            return False
+
 
 cpdef inline bint rich_to_bool(int op, int c):
     """

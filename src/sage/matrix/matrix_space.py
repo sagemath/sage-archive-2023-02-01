@@ -33,6 +33,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 # System imports
 import sys
@@ -1151,8 +1152,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if self.__nrows != self.__ncols:
             raise TypeError("identity matrix must be square")
         A = self.zero_matrix().__copy__()
-        for i in xrange(self.__nrows):
-            A[i,i] = 1
+        for i in range(self.__nrows):
+            A[i, i] = 1
         A.set_immutable()
         return A
 
@@ -1438,7 +1439,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ArithmeticSubgroupElement
         if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):
             return self(x.matrix(), copy=False)
-        if isinstance(x, (types.GeneratorType, xrange)):
+        if isinstance(x, (types.GeneratorType,)):
             x = list(x)
         if not sparse and isinstance(x, dict):
             x = dict_to_list(x, m, n)

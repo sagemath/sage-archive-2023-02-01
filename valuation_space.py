@@ -654,7 +654,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             for x, n in tester.some_elements(cartesian_product([S,V])):
                 v = self(x)
                 from sage.categories.fields import Fields
-                if n < 0 and -n > v and not self.domain() in Fields():
+                if n < 0 and self.domain() not in Fields():
+                    # note that shifting might not be possible in this case even if -n > v
                     continue
                 y = self.shift(x, n)
                 tester.assertIs(y.parent(), self.domain())
@@ -713,7 +714,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     if x.is_unit() and ~x in self.domain():
                         tester.assertTrue(y.is_unit())
                         tester.assertIn(~y, self.residue_ring())
-                        tester.assertEqual(~y, self.reduce(~x))
+                        tester.assertEqual(~y, self.reduce(self.domain()(~x)))
                 if self(x) > 0:
                     tester.assertEqual(self.reduce(x), 0)
 

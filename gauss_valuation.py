@@ -602,22 +602,6 @@ class GaussValuation_generic(DevelopingValuation):
     def is_trivial(self):
         return self._base_valuation.is_trivial()
 
-    def _gt_(self, other):
-        if isinstance(other, GaussValuation_generic):
-            return self._base_valuation >= other.base_valuation
-        from augmented_valuation import AugmentedValuation
-        if isinstance(other, AugmentedValuation):
-            return False
-        raise NotImplementedError("Operator not implemented for these valuations.")
-
-    def _lt_(self, other):
-        if isinstance(other, GaussValuation_generic):
-            return self._base_valuation <= other._base_valuation
-        from augmented_valuation import AugmentedValuation
-        if isinstance(other, AugmentedValuation):
-            return self <= other._base_valuation
-        raise NotImplementedError("Operator not implemented for these valuations.")
-
     def _make_monic_integral(self, G):
         if not G.is_monic():
             # this might fail if the base ring is not a field
@@ -630,3 +614,10 @@ class GaussValuation_generic(DevelopingValuation):
         assert G.is_monic()
         return G
             
+    def _gt_(self, other):
+        if isinstance(other, GaussValuation_generic):
+            return self._base_valuation >= other._base_valuation
+        from augmented_valuation import AugmentedValuation
+        if isinstance(other, AugmentedValuation):
+            return False
+        raise NotImplementedError("Operator not implemented for these valuations.")

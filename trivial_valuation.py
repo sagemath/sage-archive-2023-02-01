@@ -55,7 +55,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.getcwd())
     sys.path.append(os.path.dirname(os.getcwd()))
 
-from valuation import DiscretePseudoValuation
+from valuation import DiscretePseudoValuation, DiscreteValuation, InfiniteDiscretePseudoValuation
 from valuation_space import DiscreteValuationSpace, DiscretePseudoValuationSpace
 from sage.structure.factory import UniqueFactory
 
@@ -154,7 +154,7 @@ class TrivialDiscretePseudoValuation_base(DiscretePseudoValuation):
         """
         return True
 
-class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base):
+class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, InfiniteDiscretePseudoValuation):
     r"""
     The trivial pseudo-valuation that is `\infty` everywhere.
 
@@ -180,22 +180,6 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base):
     
         """
         TrivialDiscretePseudoValuation_base.__init__(self, parent)
-
-    def is_discrete_valuation(self):
-        r"""
-        Return whether this is a discrete valuation.
-
-        EXAMPLES:
-
-        Returns ``False`` since this is only a pseudo-valuation::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: v = TrivialPseudoValuation(QQ)
-            sage: v.is_discrete_valuation()
-            False
-
-        """
-        return False
 
     def _call_(self, x):
         r"""
@@ -288,7 +272,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base):
         self.residue_ring().coerce(X) # ignore the output
         return self.domain().zero()
 
-class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base):
+class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValuation):
     r"""
     The trivial valuation that is zero on non-zero elements.
 

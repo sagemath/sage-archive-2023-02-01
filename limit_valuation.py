@@ -6,9 +6,19 @@ The discrete valuation of a complete field extends uniquely to a finite field
 extension. This is not the case anymore for fields which are not complete with
 respect to their discrete valuation. In this case, the extensions essentially
 correspond to the factors of the defining polynomial of the extension over the
-completion. However, these factors only exist over the completion and so the
-valuation can not written down finitely as a number of
-:class:`AugmentedValuation`s but only as a limit thereof.
+completion. However, these factors only exist over the completion and this
+makes it difficult to write down such valuations with a representation of
+finite length.
+
+More specifically, let `v` be a discrete valuation on `K` and let `L=K[x]/(G)`
+a finite extension thereof. An extension of `v` to `L` can be represented as a
+discrete pseudo-valuation `w'` on `K[x]` which sends `G` to infinity.
+However, such `w'` might not be described by an :class:`AugmentedValuation`
+over a :class:`GaussValuation` anymore. Instead, we may need to write is as a
+limit of augmented valuations.
+
+The classes in this module provide the means of writing down such limits and
+resulting valuations on quotients.
 
 EXAMPLES:
 
@@ -49,8 +59,8 @@ The same phenomenon can be observed for valuations on number fields::
     sage: v = FunctionFieldValuation(K, 1/x)
     sage: w = v.extension(L); w
     [ Gauss valuation induced by Valuation at the infinite place, v(y) = 1/2 , … ]
-    sage: w._improve_approximation()
-    sage: w._approximation
+    sage: w._base_valuation._improve_approximation()
+    sage: w._base_valuation._approximation
     [ Gauss valuation induced by Valuation at the infinite place, v(y) = 1/2, v(y^2 - 1/x) = +Infinity ]
 
 AUTHORS:
@@ -74,9 +84,9 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.path.dirname(os.getcwd()))
 
 from sage.misc.abstract_method import abstract_method
-from valuation import DiscretePseudoValuation
+from valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation, DiscreteValuation
 
-class LimitValuation_base(DiscretePseudoValuation):
+class LimitValuation(DiscretePseudoValuation):
     r"""
     Base class for limit valuations.
 
@@ -92,32 +102,38 @@ class LimitValuation_base(DiscretePseudoValuation):
 
         sage: v = FunctionFieldValuation(K, 0)
         sage: w = v.extension(L)
+        sage: w._base_valuation
+        [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 , … ]
 
     The currently used approximation can be found in the ``_approximation``
     field::
 
-        sage: w._approximation
+        sage: w._base_valuation._approximation
         [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 ]
-
-    Note that the approximation might be defined on a different domain::
-
-        sage: w.domain()
-        Function field in y defined by y^2 - x
-        sage: w._approximation.domain()
-        Univariate Polynomial Ring in y over Rational function field in x over Rational Field
-
-    The methods :meth:`_to_approximation_domain` and
-    :meth:`_from_approximation_domain` move items back and forth between the
-    domains of definition.
 
     TESTS::
 
-        sage: isinstance(w, LimitValuation_base)
+        sage: isinstance(w._base_valuation, LimitValuation)
         True
-
-        sage: TestSuite(w).run()
+        sage: TestSuite(w._base_valuation).run()
 
     """
+    def __init__(self, parent, approximation):
+        r"""
+        TESTS::
+    
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: K.<i> = QQ.extension(x^2 + 1)
+            sage: v = pAdicValuation(K, 2)
+            sage: isinstance(v._base_valuation, LimitValuation)
+            True
+    
+        """
+        DiscretePseudoValuation.__init__(self, parent)
+        self._initial_approximation = approximation # kept for consistent printing and equality tests
+        self._approximation = approximation
+
     def reduce(self, f):
         r"""
         Return the reduction of ``f`` as an element of :meth:`residue_ring`.
@@ -127,61 +143,18 @@ class LimitValuation_base(DiscretePseudoValuation):
             sage: from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x)
+            sage: L.<y> = K.extension(y^2 - (x - 1))
 
-            sage: v = FunctionFieldValuation(K, 1)
-            sage: w = v.extensions(L)[0]
-            sage: w.reduce(y)
-            1
+            sage: v = FunctionFieldValuation(K, 0)
+            sage: w = v.extension(L)
+            sage: w.reduce(y) # indirect doctest
+            u1
 
         """
         f = self.domain().coerce(f)
         self._improve_approximation_for_reduce(f)
-        F = self._approximation.reduce(self._to_approximation_domain(f))
+        F = self._approximation.reduce(f)
         return self.residue_ring()(F)
-
-    @abstract_method
-    def _improve_approximation_for_reduce(self, f):
-        r"""
-        Replace our approximation with a sufficiently precise approximation to
-        correctly compute the reduction of ``f``.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x)
-
-        For the unique extension over the place at zero, the initial
-        approximation is sufficient to compute the reduction of ``y``::
-
-            sage: v = FunctionFieldValuation(K, 0)
-            sage: w = v.extension(L)
-            sage: w._approximation
-            [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 ]
-            sage: w.reduce(y)
-            0
-            sage: w._approximation
-            [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 ]
-
-        However, at a places over 1, the initial approximation is not
-        sufficient for some values::
-
-            sage: v = FunctionFieldValuation(K, 1)
-            sage: w = v.extensions(L)[0]
-            sage: w._approximation
-            [ Gauss valuation induced by (x - 1)-adic valuation, v(y - 1) = 1 ]
-            sage: w.reduce((y - 1) / (x - 1)) # indirect doctest
-            1/2
-            sage: w._approximation
-            [ Gauss valuation induced by (x - 1)-adic valuation, v(y - 1/2*x - 1/2) = 2 ]
-            sage: w.reduce((y - 1/2*x - 1/2) / (x - 1)^2) # indirect doctest
-            -1/8
-            sage: w._approximation
-            [ Gauss valuation induced by (x - 1)-adic valuation, v(y + 1/8*x^2 - 3/4*x - 3/8) = 3 ]
-
-        """
 
     def _call_(self, f):
         r"""
@@ -196,13 +169,57 @@ class LimitValuation_base(DiscretePseudoValuation):
 
             sage: v = FunctionFieldValuation(K, 0)
             sage: w = v.extension(L)
-            sage: w(y)
+            sage: w(y) # indirect doctest
             1/2
 
         """
-        f = self.domain().coerce(f)
         self._improve_approximation_for_call(f)
-        return self._approximation(self._to_approximation_domain(f))
+        return self._approximation(f)
+
+    @abstract_method
+    def _improve_approximation_for_reduce(self, f):
+        r"""
+        Replace our approximation with a sufficiently precise approximation to
+        correctly compute the reduction of ``f``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - (x - 1337))
+
+        For the unique extension over the place at 1337, the initial
+        approximation is sufficient to compute the reduction of ``y``::
+
+            sage: v = FunctionFieldValuation(K, 1337)
+            sage: w = v.extension(L)
+            sage: u = w._base_valuation
+            sage: u._approximation
+            [ Gauss valuation induced by (x - 1337)-adic valuation, v(y) = 1/2 ]
+            sage: w.reduce(y)
+            0
+            sage: u._approximation
+            [ Gauss valuation induced by (x - 1337)-adic valuation, v(y) = 1/2 ]
+
+        However, at a place over 1341, the initial approximation is not sufficient
+        for some values (note that 1341-1337 is a square)::
+
+            sage: v = FunctionFieldValuation(K, 1341)
+            sage: w = v.extensions(L)[0]
+            sage: u = w._base_valuation
+            sage: u._approximation
+            [ Gauss valuation induced by (x - 1341)-adic valuation, v(y - 2) = 1 ]
+            sage: w.reduce((y - 2) / (x - 1341)) # indirect doctest
+            1/4
+            sage: u._approximation
+            [ Gauss valuation induced by (x - 1341)-adic valuation, v(y - 1/4*x + 1333/4) = 2 ]
+            sage: w.reduce((y - 1/4*x + 1333/4) / (x - 1341)^2) # indirect doctest
+            -1/64
+            sage: u._approximation
+            [ Gauss valuation induced by (x - 1341)-adic valuation, v(y + 1/64*x^2 - 1349/32*x + 1819609/64) = 3 ]
+
+        """
 
     @abstract_method
     def _improve_approximation_for_call(self, f):
@@ -215,19 +232,20 @@ class LimitValuation_base(DiscretePseudoValuation):
             sage: from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x)
+            sage: L.<y> = K.extension(y^2 - (x - 23))
 
-        For the unique extension over the place at zero, the initial
+        For the unique extension over the place at 23, the initial
         approximation is sufficient to compute all valuations::
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = FunctionFieldValuation(K, 23)
             sage: w = v.extension(L)
-            sage: w._approximation
-            [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 ]
-            sage: w(x)
+            sage: u = w._base_valuation
+            sage: u._approximation
+            [ Gauss valuation induced by (x - 23)-adic valuation, v(y) = 1/2 ]
+            sage: w(x - 23)
             1
-            sage: w._approximation
-            [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 ]
+            sage: u._approximation
+            [ Gauss valuation induced by (x - 23)-adic valuation, v(y) = 1/2 ]
 
         However, due to performance reasons, sometimes we improve the
         approximation though it would not have been necessary (performing the
@@ -236,48 +254,72 @@ class LimitValuation_base(DiscretePseudoValuation):
 
             sage: w(y) # indirect doctest
             1/2
-            sage: w._approximation
-            [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2, v(y^2 - x) = +Infinity ]
+            sage: u._approximation
+            [ Gauss valuation induced by (x - 23)-adic valuation, v(y) = 1/2, v(y^2 - x + 23) = +Infinity ]
 
         """
 
-    def _to_approximation_domain(self, f):
+    def _repr_(self):
         r"""
-        Return ``f`` as an element in the domain of ``_approximation``.
+        Return a printable representation of this valuation.
 
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x)
-
-            sage: v = FunctionFieldValuation(K, 0)
-            sage: w = v.extensions(L)[0]
-            sage: w._to_approximation_domain(y).parent()
-            Univariate Polynomial Ring in y over Rational function field in x over Rational Field
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: w = v.extension(L)
+            sage: w._base_valuation # indirect doctest
+            [ Gauss valuation induced by 2-adic valuation, v(t + 1) = 1/2 , … ]
 
         """
-        return self._approximation.domain().coerce(f)
+        from sage.rings.all import infinity
+        from augmented_valuation import AugmentedValuation
+        if self._initial_approximation(self._G) < infinity:
+            if isinstance(self._initial_approximation, AugmentedValuation):
+                return repr(self._initial_approximation)[:-1] + ", … ]"
+        return repr(self._initial_approximation)
 
-    def _from_approximation_domain(self, f):
+
+class MacLaneLimitValuation(LimitValuation, InfiniteDiscretePseudoValuation):
+    r"""
+    A limit valuation that is a pseudo-valuation on polynomial ring `K[x]`
+    which sends an irreducible polynomial `G` to infinity.
+
+    This uses the MacLane algorithm to compute the next element in the limit.
+
+    It starts from a first valuation ``approximation`` whose uniformizer must
+    be a uniformizer of the limit and whose residue field must contain the
+    residue field of the limit.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: K.<i> = QQ.extension(x^2 + 1)
+
+        sage: v = pAdicValuation(K, 2)
+        sage: u = v._base_valuation; u
+        [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 , … ]
+
+    """
+    def __init__(self, parent, approximation, G):
         r"""
-        Return ``f`` as an element in the domain of this valuation.
-
-        EXAMPLES::
-
+        TESTS::
+    
             sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x)
-
-            sage: v = FunctionFieldValuation(K, 0)
-            sage: w = v.extensions(L)[0]
-            sage: w._from_approximation_domain(w._approximation.domain().gen()).parent()
-            Function field in y defined by y^2 - x
-
+            sage: R.<x> = QQ[]
+            sage: K.<i> = QQ.extension(x^2 + 1)
+            sage: v = pAdicValuation(K, 2)
+            sage: u = v._base_valuation
+            sage: isinstance(u, MacLaneLimitValuation)
+            True
+    
         """
-        return self.domain().coerce(f)
+        LimitValuation.__init__(self, parent, approximation)
+        self._G = G
 
     def lift(self, F):
         r"""
@@ -294,15 +336,14 @@ class LimitValuation_base(DiscretePseudoValuation):
             sage: v = FunctionFieldValuation(K, 1)
             sage: w = v.extensions(L)[0]; w
             [ Gauss valuation induced by (x - 1)-adic valuation, v(y^2 - 2) = 1 , … ]
-            sage: u = w.reduce(y); u
+            sage: s = w.reduce(y); s
             u1
-            sage: y == w.lift(u)
-            True
+            sage: w.lift(s) # indirect doctest
+            y
 
         """
         F = self.residue_ring().coerce(F)
-        f = self._approximation.lift(F)
-        return self._from_approximation_domain(f)
+        return self._approximation.lift(F)
 
     def uniformizer(self):
         r"""
@@ -317,70 +358,11 @@ class LimitValuation_base(DiscretePseudoValuation):
 
             sage: v = FunctionFieldValuation(K, 0)
             sage: w = v.extension(L)
-            sage: w(w.uniformizer())
-            1/2
+            sage: w.uniformizer() # indirect doctest
+            y
 
         """
-        return self._from_approximation_domain(self._approximation.uniformizer())
-
-class LimitValuationFiniteExtension(LimitValuation_base):
-    r"""
-    A valuation on a quotient of the form `L=K[x]/(G)` with an irreducible `G`.
-
-    Internally, this valuation is represented as a limit of valuations on
-    `K[x]` which sends `G` to infinity.  Starting from an ``approximation``,
-    i.e., one element of the sequence that the limit taken over, that
-    approximation is used to perform computations and it is improved using the
-    Mac Lane algorithm whenever a better approximation is needed.
-    
-    INPUT:
-
-    - ``parent`` -- the containing valuation space (usually the space of
-      discrete valuations on `L`)
-
-    - ``approximation`` -- a Gauss valuation or an augmentation thereof; a
-      discrete valuation on `K[x]` which already has the residue field, and
-      ramification index of the limit and which approximates exactly one
-      valuation on `L`.
-
-    - ``G`` -- an irreducible polynomial in `K[x]`
-
-    TESTS::
-
-        sage: from mac_lane import * # optional: standalone
-        sage: K.<x> = FunctionField(QQ)
-        sage: R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 - x)
-
-        sage: v = FunctionFieldValuation(K, 0)
-        sage: w = v.extension(L)
-
-        sage: TestSuite(w).run()
-
-    """
-    def __init__(self, parent, approximation, G):
-        r"""
-        TESTS::
-    
-            sage: from mac_lane import * # optional: standalone
-            sage: K = QQ
-            sage: R.<t> = K[]
-            sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 5)
-            sage: w = v.extensions(L); w
-            [[ Gauss valuation induced by 5-adic valuation, v(t + 2) = 1 , … ],
-             [ Gauss valuation induced by 5-adic valuation, v(t + 3) = 1 , … ]]
-    
-            sage: isinstance(w[0], LimitValuation_base)
-            True
-            sage: isinstance(w[1], LimitValuation_base)
-            True
-
-        """
-        DiscretePseudoValuation.__init__(self, parent)
-        self._initial_approximation = approximation # kept for consistent printing
-        self._approximation = approximation
-        self._G = G
+        return self._approximation.uniformizer()
 
     def _improve_approximation(self):
         r"""
@@ -394,13 +376,18 @@ class LimitValuationFiniteExtension(LimitValuation_base):
             sage: L.<t> = K.extension(t^2 + 1)
             sage: v = pAdicValuation(QQ, 2)
             sage: w = v.extension(L)
-            sage: w._approximation
+            sage: u = w._base_valuation
+            sage: u._approximation
             [ Gauss valuation induced by 2-adic valuation, v(t + 1) = 1/2 ]
-            sage: w._improve_approximation()
-            sage: w._approximation
+            sage: u._improve_approximation()
+            sage: u._approximation
             [ Gauss valuation induced by 2-adic valuation, v(t + 1) = 1/2, v(t^2 + 1) = +Infinity ]
-            sage: w._improve_approximation()
-            sage: w._approximation
+
+        This method has no effect, if the approximation is already an infinite
+        valuation::
+
+            sage: u._improve_approximation()
+            sage: u._approximation
             [ Gauss valuation induced by 2-adic valuation, v(t + 1) = 1/2, v(t^2 + 1) = +Infinity ]
 
         """
@@ -432,11 +419,12 @@ class LimitValuationFiniteExtension(LimitValuation_base):
             sage: L.<t> = K.extension(t^2 + 1)
             sage: v = pAdicValuation(QQ, 5)
             sage: w = v.extensions(L)[0]
-            sage: w._approximation
+            sage: u = w._base_valuation
+            sage: u._approximation
             [ Gauss valuation induced by 5-adic valuation, v(t + 2) = 1 ]
             sage: w(t + 2) # indirect doctest
             1
-            sage: w._approximation
+            sage: u._approximation
             [ Gauss valuation induced by 5-adic valuation, v(t + 7) = 2 ]
 
         ALGORITHM:
@@ -470,8 +458,7 @@ class LimitValuationFiniteExtension(LimitValuation_base):
             # zero coefficients.)
             return
 
-        g = self._to_approximation_domain(f)
-        if self._approximation.is_equivalence_unit(g):
+        if self._approximation.is_equivalence_unit(f):
             # see ALGORITHM above
             return
 
@@ -491,45 +478,23 @@ class LimitValuationFiniteExtension(LimitValuation_base):
             sage: L.<t> = K.extension(t^2 + 1)
             sage: v = pAdicValuation(QQ, 5)
             sage: w = v.extensions(L)[0]
-            sage: w._approximation
+            sage: u = w._base_valuation
+            sage: u._approximation
             [ Gauss valuation induced by 5-adic valuation, v(t + 2) = 1 ]
             sage: w.reduce((t + 2) / 5) # indirect doctest
             4
-            sage: w._approximation
+            sage: u._approximation
             [ Gauss valuation induced by 5-adic valuation, v(t + 7) = 2 ]
 
         ALGORITHM:
 
-            The reduction is correct for an equivalence-unit, see
-            :meth:`_improve_approximation_for_call`.
+            The reduction produced by the approximation is correct for an
+            equivalence-unit, see :meth:`_improve_approximation_for_call`.
 
         """
-        g = self._to_approximation_domain(f)
-        if self._approximation(g) > 0:
+        if self._approximation(f) > 0:
             return
         self._improve_approximation_for_call(f)
-
-    def _repr_(self):
-        r"""
-        Return a printable representation of this valuation.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K = QQ
-            sage: R.<t> = K[]
-            sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
-            sage: v.extension(L) # indirect doctest
-            [ Gauss valuation induced by 2-adic valuation, v(t + 1) = 1/2 , … ]
-
-        """
-        from sage.rings.all import infinity
-        from augmented_valuation import AugmentedValuation
-        if self._initial_approximation(self._G) < infinity:
-            if isinstance(self._initial_approximation, AugmentedValuation):
-                return repr(self._initial_approximation)[:-1] + ", … ]"
-        return repr(self._initial_approximation)
 
     def _eq_(self, other):
         r"""
@@ -549,14 +514,14 @@ class LimitValuationFiniteExtension(LimitValuation_base):
             sage: ww = v.extension(L)
             sage: w == ww # indirect doctest
             True
-            sage: w._improve_approximation()
+            sage: w._base_valuation._improve_approximation()
             sage: w == ww
             True
-            sage: w._approximation == ww._approximation
+            sage: w._base_valuation._approximation == ww._base_valuation._approximation
             False
 
         """
-        return isinstance(other, LimitValuationFiniteExtension) and self._G == other._G and self._initial_approximation == other._initial_approximation
+        return isinstance(other, MacLaneLimitValuation) and self._G == other._G and self._initial_approximation == other._initial_approximation
 
     def residue_ring(self):
         r"""
@@ -573,12 +538,6 @@ class LimitValuationFiniteExtension(LimitValuation_base):
             sage: w.residue_ring()
             Finite Field of size 2
 
-        TESTS::
-
-            sage: w._improve_approximation()
-            sage: w.residue_ring()
-            Finite Field of size 2
-
         """
         R = self._approximation.residue_ring()
         from sage.categories.fields import Fields
@@ -589,3 +548,267 @@ class LimitValuationFiniteExtension(LimitValuation_base):
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             assert(is_PolynomialRing(R))
             return R.base_ring()
+
+class FiniteExtensionFromInfiniteValuation(DiscreteValuation):
+    r"""
+    A valuation on a quotient of the form `L=K[x]/(G)` with an irreducible `G`
+    which is internally backed by a pseudo-valuations on `K[x]` which sends `G`
+    to infinity.
+
+    INPUT:
+
+    - ``parent`` -- the containing valuation space (usually the space of
+      discrete valuations on `L`)
+
+    - ``base_valuation`` -- an infinite valuation on `K[x]` which takes `G` to
+      infinity.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x)
+
+        sage: v = FunctionFieldValuation(K, 0)
+        sage: w = v.extension(L); w
+        [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 , … ]
+
+    TESTS::
+
+        sage: TestSuite(w).run()
+
+    """
+    def __init__(self, parent, base_valuation):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^2 + 1)
+
+            sage: v = FunctionFieldValuation(K, 0)
+            sage: w = v.extension(L); w
+            [ Gauss valuation induced by (x)-adic valuation, v(y^2 - x^2 + 1) = +Infinity ]
+            sage: isinstance(w, FiniteExtensionFromInfiniteValuation)
+            True
+
+        """
+        DiscretePseudoValuation.__init__(self, parent)
+        self._base_valuation = base_valuation 
+
+    def _eq_(self, other):
+        r"""
+        Return whether this valuation is indistinguishable from ``other``.
+
+        EXAMPLES:
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: w = v.extension(L)
+            sage: ww = v.extension(L)
+            sage: w == ww # indirect doctest
+            True
+
+        """
+        return isinstance(other, FiniteExtensionFromInfiniteValuation) and self._base_valuation == other._base_valuation
+
+    def _repr_(self):
+        r"""
+        Return a printable representation of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: v.extension(L) # indirect doctest
+            [ Gauss valuation induced by 2-adic valuation, v(t + 1) = 1/2 , … ]
+
+        """
+        return repr(self._base_valuation)
+
+    def residue_ring(self):
+        r"""
+        Return the residue field of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: v.extension(L).residue_ring()
+            Finite Field of size 2
+
+        """
+        return self._base_valuation.residue_ring()
+
+    def uniformizer(self):
+        r"""
+        Return a uniformizing element of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: v.extension(L).uniformizer()
+            t + 1
+
+        """
+        return self._from_base_domain(self._base_valuation.uniformizer())
+
+    def _to_base_domain(self, f):
+        r"""
+        Return ``f`` as an element in the domain of ``_base_valuation``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+
+            sage: v = FunctionFieldValuation(K, 0)
+            sage: w = v.extensions(L)[0]
+            sage: w._to_base_domain(y).parent()
+            Univariate Polynomial Ring in y over Rational function field in x over Rational Field
+
+        """
+        return self._base_valuation.domain().coerce(f)
+
+    def _from_base_domain(self, f):
+        r"""
+        Return ``f`` as an element in the domain of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+
+            sage: v = FunctionFieldValuation(K, 0)
+            sage: w = v.extension(L)
+            sage: w._from_base_domain(w._base_valuation.domain().gen()).parent()
+            Function field in y defined by y^2 - x
+
+        """
+        return self.domain().coerce(f)
+
+    def _call_(self, f):
+        r"""
+        Evaluate this valuation at ``f``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+
+            sage: v = FunctionFieldValuation(K, 0)
+            sage: w = v.extension(L)
+            sage: w(y) # indirect doctest
+            1/2
+
+        """
+        return self._base_valuation(self._to_base_domain(f))
+
+    def reduce(self, f):
+        r"""
+        Return the reduction of ``f`` in the :meth:`residue_field` of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - (x - 2))
+
+            sage: v = FunctionFieldValuation(K, 0)
+            sage: w = v.extension(L)
+            sage: w.reduce(y)
+            u1
+
+        """
+        return self._base_valuation.reduce(self._to_base_domain(f))
+
+    def lift(self, F):
+        r"""
+        Lift ``F`` from the :meth;`residue_field` of this valuation into its
+        domain.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+
+            sage: v = FunctionFieldValuation(K, 2)
+            sage: w = v.extension(L)
+            sage: w.lift(w.residue_field().gen())
+            y
+
+        """
+        F = self.residue_ring().coerce(F)
+        F = self._base_valuation.residue_ring().coerce(F)
+        f = self._base_valuation.lift(F)
+        return self._from_base_domain(f)
+
+class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
+    r"""
+    An extension of a valuation on a finite field extensions `L=K[x]/(G)` which
+    is induced by an infinite limit valuation on `K[x]`.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x)
+        sage: v = FunctionFieldValuation(K, 1)
+        sage: w = v.extensions(L); w
+        [[ Gauss valuation induced by (x - 1)-adic valuation, v(y - 1) = 1 , … ],
+         [ Gauss valuation induced by (x - 1)-adic valuation, v(y + 1) = 1 , … ]]
+
+    TESTS::
+
+        sage: TestSuite(w[0]).run()
+        sage: TestSuite(w[1]).run()
+
+    """
+    def __init__(self, parent, approximation, G):
+        r"""
+        EXAMPLES:
+
+        Note that this implementation is also used when the underlying limit is
+        only taken over a finite sequence of valuations::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: v = FunctionFieldValuation(K, 2)
+            sage: w = v.extension(L); w
+            [ Gauss valuation induced by (x - 2)-adic valuation, v(y^2 - x) = +Infinity ]
+            sage: isinstance(w, FiniteExtensionFromLimitValuation)
+            True
+
+        """
+        from limit_valuation import MacLaneLimitValuation
+        from valuation_space import DiscretePseudoValuationSpace
+        limit_parent = DiscretePseudoValuationSpace(approximation.domain())
+        limit = limit_parent.__make_element_class__(MacLaneLimitValuation)(limit_parent, approximation, G)
+        FiniteExtensionFromInfiniteValuation.__init__(self, parent, limit)

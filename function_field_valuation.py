@@ -2,6 +2,39 @@
 r"""
 Discrete valuations on function fields
 
+EXAMPLES:
+
+We can create classical valuations that correspond to finite and infinite
+places on a rational function field::
+
+    sage: from mac_lane import * # optional: standalone
+    sage: K.<x> = FunctionField(QQ)
+    sage: v = FunctionFieldValuation(K, 1); v
+    (x - 1)-adic valuation
+    sage: v = FunctionFieldValuation(K, x^2 + 1); v
+    (x^2 + 1)-adic valuation
+    sage: v = FunctionFieldValuation(K, 1/x); v
+    Valuation at the infinite place
+
+Note that we can also specify valuations which do not correspond to a place of
+the function field::
+
+    sage: R.<x> = QQ[]
+    sage: w = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: v = FunctionFieldValuation(K, w); v
+    2-adic valuation
+
+Valuations on a rational function field can then be extended to finite
+extensions::
+
+    sage: v = FunctionFieldValuation(K, x - 1); v
+    (x - 1)-adic valuation
+    sage: R.<y> = K[]
+    sage: L.<y> = K.extension(y^2 - x)
+    sage: v.extensions(L)
+    [[ Gauss valuation induced by (x - 1)-adic valuation, v(y - 1) = 1 , … ],
+     [ Gauss valuation induced by (x - 1)-adic valuation, v(y + 1) = 1 , … ]]
+
 AUTHORS:
 
 - Julian Rueth (2016-10-16): initial version
@@ -27,7 +60,7 @@ from sage.rings.all import QQ, ZZ, infinity
 
 from valuation import DiscretePseudoValuation
 from trivial_valuation import TrivialValuation
-from limit_valuation import LimitValuationFiniteExtension
+from limit_valuation import FiniteExtensionFromLimitValuation
 
 class FunctionFieldValuationFactory(UniqueFactory):
     r"""
@@ -125,7 +158,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
     A place that has a unique extension can just be defined downstairs::
 
         sage: v = FunctionFieldValuation(L, x); v
-        (x - 1)-adic valuation
+        [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 , … ]
 
     """
     def create_key(self, domain, prime):
@@ -153,24 +186,30 @@ class FunctionFieldValuationFactory(UniqueFactory):
         if domain not in FunctionFields():
             raise ValueError("Domain must be a function field.")
 
+        if prime in DiscretePseudoValuationSpace(domain):
+            # prime is already a valuation of the requested domain
+            # if we returned (domain, prime), we would break caching
+            # because this element has been created from a different key
+            # Instead, we return the key that was used to create prime
+            # so the caller gets back a correctly cached version of prime
+            if not hasattr(prime, "_factory_data"):
+               raise NotImplementedError("Valuations on function fields must be unique and come out of the FunctionFieldValuatino factory but %r has been created by other means"%(prime,))
+            return prime._factory_data[2]
+
         if prime in domain:
             # prime defines a place
             return self.create_key_from_place(domain, prime)
-        elif prime in DiscretePseudoValuationSpace(domain._ring):
+        if prime in DiscretePseudoValuationSpace(domain._ring):
             # prime is a discrete (pseudo-)valuation on the polynomial ring
             # that the domain is constructed from
             return self.create_key_from_valuation(domain, prime)
-        elif prime in DiscretePseudoValuationSpace(domain.base_field()):
-            # prime is a discrete (pseudo-)valuation on the domain or a subfield
-            # that has a unique extension
-            return self.create_key_from_valuation(domain, prime)
-        elif domain.base_field() is not domain:
-            # prime might define a valuation on a subfield of domain that has a
-            # unique extension
+        if domain.base_field() is not domain:
+            # prime might define a valuation on a subring of domain and have a
+            # unique extension to domain
             base_valuation = FunctionFieldValuation(domain.base_field(), prime)
-            return create_key(domain, base_valuation)
+            return self.create_key_from_valuation(domain, base_valuation)
 
-        raise NotImplementedError("argument must be a place or a pseudo-valuation on an underlying polynomial ring")
+        raise NotImplementedError("argument must be a place or a pseudo-valuation on a supported subring but %r does not satisfy this for the domain %r"%(prime, domain))
 
     def create_key_from_place(self, domain, generator):
         r"""
@@ -213,7 +252,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
             # generator is 1/x, the infinite place
             return domain, ~domain.gen()
         else:
-            raise ValueError("a place must be given by an irreducible polynomial or the inverse of the generator")
+            raise ValueError("a place must be given by an irreducible polynomial or the inverse of the generator; %r does not define a place over %r"%(generator, domain))
 
     def create_key_from_valuation(self, domain, valuation):
         r"""
@@ -229,17 +268,46 @@ class FunctionFieldValuationFactory(UniqueFactory):
             sage: v = FunctionFieldValuation(K, w) # indirect doctest
 
         """
-        if valuation.domain() is domain:
-            return domain, valuation
+        # this should have been handled by create_key already
+        assert valuation.domain() is not domain
+
         if valuation.domain() is domain._ring:
             if domain.base_field() is not domain:
-                # on an extension of the form K[x]/(G), a valuation on K[x] must
-                # send exactly (G) to infinity
-                G = domain.polynomial()
-                if valuation(G) != infinity:
-                    raise ValueError("valuation must be a pseudo-valuation which sends the defining polynomial to infinity but %r sends %r to %r"%(valuation, G, valuation(G)))
                 if valuation.constant_valuation().domain() is not domain.base_field():
                     raise ValueError("valuation must extend a valuation on the base field but %r extends %r whose domain is not %r"%(valuation, valuation.constant_valuation(), domain.base_field()))
+                G = domain.polynomial()
+                # valuation is an approximant that may need to be
+                # improved further on demand
+
+                # We now check thet valuation is an approximant for a valuation
+                # on domain that extends its restriction to the base field.
+                if valuation(G) != infinity:
+                    G_integral = valuation._make_monic_integral(G)
+                    v = valuation
+                    while not v.is_gauss_valuation():
+                        if v(G_integral) <= v._base_valuation(G_integral):
+                            raise ValueError("The valuation %r is not an approximant for a valuation on %r since the valuation of %r does not increase in every step"%(valuation, domain, G_integral))
+                        v = v._base_valuation
+
+                # For uniqueness of valuations (which provides better caching
+                # and easier pickling) we need to find a normal form of
+                # valuation, i.e., the smallest approximant that describes this
+                # valuation
+                approximants = valuation.constant_valuation().mac_lane_approximants(G)
+
+                greater_approximants = [w for w in approximants if w <= valuation]
+                if len(greater_approximants) > 1:
+                    raise ValueError("valuation %r does not uniquely describe an extension of %r to %r"%(valuation, valuation.constant_valuation(), domain))
+                if len(greater_approximants) == 1:
+                    return domain, greater_approximants[0]
+                
+                smaller_approximants = [w for w in approximants if w >= valuation]
+                assert len(smaller_approximants) <= 1
+                if len(smaller_approximants) == 0:
+                    raise ValueError("valuation %r does not describe an extension of %r to %r"%(valuation, valuation.constant_valuation(), domain))
+                assert len(smaller_approximants) == 1
+                return domain, smaller_approximants[0]
+
             else:
                 # on a rational function field K(x), any valuation on K[x] that
                 # is not only a pseudo-valuation extends to a valuation on K(x)
@@ -270,13 +338,25 @@ class FunctionFieldValuationFactory(UniqueFactory):
         domain, valuation = key
         from sage.rings.valuation.valuation_space import DiscreteValuationSpace
         parent = DiscreteValuationSpace(domain)
+
         if valuation in domain:
+            # only the infinite place is handled with an element instead of a base valuation
+            # any other element should have been replace with a valuation by _create_key_from_place
             assert(valuation == ~domain.gen())
             return parent.__make_element_class__(InfiniteRationalFunctionFieldValuation)(parent)
+
         if domain is valuation.domain():
-            return valuation
+            # we can not just return valuation in this case
+            # as this would break uniqueness and pickling
+            raise ValueError("valuation must not be a valuation on domain yet but %r is a valuation on %r"%(valuation, domain))
+
         if domain.base_field() is domain:
+            # valuation is a base valuation on K[x] that induces a valuation on K(x)
             return parent.__make_element_class__(FiniteRationalFunctionFieldValuation)(parent, valuation)
+        else:
+            # valuation is a limit valuation that singles out an extension
+            return parent.__make_element_class__(FunctionFieldFromLimitValuation)(parent, valuation, domain.polynomial())
+
         raise NotImplementedError("valuation on %r from %r on %r"%(domain, valuation, valuation.domain()))
 
 FunctionFieldValuation = FunctionFieldValuationFactory("FunctionFieldValuation")
@@ -302,15 +382,12 @@ class FunctionFieldValuation_base(DiscretePseudoValuation):
         K = self.domain()
         from sage.categories.function_fields import FunctionFields
         if L is self.domain():
-            return self
+            return [self]
         if L in FunctionFields():
             if K.is_subring(K):
                 if L.base() is K:
                     # L is a simple extension of the domain of this valuation
-                    W = self.mac_lane_approximants(L.polynomial())
-                    from valuation_space import DiscreteValuationSpace
-                    parent = DiscreteValuationSpace(L)
-                    return [parent.__make_element_class__(FunctionFieldLimitValuation)(parent, w, L.polynomial()) for w in W]
+                    return [FunctionFieldValuation(L, w) for w in self.mac_lane_approximants(L.polynomial())]
                 elif L.base() is not L and K.is_subring(L):
                     # recursively call this method for the tower of fields
                     from operator import add
@@ -798,46 +875,6 @@ class FiniteRationalFunctionFieldValuation(ClassicalFunctionFieldValuation_base,
         """
         return self._base_valuation.residue_field()
 
-class FunctionFieldLimitValuation(LimitValuationFiniteExtension):
-    def _to_approximation_domain(self, f):
+class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
+    def _to_base_domain(self, f):
         return f.element()
-
-class FunctionFieldPolymodValuation(InducedFunctionFieldValuation_base):
-    def __init__(self, domain, base_valuation):
-        from sage.rings.all import infinity
-        if base_valuation.domain() is not domain._ring:
-            raise ValueError
-        if base_valuation(domain.polynomial()) is not infinity:
-            raise ValueError
-
-        self._base_valuation = base_valuation
-        DiscretePseudoValuation.__init__(self, domain)
-
-    def _call_(self, x):
-        return self._base_valuation(x.element())
-
-    def __hash__(self):
-        return hash(self._base_valuation) + hash(self.domain())
-
-    def _cache_key(self):
-        return self._base_valuation, self.domain()
-
-    def __cmp__(self, other):
-        if type(self) != type(other):
-            return cmp(type(self),type(other))
-        return cmp(self._base_valuation,other._base_valuation)
-
-    def value_group(self):
-        return self._base_valuation.value_group()
-
-    def reduce(self, f):
-        return self.residue_field()(self._base_valuation._base_valuation.reduce(f.element()))
-
-    def lift(self, F):
-        if F.parent() is not self.residue_field():
-            raise ValueError
-
-        return self.domain()(self._base_valuation._base_valuation.lift(F.element()))
-
-    def _repr_(self):
-        return "Valuation on rational function field induced by %s"%self._base_valuation

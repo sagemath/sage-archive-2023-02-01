@@ -191,8 +191,7 @@ class DiscretePseudoValuation(Morphism):
         When overriding this method, you can assume that ``other`` is a
         (pseudo-)valuation on the same domain.
         """
-        if self == other: return True
-        raise NotImplementedError("Operator not implemented for this valuation.")
+        return other >= self
 
     def _gt_(self, other):
         r"""
@@ -210,3 +209,18 @@ class DiscretePseudoValuation(Morphism):
     # it is not the generic reduce of object) and that does not match equality
     # by id.
     __reduce__ = object.__reduce__
+
+class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
+    r"""
+    sage: TODO
+    """
+    def is_discrete_valuation(self):
+        r"""
+        sage: TODO
+        """
+        return False
+
+class DiscreteValuation(DiscretePseudoValuation):
+    r"""
+    sage: TODO
+    """

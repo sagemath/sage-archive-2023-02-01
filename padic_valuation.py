@@ -25,7 +25,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.path.dirname(os.getcwd()))
 
 from valuation import DiscretePseudoValuation
-from limit_valuation import LimitValuationFiniteExtension
+from limit_valuation import FiniteExtensionFromLimitValuation
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById
@@ -280,14 +280,11 @@ class PadicValuationFactory(UniqueFactory):
         assert(len(below_v) <= 1)
         if len(below_v) == 1:
             ret = below_v[0]
-            if v(G) >= ret(G):
-                # equality of number fields has it quirks since it says that two
-                # fields are == even if they are distinguishable (because they come
-                # from different constructions.)
-                # Including structure() into the key seems to be a way to distinguish such cases properly.
-                return (R, ret, L.construction()), {'approximants':  candidates}
-            else:
-                raise ValueError("%s does not approximate a valuation on K[x]/(G) with G=%s"%(prime, G))
+            # equality of number fields has it quirks since it says that two
+            # fields are == even if they are distinguishable (because they come
+            # from different constructions.)
+            # Including construction() into the key seems to be a way to distinguish such cases properly.
+            return (R, ret, L.construction()), {'approximants':  candidates}
 
         # Even if it does not extend an approximant, v could be an
         # approximation of a single approximant
@@ -349,7 +346,9 @@ class PadicValuationFactory(UniqueFactory):
             v = key[1]
             _ = key[2] # ignored
             approximants = extra_args['approximants']
-            return parent.__make_element_class__(pAdicValuation_number_field)(R, v, approximants)
+            parent = DiscreteValuationSpace(R)
+            return parent.__make_element_class__(pAdicFromLimitValuation)(parent, v, R.relative_polynomial())
+            # return parent.__make_element_class__(pAdicValuation_number_field)(R, v, approximants)
 
 pAdicValuation = PadicValuationFactory("pAdicValuation")
 
@@ -920,9 +919,10 @@ class pAdicValuation_base(DiscretePseudoValuation):
             if is_NumberField(ring):
                 if ring.base() is self.domain():
                     from valuation_space import DiscreteValuationSpace
-                    from limit_valuation import LimitValuationFiniteExtension
+                    from limit_valuation import FiniteExtensionFromInfiniteValuation
                     parent = DiscreteValuationSpace(ring)
-                    return [parent.__make_element_class__(pAdicLimitValuation)(parent, approximant, ring.relative_polynomial()) for approximant in self.mac_lane_approximants(ring.relative_polynomial())]
+                    approximants = self.mac_lane_approximants(ring.relative_polynomial())
+                    return [parent.__make_element_class__(pAdicFromLimitValuation)(parent, approximant, ring.relative_polynomial()) for approximant in approximants]
                 if ring.base() is not ring and self.domain().is_subring(ring.base()):
                     return sum([w.extensions(ring) for w in self.extensions(ring.base())], [])
         raise NotImplementedError("extensions of %r from %r to %r not implemented"%(self, self.domain(), ring))
@@ -1076,7 +1076,7 @@ class pAdicValuation_number_field(pAdicValuation_base):
     def __init__(self, R, valuation, approximants):
         p = valuation.residue_field().characteristic()
         assert(p>0)
-        pAdicValuation_base.__init__(self, R, valuation.uniformizer()(R.fraction_field().gen()))
+        pAdicValuation_base.__init__(self, R, p)
         assert(valuation in approximants)
         self._valuation = valuation
         self._approximants = approximants
@@ -1160,6 +1160,8 @@ class pAdicValuation_number_field(pAdicValuation_base):
             return "[ %s ]-adic valuation"%(", ".join("v(%r) = %r" if (isinstance(v, AugmentedValuation) and v.domain() == self._valuation.domain()) else repr(v) for v in unique_approximant))
         return "%s-adic valuation"%(self._valuation)
 
-class pAdicLimitValuation(LimitValuationFiniteExtension):
-    def _to_approximation_domain(self, f):
-        return f.polynomial(self.domain().variable_name())
+class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation):
+    def _to_base_domain(self, f):
+        return f.polynomial()(self._base_valuation.domain().gen())
+    def _from_base_domain(self, f):
+        return f(self.domain().gen())

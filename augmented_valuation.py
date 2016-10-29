@@ -527,7 +527,6 @@ class AugmentedValuation(DevelopingValuation):
 
         if self(f) < 0:
             assert self(f) < 0
-            print self(f)
             raise ValueError("f must have non-negative valuation")
         elif self(f) > 0:
             return self.residue_ring().zero()
@@ -541,10 +540,12 @@ class AugmentedValuation(DevelopingValuation):
                 raise NotImplementedError
             return self.residue_ring()(self.coefficients(f).next())(self.residue_field_generator())
 
-        # if this is an infinite valuation, then we can simply drop all but the
-        # constant term
         if self._mu is infinity:
-            return self.residue_ring()(self._base_valuation.reduce(self.coefficients(f).next())(self.constant_valuation().residue_field().gen()))
+            # if this is an infinite valuation, then we can simply drop all but the
+            # constant term
+            constant_term = self.coefficients(f).next()
+            constant_term_reduced = self._base_valuation.reduce(constant_term)
+            return constant_term_reduced(self.residue_field().gen())
 
         CV = zip(self.coefficients(f), self.valuations(f))
         # rewrite as sum of f_i phi^{i tau}, i.e., drop most coefficients
@@ -965,3 +966,15 @@ class AugmentedValuation(DevelopingValuation):
 
     def _make_monic_integral(self, G):
         return self._base_valuation._make_monic_integral(G)
+            
+    def _gt_(self, other):
+        from gauss_valuation import GaussValuation_generic
+        if isinstance(other, GaussValuation_generic):
+			return self._base_valuation >= other
+        if isinstance(other, AugmentedValuation):
+			if self(other._phi) >= other._mu:
+				return self >= other._base_valuation
+			else:
+				return False
+
+        raise NotImplementedError("Operator not implemented for these valuations.")

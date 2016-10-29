@@ -52,7 +52,7 @@ TESTS::
 
     sage: TestSuite(G[0]).run()
 """
-from sage.structure.sage_object import richcmp
+from cpython.object cimport PyObject_RichCompare
 
 
 def _is_id(f, R):
@@ -260,8 +260,9 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
             True
         """
         cdef SemimonomialTransformation right = <SemimonomialTransformation> _right
-        return richcmp([left.v, left.perm, left.get_autom()],
-                       [right.v, right.perm, right.get_autom()], op)
+        return PyObject_RichCompare([left.v, left.perm, left.get_autom()],
+                                    [right.v, right.perm, right.get_autom()],
+                                    op)
 
     def __reduce__(self):
         """

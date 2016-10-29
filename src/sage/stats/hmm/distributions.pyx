@@ -17,7 +17,7 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-from sage.structure.sage_object import richcmp
+from cpython.object cimport PyObject_RichCompare
 
 cdef extern from "math.h":
     double exp(double)
@@ -266,7 +266,8 @@ cdef class GaussianMixtureDistribution(Distribution):
         """
         if not isinstance(other, GaussianMixtureDistribution):
             raise NotImplemented
-        return richcmp(self.__reduce__()[1], other.__reduce__()[1], op)
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def __len__(self):
         """

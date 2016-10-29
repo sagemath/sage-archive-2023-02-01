@@ -15,7 +15,7 @@ AUTHOR:
 
 include "cysignals/signals.pxi"
 
-from sage.structure.sage_object import richcmp
+from cpython.object cimport PyObject_RichCompare
 
 from libc.math cimport log, sqrt, exp, isnormal, isfinite, M_PI
 cdef double sqrt2pi = sqrt(2*M_PI)
@@ -228,8 +228,9 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             False
         """
         if not isinstance(other, GaussianHiddenMarkovModel):
-            raise NotImplemented
-        return richcmp(self.__reduce__()[1], other.__reduce__()[1], op)
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def __getitem__(self, Py_ssize_t i):
         """
@@ -1135,8 +1136,9 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             False
         """
         if not isinstance(other, GaussianMixtureHiddenMarkovModel):
-            raise NotImplemented
-        return richcmp(self.__reduce__()[1], other.__reduce__()[1], op)
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def __getitem__(self, Py_ssize_t i):
         """

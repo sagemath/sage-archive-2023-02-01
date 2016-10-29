@@ -42,7 +42,7 @@ from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object import richcmp
+from cpython.object cimport PyObject_RichCompare
 from itertools import groupby
 
 cdef class Farey:
@@ -504,9 +504,11 @@ cdef class Farey:
         """
         if not isinstance(other, Farey):
             return NotImplemented
-        return richcmp([self.coset_reps(), self.cusps(), self.fractions()],
-                       [other.coset_reps(), other.cusps(), other.fractions()],
-                       op)
+        return PyObject_RichCompare([self.coset_reps(), self.cusps(),
+                                     self.fractions()],
+                                    [other.coset_reps(), other.cusps(),
+                                     other.fractions()],
+                                    op)
 
     def __reduce__(self):
         r"""

@@ -119,7 +119,7 @@ cdef class PolyDict:
         self.__repn  = pdict
         self.__zero = zero
 
-    def __richcmp__(self, PolyDict right, op):
+    def __richcmp__(PolyDict self, PolyDict right, int op):
         return PyObject_RichCompare(self.__repn, right.__repn, op)
 
     def compare(PolyDict self, PolyDict other, key=None):

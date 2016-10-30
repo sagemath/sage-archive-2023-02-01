@@ -847,22 +847,6 @@ class TermOrder(SageObject):
 
     def compare_tuples_matrix(self, f, g):
         """
-        Compares two exponent tuples with respect to the matrix
-        term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLES::
-
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='m(1,3,1,0)')
-            sage: y > x^2 # indirect doctest
-            True
-            sage: y > x^3
-            False
         """
         for row in self._matrix:
             sf = sum(l*r for (l,r) in zip(row,f))
@@ -896,22 +880,6 @@ class TermOrder(SageObject):
 
     def compare_tuples_lex(self,f,g):
         """
-        Compares two exponent tuples with respect to the lexicographical
-        term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='lex')
-            sage: x > y^2 # indirect doctest
-            True
-            sage: x > 1
-            True
         """
         if f > g:
             return 1
@@ -921,18 +889,37 @@ class TermOrder(SageObject):
             return 0
 
     def sortkey_lex(self, f):
-        return f
-
-    def compare_tuples_invlex(self,f,g):
         """
-        Compares two exponent tuples with respect to the inversed
+        Return the sortkey of an exponent tuple with respect to the
         lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
+        - ``f`` -- exponent tuple
 
-        - ``g`` - exponent tuple
+        EXAMPLE::
+
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='lex')
+            sage: x > y^2 # indirect doctest
+            True
+            sage: x > 1
+            True
+        """
+        return f
+
+    def compare_tuples_invlex(self,f,g):
+        """
+        """
+        return self.compare_tuples_lex(f.reversed(),g.reversed())
+
+    def sortkey_invlex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the inversed
+        lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -942,29 +929,10 @@ class TermOrder(SageObject):
             sage: x > 1
             True
         """
-        return self.compare_tuples_lex(f.reversed(),g.reversed())
-
-    def sortkey_invlex(self, f):
         return f.reversed()
 
     def compare_tuples_deglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the degree
-        lexicographical term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='deglex')
-            sage: x > y^2 # indirect doctest
-            False
-            sage: x > 1
-            True
         """
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
@@ -976,26 +944,27 @@ class TermOrder(SageObject):
             return self.compare_tuples_lex(f,g)
 
     def sortkey_deglex(self, f):
-        return (sum(f.nonzero_values(sort=False)), f)
-
-    def compare_tuples_degrevlex(self,f,g):
         """
-        Compares two exponent tuples with respect to the degree reversed
+        Return the sortkey of an exponent tuple with respect to the degree
         lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='degrevlex')
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='deglex')
             sage: x > y^2 # indirect doctest
             False
             sage: x > 1
             True
+
+        """
+        return (sum(f.nonzero_values(sort=False)), f)
+
+    def compare_tuples_degrevlex(self,f,g):
+        """
         """
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
@@ -1007,19 +976,39 @@ class TermOrder(SageObject):
             return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
     def sortkey_degrevlex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        degree reversed lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
+
+        EXAMPLE::
+
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='degrevlex')
+            sage: x > y^2 # indirect doctest
+            False
+            sage: x > 1
+            True
+
+        """
         return (sum(f.nonzero_values(sort=False)),
                 tuple(-v for v in f.reversed()))
 
     def compare_tuples_neglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the negative
+        """
+        return -self.compare_tuples_lex(f,g)
+
+    def sortkey_neglex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the negative
         lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -1029,29 +1018,10 @@ class TermOrder(SageObject):
             sage: x > 1
             False
         """
-        return -self.compare_tuples_lex(f,g)
-
-    def sortkey_neglex(self, f):
         return tuple(-v for v in f)
 
     def compare_tuples_negdegrevlex(self,f,g):
         """
-        Compares two exponent tuples with respect to the negative degree
-        reverse lexicographical term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='negdegrevlex')
-            sage: x > y^2 # indirect doctest
-            True
-            sage: x > 1
-            False
         """
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
@@ -1063,27 +1033,27 @@ class TermOrder(SageObject):
             return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
     def sortkey_negdegrevlex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        negative degree reverse lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
+
+        EXAMPLE::
+
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='negdegrevlex')
+            sage: x > y^2 # indirect doctest
+            True
+            sage: x > 1
+            False
+        """
         return (-sum(f.nonzero_values(sort=False)),
                 tuple(-v for v in f.reversed()))
 
     def compare_tuples_negdeglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the negative degree
-        lexicographical term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='negdeglex')
-            sage: x > y^2 # indirect doctest
-            True
-            sage: x > 1
-            False
         """
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
@@ -1095,26 +1065,26 @@ class TermOrder(SageObject):
             return self.compare_tuples_lex(f,g)
 
     def sortkey_negdeglex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        negative degree lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
+
+        EXAMPLE::
+
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='negdeglex')
+            sage: x > y^2 # indirect doctest
+            True
+            sage: x > 1
+            False
+        """
         return (-sum(f.nonzero_values(sort=False)), f)
 
     def compare_tuples_degneglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the degree negative
-        lexicographical term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='degneglex')
-            sage: x*y > y*z # indirect doctest
-            False
-            sage: x*y > x
-            True
         """
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
@@ -1126,27 +1096,26 @@ class TermOrder(SageObject):
             return self.compare_tuples_neglex(f,g)
 
     def sortkey_negdeglex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        degree negative lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
+
+        EXAMPLE::
+
+            sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='degneglex')
+            sage: x*y > y*z # indirect doctest
+            False
+            sage: x*y > x
+            True
+        """
         return (sum(f.nonzero_values(sort=False)), tuple(-v for v in f))
 
     def compare_tuples_wdegrevlex(self,f,g):
         """
-        Compares two exponent tuples with respect to the weighted degree reverse
-        lexicographical term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: t = TermOrder('wdegrevlex',(3,2))
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order=t)
-            sage: x > y^2 # indirect doctest
-            False
-            sage: x^2 > y^3
-            True
         """
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
@@ -1158,28 +1127,28 @@ class TermOrder(SageObject):
             return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
     def sortkey_wdegrevlex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        weighted degree reverse lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
+
+        EXAMPLE::
+
+            sage: t = TermOrder('wdegrevlex',(3,2))
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order=t)
+            sage: x > y^2 # indirect doctest
+            False
+            sage: x^2 > y^3
+            True
+        """
         return (sum(l * r for (l, r) in zip(f, self._weights)),
                 tuple(-v for v in f.reversed()))
 
     def compare_tuples_wdeglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the weighted degree
-        lexicographical term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: t = TermOrder('wdeglex',(3,2))
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order=t)
-            sage: x > y^2 # indirect doctest
-            False
-            sage: x > y
-            True
         """
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
@@ -1191,27 +1160,27 @@ class TermOrder(SageObject):
             return self.compare_tuples_lex(f,g)
 
     def sortkey_wdeglex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        weighted degree lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
+
+        EXAMPLE::
+
+            sage: t = TermOrder('wdeglex',(3,2))
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order=t)
+            sage: x > y^2 # indirect doctest
+            False
+            sage: x > y
+            True
+        """
         return (sum(l * r for (l, r) in zip(f, self._weights)), f)
 
     def compare_tuples_negwdeglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the negative weighted
-        degree lexicographical term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: t = TermOrder('negwdeglex',(3,2))
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order=t)
-            sage: x > y^2 # indirect doctest
-            True
-            sage: x^2 > y^3
-            True
         """
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
@@ -1223,27 +1192,27 @@ class TermOrder(SageObject):
             return self.compare_tuples_lex(f,g)
 
     def sortkey_negwdeglex(self, f):
-        return (-sum(l * r for (l, r) in zip(f, self._weights)), f)
-
-    def compare_tuples_negwdegrevlex(self,f,g):
         """
-        Compares two exponent tuples with respect to the negative weighted
-        degree reverse lexicographical term order.
+        Return the sortkey of an exponent tuple with respect to the
+        negative weighted degree lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
-            sage: t = TermOrder('negwdegrevlex',(3,2))
+            sage: t = TermOrder('negwdeglex',(3,2))
             sage: P.<x,y> = PolynomialRing(QQbar, 2, order=t)
             sage: x > y^2 # indirect doctest
             True
             sage: x^2 > y^3
             True
+        """
+        return (-sum(l * r for (l, r) in zip(f, self._weights)), f)
+
+    def compare_tuples_negwdegrevlex(self,f,g):
+        """
         """
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
@@ -1255,27 +1224,28 @@ class TermOrder(SageObject):
             return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
     def sortkey_negwdeglex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        negative weighted degree reverse lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
+
+        EXAMPLE::
+
+            sage: t = TermOrder('negwdegrevlex',(3,2))
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order=t)
+            sage: x > y^2 # indirect doctest
+            True
+            sage: x^2 > y^3
+            True
+        """
         return (-sum(l * r for (l, r) in zip(f, self._weights)),
                 tuple(-v for v in f.reversed()))
 
     def compare_tuples_block(self, f,g):
         """
-        Compares two exponent tuples with respect to the block order as
-        specified when constructing this element.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: P.<a,b,c,d,e,f>=PolynomialRing(QQbar, 6, order='degrevlex(3),degrevlex(3)')
-            sage: a > c^4 # indirect doctest
-            False
-            sage: a > e^4
-            True
         """
         n = 0
         for block in self:
@@ -1286,6 +1256,22 @@ class TermOrder(SageObject):
         return 0
 
     def sortkey_block(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        block order as specified when constructing this element.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
+
+        EXAMPLE::
+
+            sage: P.<a,b,c,d,e,f>=PolynomialRing(QQbar, 6, order='degrevlex(3),degrevlex(3)')
+            sage: a > c^4 # indirect doctest
+            False
+            sage: a > e^4
+            True
+        """
         key = tuple()
         n = 0
         for block in self:

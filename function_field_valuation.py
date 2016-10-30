@@ -58,7 +58,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
 from sage.structure.factory import UniqueFactory
 from sage.rings.all import QQ, ZZ, infinity
 
-from valuation import DiscretePseudoValuation
+from valuation import DiscreteValuation
 from trivial_valuation import TrivialValuation
 from limit_valuation import FiniteExtensionFromLimitValuation
 
@@ -275,45 +275,19 @@ class FunctionFieldValuationFactory(UniqueFactory):
             if domain.base_field() is not domain:
                 if valuation.constant_valuation().domain() is not domain.base_field():
                     raise ValueError("valuation must extend a valuation on the base field but %r extends %r whose domain is not %r"%(valuation, valuation.constant_valuation(), domain.base_field()))
-                G = domain.polynomial()
-                # valuation is an approximant that may need to be
-                # improved further on demand
-
-                # We now check thet valuation is an approximant for a valuation
-                # on domain that extends its restriction to the base field.
-                if valuation(G) != infinity:
-                    G_integral = valuation._make_monic_integral(G)
-                    v = valuation
-                    while not v.is_gauss_valuation():
-                        if v(G_integral) <= v._base_valuation(G_integral):
-                            raise ValueError("The valuation %r is not an approximant for a valuation on %r since the valuation of %r does not increase in every step"%(valuation, domain, G_integral))
-                        v = v._base_valuation
-
+                # Valuation is an approximant that describes a single valuation
+                # on domain.
                 # For uniqueness of valuations (which provides better caching
                 # and easier pickling) we need to find a normal form of
                 # valuation, i.e., the smallest approximant that describes this
                 # valuation
-                approximants = valuation.constant_valuation().mac_lane_approximants(G)
-
-                greater_approximants = [w for w in approximants if w <= valuation]
-                if len(greater_approximants) > 1:
-                    raise ValueError("valuation %r does not uniquely describe an extension of %r to %r"%(valuation, valuation.constant_valuation(), domain))
-                if len(greater_approximants) == 1:
-                    return domain, greater_approximants[0]
-                
-                smaller_approximants = [w for w in approximants if w >= valuation]
-                assert len(smaller_approximants) <= 1
-                if len(smaller_approximants) == 0:
-                    raise ValueError("valuation %r does not describe an extension of %r to %r"%(valuation, valuation.constant_valuation(), domain))
-                assert len(smaller_approximants) == 1
-                return domain, smaller_approximants[0]
-
+                return domain, valuation.constant_valuation().mac_lane_approximant(domain.polynomial(), valuation)
             else:
                 # on a rational function field K(x), any valuation on K[x] that
                 # is not only a pseudo-valuation extends to a valuation on K(x)
                 if not valuation.is_discrete_valuation():
                     raise ValueError("valuation must be a discrete valuation but %r is not."%(valuation,))
-            return domain, valuation
+                return domain, valuation
 
         if valuation.domain().is_subring(domain.base_field()):
             # valuation is defined on a subring of this function field, try to lift it
@@ -361,7 +335,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
 FunctionFieldValuation = FunctionFieldValuationFactory("FunctionFieldValuation")
 
-class FunctionFieldValuation_base(DiscretePseudoValuation):
+class FunctionFieldValuation_base(DiscreteValuation):
     r"""
     Base class for valuations on function fields.
 
@@ -396,38 +370,6 @@ class FunctionFieldValuation_base(DiscretePseudoValuation):
                     return self._extensions_from_constant_field(L)
         raise NotImplementedError("extension of %r from %r to %r not implemented"%(self, K, L))
 
-    def mac_lane_approximants(self, G, precision_cap=None, assume_squarefree=False):
-        # TODO: move this to discrete valuation
-        R = G.parent()
-        if R.base_ring() is not self.domain():
-            raise ValueError("G must be defined over the domain of this valuation")
-        if not assume_squarefree and not G.is_squarefree():
-            raise ValueError("G must be squarefree")
-
-        from sage.rings.all import infinity
-        from gauss_valuation import GaussValuation
-
-        leaves = [ GaussValuation(R, self)]
-        while True:
-            ef = [ v.E()*v.F() for v in leaves]
-            if sum(ef) == G.degree():
-                if precision_cap is None or all([v(v.phi())>precision_cap for v in leaves]):
-                    return leaves
-
-            expandables = []
-            new_leaves = []
-            for v in leaves:
-                if v(G) is infinity:
-                    new_leaves.append(v)
-                else:
-                    expandables.append(v)
-            leaves = new_leaves
-
-            if not expandables:
-                return leaves
-
-            for v in expandables:
-                leaves.extend(v.mac_lane_step(G))
 
 
 class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):

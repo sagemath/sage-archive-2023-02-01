@@ -549,7 +549,7 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        - ``n``    -- (optional) an integer specifying the maximal
+        - ``n`` -- (optional) an integer specifying the maximal
           letter in the alphabet
 
         OUTPUT:
@@ -591,7 +591,7 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        - ``n``    -- (optional) an integer specifying the maximal
+        - ``n`` -- (optional) an integer specifying the maximal
           letter in the alphabet
 
         EXAMPLES::

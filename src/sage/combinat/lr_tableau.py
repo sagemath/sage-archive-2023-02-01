@@ -3,13 +3,14 @@ Littlewood-Richardson tableaux
 
 A semistandard tableau is Littlewood-Richardson with respect to
 the sequence of partitions `(\mu^{(1)},\ldots,\mu^{(k)})` if,
-when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,\ldots,
-|\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`, is Yamanouchi.
+when restricted to each alphabet `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1,
+\ldots, |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`, is Yamanouchi.
 
 AUTHORS:
 
 - Maria Gillespie, Jake Levinson, Anne Schilling (2016): initial version
 """
+
 #*****************************************************************************
 #       Copyright (C) 2016 Maria Gillespie
 #                          Anne Schilling <anne at math.ucdavis.edu>
@@ -139,10 +140,10 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
     Littlewood-Richardson tableaux.
 
     A semistandard tableau `t` is *Littlewood-Richardson* with respect to
-    the sequence of partitions `(\mu^{(1)},\ldots,\mu^{(k)})` (called the
-    weight) if `t` is Yamanouchi when restricted to each alphabet
-    `\{|\mu^{(1)}|+\cdots+|\mu^{(i-1)}|+1, \ldots,
-    |\mu^{(1)}|+\cdots+|\mu^{(i)}|-1\}`.
+    the sequence of partitions `(\mu^{(1)}, \ldots, \mu^{(k)})` (called
+    the weight) if `t` is Yamanouchi when restricted to each alphabet
+    `\{|\mu^{(1)}| + \cdots + |\mu^{(i-1)}| + 1, \ldots,
+    |\mu^{(1)}| + \cdots + |\mu^{(i)}| - 1\}`.
 
     INPUT:
 
@@ -211,18 +212,16 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
             [[[1, 1, 3], [2, 3], [4]], [[1, 1, 3], [2, 4], [3]]]
         """
         from sage.libs.lrcalc.lrcalc import lrskew
-        if len(self._weight) == 0:
+        if not self._weight:
             yield self.element_class(self, [])
-        else:
-            for nu in Partitions(self._shape.size() - self._weight[-1].size(), outer=self._shape):
-                for s in lrskew(self._shape,nu,weight=self._weight[-1]):
-                    for t in LittlewoodRichardsonTableaux(nu,self._weight[:-1]):
-                        shift = sum(a.length() for a in self._weight[:-1])
-                        yield self.element_class(self,_tableau_join(t,s,shift=shift))
-#        exp = [i for a in self._weight for i in a]
-#        for t in kostka_tab(self._shape, exp):
-#            if is_littlewood_richardson(t, self._heights):
-#                yield self.element_class(self, t)
+            return
+
+        for nu in Partitions(self._shape.size() - self._weight[-1].size(),
+                             outer=self._shape):
+            for s in lrskew(self._shape, nu, weight=self._weight[-1]):
+                for t in LittlewoodRichardsonTableaux(nu, self._weight[:-1]):
+                    shift = sum(a.length() for a in self._weight[:-1])
+                    yield self.element_class(self, _tableau_join(t, s, shift=shift))
 
     def __contains__(self, t):
         """
@@ -254,9 +253,9 @@ def is_littlewood_richardson(t, heights):
     Return whether semistandard tableau ``t`` is Littleword-Richardson
     with respect to ``heights``.
 
-    A tableau is Littlewood-Richardson with respect to ``heights`` given by
-    `(h_1,h_2,\ldots)` if each subtableau with respect to the alphabets
-    `\{1, 2, \ldots, h_1\}`,`\{h_1+1, \ldots, h_1+h_2\}`,
+    A tableau is Littlewood-Richardson with respect to ``heights`` given
+    by `(h_1, h_2, \ldots)` if each subtableau with respect to the
+    alphabets `\{1, 2, \ldots, h_1\}`, `\{h_1+1, \ldots, h_1+h_2\}`,
     etc. is Yamanouchi.
 
     EXAMPLES::
@@ -276,19 +275,19 @@ def is_littlewood_richardson(t, heights):
     except AttributeError:  # Not an instance of Tableau
         w = sum(reversed(t), [])
     for i in range(len(heights)):
-        alphabet = set(range(partial[i]+1, partial[i+1]+1))
-        subword = Word([j for j in w if j in alphabet])
+        subword = Word([j for j in w if partial[i]+1 <= j <= partial[i+1]])
         if not subword.is_yamanouchi():
             return False
     return True
 
 def _tableau_join(t1, t2, shift=0):
     """
-    Join semistandard tableau ``t1`` with semistandard tableau ``t2`` shifted by ``shift``.
+    Join semistandard tableau ``t1`` with semistandard tableau ``t2``
+    shifted by ``shift``.
 
-    Concatenate the rows of ``t1`` and ``t2``, dropping any None's from ``t2``.
-    This method is intended for the case when the outer shape of ``t1`` is equal to
-    the inner shape of ``t2``.
+    Concatenate the rows of ``t1`` and ``t2``, dropping any ``None``'s
+    from ``t2``. This method is intended for the case when the outer
+    shape of ``t1`` is equal to the inner shape of ``t2``.
 
     EXAMPLES::
 
@@ -296,7 +295,7 @@ def _tableau_join(t1, t2, shift=0):
         sage: _tableau_join([[1,2]],[[None,None,2],[3]],shift=5)
         [[1, 2, 7], [8]]
     """
-    import itertools
-    return [[e1 for e1 in row1]+[e2+shift for e2 in row2 if e2 is not None]
-            for (row1, row2) in itertools.izip_longest(t1, t2, fillvalue=[])]
+    from six.moves import zip_longest
+    return [[e1 for e1 in row1] + [e2+shift for e2 in row2 if e2 is not None]
+            for (row1, row2) in zip_longest(t1, t2, fillvalue=[])]
 

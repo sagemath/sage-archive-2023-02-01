@@ -181,7 +181,7 @@ class MPolynomial_element(MPolynomial):
         """
         try:
             return self.__element.compare(right.__element,
-                             self.parent().term_order().compare_tuples)
+                                          self.parent().term_order().sortkey)
         except AttributeError:
             return self.__element.compare(right.__element)
 

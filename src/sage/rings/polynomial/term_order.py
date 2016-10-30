@@ -891,7 +891,7 @@ class TermOrder(SageObject):
             sage: y > x^3
             False
         """
-        return tuple(sum(l * r for (l, r) in zip(row, f))
+        return tuple(sum(l * r for l, r in zip(row, f))
                      for row in self._matrix)
 
     def compare_tuples_lex(self,f,g):

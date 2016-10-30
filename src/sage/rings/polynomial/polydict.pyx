@@ -41,6 +41,7 @@ from __future__ import print_function
 include "cysignals/memory.pxi"
 from libc.string cimport memcpy
 from cpython.dict cimport *
+from cpython.object cimport PyObject_RichCompare
 
 import copy
 from functools import reduce
@@ -118,35 +119,46 @@ cdef class PolyDict:
         self.__repn  = pdict
         self.__zero = zero
 
-    def __cmp__(self, PolyDict right):
-        return cmp(self.__repn, right.__repn)
+    def __richcmp__(self, PolyDict right, op):
+        return PyObject_RichCompare(self.__repn, right.__repn, op)
 
-    def compare(PolyDict self, PolyDict other, fn=None):
-        if fn is None:
+    def compare(PolyDict self, PolyDict other, key=None):
+        if key is not None:
+            # start with biggest
+            left  = iter(sorted(self.__repn, key=key, reverse=True))
+            right = iter(sorted(other.__repn, key=key, reverse=True))
+        else:
+            # in despair, do that
             return cmp(self.__repn, other.__repn)
-
-        left  = iter(sorted( self.__repn,fn,reverse=True)) #start with biggest
-        right = iter(sorted(other.__repn,fn,reverse=True))
 
         for m in left:
             try:
                 n = next(right)
             except StopIteration:
-                return 1 # left has terms, right doesn't
-            ret =  fn(m,n)
-            if ret!=0:
-                return ret # we have a difference
-            ret = cmp(self.__repn[m],other.__repn[n]) #compare coefficients
-            if ret!=0:
-                return ret #if they differ use it
-            #try next pair
+                return 1  # left has terms, right does not
 
+            # first compare the leading monomials
+            keym = key(m)
+            keyn = key(n)
+            if keym > keyn:
+                return 1
+            elif keym < keyn:
+                return -1
+
+            # same leading monomial, compare their coefficients
+            coefm = self.__repn[m]
+            coefn = other.__repn[n]
+            if coefm > coefn:
+                return 1
+            elif coefm < coefn:
+                return -1
+
+        # try next pair
         try:
             n = next(right)
+            return -1  # right has terms, left does not
         except StopIteration:
-            return 0 # both have no terms
-
-        return -1 # right has terms, left doesn't
+            return 0  # both have no terms
 
     def list(PolyDict self):
         """

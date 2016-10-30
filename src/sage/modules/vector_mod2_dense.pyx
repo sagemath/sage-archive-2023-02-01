@@ -180,11 +180,13 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         Check zero initialization::
 
             sage: for _ in range(1,100):
-            ....:     assert VectorSpace(GF(2), randint(1,50))(0).is_zero()
+            ....:     assert VectorSpace(GF(2), randint(1,5000))(0).is_zero()
             sage: (GF(2)**5)(1)
             Traceback (most recent call last):
             ...
             TypeError: can't initialize vector from nonzero non-list
+            sage: (GF(2)**0).zero_vector()
+            ()
         """
         cdef Py_ssize_t i
         if isinstance(x, (list, tuple)):
@@ -203,7 +205,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
                     mzd_write_bit(self._entries, 0, i, xi%2)
         elif x != 0:
             raise TypeError("can't initialize vector from nonzero non-list")
-        else:
+        elif self._degree:
             mzd_set_ui(self._entries, 0)
 
     def __dealloc__(self):

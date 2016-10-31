@@ -954,8 +954,26 @@ class AugmentedValuation(DevelopingValuation):
             raise ValueError("there is no residual degree over a trivial valuation")
         return self.psi().degree() * self._base_valuation.F()
 
-    def extension(self, ring):
-        return AugmentedValuation(self._base_valuation.extension(ring), self.phi().change_ring(ring.base_ring()), self._mu)
+    def extensions(self, ring):
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if not is_PolynomialRing(ring) and len(ring.gens()) != 1:
+            raise NotImplementedError("Can not compute extensions to a ring that is not a univariate polynomial ring such as %r"%ring)
+
+        base_valuations = self._base_valuation.extensions(ring)
+        phi = self.phi().change_ring(ring.base_ring())
+
+        ret = []
+        for v in base_valuations:
+            F = v.equivalence_decomposition(phi)
+            mu0 = v(phi)
+            for f,e in F:
+                # We construct a valuation with [v, w(phi) = mu] which should be such that
+                # self(phi) = self._mu, i.e., w(phi) = w(unit) + sum e_i * w(f_i) where
+                # the sum runs over all the factors in the equivalence decomposition of phi
+                # Solving for mu gives
+                mu = (self._mu - v(F.unit()) - sum([ee*v(ff) for ee,ff in F if ff != f])) / e
+                ret.append(AugmentedValuation(v, f, mu))
+        return ret
 
     def uniformizer(self):
         return self.element_with_valuation(self.value_group()._generator)
@@ -978,3 +996,7 @@ class AugmentedValuation(DevelopingValuation):
 				return False
 
         raise NotImplementedError("Operator not implemented for these valuations.")
+
+    def is_discrete_valuation(self):
+        from sage.rings.all import infinity
+        return self._mu != infinity

@@ -571,10 +571,13 @@ class GaussValuation_generic(DevelopingValuation):
         base_valuation = self._base_valuation.change_ring(base_ring)
         return GaussValuation(self.domain().change_ring(base_ring), base_valuation)
 
-    def extension(self, ring):
+    def extensions(self, ring):
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if is_PolynomialRing(ring) and len(ring.gens()) == 1:
-            return GaussValuation(ring, self._base_valuation.extension(ring.base()))
+        if not is_PolynomialRing(ring) and len(ring.gens()) != 1:
+            raise NotImplementedError("Can not compute extensions of %r to a ring that is not a univariate polynomial ring such as %r"%(self, ring))
+        if not self.domain().is_subring(ring):
+            raise ValueError("Extension must be to a larger ring but %r is not a subring of %r"%(self.domain(), ring))
+        return [GaussValuation(ring, w) for w in self._base_valuation.extensions(ring.base())]
 
     def is_gauss_valuation(self):
         r"""
@@ -621,3 +624,6 @@ class GaussValuation_generic(DevelopingValuation):
         if isinstance(other, AugmentedValuation):
             return False
         raise NotImplementedError("Operator not implemented for these valuations.")
+
+    def is_discrete_valuation(self):
+        return True

@@ -77,15 +77,46 @@ def _coerce_map_from_(target, source):
                         return source.hom([target.gen()], base_morphism=base_coercion)
 
 sage.rings.function_field.function_field.FunctionField._coerce_map_from_ = _coerce_map_from_
-
 del(_coerce_map_from_)
 
+# patch is_injective() for many morphisms
+def patch_is_injective(method, patch_map):
+    def patched(*args, **kwargs):
+        ret = method(*args, **kwargs)
+        if type(ret) in patch_map:
+            ret = patch_map[type(ret)](ret)
+        return ret
+    return patched
 
-import imp, sys
+# a ring homomorphism from a field into a ring is injective (as it respects inverses)
+class RingHomomorphism_coercion_patched(sage.rings.morphism.RingHomomorphism_coercion):
+    def is_injective(self):
+        from sage.categories.fields import Fields
+        if self.domain() in Fields(): return True
+        coercion = self.codomain().coerce_map_from(self.domain())
+        if coercion is not None:
+            return coercion.is_injective()
+        raise NotImplementedError
+sage.rings.homset.RingHomset_generic.natural_map = patch_is_injective(sage.rings.homset.RingHomset_generic.natural_map, {sage.rings.morphism.RingHomomorphism_coercion: (lambda coercion: RingHomomorphism_coercion_patched(coercion.parent()))})
+
+# a morphism of polynomial rings which is induced by a ring morphism on the base is injective if the morphis on the base is
+class PolynomialRingHomomorphism_from_base_patched(sage.rings.polynomial.polynomial_ring_homomorphism.PolynomialRingHomomorphism_from_base):
+    def is_injective(self):
+        return self.underlying_map().is_injective()         
+sage.rings.polynomial.polynomial_ring.PolynomialRing_general._coerce_map_from_ = patch_is_injective(sage.rings.polynomial.polynomial_ring.PolynomialRing_general._coerce_map_from_, {sage.rings.polynomial.polynomial_ring_homomorphism.PolynomialRingHomomorphism_from_base: (lambda morphism: PolynomialRingHomomorphism_from_base_patched(morphism.parent(), morphism.underlying_map()))})
+
+# morphisms of number fields are injective
+class Q_to_quadratic_field_element_patched(sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element):
+    def is_injective(self): return True
+class Z_to_quadratic_field_element_patched(sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element):
+    def is_injective(self): return True
+sage.rings.number_field.number_field.NumberField_quadratic._coerce_map_from_ = patch_is_injective(sage.rings.number_field.number_field.NumberField_quadratic._coerce_map_from_, {sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element: (lambda morphism: Q_to_quadratic_field_element_patched(morphism.codomain())), sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element: (lambda morphism: Z_to_quadratic_field_element_patched(morphism.codomain()))})
+
 # register modules at some standard places so imports work as exepcted
 r"""
 sage: from sage.rings.valuation.gauss_valuation import GaussValuation
 """
+import imp, sys
 sage.rings.valuation = sys.modules['sage.rings.valuation'] = imp.new_module('sage.rings.valuation')
 sage.rings.valuation.gauss_valuation = sys.modules['sage.rings.valuation.gauss_valuation'] = gauss_valuation
 sage.rings.valuation.valuation = sys.modules['sage.rings.valuation.valuation'] = valuation

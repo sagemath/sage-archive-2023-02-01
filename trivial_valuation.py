@@ -386,7 +386,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
         """
         return self.residue_ring().coerce(X)
 
-    def extension(self, ring):
+    def extensions(self, ring):
         r"""
         Return the unique extension of this valuation to ``ring``.
 
@@ -394,13 +394,13 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
             sage: from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(ZZ)
-            sage: v.extension(QQ)
+            sage: v.extensions(QQ)
             Trivial valuation on Rational Field
 
         """
-        if ring.has_coerce_map_from(self.domain()):
-            return TrivialValuation(ring)
-        return super(DiscretePseudoValuation, self).extension(ring)
+        if self.domain().is_subring(ring):
+            return [TrivialValuation(ring)]
+        return super(DiscretePseudoValuation, self).extensions(ring)
 
 TrivialValuation = TrivialValuationFactory(TrivialDiscreteValuation, DiscreteValuationSpace, "TrivialValuation")
 TrivialPseudoValuation = TrivialValuationFactory(TrivialDiscretePseudoValuation, DiscretePseudoValuationSpace, "TrivialPseudoValuation")

@@ -1978,4 +1978,35 @@ class WordGenerator(object):
         w = a + b*k + a + b*kk + a + a + b*kk + a + b*k + a
         return FiniteWords(alphabet)(w)
 
+    def BaumSweetWord(self):
+        r"""
+        Returns the Baum-Sweet Word.
+
+        The Baum-Sweet Sequence is an infinite binary word defined as a
+        fixed point of the following morphism:
+
+        `00 \rightarrow 0000`
+
+        `01 \rightarrow 1001`
+
+        `10 \rightarrow 0100`
+
+        `11 \rightarrow 1101`
+
+        It is also defined as the concatenation of the terms from the Baum-Sweet
+        Sequence.
+
+        `11 \rightarrow 1101 \rightarrow 11011001 \rightarrow \dots`
+
+        EXAMPLES:
+
+        Baum-Sweet Word::
+
+            sage: w = words.BaumSweetWord(); w
+            word: 1101100001000000100000000000000001000000...
+        """
+        outer = WordMorphism('a->00,b->01,c->10,d->11')
+        inner = WordMorphism('a->aa,b->ca,c->ba,d->db')
+        return outer(inner.fixed_point('d'))
+
 words = WordGenerator()

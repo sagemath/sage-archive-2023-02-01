@@ -80,6 +80,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.vertical_decomposition` | Return the vertical decomposition of the lattice.
     :meth:`~FiniteLatticePoset.canonical_joinands` | Return the canonical joinands of an element.
+    :meth:`~FiniteLatticePoset.canonical_meetands` | Return the canonical meetands of an element.
 
 **Miscellaneous**
 
@@ -2603,6 +2604,69 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return True
         return (True, [self[e] for e in cert])
 
+    def canonical_meetands(self, e):
+        r"""
+        Return the canonical meetands of `e`.
+
+        The canonical meetands of an element `e` in the lattice `L` is the
+        subset `S \subseteq L` such that 1) the meet of `S` is `e`, and
+        2) if the meet of some other subset `S'` of is also `e`, then for
+        every element `s \in S` there is an element `s' \in S'` such that
+        `s \ge s'`.
+
+        Informally said this is the set of greatest possible elements
+        with given meet. It exists for every element if and only if
+        the lattice is meet-semidistributive. Canonical meetands are
+        always meet-irreducibles.
+
+        INPUT:
+
+        - ``e`` -- an element of the lattice
+
+        OUTPUT:
+
+        - canonical meetands as a list, if it exists; if not, ``None``
+
+        .. SEEALSO::
+
+            :meth:`canonical_joinands`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [5, 6], 4: [6],
+            ....:                   5: [7], 6: [7]})
+            sage: L.canonical_meetands(1)
+            [5, 4]
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [6], 4: [6],
+            ....: 5: [6]})
+            sage: L.canonical_meetands(1) is None
+            True
+
+        TESTS::
+
+            LatticePoset({1: []}).canonical_meetands(1)
+            [1]
+        """
+        # Algorithm: Make interval from e to the top element.
+        # Now compute kappa function for every atom of that lattice, i.e.
+        # kind of "restricted" kappa for elements covering e.
+        # This is done implicitly here.
+        H = self._hasse_diagram
+        e = self._element_to_vertex(e)
+        meetands = []
+        for a in H.neighbors_out(e):
+            above_a = list(H.depth_first_search(a))
+            go_up = lambda v: [v_ for v_ in H.neighbors_out(v) if v_ not in above_a]
+            result = None
+            for v in H.depth_first_search(e, neighbors=go_up):
+                if H.out_degree(v) == 1 and next(H.neighbor_out_iterator(v)) in above_a:
+                    if result is not None:
+                        return None
+                    result = v
+            meetands.append(result)
+        return [self._vertex_to_element(v) for v in meetands]
+
     def canonical_joinands(self, e):
         r"""
         Return the canonical joinands of `e`.
@@ -2625,6 +2689,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         OUTPUT:
 
         - canonical joinands as a list, if it exists; if not, ``None``
+
+        .. SEEALSO::
+
+            :meth:`canonical_meetands`
 
         EXAMPLES::
 

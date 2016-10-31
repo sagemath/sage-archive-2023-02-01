@@ -25,6 +25,7 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.rings.rational_field import QQ
 from sage.categories.posets import Posets
@@ -432,6 +433,35 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         return self._poset
 
+    def cardinality(self):
+        """
+        Return the number of linear extensions.
+
+        EXAMPLES::
+
+            sage: N = Poset({0: [2, 3], 1: [3]})
+            sage: N.linear_extensions().cardinality()
+            5
+
+        TESTS::
+
+            sage: Poset().linear_extensions().cardinality()
+            1
+            sage: Posets.ChainPoset(1).linear_extensions().cardinality()
+            1
+        """
+        from sage.rings.integer import Integer
+
+        H = self._poset.order_ideals_lattice(as_ideals=False)._hasse_diagram
+        L = H.level_sets()
+        c = [0] * H.order()
+        for l in L[0]:
+            c[l] = 1
+        for lev in L[1:]:
+            for l in lev:
+                c[l] = sum(c[i] for i in H.lower_covers_iterator(l))
+        return Integer(sum(c[i] for i in H.sinks()))
+    
     def __iter__(self):
         r"""
         Iterates through the linear extensions of the underlying poset.
@@ -560,9 +590,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         d = dict([x,dict([y,[]] for y in self)] for x in self)
         if action == 'promotion':
-            R = range(self.poset().cardinality())
+            R = list(range(self.poset().cardinality()))
         else:
-            R = range(self.poset().cardinality()-1)
+            R = list(range(self.poset().cardinality() - 1))
         if labeling == 'source':
             for x in self:
                 for i in R:

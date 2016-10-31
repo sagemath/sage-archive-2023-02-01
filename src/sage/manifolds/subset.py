@@ -14,7 +14,7 @@ AUTHORS:
 
 REFERENCES:
 
-- [Lee11]_ J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
+- [Lee2011]_ J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
   Springer (New York) (2011)
 
 EXAMPLES:
@@ -205,7 +205,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         self._unions = {}  # dict. of unions with other subsets (key: subset
                            # name)
         self._open_covers = []  # list of open covers of self
-        self._is_open = False   # a priori (may be redifined by subclasses)
+        self._is_open = False   # a priori (may be redefined by subclasses)
         self._manifold = manifold  # the ambient manifold
 
     def _repr_(self):

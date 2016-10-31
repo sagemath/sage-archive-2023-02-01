@@ -44,11 +44,6 @@ Test deprecation::
     Importing sxrange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
     See http://trac.sagemath.org/20094 for details.
     <generator object at 0x...>
-    sage: sage.misc.misc.mul([3,4])
-    doctest:...: DeprecationWarning:
-    Importing prod from here is deprecated. If you need to use it, please import it directly from sage.misc.all
-    See http://trac.sagemath.org/17460 for details.
-    12
     sage: sage.misc.misc.cancel_alarm()
     doctest:...: DeprecationWarning:
     Importing cancel_alarm from here is deprecated. If you need to use it, please import it directly from cysignals.alarm
@@ -64,8 +59,8 @@ Test deprecation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "generic_cmp", "to_gmp_hex", "todo",
@@ -73,20 +68,20 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "assert_attribute", "LOGFILE"]
 
 from warnings import warn
-import os, stat, sys, signal, time, resource, math
+import os
+import stat
+import sys
+import signal
+import time
+import resource
+import math
 import sage.misc.prandom as random
 from .lazy_string import lazy_string
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.arith.srange', ('xsrange', 'srange', 'ellipsis_range', 'ellipsis_iter'), deprecation=20094)
 lazy_import('sage.arith.srange', 'xsrange', 'sxrange', deprecation=20094)
-lazy_import('sage.misc.temporary_file', ('tmp_dir', 'tmp_filename', 'delete_tmpfiles'), deprecation=17460)
-lazy_import('sage.misc.banner', ('version', 'banner'), deprecation=17460)
-lazy_import('sage.env', '*', deprecation=17460)
-lazy_import('sage.misc.decorators', ('infix_operator', 'decorator_defaults', 'sage_wraps'), deprecation=17460)
-lazy_import('sage.misc.all', ('prod', 'running_total', 'balanced_sum', 'is_64_bit', 'is_32_bit'), deprecation=17460)
 lazy_import('cysignals.alarm', ('alarm', 'cancel_alarm'), deprecation=20002)
-mul = prod
 
 
 from sage.env import DOT_SAGE, HOSTNAME
@@ -135,12 +130,18 @@ def sage_makedirs(dir):
 
 sage_makedirs(DOT_SAGE)
 
-_mode = os.stat(DOT_SAGE)[stat.ST_MODE]
-_desired_mode = 0o40700     # drwx------
-if _mode != _desired_mode:
-    print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
-    # Change mode of DOT_SAGE.
-    os.chmod(DOT_SAGE, _desired_mode)
+if hasattr(os, 'chmod'):
+    _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
+    _desired_mode = 0o40700     # drwx------
+    if _mode != _desired_mode:
+        # On Cygwin, if the sage directory is not in a filesystem mounted with
+        # 'acl' support, setting the permissions may fail silently, so only
+        # print the message after we've changed the permissions and confirmed
+        # that the change succeeded
+        os.chmod(DOT_SAGE, _desired_mode)
+        if os.stat(DOT_SAGE)[stat.ST_MODE] == _desired_mode:
+            print("Setting permissions of DOT_SAGE directory so only you "
+                  "can read and write it.")
 
 
 #################################################
@@ -674,7 +675,7 @@ def coeff_repr(c, is_latex=False):
             return "(%s)"%s
     return s
 
-def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_one=False, repr_monomial = None, latex_scalar_mult = None):
+def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False, repr_monomial = None, latex_scalar_mult = None):
     """
     Compute a string representation of a linear combination of some
     formal symbols.
@@ -751,23 +752,7 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
 
         sage: repr_lincomb([('a',1), ('b',2), ('c',3)], repr_monomial = lambda s: s+"1")
         'a1 + 2*b1 + 3*c1'
-
-
-    TESTS:
-
-    For backward compatibility (will be deprecated)::
-
-        sage: repr_lincomb(['a','b','c'], [1,2,3])
-        doctest:...: DeprecationWarning: calling `repr_lincomb(monoms, coeffs)` is deprecated; please specify a list of tuples (monom, coeff) instead
-        See http://trac.sagemath.org/12484 for details.
-        'a + 2*b + 3*c'
     """
-    # For backward compatibility
-    if coeffs is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(12484, "calling `repr_lincomb(monoms, coeffs)` is deprecated; please specify a list of tuples (monom, coeff) instead")
-        terms = zip(terms, coeffs)
-
     # Setting scalar_mult: symbol used for scalar multiplication
     if is_latex:
         if latex_scalar_mult is not None:
@@ -1041,7 +1026,7 @@ def nest(f, n, x):
     if n < 0:
         raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
-    for i in xrange(n):
+    for i in range(n):
         x = f(x)
     return x
 
@@ -1276,7 +1261,7 @@ def powerset(X):
     pairs = []
     for x in X:
         pairs.append((2**len(pairs),x))
-        for w in xrange(2**(len(pairs)-1), 2**(len(pairs))):
+        for w in range(2**(len(pairs)-1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
 
 subsets = powerset

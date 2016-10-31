@@ -701,15 +701,6 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             Traceback (most recent call last):
             ...
             NotImplementedError: maximal order only implemented for rational quaternion algebras
-
-
-        REFERENCES:
-
-        .. [Piz1980] \A. Pizer. An Algorithm for Computing Modular Forms
-           on `\Gamma_0(N)`, J. Algebra 64 (1980), 340-390.
-
-        .. [Voi2012] \J. Voight. Identifying the matrix ring: algorithms
-           for quaternion algebras and quadratic forms, to appear.
         """
         try: return self.__maximal_order
         except AttributeError: pass

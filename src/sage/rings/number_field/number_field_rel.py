@@ -168,6 +168,28 @@ class NumberField_relative(NumberField_generic):
         sage: t = polygen(K)
         sage: L.<b> = K.extension(t^2+t+a); L
         Number Field in b with defining polynomial x^2 + x + a over its base field
+
+    TESTS::
+
+        sage: Z = var('Z')
+        sage: K.<w> = NumberField(Z^3 + Z + 1)
+        sage: L.<z> = K.extension(Z^3 + 2)
+        sage: K = loads(dumps(L))
+        sage: K
+        Number Field in z with defining polynomial Z^3 + 2 over its base field
+        sage: L is K
+        True
+
+        sage: M.<u,v> = L.change_names()
+        sage: M.structure()
+        (Isomorphism given by variable name change map:
+          From: Number Field in u with defining polynomial x^3 + 2 over its base field
+          To:   Number Field in z with defining polynomial Z^3 + 2 over its base field,
+         Isomorphism given by variable name change map:
+          From: Number Field in z with defining polynomial Z^3 + 2 over its base field
+          To:   Number Field in u with defining polynomial x^3 + 2 over its base field)
+        sage: loads(dumps(M)) is M
+        True
     """
     def __init__(self, base, polynomial, name,
                  latex_name=None, names=None, check=True, embedding=None, structure=None):
@@ -456,7 +478,7 @@ class NumberField_relative(NumberField_generic):
 
         TESTS:
 
-        Trivial extensions work like non-trivial ones (trac #2220)::
+        Trivial extensions work like non-trivial ones (:trac:`2220`)::
 
             sage: NumberField([x^2 - 3, x], 'a').gens()
             (a0, 0)
@@ -722,39 +744,6 @@ class NumberField_relative(NumberField_generic):
             self.__maximal_order[v] = RelativeOrder(self, abs_order, is_maximal=None, check=False)
         return self.__maximal_order[v]
 
-    def __reduce__(self):
-        """
-        TESTS::
-
-            sage: Z = var('Z')
-            sage: K.<w> = NumberField(Z^3 + Z + 1)
-            sage: L.<z> = K.extension(Z^3 + 2)
-            sage: K = loads(dumps(L))
-            sage: K
-            Number Field in z with defining polynomial Z^3 + 2 over its base field
-            sage: L == K
-            True
-
-        The structure of a relative number field is lost when pickling, this is
-        a known bug, see :trac:`11670`::
-
-            sage: M.<u,v> = L.change_names()
-            sage: M.structure()
-            (Isomorphism given by variable name change map:
-              From: Number Field in u with defining polynomial x^3 + 2 over its base field
-              To:   Number Field in z with defining polynomial Z^3 + 2 over its base field,
-             Isomorphism given by variable name change map:
-              From: Number Field in z with defining polynomial Z^3 + 2 over its base field
-              To:   Number Field in u with defining polynomial x^3 + 2 over its base field)
-            sage: M = loads(dumps(M))
-            sage: M.structure()
-            (Ring Coercion endomorphism of Number Field in u with defining polynomial x^3 + 2 over its base field,
-             Ring Coercion endomorphism of Number Field in u with defining polynomial x^3 + 2 over its base field)
-
-        """
-        return NumberField_relative_v1, (self.__base_field, self.relative_polynomial(), self.variable_name(),
-                                          self.latex_variable_name(), self.gen_embedding())
-
     def _repr_(self):
         """
         Return string representation of this relative number field.
@@ -830,7 +819,7 @@ class NumberField_relative(NumberField_generic):
             sage: K._coerce_from_other_number_field(L(2/3))
             2/3
         """
-        if x.parent() is self.base_ring() or x.parent() == self.base_ring():
+        if x.parent() is self.base_ring():
             return self.__base_inclusion(x)
 
         f = x.polynomial()
@@ -931,7 +920,7 @@ class NumberField_relative(NumberField_generic):
 
         TESTS:
 
-        Examples from Trac ticket :trac:`4727`::
+        Examples from :trac:`4727`::
 
             sage: K.<j,b> = QQ[sqrt(-1), sqrt(2)]
             sage: j
@@ -945,7 +934,7 @@ class NumberField_relative(NumberField_generic):
             sage: K((b*j + 1/2).list())
             sqrt2*I + 1/2
 
-        Examples from Trac :trac:`4869`::
+        Examples from :trac:`4869`::
 
             sage: K.<z> = CyclotomicField(7)
             sage: Ky.<y> = PolynomialRing(K)
@@ -1156,7 +1145,7 @@ class NumberField_relative(NumberField_generic):
 
         TESTS:
 
-        Check that #5828 is solved::
+        Check that :trac:`5828` is solved::
 
             sage: K.<w> = QuadraticField(-1)
             sage: KX.<X> = K[]
@@ -1718,9 +1707,8 @@ class NumberField_relative(NumberField_generic):
             Number Field in a with defining polynomial x^2 + 2 over its base field
             sage: K.pari_absolute_base_polynomial()
             y^2 + 3
-            sage: K.pari_absolute_base_polynomial().parent()
-            Interface to the PARI C library
-
+            sage: type(K.pari_absolute_base_polynomial())
+            <type 'sage.libs.pari.gen.gen'>
             sage: z = ZZ['z'].0
             sage: K.<a, b, c> = NumberField([z^2 + 2, z^2 + 3, z^2 + 5]); K
             Number Field in a with defining polynomial z^2 + 2 over its base field
@@ -1730,8 +1718,8 @@ class NumberField_relative(NumberField_generic):
             Number Field in b with defining polynomial z^2 + 3 over its base field
             sage: len(QQ['y'](K.pari_absolute_base_polynomial()).roots(K.base_field()))
             4
-            sage: K.pari_absolute_base_polynomial().parent()
-            Interface to the PARI C library
+            sage: type(K.pari_absolute_base_polynomial())
+            <type 'sage.libs.pari.gen.gen'>
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         return abs_base.pari_polynomial('y')
@@ -2628,7 +2616,7 @@ class NumberField_relative(NumberField_generic):
 
 def NumberField_relative_v1(base_field, poly, name, latex_name, canonical_embedding=None):
     """
-    This is used in pickling relative fields.
+    Used for unpickling old pickles.
 
     EXAMPLES::
 
@@ -2637,6 +2625,7 @@ def NumberField_relative_v1(base_field, poly, name, latex_name, canonical_embedd
         sage: NumberField_relative_v1(CyclotomicField(3), x^2 + 7, 'a', 'a')
         Number Field in a with defining polynomial x^2 + 7 over its base field
     """
-    return NumberField_relative(base_field, poly, name, latex_name, check=False, embedding=canonical_embedding)
+    return NumberField(poly.change_ring(base_field), name, check=False,
+                       embedding=canonical_embedding, latex_name=latex_name)
 
 NumberField_extension_v1 = NumberField_relative_v1  # historical reasons only

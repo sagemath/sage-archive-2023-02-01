@@ -72,9 +72,8 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 ################################################################################
-
+from six.moves import range
 # Sage packages
-from   sage.misc.search import search
 import sage.misc.latex as latex
 import sage.misc.misc as misc
 
@@ -82,14 +81,11 @@ import sage.matrix.matrix_space as matrix_space
 from sage.modular.arithgroup.arithgroup_element import M2Z
 import sage.modules.free_module_element as free_module_element
 import sage.modules.free_module as free_module
-import sage.misc.misc as misc
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
-import sage.rings.rational_field as rational_field
-import sage.rings.integer_ring as integer_ring
-import sage.rings.all as rings
-import sage.arith.all as arith
+from sage.rings.all import Integer, QQ, ZZ, Ring
+from sage.arith.all import is_prime, xgcd, gcd, divisors, number_of_divisors
 import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
@@ -100,7 +96,7 @@ from sage.modular.modsym.manin_symbol_list import (ManinSymbolList_gamma0,
                                                    ManinSymbolList_gamma1,
                                                    ManinSymbolList_gamma_h,
                                                    ManinSymbolList_character)
-import sage.structure.all
+
 
 from . import boundary
 from . import element
@@ -111,9 +107,6 @@ from . import p1list
 from . import relation_matrix
 from .space import ModularSymbolsSpace
 from . import subspace
-
-QQ = rings.Rational
-ZZ = rings.Integers
 
 
 class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
@@ -162,7 +155,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             raise TypeError("group must be a congruence subgroup")
 
         sign = int(sign)
-        if not isinstance(base_ring, rings.Ring) and base_ring.is_field():
+        if not isinstance(base_ring, Ring) and base_ring.is_field():
             raise TypeError("base_ring must be a commutative ring")
 
         if character is None and arithgroup.is_Gamma0(group):
@@ -183,7 +176,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         rank = self.rank()
         if formula is not None:
             assert rank == formula, \
-                   "Computed dimension (=%s) of ambient space \"%s\" doesn't match dimension formula (=%s)!\n"%(d, self, formula) + \
+                   "Computed dimension (=%s) of ambient space \"%s\" doesn't match dimension formula (=%s)!\n"%(rank, self, formula) + \
                    "ModularSymbolsAmbient: group = %s, weight = %s, sign = %s, base_ring = %s, character = %s"%(
                          group, weight, sign, base_ring, character)
 
@@ -477,7 +470,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         elif isinstance(x, modular_symbols.ModularSymbol):
             return self(x.manin_symbol_rep())
 
-        elif isinstance(x, (int, rings.Integer)) and x==0:
+        elif isinstance(x, (int, Integer)) and x==0:
             return self.element_class(self, self.free_module()(0))
 
         elif isinstance(x, tuple):
@@ -641,13 +634,13 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         # v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
         cf = alpha._rational_().continued_fraction()
         v = list(cf)
-        c = [(cf.p(k),cf.q(k)) for k in xrange(len(cf))]
+        c = [(cf.p(k),cf.q(k)) for k in range(len(cf))]
         a = self(0)
-        zero = rings.ZZ(0)
-        one = rings.ZZ(1)
-        two = rings.ZZ(2)
+        zero = ZZ.zero()
+        one = ZZ.one()
+        two = ZZ(2)
         if self.weight() > two:
-            R = rings.ZZ['X']
+            R = ZZ['X']
             X = R.gen(0)
             ## need to add first two terms, which aren't necessarily
             ## zero in this case. we do the first here, and the
@@ -779,7 +772,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
                         x, self.weight()-2))
             else:
                 raise ValueError("x (=%s) must be of length 2 or 3"%x)
-            i = rings.Integer(x[0])
+            i = Integer(x[0])
             alpha = Cusp(x[1])
             beta = Cusp(x[2])
         else:
@@ -990,7 +983,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             [4860    0 2049]
         """
         # note -- p doesn't have to be prime despite the function name
-        p = int(rings.Integer(p))   # go through Integer so p = 2.5 gives an error.
+        p = int(Integer(p))   # go through Integer so p = 2.5 gives an error.
         if isinstance(rows, list):
             rows = tuple(rows)
         try:
@@ -1001,7 +994,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             pass
         tm = misc.verbose("Computing Hecke operator T_%s"%p)
 
-        if arith.is_prime(p):
+        if is_prime(p):
             H = heilbronn.HeilbronnCremona(p)
         else:
             H = heilbronn.HeilbronnMerel(p)
@@ -1276,7 +1269,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         if N%d != 0:
             raise ValueError("d must divide N")
 
-        g, x, y = arith.xgcd(d, -N//d)
+        g, x, y = xgcd(d, -N//d)
         g = [d*x, y, N, d]
         A = self._action_on_modular_symbols(g)
         scale = R(d)**(1 - k//2)
@@ -1758,9 +1751,9 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         cond = 1 if chi is None   else   chi.conductor()
         # Now actually run through the divisor levels, taking only the ones with that are
         # a multiple of the conductor.
-        for d in reversed(arith.divisors(self.level())):
+        for d in reversed(divisors(self.level())):
             if d%cond != 0: continue
-            n = arith.number_of_divisors(self.level() // d)
+            n = number_of_divisors(self.level() // d)
             M = self.modular_symbols_of_level(d)
             N = M.new_submodule().cuspidal_submodule().decomposition()
             for A in N:
@@ -1781,10 +1774,10 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             D.append((E,1))
 
         r = self.dimension()
-        s = sum([A.rank()*mult for A, mult in D])
+        s = sum(A.rank() * mult for A, mult in D)
         D = sage.structure.all.Factorization(D, cr=True, sort=False)
-        D.sort(_cmp = cmp)
-        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s\n%s"%(r, s, D)
+        D.sort()
+        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s\n%s" % (r, s, D)
         self._factorization = D
         return self._factorization
 
@@ -2123,7 +2116,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         m = eps.modulus()
         s = self(0)
 
-        for a in ([ x for x in range(1,m) if arith.gcd(x,m) == 1 ]):
+        for a in ([ x for x in range(1,m) if gcd(x, m) == 1 ]):
             s += eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a/m)])
 
         return s
@@ -2197,7 +2190,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             [     0      0      0      0      0      0      0      0    1/2    1/2]
             [     0      0      0      0      0      0      0      0      0      1]
         """
-        if not self.base_ring() == rational_field.RationalField():
+        if not self.base_ring() == QQ:
             raise NotImplementedError
 
         try:
@@ -2636,7 +2629,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             sage: M.modular_symbols_of_level(12)
             Modular Symbols space of dimension 9 for Gamma_1(12) of weight 2 with sign 0 and over Rational Field
         """
-        return modsym.ModularSymbols(arithgroup.Gamma0(rings.Integer(N)),
+        return modsym.ModularSymbols(arithgroup.Gamma0(Integer(N)),
                                      self.weight(), sign=self.sign(),
                                      base_ring=self.base_ring())
 
@@ -3163,7 +3156,7 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         B = self.manin_basis()
         syms = self.manin_symbols()
         k = self.weight()
-        G = matrix_space.MatrixSpace(integer_ring.IntegerRing(),2)
+        G = matrix_space.MatrixSpace(ZZ, 2)
         H = [G(h) for h in H]
         for n in B:
             z = M(0)
@@ -3637,7 +3630,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         B = self.manin_basis()
         syms = self.manin_symbols()
         k = self.weight()
-        G = matrix_space.MatrixSpace(integer_ring.IntegerRing(),2)
+        G = matrix_space.MatrixSpace(ZZ, 2)
         H = [G(h) for h in H]
         eps = self.character()  # note: in my thesis I twisted by eps^(-1), which is definitely a mistake
                                 # since twisting by eps gives the right answer and by eps^(-1) does not.
@@ -3818,7 +3811,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             sage: M = ModularSymbols(e^2,2)
             sage: M.dimension()
             15
-            sage: M._hecke_images(8,range(1,5))
+            sage: M._hecke_images(8,list(range(1,5)))
             [ 0  0  0  0  0  0  0  0  1  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  1  0  0  0  0  1  0  0]
             [ 0  1  0  2  0 -1  1  1  0  0  0  0  0  0  0]

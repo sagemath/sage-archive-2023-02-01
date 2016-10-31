@@ -83,7 +83,7 @@ to the develop branch (latest development release)::
     [user@localhost sage]$ git checkout develop
 
 You will then need to `compile Sage
-<http://www.sagemath.org/doc/installation/source.html>`_ in order to use it. If
+<http://doc.sagemath.org/html/en/installation/source.html>`_ in order to use it. If
 you cloned, you will need to remain on the internet for it to download various
 packages of Sage::
 
@@ -230,7 +230,7 @@ fast. If you made changes to
     [user@localhost sage]$ make
 
 as if you were `installing Sage from scratch
-<http://www.sagemath.org/doc/installation/source.html>`_.
+<http://doc.sagemath.org/html/en/installation/source.html>`_.
 However, this time only packages which were changed (or which depend
 on a changed package) will be recompiled,
 so it shoud be much faster than compiling Sage
@@ -242,6 +242,20 @@ changed, in that case you do have to recompile everything using::
 
 Also, don't forget to run the tests (see :ref:`chapter-doctesting`)
 and build the documentation (see :ref:`chapter-sage_manuals`).
+
+.. NOTE::
+
+    If you switch between branches based on different releases, the timestamps
+    of modified files will change. This triggers recythonization and recompilation
+    of modified files on subsequent builds, whether or not you have made any
+    additional changes to files. To minimize the impact of switching between branches,
+    install ccache using the command ::
+
+        ./sage -i ccache
+
+    Recythonization will still occur when rebuilding, but the recompilation stage
+    first checks whether previously compiled files are cached for reuse before
+    compiling them again. This saves considerable time rebuilding.
 
 
 .. _section-walkthrough-commit:

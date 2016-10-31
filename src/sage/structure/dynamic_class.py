@@ -292,7 +292,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
 
         sage: type(FooBar).__reduce__(FooBar)
         (<function dynamic_class at ...>, ('FooBar', (<class __main__.Bar at ...>,), <class '__main__.Foo'>, None, None))
-        sage: import cPickle
+        sage: from six.moves import cPickle
         sage: cPickle.loads(cPickle.dumps(FooBar)) == FooBar
         True
 
@@ -389,12 +389,9 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
             assert bases != ()
             doccls = bases[0]
     methods['_reduction'] = reduction
-    if "_sage_src_lines_" not in methods:
-        from sage.misc.sageinspect import sage_getsourcelines
-        @staticmethod
-        def _sage_src_lines():
-            return sage_getsourcelines(doccls)
-        methods['_sage_src_lines_'] = _sage_src_lines
+    # HACK: _doccls is a 1-element tuple to avoid __classget__
+    # or trouble with binding behaviour...
+    methods['_doccls'] = (doccls,)
     methods['__doc__'] = doccls.__doc__
     methods['__module__'] = doccls.__module__
 
@@ -412,10 +409,34 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
             metaclass = DynamicInheritComparisonMetaclass
     return metaclass(name, bases, methods)
 
+
 class DynamicMetaclass(type):
     """
     A metaclass implementing an appropriate reduce-by-construction method
     """
+    def _sage_src_lines_(self):
+        r"""
+        Get the source lines of the dynamic class. This defers to the
+        source lines of the ``_doccls`` attribute, which is set when
+        the dynamic class is constructed.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sageinspect import sage_getsourcelines
+            sage: from sage.structure.dynamic_class import dynamic_class
+            sage: C = dynamic_class("SomeClass", [object], doccls=Integer)
+            sage: sage_getsourcelines(C)[0][0]
+            'cdef class Integer(sage.structure.element.EuclideanDomainElement):\n'
+        """
+        try:
+            # HACK: _doccls is a 1-element tuple to avoid __classget__
+            # or trouble with binding behaviour...
+            doccls = self._doccls[0]
+        except AttributeError:
+            raise NotImplementedError("no _doccls found")
+        from sage.misc.sageinspect import sage_getsourcelines
+        return sage_getsourcelines(doccls)
+
     def __reduce__(self):
         """
         See :func:`sage.structure.dynamic_class.dynamic_class` for
@@ -445,12 +466,12 @@ class DynamicInheritComparisonClasscallMetaclass(DynamicMetaclass, InheritCompar
     pass
 
 # This registers the appropriate reduction methods (see Trac #5985)
-import copy_reg
+from six.moves import copyreg
 for M in [DynamicMetaclass,
           DynamicClasscallMetaclass,
           DynamicInheritComparisonMetaclass,
           DynamicInheritComparisonClasscallMetaclass]:
-    copy_reg.pickle(M, M.__reduce__)
+    copyreg.pickle(M, M.__reduce__)
 
 
 class TestClass:

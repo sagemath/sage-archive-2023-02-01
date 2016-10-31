@@ -1,0 +1,15 @@
+Simple fix for omalloc decl in xalloc implem.
+
+--- a/latest/xalloc/omalloc.h	2016-08-26 14:19:07.932239109 +0000
++++ b/latest/xalloc/omalloc.h	2016-08-26 14:19:42.972316197 +0000
+@@ -66,7 +66,7 @@
+ extern int om_sing_opt_show_mem;
+ 
+ static inline void * omalloc(size_t s)
+-{ if (d!=0) {long *d=(long*)malloc(s+sizeof(long)); *d=s;d++;return d; }
++{ if (s!=0) {long *d=(long*)malloc(s+sizeof(long)); *d=s;d++;return d; }
+   else return NULL;
+ }
+ static inline void * omAlloc(size_t s)
+
+Make sure omConfig.h (included by omalloc.h) gets installed.

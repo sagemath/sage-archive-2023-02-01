@@ -15,13 +15,9 @@ from __future__ import print_function
 
 from sage.env import SAGE_VERSION, SAGE_DATE, SAGE_SRC, SAGE_BANNER
 
-def version(clone=False):
+def version():
     """
     Return the version of Sage.
-
-    INPUT:
-
-    nothing
 
     OUTPUT:
 
@@ -31,16 +27,8 @@ def version(clone=False):
 
        sage: version()
        'SageMath version ..., Release Date: ...'
-       sage: version(clone=True)
-       ('SageMath version ..., Release Date: ...',
-        'Mercurial clone branch: ...')
     """
-    import os
-    branch = os.popen("ls -l "+SAGE_SRC).read().split()[-1][5:]
-    v = 'SageMath version %s, Release Date: %s'%(SAGE_VERSION, SAGE_DATE)
-    if clone:
-        return v,"Mercurial clone branch: %s"%branch
-    return v
+    return 'SageMath version %s, Release Date: %s' % (SAGE_VERSION, SAGE_DATE)
 
 
 def banner_text(full=None):

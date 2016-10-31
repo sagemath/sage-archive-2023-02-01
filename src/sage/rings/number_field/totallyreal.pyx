@@ -109,15 +109,13 @@ from __future__ import print_function
 
 include 'sage/ext/stdsage.pxi'
 
-import math, sys
+import math
+import sys
 
 from sage.libs.gmp.mpz cimport *
-from sage.libs.pari.types cimport *
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari import pari
 from sage.libs.pari.gen cimport gen as pari_gen
-
-import sage.libs.pari.pari_instance
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+from sage.libs.pari.convert cimport new_t_POL_from_int_star
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -252,8 +250,8 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
         sage: enumerate_totallyreal_fields_prim(2, 10)
         [[5, x^2 - x - 1], [8, x^2 - 2]]
-        sage: enumerate_totallyreal_fields_prim(2, 10)[0][1].parent()
-        Interface to the PARI C library
+        sage: type(enumerate_totallyreal_fields_prim(2, 10)[0][1])
+        <type 'sage.libs.pari.gen.gen'>
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][0].parent()
         Integer Ring
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][1].parent()
@@ -371,7 +369,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         T.incr(f_out,0,0,phc_flag)
 
     while f_out[n]:
-        nf = pari.new_t_POL_from_int_star(f_out, n_int+1, 0)
+        nf = new_t_POL_from_int_star(f_out, n_int+1, 0)
         if verb_int:
             print("==>", nf, "[")
             for j from 0 <= j < n-1:
@@ -447,10 +445,10 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         sig_free(f_out)
         return
 
-    # Convert S to a sorted list of pairs [d, f], taking care to use
-    # cmp() and not the comparison operators on PARI polynomials.
-    S = [list(s) for s in S]
-    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
+    # Convert S to a sorted list of pairs [d, f]
+    # we sort only according to d
+    # because we cannot compare t_POL objects (PARI polynomials)
+    S = sorted([list(s) for s in S], key=lambda x: x[0])
 
     # In the application of Smyth's theorem above (and easy
     # irreducibility test), we exclude finitely many possibilities
@@ -570,6 +568,6 @@ def timestr(m):
         outstr += str(t)[:len(str(t))-2] + 'm '
         n -= t*60
     n += p
-    outstr += '%.1f'%n + 's'
+    outstr += '%.1f' % n + 's'
 
     return outstr

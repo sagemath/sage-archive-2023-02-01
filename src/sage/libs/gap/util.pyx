@@ -10,11 +10,11 @@ Utility functions for libGAP
 #   the License, or (at your option) any later version.
 #                   http://www.gnu.org/licenses/
 ###############################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.env import SAGE_LOCAL
 from libc.stdint cimport uintptr_t
-from element cimport *
+from .element cimport *
 
 
 ############################################################################
@@ -134,7 +134,7 @@ cdef void gasman_callback():
     Callback before each GAP garbage collection
     """
     global owned_objects_refcount
-    for obj in owned_objects_refcount.iterkeys():
+    for obj in owned_objects_refcount:
         libGAP_MARK_BAG((<ObjWrapper>obj).value)
 
 
@@ -259,7 +259,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
 
         sage: libgap.eval('if 4>3 then\nPrint("hi");\nfi')
         NULL
-        sage: libgap.eval('1+1')   # testing that we have sucessfully recovered
+        sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
 
         sage: libgap.eval('if 4>3 thenPrint("hi");\nfi')
@@ -269,7 +269,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         if 4>3 thenPrint("hi");
         fi;
                        ^
-        sage: libgap.eval('1+1')   # testing that we have sucessfully recovered
+        sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
     """
     initialize()

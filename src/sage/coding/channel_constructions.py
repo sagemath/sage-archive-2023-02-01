@@ -46,6 +46,7 @@ This file contains the following elements:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
@@ -406,7 +407,7 @@ class StaticErrorRateChannel(Channel):
             sage: Chan.transmit_unsafe(msg)
             (4, 8, 4, 16, 23, 53)
 
-        This checks that trac #19863 is fixed::
+        This checks that :trac:`19863` is fixed::
 
             sage: V = VectorSpace(GF(2), 1000)
             sage: Chan = channels.StaticErrorRateChannel(V, 367)
@@ -418,7 +419,7 @@ class StaticErrorRateChannel(Channel):
         number_errors = randint(*self.number_errors())
         V = self.input_space()
         R = V.base_ring()
-        for i in sample(xrange(V.dimension()), number_errors):
+        for i in sample(range(V.dimension()), number_errors):
             err = R.random_element()
             while (w[i] == err):
                 err = R.random_element()
@@ -608,7 +609,7 @@ class ErrorErasureChannel(Channel):
         n = V.dimension()
         zero = V.base_ring().zero()
 
-        errors = sample(xrange(n), number_errors + number_erasures)
+        errors = sample(range(n), number_errors + number_erasures)
         error_positions   = errors[:number_errors]
         erasure_positions = errors[number_errors:]
 

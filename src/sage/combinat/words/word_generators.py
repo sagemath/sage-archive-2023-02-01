@@ -1,6 +1,6 @@
 # coding=utf-8
 r"""
-A collection of constructors of common words
+Common words
 
 AUTHORS:
 
@@ -55,6 +55,8 @@ EXAMPLES::
 #*****************************************************************************
 from __future__ import print_function
 
+from six.moves import range
+
 from itertools import cycle, count
 from random import randint
 from sage.misc.cachefunc import cached_method
@@ -97,7 +99,7 @@ def _build_tab(sym, tab, W):
     w = W([sym]).delta_inv(W, tab[0])
     w = w[1:]
     res.append((w[-1] % c) + 1)
-    for i in xrange(1, len(tab)):
+    for i in range(1, len(tab)):
         w = w.delta_inv(W, tab[i])
         res.append((w[-1] % c) + 1)
     return res
@@ -1347,7 +1349,7 @@ class WordGenerator(object):
         suff2 = W([2, 2]).phi_inv()
         w = [1]
         tab = _build_tab(1, tab, W)
-        for k in xrange(1, n):
+        for k in range(1, n):
             if suff1._phi_inv_tab(tab) < suff2._phi_inv_tab(tab):
                 w.append(1)
                 tab = _build_tab(1, tab, W)
@@ -1392,10 +1394,10 @@ class WordGenerator(object):
             TypeError: alphabet does not contain 3 distinct elements
         """
         if alphabet is None:
-            alphabet = range(m)
+            alphabet = list(range(m))
         if len(set(alphabet)) != m:
             raise TypeError("alphabet does not contain %s distinct elements" % m)
-        return FiniteWords(alphabet)([alphabet[randint(0,m-1)] for i in xrange(n)])
+        return FiniteWords(alphabet)([alphabet[randint(0,m-1)] for i in range(n)])
 
     LowerChristoffelWord = LowerChristoffelWord
 
@@ -1567,7 +1569,7 @@ class WordGenerator(object):
             \sigma_k(a_k).
 
         Given a set of substitutions `S`, we say that the representation is
-        `S`-adic standard if the subtitutions are chosen in `S`.
+        `S`-adic standard if the substitutions are chosen in `S`.
 
         INPUT:
 
@@ -1622,7 +1624,7 @@ class WordGenerator(object):
             sage: Word(words._s_adic_iterator(w, repeat('a')))
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
-        The morphism `\sigma: a \mapsto ba, b \mapsto b` can't satify the
+        The morphism `\sigma: a \mapsto ba, b \mapsto b` cannot satisfy the
         hypothesis of the algorithm (nested prefixes)::
 
             sage: sigma = WordMorphism('a->ba,b->b')
@@ -1635,7 +1637,8 @@ class WordGenerator(object):
 
         - Sebastien Labbe (2009-12-18): initial version
         """
-        from itertools import tee,izip
+        from itertools import tee
+        from builtins import zip
         sequence_it,sequence = tee(sequence)
         m = next(sequence_it)
         codomain = m.codomain()
@@ -1644,7 +1647,7 @@ class WordGenerator(object):
         precedent_letter = m(next(letters_it))[0]
 
         yield precedent_letter
-        for (i,(m,a)) in enumerate(izip(sequence, letters)):
+        for (i,(m,a)) in enumerate(zip(sequence, letters)):
             if not precedent_letter == m(a)[0]:
                 raise ValueError("The hypothesis of the algorithm used is not satisfied: the image of the %s-th letter (=%s) under the %s-th morphism (=%s) should start with the %s-th letter (=%s)."%(i+1,a,i+1,m,i,precedent_letter))
             w = p(m(a)[1:])
@@ -1671,7 +1674,7 @@ class WordGenerator(object):
             \sigma_k(a_k).
 
         Given a set of substitutions `S`, we say that the representation is
-        `S`-adic standard if the subtitutions are chosen in `S`.
+        `S`-adic standard if the substitutions are chosen in `S`.
 
         INPUT:
 

@@ -28,6 +28,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import, division
 
+from six.moves import range
 import itertools
 from . import misc
 from six.moves.builtins import list as builtinlist
@@ -96,8 +97,8 @@ def is_gale_ryser(r,s):
     generic-sounding) term ''realizable sequence''.
     """
 
-    # The sequences only contan non-negative integers
-    if [x for x in r if x<0] or [x for x in s if x<0]:
+    # The sequences only contain non-negative integers
+    if [x for x in r if x < 0] or [x for x in s if x < 0]:
         return False
 
     # builds the corresponding partitions, i.e.
@@ -305,7 +306,6 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
         ..  [Gale57] \D. Gale, A theorem on flows in networks, Pacific J. Math.
             7(1957)1073-1082.
         """
-        from sage.combinat.partition import Partition
         from sage.matrix.constructor import matrix
 
         if not(is_gale_ryser(p1,p2)):
@@ -362,15 +362,15 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
           p = MixedIntegerLinearProgram()
           b = p.new_variable(binary = True)
           for (i,c) in enumerate(p1):
-              p.add_constraint(p.sum([b[i,j] for j in xrange(k2)]) ==c)
+              p.add_constraint(p.sum([b[i,j] for j in range(k2)]) ==c)
           for (i,c) in enumerate(p2):
-              p.add_constraint(p.sum([b[j,i] for j in xrange(k1)]) ==c)
+              p.add_constraint(p.sum([b[j,i] for j in range(k1)]) ==c)
           p.set_objective(None)
           p.solve()
           b = p.get_values(b)
-          M = [[0]*k2 for i in xrange(k1)]
-          for i in xrange(k1):
-              for j in xrange(k2):
+          M = [[0]*k2 for i in range(k1)]
+          for i in range(k1):
+              for j in range(k2):
                   M[i][j] = int(b[i,j])
           return matrix(M)
 
@@ -811,7 +811,7 @@ class IntegerVectors_nk(CombinatorialClass):
         TESTS::
 
             sage: IV = IntegerVectors(2,3)
-            sage: all([i in IV for i in IV])
+            sage: all(i in IV for i in IV)
             True
             sage: [0,1,2] in IV
             False
@@ -935,7 +935,7 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
             'Integer vectors of length 3 that sum to 2 with constraints: min_slope=0'
         """
         return "Integer vectors of length %s that sum to %s with constraints: \
-        %s"%(self.k, self.n, ", ".join( ["%s=%s"%(key, self._constraints[key]) for key in sorted(self._constraints.keys())] ))
+        %s"%(self.k, self.n, ", ".join( ["%s=%s"%(key, self._constraints[key]) for key in sorted(self._constraints)] ))
 
     def __contains__(self, x):
         """
@@ -1064,9 +1064,9 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
             'Integer vectors that sum to 3 with constraints: max_length=2'
         """
         if self._constraints:
-            return "Integer vectors that sum to %s with constraints: %s"%(self.n,", ".join( ["%s=%s"%(key, self._constraints[key]) for key in sorted(self._constraints.keys())] ))
+            return "Integer vectors that sum to %s with constraints: %s"%(self.n,", ".join( ["%s=%s"%(key, self._constraints[key]) for key in sorted(self._constraints)] ))
         else:
-            return "Integer vectors that sum to %s"%(self.n,)
+            return "Integer vectors that sum to %s" % (self.n,)
 
     def __contains__(self, x):
         """

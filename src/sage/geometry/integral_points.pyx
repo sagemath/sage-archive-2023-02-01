@@ -33,7 +33,7 @@ from sage.misc.all import prod, uniq
 # you.
 #
 ## def parallelotope_points(spanning_points, lattice):
-##     # compute points in the open parallelotope, see [BrunsKoch]
+##     # compute points in the open parallelotope, see [BK2001]
 ##     R = matrix(spanning_points).transpose()
 ##     D,U,V = R.smith_form()
 ##     e = D.diagonal()          # the elementary divisors
@@ -103,13 +103,13 @@ def parallelotope_points(spanning_points, lattice):
     Note how the points on the outward-facing factes are omitted::
 
         sage: from sage.geometry.integral_points import parallelotope_points
-        sage: rays = map(vector, [(2,0), (0,2)])
+        sage: rays = list(map(vector, [(2,0), (0,2)]))
         sage: parallelotope_points(rays, ZZ^2)
         ((0, 0), (1, 0), (0, 1), (1, 1))
 
     The rays can also be toric lattice points::
 
-        sage: rays = map(ToricLattice(2), [(2,0), (0,2)])
+        sage: rays = list(map(ToricLattice(2), [(2,0), (0,2)]))
         sage: parallelotope_points(rays, ToricLattice(2))
         (N(0, 0), N(1, 0), N(0, 1), N(1, 1))
 
@@ -122,7 +122,7 @@ def parallelotope_points(spanning_points, lattice):
     A ``ValueError`` is raised if the ``spanning_points`` are not
     linearly independent::
 
-        sage: rays = map(ToricLattice(2), [(1,1)]*2)
+        sage: rays = list(map(ToricLattice(2), [(1,1)]*2))
         sage: parallelotope_points(rays, ToricLattice(2))
         Traceback (most recent call last):
         ...
@@ -130,7 +130,7 @@ def parallelotope_points(spanning_points, lattice):
 
     TESTS::
 
-        sage: rays = map(vector,[(-3, -2, -3, -2), (-2, -1, -8, 5), (1, 9, -7, -4), (-3, -1, -2, 2)])
+        sage: rays = list(map(vector,[(-3, -2, -3, -2), (-2, -1, -8, 5), (1, 9, -7, -4), (-3, -1, -2, 2)]))
         sage: len(parallelotope_points(rays, ZZ^4))
         967
     """
@@ -290,7 +290,7 @@ def simplex_points(vertices):
         sage: len(simplex_points(P4mirror.Vrepresentation()))
         126
 
-        sage: vertices = map(vector, [(1,2,3), (2,3,7), (-2,-3,-11)])
+        sage: vertices = list(map(vector, [(1,2,3), (2,3,7), (-2,-3,-11)]))
         sage: for v in vertices: v.set_immutable()
         sage: simplex_points(vertices)
         ((-2, -3, -11), (0, 0, -2), (1, 2, 3), (2, 3, 7))
@@ -1057,7 +1057,7 @@ cdef class InequalityCollection:
         """
         The Cython constructor
 
-        See the class documentation for the desrciption of the arguments.
+        See the class documentation for the description of the arguments.
 
         EXAMPLES::
 
@@ -1145,13 +1145,22 @@ cdef class InequalityCollection:
             The collection of inequalities
             integer: (3, 7) x + 2 >= 0
             integer: (-3, -7) x + -2 >= 0
+
+        TESTS:
+
+        Check that :trac:`21037` is fixed::
+
+            sage: P = Polyhedron(vertices=((0, 0), (17,3)))
+            sage: P += 1/1000*polytopes.regular_polygon(5)
+            sage: P.integral_points()
+            ((0, 0), (17, 3))
         """
         for Hrep_obj in polyhedron.inequality_generator():
             A, b = self._make_A_b(Hrep_obj, permutation)
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
-            except (OverflowError, ValueError):
+            except (OverflowError, ValueError, TypeError):
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
         for Hrep_obj in polyhedron.equation_generator():
@@ -1160,7 +1169,7 @@ cdef class InequalityCollection:
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
-            except (OverflowError, ValueError):
+            except (OverflowError, ValueError, TypeError):
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
             # add sign-reversed inequality
@@ -1169,7 +1178,7 @@ cdef class InequalityCollection:
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
-            except (OverflowError, ValueError):
+            except (OverflowError, ValueError, TypeError):
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
 

@@ -21,12 +21,8 @@ segments. These segments are called the edges of the diagram.
 REFERENCES:
 
 - :wikipedia:`Knot_(mathematics)`
-
-.. [Collins13] Julia Collins. *An algorithm for computing the Seifert
-   matrix of a link from a braid representation*. (2013).
-   http://www.maths.ed.ac.uk/~jcollins/SeifertMatrix/SeifertMatrix.pdf
-
-.. [KnotAtlas] The Knot atlas. http://katlas.org/wiki/Main_Page
+- [Col2013]_
+- [KnotAtlas]_
 
 .. SEEALSO::
 
@@ -50,6 +46,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division
 
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
@@ -651,7 +648,7 @@ class Link(object):
                     D = next_crossing[0]
                     a = D[(D.index(a)+2) % 4]
 
-        unassigned = set(flatten(pd_code)).difference(set(tails.keys()))
+        unassigned = set(flatten(pd_code)).difference(set(tails))
         while unassigned:
             a = unassigned.pop()
             for x in pd_code:
@@ -854,7 +851,7 @@ class Link(object):
         ncross = len(crossings)
         smoothings = []
         nmax = max(flatten(crossings)) + 1
-        for i in range(2** ncross):
+        for i in range(2 ** ncross):
             v = Integer(i).bits()
             v = v + (ncross - len(v))*[0]
             G = Graph()
@@ -872,7 +869,7 @@ class Link(object):
                     G.add_edge((cr[2], cr[3], n), cr[3])
             sm = set(tuple(sorted(x for x in b if isinstance(x, tuple)))
                      for b in G.connected_components())
-            iindex = (writhe - ncross + 2 * sum(v)) / 2
+            iindex = (writhe - ncross + 2 * sum(v)) // 2
             jmin = writhe + iindex - len(sm)
             jmax = writhe + iindex + len(sm)
             smoothings.append((tuple(v), sm, iindex, jmin, jmax))
@@ -925,13 +922,13 @@ class Link(object):
         for st in states:
             i, j = st[3], st[4]
             if j == height:
-                if (i,j) in bases.keys():
+                if (i,j) in bases:
                     bases[i,j].append(st)
                 else:
                     bases[i,j] = [st]
         complexes = {}
-        for (i, j) in bases.keys():
-            if (i+1, j) in bases.keys():
+        for (i, j) in bases:
+            if (i+1, j) in bases:
                 m = matrix(ring, len(bases[(i,j)]), len(bases[(i+1,j)]))
                 for ii in range(m.nrows()):
                     V1 = bases[(i,j)][ii]
@@ -945,7 +942,7 @@ class Link(object):
             else:
                 m = matrix(ring, len(bases[(i,j)]), 0)
             complexes[i] = m.transpose()
-            if not (i-1, j) in bases.keys():
+            if not (i-1, j) in bases:
                 complexes[i-1] = matrix(ring, len(bases[(i,j)]), 0)
         homologies = ChainComplex(complexes).homology()
         return tuple(sorted(homologies.items()))
@@ -1343,7 +1340,7 @@ class Link(object):
         the homology generators. The position of the repeated element w.r.t.
         the braid word component vector list is compiled into a list.
 
-        This is based on Lemma 3.1 in [Collins13]_.
+        This is based on Lemma 3.1 in [Col2013]_.
 
         OUTPUT:
 
@@ -1384,7 +1381,7 @@ class Link(object):
 
         ALGORITHM:
 
-        This is the algorithm presented in Section 3.3 of [Collins13]_.
+        This is the algorithm presented in Section 3.3 of [Col2013]_.
 
         OUTPUT:
 
@@ -1412,12 +1409,12 @@ class Link(object):
         h = self._homology_generators()
         hl = len(h)
         A = matrix(ZZ, hl, hl)
-        indices = [i for i,hi in enumerate(h) if hi != 0]
+        indices = [i for i, hi in enumerate(h) if hi]
         for i in indices:
             hi = h[i]
             for j in range(i, hl):
                 if i == j:
-                    A[i, j] = cmp(0, x[i] + x[hi])
+                    A[i, j] = -(x[i] + x[hi]).sign()
                 elif hi > h[j]:
                     A[i, j] = 0
                     A[j, i] = 0
@@ -1527,7 +1524,6 @@ class Link(object):
         B = self.braid().parent()
         x = self._braid_word_components()
         q = []
-        genus = 0
         s_tmp = []
         for xi in x:
             tmp = []
@@ -1551,9 +1547,7 @@ class Link(object):
             q2 = max(abs(k) + 1 for k in i)
             q.append(q2)
         g = [((2 - t[i]) + len(x[i]) - q[i]) / 2 for i in range(len(x))]
-        for i in range(len(g)):
-            genus = genus + g[i]
-        return Integer(genus)
+        return sum(g, ZZ.zero())
 
     def signature(self):
         """
@@ -1574,13 +1568,7 @@ class Link(object):
             -2
         """
         m = 2 * (self.seifert_matrix() + self.seifert_matrix().transpose())
-        e = m.eigenvalues()
-        tot = ZZ.zero()
-        s = []
-        for i, j in enumerate(e):
-            s.append(cmp(j, 0))
-            tot = tot + s[i]
-        return tot
+        return sum([j.real().sign() for j in m.eigenvalues()], ZZ.zero())
 
     def alexander_polynomial(self, var='t'):
         """
@@ -1653,7 +1641,7 @@ class Link(object):
         f = (seifert_matrix - t * seifert_matrix.transpose()).determinant()
         if f != 0:
             exp = f.exponents()
-            return t ** ((-max(exp) - min(exp)) / 2) * f
+            return t ** ((-max(exp) - min(exp)) // 2) * f
         return f
 
     def determinant(self):
@@ -1720,7 +1708,7 @@ class Link(object):
         if not self.is_knot():
             return False
         x = self.gauss_code()
-        s = [cmp(i, 0) for i in x[0]]
+        s = [Integer(i).sign() for i in x[0]]
         return (s == [(-1) ** (i + 1) for i in range(len(x[0]))]
                 or s == [(-1) ** i for i in range(len(x[0]))])
 
@@ -2008,14 +1996,14 @@ class Link(object):
         The normalization is so that the unknot has Jones polynomial `1`.
         If ``skein_normalization`` is ``True``, the variable of the result
         is replaced by a itself to the power of `4`, so that the result
-        agrees with the conventions of [Lic]_ (which in particular differs
+        agrees with the conventions of [Lic1997]_ (which in particular differs
         slightly from the conventions used otherwise in this class), had
         one used the conventional Kauffman bracket variable notation directly.
 
         If ``variab`` is ``None`` return a polynomial in the variable `A`
         or `t`, depending on the value ``skein_normalization``. In
         particular, if ``skein_normalization`` is ``False``, return the
-        result in terms of the variable `t`, also used in [Lic]_.
+        result in terms of the variable `t`, also used in [Lic1997]_.
 
         ALGORITHM:
 
@@ -2118,8 +2106,8 @@ class Link(object):
             sage: B = BraidGroup(4)
             sage: K11n42 = Link(B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2]))
             sage: K11n34 = Link(B([1, 1, 2, -3, 2, -3, 1, -2, -2, -3, -3]))
-            sage: cmp(K11n42.jones_polynomial(), K11n34.jones_polynomial())
-            0
+            sage: bool(K11n42.jones_polynomial() == K11n34.jones_polynomial())
+            True
 
         The two algorithms for computation give the same result when the
         trace closure of the braid representation is the link itself::
@@ -2128,8 +2116,8 @@ class Link(object):
             ....:           [-1, -1, -1, -1, 1, -1, 1]])
             sage: jonesrep = L.jones_polynomial(algorithm='jonesrep')
             sage: statesum = L.jones_polynomial(algorithm='statesum')
-            sage: cmp(jonesrep, statesum)
-            0
+            sage: bool(jonesrep == statesum)
+            True
 
         When we have thrown away unknots so that the trace closure of the
         braid is not necessarily the link itself, this is only true up to a
@@ -2658,7 +2646,7 @@ class Link(object):
                     nregion+=[[a, -sig] for a in rev]
                     nregion.append([segments[-e][0], 1])
             nregions.append(nregion)
-        N = max(segments.keys()) + 1
+        N = max(segments) + 1
         segments = [i for j in segments.values() for i in j]
         badregions = [nr for nr in nregions if any(-1 == x[1] for x in nr)]
         while badregions:
@@ -2688,7 +2676,7 @@ class Link(object):
             segments.append(N1)
             segments.append(N2)
             if type(badregion[b][0]) in (int, Integer):
-                segmenttoadd = [x for x in pieces.keys()
+                segmenttoadd = [x for x in pieces
                                 if badregion[b][0] in pieces[x]]
                 if len(segmenttoadd) > 0:
                     pieces[segmenttoadd[0]].append(N2)

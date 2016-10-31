@@ -842,7 +842,7 @@ Podem dibuixar cercles, línies, polígons; gràfics de funcions en
 coordenades cartesianes; i també en coordenades polars, corbes de nivell
 i gràfics de camps vectorials. Podem trobar més exemples de les funcions
 gràfiques del Sage a la documentació
-`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
+`Sage Constructions <http://doc.sagemath.org/html/en/constructions/>`_
 
 
 Per dibuixar un cercle groc de radi 1, centrat a l'origen, fem::

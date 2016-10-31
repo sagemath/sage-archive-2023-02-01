@@ -22,11 +22,11 @@ EXAMPLES::
 
 AUTHOR:
 
+- Rusydi H. Makarim (2016-07-09): add is_plateaued()
 - Yann Laigle-Chapuy (2010-02-26): add basic arithmetic
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
-
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
@@ -467,7 +467,7 @@ cdef class BooleanFunction(SageObject):
         nb_limbs = self._truth_table.limbs
         if nb_limbs == 1:
             L = len(self)
-            for i in range(L):
+            for i in xrange(L):
                 res[i  ]=self[i]
                 res[i+L]=other[i]
             return res
@@ -694,7 +694,7 @@ cdef class BooleanFunction(SageObject):
                 temp[i] = (bitset_in(self._truth_table,i)<<1)-1
 
             walsh_hadamard(temp, self._nvariables)
-            self._walsh_hadamard_transform = tuple( [temp[i] for i in xrange(n)] )
+            self._walsh_hadamard_transform = tuple(temp[i] for i in xrange(n))
             sig_free(temp)
 
         return self._walsh_hadamard_transform
@@ -756,7 +756,7 @@ cdef class BooleanFunction(SageObject):
             sage: B.is_symmetric()
             True
         """
-        cdef list T = [ self(2**i-1) for i in range(self._nvariables+1) ]
+        cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         for i in xrange(2**self._nvariables):
             if T[ hamming_weight_int(i) ] != bitset_in(self._truth_table, i):
                 return False
@@ -869,7 +869,7 @@ cdef class BooleanFunction(SageObject):
                 temp[i] = W[i]*W[i]
 
             walsh_hadamard(temp, self._nvariables)
-            self._autocorrelation = tuple( [temp[i]>>self._nvariables for i in xrange(n)] )
+            self._autocorrelation = tuple(temp[i]>>self._nvariables for i in xrange(n))
             sig_free(temp)
 
         return self._autocorrelation
@@ -965,9 +965,9 @@ cdef class BooleanFunction(SageObject):
 
         from sage.matrix.constructor import Matrix
         from sage.arith.all import binomial
-        M = Matrix(GF(2),sum([binomial(self._nvariables,i) for i in xrange(d+1)]),len(s))
+        M = Matrix(GF(2),sum(binomial(self._nvariables,i) for i in xrange(d+1)),len(s))
 
-        for i in xrange(1,d+1):
+        for i in xrange(1, d + 1):
             C = Combinations(self._nvariables,i)
             for c in C:
                 r.append(prod([G[i] for i in c]))
@@ -1019,7 +1019,7 @@ cdef class BooleanFunction(SageObject):
         f = self
         g = ~self
         for i in xrange(self._nvariables):
-            for fun in [f,g]:
+            for fun in [f, g]:
                 A = fun.annihilator(i)
                 if A is not None:
                     if annihilator:
@@ -1027,6 +1027,25 @@ cdef class BooleanFunction(SageObject):
                     else:
                         return i
         raise ValueError("you just found a bug!")
+
+    def is_plateaued(self):
+        r"""
+        Return ``True`` if this function is plateaued, i.e. its Walsh transform
+        takes at most three values `0` and `\pm \lambda`, where `\lambda` is some
+        positive integer.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: R.<x0, x1, x2, x3> = BooleanPolynomialRing()
+            sage: f = BooleanFunction(x0*x1 + x2 + x3)
+            sage: f.walsh_hadamard_transform()
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, -8, -8, 8)
+            sage: f.is_plateaued()
+            True
+        """
+        W = self.absolute_walsh_spectrum()
+        return (len(W) == 1) or (len(W) == 2 and 0 in W)
 
     def __setitem__(self, i, y):
         """

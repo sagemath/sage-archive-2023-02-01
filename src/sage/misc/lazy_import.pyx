@@ -51,14 +51,17 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cpython.object cimport PyObject_RichCompare
 
-import os, cPickle as pickle, operator
+import os
+from six.moves import cPickle as pickle
+import operator
 import inspect
-import sageinspect
+from . import sageinspect
 
-from lazy_import_cache import get_cache_file
+from .lazy_import_cache import get_cache_file
 
 cdef binop(op, left, right):
     if isinstance(left, LazyImport):
@@ -441,15 +444,18 @@ cdef class LazyImport(object):
 
     def __cmp__(left, right):
         """
+        Removed by :trac:`21247` (for compatibility with Python 3)
+
         TESTS::
 
-            sage: lazy_import('sage.all', 'ZZ'); lazy_ZZ = ZZ
-            sage: cmp(lazy_ZZ, ZZ)
-            0
-            sage: cmp(lazy_ZZ, QQ)
-            -1
+            sage: lazy_import('sage.all', ['ZZ', 'QQ'])
+            sage: cmp(ZZ, QQ)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: old-style comparisons are not supported for lazily imported objects (see https://trac.sagemath.org/ticket/21247)
         """
-        return binop(cmp, left, right)
+        raise NotImplementedError("old-style comparisons are not supported "
+            "for lazily imported objects (see https://trac.sagemath.org/ticket/21247)")
 
     def __richcmp__(left, right, int op):
         """

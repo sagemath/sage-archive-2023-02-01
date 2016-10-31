@@ -19,14 +19,16 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-from .paridecl cimport *
-from .paripriv cimport *
+from __future__ import absolute_import, division, print_function
+
 include "cysignals/signals.pxi"
 
 from cpython cimport PyErr_Occurred
-from pari_instance cimport pari_instance
+
+from .paridecl cimport *
+from .paripriv cimport *
+from .stack cimport new_gen_noclear
 
 
 # We derive PariError from RuntimeError, for backward compatibility with
@@ -178,7 +180,7 @@ cdef int _pari_err_handle(GEN E) except 0:
         if s is not NULL:
             pari_error_string = s.decode('ascii') + ": " + pari_error_string
 
-        raise PariError(errnum, pari_error_string, pari_instance.new_gen_noclear(E))
+        raise PariError(errnum, pari_error_string, new_gen_noclear(E))
     finally:
         sig_unblock()
 

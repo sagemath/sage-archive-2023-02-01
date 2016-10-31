@@ -25,11 +25,6 @@ from .quatalg.all import *
 
 # Algebra base classes
 from .algebra import Algebra
-
-# Ring element base classes
-from .algebra_element import AlgebraElement
-
-
 from .free_algebra import FreeAlgebra
 from .free_algebra_quotient import FreeAlgebraQuotient
 
@@ -54,3 +49,6 @@ from .clifford_algebra import CliffordAlgebra, ExteriorAlgebra
 from .weyl_algebra import DifferentialWeylAlgebra
 
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra')
+
+lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra')
+

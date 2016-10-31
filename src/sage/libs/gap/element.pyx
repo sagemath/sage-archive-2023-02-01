@@ -111,7 +111,7 @@ cdef libGAP_Obj make_gap_integer(sage_int) except NULL:
 
     - ``sage_int`` -- a Sage integer.
 
-    OUTPUT
+    OUTPUT:
 
     The integer as a GAP ``Obj``.
 
@@ -134,7 +134,7 @@ cdef libGAP_Obj make_gap_string(sage_string) except NULL:
 
     - ``sage_string`` -- a Sage integer.
 
-    OUTPUT
+    OUTPUT:
 
     The string as a GAP ``Obj``.
 
@@ -826,8 +826,7 @@ cdef class GapElement(RingElement):
             libgap_exit()
         return make_any_gap_element(self.parent(), result)
 
-
-    def __mod__(GapElement self, GapElement right):
+    cpdef _mod_(self, right):
         r"""
         Modulus of two GapElement objects.
 
@@ -848,7 +847,7 @@ cdef class GapElement(RingElement):
         try:
             libgap_enter()
             sig_on()
-            result = libGAP_MOD(self.value, right.value)
+            result = libGAP_MOD(self.value, (<GapElement>right).value)
             sig_off()
         except RuntimeError as msg:
             libGAP_ClearError()
@@ -1994,7 +1993,8 @@ cdef class GapElement_Function(GapElement):
             ....:         pass
 
             sage: libgap_exec = libgap.eval("Exec")
-            sage: libgap_exec('echo hello from the shell > /dev/null')
+            sage: libgap_exec('echo hello from the shell')
+            hello from the shell
         """
         cdef libGAP_Obj result = NULL
         cdef libGAP_Obj arg_list

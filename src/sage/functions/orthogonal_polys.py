@@ -2029,7 +2029,7 @@ class Func_ultraspherical(GinacFunction):
         sage: gegenbauer(2,a,x)
         2*(a + 1)*a*x^2 - a
         sage: gegenbauer(3,a,x)
-        2/3*(2*(a + 1)*a*x^2 - a)*(a + 2)*x - 2/3*(2*a + 1)*a*x
+        4/3*(a + 2)*(a + 1)*a*x^3 - 2*(a + 1)*a*x
         sage: gegenbauer(3,a,x).expand()
         4/3*a^3*x^3 + 4*a^2*x^3 + 8/3*a*x^3 - 2*a^2*x - 2*a*x
         sage: gegenbauer(10,a,x).expand().coefficient(x,2)

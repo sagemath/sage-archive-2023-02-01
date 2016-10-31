@@ -1179,7 +1179,12 @@ class Singular(ExtraTabCompletion, Expect):
 
     def version(self):
         """
-        EXAMPLES:
+        Return the version of Singular being used.
+
+        EXAMPLES::
+
+            sage: singular.version()
+            "Singular ... version 4.0.3 ...
         """
         return singular_version()
 
@@ -2372,9 +2377,12 @@ def singular_console():
 
 def singular_version():
     """
-    Returns the version of Singular being used.
+    Return the version of Singular being used.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: singular.version()
+        "Singular ... version 4.0.3 ...
     """
     return singular.eval('system("--version");')
 

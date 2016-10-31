@@ -1070,7 +1070,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         - ``Q`` -- a point on this curve.
 
-        OUPUT:
+        OUTPUT:
 
         - a scheme morphism from this curve to a curve in excellent position that is a restriction of a change
           of coordinates map of the projective plane.
@@ -1272,7 +1272,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         singularities of this curve are contained in its base field, then the domain and codomain of the
         map returned will be defined over an extension. This curve must be irreducible.
 
-        OUPUT:
+        OUTPUT:
 
         - a scheme morphism from this curve to a curve with only ordinary singularities that defines a
           birational map between the two curves.

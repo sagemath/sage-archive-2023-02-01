@@ -32,8 +32,8 @@ extensions::
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
     sage: v.extensions(L)
-    [[ Gauss valuation induced by (x - 1)-adic valuation, v(y - 1) = 1 , … ],
-     [ Gauss valuation induced by (x - 1)-adic valuation, v(y + 1) = 1 , … ]]
+    [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
+     [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
 
 AUTHORS:
 
@@ -151,18 +151,18 @@ class FunctionFieldValuationFactory(UniqueFactory):
     There are several ways to create valuations on extensions of rational
     function fields::
 
-        sage: K.<x> = FunctionField(QQ)
-        sage: R.<y> = K[]
+                sage: K.<x> = FunctionField(QQ)
+                sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x); L
         Function field in y defined by y^2 - x
 
     A place that has a unique extension can just be defined downstairs::
 
         sage: v = FunctionFieldValuation(L, x); v
-        [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 , … ]
+        (x)-adic valuation
 
     """
-    def create_key(self, domain, prime):
+    def create_key_and_extra_args(self, domain, prime):
         r"""
         Create a unique key which identifies the valuation given by ``prime``
         on ``domain``.
@@ -195,24 +195,24 @@ class FunctionFieldValuationFactory(UniqueFactory):
             # so the caller gets back a correctly cached version of prime
             if not hasattr(prime, "_factory_data"):
                raise NotImplementedError("Valuations on function fields must be unique and come out of the FunctionFieldValuatino factory but %r has been created by other means"%(prime,))
-            return prime._factory_data[2]
+            return prime._factory_data[2], {}
 
         if prime in domain:
             # prime defines a place
-            return self.create_key_from_place(domain, prime)
+            return self.create_key_and_extra_args_from_place(domain, prime)
         if prime in DiscretePseudoValuationSpace(domain._ring):
             # prime is a discrete (pseudo-)valuation on the polynomial ring
             # that the domain is constructed from
-            return self.create_key_from_valuation(domain, prime)
+            return self.create_key_and_extra_args_from_valuation(domain, prime)
         if domain.base_field() is not domain:
             # prime might define a valuation on a subring of domain and have a
             # unique extension to domain
             base_valuation = FunctionFieldValuation(domain.base_field(), prime)
-            return self.create_key_from_valuation(domain, base_valuation)
+            return self.create_key_and_extra_args_from_valuation(domain, base_valuation)
 
         raise NotImplementedError("argument must be a place or a pseudo-valuation on a supported subring but %r does not satisfy this for the domain %r"%(prime, domain))
 
-    def create_key_from_place(self, domain, generator):
+    def create_key_and_extra_args_from_place(self, domain, generator):
         r"""
         Create a unique key which identifies the valuation at the place
         specified by ``generator``.
@@ -230,12 +230,12 @@ class FunctionFieldValuationFactory(UniqueFactory):
         if domain.base_field() is not domain:
             # if this is an extension field, construct the unique place over
             # the place on the subfield
-            return self.create_key(domain, FunctionFieldValuation(domain.base_field(), generator))
+            return self.create_key_and_extra_args(domain, FunctionFieldValuation(domain.base_field(), generator))
 
         if generator in domain.constant_base_field():
             # generator is a constant, we associate to it the place which
             # corresponds to the polynomial (x - generator)
-            return self.create_key(domain, domain.gen() - generator)
+            return self.create_key_and_extra_args(domain, domain.gen() - generator)
 
         if generator in domain._ring:
             # generator is a polynomial
@@ -248,14 +248,14 @@ class FunctionFieldValuationFactory(UniqueFactory):
             # with v(generator) = 1
             from sage.rings.valuation.gauss_valuation import GaussValuation
             valuation = GaussValuation(domain._ring, TrivialValuation(domain.constant_base_field())).augmentation(generator, 1)
-            return self.create_key(domain, valuation)
+            return self.create_key_and_extra_args(domain, valuation)
         elif generator == ~domain.gen():
             # generator is 1/x, the infinite place
-            return domain, ~domain.gen()
+            return (domain, ~domain.gen()), {}
         else:
             raise ValueError("a place must be given by an irreducible polynomial or the inverse of the generator; %r does not define a place over %r"%(generator, domain))
 
-    def create_key_from_valuation(self, domain, valuation):
+    def create_key_and_extra_args_from_valuation(self, domain, valuation):
         r"""
         Create a unique key which identifies the valuation which extends
         ``valuation``.
@@ -282,17 +282,19 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 # and easier pickling) we need to find a normal form of
                 # valuation, i.e., the smallest approximant that describes this
                 # valuation
-                return domain, valuation.constant_valuation().mac_lane_approximant(domain.polynomial(), valuation)
+                approximants = valuation.constant_valuation().mac_lane_approximants(domain.polynomial())
+                approximant = valuation.constant_valuation().mac_lane_approximant(domain.polynomial(), valuation, approximants)
+                return (domain, approximant), {'approximants': approximants}
             else:
                 # on a rational function field K(x), any valuation on K[x] that
                 # is not only a pseudo-valuation extends to a valuation on K(x)
                 if not valuation.is_discrete_valuation():
                     raise ValueError("valuation must be a discrete valuation but %r is not."%(valuation,))
-                return domain, valuation
+                return (domain, valuation), {}
 
         if valuation.domain().is_subring(domain.base_field()):
             # valuation is defined on a subring of this function field, try to lift it
-            return self.create_key(domain, valuation.extension(domain))
+            return self.create_key_and_extra_args(domain, valuation.extension(domain))
 
         raise NotImplementedError("extension of valuation from %r to %r not implemented yet"%(valuation.domain(), domain))
 
@@ -311,8 +313,8 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         """
         domain, valuation = key
-        from sage.rings.valuation.valuation_space import DiscreteValuationSpace
-        parent = DiscreteValuationSpace(domain)
+        from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
+        parent = DiscretePseudoValuationSpace(domain)
 
         if valuation in domain:
             # only the infinite place is handled with an element instead of a base valuation
@@ -330,7 +332,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
             return parent.__make_element_class__(FiniteRationalFunctionFieldValuation)(parent, valuation)
         else:
             # valuation is a limit valuation that singles out an extension
-            return parent.__make_element_class__(FunctionFieldFromLimitValuation)(parent, valuation, domain.polynomial())
+            return parent.__make_element_class__(FunctionFieldFromLimitValuation)(parent, valuation, domain.polynomial(), extra_args['approximants'])
 
         raise NotImplementedError("valuation on %r from %r on %r"%(domain, valuation, valuation.domain()))
 
@@ -362,7 +364,7 @@ class FunctionFieldValuation_base(DiscreteValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
             sage: v.extensions(L)
-            [[ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 , … ]]
+            [(x)-adic valuation]
     
         """
         K = self.domain()
@@ -558,9 +560,9 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             (x^2 + 1)-adic valuation
 
         """
-        from sage.rings.valuation.augmented_valuation import AugmentedValuation
+        from sage.rings.valuation.augmented_valuation import AugmentedValuation_generic
         from sage.rings.valuation.gauss_valuation import GaussValuation
-        if isinstance(self._base_valuation, AugmentedValuation):
+        if isinstance(self._base_valuation, AugmentedValuation_generic):
             if self._base_valuation._base_valuation == GaussValuation(self.domain()._ring, TrivialValuation(self.domain().constant_field())):
                 if self._base_valuation._mu == 1:
                     return "(%r)-adic valuation"%(self._base_valuation.phi())
@@ -805,7 +807,7 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
         sage: L.<y> = K.extension(y^2 - (x^2 + x + 1))
         sage: v = FunctionFieldValuation(K, x - 1) # indirect doctest
         sage: w = v.extension(L); w
-        [ Gauss valuation induced by (x - 1)-adic valuation, v(y^2 - x^2 - x - 1) = +Infinity ]
+        (x - 1)-adic valuation
 
     TESTS::
 

@@ -129,8 +129,20 @@ class DiscretePseudoValuation(Morphism):
             ...
             NotImplementedError: Operator not implemented for this valuation.
 
+        Note that this does not affect comparison of valuations which do not
+        coerce into a common parent. This is by design in Sage, see
+        :meth:`sage.structure.element.Element.__cmp__`. When the valuations do
+        not coerce into a common parent, a rather random comparison of ``id``
+        happens::
+
+            sage: w = TrivialValuation(GF(2))
+            sage: w < v # random output
+            True
+            sage: v < w # random output
+            False
+
         """
-        raise NotImplementedError("No total order for valuation.");
+        raise NotImplementedError("No total order for these valuations.")
 
     def _richcmp_(self, other, op):
         r"""
@@ -158,6 +170,18 @@ class DiscretePseudoValuation(Morphism):
             False
             sage: v != w
             True
+
+        Note that this does not affect comparison of valuations which do not
+        coerce into a common parent. This is by design in Sage, see
+        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
+        do not coerce into a common parent, a rather random comparison of
+        ``id`` happens::
+
+            sage: w = TrivialValuation(GF(2))
+            sage: w <= v # random output
+            True
+            sage: v <= w # random output
+            False
 
         """
         if op == 1: # <=
@@ -224,6 +248,20 @@ class DiscreteValuation(DiscretePseudoValuation):
     r"""
     sage: TODO
     """
+    def is_discrete_valuation(self):
+        r"""
+        Return whether this valuation is a discrete valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialValuation(ZZ)
+            sage: v.is_discrete_valuation()
+            True
+
+        """
+        return True
+
     def mac_lane_approximants(self, G, precision_cap=None, assume_squarefree=False):
         r"""
         sage: TODO
@@ -303,7 +341,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             for v in expandables:
                 leaves.extend(v.mac_lane_step(G))
 
-    def mac_lane_approximant(self, G, valuation):
+    def mac_lane_approximant(self, G, valuation, approximants = None):
         r"""
         sage: TODO
         """
@@ -321,7 +359,10 @@ class DiscreteValuation(DiscretePseudoValuation):
                     raise ValueError("The valuation %r is not an approximant for a valuation on %r since the valuation of %r does not increase in every step"%(valuation, domain, G_integral))
                 v = v._base_valuation
 
-        approximants = self.mac_lane_approximants(G)
+        if approximants is None:
+            approximants = self.mac_lane_approximants(G)
+
+        assert all(approximant.domain() is valuation.domain() for approximant in approximants)
 
         greater_approximants = [w for w in approximants if w <= valuation]
         if len(greater_approximants) > 1:
@@ -332,7 +373,6 @@ class DiscreteValuation(DiscretePseudoValuation):
         smaller_approximants = [w for w in approximants if w >= valuation]
         assert len(smaller_approximants) <= 1
         if len(smaller_approximants) == 0:
-            raise ValueError("valuation %r does not describe an extension of %r to %r"%(valuation, valuation.constant_valuation(), domain))
+            raise ValueError("valuation %r does not describe an extension of %r with respect to %r"%(valuation, valuation.constant_valuation(), G))
         assert len(smaller_approximants) == 1
         return smaller_approximants[0]
-

@@ -56,7 +56,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.path.dirname(os.getcwd()))
 
 from valuation import DiscretePseudoValuation, DiscreteValuation, InfiniteDiscretePseudoValuation
-from valuation_space import DiscreteValuationSpace, DiscretePseudoValuationSpace
+from valuation_space import DiscretePseudoValuationSpace
 from sage.structure.factory import UniqueFactory
 
 class TrivialValuationFactory(UniqueFactory):
@@ -402,6 +402,6 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
             return [TrivialValuation(ring)]
         return super(DiscretePseudoValuation, self).extensions(ring)
 
-TrivialValuation = TrivialValuationFactory(TrivialDiscreteValuation, DiscreteValuationSpace, "TrivialValuation")
+TrivialValuation = TrivialValuationFactory(TrivialDiscreteValuation, DiscretePseudoValuationSpace, "TrivialValuation")
 TrivialPseudoValuation = TrivialValuationFactory(TrivialDiscretePseudoValuation, DiscretePseudoValuationSpace, "TrivialPseudoValuation")
 

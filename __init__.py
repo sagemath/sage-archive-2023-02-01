@@ -1,4 +1,4 @@
-from .valuation_space import DiscretePseudoValuationSpace, DiscreteValuationSpace
+from .valuation_space import DiscretePseudoValuationSpace
 from .trivial_valuation import TrivialValuation, TrivialPseudoValuation
 from .padic_valuation import pAdicValuation
 from .gauss_valuation import GaussValuation
@@ -11,7 +11,9 @@ from .augmented_valuation import AugmentedValuation
 # different types)
 from .trivial_valuation import TrivialDiscreteValuation, TrivialDiscretePseudoValuation
 from .function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, FunctionFieldFromLimitValuation
-from .limit_valuation import LimitValuation, MacLaneLimitValuation, FiniteExtensionFromInfiniteValuation, FiniteExtensionFromLimitValuation
+from .limit_valuation import LimitValuation, MacLaneLimitValuation, FiniteExtensionFromInfiniteValuation, FiniteExtensionFromLimitValuation, LimitValuation_generic
+from .augmented_valuation import AugmentedValuation_generic
+from .gauss_valuation import GaussValuation_generic
 
 # =================
 # MONKEY PATCH SAGE
@@ -131,3 +133,5 @@ register_factory_unpickle("GaussValuation", GaussValuation)
 register_factory_unpickle("TrivialValuation", TrivialValuation)
 register_factory_unpickle("TrivialPseudoValuation", TrivialPseudoValuation)
 register_factory_unpickle("FunctionFieldValuation", FunctionFieldValuation)
+register_factory_unpickle("AugmentedValuation", AugmentedValuation)
+register_factory_unpickle("LimitValuation", LimitValuation)

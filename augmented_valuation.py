@@ -26,12 +26,44 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Fix doctests so they work in standalone mode (when invoked with sage -t, they run within the mac_lane/ directory)
+import sys, os
+if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
+    sys.path.append(os.getcwd())
+    sys.path.append(os.path.dirname(os.getcwd()))
+
 from developing_valuation import DevelopingValuation, _lift_to_maximal_precision
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import infinity
+from sage.structure.factory import UniqueFactory
 
-class AugmentedValuation(DevelopingValuation):
+class AugmentedValuationFactory(UniqueFactory):
+    def create_key(self, base_valuation, phi, mu, check=True):
+        if check:
+            is_key, reason = base_valuation.is_key(phi, explain=True)
+            if not is_key:
+                raise ValueError(reason)
+            if mu <= base_valuation(phi):
+                raise ValueError("the value of the key polynomial must strictly increase but `%s` does not exceed `%s`."%(phi, v(phi)))
+
+        return base_valuation, phi, mu
+
+    def create_object(self, version, key):
+        base_valuation, phi, mu = key
+
+        if mu < infinity:
+            from valuation_space import DiscretePseudoValuationSpace
+            parent = DiscretePseudoValuationSpace(base_valuation.domain())
+        else:
+            from valuation_space import DiscretePseudoValuationSpace
+            parent = DiscretePseudoValuationSpace(base_valuation.domain())
+
+        return parent.__make_element_class__(AugmentedValuation_generic)(parent, base_valuation, phi, mu)
+
+AugmentedValuation = AugmentedValuationFactory("AugmentedValuation")
+
+class AugmentedValuation_generic(DevelopingValuation):
     """
     An augmented valuation is a discrete valuation on a polynomial ring. It
     extends another discrete valuation `v` by setting the valuation of a
@@ -58,7 +90,7 @@ class AugmentedValuation(DevelopingValuation):
             [ Gauss valuation induced by 2-adic valuation, v((1 + O(2^5))*x) = 1/2 ]
 
     """
-    def __init__(self, v, phi, mu, check=True):
+    def __init__(self, parent, v, phi, mu):
         """
         Initialization.
 
@@ -76,31 +108,10 @@ class AugmentedValuation(DevelopingValuation):
         if phi.parent() is not v.domain():
             raise ValueError("phi must be in the domain of v")
 
-        if check:
-            is_key, reason = v.is_key(phi, explain=True)
-            if not is_key:
-                raise ValueError(reason)
-            if mu <= v(phi):
-                raise ValueError("the value of the key polynomial must strictly increase but `%s` does not exceed `%s`."%(phi, v(phi)))
-
-        if mu < infinity:
-            parent = v.parent()
-        else:
-            from valuation_space import DiscretePseudoValuationSpace
-            parent = DiscretePseudoValuationSpace(v.domain())
         DevelopingValuation.__init__(self, parent, phi)
 
         self._base_valuation = v
         self._mu = mu
-
-        if check and not self.constant_valuation().residue_field().has_coerce_map_from(v.constant_valuation().residue_field()):
-            raise ValueError("the residue field `%s` does not embed into `%s`"%(v.residue_field(), self.residue_field()))
-
-    def __hash__(self):
-        return hash(self._base_valuation, self._mu, self._phi)
-
-    def _cache_key(self):
-        return self._base_valuation, self._mu, self._phi
 
     def _call_(self, f):
         """
@@ -289,12 +300,12 @@ class AugmentedValuation(DevelopingValuation):
     def _latex_(self):
         vals = [self]
         v = self
-        while isinstance(v, AugmentedValuation):
+        while isinstance(v, AugmentedValuation_generic):
             v = v._base_valuation
             vals.append(v)
         vals.reverse()
         from sage.misc.latex import latex
-        vals = [ "v_%s(%s) = %s"%(i,latex(v._phi), latex(v._mu)) if isinstance(v, AugmentedValuation) else latex(v) for i,v in enumerate(vals) ]
+        vals = [ "v_%s(%s) = %s"%(i,latex(v._phi), latex(v._mu)) if isinstance(v, AugmentedValuation_generic) else latex(v) for i,v in enumerate(vals) ]
         return "[ %s ]"%", ".join(vals)
 
     def _repr_(self):
@@ -312,40 +323,11 @@ class AugmentedValuation(DevelopingValuation):
 
         """
         vals = self._augmentations()
-        vals = [ "v(%s) = %s"%(v._phi, v._mu) if isinstance(v, AugmentedValuation) else str(v) for v in vals ]
+        vals = [ "v(%s) = %s"%(v._phi, v._mu) if isinstance(v, AugmentedValuation_generic) else str(v) for v in vals ]
         return "[ %s ]"%", ".join(vals)
 
     def _augmentations(self):
         return self._base_valuation._augmentations() + [self]
-
-    def _richcmp_(self, other, op):
-        if op == 2: # ==
-            if not isinstance(other, AugmentedValuation):
-                return False
-            if self.phi() != other.phi() or self._mu != other._mu or self._base_valuation != other._base_valuation:
-                return False
-            return True
-        if op == 3: # !=
-            return not (self == other)
-        return DevelopingValuation._richcmp_(self, other, op)
-
-    def __hash__(self):
-        r"""
-        The hash value of this valuation.
-
-        EXAMPLES::
-
-            sage: from mac_lane import *
-            sage: v = pAdicValuation(QQ, 2)
-            sage: hash(v) == hash(v)
-            True
-
-        """
-        vals = self._augmentations()
-        return hash((vals[0]) + ((v.phi(), v._mu) for v in vals[1:]))
-
-    def _cmp_(self, other):
-        raise NotImplementedError("No total ordering for this valuation.")
 
     @cached_method
     def constant_valuation(self):
@@ -865,7 +847,7 @@ class AugmentedValuation(DevelopingValuation):
         if generator is None:
             level = 0
             v = self
-            while isinstance(v, AugmentedValuation):
+            while isinstance(v, AugmentedValuation_generic):
                 level += 1
                 v = v._base_valuation
             generator = 'u%s'%level
@@ -989,7 +971,7 @@ class AugmentedValuation(DevelopingValuation):
         from gauss_valuation import GaussValuation_generic
         if isinstance(other, GaussValuation_generic):
 			return self._base_valuation >= other
-        if isinstance(other, AugmentedValuation):
+        if isinstance(other, AugmentedValuation_generic):
 			if self(other._phi) >= other._mu:
 				return self >= other._base_valuation
 			else:

@@ -11,7 +11,7 @@ EXAMPLES::
 
     sage: from mac_lane import * # optional: standalone
     sage: pAdicValuation(QQ, 2).parent()
-    Discrete valuations on Rational Field
+    Discrete pseudo-valuations on Rational Field
 
 AUTHORS:
 
@@ -48,6 +48,27 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         sage: H = DiscretePseudoValuationSpace(QQ)
         sage: pAdicValuation(QQ, 2) in H
         True
+
+    .. NOTE::
+
+        We do not distinguish between the space of discrete valuations and the
+        space of discrete pseudo-valuations. This is entirely for practical
+        reasons: We would like to model the fact that every discrete valuation
+        is also a discrete pseudo-valuation. At first, it seems to be
+        sufficient to make sure that the ``in`` operator works which can
+        essentially be achieved by overriding ``_element_constructor_`` of
+        the space of discrete pseudo-valuations to accept discrete valuations
+        by just returning them. Currently, however, if one does not change the
+        parent of an element in ``_element_constructor_`` to ``self``, then
+        one can not register that conversion as a coercion. Consequently, the
+        operators ``<=`` and ``>=`` can not be made to work between discrete
+        valuations and discrete pseudo-valuations on the same domain (because
+        the implementation only calls ``_richcmp`` if both operands have the
+        same parent.) Of course, we could override ``__ge__`` and  ``__le__``
+        but then we would likely run into other surprises.
+        So in the end, we went for a single homspace for all discrete
+        valuations (pseudo or not) as this makes the implementation much
+        easier.
 
     TESTS::
 
@@ -201,10 +222,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 except NotImplementedError:
                     pass
             else:
-                # If this is an element of a discrete pseudo-valuation space over the same domain,
-                # then we treat it as an element of this space (see __contains__), i.e., we do not
-                # actually change x.parent() to self here if it is, e.g., a discrete valuation space.
-                # This might be surprising but is how facades work for example.
                 return x
         raise ValueError("element can not be converted into the space of %r"%(self,))
 
@@ -409,6 +426,40 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
 
             """
+
+        def residue_field(self):
+            r"""
+            Return the residue field of this valuation, i.e., the field of
+            fractions of the :meth:`residue_ring`, the elements of non-negative
+            valuation module the elements of positive valuation.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: pAdicValuation(QQ, 2).residue_field()
+                Finite Field of size 2
+                sage: TrivialValuation(QQ).residue_field()
+                Rational Field
+
+                sage: TrivialValuation(ZZ).residue_field()
+                Rational Field
+                sage: GaussValuation(ZZ['x'], pAdicValuation(ZZ, 2)).residue_field()
+                Rational function field in x over Finite Field of size 2
+
+            """
+            if not self.is_discrete_valuation():
+                raise NotImplementedError
+
+            ret = self.residue_ring()
+            from sage.categories.fields import Fields
+            if ret in Fields():
+                return ret
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            if is_PolynomialRing(ret):
+                from sage.rings.function_field.all import FunctionField
+                return FunctionField(ret.base_ring().fraction_field(), names=(ret.variable_name(),))
+            return ret.fraction_field()
+
 
         @abstract_method
         def reduce(self, x):
@@ -784,161 +835,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             tester.assertEqual(self.change_ring(self.domain()), self)
 
-
-class DiscreteValuationSpace(DiscretePseudoValuationSpace):
-    r"""
-    The space of discrete valuations on ``domain``.
-
-    EXAMPLES::
-
-        sage: from mac_lane import * # optional: standalone
-        sage: H = DiscreteValuationSpace(QQ)
-        sage: pAdicValuation(QQ, 2) in H
-        True
-
-    TESTS::
-
-        sage: TestSuite(H).run()
-
-    """
-    def __init__(self, domain):
-        r"""
-        TESTS::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: isinstance(pAdicValuation(QQ, 2).parent(), DiscreteValuationSpace)
-            True
-
-        """
-        DiscretePseudoValuationSpace.__init__(self, domain)
-
-    def _element_constructor_(self, x):
-        r"""
-        Create an element in this space from ``x``.
-
-        TESTS:
-
-        Discrete pseudo-valuations that are actually valuations are contained
-        in this space::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: H = DiscretePseudoValuationSpace(QQ)
-            sage: G = DiscreteValuationSpace(QQ)
-            sage: v = pAdicValuation(QQ, 2)
-            sage: v._set_parent(H)
-            sage: v in G
-            True
-        
-        Discrete pseudo-valuations that are discrete valuations can be
-        converted into this space::
-
-            sage: H = DiscreteValuationSpace(ZZ)
-            sage: v = pAdicValuation(ZZ, 2)
-            sage: v._set_parent(H)
-            sage: v in G
-            False
-            sage: G(v) in G
-            True
-
-        """
-        # We accept any discrete pseudo-valuation that claims to be a discrete valuation
-        if isinstance(x.parent(), DiscretePseudoValuationSpace) and x.is_discrete_valuation():
-            if x.domain() is not self.domain():
-                # after we base-changed them into our domain
-                return DiscretePseudoValuationSpace(self.domain())(x)
-            # If this is a valuation in a discrete pseudo-valuation space over the same domain,
-            # then we treat it as an element of this space (see __contains__), i.e., we do not
-            # actually change x.parent() to self here if it is, e.g., a
-            # discrete pseudo-valuation space.  This might be surprising but is
-            # also how facades work for example.
-            return x
-        raise ValueError("element does not convert to a discrete valuation in %r"%(self,))
-
-    def _repr_(self):
-        r"""
-        Return a printable representation of this space.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: DiscreteValuationSpace(QQ) # indirect doctest
-            Discrete valuations on Rational Field
-
-        """
-        return "Discrete valuations on %r"%(self.domain(),)
-
-    def _an_element_(self):
-        r"""
-        Return the trivial valuation in this space.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: DiscreteValuationSpace(QQ).an_element() # indirect doctest
-            Trivial valuation on Rational Field
-
-        """
-        from trivial_valuation import TrivialValuation
-        return TrivialValuation(self.domain())
-
-    class ElementMethods(DiscretePseudoValuationSpace.ElementMethods):
-        r"""
-        Provides methods for discrete valuations that are added
-        automatically to valuations in this space.
-
-        EXAMPLES:
-
-        Here is an example of a method that is automagically added to a
-        discrete valuation::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: pAdicValuation(QQ, 2).is_discrete_valuation() # indirect doctest
-            True
-
-        """
-        def is_discrete_valuation(self):
-            r"""
-            Return whether this valuation is a discrete valuation.
-
-            EXAMPLES::
-
-                sage: from mac_lane import * # optional: standalone
-                sage: pAdicValuation(QQ, 2).is_discrete_valuation()
-                True
-
-            """
-            return True
-
-        def residue_field(self):
-            r"""
-            Return the residue field of this valuation, i.e., the field of
-            fractions of the :meth:`residue_ring`, the elements of non-negative
-            valuation module the elements of positive valuation.
-
-            EXAMPLES::
-
-                sage: from mac_lane import * # optional: standalone
-                sage: pAdicValuation(QQ, 2).residue_field()
-                Finite Field of size 2
-                sage: TrivialValuation(QQ).residue_field()
-                Rational Field
-
-                sage: TrivialValuation(ZZ).residue_field()
-                Rational Field
-                sage: GaussValuation(ZZ['x'], pAdicValuation(ZZ, 2)).residue_field()
-                Rational function field in x over Finite Field of size 2
-
-            """
-            ret = self.residue_ring()
-            from sage.categories.fields import Fields
-            if ret in Fields():
-                return ret
-            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            if is_PolynomialRing(ret):
-                from sage.rings.function_field.all import FunctionField
-                return FunctionField(ret.base_ring().fraction_field(), names=(ret.variable_name(),))
-            return ret.fraction_field()
-
         def _test_no_infinite_nonzero(self, **options):
             r"""
             Check that only zero is sent to infinity.
@@ -950,6 +846,9 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
                 sage: v._test_no_infinite_nonzero()
 
             """
+            if not self.is_discrete_valuation():
+                return
+
             from sage.rings.all import infinity
             tester = self._tester(**options)
             for x in tester.some_elements(self.domain().some_elements()):
@@ -967,6 +866,9 @@ class DiscreteValuationSpace(DiscretePseudoValuationSpace):
                 sage: v._test_residue_field()
 
             """
+            if not self.is_discrete_valuation():
+                return
+
             tester = self._tester(**options)
             try:
                 k = self.residue_field()

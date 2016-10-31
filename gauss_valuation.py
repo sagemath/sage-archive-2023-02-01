@@ -122,8 +122,8 @@ class GaussValuationFactory(UniqueFactory):
 
         """
         domain, v = key
-        from sage.rings.valuation.valuation_space import DiscreteValuationSpace
-        parent = DiscreteValuationSpace(domain)
+        from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
+        parent = DiscretePseudoValuationSpace(domain)
         return GaussValuation_generic(parent, v)
 
 GaussValuation = GaussValuationFactory("GaussValuation")
@@ -620,8 +620,8 @@ class GaussValuation_generic(DevelopingValuation):
     def _gt_(self, other):
         if isinstance(other, GaussValuation_generic):
             return self._base_valuation >= other._base_valuation
-        from augmented_valuation import AugmentedValuation
-        if isinstance(other, AugmentedValuation):
+        from augmented_valuation import AugmentedValuation_generic
+        if isinstance(other, AugmentedValuation_generic):
             return False
         raise NotImplementedError("Operator not implemented for these valuations.")
 

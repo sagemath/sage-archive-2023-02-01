@@ -7,7 +7,7 @@ if [ -z "$SAGE_LOCAL" ]; then
 fi
 
 
-NTL=ntl-10.0.0
+NTL=ntl-10.1.0
 SPKG_ROOT="$SAGE_ROOT/build/pkgs/ntl"
 
 set -e

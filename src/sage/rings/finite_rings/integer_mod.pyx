@@ -1413,7 +1413,6 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         else:
             return self
 
-
     def rational_reconstruction(self):
         """
         Use rational reconstruction to try to find a lift of this element to
@@ -1512,7 +1511,6 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             other = IntegerMod_gmp(other._parent, other.lift())
 
         return self.__crt(other)
-
 
     def additive_order(self):
         r"""
@@ -1708,7 +1706,22 @@ cdef class IntegerMod_abstract(FiniteRingElement):
     def _rational_(self):
         return rational.Rational(self.lift())
 
+    def _vector_(self):
+        """
+        Return self as a vector of its parent viewed as a one-dimensional
+        vector space.
 
+        This is to support prime finite fields, which are implemented as
+        `IntegerMod` ring.
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(13)
+            sage: V = F.vector_space()
+            sage: V(a)
+            (1)
+        """
+        return self.parent().vector_space()([self])
 
 
 ######################################################################
@@ -1772,13 +1785,13 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             mpz_set(self.value, value)
 
     cdef void set_from_long(self, long value):
-        r"""        
+        r"""
         EXAMPLES::
 
             sage: p = next_prime(2^32)
             sage: GF(p)(int(p+1))
             1
-        """        
+        """
         cdef sage.rings.integer.Integer modulus
         mpz_set_si(self.value, value)
         if value < 0 or mpz_cmp_si(self.__modulus.sageInteger.value, value) <= 0:

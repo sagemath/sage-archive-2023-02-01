@@ -4,12 +4,58 @@ Calculate nu
 
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_function
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
 from time import time
 
 
 def lifting(p, t, A, G):
+    r"""
+    Compute generators of `\{f \in D[X]^d \mid Af \equiv 0 \pmod{p^{t}}\}` given
+    generators of `\{f\in D[X]^d \mid Af \equiv 0\pmod{p^{t-1}}\}`.
+
+    INPUT:
+
+    - ``p`` -- a prime element of some ring `D`
+
+    - ``t`` -- a non-negative integer
+
+    - ``A`` -- a `c\times d` matrix  over `D[X]`
+
+    - ``G`` -- a matrix over `D[X]`. The columns of `(p^{t-1}I G)` are generators of
+      `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^{t-1}}\}`. Can be set to ``None`` if ``t`` is zero.
+
+    OUTPUT:
+
+    A matrix ``F`` over `D[X]` such that the columns of `(p^tI F pG)` are generators of
+    `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^{t-1}}\}`.
+
+    EXAMPLES::
+
+        sage: X = polygen(ZZ, 'X')
+        sage: A = matrix([[1, X], [2*X, X^2]])
+        sage: G0 = lifting(5, 0, A, None)
+        sage: G1 = lifting(5, 1, A, G0); G1
+        []
+        sage: assert (A*G1 % 5).is_zero()
+        sage: A = matrix([[1, X, X^2], [2*X, X^2, 3*X^3]])
+        sage: G0 = lifting(5, 0, A, None)
+        sage: G1 = lifting(5, 1, A, G0); G1
+        [3*X^2]
+        [    X]
+        [    1]
+        sage: assert (A*G1 % 5).is_zero()
+        sage: G2 = lifting(5, 2, A, G1); G2
+        [15*X^2 23*X^2]
+        [   5*X      X]
+        [     5      1]
+        sage: assert (A*G2 % 25).is_zero()
+        sage: lifting(5, 10, A, G1)
+        Traceback (most recent call last):
+        ...
+        AssertionError: A*G is not zero mod 5^9
+    """
     if t == 0:
         return matrix(A.parent().base(), A.ncols(), 0)
 

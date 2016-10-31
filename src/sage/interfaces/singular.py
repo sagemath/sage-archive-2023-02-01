@@ -1087,7 +1087,7 @@ class Singular(ExtraTabCompletion, Expect):
             //        block   2 : ordering C
             sage: singular.set_ring(R)
             sage: singular.current_ring()
-            polynomial ring, over a field, local/mixed ordering
+            polynomial ring, over a field, local ordering
             //   characteristic : 7
             //   number of vars : 2
             //        block   1 : ordering ds
@@ -1996,7 +1996,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             //        block   2 : ordering C
             sage: R.set_ring()
             sage: singular.current_ring()
-            polynomial ring, over a field, local/mixed ordering
+            polynomial ring, over a field, local ordering
             //   characteristic : 7
             //   number of vars : 2
             //        block   1 : ordering ds

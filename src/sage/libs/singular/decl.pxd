@@ -235,7 +235,10 @@ cdef extern from "singular/Singular/libsingular.h":
         long (*pFDeg)(poly *p, ring *r)
         long (*pFDegOrig)(poly *p, ring *r)
 
+    # a bunch of functions for degree
 
+    long p_FDeg(poly *p, ring *r)
+    long p_LDeg(poly *p, int *l, ring *r)
     long p_Deg(poly *p, ring *r)    
     long p_WTotaldegree(poly *p, ring *r)
     long p_Totaldegree(poly *p, ring *r)

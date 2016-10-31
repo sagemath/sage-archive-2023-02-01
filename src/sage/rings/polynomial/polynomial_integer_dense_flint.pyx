@@ -38,6 +38,7 @@ from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
 from sage.misc.long cimport pyobject_to_long
 
+from sage.libs.flint.fmpz_poly cimport *
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.structure.element import coerce_binop

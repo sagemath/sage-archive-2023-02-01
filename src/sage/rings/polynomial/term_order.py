@@ -1095,7 +1095,7 @@ class TermOrder(SageObject):
         elif sf == sg:
             return self.compare_tuples_neglex(f,g)
 
-    def sortkey_negdeglex(self, f):
+    def sortkey_degneglex(self, f):
         """
         Return the sortkey of an exponent tuple with respect to the
         degree negative lexicographical term order.
@@ -1223,7 +1223,7 @@ class TermOrder(SageObject):
         elif sf == sg:
             return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
-    def sortkey_negwdeglex(self, f):
+    def sortkey_negwdegrevlex(self, f):
         """
         Return the sortkey of an exponent tuple with respect to the
         negative weighted degree reverse lexicographical term order.

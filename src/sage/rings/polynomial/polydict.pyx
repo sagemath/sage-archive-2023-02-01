@@ -129,6 +129,7 @@ cdef class PolyDict:
             right = iter(sorted(other.__repn, key=key, reverse=True))
         else:
             # in despair, do that
+            assert False
             return cmp(self.__repn, other.__repn)
 
         for m in left:

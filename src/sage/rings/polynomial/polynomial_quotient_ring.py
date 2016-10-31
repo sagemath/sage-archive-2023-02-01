@@ -599,6 +599,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: P.<x> = QQ[]
             sage: Q = P.quo([(x^2+1)])
             sage: singular(Q)        # indirect doctest
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 1
             //        block   1 : ordering lp

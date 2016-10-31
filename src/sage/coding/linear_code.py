@@ -108,10 +108,9 @@ http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.h
 
 REFERENCES:
 
-.. [HP] \W. C. Huffman and V. Pless, Fundamentals of error-correcting codes,
-  Cambridge Univ. Press, 2003.
+- [HP2003]_
 
-.. [Gu] \GUAVA manual, http://www.gap-system.org/Packages/guava.html
+- [Gu]_
 
 AUTHORS:
 
@@ -798,7 +797,7 @@ class AbstractLinearCode(Module):
 
     def assmus_mattson_designs(self, t, mode=None):
         r"""
-        Assmus and Mattson Theorem (section 8.4, page 303 of [HP]_): Let
+        Assmus and Mattson Theorem (section 8.4, page 303 of [HP2003]_): Let
         `A_0, A_1, ..., A_n` be the weights of the codewords in a binary
         linear `[n , k, d]` code `C`, and let `A_0^*, A_1^*, ..., A_n^*` be
         the weights of the codewords in its dual `[n, n-k, d^*]` code `C^*`.
@@ -838,7 +837,7 @@ class AbstractLinearCode(Module):
             k =       i   (k not to be confused with dim(C))
             b =       Ai
             lambda = b*binomial(k,t)/binomial(v,t) (by Theorem 8.1.6,
-                                                       p 294, in [HP]_)
+                                                       p 294, in [HP2003]_)
 
         Setting the ``mode="verbose"`` option prints out the values of the
         parameters.
@@ -872,7 +871,6 @@ class AbstractLinearCode(Module):
             sage: X = range(24)                           #  example 2
             sage: blocks = [c.support() for c in C if c.hamming_weight()==8]; len(blocks)  # long time computation
             759
-
         """
         C = self
         ans = []
@@ -1127,18 +1125,13 @@ class AbstractLinearCode(Module):
     def characteristic_polynomial(self):
         r"""
         Returns the characteristic polynomial of a linear code, as defined in
-        van Lint's text [vL]_.
+        [Lin1999]_.
 
         EXAMPLES::
 
             sage: C = codes.ExtendedBinaryGolayCode()
             sage: C.characteristic_polynomial()
             -4/3*x^3 + 64*x^2 - 2816/3*x + 4096
-
-        REFERENCES:
-
-        .. [vL] \J. van Lint, Introduction to coding theory, 3rd ed., Springer-Verlag
-           GTM, 86, 1999.
         """
         R = PolynomialRing(QQ,"x")
         x = R.gen()
@@ -1476,8 +1469,8 @@ class AbstractLinearCode(Module):
 
         A linear code `C` over a field is called *projective* when its dual `Cd`
         has minimum weight `\geq 3`, i.e. when no two coordinate positions of
-        `C` are linearly independent (cf. definition 3 from [BS11]_ or 9.8.1 from
-        [BH12]_).
+        `C` are linearly independent (cf. definition 3 from [BS2011]_ or 9.8.1 from
+        [BH12]).
 
         EXAMPLE::
 
@@ -1492,13 +1485,6 @@ class AbstractLinearCode(Module):
             sage: C = codes.LinearCode(matrix(GF(2),[[1,0,1],[1,1,1]]))
             sage: C.is_projective()
             False
-
-        REFERENCE:
-
-        .. [BS11] \E. Byrne and A. Sneyd,
-           On the Parameters of Codes with Two Homogeneous Weights.
-           WCC 2011-Workshop on coding and cryptography, pp. 81-90. 2011.
-           https://hal.inria.fr/inria-00607341/document
         """
         M = self.generator_matrix().transpose()
         R = self.base_field()
@@ -2839,13 +2825,7 @@ class AbstractLinearCode(Module):
 
         OUTPUT:
 
-        - Pair ``(v, m)`` as in Duursma [D]_
-
-        REFERENCES:
-
-        .. [D] \I. Duursma
-           "Extremal weight enumerators and ultraspherical polynomials"
-           Discrete Mathematics 268 (1), 103-127
+        - Pair ``(v, m)`` as in Duursma [Du2003]_
 
         EXAMPLES::
 
@@ -2895,7 +2875,7 @@ class AbstractLinearCode(Module):
 
         OUTPUT:
 
-        - The polynomial `Q(T)` as in Duursma [D]_
+        - The polynomial `Q(T)` as in Duursma [Du2003]_
 
         EXAMPLES::
 
@@ -2956,7 +2936,7 @@ class AbstractLinearCode(Module):
         .. WARNING::
 
             This function does not check that ``self`` is self-dual. Indeed, it
-            is not even clear which notion of self-dual is supported ([D] seems
+            is not even clear which notion of self-dual is supported ([Du2003]_ seems
             to indicate formal self-dual, but the example below is a hexacode
             which is Hermitian self-dual).
 
@@ -2967,7 +2947,7 @@ class AbstractLinearCode(Module):
 
         OUTPUT:
 
-        -  Polynomial in a variable "T": the Duursma zeta function as in [D]
+        -  Polynomial in a variable "T": the Duursma zeta function as in [Du2003]_
 
         EXAMPLES::
 
@@ -3015,7 +2995,7 @@ class AbstractLinearCode(Module):
         constructed is actually only isomorphic to the shortened code defined
         in this way.
 
-        By Theorem 1.5.7 in [HP]_, `C_L` is `((C^\perp)^L)^\perp`. This is used
+        By Theorem 1.5.7 in [HP2003]_, `C_L` is `((C^\perp)^L)^\perp`. This is used
         in the construction below.
 
         INPUT:

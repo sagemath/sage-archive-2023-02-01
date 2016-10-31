@@ -24,8 +24,7 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "FM_template.pxi"
 
-from sage.libs.pari.pari_instance cimport PariInstance
-cdef PariInstance P = sage.libs.pari.pari_instance.pari
+from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
 
 cdef class PowComputer_(PowComputer_base):
@@ -217,10 +216,10 @@ cdef class pAdicFixedModElement(FMElement):
             mpz_set_ui(holder.value, 0)
         else:
             val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
-        return P.new_gen_from_padic(val, self.prime_pow.prec_cap - val,
-                                    self.prime_pow.prime.value,
-                                    self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val),
-                                    holder.value)
+        return new_gen_from_padic(val, self.prime_pow.prec_cap - val,
+                                  self.prime_pow.prime.value,
+                                  self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val),
+                                  holder.value)
 
     def _integer_(self, Z=None):
         """

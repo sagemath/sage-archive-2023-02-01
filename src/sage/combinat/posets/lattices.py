@@ -42,6 +42,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
     :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
     :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_semidistributive` | Return ``True`` if the lattice is both join- and meet-semidistributive.
     :meth:`~FiniteLatticePoset.is_join_semidistributive` | Return ``True`` if the lattice is join-semidistributive.
     :meth:`~FiniteLatticePoset.is_meet_semidistributive` | Return ``True`` if the lattice is meet-semidistributive.
     :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
@@ -704,6 +705,174 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return [self._vertex_to_element(e) for e in H
                 if H.in_degree(e) == 1 and H.out_degree(e) == 1]
 
+    def is_join_distributive(self, certificate=False):
+        """
+        Return ``True`` if the lattice is join-distributive and ``False``
+        otherwise.
+
+        A lattice is *join-distributive* if every interval from an element
+        to the join of the element's upper covers is a distributive lattice.
+        Actually this distributive sublattice is then a Boolean lattice.
+
+        They are also called as *Dilworth's lattices* and *upper locally
+        distributive lattices*. They can be characterized in many other
+        ways, see [DIL1940]_.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where `e` is an element such that the interval
+          from `e` to the meet of upper covers of `e` is not distributive.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO::
+
+            :meth:`is_meet_distributive`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [5, 7],
+            ....:                   4: [6, 7], 5: [8, 9], 6: [9], 7: [9, 10],
+            ....:                   8: [11], 9: [11], 10: [11]})
+            sage: L.is_join_distributive()
+            True
+
+            sage: L = LatticePoset({1: [2], 2: [3, 4], 3: [5], 4: [6],
+            ....:                   5: [7], 6: [7]})
+            sage: L.is_join_distributive()
+            False
+            sage: L.is_join_distributive(certificate=True)
+            (False, 2)
+
+        TESTS::
+
+            sage: E = LatticePoset()
+            sage: E.is_join_distributive()
+            True
+            sage: E.is_join_distributive(certificate=True)
+            (True, None)
+
+            sage: L = LatticePoset({1: []})
+            sage: L.is_join_distributive()
+            True
+            sage: L.is_join_distributive(certificate=True)
+            (True, None)
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3: [5, 6],
+            ....:                   4: [6], 5: [7], 6:[7]})
+            sage: L.is_join_distributive()
+            False
+            sage: L.is_join_distributive(certificate=True)
+            (False, 1)
+
+        REFERENCES:
+
+        .. [DIL1940] Lattice with Unique Irreducible Decompositions
+           R. P. Dilworth, 1940 (Annals of Mathematics 41, 771-777)
+           With comments by B. Monjardet
+           http://cams.ehess.fr/docannexe.php?id=1145
+        """
+        if ((self.is_ranked() and len(self.meet_irreducibles()) == self.rank())
+            or self.cardinality() == 0):
+            return (True, None) if certificate else True
+        if not certificate:
+            return False
+
+        # A lattice that is not join-distributive is either not upper
+        # semimodular or contains a diamond as a covering sublattice.
+        result = self.is_upper_semimodular(certificate=True)
+        if result[0] == False:
+            return (False, self.meet(result[1]))
+
+        M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
+        return (False, diamond[0])
+
+    def is_meet_distributive(self, certificate=False):
+        """
+        Return ``True`` if the lattice is meet-distributive and ``False``
+        otherwise.
+
+        A lattice is *meet-distributive* if every interval to an element
+        from the meet of the element's lower covers is a distributive lattice.
+        Actually this distributive sublattice is then a Boolean lattice.
+
+        They are also called as *lower locally distributive lattices*.
+        They can be characterized in many other ways, see [DIL1940]_.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where `e` is an element such that the interval
+          to `e` from the meet of lower covers of `e` is not distributive.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO::
+
+            :meth:`is_join_distributive`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3: [5, 6, 7],
+            ....:                   4: [7], 5: [9, 8], 6: [10, 8], 7:
+            ....:                   [9, 10], 8: [11], 9: [11], 10: [11]})
+            sage: L.is_meet_distributive()
+            True
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [5], 4: [6],
+            ....:                   5: [6], 6: [7]})
+            sage: L.is_meet_distributive()
+            False
+            sage: L.is_meet_distributive(certificate=True)
+            (False, 6)
+
+        TESTS::
+
+            sage: E = LatticePoset()
+            sage: E.is_meet_distributive()
+            True
+            sage: E.is_meet_distributive(certificate=True)
+            (True, None)
+
+            sage: L = LatticePoset({1: []})
+            sage: L.is_meet_distributive()
+            True
+            sage: L.is_meet_distributive(certificate=True)
+            (True, None)
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [5, 6], 4: [7],
+            ....:                   5: [7], 6: [7]})
+            sage: L.is_meet_distributive()
+            False
+            sage: L.is_meet_distributive(certificate=True)
+            (False, 7)
+        """
+        if ((self.is_ranked() and len(self.join_irreducibles()) == self.rank())
+            or self.cardinality() == 0):
+            return (True, None) if certificate else True
+        if not certificate:
+            return False
+
+        # A lattice that is not meet-distributive is either not lower
+        # semimodular or contains a diamond as a covering sublattice.
+        result = self.is_lower_semimodular(certificate=True)
+        if result[0] == False:
+            return (False, self.join(result[1]))
+
+        M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
+        return (False, diamond[4])
+
     def is_distributive(self):
         r"""
         Return ``True`` if the lattice is distributive, and ``False``
@@ -729,6 +898,49 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return (self.is_graded() and
          self.rank() == len(self.join_irreducibles()) ==
          len(self.meet_irreducibles()))
+
+    def is_semidistributive(self):
+        """
+        Return ``True`` if the lattice is both join- and meet-semidistributive,
+        and ``False`` otherwise.
+
+        .. SEEALSO::
+
+            :meth:`is_join_semidistributive`, :meth:`is_meet_semidistributive`
+
+        EXAMPLES:
+
+        Tamari lattices are typical examples of semidistributive but not distributive
+        (and hence not modular) lattices::
+
+            sage: T4 = Posets.TamariLattice(4)
+            sage: T4.is_semidistributive(), T4.is_distributive()
+            (True, False)
+
+        Smallest non-selfdual example::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [5], 4: [6], 5: [7], 6: [7]})
+            sage: L.is_semidistributive()
+            True
+
+        The diamond is not semidistributive::
+
+            sage: L = Posets.DiamondPoset(5)
+            sage: L.is_semidistributive()
+            False
+
+        TESTS::
+
+            sage: LatticePoset().is_semidistributive()
+            True
+            sage: LatticePoset({1: []}).is_semidistributive()
+            True
+        """
+        H = self._hasse_diagram
+        # See trac #21528 for explanation.
+        return ( (H.in_degree_sequence().count(1) ==
+                 H.out_degree_sequence().count(1)) and
+                 self.is_meet_semidistributive() )
 
     def is_meet_semidistributive(self):
         r"""

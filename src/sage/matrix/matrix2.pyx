@@ -366,7 +366,7 @@ cdef class Matrix(matrix1.Matrix):
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.pari.all import pari
+                from sage.libs.pari import pari
                 A = pari(self.lift())
                 b = pari(B).lift()
                 if b.type() == "t_MAT":
@@ -1246,7 +1246,7 @@ cdef class Matrix(matrix1.Matrix):
 
             r_k(A) = \sum_{j=0}^k (-1)^j \binom{m-j}{k-j} \binom{n-j}{k-j} (k-j)! r_j(B)
 
-        see [Riordan] or the introductory text [Allenby]. This can be done
+        see [Rio1958]_ or the introductory text [AS2011]_. This can be done
         setting the argument ``use_complement`` to ``True``.
 
         An example with an exotic matrix (for which only Butera-Pernici and
@@ -1290,13 +1290,6 @@ cdef class Matrix(matrix1.Matrix):
             ....:     v = m.rook_vector(complement=True, use_complement=False)
             ....:     if v != [1, 16, 78, 128, 53]:
             ....:         print("ERROR with algorithm={} use_complement=False".format(algorithm))
-
-        REFERENCES:
-
-        .. [Riordan] \J. Riordan, "An Introduction to Combinatorial Analysis",
-           Dover Publ. (1958)
-
-        .. [Allenby] \R.B.J.T Allenby and A. Slomson, "How to count", CRC Press (2011)
 
         AUTHORS:
 
@@ -1731,7 +1724,7 @@ cdef class Matrix(matrix1.Matrix):
         `n \times n` matrix `U` and any alternating `n \times n`
         matrix `A`.
 
-        See [Kn95]_, [DW95]_ and [Rote2001]_, just to name three
+        See [Knu1995]_, [DW1995]_ and [Rot2001]_, just to name three
         sources, for further properties of Pfaffians.
 
         ALGORITHM:
@@ -1742,29 +1735,10 @@ cdef class Matrix(matrix1.Matrix):
         is alternating, a non-discrete base ring might prevent Sage
         from being able to check this).
 
-        REFERENCES:
-
-        .. [Kn95] Donald E. Knuth, *Overlapping Pfaffians*,
-           :arxiv:`math/9503234v1`.
-
-        .. [Rote2001] Gunter Rote,
-           *Division-Free Algorithms for the Determinant and the
-           Pfaffian: Algebraic and Combinatorial Approaches*,
-           H. Alt (Ed.): Computational Discrete Mathematics, LNCS
-           2122, pp. 119–135, 2001.
-           http://page.mi.fu-berlin.de/rote/Papers/pdf/Division-free+algorithms.pdf
-
-        .. [DW95] Andreas W.M. Dress, Walter Wenzel,
-           *A Simple Proof of an Identity Concerning Pfaffians of
-           Skew Symmetric Matrices*,
-           Advances in Mathematics, volume 112, Issue 1, April
-           1995, pp. 120-134.
-           http://www.sciencedirect.com/science/article/pii/S0001870885710298
-
         .. TODO::
 
             Implement faster algorithms, including a division-free one.
-            Does [Rote2001]_, section 3.3 give one?
+            Does [Rot2001]_, section 3.3 give one?
 
             Check the implementation of the matchings used here for
             performance?
@@ -7109,8 +7083,8 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: output2.base_ring() is K
             True
 
-        The following is the first half of example 5 in [H] *except* that we
-        have transposed ``self``; [H] uses column operations and we use row.
+        The following is the first half of example 5 in [Hes2002]_ *except* that we
+        have transposed ``self``; [Hes2002]_ uses column operations and we use row.
 
         ::
 
@@ -7182,16 +7156,13 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         NOTES:
 
          - For consistency with LLL and other algorithms in Sage, we have opted
-           for row operations; however, references such as [H] transpose and use
+           for row operations; however, references such as [Hes2002]_ transpose and use
            column operations.
 
         REFERENCES:
 
-        .. [H] \F. Hess, "Computing Riemann-Roch spaces in algebraic function
-          fields and related topics," J. Symbolic Comput. 33 (2002), no. 4,
-          425--445.
-
-        .. [K] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
+        - [Hes2002]_
+        - [Kal1980]_
 
         """
         from sage.matrix.matrix_misc import row_reduced_form
@@ -9047,7 +9018,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         ALGORITHM:
 
-        "Modified Gram-Schmidt," Algorithm 8.1 of [TREFETHEN-BAU]_.
+        "Modified Gram-Schmidt," Algorithm 8.1 of [TB1997]_.
 
         EXAMPLES:
 
@@ -9233,12 +9204,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: R
             [2 3]
             [0 1]
-
-        REFERENCES:
-
-        .. [TREFETHEN-BAU] Trefethen, Lloyd N., Bau, David, III
-           "Numerical Linear Algebra"
-           SIAM, Philadelphia, 1997.
 
         AUTHOR:
 
@@ -11585,7 +11550,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
             "Gaussian Elimination with Partial Pivoting,"
-            Algorithm 21.1 of [TREFETHEN-BAU]_.
+            Algorithm 21.1 of [TB1997]_.
 
         EXAMPLES:
 
@@ -13526,8 +13491,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
         ZigZag form, and its computation, are due to Arne Storjohann
-        and are  described in [STORJOHANN-THESIS]_ and
-        [STORJOHANN-ISACC98]_, where the former is more
+        and are  described in [Sto2000]_ and
+        [Sto1998]_, where the former is more
         representative of the code here.
 
         EXAMPLE:
@@ -13790,8 +13755,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
         ZigZag form, and its computation, are due to Arne Storjohann
-        and are  described in [STORJOHANN-THESIS]_ and
-        [STORJOHANN-ISACC98]_, where the former is more
+        and are  described in [Sto2000]_ and
+        [Sto1998]_, where the former is more
         representative of the code here.
 
         EXAMPLES:
@@ -13980,18 +13945,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ValueError: 'subdivide' keyword must be True or False, not garbage
 
-        .. rubric:: Citations
-
-        .. [STORJOHANN-THESIS] \A. Storjohann, Algorithms
-           for Matrix Canonical Forms. PhD Thesis. Department
-           of Computer Science, Swiss Federal Institute of
-           Technology -- ETH, 2000.
-
-        .. [STORJOHANN-ISACC98] \A. Storjohann, An O(n^3)
-           algorithm for Frobenius normal form. Proceedings
-           of the International Symposium on Symbolic and
-           Algebraic Computation (ISSAC'98), ACM Press, 1998, pp. 101-104.
-
         AUTHOR:
 
         - Rob Beezer (2011-06-09)
@@ -14081,7 +14034,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         We begin with ZigZag form, which is due to Arne Storjohann
         and is documented at :meth:`zigzag_form`.  Then we eliminate
         ''corner'' entries enroute to rational form via an additional
-        algorithm of Storjohann's [STORJOHANN-EMAIL]_.
+        algorithm of Storjohann's [Sto2011]_.
 
         EXAMPLES:
 
@@ -14376,10 +14329,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             Traceback (most recent call last):
             ...
             ValueError: 'subdivide' keyword must be True or False, not garbage
-
-        .. rubric:: Citations
-
-        .. [STORJOHANN-EMAIL] \A. Storjohann, Email Communication. 30 May 2011.
 
         AUTHOR:
 

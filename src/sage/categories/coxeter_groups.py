@@ -1998,8 +1998,7 @@ class CoxeterGroups(Category_singleton):
 
             REFERENCES:
 
-                .. [Deodhar] \V. Deodhar,  A splitting criterion for the Bruhat orderings on Coxeter groups. Comm. Algebra, 15:1889-1894, 1987.
-
+                - [Deo1987a]_
             """
 
             if self != self.coset_representative(index_set):

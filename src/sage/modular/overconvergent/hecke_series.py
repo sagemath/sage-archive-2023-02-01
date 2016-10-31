@@ -15,7 +15,7 @@ classical modular forms of weight k and level `\Gamma_0(Np)`. In addition,
 provided `m \le (k-2)/2` the output `P(t)` is equal modulo `p^m` to the reverse
 characteristic polynomial of the Hecke operator `T_p` on the space of classical
 modular forms of weight k and level `\Gamma_0(N)`. The function is based upon
-the main algorithm in [AGBL]_, and has linear running time in the logarithm of
+the main algorithm in [Lau2011]_, and has linear running time in the logarithm of
 the weight k.
 
 AUTHORS:
@@ -57,12 +57,6 @@ A list containing the characteristic series of the U_23 operator modulo 23^10 on
     sage: hecke_series(23,1,[1000,1022],10)
     [7204610645852*x^6 + 2117949463923*x^5 + 24152587827773*x^4 + 31270783576528*x^3 + 30336366679797*x^2
     + 29197235447073*x + 1, 32737396672905*x^4 + 36141830902187*x^3 + 16514246534976*x^2 + 38886059530878*x + 1]
-
-REFERENCES:
-
-.. [AGBL] Alan G.B. Lauder, "Computations with classical and p-adic modular
-   forms", LMS J. of Comput. Math. 14 (2011), 214-231.
-
 """
 
 #*****************************************************************************
@@ -420,7 +414,7 @@ def complementary_spaces_modp(N,p,k0,n,elldash,LWBModp,bound):
     ``[j_i,a_i]``; this has weight `k + (p-1)i` for some `0 \le i \le n`; here
     the i is such that this *list of lists* occurs in the ith list of the
     output. The ith list of the output thus encodes a choice of basis for the
-    complementary space `W_i` which occurs in Step 2 of Algorithm 2 in [AGBL]_.
+    complementary space `W_i` which occurs in Step 2 of Algorithm 2 in [Lau2011]_.
     The idea is that one searches for this space `W_i` first modulo
     `(p,q^\text{elldash})` and then, having found the correct products of
     generating forms, one can reconstruct these spaces modulo
@@ -468,7 +462,7 @@ def complementary_spaces(N,p,k0,n,mdash,elldashp,elldash,modformsring,bound):
     the Eisenstein series `E_{p-1}`.
 
     The lists ``Wi`` play the same role as `W_i` in Step 2 of Algorithm 2 in
-    [AGBL]_. (The parameters ``k0,n,mdash,elldash,elldashp = elldash*p`` are
+    [Lau2011]_. (The parameters ``k0,n,mdash,elldash,elldashp = elldash*p`` are
     defined as in Step 1 of that algorithm when this function is used in
     :func:`hecke_series`.) However, the complementary spaces are computed in a
     different manner, combining a suggestion of David Loeffler with one of John
@@ -542,7 +536,7 @@ def higher_level_katz_exp(p,N,k0,m,mdash,elldash,elldashp,modformsring,bound):
     `p^\text{mdash}`, and the Eisenstein series `E_{p-1} = 1 + .\dots \bmod
     (p^\text{mdash},q^\text{elldashp})`. The matrix e contains the coefficients
     of the elements `e_{i,s}` in the Katz expansions basis in Step 3 of
-    Algorithm 2 in [AGBL]_ when one takes as input to that algorithm
+    Algorithm 2 in [Lau2011]_ when one takes as input to that algorithm
     `p`,`N`,`m` and `k` and define ``k0``, ``mdash``, ``n``, ``elldash``,
     ``elldashp = ell*dashp`` as in Step 1.
 
@@ -637,7 +631,7 @@ def hecke_series_degree_bound(p,N,k,m):
     Returns the ``Wan bound`` on the degree of the characteristic series of the
     Atkin operator on p-adic overconvergent modular forms of level
     `\Gamma_0(N)` and weight k when reduced modulo `p^m`. This bound depends
-    only upon p, `k \pmod{p-1}`, and N. It uses Lemma 3.1 in [DW]_.
+    only upon p, `k \pmod{p-1}`, and N. It uses Lemma 3.1 in [Wan1998]_.
 
     INPUT:
 
@@ -655,11 +649,6 @@ def hecke_series_degree_bound(p,N,k,m):
         sage: from sage.modular.overconvergent.hecke_series import hecke_series_degree_bound
         sage: hecke_series_degree_bound(13,11,100,5)
         39
-
-    REFERENCES:
-
-    .. [DW] Daqing Wan, "Dimension variation of classical and p-adic modular
-       forms", Invent. Math. 133, (1998) 449-463.
     """
     k0 = k % (p-1)
     ds = [dimension_modular_forms(N, k0)]
@@ -686,7 +675,7 @@ def higher_level_UpGj(p,N,klist,m,modformsring,bound):
     Returns a list ``[A_k]`` of square matrices over ``IntegerRing(p^m)``
     parameterised by the weights k in ``klist``. The matrix `A_k` is the finite
     square matrix which occurs on input p,k,N and m in Step 6 of Algorithm 2 in
-    [AGBL]_. Notational change from paper: In Step 1 following Wan we defined
+    [Lau2011]_. Notational change from paper: In Step 1 following Wan we defined
     j by `k = k_0 + j(p-1)` with `0 \le k_0 < p-1`. Here we replace j by
     ``kdiv`` so that we may use j as a column index for matrices.)
 
@@ -879,7 +868,7 @@ def katz_expansions(k0,p,ellp,mdash,n):
     Returns a list e of q-expansions, and the Eisenstein series `E_{p-1} = 1 +
     \dots`, all modulo `(p^\text{mdash},q^\text{ellp})`. The list e contains
     the elements `e_{i,s}` in the Katz expansions basis in Step 3 of Algorithm
-    1 in [AGBL]_ when one takes as input to that algorithm p,m and k and define
+    1 in [Lau2011]_ when one takes as input to that algorithm p,m and k and define
     ``k0``, ``mdash``, n, ``ellp = ell*p`` as in Step 1.
 
     INPUT:
@@ -931,7 +920,7 @@ def level1_UpGj(p,klist,m):
     Returns a list `[A_k]` of square matrices over ``IntegerRing(p^m)``
     parameterised by the weights k in ``klist``. The matrix `A_k` is the finite
     square matrix which occurs on input p,k and m in Step 6 of Algorithm 1 in
-    [AGBL]_. Notational change from paper: In Step 1 following Wan we defined
+    [Lau2011]_. Notational change from paper: In Step 1 following Wan we defined
     j by `k = k_0 + j(p-1)` with `0 \le k_0 < p-1`. Here we replace j by
     ``kdiv`` so that we may use j as a column index for matrices.
 
@@ -1081,7 +1070,7 @@ def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
     terminate for certain exceptional small values of `N`, when this bound is
     too small.
 
-    The algorithm is based upon that described in [AGBL]_.
+    The algorithm is based upon that described in [Lau2011]_.
 
     INPUT:
 

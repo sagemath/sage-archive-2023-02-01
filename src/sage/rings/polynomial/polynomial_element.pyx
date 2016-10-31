@@ -4276,7 +4276,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ALGORITHM:
 
-        Algorithm 3.1.2 in [GTM138]_.
+        Algorithm 3.1.2 in [Coh1993]_.
 
         EXAMPLES::
 
@@ -4296,11 +4296,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
              (-113*x^6 - 106*x^5 - 133*x^4 - 101*x^3 - 42*x^2 - 41*x)*T - 34*x^6 + 13*x^5 + 54*x^4 + 126*x^3 + 134*x^2 - 5*x - 50)
             sage: (-x^2 - 4*x - 5)^(3-2+1) * p == quo*q + rem
             True
-
-        REFERENCES:
-
-        .. [GTM138] Henri Cohen. A Course in Computational Number Theory.
-           Graduate Texts in Mathematics, vol. 138. Springer, 1993.
         """
         if other.is_zero():
             raise ZeroDivisionError("Pseudo-division by zero is not possible")
@@ -6530,7 +6525,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^4 + x^3 + x^2 + x + 1.0
             sage: f.roots(multiplicities=False)  # abs tol 1e-9
             [-0.8090169943749469 - 0.5877852522924724*I, -0.8090169943749473 + 0.5877852522924724*I, 0.30901699437494773 - 0.951056516295154*I, 0.30901699437494756 + 0.9510565162951525*I]
-            sage: [z^5 for z in f.roots(multiplicities=False)]  # abs tol 1e-14
+            sage: [z^5 for z in f.roots(multiplicities=False)]  # abs tol 2e-14
             [0.9999999999999957 - 1.2864981197413038e-15*I, 0.9999999999999976 + 3.062854959141552e-15*I, 1.0000000000000024 + 1.1331077795295987e-15*I, 0.9999999999999953 - 2.0212861992297117e-15*I]
             sage: f = CDF['x']([1,2,3,4]); f
             4.0*x^3 + 3.0*x^2 + 2.0*x + 1.0

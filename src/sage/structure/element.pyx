@@ -2391,15 +2391,14 @@ cdef class RingElement(ModuleElement):
             ...
             OverflowError: Exponent overflow (2147483648).
 
-        Another example from :trac:`2956`; this should overflow on x32
-        and succeed on x64::
+        Another example from :trac:`2956` which always overflows
+        with Singular 4::
 
             sage: K.<x,y> = ZZ[]
             sage: (x^12345)^54321
-            x^670592745                                   # 64-bit
-            Traceback (most recent call last):            # 32-bit
-            ...                                           # 32-bit
-            OverflowError: Exponent overflow (670592745). # 32-bit
+            Traceback (most recent call last):
+            ...
+            OverflowError: exponent overflow (670592745)
 
         """
         if dummy is not None:

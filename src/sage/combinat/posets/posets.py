@@ -4345,6 +4345,8 @@ class FinitePoset(UniqueRepresentation, Parent):
           result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
 
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteLatticePoset.vertical_composition`.
+
         EXAMPLES::
 
             sage: P1 = Poset( ([1, 2, 3, 4], [[1, 2], [1, 3], [1, 4]]) )

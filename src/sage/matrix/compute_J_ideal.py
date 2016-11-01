@@ -162,6 +162,29 @@ def compute_M(p, t, A):
 
 
 def p_part(f, p):
+    r"""
+    Compute the `p`-part of a polynomial.
+
+    INPUT:
+
+    - ``f`` -- a polynomial over `D`
+
+    - ``p`` -- a prime in `D`
+
+    OUTPUT:
+
+    A polynomial ``g`` such that `deg g \le deg f` and
+    all non-zero coefficients of `f - p g` are not divisible by `p`.
+
+    EXAMPLES::
+
+        sage: X = polygen(ZZ, 'X')
+        sage: f = X^3 + 5*X+25
+        sage: g = p_part(f, 5); g
+        X + 5
+        sage: f - 5*g
+        X^3
+    """
     ZZX = f.parent()
     (X,) = ZZX.gens()
     p_prt = 0

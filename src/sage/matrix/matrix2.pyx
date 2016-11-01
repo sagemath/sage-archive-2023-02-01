@@ -10426,26 +10426,28 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         INPUT:
 
-        - ``other`` - a matrix, which should be square, and of the same size
+        - ``other`` -- a matrix, which should be square, and of the same size
           as ``self``, where the entries of the matrix have a fraction field
-          equal to that of ``self``.  Inexact rings are not supported.
+          equal to that of ``self``. Inexact rings are not supported.
 
-        - ``transformation`` - default: ``False`` - if ``True``, the output
-          may include the change-of-basis matrix (aka the similarity
-          transformation).  See below for an exact description.
+        - ``transformation`` -- default: ``False`` - if ``True``, the output
+          may include the change-of-basis matrix (also known as the similarity
+          transformation). See below for an exact description.
 
         OUTPUT:
 
-        Two matrices, `A` and `B` are similar if there is an invertible
-        matrix `S` such that `A=S^{-1}BS`.  `S` can be interpreted as a
+        Two matrices, `A` and `B` are similar if they are square
+        matrices of the same size and there is an invertible matrix
+        `S` such that `A=S^{-1}BS`. `S` can be interpreted as a
         change-of-basis matrix if `A` and `B` are viewed as matrix
-        representations of the same linear transformation.
+        representations of the same linear transformation from a vector space
+        to itself.
 
         When ``transformation=False`` this method will return ``True`` if
         such a matrix `S` exists, otherwise it will return ``False``.  When
-        ``transformation=True`` the method returns a pair.  The first part
+        ``transformation=True`` the method returns a pair. The first part
         of the pair is ``True`` or ``False`` depending on if the matrices
-        are similar.  The second part of the pair is the change-of-basis
+        are similar. The second part of the pair is the change-of-basis
         matrix when the matrices are similar and ``None`` when the matrices
         are not similar.
 
@@ -10576,7 +10578,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         or algebraic numbers, since the computations are done in
         the algebraically closed field of algebraic numbers.
         Here is an example where the similarity is obvious by
-        design, but we are not able to ressurrect a similarity
+        design, but we are not able to resurrect a similarity
         transformation.  ::
 
             sage: F.<a> = FiniteField(7^2)
@@ -10633,14 +10635,16 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ValueError: base ring of a matrix needs a fraction field,
             maybe the ring is not an integral domain
 
-        Mismatched sizes return False. ::
+        Mismatched sizes raise an error::
 
             sage: A = matrix(2, 2, range(4))
             sage: B = matrix(3, 3, range(9))
             sage: A.is_similar(B, transformation=True)
-            (False, None)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrices do not have the same size
 
-        Rectangular matrices and mismatched sizes raise errors.  ::
+        Rectangular matrices and mismatched sizes raise an error::
 
             sage: A = matrix(3, 2, range(6))
             sage: B = copy(A)
@@ -10700,9 +10704,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             raise ValueError('transformation keyword must be True or False')
         if not self.is_square() or not other.is_square():
             raise ValueError('similarity only makes sense for square matrices')
-
         if self.nrows() != other.nrows():
-            return (False, None) if transformation else False
+            raise ValueError('matrices do not have the same size')
 
         # convert to fraction fields for base rings
         try:

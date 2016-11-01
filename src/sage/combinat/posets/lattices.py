@@ -2156,7 +2156,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`is_vertically_decomposable`
+            :meth:`vertical_composition`, :meth:`is_vertically_decomposable`
 
         EXAMPLES:
 

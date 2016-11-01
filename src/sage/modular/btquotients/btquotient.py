@@ -659,7 +659,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         """
         try:
             return self._edges_leaving_origin
-        except:
+        except AttributeError:
             p = self._p
             self._edges_leaving_origin = [self.edge(self._Mat_22([0, -1, p, 0]))]
             self._edges_leaving_origin.extend([self.edge(self._Mat_22([p, i, 0, 1])) for i in range(p)])
@@ -2445,7 +2445,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if exact is True:
             try:
                 return self._Iota_exact
-            except:
+            except AttributeError:
                 raise RuntimeError('Exact splitting not available.')
         else:
             if prec is None:

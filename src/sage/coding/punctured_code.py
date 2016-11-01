@@ -673,7 +673,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
                         c_or = self.original_decoder().decode_to_code(y)
                         end = True
                         break
-                    except:
+                    except Exception:
                         pass
                 except StopIteration:
                     raise DecodingError

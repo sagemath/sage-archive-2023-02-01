@@ -2497,7 +2497,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         `\bar{\Gamma} \le {\rm PSL}(2, \ZZ)` to `{\rm SL}(2, \ZZ)`.) This can
         take rather a long time if the index of this subgroup is large.
 
-        .. seealso:: :meth:`one_odd_subgroup`, which returns just one of the
+        .. SEEALSO:: :meth:`one_odd_subgroup`, which returns just one of the
            odd subgroups (which is much quicker than enumerating them all).
 
         ALGORITHM:

@@ -36,6 +36,7 @@ We test that pickling works::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six.moves import range
 
 SMALL_DISC = 1000000
 
@@ -1175,9 +1176,9 @@ class NumberFieldIdeal(Ideal_generic):
             sage: G = K.S_class_group(S)
             sage: I0 = G.0.ideal(); I1 = G.1.ideal()
             sage: for p in prime_range(100):
-            ...       for P in K.primes_above(p):
-            ...           v = P.S_ideal_class_log(S)
-            ...           assert(G(P) == G(I0^v[0] * I1^v[1]))
+            ....:     for P in K.primes_above(p):
+            ....:         v = P.S_ideal_class_log(S)
+            ....:         assert(G(P) == G(I0^v[0] * I1^v[1]))
         """
         from sage.modules.free_module_element import vector
         from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -1190,7 +1191,7 @@ class NumberFieldIdeal(Ideal_generic):
             L = (v * M).list()
             D = self.number_field()._S_class_group_and_units(tuple(S))[1]
             invs = [x[1] for x in D]
-        return [Zmod(invs[i])(L[i]) for i in xrange(len(L))]
+        return [Zmod(invs[i])(L[i]) for i in range(len(L))]
 
     def is_zero(self):
         """
@@ -2116,12 +2117,12 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         Rbasis = R.basis()
         n = len(Rbasis)
         from sage.matrix.all import MatrixSpace
-        M = MatrixSpace(ZZ,n)([R.coordinates(_) for _ in self.basis()])
+        M = MatrixSpace(ZZ, n)([R.coordinates(_) for _ in self.basis()])
 
         D = M.hermite_form()
-        d = [D[i,i] for i in range(n)]
-        coord_ranges = [range((-di+2)//2,(di+2)//2) for di in d]
-        combo = lambda c: sum([c[i]*Rbasis[i] for i in range(n)])
+        d = [D[i, i] for i in range(n)]
+        coord_ranges = [list(range((-di+2)//2,(di+2)//2)) for di in d]
+        combo = lambda c: sum(c[i] * Rbasis[i] for i in range(n))
         return xmrange_iter(coord_ranges, combo)
 
     def invertible_residues(self, reduce=True):
@@ -2263,11 +2264,12 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         new_basis = [prod([g[j]**V[i, j] for j in range(n)]) for i in range(n)]
 
         if reduce:
-            combo = lambda c: self.small_residue(prod([new_basis[i]**c[i] for i in range(n)]))
+            combo = lambda c: self.small_residue(prod(new_basis[i] ** c[i]
+                                                      for i in range(n)))
         else:
-            combo = lambda c: prod([new_basis[i]**c[i] for i in range(n)])
+            combo = lambda c: prod(new_basis[i] ** c[i] for i in range(n))
 
-        coord_ranges = [range(A[i,i]) for i in range(n)]
+        coord_ranges = [list(range(A[i, i])) for i in range(n)]
 
         return xmrange_iter(coord_ranges, combo)
 
@@ -2690,7 +2692,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         if check:
             from sage.rings.all import Zmod
             t = 1
-            for i in xrange(len(ans)):
+            for i in range(len(ans)):
                 t = self.reduce(t * gens[i]**ans[i])
             assert t == self.reduce(x * x.denominator() * (~Zmod(self.norm())(x.denominator())).lift())
 
@@ -3262,7 +3264,7 @@ class LiftMap:
         w = v.lift()
         # Write back in terms of K
         z = (w * self.__M_OK_map).list()
-        return self.__OK(sum([z[i] * self.__Kgen**i for i in xrange(len(z))]))
+        return self.__OK(sum(z[i] * self.__Kgen ** i for i in range(len(z))))
 
     def __repr__(self):
         """

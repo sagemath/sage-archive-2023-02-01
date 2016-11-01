@@ -396,7 +396,7 @@ cdef class Parent(category_object.CategoryObject):
 
             The class of ``self`` might be replaced by a sub-class.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`CategoryObject._refine_category`
 

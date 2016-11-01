@@ -96,7 +96,7 @@ this example `\mu=[3,2,1]` and `\nu=[2,1]`. Specifying a third entry
 .. todo:: use this library in the :class:`SymmetricFunctions` code, to
     make it easy to apply it to linear combinations of Schur functions.
 
-.. seealso::
+.. SEEALSO::
 
     - :func:`lrcoef`
     

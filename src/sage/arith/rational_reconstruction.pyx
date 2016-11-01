@@ -24,8 +24,8 @@ AUTHORS:
 
 include "cysignals/signals.pxi"
 
-from mpz cimport *
-from mpq cimport *
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 
 
 cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:

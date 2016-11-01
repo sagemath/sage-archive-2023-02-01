@@ -601,9 +601,6 @@ ext_modules = [
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
 
-    Extension('sage.libs.gmp.rational_reconstruction',
-              sources = ['sage/libs/gmp/rational_reconstruction.pyx']),
-
     OptionalExtension('sage.libs.braiding',
                       sources = ["sage/libs/braiding.pyx"],
                       libraries = ["braiding"],

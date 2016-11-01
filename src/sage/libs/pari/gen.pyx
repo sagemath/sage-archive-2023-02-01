@@ -4187,11 +4187,13 @@ cdef class gen(gen_auto):
             [257, 1; 1601, 1; 25601, 1; 76001, 1; 133842787352016..., 1]
         """
         cdef GEN g
+        global factor_proven
+        cdef int saved_factor_proven = factor_proven
+
         if limit == 0:
             deprecation(20205, "factor(..., lim=0) is deprecated, use an explicit limit instead")
             limit = maxprime()
-        global factor_proven
-        cdef int saved_factor_proven = factor_proven
+
         try:
             if proof is not None:
                 factor_proven = 1 if proof else 0
@@ -4489,6 +4491,24 @@ cdef class gen(gen_auto):
         dbgGEN(self.g, depth)
         sig_off()
         return
+
+    def allocatemem(gen self, *args):
+        """
+        Deprecated. Use ``pari.allocatemem()`` instead.
+
+        TESTS::
+
+            sage: pari(2^10).allocatemem(2^20)
+            doctest:...: DeprecationWarning: The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.
+            See http://trac.sagemath.org/21553 for details.
+            PARI stack size set to 1024 bytes, maximum size set to 1048576
+        """
+        deprecation(21553, "The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.")
+        if self.type() == 't_INT':
+            return pari_instance.allocatemem(int(self), *args)
+        else:
+            raise TypeError("Incorrect PARI type in allocatemem (%s)" % self.type())
+
 
     ####################################################################
     # Functions deprecated by upstream PARI

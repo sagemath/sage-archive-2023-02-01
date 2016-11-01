@@ -3,8 +3,8 @@ The references for Sage, sorted alphabetically by citation key.
 REFERENCES:
 
 :ref:`A <ref-A>`
-:ref:`B <ref-B>` 
-:ref:`C <ref-C>` 
+:ref:`B <ref-B>`
+:ref:`C <ref-C>`
 :ref:`D <ref-D>`
 :ref:`E <ref-E>`
 :ref:`F <ref-F>`
@@ -670,6 +670,9 @@ REFERENCES:
 .. [Go1967] Solomon Golomb, Shift register sequences, Aegean Park
             Press, Laguna Hills, Ca, 1967
 
+.. [God1968] \R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
+             (Boston) (1968)
+
 .. [Gor1980] Daniel Gorenstein, Finite Groups (New York: Chelsea
              Publishing, 1980)
 
@@ -930,7 +933,7 @@ REFERENCES:
 
 .. [Kur2008] Chris Kurth, "K Farey package for Sage",
              http://wayback.archive-it.org/855/20100510123900/http://www.public.iastate.edu/~kurthc/research/index.html
-    
+
 .. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
             moduli space of Abelian differentials with prescripebd
             singularities" Invent. math. 153, 631-678 (2003)
@@ -961,7 +964,7 @@ REFERENCES:
              Springer-Verlag, GTM volume 202, 2011.
 
 .. [Lee2013] \J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed.,
-             Springer (New York) (2012)
+             Springer (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
 
 .. [Lev2014] Lionel Levine. Threshold state and a conjecture of
              Poghosyan, Poghosyan, Priezzhev and Ruelle,

@@ -2454,6 +2454,7 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
 
             sage: TestSuite(ct).run(verbose = True)
             running ._test_category() . . . pass
+            running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . pass
         """

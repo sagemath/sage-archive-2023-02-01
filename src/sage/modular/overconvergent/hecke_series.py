@@ -601,7 +601,7 @@ def compute_elldash(p,N,k0,n):
     Returns the "Sturm bound" for the space of modular forms of level
     `\Gamma_0(N)` and weight `k_0 + n(p-1)`.
 
-    .. seealso::
+    .. SEEALSO::
 
         :meth:`~sage.modular.modform.space.ModularFormsSpace.sturm_bound`
 

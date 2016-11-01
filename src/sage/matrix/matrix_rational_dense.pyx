@@ -51,6 +51,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
@@ -58,7 +59,7 @@ include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
-from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.randomize cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *
@@ -171,6 +172,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Rational z
 
         if entries is None: return
+        if isinstance(entries, range):
+            entries = list(entries)
         if isinstance(entries, (list, tuple)):
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("entries has the wrong length")
@@ -1234,10 +1237,10 @@ cdef class Matrix_rational_dense(Matrix_dense):
         EXAMPLES::
 
             sage: A = matrix(QQ, [
-            ...                   [1, 0, 1, -3, 1],
-            ...                   [-5, 1, 0, 7, -3],
-            ...                   [0, -1, -4, 6, -2],
-            ...                   [4, -1, 0, -6, 2]])
+            ....:                 [1, 0, 1, -3, 1],
+            ....:                 [-5, 1, 0, 7, -3],
+            ....:                 [0, -1, -4, 6, -2],
+            ....:                 [4, -1, 0, -6, 2]])
             sage: result = A._right_kernel_matrix()
             sage: result[0]
             'computed-iml-rational'
@@ -2302,7 +2305,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         ::
 
-            sage: A = matrix(QQ, 2, 3, xrange(6))
+            sage: A = matrix(QQ, 2, 3, range(6))
             sage: type(A)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: B = A.transpose()
@@ -2632,7 +2635,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._ncols, parent)
         for j in range(self._ncols):
-            mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[i][j])
+            mpq_set(v._entries[j], self._matrix[i][j])
         return v
 
     def column(self, Py_ssize_t i, from_list=False):
@@ -2666,7 +2669,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._nrows, parent)
         for j in range(self._nrows):
-            mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[j][i])
+            mpq_set(v._entries[j], self._matrix[j][i])
         return v
 
     ################################################

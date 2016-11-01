@@ -13,30 +13,30 @@ def darwin_memory_usage():
     EXAMPLES
         sage: uname = os.uname()
         sage: if uname[0] == 'Darwin' and not uname[2].startswith('8.'):
-        ...       from sage.misc.darwin_utilities import darwin_memory_usage
-        ...       memory_usage = darwin_memory_usage()
+        ....:     from sage.misc.darwin_utilities import darwin_memory_usage
+        ....:     memory_usage = darwin_memory_usage()
 
 
         sage: uname = os.uname()
         sage: if uname[0] == 'Darwin' and uname[2].startswith('8.'):
-        ...       try:
-        ...           from sage.misc.darwin_utilities import darwin_memory_usage
-        ...           memory_usage = darwin_memory_usage()
-        ...           print("doctest failure!")
-        ...           print("darwin_memory_usage() not implemented on platform Darwin 8 (i.e. OS X 10.4)")
-        ...       except ImportError:
-        ...           pass
+        ....:     try:
+        ....:         from sage.misc.darwin_utilities import darwin_memory_usage
+        ....:         memory_usage = darwin_memory_usage()
+        ....:         print("doctest failure!")
+        ....:         print("darwin_memory_usage() not implemented on platform Darwin 8 (i.e. OS X 10.4)")
+        ....:     except ImportError:
+        ....:         pass
 
 
         sage: uname = os.uname()
         sage: if uname[0] != 'Darwin':
-        ...       try:
-        ...           from sage.misc.darwin_utilities import darwin_memory_usage
-        ...           memory_usage = darwin_memory_usage()
-        ...           print("doctest failure!")
-        ...           print("darwin_memory_usage() not implemented on platform %s" % uname[0])
-        ...       except ImportError:
-        ...           pass
+        ....:     try:
+        ....:         from sage.misc.darwin_utilities import darwin_memory_usage
+        ....:         memory_usage = darwin_memory_usage()
+        ....:         print("doctest failure!")
+        ....:         print("darwin_memory_usage() not implemented on platform %s" % uname[0])
+        ....:     except ImportError:
+        ....:         pass
 
 
     """

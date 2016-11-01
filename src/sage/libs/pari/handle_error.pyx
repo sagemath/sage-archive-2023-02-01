@@ -164,7 +164,7 @@ cdef int _pari_err_handle(GEN E) except 0:
 
     sig_block()
     cdef char* errstr
-    cdef char* s
+    cdef const char* s
     try:
         if errnum == e_STACK:
             # Custom error message for PARI stack overflow

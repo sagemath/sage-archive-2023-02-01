@@ -205,7 +205,7 @@ class NakajimaMonomial(Element):
         """
         try:
             Y = {(i,0): c for i,c in self.parent().hw}
-        except:
+        except Exception:
             Y = {}
 
         if not Y and not self._A:
@@ -332,7 +332,7 @@ class NakajimaMonomial(Element):
         """
         try:
             Y = {(i,0): c for i,c in self.parent().hw}
-        except:
+        except Exception:
             Y = {}
 
         if not Y and not self._A:

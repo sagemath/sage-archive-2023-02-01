@@ -17,7 +17,7 @@ cd src
 echo "Applying patches..."
 for patch in ../patches/*.patch; do
     [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p0 <"$patch"
+    patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
         exit 1

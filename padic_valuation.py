@@ -1,8 +1,5 @@
 """
-The discrete valuation of a `p`-adic ring
-
-This file makes it possible to use `p`-adics, integers, and rationals in the
-general discrete valuation framework.
+`p`-adic valuations on number fields and their subrings and completions.
 
 AUTHORS:
 
@@ -10,7 +7,7 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2016 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -91,7 +88,7 @@ class PadicValuationFactory(UniqueFactory):
         sage: pAdicValuation(GaussianIntegers(), 5)
         Traceback (most recent call last):
         ...
-        ValueError: 5 does not single out a unique extension of 5-adic valuation to Number Field in I with defining polynomial x^2 + 1
+        ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
 
     When ``R`` is an absolute or relative number field, or a subring thereof,
     ``prime`` can also be specified by providing a valuation on the base ring
@@ -105,7 +102,7 @@ class PadicValuationFactory(UniqueFactory):
         sage: pAdicValuation(GaussianIntegers(), pAdicValuation(ZZ, 5))
         Traceback (most recent call last):
         ...
-        ValueError: 5-adic valuation does not single out a unique extension of 5-adic valuation to Number Field in I with defining polynomial x^2 + 1
+        ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
 
     For a number field which is of the form `K[x]/(G)`, you can specify a
     valuation by providing a discrete pseudo-valuation on `K[x]` which sends
@@ -113,15 +110,15 @@ class PadicValuationFactory(UniqueFactory):
     valuation we care about in the above example::
 
         sage: R.<x> = QQ[]
-        sage: v = pAdicValuation(GaussianIntegers(), GaussValuation(R, pAdicValuation(QQ, 5)).extension(x + 2, infinity))
-        sage: w = pAdicValuation(GaussianIntegers(), GaussValuation(R, pAdicValuation(QQ, 5)).extension(x + 1/2, infinity))
+        sage: v = pAdicValuation(GaussianIntegers(), GaussValuation(R, pAdicValuation(QQ, 5)).augmentation(x + 2, infinity))
+        sage: w = pAdicValuation(GaussianIntegers(), GaussValuation(R, pAdicValuation(QQ, 5)).augmentation(x + 1/2, infinity))
         sage: v == w
         False
 
     Note that you get the same valuation, even if you write down the
     pseudo-valuation differently::
 
-        sage: ww = pAdicValuation(GaussianIntegers(), GaussValuation(R, pAdicValuation(QQ, 5)).extension(x + 3, infinity))
+        sage: ww = pAdicValuation(GaussianIntegers(), GaussValuation(R, pAdicValuation(QQ, 5)).augmentation(x + 3, infinity))
         sage: w is ww
         True
 
@@ -131,51 +128,17 @@ class PadicValuationFactory(UniqueFactory):
     completion, i.e., if it is not possible to write down one of the factors
     within the number field::
 
-        sage: TODO
+        sage: v = GaussValuation(R, pAdicValuation(QQ, 5)).augmentation(x + 3, 1)
+        sage: pAdicValuation(GaussianIntegers().fraction_field(), v)
+        [ 5-adic valuation, v(x + 3) = 1 ]-adic valuation
 
     Finally, ``prime`` can also be a fractional ideal of a number field if it
     singles out an extension of a `p`-adic valuation of the base field::
 
-        sage: TODO
-
-    TESTS:
-
-    Check that we produce different valuations for distinguishable number
-    fields:: 
-
-        sage: from mac_lane import * # optional: standalone
-        sage: R.<x> = QQ[]
-        sage: L.<s> = QQ.extension(x^2 - 2)
-        sage: R.<y> = L[]
-        sage: N.<t> = L.extension(y^2 - s)
-        sage: N = N.absolute_field('u')
-
-        sage: M.<u> = QQ.extension(x^4 - 2)
-        sage: M is N
-        False
-        sage: M == N
-        True
-
-        sage: pAdicValuation(QQ, 2).extension(M) is pAdicValuation(QQ, 2).extension(N)
-        False
-
-    A case that took very long due to the hashing of number fields::
-
-        sage: R.<x> = QQ[]
-        sage: Delta1= x^12 + 20*x^11 + 154*x^10 + 664*x^9 + 1873*x^8 + 3808*x^7 + 5980*x^6 + 7560*x^5 + 7799*x^4 + 6508*x^3 + 4290*x^2 + 2224*x + 887 
-        sage: K.<theta>=NumberField(x^9-2)
-        sage: vK=pAdicValuation(QQ, 2).extension(K)
-        sage: G=Delta1.change_ring(K)
-        sage: v0=GaussValuation(G.parent(), vK)
-        sage: V=v0.mac_lane_step(G)
-        sage: while len(V) == 1: V=V[0].mac_lane_step(G)
-        sage: v=V[0]
-        sage: while v(v.phi()) < 50: v=v.mac_lane_step(G)[0]
-        sage: F=v.phi()
-        sage: L.<alpha>=K.extension(F)
-        sage: vK.mac_lane_approximants(F)
-        [[ Gauss valuation induced by theta-adic valuation, v(x + 1) = 9/4 ]]
-        sage: vL = vK.extension(L)
+        sage: R = GaussianIntegers()
+        sage: I = R.gen(1)
+        sage: pAdicValuation(R, I + 1)
+        2-adic valuation
 
     """
     def create_key_and_extra_args(self, R, prime=None):
@@ -208,6 +171,17 @@ class PadicValuationFactory(UniqueFactory):
             raise NotImplementedError("p-adic valuations not implemented for %r"%(R,))
 
     def create_key_for_integers(self, R, prime):
+        r"""
+        Create a unique key identifying the valuation of ``R`` with respect to
+        ``prime``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: pAdicValuation(QQ, 2) # indirect doctest
+            2-adic valuation
+
+        """
         from sage.rings.all import ZZ
         if prime is None:
             raise ValueError("prime must be specified for this ring")
@@ -219,6 +193,17 @@ class PadicValuationFactory(UniqueFactory):
         return R, prime
 
     def create_key_for_local_ring(self, R, prime):
+        r"""
+        Create a unique key identifying the valuation of ``R`` with respect to
+        ``prime``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: pAdicValuation(Qp(2)) # indirect doctest
+            2-adic valuation
+
+        """
         # We do not care much about the value of prime since there is only one
         # reasonable p-adic valuation here
         if prime is not None and R(prime).valuation() <= 0:
@@ -227,6 +212,17 @@ class PadicValuationFactory(UniqueFactory):
         return (R,)
 
     def create_key_and_extra_args_for_number_field(self, R, prime):
+        r"""
+        Create a unique key identifying the valuation of ``R`` with respect to
+        ``prime``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: pAdicValuation(GaussianIntegers(), 2) # indirect doctest
+            2-adic valuation
+
+        """
         from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
         # To make our lives easier, we move prime to the fraction field of R
         # which we denote in the following as L = K[x]/(G), do all computations
@@ -247,7 +243,21 @@ class PadicValuationFactory(UniqueFactory):
 
     def create_key_and_extra_args_for_number_field_from_valuation(self, R, v, prime):
         r"""
-        prime is only used to provide more meaningful error messages
+        Create a unique key identifying the valuation of ``R`` with respect to
+        ``v``.
+
+        .. NOTE::
+
+            ``prime``, the original parameter that was passed to
+            :meth:`create_key_and_extra_args``, is only used to provide more
+            meaningful error messages
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: pAdicValuation(GaussianIntegers(), pAdicValuation(ZZ, 2)) # indirect doctest
+            2-adic valuation
+
         """
         # To make our lives easier, we move prime to the fraction field of R
         # which we denote in the following as L = K[x]/(G), do all computations
@@ -279,7 +289,21 @@ class PadicValuationFactory(UniqueFactory):
 
     def create_key_and_extra_args_for_number_field_from_ideal(self, R, I, prime):
         r"""
-        prime only for error messages
+        Create a unique key identifying the valuation of ``R`` with respect to
+        ``I``.
+
+        .. NOTE::
+
+            ``prime``, the original parameter that was passed to
+            :meth:`create_key_and_extra_args``, is only used to provide more
+            meaningful error messages
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: pAdicValuation(GaussianIntegers(), GaussianIntegers().ideal(2)) # indirect doctest
+            2-adic valuation
+
         """
         # To make our lives easier, we move prime to the fraction field of R
         # which we denote in the following as L = K[x]/(G), do all computations
@@ -292,11 +316,15 @@ class PadicValuationFactory(UniqueFactory):
         # description of v. We consider all extensions of vK to L and select
         # the one approximated by v.
         # Of course, this only works if I comes from a single prime downstairs.
-        vK = pAdicValuation(K, I.relative_norm())
+        p = I.relative_norm()
+        F = p.factor()
+        if len(F) != 1:
+            raise ValueError("%r does not lie over a single prime of %r"%(I, K))
+        vK = pAdicValuation(K, F[0][0])
         candidates = vK.mac_lane_approximants(G)
 
-        candidates_for_I = [c for c in candidates if all(c(g) > 0 for g in I.gens())]
-        assert(len(candidates_for_I > 0)) # This should not be possible, unless I contains a unit
+        candidates_for_I = [c for c in candidates if all(c(g.polynomial()) > 0 for g in I.gens())]
+        assert(len(candidates_for_I) > 0) # This should not be possible, unless I contains a unit
         if len(candidates_for_I) > 1:
             raise ValueError("%s does not single out a unique extension of %s to %s"%(prime, vK, L))
         else:
@@ -304,13 +332,28 @@ class PadicValuationFactory(UniqueFactory):
             # fields are == even if they are distinguishable (because they come
             # from different constructions.)
             # Including structure() into the key seems to be a way to distinguish such cases properly.
+            # This used to be an issue but seems to be fixed, namely, the
+            # absolute_field of a number field was deemed equivalent to the
+            # directly created absolute field, even though the absolute_field
+            # carried the information where it came from
             return (R, candidates_for_I[0], L.construction()), {'approximants': candidates}
 
     def create_object(self, version, key, **extra_args):
+        r"""
+        Create a `p`-adic valuation from ``key``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: pAdicValuation(ZZ, 5) # indirect doctest
+            5-adic valuation
+
+        """
         from sage.rings.all import ZZ, QQ
         from sage.rings.padics.padic_generic import pAdicGeneric
         from valuation_space import DiscretePseudoValuationSpace
         R = key[0]
+        K = R.fraction_field()
         parent = DiscretePseudoValuationSpace(R)
         if isinstance(R, pAdicGeneric):
             assert(len(key)==1)
@@ -324,7 +367,7 @@ class PadicValuationFactory(UniqueFactory):
             _ = key[2] # ignored
             approximants = extra_args['approximants']
             parent = DiscretePseudoValuationSpace(R)
-            return parent.__make_element_class__(pAdicFromLimitValuation)(parent, v, R.relative_polynomial(), approximants)
+            return parent.__make_element_class__(pAdicFromLimitValuation)(parent, v, K.relative_polynomial().change_ring(R.base()), approximants)
 
 pAdicValuation = PadicValuationFactory("pAdicValuation")
 
@@ -341,6 +384,7 @@ class pAdicValuation_base(DiscreteValuation):
 
     EXAMPLES::
 
+        sage: from mac_lane import * # optional: standalone
         sage: pAdicValuation(ZZ, 3)
         3-adic valuation
 
@@ -356,8 +400,8 @@ class pAdicValuation_base(DiscreteValuation):
 
     TESTS::
 
-        sage: TestSuite(pAdicValuation(ZZ, 3)).run()
-        sage: TestSuite(pAdicValuation(QQ, 5)).run()
+        sage: TestSuite(pAdicValuation(ZZ, 3)).run() # long time
+        sage: TestSuite(pAdicValuation(QQ, 5)).run() # long time
         sage: TestSuite(pAdicValuation(Zp(5), 5)).run()
 
     """
@@ -396,7 +440,7 @@ class pAdicValuation_base(DiscreteValuation):
         EXAMPLES::
 
             sage: pAdicValuation(ZZ, 3).value_group()
-            DiscreteValueGroup(1)
+            Additive Abelian Group generated by 1
 
         """
         from value_group import DiscreteValueGroup
@@ -459,8 +503,10 @@ class pAdicValuation_base(DiscreteValuation):
 
         """
         x = self.domain().coerce(x)
+
         if self(x) < 0:
             raise ValueError("reduction is only defined for elements of non-negative valuation")
+
         return self.residue_field()(x)
 
     def lift(self, x):
@@ -479,8 +525,7 @@ class pAdicValuation_base(DiscreteValuation):
             1
 
         """
-        if x.parent() is not self.residue_field():
-            raise ValueError("x must be in the residue field of the valuation")
+        x = self.residue_field().coerce(x)
 
         return self.domain()(x)
 
@@ -671,7 +716,7 @@ class pAdicValuation_base(DiscreteValuation):
             sage: R.<x>=k[]
             sage: G = x^2 + 1
             sage: v.montes_factorization(G) # long time
-            ((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) * ((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))
+            ((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) * ((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)))
 
         REFERENCES:
 

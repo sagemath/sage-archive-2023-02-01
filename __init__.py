@@ -15,6 +15,7 @@ from .limit_valuation import LimitValuation, MacLaneLimitValuation, FiniteExtens
 from .augmented_valuation import AugmentedValuation_generic, InfiniteAugmentedValuation
 from .gauss_valuation import GaussValuation_generic
 from .valuation import DiscretePseudoValuation, DiscreteValuation, InfiniteDiscretePseudoValuation
+from .padic_valuation import pAdicValuation_base, pAdicValuation_number_field, pAdicValuation_int, pAdicValuation_padic
 
 # =================
 # MONKEY PATCH SAGE

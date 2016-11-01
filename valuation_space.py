@@ -881,3 +881,40 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             c = self.residue_field().characteristic()
             if c != 0:
                 tester.assertGreater(self(c), 0)
+
+        def _test_ge(self, **options):
+            r"""
+            Check the correctness of the ``>=`` operator.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_ge()
+
+            """
+            tester = self._tester(**options)
+
+            from trivial_valuation import TrivialPseudoValuation, TrivialValuation
+            tester.assertGreaterEqual(self, self)
+            tester.assertGreaterEqual(self, TrivialValuation(self.domain()))
+            tester.assertLessEqual(self, TrivialPseudoValuation(self.domain()))
+
+        def _test_le(self, **options):
+            r"""
+            Check the correctness of the ``<=`` operator.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(QQ, 5)
+                sage: v._test_ge()
+
+            """
+            tester = self._tester(**options)
+
+            from trivial_valuation import TrivialPseudoValuation, TrivialValuation
+            tester.assertGreaterEqual(self, self)
+            tester.assertLessEqual(TrivialValuation(self.domain()), self)
+            tester.assertGreaterEqual(TrivialPseudoValuation(self.domain()), self)
+

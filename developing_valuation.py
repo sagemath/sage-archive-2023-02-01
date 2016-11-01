@@ -1064,11 +1064,14 @@ class DevelopingValuation(DiscretePseudoValuation):
                 return [self.augmentation(g, infinity)]
 
             if phi == self.phi():
-                # self.phi() always is a key over self but it will not lead to an extension of this valuation
+                # a factor phi in the equivalence decomposition means that we
+                # founnd an actual factor of G, i.e., we can set
+                # v(phi)=infinity
+                # However, this should already have happened in the last step
+                # (when this polynomial had -infinite slope in the Newton
+                # polygon.)
                 from gauss_valuation import GaussValuation
                 if self.is_gauss_valuation(): # unless in the first step
-                    pass
-                elif len(F)==1: # unless this is the only factor, a terminating case which should give a valuation with v(phi)=infinity
                     pass
                 else:
                     continue
@@ -1078,7 +1081,10 @@ class DevelopingValuation(DiscretePseudoValuation):
             NP = w.newton_polygon(G).principal_part()
             verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi),NP),level=2,caller_name="mac_lane_step")
             # assert len(NP)
-            if not NP.slopes():
+            slopes = NP.slopes(repetition=False)
+            if NP.vertices()[0][0] != 0:
+                slopes = [-infinity] + slopes
+            if not slopes:
                 q,r = G.quo_rem(phi)
                 assert not r.is_zero()
                 phi = phi.coefficients(sparse=False)
@@ -1099,11 +1105,9 @@ class DevelopingValuation(DiscretePseudoValuation):
                 ret.append(w)
                 continue
 
-            for i in range(len(NP.slopes(repetition=False))):
-                slope = NP.slopes()[i]
+            for i in range(len(slopes)):
+                slope = slopes[i]
                 verbose("Slope = %s"%slope,level=3,caller_name="mac_lane_step")
-                side = NP.sides()[i]
-                verbose("Left end is %s"%(list(w.coefficients(G))[side[0][0]]),level=3,caller_name="mac_lane_step")
                 new_mu = self(phi) - slope
                 base = self
                 if phi.degree() == base.phi().degree():

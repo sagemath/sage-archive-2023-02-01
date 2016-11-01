@@ -698,190 +698,6 @@ class pAdicValuation_base(DiscreteValuation):
         from sage.structure.factorization import Factorization
         return Factorization([ (g,1) for g in ret ], simplify=False)
 
-    def mac_lane_approximants(self, G, precision_cap=None, assume_squarefree=False):
-        """
-        Compute the extensions `w` of this valuation to a polynomial ring over
-        the domain which have `w(G)=\infty`.
-
-        INPUT:
-
-        - ``G`` -- a monic polynomial over the domain of this valuation
-
-        - ``precision_cap`` -- a rational, ``infinity`` or ``None`` (default:
-          ``None``), stop computation as soon as no new branches can show up in
-          the tree of valuations and the valuation of the key polynomials is at
-          least ``precision_cap`` (if not ``None``).
-
-        - ``assume_squarefree`` -- a boolean (default: ``False``), whether to
-          assume the input to be squarefree
-
-        EXAMPLES::
-
-            sage: k=Qp(2,10)
-            sage: v = pAdicValuation(k)
-
-            sage: R.<x>=k[]
-            sage: G = x
-            sage: v.mac_lane_approximants(G)
-            [Gauss valuation induced by 2-adic valuation]
-            sage: v.mac_lane_approximants(G, precision_cap = infinity)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = +Infinity ]]
-
-            sage: G = x^2 + 1
-            sage: v.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2 ]]
-            sage: v.mac_lane_approximants(G, precision_cap = infinity)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2, v((1 + O(2^10))*x^2 + (1 + O(2^10))) = +Infinity ]]
-
-            sage: G = x^4 + 2*x^3 + 2*x^2 - 2*x + 2
-            sage: v.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4 ]]
-            sage: v.mac_lane_approximants(G,infinity)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + (2 + O(2^11))) = +Infinity ]]
-
-        The factorization of primes in the Gaussian integers can be read off
-        the Mac Lane approximants::
-
-            sage: v0 = pAdicValuation(QQ, 2)
-            sage: R.<x> = QQ[]
-            sage: G = x^2 + 1
-            sage: v0.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 ]]
-
-            sage: v0 = pAdicValuation(QQ, 3)
-            sage: v0.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 3-adic valuation, v(x^2 + 1) = +Infinity ]]
-
-            sage: v0 = pAdicValuation(QQ, 5)
-            sage: v0.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: v0.mac_lane_approximants(G, precision_cap = 10) # long time
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 25670807) = 11 ], [ Gauss valuation induced by 5-adic valuation, v(x + 23157318) = 11 ]]
-
-        The same example over the 5-adic numbers. In the quadratic extension
-        `\QQ[x]/(x^2+1)`, 5 factors `-(x - 2)(x + 2)`, this behaviour can be
-        read off the Mac Lane approximants::
-
-            sage: k=Qp(5,4)
-            sage: v = pAdicValuation(k)
-            sage: R.<x>=k[]
-            sage: G = x^2 + 1
-            sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ])
-            sage: w1, w2 = v.mac_lane_approximants(G,precision_cap=2); w1,w2
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + O(5^4))) = 3 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + O(5^4))) = 3 ])
-
-        Note how the latter give a better approximation to the factors of `x^2 + 1`::
-
-            sage: v1.phi() * v2.phi() - G
-            (5 + O(5^4))*x + 5 + O(5^4)
-            sage: w1.phi() * w2.phi() - G
-            (5^3 + O(5^4))*x + 5^3 + O(5^4)
-
-        In this example, the process stops with a factorization of `x^2 + 1`::
-
-            sage: v.mac_lane_approximants(G, precision_cap=infinity)
-            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ],
-             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
-
-        This obviously cannot happen over the rationals where we only get an
-        approximate factorization::
-
-            sage: v = pAdicValuation(QQ, 5)
-            sage: R.<x>=QQ[]
-            sage: G = x^2 + 1
-            sage: v.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: v.mac_lane_approximants(G, precision_cap=5)
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 14557) = 6 ], [ Gauss valuation induced by 5-adic valuation, v(x + 32318) = 7 ]]
-
-        TESTS:
-
-        Initial versions ran into problems with the trivial residue field
-        extensions in this case::
-
-            sage: K = Qp(3,20)
-            sage: R.<T> = K[]
-
-            sage: alpha = T^3/4
-            sage: G = 3^3*T^3*(alpha^4 - alpha)^2 - (4*alpha^3 - 1)^3
-            sage: G = G/G.leading_coefficient()
-            sage: pAdicValuation(K).mac_lane_approximants(G) # long time
-            [[ Gauss valuation induced by 3-adic valuation, v((1 + O(3^20))*T + (2 + O(3^20))) = 1/9, v((1 + O(3^20))*T^9 + (2*3 + 2*3^2 + O(3^21))*T^8 + (3 + 3^5 + O(3^21))*T^7 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^6 + O(3^21))*T^6 + (2*3 + 2*3^2 + 3^4 + 3^6 + 2*3^7 + O(3^21))*T^5 + (3 + 3^2 + 3^3 + 2*3^6 + 2*3^7 + 3^8 + O(3^21))*T^4 + (2*3 + 2*3^2 + 3^3 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^3 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^2 + (3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^7 + 3^8 + O(3^21))*T + (2 + 2*3 + 2*3^2 + 2*3^4 + 2*3^5 + 3^7 + O(3^20))) = 55/27 ]]
-
-        A similar example::
-
-          sage: R.<x> = QQ[]
-          sage: v = pAdicValuation(QQ, 3)
-          sage: G = (x^3 + 3)^3 - 81
-          sage: v.mac_lane_approximants(G)
-          [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 3*x + 3) = 13/9 ]]
-
-        Another problematic case::
-
-            sage: R.<x>=QQ[] 
-            sage: Delta=x^12 + 20*x^11 + 154*x^10 + 664*x^9 + 1873*x^8 + 3808*x^7 + 5980*x^6 + 7560*x^5 + 7799*x^4 + 6508*x^3 + 4290*x^2 + 2224*x + 887 
-            sage: K.<theta>=NumberField(x^6+108) 
-            sage: K.is_galois()
-            True
-            sage: vK=pAdicValuation(QQ,2).extension(K)
-            sage: vK(2) 
-            3 
-            sage: vK(theta) 
-            1 
-            sage: G=Delta.change_ring(K) 
-            sage: V=vK.mac_lane_approximants(G) 
-
-        OUTPUT:
-
-        A list of valuations over the parent of ``G``.
-
-        .. NOTE::
-
-            For an irreducible ``G`` over `K`, these extensions correspond to
-            the extensions of this valuation to the field `K[x]/(G(x))`, with
-            `K` the number field corresponding to the domain of this valuation,
-            see Theorem 2.1 in [ML1936]
-
-        REFERENCES:
-
-        .. [ML1936] Mac Lane, S. (1936). A construction for prime ideals as absolute
-        values of an algebraic field. Duke Mathematical Journal, 2(3), 492-510.
-
-        """
-        R = G.parent()
-        if R.base_ring() is not self.domain():
-            raise ValueError("G must be defined over the domain of this valuation")
-        if not assume_squarefree and not G.is_squarefree():
-            raise ValueError("G must be squarefree")
-        if not G.is_monic():
-            raise ValueError("G must be monic")
-
-        from sage.rings.all import infinity
-        from gauss_valuation import GaussValuation
-
-        leaves = [ GaussValuation(R, self)]
-        while True:
-            ef = [ v.E()*v.F() for v in leaves]
-            if sum(ef) == G.degree():
-                if precision_cap is None or all([v(v.phi())>precision_cap for v in leaves]):
-                    return leaves
-
-            expandables = []
-            new_leaves = []
-            for v in leaves:
-                if v(G) is infinity:
-                    new_leaves.append(v)
-                else:
-                    expandables.append(v)
-            leaves = new_leaves
-
-            if not expandables:
-                return leaves
-
-            for v in expandables:
-                leaves.extend(v.mac_lane_step(G))
-
     def change_ring(self, ring):
         return pAdicValuation(ring, self.prime())
 
@@ -928,6 +744,13 @@ class pAdicValuation_base(DiscreteValuation):
                 raise ValueError("extension to %s is not unique"%L)
             return pAdicValuation(L, W[0])
         else: raise ValueError
+
+    def _ge_(self, other):
+        if other.is_trivial():
+            return other.is_discrete_valuation()
+        if isinstance(other, pAdicValuation_base):
+            return self.prime() == other.prime()
+        return super(pAdicValuation_base, self)._ge_(self, other)
 
 class pAdicValuation_padic(pAdicValuation_base):
     """

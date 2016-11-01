@@ -74,21 +74,18 @@ class DiscretePseudoValuation(Morphism):
             True
 
         """
-        vf = self(f)
-        vg = self(g)
         from sage.rings.all import infinity
-        if self(f) == infinity and self(g) == infinity:
-            return True
-        if self(f) == infinity or self(g) == infinity:
-            return False
-        return self(f-g) > vf
+        if self(f) == infinity:
+            return self(g) == infinity
+
+        return self(f-g) > self(f)
 
     def __hash__(self):
         r"""
         The hash value of this valuation.
 
         We redirect to :meth:`_hash_`, so that subclasses can only override
-        :meth:`_hash_` and :meth:`_eq` if they want to provide a different
+        :meth:`_hash_` and :meth:`_eq_` if they want to provide a different
         notion of equality but they can leave the partial and total operators
         untouched.
 
@@ -108,8 +105,19 @@ class DiscretePseudoValuation(Morphism):
 
         We override the strange default provided by
         ``sage.categories.marphism.Morphism`` here and implement equality by
-        ``id``. This works fine for objects which use unique representation
-        which is the case for most valuations.
+        ``id``. This works fine for objects which use unique representation.
+
+        Note that the vast majority of valuations come out of a
+        :class:`sage.structure.factory.UniqueFactory` and therefore override
+        our implementation of :meth:`__hash__` and :meth:`__eq__`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 2)
+            sage: hash(v) == hash(v) # indirect doctest
+            True
+            
         """
         return id(self)
 
@@ -122,7 +130,7 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: from mac_lane import *
+            sage: from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: v < v
             Traceback (most recent call last):
@@ -159,7 +167,7 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: from mac_lane import *
+            sage: from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: v == v
             True
@@ -185,13 +193,13 @@ class DiscretePseudoValuation(Morphism):
 
         """
         if op == 1: # <=
-            return self._lt_(other)
+            return self._le_(other)
         if op == 2: # ==
             return self._eq_(other)
         if op == 3: # !=
             return not self == other
         if op == 5: # >=
-            return self._gt_(other)
+            return self._ge_(other)
         raise NotImplementedError("Operator not implemented for this valuation.")
 
     def _eq_(self, other):
@@ -202,28 +210,82 @@ class DiscretePseudoValuation(Morphism):
         ``sage.categories.marphism.Morphism`` here and implement equality by
         ``id``. This is the right behaviour in many cases.
 
+        Note that the vast majority of valuations come out of a
+        :class:`sage.structure.factory.UniqueFactory` and therefore override
+        our implementation of :meth:`__hash__` and :meth:`__eq__`.
+
         When overriding this method, you can assume that ``other`` is a
         (pseudo-)valuation on the same domain.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialValuation(QQ)
+            sage: v == v
+            True
+
         """
         return self is other
 
-    def _lt_(self, other):
+    def _le_(self, other):
         r"""
         Return whether this valuation is less than or equal to ``other``
         pointwise.
 
         When overriding this method, you can assume that ``other`` is a
         (pseudo-)valuation on the same domain.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialValuation(QQ)
+            sage: w = pAdicValuation(QQ, 2)
+            sage: v <= w
+            True
+
+        Note that this does not affect comparison of valuations which do not
+        coerce into a common parent. This is by design in Sage, see
+        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
+        do not coerce into a common parent, a rather random comparison of
+        ``id`` happens::
+
+            sage: w = TrivialValuation(GF(2))
+            sage: w <= v # random output
+            True
+            sage: v <= w # random output
+            False
+
         """
         return other >= self
 
-    def _gt_(self, other):
+    def _ge_(self, other):
         r"""
         Return whether this valuation is greater than or equal to ``other``
         pointwise.
 
         When overriding this method, you can assume that ``other`` is a
         (pseudo-)valuation on the same domain.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialValuation(QQ)
+            sage: w = pAdicValuation(QQ, 2)
+            sage: v >= w
+            False
+
+        Note that this does not affect comparison of valuations which do not
+        coerce into a common parent. This is by design in Sage, see
+        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
+        do not coerce into a common parent, a rather random comparison of
+        ``id`` happens::
+
+            sage: w = TrivialValuation(GF(2))
+            sage: w <= v # random output
+            True
+            sage: v <= w # random output
+            False
+
         """
         if self == other: return True
         raise NotImplementedError("Operator not implemented for this valuation.")
@@ -236,17 +298,61 @@ class DiscretePseudoValuation(Morphism):
 
 class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
     r"""
-    sage: TODO
+    Abstract base class for infinite discrete pseudo-valuations, i.e., discrete
+    pseudo-valuations which are not discrete valuations.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: v = pAdicValuation(QQ, 2)
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, v)
+        sage: w = v.augmentation(x, infinity); w # indirect doctest
+        [ Gauss valuation induced by 2-adic valuation, v(x) = +Infinity ]
+    
+    TESTS::
+
+        sage: isinstance(w, InfiniteDiscretePseudoValuation)
+        True
+        sage: TestSuite(w).run()
+
     """
     def is_discrete_valuation(self):
         r"""
-        sage: TODO
+        Return whether this valuation is a discrete valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 2)
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, v)
+            sage: w = v.augmentation(x, infinity)
+            sage: w.is_discrete_valuation()
+            False
+
         """
         return False
 
 class DiscreteValuation(DiscretePseudoValuation):
     r"""
-    sage: TODO
+    Abstract base class for discrete valuations.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: v = pAdicValuation(QQ, 2)
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, v)
+        sage: w = v.augmentation(x, 1337); w # indirect doctest
+        [ Gauss valuation induced by 2-adic valuation, v(x) = 1337 ]
+
+    TESTS::
+
+        sage: isinstance(w, DiscreteValuation)
+        True
+        sage: TestSuite(w).run()
+
     """
     def is_discrete_valuation(self):
         r"""
@@ -264,13 +370,60 @@ class DiscreteValuation(DiscretePseudoValuation):
 
     def mac_lane_approximants(self, G, precision_cap=None, assume_squarefree=False):
         r"""
-        sage: TODO
+        Return approximants on `K[x]` for the extensions of this valuation to
+        `L=K[x]/(G)`.
+
+        If `G` is an irreducible polynomial, then this corresponds to the
+        extensions of this valuation to the completion of `L`.
+
+        INPUT:
+
+        - ``G`` -- a square-free polynomial defined over a univariate
+          polynomial ring over the :meth:`domain` of this valuation.
+
+        - ``precision_cap`` -- a number, infinity, or ``None`` (default:
+          ``None``); the approximants are always determined such that they are in
+          one-to-one correspondance to the extensions of this valuation to `L`
+          and such that the approximants have the ramification index and
+          residual degree of these extensions.
+          If ``precision_cap`` is not ``None``, then the approximants are
+          determined such that they last key polynomial also has valuation at
+          least ``precision_cap``.
+
+        - ``assume_squarefree`` -- a boolean (default: ``False``), whether or
+          not to assume that ``G`` is squarefree.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 2)
+            sage: R.<x> = QQ[]
+            sage: v.mac_lane_approximants(x^2 + 1)
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 ]]
+            sage: v.mac_lane_approximants(x^2 + 1, precision_cap=infinity)
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2, v(x^2 + 1) = +Infinity ]]
+            sage: v.mac_lane_approximants(x^2 + x + 1)
+            [[ Gauss valuation induced by 2-adic valuation, v(x^2 + x + 1) = +Infinity ]]
+
+        Note that ``G`` does not need to be irreducible. Here, we detect a
+        factor of the polynomial `x + 1` and an approximate factor `x + 1`
+        (which is an approximation to `x - 1`)::
+
+            sage: v.mac_lane_approximants(x^2 - 1)
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = +Infinity ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 3) = 2 ]]
+
+        However, it needs to be squarefree::
+
+            sage: v.mac_lane_approximants(x^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: G must be squarefree
 
         TESTS:
 
         Some difficult cases provided by Mark van Hoeij::
 
-            sage: from mac_lane import * # optional: standalone
             sage: k = GF(2)
             sage: K.<x> = FunctionField(k)
             sage: R.<y> = K[]
@@ -309,6 +462,129 @@ class DiscreteValuation(DiscretePseudoValuation):
             [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + 2*x) = 2/3 ]]
 
+        Over a complete base field::
+
+            sage: k=Qp(2,10)
+            sage: v = pAdicValuation(k)
+
+            sage: R.<x>=k[]
+            sage: G = x
+            sage: v.mac_lane_approximants(G)
+            [Gauss valuation induced by 2-adic valuation]
+            sage: v.mac_lane_approximants(G, precision_cap = infinity)
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = +Infinity ]]
+
+            sage: G = x^2 + 1
+            sage: v.mac_lane_approximants(G) # optional: integrated
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2 ]]
+            sage: v.mac_lane_approximants(G, precision_cap = infinity) # optional: integrated
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2, v((1 + O(2^10))*x^2 + (1 + O(2^10))) = +Infinity ]]
+
+            sage: G = x^4 + 2*x^3 + 2*x^2 - 2*x + 2
+            sage: v.mac_lane_approximants(G)
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4 ]]
+            sage: v.mac_lane_approximants(G,infinity)
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + (2 + O(2^11))) = +Infinity ]]
+
+        The factorization of primes in the Gaussian integers can be read off
+        the Mac Lane approximants::
+
+            sage: v0 = pAdicValuation(QQ, 2)
+            sage: R.<x> = QQ[]
+            sage: G = x^2 + 1
+            sage: v0.mac_lane_approximants(G)
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 ]]
+
+            sage: v0 = pAdicValuation(QQ, 3)
+            sage: v0.mac_lane_approximants(G)
+            [[ Gauss valuation induced by 3-adic valuation, v(x^2 + 1) = +Infinity ]]
+
+            sage: v0 = pAdicValuation(QQ, 5)
+            sage: v0.mac_lane_approximants(G)
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
+            sage: v0.mac_lane_approximants(G, precision_cap = 10) # long time
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 25670807) = 11 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x + 23157318) = 11 ]]
+
+        The same example over the 5-adic numbers. In the quadratic extension
+        `\QQ[x]/(x^2+1)`, 5 factors `-(x - 2)(x + 2)`, this behaviour can be
+        read off the Mac Lane approximants::
+
+            sage: k=Qp(5,4)
+            sage: v = pAdicValuation(k)
+            sage: R.<x>=k[]
+            sage: G = x^2 + 1
+            sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ])
+            sage: w1, w2 = v.mac_lane_approximants(G,precision_cap=2); w1,w2
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + O(5^4))) = 2 ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + O(5^4))) = 2 ])
+
+        Note how the latter give a better approximation to the factors of `x^2 + 1`::
+
+            sage: v1.phi() * v2.phi() - G # optional: integrated
+            (5 + O(5^4))*x + 5 + O(5^4)
+            sage: w1.phi() * w2.phi() - G # optional: integrated
+            (5^3 + O(5^4))*x + 5^3 + O(5^4)
+
+        In this example, the process stops with a factorization of `x^2 + 1`::
+
+            sage: v.mac_lane_approximants(G, precision_cap=infinity)
+            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
+
+        This obviously cannot happen over the rationals where we only get an
+        approximate factorization::
+
+            sage: v = pAdicValuation(QQ, 5)
+            sage: R.<x>=QQ[]
+            sage: G = x^2 + 1
+            sage: v.mac_lane_approximants(G)
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
+            sage: v.mac_lane_approximants(G, precision_cap=5)
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 2057) = 5 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x + 1068) = 6 ]]
+
+        Initial versions ran into problems with the trivial residue field
+        extensions in this case::
+
+            sage: K = Qp(3,20)
+            sage: R.<T> = K[]
+
+            sage: alpha = T^3/4
+            sage: G = 3^3*T^3*(alpha^4 - alpha)^2 - (4*alpha^3 - 1)^3
+            sage: G = G/G.leading_coefficient()
+            sage: pAdicValuation(K).mac_lane_approximants(G) # long time
+            [[ Gauss valuation induced by 3-adic valuation, v((1 + O(3^20))*T + (2 + O(3^20))) = 1/9, v((1 + O(3^20))*T^9 + (2*3 + 2*3^2 + O(3^21))*T^8 + (3 + 3^5 + O(3^21))*T^7 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^6 + O(3^21))*T^6 + (2*3 + 2*3^2 + 3^4 + 3^6 + 2*3^7 + O(3^21))*T^5 + (3 + 3^2 + 3^3 + 2*3^6 + 2*3^7 + 3^8 + O(3^21))*T^4 + (2*3 + 2*3^2 + 3^3 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^3 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^2 + (3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^7 + 3^8 + O(3^21))*T + (2 + 2*3 + 2*3^2 + 2*3^4 + 2*3^5 + 3^7 + O(3^20))) = 55/27 ]]
+
+        A similar example::
+
+          sage: R.<x> = QQ[]
+          sage: v = pAdicValuation(QQ, 3)
+          sage: G = (x^3 + 3)^3 - 81
+          sage: v.mac_lane_approximants(G) # optional: integrated
+          [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 3*x + 3) = 13/9 ]]
+
+        Another problematic case::
+
+            sage: R.<x> = QQ[] 
+            sage: Delta = x^12 + 20*x^11 + 154*x^10 + 664*x^9 + 1873*x^8 + 3808*x^7 + 5980*x^6 + 7560*x^5 + 7799*x^4 + 6508*x^3 + 4290*x^2 + 2224*x + 887 
+            sage: K.<theta> = NumberField(x^6 + 108) 
+            sage: K.is_galois()
+            True
+            sage: vK = pAdicValuation(QQ, 2).extension(K)
+            sage: vK(2) 
+            1 
+            sage: vK(theta) 
+            1/3
+            sage: G=Delta.change_ring(K) 
+            sage: V=vK.mac_lane_approximants(G); V
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + theta^4 + theta^3 + 1) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*theta^4 + theta^3 - 27*theta + 1) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 3/2*theta^4 + theta^3 - 27*theta + 1) = 5/3 ]]
+
         """
         R = G.parent()
         if R.base_ring() is not self.domain():
@@ -323,8 +599,12 @@ class DiscreteValuation(DiscretePseudoValuation):
         while True:
             ef = [ v.E()*v.F() for v in leaves]
             if sum(ef) == G.degree():
-                if precision_cap is None or all([v(v.phi())>precision_cap for v in leaves]):
-                    return leaves
+                # the ramification indexes and residual degrees are final
+                if precision_cap is None or all([v(v.phi()) >= precision_cap for v in leaves]):
+                    # the precision to which we have determined the approximants is sufficient
+                    if not [v for v in leaves if [w for w in leaves if w != v and w <= v]]:
+                        # the approximants do not approximate each other
+                        break
 
             expandables = []
             new_leaves = []
@@ -335,15 +615,75 @@ class DiscreteValuation(DiscretePseudoValuation):
                     expandables.append(v)
             leaves = new_leaves
 
-            if not expandables:
-                return leaves
+            assert expandables
 
             for v in expandables:
                 leaves.extend(v.mac_lane_step(G))
 
+        return leaves
+
     def mac_lane_approximant(self, G, valuation, approximants = None):
         r"""
-        sage: TODO
+        Return the approximant from :meth:`mac_lane_approximants` for ``G``
+        which is approximated by or approximates ``valuation``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 2)
+            sage: R.<x> = QQ[]
+            sage: G = x^2 + 1
+
+        We can select an approximant by approximating it::
+
+            sage: w = GaussValuation(R, v).augmentation(x + 1, 1/2)
+            sage: v.mac_lane_approximant(G, w)
+            [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 ]
+
+        As long as this is the only matching approximant, the approximation can
+        be very coarse::
+
+            sage: w = GaussValuation(R, v)
+            sage: v.mac_lane_approximant(G, w)
+            [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 ]
+
+        Or it can be very specific::
+
+            sage: w = GaussValuation(R, v).augmentation(x + 1, 1/2).augmentation(G, infinity)
+            sage: v.mac_lane_approximant(G, w)
+            [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 ]
+
+        But it must be an approximation of an approximant::
+
+            sage: w = GaussValuation(R, v).augmentation(x, 1/2)
+            sage: v.mac_lane_approximant(G, w)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation [ Gauss valuation induced by 2-adic valuation, v(x) = 1/2 ] is not an approximant for a valuation which extends 2-adic valuation with respect to x^2 + 1 since the valuation of x^2 + 1 does not increase in every step
+
+        The ``valuation`` must single out one approximant::
+
+            sage: G = x^2 - 1
+            sage: w = GaussValuation(R, v)
+            sage: v.mac_lane_approximant(G, w)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 2-adic valuation does not approximate a unique extension of 2-adic valuation with respect to x^2 - 1
+
+            sage: w = GaussValuation(R, v).augmentation(x + 1, 1)
+            sage: v.mac_lane_approximant(G, w)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1 ] does not approximate a unique extension of 2-adic valuation with respect to x^2 - 1
+
+            sage: w = GaussValuation(R, v).augmentation(x + 1, 2)
+            sage: v.mac_lane_approximant(G, w)
+            [ Gauss valuation induced by 2-adic valuation, v(x + 1) = +Infinity ]
+
+            sage: w = GaussValuation(R, v).augmentation(x + 3, 2)
+            sage: v.mac_lane_approximant(G, w)
+            [ Gauss valuation induced by 2-adic valuation, v(x + 3) = 2 ]
+
         """
         if valuation.constant_valuation() != self:
             raise ValueError
@@ -356,7 +696,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             v = valuation
             while not v.is_gauss_valuation():
                 if v(G_integral) <= v._base_valuation(G_integral):
-                    raise ValueError("The valuation %r is not an approximant for a valuation on %r since the valuation of %r does not increase in every step"%(valuation, domain, G_integral))
+                    raise ValueError("The valuation %r is not an approximant for a valuation which extends %r with respect to %r since the valuation of %r does not increase in every step"%(valuation, self, G, G_integral))
                 v = v._base_valuation
 
         if approximants is None:
@@ -364,15 +704,16 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         assert all(approximant.domain() is valuation.domain() for approximant in approximants)
 
-        greater_approximants = [w for w in approximants if w <= valuation]
+        greater_approximants = [w for w in approximants if w >= valuation]
         if len(greater_approximants) > 1:
-            raise ValueError("valuation %r does not uniquely describe an extension of %r to %r"%(valuation, self, domain))
+            raise ValueError("The valuation %r does not approximate a unique extension of %r with respect to %r"%(valuation, self, G))
         if len(greater_approximants) == 1:
             return greater_approximants[0]
         
-        smaller_approximants = [w for w in approximants if w >= valuation]
-        assert len(smaller_approximants) <= 1
+        smaller_approximants = [w for w in approximants if w <= valuation]
+        if len(smaller_approximants) > 1:
+            raise ValueError("The valuation %r is not approximated by a unique extension of %r with respect to %r"%(valuation, valuation.constant_valuation(), G))
         if len(smaller_approximants) == 0:
-            raise ValueError("valuation %r does not describe an extension of %r with respect to %r"%(valuation, valuation.constant_valuation(), G))
+            raise ValueError("The valuation %r is not related to an extension of %r with respect to %r"%(valuation, valuation.constant_valuation(), G))
         assert len(smaller_approximants) == 1
         return smaller_approximants[0]

@@ -617,7 +617,7 @@ class GaussValuation_generic(DevelopingValuation):
         assert G.is_monic()
         return G
             
-    def _gt_(self, other):
+    def _ge_(self, other):
         if isinstance(other, GaussValuation_generic):
             return self._base_valuation >= other._base_valuation
         from augmented_valuation import AugmentedValuation_generic

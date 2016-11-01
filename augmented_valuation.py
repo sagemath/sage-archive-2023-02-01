@@ -33,6 +33,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.path.dirname(os.getcwd()))
 
 from developing_valuation import DevelopingValuation, _lift_to_maximal_precision
+from valuation import InfiniteDiscretePseudoValuation, DiscreteValuation
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import infinity
@@ -52,18 +53,16 @@ class AugmentedValuationFactory(UniqueFactory):
     def create_object(self, version, key):
         base_valuation, phi, mu = key
 
+        from valuation_space import DiscretePseudoValuationSpace
+        parent = DiscretePseudoValuationSpace(base_valuation.domain())
         if mu < infinity:
-            from valuation_space import DiscretePseudoValuationSpace
-            parent = DiscretePseudoValuationSpace(base_valuation.domain())
+            return parent.__make_element_class__(AugmentedValuation_generic)(parent, base_valuation, phi, mu)
         else:
-            from valuation_space import DiscretePseudoValuationSpace
-            parent = DiscretePseudoValuationSpace(base_valuation.domain())
-
-        return parent.__make_element_class__(AugmentedValuation_generic)(parent, base_valuation, phi, mu)
+            return parent.__make_element_class__(InfiniteAugmentedValuation)(parent, base_valuation, phi, mu)
 
 AugmentedValuation = AugmentedValuationFactory("AugmentedValuation")
 
-class AugmentedValuation_generic(DevelopingValuation):
+class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
     """
     An augmented valuation is a discrete valuation on a polynomial ring. It
     extends another discrete valuation `v` by setting the valuation of a
@@ -967,8 +966,10 @@ class AugmentedValuation_generic(DevelopingValuation):
     def _make_monic_integral(self, G):
         return self._base_valuation._make_monic_integral(G)
             
-    def _gt_(self, other):
+    def _ge_(self, other):
         from gauss_valuation import GaussValuation_generic
+        if other.is_trivial():
+            return other.is_discrete_valuation()
         if isinstance(other, GaussValuation_generic):
 			return self._base_valuation >= other
         if isinstance(other, AugmentedValuation_generic):
@@ -977,8 +978,12 @@ class AugmentedValuation_generic(DevelopingValuation):
 			else:
 				return False
 
-        raise NotImplementedError("Operator not implemented for these valuations.")
+        return super(AugmentedValuation_generic, self)._ge_(other)
 
     def is_discrete_valuation(self):
         from sage.rings.all import infinity
         return self._mu != infinity
+
+class InfiniteAugmentedValuation(AugmentedValuation_generic, InfiniteDiscretePseudoValuation):
+    pass
+

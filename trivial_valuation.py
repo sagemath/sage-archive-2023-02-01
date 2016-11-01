@@ -272,6 +272,23 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
         self.residue_ring().coerce(X) # ignore the output
         return self.domain().zero()
 
+    def _ge_(self, other):
+        r"""
+        Return whether this valuation is bigger or equal than ``other``
+        everywhere.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialPseudoValuation(QQ)
+            sage: w = TrivialValuation(QQ)
+            sage: v >= w
+            True
+
+        """
+        # the trivial discrete valuation is the biggest valuation
+        return True
+
 class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValuation):
     r"""
     The trivial valuation that is zero on non-zero elements.
@@ -401,6 +418,25 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
         if self.domain().is_subring(ring):
             return [TrivialValuation(ring)]
         return super(DiscretePseudoValuation, self).extensions(ring)
+
+    def _ge_(self, other):
+        r"""
+        Return whether this valuation is bigger or equal than ``other``
+        everywhere.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialPseudoValuation(QQ)
+            sage: w = TrivialValuation(QQ)
+            sage: w >= v
+            False
+
+        """
+        # the trivial discrete valuation is the smallest valuation
+        if self is other:
+            return True
+        return False
 
 TrivialValuation = TrivialValuationFactory(TrivialDiscreteValuation, DiscretePseudoValuationSpace, "TrivialValuation")
 TrivialPseudoValuation = TrivialValuationFactory(TrivialDiscretePseudoValuation, DiscretePseudoValuationSpace, "TrivialPseudoValuation")

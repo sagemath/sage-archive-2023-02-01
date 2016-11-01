@@ -454,9 +454,17 @@ class Compute_nu(SageObject):
             sage: C = Compute_nu(B)
             sage: for t in range(3):
             ....:     print C.null_ideal(3**t)
-            Principal ideal (1) of Univariate Polynomial Ring in x over Integer Ring
-            Ideal (x^2 + x + 1, 3) of Univariate Polynomial Ring in x over Integer Ring
-            Ideal (x^2 + 4*x + 7, 9) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (1, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
+            ------------------------------------------
+            [2*x^2 + 2*x + 2]
+            Generators with (p^t)-generating property:
+            [x^2 - 2*x - 2]
+            Ideal (3, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
+            ------------------------------------------
+            [2*x^2 + 2*x + 2]
+            Generators with (p^t)-generating property:
+            [x^2 - 2*x - 2]
+            Ideal (9, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
         """
         factorization = list(factor(b))
         generators = [self._ZX(b), self._ZX((self._B).minimal_polynomial())]

@@ -10,16 +10,15 @@ cdef class SageObject:
     pass
 
 
-cpdef inline richcmp_step(x, y, int op):
+cpdef inline richcmp_not_equal(x, y, int op):
     """
-    Like ``richcmp(x, y, op)`` but assumed to be only a non-final step in
-    a sequence of several comparison checks.
+    Like ``richcmp(x, y, op)`` but assuming that `x` is not equal to `y`.
 
     INPUT:
 
     - ``op`` -- a rich comparison operation (e.g. ``Py_EQ``)
 
-    OUTPUT: ``True``, ``False`` or ``None`` (meaning maybe)
+    OUTPUT: ``True`` or ``False``
 
     This is useful to compare lazily two objects A and B according to 2
     (or more) different parameters, say width and height for example.
@@ -32,21 +31,23 @@ cpdef inline richcmp_step(x, y, int op):
 
     Instead one can do::
 
-        step = richcmp_step(A.width(), B.width(), op)
-        if step is not None:
-            return step
+        wA = A.width()
+        wB = B.width()
+        if wA != wB:
+            return richcmp_not_equal(wA, wB, op)
         return richcmp(A.height(), B.height(), op)
 
-    The main difference with ``richcmp`` is that ``richcmp_step`` will
-    return ``None`` if the comparison cannot be decided so far, without
+    The difference with ``richcmp`` is that ``richcmp_not_equal``
+    assumes that its arguments are not equal, which is excluding the case
+    where the comparison cannot be decided so far, without
     knowing the rest of the parameters.
 
     EXAMPLES::
 
-        sage: from sage.structure.sage_object import (richcmp_step,
+        sage: from sage.structure.sage_object import (richcmp_not_equal,
         ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
         sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
-        ....:     print(richcmp_step(3, 4, op))
+        ....:     print(richcmp_not_equal(3, 4, op))
         True
         True
         False
@@ -54,15 +55,7 @@ cpdef inline richcmp_step(x, y, int op):
         False
         False
         sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
-        ....:     print(richcmp_step(4, 4, op))
-        None
-        None
-        None
-        None
-        None
-        None
-        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
-        ....:     print(richcmp_step(5, 4, op))
+        ....:     print(richcmp_equal(5, 4, op))
         False
         False
         False
@@ -71,20 +64,10 @@ cpdef inline richcmp_step(x, y, int op):
         True
     """
     if op == Py_EQ:
-        if x == y:
-            return None  # means maybe
-        else:
-            return False
+        return False
     elif op == Py_NE:
-        if x != y:
-            return True
-        else:
-            return None  # means maybe
-    else:
-        if x == y:
-            return None  # means maybe
-        else:
-            return richcmp(x, y, op)
+        return True
+    return richcmp(x, y, op)
 
 
 cpdef inline bint rich_to_bool(int op, int c):

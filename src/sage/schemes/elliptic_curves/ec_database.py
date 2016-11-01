@@ -118,8 +118,7 @@ class EllipticCurves:
 
         """
         from sage.env import ELLCURVE_DATA_DIR
-        db = ELLCURVE_DATA_DIR
-        data = os.path.join(db,'rank%s'%rank)
+        data = os.path.join(ELLCURVE_DATA_DIR, 'rank%s'%rank)
         if not os.path.exists(data):
             return []
         v = []

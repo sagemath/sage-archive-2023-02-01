@@ -43,7 +43,7 @@ from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from cpython.object cimport PyObject_RichCompare
-from sage.structure.sage_object import richcmp_not_equal
+from sage.structure.sage_object cimport richcmp_not_equal
 from itertools import groupby
 
 cdef class Farey:

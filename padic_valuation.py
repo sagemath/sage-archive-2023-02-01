@@ -137,7 +137,7 @@ class PadicValuationFactory(UniqueFactory):
 
         sage: R = GaussianIntegers()
         sage: I = R.fraction_field().gen()
-        sage: pAdicValuation(R, I + 1)
+        sage: pAdicValuation(R, R.fractional_ideal(I + 1))
         2-adic valuation
 
     """

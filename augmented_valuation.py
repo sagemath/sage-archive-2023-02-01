@@ -104,8 +104,12 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
             <class 'sage.rings.padics.augmented_valuation.AugmentedValuation'>
 
         """
+        from sage.rings.all import QQ, infinity
+
         if phi.parent() is not v.domain():
             raise ValueError("phi must be in the domain of v")
+        if mu is not infinity:
+            mu = QQ(mu)
 
         DevelopingValuation.__init__(self, parent, phi)
 

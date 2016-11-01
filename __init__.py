@@ -15,7 +15,7 @@ from .limit_valuation import LimitValuation, MacLaneLimitValuation, FiniteExtens
 from .augmented_valuation import AugmentedValuation_generic, InfiniteAugmentedValuation
 from .gauss_valuation import GaussValuation_generic
 from .valuation import DiscretePseudoValuation, DiscreteValuation, InfiniteDiscretePseudoValuation
-from .padic_valuation import pAdicValuation_base, pAdicValuation_number_field, pAdicValuation_int, pAdicValuation_padic
+from .padic_valuation import pAdicValuation_base, pAdicValuation_int, pAdicValuation_padic, pAdicFromLimitValuation
 
 # =================
 # MONKEY PATCH SAGE
@@ -115,6 +115,12 @@ class Q_to_quadratic_field_element_patched(sage.rings.number_field.number_field_
 class Z_to_quadratic_field_element_patched(sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element):
     def is_injective(self): return True
 sage.rings.number_field.number_field.NumberField_quadratic._coerce_map_from_ = patch_is_injective(sage.rings.number_field.number_field.NumberField_quadratic._coerce_map_from_, {sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element: (lambda morphism: Q_to_quadratic_field_element_patched(morphism.codomain())), sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element: (lambda morphism: Z_to_quadratic_field_element_patched(morphism.codomain()))})
+
+# the integers embed into the rationals
+class Z_to_Q_patched(sage.rings.rational.Z_to_Q):
+    def is_injective(self): return True
+from sage.rings.all import QQ
+QQ.coerce_map_from = patch_is_injective(QQ.coerce_map_from, {sage.rings.rational.Z_to_Q: (lambda morphism: Z_to_Q_patched())})
 
 # register modules at some standard places so imports work as exepcted
 r"""

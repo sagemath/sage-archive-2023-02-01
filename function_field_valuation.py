@@ -31,7 +31,7 @@ extensions::
     (x - 1)-adic valuation
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
-    sage: v.extensions(L)
+    sage: v.extensions(L) # long time
     [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
      [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
 
@@ -349,7 +349,7 @@ class FunctionFieldValuation_base(DiscreteValuation):
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, FunctionFieldValuation_base)
         True
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def extensions(self, L):
@@ -414,7 +414,7 @@ class ClassicalFunctionFieldValuation_base(FunctionFieldValuation_base):
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, ClassicalFunctionFieldValuation_base)
         True
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def _test_classical_residue_field(self, **options):
@@ -781,8 +781,8 @@ class FiniteRationalFunctionFieldValuation(ClassicalFunctionFieldValuation_base,
 
     TESTS::
 
-        sage: TestSuite(v).run()
-        sage: TestSuite(w).run()
+        sage: TestSuite(v).run() # long time
+        sage: TestSuite(w).run() # long time
         sage: TestSuite(u).run() # long time
         sage: TestSuite(q).run() # long time
 

@@ -42,7 +42,7 @@ class DiscretePseudoValuation(Morphism):
 
     TESTS::
 
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def __init__(self, parent):
@@ -314,7 +314,7 @@ class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
 
         sage: isinstance(w, InfiniteDiscretePseudoValuation)
         True
-        sage: TestSuite(w).run()
+        sage: TestSuite(w).run() # long time
 
     """
     def is_discrete_valuation(self):
@@ -351,7 +351,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         sage: isinstance(w, DiscreteValuation)
         True
-        sage: TestSuite(w).run()
+        sage: TestSuite(w).run() # long time
 
     """
     def is_discrete_valuation(self):
@@ -717,6 +717,73 @@ class DiscreteValuation(DiscretePseudoValuation):
             raise ValueError("The valuation %r is not related to an extension of %r with respect to %r"%(valuation, valuation.constant_valuation(), G))
         assert len(smaller_approximants) == 1
         return smaller_approximants[0]
+
+    def montes_factorization(self, G, assume_squarefree=False, precision_cap=None):
+        """
+        Factor ``G`` over the completion of the domain of this valuation.
+
+        INPUT:
+
+        - ``G`` -- a monic polynomial over the domain of this valuation
+
+        - ``assume_squarefree`` -- a boolean (default: ``False``), whether to
+          assume ``G`` to be squarefree
+
+        - ``precision_cap`` -- a number, ``None``, or infinity (default:
+          ``None``); if ``None`` or ``infinity``, the returned are actual
+          factors of ``G``, otherwise they are only factors with precision at
+          least ``precision_cap``.
+
+        ALGORITHM:
+
+            We compute :meth:`mac_lane_approximants` with ``precision_cap``.
+            The key polynomials approximate factors of ``G``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: k=Qp(5,4)
+            sage: v = pAdicValuation(k)
+            sage: R.<x>=k[]
+            sage: G = x^2 + 1
+            sage: v.montes_factorization(G) # long time
+            ((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) * ((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)))
+
+        The computation might not terminate over incomplete fields (in
+        particular because the factors can not be represented there)::
+
+            sage: R.<x> = QQ[]
+            sage: v = pAdicValuation(QQ, 2)
+            sage: v.montes_factorization(x^2 + 1)
+            x^2 + 1
+
+            sage: v.montes_factorization(x^2 - 1) # not tested, does not terminate
+
+            sage: v.montes_factorization(x^2 - 1, precision_cap=10)
+            (x + 1) * (x + 1023)
+
+        REFERENCES:
+
+        .. [GMN2008] Jordi Guardia, Jesus Montes, Enric Nart (2008). Newton
+        polygons of higher order in algebraic number theory. arXiv:0807.2620
+        [math.NT]
+
+        """
+        R = G.parent()
+        if R.base_ring() is not self.domain():
+            raise ValueError("G must be defined over the domain of this valuation")
+        if not G.is_monic():
+            raise ValueError("G must be monic")
+        if not all([self(c)>=0 for c in G.coefficients()]):
+            raise ValueError("G must be integral")
+
+        from sage.rings.all import infinity
+        # W contains approximate factors of G
+        W = self.mac_lane_approximants(G, precision_cap=precision_cap or infinity,assume_squarefree=assume_squarefree)
+        ret = [w.phi() for w in W]
+
+        from sage.structure.factorization import Factorization
+        return Factorization([ (g,1) for g in ret ], simplify=False)
 
     def _ge_(self, other):
         r"""

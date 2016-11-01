@@ -372,7 +372,7 @@ class FunctionFieldValuation_base(DiscreteValuation):
 
             sage: v = FunctionFieldValuation(K, 1/x)
             sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - 1/(x + 1))
+            sage: L.<y> = K.extension(y^2 - 1/(x^2 + 1))
             sage: v.extensions(L)
             [[ Valuation at the infinite place, v(y - 1/x) = 3 ]-adic valuation,
              [ Valuation at the infinite place, v(y + 1/x) = 3 ]-adic valuation]

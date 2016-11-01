@@ -23,9 +23,9 @@ from six import itervalues
 
 import collections, os
 
-from sage.env import CONWAY_DATA_DIR
+from sage.env import CONWAY_POLYNOMIALS_DATA_DIR
 
-_CONWAYDATA = os.path.join(CONWAY_DATA_DIR, 'conway_polynomials.sobj')
+_CONWAYDATA = os.path.join(CONWAY_POLYNOMIALS_DATA_DIR, 'conway_polynomials.sobj')
 _conwaydict = None
 
 class DictInMapping(collections.Mapping):

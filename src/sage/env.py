@@ -133,7 +133,7 @@ _add_variable_or_fallback('SAGE_BANNER',             '')
 _add_variable_or_fallback('SAGE_IMPORTALL',          'yes')
 
 # additional packages locations
-_add_variable_or_fallback('CONWAY_DATA_DIR',  opj('$SAGE_SHARE','conway_polynomials'))
+_add_variable_or_fallback('CONWAY_POLYNOMIALS_DATA_DIR',  opj('$SAGE_SHARE','conway_polynomials'))
 _add_variable_or_fallback('GRAPHS_DATA_DIR',  opj('$SAGE_SHARE','graphs'))
 _add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
 _add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))

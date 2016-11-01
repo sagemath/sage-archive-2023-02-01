@@ -136,9 +136,6 @@ from six import StringIO
 from functools import reduce
 
 
-data_location = POLYTOPE_DATA_DIR
-
-
 class SetOfAllLatticePolytopesClass(Set_generic):
     def _repr_(self):
         r"""
@@ -418,7 +415,7 @@ def ReflexivePolytopes(dim):
         raise NotImplementedError("only 2- and 3-dimensional reflexive polytopes are available!")
     if _rp[dim] is None:
         rp = read_all_polytopes(
-            os.path.join(data_location, "reflexive_polytopes_%dd" % dim))
+            os.path.join(POLYTOPE_DATA_DIR, "reflexive_polytopes_%dd" % dim))
         for n, p in enumerate(rp):
             # Data files have normal form of reflexive polytopes
             p.normal_form.set_cache(p._vertices)

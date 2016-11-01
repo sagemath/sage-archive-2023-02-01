@@ -521,12 +521,12 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
                 raise NotImplementedError
             return self.residue_ring()(self.coefficients(f).next())(self.residue_field_generator())
 
-        if self._mu is infinity:
+        if self._mu == infinity:
             # if this is an infinite valuation, then we can simply drop all but the
             # constant term
             constant_term = self.coefficients(f).next()
             constant_term_reduced = self._base_valuation.reduce(constant_term)
-            return constant_term_reduced(self.residue_field().gen())
+            return constant_term_reduced(self.residue_ring().gen())
 
         CV = zip(self.coefficients(f), self.valuations(f))
         # rewrite as sum of f_i phi^{i tau}, i.e., drop most coefficients
@@ -568,14 +568,14 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: y = v.residue_ring().gen()
-            sage: u0 = v.residue_field().gen()
+            sage: u0 = v.residue_ring().base().gen()
             sage: v.lift(y)
             (1 + O(2^10))*x
 
             sage: w = v.extension(x^2 + x + u, 1/2)
             sage: r = w.residue_ring()
             sage: y = r.gen()
-            sage: u1 = w.residue_field().gen()
+            sage: u1 = w.residue_ring().base().gen()
             sage: w.lift(r.one())
             1 + O(2^10)
             sage: w.lift(r.zero())
@@ -592,7 +592,7 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
             sage: w = w.extension((x^2 + x + u)^2 + 2, 5/3)
             sage: r = w.residue_ring()
             sage: y = r.gen()
-            sage: u2 = w.residue_field().gen()
+            sage: u2 = w.residue_ring().base().gen()
             sage: w.reduce(w.lift(y)) == y
             True
             sage: w.reduce(w.lift(r.one())) == 1
@@ -606,7 +606,7 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
             sage: v = v.extension(x^2 + x + u, 1)
             sage: v = v.extension((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
 
-            sage: u = v.residue_field().gen()
+            sage: u = v.residue_ring().base().gen()
             sage: F = v.residue_ring()(u); F
             u2
             sage: f = v.lift(F); f
@@ -615,12 +615,16 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
             True
 
         """
-        if F.parent() is self.residue_ring().base():
-            F = self.residue_ring()(F)
-        if F.parent() is not self.residue_ring():
-            raise ValueError("F must be an element of the residue ring of the valuation")
+        F = self.residue_ring().coerce(F)
+
         if not self.domain().base_ring().is_field():
             raise NotImplementedError("only implemented for polynomial rings over fields")
+        if self._mu == infinity:
+            if self.psi().degree() == 1:
+                return self._base_valuation.lift(F)
+            else:
+                return self._base_valuation.lift(F.polynomial(self._base_valuation.residue_ring().variable_name()))
+
         if F.is_constant():
             if F.is_zero():
                 return self.domain().zero()
@@ -642,9 +646,9 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
                 if self.phi().degree() == 1:
                     # this is a classical valuation of a rational point, of the
                     # form [trivial, v(x + 1) = 1]
-                    assert self.domain().base_ring() is self.residue_field()
+                    assert self.domain().base_ring() is self.residue_ring().base()
                     return self.domain()(F)
-                if self.phi().change_variable_name(self.residue_field().polynomial().variable_name()) == self.residue_field().polynomial():
+                if self.phi().change_variable_name(self.residue_ring().base().polynomial().variable_name()) == self.residue_ring().base().polynomial():
                     # this is a classical valuation of a point, of the from
                     # [trivial, v(x^2 + 1) = 1]
                     if hasattr(F, 'polynomial'):
@@ -716,7 +720,7 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
             sage: v = v.extension(x^2 + x + u, 1)
             sage: v = v.extension((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
 
-            sage: u = v.residue_field().gen()
+            sage: u = v.residue_ring().base().gen()
             sage: y = v.residue_ring().gen()
             sage: f = v.lift_to_key(y^3+y+u)
             sage: f.degree()
@@ -729,6 +733,9 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
             raise ValueError("F must be an element of the residue ring of the valuation")
         if not self.domain().base_ring().is_field():
             raise NotImplementedError("only implemented for polynomial rings over fields")
+        if self._base_valuation.is_gauss_valuation() and self._mu == infinity:
+            raise TypeError("there are no keys over this valuation")
+
         if F.is_constant():
             raise ValueError("F must not be constant")
         if not F.is_monic():
@@ -816,55 +823,25 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
         return F
 
     @cached_method
-    def residue_field(self, generator=None):
-        """
-        Return the residue field of this valuation.
+    def residue_ring(self):
+        generator = 'u' + str(len(self._augmentations()) - 1)
 
-        INPUT:
-
-        - ``generator`` -- a string or ``None`` (default: ``None``), the name
-          of the generator of the residue field extension, if ``None`` a name
-          is automatically chosen
-
-        OUTPUT:
-
-        a relative extension of the residue field of the base valuation
-
-        EXAMPLES::
-
-            sage: R.<u> = Qq(4,5)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: w = v.extension(x^2 + x + u, 1/2)
-            sage: w.residue_field()
-            Univariate Quotient Polynomial Ring in u1 over Finite Field in u0 of size 2^2 with modulus u1^2 + u1 + u0
-            sage: w = w.extension((x^2 + x + u)^2 + 2, 5/3)
-            sage: w.residue_field()
-            Univariate Quotient Polynomial Ring in u1 over Finite Field in u0 of size 2^2 with modulus u1^2 + u1 + u0
-
-        """
-        if generator is None:
-            level = 0
-            v = self
-            while isinstance(v, AugmentedValuation_generic):
-                level += 1
-                v = v._base_valuation
-            generator = 'u%s'%level
-        if self.psi().degree() == 1:
-            ret = self._base_valuation.constant_valuation().residue_field()
-            #ret.gen = "use augmented_valuation.residue_field_generator() instead" # temporary hack to find bugs when .gen() is used - .residue_field_generator() instead
-            return ret
+        base = self._base_valuation.residue_ring().base()
+        if self.psi().degree() > 1:
+            base = base.extension(self.psi(), names=generator)
+        if self._mu == infinity:
+            return base
         else:
-            return self._base_valuation.constant_valuation().residue_field().extension(self.psi(), names=generator)
+            return base[self.domain().variable_name()]
 
     @cached_method
     def residue_field_generator(self):
         if self.psi().degree() == 1:
             ret = -self.psi()[0]
         else:
-            ret = self.residue_field().gen()
+            ret = self.residue_ring().base().gen()
 
-        assert ret.parent() is self.residue_field()
+        assert ret.parent() is self.residue_ring().base()
         assert self.psi()(ret).is_zero()
         return ret
 

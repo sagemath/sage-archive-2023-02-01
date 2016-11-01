@@ -381,18 +381,18 @@ class GaussValuation_generic(DevelopingValuation):
 
         return f.map_coefficients(lambda c:self._base_valuation.reduce(c), self.constant_valuation().residue_field())
 
-    def lift(self, reduction):
+    def lift(self, F):
         """
-        Return a lift of ``reduction``.
+        Return a lift of ``F``.
 
         INPUT::
 
-        - ``reduction`` -- a polynomial over the :meth:`residue_ring` of this valuation
+        - ``F`` -- a polynomial over the :meth:`residue_ring` of this valuation
 
         OUTPUT:
 
         a (possibly non-monic) polynomial in the domain of this valuation which
-        reduces to ``reduction``
+        reduces to ``F``
 
         EXAMPLES::
 
@@ -413,10 +413,9 @@ class GaussValuation_generic(DevelopingValuation):
             :meth:`reduce`
 
         """
-        if reduction.parent() is not self.residue_ring():
-            raise ValueError("f must be in the residue ring of this valuation")
+        F = self.residue_ring().coerce(F)
 
-        return reduction.map_coefficients(lambda c:self._base_valuation.lift(c), self._base_valuation.domain())
+        return F.map_coefficients(lambda c:self._base_valuation.lift(c), self._base_valuation.domain())
 
     def lift_to_key(self, F):
         """

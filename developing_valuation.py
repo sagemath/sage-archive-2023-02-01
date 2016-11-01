@@ -984,22 +984,6 @@ class DevelopingValuation(DiscretePseudoValuation):
         """
         return "`%s`-adic valuation of %s"%(self._phi, self.domain())
 
-    def residue_ring(self):
-        """
-        Return the residue ring of this valuation, i.e., a polynomial ring over
-        the :meth:`residue_field`
-
-        EXAMPLES::
-
-            sage: R = Qp(2,5)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: v.residue_ring()
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
-
-        """
-        return self.domain().change_ring(self.residue_field())
-
     def _make_monic_integral(self, G):
         if G.is_monic() and self(G) >= 0:
             return G

@@ -717,3 +717,21 @@ class DiscreteValuation(DiscretePseudoValuation):
             raise ValueError("The valuation %r is not related to an extension of %r with respect to %r"%(valuation, valuation.constant_valuation(), G))
         assert len(smaller_approximants) == 1
         return smaller_approximants[0]
+
+    def _ge_(self, other):
+        r"""
+        Return whether this valuation is greater than or equal to ``other``
+        pointwise.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialValuation(QQ)
+            sage: w = pAdicValuation(QQ, 2)
+            sage: v >= w
+            False
+
+        """
+        if other.is_trivial():
+            return other.is_discrete_valuation()
+        return super(DiscreteValuation, self)._ge_(other)

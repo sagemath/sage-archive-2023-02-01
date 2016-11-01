@@ -434,6 +434,28 @@ class ClassicalFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         tester.assertTrue(self.domain().constant_field().is_subring(self.residue_field()))
 
+    def _ge_(self, other):
+        r"""
+        Return whether ``self`` is greater or equal to ``other`` everywhere.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, x^2 + 1)
+            sage: w = FunctionFieldValuation(K, x)
+            sage: v >= w
+            False
+            sage: w >= v
+            False
+
+        """
+        if other.is_trivial():
+            return other.is_discrete_valuation()
+        if isinstance(other, ClassicalFunctionFieldValuation_base):
+            return self == other
+        super(ClassicalFunctionFieldValuation_base, self)._ge_(other)
+
 class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
     r"""
     Base class for function field valuation induced by a valuation on the
@@ -792,7 +814,7 @@ class FiniteRationalFunctionFieldValuation(ClassicalFunctionFieldValuation_base,
             Rational Field
 
         """
-        return self._base_valuation.residue_field()
+        return self._base_valuation.residue_ring().base()
 
 class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
     r"""

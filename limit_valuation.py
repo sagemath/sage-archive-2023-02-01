@@ -535,6 +535,27 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             assert(is_PolynomialRing(R))
             return R.base_ring()
 
+    def _ge_(self, other):
+        r"""
+        Return whether this valuation is greater or equal than ``other``
+        everywhere.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: w = v.extension(L)
+            sage: w >= w
+            True
+
+        """
+        if other.is_trivial():
+            return other.is_discrete_valuation()
+        return super(MacLaneLimitValuation, self)._ge_(other)
+
 class FiniteExtensionFromInfiniteValuation(DiscreteValuation):
     r"""
     A valuation on a quotient of the form `L=K[x]/(G)` with an irreducible `G`
@@ -581,7 +602,7 @@ class FiniteExtensionFromInfiniteValuation(DiscreteValuation):
             True
 
         """
-        DiscretePseudoValuation.__init__(self, parent)
+        DiscreteValuation.__init__(self, parent)
         self._base_valuation = base_valuation 
 
     def _eq_(self, other):

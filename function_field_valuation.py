@@ -151,8 +151,8 @@ class FunctionFieldValuationFactory(UniqueFactory):
     There are several ways to create valuations on extensions of rational
     function fields::
 
-                sage: K.<x> = FunctionField(QQ)
-                sage: R.<y> = K[]
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x); L
         Function field in y defined by y^2 - x
 
@@ -365,7 +365,18 @@ class FunctionFieldValuation_base(DiscreteValuation):
             sage: L.<y> = K.extension(y^2 - x)
             sage: v.extensions(L)
             [(x)-adic valuation]
-    
+
+        TESTS:
+
+        Valuations over the infinite place::
+
+            sage: v = FunctionFieldValuation(K, 1/x)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - 1/(x + 1))
+            sage: v.extensions(L)
+            [[ Valuation at the infinite place, v(y - 1/x) = 3 ]-adic valuation,
+             [ Valuation at the infinite place, v(y + 1/x) = 3 ]-adic valuation]
+
         """
         K = self.domain()
         from sage.categories.function_fields import FunctionFields

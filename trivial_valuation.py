@@ -412,7 +412,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
             sage: from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(ZZ)
             sage: v.extensions(QQ)
-            Trivial valuation on Rational Field
+            [Trivial valuation on Rational Field]
 
         """
         if self.domain().is_subring(ring):

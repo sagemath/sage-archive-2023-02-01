@@ -908,7 +908,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
                 sage: from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
-                sage: v._test_ge()
+                sage: v._test_le()
 
             """
             tester = self._tester(**options)

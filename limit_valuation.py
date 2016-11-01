@@ -88,10 +88,65 @@ from valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation, 
 from sage.structure.factory import UniqueFactory
 
 class LimitValuationFactory(UniqueFactory):
+    r"""
+    Return a limit valuation which sends the polynomial ``G`` to infinity and
+    is greater than or equal than ``base_valuation``.
+
+    INPUT:
+
+    - ``base_valuation`` -- a discrete (pseudo-)valuation on a polynomial ring
+      which can be augmented (possibly only in the limit) to a pseudo-valuation
+      that sends ``G`` to infinity.
+
+    - ``G`` -- a squarefree polynomial in the domain of ``base_valuation``.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: w = LimitValuation(v, x)
+        sage: w(x)
+        +Infinity
+
+    """
     def create_key(self, base_valuation, G):
+        r"""
+        Create a key from the parameters of this valuation.
+
+        EXAMPLES:
+
+        Note that this does not normalize ``base_valuation`` in anyway. It is
+        easily possible to create the same limit in two different ways::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = LimitValuation(v, x) # indirect doctest
+            sage: v = v.augmentation(x, infinity)
+            sage: u = LimitValuation(v, x)
+            sage: u == w
+            False
+
+        The point here is that this is not meant to be invoked from user code.
+        But mostly from other factories which have made sure that the
+        parameters are normalized already.
+
+        """
         return base_valuation, G
 
     def create_object(self, version, key):
+        r"""
+        Create an object from ``key``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = LimitValuation(v, x^2 + 1) # indirect doctest
+
+        """
         base_valuation, G = key
         from valuation_space import DiscretePseudoValuationSpace
         parent = DiscretePseudoValuationSpace(base_valuation.domain())
@@ -461,7 +516,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
         """
         from sage.rings.all import infinity
-        if self._approximation._mu == infinity:
+        if self._approximation(self._approximation.phi()) == infinity:
             # an infinite valuation can not be improved further
             return
 

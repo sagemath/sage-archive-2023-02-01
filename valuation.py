@@ -518,7 +518,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
             ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ])
-            sage: w1, w2 = v.mac_lane_approximants(G,precision_cap=2); w1,w2
+            sage: w1, w2 = v.mac_lane_approximants(G,precision_cap=2); w1,w2 # long time
             ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + O(5^4))) = 2 ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + O(5^4))) = 2 ])
 
@@ -531,7 +531,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         In this example, the process stops with a factorization of `x^2 + 1`::
 
-            sage: v.mac_lane_approximants(G, precision_cap=infinity)
+            sage: v.mac_lane_approximants(G, precision_cap=infinity) # long time
             [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
 
@@ -580,7 +580,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: vK(theta) 
             1/3
             sage: G=Delta.change_ring(K) 
-            sage: V=vK.mac_lane_approximants(G); V
+            sage: V=vK.mac_lane_approximants(G); V # long time
             [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + theta^4 + theta^3 + 1) = 5/3 ],
              [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*theta^4 + theta^3 - 27*theta + 1) = 5/3 ],
              [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 3/2*theta^4 + theta^3 - 27*theta + 1) = 5/3 ]]

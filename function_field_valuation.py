@@ -466,7 +466,7 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         sage: from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: v = FunctionFieldValuation(K, x^2 + 1) # indirect doctest
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def __init__(self, parent, base_valuation):
@@ -835,7 +835,7 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
 
         sage: isinstance(w, FunctionFieldFromLimitValuation)
         True
-        sage: TestSuite(w).run()
+        sage: TestSuite(w).run() # long time
 
     """
     def _to_base_domain(self, f):

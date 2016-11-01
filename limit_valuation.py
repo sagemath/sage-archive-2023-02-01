@@ -183,7 +183,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
 
         sage: isinstance(w._base_valuation, LimitValuation_generic)
         True
-        sage: TestSuite(w._base_valuation).run()
+        sage: TestSuite(w._base_valuation).run() # long time
 
     """
     def __init__(self, parent, approximation):
@@ -638,7 +638,7 @@ class FiniteExtensionFromInfiniteValuation(DiscreteValuation):
 
     TESTS::
 
-        sage: TestSuite(w).run()
+        sage: TestSuite(w).run() # long time
 
     """
     def __init__(self, parent, base_valuation):
@@ -847,8 +847,8 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
 
     TESTS::
 
-        sage: TestSuite(w[0]).run()
-        sage: TestSuite(w[1]).run()
+        sage: TestSuite(w[0]).run() # long time
+        sage: TestSuite(w[1]).run() # long time
 
     """
     def __init__(self, parent, approximant, G, approximants):

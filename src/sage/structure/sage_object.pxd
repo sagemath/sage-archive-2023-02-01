@@ -9,6 +9,7 @@ cdef extern from "Python.h":
 cdef class SageObject:
     pass
 
+
 cpdef inline richcmp_step(x, y, int op):
     """
     Like ``richcmp(x, y, op)`` but assumed to be only a non-final step in
@@ -19,6 +20,26 @@ cpdef inline richcmp_step(x, y, int op):
     - ``op`` -- a rich comparison operation (e.g. ``Py_EQ``)
 
     OUTPUT: ``True``, ``False`` or ``None`` (meaning maybe)
+
+    This is useful to compare lazily two objects A and B according to 2
+    (or more) different parameters, say width and height for example.
+    One could use::
+
+        return richcmp((A.width(), A.height()), (B.width(), B.height()), op)
+
+    but this will compute both width and height in all cases, even if
+    A.width() and B.width() are enough to decide the comparison.
+
+    Instead one can do::
+
+        step = richcmp_step(A.width(), B.width(), op)
+        if step is not None:
+            return step
+        return richcmp(A.height(), B.height(), op)
+
+    The main difference with ``richcmp`` is that ``richcmp_step`` will
+    return ``None`` if the comparison cannot be decided so far, without
+    knowing the rest of the parameters.
 
     EXAMPLES::
 
@@ -50,22 +71,20 @@ cpdef inline richcmp_step(x, y, int op):
         True
     """
     if op == Py_EQ:
-        if richcmp(x, y, op):
+        if x == y:
             return None  # means maybe
         else:
             return False
     elif op == Py_NE:
-        if richcmp(x, y, op):
+        if x != y:
             return True
         else:
             return None  # means maybe
-    elif op in [Py_LT, Py_GT, Py_LE, Py_GE]:
-        if richcmp(x, y, Py_EQ):
+    else:
+        if x == y:
             return None  # means maybe
-        elif richcmp(x, y, op):
-            return True
         else:
-            return False
+            return richcmp(x, y, op)
 
 
 cpdef inline bint rich_to_bool(int op, int c):

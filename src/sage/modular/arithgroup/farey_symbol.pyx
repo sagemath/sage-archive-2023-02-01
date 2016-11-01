@@ -507,11 +507,11 @@ cdef class Farey:
             return NotImplemented
 
         step = richcmp_step(self.coset_reps(), other.coset_reps(), op)
-        if not(step is None):
+        if step is not None:
             return step
 
         step = richcmp_step(self.cusps(), other.cusps(), op)
-        if not(step is None):
+        if step is not None:
             return step
 
         return PyObject_RichCompare(self.fractions(), other.fractions(), op)

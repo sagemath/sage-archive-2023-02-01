@@ -283,7 +283,7 @@ class Combinations_set(Combinations_mset):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3])
-            sage: range(c.cardinality()) == map(c.rank, c)
+            sage: list(range(c.cardinality())) == map(c.rank, c)
             True
         """
         x = [self.mset.index(_) for _ in x]
@@ -461,7 +461,7 @@ class Combinations_setk(Combinations_msetk):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3], 2)
-            sage: range(c.cardinality()) == map(c.rank, c.list())
+            sage: list(range(c.cardinality())) == map(c.rank, c.list())
             True
         """
         x = [self.mset.index(_) for _ in x]

@@ -252,7 +252,7 @@ def unrank(L, i):
     TESTS::
 
         sage: from sage.combinat.ranker import unrank
-        sage: unrank(range(3), 10)
+        sage: unrank(list(range(3)), 10)
         Traceback (most recent call last):
         ...
         IndexError: list index out of range

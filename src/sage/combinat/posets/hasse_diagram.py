@@ -122,7 +122,7 @@ class HasseDiagram(DiGraph):
         """
         return self.topological_sort_generator()
 
-    def is_linear_extension(self,lin_ext=None):
+    def is_linear_extension(self, lin_ext=None):
         r"""
         Test if an ordering is a linear extension.
 
@@ -130,18 +130,18 @@ class HasseDiagram(DiGraph):
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
-            sage: H.is_linear_extension(range(4))
+            sage: H.is_linear_extension(list(range(4)))
             True
             sage: H.is_linear_extension([3,2,1,0])
             False
         """
         if lin_ext is None or lin_ext == list(range(len(self))):
-            for x,y in self.cover_relations_iterator():
+            for x, y in self.cover_relations_iterator():
                 if not x < y:
                     return False
             return True
         else:
-            for x,y in self.cover_relations_iterator():
+            for x, y in self.cover_relations_iterator():
                 if not lin_ext.index(x) < lin_ext.index(y):
                     return False
             return True

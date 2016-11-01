@@ -12,6 +12,7 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 
 from __future__ import absolute_import
 from __future__ import print_function
+from six.moves import range
 
 import logging, optparse, os, shutil, subprocess, sys, re
 
@@ -1214,7 +1215,7 @@ def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
         import math
         cols = math.trunc((width - indent) / size)
     s = " " * indent
-    for i in xrange(len(lst)):
+    for i in range(len(lst)):
         if i != 0 and i % cols == 0:
             s += "\n" + " " * indent
         s += "{0:{1}{2}}".format(lst[i], align, size)
@@ -1514,7 +1515,7 @@ def setup_logger(verbose=1, color=True):
     colors = ['darkblue', 'darkred', 'brown', 'reset']
     styles = ['reset', 'reset', 'reset', 'reset']
     format_debug = ""
-    for i in xrange(len(fields)):
+    for i in range(len(fields)):
         format_debug += c.colorize(styles[i], c.colorize(colors[i], fields[i]))
         if i != len(fields):
             format_debug += " "

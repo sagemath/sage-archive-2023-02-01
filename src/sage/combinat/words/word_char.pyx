@@ -253,7 +253,7 @@ cdef class WordDatatype_char(WordDatatype):
         TESTS::
 
             sage: W = Words(range(100))
-            sage: w = W(range(10) * 2)
+            sage: w = W(list(range(10)) * 2)
             sage: w == w
             True
             sage: w != w

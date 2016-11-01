@@ -43,7 +43,7 @@ if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
         # The following is inspired from make_tar.sh
         #sh make_tar.sh
         #begin make_tar.sh
-        git checkout "$SINGULAR_GIT_COMMIT" 
+        git checkout "$SINGULAR_GIT_COMMIT"
         git checkout-index -a -f --prefix=singular-$DOTVERSION/
         rm singular-$DOTVERSION/.gdbinit singular-$DOTVERSION/*/.gdbinit singular-$DOTVERSION/*/*/.gdbinit singular-$DOTVERSION/*/*/*/.gdbinit
         rm singular-$DOTVERSION/IntegerProgramming/README

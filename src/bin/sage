@@ -432,15 +432,15 @@ fi
 #####################################################################
 
 if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
-	. "$SAGE_LOCAL"/bin/sage-version.sh
-	echo ${SAGE_VERSION}
-	exit 0
+        . "$SAGE_LOCAL"/bin/sage-version.sh
+        echo ${SAGE_VERSION}
+        exit 0
 fi
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-	. "$SAGE_LOCAL"/bin/sage-version.sh
-	echo "SageMath version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
-	exit 0
+        . "$SAGE_LOCAL"/bin/sage-version.sh
+        echo "SageMath version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
+        exit 0
 fi
 
 if [ "$1" = '-root'  -o "$1" = '--root' ]; then

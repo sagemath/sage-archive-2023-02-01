@@ -35,7 +35,7 @@ For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
 
 === Patches ===
 
- *  no_static_stuff.patch - patching included into Makefile stuff that sets '-static' in CXXFLAGS 
+ *  no_static_stuff.patch - patching included into Makefile stuff that sets '-static' in CXXFLAGS
 
 == Changelog ==
 
@@ -58,7 +58,7 @@ For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
  * added binary option to a patch call, as it now needs is
 
 === normaliz-2.8.p0 (Dima Pasechnik, December 2 2012) ===
- 
+
  * Bumped up the version due to a nontrivial patch to singular.lib
 
 === normaliz-2.8 (Andrey Novoseltsev, December 2 2012) ===

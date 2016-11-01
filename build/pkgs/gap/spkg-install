@@ -116,4 +116,4 @@ fi
 # Delete tests that rely on the non-GPL small group library
 rm "$INSTALL_DIR"/tst/testinstall/ctblsolv.tst
 rm "$INSTALL_DIR"/tst/testinstall/grppc.tst
-rm "$INSTALL_DIR"/tst/testinstall/morpheus.tst 
+rm "$INSTALL_DIR"/tst/testinstall/morpheus.tst

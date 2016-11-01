@@ -504,8 +504,8 @@ class DiscreteValuation(DiscretePseudoValuation):
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
             sage: v0.mac_lane_approximants(G, precision_cap = 10) # long time
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 25670807) = 11 ],
-             [ Gauss valuation induced by 5-adic valuation, v(x + 23157318) = 11 ]]
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 6139557) = 10 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x + 3626068) = 10 ]]
 
         The same example over the 5-adic numbers. In the quadratic extension
         `\QQ[x]/(x^2+1)`, 5 factors `-(x - 2)(x + 2)`, this behaviour can be
@@ -556,7 +556,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: alpha = T^3/4
             sage: G = 3^3*T^3*(alpha^4 - alpha)^2 - (4*alpha^3 - 1)^3
             sage: G = G/G.leading_coefficient()
-            sage: pAdicValuation(K).mac_lane_approximants(G) # long time
+            sage: pAdicValuation(K).mac_lane_approximants(G) # optional: integrated, long time
             [[ Gauss valuation induced by 3-adic valuation, v((1 + O(3^20))*T + (2 + O(3^20))) = 1/9, v((1 + O(3^20))*T^9 + (2*3 + 2*3^2 + O(3^21))*T^8 + (3 + 3^5 + O(3^21))*T^7 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^6 + O(3^21))*T^6 + (2*3 + 2*3^2 + 3^4 + 3^6 + 2*3^7 + O(3^21))*T^5 + (3 + 3^2 + 3^3 + 2*3^6 + 2*3^7 + 3^8 + O(3^21))*T^4 + (2*3 + 2*3^2 + 3^3 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^3 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^2 + (3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^7 + 3^8 + O(3^21))*T + (2 + 2*3 + 2*3^2 + 2*3^4 + 2*3^5 + 3^7 + O(3^20))) = 55/27 ]]
 
         A similar example::

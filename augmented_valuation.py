@@ -1,4 +1,4 @@
-"""
+r"""
 Augmented valuations on polynomial rings
 
 Implements inductive valuations as defined in [ML1936].
@@ -333,24 +333,6 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
         return self._base_valuation._augmentations() + [self]
 
     @cached_method
-    def constant_valuation(self):
-        """
-        Return the restriction of this valuation to the constants of the
-        polynomial ring.
-
-        EXAMPLES::
-
-            sage: R.<u> = Qq(4,5)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: w = v.extension(x^2 + x + u, 1/2)
-            sage: w.constant_valuation()
-            2-adic valuation
-
-        """
-        return self._base_valuation.constant_valuation()
-
-    @cached_method
     def value_group(self):
         """
         Return the value group of this valuation.
@@ -643,7 +625,7 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
             F = F[0]
             if self.phi() == self.domain().gen():
                 # this is a valuation of the form [p-adic valuation, v(x) = 1]
-                constant = self.constant_valuation().lift(F)
+                constant = self.restriction(self.domain().base_ring()).lift(F)
                 assert constant in self.domain().base_ring()
                 return self.domain()(constant)
             else:
@@ -936,6 +918,11 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
                 mu = (self._mu - v(F.unit()) - sum([ee*v(ff) for ee,ff in F if ff != f])) / e
                 ret.append(AugmentedValuation(v, f, mu))
         return ret
+
+    def restriction(self, ring):
+        if ring is self.domain().base_ring():
+            return self._base_valuation.restriction(ring)
+        return super(AugmentedValuation_generic, self).restriction(ring)
 
     def uniformizer(self):
         return self.element_with_valuation(self.value_group()._generator)

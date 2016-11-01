@@ -122,6 +122,18 @@ class Z_to_Q_patched(sage.rings.rational.Z_to_Q):
 from sage.rings.all import QQ
 QQ.coerce_map_from = patch_is_injective(QQ.coerce_map_from, {sage.rings.rational.Z_to_Q: (lambda morphism: Z_to_Q_patched())})
 
+# the integers embed into their extensions in number fields
+class DefaultConvertMap_unique_patched(sage.structure.coerce_maps.DefaultConvertMap_unique):
+    def is_injective(self): return True
+def _coerce_map_from_patched(self, domain):
+    from sage.rings.all import ZZ
+    if domain is ZZ or domain is int or domain is long:
+        return DefaultConvertMap_unique_patched(domain, self)
+    return False
+from sage.rings.number_field.order import Order
+Order._coerce_map_from_ = _coerce_map_from_patched
+del(_coerce_map_from_patched)
+
 # register modules at some standard places so imports work as exepcted
 r"""
 sage: from sage.rings.valuation.gauss_valuation import GaussValuation

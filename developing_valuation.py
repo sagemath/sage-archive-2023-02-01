@@ -645,7 +645,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         from sage.structure.factorization import Factorization
         if not self.domain().base_ring().is_field():
-            v = self.change_ring(self.domain().base_ring().fraction_field())
+            v = self.extension(self.domain().change_ring(self.domain().base_ring().fraction_field()))
             ret = v.equivalence_decomposition(v.domain()(f))
             return Factorization([(g.change_ring(self.domain().base_ring()),e) for g,e in ret], unit=ret.unit().change_ring(self.domain().base_ring()))
 
@@ -815,10 +815,11 @@ class DevelopingValuation(DiscretePseudoValuation):
         if len(f.list()) > f.degree()+1:
             from sage.rings.all import infinity
             # f has leading zero coefficients
-            m = min([self.constant_valuation()(c) for c in f.list()[f.degree()+1:]])
+            v = self.restriction(self.domain().base_ring())
+            m = min([v(c) for c in f.list()[f.degree()+1:]])
             if f.is_zero():
                 f= f.parent().zero()
-            elif m is infinity or m > max([self.constant_valuation()(c) for c in f.list()[:f.degree()+1]]):
+            elif m is infinity or m > max([v(c) for c in f.list()[:f.degree()+1]]):
                 f= self.domain()(f.list()[:f.degree()+1])
             else:
                 raise ValueError("f must not have leading zero coefficients")

@@ -282,7 +282,7 @@ class PadicValuationFactory(UniqueFactory):
         # To obtain uniqueness of p-adic valuations, we need a canonical
         # description of v. We consider all extensions of vK to L and select
         # the one approximated by v.
-        vK = v.constant_valuation()
+        vK = v.restriction(v.domain().base_ring())
         approximants = vK.mac_lane_approximants(L.relative_polynomial())
         approximant = vK.mac_lane_approximant(L.relative_polynomial(), v, approximants=approximants)
 
@@ -640,7 +640,7 @@ class pAdicValuation_base(DiscreteValuation):
         else:
             return ret
 
-    def change_ring(self, ring):
+    def change_domain(self, ring):
         r"""
         Change the domain of this valuation to ``ring`` if possible.
 
@@ -648,7 +648,7 @@ class pAdicValuation_base(DiscreteValuation):
 
             sage: from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 2)
-            sage: v.change_ring(QQ).domain()
+            sage: v.change_domain(QQ).domain()
             Rational Field
 
         """
@@ -985,7 +985,7 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
         """
         FiniteExtensionFromLimitValuation.__init__(self, parent, approximant, G, approximants)
-        pAdicValuation_base.__init__(self, parent, approximant.constant_valuation().p())
+        pAdicValuation_base.__init__(self, parent, approximant.restriction(approximant.domain().base_ring()).p())
 
     def _to_base_domain(self, f):
         r"""

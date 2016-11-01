@@ -218,7 +218,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         if isinstance(x.parent(), DiscretePseudoValuationSpace):
             if x.domain() is not self.domain():
                 try:
-                    return self(x.change_ring(self.domain()))
+                    return self(x.change_domain(self.domain()))
                 except NotImplementedError:
                     pass
             else:
@@ -551,7 +551,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 return self
             raise NotImplementedError("restricting %r from %r to %r not implemented"%(self, self.domain(), ring))
 
-        def change_ring(self, ring):
+        def change_domain(self, ring):
             r"""
             Return this valuation over ``ring``.
 
@@ -563,12 +563,16 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
                 sage: from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 3)
-                sage: v.change_ring(ZZ)
+                sage: v.change_domain(ZZ)
                 3-adic valuation
 
             """
             if ring is self.domain():
                 return self
+            if self.domain().is_subring(ring):
+                return self.extension(ring)
+            if ring.is_subring(self.domain()):
+                return self.restriction(ring)
             raise NotImplementedError("changing %r from %r to %r not implemented"%(self, self.domain(), ring))
 
         def _test_add(self, **options):
@@ -820,20 +824,20 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester.assertEqual(self.extension(self.domain()), self)
             tester.assertEqual(self.extensions(self.domain()), [self])
 
-        def _test_change_ring(self, **options):
+        def _test_change_domain(self, **options):
             r"""
-            Check the correctness of :meth:`change_ring`.
+            Check the correctness of :meth:`change_domain`.
 
             TESTS::
 
                 sage: from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
-                sage: v._test_change_ring()
+                sage: v._test_change_domain()
 
             """
             tester = self._tester(**options)
 
-            tester.assertEqual(self.change_ring(self.domain()), self)
+            tester.assertEqual(self.change_domain(self.domain()), self)
 
         def _test_no_infinite_nonzero(self, **options):
             r"""

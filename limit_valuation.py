@@ -900,7 +900,7 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
                     unique_approximant = augmentations[:l+1]
                     break
             if unique_approximant[0].is_gauss_valuation():
-                unique_approximant[0] = unique_approximant[0].constant_valuation()
+                unique_approximant[0] = unique_approximant[0].restriction(unique_approximant[0].domain().base_ring())
             if len(unique_approximant) == 1:
                 return repr(unique_approximant[0])
             from augmented_valuation import AugmentedValuation_generic

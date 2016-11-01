@@ -274,16 +274,17 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         if valuation.domain() is domain._ring:
             if domain.base_field() is not domain:
-                if valuation.constant_valuation().domain() is not domain.base_field():
-                    raise ValueError("valuation must extend a valuation on the base field but %r extends %r whose domain is not %r"%(valuation, valuation.constant_valuation(), domain.base_field()))
+                vK = valuation.restriction(valuation.domain().base_ring())
+                if vK.domain() is not domain.base_field():
+                    raise ValueError("valuation must extend a valuation on the base field but %r extends %r whose domain is not %r"%(valuation, vK, domain.base_field()))
                 # Valuation is an approximant that describes a single valuation
                 # on domain.
                 # For uniqueness of valuations (which provides better caching
                 # and easier pickling) we need to find a normal form of
                 # valuation, i.e., the smallest approximant that describes this
                 # valuation
-                approximants = valuation.constant_valuation().mac_lane_approximants(domain.polynomial())
-                approximant = valuation.constant_valuation().mac_lane_approximant(domain.polynomial(), valuation, approximants)
+                approximants = vK.mac_lane_approximants(domain.polynomial())
+                approximant = vK.mac_lane_approximant(domain.polynomial(), valuation, approximants)
                 return (domain, approximant), {'approximants': approximants}
             else:
                 # on a rational function field K(x), any valuation on K[x] that
@@ -599,8 +600,9 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             if self._base_valuation._base_valuation == GaussValuation(self.domain()._ring, TrivialValuation(self.domain().constant_field())):
                 if self._base_valuation._mu == 1:
                     return "(%r)-adic valuation"%(self._base_valuation.phi())
-        if self._base_valuation == GaussValuation(self.domain()._ring, self._base_valuation.constant_valuation()):
-            return repr(self._base_valuation.constant_valuation())
+        vK = self._base_valuation.restriction(self._base_valuation.domain().base_ring())
+        if self._base_valuation == GaussValuation(self.domain()._ring, vK):
+            return repr(vK)
         return "Valuation on rational function field induced by %s"%self._base_valuation
 
     def extensions(self, L):

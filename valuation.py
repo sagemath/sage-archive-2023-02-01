@@ -543,7 +543,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: v.mac_lane_approximants(G, precision_cap=5)
+            sage: v.mac_lane_approximants(G, precision_cap=5) # long time
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2057) = 5 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 1068) = 6 ]]
 
@@ -685,7 +685,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             [ Gauss valuation induced by 2-adic valuation, v(x + 3) = 2 ]
 
         """
-        if valuation.constant_valuation() != self:
+        if valuation.restriction(valuation.domain().base_ring()) is not self:
             raise ValueError
 
         # Check thet valuation is an approximant for a valuation
@@ -712,9 +712,9 @@ class DiscreteValuation(DiscretePseudoValuation):
         
         smaller_approximants = [w for w in approximants if w <= valuation]
         if len(smaller_approximants) > 1:
-            raise ValueError("The valuation %r is not approximated by a unique extension of %r with respect to %r"%(valuation, valuation.constant_valuation(), G))
+            raise ValueError("The valuation %r is not approximated by a unique extension of %r with respect to %r"%(valuation, self, G))
         if len(smaller_approximants) == 0:
-            raise ValueError("The valuation %r is not related to an extension of %r with respect to %r"%(valuation, valuation.constant_valuation(), G))
+            raise ValueError("The valuation %r is not related to an extension of %r with respect to %r"%(valuation, self, G))
         assert len(smaller_approximants) == 1
         return smaller_approximants[0]
 

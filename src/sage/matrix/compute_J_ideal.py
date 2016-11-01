@@ -212,13 +212,57 @@ class Compute_nu(SageObject):
 
     EXAMPLES::
 
-        sage: from calculate_nu import compute_nu # not tested
-        sage: B = matrix([[1, 2], [3, 4]])
+        sage: from calculate_nu import Compute_nu # not tested
+        sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
         sage: C = Compute_nu(B)
-        sage: for t in range(3): # not implemented
-        ....:     print C(t)
+        sage: for t in range(3):
+        ....:     print C.null_ideal(2**t)
+        Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
+        ------------------------------------------
+        [x^2 + x]
+        Generators with (p^t)-generating property:
+        [x^2 + x]
+        Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
+        ------------------------------------------
+        [x^2 + x]
+        Generators with (p^t)-generating property:
+        [x^2 + x]
+        ------------------------------------------
+        [2*x^2 + 2*x, x^2 + 3*x + 2]
+        Generators with (p^t)-generating property:
+        [x^2 + 3*x + 2]
+        Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
+        sage: C.p_minimal_polynomials(2)
+        ------------------------------------------
+        [x^2 + x]
+        Generators with (p^t)-generating property:
+        [x^2 + x]
+        ------------------------------------------
+        [2*x^2 + 2*x, x^2 + 3*x + 2]
+        Generators with (p^t)-generating property:
+        [x^2 + 3*x + 2]
+        ------------------------------------------
+        [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+        Generators with (p^t)-generating property:
+        [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+        [x^3 + 7*x^2 + 6*x]
+        ([2], {2: x^2 + 3*x + 2})
     """
     def __init__(self, B):
+        r"""
+        Initialize the Compute_nu class.
+
+        INPUT:
+
+        - ``B`` -- a square matrix.
+
+        TESTS::
+
+            sage: Compute_nu(matrix([[1, 2]]))
+            Traceback (most recent call last):
+            ...
+            TypeError: square matrix required.
+        """
         super(Compute_nu, self).__init__()
         if not B.is_square():
             raise TypeError("square matrix required.")

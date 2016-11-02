@@ -141,6 +141,12 @@ class ComputeMinimalPolynomials(SageObject):
 
     An object which allows to call ``p_minimal_polynomials`` and ``null_ideal``.
 
+    For an ideal `J`, the `J`-ideal of `B` is defined to be
+    `N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.
+
+    For a prime element `p` of `D` and `t\ge 0`, a `p^t`-minimal polynomial of `B` is a monic
+    polynomial `f\in N_{(p^t)}(B)` of minimal degree.
+
     The characteristic polynomial of `B` is denoted by `\chi_B`; `n` is the size of `B`.
 
     EXAMPLES::

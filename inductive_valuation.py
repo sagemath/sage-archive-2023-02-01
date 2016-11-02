@@ -207,6 +207,23 @@ class InductiveValuation(DevelopingValuation):
                 g = self.equivalence_reciprocal(f)
                 tester.assertEqual(self.reduce(f*g), 1)
 
+    def _test_inductive_valuation_inheritance(self, **options):
+        r"""
+        Test that every instance that is a :class:`InductiveValuation` is
+        either a :class:`FiniteInductiveValuation` or a
+        :class:`InfiniteInductiveValuation`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v._test_inductive_valuation_inheritance()
+
+        """
+        tester = self._tester(**options)
+        tester.assertTrue(isinstance(self, InfiniteInductiveValuation) != isinstance(self, FiniteInductiveValuation))
+
 class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
     r"""
     Abstract base class for iterated :class:`AugmentedValuation` on top of a

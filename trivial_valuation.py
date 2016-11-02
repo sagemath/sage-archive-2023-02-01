@@ -301,7 +301,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
     TESTS::
 
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def __init__(self, parent):

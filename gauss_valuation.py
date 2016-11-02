@@ -663,18 +663,3 @@ class GaussValuation_generic(FiniteInductiveValuation):
         if other.is_trivial():
             return other.is_discrete_valuation()
         return super(GaussValuation_generic, self)._ge_(other)
-
-    def is_discrete_valuation(self):
-        r"""
-        Return whether this is a discrete valuation.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ))
-            sage: v.is_discrete_valuation()
-            True
-
-        """
-        return True

@@ -615,7 +615,7 @@ class GaussValuation_generic(FiniteInductiveValuation):
     # TODO: declare this upstairs under a better name
     def _make_monic_integral(self, G):
         r"""
-        Return a polynomial ``G`` which defines the self extension of the base
+        Return a polynomial ``G`` which defines the same extension of the base
         ring of the domain of this valuation but which is monic and integral.
 
         EXAMPLES::

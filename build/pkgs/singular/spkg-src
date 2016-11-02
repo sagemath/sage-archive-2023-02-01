@@ -94,13 +94,6 @@ if [ ! -d "singular-$DOTVERSION" ]; then
 fi
 mv "singular-$DOTVERSION" latest
 
-# Touch autotools files to make sure nothing gets autoregenerated during make
-# It indeed seems autotools leave them in a broken state
-cd latest
-touch configure.ac aclocal.m4 configure Makefile.am Makefile.in _config.h.in
-touch */configure.ac */aclocal.m4 */configure */Makefile.am */Makefile.in */_config.h.in
-cd ..
-
 ### Create actual upstream package
 cd "$SPKG_ROOT"
 tar c "$PKGNAME" | bzip2 -c --best >"$TARGET"

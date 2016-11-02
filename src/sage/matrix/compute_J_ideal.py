@@ -472,7 +472,7 @@ class Compute_nu(SageObject):
 
     def p_minimal_polynomials(self, p, upto=None, steps=False):
        r"""
-       Returns index set `\mathcal{S}` and monic polynomials
+       Return index set `\mathcal{S}` and monic polynomials
        `\nu_s` for `s\in \mathcal{S}` such that `N_{p^t}(B) = \mu_B
        \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}}
        p^{t-s}\nu_s \mathbb{Z}[X]`
@@ -493,6 +493,113 @@ class Compute_nu(SageObject):
        A list (index set `\mathcal{S}`) together with a dictionary
        (keys=indices in `\mathcal{S}`, values=polynomials `\nu_s` )
 
+       EXAMPLES::
+
+           sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+           sage: C = Compute_nu(B)
+           sage: C.p_minimal_polynomials(2)
+           ------------------------------------------
+           [x^2 + x]
+           Generators with (p^t)-generating property:
+           [x^2 + x]
+           ------------------------------------------
+           [2*x^2 + 2*x, x^2 + 3*x + 2]
+           Generators with (p^t)-generating property:
+           [x^2 + 3*x + 2]
+           ------------------------------------------
+           [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+           Generators with (p^t)-generating property:
+           [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+           [x^3 + 7*x^2 + 6*x]
+           ([2], {2: x^2 + 3*x + 2})
+           sage: C.p_minimal_polynomials(2, steps=True)
+           ------------------------------------------
+           p=2, t=1:
+           Result of lifting:
+           F=
+           [x^2 + x]
+           [      x]
+           [      0]
+           [      1]
+           [      1]
+           [  x + 1]
+           [      1]
+           [      0]
+           [      0]
+           [  x + 1]
+           ------------------------------------------
+           [x^2 + x]
+           Generators with (p^t)-generating property:
+           [x^2 + x]
+           nu=x^2 + x
+           corresponding columns for G
+           [x^2 + x]
+           [  x + 2]
+           [      0]
+           [      1]
+           [      1]
+           [  x - 1]
+           [     -1]
+           [     10]
+           [      0]
+           [  x + 1]
+           ------------------------------------------
+           p=2, t=2:
+           Result of lifting:
+           F=
+           [  2*x^2 + 2*x x^2 + 3*x + 2]
+           [          2*x         x + 4]
+           [            0             0]
+           [            2             1]
+           [            2             1]
+           [      2*x + 2         x + 1]
+           [            2            -1]
+           [            0            10]
+           [            0             0]
+           [      2*x + 2         x + 3]
+           ------------------------------------------
+           [2*x^2 + 2*x, x^2 + 3*x + 2]
+           Generators with (p^t)-generating property:
+           [x^2 + 3*x + 2]
+           nu=x^2 + 3*x + 2
+           corresponding columns for G
+           [x^2 + 3*x + 2]
+           [        x + 4]
+           [            0]
+           [            1]
+           [            1]
+           [        x + 1]
+           [           -1]
+           [           10]
+           [            0]
+           [        x + 3]
+           ------------------------------------------
+           p=2, t=3:
+           Result of lifting:
+           F=
+           [x^3 + 7*x^2 + 6*x x^3 + 3*x^2 + 2*x]
+           [        x^2 + 8*x         x^2 + 4*x]
+           [                0                 0]
+           [                x             x + 4]
+           [            x + 4                 x]
+           [    x^2 + 5*x + 4           x^2 + x]
+           [           -x + 4                -x]
+           [             10*x              10*x]
+           [                0                 0]
+           [        x^2 + 7*x     x^2 + 3*x + 4]
+           ------------------------------------------
+           [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+           Generators with (p^t)-generating property:
+           [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+           [x^3 + 7*x^2 + 6*x]
+           nu=x^3 + 7*x^2 + 6*x
+           ([2], {2: x^2 + 3*x + 2})
+           sage: C.p_minimal_polynomials(2, upto=1)
+           ------------------------------------------
+           [x^2 + x]
+           Generators with (p^t)-generating property:
+           [x^2 + x]
+           ([1], {1: x^2 + x})
        """
 
        mu_B = self._B.minimal_polynomial()

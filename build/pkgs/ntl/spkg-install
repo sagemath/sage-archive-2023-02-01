@@ -128,18 +128,18 @@ ntl_configure()
 
         if $assembler_ok; then
             echo "Configuring NTL with NATIVE=on since the assembler appears to"
-            echo "be recent enough to support the instructions Sage's GCC emits." 
+            echo "be recent enough to support the instructions Sage's GCC emits."
             DISABLE_NATIVE="NATIVE=on"
         else
             echo "Configuring NTL with NATIVE=off since we're using Sage's GCC"
-            echo "and the assembler might not support all instructions GCC emits." 
+            echo "and the assembler might not support all instructions GCC emits."
             DISABLE_NATIVE="NATIVE=off"
         fi
     else
         echo "Configuring NTL with NATIVE=on (NTL might still disable it)."
         DISABLE_NATIVE="NATIVE=on"
     fi
-    
+
     ./configure DEF_PREFIX="$SAGE_LOCAL" SHARED=on \
         CXX="$CXX" CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" \
         LDFLAGS="$LDFLAGS" LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \

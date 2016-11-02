@@ -574,17 +574,15 @@ class ComputeMinimalPolynomials(SageObject):
 
     def null_ideal(self, b=0):
         r"""
-        Return the ideal `N_{b}(B)=\{ f\in \mathbb{Z}[X] \mid \exists
-        M\in\mathbb{Z}^{n\times n}\colon f \operatorname{adj}(X-B)
-        \equiv \chi_B M \pmod{b}\}`.
+        Return the `(b)`-ideal `N_{b}(B)=\{ f\in D[X] \mid f(B)\in M_n(bD)\}`.
 
         INPUT:
 
-        - ``b`` -- an integer (Default value is 0)
+        - ``b`` -- an element of `D` (Default:  0)
 
         OUTPUT:
 
-        An ideal in `\mathbb{Z}[X]`.
+        An ideal in `D[X]`.
 
         EXAMPLES::
 

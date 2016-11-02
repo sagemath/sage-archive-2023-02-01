@@ -55,7 +55,7 @@ cpdef inline richcmp_not_equal(x, y, int op):
         False
         False
         sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
-        ....:     print(richcmp_equal(5, 4, op))
+        ....:     print(richcmp_not_equal(5, 4, op))
         False
         False
         False

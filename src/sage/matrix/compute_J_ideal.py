@@ -173,7 +173,7 @@ def p_part(f, p):
 
     OUTPUT:
 
-    A polynomial ``g`` such that `deg g \le deg f` and
+    A polynomial ``g`` such that `\deg g \le \deg f` and
     all non-zero coefficients of `f - p g` are not divisible by `p`.
 
     EXAMPLES::

@@ -35,7 +35,6 @@ EXAMPLES::
     Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
     Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
     sage: C.p_minimal_polynomials(2)
-    [x^3 + 7*x^2 + 6*x]
     ([2], {2: x^2 + 3*x + 2})
 
 
@@ -203,7 +202,6 @@ class ComputeMinimalPolynomials(SageObject):
         Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
         Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
         sage: C.p_minimal_polynomials(2)
-        [x^3 + 7*x^2 + 6*x]
         ([2], {2: x^2 + 3*x + 2})
 
     .. TODO:: There should not be several polynomials of the same degree.
@@ -386,7 +384,7 @@ class ComputeMinimalPolynomials(SageObject):
             generators.remove(f)
             r = (f.quo_rem(g)[1]) % p**t
             generators = generators + self.find_monic_replacements(p, t, [r], prev_nu)
-            print generators
+            verbose(generators)
 
             if generators[-1].degree() < g.degree():
                 g=generators[-1]
@@ -480,7 +478,6 @@ class ComputeMinimalPolynomials(SageObject):
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: C.p_minimal_polynomials(2)
-            [x^3 + 7*x^2 + 6*x]
             ([2], {2: x^2 + 3*x + 2})
             sage: set_verbose(1)
             sage: C.p_minimal_polynomials(2)
@@ -562,7 +559,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
             verbose 1 (...: calculate_nu.py, current_nu) Generators with (p^t)-generating property:
             verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-            [x^3 + 7*x^2 + 6*x]
+            verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x]
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials) nu=x^3 + 7*x^2 + 6*x
             ([2], {2: x^2 + 3*x + 2})
             sage: set_verbose(0)
@@ -680,7 +677,6 @@ class ComputeMinimalPolynomials(SageObject):
              sage: C.prime_candidates()
              [2, 3, 5]
              sage: C.p_minimal_polynomials(2)
-             [x^3 + 7*x^2 + 6*x]
              ([2], {2: x^2 + 3*x + 2})
              sage: C.p_minimal_polynomials(3)
              ([], {})

@@ -18,7 +18,11 @@ cpdef inline richcmp_not_equal(x, y, int op):
 
     - ``op`` -- a rich comparison operation (e.g. ``Py_EQ``)
 
-    OUTPUT: ``True`` or ``False``
+    OUTPUT:
+
+    If ``op`` is not ``op_EQ`` or ``op_NE``, the result of
+    ``richcmp(x, y, op)``. If ``op`` is ``op_EQ``, return
+    ``False``. If ``op`` is ``op_NE``, return ``True``.
 
     This is useful to compare lazily two objects A and B according to 2
     (or more) different parameters, say width and height for example.

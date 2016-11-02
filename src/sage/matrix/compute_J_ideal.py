@@ -32,10 +32,10 @@ EXAMPLES::
     sage: for t in range(3):
     ....:     print C.null_ideal(2**t)
     Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
-    Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
-    Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
+    Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
+    Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
     sage: C.p_minimal_polynomials(2)
-    ([2], {2: x^2 + 3*x + 2})
+    {2: x^2 + 3*x + 2}
 
 
 REFERENCES:
@@ -197,12 +197,10 @@ class ComputeMinimalPolynomials(SageObject):
         sage: for t in range(3):
         ....:     print C.null_ideal(2**t)
         Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
-        Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
-        Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
         sage: C.p_minimal_polynomials(2)
-        ([2], {2: x^2 + 3*x + 2})
-
-    .. TODO:: There should not be several polynomials of the same degree.
+        {2: x^2 + 3*x + 2}
 
     .. TODO:: Test composite ``b`` for ``null_ideal``
 
@@ -471,7 +469,7 @@ class ComputeMinimalPolynomials(SageObject):
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: C.p_minimal_polynomials(2)
-            ([2], {2: x^2 + 3*x + 2})
+            {2: x^2 + 3*x + 2}
             sage: set_verbose(1)
             sage: C.p_minimal_polynomials(2)
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials) ------------------------------------------
@@ -554,17 +552,16 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
             verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x]
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials) nu=x^3 + 7*x^2 + 6*x
-            ([2], {2: x^2 + 3*x + 2})
+            {2: x^2 + 3*x + 2}
             sage: set_verbose(0)
             sage: C.p_minimal_polynomials(2, s_max=1)
-            ([1], {1: x^2 + x})
+            {1: x^2 + x}
         """
 
         mu_B = self._B.minimal_polynomial()
         deg_mu = mu_B.degree()
 
         t = 0
-        calS = []
         p_min_polys = {}
         nu = self._ZX(1)
         d = self._A.ncols()
@@ -585,11 +582,10 @@ class ComputeMinimalPolynomials(SageObject):
 
             verbose("nu=%s" % nu)
             if nu.degree() >= deg_mu:
-                return calS, p_min_polys
+                return p_min_polys
 
 
             if nu.degree() == deg_prev_nu:
-                calS.remove(t-1)
                 G = G.matrix_from_columns(range(G.ncols()-1))
                 del p_min_polys[t-1]
 
@@ -597,12 +593,11 @@ class ComputeMinimalPolynomials(SageObject):
             verbose(self.mccoy_column(p, t, nu))
 
             G = matrix.block([[p * G, self.mccoy_column(p, t, nu)]])
-            calS.append(t)
             p_min_polys[t] = nu
 
             # allow early stopping for small t
             if t == s_max:
-                return calS, p_min_polys
+                return p_min_polys
 
 
     def null_ideal(self, b=0):
@@ -631,11 +626,10 @@ class ComputeMinimalPolynomials(SageObject):
         generators = [self._ZX(b), self._ZX((self._B).minimal_polynomial())]
         for (p, t) in factor(b):
             cofactor = b // p**t
-            calS, p_polys = self.p_minimal_polynomials(p,t)
-
-            for s in calS + [t]:
-                generators = generators + \
-                             [self._ZX(cofactor*p**(t-s)*p_polys[s]) for s in calS]
+            p_polynomials = self.p_minimal_polynomials(p, t)
+            generators = generators + \
+                             [self._ZX(cofactor*p**(t-s)*p_polynomial)
+                              for s, p_polynomial in p_polynomials.iteritems()]
 
 
         assert all((g(self._B) % b).is_zero() for g in generators), \
@@ -660,11 +654,11 @@ class ComputeMinimalPolynomials(SageObject):
              sage: C.prime_candidates()
              [2, 3, 5]
              sage: C.p_minimal_polynomials(2)
-             ([2], {2: x^2 + 3*x + 2})
+             {2: x^2 + 3*x + 2}
              sage: C.p_minimal_polynomials(3)
-             ([], {})
+             {}
              sage: C.p_minimal_polynomials(5)
-             ([], {})
+             {}
 
         This means that `3` and `5` were candidates, but actually, `\mu_B` turns
         out to be a `3`-minimal polynomial and a `5`-minimal polynomial.

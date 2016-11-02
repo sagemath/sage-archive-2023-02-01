@@ -594,9 +594,9 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             (x^2 + 1)-adic valuation
 
         """
-        from sage.rings.valuation.augmented_valuation import AugmentedValuation_generic
+        from sage.rings.valuation.augmented_valuation import AugmentedValuation_base
         from sage.rings.valuation.gauss_valuation import GaussValuation
-        if isinstance(self._base_valuation, AugmentedValuation_generic):
+        if isinstance(self._base_valuation, AugmentedValuation_base):
             if self._base_valuation._base_valuation == GaussValuation(self.domain()._ring, TrivialValuation(self.domain().constant_field())):
                 if self._base_valuation._mu == 1:
                     return "(%r)-adic valuation"%(self._base_valuation.phi())
@@ -653,7 +653,7 @@ class InfiniteRationalFunctionFieldValuation(RationalFunctionFieldValuation_base
 
     TESTS::
 
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def _call_(self, f):

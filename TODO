@@ -1,0 +1,1 @@
+* Eliminate isinstance calls from code (usually by moving things like _repr_ or _ge_ up in the hierarchy)

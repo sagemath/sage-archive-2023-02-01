@@ -32,7 +32,8 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.getcwd())
     sys.path.append(os.path.dirname(os.getcwd()))
 
-from developing_valuation import DevelopingValuation, _lift_to_maximal_precision
+from developing_valuation import _lift_to_maximal_precision
+from inductive_valuation import FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation
 from valuation import InfiniteDiscretePseudoValuation, DiscreteValuation
 
 from sage.misc.cachefunc import cached_method
@@ -46,7 +47,7 @@ class AugmentedValuationFactory(UniqueFactory):
             if not is_key:
                 raise ValueError(reason)
             if mu <= base_valuation(phi):
-                raise ValueError("the value of the key polynomial must strictly increase but `%s` does not exceed `%s`."%(phi, v(phi)))
+                raise ValueError("the value of the key polynomial must strictly increase but `%s` does not exceed `%s`."%(mu, base_valuation(phi)))
 
         return base_valuation, phi, mu
 
@@ -56,13 +57,13 @@ class AugmentedValuationFactory(UniqueFactory):
         from valuation_space import DiscretePseudoValuationSpace
         parent = DiscretePseudoValuationSpace(base_valuation.domain())
         if mu < infinity:
-            return parent.__make_element_class__(AugmentedValuation_generic)(parent, base_valuation, phi, mu)
+            return parent.__make_element_class__(FiniteAugmentedValuation)(parent, base_valuation, phi, mu)
         else:
             return parent.__make_element_class__(InfiniteAugmentedValuation)(parent, base_valuation, phi, mu)
 
 AugmentedValuation = AugmentedValuationFactory("AugmentedValuation")
 
-class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
+class AugmentedValuation_base(InductiveValuation):
     """
     An augmented valuation is a discrete valuation on a polynomial ring. It
     extends another discrete valuation `v` by setting the valuation of a
@@ -111,7 +112,7 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
         if mu is not infinity:
             mu = QQ(mu)
 
-        DevelopingValuation.__init__(self, parent, phi)
+        InductiveValuation.__init__(self, parent, phi)
 
         self._base_valuation = v
         self._mu = mu
@@ -157,7 +158,7 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
 
         # this optimization does only pay off for polynomials of large degree:
         if f.degree() // self.phi().degree() <= 3:
-            return DevelopingValuation._call_(self, f)
+            return super(AugmentedValuation_base, self)._call_(f)
 
         ret = infinity
 
@@ -303,12 +304,12 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
     def _latex_(self):
         vals = [self]
         v = self
-        while isinstance(v, AugmentedValuation_generic):
+        while isinstance(v, AugmentedValuation_base):
             v = v._base_valuation
             vals.append(v)
         vals.reverse()
         from sage.misc.latex import latex
-        vals = [ "v_%s(%s) = %s"%(i,latex(v._phi), latex(v._mu)) if isinstance(v, AugmentedValuation_generic) else latex(v) for i,v in enumerate(vals) ]
+        vals = [ "v_%s(%s) = %s"%(i,latex(v._phi), latex(v._mu)) if isinstance(v, AugmentedValuation_base) else latex(v) for i,v in enumerate(vals) ]
         return "[ %s ]"%", ".join(vals)
 
     def _repr_(self):
@@ -326,7 +327,7 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
 
         """
         vals = self._augmentations()
-        vals = [ "v(%s) = %s"%(v._phi, v._mu) if isinstance(v, AugmentedValuation_generic) else str(v) for v in vals ]
+        vals = [ "v(%s) = %s"%(v._phi, v._mu) if isinstance(v, AugmentedValuation_base) else str(v) for v in vals ]
         return "[ %s ]"%", ".join(vals)
 
     def _augmentations(self):
@@ -915,14 +916,14 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
                 # self(phi) = self._mu, i.e., w(phi) = w(unit) + sum e_i * w(f_i) where
                 # the sum runs over all the factors in the equivalence decomposition of phi
                 # Solving for mu gives
-                mu = (self._mu - v(F.unit()) - sum([ee*v(ff) for ee,ff in F if ff != f])) / e
+                mu = (self._mu - v(F.unit()) - sum([ee*v(ff) for ff,ee in F if ff != f])) / e
                 ret.append(AugmentedValuation(v, f, mu))
         return ret
 
     def restriction(self, ring):
         if ring is self.domain().base_ring():
             return self._base_valuation.restriction(ring)
-        return super(AugmentedValuation_generic, self).restriction(ring)
+        return super(AugmentedValuation_base, self).restriction(ring)
 
     def uniformizer(self):
         return self.element_with_valuation(self.value_group()._generator)
@@ -940,18 +941,21 @@ class AugmentedValuation_generic(DevelopingValuation, DiscreteValuation):
             return other.is_discrete_valuation()
         if isinstance(other, GaussValuation_generic):
 			return self._base_valuation >= other
-        if isinstance(other, AugmentedValuation_generic):
+        if isinstance(other, AugmentedValuation_base):
 			if self(other._phi) >= other._mu:
 				return self >= other._base_valuation
 			else:
 				return False
 
-        return super(AugmentedValuation_generic, self)._ge_(other)
+        return super(AugmentedValuation_base, self)._ge_(other)
 
     def is_discrete_valuation(self):
         from sage.rings.all import infinity
         return self._mu != infinity
 
-class InfiniteAugmentedValuation(AugmentedValuation_generic, InfiniteDiscretePseudoValuation):
+class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation):
+    pass
+
+class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValuation):
     pass
 

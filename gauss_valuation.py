@@ -48,7 +48,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.getcwd())
     sys.path.append(os.path.dirname(os.getcwd()))
 
-from developing_valuation import DevelopingValuation
+from inductive_valuation import FiniteInductiveValuation
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
@@ -133,7 +133,7 @@ class GaussValuationFactory(UniqueFactory):
 
 GaussValuation = GaussValuationFactory("GaussValuation")
 
-class GaussValuation_generic(DevelopingValuation):
+class GaussValuation_generic(FiniteInductiveValuation):
     """
     A Gauss valuation on a polynomial ring ``domain``.
 
@@ -173,7 +173,7 @@ class GaussValuation_generic(DevelopingValuation):
             True
 
         """
-        DevelopingValuation.__init__(self, parent, parent.domain().gen())
+        FiniteInductiveValuation.__init__(self, parent, parent.domain().gen())
 
         self._base_valuation = v
 
@@ -298,24 +298,6 @@ class GaussValuation_generic(DevelopingValuation):
             sage: f = x^2 + 2*x + 16
             sage: list(v.valuations(f))
             [4, 1, 0]
-
-        TESTS:
-
-        The treatment of (inexact) zero values is slightly complicated, see
-        :meth:`DevelopingValuation._normalize_leading_coefficients`::
-
-            sage: list(v.valuations(S.zero()))
-            []
-            sage: list(v.valuations(S([R(0,1),R(0,2)])))
-            []
-            sage: list(v.valuations(S([R(0,2),R(0,1)])))
-            []
-            sage: list(v.valuations(S([R(1,1),R(0,1)])))
-            [0]
-            sage: list(v.valuations(S([R(4,3),R(0,1)])))
-            Traceback (most recent call last):
-            ...
-            ValueError: f must not have leading zero coefficients
 
         """
         f = self.domain().coerce(f)
@@ -702,8 +684,8 @@ class GaussValuation_generic(DevelopingValuation):
         """
         if isinstance(other, GaussValuation_generic):
             return self._base_valuation >= other._base_valuation
-        from augmented_valuation import AugmentedValuation_generic
-        if isinstance(other, AugmentedValuation_generic):
+        from augmented_valuation import AugmentedValuation_base
+        if isinstance(other, AugmentedValuation_base):
             return False
         if other.is_trivial():
             return other.is_discrete_valuation()

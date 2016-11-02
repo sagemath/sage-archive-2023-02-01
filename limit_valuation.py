@@ -344,9 +344,9 @@ class LimitValuation_generic(DiscretePseudoValuation):
 
         """
         from sage.rings.all import infinity
-        from augmented_valuation import AugmentedValuation_generic
+        from augmented_valuation import AugmentedValuation_base
         if self._initial_approximation(self._G) < infinity:
-            if isinstance(self._initial_approximation, AugmentedValuation_generic):
+            if isinstance(self._initial_approximation, AugmentedValuation_base):
                 return repr(self._initial_approximation)[:-1] + ", … ]"
         return repr(self._initial_approximation)
 
@@ -903,7 +903,7 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
                 unique_approximant[0] = unique_approximant[0].restriction(unique_approximant[0].domain().base_ring())
             if len(unique_approximant) == 1:
                 return repr(unique_approximant[0])
-            from augmented_valuation import AugmentedValuation_generic
-            return "[ %s ]-adic valuation"%(", ".join("v(%r) = %r"%(v._phi, v._mu) if (isinstance(v, AugmentedValuation_generic) and v.domain() == self._base_valuation.domain()) else repr(v) for v in unique_approximant))
+            from augmented_valuation import AugmentedValuation_base
+            return "[ %s ]-adic valuation"%(", ".join("v(%r) = %r"%(v._phi, v._mu) if (isinstance(v, AugmentedValuation_base) and v.domain() == self._base_valuation.domain()) else repr(v) for v in unique_approximant))
         return "%s-adic valuation"%(self._base_valuation)
 

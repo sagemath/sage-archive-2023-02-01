@@ -432,12 +432,8 @@ class ComputeMinimalPolynomials(SageObject):
         assert (nu_t(self._B) % p**t).is_zero(),\
             "%s not in (%s^%s)-ideal" % (str(nu_t), str(p), str(t))
         chi_B = self._ZX(self._B.characteristic_polynomial())
-        column = [nu_t]
-        #print nu_t
-        for b in self._A[:, 0].list():
-            q,r = (nu_t*b).quo_rem(chi_B)
-
-            column.append(q)
+        column = [nu_t] + [(nu_t*b).quo_rem(chi_B)[0]
+                           for b in self._A[:, 0].list()]
 
         assert (self._A * matrix(self._ZX,
                                  (self._A).ncols(), 1, column) % p**t).is_zero(),\

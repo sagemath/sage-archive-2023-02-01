@@ -621,7 +621,6 @@ class ComputeMinimalPolynomials(SageObject):
         return self._ZX.ideal(generators)
 
 
-    # which primes we need to checke
     def prime_candidates(self):
         r"""
         Determine those primes `p` where `\mu_B` might not be a `p`-minimal polynomial.
@@ -633,14 +632,20 @@ class ComputeMinimalPolynomials(SageObject):
         EXAMPLES::
 
              sage: from calculate_nu import compute_nu # not tested
-             sage: B = matrix([[1, 2], [3, 4]])
-             sage: C = ComputeMinimalPolynomials(B)
-             sage: C.prime_candidates()
-             [3]
              sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
              sage: C = ComputeMinimalPolynomials(B)
              sage: C.prime_candidates()
              [2, 3, 5]
+             sage: C.p_minimal_polynomials(2)
+             [x^3 + 7*x^2 + 6*x]
+             ([2], {2: x^2 + 3*x + 2})
+             sage: C.p_minimal_polynomials(3)
+             ([], {})
+             sage: C.p_minimal_polynomials(5)
+             ([], {})
+
+        This means that `3` and `5` were canidates, but actually, `\mu_B` turns
+        out to be a `3`-minimal polynomial and a `5`-minimal polynomial.
         """
         F, T = (self._B).frobenius(2)
         factorization = list(factor(T.det()))

@@ -145,6 +145,118 @@ from sage.rings.number_field.order import Order
 Order._coerce_map_from_ = _coerce_map_from_patched
 del(_coerce_map_from_patched)
 
+# factorization in polynomial quotient fields
+def _factor_univariate_polynomial(self, f):
+    from sage.structure.factorization import Factorization
+
+    if f.is_zero():
+        raise ValueError("factorization of 0 is not defined")
+    elif f.degree() <= 1:
+        return Factorization([(f,1)])
+
+    from_absolute_field, to_absolute_field, absolute_field = self.absolute_extension()
+
+    F = f.map_coefficients(lambda c:to_absolute_field(c), absolute_field).factor()
+    return Factorization([(g.map_coefficients(lambda c:from_absolute_field(c), self), e) for g,e in F], unit=from_absolute_field(F.unit()))
+sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic._factor_univariate_polynomial = _factor_univariate_polynomial
+del(_factor_univariate_polynomial)
+
+# factorization needs to go to the absolute field and back
+from sage.misc.cachefunc import cached_method
+@cached_method
+def absolute_extension(self):
+    """
+    Return a ring isomorphic to this ring which is not a
+    :class:`PolynomialQuotientRing` but of a type which offers more
+    functionality.
+
+    INUPT:
+
+    - ``name`` -- a list of strings or ``None`` (default: ``None``), the
+      name of the generator of the absolute extension. If ``None``, this
+      will be the same as the name of the generator of this ring.
+
+    EXAMPLES::
+
+        sage: k.<a> = GF(4)
+        sage: R.<b> = k[]
+        sage: l.<b> = k.extension(b^2+b+a); l
+        Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^2 with modulus b^2 + b + a
+        sage: from_ll,to_ll, ll = l.absolute_extension(); ll
+        Finite Field in z4 of size 2^4
+        sage: all([to_ll(from_ll(ll.gen()**i)) == ll.gen()**i for i in range(ll.degree())])
+        True
+
+        sage: R.<c> = l[]
+        sage: m.<c> = l.extension(c^2+b*c+b); m
+        Univariate Quotient Polynomial Ring in c over Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^2 with modulus b^2 + b + a with modulus c^2 + b*c + b
+        sage: from_mm, to_mm, mm = m.absolute_extension(); mm
+        Finite Field in z8 of size 2^8
+        sage: all([to_mm(from_mm(mm.gen()**i)) == mm.gen()**i for i in range(mm.degree())])
+        True
+
+    """
+    from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
+    if not self.is_field():
+        raise NotImplementedError("absolute_extension() only implemented for fields")
+
+    if self.is_finite():
+        if self.base_ring().is_prime_field():
+            if self.modulus().degree() == 1:
+                ret = self.base_ring()
+                from sage.categories.homset import Hom
+                from sage.categories.morphism import SetMorphism
+                to_ret = SetMorphism(Hom(self, ret), lambda x: x.lift()[0])
+                from_ret = self.coerce_map_from(ret)
+                return from_ret, to_ret, ret
+            else:
+                raise NotImplementedError
+
+        if isinstance(self.base_ring(), PolynomialQuotientRing_generic):
+            abs_base_to_base, base_to_abs_base, abs_base = self.base_ring().absolute_extension()
+            modulus_over_abs_base = self.modulus().map_coefficients(lambda c:base_to_abs_base(c), abs_base)
+            new_self = modulus_over_abs_base.parent().quo(modulus_over_abs_base)
+            ret_to_new_self, new_self_to_ret, ret = new_self.absolute_extension()
+            from_ret = ret.hom([ret_to_new_self(ret.gen()).lift().map_coefficients(abs_base_to_base, self.base_ring())(self.gen())], check=False)
+            to_ret = lambda x: x.lift().map_coefficients(lambda c: new_self_to_ret(base_to_abs_base(c)), ret)(new_self_to_ret(new_self.gen()))
+            from sage.categories.homset import Hom
+            from sage.categories.morphism import SetMorphism
+            to_ret = SetMorphism(Hom(self, ret), to_ret)
+            return from_ret, to_ret, ret
+        else:
+            N = self.cardinality()
+            from sage.rings.all import GF
+            ret = GF(N,prefix='v')
+            base_to_ret = self.base_ring().hom([self.base_ring().modulus().change_ring(ret).roots()[0][0]])
+            im_gen = self.modulus().map_coefficients(lambda c:base_to_ret(c), ret).roots()[0][0]
+            to_ret = lambda x: x.lift().map_coefficients(base_to_ret, ret)(im_gen)
+            from sage.categories.homset import Hom
+            from sage.categories.morphism import SetMorphism
+            to_ret = SetMorphism(Hom(self, ret), to_ret)
+
+            basis = [self.gen()**i*self.base_ring().gen()**j for i in range(self.degree()) for j in range(self.base_ring().degree())]
+            assert len(basis) == ret.degree()
+            basis_in_ret = [to_ret(b)._vector_() for b in basis]
+            from sage.matrix.constructor import matrix
+            A = matrix(basis_in_ret)
+            assert A.is_square()
+            x = A.solve_left(A.column_space().basis()[1])
+            from_ret = ret.hom([sum(c*b for c,b in zip(x.list(),basis))], check=False)
+            return from_ret, to_ret, ret
+    else:
+        raise NotImplementedError
+sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic.absolute_extension = absolute_extension
+del(absolute_extension)
+
+# factorization needs some linear algebra (it seems)
+def vector_space(self):
+    if not self.base().base_ring().is_field():
+        raise ValueError
+
+    return self.base().base_ring()**self.modulus().degree()
+sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic.vector_space = vector_space
+del(vector_space)
+
 # register modules at some standard places so imports work as exepcted
 r"""
 sage: from sage.rings.valuation.gauss_valuation import GaussValuation

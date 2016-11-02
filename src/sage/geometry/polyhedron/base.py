@@ -4216,6 +4216,17 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             RuntimeError: LattE integrale failed (exit code 1) to execute count --cdd /dev/stdin, see error message above
+
+        TESTS::
+
+        We check that :trac:`21491` is fixed::
+
+            sage: P = Polyhedron(ieqs=[], eqns=[[-10,0,1],[-10,1,0]])
+            sage: P.integral_points_count() # optional - latte_int
+            1
+            sage: P = Polyhedron(ieqs=[], eqns=[[-11,0,2],[-10,1,0]])
+            sage: P.integral_points_count() # optional - latte_int
+            0
         """
         if self.is_empty():
             return 0
@@ -4247,7 +4258,8 @@ class Polyhedron_base(Element):
                 err = ":\n" + err
             raise RuntimeError("LattE integrale failed (exit code {}) to execute {}".format(ret_code, ' '.join(args)) + err.strip())
 
-        return Integer(ans.splitlines()[-1])
+        with open(SAGE_TMP+'/numOfLatticePoints', 'r') as f:
+            return Integer(f.read())
 
     def integral_points(self, threshold=100000):
         r"""

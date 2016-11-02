@@ -404,26 +404,33 @@ class ComputeMinimalPolynomials(SageObject):
         return  matrix(self._ZX, self._A.ncols(), 1, column)
 
 
-    def p_minimal_polynomials(self, p, upto=None):
+    def p_minimal_polynomials(self, p, s_max=None):
         r"""
-        Return index set `\mathcal{S}` and monic polynomials
-        `\nu_s` for `s\in \mathcal{S}` such that `N_{p^t}(B) = \mu_B
-        \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}}
-        p^{t-s}\nu_s \mathbb{Z}[X]`
+        Compute `p^t`-minimal polynomials `\nu_t` of `B`.
 
         INPUT:
 
         - ``p`` -- an integer prime
 
-        - ``upto`` -- a nonnegative integer Default is ``None``: Returns
-          `\mathcal{S}` such that
-          `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in\mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]`
-          holds for all `t \ge \max\{s\in \mathcal{S}\}`.
+        - ``s_max`` -- a positive integer (Default: ``None``). If set, only `p^t`-minimal polynomials for
+          ``t <= s_max`` are computed.
 
         OUTPUT:
 
-        A list (index set `\mathcal{S}`) together with a dictionary
-        (keys=indices in `\mathcal{S}`, values=polynomials `\nu_s` )
+        A dictionary. Keys are a finite subset `\mathcal{S}` of the positive integers,
+        the values are the associated `p^s`-polynomials `\nu_s`, `s\in\mathcal{S}`.
+
+        For `0<t\le \max\mathcal{S}`, a `p^t`-minimal polynomial is given by `\nu_s`
+        where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.
+        For `t>\max\mathcal{S}`, the minimial polynomial of `B` is also a `p^t`-minimal
+        polynomial.
+
+        If ``s_max`` is set, only those `\nu_s` with ``s <= s_max``
+        are returned where ``s_max`` is always included even if it is
+        not included in the full set `\mathcal{S}` except when the
+        minimal polynomial of `B` is also a ``p^s_max`` minimal
+        polynomial.
+
 
         EXAMPLES::
 
@@ -516,7 +523,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials) nu=x^3 + 7*x^2 + 6*x
             ([2], {2: x^2 + 3*x + 2})
             sage: set_verbose(0)
-            sage: C.p_minimal_polynomials(2, upto=1)
+            sage: C.p_minimal_polynomials(2, s_max=1)
             ([1], {1: x^2 + x})
         """
 
@@ -561,7 +568,7 @@ class ComputeMinimalPolynomials(SageObject):
             p_min_polys[t] = nu
 
             # allow early stopping for small t
-            if t == upto:
+            if t == s_max:
                 return calS, p_min_polys
 
 

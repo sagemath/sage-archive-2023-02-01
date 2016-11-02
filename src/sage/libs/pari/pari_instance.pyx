@@ -182,9 +182,9 @@ The real precision set by
 In these examples, we convert to Sage to ensure that the real
 precision is not used when printing the numbers::
 
-    sage: pari(1).sin(precision=150).sage()
+    sage: pari(1).sin(precision=180).sage()
     0.841470984807896506652502321630298999622563060798371065673
-    sage: pari(1).sin(precision=20).sage()
+    sage: pari(1).sin(precision=40).sage()
     0.841470984807896507
     sage: pari(1).sin().sage()
     0.841470984807896507
@@ -192,9 +192,9 @@ precision is not used when printing the numbers::
 In the third case, the precision is determined only by the inexact
 inputs and the ``precision`` argument is ignored::
 
-    sage: pari(1.0).sin(precision=150).sage()
+    sage: pari(1.0).sin(precision=180).sage()
     0.841470984807896507
-    sage: pari(1.0).sin(precision=20).sage()
+    sage: pari(1.0).sin(precision=40).sage()
     0.841470984807896507
     sage: pari(RealField(100).one()).sin().sage()
     0.84147098480789650665250232163029899962

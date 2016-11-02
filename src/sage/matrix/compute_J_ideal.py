@@ -212,69 +212,69 @@ class Compute_nu(SageObject):
 
     # ersetzt Polynome im p^t-Ideal durch normierte (Lemma 5.4)
     def find_monic_replacements(self, p, t, poly_set, prev_nu):
-      r"""
-      Replace possibly non-monic generators of `N_{p^t}(B)` by monic generators
-
-      INPUT:
-
-      - ``p`` -- a prime element of `D`
-
-      - ``t`` -- a non-negative integer
-
-      - ``poly_set`` -- a list of polynomials over `D[X]`. Together with
-        `pN_{p^{t-1}}(B)`, they generate `N_{p^t}(B)`.
-
-      - ``prev_nu`` -- a `p^{t-1}`-minimal polynomial of `B`.
-
-      OUTPUT:
-
-      A list of monic polynomials. Together with `pN_{p^{t-1}}(B)`,
-      they generate `N_{p^t}(B)`.
-
-      EXAMPLES::
-
-          sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-          sage: C = Compute_nu(B)
-          sage: x = polygen(ZZ, 'x')
-          sage: nu_2 = x^2 + x
-          sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
-          sage: C.find_monic_replacements(2, 2, generators_4, nu_2)
-          [x^2 + 3*x + 2]
-
-      TESTS::
-
-          sage: C.find_monic_replacements(2, 3, generators_4, nu_2)
-          Traceback (most recent call last):
-          ...
-          AssertionError
-      """
-      assert all((f(self._B) % p**t).is_zero()
+        r"""
+        Replace possibly non-monic generators of `N_{p^t}(B)` by monic generators
+  
+        INPUT:
+  
+        - ``p`` -- a prime element of `D`
+  
+        - ``t`` -- a non-negative integer
+  
+        - ``poly_set`` -- a list of polynomials over `D[X]`. Together with
+          `pN_{p^{t-1}}(B)`, they generate `N_{p^t}(B)`.
+  
+        - ``prev_nu`` -- a `p^{t-1}`-minimal polynomial of `B`.
+  
+        OUTPUT:
+  
+        A list of monic polynomials. Together with `pN_{p^{t-1}}(B)`,
+        they generate `N_{p^t}(B)`.
+  
+        EXAMPLES::
+  
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: C = Compute_nu(B)
+            sage: x = polygen(ZZ, 'x')
+            sage: nu_2 = x^2 + x
+            sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
+            sage: C.find_monic_replacements(2, 2, generators_4, nu_2)
+            [x^2 + 3*x + 2]
+  
+        TESTS::
+  
+            sage: C.find_monic_replacements(2, 3, generators_4, nu_2)
+            Traceback (most recent call last):
+            ...
+            AssertionError
+        """
+        assert all((f(self._B) % p**t).is_zero()
                    for f in poly_set)
-
-      (X,) = self._ZX.gens()
-
-      replacements = []
-      for f in poly_set:
-        g = self._ZX(f)
-        nu = self._ZX(prev_nu)
-        p_prt = self._ZX(p_part(g, p))
-
-        while g != p*p_prt:
-          r = p_prt.quo_rem(nu)[1]
-          g2 = g - p*p_prt
-          d,u,v = xgcd(g2.leading_coefficient(), p)
-          tmp_h = p*r + g2
-          h = u*tmp_h + v*p*prev_nu*X**(tmp_h.degree()-prev_nu.degree())
-          replacements.append(h % p**t)
-           #reduce coefficients mod p^t to keep coefficients small
-          g = g.quo_rem(h)[1]
-          p_prt = self._ZX(p_part(g,p))
-
-      replacements = list(set(replacements))
-      assert all( g.is_monic() for g in replacements),\
-          "Something went wrong in find_monic_replacements"
-      return replacements
-
+  
+        (X,) = self._ZX.gens()
+  
+        replacements = []
+        for f in poly_set:
+            g = self._ZX(f)
+            nu = self._ZX(prev_nu)
+            p_prt = self._ZX(p_part(g, p))
+  
+            while g != p*p_prt:
+                r = p_prt.quo_rem(nu)[1]
+                g2 = g - p*p_prt
+                d,u,v = xgcd(g2.leading_coefficient(), p)
+                tmp_h = p*r + g2
+                h = u*tmp_h + v*p*prev_nu*X**(tmp_h.degree()-prev_nu.degree())
+                replacements.append(h % p**t)
+                #reduce coefficients mod p^t to keep coefficients small
+                g = g.quo_rem(h)[1]
+                p_prt = self._ZX(p_part(g,p))
+  
+        replacements = list(set(replacements))
+        assert all( g.is_monic() for g in replacements),\
+            "Something went wrong in find_monic_replacements"
+        return replacements
+  
 
     # Algorithm 2
     def current_nu(self, p, t, pt_generators, prev_nu):

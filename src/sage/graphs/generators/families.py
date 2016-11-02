@@ -12,6 +12,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
 #
 #           Copyright (C) 2016 Rowan Schrecker <rowan.schrecker@hertford.ox.ac.uk>
+#            (Rowan Schrecker supported by UK EPSRC grant EP/K040251/2)
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/

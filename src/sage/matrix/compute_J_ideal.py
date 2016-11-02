@@ -403,185 +403,185 @@ class Compute_nu(SageObject):
 
 
     def p_minimal_polynomials(self, p, upto=None, steps=False):
-       r"""
-       Return index set `\mathcal{S}` and monic polynomials
-       `\nu_s` for `s\in \mathcal{S}` such that `N_{p^t}(B) = \mu_B
-       \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}}
-       p^{t-s}\nu_s \mathbb{Z}[X]`
-
-       INPUT:
-
-       - ``p`` -- an integer prime
-
-       - ``upto`` -- a nonnegative integer Default is ``None``: Returns
-         `\mathcal{S}` such that
-         `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in\mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]`
-         holds for all `t \ge \max\{s\in \mathcal{S}\}`.
-
-       - ``steps`` -- show computation steps
-
-       OUTPUT:
-
-       A list (index set `\mathcal{S}`) together with a dictionary
-       (keys=indices in `\mathcal{S}`, values=polynomials `\nu_s` )
-
-       EXAMPLES::
-
-           sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-           sage: C = Compute_nu(B)
-           sage: C.p_minimal_polynomials(2)
-           ------------------------------------------
-           [x^2 + x]
-           Generators with (p^t)-generating property:
-           [x^2 + x]
-           ------------------------------------------
-           [2*x^2 + 2*x, x^2 + 3*x + 2]
-           Generators with (p^t)-generating property:
-           [x^2 + 3*x + 2]
-           ------------------------------------------
-           [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-           Generators with (p^t)-generating property:
-           [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-           [x^3 + 7*x^2 + 6*x]
-           ([2], {2: x^2 + 3*x + 2})
-           sage: C.p_minimal_polynomials(2, steps=True)
-           ------------------------------------------
-           p=2, t=1:
-           Result of lifting:
-           F=
-           [x^2 + x]
-           [      x]
-           [      0]
-           [      1]
-           [      1]
-           [  x + 1]
-           [      1]
-           [      0]
-           [      0]
-           [  x + 1]
-           ------------------------------------------
-           [x^2 + x]
-           Generators with (p^t)-generating property:
-           [x^2 + x]
-           nu=x^2 + x
-           corresponding columns for G
-           [x^2 + x]
-           [  x + 2]
-           [      0]
-           [      1]
-           [      1]
-           [  x - 1]
-           [     -1]
-           [     10]
-           [      0]
-           [  x + 1]
-           ------------------------------------------
-           p=2, t=2:
-           Result of lifting:
-           F=
-           [  2*x^2 + 2*x x^2 + 3*x + 2]
-           [          2*x         x + 4]
-           [            0             0]
-           [            2             1]
-           [            2             1]
-           [      2*x + 2         x + 1]
-           [            2            -1]
-           [            0            10]
-           [            0             0]
-           [      2*x + 2         x + 3]
-           ------------------------------------------
-           [2*x^2 + 2*x, x^2 + 3*x + 2]
-           Generators with (p^t)-generating property:
-           [x^2 + 3*x + 2]
-           nu=x^2 + 3*x + 2
-           corresponding columns for G
-           [x^2 + 3*x + 2]
-           [        x + 4]
-           [            0]
-           [            1]
-           [            1]
-           [        x + 1]
-           [           -1]
-           [           10]
-           [            0]
-           [        x + 3]
-           ------------------------------------------
-           p=2, t=3:
-           Result of lifting:
-           F=
-           [x^3 + 7*x^2 + 6*x x^3 + 3*x^2 + 2*x]
-           [        x^2 + 8*x         x^2 + 4*x]
-           [                0                 0]
-           [                x             x + 4]
-           [            x + 4                 x]
-           [    x^2 + 5*x + 4           x^2 + x]
-           [           -x + 4                -x]
-           [             10*x              10*x]
-           [                0                 0]
-           [        x^2 + 7*x     x^2 + 3*x + 4]
-           ------------------------------------------
-           [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-           Generators with (p^t)-generating property:
-           [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-           [x^3 + 7*x^2 + 6*x]
-           nu=x^3 + 7*x^2 + 6*x
-           ([2], {2: x^2 + 3*x + 2})
-           sage: C.p_minimal_polynomials(2, upto=1)
-           ------------------------------------------
-           [x^2 + x]
-           Generators with (p^t)-generating property:
-           [x^2 + x]
-           ([1], {1: x^2 + x})
-       """
-
-       mu_B = self._B.minimal_polynomial()
-       deg_mu = mu_B.degree()
-
-       t = 0
-       calS = []
-       p_min_polys = {}
-       nu = self._ZX(1)
-       d=self._A.ncols()
-       G = matrix(self._ZX,d,0)
-
-
-       while True:
-         deg_prev_nu = nu.degree()
-         t = t + 1
-         if steps:
-           print "------------------------------------------"
-           print "p=%s, t=%s:" % (str(p), str(t))
-
-         if steps:
-           print "Result of lifting:"
-           print "F="
-           print lifting(p, t, self._A, G)
-
-         nu = self.current_nu(p,t, list(lifting(p, t, self._A, G)[0]), nu)
-         if steps:
-           print "nu=%s" % str(nu)
-         if nu.degree() >= deg_mu:
-           return calS, p_min_polys
-
-	
-         if nu.degree() == deg_prev_nu:
-           calS.remove(t-1)
-           G = G.matrix_from_columns(range(G.ncols()-1))
-           del p_min_polys[t-1]
-
-         if steps:
-	   print "corresponding columns for G"
-	   print self.compute_mccoy_column(p,t,nu)
-	
-         G = matrix.block([[p * G, self.compute_mccoy_column(p, t, nu)]])
-         calS.append(t)
-         p_min_polys[t] = nu
-
-         # allow early stopping for small t
-         if t == upto:
-           return calS, p_min_polys
-
-
+        r"""
+        Return index set `\mathcal{S}` and monic polynomials
+        `\nu_s` for `s\in \mathcal{S}` such that `N_{p^t}(B) = \mu_B
+        \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}}
+        p^{t-s}\nu_s \mathbb{Z}[X]`
+ 
+        INPUT:
+ 
+        - ``p`` -- an integer prime
+ 
+        - ``upto`` -- a nonnegative integer Default is ``None``: Returns
+          `\mathcal{S}` such that
+          `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in\mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]`
+          holds for all `t \ge \max\{s\in \mathcal{S}\}`.
+ 
+        - ``steps`` -- show computation steps
+ 
+        OUTPUT:
+ 
+        A list (index set `\mathcal{S}`) together with a dictionary
+        (keys=indices in `\mathcal{S}`, values=polynomials `\nu_s` )
+ 
+        EXAMPLES::
+ 
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: C = Compute_nu(B)
+            sage: C.p_minimal_polynomials(2)
+            ------------------------------------------
+            [x^2 + x]
+            Generators with (p^t)-generating property:
+            [x^2 + x]
+            ------------------------------------------
+            [2*x^2 + 2*x, x^2 + 3*x + 2]
+            Generators with (p^t)-generating property:
+            [x^2 + 3*x + 2]
+            ------------------------------------------
+            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            Generators with (p^t)-generating property:
+            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            [x^3 + 7*x^2 + 6*x]
+            ([2], {2: x^2 + 3*x + 2})
+            sage: C.p_minimal_polynomials(2, steps=True)
+            ------------------------------------------
+            p=2, t=1:
+            Result of lifting:
+            F=
+            [x^2 + x]
+            [      x]
+            [      0]
+            [      1]
+            [      1]
+            [  x + 1]
+            [      1]
+            [      0]
+            [      0]
+            [  x + 1]
+            ------------------------------------------
+            [x^2 + x]
+            Generators with (p^t)-generating property:
+            [x^2 + x]
+            nu=x^2 + x
+            corresponding columns for G
+            [x^2 + x]
+            [  x + 2]
+            [      0]
+            [      1]
+            [      1]
+            [  x - 1]
+            [     -1]
+            [     10]
+            [      0]
+            [  x + 1]
+            ------------------------------------------
+            p=2, t=2:
+            Result of lifting:
+            F=
+            [  2*x^2 + 2*x x^2 + 3*x + 2]
+            [          2*x         x + 4]
+            [            0             0]
+            [            2             1]
+            [            2             1]
+            [      2*x + 2         x + 1]
+            [            2            -1]
+            [            0            10]
+            [            0             0]
+            [      2*x + 2         x + 3]
+            ------------------------------------------
+            [2*x^2 + 2*x, x^2 + 3*x + 2]
+            Generators with (p^t)-generating property:
+            [x^2 + 3*x + 2]
+            nu=x^2 + 3*x + 2
+            corresponding columns for G
+            [x^2 + 3*x + 2]
+            [        x + 4]
+            [            0]
+            [            1]
+            [            1]
+            [        x + 1]
+            [           -1]
+            [           10]
+            [            0]
+            [        x + 3]
+            ------------------------------------------
+            p=2, t=3:
+            Result of lifting:
+            F=
+            [x^3 + 7*x^2 + 6*x x^3 + 3*x^2 + 2*x]
+            [        x^2 + 8*x         x^2 + 4*x]
+            [                0                 0]
+            [                x             x + 4]
+            [            x + 4                 x]
+            [    x^2 + 5*x + 4           x^2 + x]
+            [           -x + 4                -x]
+            [             10*x              10*x]
+            [                0                 0]
+            [        x^2 + 7*x     x^2 + 3*x + 4]
+            ------------------------------------------
+            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            Generators with (p^t)-generating property:
+            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            [x^3 + 7*x^2 + 6*x]
+            nu=x^3 + 7*x^2 + 6*x
+            ([2], {2: x^2 + 3*x + 2})
+            sage: C.p_minimal_polynomials(2, upto=1)
+            ------------------------------------------
+            [x^2 + x]
+            Generators with (p^t)-generating property:
+            [x^2 + x]
+            ([1], {1: x^2 + x})
+        """
+ 
+        mu_B = self._B.minimal_polynomial()
+        deg_mu = mu_B.degree()
+ 
+        t = 0
+        calS = []
+        p_min_polys = {}
+        nu = self._ZX(1)
+        d=self._A.ncols()
+        G = matrix(self._ZX,d,0)
+ 
+ 
+        while True:
+            deg_prev_nu = nu.degree()
+            t = t + 1
+            if steps:
+                print "------------------------------------------"
+                print "p=%s, t=%s:" % (str(p), str(t))
+ 
+            if steps:
+                print "Result of lifting:"
+                print "F="
+                print lifting(p, t, self._A, G)
+ 
+            nu = self.current_nu(p,t, list(lifting(p, t, self._A, G)[0]), nu)
+            if steps:
+                print "nu=%s" % str(nu)
+            if nu.degree() >= deg_mu:
+                return calS, p_min_polys
+ 
+ 	
+            if nu.degree() == deg_prev_nu:
+                calS.remove(t-1)
+                G = G.matrix_from_columns(range(G.ncols()-1))
+                del p_min_polys[t-1]
+ 
+            if steps:
+ 	        print "corresponding columns for G"
+ 	        print self.compute_mccoy_column(p,t,nu)
+ 	
+            G = matrix.block([[p * G, self.compute_mccoy_column(p, t, nu)]])
+            calS.append(t)
+            p_min_polys[t] = nu
+ 
+            # allow early stopping for small t
+            if t == upto:
+                return calS, p_min_polys
+ 
+ 
     def null_ideal(self, b=0):
         r"""
         Return the ideal `N_{b}(B)=\{ f\in \mathbb{Z}[X] \mid \exists

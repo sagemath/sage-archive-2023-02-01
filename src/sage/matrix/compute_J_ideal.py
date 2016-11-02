@@ -304,14 +304,14 @@ class Compute_nu(SageObject):
           sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
           sage: C = Compute_nu(B)
           sage: x = polygen(ZZ, 'x')
-          sage: nu_4 = x^2 + 3*x + 2
-          sage: generators_8 = [5*x^3 + 35*x^2 + 30*x, 3*x^3 + 9*x^2 + 6*x]
-          sage: C.find_monic_replacements(2, 3, generators_8, nu_4)
-          [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+          sage: nu_2 = x^2 + x
+          sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
+          sage: C.find_monic_replacements(2, 2, generators_4, nu_2)
+          [x^2 + 3*x + 2]
 
       TESTS::
 
-          sage: C.find_monic_replacements(2, 4, generators_8, nu_4)
+          sage: C.find_monic_replacements(2, 3, generators_4, nu_2)
           Traceback (most recent call last):
           ...
           AssertionError

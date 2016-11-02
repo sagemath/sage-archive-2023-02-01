@@ -5,9 +5,17 @@ if [ -z "$SAGE_LOCAL" ] ; then
     echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
+
 cd src
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+if [ "$SAGE_FAT_BINARY" = yes ]; then
+    # Let's disable a bunch of stuff which might get linked.
+    # SSL/TLS still depends on the compilation environment.
+    CURL_CONFIGURE="--disable-ldap --disable-ldaps --disable-rtsp --disable-ares --disable-crypto-auth --without-libpsl --without-libmetalink --without-libssh2 --without-librtmp --without-libidn --without-nghttp2 --without-gssapi $CURL_CONFIGURE"
+fi
+
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+    $CURL_CONFIGURE
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring curl."
     exit 1

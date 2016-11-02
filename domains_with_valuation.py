@@ -1,1 +1,0 @@
-../src/sage/categories/domains_with_valuation.py

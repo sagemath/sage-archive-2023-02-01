@@ -65,7 +65,7 @@ The same phenomenon can be observed for valuations on number fields::
 
 AUTHORS:
 
-- Julian Rueth (2016-10-19): initial version
+- Julian Rüth (2016-10-19): initial version
 
 """
 #*****************************************************************************

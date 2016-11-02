@@ -37,7 +37,7 @@ right inheritance structure::
 
 AUTHORS:
 
-- Julian Rueth (2016-10-14): initial version
+- Julian Rüth (2016-10-14): initial version
 
 """
 #*****************************************************************************

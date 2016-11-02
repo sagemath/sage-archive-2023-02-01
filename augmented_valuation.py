@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Augmented valuations on polynomial rings
 
@@ -14,11 +15,11 @@ polynomial rings. Transactions of the American Mathematical Society, 40(3),
 
 AUTHORS:
 
-- Julian Rueth (15-04-2013): initial version
+- Julian Rüth (15-04-2013): initial version
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2016 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

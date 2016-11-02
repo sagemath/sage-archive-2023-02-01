@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+
+#*****************************************************************************
+#       Copyright (C) 2016 Julian Rüth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from .valuation_space import DiscretePseudoValuationSpace
 from .trivial_valuation import TrivialValuation, TrivialPseudoValuation
 from .padic_valuation import pAdicValuation

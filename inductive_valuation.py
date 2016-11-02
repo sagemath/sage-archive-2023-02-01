@@ -7,7 +7,7 @@ chains of :class:`AugmentedValuation`s on top of a :class:`GaussValuation`.
 
 AUTHORS:
 
-- Julian Rueth (01-11-2016): initial version
+- Julian Rüth (01-11-2016): initial version
 
 REFERENCES:
 

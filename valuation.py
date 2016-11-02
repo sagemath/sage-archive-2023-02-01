@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Discrete valuations
 
@@ -5,11 +6,11 @@ This file defines abstract base classes for discrete (pseudo-)valuations.
 
 AUTHORS:
 
-- Julian Rueth (2013-03-16): initial version
+- Julian Rüth (2013-03-16): initial version
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2016 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

@@ -13,7 +13,7 @@ EXAMPLES::
 
 AUTHORS:
 
-- Julian Rueth (2013-09-06): initial version
+- Julian Rüth (2013-09-06): initial version
 
 """
 #*****************************************************************************

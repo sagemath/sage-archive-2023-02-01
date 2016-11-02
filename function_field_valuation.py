@@ -37,7 +37,7 @@ extensions::
 
 AUTHORS:
 
-- Julian Rueth (2016-10-16): initial version
+- Julian Rüth (2016-10-16): initial version
 
 """
 #*****************************************************************************

@@ -1107,11 +1107,7 @@ cdef class BooleanFunction(SageObject):
             sage: g.autocorrelation()
             (16, 4, 4, 4, 4, -4, -4, -4, -4, 4, -4, -4, -4, 4, -4, -4)
         """
-        nvars = self._nvariables
-        for i in range(1, 1<<nvars):
-            if self.is_linear_structure(i):
-                return True
-        return False
+        return any(self.is_linear_structure(i) for i in range(1, 1<<self._nvariables))
 
     def linear_structures(self):
         """

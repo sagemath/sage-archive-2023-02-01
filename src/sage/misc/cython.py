@@ -309,7 +309,6 @@ def cython(filename, verbose=False, compile_message=False,
 
         sage: code = [
         ....: "#clang C++",
-        ....: "#cinclude %s/include/singular %s/include/factory"%(SAGE_LOCAL, SAGE_LOCAL),
         ....: "#clib m readline Singular givaro ntl gmpxx gmp",
         ....: "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
         ....: "from sage.libs.singular.polynomial cimport singular_polynomial_pow",

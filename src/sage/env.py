@@ -139,10 +139,6 @@ _add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
 _add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
 _add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_LOCAL','gap','latest'))
 
-# used by cython.py
-_add_variable_or_fallback('SINGULAR_INCLUDEDIR', opj('$SAGE_LOCAL','include','singular'))
-_add_variable_or_fallback('FACTORY_INCLUDEDIR',  opj('$SAGE_LOCAL','include','factory'))
-
 # locate singular shared object
 UNAME = os.uname()[0]
 if UNAME[:6] == "CYGWIN":

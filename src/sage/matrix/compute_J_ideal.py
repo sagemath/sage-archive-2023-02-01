@@ -1,5 +1,52 @@
-"""
-Calculate nu
+r"""Minimal `J`-ideals of matrices
+
+Let `B` be an `n\times n`-matrix over a principal ideal domain `D`.
+
+For an ideal `J`, the `J`-ideal of `B` is defined to be
+`N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.
+
+For a prime element `p` of `D` and `t\ge 0`, a `p^t`-minimal polynomial of `B` is a monic
+polynomial `f\in N_{(p^t)}(B)` of minimal degree.
+
+This module computes these minimal polynomials.
+
+Let `p` be a prime element of `D`. Then there is a finite set `\mathcal{S}_p` of positive integers and monic polynomials `\nu_{ps}` for `s\in\mathcal{S}_p`  such that for `t\ge 1`,
+
+.. MATH::
+
+   N_{(p^t)}(B) = \mu_BD[X] + p^tD[X]
+   + \sum_{\substack{s\in\mathcal{S}_p \\ s \le  b(t) }} p^{\max\{0,t-s\}}\nu_{ps}D[X]
+
+holds where `b(t) = \min\{r\in \mathcal{S}_p \mid r \ge s\}`. The
+degree of `\nu_{ps}` is strictly increasing in `s\in \mathcal{S}_p` and
+`\nu_{ps}` is a `p^s`-minimal polynomial. If `t\le \max\mathcal{S}_p`,
+then the summand `\mu_BD[X]` can be omitted.
+
+EXAMPLES::
+
+    sage: from calculate_nu import ComputeMinimalPolynomials # not tested
+    sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+    sage: C = ComputeMinimalPolynomials(B)
+    sage: C.prime_candidates()
+    [2, 3, 5]
+    sage: for t in range(3):
+    ....:     print C.null_ideal(2**t)
+    Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
+    Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
+    Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
+    sage: C.p_minimal_polynomials(2)
+    [x^3 + 7*x^2 + 6*x]
+    ([2], {2: x^2 + 3*x + 2})
+
+
+REFERENCES:
+
+.. [R2016] Roswitha Rissner, Null ideals of matrices over residue class rings of principal ideal domains. Linear Algebra Appl.,
+   494:44--69, 2016.
+
+.. [HR2016] Clemens Heuberger and Roswitha Rissner, Computing `J`-Ideals of a Matrix Over a Principal Ideal
+   Domain, Preprint, 2016.
+
 """
 
 from sage.matrix.constructor import matrix

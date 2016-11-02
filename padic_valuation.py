@@ -794,7 +794,8 @@ class pAdicValuation_padic(pAdicValuation_base):
 
     def shift(self, c, v):
         """
-        Multiply ``c`` by a ``v``-th power of the uniformizer.
+        Multiply ``c`` by a power of a uniformizer such that its valuation
+        changes by ``v``.
 
         INPUT:
 
@@ -816,9 +817,12 @@ class pAdicValuation_padic(pAdicValuation_base):
             2*3^3 + O(3^23)
 
         """
-        from sage.rings.all import ZZ
+        from sage.rings.all import QQ, ZZ
         c = self.domain().coerce(c)
-        v = ZZ(v)
+        v = QQ(v)
+        if v not in self.value_group():
+            raise ValueError("%r is not in the value group of %r"%(v, self))
+        v = ZZ(v * self.domain().ramification_index())
         return c<<v
 
     def _repr_(self):

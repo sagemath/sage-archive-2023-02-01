@@ -52,7 +52,7 @@ class InductiveValuation(DevelopingValuation):
 
     TESTS::
 
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def is_equivalence_unit(self, f):
@@ -66,6 +66,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R = Zp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -97,13 +98,14 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R = Zp(3,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: f = 3*x + 2
-            sage: h = v.equivalence_reciprocal(f); h
+            sage: h = v.equivalence_reciprocal(f); h # optional: integrated (needs xgcd for polynomials with p-adic coefficients)
             2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
-            sage: v.is_equivalent(f*h, 1)
+            sage: v.is_equivalent(f*h, 1) # optional: integrated
             True
 
         In an extended valuation over an extension field::
@@ -111,7 +113,7 @@ class InductiveValuation(DevelopingValuation):
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
-            sage: v = v.extension(x^2 + x + u, 1)
+            sage: v = v.augmentation(x^2 + x + u, 1)
             sage: f = 2*x + u
             sage: h = v.equivalence_reciprocal(f); h
             (u + 1) + (u + 1)*2 + 2^2 + u*2^3 + 2^4 + O(2^5)
@@ -120,7 +122,7 @@ class InductiveValuation(DevelopingValuation):
 
         Extending the valuation once more::
 
-            sage: v = v.extension((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
+            sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
             sage: h = v.equivalence_reciprocal(f); h
             (u + 1) + (u + 1)*2 + (u + 1)*2^2 + (u + 1)*2^3 + u*2^4 + O(2^5)
             sage: v.is_equivalent(f*h, 1)
@@ -135,16 +137,14 @@ class InductiveValuation(DevelopingValuation):
             sage: L.<a> = K.extension(x^4 + 4*x^3 + 6*x^2 + 4*x + 2)
             sage: R.<t> = L[]
             sage: v = GaussValuation(R)
-            sage: w = v.extension(t + 1, 5/4)
-            sage: w = w.extension(t^4 + (a^8 + a^12 + a^14 + a^16 + a^17 + a^19 + a^20 + a^23)*t^3 + (a^6 + a^9 + a^13 + a^15 + a^18 + a^19 + a^21)*t^2 + a^10*t + 1 + a^4 + a^5 + a^8 + a^13 + a^14 + a^15, 17/2)
+            sage: w = v.augmentation(t + 1, 5/16)
+            sage: w = w.augmentation(t^4 + (a^8 + a^12 + a^14 + a^16 + a^17 + a^19 + a^20 + a^23)*t^3 + (a^6 + a^9 + a^13 + a^15 + a^18 + a^19 + a^21)*t^2 + a^10*t + 1 + a^4 + a^5 + a^8 + a^13 + a^14 + a^15, 17/8)
             sage: f = a^-15*t^2 + (a^-11 + a^-9 + a^-6 + a^-5 + a^-3 + a^-2)*t + a^-15
-            sage: f_ = w.equivalence_reciprocal(f); f_
-            (a^10 + a^13 + a^14 + a^17 + a^18 + a^19 + a^20 + a^24 + a^25 + O(a^26))*t^2 + a^10 + a^13 + a^18 + a^19 + a^22 + a^23 + a^24 + a^25 + O(a^26)
+            sage: f_ = w.equivalence_reciprocal(f)
             sage: w.reduce(f*f_)
             1
             sage: f = f.parent()([f[0],f[1].add_bigoh(1),f[2]])
-            sage: f_ = w.equivalence_reciprocal(f); f_
-            (a^10 + a^13 + a^14 + a^17 + a^18 + a^19 + a^20 + a^24 + a^25 + O(a^26))*t^2 + a^10 + a^13 + a^18 + a^19 + a^22 + a^23 + a^24 + a^25 + O(a^26)
+            sage: f_ = w.equivalence_reciprocal(f)
             sage: w.reduce(f*f_)
             1
 
@@ -200,13 +200,14 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: v.minimal_representative(x + 2)
             (1 + O(2^10))*x
 
-            sage: v = v.extension(x, 1)
+            sage: v = v.augmentation(x, 1)
             sage: v.minimal_representative(x + 2)
             (1 + O(2^10))*x + 2 + O(2^11)
             sage: f = x^3 + 6*x + 4
@@ -214,7 +215,7 @@ class InductiveValuation(DevelopingValuation):
             (2 + 2^2 + O(2^11)) * ((1 + O(2^10))*x + 2 + 2^2 + 2^4 + 2^6 + 2^8 + 2^10 + O(2^11))
             sage: v.is_minimal(F[0][0])
             True
-            sage: v.is_equivalent(F[0][0], f)
+            sage: v.is_equivalent(F.prod(), f)
             True
 
         REFERENCES:
@@ -254,6 +255,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_is_equivalence_unit()
@@ -268,6 +270,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_equivalence_reciprocal()
@@ -316,15 +319,16 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
-            sage: v = v.extension(x^2 + x + u, 1)
-            sage: v = v.extension((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
+            sage: v = v.augmentation(x^2 + x + u, 1)
+            sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
             sage: v
             [ Gauss valuation induced by 2-adic valuation, v((1 + O(2^5))*x^2 + (1 + O(2^5))*x + u + O(2^5)) = 1, v((1 + O(2^5))*x^4 + (2^2 + O(2^6))*x^3 + (1 + (u + 1)*2 + O(2^5))*x^2 + ((u + 1)*2^2 + O(2^6))*x + (u + 1) + (u + 1)*2 + (u + 1)*2^2 + (u + 1)*2^3 + (u + 1)*2^4 + O(2^5)) = 3 ]
             sage: v.residue_field()
-            Univariate Quotient Polynomial Ring in u2 over Univariate Quotient Polynomial Ring in u1 over Finite Field in u0 of size 2^2 with modulus u1^2 + u1 + u0 with modulus u2^2 + u1*u2 + u1
+            Rational function field in x over Univariate Quotient Polynomial Ring in u2 over Univariate Quotient Polynomial Ring in u1 over Finite Field in u0 of size 2^2 with modulus u1^2 + u1 + u0 with modulus u2^2 + u1*u2 + u1
 
         TESTS:
 
@@ -338,14 +342,14 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             sage: f3 = 3+30*t^2+18*t^3+198*t^5+180*t^7+189*t^8+342*t^10+145*t^12
             sage: F = f2*f3
 
-            sage: v1 = v0.extension(t,1/12)
-            sage: v2 = v1.extension(t^12+3,7/6)
-            sage: v3 = v2.extension(t^12+3*t^2+3,9/4)
-            sage: v4 = v1.extension(t^12+3*t^2+3,9/4)
-            sage: v3 == v4 # rather: check for equivalence
+            sage: v1 = v0.augmentation(t,1/12)
+            sage: v2 = v1.augmentation(t^12+3,7/6)
+            sage: v3 = v2.augmentation(t^12+3*t^2+3,9/4)
+            sage: v4 = v1.augmentation(t^12+3*t^2+3,9/4)
+            sage: v3 <= v4 and v3 >= v4 
             True
-            sage: v4.equivalence_decomposition(F)
-            sage: v3.equivalence_decomposition(F)
+            sage: v4.equivalence_decomposition(F) # optional: integrated
+            sage: v3.equivalence_decomposition(F) # optional: integrated
 
         .. SEEALSO::
 
@@ -374,6 +378,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -384,7 +389,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             sage: v.is_key(x^2, explain = True)
             (False, 'phi must be equivalence irreducible')
 
-            sage: w = v.extension(x, 1)
+            sage: w = v.augmentation(x, 1)
             sage: w.is_key(x + 1, explain = True)
             (False, 'phi must be minimal')
 
@@ -422,12 +427,13 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: v.is_minimal(x + 1)
             True
-            sage: w = v.extension(x, 1)
+            sage: w = v.augmentation(x, 1)
             sage: w.is_minimal(x + 1)
             False
 
@@ -438,9 +444,9 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             sage: vp=pAdicValuation(K)
             sage: v0 = GaussValuation(R,vp)
             sage: f=x^5+x^4+2
-            sage: v1 = v0.extension(x,1/4)
-            sage: v2 = v1.extension(x^4+2,5/4)
-            sage: v2.is_minimal(f)
+            sage: v1 = v0.augmentation(x,1/4)
+            sage: v2 = v1.augmentation(x^4+2,5/4)
+            sage: v2.is_minimal(f) # long time
             False
 
         TODO: Add examples for polynomials which have the same degree as the
@@ -477,13 +483,13 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         TESTS::
 
+            sage: from mac_lane import * # optional: standalone
             sage: K.<x>=FunctionField(QQ)
             sage: S.<y>=K[]
             sage: F=y^2-x^2-x^3-3
             sage: v0=GaussValuation(K._ring,pAdicValuation(QQ,3))
             sage: v1=v0.augmentation(K._ring.gen(),1/3)
-            sage: from sage.rings.padics.function_field_valuation import RationalFunctionFieldValuation
-            sage: mu0=RationalFunctionFieldValuation(K,v1)
+            sage: mu0=FunctionFieldValuation(K,v1)
             sage: eta0=GaussValuation(S,mu0)
             sage: eta1=eta0.mac_lane_step(F)[0]
             sage: eta2=eta1.mac_lane_step(F)[0]
@@ -602,6 +608,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -686,6 +693,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -704,7 +712,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         of a :class:`sage.structure.factorization.Factorization`, leading to a unit
         non-minimal degree::
 
-            sage: w = v.extension(x, 1)
+            sage: w = v.augmentation(x, 1)
             sage: F = w.equivalence_decomposition(x^2+1); F
             (1 + O(2^10))*x^2 + 1 + O(2^10)
             sage: F.unit()
@@ -721,8 +729,8 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         Examples over an iterated unramified extension:
 
-            sage: v = v.extension(x^2 + x + u, 1)
-            sage: v = v.extension((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
+            sage: v = v.augmentation(x^2 + x + u, 1)
+            sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
 
             sage: v.equivalence_decomposition(x)
             (1 + O(2^10))*x
@@ -743,10 +751,10 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             sage: vp=vp.extension(K)
             sage: v0=GaussValuation(R,vp)
             sage: G=x^36 + 36*x^35 + 630*x^34 + 7144*x^33 + 59055*x^32 + 379688*x^31 +1978792*x^30 + 8604440*x^29 + 31895428*x^28 + 102487784*x^27 + 289310720*x^26 + 725361352*x^25 + 1629938380*x^24 + 3307417800*x^23 + 6098786184*x^22+10273444280*x^21 + 15878121214*x^20 + 22596599536*x^19 + 29695703772*x^18 +36117601976*x^17 + 40722105266*x^16 + 42608585080*x^15 + 41395961848*x^14 +37344435656*x^13 + 31267160756*x^12 + 24271543640*x^11 + 17439809008*x^10 + 11571651608*x^9 + 7066815164*x^8 + 3953912472*x^7 + 2013737432*x^6 + 925014888*x^5 + 378067657*x^4 + 134716588*x^3 + 40441790*x^2 + 9532544*x + 1584151
-            sage: v1=v0.mac_lane_step(G)[0]
-            sage: V=v1.mac_lane_step(G)
-            sage: v2=V[0]
-            sage: v2.equivalence_decomposition(G)
+            sage: v1=v0.mac_lane_step(G)[0] # long time
+            sage: V=v1.mac_lane_step(G) # long time
+            sage: v2=V[0] # long time
+            sage: v2.equivalence_decomposition(G) # long time
             (x^4 + 4*x^3 + 6*x^2 + 4*x + alpha^4 + alpha^3 + 1)^3 * (x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*alpha^4 + alpha^3 - 27*alpha + 1)^3 * (x^4 + 4*x^3 + 6*x^2 + 4*x + 3/2*alpha^4 + alpha^3 - 27*alpha + 1)^3
 
         REFERENCES:
@@ -819,6 +827,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_is_equivalence_irreducible()
@@ -866,7 +875,7 @@ def _lift_to_maximal_precision(c):
 
     EXAMPLES::
 
-        sage: from sage.rings.padics.developing_valuation import _lift_to_maximal_precision
+        sage: from mac_lane import * # optional: standalone
         sage: R = Zp(2,5)
         sage: x = R(1,2); x
         1 + O(2^2)

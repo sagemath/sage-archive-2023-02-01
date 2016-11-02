@@ -329,21 +329,21 @@ class ComputeMinimalPolynomials(SageObject):
         return generators[0]
 
 
-    def compute_mccoy_column(self, p, t, poly):
+    def compute_mccoy_column(self, p, t, nu_t):
         r"""
         INPUT:
 
         - ``p`` -- a prime element in `D`
 
-        - ``t`` -- a non-negative integer
+        - ``t`` -- a positive integer
 
-        - ``poly`` -- a `p^t`-minimal polynomial of `B`
+        - ``nu_t`` -- a `p^t`-minimal polynomial of `B`
 
         OUTPUT:
 
-        An `(n^2 + 1) \times 1` matrix `g` such that
+        An `(n^2 + 1) \times 1` matrix `g` with first entry ``nu_t`` such that
         `(b -\chi_B I)g \equiv 0\pmod{p^t}` where `b` consists
-        of the entries of `\adj(X-B)`.
+        of the entries of `\operatorname{adj}(X-B)`.
 
         EXAMPLES::
 
@@ -366,13 +366,13 @@ class ComputeMinimalPolynomials(SageObject):
            AssertionError: x^2 + x not in (2^2)-ideal
 
         """
-        assert (poly(self._B) % p**t).is_zero(),\
-            "%s not in (%s^%s)-ideal" % (str(poly), str(p), str(t))
+        assert (nu_t(self._B) % p**t).is_zero(),\
+            "%s not in (%s^%s)-ideal" % (str(nu_t), str(p), str(t))
         chi_B = self._ZX(self._B.characteristic_polynomial())
-        column = [poly]
-        #print poly
+        column = [nu_t]
+        #print nu_t
         for b in self._A[:, 0].list():
-            q,r = (poly*b).quo_rem(chi_B)
+            q,r = (nu_t*b).quo_rem(chi_B)
 
             column.append(q)
 

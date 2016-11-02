@@ -300,7 +300,7 @@ class ComputeMinimalPolynomials(SageObject):
             while g != p*p_prt:
                 r = p_prt.quo_rem(nu)[1]
                 g2 = g - p*p_prt
-                d,u,v = xgcd(g2.leading_coefficient(), p)
+                d, u, v = xgcd(g2.leading_coefficient(), p)
                 tmp_h = p*r + g2
                 h = u*tmp_h + v*p*prev_nu*X**(tmp_h.degree()-prev_nu.degree())
                 replacements.append(h % p**t)
@@ -375,7 +375,7 @@ class ComputeMinimalPolynomials(SageObject):
         g = generators[0]
         for f in generators:
             if f.degree() < g.degree():
-                g=f
+                g = f
 
         # find nu
         while len(generators) > 1:
@@ -387,7 +387,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose(generators)
 
             if generators[-1].degree() < g.degree():
-                g=generators[-1]
+                g = generators[-1]
 
         return generators[0]
 
@@ -570,8 +570,8 @@ class ComputeMinimalPolynomials(SageObject):
         calS = []
         p_min_polys = {}
         nu = self._ZX(1)
-        d=self._A.ncols()
-        G = matrix(self._ZX,d,0)
+        d = self._A.ncols()
+        G = matrix(self._ZX, d, 0)
 
 
         while True:
@@ -584,7 +584,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose("F=")
             verbose(lifting(p, t, self._A, G))
 
-            nu = self.current_nu(p,t, list(lifting(p, t, self._A, G)[0]), nu)
+            nu = self.current_nu(p, t, list(lifting(p, t, self._A, G)[0]), nu)
 
             verbose("nu=%s" % nu)
             if nu.degree() >= deg_mu:
@@ -597,7 +597,7 @@ class ComputeMinimalPolynomials(SageObject):
                 del p_min_polys[t-1]
 
             verbose("corresponding columns for G")
-            verbose(self.mccoy_column(p,t,nu))
+            verbose(self.mccoy_column(p, t, nu))
 
             G = matrix.block([[p * G, self.mccoy_column(p, t, nu)]])
             calS.append(t)
@@ -642,7 +642,7 @@ class ComputeMinimalPolynomials(SageObject):
 
             #print p_polys
             #print "Generators before: %s" % str(generators)
-            for s in calS+ [t]:
+            for s in calS + [t]:
                 #print s
                 #print p_polys[s]
                 generators = generators + \

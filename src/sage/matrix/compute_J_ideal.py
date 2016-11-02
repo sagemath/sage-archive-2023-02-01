@@ -334,7 +334,7 @@ class Compute_nu(SageObject):
             if f.degree() < g.degree():
                 g=f
 
-        # find nu	
+        # find nu    
         while len(generators) > 1:
             f = list(set(generators) - set([g]))[0]
             #take first element in generators not equal g
@@ -392,7 +392,7 @@ class Compute_nu(SageObject):
         column = [poly]
         #print poly
         for b in self._A[:, 0].list():
-	    q,r = (poly*b).quo_rem(chi_B)
+            q,r = (poly*b).quo_rem(chi_B)
 
             column.append(q)
 
@@ -563,16 +563,16 @@ class Compute_nu(SageObject):
             if nu.degree() >= deg_mu:
                 return calS, p_min_polys
  
- 	
+     
             if nu.degree() == deg_prev_nu:
                 calS.remove(t-1)
                 G = G.matrix_from_columns(range(G.ncols()-1))
                 del p_min_polys[t-1]
  
             if steps:
- 	        print "corresponding columns for G"
- 	        print self.compute_mccoy_column(p,t,nu)
- 	
+                print "corresponding columns for G"
+                print self.compute_mccoy_column(p,t,nu)
+
             G = matrix.block([[p * G, self.compute_mccoy_column(p, t, nu)]])
             calS.append(t)
             p_min_polys[t] = nu
@@ -618,12 +618,12 @@ class Compute_nu(SageObject):
         factorization = list(factor(b))
         generators = [self._ZX(b), self._ZX((self._B).minimal_polynomial())]
         for (p,t) in factorization:
-	    #print (p,t)
-	    cofactor = b // p**t
-	    calS, p_polys = self.p_minimal_polynomials(p,t)
-	    #print "++++"
-	    #print calS
-	    #print p_polys
+            #print (p,t)
+            cofactor = b // p**t
+            calS, p_polys = self.p_minimal_polynomials(p,t)
+            #print "++++"
+            #print calS
+            #print p_polys
 
             #print p_polys
             #print "Generators before: %s" % str(generators)
@@ -667,7 +667,7 @@ class Compute_nu(SageObject):
  
         primes = []
         for (p, t) in factorization:
- 	    primes.append(p)
+            primes.append(p)
  
         return primes
  

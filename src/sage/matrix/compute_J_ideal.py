@@ -201,11 +201,6 @@ class ComputeMinimalPolynomials(SageObject):
         Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
         sage: C.p_minimal_polynomials(2)
         {2: x^2 + 3*x + 2}
-
-    .. TODO:: Test composite ``b`` for ``null_ideal``
-
-    .. TODO:: Implement and test ``b=0`` for ``null_ideal``
-
     """
     def __init__(self, B):
         r"""
@@ -615,25 +610,35 @@ class ComputeMinimalPolynomials(SageObject):
         EXAMPLES::
 
             sage: from calculate_nu import compute_nu # not tested
-            sage: B = matrix([[1, 2], [3, 4]])
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
-            sage: for t in range(3):
-            ....:     print C.null_ideal(3**t)
-            Ideal (1, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
-            Ideal (3, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
-            Ideal (9, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
+            sage: C.null_ideal()
+            Principal ideal (x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
+            sage: C.null_ideal(2)
+            Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
+            sage: C.null_ideal(4)
+            Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
+            sage: C.null_ideal(8)
+            Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate Polynomial Ring in x over Integer Ring
+            sage: C.null_ideal(3)
+            Ideal (3, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
+            sage: C.null_ideal(6)
+            Ideal (6, x^3 + x^2 - 12*x - 20, 3*x^2 + 3*x) of Univariate Polynomial Ring in x over Integer Ring
         """
-        generators = [self._ZX(b), self._ZX((self._B).minimal_polynomial())]
-        for (p, t) in factor(b):
-            cofactor = b // p**t
-            p_polynomials = self.p_minimal_polynomials(p, t)
-            generators = generators + \
+        generators = [self._ZX((self._B).minimal_polynomial())]
+
+        if b != 0:
+            generators = [self._ZX(b)] + generators
+            for (p, t) in factor(b):
+                cofactor = b // p**t
+                p_polynomials = self.p_minimal_polynomials(p, t)
+                generators = generators + \
                              [self._ZX(cofactor*p**(t-s)*p_polynomial)
                               for s, p_polynomial in p_polynomials.iteritems()]
 
 
-        assert all((g(self._B) % b).is_zero() for g in generators), \
-            "Polynomials not in %s-ideal" % (b,)
+            assert all((g(self._B) % b).is_zero() for g in generators), \
+                "Polynomials not in %s-ideal" % (b,)
 
         return self._ZX.ideal(generators)
 

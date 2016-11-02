@@ -1,4 +1,8 @@
-r"""Minimal `J`-ideals of matrices
+r"""
+Minimal `J`-ideals of matrices
+
+Minimal `J`-ideals of matrices
+==============================
 
 Let `B` be an `n\times n`-matrix over a principal ideal domain `D`.
 
@@ -46,7 +50,34 @@ REFERENCES:
 .. [HR2016] Clemens Heuberger and Roswitha Rissner, Computing `J`-Ideals of a Matrix Over a Principal Ideal
    Domain, Preprint, 2016.
 
+AUTHORS:
+
+- Clemens Heuberger (2016)
+- Roswitha Rissner (2016)
+
+ACKNOWLEDGEMENT:
+
+- Clemens Heuberger is supported by the Austrian Science Fund (FWF):
+  P 24644-N26.
+
+- Roswitha Rissner is supported by the Austrian Science Fund (FWF):
+  P 27816-N26.
+
+
+Classes and Methods
+===================
 """
+
+# *****************************************************************************
+# Copyright (C) 2016 Clemens Heuberger <clemens.heuberger@aau.at>
+#               2016 Roswitha Rissner <roswitha.rissner@tugraz.at>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+# http://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_function

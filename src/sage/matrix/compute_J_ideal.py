@@ -331,20 +331,20 @@ class Compute_nu(SageObject):
         # find poly of minimal degree
         g = generators[0]
         for f in generators:
-          if f.degree() < g.degree():
-            g=f
+            if f.degree() < g.degree():
+                g=f
 
         # find nu	
         while len(generators) > 1:
-          f = list(set(generators) - set([g]))[0]
-          #take first element in generators not equal g
-          generators.remove(f)
-          r = (f.quo_rem(g)[1]) % p**t
-          generators = generators + self.find_monic_replacements(p, t, [r], prev_nu)
-          print generators
+            f = list(set(generators) - set([g]))[0]
+            #take first element in generators not equal g
+            generators.remove(f)
+            r = (f.quo_rem(g)[1]) % p**t
+            generators = generators + self.find_monic_replacements(p, t, [r], prev_nu)
+            print generators
 
-          if generators[-1].degree() < g.degree():
-            g=generators[-1]
+            if generators[-1].degree() < g.degree():
+                g=generators[-1]
 
         return generators[0]
 

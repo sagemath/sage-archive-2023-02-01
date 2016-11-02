@@ -618,21 +618,21 @@ class Compute_nu(SageObject):
         factorization = list(factor(b))
         generators = [self._ZX(b), self._ZX((self._B).minimal_polynomial())]
         for (p,t) in factorization:
-	  #print (p,t)
-	  cofactor = b // p**t
-	  calS, p_polys = self.p_minimal_polynomials(p,t)
-	  #print "++++"
-	  #print calS
-	  #print p_polys
+	    #print (p,t)
+	    cofactor = b // p**t
+	    calS, p_polys = self.p_minimal_polynomials(p,t)
+	    #print "++++"
+	    #print calS
+	    #print p_polys
 
-          #print p_polys
-          #print "Generators before: %s" % str(generators)
-          for s in calS+ [t]:
-            #print s
-            #print p_polys[s]
-            generators = generators + \
-                [self._ZX(cofactor*p**(t-s)*p_polys[s]) for s in calS]
-            #print "Generators after: %s" % str(generators)
+            #print p_polys
+            #print "Generators before: %s" % str(generators)
+            for s in calS+ [t]:
+                #print s
+                #print p_polys[s]
+                generators = generators + \
+                             [self._ZX(cofactor*p**(t-s)*p_polys[s]) for s in calS]
+                #print "Generators after: %s" % str(generators)
 
 
         assert all((g(self._B) % b).is_zero() for g in generators), \

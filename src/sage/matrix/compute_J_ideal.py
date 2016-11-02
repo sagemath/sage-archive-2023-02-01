@@ -167,14 +167,9 @@ def p_part(f, p):
     """
     ZZX = f.parent()
     (X,) = ZZX.gens()
-    p_prt = 0
-    coefficients = f.list()
-    for i in range(len(coefficients)):
-        coeff = coefficients[i]
-        if coeff%p == 0:
-            p_prt = p_prt + coeff//p*X**i
-
-    return p_prt
+    return sum(c//p * X**i for
+               i, c in enumerate(f.list())
+               if c % p == 0)
 
 
 class ComputeMinimalPolynomials(SageObject):

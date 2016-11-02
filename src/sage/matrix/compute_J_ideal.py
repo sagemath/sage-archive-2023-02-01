@@ -418,6 +418,42 @@ class Compute_nu(SageObject):
 
 
     def compute_mccoy_column(self, p, t, poly):
+         r"""
+         INPUT:
+
+         - ``p`` -- a prime element in `D`
+
+         - ``t`` -- a non-negative integer
+
+         - ``poly`` -- a `p^t`-minimal polynomial of `B`
+
+         OUTPUT:
+
+         An `(n^2 + 1) \times 1` matrix `g` such that
+         `(b -\chi_B I)g \equiv 0\pmod{p^t}` where `b` consists
+         of the entries of `\adj(X-B)`.
+
+         EXAMPLES::
+
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: C = Compute_nu(B)
+            sage: x = polygen(ZZ, 'x')
+            sage: nu_4 = x^2 + 3*x + 2
+            sage: g = C.compute_mccoy_column(2, 2, nu_4)
+            sage: b = matrix(9, 1, (x-B).adjoint().list())
+            sage: M = matrix.block([[b , -B.charpoly(x)*matrix.identity(9)]])
+            sage: (M*g % 4).is_zero()
+            True
+
+         TESTS::
+
+            sage: nu_2 = x^2 + x
+            sage: C.compute_mccoy_column(2, 2, nu_2)
+            Traceback (most recent call last):
+            ...
+            AssertionError: x^2 + x not in (2^2)-ideal
+
+         """
          assert (poly(self._B) % p**t).is_zero(),\
              "%s not in (%s^%s)-ideal" % (str(poly), str(p), str(t))
          chi_B = self._ZX(self._B.characteristic_polynomial())

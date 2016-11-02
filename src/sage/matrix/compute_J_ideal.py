@@ -17,19 +17,19 @@ def lifting(p, t, A, G):
 
     INPUT:
 
-    - ``p`` -- a prime element of some ring `D`
+    - ``p`` -- a prime element of some principal ideal domain `D`
 
     - ``t`` -- a non-negative integer
 
     - ``A`` -- a `c\times d` matrix  over `D[X]`
 
-    - ``G`` -- a matrix over `D[X]`. The columns of `(p^{t-1}I G)` are generators of
+    - ``G`` -- a matrix over `D[X]`. The columns of `\begin{pmatrix}p^{t-1}I& G\end{pmatrix}` are generators of
       `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^{t-1}}\}`. Can be set to ``None`` if ``t`` is zero.
 
     OUTPUT:
 
-    A matrix ``F`` over `D[X]` such that the columns of `(p^tI F pG)` are generators of
-    `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^{t-1}}\}`.
+    A matrix `F` over `D[X]` such that the columns of `\begin{pmatrix}p^tI&F&pG\end{pmatrix}` are generators of
+    `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^t}\}`.
 
     EXAMPLES::
 
@@ -105,7 +105,7 @@ def p_part(f, p):
 
     OUTPUT:
 
-    A polynomial ``g`` such that `\deg g \le \deg f` and
+    A polynomial `g` such that `\deg g \le \deg f` and
     all non-zero coefficients of `f - p g` are not divisible by `p`.
 
     EXAMPLES::

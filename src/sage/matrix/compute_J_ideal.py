@@ -280,6 +280,42 @@ class Compute_nu(SageObject):
 
     # ersetzt Polynome im p^t-Ideal durch normierte (Lemma 5.4)
     def find_monic_replacements(self, p, t, poly_set, prev_nu):
+      r"""
+      Replace possibly non-monic generators of `N_{p^t}(B)` by monic generators
+
+      INPUT:
+
+      - ``p`` -- a prime element of `D`
+
+      - ``t`` -- a non-negative integer
+
+      - ``poly_set`` -- a list of polynomials over `D[X]`. Together with
+        `pN_{p^{t-1}}(B)`, they generate `N_{p^t}(B)`.
+
+      - ``prev_nu`` -- a `p^{t-1}`-minimal polynomial of `B`.
+
+      OUTPUT:
+
+      A list of monic polynomials. Together with `pN_{p^{t-1}}(B)`,
+      they generate `N_{p^t}(B)`.
+
+      EXAMPLES::
+
+          sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+          sage: C = Compute_nu(B)
+          sage: x = polygen(ZZ, 'x')
+          sage: nu_4 = x^2 + 3*x + 2
+          sage: generators_8 = [5*x^3 + 35*x^2 + 30*x, 3*x^3 + 9*x^2 + 6*x]
+          sage: C.find_monic_replacements(2, 3, generators_8, nu_4)
+          [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+
+      TESTS::
+
+          sage: C.find_monic_replacements(2, 4, generators_8, nu_4)
+          Traceback (most recent call last):
+          ...
+          AssertionError
+      """
       assert all((f(self._B) % p**t).is_zero()
                    for f in poly_set)
 

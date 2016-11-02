@@ -1262,7 +1262,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: H = P.hasse_diagram(); H
             Digraph on 6 vertices
             sage: P.cover_relations()
-            [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: H.edges(labels=False)
             [(1, 2), (1, 3), (2, 4), (2, 6), (3, 6), (4, 12), (6, 12)]
 
@@ -3762,7 +3762,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             On the other hand, this returns a full featured enumerated
             set, with containment testing, etc.
 
-        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
+        .. SEEALSO:: :meth:`maximal_antichains`, :meth:`chains`
         """
         vertex_to_element = self._vertex_to_element
 
@@ -5421,7 +5421,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]
 
-        .. seealso:: :meth:`antichains`, :meth:`maximal_chains`
+        .. SEEALSO:: :meth:`antichains`, :meth:`maximal_chains`
         """
         # Maximal antichains are maximum cliques on incomparability graph.
         return self.incomparability_graph().cliques_maximal()
@@ -5452,7 +5452,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.maximal_chains()
             [[0, 1, 2, 3, 4, 5]]
 
-        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
+        .. SEEALSO:: :meth:`maximal_antichains`, :meth:`chains`
         """
         if partial is None or len(partial) == 0:
             start = self.minimal_elements()
@@ -6411,8 +6411,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         # we only check for even rank intervals. See for example
         # Richard Ehrenborg, k-Eulerian Posets (Order 18: 227-236, 2001)
         # http://www.ms.uky.edu/~jrge/Papers/k-Eulerian.pdf
-        for rank_diff in xrange(2, k+1, 2):
-            for level in xrange(0, height-rank_diff):
+        for rank_diff in range(2, k + 1, 2):
+            for level in range(height - rank_diff):
                 for i in levels[level]:
                     for j in levels[level+rank_diff]:
                         if H.is_lequal(i, j) and M[i, j] != 1:

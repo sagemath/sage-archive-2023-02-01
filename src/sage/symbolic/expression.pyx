@@ -158,6 +158,7 @@ from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 from sage.arith.numerical_approx cimport digits_to_bits
+from sage.libs.pynac.pynac cimport *
 
 
 cpdef bint is_Expression(x):
@@ -1197,7 +1198,7 @@ cdef class Expression(CommutativeRingElement):
         except TypeError as err:
             # try the evaluation again with the complex field
             # corresponding to the parent R
-            if R is float:
+            if R in (float, complex):
                 R_complex = complex
             else:
                 try:
@@ -1404,10 +1405,19 @@ cdef class Expression(CommutativeRingElement):
             sage: float(sqrt(2)/sqrt(abs(-(I - 1)*sqrt(2) - I - 1)))
             0.9036020036...
         """
+        from sage.functions.other import real, imag
         try:
-            return float(self._eval_self(float))
+            ret = float(self._eval_self(float))
         except TypeError:
-            raise TypeError("unable to simplify to float approximation")
+            try:
+                c = (self._eval_self(complex))
+                if imag(c) == 0:
+                    ret = real(c)
+                else:
+                    raise
+            except TypeError:
+                raise TypeError("unable to simplify to float approximation")
+        return ret
 
     def __complex__(self):
         """
@@ -3745,7 +3755,7 @@ cdef class Expression(CommutativeRingElement):
         :meth:`~sage.calculus.functional.derivative` function for more
         details.
 
-        .. seealso::
+        .. SEEALSO::
 
             This is implemented in the ``_derivative`` method (see the
             source code).
@@ -5170,7 +5180,7 @@ cdef class Expression(CommutativeRingElement):
             sage: type(u._unpack_operands()[0])
             <type 'tuple'>
         """
-        from sage.symbolic.pynac import unpack_operands
+        from sage.libs.pynac.pynac import unpack_operands
         return unpack_operands(self)
 
     def operands(self):
@@ -5283,7 +5293,7 @@ cdef class Expression(CommutativeRingElement):
                 raise RuntimeError("cannot find SFunction in table")
 
             if is_a_fderivative(self._gobj):
-                from sage.symbolic.pynac import paramset_from_Expression
+                from sage.libs.pynac.pynac import paramset_from_Expression
                 parameter_set = paramset_from_Expression(self)
                 res = FDerivativeOperator(res, parameter_set)
 
@@ -7611,10 +7621,8 @@ cdef class Expression(CommutativeRingElement):
             0.0
             sage: maxima('atan2(0,0.6)')
             0.0
-            sage: SR(0).arctan2(0) # see trac ticket #11423
-            Traceback (most recent call last):
-            ...
-            RuntimeError: arctan2_eval(): arctan2(0,0) encountered
+            sage: SR(0).arctan2(0) # see trac ticket #21614
+            NaN
             sage: SR(I).arctan2(1)
             arctan2(I, 1)
             sage: SR(CDF(0,1)).arctan2(1)
@@ -8956,7 +8964,7 @@ cdef class Expression(CommutativeRingElement):
            Currently, this just sends the expression to Maxima
            and converts it back to Sage.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`simplify_full`, :meth:`simplify_trig`,
            :meth:`simplify_rational`, :meth:`simplify_rectform`

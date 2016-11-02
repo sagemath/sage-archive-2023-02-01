@@ -237,7 +237,8 @@ class Hypergeometric(BuiltinFunction):
                                  conversions={'mathematica':
                                               'HypergeometricPFQ',
                                               'maxima': 'hypergeometric',
-                                              'sympy': 'hyper'})
+                                              'sympy': 'hyper',
+                                              'fricas': 'hypergeometricF'})
 
     def __call__(self, a, b, z, **kwargs):
         """
@@ -958,7 +959,8 @@ class Hypergeometric_M(BuiltinFunction):
         BuiltinFunction.__init__(self, 'hypergeometric_M', nargs=3,
                                  conversions={'mathematica':
                                               'Hypergeometric1F1',
-                                              'maxima': 'kummer_m'},
+                                              'maxima': 'kummer_m',
+                                              'fricas': 'kummerM'},
                                  latex_name='M')
 
     def _eval_(self, a, b, z, **kwargs):
@@ -1067,7 +1069,8 @@ class Hypergeometric_U(BuiltinFunction):
         BuiltinFunction.__init__(self, 'hypergeometric_U', nargs=3,
                                  conversions={'mathematica':
                                               'HypergeometricU',
-                                              'maxima': 'kummer_u'},
+                                              'maxima': 'kummer_u',
+                                              'fricas': 'kummerU'},
                                  latex_name='U')
 
     def _eval_(self, a, b, z, **kwargs):

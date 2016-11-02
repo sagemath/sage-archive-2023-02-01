@@ -49,6 +49,7 @@ function_re = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 function_blacklist = {"O",  # O(p^e) needs special parser support
         "alias",            # Not needed and difficult documentation
         "listcreate",       # "redundant and obsolete" according to PARI
+        "allocatemem",      # Better hand-written support in PariInstance
         }
 
 class PariFunctionGenerator(object):
@@ -137,7 +138,7 @@ class PariFunctionGenerator(object):
             ....:     help=r"ellmodulareqn(N,{x},{y}): return...",
             ....:     doc=r"return a vector [\kbd{eqn},$t$] where \kbd{eqn} is...",
             ....:     **{"class":"basic", "section":"elliptic_curves"})
-                def ellmodulareqn(pari_instance, long N, x=None, y=None):
+                def ellmodulareqn(self, long N, x=None, y=None):
                     ...
                     cdef long _x = -1
                     if x is not None:

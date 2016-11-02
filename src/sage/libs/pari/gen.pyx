@@ -3732,7 +3732,7 @@ cdef class gen(gen_auto):
         - univariate polynomials, rational functions, power series and
           Laurent series (using a single unnamed argument or keyword
           arguments),
-        - any PARI object supporting the PARI function ``substvec``
+        - any PARI object supporting the PARI function :pari:`substvec`
           (in particular, multivariate polynomials) using keyword
           arguments,
         - objects of type ``t_CLOSURE`` (functions in GP bytecode form)
@@ -4187,11 +4187,13 @@ cdef class gen(gen_auto):
             [257, 1; 1601, 1; 25601, 1; 76001, 1; 133842787352016..., 1]
         """
         cdef GEN g
+        global factor_proven
+        cdef int saved_factor_proven = factor_proven
+
         if limit == 0:
             deprecation(20205, "factor(..., lim=0) is deprecated, use an explicit limit instead")
             limit = maxprime()
-        global factor_proven
-        cdef int saved_factor_proven = factor_proven
+
         try:
             if proof is not None:
                 factor_proven = 1 if proof else 0
@@ -4490,6 +4492,24 @@ cdef class gen(gen_auto):
         sig_off()
         return
 
+    def allocatemem(gen self, *args):
+        """
+        Deprecated. Use ``pari.allocatemem()`` instead.
+
+        TESTS::
+
+            sage: pari(2^10).allocatemem(2^20)
+            doctest:...: DeprecationWarning: The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.
+            See http://trac.sagemath.org/21553 for details.
+            PARI stack size set to 1024 bytes, maximum size set to 1048576
+        """
+        deprecation(21553, "The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.")
+        if self.type() == 't_INT':
+            return pari_instance.allocatemem(int(self), *args)
+        else:
+            raise TypeError("Incorrect PARI type in allocatemem (%s)" % self.type())
+
+
     ####################################################################
     # Functions deprecated by upstream PARI
     #
@@ -4768,14 +4788,6 @@ cpdef gentoobj(gen z, locals={}):
     See the ``python`` method of :class:`gen` for documentation and
     examples.
     """
-    from sage.rings.integer import Integer
-    from sage.rings.rational import Rational
-    from sage.rings.infinity import Infinity
-    from sage.rings.all import RealField, ComplexField, QuadraticField
-    from sage.matrix.constructor import matrix
-    from sage.rings.padics.factory import Qp
-    from sage.misc.sage_eval import sage_eval
-
     cdef GEN g = z.g
     cdef long t = typ(g)
     cdef long tx, ty
@@ -4783,10 +4795,13 @@ cpdef gentoobj(gen z, locals={}):
     cdef Py_ssize_t i, j, nr, nc
 
     if t == t_INT:
-         return Integer(z)
+        from sage.rings.integer import Integer
+        return Integer(z)
     elif t == t_FRAC:
-         return Rational(z)
+        from sage.rings.rational import Rational
+        return Rational(z)
     elif t == t_REAL:
+        from sage.rings.all import RealField
         prec = prec_words_to_bits(z.precision())
         return RealField(prec)(z)
     elif t == t_COMPLEX:
@@ -4806,10 +4821,12 @@ cpdef gentoobj(gen z, locals={}):
             else:
                 prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
 
+            from sage.rings.all import RealField, ComplexField
             R = RealField(prec)
             C = ComplexField(prec)
             return C(R(real), R(imag))
         else:
+            from sage.rings.all import QuadraticField
             K = QuadraticField(-1, 'i')
             return K([gentoobj(real), gentoobj(imag)])
     elif t == t_VEC or t == t_COL:
@@ -4820,18 +4837,23 @@ cpdef gentoobj(gen z, locals={}):
         nc = lg(g)-1
         nr = 0 if nc == 0 else lg(gel(g,1))-1
         L = [gentoobj(z[i,j], locals) for i in range(nr) for j in range(nc)]
+        from sage.matrix.constructor import matrix
         return matrix(nr, nc, L)
     elif t == t_PADIC:
+        from sage.rings.integer import Integer
+        from sage.rings.padics.factory import Qp
         p = z.padicprime()
         K = Qp(Integer(p), precp(g))
         return K(z.lift())
     elif t == t_INFINITY:
+        from sage.rings.infinity import Infinity
         if inf_get_sign(g) >= 0:
             return Infinity
         else:
             return -Infinity
     
     # Fallback (e.g. polynomials): use string representation
+    from sage.misc.sage_eval import sage_eval
     return sage_eval(str(z), locals=locals)
 
 

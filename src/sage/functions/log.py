@@ -138,7 +138,7 @@ class Function_exp(GinacFunction):
             +Infinity
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
-                                   conversions=dict(maxima='exp'))
+                                   conversions=dict(maxima='exp', fricas='exp'))
 
 exp = Function_exp()
 
@@ -221,7 +221,7 @@ class Function_log(GinacFunction):
             3.141592653589793j
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
-                               conversions=dict(maxima='log'))
+                               conversions=dict(maxima='log', fricas='log'))
 
     def __call__(self, *args, **kwds):
         """
@@ -1185,7 +1185,7 @@ harmonic_number = Function_harmonic_number_generalized()
 
 def _swap_harmonic(a,b): return harmonic_number(b,a)
 
-from sage.symbolic.pynac import register_symbol
+from sage.libs.pynac.pynac import register_symbol
 
 register_symbol(_swap_harmonic,{'maxima':'gen_harmonic_number'})
 register_symbol(_swap_harmonic,{'maple':'harmonic'})

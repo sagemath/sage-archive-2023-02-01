@@ -25,10 +25,10 @@ to run these examples inside a module.) ::
     sage: from sage.misc.prandom import randrange
     sage: from sage.misc.randstate import current_randstate
     sage: def test1():
-    ...      return sum([randrange(100) for i in range(100)])
+    ....:    return sum([randrange(100) for i in range(100)])
     sage: def test2():
-    ...      randrange = current_randstate().python_random().randrange
-    ...      return sum([randrange(100) for i in range(100)])
+    ....:    randrange = current_randstate().python_random().randrange
+    ....:    return sum([randrange(100) for i in range(100)])
 
 Test2 will be slightly faster than test1, but they give the same answer::
 

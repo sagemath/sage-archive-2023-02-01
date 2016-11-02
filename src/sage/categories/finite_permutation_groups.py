@@ -51,6 +51,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -63,6 +64,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
         running ._test_enumerated_set_iter_list() . . . pass
         running ._test_eq() . . . pass
         running ._test_inverse() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -186,8 +188,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
 
             REFERENCES:
 
-             .. [Ker1991] \A. Kerber. Algebraic combinatorics via finite group actions, 2.2 p. 70.
-               BI-Wissenschaftsverlag, Mannheim, 1991.
+            - [Ke1991]_
 
             AUTHORS:
 

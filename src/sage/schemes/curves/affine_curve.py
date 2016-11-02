@@ -729,9 +729,9 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             (Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
             24*x^2*ss1^3 + 24*ss1^3 + (a0^3 - 8*a0),
              Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
-             24*s1^2*ss0 + (a0^3 - 8*a0)*ss0^2 + (6*a0^3)*s1,
+             24*s1^2*ss0 + (a0^3 - 8*a0)*ss0^2 + (-6*a0^3)*s1,
              Affine Plane Curve over Number Field in a0 with defining polynomial y^4 - 4*y^2 + 16 defined by
-             8*y^2*s0^4 + (-4*a0^3)*y*s0^3 - 32*s0^2 + (a0^3 - 8*a0)*y)
+             8*y^2*s0^4 + (4*a0^3)*y*s0^3 - 32*s0^2 + (a0^3 - 8*a0)*y)
 
         ::
 
@@ -1471,7 +1471,7 @@ class AffinePlaneCurve(AffineCurve):
               To:   Affine Plane Curve over Number Field in a with defining
             polynomial a^2 + 7 defined by x^2 + y^2 + 7
               Defn: Defined on coordinates by sending (t) to
-                    (((7*a)*t^2 + (a))/(-7*t^2 + 1), (-14*t)/(-7*t^2 + 1))
+                    ((-7*t^2 + 7)/((-a)*t^2 + (-a)), 14*t/((-a)*t^2 + (-a)))
         """
         para = self.projective_closure(i=0).rational_parameterization().defining_polynomials()
         # these polynomials are homogeneous in two indeterminants, so dehomogenize wrt one of the variables

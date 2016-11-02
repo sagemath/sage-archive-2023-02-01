@@ -1128,7 +1128,7 @@ cdef class LaurentSeries(AlgebraElement):
         documentation for the global derivative() function for more
         details.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`_derivative`
 
@@ -1164,7 +1164,7 @@ cdef class LaurentSeries(AlgebraElement):
         derivative as expected. Otherwise, _derivative(var) gets called
         recursively on each coefficient.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`derivative`
 

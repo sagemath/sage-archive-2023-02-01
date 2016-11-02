@@ -1,3 +1,4 @@
+# cython: old_style_globals=True
 r"""
 Base class for objects of a category
 
@@ -190,7 +191,7 @@ cdef class CategoryObject(SageObject):
         The new category is obtained by adjoining ``category`` to the
         current one.
 
-        .. seealso:: :function:`Category.join`
+        .. SEEALSO:: :function:`Category.join`
 
         EXAMPLES::
 
@@ -801,6 +802,7 @@ cdef class CategoryObject(SageObject):
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
               running ._test_eq() . . . pass
+              running ._test_new() . . . pass
               running ._test_nonzero_equal() . . . pass
               running ._test_not_implemented_methods() . . . pass
               running ._test_pickling() . . . pass
@@ -817,6 +819,7 @@ cdef class CategoryObject(SageObject):
             running ._test_euclidean_degree() . . . pass
             running ._test_gcd_vs_xgcd() . . . pass
             running ._test_metric() . . . pass
+            running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -879,6 +882,7 @@ cdef class CategoryObject(SageObject):
             _test_euclidean_degree
             _test_gcd_vs_xgcd
             _test_metric
+            _test_new
             _test_not_implemented_methods
             _test_one
             _test_pickling

@@ -21,12 +21,8 @@ segments. These segments are called the edges of the diagram.
 REFERENCES:
 
 - :wikipedia:`Knot_(mathematics)`
-
-.. [Collins13] Julia Collins. *An algorithm for computing the Seifert
-   matrix of a link from a braid representation*. (2013).
-   http://www.maths.ed.ac.uk/~jcollins/SeifertMatrix/SeifertMatrix.pdf
-
-.. [KnotAtlas] The Knot atlas. http://katlas.org/wiki/Main_Page
+- [Col2013]_
+- [KnotAtlas]_
 
 .. SEEALSO::
 
@@ -1344,7 +1340,7 @@ class Link(object):
         the homology generators. The position of the repeated element w.r.t.
         the braid word component vector list is compiled into a list.
 
-        This is based on Lemma 3.1 in [Collins13]_.
+        This is based on Lemma 3.1 in [Col2013]_.
 
         OUTPUT:
 
@@ -1385,7 +1381,7 @@ class Link(object):
 
         ALGORITHM:
 
-        This is the algorithm presented in Section 3.3 of [Collins13]_.
+        This is the algorithm presented in Section 3.3 of [Col2013]_.
 
         OUTPUT:
 
@@ -2000,14 +1996,14 @@ class Link(object):
         The normalization is so that the unknot has Jones polynomial `1`.
         If ``skein_normalization`` is ``True``, the variable of the result
         is replaced by a itself to the power of `4`, so that the result
-        agrees with the conventions of [Lic]_ (which in particular differs
+        agrees with the conventions of [Lic1997]_ (which in particular differs
         slightly from the conventions used otherwise in this class), had
         one used the conventional Kauffman bracket variable notation directly.
 
         If ``variab`` is ``None`` return a polynomial in the variable `A`
         or `t`, depending on the value ``skein_normalization``. In
         particular, if ``skein_normalization`` is ``False``, return the
-        result in terms of the variable `t`, also used in [Lic]_.
+        result in terms of the variable `t`, also used in [Lic1997]_.
 
         ALGORITHM:
 

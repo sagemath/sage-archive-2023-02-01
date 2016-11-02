@@ -435,7 +435,7 @@ cdef void sage_putchar(char c):
     # so it doesn't print one when an error occurs.
     pari_set_last_newline(1)
 
-cdef void sage_puts(char* s):
+cdef void sage_puts(const char* s):
     sys.stdout.write(s)
     pari_set_last_newline(1)
 
@@ -587,7 +587,11 @@ cdef class PariInstance(PariInstance_auto):
         # We deliberately use low-level functions to minimize the
         # chances that something goes wrong here (for example, if we
         # are out of memory).
-        printf("top =  %p\navma = %p\nbot =  %p\nsize = %lu\n", pari_mainstack.top, avma, pari_mainstack.bot, <unsigned long>pari_mainstack.rsize)
+        printf("top =  %p\navma = %p\nbot =  %p\nsize = %lu\n",
+            <void*>pari_mainstack.top,
+            <void*>avma,
+            <void*>pari_mainstack.bot,
+            <unsigned long>pari_mainstack.rsize)
         fflush(stdout)
 
     def __dealloc__(self):
@@ -939,7 +943,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: a = pari('2^100000000')
             Traceback (most recent call last):
             ...
-            PariError: _^s: the PARI stack overflows (current size: 1000000; maximum size: 4194304)
+            PariError: _^s: the PARI stack overflows (current size: 4194304; maximum size: 4194304)
             You can use pari.allocatemem() to change the stack size and try again
 
         TESTS:

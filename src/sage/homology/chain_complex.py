@@ -1159,7 +1159,7 @@ class ChainComplex_class(Parent):
         then for each relatively small matrix, use the standard Sage
         method, which calls the Pari package.  For any large matrix,
         reduce it using the Dumas, Heckenbach, Saunders, and Welker
-        elimination algorithm [DHSW]_: see
+        elimination algorithm [DHSW2003]_: see
         :func:`~sage.homology.matrix_utils.dhsw_snf` for details.
 
         Finally, ``algorithm`` may also be ``'pari'`` or ``'dhsw'``, which

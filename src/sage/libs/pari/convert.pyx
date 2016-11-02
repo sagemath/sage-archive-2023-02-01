@@ -1,6 +1,6 @@
 # cython: cdivision = True
 """
-Convert PARI objects to/from Python native types
+Convert PARI objects to/from Python/C native types
 
 This modules contains the following conversion routines:
 
@@ -48,7 +48,8 @@ from .paridecl cimport *
 from .stack cimport new_gen
 
 cdef extern from "longintrepr.h":
-    cdef _PyLong_New(Py_ssize_t s)
+    # Add explicit cast to avoid compiler warning
+    cdef _PyLong_New "(PyObject*)_PyLong_New"(Py_ssize_t s)
     ctypedef unsigned int digit
     ctypedef struct PyLongObject:
         Py_ssize_t ob_size
@@ -57,6 +58,10 @@ cdef extern from "longintrepr.h":
     cdef long PyLong_SHIFT
     cdef digit PyLong_MASK
 
+
+####################################
+# Integers
+####################################
 
 cpdef integer_to_gen(x):
     """
@@ -340,31 +345,32 @@ cdef PyLong_FromGEN(GEN g):
 
     return x
 
+
 ####################################
 # Other basic types
 ####################################
 
-cdef gen new_t_POL_from_int_star(int *vals, int length, long varnum):
-   """
-   Note that degree + 1 = length, so that recognizing 0 is easier.
+cdef gen new_t_POL_from_int_star(int* vals, unsigned long length, long varnum):
+    """
+    Note that degree + 1 = length, so that recognizing 0 is easier.
 
-   varnum = 0 is the general choice (creates a variable in x).
-   """
-   cdef GEN z
-   cdef int i
+    varnum = 0 is the general choice (creates a variable in x).
+    """
+    cdef GEN z
+    cdef unsigned long i
 
-   sig_on()
-   z = cgetg(length + 2, t_POL)
-   z[1] = evalvarn(varnum)
-   if length != 0:
-       setsigne(z,1)
-       for i from 0 <= i < length:
-           set_gel(z,i+2, stoi(vals[i]))
-   else:
-       ## polynomial is zero
-       setsigne(z,0)
+    sig_on()
+    z = cgetg(length + 2, t_POL)
+    if length == 0:
+        # Polynomial is zero
+        z[1] = evalvarn(varnum) + evalsigne(0)
+    else:
+        z[1] = evalvarn(varnum) + evalsigne(1)
+        for i in range(length):
+            set_gel(z, i+2, stoi(vals[i]))
 
-   return new_gen(z)
+    return new_gen(z)
+
 
 cdef gen new_gen_from_double(double x):
     # Pari has an odd concept where it attempts to track the accuracy
@@ -388,6 +394,7 @@ cdef gen new_gen_from_double(double x):
     else:
         g = dbltor(x)
     return new_gen(g)
+
 
 cdef gen new_t_COMPLEX_from_double(double re, double im):
     sig_on()

@@ -6,8 +6,8 @@ from six.moves import range
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.symbolic.pynac import register_symbol, symbol_table
-from sage.symbolic.pynac import py_factorial_py
+from sage.libs.pynac.pynac import (register_symbol, symbol_table,
+        py_factorial_py, I)
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
@@ -161,7 +161,8 @@ class Function_erf(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}",
                                  conversions=dict(maxima='erf',
-                                                  sympy='erf'))
+                                                  sympy='erf',
+                                                  fricas='erf'))
 
     def _eval_(self, x):
         """
@@ -904,7 +905,8 @@ class Function_gamma(GinacFunction):
                 ginac_name='tgamma',
                 conversions={'mathematica':'Gamma',
                              'maple':'GAMMA',
-                             'sympy':'gamma'})
+                             'sympy':'gamma',
+                             'fricas':'Gamma'})
 
 gamma1 = Function_gamma()
 
@@ -1012,7 +1014,8 @@ class Function_log_gamma(GinacFunction):
         GinacFunction.__init__(self, "log_gamma", latex_name=r'\log\Gamma',
                                conversions=dict(mathematica='LogGamma',
                                                 maxima='log_gamma',
-                                                sympy='loggamma'))
+                                                sympy='loggamma',
+                                                fricas='logGamma'))
 
 log_gamma = Function_log_gamma()
 
@@ -1715,7 +1718,8 @@ class Function_factorial(GinacFunction):
         GinacFunction.__init__(self, "factorial", latex_name='{\\rm factorial}',
                 conversions=dict(maxima='factorial',
                                  mathematica='Factorial',
-                                 sympy='factorial'))
+                                 sympy='factorial',
+                                 fricas='factorial'))
 
     def _eval_(self, x):
         """
@@ -1846,7 +1850,8 @@ class Function_binomial(GinacFunction):
         GinacFunction.__init__(self, "binomial", nargs=2, preserved_arg=1,
                 conversions=dict(maxima='binomial',
                                  mathematica='Binomial',
-                                 sympy='binomial'))
+                                 sympy='binomial',
+                                 fricas='binomial'))
 
     def _binomial_sym(self, n, k):
         """
@@ -2047,7 +2052,8 @@ class Function_beta(GinacFunction):
         GinacFunction.__init__(self, "beta", nargs=2,
                 conversions=dict(maxima='beta',
                                  mathematica='Beta',
-                                 sympy='beta'))
+                                 sympy='beta',
+                                 fricas='Beta'))
 
 beta = Function_beta()
 
@@ -2098,7 +2104,6 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
             else:
                  return ComplexField(prec)(x).sqrt(all=all)
         if x == -1:
-            from sage.symbolic.pynac import I
             z = I
         else:
             z = SR(x) ** one_half

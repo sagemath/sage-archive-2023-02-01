@@ -411,7 +411,7 @@ if [ "$PYTHONUSERBASE" = "" ]; then
 fi
 
 if [ -d "$SAGE_LOCAL/lib/python" ]; then
-    PYTHONPATH="$SAGE_LOCAL/lib/python:$SAGE_LOCAL/lib/python/site_packages"
+    PYTHONPATH="$SAGE_LOCAL/lib/python"
     if [ -n "$SAGE_PATH" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi

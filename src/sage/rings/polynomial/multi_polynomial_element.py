@@ -35,8 +35,6 @@ We verify Lagrange's four squares identity::
     sage: (a0^2 + a1^2 + a2^2 + a3^2)*(b0^2 + b1^2 + b2^2 + b3^2) == (a0*b0 - a1*b1 - a2*b2 - a3*b3)^2 + (a0*b1 + a1*b0 + a2*b3 - a3*b2)^2 + (a0*b2 - a1*b3 + a2*b0 + a3*b1)^2 + (a0*b3 + a1*b2 - a2*b1 + a3*b0)^2
     True
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #
 #   Sage: System for Algebra and Geometry Experimentation
@@ -54,7 +52,8 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six.moves import range
 
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
 from sage.misc.all import prod
@@ -629,7 +628,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         OUTPUT: coefficient in base ring
 
-        .. seealso::
+        .. SEEALSO::
 
            For coefficients in a base ring of fewer variables, look
            at :meth:`coefficient`.
@@ -776,7 +775,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         OUTPUT: element of the parent of self
 
-        .. seealso::
+        .. SEEALSO::
 
            For coefficients of specific monomials, look at
            :meth:`monomial_coefficient`.
@@ -1933,11 +1932,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         lI = len(I)
         I = list(I)
-        r = P(0)
+        r = P.zero()
         p = self
 
         while p != 0:
-            for i in xrange(lI):
+            for i in range(lI):
                 gi = I[i]
                 plm = p.lm()
                 gilm = gi.lm()

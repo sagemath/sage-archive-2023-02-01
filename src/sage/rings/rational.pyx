@@ -61,10 +61,10 @@ from integer cimport Integer
 
 from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.convert_sage cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
+from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
 
 from integer_ring import ZZ
-from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
@@ -1312,7 +1312,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _bnfisnorm(self, K, proof=True, extra_primes=0):
         r"""
-        This gives the output of the PARI function bnfisnorm.
+        This gives the output of the PARI function :pari:`bnfisnorm`.
 
         Tries to tell whether the rational number ``self`` is the norm of some
         element `y` in ``K``. Returns a pair `(a, b)` where
@@ -3516,7 +3516,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m.type()
             't_FRAC'
         """
-        #cdef PariInstance P = sage.libs.pari.pari_instance.pari
         return new_gen_from_mpq_t(self.value)
 
     def _interface_init_(self, I=None):

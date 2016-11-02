@@ -22,9 +22,9 @@ include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.paripriv cimport *
-from sage.libs.pari.convert_sage cimport _new_GEN_from_mpz_t
+from sage.libs.pari.convert_gmp cimport _new_GEN_from_mpz_t
 from sage.libs.pari.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
-from sage.libs.pari.gen cimport gen as pari_gen, objtogen as pari_objtogen
+from sage.libs.pari.gen cimport gen as pari_gen, objtogen
 
 from element_base cimport FinitePolyExtElement
 from integer_mod import IntegerMod_abstract
@@ -224,7 +224,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         elif isinstance(x, int) or isinstance(x, long):
             g = (<pari_gen>self._parent._gen_pari).g
-            x = pari_objtogen(x)
+            x = objtogen(x)
             sig_on()
             x_GEN = (<pari_gen>x).g
             self.construct(_INT_to_FFELT(g, x_GEN))

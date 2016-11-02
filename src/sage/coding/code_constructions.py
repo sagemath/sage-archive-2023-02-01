@@ -15,6 +15,10 @@ All codes available here can be accessed through the ``codes`` object::
     sage: codes.BinaryGolayCode()
     Linear code of length 23, dimension 12 over Finite Field of size 2
 
+REFERENCES:
+
+- [HP2003]_
+
 AUTHOR:
 
 - David Joyner (2007-05): initial version
@@ -158,7 +162,7 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
         sage: C1.dual_code() == C2
         True
 
-    This is a special case of Theorem 6.4.3 in [HP]_.
+    This is a special case of Theorem 6.4.3 in [HP2003]_.
     """
     R = IntegerModRing(n)
     S1 = set(R(x) for x in S1)
@@ -677,7 +681,7 @@ def DuadicCodeOddPair(F,S1,S2):
         (Linear code of length 11, dimension 6 over Finite Field of size 3,
          Linear code of length 11, dimension 6 over Finite Field of size 3)
 
-    This is consistent with Theorem 6.1.3 in [HP]_.
+    This is consistent with Theorem 6.1.3 in [HP2003]_.
     """
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
@@ -745,7 +749,7 @@ def ExtendedQuadraticResidueCode(n,F):
     The extended quadratic residue code (or XQR code) is obtained from
     a QR code by adding a check bit to the last coordinate. (These
     codes have very remarkable properties such as large automorphism
-    groups and duality properties - see [HP]_, Section 6.6.3-6.6.4.)
+    groups and duality properties - see [HP2003]_, Section 6.6.3-6.6.4.)
 
     INPUT:
 
@@ -888,7 +892,7 @@ def QuadraticResidueCodeEvenPair(n,F):
     Quadratic residue codes of a given odd prime length and base ring
     either don't exist at all or occur as 4-tuples - a pair of
     "odd-like" codes and a pair of "even-like" codes. If `n > 2` is prime
-    then (Theorem 6.6.2 in [HP]_) a QR code exists over `GF(q)` iff q is a
+    then (Theorem 6.6.2 in [HP2003]_) a QR code exists over `GF(q)` iff q is a
     quadratic residue mod `n`.
 
     They are constructed as "even-like" duadic codes associated the
@@ -916,7 +920,7 @@ def QuadraticResidueCodeEvenPair(n,F):
         sage: C3 == C4.dual_code()
         True
 
-    This is consistent with Theorem 6.6.9 and Exercise 365 in [HP]_.
+    This is consistent with Theorem 6.6.9 and Exercise 365 in [HP2003]_.
 
     TESTS::
 
@@ -952,7 +956,7 @@ def QuadraticResidueCodeOddPair(n,F):
     Quadratic residue codes of a given odd prime length and base ring
     either don't exist at all or occur as 4-tuples - a pair of
     "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
-    then (Theorem 6.6.2 in [HP]_) a QR code exists over GF(q) iff q is a
+    then (Theorem 6.6.2 in [HP2003]_) a QR code exists over GF(q) iff q is a
     quadratic residue mod n.
 
     They are constructed as "odd-like" duadic codes associated the
@@ -982,7 +986,7 @@ def QuadraticResidueCodeOddPair(n,F):
         sage: C3x.spectrum()
         [1, 0, 0, 0, 14, 0, 0, 0, 1]
 
-    This is consistent with Theorem 6.6.14 in [HP]_.
+    This is consistent with Theorem 6.6.14 in [HP2003]_.
 
     TESTS::
 
@@ -1115,7 +1119,7 @@ def ToricCode(P,F):
     `x^e = x_1^{e_1}...x_d^{e_d}`), where
     `eval_T (f(x)) = (f(t_1),...,f(t_n))`, and where
     `T=\{t_1,...,t_n\}`. This function returns the toric
-    codes discussed in [J]_.
+    codes discussed in [Joy2004]_.
 
     INPUT:
 
@@ -1152,11 +1156,6 @@ def ToricCode(P,F):
     AUTHOR:
 
     - David Joyner (07-2006)
-
-    REFERENCES:
-
-    .. [J] \D. Joyner, Toric codes over finite fields, Applicable
-       Algebra in Engineering, Communication and Computing, 15, (2004), p. 63-79.
     """
     from sage.combinat.all import Tuples
     mset = [x for x in F if x!=0]

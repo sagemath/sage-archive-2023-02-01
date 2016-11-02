@@ -446,10 +446,9 @@ class Compute_nu(SageObject):
        - ``p`` -- an integer prime
 
        - ``upto`` -- a nonnegative integer Default is ``None``: Returns
-                     - `\mathcal{S}` such that `N_{p^t}(B) = \mu_B
-                     - \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in
-                     - \mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]` holds
-                     - for all `t \ge \max\{s\in \mathcal{S}\}`.
+         `\mathcal{S}` such that
+         `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in\mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]`
+         holds for all `t \ge \max\{s\in \mathcal{S}\}`.
 
        - ``steps`` -- show computation steps
 

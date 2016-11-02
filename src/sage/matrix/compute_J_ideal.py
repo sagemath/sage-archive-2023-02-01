@@ -122,9 +122,7 @@ def lifting(p, t, A, G):
     FpX = PolynomialRing(Fp, name=X)
 
     ARb = AR.change_ring(FpX)
-    #starting = time()
     (Db, Sb, Tb) = ARb.smith_form()
-    #print "(SNF: %s sec)" % str(time()-starting)
     assert Sb * ARb * Tb == Db
     assert all(i == j or Db[i, j].is_zero()
                for i in range(Db.nrows())
@@ -314,7 +312,6 @@ class ComputeMinimalPolynomials(SageObject):
         return replacements
 
 
-    # Algorithm 2
     def current_nu(self, p, t, pt_generators, prev_nu):
         r"""
         Compute `p^t`-minimal polynomial of `B`.
@@ -633,21 +630,12 @@ class ComputeMinimalPolynomials(SageObject):
         """
         generators = [self._ZX(b), self._ZX((self._B).minimal_polynomial())]
         for (p, t) in factor(b):
-            #print (p,t)
             cofactor = b // p**t
             calS, p_polys = self.p_minimal_polynomials(p,t)
-            #print "++++"
-            #print calS
-            #print p_polys
 
-            #print p_polys
-            #print "Generators before: %s" % str(generators)
             for s in calS + [t]:
-                #print s
-                #print p_polys[s]
                 generators = generators + \
                              [self._ZX(cofactor*p**(t-s)*p_polys[s]) for s in calS]
-                #print "Generators after: %s" % str(generators)
 
 
         assert all((g(self._B) % b).is_zero() for g in generators), \

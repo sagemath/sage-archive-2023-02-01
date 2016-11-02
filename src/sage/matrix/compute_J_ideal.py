@@ -150,33 +150,9 @@ class Compute_nu(SageObject):
         sage: for t in range(3):
         ....:     print C.null_ideal(2**t)
         Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
-        ------------------------------------------
-        [x^2 + x]
-        Generators with (p^t)-generating property:
-        [x^2 + x]
         Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
-        ------------------------------------------
-        [x^2 + x]
-        Generators with (p^t)-generating property:
-        [x^2 + x]
-        ------------------------------------------
-        [2*x^2 + 2*x, x^2 + 3*x + 2]
-        Generators with (p^t)-generating property:
-        [x^2 + 3*x + 2]
         Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
         sage: C.p_minimal_polynomials(2)
-        ------------------------------------------
-        [x^2 + x]
-        Generators with (p^t)-generating property:
-        [x^2 + x]
-        ------------------------------------------
-        [2*x^2 + 2*x, x^2 + 3*x + 2]
-        Generators with (p^t)-generating property:
-        [x^2 + 3*x + 2]
-        ------------------------------------------
-        [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-        Generators with (p^t)-generating property:
-        [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
         [x^3 + 7*x^2 + 6*x]
         ([2], {2: x^2 + 3*x + 2})
     """
@@ -304,10 +280,6 @@ class Compute_nu(SageObject):
             sage: nu_2 = x^2 + x
             sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
             sage: C.current_nu(2, 2, generators_4, nu_2)
-            ------------------------------------------
-            [2*x^2 + 2*x, x^2 + 3*x + 2]
-            Generators with (p^t)-generating property:
-            [x^2 + 3*x + 2]
             x^2 + 3*x + 2
 
         TESTS::
@@ -428,27 +400,15 @@ class Compute_nu(SageObject):
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = Compute_nu(B)
             sage: C.p_minimal_polynomials(2)
-            ------------------------------------------
-            [x^2 + x]
-            Generators with (p^t)-generating property:
-            [x^2 + x]
-            ------------------------------------------
-            [2*x^2 + 2*x, x^2 + 3*x + 2]
-            Generators with (p^t)-generating property:
-            [x^2 + 3*x + 2]
-            ------------------------------------------
-            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-            Generators with (p^t)-generating property:
-            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
             [x^3 + 7*x^2 + 6*x]
             ([2], {2: x^2 + 3*x + 2})
             sage: set_verbose(1)
             sage: C.p_minimal_polynomials(2)
-            ------------------------------------------
-            p=2, t=1:
-            Result of lifting:
-            F=
-            [x^2 + x]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) ------------------------------------------
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) p=2, t=1:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) Result of lifting:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) F=
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [x^2 + x]
             [      x]
             [      0]
             [      1]
@@ -458,13 +418,13 @@ class Compute_nu(SageObject):
             [      0]
             [      0]
             [  x + 1]
-            ------------------------------------------
-            [x^2 + x]
-            Generators with (p^t)-generating property:
-            [x^2 + x]
-            nu=x^2 + x
-            corresponding columns for G
-            [x^2 + x]
+            verbose 1 (...: calculate_nu.py, current_nu) ------------------------------------------
+            verbose 1 (...: calculate_nu.py, current_nu) [x^2 + x]
+            verbose 1 (...: calculate_nu.py, current_nu) Generators with (p^t)-generating property:
+            verbose 1 (...: calculate_nu.py, current_nu) [x^2 + x]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) nu=x^2 + x
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) corresponding columns for G
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [x^2 + x]
             [  x + 2]
             [      0]
             [      1]
@@ -474,11 +434,11 @@ class Compute_nu(SageObject):
             [     10]
             [      0]
             [  x + 1]
-            ------------------------------------------
-            p=2, t=2:
-            Result of lifting:
-            F=
-            [  2*x^2 + 2*x x^2 + 3*x + 2]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) ------------------------------------------
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) p=2, t=2:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) Result of lifting:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) F=
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [  2*x^2 + 2*x x^2 + 3*x + 2]
             [          2*x         x + 4]
             [            0             0]
             [            2             1]
@@ -488,13 +448,13 @@ class Compute_nu(SageObject):
             [            0            10]
             [            0             0]
             [      2*x + 2         x + 3]
-            ------------------------------------------
-            [2*x^2 + 2*x, x^2 + 3*x + 2]
-            Generators with (p^t)-generating property:
-            [x^2 + 3*x + 2]
-            nu=x^2 + 3*x + 2
-            corresponding columns for G
-            [x^2 + 3*x + 2]
+            verbose 1 (...: calculate_nu.py, current_nu) ------------------------------------------
+            verbose 1 (...: calculate_nu.py, current_nu) [2*x^2 + 2*x, x^2 + 3*x + 2]
+            verbose 1 (...: calculate_nu.py, current_nu) Generators with (p^t)-generating property:
+            verbose 1 (...: calculate_nu.py, current_nu) [x^2 + 3*x + 2]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) nu=x^2 + 3*x + 2
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) corresponding columns for G
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [x^2 + 3*x + 2]
             [        x + 4]
             [            0]
             [            1]
@@ -504,11 +464,11 @@ class Compute_nu(SageObject):
             [           10]
             [            0]
             [        x + 3]
-            ------------------------------------------
-            p=2, t=3:
-            Result of lifting:
-            F=
-            [x^3 + 7*x^2 + 6*x x^3 + 3*x^2 + 2*x]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) ------------------------------------------
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) p=2, t=3:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) Result of lifting:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) F=
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [x^3 + 7*x^2 + 6*x x^3 + 3*x^2 + 2*x]
             [        x^2 + 8*x         x^2 + 4*x]
             [                0                 0]
             [                x             x + 4]
@@ -518,19 +478,15 @@ class Compute_nu(SageObject):
             [             10*x              10*x]
             [                0                 0]
             [        x^2 + 7*x     x^2 + 3*x + 4]
-            ------------------------------------------
-            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-            Generators with (p^t)-generating property:
-            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            verbose 1 (...: calculate_nu.py, current_nu) ------------------------------------------
+            verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            verbose 1 (...: calculate_nu.py, current_nu) Generators with (p^t)-generating property:
+            verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
             [x^3 + 7*x^2 + 6*x]
-            nu=x^3 + 7*x^2 + 6*x
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) nu=x^3 + 7*x^2 + 6*x
             ([2], {2: x^2 + 3*x + 2})
             sage: set_verbose(0)
             sage: C.p_minimal_polynomials(2, upto=1)
-            ------------------------------------------
-            [x^2 + x]
-            Generators with (p^t)-generating property:
-            [x^2 + x]
             ([1], {1: x^2 + x})
         """
 
@@ -601,15 +557,7 @@ class Compute_nu(SageObject):
             sage: for t in range(3):
             ....:     print C.null_ideal(3**t)
             Ideal (1, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
-            ------------------------------------------
-            [2*x^2 + 2*x + 2]
-            Generators with (p^t)-generating property:
-            [x^2 - 2*x - 2]
             Ideal (3, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
-            ------------------------------------------
-            [2*x^2 + 2*x + 2]
-            Generators with (p^t)-generating property:
-            [x^2 - 2*x - 2]
             Ideal (9, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
         """
         factorization = list(factor(b))

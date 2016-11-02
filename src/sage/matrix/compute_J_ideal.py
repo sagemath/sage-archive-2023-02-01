@@ -350,56 +350,56 @@ class Compute_nu(SageObject):
 
 
     def compute_mccoy_column(self, p, t, poly):
-         r"""
-         INPUT:
+        r"""
+        INPUT:
 
-         - ``p`` -- a prime element in `D`
+        - ``p`` -- a prime element in `D`
 
-         - ``t`` -- a non-negative integer
+        - ``t`` -- a non-negative integer
 
-         - ``poly`` -- a `p^t`-minimal polynomial of `B`
+        - ``poly`` -- a `p^t`-minimal polynomial of `B`
 
-         OUTPUT:
+        OUTPUT:
 
-         An `(n^2 + 1) \times 1` matrix `g` such that
-         `(b -\chi_B I)g \equiv 0\pmod{p^t}` where `b` consists
-         of the entries of `\adj(X-B)`.
+        An `(n^2 + 1) \times 1` matrix `g` such that
+        `(b -\chi_B I)g \equiv 0\pmod{p^t}` where `b` consists
+        of the entries of `\adj(X-B)`.
 
-         EXAMPLES::
+        EXAMPLES::
 
-            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-            sage: C = Compute_nu(B)
-            sage: x = polygen(ZZ, 'x')
-            sage: nu_4 = x^2 + 3*x + 2
-            sage: g = C.compute_mccoy_column(2, 2, nu_4)
-            sage: b = matrix(9, 1, (x-B).adjoint().list())
-            sage: M = matrix.block([[b , -B.charpoly(x)*matrix.identity(9)]])
-            sage: (M*g % 4).is_zero()
-            True
+           sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+           sage: C = Compute_nu(B)
+           sage: x = polygen(ZZ, 'x')
+           sage: nu_4 = x^2 + 3*x + 2
+           sage: g = C.compute_mccoy_column(2, 2, nu_4)
+           sage: b = matrix(9, 1, (x-B).adjoint().list())
+           sage: M = matrix.block([[b , -B.charpoly(x)*matrix.identity(9)]])
+           sage: (M*g % 4).is_zero()
+           True
 
-         TESTS::
+        TESTS::
 
-            sage: nu_2 = x^2 + x
-            sage: C.compute_mccoy_column(2, 2, nu_2)
-            Traceback (most recent call last):
-            ...
-            AssertionError: x^2 + x not in (2^2)-ideal
+           sage: nu_2 = x^2 + x
+           sage: C.compute_mccoy_column(2, 2, nu_2)
+           Traceback (most recent call last):
+           ...
+           AssertionError: x^2 + x not in (2^2)-ideal
 
-         """
-         assert (poly(self._B) % p**t).is_zero(),\
-             "%s not in (%s^%s)-ideal" % (str(poly), str(p), str(t))
-         chi_B = self._ZX(self._B.characteristic_polynomial())
-         column = [poly]
-         #print poly
-         for b in self._A[:, 0].list():
-	   q,r = (poly*b).quo_rem(chi_B)
+        """
+        assert (poly(self._B) % p**t).is_zero(),\
+            "%s not in (%s^%s)-ideal" % (str(poly), str(p), str(t))
+        chi_B = self._ZX(self._B.characteristic_polynomial())
+        column = [poly]
+        #print poly
+        for b in self._A[:, 0].list():
+	    q,r = (poly*b).quo_rem(chi_B)
 
-           column.append(q)
+            column.append(q)
 
-         assert (self._A * matrix(self._ZX,
-                                  (self._A).ncols(), 1, column) % p**t).is_zero(),\
-                                  "McCoy column is not correct"
-         return  matrix(self._ZX, self._A.ncols(), 1, column)
+        assert (self._A * matrix(self._ZX,
+                                 (self._A).ncols(), 1, column) % p**t).is_zero(),\
+                                 "McCoy column is not correct"
+        return  matrix(self._ZX, self._A.ncols(), 1, column)
 
 
     def p_minimal_polynomials(self, p, upto=None, steps=False):

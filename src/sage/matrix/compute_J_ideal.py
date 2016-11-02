@@ -346,6 +346,38 @@ class Compute_nu(SageObject):
 
     # Algorithm 2
     def current_nu(self, p, t, pt_generators, prev_nu):
+        r"""
+        Compute `p^t`-minimal polynomial of `B`.
+
+        INPUT:
+
+        - ``p`` -- a prime element of `D`
+
+        - ``t`` -- a non-negative integer
+
+        - ``pt_generators`` -- a list of polynomials over `D[X]`. Together with
+          `pN_{p^{t-1}}(B)`, they generate `N_{p^t}(B)`.
+
+        - ``prev_nu`` -- a `p^{t-1}`-minimal polynomial of `B`.
+
+        OUTPUT:
+
+        A `p^t`-minimal polynomial of `B`.
+
+        EXAMPLES::
+
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: C = Compute_nu(B)
+            sage: x = polygen(ZZ, 'x')
+            sage: nu_2 = x^2 + x
+            sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
+            sage: C.current_nu(2, 2, generators_4, nu_2)
+            ------------------------------------------
+            [2*x^2 + 2*x, x^2 + 3*x + 2]
+            Generators with (p^t)-generating property:
+            [x^2 + 3*x + 2]
+            x^2 + 3*x + 2
+        """
         assert all((g(self._B) % p**t).is_zero()
                    for g in pt_generators)
 

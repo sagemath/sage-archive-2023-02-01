@@ -112,13 +112,14 @@ def lifting(p, t, A, G):
     P = A.parent()
     ZZX = P.base()
     (X,) = ZZX.gens()
+    D = ZZX.base_ring()
     d = A.ncols()
 
     R = A*G/p**(t-1)
     R.change_ring(ZZX)
 
     AR = matrix.block([[A, R]])
-    Fp = GF(p)
+    Fp = D.quotient(p*D)
     FpX = PolynomialRing(Fp, name=X)
 
     ARb = AR.change_ring(FpX)

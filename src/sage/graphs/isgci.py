@@ -933,10 +933,10 @@ class GraphClasses(UniqueRepresentation):
                 directory = os.path.join(SAGE_DB,_XML_FILE)
 
             else:
-                filename = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
+                directory = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
         except IOError as e:
-            filename = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
+            directory = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
         self._parse_db(directory)
 

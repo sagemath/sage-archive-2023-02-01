@@ -129,7 +129,7 @@ def p_part(f, p):
     return p_prt
 
 
-class Compute_nu(SageObject):
+class ComputeMinimalPolynomials(SageObject):
     r"""
     Compute nu for a given matrix.
 
@@ -144,9 +144,9 @@ class Compute_nu(SageObject):
 
     EXAMPLES::
 
-        sage: from calculate_nu import Compute_nu # not tested
+        sage: from calculate_nu import ComputeMinimalPolynomials # not tested
         sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-        sage: C = Compute_nu(B)
+        sage: C = ComputeMinimalPolynomials(B)
         sage: for t in range(3):
         ....:     print C.null_ideal(2**t)
         Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
@@ -158,7 +158,7 @@ class Compute_nu(SageObject):
     """
     def __init__(self, B):
         r"""
-        Initialize the Compute_nu class.
+        Initialize the ComputeMinimalPolynomials class.
 
         INPUT:
 
@@ -166,12 +166,12 @@ class Compute_nu(SageObject):
 
         TESTS::
 
-            sage: Compute_nu(matrix([[1, 2]]))
+            sage: ComputeMinimalPolynomials(matrix([[1, 2]]))
             Traceback (most recent call last):
             ...
             TypeError: square matrix required.
         """
-        super(Compute_nu, self).__init__()
+        super(ComputeMinimalPolynomials, self).__init__()
         if not B.is_square():
             raise TypeError("square matrix required.")
 
@@ -210,7 +210,7 @@ class Compute_nu(SageObject):
         EXAMPLES::
 
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-            sage: C = Compute_nu(B)
+            sage: C = ComputeMinimalPolynomials(B)
             sage: x = polygen(ZZ, 'x')
             sage: nu_2 = x^2 + x
             sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
@@ -275,7 +275,7 @@ class Compute_nu(SageObject):
         EXAMPLES::
 
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-            sage: C = Compute_nu(B)
+            sage: C = ComputeMinimalPolynomials(B)
             sage: x = polygen(ZZ, 'x')
             sage: nu_2 = x^2 + x
             sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
@@ -340,7 +340,7 @@ class Compute_nu(SageObject):
         EXAMPLES::
 
            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-           sage: C = Compute_nu(B)
+           sage: C = ComputeMinimalPolynomials(B)
            sage: x = polygen(ZZ, 'x')
            sage: nu_4 = x^2 + 3*x + 2
            sage: g = C.compute_mccoy_column(2, 2, nu_4)
@@ -398,7 +398,7 @@ class Compute_nu(SageObject):
         EXAMPLES::
 
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-            sage: C = Compute_nu(B)
+            sage: C = ComputeMinimalPolynomials(B)
             sage: C.p_minimal_polynomials(2)
             [x^3 + 7*x^2 + 6*x]
             ([2], {2: x^2 + 3*x + 2})
@@ -553,7 +553,7 @@ class Compute_nu(SageObject):
 
             sage: from calculate_nu import compute_nu # not tested
             sage: B = matrix([[1, 2], [3, 4]])
-            sage: C = Compute_nu(B)
+            sage: C = ComputeMinimalPolynomials(B)
             sage: for t in range(3):
             ....:     print C.null_ideal(3**t)
             Ideal (1, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
@@ -599,11 +599,11 @@ class Compute_nu(SageObject):
 
              sage: from calculate_nu import compute_nu # not tested
              sage: B = matrix([[1, 2], [3, 4]])
-             sage: C = Compute_nu(B)
+             sage: C = ComputeMinimalPolynomials(B)
              sage: C.prime_candidates()
              [3]
              sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-             sage: C = Compute_nu(B)
+             sage: C = ComputeMinimalPolynomials(B)
              sage: C.prime_candidates()
              [2, 3, 5]
         """

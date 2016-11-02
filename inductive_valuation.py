@@ -143,7 +143,7 @@ class InductiveValuation(DevelopingValuation):
             sage: f_ = w.equivalence_reciprocal(f)
             sage: w.reduce(f*f_)
             1
-            sage: f = f.parent()([f[0],f[1].add_bigoh(1),f[2]])
+            sage: f = f.parent()([f[0], f[1].add_bigoh(1), f[2]])
             sage: f_ = w.equivalence_reciprocal(f)
             sage: w.reduce(f*f_)
             1
@@ -171,83 +171,7 @@ class InductiveValuation(DevelopingValuation):
         h = h.map_coefficients(lambda c:_lift_to_maximal_precision(c))
         h = h.parent()([ c if self(e0*c) <= 0 else c.parent().zero() for c in h.coefficients(sparse=False)])
 
-        assert self(f*h) == 0
-        assert self(f*h - 1) > 0
-
         return h
-
-    def minimal_representative(self, f):
-        r"""
-        Return a minimal representative for ``f``, i.e., a pair `e, a`
-        such that ``f`` :meth:`is_equivalent`` to `e a`, `e` is
-        an equivalence unit and `a` is minimal and monic.
-
-        INPUT:
-
-        - ``f`` -- a polynomial in the domain of this valuation
-
-        OUTPUT:
-
-        A factorization which has `e` as its unit and `a` as its unique factor.
-
-        ALGORITHM:
-
-        We use the algorithm described in the proof of Lemma 4.1 of [ML1936'].
-        In the expansion `f=\sum_i f_i\phi^i` take `e=f_i` for the largest `i`
-        with `f_i\phi^i` minimal (see :meth:`effective_degree`).
-        Let `h` be the :meth:`equivalence_reciprocal` of `e` and take `a` given
-        by the terms of minimal valuation in the expansion of `e f`.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: v.minimal_representative(x + 2)
-            (1 + O(2^10))*x
-
-            sage: v = v.augmentation(x, 1)
-            sage: v.minimal_representative(x + 2)
-            (1 + O(2^10))*x + 2 + O(2^11)
-            sage: f = x^3 + 6*x + 4
-            sage: F = v.minimal_representative(f); F
-            (2 + 2^2 + O(2^11)) * ((1 + O(2^10))*x + 2 + 2^2 + 2^4 + 2^6 + 2^8 + 2^10 + O(2^11))
-            sage: v.is_minimal(F[0][0])
-            True
-            sage: v.is_equivalent(F.prod(), f)
-            True
-
-        REFERENCES:
-
-        .. [ML1936'] MacLane, S. (1936). A construction for absolute values in
-        polynomial rings. Transactions of the American Mathematical Society, 40(3),
-        363-395.
-
-        """
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of the valuation")
-        if f.is_zero():
-            raise ValueError("the minimal representative of zero is not defined")
-
-        if not self.is_commensurable_inductive():
-            raise NotImplemented("only implemented for inductive valuations")
-
-        f0 = f
-        e = list(self.coefficients(f))[self.effective_degree(f)]
-        f *= self.equivalence_reciprocal(e).map_coefficients(lambda c:_lift_to_maximal_precision(c))
-
-        coeffs = [c if v == self(f) else c.parent().zero() for v,c in zip(self.valuations(f),self.coefficients(f))]
-        coeffs[self.effective_degree(f0)] = self.domain().base_ring().one()
-        ret = sum([c*self._phi**i for i,c in enumerate(coeffs)])
-        assert self.effective_degree(ret) == self.effective_degree(f0)
-        assert ret.is_monic(), coeffs
-        assert self.is_minimal(ret)
-        from sage.structure.factorization import Factorization
-        ret = Factorization([(ret,1)],unit=e)
-        # assert self.is_equivalent(ret.prod(), f0) -- this might fail because of leading zeros
-        assert self((ret.prod() - f0).map_coefficients(lambda c:_lift_to_maximal_precision(c)))
-        return ret
 
     def _test_is_equivalence_unit(self, **options):
         r"""
@@ -311,11 +235,11 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
           a key polynomial, see :meth:`is_key` for properties of key
           polynomials.
 
-        - ``mu`` -- a rational number, the valuation of ``phi`` in the extended
-          valuation
+        - ``mu`` -- a rational number or infinity, the valuation of ``phi`` in
+          the extended valuation
 
-        - ``check`` -- whether or not to check the correctness of the
-          parameters
+        - ``check`` -- a boolean (default: ``True``), whether or not to check
+          the correctness of the parameters
 
         EXAMPLES::
 
@@ -326,9 +250,9 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             sage: v = v.augmentation(x^2 + x + u, 1)
             sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
             sage: v
-            [ Gauss valuation induced by 2-adic valuation, v((1 + O(2^5))*x^2 + (1 + O(2^5))*x + u + O(2^5)) = 1, v((1 + O(2^5))*x^4 + (2^2 + O(2^6))*x^3 + (1 + (u + 1)*2 + O(2^5))*x^2 + ((u + 1)*2^2 + O(2^6))*x + (u + 1) + (u + 1)*2 + (u + 1)*2^2 + (u + 1)*2^3 + (u + 1)*2^4 + O(2^5)) = 3 ]
-            sage: v.residue_field()
-            Rational function field in x over Univariate Quotient Polynomial Ring in u2 over Univariate Quotient Polynomial Ring in u1 over Finite Field in u0 of size 2^2 with modulus u1^2 + u1 + u0 with modulus u2^2 + u1*u2 + u1
+            [ Gauss valuation induced by 2-adic valuation,
+              v((1 + O(2^5))*x^2 + (1 + O(2^5))*x + u + O(2^5)) = 1,
+              v((1 + O(2^5))*x^4 + (2^2 + O(2^6))*x^3 + (1 + (u + 1)*2 + O(2^5))*x^2 + ((u + 1)*2^2 + O(2^6))*x + (u + 1) + (u + 1)*2 + (u + 1)*2^2 + (u + 1)*2^3 + (u + 1)*2^4 + O(2^5)) = 3 ]
 
         TESTS:
 
@@ -338,22 +262,17 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             sage: v_K = pAdicValuation(QQ,3)
             sage: A.<t> = QQ[]
             sage: v0 = GaussValuation(A,v_K)
-            sage: f2 = 9*t+30*t^3+27*t^6+15*t^8
-            sage: f3 = 3+30*t^2+18*t^3+198*t^5+180*t^7+189*t^8+342*t^10+145*t^12
-            sage: F = f2*f3
 
-            sage: v1 = v0.augmentation(t,1/12)
-            sage: v2 = v1.augmentation(t^12+3,7/6)
-            sage: v3 = v2.augmentation(t^12+3*t^2+3,9/4)
-            sage: v4 = v1.augmentation(t^12+3*t^2+3,9/4)
+            sage: v1 = v0.augmentation(t, 1/12)
+            sage: v2 = v1.augmentation(t^12 + 3, 7/6)
+            sage: v3 = v2.augmentation(t^12 + 3*t^2 + 3, 9/4)
+            sage: v4 = v1.augmentation(t^12 + 3*t^2 + 3, 9/4)
             sage: v3 <= v4 and v3 >= v4 
             True
-            sage: v4.equivalence_decomposition(F) # optional: integrated
-            sage: v3.equivalence_decomposition(F) # optional: integrated
 
         .. SEEALSO::
 
-            :class:`AugmentedValuation`
+            :meth:`AugmentedValuation`
 
         """
         from augmented_valuation import AugmentedValuation
@@ -361,13 +280,9 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
     def is_key(self, phi, explain=False):
         r"""
-        Return whether ``phi`` is a key polynomial for this valuation.
-
-        A key polynomial must satisfy the following conditions:
-
-        - it must be monic
-        - it must be equivalence-irreducible (see :meth:`is_equivalence_irreducible`)
-        - it must be minimal (see :meth:`is_minimal`)
+        Return whether ``phi`` is a key polynomial for this valuation, i.e.,
+        whether it is monic, whether it :meth:`is_equivalence_irreducible`, and
+        whether it is :meth:`is_minimal`.
 
         INPUT:
 
@@ -379,7 +294,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: v.is_key(x)
@@ -394,8 +309,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             (False, 'phi must be minimal')
 
         """
-        if phi.parent() is not self.domain():
-            raise ValueError("phi must be in the domain of the valuation")
+        phi = self.domain().coerce(phi)
 
         reason = None
 
@@ -414,21 +328,19 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
     def is_minimal(self, f):
         r"""
         Return whether the polynomial ``f`` is minimal with respect to this
-        valuation, as defined in definition 4.1 of [ML1936].
-
-        INPUT:
-
-        - ``f`` -- a polynomial in the domain of this valuation
+        valuation, i.e., whether ``f`` is not constant any non-constant
+        polynomial `h` has at least the degree of ``f`` or ``f`` is not
+        divisible by `h` with respect to this valuation, i.e., there is no `c`
+        such that `c h` :meth:`is_equivalent` to `f`.
 
         ALGORITHM:
 
-        When ``f`` :meth:`is_equivalence_irreducible` for this valuation, then
-        Theorem 9.4 of [ML1936'] describes what to do. TODO: what if not?
+        Based on Theorem 9.4 of [ML1936'].
 
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: v.is_minimal(x + 1)
@@ -437,99 +349,130 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             sage: w.is_minimal(x + 1)
             False
 
-        TODO: An example that failed for Stefan:
+        TESTS::
 
-            sage: K = Qp(2,10)
+            sage: K = Qp(2, 10)
             sage: R.<x> = K[]
-            sage: vp=pAdicValuation(K)
-            sage: v0 = GaussValuation(R,vp)
-            sage: f=x^5+x^4+2
-            sage: v1 = v0.augmentation(x,1/4)
-            sage: v2 = v1.augmentation(x^4+2,5/4)
-            sage: v2.is_minimal(f) # long time
+            sage: vp = pAdicValuation(K)
+            sage: v0 = GaussValuation(R, vp)
+            sage: v1 = v0.augmentation(x, 1/4)
+            sage: v2 = v1.augmentation(x^4 + 2, 5/4)
+            sage: v2.is_minimal(x^5 + x^4 + 2) # long time
             False
 
-        TODO: Add examples for polynomials which have the same degree as the
-        key polynomial (See Stefan's mail Sep 8 2016).
+        Polynomials which are equivalent to the key polynomial are minimal if
+        and only if they have the same degree as the key polynomial::
+
+            sage: v2.is_minimal(x^4 + 2)
+            True
+            sage: v2.is_minimal(x^4 + 4)
+            False
 
         """
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of the valuation")
+        f = self.domain().coerce(f)
+
         if f.is_constant():
-            raise ValueError("f must not be constant")
+            return False
+    
+        if not self.is_equivalence_irreducible(f):
+            # any factor divides f with respect to this valuation
+            return False
 
-        if self.is_commensurable_inductive():
-            # use the characterization of theorem 9.4 in [ML1936]
-            if not f.is_monic():
-                raise NotImplementedError("is_minimal() only implemented for monic polynomials")
-            if not self.is_equivalence_irreducible(f):
-                raise NotImplementedError("is_minimal() only implemented for equivalence-irreducible polynomials")
-            from gauss_valuation import GaussValuation
-            if self.is_gauss_valuation():
-                if f.is_monic():
-                    if self(f) < 0:
-                        raise NotImplementedError("Investigate what is the right behaviour here")
-                    return self.reduce(f).is_irreducible()
-            if self.is_equivalent(self.phi(), f):
-                # TODO: reference new Lemma
-                return f.degree() == self.phi().degree()
+        if not f.is_monic():
+            # divide out the leading factor, it does not change minimality
+            v = self
+            if not self.domain().base_ring().is_field():
+                domain = self.domain().change_ring(self.domain().base_ring().fraction_field())
+                v = self.extension(domain)
+                f = domain(f)
+            return v.is_minimal(f / f.leading_coefficient())
+        
+        if self.is_gauss_valuation():
+            if self(f) == 0:
+                F = self.reduce(f)
+                assert not F.is_constant()
+                return F.is_irreducible()
             else:
-                return list(self.valuations(f))[-1] == self(f) and list(self.coefficients(f))[-1].is_constant() and list(self.valuations(f))[0] == self(f) and self.tau().divides(len(list(self.coefficients(f)))-1)
+                assert(self(f) <= 0) # f is monic
+                # f is not minimal:
+                # Let g be f stripped of its leading term, i.e., g = f - x^n.
+                # Then g and f are equivalent with respect to this valuation
+                # and in particular g divides f with respect to this valuation
+                return False
+        
+        if self.is_equivalent(self.phi(), f):
+            assert f.degree() >= self.phi().degree()
+            # If an h divides f with respect to this valuation, then it also divides phi:
+            # v(f - c*h) > v(f) = v(c*h) => v(phi - c*h) = v((phi - f) + (f - c*h)) > v(phi) = v(c*h)
+            # So if f were not minimal then phi would not be minimal but it is.
+            return f.degree() == self.phi().degree()
 
-        raise NotImplementedError("is_minimal() only implemented for commensurable inductive values")
+        else:
+            # see Theorem 9.4 of [ML1936']
+            return list(self.valuations(f))[-1] == self(f) and \
+                   list(self.coefficients(f))[-1].is_constant() and \
+                   list(self.valuations(f))[0] == self(f) and \
+                   self.tau().divides(len(list(self.coefficients(f))) - 1)
 
     def mac_lane_step(self, G, assume_squarefree=False):
         r"""
+        Perform an approximation step towards the squarefree non-constant
+        polynomial ``G`` with this valuation.
+
+        This performs the individual steps that are used in
+        :meth:`mac_lane_approximants`.
 
         TESTS::
 
             sage: from mac_lane import * # optional: standalone
-            sage: K.<x>=FunctionField(QQ)
-            sage: S.<y>=K[]
-            sage: F=y^2-x^2-x^3-3
-            sage: v0=GaussValuation(K._ring,pAdicValuation(QQ,3))
-            sage: v1=v0.augmentation(K._ring.gen(),1/3)
-            sage: mu0=FunctionFieldValuation(K,v1)
-            sage: eta0=GaussValuation(S,mu0)
-            sage: eta1=eta0.mac_lane_step(F)[0]
-            sage: eta2=eta1.mac_lane_step(F)[0]
+            sage: K.<x> = FunctionField(QQ)
+            sage: S.<y> = K[]
+            sage: F = y^2 - x^2 - x^3 - 3
+            sage: v0 = GaussValuation(K._ring,pAdicValuation(QQ, 3))
+            sage: v1 = v0.augmentation(K._ring.gen(), 1/3)
+            sage: mu0 = FunctionFieldValuation(K, v1)
+            sage: eta0 = GaussValuation(S, mu0)
+            sage: eta1 = eta0.mac_lane_step(F)[0]
+            sage: eta2 = eta1.mac_lane_step(F)[0]
+            sage: eta2
+            [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ]
 
         """
+        G = self.domain().coerce(G)
+
+        if G.is_constant():
+            raise ValueError("G must not be constant")
+
         from sage.misc.misc import verbose
-        verbose("Expanding %s towards %s"%(self,G),caller_name="mac_lane_step")
-        R = G.parent()
-        if R is not self.domain():
-            raise ValueError("G must be defined over the domain of this valuation")
-        if not G.is_monic():
+        verbose("Expanding %s towards %s"%(self, G), caller_name = "mac_lane_step")
+
+        if not G.is_monic() or self(G) < 0:
             # G must be monic, there is no fundamental reason for this, but the implementation makes this assumption in some places.
-            # We try to turn G into a monic integral polynomial that describes the same extension
-            return self.mac_lane_step(self._make_monic_integral(G), assume_squarefree=assume_squarefree)
-        if self(G) < 0:
             # G must be integral, otherwise, e.g., the effective degree is too low
             # We try to turn G into a monic integral polynomial that describes the same extension
+            # This might fail if the constants of our polynomial ring do not form a field
             return self.mac_lane_step(self._make_monic_integral(G), assume_squarefree=assume_squarefree)
-        assert not G.is_constant()
+
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
 
         from sage.rings.all import infinity
-
-        if self(G) is infinity:
-            raise ValueError("G must not have valuation infinity")
+        assert self(G) != infinity # this is a valuation and G is non-zero
 
         if self.is_key(G):
             return [self.augmentation(G, infinity)]
 
         F = self.equivalence_decomposition(G)
-        assert len(F), "%s equivalence-decomposese as an equivalence-unit %s"%(G,F)
+        assert len(F), "%s equivalence-decomposese as an equivalence-unit %s"%(G, F)
 
         ret = []
         for phi,e in F:
             if G == phi:
-                # something strange happened here:
+                # Something strange happened here:
                 # G is not a key (we checked that before) but phi==G is; so phi must have less precision than G
                 # this can happen if not all coefficients of G have the same precision
-                # if we drop some precision of G then it will be a key
+                # if we drop some precision of G then it will be a key (but is
+                # that really what we should do?)
                 assert not G.base_ring().is_exact()
                 prec = min([c.precision_absolute() for c in phi.list()])
                 g = G.map_coefficients(lambda c:c.add_bigoh(prec))
@@ -538,25 +481,24 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
             if phi == self.phi():
                 # a factor phi in the equivalence decomposition means that we
-                # founnd an actual factor of G, i.e., we can set
+                # found an actual factor of G, i.e., we can set
                 # v(phi)=infinity
                 # However, this should already have happened in the last step
                 # (when this polynomial had -infinite slope in the Newton
                 # polygon.)
-                from gauss_valuation import GaussValuation
                 if self.is_gauss_valuation(): # unless in the first step
                     pass
                 else:
                     continue
 
-            verbose("Determining the valuation for %s"%phi,level=2,caller_name="mac_lane_step")
+            verbose("Determining the valuation for %s"%phi, level=2, caller_name="mac_lane_step")
             w = self.augmentation(phi, self(phi), check=False)
             NP = w.newton_polygon(G).principal_part()
-            verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi),NP),level=2,caller_name="mac_lane_step")
-            # assert len(NP)
+            verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=2, caller_name="mac_lane_step")
             slopes = NP.slopes(repetition=False)
             if NP.vertices()[0][0] != 0:
                 slopes = [-infinity] + slopes
+
             if not slopes:
                 q,r = G.quo_rem(phi)
                 assert not r.is_zero()
@@ -565,12 +507,14 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
                     if not c.is_zero():
                         v = w(c)
                         # for a correct result we need to add O(pi^v) in degree i
-                        # we try to find the coefficient of phi where such an error can be introduced without losing much absolute precision on phi
+                        # we try to find the coefficient of phi where such an
+                        # error can be introduced without losing much absolute
+                        # precision on phi
                         best = i
                         for j in range(i):
                             if w(q[j]) < w(q[best]):
                                 best = j
-                        # now add the right O() to phi in degree i-best
+                        # now add the right O() to phi in degree i - best
                         phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
 
                 phi = G.parent()(phi)
@@ -580,15 +524,13 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
             for i in range(len(slopes)):
                 slope = slopes[i]
-                verbose("Slope = %s"%slope,level=3,caller_name="mac_lane_step")
+                verbose("Slope = %s"%slope, level=3, caller_name="mac_lane_step")
                 new_mu = self(phi) - slope
                 base = self
                 if phi.degree() == base.phi().degree():
                     assert new_mu > self(phi)
-                    from gauss_valuation import GaussValuation
                     if not base.is_gauss_valuation():
                         base = base._base_valuation
-
                 new_leaf = base.augmentation(phi, new_mu)
                 assert slope is -infinity or 0 in new_leaf.newton_polygon(G).slopes(repetition=False)
                 ret.append(new_leaf)
@@ -597,10 +539,57 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         return ret
 
     @cached_method
+    def _equivalence_reduction(self, f):
+        r"""
+        Helper method for :meth:`is_equivalence_irreducible` and
+        :meth:`equivalence_decomposition` which essentially returns the
+        reduction of ``f`` after multiplication with an ``R`` which
+        :meth:`is_equivalence_unit`.
+
+        This only works when ``f`` is not divisible by :meth:`phi` with respect
+        to this valuation. Therefore, we also return the number of times that
+        we took out :meth:`phi` of ``f`` before we computed the reduction.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v._equivalence_reduction(2*x^6 + 4*x^5 + 2*x^4 + 8)
+            (1/2, 4, x^2 + 1)
+
+        """
+        f = self.domain().coerce(f)
+
+        # base change from R[x] to K[x], so divisions work and sufficient
+        # elements of negative valuation exist
+        if not self.domain().base_ring().is_field():
+            domain = self.domain().change_ring(self.domain().base_ring().fraction_field())
+            v = self.extension(domain)
+            assert self.residue_ring() is v.residue_ring()
+            return v._equivalence_reduction(f)
+
+        phi_divides = 0
+        while self.valuations(f).next() > self(f):
+            # phi is an equivalence-factor of f
+            f = f-self.coefficients(f).next()
+            assert self.phi().divides(f)
+            f,_ = f.quo_rem(self.phi())
+            phi_divides += 1
+
+        R = self.equivalence_unit(-self(f))
+        return R, phi_divides, self.reduce(f*R)
+
+    @cached_method
     def is_equivalence_irreducible(self, f):
         r"""
-        Return whether the polynomial ``f`` is equivalence irreducible, i.e.,
+        Return whether the polynomial ``f`` is equivalence-irreducible, i.e.,
         whether its :meth:`equivalence_decomposition` is trivial.
+
+        ALGORITHM:
+
+        We use the same algorithm as in :meth:`equivalence_decomposition` we
+        just do not lift the result to key polynomials.
 
         INPUT:
 
@@ -619,57 +608,22 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             sage: v.is_equivalence_irreducible(x^2 + 2)
             False
 
-        ALGORITHM:
-
-            We do not actually compute the :meth:`equivalence_decomposition` of
-            ``f`` (unless we have it cached already) but use the
-            characterization of Theorem 13.1 in [ML1936], i.e., we only perform
-            a factorization in reduction without lifting the factors back to
-            key polynomials.
-
         """
         f = self.domain().coerce(f)
+
         if f.is_constant():
             raise ValueError("f must not be constant")
 
-        from sage.misc.cachefunc import cache_key
-        key = cache_key(f)
-
-        if self.equivalence_decomposition.is_in_cache(key):
-            F = self.equivalence_decomposition(f)
-            return len(F) <= 1 and (len(F) == 0 or F[0][1] == 1)
-
-        # base change from R[x] to K[x], so divisions work and sufficient
-        # elements of negative valuation exist
-        v = self.extension(self.domain().change_ring(self.domain().base_ring().fraction_field()))
-        if v is not self:
-            return  v.is_equivalence_irreducible(f)
-
-        if not f.is_monic():
-            # if f is not monic we can safely drop the leading coefficient since a
-            # constant is always an equivalence-unit
-            f = v.domain().coerce(f)
-            return self.is_equivalence_irreducible(f / f.leading_coefficient())
-
-        if self.valuations(f).next() > self(f):
-            # phi is an equivalence-factor of f
-            f = f-self.coefficients(f).next()
-            assert self.phi().divides(f)
-            f,_ = f.quo_rem(self.phi())
-            return self.effective_degree(f) == 0
-
-        R = self.equivalence_unit(-self(f))
-
-        # check irreducibility in reduction
-        F = self.reduce(f*R)
-        F = F.factor()
-        if len(F) > 1 or (len(F) and F[0][1] > 1):
+        _, phi_divides, F = self._equivalence_reduction(f)
+        if phi_divides == 0:
+            return F.is_constant() or F.is_irreducible()
+        if phi_divides == 1:
+            return F.is_constant()
+        if phi_divides > 1:
             return False
 
-        return True
-
     @cached_method
-    def equivalence_decomposition(self, f):
+    def equivalence_decomposition(self, f, partial=False):
         r"""
         Return an equivalence decomposition of ``f``, i.e., a polynomial
         `g(x)=e(x)\prod_i \phi_i(x)` with `e(x)` an equivalence unit (see
@@ -678,7 +632,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         INPUT:
 
-        - ``f`` -- a polynomial in the domain of this valuation
+        - ``f`` -- a non-zero polynomial in the domain of this valuation
 
         ALGORITHM:
 
@@ -764,49 +718,33 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         363-395.
 
         """
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of the valuation")
+        f = self.domain().coerce(f)
+
         if f.is_zero():
             raise ValueError("equivalence decomposition of zero is not defined")
 
         from sage.structure.factorization import Factorization
-        if not self.domain().base_ring().is_field():
-            v = self.extension(self.domain().change_ring(self.domain().base_ring().fraction_field()))
-            ret = v.equivalence_decomposition(v.domain()(f))
-            return Factorization([(g.change_ring(self.domain().base_ring()),e) for g,e in ret], unit=ret.unit().change_ring(self.domain().base_ring()))
-
         if self.is_equivalence_unit(f):
             return Factorization([],unit=f)
 
-        if not self.is_commensurable_inductive():
-            raise NotImplementedError("only implemented for inductive valuations")
+        if not self.domain().base_ring().is_field():
+            domain = self.domain().change_ring(self.domain().base_ring().fraction_field())
+            v = self.extension(domain)
+            ret = v.equivalence_decomposition(v.domain()(f))
+            return Factorization([(g.change_ring(self.domain().base_ring()),e) for g,e in ret], unit=ret.unit().change_ring(self.domain().base_ring()))
 
-        f0 = f # used to check correctness of the output
-
-        phi_divides = 0
-        while self.valuations(f).next() > self(f):
-            f = f-self.coefficients(f).next()
-            assert self.phi().divides(f)
-            f,_ = f.quo_rem(self.phi())
-            phi_divides += 1
-
-        R = self.equivalence_unit(-self(f))
-        R_ = self.equivalence_reciprocal(R)
-
-        F = self.reduce(f*R)
+        R, phi_divides, F = self._equivalence_reduction(f)
         F = F.factor()
         from sage.misc.misc import verbose
-        verbose("%s factors as %s = %s in reduction"%(f0,F.prod(),F),caller_name="equivalence_decomposition")
-        unit = F.unit()
+        verbose("%s factors as %s = %s in reduction"%(f, F.prod(), F), caller_name="equivalence_decomposition")
 
+        unit = self.lift(self.residue_ring()(F.unit())) * self.equivalence_reciprocal(R)
         F = list(F)
-        unit = self.lift( self.residue_ring()(unit) )
 
         from sage.misc.all import prod
         unit *= self.lift(self.residue_ring()(prod([ psi.leading_coefficient()**e for psi,e in F ])))
         F = [(self.lift_to_key(psi/psi.leading_coefficient()),e) for psi,e in F]
-
-        unit *= R_ * prod([self.equivalence_unit(-self(g))**e for g,e in F])
+        unit *= prod([self.equivalence_unit(-self(g))**e for g,e in F])
 
         if phi_divides:
             for i,(g,e) in enumerate(F):
@@ -817,8 +755,81 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
                 F.append((self.phi(),phi_divides))
 
         ret = Factorization(F, unit=unit)
-        assert self.is_equivalent(ret.prod(), f0) # this might fail because of leading zeros
+
+        assert self.is_equivalent(ret.prod(), f) # this might fail because of leading zeros in inexact rings
         assert self.is_equivalence_unit(ret.unit())
+
+        return ret
+
+    def minimal_representative(self, f):
+        r"""
+        Return a minimal representative for ``f``, i.e., a pair `e, a` such
+        that ``f`` :meth:`is_equivalent` to `e a`, `e` is an
+        :meth:`equivalence_unit`, and `a` :meth:`is_minimal` and monic.
+
+        INPUT:
+
+        - ``f`` -- a non-zero polynomial which is not an equivalence unit
+
+        OUTPUT:
+
+        A factorization which has `e` as its unit and `a` as its unique factor.
+
+        ALGORITHM:
+
+        We use the algorithm described in the proof of Lemma 4.1 of [ML1936'].
+        In the expansion `f=\sum_i f_i\phi^i` take `e=f_i` for the largest `i`
+        with `f_i\phi^i` minimal (see :meth:`effective_degree`).
+        Let `h` be the :meth:`equivalence_reciprocal` of `e` and take `a` given
+        by the terms of minimal valuation in the expansion of `e f`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v.minimal_representative(x + 2)
+            (1 + O(2^10))*x
+
+            sage: v = v.augmentation(x, 1)
+            sage: v.minimal_representative(x + 2)
+            (1 + O(2^10))*x + 2 + O(2^11)
+            sage: f = x^3 + 6*x + 4
+            sage: F = v.minimal_representative(f); F
+            (2 + 2^2 + O(2^11)) * ((1 + O(2^10))*x + 2 + 2^2 + 2^4 + 2^6 + 2^8 + 2^10 + O(2^11))
+            sage: v.is_minimal(F[0][0])
+            True
+            sage: v.is_equivalent(F.prod(), f)
+            True
+
+        """
+        f = self.domain().coerce(f)
+
+        if f.is_zero():
+            raise ValueError("zero has no minimal representative")
+
+        degree = self.effective_degree(f)
+        if degree == 0:
+            raise ValueError("equivalence units can not have a minimal representative")
+
+        e = list(self.coefficients(f))[degree]
+        h = self.equivalence_reciprocal(e).map_coefficients(lambda c:_lift_to_maximal_precision(c))
+        g = h*f
+        vg = self(g)
+
+        coeffs = [c if v == vg else c.parent().zero() for v,c in zip(self.valuations(g), self.coefficients(g))]
+        coeffs[degree] = self.domain().base_ring().one()
+        ret = sum([c*self._phi**i for i,c in enumerate(coeffs)])
+
+        assert self.effective_degree(ret) == degree
+        assert ret.is_monic()
+        assert self.is_minimal(ret)
+
+        from sage.structure.factorization import Factorization
+        ret = Factorization([(ret, 1)], unit=e)
+
+        assert self.is_equivalent(ret.prod(), f) # this might fail because of leading zeros
         return ret
 
     def _test_is_equivalence_irreducible(self, **options):

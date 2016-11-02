@@ -468,34 +468,6 @@ class GaussValuation_generic(FiniteInductiveValuation):
     # TODO: eliminate this
     element_with_valuation = equivalence_unit
 
-    # TODO: declare this upstairs
-    def is_commensurable_inductive(self):
-        """
-        Return whether this valuation is a commensurable inductive valuation
-        over the discrete valuation of the base ring of the polynomial ring, as
-        defined in section 4 of [ML1936].
-
-        OUTPUT:
-
-        ``True`` since a Gauss valuation always is commensurable inductive.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: v.is_commensurable_inductive()
-            True
-
-        REFERENCES:
-
-        .. [ML1936] Mac Lane, S. (1936). A construction for prime ideals as absolute
-        values of an algebraic field. Duke Mathematical Journal, 2(3), 492-510.
-
-        """
-        return True
-
     # TODO: declare this uptstairs
     def E(self):
         """

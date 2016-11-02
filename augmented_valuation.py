@@ -248,7 +248,8 @@ class AugmentedValuation_base(InductiveValuation):
             :meth:`effective_degree`, :meth:`is_equivalence_unit`
 
         """
-        if s < 0 and not self.domain().base_ring().is_field():
+        from sage.categories.fields import Fields
+        if s < 0 and not self.domain().base_ring() in Fields():
             raise NotImplementedError("only implemented for polynomial rings over fields")
 
         ret = self._base_valuation.element_with_valuation(s)
@@ -293,7 +294,8 @@ class AugmentedValuation_base(InductiveValuation):
         """
         if s not in self.value_group():
             raise ValueError("s must be in the value group of the valuation")
-        if s < 0 and not self.domain().base_ring().is_field():
+        from sage.categories.fields import Fields
+        if s < 0 and not self.domain().base_ring() in Fields():
             raise NotImplementedError("only implemented for polynomial rings over fields")
 
         ret = self.domain().one()
@@ -491,7 +493,8 @@ class AugmentedValuation_base(InductiveValuation):
         """
         if f.parent() is not self.domain():
             raise ValueError("f must be in the domain of the valuation")
-        if not self.domain().base_ring().is_field():
+        from sage.categories.fields import Fields
+        if not self.domain().base_ring() in Fields():
             raise NotImplementedError("only implemented for polynomial rings over fields")
 
         if self(f) < 0:
@@ -605,7 +608,8 @@ class AugmentedValuation_base(InductiveValuation):
         """
         F = self.residue_ring().coerce(F)
 
-        if not self.domain().base_ring().is_field():
+        from sage.categories.fields import Fields
+        if not self.domain().base_ring() in Fields():
             raise NotImplementedError("only implemented for polynomial rings over fields")
         if self._mu == infinity:
             if self.psi().degree() == 1:
@@ -719,7 +723,8 @@ class AugmentedValuation_base(InductiveValuation):
         """
         if F.parent() is not self.residue_ring():
             raise ValueError("F must be an element of the residue ring of the valuation")
-        if not self.domain().base_ring().is_field():
+        from sage.categories.fields import Fields
+        if not self.domain().base_ring() in Fields():
             raise NotImplementedError("only implemented for polynomial rings over fields")
         if self._base_valuation.is_gauss_valuation() and self._mu == infinity:
             raise TypeError("there are no keys over this valuation")
@@ -901,6 +906,9 @@ class AugmentedValuation_base(InductiveValuation):
         return self.psi().degree() * self._base_valuation.F()
 
     def extensions(self, ring):
+        if ring is self.domain():
+            return [self]
+
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         if not is_PolynomialRing(ring) and len(ring.gens()) != 1:
             raise NotImplementedError("Can not compute extensions to a ring that is not a univariate polynomial ring such as %r"%ring)
@@ -910,15 +918,18 @@ class AugmentedValuation_base(InductiveValuation):
 
         ret = []
         for v in base_valuations:
-            F = v.equivalence_decomposition(phi)
-            mu0 = v(phi)
-            for f,e in F:
-                # We construct a valuation with [v, w(phi) = mu] which should be such that
-                # self(phi) = self._mu, i.e., w(phi) = w(unit) + sum e_i * w(f_i) where
-                # the sum runs over all the factors in the equivalence decomposition of phi
-                # Solving for mu gives
-                mu = (self._mu - v(F.unit()) - sum([ee*v(ff) for ff,ee in F if ff != f])) / e
-                ret.append(AugmentedValuation(v, f, mu))
+            if v.is_key(phi):
+                ret.append(AugmentedValuation(v, phi, self._mu))
+            else:
+                F = v.equivalence_decomposition(phi)
+                mu0 = v(phi)
+                for f,e in F:
+                    # We construct a valuation with [v, w(phi) = mu] which should be such that
+                    # self(phi) = self._mu, i.e., w(phi) = w(unit) + sum e_i * w(f_i) where
+                    # the sum runs over all the factors in the equivalence decomposition of phi
+                    # Solving for mu gives
+                    mu = (self._mu - v(F.unit()) - sum([ee*v(ff) for ff,ee in F if ff != f])) / e
+                    ret.append(AugmentedValuation(v, f, mu))
         return ret
 
     def restriction(self, ring):

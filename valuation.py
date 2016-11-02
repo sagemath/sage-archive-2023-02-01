@@ -499,7 +499,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: G = x^4 + 2*x^3 + 2*x^2 - 2*x + 2
             sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4 ]]
-            sage: v.mac_lane_approximants(G, infinity)
+            sage: v.mac_lane_approximants(G, infinity) # long time
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + (2 + O(2^11))) = +Infinity ]]
 
         The factorization of primes in the Gaussian integers can be read off

@@ -1,1 +1,3 @@
 * Eliminate isinstance calls from code (usually by moving things like _repr_ or _ge_ up in the hierarchy)
+
+* Replace almost all doctests with the ring case. If it works over rings, then it will work over fields.

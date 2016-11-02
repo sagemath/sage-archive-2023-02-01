@@ -106,7 +106,7 @@ def lifting(p, t, A, G):
         return matrix(A.parent().base(), A.ncols(), 0)
 
     assert (A*G % p**(t-1)).is_zero(),\
-        "A*G is not zero mod %s^%s" % (str(p), str(t-1))
+        "A*G is not zero mod %s^%s" % (p, t-1)
 
     P = A.parent()
     ZZX = P.base()
@@ -135,7 +135,7 @@ def lifting(p, t, A, G):
 
     F1 = matrix.block([[p**(t-1) * matrix.identity(d), G]])*T
     F = F1.matrix_from_columns(range(r, F1.ncols()))
-    assert (A*F % (p**t)).is_zero(), "A*F=%s" % str(A*F)
+    assert (A*F % (p**t)).is_zero(), "A*F=%s" % (A*F)
 
     return F
 
@@ -379,7 +379,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         # find nu
         while len(generators) > 1:
-            f = list(set(generators) - set([g]))[0]
+            f = (set(generators) - set([g])).pop()
             #take first element in generators not equal g
             generators.remove(f)
             r = (f.quo_rem(g)[1]) % p**t
@@ -430,7 +430,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         """
         assert (nu_t(self._B) % p**t).is_zero(),\
-            "%s not in (%s^%s)-ideal" % (str(nu_t), str(p), str(t))
+            "%s not in (%s^%s)-ideal" % (nu_t, p, t)
         chi_B = self._ZX(self._B.characteristic_polynomial())
         column = [nu_t] + [(nu_t*b).quo_rem(chi_B)[0]
                            for b in self._A[:, 0].list()]
@@ -576,9 +576,9 @@ class ComputeMinimalPolynomials(SageObject):
 
         while True:
             deg_prev_nu = nu.degree()
-            t = t + 1
+            t += 1
             verbose("------------------------------------------")
-            verbose("p=%s, t=%s:" % (str(p), str(t)))
+            verbose("p=%s, t=%s:" % (p, t))
 
             verbose("Result of lifting:")
             verbose("F=")
@@ -586,7 +586,7 @@ class ComputeMinimalPolynomials(SageObject):
 
             nu = self.current_nu(p,t, list(lifting(p, t, self._A, G)[0]), nu)
 
-            verbose("nu=%s" % str(nu))
+            verbose("nu=%s" % nu)
             if nu.degree() >= deg_mu:
                 return calS, p_min_polys
 
@@ -631,9 +631,8 @@ class ComputeMinimalPolynomials(SageObject):
             Ideal (3, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
             Ideal (9, x^2 - 5*x - 2) of Univariate Polynomial Ring in x over Integer Ring
         """
-        factorization = list(factor(b))
         generators = [self._ZX(b), self._ZX((self._B).minimal_polynomial())]
-        for (p,t) in factorization:
+        for (p, t) in factor(b):
             #print (p,t)
             cofactor = b // p**t
             calS, p_polys = self.p_minimal_polynomials(p,t)
@@ -652,7 +651,7 @@ class ComputeMinimalPolynomials(SageObject):
 
 
         assert all((g(self._B) % b).is_zero() for g in generators), \
-            "Polynomials not in %s-ideal" % str(b)
+            "Polynomials not in %s-ideal" % (b,)
 
         return self._ZX.ideal(generators)
 
@@ -683,11 +682,7 @@ class ComputeMinimalPolynomials(SageObject):
         out to be a `3`-minimal polynomial and a `5`-minimal polynomial.
         """
         F, T = (self._B).frobenius(2)
-        factorization = list(factor(T.det()))
 
-        primes = []
-        for (p, t) in factorization:
-            primes.append(p)
-
-        return primes
+        return [p for
+                (p, t) in factor(T.det())]
 

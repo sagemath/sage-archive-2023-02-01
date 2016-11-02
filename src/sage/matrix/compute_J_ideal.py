@@ -329,7 +329,7 @@ class ComputeMinimalPolynomials(SageObject):
         return generators[0]
 
 
-    def compute_mccoy_column(self, p, t, nu_t):
+    def mccoy_column(self, p, t, nu_t):
         r"""
         INPUT:
 
@@ -351,7 +351,7 @@ class ComputeMinimalPolynomials(SageObject):
            sage: C = ComputeMinimalPolynomials(B)
            sage: x = polygen(ZZ, 'x')
            sage: nu_4 = x^2 + 3*x + 2
-           sage: g = C.compute_mccoy_column(2, 2, nu_4)
+           sage: g = C.mccoy_column(2, 2, nu_4)
            sage: b = matrix(9, 1, (x-B).adjoint().list())
            sage: M = matrix.block([[b , -B.charpoly(x)*matrix.identity(9)]])
            sage: (M*g % 4).is_zero()
@@ -360,7 +360,7 @@ class ComputeMinimalPolynomials(SageObject):
         TESTS::
 
            sage: nu_2 = x^2 + x
-           sage: C.compute_mccoy_column(2, 2, nu_2)
+           sage: C.mccoy_column(2, 2, nu_2)
            Traceback (most recent call last):
            ...
            AssertionError: x^2 + x not in (2^2)-ideal
@@ -532,9 +532,9 @@ class ComputeMinimalPolynomials(SageObject):
                 del p_min_polys[t-1]
 
             verbose("corresponding columns for G")
-            verbose(self.compute_mccoy_column(p,t,nu))
+            verbose(self.mccoy_column(p,t,nu))
 
-            G = matrix.block([[p * G, self.compute_mccoy_column(p, t, nu)]])
+            G = matrix.block([[p * G, self.mccoy_column(p, t, nu)]])
             calS.append(t)
             p_min_polys[t] = nu
 

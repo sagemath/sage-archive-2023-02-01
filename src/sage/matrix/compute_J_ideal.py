@@ -711,6 +711,25 @@ class Compute_nu(SageObject):
 
     # which primes we need to checke
     def prime_candidates(self):
+       r"""
+       Determine those primes `p` where `\mu_B` might not be a `p`-minimal polynomial.
+
+       OUTPUT:
+
+       A list of primes.
+
+       EXAMPLES::
+
+            sage: from calculate_nu import compute_nu # not tested
+            sage: B = matrix([[1, 2], [3, 4]])
+            sage: C = Compute_nu(B)
+            sage: C.prime_candidates()
+            [3]
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: C = Compute_nu(B)
+            sage: C.prime_candidates()
+            [2, 3, 5]
+       """
        F, T = (self._B).frobenius(2)
        factorization = list(factor(T.det()))
 

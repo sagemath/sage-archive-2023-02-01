@@ -666,7 +666,7 @@ class ComputeMinimalPolynomials(SageObject):
              sage: C.p_minimal_polynomials(5)
              ([], {})
 
-        This means that `3` and `5` were canidates, but actually, `\mu_B` turns
+        This means that `3` and `5` were candidates, but actually, `\mu_B` turns
         out to be a `3`-minimal polynomial and a `5`-minimal polynomial.
         """
         F, T = (self._B).frobenius(2)

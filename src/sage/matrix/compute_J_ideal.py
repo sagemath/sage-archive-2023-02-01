@@ -377,6 +377,13 @@ class Compute_nu(SageObject):
             Generators with (p^t)-generating property:
             [x^2 + 3*x + 2]
             x^2 + 3*x + 2
+
+        TESTS::
+
+            sage: C.current_nu(2, 3, generators_4, nu_2)
+            Traceback (most recent call last):
+            ...
+            AssertionError
         """
         assert all((g(self._B) % p**t).is_zero()
                    for g in pt_generators)

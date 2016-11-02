@@ -109,11 +109,11 @@ class PuncturedCode(AbstractLinearCode):
         sage: C = codes.random_linear_code(GF(7), 11, 5)
         sage: Cp = codes.PuncturedCode(C, 3)
         sage: Cp
-        Puncturing of [11, 5] linear code over GF(7) punctured on position(s) [3]
+        Puncturing of [11, 5] linear code over GF(7) on position(s) [3]
 
         sage: Cp = codes.PuncturedCode(C, {3, 5})
         sage: Cp
-        Puncturing of [11, 5] linear code over GF(7) punctured on position(s) [3, 5]
+        Puncturing of [11, 5] linear code over GF(7) on position(s) [3, 5]
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -172,9 +172,9 @@ class PuncturedCode(AbstractLinearCode):
             sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: Cp
-            Puncturing of [11, 5] linear code over GF(7) punctured on position(s) [3]
+            Puncturing of [11, 5] linear code over GF(7) on position(s) [3]
         """
-        return "Puncturing of %s punctured on position(s) %s"\
+        return "Puncturing of %s on position(s) %s"\
                 % (self.original_code(), list(self.punctured_positions()))
 
     def _latex_(self):
@@ -186,9 +186,9 @@ class PuncturedCode(AbstractLinearCode):
             sage: C = codes.random_linear_code(GF(7), 11, 5)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: latex(Cp)
-            \textnormal{Puncturing of [11, 5] linear code over GF(7) punctured on position(s) } [3]
+            \textnormal{Puncturing of [11, 5] linear code over GF(7) on position(s) } [3]
         """
-        return "\\textnormal{Puncturing of %s punctured on position(s) } %s"\
+        return "\\textnormal{Puncturing of %s on position(s) } %s"\
                 % (self.original_code(), list(self.punctured_positions()))
 
     def punctured_positions(self):
@@ -355,7 +355,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: E
-            Punctured matrix-based encoder for the Puncturing of [11, 5] linear code over GF(7) punctured on position(s) [3]
+            Punctured matrix-based encoder for the Puncturing of [11, 5] linear code over GF(7) on position(s) [3]
     """
 
     def __init__(self, code):
@@ -384,7 +384,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: E
-            Punctured matrix-based encoder for the Puncturing of [11, 5] linear code over GF(7) punctured on position(s) [3]
+            Punctured matrix-based encoder for the Puncturing of [11, 5] linear code over GF(7) on position(s) [3]
         """
         return "Punctured matrix-based encoder for the %s" % self.code()
 
@@ -398,7 +398,7 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: E = codes.encoders.PuncturedCodePuncturedMatrixEncoder(Cp)
             sage: latex(E)
-            \textnormal{Punctured matrix-based encoder for the }\textnormal{Puncturing of [11, 5] linear code over GF(7) punctured on position(s) } [3]
+            \textnormal{Punctured matrix-based encoder for the }\textnormal{Puncturing of [11, 5] linear code over GF(7) on position(s) } [3]
         """
         return "\\textnormal{Punctured matrix-based encoder for the }%s" % self.code()._latex_()
 
@@ -473,7 +473,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'a').list()[:15], 7)
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
-            Decoder of Puncturing of [15, 7, 9] Reed-Solomon Code over GF(16) punctured on position(s) [3] through Error-Erasure decoder for [15, 7, 9] Reed-Solomon Code over GF(16)
+            Decoder of Puncturing of [15, 7, 9] Reed-Solomon Code over GF(16) on position(s) [3] through Error-Erasure decoder for [15, 7, 9] Reed-Solomon Code over GF(16)
 
         As seen above, if all optional are left blank, and if an error-erasure decoder is
         available, it will be chosen as the original decoder.
@@ -579,7 +579,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
             sage: D
-            Decoder of Puncturing of [15, 7, 9] Reed-Solomon Code over GF(16) punctured on position(s) [3] through Error-Erasure decoder for [15, 7, 9] Reed-Solomon Code over GF(16)
+            Decoder of Puncturing of [15, 7, 9] Reed-Solomon Code over GF(16) on position(s) [3] through Error-Erasure decoder for [15, 7, 9] Reed-Solomon Code over GF(16)
 
         """
         return "Decoder of %s through %s" % (self.code(), self.original_decoder())
@@ -595,7 +595,7 @@ class PuncturedCodeOriginalCodeDecoder(Decoder):
             sage: Cp = codes.PuncturedCode(C, 3)
             sage: D = codes.decoders.PuncturedCodeOriginalCodeDecoder(Cp)
             sage: latex(D)
-            \textnormal{Decoder of } Puncturing of [15, 7, 9] Reed-Solomon Code over GF(16) punctured on position(s) [3] \textnormal{ through } Error-Erasure decoder for [15, 7, 9] Reed-Solomon Code over GF(16)
+            \textnormal{Decoder of } Puncturing of [15, 7, 9] Reed-Solomon Code over GF(16) on position(s) [3] \textnormal{ through } Error-Erasure decoder for [15, 7, 9] Reed-Solomon Code over GF(16)
         """
         return "\\textnormal{Decoder of } %s \\textnormal{ through } %s" % (self.code(), self.original_decoder())
 

@@ -275,10 +275,10 @@ class ComputeMinimalPolynomials(SageObject):
 
         - ``p`` -- a prime element of `D`
 
-        - ``t`` -- a non-negative integer
+        - ``t`` -- a positive integer
 
-        - ``pt_generators`` -- a list of polynomials over `D[X]`. Together with
-          `pN_{p^{t-1}}(B)`, they generate `N_{p^t}(B)`.
+        - ``pt_generators`` -- a list `(g_1, \ldots, g_s)` of polynomials in
+          `D[X]` such that `N_{p^t}(B) = (g_1, \ldots, g_s) + pN_{p^{t-1}}(B)`.
 
         - ``prev_nu`` -- a `p^{t-1}`-minimal polynomial of `B`.
 
@@ -291,20 +291,29 @@ class ComputeMinimalPolynomials(SageObject):
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: x = polygen(ZZ, 'x')
-            sage: nu_2 = x^2 + x
+            sage: nu_1 = x^2 + x
             sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
-            sage: C.current_nu(2, 2, generators_4, nu_2)
+            sage: C.current_nu(2, 2, generators_4, nu_1)
             x^2 + 3*x + 2
 
         TESTS::
 
-            sage: C.current_nu(2, 3, generators_4, nu_2)
+            sage: C.current_nu(2, 3, generators_4, nu_1)
             Traceback (most recent call last):
             ...
-            AssertionError
+            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] are not in N_{2^3}(B)
+            sage: C.current_nu(2, 2, generators_4, x^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: x^2 is not in N_{2^1}(B)
         """
-        assert all((g(self._B) % p**t).is_zero()
-                   for g in pt_generators)
+        if not all((g(self._B) % p**t).is_zero()
+                   for g in pt_generators):
+            raise ValueError("%s are not in N_{%s^%s}(B)" % (pt_generators, p, t))
+
+        if not (prev_nu(self._B) % p**(t-1)).is_zero():
+            raise ValueError("%s is not in N_{%s^%s}(B)" % (prev_nu, p, t-1))
+        
 
         generators = self.find_monic_replacements(p, t, pt_generators, prev_nu)
 

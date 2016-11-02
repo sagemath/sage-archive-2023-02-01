@@ -200,8 +200,7 @@ class ComputeMinimalPolynomials(SageObject):
         self._ZX = X.parent()
 
 
-    # ersetzt Polynome im p^t-Ideal durch normierte (Lemma 5.4)
-    def find_monic_replacements(self, p, t, poly_set, prev_nu):
+    def find_monic_replacements(self, p, t, pt_generators, prev_nu):
         r"""
         Replace possibly non-monic generators of `N_{p^t}(B)` by monic generators
 
@@ -211,40 +210,48 @@ class ComputeMinimalPolynomials(SageObject):
 
         - ``t`` -- a non-negative integer
 
-        - ``poly_set`` -- a list of polynomials over `D[X]`. Together with
-          `pN_{p^{t-1}}(B)`, they generate `N_{p^t}(B)`.
+        - ``pt_generators`` -- a list `(g_1, \ldots, g_s)` of polynomials in
+          `D[X]` such that `N_{p^t}(B) = (g_1, \ldots, g_s) + pN_{p^{t-1}}(B)`.
 
         - ``prev_nu`` -- a `p^{t-1}`-minimal polynomial of `B`.
 
         OUTPUT:
 
-        A list of monic polynomials. Together with `pN_{p^{t-1}}(B)`,
-        they generate `N_{p^t}(B)`.
+        A list `(h_1, \ldots, h_r)` of monic polynomials such that
+        `N_{p^t}(B) = (h_1, \ldots, h_r) + pN_{p^{t-1}}(B)`.
 
         EXAMPLES::
 
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: x = polygen(ZZ, 'x')
-            sage: nu_2 = x^2 + x
+            sage: nu_1 = x^2 + x
             sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
-            sage: C.find_monic_replacements(2, 2, generators_4, nu_2)
+            sage: C.find_monic_replacements(2, 2, generators_4, nu_1)
             [x^2 + 3*x + 2]
 
         TESTS::
 
-            sage: C.find_monic_replacements(2, 3, generators_4, nu_2)
+            sage: C.find_monic_replacements(2, 3, generators_4, nu_1)
             Traceback (most recent call last):
             ...
-            AssertionError
+            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] are not in N_{2^3}(B)
+            sage: C.find_monic_replacements(2, 2, generators_4, x^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: x^2 is not in N_{2^1}(B)
         """
-        assert all((f(self._B) % p**t).is_zero()
-                   for f in poly_set)
+        if not all((g(self._B) % p**t).is_zero()
+                   for g in pt_generators):
+            raise ValueError("%s are not in N_{%s^%s}(B)" % (pt_generators, p, t))
+
+        if not (prev_nu(self._B) % p**(t-1)).is_zero():
+            raise ValueError("%s is not in N_{%s^%s}(B)" % (prev_nu, p, t-1))
 
         (X,) = self._ZX.gens()
 
         replacements = []
-        for f in poly_set:
+        for f in pt_generators:
             g = self._ZX(f)
             nu = self._ZX(prev_nu)
             p_prt = self._ZX(p_part(g, p))

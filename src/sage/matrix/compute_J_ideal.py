@@ -214,25 +214,25 @@ class Compute_nu(SageObject):
     def find_monic_replacements(self, p, t, poly_set, prev_nu):
         r"""
         Replace possibly non-monic generators of `N_{p^t}(B)` by monic generators
-  
+
         INPUT:
-  
+
         - ``p`` -- a prime element of `D`
-  
+
         - ``t`` -- a non-negative integer
-  
+
         - ``poly_set`` -- a list of polynomials over `D[X]`. Together with
           `pN_{p^{t-1}}(B)`, they generate `N_{p^t}(B)`.
-  
+
         - ``prev_nu`` -- a `p^{t-1}`-minimal polynomial of `B`.
-  
+
         OUTPUT:
-  
+
         A list of monic polynomials. Together with `pN_{p^{t-1}}(B)`,
         they generate `N_{p^t}(B)`.
-  
+
         EXAMPLES::
-  
+
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = Compute_nu(B)
             sage: x = polygen(ZZ, 'x')
@@ -240,9 +240,9 @@ class Compute_nu(SageObject):
             sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
             sage: C.find_monic_replacements(2, 2, generators_4, nu_2)
             [x^2 + 3*x + 2]
-  
+
         TESTS::
-  
+
             sage: C.find_monic_replacements(2, 3, generators_4, nu_2)
             Traceback (most recent call last):
             ...
@@ -250,15 +250,15 @@ class Compute_nu(SageObject):
         """
         assert all((f(self._B) % p**t).is_zero()
                    for f in poly_set)
-  
+
         (X,) = self._ZX.gens()
-  
+
         replacements = []
         for f in poly_set:
             g = self._ZX(f)
             nu = self._ZX(prev_nu)
             p_prt = self._ZX(p_part(g, p))
-  
+
             while g != p*p_prt:
                 r = p_prt.quo_rem(nu)[1]
                 g2 = g - p*p_prt
@@ -269,12 +269,12 @@ class Compute_nu(SageObject):
                 #reduce coefficients mod p^t to keep coefficients small
                 g = g.quo_rem(h)[1]
                 p_prt = self._ZX(p_part(g,p))
-  
+
         replacements = list(set(replacements))
         assert all( g.is_monic() for g in replacements),\
             "Something went wrong in find_monic_replacements"
         return replacements
-  
+
 
     # Algorithm 2
     def current_nu(self, p, t, pt_generators, prev_nu):
@@ -334,7 +334,7 @@ class Compute_nu(SageObject):
             if f.degree() < g.degree():
                 g=f
 
-        # find nu    
+        # find nu
         while len(generators) > 1:
             f = list(set(generators) - set([g]))[0]
             #take first element in generators not equal g
@@ -408,25 +408,25 @@ class Compute_nu(SageObject):
         `\nu_s` for `s\in \mathcal{S}` such that `N_{p^t}(B) = \mu_B
         \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in \mathcal{S}}
         p^{t-s}\nu_s \mathbb{Z}[X]`
- 
+
         INPUT:
- 
+
         - ``p`` -- an integer prime
- 
+
         - ``upto`` -- a nonnegative integer Default is ``None``: Returns
           `\mathcal{S}` such that
           `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in\mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]`
           holds for all `t \ge \max\{s\in \mathcal{S}\}`.
- 
+
         - ``steps`` -- show computation steps
- 
+
         OUTPUT:
- 
+
         A list (index set `\mathcal{S}`) together with a dictionary
         (keys=indices in `\mathcal{S}`, values=polynomials `\nu_s` )
- 
+
         EXAMPLES::
- 
+
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = Compute_nu(B)
             sage: C.p_minimal_polynomials(2)
@@ -533,42 +533,42 @@ class Compute_nu(SageObject):
             [x^2 + x]
             ([1], {1: x^2 + x})
         """
- 
+
         mu_B = self._B.minimal_polynomial()
         deg_mu = mu_B.degree()
- 
+
         t = 0
         calS = []
         p_min_polys = {}
         nu = self._ZX(1)
         d=self._A.ncols()
         G = matrix(self._ZX,d,0)
- 
- 
+
+
         while True:
             deg_prev_nu = nu.degree()
             t = t + 1
             if steps:
                 print "------------------------------------------"
                 print "p=%s, t=%s:" % (str(p), str(t))
- 
+
             if steps:
                 print "Result of lifting:"
                 print "F="
                 print lifting(p, t, self._A, G)
- 
+
             nu = self.current_nu(p,t, list(lifting(p, t, self._A, G)[0]), nu)
             if steps:
                 print "nu=%s" % str(nu)
             if nu.degree() >= deg_mu:
                 return calS, p_min_polys
- 
-     
+
+
             if nu.degree() == deg_prev_nu:
                 calS.remove(t-1)
                 G = G.matrix_from_columns(range(G.ncols()-1))
                 del p_min_polys[t-1]
- 
+
             if steps:
                 print "corresponding columns for G"
                 print self.compute_mccoy_column(p,t,nu)
@@ -576,12 +576,12 @@ class Compute_nu(SageObject):
             G = matrix.block([[p * G, self.compute_mccoy_column(p, t, nu)]])
             calS.append(t)
             p_min_polys[t] = nu
- 
+
             # allow early stopping for small t
             if t == upto:
                 return calS, p_min_polys
- 
- 
+
+
     def null_ideal(self, b=0):
         r"""
         Return the ideal `N_{b}(B)=\{ f\in \mathbb{Z}[X] \mid \exists
@@ -645,13 +645,13 @@ class Compute_nu(SageObject):
     def prime_candidates(self):
         r"""
         Determine those primes `p` where `\mu_B` might not be a `p`-minimal polynomial.
- 
+
         OUTPUT:
- 
+
         A list of primes.
- 
+
         EXAMPLES::
- 
+
              sage: from calculate_nu import compute_nu # not tested
              sage: B = matrix([[1, 2], [3, 4]])
              sage: C = Compute_nu(B)
@@ -664,10 +664,10 @@ class Compute_nu(SageObject):
         """
         F, T = (self._B).frobenius(2)
         factorization = list(factor(T.det()))
- 
+
         primes = []
         for (p, t) in factorization:
             primes.append(p)
- 
+
         return primes
- 
+

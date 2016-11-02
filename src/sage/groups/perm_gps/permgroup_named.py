@@ -188,7 +188,7 @@ class PermutationGroup_symalt(PermutationGroup_unique):
             ValueError: domain (=-1) must be an integer >= 0 or a list
         """
         if domain not in FiniteEnumeratedSets():
-            if not isinstance(domain, (tuple, list)):
+            if not isinstance(domain, (tuple, list, range)):
                 try:
                     domain = Integer(domain)
                 except TypeError:

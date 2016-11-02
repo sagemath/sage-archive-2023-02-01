@@ -849,7 +849,7 @@ class IntegerVectors_nk(CombinatorialClass):
         TESTS::
 
             sage: IV = IntegerVectors(4,5) 
-            sage: range(IV.cardinality()) == [IV.rank(x) for x in IV]
+            sage: list(range(IV.cardinality())) == [IV.rank(x) for x in IV]
             True
         """
 

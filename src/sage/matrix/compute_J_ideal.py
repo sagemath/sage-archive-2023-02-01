@@ -131,16 +131,17 @@ def p_part(f, p):
 
 class ComputeMinimalPolynomials(SageObject):
     r"""
-    Compute nu for a given matrix.
+    Create an object for computing `(p^t)`-minimal polynomials and `J`-ideals.
 
     INPUT:
 
-    - ``B`` -- an immutable matrix over `\mathbb{Z}`.
+    - ``B`` -- a square matrix over a principal ideal domain `D`.
 
     OUTPUT:
 
-    An object which can be called with integer arguments yielding the
-    actual nu values.
+    An object which allows to call ``p_minimal_polynomials`` and ``null_ideal``.
+
+    The characteristic polynomial of `B` is denoted by `\chi_B`; `n` is the size of `B`.
 
     EXAMPLES::
 
@@ -155,6 +156,13 @@ class ComputeMinimalPolynomials(SageObject):
         sage: C.p_minimal_polynomials(2)
         [x^3 + 7*x^2 + 6*x]
         ([2], {2: x^2 + 3*x + 2})
+
+    .. TODO:: There should not be several polynomials of the same degree.
+
+    .. TODO:: Test composite ``b`` for ``null_ideal``
+
+    .. TODO:: Implement and test ``b=0`` for ``null_ideal``
+
     """
     def __init__(self, B):
         r"""

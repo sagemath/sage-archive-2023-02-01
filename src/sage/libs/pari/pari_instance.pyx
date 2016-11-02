@@ -179,15 +179,20 @@ The real precision set by
 :meth:`PariInstance.set_real_precision_bits` or
 :meth:`PariInstance.set_real_precision` is irrelevant.
 
-In these examples, we convert to Sage to ensure that the real
-precision is not used when printing the numbers::
+In these examples, we convert to Sage to ensure that PARI's real
+precision is not used when printing the numbers. As explained before,
+this artificically increases the precision to a multiple of the
+wordsize. ::
 
-    sage: pari(1).sin(precision=180).sage()
+    sage: s = pari(1).sin(precision=180).sage(); print(s); print(parent(s))
     0.841470984807896506652502321630298999622563060798371065673
-    sage: pari(1).sin(precision=40).sage()
+    Real Field with 192 bits of precision
+    sage: s = pari(1).sin(precision=40).sage(); print(s); print(parent(s))
     0.841470984807896507
-    sage: pari(1).sin().sage()
+    Real Field with 64 bits of precision
+    sage: s = pari(1).sin().sage(); print(s); print(parent(s))
     0.841470984807896507
+    Real Field with 64 bits of precision
 
 In the third case, the precision is determined only by the inexact
 inputs and the ``precision`` argument is ignored::

@@ -322,10 +322,10 @@ class Compute_nu(SageObject):
 
         generators = self.find_monic_replacements(p, t, pt_generators, prev_nu)
 
-        print "------------------------------------------"
-        print pt_generators
-        print "Generators with (p^t)-generating property:"
-        print generators
+        verbose("------------------------------------------")
+        verbose(pt_generators)
+        verbose("Generators with (p^t)-generating property:")
+        verbose(generators)
 
 
         # find poly of minimal degree
@@ -402,7 +402,7 @@ class Compute_nu(SageObject):
         return  matrix(self._ZX, self._A.ncols(), 1, column)
 
 
-    def p_minimal_polynomials(self, p, upto=None, steps=False):
+    def p_minimal_polynomials(self, p, upto=None):
         r"""
         Return index set `\mathcal{S}` and monic polynomials
         `\nu_s` for `s\in \mathcal{S}` such that `N_{p^t}(B) = \mu_B
@@ -417,8 +417,6 @@ class Compute_nu(SageObject):
           `\mathcal{S}` such that
           `N_{p^t}(B) = \mu_B \mathbb{Z}[X] + p^t\mathbb{Z}[X] + \sum_{s\in\mathcal{S}} p^{t-s}\nu_s \mathbb{Z}[X]`
           holds for all `t \ge \max\{s\in \mathcal{S}\}`.
-
-        - ``steps`` -- show computation steps
 
         OUTPUT:
 
@@ -444,7 +442,8 @@ class Compute_nu(SageObject):
             [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
             [x^3 + 7*x^2 + 6*x]
             ([2], {2: x^2 + 3*x + 2})
-            sage: C.p_minimal_polynomials(2, steps=True)
+            sage: set_verbose(1)
+            sage: C.p_minimal_polynomials(2)
             ------------------------------------------
             p=2, t=1:
             Result of lifting:
@@ -526,6 +525,7 @@ class Compute_nu(SageObject):
             [x^3 + 7*x^2 + 6*x]
             nu=x^3 + 7*x^2 + 6*x
             ([2], {2: x^2 + 3*x + 2})
+            sage: set_verbose(0)
             sage: C.p_minimal_polynomials(2, upto=1)
             ------------------------------------------
             [x^2 + x]
@@ -548,18 +548,16 @@ class Compute_nu(SageObject):
         while True:
             deg_prev_nu = nu.degree()
             t = t + 1
-            if steps:
-                print "------------------------------------------"
-                print "p=%s, t=%s:" % (str(p), str(t))
+            verbose("------------------------------------------")
+            verbose("p=%s, t=%s:" % (str(p), str(t)))
 
-            if steps:
-                print "Result of lifting:"
-                print "F="
-                print lifting(p, t, self._A, G)
+            verbose("Result of lifting:")
+            verbose("F=")
+            verbose(lifting(p, t, self._A, G))
 
             nu = self.current_nu(p,t, list(lifting(p, t, self._A, G)[0]), nu)
-            if steps:
-                print "nu=%s" % str(nu)
+
+            verbose("nu=%s" % str(nu))
             if nu.degree() >= deg_mu:
                 return calS, p_min_polys
 
@@ -569,9 +567,8 @@ class Compute_nu(SageObject):
                 G = G.matrix_from_columns(range(G.ncols()-1))
                 del p_min_polys[t-1]
 
-            if steps:
-                print "corresponding columns for G"
-                print self.compute_mccoy_column(p,t,nu)
+            verbose("corresponding columns for G")
+            verbose(self.compute_mccoy_column(p,t,nu))
 
             G = matrix.block([[p * G, self.compute_mccoy_column(p, t, nu)]])
             calS.append(t)

@@ -140,7 +140,6 @@ _add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polyt
 _add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_LOCAL','gap','latest'))
 
 # locate singular shared object
-UNAME = os.uname()[0]
 if UNAME[:6] == "CYGWIN":
     extension = "dll"
 elif UNAME == "Darwin":

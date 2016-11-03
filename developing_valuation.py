@@ -30,26 +30,6 @@ from sage.misc.abstract_method import abstract_method
 
 from sage.misc.cachefunc import cached_method
 
-def _lift_to_maximal_precision(c):
-    r"""
-    Lift ``c`` to maximal precision if the parent is not exact.
-
-    EXAMPLES::
-
-        sage: from sage.rings.padics.developing_valuation import _lift_to_maximal_precision
-        sage: R = Zp(2,5)
-        sage: x = R(1,2); x
-        1 + O(2^2)
-        sage: _lift_to_maximal_precision(x)
-        1 + O(2^5)
-
-        sage: x = 1
-        sage: _lift_to_maximal_precision(x)
-        1
-
-    """
-    return c if c.parent().is_exact() else c.lift_to_precision()
-
 class DevelopingValuation(DiscretePseudoValuation):
     r"""
     Abstract base class for a discrete valuation of polynomials defined over
@@ -74,14 +54,13 @@ class DevelopingValuation(DiscretePseudoValuation):
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 7))
             sage: isinstance(v, DevelopingValuation)
+            True
 
         """
         domain = parent.domain()
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if not is_PolynomialRing(domain):
-            raise TypeError("domain must be a polynomial ring but %r is not"%(domain,))
-        if not domain.ngens() == 1:
-            raise NotImplementedError("domain must be a univariate polynomial ring but %r is not"%(domain, ))
+        if not is_PolynomialRing(domain) or not domain.ngens() == 1:
+            raise TypeError("domain must be a univariate polynomial ring but %r is not"%(domain,))
 
         phi = domain.coerce(phi)
         if phi.is_constant() or not phi.is_monic():
@@ -96,6 +75,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R = Zp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -119,6 +99,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R = Zp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -151,62 +132,40 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: f = x^2 + 2*x + 3
             sage: list(v.coefficients(f)) # note that these constants are in the polynomial ring
-            [1 + 2 + O(2^5), 2 + O(2^6), 1 + O(2^5)]
-            sage: v = v.extension( x^2 + x + 1, 1)
+            [(1 + 2 + O(2^5)), (2 + O(2^6)), (1 + O(2^5))]
+            sage: v = v.augmentation( x^2 + x + 1, 1)
             sage: list(v.coefficients(f))
-            [(1 + O(2^5))*x + 2 + O(2^5), 1 + O(2^5)]
+            [(1 + O(2^5))*x + (2 + O(2^5)), (1 + O(2^5))]
 
         """
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of the valuation")
+        f = self.domain().coerce(f)
 
         if self.phi().degree() == 1:
             from itertools import imap
-            return imap(f.parent(), f(self.phi().parent().gen() - self.phi()[0]).coefficients(sparse=False))
+            for c in imap(f.parent(), f(self.phi().parent().gen() - self.phi()[0]).coefficients(sparse=False)): yield c
         else:
-            return self.__coefficients(f)
+            while f.degree() >= 0:
+                f,r = self._quo_rem(f)
+                yield r
 
-    def __coefficients(self, f):
+    def _quo_rem(self, f):
         r"""
-        Helper method for :meth:`coefficients` to create an iterator if `\phi`
-        is not linear.
-
-        INPUT:
-
-        - ``f`` -- a monic polynomial in the domain of this valuation
-
-        OUTPUT:
-
-        An iterator `[f_0,f_1,\dots]` of polynomials in the domain of this
-        valuation such that `f=\sum_i f_i\phi^i`
-
-        EXAMPLES::
-
-            sage: R = Qp(2,5)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: v = v.extension( x^2 + x + 1, 1)
-            sage: f = x^2 + 2*x + 3
-            sage: list(v.coefficients(f)) # indirect doctest
-            [(1 + O(2^5))*x + 2 + O(2^5), 1 + O(2^5)]
+        Compute the quotient and remainder of ``f`` divided by the key
+        polynomial :meth:`phi`.
         """
-        while f.degree() >= 0:
-            f,r = self.__quo_rem(f)
-            yield r
-
-    def __quo_rem(self, f):
-        qr = [ self.__quo_rem_monomial(i) for i in range(f.degree()+1) ]
+        qr = [ self._quo_rem_monomial(i) for i in range(f.degree()+1) ]
         q = [ f[i]*g for i,(g,_) in enumerate(qr) ]
         r = [ f[i]*h for i,(_,h) in enumerate(qr) ]
         return sum(q), sum(r)
 
     @cached_method
-    def __quo_rem_monomial(self, degree):
+    def _quo_rem_monomial(self, degree):
         f = self.domain().one() << degree
         return f.quo_rem(self.phi())
 
@@ -220,26 +179,22 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: f = x^2 + 2*x + 3
             sage: v.newton_polygon(f)
-            Newton Polygon with vertices [(0, 0), (2, 0)]
+            Finite Newton polygon with 2 vertices: (0, 0), (2, 0)
 
-            sage: v = v.extension( x^2 + x + 1, 1)
+            sage: v = v.augmentation( x^2 + x + 1, 1)
             sage: v.newton_polygon(f)
-            Newton Polygon with vertices [(0, 0), (1, 1)]
+            Finite Newton polygon with 2 vertices: (0, 0), (1, 1)
             sage: v.newton_polygon( f * v.phi()^3 )
-            Newton Polygon with vertices [(0, +Infinity), (3, 3), (4, 4)]
-
-        .. SEEALSO::
-
-            :class:`newton_polygon.NewtonPolygon`
+            Finite Newton polygon with 2 vertices: (3, 3), (4, 4)
 
         """
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of the valuation")
+        f = self.domain().coerce(f)
 
         from sage.geometry.newton_polygon import NewtonPolygon
         return NewtonPolygon(enumerate(self.valuations(f)))
@@ -254,6 +209,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -261,7 +217,7 @@ class DevelopingValuation(DiscretePseudoValuation):
             sage: v(f)
             0
 
-            sage: v = v.extension( x^2 + x + 1, 1)
+            sage: v = v.augmentation( x^2 + x + 1, 1)
             sage: v(f)
             0
             sage: v(f * v.phi()^3 )
@@ -270,8 +226,7 @@ class DevelopingValuation(DiscretePseudoValuation):
             +Infinity
 
         """
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of the valuation %s but is in %s"%(self.domain(),f.parent()))
+        f = self.domain().coerce(f)
 
         if f.is_zero():
             from sage.rings.all import infinity
@@ -281,7 +236,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
     @abstract_method
     def valuations(self, f):
-        """
+        r"""
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum f_i\phi^i`.
 
         INPUT:
@@ -305,32 +260,13 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         """
 
-    def _repr_(self):
-        r"""
-        Return a printable representation of this valuation.
-
-        EXAMPLES::
-
-            sage: R = Qp(2,5)
-            sage: S.<x> = R[]
-            sage: from sage.rings.padics.developing_valuation import DevelopingValuation
-            sage: DevelopingValuation(S, x)
-            `(1 + O(2^5))*x`-adic valuation of Univariate Polynomial Ring in x over 2-adic Field with capped relative precision 5
-
-        """
-        return "`%s`-adic valuation of %s"%(self._phi, self.domain())
-
-    def monic_integral_model(self, G):
-        if G.is_monic() and self(G) >= 0:
-            return G
-        raise NotImplementedError("The polynomial %r is not monic integral and %r does not provide the means to rewrite it to a monic integral polynomial."%(G, self))
-
     def _test_effective_degree(self, **options):
         r"""
         Test the correctness of :meth:`effective_degree`.
 
         EXAMPLES::
 
+            sage: from mac_lane import * # optional: standalone
             sage: R = Zp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -343,4 +279,3 @@ class DevelopingValuation(DiscretePseudoValuation):
             if x == 0:
                 continue
             tester.assertEqual(self.effective_degree(x), 0)
-

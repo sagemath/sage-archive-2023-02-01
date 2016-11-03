@@ -27,6 +27,7 @@ from .augmented_valuation import FiniteAugmentedValuation, InfiniteAugmentedValu
 from .gauss_valuation import GaussValuation_generic
 from .valuation import DiscretePseudoValuation, DiscreteValuation, InfiniteDiscretePseudoValuation
 from .padic_valuation import pAdicValuation_base, pAdicValuation_int, pAdicValuation_padic, pAdicFromLimitValuation
+from .developing_valuation import DevelopingValuation
 
 # =================
 # MONKEY PATCH SAGE

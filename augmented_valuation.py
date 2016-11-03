@@ -33,7 +33,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.getcwd())
     sys.path.append(os.path.dirname(os.getcwd()))
 
-from developing_valuation import _lift_to_maximal_precision
+from inductive_valuation import _lift_to_maximal_precision
 from inductive_valuation import FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation
 from valuation import InfiniteDiscretePseudoValuation, DiscreteValuation
 

@@ -1,0 +1,61 @@
+From e916dd0776f636eec6ce73f1bbb8706b268d7e14 Mon Sep 17 00:00:00 2001
+From: Robert Dodier <robert_dodier@users.sourceforge.net>
+Date: Sun, 30 Oct 2016 17:41:44 -0700
+Subject: [PATCH] In RGRP, rephrase test for ECL to avoid comparing float
+ infinity with rational, which tickles a bug in ECL (reported as
+ https://gitlab.com/embeddable-common-lisp/ecl/issues/299). Fixes SF bug
+ #3235: "ECL lisp arithmetic error in definite integration with large limits"
+
+---
+ src/compar.lisp       |  4 ++--
+ tests/rtest_limit.mac | 22 ++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/src/compar.lisp b/src/compar.lisp
+index 2954abf..cf51f4f 100644
+--- a/src/compar.lisp
++++ b/src/compar.lisp
+@@ -2334,8 +2334,8 @@ TDNEG TDZERO TDPN) to store it, and also sets SIGN."
+   (if (not (numberp y))
+     (setq y (/ (cadr y) (caddr y))))
+   (cond
+-    ((> x y) '$pos)
+-    ((> y x) '$neg)
++    (#-ecl (> x y) #+ecl (> (- x y) 0) '$pos)
++    (#-ecl (> y x) #+ecl (> (- y x) 0) '$neg)
+     (t '$zero)))
+ 
+ (defun mcons (x l)
+diff --git a/tests/rtest_limit.mac b/tests/rtest_limit.mac
+index 88bcf78..b112eeb 100644
+--- a/tests/rtest_limit.mac
++++ b/tests/rtest_limit.mac
+@@ -790,3 +790,25 @@ block([modulus:7], sum(i^-2,i,1,inf));
+ block([modulus:7], limit(inf));
+ inf;
+ 
++/* SF bug #3235: "ECL lisp arithmetic error in definite integration with large limits"
++ * the bug is actually in ECL (https://gitlab.com/embeddable-common-lisp/ecl/issues/299);
++ * here we'll test a work around.
++ */
++
++block ([actual, expected],
++  actual : limit(x*exp(x)*log(exp(x)+1),x,-1000,plus),
++  expected : -1000*%e^-1000*log(%e^-1000*(%e^1000+1)),
++  if ev (equal (actual, expected), logexpand='super) then true else [actual, expected]);
++true;
++
++/* accommodate different equivalent forms via 'equal' */
++block ([actual, expected],
++  actual : integrate((x^2)*exp(x) / (1 + exp(x))^2,x,-1000,1000),
++  expected : (-(2000*%e^1000*log(%e^-1000*(%e^1000+1)))/(%e^1000+1))
++  -(2000*log(%e^-1000*(%e^1000+1)))/(%e^1000+1)
++   -((2000*%e^1000+2000)*log(%e^1000+1)
++    +(2*%e^1000+2)*li[2](-%e^1000)-1000000*%e^1000)
++     /(%e^1000+1)+(2*%e^1000*li[2](-%e^-1000))/(%e^1000+1)
++     +(2*li[2](-%e^-1000))/(%e^1000+1)-1000000/(%e^1000+1),
++  if ev (equal (actual, expected), logexpand='super) then true else [actual, expected]);
++true;
+-- 
+2.5.5
+

@@ -767,7 +767,6 @@ def compile_and_load(code):
 TESTS = {
 'trac11680':"""
 #cargs -O3 -ggdb
-#cinclude $SAGE_SRC/sage/libs/flint $SAGE_LOCAL/include/flint
 #clib flint
 
 from sage.rings.rational cimport Rational

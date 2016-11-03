@@ -51,6 +51,7 @@ AUTHOR:
 TESTS::
 
     sage: TestSuite(sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense).run(verbose=True)
+    running ._test_new() . . . pass
     running ._test_pickling() . . . pass
 
 TODO:

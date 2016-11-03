@@ -241,6 +241,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             from the cashed result. Thus in looping, it may be better to do
             ``for e in x:``, not ``for e in x.list():``.
 
+            .. SEEALSO:: :meth:`_list_from_iterator`, :meth:`_cardinality_from_list`,
+                :meth:`_iterator_from_list`, and :meth:`_unrank_from_list`
+
             EXAMPLES::
 
                 sage: C = FiniteEnumeratedSets().example()
@@ -546,7 +549,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             :meth:`._cardinality_from_iterator`, or if ``self`` is too
             big.
 
-            .. seealso:: :class:`TestSuite`.
+            .. SEEALSO:: :class:`TestSuite`.
 
             EXAMPLES::
 

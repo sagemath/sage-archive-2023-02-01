@@ -608,6 +608,31 @@ cdef class Element(SageObject):
         from sage.categories.all import Elements
         return Elements(self._parent)
 
+    def _test_new(self, **options):
+        """
+        Check that ``cls.__new__(cls)`` and
+        ``cls.__new__(cls, parent)`` do not crash Python,
+        where ``cls = type(self)`` and ``parent = parent(self)``.
+
+        It is perfectly legal for ``__new__`` to raise ordinary
+        exceptions.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import Element
+            sage: p = Parent()
+            sage: e = Element(p)
+            sage: e._test_new()
+        """
+        cdef type cls = type(self)
+        try:
+            cls.__new__(cls)
+        except Exception:
+            pass
+        try:
+            cls.__new__(cls, self._parent)
+        except Exception:
+            pass
 
     def _test_category(self, **options):
         """

@@ -1136,10 +1136,10 @@ In the latter case, please inform the developers.""".format(self.order()))
         The following test refers to :trac:`6468`::
 
             sage: class foo_parent(Parent):
-            ...       pass
+            ....:     pass
             sage: class foo(RingElement):
-            ...       def lift(self):
-            ...           raise PariError
+            ....:     def lift(self):
+            ....:         raise PariError
             sage: P = foo_parent()
             sage: F = foo(P)
             sage: GF(2)(F)

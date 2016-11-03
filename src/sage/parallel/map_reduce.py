@@ -594,6 +594,7 @@ class ActiveTaskCounterDarwin(object):
             sage: from sage.parallel.map_reduce import ActiveTaskCounterDarwin as ATC
             sage: t = ATC(4)
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
+            running ._test_new() . . . pass
         """
         self._active_tasks = Value(ctypes.c_int, task_number)
         self._lock = Lock()
@@ -724,6 +725,7 @@ class ActiveTaskCounterPosix(object):
             sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
             sage: t = ATC(4)
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
+            running ._test_new() . . . pass
         """
         self._active_tasks = Semaphore(task_number)
 
@@ -858,7 +860,7 @@ class RESetMapReduce(object):
     - ``reduce_function=red`` -- (default to ``None``)
     - ``reduce_init=init`` -- (default to ``None``)
 
-    .. seealso::
+    .. SEEALSO::
 
        :mod:`the Map/Reduce module <sage.parallel.map_reduce>` for
        details and examples.
@@ -1163,7 +1165,7 @@ class RESetMapReduce(object):
 
             sage: _ = S.run() # Cleanup
 
-        .. seealso:: :meth:`print_communication_statistics`
+        .. SEEALSO:: :meth:`print_communication_statistics`
         """
         self._abort = self._abort.value
         if not self._abort:
@@ -1807,7 +1809,7 @@ class RESetMPExample(RESetMapReduce):
         sage: EX.run()
         362880*x^9 + 40320*x^8 + 5040*x^7 + 720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
 
-    .. seealso:: This is an example of :class:`RESetMapReduce`
+    .. SEEALSO:: This is an example of :class:`RESetMapReduce`
 
     """
     def __init__(self, maxl = 9):

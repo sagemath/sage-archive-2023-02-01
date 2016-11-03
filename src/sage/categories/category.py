@@ -843,7 +843,7 @@ class Category(UniqueRepresentation, SageObject):
         Since :trac:`11943`, the order of super categories is
         determined by Python's method resolution order C3 algorithm.
 
-        .. seealso:: :meth:`all_super_categories`
+        .. SEEALSO:: :meth:`all_super_categories`
 
         .. note:: this attribute is likely to eventually become a tuple.
 
@@ -878,7 +878,7 @@ class Category(UniqueRepresentation, SageObject):
         Since :trac:`11943`, the order of super categories is
         determined by Python's method resolution order C3 algorithm.
 
-        .. seealso:: :meth:`all_super_categories`
+        .. SEEALSO:: :meth:`all_super_categories`
 
         .. note:: this attribute is likely to eventually become a tuple.
 
@@ -902,7 +902,7 @@ class Category(UniqueRepresentation, SageObject):
 
         .. note:: this is used for speeding up category containment tests.
 
-        .. seealso:: :meth:`all_super_categories`
+        .. SEEALSO:: :meth:`all_super_categories`
 
         EXAMPLES::
 

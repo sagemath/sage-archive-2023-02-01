@@ -52,7 +52,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
     lattice; on the other hand, the embedding of the simple roots is
     given for free.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :class:`~sage.combinat.root_system.root_system.RootSystem`
         - :class:`~sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations`
@@ -168,7 +168,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
           """
           Returns whether this is a realization of the extended weight lattice
 
-          .. seealso:: :class:`sage.combinat.root_system.weight_space.WeightSpace`
+          .. SEEALSO:: :class:`sage.combinat.root_system.weight_space.WeightSpace`
 
           EXAMPLES::
 
@@ -241,7 +241,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             - embeddings from the weight lattice and weight space
             - rho, highest_root, ...
 
-            .. seealso:: :class:`TestSuite`
+            .. SEEALSO:: :class:`TestSuite`
 
             EXAMPLES::
 

@@ -5060,10 +5060,7 @@ class SandpileDivisor(dict):
         if isinstance(D,SandpileDivisor):
             w = vector(D.values())
         else:
-            try:
-                w = vector(D)
-            except:
-                raise SyntaxError(D)
+            w = vector(D)
         # Now test for linear equivalence and find firing vector
         D,U,V = self.sandpile()._smith_form
         b = v - w
@@ -5080,7 +5077,7 @@ class SandpileDivisor(dict):
                     return V*x
                 else:
                     return True
-            except:
+            except Exception:
                 if with_firing_vector:
                     return vector([])
                 else:
@@ -5498,7 +5495,7 @@ class SandpileDivisor(dict):
                 rk += 1
                 try:
                     d = next(i for i,j in enumerate(c) if i==j and i!=0)
-                except:
+                except Exception:
                     d = n - 1
                 k = k - d
                 if k >=0:
@@ -5699,7 +5696,7 @@ class SandpileDivisor(dict):
             v = s.sink()
         try:
             seq = self._weierstrass_rank_seq[v]
-        except:
+        except Exception:
             D = deepcopy(self)
             verts = s.vertices()
             Ei = s.zero_div()

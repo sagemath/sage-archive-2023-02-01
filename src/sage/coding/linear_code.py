@@ -1087,6 +1087,17 @@ class AbstractLinearCode(Module):
             sage: CanRep2, _ = C_iso.canonical_representative("linear")
             sage: CanRep2 == CanRep1
             True
+
+        TESTS:
+
+        Check that interrupting this does not segfault
+        (see :trac:`21651`)::
+
+            sage: C = LinearCode(random_matrix(GF(47), 25, 35))
+            sage: alarm(0.5); C.canonical_representative()
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
         """
         aut_group_can_label = self._canonize(equivalence)
         return aut_group_can_label.get_canonical_form(), \

@@ -17,6 +17,7 @@ Miscellaneous matrix functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.categories.fields import Fields
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -24,13 +25,15 @@ from sage.rings.integer_ring import ZZ
 _Fields = Fields()
 
 def row_iterator(A):
-    for i in xrange(A.nrows()):
+    for i in range(A.nrows()):
         yield A.row(i)
+
 
 def weak_popov_form(M,ascend=True):
     from sage.misc.superseded import deprecation
     deprecation(16888, 'You should call row_reduced_form() instead')
     return row_reduced_form(M)
+
 
 def row_reduced_form(M,transformation=False):
     """
@@ -446,7 +449,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
     A = A.rows()
     p = {0: K.one()}
     t = K.gen()
-    vars_to_do = range(ncols)
+    vars_to_do = list(range(ncols))
     for i in range(nrows):
         # build the polynomial p1 = 1 + t sum A_{ij} eta_j
         if permanent_only:

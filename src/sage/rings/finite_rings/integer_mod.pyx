@@ -648,7 +648,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: prod([Zmod(1568).unit_gens()[i] ** v[i] for i in [0..2]])
             3
 
-        .. seealso::
+        .. SEEALSO::
 
             The method :meth:`log`.
 
@@ -1213,14 +1213,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         TESTS::
 
             sage: for p in [1009,2003,10007,100003]:
-            ...       K = GF(p)
-            ...       for r in (p-1).divisors():
-            ...           if r == 1: continue
-            ...           x = K.random_element()
-            ...           y = x^r
-            ...           if y.nth_root(r)**r != y: raise RuntimeError
-            ...           if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
-            ...           if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
+            ....:     K = GF(p)
+            ....:     for r in (p-1).divisors():
+            ....:         if r == 1: continue
+            ....:         x = K.random_element()
+            ....:         y = x^r
+            ....:         if y.nth_root(r)**r != y: raise RuntimeError
+            ....:         if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
+            ....:         if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
 
             sage: for t in range(200):
             ....:     n = randint(1,2^63)
@@ -2067,7 +2067,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         instead::
 
             sage: from sage.rings.finite_rings.integer_mod \
-            ...       import IntegerMod_gmp
+            ....:     import IntegerMod_gmp
             sage: zero = IntegerMod_gmp(Integers(1),0)
             sage: type(zero)
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
@@ -3376,7 +3376,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         instead::
 
             sage: from sage.rings.finite_rings.integer_mod \
-            ...       import IntegerMod_int64
+            ....:     import IntegerMod_int64
             sage: zero = IntegerMod_int64(Integers(1),0)
             sage: type(zero)
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
@@ -3784,8 +3784,8 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
 
         sage: from sage.rings.finite_rings.integer_mod import square_root_mod_prime   # sqrt() uses brute force for small p
         sage: all([square_root_mod_prime(a*a)^2 == a*a
-        ...        for p in prime_range(100)
-        ...        for a in Integers(p)])
+        ....:      for p in prime_range(100)
+        ....:      for a in Integers(p)])
         True
     """
     if not a or a.is_one():
@@ -3976,7 +3976,7 @@ def lucas(k, P, Q=1, n=None):
         sage: q = randint(0,100000)
         sage: n = randint(0,100)
         sage: all([lucas(k,p,q,n)[0] == Mod(lucas_number2(k,p,q),n)
-        ...        for k in Integers(20)])
+        ....:      for k in Integers(20)])
         True
         sage: from sage.rings.finite_rings.integer_mod import lucas
         sage: p = randint(0,100000)

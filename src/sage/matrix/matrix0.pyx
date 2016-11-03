@@ -1731,11 +1731,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             '[ I  0]\n[II  *]'
 
             sage: def print_entry(x):
-            ...     if x>0:
-            ...         return '+'
-            ...     elif x<0:
-            ...         return '-'
-            ...     else: return '.'
+            ....:   if x>0:
+            ....:       return '+'
+            ....:   elif x<0:
+            ....:       return '-'
+            ....:   else: return '.'
             ...
             sage: M.str(print_entry)
             '[+ .]\n[+ -]'
@@ -3702,8 +3702,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         EXAMPLES::
 
             sage: A = matrix(QQbar, [[ 1 + I,  1 - 6*I, -1 - I],
-            ...                      [-3 - I,     -4*I,     -2],
-            ...                      [-1 + I, -2 - 8*I,  2 + I]])
+            ....:                    [-3 - I,     -4*I,     -2],
+            ....:                    [-1 + I, -2 - 8*I,  2 + I]])
             sage: A.is_hermitian()
             False
             sage: B = A*A.conjugate_transpose()
@@ -3715,8 +3715,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: F.<b> = QuadraticField(-7)
             sage: C = matrix(F, [[-2*b - 3,  7*b - 6, -b + 3],
-            ...                  [-2*b - 3, -3*b + 2,   -2*b],
-            ...                  [   b + 1,        0,     -2]])
+            ....:                [-2*b - 3, -3*b + 2,   -2*b],
+            ....:                [   b + 1,        0,     -2]])
             sage: C.is_hermitian()
             False
             sage: C = C*C.conjugate_transpose()
@@ -3727,8 +3727,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         diagonal entry. ::
 
             sage: A = matrix(QQbar, [[    2,   2-I, 1+4*I],
-            ...                      [  2+I,   3+I, 2-6*I],
-            ...                      [1-4*I, 2+6*I,     5]])
+            ....:                    [  2+I,   3+I, 2-6*I],
+            ....:                    [1-4*I, 2+6*I,     5]])
             sage: A.is_hermitian()
             False
             sage: A[1,1] = 132
@@ -4278,7 +4278,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: P.<x> = PolynomialRing(GF(17))
             sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],
-            ...                   [8*x^2 + 12*x + 15,  8*x^2 + 9*x + 16] ])
+            ....:                 [8*x^2 + 12*x + 15,  8*x^2 + 9*x + 16] ])
             sage: m.rank()
             2
 

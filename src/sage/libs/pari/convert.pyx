@@ -48,7 +48,8 @@ from .paridecl cimport *
 from .stack cimport new_gen
 
 cdef extern from "longintrepr.h":
-    cdef _PyLong_New(Py_ssize_t s)
+    # Add explicit cast to avoid compiler warning
+    cdef _PyLong_New "(PyObject*)_PyLong_New"(Py_ssize_t s)
     ctypedef unsigned int digit
     ctypedef struct PyLongObject:
         Py_ssize_t ob_size

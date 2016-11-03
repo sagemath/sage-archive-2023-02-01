@@ -1473,7 +1473,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
            This function is intended for internal use; users should use
            :meth:`division_polynomial`.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`multiple_x_numerator`
            :meth:`multiple_x_denominator`
@@ -1829,7 +1829,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         elliptic curves. Journal of the London Mathematical Society, 70(1),
         23-40.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`_multiple_x_denominator`
 
@@ -1924,7 +1924,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         - David Harvey (2006-09-24)
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`multiple_x_numerator`
 

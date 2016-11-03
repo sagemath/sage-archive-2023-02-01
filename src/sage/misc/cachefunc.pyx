@@ -2919,7 +2919,7 @@ cdef class CachedMethod(object):
                         self.nargs = 1
                     else:
                         self.nargs = 2
-                except:
+                except Exception:
                     pass
             if self.nargs == 0:
                 args, varargs, keywords, defaults = sage_getargspec(f)

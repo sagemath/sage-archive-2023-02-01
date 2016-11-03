@@ -154,6 +154,7 @@ Classes
 -------
 """
 from __future__ import print_function
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 
@@ -918,7 +919,7 @@ class PolynomialSequence_generic(Sequence_generic):
         g = self.connection_graph()
         C = sorted(g.connected_components())
 
-        P = [[] for _ in xrange(len(C))]
+        P = [[] for _ in range(len(C))]
         for f in self:
             for i,c in enumerate(C):
                 if len(set(f.variables()).difference(c)) == 0:

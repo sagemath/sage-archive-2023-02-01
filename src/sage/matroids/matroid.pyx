@@ -7474,7 +7474,7 @@ cdef class Matroid(SageObject):
             (A23, A23, A23)
             sage: A23 = A.gen(0)
             sage: A23*A23
-            A23^2
+            0
 
         We construct a more interesting example using the Fano matroid::
 
@@ -7486,13 +7486,21 @@ cdef class Matroid(SageObject):
 
         Next we get the non-trivial generators and do some computations::
 
-            sage: Ag, Aabf, Aace, Aadg, Abcd, Abeg, Acfg, Adef = A.gens()[6:]
+            sage: G = A.gens()[6:]
+            sage: Ag, Aabf, Aace, Aadg, Abcd, Abeg, Acfg, Adef = G
             sage: Ag * Ag
-            Ag^2
-            sage: Ag * Aace
-            Aace^2 - Abcd*Abeg - Abeg*Acfg - Aadg*Adef + Abcd*Adef + Abeg*Adef
-            sage: Aace * Adef
-            Aadg*Adef + Abcd*Adef - Abeg*Adef
+            2*Adef^2
+            sage: Ag * Abeg
+            -Adef^2
+            sage: matrix([[x * y for x in G] for y in G])
+            [2*Adef^2        0        0  -Adef^2        0  -Adef^2  -Adef^2        0]
+            [       0   Adef^2        0        0        0        0        0        0]
+            [       0        0   Adef^2        0        0        0        0        0]
+            [ -Adef^2        0        0   Adef^2        0        0        0        0]
+            [       0        0        0        0   Adef^2        0        0        0]
+            [ -Adef^2        0        0        0        0   Adef^2        0        0]
+            [ -Adef^2        0        0        0        0        0   Adef^2        0]
+            [       0        0        0        0        0        0        0   Adef^2]
 
         REFERENCES:
 
@@ -7522,7 +7530,7 @@ cdef class Matroid(SageObject):
         gens = P.gens()
         # Create the ideal of quadratic relations
         Q = [gens[i] * gens[i+j+1] for i,F in enumerate(flats)
-             for j,G in enumerate(flats[i+1:]) if F < G or G < F]
+             for j,G in enumerate(flats[i+1:]) if not (F < G or G < F)]
         # Create the ideal of linear relations
         L = [sum(gens[i] for i in flats_containing[x])
              - sum(gens[i] for i in flats_containing[y])

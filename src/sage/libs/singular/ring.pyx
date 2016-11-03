@@ -580,11 +580,10 @@ cdef void singular_ring_delete(ring *doomed):
         sage: del R3
         sage: _ = gc.collect()
     """
-    if doomed==NULL:
-        print('singular_ring_delete(ring*) called with NULL pointer.')
-        # this function is typically called in __deallocate__, so we can't raise an exception
-        import traceback
-        traceback.print_stack()
+    if doomed is NULL:
+        # When this is called with a NULL pointer, we do nothing.
+        # This is analogous to the libc function free().
+        return
 
     if not ring_refcount_dict:  # arbitrary finalization order when we shut Sage down
         return

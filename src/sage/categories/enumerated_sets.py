@@ -460,10 +460,9 @@ class EnumeratedSets(CategoryWithAxiom):
                 return self.list()[i]
             return self.unrank(i)
 
-        @cached_method
         def __len__(self):
             """
-            Returns the number of elements of ``self``.
+            Return the number of elements of ``self``.
 
             EXAMPLES::
 

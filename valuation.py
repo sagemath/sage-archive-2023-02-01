@@ -708,7 +708,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         # on domain that extends its restriction to the base field.
         from sage.rings.all import infinity
         if valuation(G) != infinity:
-            G_integral = valuation._make_monic_integral(G)
+            G_integral = valuation.monic_integral_model(G)
             v = valuation
             while not v.is_gauss_valuation():
                 if v(G_integral) <= v._base_valuation(G_integral):

@@ -892,8 +892,8 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
         if isinstance(self._base_valuation, MacLaneLimitValuation):
             # print the minimal information that singles out this valuation from all approximants
             assert(self._base_valuation._initial_approximation in self._approximants)
-            approximants = [v._augmentations() for v in self._approximants]
-            augmentations = self._base_valuation._approximation._augmentations()
+            approximants = [v.augmentation_chain()[::-1] for v in self._approximants]
+            augmentations = self._base_valuation._approximation.augmentation_chain()[::-1]
             unique_approximant = self._base_valuation._initial_approximation
             for l in range(len(augmentations)):
                 if len([a for a in approximants if a[:l+1] == augmentations[:l+1]]) == 1:

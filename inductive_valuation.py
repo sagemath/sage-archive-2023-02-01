@@ -38,6 +38,7 @@ from valuation import DiscreteValuation, InfiniteDiscretePseudoValuation
 from developing_valuation import DevelopingValuation
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.abstract_method import abstract_method
 
 class InductiveValuation(DevelopingValuation):
     r"""
@@ -172,6 +173,229 @@ class InductiveValuation(DevelopingValuation):
         h = h.parent()([ c if self(e0*c) <= 0 else c.parent().zero() for c in h.coefficients(sparse=False)])
 
         return h
+
+    @abstract_method
+    def equivalence_unit(self, s):
+        """
+        Return an equivalence unit of valuation ``s``.
+
+        INPUT:
+
+        - ``s`` -- an element of the :meth:`value_group`
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: S.<x> = Qp(3,5)[]
+            sage: v = GaussValuation(S)
+            sage: v.equivalence_unit(2)
+            (3^2 + O(3^7))
+            sage: v.equivalence_unit(-2)
+            (3^-2 + O(3^3))
+
+        Note that this might fail for negative ``s`` if the domain is not
+        defined over a field::
+
+            sage: v = pAdicValuation(ZZ, 2)
+            sage: R.<x> = ZZ[]
+            sage: w = GaussValuation(R, v)
+            sage: w.equivalence_unit(1)
+            2
+            sage: w.equivalence_unit(-1)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+
+        """
+        
+    @abstract_method
+    def augmentation_chain(self):
+        r"""
+        Return a list with the chain of augmentations down to the underlying
+        :class:`GaussValuation`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v.augmentation_chain()
+            [Gauss valuation induced by 2-adic valuation]
+
+        """
+
+    @abstract_method
+    def is_gauss_valuation(self):
+        r"""
+        Return whether this valuation is a Gauss valuation over the domain.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v.is_gauss_valuation()
+            True
+
+        """
+
+    @abstract_method
+    def E(self):
+        """
+        Return the ramification index of this valuation over its underlying
+        Gauss valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v.E()
+            1
+
+        """
+
+    @abstract_method
+    def F(self):
+        """
+        Return the residual degree of this valuation over its Gauss extension.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v.F()
+            1
+
+        """
+
+    @abstract_method
+    def monic_integral_model(self, G):
+        r"""
+        Return a monic integral irreducible polynomial which defines the same
+        extension of the base ring of the domain as the irreducible polynomial
+        ``G``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v.monic_integral_model(5*x^2 + 1/2*x + 1/4)
+            x^2 + 1/5*x + 1/5
+
+        """
+
+    @abstract_method
+    def element_with_valuation(self, s):
+        r"""
+        Return a polynomial of minimal degree with valuation ``s``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v.element_with_valuation(-2)
+            1/4
+            
+        """
+
+    def _test_element_with_valuation(self, **options):
+        r"""
+        Test the correctness of :meth:`element_with_valuation`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v._test_element_with_valuation()
+
+        """
+        tester = self._tester(**options)
+        chain = self.augmentation_chain()
+        for s in tester.some_elements(self.value_group().some_elements()):
+            R = self.element_with_valuation(s)
+            tester.assertEqual(self(R), s)
+            if chain != [self]:
+                base = chain[1]
+                if s in base.value_group():
+                    S = base.element_with_valuation(s)
+                    tester.assertEqual(self(S), s)
+                    tester.assertGreaterEqual(S.degree(), R.degree())
+
+    def _test_EF(self, **options):
+        r"""
+        Test the correctness of :meth:`E` and :meth:`F`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v._test_EF()
+
+        """
+        tester = self._tester(**options)
+        chain = self.augmentation_chain()
+        for w,v in zip(chain, chain[1:]):
+            from sage.rings.all import infinity, ZZ
+            if w(w.phi()) == infinity:
+                tester.assertEqual(w.E(), v.E())
+            tester.assertIn(w.E(), ZZ)
+            tester.assertIn(w.F(), ZZ)
+            tester.assertGreaterEqual(w.E(), v.E())
+            tester.assertGreaterEqual(w.F(), v.F())
+
+    def _test_augmentation_chain(self, **options):
+        r"""
+        Test the correctness of :meth:`augmentation_chain`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v._test_augmentation_chain()
+            
+        """
+        tester = self._tester(**options)
+        chain = self.augmentation_chain()
+        tester.assertIs(chain[0], self)
+        tester.assertTrue(chain[-1].is_gauss_valuation())
+        for w,v in zip(chain, chain[1:]):
+            tester.assertGreaterEqual(w, v)
+
+    def _test_equivalence_unit(self, **options):
+        r"""
+        Test the correctness of :meth:`lift_to_key`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v._test_equivalence_unit()
+
+        """
+        tester = self._tester(**options)
+        for s in tester.some_elements(self.value_group().some_elements()):
+            try:
+                R = self.equivalence_unit(s)
+            except ValueError:
+                if s >= 0 or self.domain().base_ring() in Fields():
+                    raise
+
+            tester.assertIs(R.parent(), self.domain())
+            tester.assertEqual(self(R), s)
+            tester.assertTrue(self.is_equivalence_unit(R))
 
     def _test_is_equivalence_unit(self, **options):
         r"""
@@ -468,7 +692,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             # G must be integral, otherwise, e.g., the effective degree is too low
             # We try to turn G into a monic integral polynomial that describes the same extension
             # This might fail if the constants of our polynomial ring do not form a field
-            return self.mac_lane_step(self._make_monic_integral(G), assume_squarefree=assume_squarefree)
+            return self.mac_lane_step(self.monic_integral_model(G), assume_squarefree=assume_squarefree)
 
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
@@ -848,6 +1072,61 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         assert self.is_equivalent(ret.prod(), f) # this might fail because of leading zeros
         return ret
+
+    @abstract_method
+    def lift_to_key(self, F):
+        """
+        Lift the irreducible polynomial ``F`` from the ;meth:`residue_ring` to
+        a key polynomial over this valuation.
+
+        INPUT:
+
+        - ``F`` -- an irreducible non-constant monic polynomial in
+          :meth:`residue_ring` of this valuation
+
+        OUTPUT:
+
+        A polynomial `f` in the domain of this valuation which is a key
+        polynomial for this valuation and which, for a suitable equivalence
+        unit `R`, satifies that the reduction of `Rf` is ``F``
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: y = v.residue_ring().gen()
+            sage: u0 = v.residue_ring().base_ring().gen()
+            sage: f = v.lift_to_key(y^2 + y + u0); f
+            (1 + O(2^10))*x^2 + (1 + O(2^10))*x + u + O(2^10)
+
+        """
+
+    def _test_lift_to_key(self, **options):
+        r"""
+        Test the correctness of :meth:`lift_to_key`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v._test_lift_to_key()
+
+        """
+        tester = self._tester(**options)
+        S = tester.some_elements(self.residue_ring().some_elements())
+        for F in S:
+            if F.is_monic() and not F.is_constant() and F.is_irreducible():
+                f = self.lift_to_key(F)
+                tester.assertIs(f.parent(), self.domain())
+                tester.assertTrue(self.is_key(f))
+
+                from sage.categories.fields import Fields
+                if self.domain().base_ring() in Fields():
+                    R = self.equivalence_unit(-self(f))
+                    tester.assertEqual(self.reduce(f*R), F)
 
     def _test_is_equivalence_irreducible(self, **options):
         r"""

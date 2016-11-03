@@ -329,12 +329,13 @@ class AugmentedValuation_base(InductiveValuation):
             [ Gauss valuation induced by 2-adic valuation, v((1 + O(2^5))*x^2 + (1 + O(2^5))*x + u + O(2^5)) = 1/2 ]
 
         """
-        vals = self._augmentations()
+        vals = self.augmentation_chain()
+        vals.reverse()
         vals = [ "v(%s) = %s"%(v._phi, v._mu) if isinstance(v, AugmentedValuation_base) else str(v) for v in vals ]
         return "[ %s ]"%", ".join(vals)
 
-    def _augmentations(self):
-        return self._base_valuation._augmentations() + [self]
+    def augmentation_chain(self):
+        return [self] + self._base_valuation.augmentation_chain()
 
     @cached_method
     def value_group(self):
@@ -817,7 +818,7 @@ class AugmentedValuation_base(InductiveValuation):
 
     @cached_method
     def residue_ring(self):
-        generator = 'u' + str(len(self._augmentations()) - 1)
+        generator = 'u' + str(len(self.augmentation_chain()) - 1)
 
         base = self._base_valuation.residue_ring().base()
         if self.psi().degree() > 1:
@@ -944,8 +945,8 @@ class AugmentedValuation_base(InductiveValuation):
         # Is this correct? Can there be trivial augmentations?
         return False
 
-    def _make_monic_integral(self, G):
-        return self._base_valuation._make_monic_integral(G)
+    def monic_integral_model(self, G):
+        return self._base_valuation.monic_integral_model(G)
             
     def _ge_(self, other):
         from gauss_valuation import GaussValuation_generic

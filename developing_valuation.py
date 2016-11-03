@@ -281,7 +281,29 @@ class DevelopingValuation(DiscretePseudoValuation):
 
     @abstract_method
     def valuations(self, f):
-        pass
+        """
+        Return the valuations of the `f_i\phi^i` in the expansion `f=\sum f_i\phi^i`.
+
+        INPUT:
+
+        - ``f`` -- a polynomial in the domain of this valuation
+
+        OUTPUT:
+
+        A list, each entry a rational numbers or infinity, the valuations of
+        `f_0, f_1\phi, \dots`
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R = Qp(2,5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S, pAdicValuation(R))
+            sage: f = x^2 + 2*x + 16
+            sage: list(v.valuations(f))
+            [4, 1, 0]
+
+        """
 
     def _repr_(self):
         r"""
@@ -298,7 +320,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         """
         return "`%s`-adic valuation of %s"%(self._phi, self.domain())
 
-    def _make_monic_integral(self, G):
+    def monic_integral_model(self, G):
         if G.is_monic() and self(G) >= 0:
             return G
         raise NotImplementedError("The polynomial %r is not monic integral and %r does not provide the means to rewrite it to a monic integral polynomial."%(G, self))

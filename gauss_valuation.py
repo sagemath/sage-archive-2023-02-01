@@ -276,7 +276,6 @@ class GaussValuation_generic(FiniteInductiveValuation):
 
         return f.map_coefficients(lambda c:self._base_valuation.shift(c, s))
 
-    # TODO: declare this upstairs
     def valuations(self, f):
         """
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum f_i\phi^i`.
@@ -287,14 +286,14 @@ class GaussValuation_generic(FiniteInductiveValuation):
 
         OUTPUT:
 
-        A list of rational numbers, the valuations of `f_0, f_1\phi, \dots`
+        A list, each entry a rational numbers or infinity, the valuations of `f_0, f_1\phi, \dots`
 
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R = Qp(2,5)
+            sage: R = ZZ
             sage: S.<x> = R[]
-            sage: v = GaussValuation(S, pAdicValuation(R))
+            sage: v = GaussValuation(S, pAdicValuation(R, 2))
             sage: f = x^2 + 2*x + 16
             sage: list(v.valuations(f))
             [4, 1, 0]
@@ -401,10 +400,10 @@ class GaussValuation_generic(FiniteInductiveValuation):
 
         return F.map_coefficients(lambda c:self._base_valuation.lift(c), self._base_valuation.domain())
 
-    # TODO: declare this upstairs
     def lift_to_key(self, F):
         """
-        Lift the irreducible polynomial ``F`` to a key polynomial.
+        Lift the irreducible polynomial ``F`` from the :meth:`residue_ring` to
+        a key polynomial over this valuation.
 
         INPUT:
 
@@ -420,13 +419,12 @@ class GaussValuation_generic(FiniteInductiveValuation):
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
+            sage: R.<u> = QQ
             sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
+            sage: v = GaussValuation(S, pAdicValuation(QQ, 2))
             sage: y = v.residue_ring().gen()
-            sage: u0 = v.residue_ring().base_ring().gen()
-            sage: f = v.lift_to_key(y^2 + y + u0); f
-            (1 + O(2^10))*x^2 + (1 + O(2^10))*x + u + O(2^10)
+            sage: f = v.lift_to_key(y^2 + y + 1); f
+            x^2 + x + 1
 
         """
         F = self.residue_ring().coerce(F)
@@ -440,7 +438,6 @@ class GaussValuation_generic(FiniteInductiveValuation):
 
         return self.lift(F)
 
-    # TODO: declare this upstairs
     def equivalence_unit(self, s):
         """
         Return an equivalence unit of valuation ``s``.
@@ -464,10 +461,21 @@ class GaussValuation_generic(FiniteInductiveValuation):
         ret = self._base_valuation.shift(one, s)
         return self.domain()(ret)
 
-    # TODO: eliminate this
-    element_with_valuation = equivalence_unit
+    def element_with_valuation(self, s):
+        r"""
+        Return a polynomial of minimal degree with valuation ``s``.
 
-    # TODO: declare this uptstairs
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v.element_with_valuation(-2)
+            1/4
+
+        """
+        return self.equivalence_unit(s)
+
     def E(self):
         """
         Return the ramification index of this valuation over its underlying
@@ -486,7 +494,6 @@ class GaussValuation_generic(FiniteInductiveValuation):
         from sage.rings.all import ZZ
         return ZZ.one()
 
-    # TODO: declare this upstairs
     def F(self):
         """
         Return the degree of the residue field extension of this valuation
@@ -563,7 +570,6 @@ class GaussValuation_generic(FiniteInductiveValuation):
             return self._base_valuation
         return super(GaussValuation_generic, self).restriction(ring)
 
-    # TODO: declare this upstairs
     def is_gauss_valuation(self):
         r"""
         Return whether this valuation is a Gauss valuation.
@@ -580,16 +586,18 @@ class GaussValuation_generic(FiniteInductiveValuation):
         """
         return True
 
-    # TODO: declare this upstairs under a better name
-    def _augmentations(self):
+    def augmentation_chain(self):
         r"""
+        Return a list with the chain of augmentations down to the underlying
+        :class:`GaussValuation`.
+
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
-            sage: v._augmentations()
+            sage: v.augmentation_chain()
             [Gauss valuation induced by 2-adic valuation]
 
         """
@@ -611,19 +619,19 @@ class GaussValuation_generic(FiniteInductiveValuation):
         """
         return self._base_valuation.is_trivial()
 
-    # TODO: declare this upstairs under a better name
-    def _make_monic_integral(self, G):
+    def monic_integral_model(self, G):
         r"""
-        Return a polynomial ``G`` which defines the same extension of the base
-        ring of the domain of this valuation but which is monic and integral.
+        Return a monic integral irreducible polynomial which defines the same
+        extension of the base ring of the domain as the irreducible polynomial
+        ``G``.
 
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
-            sage: v._make_monic_integral(5*x^2 + 1/2*x + 1/4)
-            x^2 + 1/5*x + 1/5
+            sage: R.<x> = Qp(2, 5)[]
+            sage: v = GaussValuation(R)
+            sage: v.monic_integral_model(5*x^2 + 1/2*x + 1/4)
+            (1 + O(2^5))*x^2 + (1 + 2^2 + 2^3 + O(2^5))*x + (1 + 2^2 + 2^3 + O(2^5))
 
         """
         if not G.is_monic():

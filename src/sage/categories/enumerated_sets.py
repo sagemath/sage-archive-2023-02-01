@@ -463,7 +463,7 @@ class EnumeratedSets(CategoryWithAxiom):
         @cached_method
         def __len__(self):
             """
-            Returns the number of elements of self.
+            Returns the number of elements of ``self``.
 
             EXAMPLES::
 
@@ -483,7 +483,7 @@ class EnumeratedSets(CategoryWithAxiom):
 
         def list(self):
             r"""
-            Return a list of the elements of self.
+            Return a list of the elements of ``self``.
 
             The elements of set ``x`` is created and cashed on the fist call
             of ``x.list()``. Then each call of ``x.list()`` returns a new list
@@ -526,7 +526,7 @@ class EnumeratedSets(CategoryWithAxiom):
 
         def _list_from_iterator(self):
             r"""
-            Return a list of the elements of self after cached.
+            Return a list of the elements of ``self`` after cached.
 
             TESTS:
 
@@ -637,7 +637,7 @@ class EnumeratedSets(CategoryWithAxiom):
             """
             The ``r``-th element of ``self``
 
-            ``self.unrank(r)`` returns the ``r``-th element of self, where
+            ``self.unrank(r)`` returns the ``r``-th element of ``self``, where
             ``r`` is an integer between ``0`` and ``n-1`` where ``n`` is the
             cardinality of ``self``.
 

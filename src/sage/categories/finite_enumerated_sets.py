@@ -81,10 +81,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
     class ParentMethods:
 
-        @cached_method
         def __len__(self):
             """
-            Returns the number of elements of self.
+            Returns the number of elements of ``self``.
 
             EXAMPLES::
 
@@ -95,7 +94,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             """
             return int(self.cardinality())
 
-        @cached_method
         def _cardinality_from_iterator(self, *ignored_args, **ignored_kwds):
             """
             Return the cardinality of ``self``.
@@ -167,7 +165,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
         #Set cardinality to the default implementation
         cardinality = _cardinality_from_iterator
 
-        @cached_method
         def _cardinality_from_list(self, *ignored_args, **ignored_kwds):
             """
             The cardinality of ``self``.
@@ -234,7 +231,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
         def list(self):
             r"""
-            Return a list of the elements of self.
+            Return a list of the elements of ``self``.
 
             The elements of set ``x`` is created and cashed on the fist call
             of ``x.list()``. Then each call of ``x.list()`` returns a new list
@@ -260,7 +257,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
         def _list_from_iterator(self):
             r"""
-            Return a list of the elements of self after cached.
+            Return a list of the elements of ``self`` after cached.
 
             It moreover overrides the following methods to use this cache:
 

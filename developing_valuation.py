@@ -156,8 +156,17 @@ class DevelopingValuation(DiscretePseudoValuation):
 
     def _quo_rem(self, f):
         r"""
-        Compute the quotient and remainder of ``f`` divided by the key
+        Return the quotient and remainder of ``f`` divided by the key
         polynomial :meth:`phi`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: S.<x> = QQ[]
+            sage: v = GaussValuation(S, pAdicValuation(QQ, 2))
+            sage: v._quo_rem(x^2 + 1)
+            (x, 1)
+
         """
         qr = [ self._quo_rem_monomial(i) for i in range(f.degree()+1) ]
         q = [ f[i]*g for i,(g,_) in enumerate(qr) ]
@@ -166,6 +175,19 @@ class DevelopingValuation(DiscretePseudoValuation):
 
     @cached_method
     def _quo_rem_monomial(self, degree):
+        r"""
+        Return the quotient and remainder of `x^\mathrm{degree}` divided by the
+        key polynomial :meth:`phy`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: S.<x> = QQ[]
+            sage: v = GaussValuation(S, pAdicValuation(QQ, 2))
+            sage: v._quo_rem_monomial(10)
+            (x^9, 0)
+
+        """
         f = self.domain().one() << degree
         return f.quo_rem(self.phi())
 

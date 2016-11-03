@@ -118,7 +118,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: class FreshExample(Example): pass
                 sage: C = FreshExample(); C.rename("FreshExample")
                 sage: C.cardinality
-                Cached version of <function _cardinality_from_iterator at...
+                <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
 
             This method shall return an ``Integer``; we test this
             here, because :meth:`_test_enumerated_set_iter_cardinality`
@@ -293,6 +293,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     [1, 2, 3]
                     sage: list(C)
                     hello!
+                    hello!
                     [1, 2, 3]
 
                 Note that ``hello!`` actually gets printed twice in
@@ -327,7 +328,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: C.unrank
                 <bound method FreshExample_with_category._unrank_from_iterator of FreshExample>
                 sage: C.cardinality
-                Cached version of <function _cardinality_from_iterator at...
+                <bound method FreshExample_with_category._cardinality_from_iterator of FreshExample>
                 sage: l1 = C.list(); l1
                 [1, 2, 3]
                 sage: C.list
@@ -335,7 +336,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: C.unrank
                 <bound method FreshExample_with_category._unrank_from_list of FreshExample>
                 sage: C.cardinality
-                Cached version of <function _cardinality_from_list at...
+                <bound method FreshExample_with_category._cardinality_from_list of FreshExample>
                 sage: C.__iter__
                 <bound method FreshExample_with_category._iterator_from_list of FreshExample>
 

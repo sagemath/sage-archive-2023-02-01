@@ -157,9 +157,8 @@ def gap_root():
         '/home/vbraun/opt/sage-5.3.rc0/local/gap/latest'
     """
     import os.path
-    gapdir = GAP_ROOT_DIR
-    if os.path.exists(gapdir):
-        return gapdir
+    if os.path.exists(GAP_ROOT_DIR):
+        return GAP_ROOT_DIR
     print('The gap-4.5.5.spkg (or later) seems to be not installed!')
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
     gapdir = filter(lambda dir:dir.strip().startswith('GAP_DIR'), gap_sh)[0]

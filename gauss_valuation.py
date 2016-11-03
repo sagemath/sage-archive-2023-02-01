@@ -229,8 +229,7 @@ class GaussValuation_generic(FiniteInductiveValuation):
 
     def shift(self, f, s):
         """
-        Multiply ``f`` by the ``s``th power of the uniformizer of this
-        valuation.
+        Multiply ``f`` by a power of the uniformizer which has valuation ``s``.
 
         INPUT:
 

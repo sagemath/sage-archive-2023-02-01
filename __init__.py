@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+r"""
+Monkey patches to make the MacLane code work in standalone mode, i.e., without
+modifying the sage source code at build time.
+"""
 #*****************************************************************************
 #       Copyright (C) 2016 Julian Rüth <julian.rueth@fsfe.org>
 #
@@ -9,25 +12,39 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .valuation_space import DiscretePseudoValuationSpace
-from .trivial_valuation import TrivialValuation, TrivialPseudoValuation
-from .padic_valuation import pAdicValuation
-from .gauss_valuation import GaussValuation
-from .value_group import DiscreteValuationCodomain, DiscreteValueGroup
-from .function_field_valuation import FunctionFieldValuation
-from .augmented_valuation import AugmentedValuation
+# Fix doctests so they work in standalone mode (when invoked with sage -t, they run within the mac_lane/ directory)
+import sys, os
+if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
+    sys.path.append(os.getcwd())
+    sys.path.append(os.path.dirname(os.getcwd()))
+
+import valuation_space
+from valuation_space import DiscretePseudoValuationSpace
+import trivial_valuation
+from trivial_valuation import TrivialValuation, TrivialPseudoValuation
+import padic_valuation
+from padic_valuation import pAdicValuation
+import gauss_valuation
+from gauss_valuation import GaussValuation
+import value_group
+from value_group import DiscreteValuationCodomain, DiscreteValueGroup
+import function_field_valuation
+from function_field_valuation import FunctionFieldValuation
+import augmented_valuation
+from augmented_valuation import AugmentedValuation
 
 # fix unpickling and type checks of classes (otherwise, the instances of the
 # local file and the instances that come from the mac_lane import define
 # different types)
-from .trivial_valuation import TrivialDiscreteValuation, TrivialDiscretePseudoValuation
-from .function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, FunctionFieldFromLimitValuation
-from .limit_valuation import LimitValuation, MacLaneLimitValuation, FiniteExtensionFromInfiniteValuation, FiniteExtensionFromLimitValuation, LimitValuation_generic
-from .augmented_valuation import FiniteAugmentedValuation, InfiniteAugmentedValuation
-from .gauss_valuation import GaussValuation_generic
-from .valuation import DiscretePseudoValuation, DiscreteValuation, InfiniteDiscretePseudoValuation
-from .padic_valuation import pAdicValuation_base, pAdicValuation_int, pAdicValuation_padic, pAdicFromLimitValuation
-from .developing_valuation import DevelopingValuation
+from trivial_valuation import TrivialDiscreteValuation, TrivialDiscretePseudoValuation
+from function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, FunctionFieldFromLimitValuation
+from limit_valuation import LimitValuation, MacLaneLimitValuation, FiniteExtensionFromInfiniteValuation, FiniteExtensionFromLimitValuation, LimitValuation_generic
+from augmented_valuation import FiniteAugmentedValuation, InfiniteAugmentedValuation
+from gauss_valuation import GaussValuation_generic
+from valuation import DiscretePseudoValuation, DiscreteValuation, InfiniteDiscretePseudoValuation
+from padic_valuation import pAdicValuation_base, pAdicValuation_int, pAdicValuation_padic, pAdicFromLimitValuation
+from developing_valuation import DevelopingValuation
+from augmented_valuation import AugmentedValuation_base
 
 # =================
 # MONKEY PATCH SAGE
@@ -38,26 +55,45 @@ import sage
 sage.rings.padics.padic_generic.pAdicGeneric.valuation = lambda self: pAdicValuation(self)
 
 # Fix contains check of rational fuction fields
-r"""
-sage: K.<x> = FunctionField(QQ)
-sage: K(1) in QQ
-True
-sage: K(x) in K._ring
-True
-"""
 def to_polynomial(self, x):
+    r"""
+    TESTS::
+
+        sage; from mac_lane import *
+        sage: K.<x> = FunctionField(QQ)
+        sage: K(x) in K._ring
+        True
+
+    """
     R = x.parent()._ring
     K = x.parent().constant_base_field()
     if x.denominator() in K:
         return x.numerator()/K(x.denominator())
     raise ValueError("Only polynomials can be converted to the underlying polynomial ring")
 
+def to_constant(self, x):
+    r"""
+    TESTS::
+
+        sage; from mac_lane import *
+        sage: K.<x> = FunctionField(QQ)
+        sage: K(1) in QQ
+        True
+
+    """
+    K = x.parent().constant_base_field()
+    if x.denominator() in K and x.numerator() in K:
+        return K(x.numerator()) / K(x.denominator())
+    raise ValueError("only constants can be converted to the underlying constant field")
+
 sage.rings.function_field.function_field.RationalFunctionField._to_polynomial = to_polynomial
+sage.rings.function_field.function_field.RationalFunctionField._to_constant = to_constant
 sage.rings.function_field.function_field.RationalFunctionField.__old_init__ = sage.rings.function_field.function_field.RationalFunctionField.__init__
 def __init__(self, *args, **kwargs):
     self.__old_init__(*args, **kwargs)
     from sage.categories.morphism import SetMorphism
     self._ring.register_conversion(SetMorphism(self.Hom(self._ring), self._to_polynomial))
+    self.constant_base_field().register_conversion(SetMorphism(self.Hom(self.constant_base_field()), self._to_constant))
 
 sage.rings.function_field.function_field.RationalFunctionField.__init__ = __init__
 del(__init__)
@@ -184,7 +220,7 @@ def absolute_extension(self):
         sage: l.<b> = k.extension(b^2+b+a); l
         Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^2 with modulus b^2 + b + a
         sage: from_ll,to_ll, ll = l.absolute_extension(); ll
-        Finite Field in z4 of size 2^4
+        Finite Field in v4 of size 2^4
         sage: all([to_ll(from_ll(ll.gen()**i)) == ll.gen()**i for i in range(ll.degree())])
         True
 
@@ -192,7 +228,7 @@ def absolute_extension(self):
         sage: m.<c> = l.extension(c^2+b*c+b); m
         Univariate Quotient Polynomial Ring in c over Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^2 with modulus b^2 + b + a with modulus c^2 + b*c + b
         sage: from_mm, to_mm, mm = m.absolute_extension(); mm
-        Finite Field in z8 of size 2^8
+        Finite Field in v8 of size 2^8
         sage: all([to_mm(from_mm(mm.gen()**i)) == mm.gen()**i for i in range(mm.degree())])
         True
 

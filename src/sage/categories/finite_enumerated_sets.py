@@ -83,7 +83,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
         def __len__(self):
             """
-            Returns the number of elements of ``self``.
+            Return the number of elements of ``self``.
 
             EXAMPLES::
 
@@ -297,9 +297,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     [1, 2, 3]
 
                 Note that ``hello!`` actually gets printed twice in
-                the first call to ``list(C)``. That's because of the
-                current (dubious) implementation of
-                :meth:`Parent.__len__`. Let's call :meth:`list`::
+                the calls to ``list(C)``. That's because of the
+                implicit calls to :meth:`__len__`, which also relies
+                on :meth:`__iter__`. Let's call :meth:`list`::
 
                     sage: C.list()
                     hello!

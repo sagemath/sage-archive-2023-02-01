@@ -518,7 +518,7 @@ class EnumeratedSets(CategoryWithAxiom):
             try:
                 if self.cardinality() is Infinity:
                     raise NotImplementedError('cannot list an infinite set')
-            except TypeError:
+            except AttributeError:
                 pass
             return self._list_from_iterator()
         _list_default  = list # needed by the check system.

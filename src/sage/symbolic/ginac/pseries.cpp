@@ -1266,12 +1266,13 @@ ex ex::series(const ex & r, int order, unsigned options) const
         if ((options & series_options::try_univariate_flint) != 0u
                         and rel_.rhs().is_zero()) {
                 options &= ~series_options::try_univariate_flint;
-	        if (useries_can_handle(*this)) {
+	        if (useries_can_handle(*this)
+                        and has_symbol(rel_.lhs())) {
                         try {
                                 return GiNaC::useries(*this, rel_, order, options);
                         }
                         catch(flint_error) {
-                                return bp->series(rel_, order, options);
+                                ;
                         }
                 }
         }

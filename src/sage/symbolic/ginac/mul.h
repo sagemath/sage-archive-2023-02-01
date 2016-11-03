@@ -79,7 +79,6 @@ protected:
 	expair split_ex_to_pair(const ex & e) const override;
 	expair combine_ex_with_coeff_to_pair(const ex & e, const ex & c) const override;
 	expair combine_pair_with_coeff_to_pair(const expair & p, const ex & c) const override;
-	ex recombine_pair_to_ex(const expair & p) const override;
 	bool expair_needs_further_processing(epp it) override;
 	ex default_overall_coeff() const override;
 	void combine_overall_coeff(const ex & c) override;
@@ -100,6 +99,7 @@ public:
 	ex algebraic_subs_mul(const exmap & m, unsigned options) const;
 	double total_degree() const;
 	const epvector & get_sorted_seq() const override;
+	ex recombine_pair_to_ex(const expair & p) const override;
 	//int compare_symbol(const symbol &other) const;
 	//int compare_pow(const power &other) const;
         ex without_known_factor(const ex& f) const;

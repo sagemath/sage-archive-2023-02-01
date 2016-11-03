@@ -35,6 +35,7 @@
 #include "utils.h"
 
 #include <unordered_map>
+#include <unordered_set>
 
 namespace GiNaC {
 
@@ -72,6 +73,8 @@ static void check_poly_ccoeff_one(const flint_series_t& fp)
 
 long fmpq_poly_ldegree(fmpq_poly_t fp)
 {
+        if (fmpq_poly_is_zero(fp))
+                return 0;
         long len = fmpq_poly_length(fp);
         for (slong n=0; n<=len; n++) {
                 fmpq_t c;
@@ -296,18 +299,85 @@ bool useries_can_handle(ex the_ex) {
         return (not unhandled_elements_in(the_ex));
 }
 
+// This is practically ex::low_degree() except that some functions
+// return nonzero values.
+static int low_series_degree(ex the_ex) {
+        static std::unordered_set<unsigned int> funcset {{
+                {sin_SERIAL::serial},
+                {tan_SERIAL::serial},
+                {asin_SERIAL::serial},
+                {atan_SERIAL::serial},
+                {sinh_SERIAL::serial},
+                {tanh_SERIAL::serial},
+                {asinh_SERIAL::serial},
+                {atanh_SERIAL::serial},
+}};
+
+        if (is_exactly_a<constant>(the_ex)
+            or is_exactly_a<numeric>(the_ex))
+                return 0;
+        if (is_exactly_a<symbol>(the_ex))
+                return 1;
+        if (is_exactly_a<function>(the_ex)) {
+                function f = ex_to<function>(the_ex);
+                unsigned int ser = f.get_serial();
+                if (ser == log_SERIAL::serial)
+                        return 1;
+                if (ser == cot_SERIAL::serial
+                    or ser == coth_SERIAL::serial
+                    or ser == csc_SERIAL::serial
+                    or ser == csch_SERIAL::serial)
+                        return -low_series_degree(f.op(0));
+                if (funcset.find(ser) == funcset.end())
+                        return 0;
+                return low_series_degree(f.op(0));
+        }
+        if (is_exactly_a<power>(the_ex)) {
+                power pow = ex_to<power>(the_ex);
+                return (low_series_degree(pow.op(0))
+                      * low_series_degree(pow.op(1)));
+        }
+        if (is_a<add>(the_ex)) {
+	        int deg = std::numeric_limits<int>::max();
+                const add& a = ex_to<add>(the_ex);
+                if (not a.op(a.nops()).is_zero())
+                        return 0;
+                for (unsigned int i=0; i<a.nops(); i++)
+                        deg = std::min(deg, low_series_degree(a.op(i)));
+                return deg;
+        }
+        if (is_a<mul>(the_ex)) {
+                int deg_sum = 0;
+                const mul& m = ex_to<mul>(the_ex);
+                for (const auto & elem : m.get_sorted_seq())
+                        if (ex_to<numeric>(elem.coeff).is_integer())
+                                deg_sum += low_series_degree(m.recombine_pair_to_ex(elem));
+                return deg_sum;
+        }
+        return 0;
+}
+
 ex useries(ex the_ex, const relational & r, int order, unsigned options)
 {
-        if (order == 0)
+        if (order <= 0)
                 // send residues to the old code
                 throw flint_error(); 
         symbol x = ex_to<symbol>(r.lhs());
         flint_series_t fp;
         fmpq_poly_set_ui(fp.ft, 0);
-        the_ex.useries(fp, order);
-        epvector epv;
+        int ldeg = low_series_degree(the_ex);
 
-        for (slong n=0; n<order; n++) {
+        epvector epv;
+        if (ldeg >= order) {
+               epv.push_back(expair(Order(_ex1), order));
+                return pseries(r, epv);
+        }
+
+        if (ldeg > 0)
+                ldeg = 0;
+        the_ex.useries(fp, order - ldeg + 2);
+
+        for (slong n=0; n<order-ldeg; n++) {
                 fmpq_t c;
                 fmpq_init(c);
                 fmpq_poly_get_coeff_fmpq(c, fp.ft, n);
@@ -320,7 +390,7 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
                 }
                 fmpq_clear(c);
         }
-        epv.push_back(expair(Order(_ex1), order + fp.offset));
+        epv.push_back(expair(Order(_ex1), order));
         return pseries(r, epv);
 }
 
@@ -427,6 +497,8 @@ void power::useries(flint_series_t& fp, int order) const
                         if (num > 0)
                                 fmpq_poly_pow(fp.ft, fp1.ft, num);
                         else {
+                                if (fmpq_poly_is_zero(fp1.ft))
+                                        throw flint_error();
                                 fmpq_poly_inv_series(fp1.ft, fp1.ft, order);
                                 fmpq_poly_pow(fp.ft, fp1.ft, -num);
                         }
@@ -445,16 +517,21 @@ void power::useries(flint_series_t& fp, int order) const
         if (expint > 0) {
                 fmpq_poly_pow(fp.ft, fp1.ft, expint);
                 fp.offset = fp1.offset * expint;
+                fmpq_poly_truncate(fp.ft, fp.offset + order + 2);
                 return;
         }
         else if (expint < 0) {
+                if (fmpq_poly_is_zero(fp1.ft))
+                        throw flint_error();
                 if (ldeg) {
                         fmpq_poly_shift_right(fp1.ft, fp1.ft, ldeg);
                         fp1.offset = ldeg;
                 }
-                fmpq_poly_inv_series(fp1.ft, fp1.ft, order - fp1.offset*expint);
+                fmpq_poly_inv_series(fp1.ft, fp1.ft,
+                                order - fp1.offset*expint);
                 fmpq_poly_pow(fp.ft, fp1.ft, -expint);
                 fp.offset = fp1.offset * expint;
+                fmpq_poly_truncate(fp.ft, order);
                 return;
         }
         fmpq_poly_set_str(fp.ft, "1 1");

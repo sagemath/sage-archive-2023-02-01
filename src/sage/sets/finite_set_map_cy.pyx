@@ -202,20 +202,20 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
             sage: fs2
             [1, 0, 1, 1]
             sage: with fs.clone() as fs3:
-            ...       fs3._setimage(0, 2)
-            ...       fs3._setimage(1, 2)
+            ....:     fs3._setimage(0, 2)
+            ....:     fs3._setimage(1, 2)
             sage: fs3
             [2, 2, 2, 1]
 
         TESTS::
 
             sage: with fs.clone() as fs3:
-            ...       fs3._setimage(6, 2)
+            ....:     fs3._setimage(6, 2)
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
             sage: with fs.clone() as fs3:
-            ...       fs3._setimage(1, 4)
+            ....:     fs3._setimage(1, 4)
             Traceback (most recent call last):
             ...
             AssertionError: Wrong value self(1) = 4
@@ -262,8 +262,8 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
             sage: fs2
             [1, 0, 1, 1]
             sage: with fs.clone() as fs3:
-            ...       fs3.setimage(0, 2)
-            ...       fs3.setimage(1, 2)
+            ....:     fs3.setimage(0, 2)
+            ....:     fs3.setimage(1, 2)
             sage: fs3
             [2, 2, 2, 1]
         """
@@ -481,21 +481,21 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
             sage: fs2
             map: a -> w, b -> v, c -> v, d -> v
             sage: with fs.clone() as fs3:
-            ...       fs3.setimage("a", "u")
-            ...       fs3.setimage("c", "w")
+            ....:     fs3.setimage("a", "u")
+            ....:     fs3.setimage("c", "w")
             sage: fs3
             map: a -> u, b -> v, c -> w, d -> v
 
         TESTS::
 
             sage: with fs.clone() as fs3:
-            ...       fs3.setimage("z", 2)
+            ....:     fs3.setimage("z", 2)
             Traceback (most recent call last):
             ...
             ValueError: 'z' is not in dict
 
             sage: with fs.clone() as fs3:
-            ...       fs3.setimage(1, 4)
+            ....:     fs3.setimage(1, 4)
             Traceback (most recent call last):
             ...
             ValueError: 1 is not in dict

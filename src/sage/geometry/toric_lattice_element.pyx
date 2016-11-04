@@ -118,7 +118,7 @@ def is_ToricLatticeElement(x):
     EXAMPLES::
 
         sage: from sage.geometry.toric_lattice_element import (
-        ...     is_ToricLatticeElement)
+        ....:   is_ToricLatticeElement)
         sage: is_ToricLatticeElement(1)
         False
         sage: e = ToricLattice(3).an_element()
@@ -154,7 +154,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
 
         sage: N = ToricLattice(3)
         sage: from sage.geometry.toric_lattice_element import (
-        ...             ToricLatticeElement)
+        ....:           ToricLatticeElement)
         sage: e = ToricLatticeElement(N, [1,2,3])
         sage: e
         N(1, 2, 3)

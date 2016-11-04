@@ -1494,7 +1494,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
         """
         H = self._hasse_diagram
-        for e in H:
+        if H.order() == 0:
+            if certificate:
+                return (True, None)
+            return True
+        # According to Les Treillis Pseudocomplémentés Finis by
+        # C. Chameni-Nembua & B. Monjardet (Europ. J. Combinatorics
+        # (1992) 13, 89-107) a lattice is pseudocomplemented iff
+        # every atom has a pseudocomplement.
+        for e in H.neighbor_out_iterator(0):
             if H.pseudocomplement(e) is None:
                 if certificate:
                     return (False, self._vertex_to_element(e))

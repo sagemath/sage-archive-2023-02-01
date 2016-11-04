@@ -134,9 +134,9 @@ import sage.misc.weak_dict
 
 import operator
 
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.gen cimport gen
-from sage.libs.pari.stack cimport new_gen
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
@@ -5040,7 +5040,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ::
 
             sage: type(z)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: R(z)
             1.64493406684823
         """

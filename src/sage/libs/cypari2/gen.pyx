@@ -184,7 +184,7 @@ cdef class gen(gen_auto):
             sage: type(L)
             <type 'list'>
             sage: type(L[0])
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
 
         For polynomials, list() behaves as for ordinary Sage polynomials::
 
@@ -1080,7 +1080,7 @@ cdef class gen(gen_auto):
             sage: s
             [1, 0]
             sage: type(s[0])
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: s = pari(range(20)) ; s
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
             sage: s[0:10:2] = range(50,55) ; s
@@ -1096,7 +1096,7 @@ cdef class gen(gen_auto):
             sage: v
             [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
             sage: type(v[0])
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
         """
         cdef int i, j
         cdef gen x = objtogen(y)
@@ -1474,7 +1474,7 @@ cdef class gen(gen_auto):
             sage: w
             [1, 2, 3, 10, 102, 10]
             sage: type(w[0])
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: pari("[1,2,3]").python_list()
             [1, 2, 3]
 
@@ -1604,7 +1604,7 @@ cdef class gen(gen_auto):
 
             sage: f = pari('(2/3)*x^3 + x - 5/7 + y')
             sage: x,y=var('x,y')
-            sage: from sage.libs.pari.gen import gentoobj
+            sage: from sage.libs.cypari2.gen import gentoobj
             sage: gentoobj(f, {'x':x, 'y':y})
             2/3*x^3 + x + y - 5/7
             sage: gentoobj(f)
@@ -3176,7 +3176,7 @@ cdef class gen(gen_auto):
             sage: v = e.ellaplist(10); v
             [-2, -1, 1, -2]
             sage: type(v)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: v.type()
             't_VEC'
             sage: e.ellan(10)
@@ -3192,7 +3192,7 @@ cdef class gen(gen_auto):
 
             sage: v = e.ellaplist(1)
             sage: v, type(v)
-            ([], <type 'sage.libs.pari.gen.gen'>)
+            ([], <type 'sage.libs.cypari2.gen.gen'>)
             sage: v = e.ellaplist(1, python_ints=True)
             sage: v, type(v)
             ([], <type 'list'>)

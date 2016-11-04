@@ -28,10 +28,10 @@ def sage_src_pari():
 
         sage: from sage_setup.autogen.pari.parser import sage_src_pari
         sage: sage_src_pari()
-        '.../src/sage/libs/pari'
+        '.../src/sage/libs/cypari2'
     """
     SAGE_SRC = os.environ['SAGE_SRC']
-    return os.path.join(SAGE_SRC, 'sage', 'libs', 'pari')
+    return os.path.join(SAGE_SRC, 'sage', 'libs', 'cypari2')
 
 def pari_share():
     r"""

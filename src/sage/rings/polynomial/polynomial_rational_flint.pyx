@@ -30,7 +30,7 @@ from sage.libs.flint.fmpz_poly cimport *
 
 from sage.interfaces.all import singular as singular_default
 
-from sage.libs.pari.gen import gen as pari_gen
+from sage.libs.cypari2.gen import gen as pari_gen
 
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.integer_ring import ZZ

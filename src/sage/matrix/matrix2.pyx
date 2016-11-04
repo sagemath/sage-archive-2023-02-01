@@ -366,7 +366,7 @@ cdef class Matrix(matrix1.Matrix):
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.pari import pari
+                from sage.libs.cypari2 import pari
                 A = pari(self.lift())
                 b = pari(B).lift()
                 if b.type() == "t_MAT":

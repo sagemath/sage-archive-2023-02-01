@@ -3,7 +3,7 @@ Declarations for inline functions from PARI.
 
 This file contains all declarations from headers/pariinl.h from the
 PARI distribution.  All these functions are simple inline functions.
-This file is included by sage/libs/pari/paridecl.pxd
+This file is included by sage/libs/cypari2/paridecl.pxd
 
 
 AUTHORS:
@@ -12,7 +12,7 @@ AUTHORS:
 
 """
 
-cdef extern from "sage/libs/pari/parisage.h":
+cdef extern from "sage/libs/cypari2/cypari.h":
 
     # pariinl.h
     GEN    abgrp_get_cyc(GEN x)

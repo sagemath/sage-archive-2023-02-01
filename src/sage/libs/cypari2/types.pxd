@@ -12,7 +12,7 @@ linking to PARI. This file should consist only of typedefs and macros
 from PARI's include files.
 """
 
-cdef extern from "sage/libs/pari/parisage.h":
+cdef extern from "sage/libs/cypari2/cypari.h":
     ctypedef unsigned long ulong "pari_ulong"
 
     ctypedef long* GEN

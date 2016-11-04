@@ -53,7 +53,7 @@ from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.paridecl cimport *
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
@@ -68,7 +68,7 @@ import finite_field_constructor as finite_field
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
-from sage.libs.pari.gen cimport gen
+from sage.libs.cypari2.gen cimport gen
 
 from sage.structure.parent cimport Parent
 

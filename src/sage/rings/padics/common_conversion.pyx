@@ -34,8 +34,8 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 import sage.rings.finite_rings.integer_mod
-from sage.libs.pari.types cimport *
-from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.cypari2.types cimport *
+from sage.libs.cypari2.gen cimport gen as pari_gen
 from sage.rings.infinity import infinity
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1

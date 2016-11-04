@@ -172,7 +172,8 @@
 
         var texture = new THREE.Texture( canvas );
         texture.needsUpdate = true;
-        var material = new THREE.PointsMaterial( { size: json.size/100, map: texture } );
+        var material = new THREE.PointsMaterial( { size: json.size/100, map: texture,
+                                                   transparent: true, alphaTest: .1   } );
         scene.add( new THREE.Points( geometry, material ) );
     }
 

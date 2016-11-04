@@ -1544,7 +1544,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
 
             sage: Posets.DiamondPoset(5).skeleton()
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             ValueError: lattice is not pseudocomplemented
         """

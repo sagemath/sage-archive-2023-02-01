@@ -226,3 +226,41 @@ class Knot(Link):
 
         return 1
 
+    def fundamental_group(self):
+        r"""
+        Compute the Wirtinger presentation of the fundamental group of the complement
+        of the knot.
+        
+        OUTPUT:
+        
+        - A finitely presented group. Its presentation is the Wirtinger presentation
+          of the knot.
+          
+        EXAMPLES::
+        
+            sage: K = Knot([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            sage: K.fundamental_group()
+            Finitely presented group < x0, x1, x2 | x2*x1*x2^-1*x0^-1, x1*x0*x1^-1*x2^-1, x0*x2*x0^-1*x1^-1 >
+
+        """
+        from sage.groups.free_group import FreeGroup
+        gauss_code = self.oriented_gauss_code()
+        crossing_list=gauss_code[0][0]
+        negative_indices = [i for i in range(len(crossing_list)) if crossing_list[i]<0]
+        gens = [crossing_list[negative_indices[i]:negative_indices[i+1]+1] for i in range(len(negative_indices)-1)]
+        gens.append(crossing_list[negative_indices[-1]:]+crossing_list[:negative_indices[0]+1])
+        relations = []
+        for cros in range(len(gauss_code[1])):
+            gi = [g for g in gens if cros+1 in g][0]
+            gj = [g for g in gens if -(cros+1)==g[-1]][0]
+            giind = gens.index(gi)
+            gjind = gens.index(gj)
+            gkind = gjind + 1
+            if gkind >= len(gens):
+                gkind = 0
+            if gauss_code[1][cros] > 0:
+                relations.append([giind+1,gkind+1,-giind-1,-gjind-1])
+            else:
+                relations.append([giind+1,gjind+1,-giind-1,-gkind-1])
+        F = FreeGroup(len(gens))
+        return F.quotient(relations)

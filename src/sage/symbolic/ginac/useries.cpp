@@ -334,10 +334,16 @@ static int low_series_degree(ex the_ex) {
         }
         if (is_exactly_a<power>(the_ex)) {
                 power pow = ex_to<power>(the_ex);
-                return (low_series_degree(pow.op(0))
-                      * low_series_degree(pow.op(1)));
+                ex expo = pow.op(1);
+                if (is_exactly_a<numeric>(expo)) {
+                        numeric n = ex_to<numeric>(expo);
+                        if (n.is_integer())
+                                return (low_series_degree(pow.op(0))
+                                      * n.to_int());
+                }
+                return 0;
         }
-        if (is_a<add>(the_ex)) {
+        if (is_exactly_a<add>(the_ex)) {
 	        int deg = std::numeric_limits<int>::max();
                 const add& a = ex_to<add>(the_ex);
                 if (not a.op(a.nops()).is_zero())
@@ -346,7 +352,7 @@ static int low_series_degree(ex the_ex) {
                         deg = std::min(deg, low_series_degree(a.op(i)));
                 return deg;
         }
-        if (is_a<mul>(the_ex)) {
+        if (is_exactly_a<mul>(the_ex)) {
                 int deg_sum = 0;
                 const mul& m = ex_to<mul>(the_ex);
                 for (const auto & elem : m.get_sorted_seq())
@@ -369,7 +375,7 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
 
         epvector epv;
         if (ldeg >= order) {
-               epv.push_back(expair(Order(_ex1), order));
+                epv.push_back(expair(Order(_ex1), order));
                 return pseries(r, epv);
         }
 
@@ -378,6 +384,8 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
         the_ex.useries(fp, order - ldeg + 2);
 
         for (slong n=0; n<order-ldeg; n++) {
+                if (n + fp.offset >= order)
+                        break;
                 fmpq_t c;
                 fmpq_init(c);
                 fmpq_poly_get_coeff_fmpq(c, fp.ft, n);

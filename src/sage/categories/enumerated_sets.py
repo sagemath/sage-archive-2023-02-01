@@ -484,12 +484,12 @@ class EnumeratedSets(CategoryWithAxiom):
             r"""
             Return a list of the elements of ``self``.
 
-            The elements of set ``x`` are created and cashed on the fist call
+            The elements of set ``x`` are created and cached on the fist call
             of ``x.list()``. Then each call of ``x.list()`` returns a new list
-            from the cashed result. Thus in looping, it may be better to do
+            from the cached result. Thus in looping, it may be better to do
             ``for e in x:``, not ``for e in x.list():``.
 
-            If ``x`` is known to be infinite, then an exception is raised.
+            If ``x`` is not known to be finite, then an exception is raised.
 
             EXAMPLES::
 

@@ -344,7 +344,6 @@ class GroupMixinLibGAP(object):
         while not iterator.IsDoneIterator().sage():
             yield self(iterator.NextIterator(), check=False)
 
-    @cached_method
     def __len__(self):
         """
         Return the number of elements in self.
@@ -359,7 +358,6 @@ class GroupMixinLibGAP(object):
         """
         return len(self.list())
 
-    @cached_method
     def list(self):
         """
         List all elements of this group.

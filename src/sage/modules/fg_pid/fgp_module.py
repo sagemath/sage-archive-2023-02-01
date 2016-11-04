@@ -1511,9 +1511,10 @@ class FGP_Module_class(Module):
 
     def list(self):
         """
-        Return a list of the elements of self.
+        Return a list of the elements of ``self``.
 
         EXAMPLES::
+
             sage: V = ZZ^2; W = V.span([[1,2],[3,4]])
             sage: list(V/W)
             [(0), (1)]
@@ -1522,7 +1523,7 @@ class FGP_Module_class(Module):
 
     def __iter__(self):
         """
-        Return iterator over all elements of self.
+        Return iterator over all elements of ``self``.
 
         EXAMPLES::
 

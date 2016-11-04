@@ -2718,7 +2718,7 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
 
     def object(self):
         """
-        Return the underlying object of self.
+        Return the underlying object of ``self``.
 
         EXAMPLES::
 

@@ -541,6 +541,51 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             self._pbring.variable(self.pbind[i])) \
                 for i from 0<= i < self.__ngens])
 
+    def change_ring(self, base_ring=None, names=None, order=None):
+        """
+        Return a new multivariate polynomial ring with base ring
+        ``base_ring``, variable names set to ``names``, and term
+        ordering given by ``order``.
+
+        When ``base_ring`` is not specified, this function returns
+        a ``BooleanPolynomialRing`` isomorphic with ``self``. Otherwise,
+        this returns a ``MPolynomialRing``. Each argument above is
+        optional.
+
+        INPUT:
+
+        - ``base_ring`` -- a base ring
+        - ``names`` -- variable names
+        - ``order`` -- a term order
+
+        EXAMPLES::
+        
+            sage: P.<x, y, z> = BooleanPolynomialRing()
+            sage: P.term_order()
+            Lexicographic term order
+            sage: R = P.change_ring(names=('a', 'b', 'c'), order="deglex")
+            sage: R
+            Boolean PolynomialRing in a, b, c
+            sage: R.term_order()
+            Degree lexicographic term order
+            sage: T = P.change_ring(base_ring=GF(3))
+            sage: T
+            Multivariate Polynomial Ring in x, y, z over Finite Field of size 3
+            sage: T.term_order()
+            Lexicographic term order 
+        """
+
+        if names is None:
+            names = self.variable_names()
+        if order is None:
+            order = self.term_order()
+
+        if base_ring is None:
+            from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor
+            return BooleanPolynomialRing_constructor(names=names, order=order)
+        else:
+            return PolynomialRing(base_ring, self.ngens(), names, order=order) 
+
     def _repr_(self):
         """
         EXAMPLE::

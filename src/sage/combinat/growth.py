@@ -289,7 +289,7 @@ class GrowthDiagram(SageObject):
             sage: (Gc.P_symbol(), Gc.Q_symbol()) == (G.Q_symbol(), G.P_symbol())
             True
         """
-        F = {(j,i): v for (i,j),v in self._filling.iteritems()}
+        F = {(j,i): v for (i,j),v in self._filling.items()}
         return self.parent()(filling = F)
 
     def rotate(self):
@@ -314,7 +314,7 @@ class GrowthDiagram(SageObject):
         """
         max_row = max(i for i, _ in self._filling)
         max_col = max(j for _, j in self._filling)
-        F = {(max_row-i,max_col-j): v for (i,j),v in self._filling.iteritems()}
+        F = {(max_row-i,max_col-j): v for (i,j),v in self._filling.items()}
         return self.parent()(filling = F)
 
     def shape(self):
@@ -426,7 +426,7 @@ class GrowthDiagram(SageObject):
         """
         if self.is_rectangular():
             w = [0]*self._lambda[0]
-            for ((i,j), v) in self._filling.iteritems():
+            for ((i,j), v) in self._filling.items():
                 if v != 0:
                     if v == 1:
                         if w[i] == 0:
@@ -466,7 +466,7 @@ class GrowthDiagram(SageObject):
         if self.is_rectangular():
             w1 = []
             w2 = []
-            for ((i,j), v) in sorted(self._filling.iteritems()):
+            for ((i,j), v) in sorted(self._filling.items()):
                 if v >= 0:
                     w1.extend([i+1]*v)
                     w2.extend([j+1]*v)
@@ -779,13 +779,13 @@ class GrowthDiagram(SageObject):
                 if isinstance(v, dict):
                     # it is a dict of dicts
                     F = dict()
-                    for (i, row) in filling.iteritems():
-                        for (j, v) in row.iteritems():
+                    for (i, row) in filling.items():
+                        for (j, v) in row.items():
                             if v != 0:
                                 F[(i,j)] = int(v)
                 else:
                     # it is dict of coordinates
-                    F = {(i,j): v for ((i,j), v) in filling.iteritems()
+                    F = {(i,j): v for ((i,j), v) in filling.items()
                          if v != 0}
             except StopIteration:
                 # it is an empty dict of coordinates
@@ -1485,13 +1485,6 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
             if shape1 != shape2 != shape3:
                 r = Word([2] + list(shape2), alphabet=[1,2])
             else:
-                print shape1, shape2, shape3
-                print shape1.parent(), shape2.parent(), shape3.parent()
-                print (shape1 != shape2) and (shape2 != shape3)
-                print shape1 == shape2
-                print shape2 == shape3
-                print (shape1 != shape2)
-                print (shape2 != shape3)
                 raise NotImplementedError("For shape3=%s, shape2=%s, shape1=%s, content %s we have no rule." %(shape3, shape2, shape1, content))
         return r
 

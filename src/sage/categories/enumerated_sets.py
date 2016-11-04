@@ -484,14 +484,12 @@ class EnumeratedSets(CategoryWithAxiom):
             r"""
             Return a list of the elements of ``self``.
 
-            The elements of set ``x`` is created and cashed on the fist call
+            The elements of set ``x`` are created and cashed on the fist call
             of ``x.list()``. Then each call of ``x.list()`` returns a new list
             from the cashed result. Thus in looping, it may be better to do
             ``for e in x:``, not ``for e in x.list():``.
 
-            If ``x`` is known to be infinite, then NotImplementedError exception
-            is raised. Otherwise it simply tries to list all elements using an
-            iterator defined for ``x``.
+            If ``x`` is known to be infinite, then an exception is raised.
 
             EXAMPLES::
 
@@ -518,9 +516,10 @@ class EnumeratedSets(CategoryWithAxiom):
             try:
                 if self.cardinality() is Infinity:
                     raise NotImplementedError('cannot list an infinite set')
+                else: # finite cardinality
+                    return self._list_from_iterator()
             except AttributeError:
-                pass
-            return self._list_from_iterator()
+                raise NotImplementedError('unknown cardinality')
         _list_default  = list # needed by the check system.
 
         def _list_from_iterator(self):

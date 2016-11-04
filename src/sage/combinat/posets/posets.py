@@ -4345,7 +4345,9 @@ class FinitePoset(UniqueRepresentation, Parent):
           result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
 
-        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteLatticePoset.vertical_composition`.
+        .. SEEALSO::
+
+            meth:`sage.combinat.posets.lattices.FiniteLatticePoset.vertical_composition`
 
         EXAMPLES::
 

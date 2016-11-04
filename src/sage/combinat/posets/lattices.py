@@ -2046,12 +2046,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return True
 
     def vertical_composition(self, other, labels='pairs'):
-        """
+        r"""
         Return the vertical composition of the lattice with ``other``.
 
-        Let `L` and `K` be lattices and `\\bot_K` the bottom element
-        of K. The vertical composition of `L` and `K` is the ordinal
-        sum of `L` and `K \setminus \{\\bot_K\}`. Informally said this is
+        Let `L` and `K` be lattices and `b_K` the bottom element
+        of `K`. The vertical composition of `L` and `K` is the ordinal
+        sum of `L` and `K \setminus \{b_K\}`. Informally said this is
         lattices "glued" together with a common element.
 
         Mathematically, it is only defined when `L` and `K` have no
@@ -2062,13 +2062,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         - ``other`` -- a lattice
 
-        - ``labels`` -- a string (default 'pairs') If set to 'pairs', each
-          element ``v`` in this poset will be named ``(0, v)`` and each
-          element ``u`` in ``other`` will be named ``(1, u)`` in the
-          result. If set to 'integers', the elements of the result
-          will be relabeled with consecutive integers.
+        - ``labels`` -- a string (default ``'pairs'``); can be one of
+          the following:
 
-        .. SEEALSO:: :meth:`vertical_decomposition`, :meth:`sage.combinat.posets.posets.FinitePoset.ordinal_sum`
+          * ``'pairs'`` - each element ``v`` in this poset will be
+            named ``(0, v)`` and each element ``u`` in ``other`` will
+            be named ``(1, u)`` in the result
+          * ``'integers'`` - the elements of the result will be
+            relabeled with consecutive integers
+
+        .. SEEALSO::
+
+            :meth:`vertical_decomposition`,
+            :meth:`sage.combinat.posets.posets.FinitePoset.ordinal_sum`
 
         EXAMPLES::
 
@@ -2131,7 +2137,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         if self.cardinality() == 0:
             return other.relabel(lambda e: (1, e))
-        return LatticePoset(self.ordinal_sum(other.subposet([e for e in other if e != other.bottom()])), facade=self._is_facade)
+        S = other.subposet([e for e in other if e != other.bottom()])
+        return LatticePoset(self.ordinal_sum(S), facade=self._is_facade)
 
     def vertical_decomposition(self, elements_only=False):
         r"""
@@ -2156,7 +2163,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`vertical_composition`, :meth:`is_vertically_decomposable`
+            :meth:`vertical_composition`,
+            :meth:`is_vertically_decomposable`
 
         EXAMPLES:
 

@@ -43,8 +43,14 @@ def pari_share():
         sage: pari_share()
         '.../share/pari'
     """
-    SAGE_LOCAL = os.environ["SAGE_LOCAL"]
-    return os.path.join(SAGE_LOCAL, "share", "pari")
+    from subprocess import Popen, PIPE
+    gp = Popen(["gp", "-f", "-q"], stdin=PIPE, stdout=PIPE)
+    out = gp.communicate("print(default(datadir))")[0]
+    datadir = out.strip()
+    if not os.path.isdir(datadir):
+        raise EnvironmentError("PARI data directory {!r} does not exist".format(datadir))
+    return datadir
+
 
 paren_re = re.compile(r"[(](.*)[)]")
 argname_re = re.compile(r"[ {]*([A-Za-z_][A-Za-z0-9_]*)")

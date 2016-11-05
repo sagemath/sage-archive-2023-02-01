@@ -291,7 +291,17 @@ class DegreeSequences:
             sage: [3,3,2,2,2,2,2,2] in DegreeSequences(8)
             True
 
+        TESTS:
+
+        :trac:`21824`::
+
+            sage: DegreeSequences(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The input parameter must be >= 0.
         """
+        if n < 0:
+            raise ValueError("The input parameter must be >= 0.")
         self._n = n
 
     def __contains__(self, seq):
@@ -310,6 +320,17 @@ class DegreeSequences:
 
             sage: [2,2,2,2,1,1,1] in DegreeSequences(7)
             False
+
+        :trac:`21824`::
+
+            sage: [d for d in DegreeSequences(0)]
+            [[]]
+            sage: [d for d in DegreeSequences(1)]
+            [[0]]
+            sage: [d for d in DegreeSequences(3)]
+            [[0, 0, 0], [1, 1, 0], [2, 1, 1], [2, 2, 2]]
+            sage: [d for d in DegreeSequences(1)]
+            [[0]]
         """
         cdef int n = self._n
         if len(seq)!=n:
@@ -375,8 +396,8 @@ class DegreeSequences:
             True
         """
 
-        init(self._n)
-        return iter(sequences)
+        loc_sequences = init(self._n)
+        return iter(loc_sequences)
 
     def __dealloc__():
         """

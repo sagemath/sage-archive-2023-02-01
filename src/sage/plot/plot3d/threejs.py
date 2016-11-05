@@ -20,7 +20,7 @@ def threejs(plot, **kwds):
 
     options = {}
     options['frame'] = kwds.get('frame', True)
-    options['aspect_ratio'] = kwds.get('aspect_ratio', [1,1,1])
+    options['aspect_ratio'] = [float(i) for i in kwds.get('aspect_ratio', [1,1,1])]
     options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
     options['decimals'] = int(kwds.get('decimals', 0))
     options['opacity'] = float(kwds.get('opacity', 1))

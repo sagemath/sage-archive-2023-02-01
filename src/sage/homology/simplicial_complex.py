@@ -823,6 +823,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
     :type name_check: boolean; optional, default ``False``
     :param is_mutable: Set to ``False`` to make this immutable
     :type is_mutable: boolean; optional, default ``True``
+    :param category: the category of the simplicial complex
+    :type category: category; optional, default finite simplicial complexes
     :return: a simplicial complex
 
     ``maximal_faces`` should be a list or tuple or set (indeed,
@@ -927,7 +929,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
                  sort_facets=True,
                  name_check=False,
                  is_mutable=True,
-                 is_immutable=False):
+                 is_immutable=False,
+                 category=None):
         """
         Define a simplicial complex.  See ``SimplicialComplex`` for more
         documentation.
@@ -965,7 +968,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if (maximal_faces is not None and
             from_characteristic_function is not None):
             raise ValueError("maximal_faces and from_characteristic_function cannot be both defined")
-        Parent.__init__(self, category=SimplicialComplexes().Finite())
+        category = SimplicialComplexes().Finite().or_subcategory(category)
+        Parent.__init__(self, category=category)
 
         C = None
         vertex_set = ()

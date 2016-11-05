@@ -1550,10 +1550,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         # TODO: What about non-facade lattices and lattices with
         # given linear extension?
-        pseudocomplements = [self.pseudocomplement(e) for e in self]
-        if None in pseudocomplements:
-            raise ValueError("lattice is not pseudocomplemented")
-        return self.sublattice(pseudocomplements)
+        if self.cardinality() < 3:
+            return self
+        elms = [self._vertex_to_element(v) for v in
+                self._hasse_diagram.skeleton()]
+        return LatticePoset(self.subposet(elms))
 
     def is_orthocomplemented(self, unique=False):
         """

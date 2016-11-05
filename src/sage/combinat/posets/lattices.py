@@ -1493,12 +1493,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         According to [Cha92]_ a lattice is pseudocomplemented if and
         only if every atom has a pseudocomplement. So we only check those.
 
-        REFERENCES:
-
-        .. [Cha92] Chameni-Nembua C., Monjardet B.
-           Les Treillis Pseudocomplémentés Finis
-           Europ. J. Combinatorics  (1992) 13, 89-107
-
         TESTS::
 
             sage: LatticePoset({}).is_pseudocomplemented()

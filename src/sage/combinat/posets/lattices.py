@@ -1488,6 +1488,17 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement()`.
 
+        ALGORITHM:
+
+        According to [Cha92]_ a lattice is pseudocomplemented if and
+        only if every atom has a pseudocomplement. So we only check those.
+
+        REFERENCES:
+
+        .. [Cha92] Chameni-Nembua C., Monjardet B.
+           Les Treillis Pseudocomplémentés Finis
+           Europ. J. Combinatorics  (1992) 13, 89-107
+
         TESTS::
 
             sage: LatticePoset({}).is_pseudocomplemented()
@@ -1498,10 +1509,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             if certificate:
                 return (True, None)
             return True
-        # According to Les Treillis Pseudocomplémentés Finis by
-        # C. Chameni-Nembua & B. Monjardet (Europ. J. Combinatorics
-        # (1992) 13, 89-107) a lattice is pseudocomplemented iff
-        # every atom has a pseudocomplement.
         for e in H.neighbor_out_iterator(0):
             if H.pseudocomplement(e) is None:
                 if certificate:

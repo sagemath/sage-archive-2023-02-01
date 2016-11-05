@@ -208,7 +208,7 @@
             geometry.vertices.push( new THREE.Vector3( a[0]*v.x, a[1]*v.y, a[2]*v.z ) );
         }
         for ( var i=0 ; i < json.faces.length ; i++ ) {
-            var f = json.faces[i]
+            var f = json.faces[i];
             for ( var j=0 ; j < f.length - 2 ; j++ ) {
                 geometry.faces.push( new THREE.Face3( f[0], f[j+1], f[j+2] ) );
             }

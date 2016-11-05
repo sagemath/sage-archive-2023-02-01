@@ -95,8 +95,7 @@ class GroupMixinLibGAP(object):
             sage: G.cardinality()
             +Infinity
         """
-        if self.is_finite():
-            return self.gap().Size().sage()
+        return self.gap().Size().sage()
         from sage.rings.infinity import Infinity
         return Infinity
 
@@ -346,7 +345,7 @@ class GroupMixinLibGAP(object):
 
     def __len__(self):
         """
-        Return the number of elements in self.
+        Return the number of elements in ``self``.
 
         EXAMPLES::
 
@@ -355,8 +354,17 @@ class GroupMixinLibGAP(object):
             sage: G = MatrixGroup(gens)
             sage: len(G)
             48
+
+        An error is raised if the group is not finite::
+
+            sage: len(GL(2,ZZ))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: group must be finite
         """
-        return len(self.list())
+        if not self.is_finite():
+            raise NotImplementedError('group must be finite')
+        return int(self.cardinality())
 
     def list(self):
         """

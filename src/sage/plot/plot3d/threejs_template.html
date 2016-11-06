@@ -112,24 +112,25 @@
     }
 
     function addLabel( text, x, y, z ) {
-        var size = 128;
+        var fontsize = 14;
 
         var canvas = document.createElement( 'canvas' );
-        canvas.width = 4*size;
-        canvas.height = size;
+        canvas.width = 128;
+        canvas.height = 32; // powers of two
 
         var context = canvas.getContext( '2d' );
         context.fillStyle = 'black';
-        context.font = '24px monospace';
+        context.font = fontsize + 'px monospace';
         context.textAlign = 'center';
-        context.fillText( text, 2*size, .7*size );
+        context.textBaseline = 'middle';
+        context.fillText( text, .5*canvas.width, .5*canvas.height );
 
         var texture = new THREE.Texture( canvas );
         texture.needsUpdate = true;
 
         var sprite = new THREE.Sprite( new THREE.SpriteMaterial( { map: texture } ) );
         sprite.position.set( x, y, z );
-        sprite.scale.set( 4, 1 );
+        sprite.scale.set( 1, .25 ); // ratio of width to height
         scene.add( sprite );
     }
 
@@ -233,8 +234,8 @@
             if ( scene.children[i].type === 'Sprite' ) {
                 var sprite = scene.children[i];
                 var adjust = scratch.addVectors( sprite.position, scene.position )
-                               .sub( camera.position ).length() / 10;
-                sprite.scale.set( 4 * adjust, adjust );
+                               .sub( camera.position ).length() / 5;
+                sprite.scale.set( adjust, .25*adjust ); // ratio of canvas width to height
             }
         }
     }

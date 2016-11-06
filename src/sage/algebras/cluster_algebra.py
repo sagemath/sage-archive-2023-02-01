@@ -509,7 +509,7 @@ class ClusterAlgebraElement(ElementWrapper):
             sage: _.parent()
             A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring
         """
-        return self.lift()/other.lift()
+        return self.lift() / other.lift()
 
     def d_vector(self):
         r"""
@@ -539,7 +539,7 @@ class ClusterAlgebraElement(ElementWrapper):
             (x0*x2^2*y0*y1*y2^2 + x1^3*x3^2 + x1^2*x3^2*y0 + 2*x1^2*x3*y2 + 2*x1*x3*y0*y2 + x1*y2^2 + y0*y2^2)/(x0*x1*x2^2)
         """
         numer, denom = self.lift()._fraction_pair()
-        return repr(numer/denom)
+        return repr(numer / denom)
 
 ####
 # Methods not always defined
@@ -631,11 +631,11 @@ def homogeneous_components(self):
     x = self.lift()
     monomials = x.monomials()
     for m in monomials:
-        g_vect = tuple(deg_matrix*vector(m.exponents()[0]))
+        g_vect = tuple(deg_matrix * vector(m.exponents()[0]))
         if g_vect in components:
-            components[g_vect] += self.parent().retract(x.monomial_coefficient(m)*m)
+            components[g_vect] += self.parent().retract(x.monomial_coefficient(m) * m)
         else:
-            components[g_vect] = self.parent().retract(x.monomial_coefficient(m)*m)
+            components[g_vect] = self.parent().retract(x.monomial_coefficient(m) * m)
     return components
 
 
@@ -1090,9 +1090,9 @@ class ClusterAlgebraSeed(SageObject):
         # compute new G-matrix
         J = identity_matrix(n)
         for j in range(n):
-            J[j, k] += max(0, -eps*self._B[j, k])
+            J[j, k] += max(0, -eps * self._B[j, k])
         J[k, k] = -1
-        self._G = self._G*J
+        self._G = self._G * J
 
         # path to new g-vector (we store the shortest encountered so far)
         g_vector = self.g_vector(k)
@@ -1106,9 +1106,9 @@ class ClusterAlgebraSeed(SageObject):
         # compute new C-matrix
         J = identity_matrix(n)
         for j in range(n):
-            J[k, j] += max(0, eps*self._B[k, j])
+            J[k, j] += max(0, eps * self._B[k, j])
         J[k, k] = -1
-        self._C = self._C*J
+        self._C = self._C * J
 
         # compute new B-matrix
         self._B.mutate(k)
@@ -1145,14 +1145,14 @@ class ClusterAlgebraSeed(SageObject):
         neg = alg._U(1)
         for j in range(alg.rk()):
             if self._C[j, k] > 0:
-                pos *= alg._U.gen(j)**self._C[j, k]
+                pos *= alg._U.gen(j) ** self._C[j, k]
             else:
-                neg *= alg._U.gen(j)**(-self._C[j, k])
+                neg *= alg._U.gen(j) ** (-self._C[j, k])
             if self._B[j, k] > 0:
-                pos *= self.F_polynomial(j)**self._B[j, k]
+                pos *= self.F_polynomial(j) ** self._B[j, k]
             elif self._B[j, k] < 0:
-                neg *= self.F_polynomial(j)**(-self._B[j, k])
-        return (pos+neg)/alg.F_polynomial(old_g_vector)
+                neg *= self.F_polynomial(j) ** (-self._B[j, k])
+        return (pos + neg) / alg.F_polynomial(old_g_vector)
 
 ##############################################################################
 # Cluster algebras
@@ -1243,7 +1243,7 @@ class ClusterAlgebra(Parent):
 
         # Determine the names of the initial cluster variables
         variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
-        variables = list(kwargs.get('cluster_variable_names', [variables_prefix+str(i) for i in range(n)]))
+        variables = list(kwargs.get('cluster_variable_names', [variables_prefix + str(i) for i in range(n)]))
         if len(variables) != n:
             raise ValueError("cluster_variable_names should be a list of %d valid variable names" % n)
 
@@ -1257,7 +1257,7 @@ class ClusterAlgebra(Parent):
                 offset = n
             else:
                 offset = 0
-            coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix+str(i) for i in range(offset, m+offset)]))
+            coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix + str(i) for i in range(offset, m + offset)]))
             if len(coefficients) != m:
                 raise ValueError("coefficient_names should be a list of %d valid variable names" % m)
             base = LaurentPolynomialRing(scalars, coefficients)
@@ -1266,12 +1266,12 @@ class ClusterAlgebra(Parent):
             coefficients = []
 
         # setup Parent and ambient
-        self._ambient = LaurentPolynomialRing(scalars, variables+coefficients)
-        Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables+coefficients)
+        self._ambient = LaurentPolynomialRing(scalars, variables + coefficients)
+        Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables + coefficients)
 
         # Data to compute cluster variables using separation of additions
-        self._y = dict([(self._U.gen(j), prod([self._base.gen(i)**M0[i, j] for i in range(m)])) for j in range(n)])
-        self._yhat = dict([(self._U.gen(j), prod([self._ambient.gen(i)**B0[i, j] for i in range(n+m)])) for j in range(n)])
+        self._y = dict([(self._U.gen(j), prod([self._base.gen(i) ** M0[i, j] for i in range(m)])) for j in range(n)])
+        self._yhat = dict([(self._U.gen(j), prod([self._ambient.gen(i) ** B0[i, j] for i in range(n + m)])) for j in range(n)])
 
         # Have we got principal coefficients?
         self._is_principal = (M0 == I)
@@ -1455,7 +1455,7 @@ class ClusterAlgebra(Parent):
             if len(gen_s) == len(gen_o):
                 f = self.ambient().coerce_map_from(other.ambient())
             if f is not None:
-                perm = Permutation([gen_s.index(self(f(v)))+1 for v in gen_o])
+                perm = Permutation([gen_s.index(self(f(v))) + 1 for v in gen_o])
                 n = self.rk()
                 M = self._B0[n:, :]
                 m = M.nrows()
@@ -1688,9 +1688,9 @@ class ClusterAlgebra(Parent):
         g_vector = tuple(g_vector)
         F = self.F_polynomial(g_vector)
         F_std = F.subs(self._yhat)
-        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in range(self.rk())])
+        g_mon = prod([self.ambient().gen(i) ** g_vector[i] for i in range(self.rk())])
         F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
-        return self.retract(g_mon*F_std*F_trop)
+        return self.retract(g_mon * F_std * F_trop)
 
     def F_polynomials_so_far(self):
         r"""
@@ -2179,7 +2179,7 @@ class ClusterAlgebra(Parent):
         # substitution data to compute new F-polynomials
         Ugen = self._U.gens()
         # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-        F_subs = [Ugen[k]**(-1) if j == k else Ugen[j]*Ugen[k]**max(B0[k, j], 0)*(1+Ugen[k])**(-B0[k, j]) for j in range(n)]
+        F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(B0[k, j], 0) * (1 + Ugen[k]) ** (-B0[k, j]) for j in range(n)]
 
         # restore computed data
         for old_g_vect in old_path_dict:
@@ -2188,24 +2188,24 @@ class ClusterAlgebra(Parent):
             eps = sign(old_g_vect[k])
             for j in range(n):
                 # here we have -eps*B0 rather than eps*B0 because we want the k-th column of the old B0
-                J[j, k] += max(0, -eps*B0[j, k])
+                J[j, k] += max(0, -eps * B0[j, k])
             J[k, k] = -1
-            new_g_vect = tuple(J*vector(old_g_vect))
+            new_g_vect = tuple(J * vector(old_g_vect))
 
             # compute new path
             new_path = old_path_dict[old_g_vect]
-            new_path = ([k]+new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
+            new_path = ([k] + new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
             self._path_dict[new_g_vect] = new_path
 
             # compute new F-polynomial
             if old_g_vect in old_F_poly_dict:
                 h = -min(0, old_g_vect[k])
-                new_F_poly = old_F_poly_dict[old_g_vect](F_subs)*Ugen[k]**h*(Ugen[k]+1)**old_g_vect[k]
+                new_F_poly = old_F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * (Ugen[k] + 1) ** old_g_vect[k]
                 self._F_poly_dict[new_g_vect] = new_F_poly
 
         # reset self.current_seed() to the previous location
         S = self.initial_seed()
-        S.mutate([k]+old_path_to_current, mutating_F=False)
+        S.mutate([k] + old_path_to_current, mutating_F=False)
         self.set_current_seed(S)
 
     # DESIDERATA
@@ -2296,16 +2296,16 @@ def greedy_element(self, d_vector):
     (x1, x2) = self.ambient().gens()
     if a1 < 0:
         if a2 < 0:
-            return self.retract(x1**(-a1) * x2**(-a2))
+            return self.retract(x1 ** (-a1) * x2 ** (-a2))
         else:
-            return self.retract(x1**(-a1) * ((1+x2**c)/x1)**a2)
+            return self.retract(x1 ** (-a1) * ((1 + x2 ** c) / x1) ** a2)
     elif a2 < 0:
-        return self.retract(((1+x1**b)/x2)**a1 * x2**(-a2))
+        return self.retract(((1 + x1 ** b) / x2) ** a1 * x2 ** (-a2))
     output = 0
-    for p in range(0, a2+1):
-        for q in range(0, a1+1):
-            output += self._greedy_coefficient(d_vector, p, q) * x1**(b*p) * x2**(c*q)
-    return self.retract(x1**(-a1) * x2**(-a2) * output)
+    for p in range(0, a2 + 1):
+        for q in range(0, a1 + 1):
+            output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b * p) * x2 ** (c * q)
+    return self.retract(x1 ** (-a1) * x2 ** (-a2) * output)
 
 
 def _greedy_coefficient(self, d_vector, p, q):
@@ -2330,15 +2330,15 @@ def _greedy_coefficient(self, d_vector, p, q):
     if p == 0 and q == 0:
         return Integer(1)
     sum1 = 0
-    for k in range(1, p+1):
+    for k in range(1, p + 1):
         bino = 0
-        if a2 - c*q + k - 1 >= k:
-            bino = binomial(a2 - c*q + k - 1, k)
-        sum1 += (-1)**(k-1) * self._greedy_coefficient(d_vector, p-k, q) * bino
+        if a2 - c * q + k - 1 >= k:
+            bino = binomial(a2 - c * q + k - 1, k)
+        sum1 += (-1) ** (k - 1) * self._greedy_coefficient(d_vector, p - k, q) * bino
     sum2 = 0
-    for l in range(1, q+1):
+    for l in range(1, q + 1):
         bino = 0
-        if a1 - b*p + l - 1 >= l:
-            bino = binomial(a1 - b*p + l - 1, l)
-        sum2 += (-1)**(l-1) * self._greedy_coefficient(d_vector, p, q-l) * bino
+        if a1 - b * p + l - 1 >= l:
+            bino = binomial(a1 - b * p + l - 1, l)
+        sum2 += (-1) ** (l - 1) * self._greedy_coefficient(d_vector, p, q - l) * bino
     return Integer(max(sum1, sum2))

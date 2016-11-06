@@ -1,0 +1,75 @@
+In newer binutils, ld options -r and -pie conflict.
+Patch due to Jörg-Volker ???, packaged by Emmanuel Charpentier
+
+diff -Naurp flint-2.5.2/Makefile.subdirs flint-2.5.2-new/Makefile.subdirs
+--- flint-2.5.2/Makefile.subdirs	2015-08-13 18:16:22.000000000 +0200
++++ flint-2.5.2-new/Makefile.subdirs	2016-10-21 17:01:35.023977438 +0200
+@@ -59,7 +59,7 @@ $(BUILD_DIR)/$(MOD_DIR)_%.o: %.c
+ 	$(QUIET_CC) $(CC) $(CFLAGS) $(INCS) -c $< -o $@ -MMD -MP -MF "$(BUILD_DIR)/$(MOD_DIR)_$*.d" -MT "$(BUILD_DIR)/$(MOD_DIR)_$*.d" -MT "$@"
+ 
+ $(MOD_LOBJ): $(LOBJS)
+-	$(QUIET_CC) $(CC) $(ABI_FLAG) -Wl,-r $^ -o $@ -nostdlib
++	$(QUIET_CC) $(CC) $(ABI_FLAG) -r $^ -o $@ -nostdlib
+ 
+ -include $(LOBJS:.lo=.d)
+ 
+diff -Naurp flint-2.5.2/fq/Makefile flint-2.5.2-new/fq/Makefile
+--- flint-2.5.2/fq/Makefile	2015-08-13 18:16:22.000000000 +0200
++++ flint-2.5.2-new/fq/Makefile	2016-10-21 17:01:14.345642923 +0200
+@@ -35,7 +35,7 @@ $(BUILD_DIR)/$(MOD_DIR)_%.o: %.c
+ 	$(CC) $(CFLAGS) -c $(INCS) $< -o $@
+ 
+ $(MOD_LOBJ): $(LOBJS)
+-	$(CC) $(ABI_FLAG) -Wl,-r $^ -o $@ -nostdlib
++	$(CC) $(ABI_FLAG) -r $^ -o $@ -nostdlib
+ 
+ $(BUILD_DIR)/%.lo: %.c
+ 	$(CC) $(PICFLAG) $(CFLAGS) $(INCS) -c $< -o $@
+diff -Naurp flint-2.5.2/fq_poly/Makefile flint-2.5.2-new/fq_poly/Makefile
+--- flint-2.5.2/fq_poly/Makefile	2015-08-13 18:16:22.000000000 +0200
++++ flint-2.5.2-new/fq_poly/Makefile	2016-10-21 17:00:57.373160473 +0200
+@@ -35,7 +35,7 @@ $(BUILD_DIR)/$(MOD_DIR)_%.o: %.c
+ 	$(CC) $(CFLAGS) -c $(INCS) $< -o $@
+ 
+ $(MOD_LOBJ): $(LOBJS)
+-	$(CC) $(ABI_FLAG) -Wl,-r $^ -o $@ -nostdlib
++	$(CC) $(ABI_FLAG) -r $^ -o $@ -nostdlib
+ 
+ $(BUILD_DIR)/%.lo: %.c
+ 	$(CC) $(PICFLAG) $(CFLAGS) $(INCS) -c $< -o $@
+diff -Naurp flint-2.5.2/padic_mat/Makefile flint-2.5.2-new/padic_mat/Makefile
+--- flint-2.5.2/padic_mat/Makefile	2015-08-13 18:16:22.000000000 +0200
++++ flint-2.5.2-new/padic_mat/Makefile	2016-10-21 17:00:32.896927852 +0200
+@@ -35,7 +35,7 @@ $(BUILD_DIR)/$(MOD_DIR)_%.o: %.c
+ 	$(CC) $(CFLAGS) -c $(INCS) $< -o $@
+ 
+ $(MOD_LOBJ): $(LOBJS)
+-	$(CC) $(ABI_FLAG) -Wl,-r $^ -o $@ -nostdlib
++	$(CC) $(ABI_FLAG) -r $^ -o $@ -nostdlib
+ 
+ $(BUILD_DIR)/%.lo: %.c
+ 	$(CC) $(PICFLAG) $(CFLAGS) $(INCS) -c $< -o $@
+diff -Naurp flint-2.5.2/padic_poly/Makefile flint-2.5.2-new/padic_poly/Makefile
+--- flint-2.5.2/padic_poly/Makefile	2015-08-13 18:16:22.000000000 +0200
++++ flint-2.5.2-new/padic_poly/Makefile	2016-10-21 17:00:01.101037037 +0200
+@@ -35,7 +35,7 @@ $(BUILD_DIR)/$(MOD_DIR)_%.o: %.c
+ 	$(CC) $(CFLAGS) -c $(INCS) $< -o $@
+ 
+ $(MOD_LOBJ): $(LOBJS)
+-	$(CC) $(ABI_FLAG) -Wl,-r $^ -o $@ -nostdlib
++	$(CC) $(ABI_FLAG) -r $^ -o $@ -nostdlib
+ 
+ $(BUILD_DIR)/%.lo: %.c
+ 	$(CC) $(PICFLAG) $(CFLAGS) $(INCS) -c $< -o $@
+diff -Naurp flint-2.5.2/qadic/Makefile flint-2.5.2-new/qadic/Makefile
+--- flint-2.5.2/qadic/Makefile	2015-08-13 18:16:22.000000000 +0200
++++ flint-2.5.2-new/qadic/Makefile	2016-10-21 16:59:42.479730562 +0200
+@@ -35,7 +35,7 @@ $(BUILD_DIR)/$(MOD_DIR)_%.o: %.c
+ 	$(CC) $(CFLAGS) -c $(INCS) $< -o $@
+ 
+ $(MOD_LOBJ): $(LOBJS)
+-	$(CC) $(ABI_FLAG) -Wl,-r $^ -o $@ -nostdlib
++	$(CC) $(ABI_FLAG) -r $^ -o $@ -nostdlib
+ 
+ $(BUILD_DIR)/%.lo: %.c
+ 	$(CC) $(PICFLAG) $(CFLAGS) $(INCS) -c $< -o $@

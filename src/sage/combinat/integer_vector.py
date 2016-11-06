@@ -1048,7 +1048,7 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
             sage: IntegerVectors(3).list()
             Traceback (most recent call last):
             ...
-            NotImplementedError: infinite list
+            NotImplementedError: cannot list an infinite set
         """
         category = EnumeratedSets().Infinite() if not constraints else None
         IntegerVectors_nkconstraints.__init__(self, n, -1, constraints,

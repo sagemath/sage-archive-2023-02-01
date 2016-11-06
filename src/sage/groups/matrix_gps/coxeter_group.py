@@ -435,10 +435,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             +Infinity
         """
         if self.is_finite():
-            try:
-                return ZZ(len(self._list))
-            except AttributeError:
-                return self._cardinality_from_iterator()
+            return len(self)
         return infinity
 
     def canonical_representation(self):
@@ -611,7 +608,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             raise NotImplementedError('not available for infinite groups')
         positive = self.positive_roots()
         return positive + tuple([-v for v in positive])
-    
+
     def simple_root_index(self, i):
         r"""
         Return the index of the simple root `\alpha_i`.
@@ -641,7 +638,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: W = CoxeterGroup(['A',3], implementation='reflection')
             sage: W.fundamental_weights()
-            {1: (3/2, 1, 1/2), 2: (1, 2, 1), 3: (1/2, 1, 3/2)}    
+            {1: (3/2, 1, 1/2), 2: (1, 2, 1), 3: (1/2, 1, 3/2)}
         """
         simple_weights = self.bilinear_form().inverse()
         return {i: simple_weights[k]

@@ -347,7 +347,7 @@ from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
-from six.moves import range as xrange
+from six.moves import range as range
 
 ##############################################################################
 # Helper functions
@@ -587,7 +587,7 @@ def F_polynomial(self):
         A = self.parent()
         for x in A.initial_cluster_variables():
             subs_dict[x.lift()] = A._U(1)
-        for i in xrange(A.rk()):
+        for i in range(A.rk()):
             subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
         return self.lift().substitute(subs_dict)
     else:
@@ -1069,7 +1069,7 @@ class ClusterAlgebraSeed(SageObject):
         """
         n = self.parent().rk()
 
-        if k not in xrange(n):
+        if k not in range(n):
             raise ValueError('Cannot mutate in direction ' + str(k))
 
         # store new mutation path
@@ -1089,7 +1089,7 @@ class ClusterAlgebraSeed(SageObject):
 
         # compute new G-matrix
         J = identity_matrix(n)
-        for j in xrange(n):
+        for j in range(n):
             J[j, k] += max(0, -eps*self._B[j, k])
         J[k, k] = -1
         self._G = self._G*J
@@ -1105,7 +1105,7 @@ class ClusterAlgebraSeed(SageObject):
 
         # compute new C-matrix
         J = identity_matrix(n)
-        for j in xrange(n):
+        for j in range(n):
             J[k, j] += max(0, eps*self._B[k, j])
         J[k, k] = -1
         self._C = self._C*J
@@ -1143,7 +1143,7 @@ class ClusterAlgebraSeed(SageObject):
         alg = self.parent()
         pos = alg._U(1)
         neg = alg._U(1)
-        for j in xrange(alg.rk()):
+        for j in range(alg.rk()):
             if self._C[j, k] > 0:
                 pos *= alg._U.gen(j)**self._C[j, k]
             else:
@@ -1235,7 +1235,7 @@ class ClusterAlgebra(Parent):
         # NOTE: for speed purposes we need to have QQ here instead of the more
         # natural ZZ. The reason is that _mutated_F is faster if we do not cast
         # the result to polynomials but then we get "rational" coefficients
-        self._U = PolynomialRing(QQ, ['u%s' % i for i in xrange(n)])
+        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(n)])
 
         # Storage for computed data
         self._path_dict = dict([(v, []) for v in map(tuple, I.columns())])
@@ -1243,7 +1243,7 @@ class ClusterAlgebra(Parent):
 
         # Determine the names of the initial cluster variables
         variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
-        variables = list(kwargs.get('cluster_variable_names', [variables_prefix+str(i) for i in xrange(n)]))
+        variables = list(kwargs.get('cluster_variable_names', [variables_prefix+str(i) for i in range(n)]))
         if len(variables) != n:
             raise ValueError("cluster_variable_names should be a list of %d valid variable names" % n)
 
@@ -1257,7 +1257,7 @@ class ClusterAlgebra(Parent):
                 offset = n
             else:
                 offset = 0
-            coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix+str(i) for i in xrange(offset, m+offset)]))
+            coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix+str(i) for i in range(offset, m+offset)]))
             if len(coefficients) != m:
                 raise ValueError("coefficient_names should be a list of %d valid variable names" % m)
             base = LaurentPolynomialRing(scalars, coefficients)
@@ -1270,8 +1270,8 @@ class ClusterAlgebra(Parent):
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables+coefficients)
 
         # Data to compute cluster variables using separation of additions
-        self._y = dict([(self._U.gen(j), prod([self._base.gen(i)**M0[i, j] for i in xrange(m)])) for j in xrange(n)])
-        self._yhat = dict([(self._U.gen(j), prod([self._ambient.gen(i)**B0[i, j] for i in xrange(n+m)])) for j in xrange(n)])
+        self._y = dict([(self._U.gen(j), prod([self._base.gen(i)**M0[i, j] for i in range(m)])) for j in range(n)])
+        self._yhat = dict([(self._U.gen(j), prod([self._ambient.gen(i)**B0[i, j] for i in range(n+m)])) for j in range(n)])
 
         # Have we got principal coefficients?
         self._is_principal = (M0 == I)
@@ -1461,7 +1461,7 @@ class ClusterAlgebra(Parent):
                 m = M.nrows()
                 B = block_matrix([[self.b_matrix(), -M.transpose()], [M, matrix(m)]])
                 B.permute_rows_and_columns(perm, perm)
-                return B.matrix_from_columns(range(other.rk())) == other._B0
+                return B[:, :other.rk()] == other._B0
 
         # everything that is in the base can be coerced to self
         return self.base().has_coerce_map_from(other)
@@ -1688,7 +1688,7 @@ class ClusterAlgebra(Parent):
         g_vector = tuple(g_vector)
         F = self.F_polynomial(g_vector)
         F_std = F.subs(self._yhat)
-        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk())])
+        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in range(self.rk())])
         F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
         return self.retract(g_mon*F_std*F_trop)
 
@@ -2152,7 +2152,7 @@ class ClusterAlgebra(Parent):
             True
         """
         n = self.rk()
-        if k not in xrange(n):
+        if k not in range(n):
             raise ValueError('Cannot mutate in direction ' + str(k))
 
         # save computed data
@@ -2179,14 +2179,14 @@ class ClusterAlgebra(Parent):
         # substitution data to compute new F-polynomials
         Ugen = self._U.gens()
         # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-        F_subs = [Ugen[k]**(-1) if j == k else Ugen[j]*Ugen[k]**max(B0[k, j], 0)*(1+Ugen[k])**(-B0[k, j]) for j in xrange(n)]
+        F_subs = [Ugen[k]**(-1) if j == k else Ugen[j]*Ugen[k]**max(B0[k, j], 0)*(1+Ugen[k])**(-B0[k, j]) for j in range(n)]
 
         # restore computed data
         for old_g_vect in old_path_dict:
             # compute new g-vector
             J = identity_matrix(n)
             eps = sign(old_g_vect[k])
-            for j in xrange(n):
+            for j in range(n):
                 # here we have -eps*B0 rather than eps*B0 because we want the k-th column of the old B0
                 J[j, k] += max(0, -eps*B0[j, k])
             J[k, k] = -1
@@ -2302,8 +2302,8 @@ def greedy_element(self, d_vector):
     elif a2 < 0:
         return self.retract(((1+x1**b)/x2)**a1 * x2**(-a2))
     output = 0
-    for p in xrange(0, a2+1):
-        for q in xrange(0, a1+1):
+    for p in range(0, a2+1):
+        for q in range(0, a1+1):
             output += self._greedy_coefficient(d_vector, p, q) * x1**(b*p) * x2**(c*q)
     return self.retract(x1**(-a1) * x2**(-a2) * output)
 

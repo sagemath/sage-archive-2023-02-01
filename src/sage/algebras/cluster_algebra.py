@@ -141,7 +141,7 @@ We can compute denominator vectors of any element of ``A``::
 Since we are in rank 2 and we do not have coefficients we can compute the
 greedy element associated to any denominator vector::
 
-    sage: A.rk() == 2 and A.coefficients() == []
+    sage: A.rank() == 2 and A.coefficients() == []
     True
     sage: A.greedy_element((1, 1))
     (x0 + x1 + 1)/(x0*x1)
@@ -390,7 +390,7 @@ def _mutation_parse(mutate):
     doc[0] += r"""
 
         - ``direction`` -- in which direction(s) to mutate, it can be:
-            - an integer in ``range(self.rk())`` to mutate in one direction only;
+            - an integer in ``range(self.rank())`` to mutate in one direction only;
             - an iterable of such integers to mutate along a sequence;
             - a string "sinks" or "sources" to mutate at all sinks or sources simultaneously.
     """
@@ -525,7 +525,7 @@ class ClusterAlgebraElement(ElementWrapper):
         """
         monomials = self.lift()._dict().keys()
         minimal = map(min, zip(*monomials))
-        return tuple(-vector(minimal))[:self.parent().rk()]
+        return tuple(-vector(minimal))[:self.parent().rank()]
 
     def _repr_(self):
         r"""
@@ -587,7 +587,7 @@ def F_polynomial(self):
         A = self.parent()
         for x in A.initial_cluster_variables():
             subs_dict[x.lift()] = A._U(1)
-        for i in range(A.rk()):
+        for i in range(A.rank()):
             subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
         return self.lift().substitute(subs_dict)
     else:
@@ -626,7 +626,7 @@ def homogeneous_components(self):
         sage: x.homogeneous_components()
         {(0, 1): x1, (1, 0): x0}
     """
-    deg_matrix = block_matrix([[identity_matrix(self.parent().rk()), -self.parent().b_matrix()]])
+    deg_matrix = block_matrix([[identity_matrix(self.parent().rank()), -self.parent().b_matrix()]])
     components = dict()
     x = self.lift()
     monomials = x.monomials()
@@ -905,7 +905,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the c-vector to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the c-vector to return.
 
         EXAMPLES::
 
@@ -955,7 +955,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the g-vector to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the g-vector to return.
 
         EXAMPLES::
 
@@ -985,7 +985,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the F-polynomial to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the F-polynomial to return.
 
         EXAMPLES::
 
@@ -1015,7 +1015,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the cluster variable to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the cluster variable to return.
 
         EXAMPLES::
 
@@ -1067,7 +1067,7 @@ class ClusterAlgebraSeed(SageObject):
             ...
             ValueError: Cannot mutate in direction 5
         """
-        n = self.parent().rk()
+        n = self.parent().rank()
 
         if k not in range(n):
             raise ValueError('Cannot mutate in direction ' + str(k))
@@ -1119,7 +1119,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``k`` --  an integer in ``range(self.parent().rk())``: the direction
+        - ``k`` --  an integer in ``range(self.parent().rank())``: the direction
           in which we are mutating.
 
         - ``old_g_vector`` -- tuple: the k-th g-vector of ``self`` before
@@ -1143,7 +1143,7 @@ class ClusterAlgebraSeed(SageObject):
         alg = self.parent()
         pos = alg._U(1)
         neg = alg._U(1)
-        for j in range(alg.rk()):
+        for j in range(alg.rank()):
             if self._C[j, k] > 0:
                 pos *= alg._U.gen(j) ** self._C[j, k]
             else:
@@ -1454,17 +1454,17 @@ class ClusterAlgebra(Parent):
                 f = self.ambient().coerce_map_from(other.ambient())
             if f is not None:
                 perm = Permutation([gen_s.index(self(f(v))) + 1 for v in gen_o])
-                n = self.rk()
+                n = self.rank()
                 M = self._B0[n:, :]
                 m = M.nrows()
                 B = block_matrix([[self.b_matrix(), -M.transpose()], [M, matrix(m)]])
                 B.permute_rows_and_columns(perm, perm)
-                return B[:, :other.rk()] == other._B0
+                return B[:, :other.rank()] == other._B0
 
         # everything that is in the base can be coerced to self
         return self.base().has_coerce_map_from(other)
 
-    def rk(self):
+    def rank(self):
         r"""
         Return the rank of ``self``, i.e. the number of cluster variables in any seed.
 
@@ -1472,7 +1472,7 @@ class ClusterAlgebra(Parent):
 
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A
             A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
-            sage: A.rk()
+            sage: A.rank()
             2
         """
         return self._n
@@ -1564,7 +1564,7 @@ class ClusterAlgebra(Parent):
             sage: A.initial_seed()
             The initial seed of a Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
         """
-        n = self.rk()
+        n = self.rank()
         I = identity_matrix(n)
         return ClusterAlgebraSeed(self.b_matrix(), I, I, self)
 
@@ -1579,7 +1579,7 @@ class ClusterAlgebra(Parent):
             [ 0  1]
             [-1  0]
         """
-        n = self.rk()
+        n = self.rank()
         return copy(self._B0[:n, :])
 
     def g_vectors(self, mutating_F=True):
@@ -1686,7 +1686,7 @@ class ClusterAlgebra(Parent):
         g_vector = tuple(g_vector)
         F = self.F_polynomial(g_vector)
         F_std = F.subs(self._yhat)
-        g_mon = prod([self.ambient().gen(i) ** g_vector[i] for i in range(self.rk())])
+        g_mon = prod([self.ambient().gen(i) ** g_vector[i] for i in range(self.rank())])
         F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
         return self.retract(g_mon * F_std * F_trop)
 
@@ -1859,7 +1859,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the coefficient to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the coefficient to return.
 
         EXAMPLES::
 
@@ -1906,7 +1906,7 @@ class ClusterAlgebra(Parent):
             sage: C.coefficient_names()
             ('x3', 'x4', 'x5')
         """
-        return self.variable_names()[self.rk():]
+        return self.variable_names()[self.rank():]
 
     def initial_cluster_variable(self, j):
         r"""
@@ -1914,7 +1914,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rk())``: the index of the cluster variable to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the cluster variable to return.
 
         EXAMPLES::
 
@@ -1934,7 +1934,7 @@ class ClusterAlgebra(Parent):
             sage: A.initial_cluster_variables()
             [x0, x1]
         """
-        return list(map(self.retract, self.ambient().gens()[:self.rk()]))
+        return list(map(self.retract, self.ambient().gens()[:self.rank()]))
 
     def initial_cluster_variable_names(self):
         r"""
@@ -1949,7 +1949,7 @@ class ClusterAlgebra(Parent):
             sage: B.initial_cluster_variable_names()
             ('a0', 'a1')
         """
-        return self.variable_names()[:self.rk()]
+        return self.variable_names()[:self.rank()]
 
     def seeds(self, **kwargs):
         r"""
@@ -1963,7 +1963,7 @@ class ClusterAlgebra(Parent):
         - ``mutating_F`` -- bool (default ``True``): whether to compute F-polynomials also;
           for speed considerations you may want to disable this.
 
-        - ``allowed_directions`` -- a tuple of integers (default ``range(self.rk())``): the
+        - ``allowed_directions`` -- a tuple of integers (default ``range(self.rank())``): the
           directions in which to mutate.
 
         - ``depth`` -- a positive integer or infinity (default ``infinity``):
@@ -2009,7 +2009,7 @@ class ClusterAlgebra(Parent):
         mutating_F = kwargs.get('mutating_F', True)
 
         # which directions are we allowed to mutate into
-        allowed_dirs = list(sorted(kwargs.get('allowed_directions', range(self.rk()))))
+        allowed_dirs = list(sorted(kwargs.get('allowed_directions', range(self.rank()))))
 
         # setup seeds storage
         cl = frozenset(seed.g_vectors())
@@ -2149,7 +2149,7 @@ class ClusterAlgebra(Parent):
             sage: A2._F_poly_dict == A._F_poly_dict
             True
         """
-        n = self.rk()
+        n = self.rank()
         if k not in range(n):
             raise ValueError('Cannot mutate in direction ' + str(k))
 

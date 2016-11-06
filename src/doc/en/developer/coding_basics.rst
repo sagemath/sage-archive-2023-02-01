@@ -27,26 +27,6 @@ all Python/Cython code that is included with Sage should adhere to the
 style conventions discussed in this chapter.
 
 
-.. _section-coding-general:
-
-General Code Style
-==================
-
-Use spaces instead of tabs for indentation.  The only exception is for
-makefiles, in which tabs have a syntactic meaning different from
-spaces.
-
-Do not add trailing whitespace.
-
-Sage provides editor configuration for Emacs, using the file
-``.dir-locals.el``, to use spaces instead of tabs.  Regarding trailing
-whitespace, see https://www.emacswiki.org/emacs/DeletingWhitespace
-for various solutions.
-
-If you use another editor, we recommend to configure it so you do not
-add tabs to files.
-
-
 .. _section-coding-python:
 
 Python Code Style
@@ -1081,6 +1061,27 @@ same place as the ``.. link`` in the previous example.
 See the files in ``SAGE_ROOT/src/doc/en/tutorial/`` for many
 examples of how to include automated testing in ReST documentation for
 Sage.
+
+
+.. _section-coding-general-whitespace:
+
+General Coding Style Regarding Whitespace
+=========================================
+
+Use spaces instead of tabs for indentation.  The only exception is for
+makefiles, in which tabs have a syntactic meaning different from
+spaces.
+
+Do not add trailing whitespace.
+
+Sage provides editor configuration for Emacs, using the file
+``.dir-locals.el``, to use spaces instead of tabs.  Regarding trailing
+whitespace, see https://www.emacswiki.org/emacs/DeletingWhitespace
+for various solutions.
+
+If you use another editor, we recommend to configure it so you do not
+add tabs to files.
+
 
 .. _chapter-picklejar:
 

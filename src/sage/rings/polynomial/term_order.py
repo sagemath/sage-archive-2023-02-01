@@ -366,6 +366,7 @@ AUTHORS:
 
 import re
 from sage.structure.sage_object import SageObject
+from sage.misc.superseded import deprecation
 
 print_name_mapping = {
     'lex'           : 'Lexicographic',
@@ -825,7 +826,10 @@ class TermOrder(SageObject):
 
     def __getattr__(self,name):
         """
-        Return the correct compare_tuples/greater_tuple/sortkey function.
+        Return the correct ``compare_tuples/greater_tuple/sortkey function``.
+
+        Note that the ``compare_tuples`` methods have been deprecated in
+        :trac:`21766`.
 
         EXAMPLE::
 
@@ -847,7 +851,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_matrix(self, f, g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         for row in self._matrix:
             sf = sum(l*r for (l,r) in zip(row,f))
             sg = sum(l*r for (l,r) in zip(row,g))
@@ -880,7 +886,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_lex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         if f > g:
             return 1
         elif f < g:
@@ -909,7 +917,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_invlex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         return self.compare_tuples_lex(f.reversed(),g.reversed())
 
     def sortkey_invlex(self, f):
@@ -933,7 +943,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_deglex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
         if sf > sg:
@@ -965,7 +977,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_degrevlex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
         if sf > sg:
@@ -998,7 +1012,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_neglex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         return -self.compare_tuples_lex(f,g)
 
     def sortkey_neglex(self, f):
@@ -1022,7 +1038,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_negdegrevlex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
         if sf > sg:
@@ -1054,7 +1072,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_negdeglex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
         if sf > sg:
@@ -1085,7 +1105,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_degneglex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
         if sf < sg:
@@ -1116,7 +1138,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_wdegrevlex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
         if sf > sg:
@@ -1149,7 +1173,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_wdeglex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
         if sf > sg:
@@ -1181,7 +1207,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_negwdeglex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
         if sf > sg:
@@ -1213,7 +1241,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_negwdegrevlex(self,f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
         if sf > sg:
@@ -1246,7 +1276,9 @@ class TermOrder(SageObject):
 
     def compare_tuples_block(self, f,g):
         """
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         n = 0
         for block in self:
             r = getattr(block,"compare_tuples_" + block.name())(f[n:n+len(block)],g[n:n+len(block)])

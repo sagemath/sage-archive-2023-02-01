@@ -48,6 +48,7 @@ from functools import reduce
 from sage.structure.element import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
+from sage.misc.superseded import deprecation
 
 
 cdef class PolyDict:
@@ -444,6 +445,7 @@ cdef class PolyDict:
         if sortkey:
             E.sort(key=sortkey, reverse=True)
         elif cmpfn:
+            deprecation(21766, 'the cmpfn keyword is deprecated, use sortkey')
             E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
@@ -537,6 +539,7 @@ cdef class PolyDict:
         if sortkey:
             E.sort(key=sortkey, reverse=True)
         elif cmpfn:
+            deprecation(21766, 'the cmpfn keyword is deprecated, use sortkey')
             E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)

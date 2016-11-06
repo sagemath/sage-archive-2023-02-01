@@ -733,7 +733,7 @@ class VectorFrame(FreeModuleBasis):
 
             [e_i, e_j] = C^k_{\ \, ij} e_k
 
-        OUPUT:
+        OUTPUT:
 
         - the structure coefficients `C^k_{\ \, ij}`, as an instance of
           :class:`~sage.tensor.modules.comp.CompWithSym`
@@ -1001,7 +1001,7 @@ class CoordFrame(VectorFrame):
         In the present case, since `(e_i)` is a coordinate frame,
         `C^k_{\ \, ij}=0`.
 
-        OUPUT:
+        OUTPUT:
 
         - the structure coefficients `C^k_{\ \, ij}`, as a vanishing instance
           of :class:`~sage.tensor.modules.comp.CompWithSym` with 3 indices

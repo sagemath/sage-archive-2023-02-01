@@ -692,7 +692,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         OUTPUT:
 
-        - the homomorphism resulting from the multiphication of ``self`` by
+        - the homomorphism resulting from the multiplication of ``self`` by
           ``scalar``
 
         EXAMPLES::

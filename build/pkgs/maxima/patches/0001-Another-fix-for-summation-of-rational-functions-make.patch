@@ -1,0 +1,73 @@
+From 8ec3a05cd24c756f29e0501488be971fe13f7c1f Mon Sep 17 00:00:00 2001
+From: Andrej Vodopivec <andrej.vodopivec@gmail.com>
+Date: Sun, 6 Nov 2016 20:58:04 +0100
+Subject: [PATCH] Another fix for summation of rational functions: make sure
+ there are no poles in the summation area.
+
+Fixes bug #3236.
+
+Added the two test cases from bugreport #3236.
+---
+ share/solve_rec/rtest_simplify_sum.mac | 16 ++++++++++++++++
+ share/solve_rec/simplify_sum.mac       | 11 +++++++----
+ 2 files changed, 23 insertions(+), 4 deletions(-)
+
+diff --git a/share/solve_rec/rtest_simplify_sum.mac b/share/solve_rec/rtest_simplify_sum.mac
+index eda37e1..9f47c7e 100644
+--- a/share/solve_rec/rtest_simplify_sum.mac
++++ b/share/solve_rec/rtest_simplify_sum.mac
+@@ -597,3 +597,19 @@ test_sum(
+   1
+   );
+ 0;
++
++test_sum(
++  sum(1/((n+1)*(2*n-1)), n, 1,inf),
++  [],
++  false,
++  [],
++  (2*log(2)+1)/3);
++0;
++
++test_sum(
++  sum(1/((2*n-1)^2*(2*n+1)^2*(2*n+3)^2),n,0,inf),
++  [],
++  false,
++  [],
++  (3*%pi^2)/256);
++0;
+diff --git a/share/solve_rec/simplify_sum.mac b/share/solve_rec/simplify_sum.mac
+index a0c2da3..0502f25 100644
+--- a/share/solve_rec/simplify_sum.mac
++++ b/share/solve_rec/simplify_sum.mac
+@@ -658,10 +658,16 @@ split_sum(expr) :=
+  *******************/
+ 
+ ratfun_to_psi(ratfun, var, lo, hi) := block(
+-  [pf, sum: 0, denom_f : factor_with_solve(denom(ratfun), var)],
++  [pf, sum: 0, denom_f : factor_with_solve(denom(ratfun), var), max_root],
+ 
+   pf : partfrac(num(ratfun)/denom_f, var),
+ 
++  max_root: lmax(sublist(map(rhs, solve(denom_f, var)), numberp)),
++  if (numberp(max_root) and numberp(lo)) then (
++    while (lo < max_root) do (
++      sum: sum+subst(var=lo, ratfun),
++      lo: lo+1)),
++
+   if inpart(pf, 0)="+" then pf: args(pf)
+   else pf: [pf],
+ 
+@@ -806,9 +812,6 @@ simp_harmonic_number(x__):=
+   if x__=0 then 0
+   else if integerp(x__) and x__<1 then error("Zero to negative power computed.") 
+   else if integerp(x__) then num_harmonic_number(1, x__)
+-  /*else if numberp(x__) and x__<-1 then block(
+-    [a:-floor(x__), k%],
+-    simp_harmonic_number(x__+a)-apply('sum, [1/k%, k%, x__, x__+a-1]))*/
+   else if numberp(x__) or imagpart(x__)#0 then psi[0](x__+1) + %gamma
+   else block(
+     [a, b, var, k%],
+-- 
+2.10.2
+

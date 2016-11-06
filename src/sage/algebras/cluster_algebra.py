@@ -6,21 +6,21 @@ The implementation mainly utilizes structural theorems from [FZ07]_.
 
 The key points being used here are these:
 
-    * cluster variables are parametrized by their g-vectors;
+- cluster variables are parametrized by their g-vectors;
 
-    * g-vectors (together with c-vectors) provide a self-standing model for the
-      combinatorics behind any cluster algebra;
+- g-vectors (together with c-vectors) provide a self-standing model for the
+  combinatorics behind any cluster algebra;
 
-    * each cluster variable in any cluster algebra can be computed, by the
-      separation of additions formula, from its g-vector and F-polynomial.
+- each cluster variable in any cluster algebra can be computed, by the
+  separation of additions formula, from its g-vector and F-polynomial.
 
 Accordingly this file provides three classes:
 
-    * :class:`ClusterAlgebra`
+- :class:`ClusterAlgebra`
 
-    * :class:`ClusterAlgebraSeed`
+- :class:`ClusterAlgebraSeed`
 
-    * :class:`ClusterAlgebraElement`
+- :class:`ClusterAlgebraElement`
 
 :class:`ClusterAlgebra`, constructed as a subobject of
 :class:`sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomialRing_generic`,
@@ -359,15 +359,15 @@ def _mutation_parse(mutate):
     Preparse input for mutation functions.
 
     This wrapper provides:
-        - inplace (only for seeds)
-        - mutate along sequence
-        - mutate at all sinks/sources
+    - inplace (only for seeds)
+    - mutate along sequence
+    - mutate at all sinks/sources
 
     Possible things to implement later include:
-        - mutate at a cluster variable
-        - mutate at a g-vector (it is hard to distinguish this case from a generic sequence)
-        - urban renewals
-        - other?
+    - mutate at a cluster variable
+    - mutate at a g-vector (it is hard to distinguish this case from a generic sequence)
+    - urban renewals
+    - other?
 
     EXAMPLES::
 
@@ -716,9 +716,9 @@ class ClusterAlgebraSeed(SageObject):
 
         ALGORITHM:
 
-            ``self`` and ``other`` are deemed to be equal if they have the same
-            parent and their set of g-vectors coincide, i.e. this tests
-            equality of unlabelled seeds.
+        ``self`` and ``other`` are deemed to be equal if they have the same
+        parent and their set of g-vectors coincide, i.e. this tests
+        equality of unlabelled seeds.
 
         EXAMPLES::
 
@@ -771,10 +771,10 @@ class ClusterAlgebraSeed(SageObject):
 
         ALGORITHM:
 
-            For speed purposes the hash is computed on :meth:`self.g_vectors`.
-            In particular it is guaranteed to be unique only within a given
-            instance of :class:`ClusterAlgebra`. Moreover unlabelled seeds that
-            have the same set of g-vectors have the same hash.
+        For speed purposes the hash is computed on :meth:`self.g_vectors`.
+        In particular it is guaranteed to be unique only within a given
+        instance of :class:`ClusterAlgebra`. Moreover unlabelled seeds that
+        have the same set of g-vectors have the same hash.
 
         EXAMPLES::
 
@@ -1127,10 +1127,10 @@ class ClusterAlgebraSeed(SageObject):
 
         NOTE:
 
-            This function is the bottleneck of :meth:`mutate`. The problem is
-            that operations on polynomials are slow. One can get a significant
-            speed boost by disabling this method calling :meth:`mutate` with
-            ``mutating_F=False``.
+        This function is the bottleneck of :meth:`mutate`. The problem is
+        that operations on polynomials are slow. One can get a significant
+        speed boost by disabling this method calling :meth:`mutate` with
+        ``mutating_F=False``.
 
         EXAMPLES::
 
@@ -1192,7 +1192,7 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-            The implementation is mainly based on [FZ07]_ and [NZ12]_.
+        The implementation is mainly based on [FZ07]_ and [NZ12]_.
 
         EXAMPLES::
 
@@ -1336,10 +1336,9 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-            ``self`` and ``other`` are deemed to be equal if they have the same
-            initial exchange matrix and their ambients coincide. In
-            particular we do not keep track of how much each Cluster Algebra has
-            been explored.
+        ``self`` and ``other`` are deemed to be equal if they have the same
+        initial exchange matrix and their ambients coincide. In particular we 
+        do not keep track of how much each Cluster Algebra has been explored.
 
         EXAMPLES::
 
@@ -1397,14 +1396,13 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-            If ``other`` is an instance of :class:`ClusterAlgebra` then allow
-            coercion if ``other.ambient()`` can be coerced into
-            ``self.ambient()`` and ``other`` can be obtained from ``self`` by
-            permuting variables and coefficients and/or freezing some initial
-            cluster variables.
+        If ``other`` is an instance of :class:`ClusterAlgebra` then allow
+        coercion if ``other.ambient()`` can be coerced into ``self.ambient()`` 
+        and ``other`` can be obtained from ``self`` by permuting variables 
+        and coefficients and/or freezing some initial cluster variables.
 
-            Otherwise allow anything that coerces into ``self.base()`` to coerce
-            into ``self``.
+        Otherwise allow anything that coerces into ``self.base()`` to coerce
+        into ``self``.
 
         EXAMPLES::
 
@@ -1674,9 +1672,9 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-            This function computes cluster variables from their g-vectors and
-            F-polynomials using the "separation of additions" formula of
-            Theorem 3.7 in [FZ07]_.
+        This function computes cluster variables from their g-vectors and
+        F-polynomials using the "separation of additions" formula of Theorem
+        3.7 in [FZ07]_.
 
         EXAMPLE::
 
@@ -1754,11 +1752,11 @@ class ClusterAlgebra(Parent):
 
         OUTPUT:
 
-            This function returns a list of integers if it can find
-            ``g_vector``, otherwise it returns ``None``.  If the exploring
-            iterator stops, it means that the algebra is of finite type and
-            ``g_vector`` is not the g-vector of any cluster variable. In this
-            case the function resets the iterator and raises an error.
+        This function returns a list of integers if it can find ``g_vector``,
+        otherwise it returns ``None``.  If the exploring iterator stops, it
+        means that the algebra is of finite type and ``g_vector`` is not the
+        g-vector of any cluster variable. In this case the function resets the
+        iterator and raises an error.
 
         EXAMPLES::
 
@@ -1978,7 +1976,7 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-            This function traverses the exchange graph in a breadth-first search.
+        This function traverses the exchange graph in a breadth-first search.
 
         EXAMPLES::
 
@@ -2133,11 +2131,11 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-            This function computes data for the new algebra from known data for
-            the old algebra using [NZ12]_ equation (4.2) for g-vectors, and
-            [FZ07]_ equation (6.21) for F-polynomials. The exponent ``h`` in the
-            formula for F-polynomials is ``-min(0, old_g_vect[k])`` due to [NZ12]_
-            Proposition 4.2.
+        This function computes data for the new algebra from known data for the
+        old algebra using [NZ12]_ equation (4.2) for g-vectors, and [FZ07]_
+        equation (6.21) for F-polynomials. The exponent ``h`` in the formula
+        for F-polynomials is ``-min(0, old_g_vect[k])`` due to [NZ12]_
+        Proposition 4.2.
 
         EXAMPLES::
 
@@ -2275,13 +2273,13 @@ def greedy_element(self, d_vector):
     r"""
     Return the greedy element with denominator vector ``d_vector``.
 
-    INPUT
+    INPUT:
 
     - ``d_vector`` -- tuple of 2 integers: the denominator vector of the element to compute.
 
     ALGORITHM:
 
-        This implements greedy elements of a rank 2 cluster algebra from [LLZ14]_ equation (1.5).
+    This implements greedy elements of a rank 2 cluster algebra from [LLZ14]_ equation (1.5).
 
     EXAMPLES::
 
@@ -2310,7 +2308,7 @@ def greedy_element(self, d_vector):
 
 def _greedy_coefficient(self, d_vector, p, q):
     r"""
-    Return the coefficient of the monomial ``x1**(b*p) * x2**(c*q)`` in the numerator of the greedy element with denominator vector ``d_vector``.
+    Return the coefficient of the monomial ``x1 ** (b * p) * x2 ** (c * q)`` in the numerator of the greedy element with denominator vector ``d_vector``.
 
     EXAMPLES::
 

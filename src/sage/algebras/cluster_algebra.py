@@ -1595,7 +1595,7 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-        This method does not usethe caching framework provided by ``self`` but
+        This method does not use the caching framework provided by ``self`` but
         recomputes all the g-vectors from scratch. On the other hand it stores
         the results so that other methods like :meth:`g_vectors_so_far` can
         access them afterwards.
@@ -1620,7 +1620,7 @@ class ClusterAlgebra(Parent):
 
     def cluster_variables(self):
         r"""
-        Return an itareator producing all the cluster variables of ``self``.
+        Return an iterator producing all the cluster variables of ``self``.
 
         ALGORITHM:
 

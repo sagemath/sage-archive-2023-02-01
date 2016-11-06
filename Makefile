@@ -59,7 +59,7 @@ misc-clean:
 	rm -rf logs
 	rm -rf dist
 	rm -rf tmp
-	rm -f aclocal.m4 config.log config.status confcache
+	rm -f aclocal.m4 config.log config.status confcache src/bin/sage-env-config
 	rm -rf autom4te.cache
 	rm -f build/make/Makefile build/make/Makefile-auto
 	rm -f .BUILDSTART

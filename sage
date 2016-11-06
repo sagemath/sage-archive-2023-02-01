@@ -22,8 +22,6 @@
 # automatically.
 #SAGE_ROOT=/path/to/sage-version
 
-
-
 # Resolve all symbolic links in a filename.  This more or less behaves
 # like "readlink -f" except that it does not convert the filename to an
 # absolute path (a relative path remains relative), nor does it treat
@@ -122,6 +120,12 @@ if [ $? -ne 0 ]; then
 fi
 
 export SAGE_ROOT
+
+# Determine SAGE_LOCAL
+. $SAGE_ROOT/src/bin/sage-env-config
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: $SAGE_ROOT/src/bin/sage-env-config could not be read"
+fi
 
 # If this is a freshly-unpacked binary tarball then run the installer
 # Note: relocate-once.py deletes itself upon successful completion

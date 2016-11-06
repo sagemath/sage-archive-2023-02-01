@@ -13,6 +13,7 @@
 #    they won't be available in child programs.
 #  - This script has a version number such that a newer version of
 #    sage-env can be sourced when upgrading.  See below.
+#  - It uses bash features, so it cannot be used with other shells.
 #
 #  If you want to set all environment variables for your shell like
 #  they are during the build of Sage packages, type
@@ -185,16 +186,32 @@ export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
 export SAGE_ROOT="$NEW_SAGE_ROOT"
 
-# SAGE_LOCAL is the installation prefix and can be customized
-if [ -z "$SAGE_LOCAL" ]; then
-    export SAGE_LOCAL="$SAGE_ROOT/local"
+# SAGE_LOCAL is the installation prefix and can be customized by using ./configure --prefix
+#
+
+## Find the directory of this script (sage-env).
+## Note that it is *sourced* by various other scripts,
+## which is why `dirname $0` would not work ($0 is /bin/bash).
+## Instead we use a solution from
+## http://stackoverflow.com/questions/59895/can-a-bash-script-tell-which-directory-it-is-stored-in
+## It uses a bash feature: BASH_SOURCE[0] gives the source of
+## the "currently running function". See
+## https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html
+## (entries for FUNCNAME and BASH_SOURCE).
+SAGE_ENV_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+if [ $? -ne 0 ]; then
+    echo >&2 "sage-env: Error: Could not find the directory of sage-env."
+    return 1
+fi
+. $SAGE_ENV_DIR/sage-env-config
+if [ $? -ne 0 ]; then
+    echo >&2 "sage-env: Error: $SAGE_ENV_DIR/sage-env-config could not be read."
+    return 1
 fi
 
 # sage-env must know where the Sage's script files are
 if [ -z "$SAGE_SCRIPTS_DIR" ]; then
-    if [ -f "`dirname $0`/sage-env" ]; then
-        SAGE_SCRIPTS_DIR=`dirname $0`
-    elif [ -f "$SAGE_LOCAL/bin/sage-env" ]; then
+    if [ -f "$SAGE_LOCAL/bin/sage-env" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_LOCAL/bin"
     elif [ -f "$SAGE_ROOT/src/bin/sage-env" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_ROOT/src/bin"

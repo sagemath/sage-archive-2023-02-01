@@ -2106,7 +2106,9 @@ class HasseDiagram(DiGraph):
 
         The lattice is expected to be pseudocomplemented and non-empty.
 
-        See posets.py for definition.
+        The skeleton of the lattice is the subposet induced by
+        those elements that are the pseudocomplement to at least one
+        element.
 
         OUTPUT:
 
@@ -2116,13 +2118,17 @@ class HasseDiagram(DiGraph):
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0: [1, 2], 1: [3, 4], 2: [4], 3: [5], 4: [5]})
+            sage: H = HasseDiagram({0: [1, 2], 1: [3, 4], 2: [4],
+            ....:                   3: [5], 4: [5]})
             sage: H.skeleton()
             [5, 2, 0, 3]
         """
-        p_atoms = [self.pseudocomplement(atom) for atom in self.neighbor_out_iterator(0)]
-        if None in p_atoms:
-            raise ValueError("lattice is not pseudocomplemented")
+        p_atoms = []
+        for atom in self.neighbor_out_iterator(0):
+            p_atom = self.pseudocomplement(atom)
+            if p_atom is None:
+                raise ValueError("lattice is not pseudocomplemented")
+            p_atoms.append(p_atom)
         n = len(p_atoms)
         mt = self._meet
         pos = [0] * n

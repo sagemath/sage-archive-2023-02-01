@@ -203,7 +203,7 @@ if [ $? -ne 0 ]; then
     echo >&2 "sage-env: Error: Could not find the directory of sage-env."
     return 1
 fi
-. $SAGE_ENV_DIR/sage-env-config
+. "$SAGE_ENV_DIR"/sage-env-config
 if [ $? -ne 0 ]; then
     echo >&2 "sage-env: Error: $SAGE_ENV_DIR/sage-env-config could not be read."
     return 1

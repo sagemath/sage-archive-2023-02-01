@@ -60,7 +60,7 @@ def to_polynomial(self, x):
     TESTS::
 
         sage: K.<x> = FunctionField(QQ)
-        sage: K(x) in K._ring
+        sage: K(x) in K._ring # indirect doctest
         True
 
     """
@@ -75,7 +75,7 @@ def to_constant(self, x):
     TESTS::
 
         sage: K.<x> = FunctionField(QQ)
-        sage: K(1) in QQ
+        sage: K(1) in QQ # indirect doctest
         True
 
     """
@@ -289,7 +289,7 @@ def _coerce_map_from_patched(self, domain):
     r"""
     TESTS::
 
-        sage: CyclotomicField(5).maximal_order().coerce_map_from(ZZ).is_injective()
+        sage: CyclotomicField(5).maximal_order().coerce_map_from(ZZ).is_injective() # indirect doctest
         True
 
     """
@@ -312,7 +312,7 @@ def _factor_univariate_polynomial(self, f):
         sage: R.<y> = L[]
         sage: L.<y> = L.extension(y^2 + y + x)
         sage: R.<T> = L[]
-        sage: (T^2 + T + x).factor()
+        sage: (T^2 + T + x).factor() # indirect doctest
         (T + y) * (T + y + 1)
 
     """

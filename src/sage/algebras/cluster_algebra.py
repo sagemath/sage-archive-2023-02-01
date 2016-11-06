@@ -2192,12 +2192,12 @@ class ClusterAlgebra(Parent):
             J[k, k] = -1
             new_g_vect = tuple(J*vector(old_g_vect))
 
-            #compute new path
+            # compute new path
             new_path = old_path_dict[old_g_vect]
             new_path = ([k]+new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
             self._path_dict[new_g_vect] = new_path
 
-            #compute new F-polynomial
+            # compute new F-polynomial
             if old_g_vect in old_F_poly_dict:
                 h = -min(0, old_g_vect[k])
                 new_F_poly = old_F_poly_dict[old_g_vect](F_subs)*Ugen[k]**h*(Ugen[k]+1)**old_g_vect[k]

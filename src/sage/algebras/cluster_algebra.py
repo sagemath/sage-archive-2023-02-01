@@ -2252,7 +2252,7 @@ class ClusterAlgebra(Parent):
 
     def theta_basis_element(self, g_vector):
         r"""
-        Return the element of the theta basis with g-vector ``g_vetor``.
+        Return the element of the theta basis with g-vector ``g_vector``.
 
         EXAMPLES::
 

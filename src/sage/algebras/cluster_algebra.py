@@ -1518,6 +1518,22 @@ class ClusterAlgebra(Parent):
         else:
             raise ValueError("This is not a seed in this cluster algebra")
 
+    def reset_current_seed(self):
+        r"""
+        Reset the value reported by :meth:`current_seed` to :meth:`initial_seed`.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.current_seed().mutate([1, 0])
+            sage: A.current_seed() == A.initial_seed()
+            False
+            sage: A.reset_current_seed()
+            sage: A.current_seed() == A.initial_seed()
+            True
+        """
+        self._seed = self.initial_seed()
+
     def contains_seed(self, seed):
         r"""
         Test if ``seed`` is a seed of ``self``.
@@ -1537,22 +1553,6 @@ class ClusterAlgebra(Parent):
         computed_sd = self.initial_seed()
         computed_sd.mutate(seed._path, mutating_F=False)
         return computed_sd == seed
-
-    def reset_current_seed(self):
-        r"""
-        Reset the value reported by :meth:`current_seed` to :meth:`initial_seed`.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2])
-            sage: A.current_seed().mutate([1, 0])
-            sage: A.current_seed() == A.initial_seed()
-            False
-            sage: A.reset_current_seed()
-            sage: A.current_seed() == A.initial_seed()
-            True
-        """
-        self._seed = self.initial_seed()
 
     def initial_seed(self):
         r"""
@@ -1635,6 +1635,25 @@ class ClusterAlgebra(Parent):
         """
         return map(self.cluster_variable, self.g_vectors())
 
+    def F_polynomials(self):
+        r"""
+        Return an iterator producing all the F_polynomials of ``self``.
+
+        ALGORITHM:
+
+        This method does not use the caching framework provided by ``self`` but
+        recomputes all the F_polynomials from scratch. On the other hand it
+        stores the results so that other methods like :meth:`F_polynomials_so_far`
+        can access them afterwards.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 3])
+            sage: len(list(A.F_polynomials()))
+            9
+        """
+        return map(self.F_polynomial, self.g_vectors())
+
     def g_vectors_so_far(self):
         r"""
         Return a list of the g-vectors of cluster variables encountered so far.
@@ -1660,6 +1679,19 @@ class ClusterAlgebra(Parent):
             [x1, x0, (x1 + 1)/x0]
         """
         return list(map(self.cluster_variable, self.g_vectors_so_far()))
+
+    def F_polynomials_so_far(self):
+        r"""
+        Return a list of the F-polynomials encountered so far.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.current_seed().mutate(0)
+            sage: A.F_polynomials_so_far()
+            [1, 1, u0 + 1]
+        """
+        return self._F_poly_dict.values()
 
     @cached_method(key=lambda a, b: tuple(b))
     def cluster_variable(self, g_vector):
@@ -1689,19 +1721,6 @@ class ClusterAlgebra(Parent):
         g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
         F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
         return self.retract(g_mon * F_std * F_trop)
-
-    def F_polynomials_so_far(self):
-        r"""
-        Return a list of the F-polynomials encountered so far.
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['A', 2])
-            sage: A.current_seed().mutate(0)
-            sage: A.F_polynomials_so_far()
-            [1, 1, u0 + 1]
-        """
-        return self._F_poly_dict.values()
 
     def F_polynomial(self, g_vector):
         r"""

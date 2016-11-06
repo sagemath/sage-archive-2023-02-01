@@ -121,16 +121,16 @@ fi
 
 export SAGE_ROOT
 
-# Determine SAGE_LOCAL
-. $SAGE_ROOT/src/bin/sage-env-config
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: $SAGE_ROOT/src/bin/sage-env-config could not be read"
-fi
-
 # If this is a freshly-unpacked binary tarball then run the installer
 # Note: relocate-once.py deletes itself upon successful completion
 if [ -x "$SAGE_ROOT/relocate-once.py" ]; then
     "$SAGE_ROOT/relocate-once.py"
+fi
+
+# Determine SAGE_LOCAL
+. $SAGE_ROOT/src/bin/sage-env-config
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: $SAGE_ROOT/src/bin/sage-env-config could not be read"
 fi
 
 # Run the actual Sage script

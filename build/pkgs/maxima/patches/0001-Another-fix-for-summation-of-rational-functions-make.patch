@@ -62,9 +62,9 @@ index a0c2da3..0502f25 100644
    if x__=0 then 0
    else if integerp(x__) and x__<1 then error("Zero to negative power computed.") 
    else if integerp(x__) then num_harmonic_number(1, x__)
--  /*else if numberp(x__) and x__<-1 then block(
+-  else if numberp(x__) and x__<-1 then block(
 -    [a:-floor(x__), k%],
--    simp_harmonic_number(x__+a)-apply('sum, [1/k%, k%, x__, x__+a-1]))*/
+-    simp_harmonic_number(x__+a)-apply('sum, [1/k%, k%, x__, x__+a-1]))
    else if numberp(x__) or imagpart(x__)#0 then psi[0](x__+1) + %gamma
    else block(
      [a, b, var, k%],

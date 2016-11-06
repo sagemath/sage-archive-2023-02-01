@@ -2289,9 +2289,9 @@ def greedy_element(self, d_vector):
     """
     b = abs(self.b_matrix()[0, 1])
     c = abs(self.b_matrix()[1, 0])
-    (a1, a2) = d_vector
+    a1, a2 = d_vector
     # here we use the generators of self.ambient() because cluster variables do not have an inverse.
-    (x1, x2) = self.ambient().gens()
+    x1, x2 = self.ambient().gens()
     if a1 < 0:
         if a2 < 0:
             return self.retract(x1 ** (-a1) * x2 ** (-a2))
@@ -2322,7 +2322,7 @@ def _greedy_coefficient(self, d_vector, p, q):
     """
     b = abs(self.b_matrix()[0, 1])
     c = abs(self.b_matrix()[1, 0])
-    (a1, a2) = d_vector
+    a1, a2 = d_vector
     p = Integer(p)
     q = Integer(q)
     if p == 0 and q == 0:

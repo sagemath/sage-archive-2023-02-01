@@ -129,9 +129,6 @@ fi
 
 # Determine SAGE_LOCAL
 . $SAGE_ROOT/src/bin/sage-env-config
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: $SAGE_ROOT/src/bin/sage-env-config could not be read"
-fi
 
 # Run the actual Sage script
 if [ -x "$SAGE_ROOT/src/bin/sage" ]; then

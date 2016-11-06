@@ -59,7 +59,6 @@ def to_polynomial(self, x):
     r"""
     TESTS::
 
-        sage; from mac_lane import *
         sage: K.<x> = FunctionField(QQ)
         sage: K(x) in K._ring
         True
@@ -75,7 +74,6 @@ def to_constant(self, x):
     r"""
     TESTS::
 
-        sage; from mac_lane import *
         sage: K.<x> = FunctionField(QQ)
         sage: K(1) in QQ
         True
@@ -90,6 +88,14 @@ sage.rings.function_field.function_field.RationalFunctionField._to_polynomial = 
 sage.rings.function_field.function_field.RationalFunctionField._to_constant = to_constant
 sage.rings.function_field.function_field.RationalFunctionField.__old_init__ = sage.rings.function_field.function_field.RationalFunctionField.__init__
 def __init__(self, *args, **kwargs):
+    r"""
+    TESTS::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: K(1/2) in QQ
+        True
+        
+    """
     self.__old_init__(*args, **kwargs)
     from sage.categories.morphism import SetMorphism
     self._ring.register_conversion(SetMorphism(self.Hom(self._ring), self._to_polynomial))
@@ -100,26 +106,63 @@ del(__init__)
 del(to_polynomial)
 
 # implement principal_part for newton polygons
+r"""
+TESTS::
+
+    sage: NP = sage.geometry.newton_polygon.NewtonPolygon([(0,1),(1,0),(2,1)])
+    sage: NP.principal_part()
+    Infinite Newton polygon with 2 vertices: (0, 1), (1, 0) ending by an infinite line of slope 0
+
+"""
 import sage.geometry.newton_polygon
 sage.geometry.newton_polygon.NewtonPolygon_element.principal_part = lambda self: sage.geometry.newton_polygon.NewtonPolygon(self.vertices(), last_slope=0)
 sage.geometry.newton_polygon.NewtonPolygon_element.sides = lambda self: zip(self.vertices(), self.vertices()[1:])
 
 # implement coercion of function fields that comes from coercion of their base fields
 def _coerce_map_from_(target, source):
+    r"""
+    TESTS::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: L.<x> = FunctionField(GaussianIntegers().fraction_field())
+        sage: L.has_coerce_map_from(K)
+        True
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^3 + 1)
+        sage: K.<x> = FunctionField(GaussianIntegers().fraction_field())
+        sage: R.<y> = K[]
+        sage: M.<y> = K.extension(y^3 + 1)
+        sage: M.has_coerce_map_from(L) # not tested, base morphism is not implemented
+        True
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<I> = K[]
+        sage: L.<I> = K.extension(I^2 + 1)
+        sage: M.<x> = FunctionField(GaussianIntegers().fraction_field())
+        sage: M.has_coerce_map_from(L) # not tested, base_morphism is not implemented
+        True
+
+    """
     from sage.categories.function_fields import FunctionFields
     if source in FunctionFields():
-        if source.base_field() is source and target.base_field() is target:
-            if source.variable_name() == target.variable_name():
-                # source and target are rational function fields in the same variable
-                base_coercion = target.constant_field().coerce_map_from(source.constant_field())
-                if base_coercion is not None:
-                    return source.hom([target.gen()], base_morphism=base_coercion)
-        if source.base_field() is not source and target.base_field() is not target:
-            # source and target are extensions of rational function fields
-            base_coercion = target.base_field().coerce_map_from(source.base_field())
+        if source.base_field() is source:
+            if target.base_field() is target:
+                # source and target are rational function fields
+                if source.variable_name() == target.variable_name():
+                    # ... in the same variable
+                    base_coercion = target.constant_field().coerce_map_from(source.constant_field())
+                    if base_coercion is not None:
+                        return source.hom([target.gen()], base_morphism=base_coercion)
+        else:
+            # source is an extensions of rational function fields
+            base_coercion = target.coerce_map_from(source.base_field())
             if base_coercion is not None:
-                # The base field of source coerces into the base field of target.
-                if source.polynomial().map_coefficients(base_coercion)(target.gen()) == 0:
+                # the base field of source coerces into the base field of target
+                target_polynomial = source.polynomial().map_coefficients(base_coercion)
+                # try to find a root of the defining polynomial in target
+                if target_polynomial(target.gen()) == 0:
                     # The defining polynomial of source has a root in target,
                     # therefore there is a map. To be sure that it is
                     # canonical, we require a root of the defining polynomial
@@ -128,11 +171,30 @@ def _coerce_map_from_(target, source):
                     if source.variable_name() == target.variable_name():
                         return source.hom([target.gen()], base_morphism=base_coercion)
 
+                roots = target_polynomial.roots()
+                for root, _ in roots:
+                    if target_polynomial(root) == 0:
+                        # The defining polynomial of source has a root in target,
+                        # therefore there is a map. To be sure that it is
+                        # canonical, we require the names of the roots to match
+                        if source.variable_name() == repr(root):
+                            return source.hom([root], base_morphism=base_coercion)
+
 sage.rings.function_field.function_field.FunctionField._coerce_map_from_ = _coerce_map_from_
 del(_coerce_map_from_)
 
 # patch is_injective() for many morphisms
 def patch_is_injective(method, patch_map):
+    r"""
+    Patch ``method`` to return ``patch_map[type]`` if it returned a result of
+    ``type``.
+
+    TESTS::
+
+        sage: QQ.coerce_map_from(ZZ).is_injective() # indirect doctest
+        True
+
+    """
     def patched(*args, **kwargs):
         ret = method(*args, **kwargs)
         if type(ret) in patch_map:
@@ -143,6 +205,13 @@ def patch_is_injective(method, patch_map):
 # a ring homomorphism from a field into a ring is injective (as it respects inverses)
 class RingHomomorphism_coercion_patched(sage.rings.morphism.RingHomomorphism_coercion):
     def is_injective(self):
+        r"""
+        TESTS::
+
+            sage: QQ.coerce_map_from(ZZ).is_injective() # indirect doctest
+            True
+
+        """
         from sage.categories.fields import Fields
         if self.domain() in Fields(): return True
         coercion = self.codomain().coerce_map_from(self.domain())
@@ -154,36 +223,99 @@ sage.rings.homset.RingHomset_generic.natural_map = patch_is_injective(sage.rings
 # a morphism of polynomial rings which is induced by a ring morphism on the base is injective if the morphis on the base is
 class PolynomialRingHomomorphism_from_base_patched(sage.rings.polynomial.polynomial_ring_homomorphism.PolynomialRingHomomorphism_from_base):
     def is_injective(self):
+        r"""
+        TESTS::
+
+            sage: QQ['x'].coerce_map_from(ZZ['x']).is_injective() # indirect doctest
+            True
+
+        """
         return self.underlying_map().is_injective()         
 sage.rings.polynomial.polynomial_ring.PolynomialRing_general._coerce_map_from_ = patch_is_injective(sage.rings.polynomial.polynomial_ring.PolynomialRing_general._coerce_map_from_, {sage.rings.polynomial.polynomial_ring_homomorphism.PolynomialRingHomomorphism_from_base: (lambda morphism: PolynomialRingHomomorphism_from_base_patched(morphism.parent(), morphism.underlying_map()))})
 
 # morphisms of number fields are injective
 class Q_to_quadratic_field_element_patched(sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element):
-    def is_injective(self): return True
+    def is_injective(self):
+        r"""
+        TESTS::
+
+            sage: GaussianIntegers().fraction_field().coerce_map_from(QQ).is_injective()
+            True
+
+        """
+        return True
 class Z_to_quadratic_field_element_patched(sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element):
-    def is_injective(self): return True
+    def is_injective(self):
+        r"""
+        TESTS::
+
+            sage: GaussianIntegers().fraction_field().coerce_map_from(ZZ).is_injective()
+            True
+
+        """
+        return True
 sage.rings.number_field.number_field.NumberField_quadratic._coerce_map_from_ = patch_is_injective(sage.rings.number_field.number_field.NumberField_quadratic._coerce_map_from_, {sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element: (lambda morphism: Q_to_quadratic_field_element_patched(morphism.codomain())), sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element: (lambda morphism: Z_to_quadratic_field_element_patched(morphism.codomain()))})
 
 # the integers embed into the rationals
 class Z_to_Q_patched(sage.rings.rational.Z_to_Q):
-    def is_injective(self): return True
+    def is_injective(self):
+        r"""
+        TESTS::
+
+            sage: QQ.coerce_map_from(ZZ).is_injective()
+            True
+
+        """
+        return True
 from sage.rings.all import QQ
 QQ.coerce_map_from = patch_is_injective(QQ.coerce_map_from, {sage.rings.rational.Z_to_Q: (lambda morphism: Z_to_Q_patched())})
 
 # the integers embed into their extensions in number fields
 class DefaultConvertMap_unique_patched(sage.structure.coerce_maps.DefaultConvertMap_unique):
-    def is_injective(self): return True
+    def is_injective(self):
+        r"""
+        TESTS::
+
+            sage: CyclotomicField(5).maximal_order().coerce_map_from(ZZ).is_injective()
+            True
+
+        """
+        from sage.rings.all import ZZ
+        if self.domain() is ZZ or domain is int or domain is long:
+            return True
+        return super(DefaultConvertMap_unique, self).is_injective()
+
 def _coerce_map_from_patched(self, domain):
+    r"""
+    TESTS::
+
+        sage: CyclotomicField(5).maximal_order().coerce_map_from(ZZ).is_injective()
+        True
+
+    """
     from sage.rings.all import ZZ
     if domain is ZZ or domain is int or domain is long:
         return DefaultConvertMap_unique_patched(domain, self)
     return False
-from sage.rings.number_field.order import Order
-Order._coerce_map_from_ = _coerce_map_from_patched
+
+sage.rings.number_field.order.Order._coerce_map_from_ = _coerce_map_from_patched
 del(_coerce_map_from_patched)
 
 # factorization in polynomial quotient fields
 def _factor_univariate_polynomial(self, f):
+    r"""
+    TESTS::
+
+        sage: K = GF(2)
+        sage: R.<x> = K[]
+        sage: L.<x> = K.extension(x^2 + x + 1)
+        sage: R.<y> = L[]
+        sage: L.<y> = L.extension(y^2 + y + x)
+        sage: R.<T> = L[]
+        sage: (T^2 + T + x).factor()
+        (T + y) * (T + y + 1)
+
+    """
     from sage.structure.factorization import Factorization
 
     if f.is_zero():
@@ -287,6 +419,18 @@ del(absolute_extension)
 
 # factorization needs some linear algebra (it seems)
 def vector_space(self):
+    r"""
+    TESTS::
+
+        sage: K = GF(2)
+        sage: R.<x> = K[]
+        sage: L.<x> = K.extension(x^2 + x + 1)
+        sage: R.<y> = L[]
+        sage: L.<y> = L.extension(y^2 + y + x)
+        sage: L.vector_space()
+        Vector space of dimension 2 over Finite Field in x of size 2^2
+
+    """
     if not self.base().base_ring().is_field():
         raise ValueError
 

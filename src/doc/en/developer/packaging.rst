@@ -347,9 +347,9 @@ When to patch, when to repackage, when to autoconfiscate
 
       -DESTDIR = /usr/local
       +DESTDIR = $(SAGE_ROOT)/local
-       BINDIR	= $(DESTDIR)/bin
-       INCDIR	= $(DESTDIR)/include
-       LIBDIR	= $(DESTDIR)/lib
+       BINDIR   = $(DESTDIR)/bin
+       INCDIR   = $(DESTDIR)/include
+       LIBDIR   = $(DESTDIR)/lib
 
   Don't use patching for that.  Makefile variables can be overridden
   from the command-line.  Just use the following in ``spkg-install``::

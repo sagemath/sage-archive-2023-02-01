@@ -505,7 +505,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         (2, 4, 12, 24, 120)
 
         sage: F.category()
-        Category of finite commutative groups
+        Category of finite enumerated commutative groups
 
     TESTS::
 
@@ -534,7 +534,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
             sage: A = AbelianGroup([3,3])
             sage: A.category()
-            Category of finite commutative groups
+            Category of finite enumerated commutative groups
             sage: A = AbelianGroup([3,0,7])
             sage: A.category()
             Category of infinite commutative groups

@@ -366,6 +366,7 @@ class GroupMixinLibGAP(object):
             raise NotImplementedError('group must be finite')
         return int(self.cardinality())
 
+    @cached_method
     def list(self):
         """
         List all elements of this group.

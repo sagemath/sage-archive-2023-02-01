@@ -1238,8 +1238,8 @@ class ClusterAlgebra(Parent):
         self._U = PolynomialRing(QQ, ['u%s' % i for i in range(n)])
 
         # Storage for computed data
-        self._path_dict = dict([(v, []) for v in map(tuple, I.columns())])
-        self._F_poly_dict = dict([(v, self._U(1)) for v in self._path_dict])
+        self._path_dict = dict((v, []) for v in map(tuple, I.columns()))
+        self._F_poly_dict = dict((v, self._U(1)) for v in self._path_dict)
 
         # Determine the names of the initial cluster variables
         variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
@@ -1270,8 +1270,8 @@ class ClusterAlgebra(Parent):
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables + coefficients)
 
         # Data to compute cluster variables using separation of additions
-        self._y = dict([(self._U.gen(j), prod([self._base.gen(i) ** M0[i, j] for i in range(m)])) for j in range(n)])
-        self._yhat = dict([(self._U.gen(j), prod([self._ambient.gen(i) ** B0[i, j] for i in range(n + m)])) for j in range(n)])
+        self._y = dict((self._U.gen(j), prod(self._base.gen(i) ** M0[i, j] for i in range(m))) for j in range(n))
+        self._yhat = dict((self._U.gen(j), prod(self._ambient.gen(i) ** B0[i, j] for i in range(n + m))) for j in range(n))
 
         # Have we got principal coefficients?
         self._is_principal = (M0 == I)
@@ -1686,7 +1686,7 @@ class ClusterAlgebra(Parent):
         g_vector = tuple(g_vector)
         F = self.F_polynomial(g_vector)
         F_std = F.subs(self._yhat)
-        g_mon = prod([self.ambient().gen(i) ** g_vector[i] for i in range(self.rank())])
+        g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
         F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
         return self.retract(g_mon * F_std * F_trop)
 

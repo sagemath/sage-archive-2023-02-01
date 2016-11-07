@@ -865,7 +865,20 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             sage: L = LaurentPolynomialRing(QQ, 'x')
             sage: L(1/2)
             1/2
+
+            sage: L(x + 3/x)
+            3*x^-1 + x
+
+        TESTS::
+
+            sage: L(exp(x))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert e^x to a rational
         """
+        from sage.symbolic.expression import Expression
+        if isinstance(x, Expression):
+            return x.laurent_polynomial(ring=self)
         return LaurentPolynomial_univariate(self, x)
 
     def __reduce__(self):
@@ -905,7 +918,23 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             sage: L = LaurentPolynomialRing(QQ,2,'x')
             sage: L(1/2)
             1/2
+
+            sage: M = LaurentPolynomialRing(QQ, 'x, y')
+            sage: var('x, y')
+            (x, y)
+            sage: M(x/y + 3/x)
+            x*y^-1 + 3*x^-1
+
+        TESTS::
+
+            sage: M(exp(x))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert e^x to a rational
         """
+        from sage.symbolic.expression import Expression
+        if isinstance(x, Expression):
+            return x.laurent_polynomial(ring=self)
         return LaurentPolynomial_mpair(self, x)
 
     def __reduce__(self):

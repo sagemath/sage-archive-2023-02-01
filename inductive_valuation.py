@@ -649,11 +649,12 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             return f.degree() == self.phi().degree()
 
         else:
+            tau = self.value_group().index(self._base_valuation.value_group())
             # see Theorem 9.4 of [ML1936']
             return list(self.valuations(f))[-1] == self(f) and \
                    list(self.coefficients(f))[-1].is_constant() and \
                    list(self.valuations(f))[0] == self(f) and \
-                   self.tau().divides(len(list(self.coefficients(f))) - 1)
+                   tau.divides(len(list(self.coefficients(f))) - 1)
 
     def mac_lane_step(self, G, assume_squarefree=False):
         r"""

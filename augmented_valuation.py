@@ -42,7 +42,51 @@ from sage.rings.all import infinity
 from sage.structure.factory import UniqueFactory
 
 class AugmentedValuationFactory(UniqueFactory):
+    r"""
+    Factory for augmented valuations.
+
+    EXAMPLES:
+
+    This factory is not meant to be called directly. Instead,
+    :meth:`augmentation` of a valuation should be called::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: w = v.augmentation(x, 1) # indirect doctest
+
+    Note that trivial parts of the augmented valuation might be dropped, so you
+    should not rely on ``_base_valuation`` to be the valuation you started
+    with::
+
+        sage: w = w.augmentation(x, 2)
+        sage: w._base_valuation is v
+        True
+
+    """
     def create_key(self, base_valuation, phi, mu, check=True):
+        r"""
+        Create a key which uniquely identifies the valuation over
+        ``base_valuation`` which sends ``phi`` to ``mu``.
+
+        .. NOTE::
+
+            Uniquenesse of the resulting valuation would not be too important.
+            However, it makes pickling and equality checks much easier. At the
+            same time, going through a factory makes it easier to enforce that
+            all instances correctly inherit methods from the parent Hom space.
+
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x, 1) # indirect doctest
+            sage: ww = v.augmentation(x, 1)
+            sage: w is ww
+            True
+
+        """
         if check:
             is_key, reason = base_valuation.is_key(phi, explain=True)
             if not is_key:
@@ -50,9 +94,25 @@ class AugmentedValuationFactory(UniqueFactory):
             if mu <= base_valuation(phi):
                 raise ValueError("the value of the key polynomial must strictly increase but `%s` does not exceed `%s`."%(mu, base_valuation(phi)))
 
+        if isinstance(base_valuation, AugmentedValuation_base):
+            if phi.degree() == base_valuation.phi().degree():
+                # drop base_valuation and extend base_valuation._base_valuation instead
+                return self.create_key(base_valuation._base_valuation, phi, mu, check=check)
+
         return base_valuation, phi, mu
 
     def create_object(self, version, key):
+        r"""
+        Create the augmented valuation represented by ``key``.
+
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x, 1) # indirect doctest
+
+        """
         base_valuation, phi, mu = key
 
         from valuation_space import DiscretePseudoValuationSpace
@@ -69,7 +129,7 @@ class AugmentedValuation_base(InductiveValuation):
     An augmented valuation is a discrete valuation on a polynomial ring. It
     extends another discrete valuation `v` by setting the valuation of a
     polynomial `f` to the minumum of `v(f_i)i\mu` when writing `f=\sum_i
-    f_i\mu^i`.
+    f_i\phi^i`.
 
     INPUT:
 
@@ -78,9 +138,6 @@ class AugmentedValuation_base(InductiveValuation):
     - ``phi`` -- a key polynomial over ``v``
 
     - ``mu`` -- a rational number such that ``mu > v(phi)`` or ``infinity``
-
-    - ``check`` -- a boolean (default: ``True``), whether to check that the
-      parameters define an augemented value of ``v``
 
     EXAMPLES::
 
@@ -94,8 +151,6 @@ class AugmentedValuation_base(InductiveValuation):
     """
     def __init__(self, parent, v, phi, mu):
         """
-        Initialization.
-
         TESTS::
 
             sage: from mac_lane import * # optional: standalone
@@ -144,8 +199,7 @@ class AugmentedValuation_base(InductiveValuation):
             +Infinity
 
         """
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of the valuation %s but is in %s"%(self.domain(),f.parent()))
+        f = self.domain().coerce(f)
 
         from sage.rings.all import infinity
         if f.is_zero():
@@ -171,36 +225,6 @@ class AugmentedValuation_base(InductiveValuation):
             ret = min(ret, v)
             if ret == lower_bound:
                 return ret
-        return ret
-
-    @cached_method
-    def Q(self):
-        if self._mu is infinity or self.tau().is_zero():
-            raise NotImplementedError
-
-        return self.equivalence_unit(self._mu * self.tau())
-
-    @cached_method
-    def Q_(self):
-        try:
-            ret = self.equivalence_reciprocal(self.Q())
-
-            assert self.is_equivalence_unit(ret)
-            # esentially this checks that the reduction of Q'*phi^tau is the
-            # generator of the residue field
-            assert self._base_valuation.reduce(self.Q()*ret)(self.residue_field_generator()).is_one()
-
-        except ValueError:
-            print "CHEATING - HARD CODED RECIPROCAL"
-            Q = self.Q()
-            pi = Q.parent().base().constant_base_field().uniformizer()
-            ret = Q/(pi**(self(Q)*2))
-
-        assert self.is_equivalence_unit(ret)
-        # esentially this checks that the reduction of Q'*phi^tau is the
-        # generator of the residue field
-        assert self._base_valuation.reduce(self.Q()*ret)(self.residue_field_generator()).is_one()
-
         return ret
 
     def equivalence_unit(self, s):
@@ -443,7 +467,8 @@ class AugmentedValuation_base(InductiveValuation):
         If ``f`` has positive valuation, the reduction is simply zero.
         Otherwise, let `f=\sum f_i\phi^i` be the expansion of `f`, as computed
         by :meth:`coefficients`. Since the valuation is zero, the exponents `i`
-        must all be multiples of :meth:`tau`.
+        must all be multiples of `\tau`, the index the value group of the base
+        valuation in the value group of this valuation.
         Hence, there is an :meth:`equivalence_unit` `Q` with the same valuation
         as `\phi^\tau`. Let `Q'` be its :meth:`reciprocal_inverse`.
         Now, rewrite each term `f_i\phi^{i\tau}=(f_iQ^i)(\phi^\tauQ^{-1})^i`;
@@ -530,12 +555,13 @@ class AugmentedValuation_base(InductiveValuation):
 
         CV = zip(self.coefficients(f), self.valuations(f))
         # rewrite as sum of f_i phi^{i tau}, i.e., drop most coefficients
-        assert not any([v==0 for i,(c,v) in enumerate(CV) if i % self.tau() != 0])
-        CV = CV[::self.tau()]
+        tau = self.value_group().index(self._base_valuation.value_group())
+        assert not any([v==0 for i,(c,v) in enumerate(CV) if i % tau != 0])
+        CV = CV[::tau]
 
         # replace f_i by f_i Q^{i tau}
-        vQ = self._mu * self.tau()
-        CV = [(c*self.Q()**i, v - vQ*i) for i,(c,v) in enumerate(CV)]
+        vQ = self._mu * tau
+        CV = [(c*self._Q()**i, v - vQ*i) for i,(c,v) in enumerate(CV)]
         assert all([self._base_valuation(c)>=0 for c,v in CV])
 
         # recursively reduce the f_i Q^{i tau}
@@ -633,7 +659,7 @@ class AugmentedValuation_base(InductiveValuation):
             if F.is_one():
                 return self.domain().one()
 
-        if self.tau().is_zero():
+        if self._base_valuation.is_trivial():
             if not self._mu > 0:
                 raise NotImplementedError
             if not F.is_constant():
@@ -669,8 +695,8 @@ class AugmentedValuation_base(InductiveValuation):
         coeffs = [ self._base_valuation.lift(c) for c in coeffs ]
         # now the coefficients correspond to the expansion with (f_iQ^i)(Q^{-1} phi)^i
 
-        # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when Q_() is undefined)
-        coeffs = [ (c if i == 0 else c*self.Q_()**i).map_coefficients(lambda d:_lift_to_maximal_precision(d)) for i,c in enumerate(coeffs) ]
+        # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when _Q_reciprocal() is undefined)
+        coeffs = [ (c if i == 0 else c*self._Q_reciprocal()**i).map_coefficients(lambda d:_lift_to_maximal_precision(d)) for i,c in enumerate(coeffs) ]
 
         RR = self.domain().change_ring(self.domain())
 
@@ -678,7 +704,8 @@ class AugmentedValuation_base(InductiveValuation):
             assert len(coeffs) <= 1
             ret = RR(coeffs)[0]
         else:
-            ret = RR(coeffs)(self.phi()**self.tau())
+            tau = self.value_group().index(self._base_valuation.value_group())
+            ret = RR(coeffs)(self.phi()**tau)
         ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
         return ret
 
@@ -753,7 +780,7 @@ class AugmentedValuation_base(InductiveValuation):
         assert self(f) == 0
         assert self.reduce(f) == F
 
-        f *= self.Q()**F.degree()
+        f *= self._Q()**F.degree()
         CV = zip(self.coefficients(f), self.valuations(f))
         vf = self(f)
         CV = [(c,v) if v==vf else (c.parent().zero(),infinity) for c,v in CV]
@@ -766,39 +793,6 @@ class AugmentedValuation_base(InductiveValuation):
         assert (ret == self.phi()) == (F == F.parent().gen())
         assert self.is_key(ret)
         return ret
-
-    def tau(self):
-        """
-        Return the factor which is needed to turn an element of the value group
-        of this valuation into an element of the value group of its base
-        valuation.
-
-        OUTPUT:
-
-        a positive integer
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: w = v.augmentation(x^2 + x + u, 1/2)
-            sage: w.tau()
-            2
-            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
-            sage: w.tau()
-            3
-
-        """
-        from sage.rings.all import ZZ
-
-        if self._base_valuation.value_group().is_trivial():
-            return ZZ.zero()
-
-        assert self.value_group().numerator() == 1
-        assert self._base_valuation.value_group().numerator() == 1
-        return ZZ(self.value_group().denominator()) // ZZ(self._base_valuation.value_group().denominator())
 
     @cached_method
     def psi(self):
@@ -872,7 +866,7 @@ class AugmentedValuation_base(InductiveValuation):
         """
         if self._base_valuation.is_trivial():
             raise ValueError("there is no ramification over a trivial valuation")
-        return self.tau() * self._base_valuation.E()
+        return self.value_group().index(self._base_valuation.value_group()) * self._base_valuation.E()
 
     def F(self):
         """
@@ -956,6 +950,30 @@ class AugmentedValuation_base(InductiveValuation):
     def is_discrete_valuation(self):
         from sage.rings.all import infinity
         return self._mu != infinity
+
+    @cached_method
+    def _Q(self):
+        r"""
+        Return the polynomial `Q` used in the construction to :meth:`reduce` an
+        element to the :meth:`residue_ring`.
+        """
+        if self._mu == infinity:
+            raise NotImplementedError("Q is not defined for infinite valuations")
+
+        tau = self.value_group().index(self._base_valuation.value_group())
+        return self.equivalence_unit(self._mu * tau)
+
+    @cached_method
+    def _Q_reciprocal(self):
+        ret = self.equivalence_reciprocal(self._Q())
+
+        assert self.is_equivalence_unit(ret)
+        # esentially this checks that the reduction of Q'*phi^tau is the
+        # generator of the residue field
+        assert self._base_valuation.reduce(self._Q()*ret)(self.residue_field_generator()).is_one()
+
+        return ret
+
 
 class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation):
     pass

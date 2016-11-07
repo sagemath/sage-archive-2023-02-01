@@ -258,7 +258,16 @@ if NUM_THREADS > 1:
         return ret
 else:
     def build_many(target, args):
-        return map(target, args)
+        results = []
+
+        for arg in args:
+            try:
+                results.append(target(arg))
+            except Exception:
+                if ABORT_ON_ERROR:
+                    raise
+
+        return results
 
 
 ##########################################

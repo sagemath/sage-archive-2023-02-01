@@ -609,29 +609,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         return super(AugmentedValuation_base, self)._ge_(other)
 
-    @cached_method
-    def _Q(self):
-        r"""
-        Return the polynomial `Q` used in the construction to :meth:`reduce` an
-        element to the :meth:`residue_ring`.
-        """
-        if self._mu == infinity:
-            raise NotImplementedError("Q is not defined for infinite valuations")
-
-        tau = self.value_group().index(self._base_valuation.value_group())
-        return self.equivalence_unit(self._mu * tau)
-
-    @cached_method
-    def _Q_reciprocal(self):
-        ret = self.equivalence_reciprocal(self._Q())
-
-        assert self.is_equivalence_unit(ret)
-        # esentially this checks that the reduction of Q'*phi^tau is the
-        # generator of the residue field
-        assert self._base_valuation.reduce(self._Q()*ret)(self._residue_field_generator()).is_one()
-
-        return ret
-
 
 class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation):
     @cached_method
@@ -1056,6 +1033,50 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         assert (ret == self.phi()) == (F == F.parent().gen())
         assert self.is_key(ret)
         return ret
+
+    @cached_method
+    def _Q(self):
+        r"""
+        Return the polynomial `Q` used in the construction to :meth:`reduce` an
+        element to the :meth:`residue_ring`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w._Q()
+            2
+
+        """
+        tau = self.value_group().index(self._base_valuation.value_group())
+        return self.equivalence_unit(self._mu * tau)
+
+    @cached_method
+    def _Q_reciprocal(self):
+        r"""
+        Return the :meth:`equivalence_reciprocal` of :meth:`_Q`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w._Q_reciprocal()
+            1/2
+
+        """
+        ret = self.equivalence_reciprocal(self._Q())
+
+        assert self.is_equivalence_unit(ret)
+        # esentially this checks that the reduction of Q'*phi^tau is the
+        # generator of the residue field
+        assert self._base_valuation.reduce(self._Q()*ret)(self._residue_field_generator()).is_one()
+
+        return ret
+
 
 
 class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValuation):

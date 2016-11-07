@@ -143,9 +143,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
           - 'pari' -- use pari's minpoly
 
-          - 'matrix' - deduce the minpoly from the factorization of
-            the charpoly computed from the matrix of left multiplication
-            by self
+          - 'charpoly' - deduce the minpoly from the factorization of
+            the charpoly
 
         EXAMPLES::
 
@@ -168,7 +167,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             R = PolynomialRing(self.parent().prime_subfield(), var)
             return R(self._pari_().minpoly('x').lift())
-        elif algorithm == 'matrix':
+        elif algorithm == 'charpoly':
             p=self.charpoly(var);
             for q in p.factor():
                 if q[0](self)==0:
@@ -393,7 +392,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         f = self.polynomial()._pari_with_name(var)
         return 'Mod({0}, {1})'.format(f, g)
 
-    def charpoly(self, var='x', algorithm='matrix'):
+    def charpoly(self, var='x', algorithm='pari'):
         """
         Return the characteristic polynomial of self as a polynomial with given variable.
 
@@ -401,13 +400,12 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         - ``var`` - string (default: 'x')
 
-        - ``algorithm`` - string (default: 'matrix')
+        - ``algorithm`` - string (default: 'pari')
+
+          - 'pari' -- use pari's charpoly
 
           - 'matrix' - return the charpoly computed from the matrix of
             left multiplication by self
-
-          - 'pari' -- use pari's charpoly routine on polymods, which
-            is not very good except in small cases
 
         The result is not cached.
 

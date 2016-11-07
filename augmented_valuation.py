@@ -387,18 +387,6 @@ class AugmentedValuation_base(InductiveValuation):
         """
         return [self] + self._base_valuation.augmentation_chain()
 
-    @cached_method
-    def residue_ring(self):
-        generator = 'u' + str(len(self.augmentation_chain()) - 1)
-
-        base = self._base_valuation.residue_ring().base()
-        if self.psi().degree() > 1:
-            base = base.extension(self.psi(), names=generator)
-        if self._mu == infinity:
-            return base
-        else:
-            return base[self.domain().variable_name()]
-
     def reduce(self, f):
         r"""
         Reduce ``f`` module this valuation.
@@ -775,21 +763,10 @@ class AugmentedValuation_base(InductiveValuation):
         return F
 
     @cached_method
-    def residue_ring(self):
-        generator = 'u' + str(len(self.augmentation_chain()) - 1)
-
-        base = self._base_valuation.residue_ring().base()
-        if self.psi().degree() > 1:
-            base = base.extension(self.psi(), names=generator)
-        if self._mu == infinity:
-            return base
-        else:
-            return base[self.domain().variable_name()]
-
-    @cached_method
     def residue_field_generator(self):
-        if self.psi().degree() == 1:
-            ret = -self.psi()[0]
+        if self.residue_ring() == self._base_valuation.residue_ring():
+            assert self.psi().degree() == 1
+            ret = self.residue_ring().base()(-self.psi()[0])
         else:
             ret = self.residue_ring().base().gen()
 
@@ -978,6 +955,42 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         for i,c in enumerate(self.coefficients(f)):
             yield self._base_valuation(c) + i*self._mu
 
+    @cached_method
+    def residue_ring(self):
+        r"""
+        Return the residue ring of this valuation, i.e., the elements of
+        non-negative valuation modulo the elements of positive valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w.residue_ring()
+            Univariate Polynomial Ring in x over Finite Field in u1 of size 2^2
+
+        Since trivial valuations of finite fields are not implemented, the
+        resulting ring might be identical to the residue ring of the underlying
+        valuation::
+
+            sage: w = v.augmentation(x, 1)
+            sage: w.residue_ring()
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+
+        """
+        generator = 'u' + str(len(self.augmentation_chain()) - 1)
+
+        base = self._base_valuation.residue_ring().base()
+        if self.psi().degree() > 1:
+            # Do not call extension if self.psi().degree() == 1:
+            # In that case the resulting field appears to be the same as the original field,
+            # however, it is not == to the original field (for finite fields at
+            # least) but a distinct copy (this is a bug in finite field's
+            # extension() implementation.)
+            base = base.extension(self.psi(), names=generator)
+        return base[self.domain().variable_name()]
+
 class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValuation):
     @cached_method
     def value_group(self):
@@ -1027,3 +1040,40 @@ class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValua
         yield self._base_valuation(self.coefficients(f).next())
         for i in range(num_infty_coefficients):
             yield infinity
+
+    @cached_method
+    def residue_ring(self):
+        r"""
+        Return the residue ring of this valuation, i.e., the elements of
+        non-negative valuation modulo the elements of positive valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, infinity)
+            sage: w.residue_ring()
+            Finite Field in u1 of size 2^2
+
+        Since trivial valuations of finite fields are not implemented, the
+        resulting ring might be identical to the residue ring of the underlying
+        valuation::
+
+            sage: w = v.augmentation(x, infinity)
+            sage: w.residue_ring()
+            Finite Field of size 2
+
+        """
+        generator = 'u' + str(len(self.augmentation_chain()) - 1)
+
+        ret = self._base_valuation.residue_ring().base()
+        if self.psi().degree() > 1:
+            # Do not call extension if self.psi().degree() == 1:
+            # In that case the resulting field appears to be the same as the original field,
+            # however, it is not == to the original field (for finite fields at
+            # least) but a distinct copy (this is a bug in finite field's
+            # extension() implementation.)
+            return ret.extension(self.psi(), names=generator)
+        else:
+            return ret

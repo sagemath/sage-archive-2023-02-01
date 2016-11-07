@@ -386,7 +386,11 @@ class InductiveValuation(DevelopingValuation):
 
         """
         tester = self._tester(**options)
-        for s in tester.some_elements(self.value_group().some_elements()):
+        if self.is_gauss_valuation():
+            value_group = self.value_group()
+        else:
+            value_group = self.augmentation_chain()[1].value_group()
+        for s in tester.some_elements(value_group.some_elements()):
             try:
                 R = self.equivalence_unit(s)
             except ValueError:
@@ -1088,8 +1092,9 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         OUTPUT:
 
         A polynomial `f` in the domain of this valuation which is a key
-        polynomial for this valuation and which, for a suitable equivalence
-        unit `R`, satifies that the reduction of `Rf` is ``F``
+        polynomial for this valuation and which is such that an
+        :meth:`augmentation` with this polynomial adjoins a root of ``F`` to
+        the resulting :meth:`residue_ring`.
 
         EXAMPLES::
 
@@ -1124,10 +1129,8 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
                 tester.assertIs(f.parent(), self.domain())
                 tester.assertTrue(self.is_key(f))
 
-                from sage.categories.fields import Fields
-                if self.domain().base_ring() in Fields():
-                    R = self.equivalence_unit(-self(f))
-                    tester.assertEqual(self.reduce(f*R), F)
+                w = self.augmentation(f, self(f) + 1)
+                tester.assertGreaterEqual(len(w.residue_ring()(F).roots()), 1)
 
     def _test_is_equivalence_irreducible(self, **options):
         r"""

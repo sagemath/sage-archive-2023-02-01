@@ -2,7 +2,21 @@
 from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
 from six import iteritems
 
+class OmegaGroupElement(IndexedFreeAbelianGroup.Element):
+
+    def __init__(self, parent, x, normalize=True):
+        if normalize:
+            from sage.misc.misc_c import prod
+            L = parent.factor_ring()
+            constant = prod(
+                (f.constant_coefficient()**e for f, e in iteritems(x)), L.one())
+            x = {f/f.constant_coefficient(): e for f, e in iteritems(x)}
+        super(OmegaGroup.Element, self).__init__(parent, x)
+
+
 class OmegaGroup(IndexedFreeAbelianGroup):
+
+    Element = OmegaGroupElement
 
     @staticmethod
     def __classcall__(cls, base_ring, names):
@@ -61,14 +75,3 @@ class OmegaGroup(IndexedFreeAbelianGroup):
             L = self.factor_ring()
             x = list((L(f), e) for f, e in x)
         return super(OmegaGroup, self)._element_constructor_(x)
-        
-
-    class Element(IndexedFreeAbelianGroup.Element):
-        def __init__(self, parent, x, normalize=True):
-            if normalize:
-                from sage.misc.misc_c import prod
-                L = parent.factor_ring()
-                constant = prod(
-                    (f.constant_coefficient()**e for f, e in iteritems(x)), L.one())
-                x = {f/f.constant_coefficient(): e for f, e in iteritems(x)}
-            super(OmegaGroup.Element, self).__init__(parent, x)

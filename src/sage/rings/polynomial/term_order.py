@@ -1682,9 +1682,11 @@ class TermOrder(SageObject):
         """
         n = 0
         for block in self:
-            r = getattr(block,"compare_tuples_" + block.name())(f[n:n+len(block)],g[n:n+len(block)])
-            if r != 0:
-                if r < 0:
+            keyfn = getattr(block, "sortkey_" + block.name())
+            f_key = keyfn(f[n:n + len(block)])
+            g_key = keyfn(g[n:n + len(block)])
+            if f_key != g_key:
+                if f_key < g_key:
                     return g
                 else:
                     return f

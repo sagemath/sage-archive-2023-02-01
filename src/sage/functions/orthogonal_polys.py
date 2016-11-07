@@ -1545,9 +1545,7 @@ class Func_ultraspherical(GinacFunction):
         Traceback (most recent call last):
         ...
         RuntimeError: gegenb_eval: The index n must be a nonnegative integer
-
     """
-
     def __init__(self):
         r"""
         Init method for the ultraspherical polynomials.

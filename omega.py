@@ -34,6 +34,60 @@ def HomogenousSymmetricFunction(j, x):
     return sum(prod(xx**pp for xx, pp in zip(x, p))
                for p in IntegerVectors(j, length=len(x)))
 
+
+def Omega_P(a, x, y):
+    if len(x) == 1:
+        return x[0]**(-a) + \
+            (prod(1 - x[0]*yy for yy in y) *
+             sum(HomogenousSymmetricFunction(j, y) * (1-x[0]^(j-a))
+                 for j in srange(a))
+             if a > 0 else 0)
+
+    return (x[-1] * (1-x[-2]) *
+            prod(1 - x[-2]*yy for yy in y) *
+            Omega_P(a, x[:-2] + x[-1:], y)
+            -
+            x[-2] * (1-x[-1]) *
+            prod(1 - x[-1]*yy for yy in y) *
+            Omega_P(a, x[:-1], y))  /  (x[-1] - x[-2])
+
+
+def Omega_Fundamental(a, x, y):
+    r"""
+    EXAMPLES::
+
+        sage: L.<x, y, z, w> = LaurentPolynomialRing(QQ)
+        sage: Omega_Fundamental(0, [x], [y])
+        (1, (-x + 1, -x*y + 1))
+        sage: Omega_Fundamental(0, [x], [y, z])
+        (1, (-x + 1, -x*y + 1, -x*z + 1))
+        sage: Omega_Fundamental(0, [x, y], [z])
+        (-x*y*z + 1, (-x + 1, -y + 1, -x*z + 1, -y*z + 1))
+        sage: Omega_Fundamental(0, [x, y, z], [w])
+        (x*y*z*w^2 + x*y*z*w - x*y*w - x*z*w - y*z*w + 1,
+         (-x + 1, -y + 1, -z + 1, -x*w + 1, -y*w + 1, -z*w + 1))
+        sage: Omega_Fundamental(0, [x, y], [z, w])
+        (x^2*y*z*w + x*y^2*z*w - x*y*z*w - x*y*z - x*y*w + 1,
+         (-x + 1, -y + 1, -x*z + 1, -x*w + 1, -y*z + 1, -y*w + 1))
+    """
+    if not y:
+        factors_denominator = tuple(1 - xx for xx in x)
+        return (1 - (prod(factors_denominator) *
+                     sum(HomogenousSymmetricFunction(j, x)
+                         for j in srange(-a))
+                     if a < 0 else 0),
+                factors_denominator)
+
+    if not x:
+        return (sum(HomogenousSymmetricFunction(j, x)
+                    for j in srange(a+1)),
+                tuple())
+
+    return (Omega_P(a, x, y),
+            tuple(1 - xx for xx in x) +
+            tuple(1 - xx*yy for xx in x for yy in y))
+
+
 class OmegaGroupElement(IndexedFreeAbelianGroup.Element):
 
     def __init__(self, parent, x, normalize=True):

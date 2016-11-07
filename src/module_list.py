@@ -838,7 +838,6 @@ ext_modules = [
     Extension("sage.matrix.matrix_complex_ball_dense",
               ["sage/matrix/matrix_complex_ball_dense.pyx"],
               libraries=['arb', 'mpfi', 'mpfr'],
-              include_dirs=[SAGE_INC + '/flint'],
               language = "c++"),
 
     Extension('sage.matrix.matrix_complex_double_dense',

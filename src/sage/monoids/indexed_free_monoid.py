@@ -31,6 +31,7 @@ from sage.rings.infinity import infinity
 from sage.rings.all import ZZ
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.family import Family
+from six import iteritems
 
 class IndexedMonoidElement(MonoidElement):
     """
@@ -943,6 +944,11 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
 
             sage: F([(1, 3), (1, 2)])
             F[1]^5
+
+            sage: F([(42, 0)])
+            1
+            sage: F({42: 0})
+            1
         """
         if isinstance(x, (list, tuple)):
             d = dict()
@@ -952,6 +958,8 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
                 else:
                     d[k] = v
             x = d
+        if isinstance(x, dict):
+            x = {k: v for k, v in iteritems(x) if v != 0}
         return IndexedMonoid._element_constructor_(self, x)
 
     Element = IndexedFreeAbelianMonoidElement

@@ -31,6 +31,7 @@ from sage.combinat.dict_addition import dict_addition
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.sets.family import Family
+from six import iteritems
 
 class IndexedGroup(IndexedMonoid):
     """
@@ -354,6 +355,13 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
 
             sage: G([(1, 3), (1, -5)])
             F[1]^-2
+
+            sage: G([(42, 0)])
+            1
+            sage: G([(42, 3), (42, -3)])
+            1
+            sage: G({42: 0})
+            1
         """
         if isinstance(x, (list, tuple)):
             d = dict()
@@ -363,6 +371,8 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
                 else:
                     d[k] = v
             x = d
+        if isinstance(x, dict):
+            x = {k: v for k, v in iteritems(x) if v != 0}
         return IndexedGroup._element_constructor_(self, x)
 
     @cached_method

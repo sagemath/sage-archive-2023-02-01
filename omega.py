@@ -14,6 +14,26 @@ from __future__ import absolute_import
 from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
 from six import iteritems
 
+
+def HomogenousSymmetricFunction(j, x):
+    r"""
+    EXAMPLES::
+
+        sage: P = PolynomialRing(ZZ, 'X', 3)
+        sage: HomogenousSymmetricFunction(0, P.gens())
+        1
+        sage: HomogenousSymmetricFunction(1, P.gens())
+        X0 + X1 + X2
+        sage: HomogenousSymmetricFunction(2, P.gens())
+        X0^2 + X0*X1 + X1^2 + X0*X2 + X1*X2 + X2^2
+        sage: HomogenousSymmetricFunction(3, P.gens())
+        X0^3 + X0^2*X1 + X0*X1^2 + X1^3 + X0^2*X2 +
+        X0*X1*X2 + X1^2*X2 + X0*X2^2 + X1*X2^2 + X2^3
+    """
+    from sage.combinat.integer_vector import IntegerVectors
+    return sum(prod(xx**pp for xx, pp in zip(x, p))
+               for p in IntegerVectors(j, length=len(x)))
+
 class OmegaGroupElement(IndexedFreeAbelianGroup.Element):
 
     def __init__(self, parent, x, normalize=True):

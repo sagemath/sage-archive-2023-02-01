@@ -272,6 +272,15 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             '\\left(a + b\\right)x'
             sage: latex(y)
             \left(a + b\right)x
+
+        TESTS::
+
+            sage: L.<lambda2> = LaurentPolynomialRing(QQ)
+            sage: latex(L.an_element())
+            \lambda_{2}
+            sage: L.<y2> = LaurentPolynomialRing(QQ)
+            sage: latex(L.an_element())
+            y_{2}
         """
         from sage.misc.latex import latex
 

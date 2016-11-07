@@ -4340,6 +4340,11 @@ class FinitePoset(UniqueRepresentation, Parent):
           result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
 
+        .. SEEALSO::
+
+            :meth:`ordinal_summands`, :meth:`disjoint_union`,
+            :meth:`sage.combinat.posets.lattices.FiniteLatticePoset.vertical_composition`
+
         EXAMPLES::
 
             sage: P1 = Poset( ([1, 2, 3, 4], [[1, 2], [1, 3], [1, 4]]) )
@@ -4372,10 +4377,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite join-semilattice containing 4 elements
             sage: L.ordinal_sum(L)
             Finite lattice containing 4 elements
-
-        .. SEEALSO::
-
-            :meth:`ordinal_summands`, :meth:`disjoint_union`, :meth:`ordinal_product`
 
         TESTS::
 

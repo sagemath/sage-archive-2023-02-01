@@ -45,6 +45,8 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_semidistributive` | Return ``True`` if the lattice is both join- and meet-semidistributive.
     :meth:`~FiniteLatticePoset.is_join_semidistributive` | Return ``True`` if the lattice is join-semidistributive.
     :meth:`~FiniteLatticePoset.is_meet_semidistributive` | Return ``True`` if the lattice is meet-semidistributive.
+    :meth:`~FiniteLatticePoset.is_join_distributive` | Return ``True`` if the lattice is join-distributive.
+    :meth:`~FiniteLatticePoset.is_meet_distributive` | Return ``True`` if the lattice is meet-distributive.
     :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
     :meth:`~FiniteLatticePoset.is_coatomic` | Return ``True`` if every element of the lattice can be written as a meet of coatoms.
     :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
@@ -91,6 +93,7 @@ List of (semi)lattice methods
 
     :meth:`~FiniteLatticePoset.moebius_algebra` | Return the Möbius algebra of the lattice.
     :meth:`~FiniteLatticePoset.quantum_moebius_algebra` | Return the quantum Möbius algebra of the lattice.
+    :meth:`~FiniteLatticePoset.vertical_composition` | Return ordinal sum of lattices with top/bottom element unified.
     :meth:`~FiniteLatticePoset.day_doubling` | Return the lattice with Alan Day's doubling construction of a subset.
 """
 #*****************************************************************************
@@ -2043,6 +2046,101 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return (True, [self._vertex_to_element(e) for e in reversed(cert)])
         return True
 
+    def vertical_composition(self, other, labels='pairs'):
+        r"""
+        Return the vertical composition of the lattice with ``other``.
+
+        Let `L` and `K` be lattices and `b_K` the bottom element
+        of `K`. The vertical composition of `L` and `K` is the ordinal
+        sum of `L` and `K \setminus \{b_K\}`. Informally said this is
+        lattices "glued" together with a common element.
+
+        Mathematically, it is only defined when `L` and `K` have no
+        common element; here we force that by giving them different
+        names in the resulting poset.
+
+        INPUT:
+
+        - ``other`` -- a lattice
+
+        - ``labels`` -- a string (default ``'pairs'``); can be one of
+          the following:
+
+          * ``'pairs'`` - each element ``v`` in this poset will be
+            named ``(0, v)`` and each element ``u`` in ``other`` will
+            be named ``(1, u)`` in the result
+          * ``'integers'`` - the elements of the result will be
+            relabeled with consecutive integers
+
+        .. SEEALSO::
+
+            :meth:`vertical_decomposition`,
+            :meth:`sage.combinat.posets.posets.FinitePoset.ordinal_sum`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({'a': ['b', 'c'], 'b': ['d'], 'c': ['d']})
+            sage: K = LatticePoset({'e': ['f', 'g'], 'f': ['h'], 'g': ['h']})
+            sage: M = L.vertical_composition(K)
+            sage: M.list()
+            [(0, 'a'), (0, 'b'), (0, 'c'), (0, 'd'), (1, 'f'), (1, 'g'), (1, 'h')]
+            sage: M.upper_covers((0, 'd'))
+            [(1, 'f'), (1, 'g')]
+
+            sage: C2 = Posets.ChainPoset(2)
+            sage: M3 = Posets.DiamondPoset(5)
+            sage: L = C2.vertical_composition(M3, labels='integers')
+            sage: L.cover_relations()
+            [[0, 1], [1, 2], [1, 3], [1, 4], [2, 5], [3, 5], [4, 5]]
+
+        TESTS::
+
+            sage: C0 = LatticePoset()
+            sage: C1 = LatticePoset({'a': []})
+            sage: C2 = LatticePoset({'b': ['c']})
+            sage: C2.vertical_composition(C2)
+            Finite lattice containing 3 elements
+            sage: C0.vertical_composition(C0)
+            Finite lattice containing 0 elements
+            sage: C0.vertical_composition(C1).list()
+            [(1, 'a')]
+            sage: C1.vertical_composition(C0).list()
+            [(0, 'a')]
+            sage: C1.vertical_composition(C1).list()
+            [(0, 'a')]
+            sage: C1.vertical_composition(C2).list()
+            [(0, 'a'), (1, 'c')]
+            sage: C2.vertical_composition(C1).list()
+            [(0, 'b'), (0, 'c')]
+        """
+        from copy import copy
+
+        # Todo: This and ordinal_sum() of posets could keep
+        # distinguished linear extension, if it is defined
+        # for both posets/lattices. That can be done after
+        # trac ticket #21607.
+
+        if labels not in ['integers', 'pairs']:
+            raise ValueError("labels must be either 'pairs' or 'integers'")
+        if not isinstance(self, FiniteLatticePoset):
+            raise ValueError("the input is not a finite lattice")
+        if self._is_facade != other._is_facade:
+            raise ValueError("mixing facade and non-facade lattices is not defined")
+
+        if labels == 'integers':
+            g_self = copy(self._hasse_diagram)
+            g_other = other._hasse_diagram.copy(immutable=False)
+            n = max(g_self.order(), 1)  # max() takes care of empty 'self'.
+            g_other.relabel(lambda v: v+n-1)
+            g_result = g_self.union(g_other)
+            return FiniteLatticePoset(g_result, elements=range(g_result.order()),
+                                      facade=self._is_facade, category=FiniteLatticePosets())
+
+        if self.cardinality() == 0:
+            return other.relabel(lambda e: (1, e))
+        S = other.subposet([e for e in other if e != other.bottom()])
+        return LatticePoset(self.ordinal_sum(S), facade=self._is_facade)
+
     def vertical_decomposition(self, elements_only=False):
         r"""
         Return sublattices from the vertical decomposition of the lattice.
@@ -2066,6 +2164,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
+            :meth:`vertical_composition`,
             :meth:`is_vertically_decomposable`
 
         EXAMPLES:

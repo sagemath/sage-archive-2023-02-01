@@ -1562,7 +1562,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                                     atomic_coefficients=atomic, cmpfn=cmpfn)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
@@ -1575,6 +1575,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
             sage: L.<lambda2, y2> = LaurentPolynomialRing(QQ)
             sage: latex(1/lambda2 + y2^(-3))
+            \lambda_{2}^{-1} + y_{2}^{-3}
         """
         if self._prod is None:
             self._compute_polydict()

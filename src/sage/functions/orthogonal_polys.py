@@ -1444,7 +1444,7 @@ class Func_ultraspherical(GinacFunction):
     r"""
     Return the ultraspherical (or Gegenbauer) polynomial gegenbauer(n,a,x),
 
-    .. math::
+    .. MATH::
 
         C_n^{a}(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k\frac{\Gamma(n-k+a)}
         {\Gamma(a)k!(n-2k)!}(2x)^{n-2k}.

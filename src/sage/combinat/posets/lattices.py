@@ -1493,13 +1493,22 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement()`.
 
+        ALGORITHM:
+
+        According to [Cha92]_ a lattice is pseudocomplemented if and
+        only if every atom has a pseudocomplement. So we only check those.
+
         TESTS::
 
             sage: LatticePoset({}).is_pseudocomplemented()
             True
         """
         H = self._hasse_diagram
-        for e in H:
+        if H.order() == 0:
+            if certificate:
+                return (True, None)
+            return True
+        for e in H.neighbor_out_iterator(0):
             if H.pseudocomplement(e) is None:
                 if certificate:
                     return (False, self._vertex_to_element(e))

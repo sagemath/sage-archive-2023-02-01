@@ -147,6 +147,11 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: b.minpoly('x')
             x + 17
         """
+        if self.polynomial().degree() == 0:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(self.parent().prime_subfield(), var)
+            return R.gen() - self.polynomial()[0]
+
         p=self.charpoly(var);
         for q in p.factor():
             if q[0](self)==0:

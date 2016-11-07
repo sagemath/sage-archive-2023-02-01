@@ -338,7 +338,7 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
 
         EXAMPLES::
 
-            sage: G = FreeAbelianMonoid(index_set=ZZ)
+            sage: G = Groups().Commutative().free(index_set=ZZ)
             sage: G(G.gen(2))
             F[2]
             sage: G([[1, 3], [-2, 12]])

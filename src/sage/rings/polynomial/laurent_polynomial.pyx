@@ -13,8 +13,6 @@ from __future__ import print_function
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
-from sage.misc.latex import latex
-import sage.misc.latex
 from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
@@ -275,6 +273,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: latex(y)
             \left(a + b\right)x
         """
+        from sage.misc.latex import latex
+
         if self.is_zero():
             return "0"
         s = " "
@@ -287,7 +287,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         for n in xrange(m):
             x = v[n]
             e = n + valuation
-            x = sage.misc.latex.latex(x)
+            x = latex(x)
             if x != '0':
                 if not first:
                     s += " + "

@@ -130,10 +130,22 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         ## applies here.
         return codomain(self.polynomial()(im_gens[0]))
 
-    def minpoly(self,var='x'):
+    def minpoly(self,var='x',algorithm='pari'):
         """
         Returns the minimal polynomial of this element
         (over the corresponding prime subfield).
+
+        INPUT:
+
+        - ``var`` - string (default: 'x')
+
+        - ``algorithm`` - string (default: 'pari')
+
+          - 'pari' -- use pari's minpoly
+
+          - 'matrix' - deduce the minpoly from the factorization of
+            the charpoly computed from the matrix of left multiplication
+            by self
 
         EXAMPLES::
 
@@ -152,12 +164,20 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             R = PolynomialRing(self.parent().prime_subfield(), var)
             return R.gen() - self.polynomial()[0]
 
-        p=self.charpoly(var);
-        for q in p.factor():
-            if q[0](self)==0:
-                return q[0]
-        # This shouldn't be reached, but you never know!
-        raise ArithmeticError("Could not find the minimal polynomial")
+        if algorithm == 'pari':
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(self.parent().prime_subfield(), var)
+            return R(self._pari_().minpoly('x').lift())
+        elif algorithm == 'matrix':
+            p=self.charpoly(var);
+            for q in p.factor():
+                if q[0](self)==0:
+                    return q[0]
+            # This shouldn't be reached, but you never know!
+            raise ArithmeticError("Could not find the minimal polynomial")
+        else:
+            raise ValueError("unknown algorithm '%s'" % algorithm)
+
 
         ## We have two names for the same method
         ## for compatibility with sage.matrix

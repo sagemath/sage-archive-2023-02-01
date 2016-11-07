@@ -1562,6 +1562,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: latex(a)
             w^{2} z^{-1} + 3
 
+        TESTS::
+
+            sage: L.<lambda2, y2> = LaurentPolynomialRing(QQ)
+            sage: latex(1/lambda2 + y2^(-3))
         """
         if self._prod is None:
             self._compute_polydict()
@@ -1570,7 +1574,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         except AttributeError:
             cmpfn = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
-        return self._prod.latex(self.parent().variable_names(),
+        return self._prod.latex(self.parent().latex_variable_names(),
                                 atomic_coefficients=atomic, cmpfn=cmpfn)
 
     def __invert__(LaurentPolynomial_mpair self):

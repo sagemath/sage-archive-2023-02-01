@@ -38,6 +38,7 @@ from sage.finance.time_series cimport TimeSeries
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all import matrix
 from sage.misc.randstate cimport current_randstate, randstate
+from cpython.object cimport PyObject_RichCompare
 
 from util cimport HMM_Util
 
@@ -359,7 +360,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         return unpickle_discrete_hmm_v1, \
                (self.A, self.B, self.pi, self.n_out, self._emission_symbols, self._emission_symbols_dict)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -375,9 +376,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             False
         """
         if not isinstance(other, DiscreteHiddenMarkovModel):
-            raise ValueError
-        return cmp(self.__reduce__()[1], other.__reduce__()[1])
-
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def emission_matrix(self):
         """

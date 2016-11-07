@@ -80,6 +80,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.sublattices_lattice` | Return the lattice of sublattices.
     :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.skeleton` | Return the skeleton of the lattice.
     :meth:`~FiniteLatticePoset.vertical_decomposition` | Return the vertical decomposition of the lattice.
     :meth:`~FiniteLatticePoset.canonical_joinands` | Return the canonical joinands of an element.
     :meth:`~FiniteLatticePoset.canonical_meetands` | Return the canonical meetands of an element.
@@ -1506,6 +1507,58 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if certificate:
             return (True, None)
         return True
+
+    def skeleton(self):
+        """
+        Return the skeleton of the lattice.
+
+        The lattice is expected to be pseudocomplemented.
+
+        The *skeleton* of a pseudocomplemented lattice `L`, where `^*` is
+        the pseudocomplementation operation, is the subposet induced by
+        `\{e^* \mid e \in L\}`. Actually this poset is a Boolean lattice.
+
+        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement`.
+
+        EXAMPLES::
+
+            sage: D12 = Posets.DivisorLattice(12)
+            sage: S = D12.skeleton(); S
+            Finite lattice containing 4 elements
+            sage: S.cover_relations()
+            [[1, 3], [1, 4], [3, 12], [4, 12]]
+
+            sage: T4 = Posets.TamariLattice(4)
+            sage: T4.skeleton().is_isomorphic(Posets.BooleanLattice(3))
+            True
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).skeleton()
+            Finite lattice containing 0 elements
+            sage: Posets.ChainPoset(1).skeleton()
+            Finite lattice containing 1 elements
+            sage: Posets.ChainPoset(2).skeleton()
+            Finite lattice containing 2 elements
+            sage: Posets.ChainPoset(3).skeleton()
+            Finite lattice containing 2 elements
+
+            sage: L = Posets.BooleanLattice(3)
+            sage: L == L.skeleton()
+            True
+
+            sage: Posets.DiamondPoset(5).skeleton()
+            Traceback (most recent call last):
+            ...
+            ValueError: lattice is not pseudocomplemented
+        """
+        # TODO: What about non-facade lattices and lattices with
+        # given linear extension?
+        if self.cardinality() < 3:
+            return self
+        elms = [self._vertex_to_element(v) for v in
+                self._hasse_diagram.skeleton()]
+        return LatticePoset(self.subposet(elms))
 
     def is_orthocomplemented(self, unique=False):
         """

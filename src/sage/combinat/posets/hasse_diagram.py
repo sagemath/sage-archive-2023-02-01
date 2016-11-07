@@ -2100,6 +2100,55 @@ class HasseDiagram(DiGraph):
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
 
+    def skeleton(self):
+        """
+        Return the skeleton of the lattice.
+
+        The lattice is expected to be pseudocomplemented and non-empty.
+
+        The skeleton of the lattice is the subposet induced by
+        those elements that are the pseudocomplement to at least one
+        element.
+
+        OUTPUT:
+
+        List of elements such that the subposet induced by them is
+        the skeleton of the lattice.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3, 4], 2: [4],
+            ....:                   3: [5], 4: [5]})
+            sage: H.skeleton()
+            [5, 2, 0, 3]
+        """
+        p_atoms = []
+        for atom in self.neighbor_out_iterator(0):
+            p_atom = self.pseudocomplement(atom)
+            if p_atom is None:
+                raise ValueError("lattice is not pseudocomplemented")
+            p_atoms.append(p_atom)
+        n = len(p_atoms)
+        mt = self._meet
+        pos = [0] * n
+        meets = [self.order()-1] * n
+        result = [self.order()-1]
+        i = 0
+
+        while i >= 0:
+            new_meet = mt[meets[i-1], p_atoms[pos[i]]]
+            result.append(new_meet)
+            if pos[i] == n-1:
+                i -= 1
+                pos[i] = pos[i]+1
+            else:
+                meets[i] = new_meet
+                pos[i+1] = pos[i]+1
+                i += 1
+
+        return result
+
     def is_convex_subset(self, S):
         r"""
         Return ``True`` if `S` is a convex subset of the poset,

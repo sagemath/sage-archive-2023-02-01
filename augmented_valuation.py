@@ -387,129 +387,6 @@ class AugmentedValuation_base(InductiveValuation):
         """
         return [self] + self._base_valuation.augmentation_chain()
 
-    def reduce(self, f):
-        r"""
-        Reduce ``f`` module this valuation.
-
-        INPUT:
-
-        - ``f`` -- an element of the domain of this valuation of non-negative
-          valuation
-
-        OUTPUT:
-
-        an element of the :meth:`residue_ring` of this valuation, the reduction
-        modulo the ideal of elements of positive valuation
-
-        ALGORITHM:
-
-        We follow the algorithm given in the proof of Theorem 12.1 of [ML1936]:
-        If ``f`` has positive valuation, the reduction is simply zero.
-        Otherwise, let `f=\sum f_i\phi^i` be the expansion of `f`, as computed
-        by :meth:`coefficients`. Since the valuation is zero, the exponents `i`
-        must all be multiples of `\tau`, the index the value group of the base
-        valuation in the value group of this valuation.
-        Hence, there is an :meth:`equivalence_unit` `Q` with the same valuation
-        as `\phi^\tau`. Let `Q'` be its :meth:`reciprocal_inverse`.
-        Now, rewrite each term `f_i\phi^{i\tau}=(f_iQ^i)(\phi^\tauQ^{-1})^i`;
-        it turns out that the second factor in this expression is a lift of the
-        generator of the :meth:`residue_field`. The reduction of the first
-        factor can be computed recursively.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: v.reduce(x)
-            x
-            sage: v.reduce(S(u))
-            u0
-
-            sage: w = v.augmentation(x^2 + x + u, 1/2)
-            sage: w.reduce(S.one())
-            1
-            sage: w.reduce(S(2))
-            0
-            sage: w.reduce(S(u))
-            u0
-            sage: w.reduce(x) # this gives the generator of the residue field extension of w over v
-            u1
-            sage: f = (x^2 + x + u)^2 / 2
-            sage: w.reduce(f)
-            x
-            sage: w.reduce(f + x + 1)
-            x + u1 + 1
-
-            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
-            sage: g = ((x^2 + x + u)^2 + 2)^3 / 2^5
-            sage: w.reduce(g)
-            x
-            sage: w.reduce(f)
-            1
-            sage: w(f-1) > 0 # checking the above
-            True
-            sage: w.reduce(f * g)
-            x
-            sage: w.reduce(f + g)
-            x + 1
-
-        REFERENCES:
-
-        .. [ML1936] Mac Lane, S. (1936). A construction for prime ideals as absolute
-        values of an algebraic field. Duke Mathematical Journal, 2(3), 492-510.
-
-        .. SEEALSO::
-
-            :meth:`lift`
-
-        """
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of the valuation")
-        from sage.categories.fields import Fields
-        if not self.domain().base_ring() in Fields():
-            raise NotImplementedError("only implemented for polynomial rings over fields")
-
-        if self(f) < 0:
-            assert self(f) < 0
-            raise ValueError("f must have non-negative valuation")
-        elif self(f) > 0:
-            return self.residue_ring().zero()
-
-        # if this extends a trivial valuation, then this is very easy: just
-        # return the constant coefficient in the phi-adic expansion; everything
-        # else must have positive valuation
-        if self._base_valuation.value_group().is_trivial():
-            assert self.valuations(f).next() == 0
-            if self.value_group().is_trivial():
-                raise NotImplementedError
-            return self.residue_ring()(self.coefficients(f).next())(self.residue_field_generator())
-
-        if self._mu == infinity:
-            # if this is an infinite valuation, then we can simply drop all but the
-            # constant term
-            constant_term = self.coefficients(f).next()
-            constant_term_reduced = self._base_valuation.reduce(constant_term)
-            return constant_term_reduced(self.residue_ring().gen())
-
-        CV = zip(self.coefficients(f), self.valuations(f))
-        # rewrite as sum of f_i phi^{i tau}, i.e., drop most coefficients
-        tau = self.value_group().index(self._base_valuation.value_group())
-        assert not any([v==0 for i,(c,v) in enumerate(CV) if i % tau != 0])
-        CV = CV[::tau]
-
-        # replace f_i by f_i Q^{i tau}
-        vQ = self._mu * tau
-        CV = [(c*self._Q()**i, v - vQ*i) for i,(c,v) in enumerate(CV)]
-        assert all([self._base_valuation(c)>=0 for c,v in CV])
-
-        # recursively reduce the f_i Q^{i tau}
-        C = [self._base_valuation.reduce(c)(self.residue_field_generator()) for c,v in CV]
-
-        # reduce the Q'^i phi^i
-        return self.residue_ring()(C)
-
     def lift(self, F):
         """
         Return a polynomial whose :meth:`reduction` is ``F``.
@@ -762,18 +639,6 @@ class AugmentedValuation_base(InductiveValuation):
         assert F.is_irreducible()
         return F
 
-    @cached_method
-    def residue_field_generator(self):
-        if self.residue_ring() == self._base_valuation.residue_ring():
-            assert self.psi().degree() == 1
-            ret = self.residue_ring().base()(-self.psi()[0])
-        else:
-            ret = self.residue_ring().base().gen()
-
-        assert ret.parent() is self.residue_ring().base()
-        assert self.psi()(ret).is_zero()
-        return ret
-
     def E(self):
         """
         Return the ramification index of this valuation over its underlying
@@ -894,7 +759,7 @@ class AugmentedValuation_base(InductiveValuation):
         assert self.is_equivalence_unit(ret)
         # esentially this checks that the reduction of Q'*phi^tau is the
         # generator of the residue field
-        assert self._base_valuation.reduce(self._Q()*ret)(self.residue_field_generator()).is_one()
+        assert self._base_valuation.reduce(self._Q()*ret)(self._residue_field_generator()).is_one()
 
         return ret
 
@@ -991,6 +856,130 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             base = base.extension(self.psi(), names=generator)
         return base[self.domain().variable_name()]
 
+    def reduce(self, f):
+        r"""
+        Reduce ``f`` module this valuation.
+
+        OUTPUT:
+
+        an element of the :meth:`residue_ring` of this valuation, the reduction
+        modulo the ideal of elements of positive valuation
+
+        ALGORITHM:
+
+        We follow the algorithm given in the proof of Theorem 12.1 of [ML1936]:
+        If ``f`` has positive valuation, the reduction is simply zero.
+        Otherwise, let `f=\sum f_i\phi^i` be the expansion of `f`, as computed
+        by :meth:`coefficients`. Since the valuation is zero, the exponents `i`
+        must all be multiples of `\tau`, the index the value group of the base
+        valuation in the value group of this valuation.
+        Hence, there is an :meth:`equivalence_unit` `Q` with the same valuation
+        as `\phi^\tau`. Let `Q'` be its :meth:`reciprocal_inverse`.
+        Now, rewrite each term `f_i\phi^{i\tau}=(f_iQ^i)(\phi^\tauQ^{-1})^i`;
+        it turns out that the second factor in this expression is a lift of the
+        generator of the :meth:`residue_field`. The reduction of the first
+        factor can be computed recursively.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v.reduce(x)
+            x
+            sage: v.reduce(S(u))
+            u0
+
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: w.reduce(S.one())
+            1
+            sage: w.reduce(S(2))
+            0
+            sage: w.reduce(S(u))
+            u0
+            sage: w.reduce(x) # this gives the generator of the residue field extension of w over v
+            u1
+            sage: f = (x^2 + x + u)^2 / 2
+            sage: w.reduce(f)
+            x
+            sage: w.reduce(f + x + 1)
+            x + u1 + 1
+
+            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
+            sage: g = ((x^2 + x + u)^2 + 2)^3 / 2^5
+            sage: w.reduce(g)
+            x
+            sage: w.reduce(f)
+            1
+            sage: w(f-1) > 0 # checking the above
+            True
+            sage: w.reduce(f * g)
+            x
+            sage: w.reduce(f + g)
+            x + 1
+
+        """
+        f = self.domain().coerce(f)
+
+        if self(f) < 0:
+            raise ValueError("f must have non-negative valuation")
+        elif self(f) > 0:
+            return self.residue_ring().zero()
+
+        if self._base_valuation.value_group().is_trivial():
+            # if this extends a trivial valuation, then this is very easy: just
+            # return the constant coefficient in the phi-adic expansion; everything
+            # else must have positive valuation
+            assert not self.value_group().is_trivial()
+            assert self.valuations(f).next() == 0
+            return self.residue_ring()(self.coefficients(f).next())(self._residue_field_generator())
+
+        CV = zip(self.coefficients(f), self.valuations(f))
+        # rewrite as sum of f_i phi^{i tau}, i.e., drop the coefficients that
+        # can have no influence on the reduction
+        tau = self.value_group().index(self._base_valuation.value_group())
+        assert not any([v==0 for i,(c,v) in enumerate(CV) if i % tau != 0])
+        CV = CV[::tau]
+
+        # replace f_i by f_i Q^{i tau}
+        vQ = self._mu * tau
+        CV = [(c*self._Q()**i, v - vQ*i) for i,(c,v) in enumerate(CV)]
+        assert all([self._base_valuation(c)>=0 for c,v in CV])
+
+        # recursively reduce the f_i Q^{i tau}
+        C = [self._base_valuation.reduce(c)(self._residue_field_generator()) for c,v in CV]
+
+        # reduce the Q'^i phi^i
+        return self.residue_ring()(C)
+
+    @cached_method
+    def _residue_field_generator(self):
+        r"""
+        Return a root of :meth:`psi` in :meth:`residue_ring`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: w._residue_field_generator()
+            u1
+            
+        """
+        if self.residue_ring() == self._base_valuation.residue_ring():
+            assert self.psi().degree() == 1
+            ret = self.residue_ring().base()(-self.psi()[0])
+        else:
+            ret = self.residue_ring().base().gen()
+
+        assert ret.parent() is self.residue_ring().base()
+        assert self.psi()(ret).is_zero()
+        return ret
+
+
 class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValuation):
     @cached_method
     def value_group(self):
@@ -1077,3 +1066,91 @@ class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValua
             return ret.extension(self.psi(), names=generator)
         else:
             return ret
+
+    def reduce(self, f):
+        r"""
+        Reduce ``f`` module this valuation.
+
+        OUTPUT:
+
+        an element of the :meth:`residue_ring` of this valuation, the reduction
+        modulo the ideal of elements of positive valuation
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, infinity)
+            sage: w.reduce(S.one())
+            1
+            sage: w.reduce(S(2))
+            0
+            sage: w.reduce(S(u))
+            u0
+            sage: w.reduce(x) # this gives the generator of the residue field extension of w over v
+            u1
+            sage: f = (x^2 + x + u)^2 / 2
+            sage: w.reduce(f)
+            0
+            sage: w.reduce(f + x + 1)
+            u1 + 1
+
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: w = w.augmentation((x^2 + x + u)^2 + 2, infinity)
+            sage: g = ((x^2 + x + u)^2 + 2)^3 / 2^5
+            sage: w.reduce(g)
+            0
+            sage: w.reduce(f)
+            1
+            sage: w(f-1) > 0 # 1 is really the reduction of f
+            True
+            sage: w.reduce(f * g)
+            0
+            sage: w.reduce(f + g)
+            1
+
+        REFERENCES:
+
+        .. [ML1936] Mac Lane, S. (1936). A construction for prime ideals as absolute
+        values of an algebraic field. Duke Mathematical Journal, 2(3), 492-510.
+
+        """
+        f = self.domain().coerce(f)
+
+        if self(f) < 0:
+            assert self(f) < 0
+            raise ValueError("f must have non-negative valuation")
+        elif self(f) > 0:
+            return self.residue_ring().zero()
+
+        constant_term = self.coefficients(f).next()
+        constant_term_reduced = self._base_valuation.reduce(constant_term)
+        return constant_term_reduced(self._residue_field_generator())
+
+    @cached_method
+    def _residue_field_generator(self):
+        r"""
+        Return a root of :meth:`psi` in :meth:`residue_ring`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, infinity)
+            sage: w._residue_field_generator()
+            u1
+
+        """
+        if self.residue_ring() == self._base_valuation.residue_ring().base():
+            assert self.psi().degree() == 1
+            ret = self.residue_ring()(-self.psi()[0])
+        else:
+            ret = self.residue_ring().gen()
+
+        assert ret.parent() is self.residue_ring()
+        assert self.psi()(ret).is_zero()
+        return ret

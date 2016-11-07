@@ -343,7 +343,7 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
             F[2]
             sage: G([[1, 3], [-2, 12]])
             F[-2]^12*F[1]^3
-            sage: G({1:3, -2: 12})
+            sage: G({1: 3, -2: 12})
             F[-2]^12*F[1]^3
             sage: G(-5)
             Traceback (most recent call last):

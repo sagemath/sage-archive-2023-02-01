@@ -566,8 +566,12 @@ class GaussValuation_generic(FiniteInductiveValuation):
             2-adic valuation
 
         """
-        if ring is self.domain().base_ring():
-            return self._base_valuation
+        if ring.is_subring(self.domain().base_ring()):
+            return self._base_valuation.restriction(ring)
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if is_PolynomialRing(ring) and ring.ngens() == 1:
+            if ring.base().is_subring(self.domain().base()):
+                return GaussValuation(ring, self._base_valuation.restriction(ring.base()))
         return super(GaussValuation_generic, self).restriction(ring)
 
     def is_gauss_valuation(self):

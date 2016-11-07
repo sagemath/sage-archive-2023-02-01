@@ -264,8 +264,8 @@ class PadicValuationFactory(UniqueFactory):
         # which we denote in the following as L = K[x]/(G), do all computations
         # there and then come back the original ring
         L = R.fraction_field()
-        G = L.relative_polynomial()
         K = L.base_ring()
+        G = L.relative_polynomial().change_ring(K)
 
         # Lift v to a pseudo-valuation on K[x]
         # First, we lift valuations defined on subrings of K to valuations on K[x]

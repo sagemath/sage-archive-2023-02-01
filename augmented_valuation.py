@@ -387,230 +387,6 @@ class AugmentedValuation_base(InductiveValuation):
         """
         return [self] + self._base_valuation.augmentation_chain()
 
-    def lift(self, F):
-        """
-        Return a polynomial whose :meth:`reduction` is ``F``.
-
-        INPUT:
-
-        - ``F`` -- an element of the :meth:`residue_ring`
-
-        OUTPUT:
-
-        a polynomial in the domain of the valuation with reduction ``F``, monic
-        if ``F`` is monic
-
-        ALGORITHM:
-
-        Since this is the inverse of :meth:`reduce`, we only have to go backwards
-        through the algorithm described there.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: y = v.residue_ring().gen()
-            sage: u0 = v.residue_ring().base().gen()
-            sage: v.lift(y)
-            (1 + O(2^10))*x
-
-            sage: w = v.augmentation(x^2 + x + u, 1/2)
-            sage: r = w.residue_ring()
-            sage: y = r.gen()
-            sage: u1 = w.residue_ring().base().gen()
-            sage: w.lift(r.one())
-            1 + O(2^10)
-            sage: w.lift(r.zero())
-            0
-            sage: w.lift(r(u0))
-            u + O(2^10)
-            sage: w.lift(r(u1))
-            (1 + O(2^10))*x
-            sage: w.reduce(w.lift(y)) == y
-            True
-            sage: w.reduce(w.lift(y + u1 + 1)) == y + u1 + 1
-            True
-
-            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
-            sage: r = w.residue_ring()
-            sage: y = r.gen()
-            sage: u2 = w.residue_ring().base().gen()
-            sage: w.reduce(w.lift(y)) == y
-            True
-            sage: w.reduce(w.lift(r.one())) == 1
-            True
-            sage: w.reduce(w.lift(y + 1)) == y +  1
-            True
-
-        A more complicated example::
-
-            sage: v = GaussValuation(S)
-            sage: v = v.augmentation(x^2 + x + u, 1)
-            sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
-
-            sage: u = v.residue_ring().base().gen()
-            sage: F = v.residue_ring()(u); F
-            u2
-            sage: f = v.lift(F); f
-            (2^-1 + O(2^9))*x^2 + (2^-1 + O(2^9))*x + u*2^-1 + O(2^9)
-            sage: F == v.reduce(f)
-            True
-
-        """
-        F = self.residue_ring().coerce(F)
-
-        from sage.categories.fields import Fields
-        if not self.domain().base_ring() in Fields():
-            raise NotImplementedError("only implemented for polynomial rings over fields")
-        if self._mu == infinity:
-            if self.psi().degree() == 1:
-                return self._base_valuation.lift(F)
-            else:
-                return self._base_valuation.lift(F.polynomial(self._base_valuation.residue_ring().variable_name()))
-
-        if F.is_constant():
-            if F.is_zero():
-                return self.domain().zero()
-            if F.is_one():
-                return self.domain().one()
-
-        if self._base_valuation.is_trivial():
-            if not self._mu > 0:
-                raise NotImplementedError
-            if not F.is_constant():
-                raise ValueError("any reduction is constant in this valuation")
-            F = F[0]
-            if self.phi() == self.domain().gen():
-                # this is a valuation of the form [p-adic valuation, v(x) = 1]
-                constant = self.restriction(self.domain().base_ring()).lift(F)
-                assert constant in self.domain().base_ring()
-                return self.domain()(constant)
-            else:
-                if self.phi().degree() == 1:
-                    # this is a classical valuation of a rational point, of the
-                    # form [trivial, v(x + 1) = 1]
-                    assert self.domain().base_ring() is self.residue_ring().base()
-                    return self.domain()(F)
-                if self.phi().change_variable_name(self.residue_ring().base().polynomial().variable_name()) == self.residue_ring().base().polynomial():
-                    # this is a classical valuation of a point, of the from
-                    # [trivial, v(x^2 + 1) = 1]
-                    if hasattr(F, 'polynomial'):
-                        u = F.polynomial()
-                    if hasattr(F, 'element'):
-                        u = F.element()
-                    return self.domain()(u.change_variable_name(self.phi().variable_name()))
-                raise NotImplementedError
-
-        R0 = self._base_valuation.residue_ring()
-
-        # in the last step of reduce, the f_iQ^i are reduced, and evaluated at
-        # the generator of the residue field
-        # here, we undo this:
-        coeffs = [ R0(c if self.psi().degree()==1 else list(c._vector_() if hasattr(c, '_vector_') else c.list())) for c in F.coefficients(sparse=False) ]
-        coeffs = [ self._base_valuation.lift(c) for c in coeffs ]
-        # now the coefficients correspond to the expansion with (f_iQ^i)(Q^{-1} phi)^i
-
-        # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when _Q_reciprocal() is undefined)
-        coeffs = [ (c if i == 0 else c*self._Q_reciprocal()**i).map_coefficients(lambda d:_lift_to_maximal_precision(d)) for i,c in enumerate(coeffs) ]
-
-        RR = self.domain().change_ring(self.domain())
-
-        if self._mu is infinity:
-            assert len(coeffs) <= 1
-            ret = RR(coeffs)[0]
-        else:
-            tau = self.value_group().index(self._base_valuation.value_group())
-            ret = RR(coeffs)(self.phi()**tau)
-        ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
-        return ret
-
-    def lift_to_key(self, F):
-        """
-        Lift the irreducible polynomial ``F`` to a key polynomial.
-
-        INPUT:
-
-        - ``F`` -- an irreducible non-constant polynomial in the
-          :meth:`residue_ring` of this valuation
-
-        OUTPUT:
-
-        A polynomial `f` in the domain of this valuation which is a key
-        polynomial for this valuation and which, for a suitable equivalence
-        unit `R`, satifies that the reduction of `Rf` is ``F``
-
-        ALGORITHM:
-
-        We follow the algorithm described in Theorem 13.1 [ML1936] which, after
-        a :meth:`lift` of ``F``, essentially shifts the valuations of all terms
-        in the `\phi`-adic expansion up and then kills the leading coefficient.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-
-            sage: w = v.augmentation(x^2 + x + u, 1/2)
-            sage: y = w.residue_ring().gen()
-            sage: f = w.lift_to_key(y + 1); f
-            (1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (1 + u*2 + O(2^10))*x^2 + (u*2 + O(2^11))*x + (u + 1) + u*2 + u*2^2 + u*2^3 + u*2^4 + u*2^5 + u*2^6 + u*2^7 + u*2^8 + u*2^9 + O(2^10)
-            sage: w.is_key(f)
-            True
-
-        A more complicated example::
-
-            sage: v = GaussValuation(S)
-            sage: v = v.augmentation(x^2 + x + u, 1)
-            sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
-
-            sage: u = v.residue_ring().base().gen()
-            sage: y = v.residue_ring().gen()
-            sage: f = v.lift_to_key(y^3+y+u)
-            sage: f.degree()
-            12
-            sage: v.is_key(f)
-            True
-
-        """
-        if F.parent() is not self.residue_ring():
-            raise ValueError("F must be an element of the residue ring of the valuation")
-        from sage.categories.fields import Fields
-        if not self.domain().base_ring() in Fields():
-            raise NotImplementedError("only implemented for polynomial rings over fields")
-        if self._base_valuation.is_gauss_valuation() and self._mu == infinity:
-            raise TypeError("there are no keys over this valuation")
-
-        if F.is_constant():
-            raise ValueError("F must not be constant")
-        if not F.is_monic():
-            raise ValueError("F must be monic")
-        if not F.is_irreducible():
-            raise ValueError("F must be irreducible")
-        if F == F.parent().gen():
-            return self.phi()
-
-        f = self.lift(F)
-        assert self(f) == 0
-        assert self.reduce(f) == F
-
-        f *= self._Q()**F.degree()
-        CV = zip(self.coefficients(f), self.valuations(f))
-        vf = self(f)
-        CV = [(c,v) if v==vf else (c.parent().zero(),infinity) for c,v in CV]
-        while CV[-1][1] is infinity:
-            CV.pop()
-
-        CV[-1] = (CV[-1][0].parent().one(), vf)
-        ret = self.domain().change_ring(self.domain())([c for c,v in CV])(self.phi())
-        ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
-        assert (ret == self.phi()) == (F == F.parent().gen())
-        assert self.is_key(ret)
-        return ret
-
     @cached_method
     def psi(self):
         """
@@ -658,14 +434,14 @@ class AugmentedValuation_base(InductiveValuation):
             2
 
         """
-        if self._base_valuation.is_trivial():
-            raise ValueError("there is no ramification over a trivial valuation")
+        if self.augmentation_chain()[-1].is_trivial():
+            raise NotImplementedError("ramification index is not defined over a trivial Gauss valuation")
         return self.value_group().index(self._base_valuation.value_group()) * self._base_valuation.E()
 
     def F(self):
         """
         Return the degree of the residue field extension of this valuation
-        over the Gauss valuation.
+        over the underlying Gauss valuation.
 
         EXAMPLES::
 
@@ -681,52 +457,145 @@ class AugmentedValuation_base(InductiveValuation):
             1
 
         """
-        if self._base_valuation.is_trivial():
-            raise ValueError("there is no residual degree over a trivial valuation")
         return self.psi().degree() * self._base_valuation.F()
 
     def extensions(self, ring):
+        r"""
+        Return the extensions of this valuation to ``ring``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w.extensions(GaussianIntegers().fraction_field()['x'])
+            [[ Gauss valuation induced by 2-adic valuation, v(x^2 + x + 1) = 1 ]]
+            
+        """
         if ring is self.domain():
             return [self]
 
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if not is_PolynomialRing(ring) and len(ring.gens()) != 1:
-            raise NotImplementedError("Can not compute extensions to a ring that is not a univariate polynomial ring such as %r"%ring)
+        if is_PolynomialRing(ring) and ring.ngens() == 1:
+            base_valuations = self._base_valuation.extensions(ring)
+            phi = self.phi().change_ring(ring.base_ring())
 
-        base_valuations = self._base_valuation.extensions(ring)
-        phi = self.phi().change_ring(ring.base_ring())
+            ret = []
+            for v in base_valuations:
+                if v.is_key(phi):
+                    ret.append(AugmentedValuation(v, phi, self._mu))
+                else:
+                    F = v.equivalence_decomposition(phi)
+                    mu0 = v(phi)
+                    for f,e in F:
+                        # We construct a valuation with [v, w(phi) = mu] which should be such that
+                        # self(phi) = self._mu, i.e., w(phi) = w(unit) + sum e_i * w(f_i) where
+                        # the sum runs over all the factors in the equivalence decomposition of phi
+                        # Solving for mu gives
+                        mu = (self._mu - v(F.unit()) - sum([ee*v(ff) for ff,ee in F if ff != f])) / e
+                        ret.append(AugmentedValuation(v, f, mu))
+            return ret
 
-        ret = []
-        for v in base_valuations:
-            if v.is_key(phi):
-                ret.append(AugmentedValuation(v, phi, self._mu))
-            else:
-                F = v.equivalence_decomposition(phi)
-                mu0 = v(phi)
-                for f,e in F:
-                    # We construct a valuation with [v, w(phi) = mu] which should be such that
-                    # self(phi) = self._mu, i.e., w(phi) = w(unit) + sum e_i * w(f_i) where
-                    # the sum runs over all the factors in the equivalence decomposition of phi
-                    # Solving for mu gives
-                    mu = (self._mu - v(F.unit()) - sum([ee*v(ff) for ff,ee in F if ff != f])) / e
-                    ret.append(AugmentedValuation(v, f, mu))
-        return ret
+        return super(AugmentedValuation_base, self).extensions(ring)
 
     def restriction(self, ring):
-        if ring is self.domain().base_ring():
-            return self._base_valuation.restriction(ring)
+        r"""
+        Return the restriction of this valuation to ``ring``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = GaussianIntegers().fraction_field()
+            sage: R.<x> = K[]
+            sage: v = GaussValuation(R, pAdicValuation(K, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w.restriction(QQ['x'])
+            [ Gauss valuation induced by 2-adic valuation, v(x^2 + x + 1) = 1 ]
+
+        """
+        if ring.is_subring(self.domain()):
+            base = self._base_valuation.restriction(ring)
+            if ring.is_subring(self.domain().base_ring()):
+                return base
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            if is_PolynomialRing(ring) and ring.ngens() == 1:
+                return base.augmentation(self.phi().change_ring(ring.base()), self._mu)
         return super(AugmentedValuation_base, self).restriction(ring)
 
     def uniformizer(self):
+        r"""
+        Return a uniformizing element for this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w.uniformizer()
+            2
+
+        """
         return self.element_with_valuation(self.value_group()._generator)
 
     def is_gauss_valuation(self):
+        r"""
+        Return whether this valuation is a Gauss valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w.is_gauss_valuation()
+            False
+
+        """
         return False
 
     def monic_integral_model(self, G):
+        r"""
+        Return a monic integral irreducible polynomial which defines the same
+        extension of the base ring of the domain as the irreducible polynomial
+        ``G``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w.monic_integral_model(5*x^2 + 1/2*x + 1/4)
+            x^2 + 1/5*x + 1/5
+
+        """
         return self._base_valuation.monic_integral_model(G)
             
     def _ge_(self, other):
+        r"""
+        Return whether this valuation is greater or equal than ``other``
+        everywhere.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w >= v
+            True
+            sage: ww = v.augmentation(x^2 + x + 1, 2)
+            sage: ww >= w
+            True
+            sage: www = w.augmentation(x^4 + 2*x^3 + 5*x^2 + 8*x + 3, 16/3)
+            sage: www >= w
+            True
+            sage: www >= ww
+            False
+
+        """
         from gauss_valuation import GaussValuation_generic
         if other.is_trivial():
             return other.is_discrete_valuation()
@@ -979,6 +848,215 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         assert self.psi()(ret).is_zero()
         return ret
 
+    def lift(self, F):
+        """
+        Return a polynomial which :meth:`reduce`s to ``F``.
+
+        INPUT:
+
+        - ``F`` -- an element of the :meth:`residue_ring`
+
+        OUTPUT:
+
+        a polynomial in the domain of the valuation with reduction ``F``, monic
+        if ``F`` is monic
+
+        ALGORITHM:
+
+        Since this is the inverse of :meth:`reduce`, we only have to go backwards
+        through the algorithm described there.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: r = w.residue_ring()
+            sage: y = r.gen()
+            sage: u1 = w.residue_ring().base().gen()
+            sage: w.lift(1)
+            1 + O(2^10)
+            sage: w.lift(0)
+            0
+            sage: w.lift(u1)
+            (1 + O(2^10))*x
+            sage: w.reduce(w.lift(y)) == y
+            True
+            sage: w.reduce(w.lift(y + u1 + 1)) == y + u1 + 1
+            True
+
+            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
+            sage: r = w.residue_ring()
+            sage: y = r.gen()
+            sage: u2 = w.residue_ring().base().gen()
+            sage: w.reduce(w.lift(y)) == y
+            True
+            sage: w.reduce(w.lift(1)) == 1
+            True
+            sage: w.reduce(w.lift(y + 1)) == y +  1
+            True
+
+        A more complicated example::
+
+            sage: v = GaussValuation(S)
+            sage: v = v.augmentation(x^2 + x + u, 1)
+            sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
+
+            sage: u = v.residue_ring().base().gen()
+            sage: F = v.residue_ring()(u); F
+            u2
+            sage: f = v.lift(F); f
+            (2^-1 + O(2^9))*x^2 + (2^-1 + O(2^9))*x + u*2^-1 + O(2^9)
+            sage: F == v.reduce(f)
+            True
+
+        """
+        F = self.residue_ring().coerce(F)
+
+        from sage.categories.fields import Fields
+        if not self.domain().base_ring() in Fields():
+            raise NotImplementedError("only implemented for polynomial rings over fields")
+
+        if F.is_constant():
+            if F.is_zero():
+                return self.domain().zero()
+            if F.is_one():
+                return self.domain().one()
+
+        if self._base_valuation.is_trivial():
+            if self._mu == 0:
+                raise NotImplementedError
+            if not F.is_constant():
+                raise ValueError("any reduction is constant in this valuation")
+            F = F[0]
+            if self.phi() == self.domain().gen():
+                # this is a valuation of the form [p-adic valuation, v(x) = 1]
+                constant = self.restriction(self.domain().base_ring()).lift(F)
+                assert constant in self.domain().base_ring()
+                return self.domain()(constant)
+            else:
+                if self.phi().degree() == 1:
+                    # this is a classical valuation of a rational point, of the
+                    # form [trivial, v(x + 1) = 1]
+                    assert self.domain().base_ring() is self.residue_ring().base()
+                    return self.domain()(F)
+                if self.phi().change_variable_name(self.residue_ring().base().polynomial().variable_name()) == self.residue_ring().base().polynomial():
+                    # this is a classical valuation of a point, of the from
+                    # [trivial, v(x^2 + 1) = 1]
+                    if hasattr(F, 'polynomial'):
+                        u = F.polynomial()
+                    if hasattr(F, 'element'):
+                        u = F.element()
+                    return self.domain()(u.change_variable_name(self.phi().variable_name()))
+                raise NotImplementedError
+
+        R0 = self._base_valuation.residue_ring()
+
+        # in the last step of reduce, the f_iQ^i are reduced, and evaluated at
+        # the generator of the residue field
+        # here, we undo this:
+        coeffs = [ R0(c if self.psi().degree()==1 else list(c._vector_() if hasattr(c, '_vector_') else c.list())) for c in F.coefficients(sparse=False) ]
+        coeffs = [ self._base_valuation.lift(c) for c in coeffs ]
+        # now the coefficients correspond to the expansion with (f_iQ^i)(Q^{-1} phi)^i
+
+        # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when _Q_reciprocal() is undefined)
+        coeffs = [ (c if i == 0 else c*self._Q_reciprocal()**i).map_coefficients(lambda d:_lift_to_maximal_precision(d)) for i,c in enumerate(coeffs) ]
+
+        RR = self.domain().change_ring(self.domain())
+
+        tau = self.value_group().index(self._base_valuation.value_group())
+        ret = RR(coeffs)(self.phi()**tau)
+        ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
+        return ret
+
+    def lift_to_key(self, F):
+        """
+        Lift the irreducible polynomial ``F`` to a key polynomial.
+
+        INPUT:
+
+        - ``F`` -- an irreducible non-constant polynomial in the
+          :meth:`residue_ring` of this valuation
+
+        OUTPUT:
+
+        A polynomial `f` in the domain of this valuation which is a key
+        polynomial for this valuation and which, for a suitable equivalence
+        unit `R`, satifies that the reduction of `Rf` is ``F``
+
+        ALGORITHM:
+
+        We follow the algorithm described in Theorem 13.1 [ML1936] which, after
+        a :meth:`lift` of ``F``, essentially shifts the valuations of all terms
+        in the `\phi`-adic expansion up and then kills the leading coefficient.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: y = w.residue_ring().gen()
+            sage: f = w.lift_to_key(y + 1); f
+            (1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (1 + u*2 + O(2^10))*x^2 + (u*2 + O(2^11))*x + (u + 1) + u*2 + u*2^2 + u*2^3 + u*2^4 + u*2^5 + u*2^6 + u*2^7 + u*2^8 + u*2^9 + O(2^10)
+            sage: w.is_key(f)
+            True
+
+        A more complicated example::
+
+            sage: v = GaussValuation(S)
+            sage: v = v.augmentation(x^2 + x + u, 1)
+            sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
+
+            sage: u = v.residue_ring().base().gen()
+            sage: y = v.residue_ring().gen()
+            sage: f = v.lift_to_key(y^3+y+u)
+            sage: f.degree()
+            12
+            sage: v.is_key(f)
+            True
+
+        """
+        if F.parent() is not self.residue_ring():
+            raise ValueError("F must be an element of the residue ring of the valuation")
+        from sage.categories.fields import Fields
+        if not self.domain().base_ring() in Fields():
+            raise NotImplementedError("only implemented for polynomial rings over fields")
+        if self._base_valuation.is_gauss_valuation() and self._mu == infinity:
+            raise TypeError("there are no keys over this valuation")
+
+        if F.is_constant():
+            raise ValueError("F must not be constant")
+        if not F.is_monic():
+            raise ValueError("F must be monic")
+        if not F.is_irreducible():
+            raise ValueError("F must be irreducible")
+        if F == F.parent().gen():
+            return self.phi()
+
+        f = self.lift(F)
+        assert self(f) == 0
+        assert self.reduce(f) == F
+
+        f *= self._Q()**F.degree()
+        CV = zip(self.coefficients(f), self.valuations(f))
+        vf = self(f)
+        CV = [(c,v) if v==vf else (c.parent().zero(),infinity) for c,v in CV]
+        while CV[-1][1] is infinity:
+            CV.pop()
+
+        CV[-1] = (CV[-1][0].parent().one(), vf)
+        ret = self.domain().change_ring(self.domain())([c for c,v in CV])(self.phi())
+        ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
+        assert (ret == self.phi()) == (F == F.parent().gen())
+        assert self.is_key(ret)
+        return ret
+
 
 class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValuation):
     @cached_method
@@ -1154,3 +1232,50 @@ class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValua
         assert ret.parent() is self.residue_ring()
         assert self.psi()(ret).is_zero()
         return ret
+
+    def lift(self, F):
+        """
+        Return a polynomial which :meth:`reduce`s to ``F``.
+
+        INPUT:
+
+        - ``F`` -- an element of the :meth:`residue_ring`
+
+        OUTPUT:
+
+        a polynomial in the domain of the valuation with reduction ``F``, monic
+        if ``F`` is monic
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+
+            sage: w = v.augmentation(x^2 + x + u, infinity)
+            sage: r = w.residue_ring()
+            sage: u1 = w.residue_ring().gen()
+            sage: w.lift(1)
+            1 + O(2^10)
+            sage: w.lift(0)
+            0
+            sage: w.lift(u1)
+            (1 + O(2^10))*x
+
+        """
+        F = self.residue_ring().coerce(F)
+
+        if self.residue_ring() == self._base_valuation.residue_ring():
+            return self._base_valuation.lift(F)
+        else:
+            if F not in self._base_valuation.residue_ring():
+                if hasattr(F, 'polynomial'):
+                    F = F.polynomial(self._base_valuation.residue_ring().variable_name())
+                elif hasattr(F, 'element'):
+                    F = F.element(self._base_valuation.residue_ring().variable_name())
+                elif hasattr(F, 'lift'):
+                    F = F.lift().change_variable_name(self._base_valuation.residue_ring().variable_name())
+                else:
+                    raise NotImplementedError
+            return self._base_valuation.lift(F)

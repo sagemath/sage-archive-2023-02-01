@@ -938,9 +938,20 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             F[-2]^12*F[1]^3
             sage: F({1:3, -2: 12})
             F[-2]^12*F[1]^3
+
+        TESTS::
+
+            sage: F([(1, 3), (1, 2)])
+            F[1]^5
         """
         if isinstance(x, (list, tuple)):
-            x = dict(x)
+            d = dict()
+            for k, v in x:
+                if k in d:
+                    d[k] += v
+                else:
+                    d[k] = v
+            x = d
         return IndexedMonoid._element_constructor_(self, x)
 
     Element = IndexedFreeAbelianMonoidElement

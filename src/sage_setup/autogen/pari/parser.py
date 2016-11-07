@@ -1,5 +1,10 @@
 """
 Read and parse the file pari.desc
+
+Run tests from the ``SAGE_SRC`` directory::
+
+    sage: from sage.env import SAGE_SRC
+    sage: os.chdir(SAGE_SRC)
 """
 
 #*****************************************************************************
@@ -28,10 +33,9 @@ def sage_src_pari():
 
         sage: from sage_setup.autogen.pari.parser import sage_src_pari
         sage: sage_src_pari()
-        '.../src/sage/libs/pari'
+        'sage/libs/pari'
     """
-    SAGE_SRC = os.environ['SAGE_SRC']
-    return os.path.join(SAGE_SRC, 'sage', 'libs', 'pari')
+    return os.path.join('sage', 'libs', 'pari')
 
 def pari_share():
     r"""

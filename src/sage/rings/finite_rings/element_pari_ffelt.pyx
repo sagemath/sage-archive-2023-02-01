@@ -684,6 +684,24 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sig_on()
         return self._parent.polynomial_ring()(new_gen(FF_to_FpXQ_i(self.val)))
 
+    def minpoly(FiniteFieldElement_pari_ffelt self, object var='x'):
+        """
+        Return the minimal polynomial of ``self``.
+
+        INPUT:
+
+        - ``var`` -- string (default: 'x'): variable name to use.
+
+        EXAMPLE::
+
+            sage: R.<x> = PolynomialRing(FiniteField(3))
+            sage: F.<a> = FiniteField(3^2, modulus=x^2 + 1)
+            sage: a.minpoly('y')
+            y^2 + 1
+        """
+        sig_on()
+        return self._parent.polynomial_ring(var)(new_gen(FF_minpoly(self.val)))
+
     def charpoly(FiniteFieldElement_pari_ffelt self, object var='x'):
         """
         Return the characteristic polynomial of ``self``.

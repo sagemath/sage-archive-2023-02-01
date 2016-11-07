@@ -141,12 +141,19 @@ class AugmentedValuation_base(InductiveValuation):
 
     EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<u> = Qq(4,5)
-            sage: R.<x> = K[]
-            sage: v = GaussValuation(R)
-            sage: v.augmentation(x, 1/2) # indirect doctest
-            [ Gauss valuation induced by 2-adic valuation, v((1 + O(2^5))*x) = 1/2 ]
+        sage: from mac_lane import * # optional: standalone
+        sage: K.<u> = CyclotomicField(5)
+        sage: R.<x> = K[]
+        sage: v = GaussValuation(R, pAdicValuation(K, 2))
+        sage: w = v.augmentation(x, 1/2); w # indirect doctest
+        [ Gauss valuation induced by 2-adic valuation, v(x) = 1/2 ]
+        sage: ww = w.augmentation(x^4 + 2*x^2 + 4*u, 3); ww
+        [ Gauss valuation induced by 2-adic valuation, v(x) = 1/2, v(x^4 + 2*x^2 + 4*u) = 3 ]
+
+    TESTS::
+
+        sage: TestSuite(w).run() # long time
+        sage: TestSuite(ww).run() # long time
 
     """
     def __init__(self, parent, v, phi, mu):
@@ -332,17 +339,6 @@ class AugmentedValuation_base(InductiveValuation):
             s -= self._mu
         return ret * self._base_valuation.element_with_valuation(s)
 
-    def _latex_(self):
-        vals = [self]
-        v = self
-        while isinstance(v, AugmentedValuation_base):
-            v = v._base_valuation
-            vals.append(v)
-        vals.reverse()
-        from sage.misc.latex import latex
-        vals = [ "v_%s(%s) = %s"%(i,latex(v._phi), latex(v._mu)) if isinstance(v, AugmentedValuation_base) else latex(v) for i,v in enumerate(vals) ]
-        return "[ %s ]"%", ".join(vals)
-
     def _repr_(self):
         """
         Return a printable representation of this valuation.
@@ -364,19 +360,37 @@ class AugmentedValuation_base(InductiveValuation):
         return "[ %s ]"%", ".join(vals)
 
     def augmentation_chain(self):
+        r"""
+        Return a list with the chain of augmentations down to the underlying
+        :class:`GaussValuation`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x, 1)
+            sage: w.augmentation_chain()
+            [[ Gauss valuation induced by 2-adic valuation, v(x) = 1 ],
+                 Gauss valuation induced by 2-adic valuation]
+
+        For performance reasons, (and to simplify the underlying
+        implementation,) trivial augmentations might get dropped. You should
+        not rely on :meth:`augmentation_chain` to contain all the steps that
+        you specified to create the current valuation::
+
+            sage: ww = w.augmentation(x, 2)
+            sage: ww.augmentation_chain()
+            [[ Gauss valuation induced by 2-adic valuation, v(x) = 2 ],
+                 Gauss valuation induced by 2-adic valuation]
+
+        """
         return [self] + self._base_valuation.augmentation_chain()
 
     @cached_method
     def value_group(self):
         """
         Return the value group of this valuation.
-
-        OUTPUT:
-
-        Currently, there is no support for additive subgroups of `\QQ`.
-        Therefore we create this value group as a fractional ideal of `\QQ`.
-        However, `\QQ` does not support fractional ideals, so we use fractional
-        ideals of the trivial extensions `\QQ[x]/(x)`
 
         EXAMPLES::
 
@@ -397,7 +411,7 @@ class AugmentedValuation_base(InductiveValuation):
 
         """
         base = self._base_valuation.value_group()
-        if self._mu is infinity:
+        if self._mu == infinity:
             return base
         from value_group import DiscreteValueGroup
         return base + DiscreteValueGroup(self._mu)
@@ -413,7 +427,7 @@ class AugmentedValuation_base(InductiveValuation):
 
         OUTPUT:
 
-        An iterator over rational numbers, `[v(f_0), v(f_1\phi), \dots]`
+        An iterator over rational numbers (or infinity) `[v(f_0), v(f_1\phi), \dots]`
 
         EXAMPLES::
 
@@ -435,8 +449,7 @@ class AugmentedValuation_base(InductiveValuation):
             [0, +Infinity, +Infinity]
 
         """
-        if f.parent() is not self.domain():
-            raise ValueError("f must be in the domain of this valuation")
+        f = self.domain().coerce(f)
 
         if self._mu is infinity:
             num_infty_coefficients = f.degree() // self.phi().degree()
@@ -927,7 +940,6 @@ class AugmentedValuation_base(InductiveValuation):
         return self.element_with_valuation(self.value_group()._generator)
 
     def is_gauss_valuation(self):
-        # Is this correct? Can there be trivial augmentations?
         return False
 
     def monic_integral_model(self, G):
@@ -946,10 +958,6 @@ class AugmentedValuation_base(InductiveValuation):
                 return False
 
         return super(AugmentedValuation_base, self)._ge_(other)
-
-    def is_discrete_valuation(self):
-        from sage.rings.all import infinity
-        return self._mu != infinity
 
     @cached_method
     def _Q(self):

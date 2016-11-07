@@ -555,7 +555,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             return self
         if n == 0:
             return self.parent().one()
-        return self.__class__(self.parent(), {k:v*n for k,v in self._monomial.iteritems()})
+        return self.__class__(self.parent(), {k:v*n for k,v in iteritems(self._monomial)})
 
     def __floordiv__(self, elt):
         """
@@ -579,7 +579,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             ValueError: invalid cancellation
         """
         d = copy(self._monomial)
-        for k,v in elt._monomial.iteritems():
+        for k,v in iteritems(elt._monomial):
             d[k] -= v
         for k,v in d.items():
             if v < 0:

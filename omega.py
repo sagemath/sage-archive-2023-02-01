@@ -14,7 +14,7 @@ from __future__ import absolute_import
 
 import operator
 from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
-from six import iteritems
+from six import iteritems, itervalues
 
 
 def HomogenousSymmetricFunction(j, x):
@@ -95,10 +95,17 @@ def Omega_higher(a, z):
     EXAMPLES::
 
         sage: L.<x, y, z, w> = LaurentPolynomialRing(QQ)
-        sage: Omega_higher(0, [(x, 1), (y, -2)])  # richtiges Zwischenergebnis
-        (1, (-x + 1, -Omega0*x + 1, Omega0*x + 1))
-        sage: Omega_higher(0, [(x, 1), (y, -3)])  # richtiges Zwischenergebnis
-        (1, (-x + 1, -Omega0*x + 1, (-rho0)*Omega0*x + 1, (rho0 + 1)*Omega0*x + 1))
+        sage: Omega_higher(0, [(x, 1), (y, -2)])
+        (1, [-x + 1, -x^2*y + 1])
+        sage: Omega_higher(0, [(x, 2), (y, -1)])  # denominator not fully factored
+        (x*y + 1, [x^2*y^2 - x*y^2 - x + 1])
+        sage: Omega_higher(0, [(x, 1), (y, 1), (z, -2)])  # denominator not fully factored
+        (-x^2*y*z - x*y^2*z + x*y*z + 1,
+         [-x + 1, -y + 1, x^2*y^2*z^2 - x^2*z - y^2*z + 1])
+        sage: Omega_higher(0, [(x, 1), (y, -3)])
+        (1, [-x + 1, -x^3*y + 1])
+        sage: Omega_higher(0, [(x, 1), (y, -4)])
+        (1, [-x + 1, -x^4*y + 1])
     """
     class Factor(object):
         def __init__(self, zz):
@@ -140,15 +147,65 @@ def Omega_higher(a, z):
         L_orig.variable_names()
     L_high = LaurentPolynomialRing(B_high, variable_names_high)
     v = iter(L_high.gens())
+    Omega_map = dict()
     for factor in z:
         if factor.is_higher():
             factor.var = next(v)
+            Omega_map[factor.var] = factor
 
-    result_high = Omega_fundamental(a,
-                                    sum((factor.x() for factor in z), []),
-                                    sum((factor.y() for factor in z), []))
+    numerator_high, factors_denominator_high = Omega_fundamental(
+        a,
+        sum((factor.x() for factor in z), []),
+        sum((factor.y() for factor in z), []))
 
-    return result_high
+    vars_Omega = set(L_high.gens()[:nv])
+    factor_Omega = {v: 1 for v in vars_Omega}
+    factors_else = []
+    for factor in factors_denominator_high:
+        v = set(factor.variables()) & vars_Omega
+        assert len(v) <= 1
+        if len(v) == 1:
+            factor_Omega[v.pop()] *= factor
+        else:
+            factors_else.append(factor)
+
+    def subs_Omega(factor, v):
+        f = Omega_map[v]
+        m = abs(f.exponent)
+        p = tuple(v.dict().popitem()[0]).index(1)
+        def subs_e(e):
+            e = list(e)
+            assert e[p] % m == 0
+            e[p] = e[p] // m
+            return tuple(e)
+        P = factor.parent()
+        result = P({subs_e(e): c for e, c in iteritems(factor.dict())})
+        try:
+            return result.subs({v: f.value})
+        except TypeError:
+            print(('o o', result, v, f.value))
+            print(result.parent())
+            print(v.parent())
+            print(f.value.parent())
+            return factor
+
+    factor_Omega = list(subs_Omega(factor, v)
+                        for v, factor in iteritems(factor_Omega))
+    factors_denominator_low = factors_else + factor_Omega
+
+    def subs_all_Omega(factor):
+        for v in vars_Omega:
+            factor = subs_Omega(factor, v)
+        return factor
+
+    from sage.rings.fraction_field import FractionField_generic
+    if isinstance(numerator_high.parent(), FractionField_generic):
+        numerator_low = subs_all_Omega(L_high(numerator_high.numerator())) / \
+                        subs_all_Omega(L_high(numerator_high.denominator()))
+    else:
+        numerator_low = subs_all_Omega(numerator_high)
+
+    return numerator_low, factors_denominator_low
 
 
 def Omega(var, numerator, factors_denominator, operator=operator.ge):

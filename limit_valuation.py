@@ -32,7 +32,7 @@ extensions can only be approximated::
     sage: L.<y> = K.extension(y^2 - x)
 
     sage: v = FunctionFieldValuation(K, 1)
-    sage: w = v.extensions(L); w
+    sage: w = v.extensions(L); w # long time
     [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
      [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
 

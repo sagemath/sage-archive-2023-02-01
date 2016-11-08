@@ -293,26 +293,28 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
             sage: DiscreteValueGroup(3).index(DiscreteValueGroup(3/8))
             Traceback (most recent call last):
             ...
-            ValueError: `other` must be a subgroup of this group
+            ValueError: other must be a subgroup of this group
             sage: DiscreteValueGroup(3).index(DiscreteValueGroup(0))
-            +Infinity
+            Traceback (most recent call last):
+            ...
+            ValueError: other must have finite index in this group
             sage: DiscreteValueGroup(0).index(DiscreteValueGroup(0))
             1
             sage: DiscreteValueGroup(0).index(DiscreteValueGroup(3))
             Traceback (most recent call last):
             ...
-            ValueError: `other` must be a subgroup of this group
+            ValueError: other must be a subgroup of this group
 
         """
         if not isinstance(other, DiscreteValueGroup):
-            raise ValueError("`other` must be a DiscreteValueGroup")
+            raise ValueError("other must be a DiscreteValueGroup")
         if other._generator not in self:
-            raise ValueError("`other` must be a subgroup of this group")
+            raise ValueError("other must be a subgroup of this group")
         if other._generator == 0:
             if self._generator == 0:
                 return ZZ(1)
             else:
-                return infinity
+                raise ValueError("other must have finite index in this group")
         return ZZ(other._generator / self._generator)
 
     def numerator(self):

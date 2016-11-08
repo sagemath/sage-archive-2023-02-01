@@ -71,6 +71,8 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.atoms` | Return the list of elements covering the bottom element.
     :meth:`~FiniteLatticePoset.coatoms` | Return the list of elements covered by the top element.
     :meth:`~FiniteLatticePoset.double_irreducibles` | Return the list of double irreducible elements.
+    :meth:`~FiniteLatticePoset.join_primes` | Return the join prime elements.
+    :meth:`~FiniteLatticePoset.meet_primes` | Return the meet prime elements.
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
     :meth:`~FiniteMeetSemilattice.pseudocomplement` | Return the pseudocomplement of an element.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
@@ -710,6 +712,80 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         H = self._hasse_diagram
         return [self._vertex_to_element(e) for e in H
                 if H.in_degree(e) == 1 and H.out_degree(e) == 1]
+
+    def join_primes(self):
+        r"""
+        Return the join-prime elements of the lattice.
+
+        An element `x` of a lattice `L` is *join-prime* if `x \le a \vee b`
+        implies `x \le a` or `x \le b` for every `a, b \in L`.
+
+        These are also called *coprime* in some books. Every join-prime
+        is join-irreducible; converse holds if and only if the lattise
+        is distributive.
+
+        .. SEEALSO:: 
+
+            :meth:`meet_primes`,
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.join_irreducibles`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [5],
+            ....:                   4: [6], 5: [7], 6: [7]})
+            sage: L.join_primes()
+            [3, 4]
+
+            sage: D12 = Posets.DivisorLattice(12)  # Distributive lattice
+            sage: D12.join_irreducibles() == D12.join_primes()
+            True
+
+        TESTS::
+
+            sage: LatticePoset().join_primes()
+            []
+            sage: Posets.DiamondPoset(5).join_primes()
+            []
+        """
+        return [self._vertex_to_element(v) for
+                v in self._hasse_diagram.prime_elements()[0]]
+
+    def meet_primes(self):
+        r"""
+        Return the meet-prime elements of the lattice.
+
+        An element `x` of a lattice `L` is *meet-prime* if `x \ge a \wedge b`
+        implies `x \ge a` or `x \ge b` for every `a, b \in L`.
+
+        These are also called just *prime* in some books. Every meet-prime
+        is meet-irreducible; converse holds if and only if the lattise
+        is distributive.
+
+        .. SEEALSO:: 
+
+            :meth:`join_primes`,
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.meet_irreducibles`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [5],
+            ....:                   4: [6], 5: [7], 6: [7]})
+            sage: L.meet_primes()
+            [6, 5]
+
+            sage: D12 = Posets.DivisorLattice(12)
+            sage: sorted(D12.meet_primes())
+            [3, 4, 6]
+
+        TESTS::
+
+            sage: LatticePoset().meet_primes()
+            []
+            sage: Posets.DiamondPoset(5).meet_primes()
+            []
+        """
+        return [self._vertex_to_element(v) for
+                v in self._hasse_diagram.prime_elements()[1]]
 
     def is_join_distributive(self, certificate=False):
         """

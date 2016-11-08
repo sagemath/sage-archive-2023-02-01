@@ -56,6 +56,26 @@ def Omega_P(a, x, y):
 
 def Omega_fundamental(a, x, y):
     r"""
+    Return `\Omega_{\ge}` of the expression specified by the input.
+
+    .. MATH::
+
+        \Omega_{\ge} \frac{\lambda^a}{
+        (1 - x_1 \lambda) \dots (1 - x_n \lambda)
+        (1 - y_1 / \lambda) \dots (1 - y_m / \lambda)
+
+    INPUT:
+
+    - ``a`` -- an integer.
+
+    - ``x`` and ``y`` -- lists of laurent polynomials
+
+    OUTPUT:
+
+    A pair representing a quotient as follows: Its first component is the
+    numerator as a laurent polynomial, its second component a factorization
+    of the denominator as a list of laurent polynomials.
+
     EXAMPLES::
 
         sage: L.<x, y, z, w> = LaurentPolynomialRing(QQ)
@@ -92,6 +112,27 @@ def Omega_fundamental(a, x, y):
 
 def Omega_higher(a, z):
     r"""
+    Return `\Omega_{\ge}` of the expression specified by the input.
+
+    .. MATH::
+
+        \Omega_{\ge} \frac{\lambda^a}{
+        (1 - z_1 \lambda^{e_1}) \dots (1 - z_n \lambda^{e_n})
+
+    INPUT:
+
+    - ``a`` -- an integer.
+
+    - ``z`` and ``y`` -- a lists with each entry either
+      a laurent polynomial (implicit exponent `1`) or
+      a pair of a laurent polynomial and an integer exponent.
+
+    OUTPUT:
+
+    A pair representing a quotient as follows: Its first component is the
+    numerator as a laurent polynomial, its second component a factorization
+    of the denominator as a list of laurent polynomials.
+
     EXAMPLES::
 
         sage: L.<x, y, z, w> = LaurentPolynomialRing(QQ)

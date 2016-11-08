@@ -39,7 +39,7 @@ def Omega_P(a, x, y):
     if len(x) == 1:
         return x[0]**(-a) + \
             (prod(1 - x[0]*yy for yy in y) *
-             sum(HomogenousSymmetricFunction(j, y) * (1-x[0]^(j-a))
+             sum(HomogenousSymmetricFunction(j, y) * (1-x[0]**(j-a))
                  for j in srange(a))
              if a > 0 else 0)
 

@@ -2152,21 +2152,25 @@ class HasseDiagram(DiGraph):
     def kappa(self, a):
         r"""
         Return the maximum element greater than the element covered
-        by `a` but not greater than `a`.
+        by ``a`` but not greater than ``a``.
 
-        Element `a` is expected to be join-irreducible, and this is
-        *not* checked.
+        Define `\kappa(a)` as the maximum element of
+        `(\uparrow a_*) \setminus (\uparrow a)`, where `a_*` is the element
+        covered by `a`. It is always a meet-irreducible element, if it exists.
+
+        .. NOTE::
+
+            Element ``a`` is expected to be join-irreducible, and
+            this is *not* checked.
 
         INPUT:
 
-        - ``a``, a join-irreducible element of the lattice.
+        - ``a`` -- a join-irreducible element of the lattice
 
         OUTPUT:
 
-        The maximum element of `(\uparrow a_\\ast) \setminus (\uparrow a)`,
-        where `a_\\ast` is the element covered by `a`. It is always a
-        meet-irreducible element, if it exists. Returns ``None`` if there
-        is no unique greatest element with given constraints.
+        The element `\kappa(a)` or ``None`` if there
+        is not a unique greatest element with given constraints.
 
         EXAMPLES::
 
@@ -2183,14 +2187,14 @@ class HasseDiagram(DiGraph):
             sage: H.kappa(1)
             0
         """
-        gt_a = list(self.depth_first_search(a))
         lc = next(self.neighbor_in_iterator(a))
         if self.out_degree(lc) == 1:
             return lc
+        gt_a = set(self.depth_first_search(a))
         tmp = list(self.depth_first_search(lc, neighbors=lambda v: [v_ for v_ in self.neighbors_out(v) if v_ not in gt_a]))
         result = None
         for e in tmp:
-            if not any(x in tmp for x in self.neighbors_out(e)):
+            if all(x not in tmp for x in self.neighbors_out(e)):
                 if result:
                     return None
                 result = e

@@ -2149,5 +2149,52 @@ class HasseDiagram(DiGraph):
 
         return True
 
+    def kappa(self, a):
+        r"""
+        Return the maximum element greater than the element covered
+        by `a` but not greater than `a`.
+
+        Element `a` is expected to be join-irreducible, and this is
+        *not* checked.
+
+        INPUT:
+
+        - ``a``, a join-irreducible element of the lattice.
+
+        OUTPUT:
+
+        The maximum element of `(\uparrow a_\\ast) \setminus (\uparrow a)`,
+        where `a_\\ast` is the element covered by `a`. It is always a
+        meet-irreducible element, if it exists. Returns ``None`` if there
+        is no unique greatest element with given constraints.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4, 5], 3: [5], 4: [6], 5: [6]})
+            sage: H.kappa(1)
+            5
+            sage: H.kappa(2) is None
+            True
+
+        TESTS::
+
+            sage: H = HasseDiagram({0: [1]})
+            sage: H.kappa(1)
+            0
+        """
+        gt_a = list(self.depth_first_search(a))
+        lc = next(self.neighbor_in_iterator(a))
+        if self.out_degree(lc) == 1:
+            return lc
+        tmp = list(self.depth_first_search(lc, neighbors=lambda v: [v_ for v_ in self.neighbors_out(v) if v_ not in gt_a]))
+        result = None
+        for e in tmp:
+            if not any(x in tmp for x in self.neighbors_out(e)):
+                if result:
+                    return None
+                result = e
+        return result
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

@@ -132,6 +132,7 @@ def Omega_higher(a, z):
 
     z = list(Factor(zz) for zz in z)
 
+    # -2. create new (larger) laurent polynomial ring
     L_orig = z[0].value.parent()
     B_orig = L_orig.base_ring()
     exponents_pre = sorted(set(abs(factor.exponent)
@@ -146,6 +147,8 @@ def Omega_higher(a, z):
         tuple('Omega{}'.format(i) for i in srange(nv)) + \
         L_orig.variable_names()
     L_high = LaurentPolynomialRing(B_high, variable_names_high)
+
+    # -1. rewrite factors with higher powers
     v = iter(L_high.gens())
     Omega_map = dict()
     for factor in z:
@@ -153,11 +156,13 @@ def Omega_higher(a, z):
             factor.var = next(v)
             Omega_map[factor.var] = factor
 
+    # 0. apply Omega
     numerator_high, factors_denominator_high = Omega_fundamental(
         a,
         sum((factor.x() for factor in z), []),
         sum((factor.y() for factor in z), []))
 
+    # 1. multiply factors of denominator with common helper-variable
     vars_Omega = set(L_high.gens()[:nv])
     factor_Omega = {v: 1 for v in vars_Omega}
     factors_else = []
@@ -169,6 +174,7 @@ def Omega_higher(a, z):
         else:
             factors_else.append(factor)
 
+    # 2. substitute helper variable with actual value
     def subs_Omega(factor, v):
         f = Omega_map[v]
         m = abs(f.exponent)

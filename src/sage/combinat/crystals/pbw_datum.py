@@ -339,6 +339,7 @@ def tropical_plucker_relation(a, lusztig_datum):
         (8, 1, 2, 3)
 
     REFERENCES:
+
     .. [Berenstein-Zelevinsky01] \A. Berenstein, A. Zelevinsky
        *Tensor product multiplicities, canonical bases and 
         totally positive varieties*
@@ -479,8 +480,7 @@ def diff_interval(list1, list2):
         sage: diff_interval([1,2,4,4,5], [1,3,45,6,3])
         (1, 5)
     """
-    L = [i for i,elt in enumerate(list1) if elt != list2[i]]
+    L = [i for i, elt in enumerate(list1) if elt != list2[i]]
     if not L:
         return None
-    return (L[0], L[-1]+1)
-
+    return (L[0], L[-1] + 1)

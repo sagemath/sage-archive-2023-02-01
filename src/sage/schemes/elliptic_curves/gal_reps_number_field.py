@@ -773,14 +773,27 @@ def _tr12(tr, det):
     det3 = det**3
     return ((tr * (tr**2 - 3 * det))**2 - 2 * det3)**2 - 2 * det3**2
 
-from sage.arith.all import primes
-def deg_one_primes_iter(K):
-    start = 2
-    if K.is_totally_imaginary():
-        start = K.discriminant().abs()//4
-    for p in primes(start=start,stop=10**10):
+def deg_one_primes_iter(K, principal_only=False, maxnorm=10**10):
+    r"""Return an iterator over degree 1 primes of K.
+
+    INPUT:
+
+    - ``K`` - a number field.
+    - ``principal_only`` (bool) - if True, only yield principal primes
+    - ``maxnorm`` (int) - upper bound on norm of primes yielded.
+
+    """
+    # imaginary quadratic fields have no principal primes of norm<disc/4
+    start = K.discriminant().abs()//4 if principal_only and K.signature()==(0,1) else 2
+
+    # Note: the primes() iterator has a bug which means that you
+    # cannot give a start value without a stop value, so we have to
+    # provide a finite stop value.
+    from sage.arith.all import primes
+    for p in primes(start=start,stop=maxnorm):
         for P in K.primes_above(p, degree=1):
-            yield P
+            if not principal_only or P.is_principal():
+                yield P
 
 def _semistable_reducible_primes(E):
     r"""Find a list containing all semistable primes l unramified in K/QQ
@@ -807,7 +820,7 @@ def _semistable_reducible_primes(E):
     E = _over_numberfield(E)
     K = E.base_field()
 
-    deg_one_primes = deg_one_primes_iter(K)
+    deg_one_primes = deg_one_primes_iter(K, principal_only=True)
 
     bad_primes = set([]) # This will store the output.
 
@@ -821,10 +834,11 @@ def _semistable_reducible_primes(E):
     last_char = 0 # The residue characteristic of the most recent prime.
 
     while len(precomp) < 2:
-        P = next(deg_one_primes)
+        P = deg_one_primes.next()
 
-        if not P.is_principal():
-            continue
+        # the iterator tests this already
+        # if not P.is_principal():
+        #     continue
 
         det = P.norm()
         if det == last_char:
@@ -904,10 +918,11 @@ def _semistable_reducible_primes(E):
         # TODO: Is this the best value for this parameter?
 
         while True:
-            P = next(deg_one_primes)
+            P = deg_one_primes.next()
 
-            if not P.is_principal():
-                continue
+            # the iterator tests this already
+            # if not P.is_principal():
+            #     continue
 
             try:
                 tr = E.change_ring(P.residue_field()).trace_of_frobenius()
@@ -1001,7 +1016,7 @@ def _possible_normalizers(E, SA):
     deg_one_primes = deg_one_primes_iter(K)
 
     while W.dimension() < V.dimension() - 1:
-        P = next(deg_one_primes)
+        P = deg_one_primes.next()
 
         k = P.residue_field()
 
@@ -1071,7 +1086,7 @@ def _possible_normalizers(E, SA):
     # TODO: Is this the best value for this parameter?
 
     while True:
-        P = next(deg_one_primes)
+        P = deg_one_primes.next()
 
         k = P.residue_field()
 

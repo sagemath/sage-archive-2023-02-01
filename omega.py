@@ -52,21 +52,21 @@ def Omega_P(a, x, y):
             Omega_P(a, x[:-1], y))  /  (x[-1] - x[-2])
 
 
-def Omega_Fundamental(a, x, y):
+def Omega_fundamental(a, x, y):
     r"""
     EXAMPLES::
 
         sage: L.<x, y, z, w> = LaurentPolynomialRing(QQ)
-        sage: Omega_Fundamental(0, [x], [y])
+        sage: Omega_fundamental(0, [x], [y])
         (1, (-x + 1, -x*y + 1))
-        sage: Omega_Fundamental(0, [x], [y, z])
+        sage: Omega_fundamental(0, [x], [y, z])
         (1, (-x + 1, -x*y + 1, -x*z + 1))
-        sage: Omega_Fundamental(0, [x, y], [z])
+        sage: Omega_fundamental(0, [x, y], [z])
         (-x*y*z + 1, (-x + 1, -y + 1, -x*z + 1, -y*z + 1))
-        sage: Omega_Fundamental(0, [x, y, z], [w])
+        sage: Omega_fundamental(0, [x, y, z], [w])
         (x*y*z*w^2 + x*y*z*w - x*y*w - x*z*w - y*z*w + 1,
          (-x + 1, -y + 1, -z + 1, -x*w + 1, -y*w + 1, -z*w + 1))
-        sage: Omega_Fundamental(0, [x, y], [z, w])
+        sage: Omega_fundamental(0, [x, y], [z, w])
         (x^2*y*z*w + x*y^2*z*w - x*y*z*w - x*y*z - x*y*w + 1,
          (-x + 1, -y + 1, -x*z + 1, -x*w + 1, -y*z + 1, -y*w + 1))
     """

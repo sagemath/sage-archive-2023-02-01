@@ -364,6 +364,76 @@ class Link(object):
 
             else:
                 raise ValueError("invalid input: data must be either a list or a braid")
+            
+    def fundamental_group(self, presentation='wirtinger'):
+        r"""
+        Return the fundamental group of the complement of the link.
+    
+        INPUT:
+        
+        - presentation -- one of 'wirtinger' (default) or 'braid'
+        
+        OUTPUT:
+        
+        - A finitely presented group.
+          If 'wirtinger' is given, then the Wirtinger presentation of the fundamental group
+          of the complement is given (see [WPLG]_).
+          If 'braid' is given, then the presentation is given by the braid action on the free group
+          (see chapter 2 of [Birman]_).
+        
+        EXAMPLES::
+        
+            sage: L = Link([[1, 2, 3, 4], [3, 2, 1, 4]])
+            sage: L.fundamental_group()
+            Finitely presented group < x0, x1, x2 | x1*x0^-1*x2^-1*x0, x2*x0*x1^-1*x0^-1 >
+            sage: L.fundamental_group('artin')
+            Finitely presented group < x0, x1 | 1, 1 >
+
+        We can see, for instance, that the  two presentations of the group
+        of the figure eight knot correspond to isomorphic groups::
+        
+            sage: K8 = Knot([[[1, -2, 4, -3, 2, -1, 3, -4]], [1, 1, -1, -1]])
+            sage: GA = K8.fundamental_group()
+            sage: GA
+            Finitely presented group < x0, x1, x2, x3 | x2*x0*x3^-1*x0^-1, x0*x2*x1^-1*x2^-1, x1*x3^-1*x2^-1*x3, x3*x1^-1*x0^-1*x1 >
+            sage: GB = K8.fundamental_group(presentation='braid')
+            sage: GB
+            Finitely presented group < x0, x1, x2 | x1*x2^-1*x1^-1*x0*x1*x2*x1*x2^-1*x1^-1*x0^-1*x1*x2*x1^-1*x0^-1, x1*x2^-1*x1^-1*x0*x1*x2*x1^-1*x2^-1*x1^-1*x0^-1*x1*x2*x1^-1*x0*x1*x2*x1*x2^-1*x1^-1*x0^-1*x1*x2*x1^-2, x1*x2^-1*x1^-1*x0*x1*x2*x1^-1*x2^-1 >
+            sage: GA.simplified()
+            Finitely presented group < x0, x1 | x1^-1*x0*x1*x0^-1*x1*x0*x1^-1*x0^-1*x1*x0^-1 >
+            sage: GB.simplified()
+            Finitely presented group < x0, x2 | x2^-1*x0*x2^-1*x0^-1*x2*x0*x2^-1*x0*x2*x0^-1 >
+            
+        REFERENCES:
+        
+        .. [WPLG] :wikipedia:`Link_group`
+        
+        .. [Birman] \J Birman. Braids, Links, and Mapping Class Groups, Princeton University Press, 1975
+        
+        """
+        from sage.groups.free_group import FreeGroup
+        if presentation == 'braid':
+            b = self.braid()
+            F = FreeGroup(b.strands())
+            rels = []
+            for x in F.gens():
+                rels.append(x*b/x)
+            return F.quotient(rels)
+        elif presentation == 'wirtinger':
+            arcs = self.arcs(presentation='pd')
+            F = FreeGroup(len(arcs))
+            rels = []
+            for crossing,orientation in zip(self.pd_code(), self.orientation()):
+                a = arcs.index([i for i in arcs if crossing[0] in i][0])
+                b = arcs.index([i for i in arcs if crossing[1] in i][0])
+                c = arcs.index([i for i in arcs if crossing[2] in i][0])
+                ela = F.gen(a)
+                elb = F.gen(b)
+                if orientation < 0:
+                    elb = elb.inverse()
+                elc = F.gen(c)
+                rels.append(ela*elb/elc/elb)
+            return F.quotient(rels)
 
     def __repr__(self):
         """

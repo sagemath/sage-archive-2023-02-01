@@ -792,7 +792,7 @@ def deg_one_primes_iter(K, principal_only=False):
         sage: K.<a> = QuadraticField(-5)
         sage: from sage.schemes.elliptic_curves.gal_reps_number_field import deg_one_primes_iter
         sage: it = deg_one_primes_iter(K)
-        sage: [it.next() for _ in range(6)]
+        sage: [next(it) for _ in range(6)]
         [Fractional ideal (2, a + 1),
          Fractional ideal (3, a + 1),
          Fractional ideal (3, a + 2),
@@ -800,7 +800,7 @@ def deg_one_primes_iter(K, principal_only=False):
          Fractional ideal (7, a + 3),
          Fractional ideal (7, a + 4)]
         sage: it = deg_one_primes_iter(K, True)
-        sage: [it.next() for _ in range(6)]
+        sage: [next(it) for _ in range(6)]
         [Fractional ideal (-a),
          Fractional ideal (-2*a + 3),
          Fractional ideal (2*a + 3),
@@ -941,7 +941,7 @@ def _semistable_reducible_primes(E):
         # TODO: Is this the best value for this parameter?
 
         while True:
-            P = deg_one_primes.next()
+            P = next(deg_one_primes)
 
             # the iterator tests this already
             # if not P.is_principal():
@@ -1109,7 +1109,7 @@ def _possible_normalizers(E, SA):
     # TODO: Is this the best value for this parameter?
 
     while True:
-        P = deg_one_primes.next()
+        P = next(deg_one_primes)
 
         k = P.residue_field()
 

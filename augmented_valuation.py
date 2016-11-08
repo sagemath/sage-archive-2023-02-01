@@ -161,8 +161,8 @@ class AugmentedValuationFactory(UniqueFactory):
     should not rely on ``_base_valuation`` to be the valuation you started
     with::
 
-        sage: w = w.augmentation(x, 2)
-        sage: w._base_valuation is v
+        sage: ww = w.augmentation(x, 2)
+        sage: ww._base_valuation is v
         True
 
     """
@@ -173,10 +173,11 @@ class AugmentedValuationFactory(UniqueFactory):
 
         .. NOTE::
 
-            Uniquenesse of the resulting valuation would not be too important.
-            However, it makes pickling and equality checks much easier. At the
-            same time, going through a factory makes it easier to enforce that
-            all instances correctly inherit methods from the parent Hom space.
+            The uniqueness that this factory provides is not why we chose to
+            use a factory.  However, it makes pickling and equality checks much
+            easier. At the same time, going through a factory makes it easier
+            to enforce that all instances correctly inherit methods from the
+            parent Hom space.
 
         TESTS::
 
@@ -195,6 +196,13 @@ class AugmentedValuationFactory(UniqueFactory):
                 raise ValueError(reason)
             if mu <= base_valuation(phi):
                 raise ValueError("the value of the key polynomial must strictly increase but `%s` does not exceed `%s`."%(mu, base_valuation(phi)))
+            if not isinstance(base_valuation, InductiveValuation):
+                raise TypeError("base_valuation must be inductive")
+
+        phi = base_valuation.domain().coerce(phi)
+        from sage.rings.all import QQ, infinity
+        if mu is not infinity:
+            mu = QQ(mu)
 
         if isinstance(base_valuation, AugmentedValuation_base):
             if phi.degree() == base_valuation.phi().degree():
@@ -212,7 +220,7 @@ class AugmentedValuationFactory(UniqueFactory):
             sage: from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
-            sage: w = v.augmentation(x, 1) # indirect doctest
+            sage: w = v.augmentation(x^2 + x + 1, 1) # indirect doctest
 
         """
         base_valuation, phi, mu = key
@@ -235,9 +243,9 @@ class AugmentedValuation_base(InductiveValuation):
 
     INPUT:
 
-    - ``v`` -- a discrete valuation on a polynomial ring
+    - ``v`` -- a :class:`InductiveValuation` on a polynomial ring
 
-    - ``phi`` -- a key polynomial over ``v``
+    - ``phi`` -- a key polynomial over ``v`` (see :meth:`is_key`)
 
     - ``mu`` -- a rational number such that ``mu > v(phi)`` or ``infinity``
 
@@ -263,21 +271,16 @@ class AugmentedValuation_base(InductiveValuation):
         TESTS::
 
             sage: from mac_lane import * # optional: standalone
-            sage: K.<u> = Qq(4,5)
+            sage: K.<u> = Qq(4, 5)
             sage: R.<x> = K[]
             sage: v = GaussValuation(R)
             sage: w = AugmentedValuation(v, x, 1/2)
             sage: isinstance(w, AugmentedValuation_base)
             True
 
+            sage: TestSuite(w).run() # long time
+
         """
-        from sage.rings.all import QQ, infinity
-
-        if phi.parent() is not v.domain():
-            raise ValueError("phi must be in the domain of v")
-        if mu is not infinity:
-            mu = QQ(mu)
-
         InductiveValuation.__init__(self, parent, phi)
 
         self._base_valuation = v
@@ -287,24 +290,19 @@ class AugmentedValuation_base(InductiveValuation):
         """
         Evaluate this valuation at ``f``.
 
-        INPUT::
-
-        - ``f`` -- a polynomial in the domain of this valuation
-
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R = Qp(2,5)
+            sage: R = Qp(2, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
-            sage: f = x^2 + 2*x + 3
+            sage: w = v.augmentation(x^2 + x + 1, 1)
 
-            sage: v = v.augmentation( x^2 + x + 1, 1)
-            sage: v(f)
+            sage: w(x^2 + 2*x + 3)
             0
-            sage: v(f * v.phi()^3 )
+            sage: w((x^2 + 2*x + 3) * w.phi()^3 )
             3
-            sage: v(S.zero())
+            sage: w(0)
             +Infinity
 
         """
@@ -333,7 +331,8 @@ class AugmentedValuation_base(InductiveValuation):
         for v in self.valuations(f):
             ret = min(ret, v)
             if ret == lower_bound:
-                return ret
+                break
+
         return ret
 
     def equivalence_unit(self, s):
@@ -346,15 +345,17 @@ class AugmentedValuation_base(InductiveValuation):
 
         OUTPUT:
 
-        An element of the domain of this valuation
+        A polynomial in the domain of this valuation which
+        :meth:`is_equivalence_unit` for this valuation.
 
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, 1)
+
             sage: w.equivalence_unit(0)
             1 + O(2^5)
             sage: w.equivalence_unit(-4)
@@ -365,6 +366,7 @@ class AugmentedValuation_base(InductiveValuation):
         valuation::
 
             sage: w = v.augmentation(x, 1/2)
+
             sage: w.equivalence_unit(3/2)
             Traceback (most recent call last):
             ...
@@ -374,14 +376,11 @@ class AugmentedValuation_base(InductiveValuation):
 
         An equivalence unit might not be integral, even if ``s >= 0``::
 
-            sage: v = v.augmentation(x, 3/4)
-            sage: w = v.augmentation(x^4 + 8, 5)
-            sage: w.equivalence_unit(1/2)
+            sage: w = v.augmentation(x, 3/4)
+            sage: ww = w.augmentation(x^4 + 8, 5)
+
+            sage: ww.equivalence_unit(1/2)
             (2^-1 + O(2^4))*x^2
-
-        .. SEEALSO::
-
-            :meth:`effective_degree`, :meth:`is_equivalence_unit`
 
         """
         from sage.categories.fields import Fields
@@ -409,7 +408,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, 1/2)
@@ -441,6 +440,65 @@ class AugmentedValuation_base(InductiveValuation):
             s -= self._mu
         return ret * self._base_valuation.element_with_valuation(s)
 
+    def shift(self, x, s):
+        r"""
+        Return a modified version of ``x`` whose valuation is increased by ``s``.
+
+        The element returned is such that repeated shifts which go back to
+        the original valuation produce the same element in reduction.
+
+        EXAMPLES:
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x, 1)
+            sage: w.shift(1, 1)
+            2
+
+        Whenever there is ramification, a shift with such consistency is not
+        possible::
+
+            sage: w = v.augmentation(x, 1/2)
+
+            sage: w.shift(1, -1/2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Shifts with consistent reduction not implemented for this augmented valuation
+
+        Multiplication by an :meth:`element_with_valuation` might sometimes
+        produce useful results in such cases::
+
+            sage: 1 * w.element_with_valuation(-1/2)
+            1/2*x
+
+        However, this does not preserve the element in reduction::
+
+            sage: 1 * w.element_with_valuation(-1/2) * w.element_with_valuation(1/2)
+            1/2*x^2
+
+        In general this is only possible by using an
+        :meth:`equivalence_unit` and its :meth:`equialence_reciprocal`.
+        These do, however, not exist for all values of ``s``.
+
+        """
+        if s not in self.value_group():
+            raise ValueError("s must be in the value group of the valuation")
+
+        if self.value_group() == self._base_valuation.value_group():
+            return self._base_valuation.shift(x, s)
+
+        if self._base_valuation.value_group().is_trivial():
+            # We could implement a consistent shift in this case by multplying
+            # and dividing by powers of the key polynomial. Since an element of
+            # positive valuation has to be a power of the key polynomial, there
+            # can be no ambiguity here
+            raise NotImplementedError("Shifts with consistent reduction not implemented for augmented valuations over trivial valuations")
+
+        # Except for very few special cases, it is not possible to implement a
+        # consistent shift for augmented valuations
+        raise NotImplementedError("Shifts with consistent reduction not implemented for this augmented valuation")
+
     def _repr_(self):
         """
         Return a printable representation of this valuation.
@@ -448,7 +506,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, 1/2)
@@ -496,25 +554,27 @@ class AugmentedValuation_base(InductiveValuation):
 
         OUTPUT:
 
-        a polynomial in the residue ring of the base valuation
+        A polynomial in the residue ring of the base valuation
 
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
+
             sage: w = v.augmentation(x^2 + x + u, 1/2)
             sage: w.psi()
             x^2 + x + u0
-            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
-            sage: w.psi()
+
+            sage: ww = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
+            sage: ww.psi()
             x + 1
 
         """
         R = self._base_valuation.equivalence_unit(-self._base_valuation(self._phi))
         F = self._base_valuation.reduce(self._phi*R)
-        assert F.is_irreducible()
+        assert(F.is_irreducible())
         return F
 
     def E(self):
@@ -525,12 +585,14 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
+
             sage: w = v.augmentation(x^2 + x + u, 1)
             sage: w.E()
             1
+
             sage: w = v.augmentation(x, 1/2)
             sage: w.E()
             2
@@ -548,12 +610,14 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
+
             sage: w = v.augmentation(x^2 + x + u, 1)
             sage: w.F()
             2
+
             sage: w = v.augmentation(x, 1/2)
             sage: w.F()
             1
@@ -571,6 +635,7 @@ class AugmentedValuation_base(InductiveValuation):
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
+
             sage: w.extensions(GaussianIntegers().fraction_field()['x'])
             [[ Gauss valuation induced by 2-adic valuation, v(x^2 + x + 1) = 1 ]]
             
@@ -612,6 +677,7 @@ class AugmentedValuation_base(InductiveValuation):
             sage: R.<x> = K[]
             sage: v = GaussValuation(R, pAdicValuation(K, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
+
             sage: w.restriction(QQ['x'])
             [ Gauss valuation induced by 2-adic valuation, v(x^2 + x + 1) = 1 ]
 
@@ -635,6 +701,7 @@ class AugmentedValuation_base(InductiveValuation):
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
+
             sage: w.uniformizer()
             2
 
@@ -651,10 +718,12 @@ class AugmentedValuation_base(InductiveValuation):
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
+
             sage: w.is_gauss_valuation()
             False
 
         """
+        assert(self._mu > 0)
         return False
 
     def monic_integral_model(self, G):
@@ -669,6 +738,7 @@ class AugmentedValuation_base(InductiveValuation):
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
+
             sage: w.monic_integral_model(5*x^2 + 1/2*x + 1/4)
             x^2 + 1/5*x + 1/5
 
@@ -721,14 +791,16 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
+
             sage: w = v.augmentation(x^2 + x + u, 1/2)
             sage: w.value_group()
             Additive Abelian Group generated by 1/2
-            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
-            sage: w.value_group()
+
+            sage: ww = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
+            sage: ww.value_group()
             Additive Abelian Group generated by 1/6
 
         """
@@ -752,14 +824,16 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
+
             sage: w = v.augmentation(x^2 + x + u, 1/2)
             sage: list(w.valuations( x^2 + 1 ))
             [0, 1/2]
-            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
-            sage: list(w.valuations( ((x^2 + x + u)^2 + 2)^3 ))
+
+            sage: ww = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
+            sage: list(ww.valuations( ((x^2 + x + u)^2 + 2)^3 ))
             [+Infinity, +Infinity, +Infinity, 5]
 
         """
@@ -779,6 +853,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             sage: from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+
             sage: w = v.augmentation(x^2 + x + 1, 1)
             sage: w.residue_ring()
             Univariate Polynomial Ring in x over Finite Field in u1 of size 2^2
@@ -796,7 +871,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         base = self._base_valuation.residue_ring().base()
         if self.psi().degree() > 1:
-            # Do not call extension if self.psi().degree() == 1:
+            # Do not call extension() if self.psi().degree() == 1:
             # In that case the resulting field appears to be the same as the original field,
             # however, it is not == to the original field (for finite fields at
             # least) but a distinct copy (this is a bug in finite field's
@@ -831,7 +906,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
+            sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: v.reduce(x)
@@ -854,17 +929,17 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             sage: w.reduce(f + x + 1)
             x + u1 + 1
 
-            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
+            sage: ww = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
             sage: g = ((x^2 + x + u)^2 + 2)^3 / 2^5
-            sage: w.reduce(g)
+            sage: ww.reduce(g)
             x
-            sage: w.reduce(f)
+            sage: ww.reduce(f)
             1
-            sage: w(f-1) > 0 # checking the above
+            sage: ww.is_equivalent(f, 1)
             True
-            sage: w.reduce(f * g)
+            sage: ww.reduce(f * g)
             x
-            sage: w.reduce(f + g)
+            sage: ww.reduce(f + g)
             x + 1
 
         """
@@ -909,7 +984,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
+            sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, 1/2)
@@ -937,8 +1012,8 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         OUTPUT:
 
-        a polynomial in the domain of the valuation with reduction ``F``, monic
-        if ``F`` is monic
+        A polynomial in the domain of the valuation with reduction ``F``, monic
+        if ``F`` is monic.
 
         ALGORITHM:
 
@@ -948,14 +1023,14 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
+            sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
 
             sage: w = v.augmentation(x^2 + x + u, 1/2)
-            sage: r = w.residue_ring()
-            sage: y = r.gen()
+            sage: y = w.residue_ring().gen()
             sage: u1 = w.residue_ring().base().gen()
+
             sage: w.lift(1)
             1 + O(2^10)
             sage: w.lift(0)
@@ -967,29 +1042,29 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             sage: w.reduce(w.lift(y + u1 + 1)) == y + u1 + 1
             True
 
-            sage: w = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
-            sage: r = w.residue_ring()
-            sage: y = r.gen()
-            sage: u2 = w.residue_ring().base().gen()
-            sage: w.reduce(w.lift(y)) == y
+            sage: ww = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
+            sage: y = ww.residue_ring().gen()
+            sage: u2 = ww.residue_ring().base().gen()
+
+            sage: ww.reduce(ww.lift(y)) == y
             True
-            sage: w.reduce(w.lift(1)) == 1
+            sage: ww.reduce(ww.lift(1)) == 1
             True
-            sage: w.reduce(w.lift(y + 1)) == y +  1
+            sage: ww.reduce(ww.lift(y + 1)) == y +  1
             True
 
         A more complicated example::
 
             sage: v = GaussValuation(S)
-            sage: v = v.augmentation(x^2 + x + u, 1)
-            sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
+            sage: w = v.augmentation(x^2 + x + u, 1)
+            sage: ww = w.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
+            sage: u = ww.residue_ring().base().gen()
 
-            sage: u = v.residue_ring().base().gen()
-            sage: F = v.residue_ring()(u); F
+            sage: F = ww.residue_ring()(u); F
             u2
-            sage: f = v.lift(F); f
+            sage: f = ww.lift(F); f
             (2^-1 + O(2^9))*x^2 + (2^-1 + O(2^9))*x + u*2^-1 + O(2^9)
-            sage: F == v.reduce(f)
+            sage: F == ww.reduce(f)
             True
 
         """
@@ -1075,7 +1150,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
+            sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
 
@@ -1089,15 +1164,15 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         A more complicated example::
 
             sage: v = GaussValuation(S)
-            sage: v = v.augmentation(x^2 + x + u, 1)
-            sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
+            sage: w = v.augmentation(x^2 + x + u, 1)
+            sage: ww = w.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
 
-            sage: u = v.residue_ring().base().gen()
-            sage: y = v.residue_ring().gen()
-            sage: f = v.lift_to_key(y^3+y+u)
+            sage: u = ww.residue_ring().base().gen()
+            sage: y = ww.residue_ring().gen()
+            sage: f = ww.lift_to_key(y^3+y+u)
             sage: f.degree()
             12
-            sage: v.is_key(f)
+            sage: ww.is_key(f)
             True
 
         """
@@ -1148,6 +1223,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
+
             sage: w._Q()
             2
 
@@ -1166,6 +1242,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
+
             sage: w._Q_reciprocal()
             1/2
 
@@ -1190,7 +1267,7 @@ class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValua
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x, infinity)
@@ -1216,11 +1293,11 @@ class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValua
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,5)
+            sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x, infinity)
-            sage: list(w.valuations( x^2 + 1 ))
+            sage: list(w.valuations(x^2 + 1))
             [0, +Infinity, +Infinity]
 
         """
@@ -1280,10 +1357,11 @@ class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValua
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
+            sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, infinity)
+
             sage: w.reduce(S.one())
             1
             sage: w.reduce(S(2))
@@ -1299,17 +1377,18 @@ class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValua
             u1 + 1
 
             sage: w = v.augmentation(x^2 + x + u, 1/2)
-            sage: w = w.augmentation((x^2 + x + u)^2 + 2, infinity)
+            sage: ww = w.augmentation((x^2 + x + u)^2 + 2, infinity)
+
             sage: g = ((x^2 + x + u)^2 + 2)^3 / 2^5
-            sage: w.reduce(g)
+            sage: ww.reduce(g)
             0
-            sage: w.reduce(f)
+            sage: ww.reduce(f)
             1
-            sage: w(f-1) > 0 # 1 is really the reduction of f
+            sage: ww.is_equivalent(f, 1)
             True
-            sage: w.reduce(f * g)
+            sage: ww.reduce(f * g)
             0
-            sage: w.reduce(f + g)
+            sage: ww.reduce(f + g)
             1
 
         REFERENCES:
@@ -1338,7 +1417,7 @@ class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValua
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
+            sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, infinity)
@@ -1372,7 +1451,7 @@ class InfiniteAugmentedValuation(AugmentedValuation_base, InfiniteInductiveValua
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4,10)
+            sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
 

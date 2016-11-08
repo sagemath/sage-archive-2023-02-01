@@ -367,25 +367,60 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         def shift(self, x, s):
             r"""
-            Return a modified version of ``x`` whose valuation is increased by
-            ``s``.
+            Return a modified version of ``x`` whose valuation is increased by ``s``.
 
-            The element returned has essentially the same reduction, i.e., if
-            ``x`` has valuation `v`, then the reduction of ``x`` in the residue
-            ring of elements of valuation `\ge v` module elements of valuation
-            `> v` is naturally the same as the reduction of ``shift(x, s)`` in
-            the correspoding residue ring of elements of valuation `\ge v + s`.
+            The element returned is such that repeated shifts which go back to
+            the original valuation produce the same element in reduction.
 
-            EXAMPLES::
+            EXAMPLES:
+
+            Negative shifts are not always possible::
 
                 sage: from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 2)
-                sage: v.shift(1, 10)
-                1024
-                sage: v.shift(1, -10)
+                sage: v.shift(2, -1)
+                1
+                sage: v.shift(2, -2)
                 Traceback (most recent call last):
                 ...
                 TypeError: no conversion of this rational to integer
+
+            The element is the same after several shifts that produce an
+            element of the original valuation::
+
+                sage: v.shift(v.shift(1, 10), -10)
+                1
+
+            However, this is not always possible unless we are over a field::
+
+                sage: R.<x> = QQ[]
+                sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+                sage: w = v.augmentation(x, 1/2)
+
+                sage: w.shift(1, -1/2)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: Shifts with consistent reduction not implemented for this augmented valuation
+
+            Of course, we could return ``x/2`` here, but what would
+            ``v.shift(1, -1)`` return? ``x^2/4`` or rather ``1/2``?
+            There is no way to make this consistent in general unless we go to
+            the fraction field of ``R``.
+
+            Multiplication by an :meth:`element_with_valuation` might sometimes
+            produce useful results in such cases::
+
+                sage: 1 * w.element_with_valuation(-1/2)
+                1/2*x
+
+            However, this does not preserve the element in reduction::
+
+                sage: 1 * w.element_with_valuation(-1/2) * w.element_with_valuation(1/2)
+                1/2*x^2
+
+            In general this is only possible by using an
+            :meth:`equivalence_unit` and its :meth:`equialence_reciprocal`.
+            These do, however, not exist for all values of ``s``.
 
             """
             x = self.domain().coerce(x)
@@ -712,7 +747,11 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 if n < 0 and self.domain() not in Fields():
                     # note that shifting might not be possible in this case even if -n > v
                     continue
-                y = self.shift(x, n)
+                try:
+                    y = self.shift(x, n)
+                except NotImplementedError:
+                    # not all valuations can implement consistent shifts
+                    continue
                 tester.assertIs(y.parent(), self.domain())
                 tester.assertEqual(self(y), v + n)
                 # shifts preserve reductions

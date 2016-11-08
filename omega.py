@@ -186,14 +186,7 @@ def Omega_higher(a, z):
             return tuple(e)
         P = factor.parent()
         result = P({subs_e(e): c for e, c in iteritems(factor.dict())})
-        try:
-            return result.subs({v: f.value})
-        except TypeError:
-            print(('o o', result, v, f.value))
-            print(result.parent())
-            print(v.parent())
-            print(f.value.parent())
-            return factor
+        return result.subs({v: f.value})
 
     factor_Omega = list(subs_Omega(factor, v)
                         for v, factor in iteritems(factor_Omega))

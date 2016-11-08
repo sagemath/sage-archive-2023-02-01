@@ -782,6 +782,24 @@ def deg_one_primes_iter(K, principal_only=False, maxnorm=10**10):
     - ``principal_only`` (bool) - if True, only yield principal primes
     - ``maxnorm`` (int) - upper bound on norm of primes yielded.
 
+    OUTPUT:
+
+    An iterator over degree 1 primes of `K` up to the given norm,
+    optionally yielding on ly principal primes.
+
+    EXAMPLES:
+
+        sage: K.<a> = QuadraticField(-5)
+        sage: from sage.schemes.elliptic_curves.gal_reps_number_field import deg_one_primes_iter
+        sage: list(deg_one_primes_iter(K,maxnorm=10))
+        [Fractional ideal (2, a + 1),
+        Fractional ideal (3, a + 1),
+        Fractional ideal (3, a + 2),
+        Fractional ideal (-a),
+        Fractional ideal (7, a + 3),
+        Fractional ideal (7, a + 4)]
+        sage: list(deg_one_primes_iter(K,True,maxnorm=10))
+        [Fractional ideal (-a)]
     """
     # imaginary quadratic fields have no principal primes of norm<disc/4
     start = K.discriminant().abs()//4 if principal_only and K.signature()==(0,1) else 2

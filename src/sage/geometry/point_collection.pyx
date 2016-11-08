@@ -78,6 +78,7 @@ need to spend time and memory four times.
 from __future__ import print_function
 
 from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport richcmp_not_equal, richcmp
 
 from sage.matrix.all import matrix
 from sage.misc.all import latex
@@ -245,37 +246,38 @@ cdef class PointCollection(SageObject):
         else:
             return PointCollection([self[i] for i in args], self._module)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
-        Compare ``self`` and ``right``.
+        Compare ``self`` and ``right`` according to the operator ``op``.
 
         INPUT:
 
-        - ``right`` -- anything.
+        - ``right`` -- another PointCollection
 
         OUTPUT:
 
-        - 0 if ``right`` is of the same type as ``self`` (i.e. it is another
-          :class:`point collection <PointCollection>`), they have the same
-          :meth:`module`, and their points are the same and listed in the same
-          order. 1 or -1 otherwise.
+        boolean
+
+        First compare according to the underlying :meth:`module`
+        and then according to the list of points.
 
         TESTS::
 
             sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
-            sage: cmp(c, c)
-            0
-            sage: cmp(c, 1) * cmp(1, c)
-            -1
+            sage: d = Cone([(0,1,2), (1,0,1), (0,1,1), (1,1,1)]).rays()
+            sage: c == c
+            True
+            sage: c == d
+            False
         """
-        c = cmp(type(self), type(right))
-        if c != 0:
-            return c
+        if not isinstance(right, PointCollection):
+            return NotImplemented
         cdef PointCollection pc = right
-        c = cmp(self._module, pc._module)
-        if c != 0:
-            return c
-        return cmp(self._points, pc._points)
+        left_m = self._module
+        right_m = pc._module
+        if left_m != right_m:
+            return richcmp_not_equal(left_m, right_m, op)
+        return richcmp(self._points, pc._points, op)
 
     def __getitem__(self, n):
         r"""

@@ -1,5 +1,5 @@
 In newer binutils, ld options -r and -pie conflict.
-Patch due to Jörg-Volker ??? (contacted to get identity, no answer yet)
+Patch due to Jörg-Volker Peetz
 (source : https://groups.google.com/d/msg/sage-devel/TduebNoZuBE/sEULolL0BQAJ),
 packaged by Emmanuel Charpentier
 

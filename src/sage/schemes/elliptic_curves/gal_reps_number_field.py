@@ -773,42 +773,47 @@ def _tr12(tr, det):
     det3 = det**3
     return ((tr * (tr**2 - 3 * det))**2 - 2 * det3)**2 - 2 * det3**2
 
-def deg_one_primes_iter(K, principal_only=False, maxnorm=10**10):
-    r"""Return an iterator over degree 1 primes of K.
+def deg_one_primes_iter(K, principal_only=False):
+    r"""
+    Return an iterator over degree 1 primes of ``K``.
 
     INPUT:
 
-    - ``K`` - a number field.
-    - ``principal_only`` (bool) - if True, only yield principal primes
-    - ``maxnorm`` (int) - upper bound on norm of primes yielded.
+    - ``K`` -- a number field
+    - ``principal_only`` -- bool; if ``True``, only yield principal primes
 
     OUTPUT:
 
     An iterator over degree 1 primes of `K` up to the given norm,
-    optionally yielding on ly principal primes.
+    optionally yielding only principal primes.
 
     EXAMPLES:
 
         sage: K.<a> = QuadraticField(-5)
         sage: from sage.schemes.elliptic_curves.gal_reps_number_field import deg_one_primes_iter
-        sage: list(deg_one_primes_iter(K,maxnorm=10))
+        sage: it = deg_one_primes_iter(K)
+        sage: [it.next() for _ in range(6)]
         [Fractional ideal (2, a + 1),
-        Fractional ideal (3, a + 1),
-        Fractional ideal (3, a + 2),
-        Fractional ideal (-a),
-        Fractional ideal (7, a + 3),
-        Fractional ideal (7, a + 4)]
-        sage: list(deg_one_primes_iter(K,True,maxnorm=10))
-        [Fractional ideal (-a)]
+         Fractional ideal (3, a + 1),
+         Fractional ideal (3, a + 2),
+         Fractional ideal (-a),
+         Fractional ideal (7, a + 3),
+         Fractional ideal (7, a + 4)]
+        sage: it = deg_one_primes_iter(K, True)
+        sage: [it.next() for _ in range(6)]
+        [Fractional ideal (-a),
+         Fractional ideal (-2*a + 3),
+         Fractional ideal (2*a + 3),
+         Fractional ideal (a + 6),
+         Fractional ideal (a - 6),
+         Fractional ideal (-3*a + 4)]
     """
-    # imaginary quadratic fields have no principal primes of norm<disc/4
-    start = K.discriminant().abs()//4 if principal_only and K.signature()==(0,1) else 2
+    # imaginary quadratic fields have no principal primes of norm < disc / 4
+    start = K.discriminant().abs() // 4 if principal_only and K.signature() == (0,1) else 2
 
-    # Note: the primes() iterator has a bug which means that you
-    # cannot give a start value without a stop value, so we have to
-    # provide a finite stop value.
-    from sage.arith.all import primes
-    for p in primes(start=start,stop=maxnorm):
+    from sage.arith.misc import primes
+    from sage.rings.infinity import infinity
+    for p in primes(start=start, stop=infinity):
         for P in K.primes_above(p, degree=1):
             if not principal_only or P.is_principal():
                 yield P
@@ -852,7 +857,7 @@ def _semistable_reducible_primes(E):
     last_char = 0 # The residue characteristic of the most recent prime.
 
     while len(precomp) < 2:
-        P = deg_one_primes.next()
+        P = next(deg_one_primes)
 
         # the iterator tests this already
         # if not P.is_principal():
@@ -1034,7 +1039,7 @@ def _possible_normalizers(E, SA):
     deg_one_primes = deg_one_primes_iter(K)
 
     while W.dimension() < V.dimension() - 1:
-        P = deg_one_primes.next()
+        P = next(deg_one_primes)
 
         k = P.residue_field()
 

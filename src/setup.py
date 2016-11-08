@@ -345,8 +345,8 @@ def execute_list_of_commands(command_list):
 ########################################################################
 
 
-class sage_cythonize(Command):
-    name = 'cythonize'
+class sage_build_cython(Command):
+    name = 'build_cython'
     description = "compile Cython extensions into C/C++ extensions"
 
     user_options = [
@@ -534,7 +534,7 @@ class sage_build_ext(build_ext):
 
     def run(self):
         # Always run the Cythonize command before building extensions
-        self.run_command('cythonize')
+        self.run_command('build_cython')
         build_ext.run(self)
 
     def check_flags(self):
@@ -774,7 +774,7 @@ class sage_build(build):
     # Insert the cythonize command before build_ext
     for idx, sc in enumerate(sub_commands):
         if sc[0] == 'build_ext':
-            sub_commands.insert(idx, ('cythonize', lambda *args: True))
+            sub_commands.insert(idx, ('build_cython', lambda *args: True))
             break
 
     def run_autogen(self):
@@ -845,7 +845,7 @@ class sage_install(install):
         """
         dist = self.distribution
         cmd_build_py = self.get_finalized_command("build_py")
-        cmd_cythonize = self.get_finalized_command("cythonize")
+        cmd_build_cython = self.get_finalized_command("build_cython")
 
         # Determine all Python modules inside all packages
         py_modules = []
@@ -866,7 +866,7 @@ class sage_install(install):
                     dist.packages,
                     py_modules,
                     dist.ext_modules,
-                    cmd_cythonize.get_cythonized_package_files())
+                    cmd_build_cython.get_cythonized_package_files())
 
 
 #########################################################
@@ -881,6 +881,6 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
-      cmdclass = dict(cythonize=sage_cythonize, build_ext=sage_build_ext,
+      cmdclass = dict(build_cython=sage_build_cython, build_ext=sage_build_ext,
                       build=sage_build, install=sage_install),
       ext_modules = ext_modules)

@@ -11,6 +11,8 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+
+import operator
 from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
 from six import iteritems
 
@@ -147,6 +149,12 @@ def Omega_higher(a, z):
                                     sum((factor.y() for factor in z), []))
 
     return result_high
+
+
+def Omega(var, numerator, factors_denominator, operator=operator.ge):
+    pass
+
+
 class OmegaGroupElement(IndexedFreeAbelianGroup.Element):
 
     def __init__(self, parent, x, normalize=True):
@@ -157,6 +165,12 @@ class OmegaGroupElement(IndexedFreeAbelianGroup.Element):
                 (f.constant_coefficient()**e for f, e in iteritems(x)), L.one())
             x = {f/f.constant_coefficient(): e for f, e in iteritems(x)}
         super(OmegaGroup.Element, self).__init__(parent, x)
+
+
+    def Omega(var, operator=operator.ge):
+        r"""
+        """
+        pass
 
 
 class OmegaGroup(IndexedFreeAbelianGroup):

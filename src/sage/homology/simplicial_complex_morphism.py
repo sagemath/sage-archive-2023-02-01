@@ -721,3 +721,56 @@ class SimplicialComplexMorphism(Morphism):
         """
         from .homology_morphism import InducedHomologyMorphism
         return InducedHomologyMorphism(self, base_ring, cohomology)
+
+    def is_contiguous_to(self, other):
+        r"""
+        ``True`` if this map is contiguous to ``other``
+
+        INPUT:
+
+        - ``other`` -- another morphism of simplicial complexes
+
+        Two morphisms `f_0, f_1: K \to L` are *contiguous* if for any
+        simplex `\sigma \in K`, the union `f_0(\sigma) \cup
+        f_1(\sigma)` is a simplex in `L`. This is not a transitive
+        relation, but it induces an equivalence relation on simplicial
+        maps: `f` is equivalent to `g` if there is a finite sequence
+        `f_0=f`, `f_1`, ..., `f_n=g` such that `f_i` and `f_{i+1}` are
+        contiguous for each `i`.
+
+        This is related to maps being homotopic: if they are
+        contiguous, then they induce homotopic maps on the geometric
+        realizations. Given two homotopic maps on the geometric
+        realizations, then after barycentrically subdividing `n` times
+        for some `n`, the maps have simplicial approximations which
+        are in the same contiguity class. (This last fact is only true
+        if the domain is a *finite* simplicial complex, by the way.)
+
+        See Section 3.5 of Spanier [Spa1966]_ for details.
+
+        Implementation: it is enough to check when `\sigma` ranges
+        over the facets.
+
+        EXAMPLES::
+
+            sage: K = simplicial_complexes.Simplex(1)
+            sage: L = simplicial_complexes.Sphere(1)
+            sage: H = Hom(K, L)
+            sage: f = H({0: 0, 1: 1})
+            sage: g = H({0: 0, 1: 0})
+            sage: f.is_contiguous_to(f)
+            True
+            sage: f.is_contiguous_to(g)
+            True
+            sage: h = H({0: 1, 1: 2})
+            sage: f.is_contiguous_to(h)
+            False
+        """
+        if not isinstance(other, SimplicialComplexMorphism):
+            raise ValueError
+        if self.codomain() != other.codomain() or self.domain() != other.domain():
+            return False
+        domain = self.domain()
+        codomain = self.codomain()
+        return all(Simplex(self(sigma).set().union(other(sigma))) in codomain
+                   for sigma in domain.facets())

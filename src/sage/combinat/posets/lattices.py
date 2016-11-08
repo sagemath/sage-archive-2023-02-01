@@ -719,7 +719,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         is join-irreducible; converse holds if and only if the lattise
         is distributive.
 
-        .. SEEALSO:: 
+        .. SEEALSO::
 
             :meth:`meet_primes`,
             :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.join_irreducibles`
@@ -756,7 +756,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         is meet-irreducible; converse holds if and only if the lattise
         is distributive.
 
-        .. SEEALSO:: 
+        .. SEEALSO::
 
             :meth:`join_primes`,
             :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.meet_irreducibles`

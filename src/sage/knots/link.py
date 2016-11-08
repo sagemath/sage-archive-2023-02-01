@@ -455,9 +455,9 @@ class Link(object):
         
         - A finitely presented group.
           If 'wirtinger' is given, then the Wirtinger presentation of the fundamental group
-          of the complement is given (see [WPLG]_).
+          of the complement is given (see :wikipedia:`Link_group`).
           If 'braid' is given, then the presentation is given by the braid action on the free group
-          (see chapter 2 of [Birman]_).
+          (see chapter 2 of [Bir1975]_).
         
         EXAMPLES::
         
@@ -482,11 +482,6 @@ class Link(object):
             sage: GB.simplified()
             Finitely presented group < x0, x2 | x2^-1*x0*x2^-1*x0^-1*x2*x0*x2^-1*x0*x2*x0^-1 >
             
-        REFERENCES:
-        
-        .. [WPLG] :wikipedia:`Link_group`
-        
-        .. [Birman] \J Birman. Braids, Links, and Mapping Class Groups, Princeton University Press, 1975
         
         """
         from sage.groups.free_group import FreeGroup

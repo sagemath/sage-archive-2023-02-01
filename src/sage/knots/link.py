@@ -365,6 +365,84 @@ class Link(object):
             else:
                 raise ValueError("invalid input: data must be either a list or a braid")
             
+    def arcs(self, presentation='pd'):
+        r"""
+        Return the arcs of the diagram.
+        
+        INPUT:
+        
+        - presentation - one of 'pd' or 'gauss_code'
+         
+        OUPUT:
+        
+        A list of lists represeting the arcs.
+        
+        Arcs are the connected components of the planar diagram.
+         
+        If the presentation is 'pd', the arcs are returned as lists of parts
+        in the pd code.
+        
+        If the presentation is 'gauss_code' the arcs are returned
+        as pieces of the Gauss code that start with a negative number, and end 
+        with the following negative one. If there exist a closed arc, it is returned
+        as a list of positive numbers only.
+        
+        EXAMPLES::
+        
+            sage: K = Knot([[[1,-2,3,-1,2,-3]],[1,1,1]])
+            sage: K.arcs()
+            [[1, 2], [3, 4], [5, 6]]
+            sage: K.arcs(presentation='gauss_code')
+            [[-3, 1, -2], [-2, 3, -1], [-1, 2, -3]]
+            
+        ::
+        
+            sage: L = Link([[1, 2, 3, 4], [3, 2, 1, 4]])
+            sage: L.arcs()
+            [[2, 4], [1], [3]]
+            sage: L.arcs(presentation='gauss_code')
+            [[-2, -1], [-1, -2], [2, 1]]
+            sage: L.gauss_code()
+            [[-1, -2], [2, 1]]
+
+
+        """
+        if presentation == 'pd':
+            G = DiGraph()
+            for e in set(flatten(self.pd_code())):
+                G.add_vertex(e)
+            for cr in zip(self.pd_code(), self.orientation()):
+                if cr[1] == 1:
+                    G.add_edge(cr[0][1], cr[0][3])
+                else:
+                    G.add_edge(cr[0][3], cr[0][1])
+            res = []
+            for S in G.connected_components_subgraphs():
+                check = S.is_directed_acyclic(certificate=True)
+                if check[0]:
+                    source = S.sources()[0]
+                    sink = S.sinks()[0]
+                    res.append(S.shortest_path(source, sink))
+                else:
+                    res.append(check[1])
+            return res
+        elif presentation == 'gauss_code':
+            res = []
+            for comp in self.gauss_code():
+                if not any(i<0 for i in comp):
+                    res.append(comp)
+                else:
+                    rescom = []
+                    par = []
+                    for i in comp:
+                        par.append(i)
+                        if i<0:
+                            rescom.append(copy(par))
+                            par = [i]
+                    rescom[0] = par + rescom[0]
+                    res = res + rescom
+            return res
+            
     def fundamental_group(self, presentation='wirtinger'):
         r"""
         Return the fundamental group of the complement of the link.
@@ -386,7 +464,7 @@ class Link(object):
             sage: L = Link([[1, 2, 3, 4], [3, 2, 1, 4]])
             sage: L.fundamental_group()
             Finitely presented group < x0, x1, x2 | x1*x0^-1*x2^-1*x0, x2*x0*x1^-1*x0^-1 >
-            sage: L.fundamental_group('artin')
+            sage: L.fundamental_group('braid')
             Finitely presented group < x0, x1 | 1, 1 >
 
         We can see, for instance, that the  two presentations of the group

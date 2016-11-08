@@ -354,8 +354,6 @@ class sage_build_cython(Command):
         # hard-coded; change as part of work on #21525
         #('build-dir=', 'd',
         # "directory for compiled C/C++ sources and header files"),
-        ('debug', 'g',
-         "enable Cython debugging support"),
         ('profile', 'p',
          "enable Cython profiling support"),
         ('parallel=', 'j',
@@ -368,7 +366,10 @@ class sage_build_cython(Command):
 
     def initialize_options(self):
         self.build_dir = None
-        self.debug = None
+
+        # Always have Cython produce debugging info by default, unless
+        # SAGE_DEBUG=no explicitly
+        self.debug = True
         self.profile = None
         self.parallel = None
         self.force = None
@@ -393,10 +394,9 @@ class sage_build_cython(Command):
 
         self.set_undefined_options('build_ext', *inherit_opts)
 
-        if self.debug is None:
-            # Was not explicitly specified on the command-line; set via
-            # SAGE_DEBUG if it exists
-            self.debug = os.environ.get('SAGE_DEBUG', 'no') != 'no'
+        # Always produce debugging output unless SAGE_DEBUG=no is given
+        # explicitly
+        self.debug = os.environ.get('SAGE_DEBUG', None) != 'no'
 
         if self.debug:
             log.info('Enabling Cython debugging support')

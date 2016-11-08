@@ -1683,7 +1683,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         These are the coefficients `F_{0,0}, F_{1,1}, \dots, `F_{n,n}`
         in the base ring of ``self`` such that
 
-        .. math::
+        .. MATH::
 
             P_n(x) = \sum_{i=0}^n F_{i,i} \prod_{j=0}^{i-1} (x - x_j)
 

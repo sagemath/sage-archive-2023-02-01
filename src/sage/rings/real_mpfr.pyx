@@ -1353,7 +1353,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(2, rnd="RNDN")(w).str(2)
             '10.'
 
-        .. note::
+        .. NOTE::
 
            A real number is an arbitrary precision mantissa with a
            limited precision exponent. A real number can have three

@@ -24,7 +24,7 @@ def var(*args, **kwds):
     - ``kwds`` -- keyword arguments can be given to specify domain and
       custom latex_name for variables. See EXAMPLES for usage.
 
-    .. note::
+    .. NOTE::
 
        The new variable is both returned and automatically injected
        into the global namespace. If you need a symbolic variable in
@@ -175,7 +175,7 @@ def function(s, *args, **kwds):
                 Ex: f = function('f', print_latex_func=my_latex_print)
                 See EXAMPLES for an explicit usage.
 
-    .. note::
+    .. NOTE::
 
        The new function is both returned and automatically injected
        into the global namespace.  If you use this function in library

@@ -4066,7 +4066,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         simplicial cone (of dimension `d`), the integral points of the
         open parallelotope
 
-        .. math::
+        .. MATH::
 
             par \langle x_1, \dots, x_d \rangle =
             \ZZ^n \cap

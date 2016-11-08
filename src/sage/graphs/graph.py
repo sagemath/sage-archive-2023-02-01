@@ -3941,7 +3941,7 @@ class Graph(GenericGraph):
 
         As an optimization problem, it can be expressed as:
 
-        .. math::
+        .. MATH::
 
             \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
             \mbox{Such that : }&\forall v \in G, \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\

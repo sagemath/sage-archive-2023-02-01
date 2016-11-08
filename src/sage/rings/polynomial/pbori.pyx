@@ -3,7 +3,7 @@ Boolean Polynomials
 
 Elements of the quotient ring
 
-.. math::
+.. MATH::
 
     \GF{2}[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>.
 
@@ -58,14 +58,14 @@ EXAMPLES:
 Consider the ideal
 
 
-.. math::
+.. MATH::
 
     <ab + cd + 1, ace + de, abe + ce, bc + cde + 1>.
 
 First, we compute the lexicographical Groebner basis in the polynomial
 ring
 
-.. math::
+.. MATH::
 
     R = \GF{2}[a,b,c,d,e].
 
@@ -342,7 +342,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: R
             Boolean PolynomialRing in x, y, z
 
-        .. note::
+        .. NOTE::
 
           See class documentation for parameters.
         """
@@ -1361,7 +1361,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         Return a newly created Singular quotient ring matching this boolean
         polynomial ring.
 
-        .. note::
+        .. NOTE::
 
            TODO: This method does not only return a string but actually
            calls Singular.
@@ -1580,7 +1580,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: B.get_order_code()
             1
 
-        .. note::
+        .. NOTE::
 
 
           This function which is part of the PolyBoRi upstream API works
@@ -1605,7 +1605,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: B.get_base_order_code()
             1
 
-        .. note::
+        .. NOTE::
 
 
           This function which is part of the PolyBoRi upstream API works
@@ -1842,7 +1842,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             MonomialMonoid of Boolean PolynomialRing in a, b, c
 
 
-        .. note::
+        .. NOTE::
 
           See class documentation for parameters.
         """
@@ -2176,7 +2176,7 @@ cdef class BooleanMonomial(MonoidElement):
         sage: BooleanMonomial(M)
         1
 
-    .. note::
+    .. NOTE::
 
        Use the :meth:`BooleanMonomialMonoid__call__` method and not
        this constructor to construct these objects.
@@ -2192,7 +2192,7 @@ cdef class BooleanMonomial(MonoidElement):
             1
 
 
-        .. note::
+        .. NOTE::
 
           See class documentation for parameters.
         """
@@ -2343,7 +2343,7 @@ cdef class BooleanMonomial(MonoidElement):
             -845955105                 # 32-bit
             173100285919               # 64-bit
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
@@ -2384,7 +2384,7 @@ cdef class BooleanMonomial(MonoidElement):
             ...
             ValueError: no variables in constant monomial ; cannot take index()
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -2407,7 +2407,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: M(x*x*y*z).deg()
             3
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -2484,7 +2484,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: n.multiples(m)
             {{x,y,z}}
 
-        .. note::
+        .. NOTE::
 
            The returned set always contains ``self`` even if the bound
            ``rhs`` is smaller than ``self``.
@@ -2893,7 +2893,7 @@ cdef class BooleanPolynomial(MPolynomial):
         sage: BooleanPolynomial(B)
         0
 
-    .. note::
+    .. NOTE::
 
         Do not use this method to construct boolean polynomials, but
         use the appropriate ``__call__`` method in the parent.
@@ -3065,7 +3065,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.is_equal( (f + 1) - 1 )
             True
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -3652,7 +3652,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: P(0).lead_deg()
             0
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -3694,7 +3694,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: R
             Boolean PolynomialRing in y
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4213,7 +4213,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x*y + x + y + 1).degree()
             2
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4238,7 +4238,7 @@ cdef class BooleanPolynomial(MPolynomial):
           Polynomials
           http://www.mathematik.uni-kl.de/~zca/Reports_on_ca/35/paper_35_full.ps.gz
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4261,7 +4261,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x+y+y*z).lead()
             y*z
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4286,7 +4286,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: P(0).lex_lead()
             0
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4318,7 +4318,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.lex_lead_deg()
             1
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4339,7 +4339,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: B(1).constant()
             True
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4379,7 +4379,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: nav_else.value()
             2
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4416,7 +4416,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.lead_divisors()
             {{a,b}, {a}, {b}, {}}
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4434,7 +4434,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.first_term()
             a
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4463,7 +4463,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.reducible_by(c + 1)
             True
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4482,7 +4482,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.n_nodes()
             4
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4500,7 +4500,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.n_vars()
             3
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4633,7 +4633,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f.spoly(g)
             a*b + a*c*d + c*d + 1
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi interface.
         """
@@ -4651,7 +4651,7 @@ cdef class BooleanPolynomial(MPolynomial):
             -845955105                 # 32-bit
             173100285919               # 64-bit
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
@@ -4703,7 +4703,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: p.reduce([])
             x0*x1*x2 + x0*x1*x3 + x0*x2*x3 + x2
 
-        .. note::
+        .. NOTE::
 
            If this function is called repeatedly with the same I then
            it is advised to use PolyBoRi's :class:`GroebnerStrategy`
@@ -5329,7 +5329,7 @@ cdef class BooleSet:
         sage: BooleSet([Monomial(B)])
         {{}}
 
-    .. note::
+    .. NOTE::
 
       :class:`BooleSet` prints as ``{}`` but are not Python dictionaries.
     """
@@ -5484,7 +5484,7 @@ cdef class BooleSet:
         whose second component is a member of Y.
 
 
-        .. math::
+        .. MATH::
 
             X\times Y = \{(x,y) | x\in X\;\mathrm{and}\;y\in Y\}.
 
@@ -5514,7 +5514,7 @@ cdef class BooleSet:
         The difference of two sets `X` and `Y` is defined as:
 
 
-        .. math::
+        .. MATH::
 
             X \ Y = \{x | x\in X\;\mathrm{and}\;x\not\in Y\}.
 
@@ -5548,7 +5548,7 @@ cdef class BooleSet:
 
         The union of two sets `X` and `Y` is defined as:
 
-        .. math::
+        .. MATH::
 
             X \cup Y = \{x | x\in X\;\mathrm{or}\;x\in Y\}.
 
@@ -5735,7 +5735,7 @@ cdef class BooleSet:
             -845955105                 # 32-bit
             173100285919               # 64-bit
 
-        .. note::
+        .. NOTE::
 
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
@@ -5853,7 +5853,7 @@ cdef class BooleSet:
         The union of two sets `X` and `Y` is defined as:
 
 
-        .. math::
+        .. MATH::
 
             X \cap Y = \{x | x\in X\;\mathrm{and}\;x\in Y\}.
 
@@ -6613,7 +6613,7 @@ cdef class GroebnerStrategy:
     A Groebner strategy is the main object to control the strategy for
     computing Groebner bases.
 
-    .. note::
+    .. NOTE::
 
       This class is mainly used internally.
     """
@@ -6775,7 +6775,7 @@ cdef class GroebnerStrategy:
         """
         Compute a Groebner basis for the generating system.
 
-        .. note::
+        .. NOTE::
 
           This implementation is out of date, but it will revived at
           some point in time. Use the ``groebner_basis()`` function
@@ -6846,7 +6846,7 @@ cdef class GroebnerStrategy:
         """
         Return a vector of all polynomials with minimal leading terms.
 
-        .. note::
+        .. NOTE::
 
            Use this function if strat contains a GB.
         """
@@ -6857,7 +6857,7 @@ cdef class GroebnerStrategy:
         Return a vector of all polynomials with minimal leading terms
         and do tail reductions.
 
-        .. note::
+        .. NOTE::
 
           Use that if strat contains a GB and you want a reduced GB.
         """
@@ -6984,7 +6984,7 @@ cdef class GroebnerStrategy:
             sage: G.nf(gb[0]*B.gen(1))
             0
 
-        .. note::
+        .. NOTE::
 
           The result is only canonical if the generating set is a
           Groebner basis.

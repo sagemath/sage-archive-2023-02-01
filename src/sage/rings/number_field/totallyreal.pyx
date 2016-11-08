@@ -133,7 +133,7 @@ cpdef double odlyzko_bound_totallyreal(int n):
     This function returns the unconditional Odlyzko bound for the root
     discriminant of a totally real number field of degree n.
 
-    .. note::
+    .. NOTE::
 
         The bounds for n > 50 are not necessarily optimal.
 
@@ -187,7 +187,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     where ``length(a) = d+1``, so in particular always ``a[d] = 1``.
 
-    .. note::
+    .. NOTE::
 
         This is guaranteed to give all primitive such fields, and
         seems in practice to give many imprimitive ones.

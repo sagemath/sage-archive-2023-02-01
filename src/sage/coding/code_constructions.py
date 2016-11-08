@@ -1109,7 +1109,7 @@ def ToricCode(P,F):
     The associated toric code `C` is the evaluation code which
     is the image of the evaluation map
 
-    .. math::
+    .. MATH::
 
         \mathrm{eval_T} : V \rightarrow F^n,
 

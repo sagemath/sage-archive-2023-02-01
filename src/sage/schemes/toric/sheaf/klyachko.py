@@ -361,7 +361,7 @@ class KlyachkoBundle_class(SageObject):
         Let the cone be spanned by the rays `\sigma=\langle r_1,\dots,
         r_k\rangle`. This method returns the intersection
 
-        .. math::
+        .. MATH::
 
             \bigcap_{r\in \{r_1,\dots,r_k\}}
             E^{r}(i)
@@ -547,7 +547,7 @@ class KlyachkoBundle_class(SageObject):
 
         The restriction map
 
-        .. math::
+        .. MATH::
 
             E_\sigma(m) \to E_\tau(m)
 

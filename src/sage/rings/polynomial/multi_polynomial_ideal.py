@@ -1781,7 +1781,7 @@ class MPolynomialIdeal_singular_repr(
         forms a Groebner basis if and only if for every element `S` in
         `Syz(LM(I))`:
 
-        .. math::
+        .. MATH::
 
             S * G = \sum_{i=0}^{m} h_ig_i ---->_G 0.
 

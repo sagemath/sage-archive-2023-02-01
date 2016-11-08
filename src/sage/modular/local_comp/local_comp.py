@@ -390,7 +390,7 @@ class UnramifiedPrincipalSeries(PrincipalSeries):
         Return the Satake polynomial of this representation, i.e.~the polynomial whose roots are `\chi_1(p), \chi_2(p)`
         where this representation is `\pi(\chi_1, \chi_2)`. Concretely, this is the polynomial
 
-        .. math::
+        .. MATH::
 
             X^2 - p^{(j - k + 2)/2} a_p(f) X + p^{j + 1} \varepsilon(p)`.
 

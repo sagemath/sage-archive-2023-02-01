@@ -343,7 +343,7 @@ def delta_qexp(prec=10, var='q', K=ZZ) :
 
     Compute the theta series
 
-    .. math::
+    .. MATH::
 
         \sum_{n \ge 0} (-1)^n (2n+1) q^{n(n+1)/2},
 

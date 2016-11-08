@@ -36,7 +36,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     is maximal in its orbit under the action of `G`. `v` is
     canonical if and only if
 
-    .. math::
+    .. MATH::
 
         v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 
@@ -44,7 +44,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     simple transposition `s_1 = (1, 2)` swaps the first and the second entries
     of any integer vector `v = [a_1, a_2, a_3, \dots , a_n]`
 
-    .. math::
+    .. MATH::
 
         s_1 \cdot v = [a_2, a_1, a_3, \dots , a_n]
 
@@ -417,7 +417,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         define ``self``.  Such integer vectors are said to be
         canonical. A vector `v` is canonical if and only if
 
-        .. math::
+        .. MATH::
 
             v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 
@@ -772,7 +772,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         define ``self``.  Such integer vectors are said to be
         canonical. A vector `v` is canonical if and only if
 
-        .. math::
+        .. MATH::
 
             v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 

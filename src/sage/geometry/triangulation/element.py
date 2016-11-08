@@ -452,7 +452,7 @@ class Triangulation(Element):
         points in the point configuration. For a fixed triangulation
         `T`, the entry corresponding to the `i`-th point `p_i` is
 
-        .. math::
+        .. MATH::
 
             \phi_T(p_i) = \sum_{t\in T, t\owns p_i} Vol(t)
 

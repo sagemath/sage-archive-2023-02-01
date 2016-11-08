@@ -2324,7 +2324,7 @@ class Polyhedron_base(Element):
         Minkowski addition of two subsets of a vector space is defined
         as
 
-        .. math::
+        .. MATH::
 
             X \oplus Y =
             \cup_{y\in Y} (X+y) =
@@ -2381,7 +2381,7 @@ class Polyhedron_base(Element):
         Minkowski addition (see :meth:`Minkowski_sum`) or as
         set-theoretic intersection via
 
-        .. math::
+        .. MATH::
 
             X \ominus Y =
             (X^c \oplus Y)^c =

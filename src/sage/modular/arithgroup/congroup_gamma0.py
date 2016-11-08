@@ -545,7 +545,7 @@ class Gamma0_class(GammaH_class):
 
         This is given by
 
-        .. math::
+        .. MATH::
 
             N \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(1 + \frac{1}{p}\right).
 

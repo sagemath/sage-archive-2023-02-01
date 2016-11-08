@@ -1378,7 +1378,7 @@ class EllipticCurveCanonicalHeight:
 
         (Real) `c>0` such that
 
-        .. math::
+        .. MATH::
 
             |\wp(z) - z^-2| \le \frac{c^2|z|^2}{1-c|z|^2}
 

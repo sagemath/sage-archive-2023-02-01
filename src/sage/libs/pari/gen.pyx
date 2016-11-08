@@ -2837,7 +2837,7 @@ cdef class gen(gen_auto):
         r"""
         x.eint1(n): exponential integral E1(x):
 
-        .. math::
+        .. MATH::
 
                          \int_{x}^{\infty} \frac{e^{-t}}{t} dt
 
@@ -2908,7 +2908,7 @@ cdef class gen(gen_auto):
         bits). If `x` is inexact (e.g. real), its own precision is
         used in the computation, and the parameter precision is ignored.
 
-        .. note::
+        .. NOTE::
 
            intmods (modulo a prime) and `p`-adic numbers are
            allowed as arguments.
@@ -4325,7 +4325,7 @@ cdef class gen(gen_auto):
         """
         Return the PARI type of self as a string.
 
-        .. note::
+        .. NOTE::
 
            In Cython, it is much faster to simply use typ(self.g) for
            checking PARI types.
@@ -4604,7 +4604,7 @@ cdef gen new_ref(GEN g, gen parent):
     Create a new gen pointing to the given GEN, which is allocated as a
     part of parent.g.
 
-    .. note::
+    .. NOTE::
 
        As a rule, there should never be more than one sage gen
        pointing to a given Pari GEN. So that means there is only

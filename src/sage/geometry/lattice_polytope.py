@@ -13,7 +13,7 @@ coordinates.
 If `L` is a lattice polytope, the dual polytope of
 `L` is
 
-.. math::
+.. MATH::
 
        \{y \in \ZZ^n :   x\cdot y \geq -1 \text{ all } x \in L\}
 

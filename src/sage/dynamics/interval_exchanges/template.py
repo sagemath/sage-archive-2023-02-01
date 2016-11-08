@@ -894,7 +894,7 @@ class PermutationIET(Permutation):
 
         This `d*d` antisymmetric matrix is given by the rule :
 
-        .. math::
+        .. MATH::
 
             m_{ij} = \begin{cases}
                 1 & \text{$i < j$ and $\pi(i) > \pi(j)$} \\
@@ -1646,7 +1646,7 @@ class PermutationLI(Permutation):
         A quadratic (or generalized) permutation is *reducible* if there exists
         a decomposition
 
-        .. math::
+        .. MATH::
 
            A1 u B1 | ... | B1 u A2
 

@@ -803,7 +803,7 @@ class AbstractLinearCode(Module):
         the weights of the codewords in its dual `[n, n-k, d^*]` code `C^*`.
         Fix a `t`, `0<t<d`, and let
 
-        .. math::
+        .. MATH::
 
            s = |\{ i\ |\ A_i^* \not= 0, 0< i \leq n-t\}|.
 
@@ -950,7 +950,7 @@ class AbstractLinearCode(Module):
         r"""
         Returns the i-th binomial moment of the `[n,k,d]_q`-code `C`:
 
-        .. math::
+        .. MATH::
 
             B_i(C) = \sum_{S, |S|=i} \frac{q^{k_S}-1}{q-1}
 
@@ -1522,7 +1522,7 @@ class AbstractLinearCode(Module):
         r"""
         Returns the dual code `C^{\perp}` of the code `C`,
 
-        .. math::
+        .. MATH::
 
             C^{\perp} = \{ v \in V\ |\ v\cdot c = 0,\ \forall c \in C \}.
 
@@ -1850,7 +1850,7 @@ class AbstractLinearCode(Module):
          of `i` as ``[i_0, i_1, ...,i_{m-1}, i_m, i_{m+1}, ..., i_{km-1}].``
          The element that is generated is:
 
-        .. math::
+        .. MATH::
 
              \begin{aligned}
              & (i_0 a^0 + i_1 a^1 + \cdots + i_{m-1} a^{m-1}) G[0] + \\

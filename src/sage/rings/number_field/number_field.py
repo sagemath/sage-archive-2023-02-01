@@ -4025,7 +4025,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         units modulo `m`-th powers and the `m`-torsion in the
         `S`-class group:
 
-        .. math::
+        .. MATH::
 
             1                                    \longrightarrow
             O_{K,S}^\times / (O_{K,S}^\times)^m  \longrightarrow
@@ -7857,7 +7857,7 @@ class NumberField_absolute(NumberField_generic):
         real part). Here `(r,s)` is the signature of self. Then the
         Minkowski embedding is given by
 
-        .. math::
+        .. MATH::
 
             x \mapsto ( \sigma_1(x), \dots,
                      \sigma_r(x), \sqrt{2}\Re(\sigma_{r+1}(x)),

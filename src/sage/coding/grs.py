@@ -5,7 +5,7 @@ Given `n` different evaluation points `\alpha_1, \dots, \alpha_n` from some
 finite field `F`, and `n` column multipliers `\beta_1, \dots, \beta_n`, the
 corresponding GRS code of dimension `k` is the set:
 
-.. math::
+.. MATH::
 
     \{ (\beta_1 f(\alpha_1), \ldots, \beta_n f(\alpha_n)  \mid  f \in F[x], \deg f < k \}
 

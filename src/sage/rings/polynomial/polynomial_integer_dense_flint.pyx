@@ -1323,7 +1323,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Write ``A = self``.  This function computes polynomials `Q` and `R`
         and an integer `d` such that
 
-        .. math::
+        .. MATH::
 
              \mathop{\mathrm{lead}}(B)^d A = B Q + R
 
@@ -1357,7 +1357,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         r"""
         Return the discriminant of self, which is by definition
 
-        .. math::
+        .. MATH::
 
             (-1)^{m(m-1)/2} \mathop{\mathrm{resultant}}(a, a')/\mathop{\mathrm{lc}}(a),
 

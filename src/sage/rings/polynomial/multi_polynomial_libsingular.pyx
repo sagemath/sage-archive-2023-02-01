@@ -2738,7 +2738,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         OUTPUT:
             element of the parent of this element.
 
-        .. note::
+        .. NOTE::
 
            For coefficients of specific monomials, look at :meth:`monomial_coefficient`.
 
@@ -4849,7 +4849,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         Return a Macaulay2 string representation of this polynomial.
 
-        .. note::
+        .. NOTE::
 
            Two identical rings are not canonically isomorphic in M2,
            so we require the user to explicitly set the ring, since
@@ -4995,7 +4995,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         - ``have_ring`` - ignored, accepted for compatibility reasons
 
-        .. note:: See also :meth:`derivative`
+        .. NOTE:: See also :meth:`derivative`
 
         EXAMPLES::
 

@@ -704,7 +704,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: P._to_monomial(54,10,2)
             (2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-        .. note::
+        .. NOTE::
 
             We do not check if the provided index/rank is within the allowed
             range. If it is not an infinite loop will occur.

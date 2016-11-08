@@ -569,7 +569,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.coerce(1)
             1
 
-        Check if coercion from zero variable polynomial rings work (#7951)::
+        Check if coercion from zero variable polynomial rings work
+        (:trac:`7951`)::
 
             sage: P = PolynomialRing(QQ,0,'')
             sage: R.<x,y> = QQ[]

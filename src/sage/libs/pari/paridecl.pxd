@@ -13,13 +13,13 @@ AUTHORS:
  - (unknown authors before 2010)
 
  - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
-   Upgrade to PARI 2.4.3 (#9343)
+   Upgrade to PARI 2.4.3 (:trac:`9343`)
 
- - Jeroen Demeyer (2010-08-15): big clean up (#9898)
+ - Jeroen Demeyer (2010-08-15): big clean up (:trac:`9898`)
 
- - Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+ - Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (:trac:`15767`)
 
- - Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (#16997)
+ - Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (:trac:`16997`)
 
 """
 from __future__ import print_function

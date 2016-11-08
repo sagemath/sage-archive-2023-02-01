@@ -2,7 +2,109 @@
 r"""
 Augmented valuations on polynomial rings
 
-Implements inductive valuations as defined in [ML1936].
+Implements augmentations of valutions as defined in [ML1936].
+
+TESTS::
+
+    sage: from mac_lane import * # optional: standalone
+    sage: R.<x> = QQ[]
+    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: w = v.augmentation(x, 1)
+    sage: TestSuite(w).run() # long time
+
+    sage: w = v.augmentation(x, 2)
+    sage: TestSuite(w).run() # long time
+
+Run the test suite for a valuation with a residual extension::
+
+    sage: R.<x> = QQ[]
+    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: w = v.augmentation(x^2 + x + 1, 1)
+    sage: TestSuite(w).run() # long time
+
+Run the test suite for an iterated residual extension starting from a
+non-prime residue field::
+
+    sage: R.<u> = Qq(4, 40)
+    sage: S.<x> = R[]
+    sage: v = GaussValuation(S)
+    sage: w = v.augmentation(x^2 + x + u, 1/2)
+    sage: TestSuite(w).run() # long time
+
+    sage: ww = w.augmentation(x^8 + 4*x^7 + 2*x^6 + 2*x^5 + x^4 + 2*x^3 + 4*(u + 1)*x^2 + 6*(u + 1)*x + 4 + 3*u, 10)
+    sage: TestSuite(ww).run() # long time
+
+Run the test suite for an augmentation of a ramified augmentation::
+
+    sage: R.<u> = Qq(4, 5)
+    sage: S.<x> = R[]
+    sage: v = GaussValuation(S)
+    sage: w = v.augmentation(x, 3/4)
+    sage: TestSuite(w).run() # long time
+
+    sage: ww = w.augmentation(x^4 + 8, 5)
+    sage: TestSuite(ww).run() # long time
+
+
+Run the test suite for a ramified augmentation of an unramified augmentation::
+
+    sage: R.<x> = QQ[]
+    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: w = v.augmentation(x^2 + x + 1, 1)
+    sage: TestSuite(w).run() # long time
+
+    sage: ww = w.augmentation(x^4 + 2*x^3 + 5*x^2 + 8*x + 3, 16/3)
+    sage: TestSuite(ww).run() # long time
+
+Run the test suite for a ramified augmentation of a ramified augmentation::
+
+    sage: R.<u> = Qq(4, 20)
+    sage: S.<x> = R[]
+    sage: v = GaussValuation(S)
+    sage: w = v.augmentation(x^2 + x + u, 1/2)
+    sage: TestSuite(w).run() # long time
+
+    sage: ww = w.augmentation((x^2 + x + u)^2 + 2, 5/3)
+    sage: TestSuite(ww).run() # long time
+
+Run the test suite for another augmentation with iterated residue field extensions::
+
+    sage: R.<u> = Qq(4, 10)
+    sage: S.<x> = R[]
+    sage: v = GaussValuation(S)
+    sage: w = v.augmentation(x^2 + x + u, 1)
+    sage: TestSuite(w).run() # long time
+
+    sage: ww = w.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
+    sage: TestSuite(ww).run() # long time
+
+Run the test suite for a rather trivial pseudo-valuation::
+
+    sage: R.<u> = Qq(4, 5)
+    sage: S.<x> = R[]
+    sage: v = GaussValuation(S)
+    sage: w = v.augmentation(x, infinity)
+    sage: TestSuite(w).run()
+
+Run the test suite for an infinite valuation which extends the residue field::
+
+    sage: R.<u> = Qq(4, 5)
+    sage: S.<x> = R[]
+    sage: v = GaussValuation(S)
+    sage: w = v.augmentation(x^2 + x + u, infinity)
+    sage: TestSuite(w).run() # long time
+
+Run the test suite for an infinite valuation which extends a valuation which
+extends the residue field::
+
+    sage: R.<u> = Qq(4, 5)
+    sage: S.<x> = R[]
+    sage: v = GaussValuation(S)
+    sage: w = v.augmentation(x^2 + x + u, 1/2)
+    sage: TestSuite(w).run() # long time
+
+    sage: ww = w.augmentation((x^2 + x + u)^2 + 2, infinity)
+    sage: TestSuite(ww).run() # long time
 
 REFERENCES:
 

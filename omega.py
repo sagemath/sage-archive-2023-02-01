@@ -88,6 +88,65 @@ def Omega_fundamental(a, x, y):
             tuple(1 - xx*yy for xx in x for yy in y))
 
 
+def Omega_higher(a, z):
+    r"""
+    EXAMPLES::
+
+        sage: L.<x, y, z, w> = LaurentPolynomialRing(QQ)
+        sage: Omega_higher(0, [(x, 1), (y, -2)])  # richtiges Zwischenergebnis
+        (1, (-x + 1, -Omega0*x + 1, Omega0*x + 1))
+        sage: Omega_higher(0, [(x, 1), (y, -3)])  # richtiges Zwischenergebnis
+        (1, (-x + 1, -Omega0*x + 1, (-rho0)*Omega0*x + 1, (rho0 + 1)*Omega0*x + 1))
+    """
+    class Factor(object):
+        def __init__(self, zz):
+            if isinstance(zz, (tuple, list)):
+                self.value, self.exponent = zz
+            else:
+                self.value = zz
+                self.exponent = 1
+        def is_higher(self):
+            return abs(self.exponent) > 1
+        def z(self, positive=True):
+            if (self.exponent > 0) != positive:
+                return []
+            elif self.is_higher():
+                rho = powers[abs(self.exponent)]
+                w = self.var
+                return [L_high(rho**j * w) for j in srange(abs(self.exponent))]
+            else:
+                return [self.value]
+        def x(self):
+            return self.z(positive=True)
+        def y(self):
+            return self.z(positive=False)
+
+    z = list(Factor(zz) for zz in z)
+
+    L_orig = z[0].value.parent()
+    B_orig = L_orig.base_ring()
+    exponents_pre = sorted(set(abs(factor.exponent)
+                               for factor in z if factor.is_higher()))
+    B_high = B_orig.extension(
+        list(cyclotomic_polynomial(r) for r in exponents_pre),
+        tuple('rho{}'.format(i) for i in srange(len(exponents_pre))))
+    powers = dict(zip(exponents_pre, B_high.gens()))
+
+    nv = len(tuple(None for factor in z if factor.is_higher()))
+    variable_names_high = \
+        tuple('Omega{}'.format(i) for i in srange(nv)) + \
+        L_orig.variable_names()
+    L_high = LaurentPolynomialRing(B_high, variable_names_high)
+    v = iter(L_high.gens())
+    for factor in z:
+        if factor.is_higher():
+            factor.var = next(v)
+
+    result_high = Omega_fundamental(a,
+                                    sum((factor.x() for factor in z), []),
+                                    sum((factor.y() for factor in z), []))
+
+    return result_high
 class OmegaGroupElement(IndexedFreeAbelianGroup.Element):
 
     def __init__(self, parent, x, normalize=True):

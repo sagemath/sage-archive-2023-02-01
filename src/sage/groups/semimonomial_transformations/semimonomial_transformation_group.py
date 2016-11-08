@@ -151,7 +151,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
 
         - ``v`` (optional) -- a vector of length ``self.degree()``
 
-        - ``perm`` (optional) -- a permutaton of degree ``self.degree()``
+        - ``perm`` (optional) -- a permutation of degree ``self.degree()``
 
         - ``autom`` (optional) -- an automorphism of the ring
 

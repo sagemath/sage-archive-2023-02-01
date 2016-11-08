@@ -7579,7 +7579,7 @@ cdef class Matroid(SageObject):
         # check sanity of pos_dict and add it to cached info if sane
             if matroids_plot_helpers.posdict_is_sane(self, pos_dict) == True: 
                 self._cached_info={'plot_positions':pos_dict, 'lineorders':lineorders}
-        # placeholder for aditional placement methods. Only need to compute positions and update self._cached_info
+        # placeholder for additional placement methods. Only need to compute positions and update self._cached_info
         elif pos_method == 2:
             raise NotImplementedError
 

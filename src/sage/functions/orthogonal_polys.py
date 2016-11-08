@@ -751,7 +751,7 @@ class Func_chebyshev_T(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_T`` using an explicit formula.
-        See [AS1964]_ 227 (p. 782) for details for the recurions.
+        See [AS1964]_ 227 (p. 782) for details for the recursions.
         See also [Koe1999]_ for fast evaluation techniques.
 
         INPUT:
@@ -958,7 +958,8 @@ class Func_chebyshev_U(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_U`` using an explicit formula.
-        See [AS1964]_ 227 (p. 782) for details on the recurions.
+
+        See [AS1964]_ 227 (p. 782) for details on the recursions.
         See also [Koe1999]_ for the recursion formulas.
 
         INPUT:

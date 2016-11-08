@@ -1551,7 +1551,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         `p` is a prime of bad reduction if and only if the defining
         polynomials of self have a common zero. Or stated another way,
-        `p` is a prime of bad reducion if and only if the radical of
+        `p` is a prime of bad reduction if and only if the radical of
         the ideal defined by the defining polynomials of self is not
         `(x_0,x_1,\ldots,x_N)`.  This happens if and only if some
         power of each `x_i` is not in the ideal defined by the
@@ -3943,7 +3943,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             of the list of possible periods modulo several primes of good reduction to get a possible list
             of minimal periods of rational periodic points. Take each point modulo `p` associated to each
             of these possible periods and try to lift it to a rational point with a combination of
-            `p`-adic approximation and the LLL basis reducion algorithm.
+            `p`-adic approximation and the LLL basis reduction algorithm.
 
             See [Hutz]_.
 
@@ -4048,7 +4048,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 #determine rational periodic points
                 #infinity is a totally ramified fixed point for a polynomial
                 periodic_points = set([inf])
-                #compute the weil resctriction
+                #compute the weil restriction
                 G = g.weil_restriction()
                 F = G.homogenize(d)
                 #find the QQ rational periodic points for the weil restriction
@@ -4483,7 +4483,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 #determine rational preperiodic points
                 #infinity is a totally ramified fixed point for a polynomial
                 preper = set([inf])
-                #compute the weil resctriction
+                #compute the weil restriction
                 G = g.weil_restriction()
                 F = G.homogenize(d)
                 #find the QQ rational preperiodic points for the weil restriction

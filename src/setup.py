@@ -406,13 +406,12 @@ class sage_build_cython(Command):
             log.info('Enabling Cython profiling support')
 
         if self.parallel is None:
-            self.parallel = int(os.environ.get('SAGE_NUM_THREADS', 0))
+            self.parallel = os.environ.get('SAGE_NUM_THREADS', '0')
 
-        if isinstance(self.parallel, str):
-            try:
-                self.parallel = int(self.parallel)
-            except ValueError:
-                raise DistutilsOptionError("parallel should be an integer")
+        try:
+            self.parallel = int(self.parallel)
+        except ValueError:
+            raise DistutilsOptionError("parallel should be an integer")
 
         try:
             import Cython

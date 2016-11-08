@@ -350,8 +350,10 @@ class sage_build_cython(Command):
     description = "compile Cython extensions into C/C++ extensions"
 
     user_options = [
-        ('build-dir=', 'd',
-         "directory for compiled C/C++ sources and header files"),
+        # TODO: Temporarily disabled since the value for this option is
+        # hard-coded; change as part of work on #21525
+        #('build-dir=', 'd',
+        # "directory for compiled C/C++ sources and header files"),
         ('debug', 'g',
          "enable Cython debugging support"),
         ('profile', 'p',

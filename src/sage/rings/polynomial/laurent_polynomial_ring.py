@@ -30,6 +30,7 @@ AUTHORS:
 - David Loeffler (2009-07-10): cleaned up docstrings
 """
 from __future__ import absolute_import
+from six import iteritems, iterkeys
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed@math.harvard.edu>,
@@ -441,8 +442,6 @@ def _split_dict_(D, indices, group_by=None):
         sage: _split_dict_({}, [])
         {}
     """
-    from six import iteritems, iterkeys
-
     if not D:
         return {}
     if group_by is None:

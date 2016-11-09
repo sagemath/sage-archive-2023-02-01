@@ -488,7 +488,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
-            sage: f = R(range(10)); g = R([-1, 0, 1])
+            sage: f = R(list(range(10))); g = R([-1, 0, 1])
             sage: q, r = f.quo_rem(g)
             sage: q, r
             (9*x^7 + 8*x^6 + 16*x^5 + 14*x^4 + 21*x^3 + 18*x^2 + 24*x + 20, 25*x + 20)

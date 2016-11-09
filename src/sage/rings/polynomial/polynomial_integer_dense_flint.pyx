@@ -670,7 +670,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ)
-            sage: f = R(range(10)); g = R([-1, 0, 1])
+            sage: f = R(list(range(10))); g = R([-1, 0, 1])
             sage: q, r = f.quo_rem(g)
             sage: q, r
             (9*x^7 + 8*x^6 + 16*x^5 + 14*x^4 + 21*x^3 + 18*x^2 + 24*x + 20, 25*x + 20)
@@ -1341,7 +1341,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         EXAMPLES::
 
             sage: R.<x> = ZZ['x']
-            sage: A = R(range(10)); B = 3*R([-1, 0, 1])
+            sage: A = R(list(range(10)))
+            sage: B = 3*R([-1, 0, 1])
             sage: Q, R, d = A.pseudo_divrem(B)
             sage: Q, R, d
             (9*x^7 + 8*x^6 + 16*x^5 + 14*x^4 + 21*x^3 + 18*x^2 + 24*x + 20, 75*x + 60, 1)

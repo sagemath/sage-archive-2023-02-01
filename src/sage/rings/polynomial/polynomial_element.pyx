@@ -971,7 +971,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Slices can be used to truncate polynomials::
 
-            sage: pol = R(range(8)); pol
+            sage: pol = R(list(range(8))); pol
             7*x^7 + 6*x^6 + 5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x
             sage: pol[:6]
             5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x

@@ -1012,7 +1012,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R._macaulay_resultant_getS([29,21,8],[10,20,30])
             0
 
-            sage: R._macaulay_resultant_getS(range(0,9)+[10],range(1,11))
+            sage: R._macaulay_resultant_getS(list(range(9))+[10],range(1,11))
             9
         """
         for i in xrange(len(dlist)):

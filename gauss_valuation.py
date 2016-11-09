@@ -270,9 +270,15 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         f = self.domain().coerce(f)
         s = self.value_group()(s)
 
+        if s == 0:
+            return f
+
         from sage.categories.fields import Fields
         if -s > self(f) and self.domain().base_ring() not in Fields():
             raise ValueError("since %r is not a field, -s must not exceed the valuation of f but %r does exceed %r"%(self.domain().base_ring(), -s, self(f)))
+
+        if f == 0:
+            raise ValueError("can not shift zero")
 
         return f.map_coefficients(lambda c:self._base_valuation.shift(c, s))
 

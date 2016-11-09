@@ -84,7 +84,7 @@ Run the test suite for a rather trivial pseudo-valuation::
     sage: S.<x> = R[]
     sage: v = GaussValuation(S)
     sage: w = v.augmentation(x, infinity)
-    sage: TestSuite(w).run()
+    sage: TestSuite(w).run() # long time
 
 Run the test suite for an infinite valuation which extends the residue field::
 

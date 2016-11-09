@@ -484,7 +484,7 @@ class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, RationalFunctionFieldValuation_base)
         True
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
 

@@ -750,7 +750,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             from sage.categories.cartesian_product import cartesian_product
             for x, n in tester.some_elements(cartesian_product([S,V])):
                 if x == 0 and n != 0:
-                    with tester.assertRaises(ValueError):
+                    with tester.assertRaises((ValueError, NotImplementedError)):
                         self.shift(x, n)
                     continue
 
@@ -763,7 +763,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 except ValueError:
                     from sage.categories.fields import Fields
                     if -n > v and self.domain() not in Fields():
-                        # note that shifting might not be possible in this case even if -n > v
                         continue
                     raise
 

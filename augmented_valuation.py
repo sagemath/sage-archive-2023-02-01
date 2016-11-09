@@ -386,10 +386,6 @@ class AugmentedValuation_base(InductiveValuation):
             (2^-1 + O(2^4))*x^2
 
         """
-        from sage.categories.fields import Fields
-        if s < 0 and not self.domain().base_ring() in Fields():
-            raise NotImplementedError("only implemented for polynomial rings over fields")
-
         ret = self._base_valuation.element_with_valuation(s)
 
         assert self.is_equivalence_unit(ret)
@@ -486,7 +482,15 @@ class AugmentedValuation_base(InductiveValuation):
             raise ValueError("s must be in the value group of the valuation")
 
         if self.value_group() == self._base_valuation.value_group():
-            return self._base_valuation.shift(x, s)
+            try:
+                return self._base_valuation.shift(x, s)
+            except ValueError:
+                from sage.categories.fields import Fields
+                # only report a ValueError if we are over a field, otherwise,
+                # falling through to the NotImplementedError below seems to be
+                # the better error to report
+                if self.domain().base() in Fields():
+                    raise
 
         if self._base_valuation.value_group().is_trivial():
             # We could implement a consistent shift in this case by multplying

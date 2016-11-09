@@ -335,7 +335,7 @@ class InductiveValuation(DevelopingValuation):
                 R = self.element_with_valuation(s)
             except ValueError:
                 from sage.categories.fields import Fields
-                if self.domain() not in Fields():
+                if self.domain().base() in Fields():
                     raise
                 continue
             tester.assertEqual(self(R), s)
@@ -402,16 +402,20 @@ class InductiveValuation(DevelopingValuation):
 
         """
         tester = self._tester(**options)
+
         if self.is_gauss_valuation():
             value_group = self.value_group()
         else:
             value_group = self.augmentation_chain()[1].value_group()
+
         for s in tester.some_elements(value_group.some_elements()):
             try:
                 R = self.equivalence_unit(s)
             except ValueError:
-                if s >= 0 or self.domain().base_ring() in Fields():
+                from sage.categories.fields import Fields
+                if s >= 0 or self.domain().base() in Fields():
                     raise
+                continue
 
             tester.assertIs(R.parent(), self.domain())
             tester.assertEqual(self(R), s)

@@ -157,16 +157,16 @@ def Omega_higher(a, z):
 
         sage: L.<x, y, z, w> = LaurentPolynomialRing(QQ)
         sage: Omega_higher(0, [(x, 1), (y, -2)])
-        (1, [-x + 1, -x^2*y + 1])
-        sage: Omega_higher(0, [(x, 2), (y, -1)])  # denominator not fully factored
-        (x*y + 1, [x^2*y^2 - x*y^2 - x + 1])
-        sage: Omega_higher(0, [(x, 1), (y, 1), (z, -2)])  # denominator not fully factored
+        (1, (-x + 1, -x^2*y + 1))
+        sage: Omega_higher(0, [(x, 2), (y, -1)])
+        (x*y + 1, (-x + 1, -x*y^2 + 1))
+        sage: Omega_higher(0, [(x, 1), (y, 1), (z, -2)])
         (-x^2*y*z - x*y^2*z + x*y*z + 1,
-         [-x + 1, -y + 1, x^2*y^2*z^2 - x^2*z - y^2*z + 1])
+         (-x + 1, -y + 1, -x^2*z + 1, -y^2*z + 1))
         sage: Omega_higher(0, [(x, 1), (y, -3)])
-        (1, [-x + 1, -x^3*y + 1])
+        (1, (-x + 1, -x^3*y + 1))
         sage: Omega_higher(0, [(x, 1), (y, -4)])
-        (1, [-x + 1, -x^4*y + 1])
+        (1, (-x + 1, -x^4*y + 1))
     """
     class Factor(object):
         def __init__(self, zz):

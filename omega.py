@@ -179,13 +179,14 @@ def Omega_higher(a, z):
             return abs(self.exponent) > 1
         def z(self, positive=True):
             if (self.exponent > 0) != positive:
-                return []
+                return tuple()
             elif self.is_higher():
                 rho = powers[abs(self.exponent)]
                 w = self.var
-                return [L_high(rho**j * w) for j in srange(abs(self.exponent))]
+                return tuple(L_high(rho**j * w)
+                             for j in srange(abs(self.exponent)))
             else:
-                return [L_high(self.value)]
+                return (L_high(self.value),)
         def x(self):
             return self.z(positive=True)
         def y(self):

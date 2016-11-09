@@ -364,39 +364,37 @@ class Link(object):
 
             else:
                 raise ValueError("invalid input: data must be either a list or a braid")
-            
+
     def arcs(self, presentation='pd'):
         r"""
-        Return the arcs of the diagram.
-        
-        INPUT:
-        
-        - presentation - one of 'pd' or 'gauss_code'
-         
-        OUPUT:
-        
-        A list of lists represeting the arcs.
-        
+        Return the arcs of ``self``.
+
         Arcs are the connected components of the planar diagram.
-         
-        If the presentation is 'pd', the arcs are returned as lists of parts
-        in the pd code.
-        
-        If the presentation is 'gauss_code' the arcs are returned
-        as pieces of the Gauss code that start with a negative number, and end 
-        with the following negative one. If there exist a closed arc, it is returned
-        as a list of positive numbers only.
-        
+
+        INPUT:
+
+        - ``presentation`` -- one of the following:
+
+          * ``'pd'`` - the arcs are returned as lists of parts in the PD code
+          * ``'gauss_code'`` - the arcs are returned as pieces of the Gauss
+            code that start with a negative number, and end with the
+            following negative one; of there exist a closed arc,
+            it is returned as a list of positive numbers only
+
+        OUPUT:
+
+        A list of lists represeting the arcs based upon ``presentation``.
+
         EXAMPLES::
-        
+
             sage: K = Knot([[[1,-2,3,-1,2,-3]],[1,1,1]])
             sage: K.arcs()
             [[1, 2], [3, 4], [5, 6]]
             sage: K.arcs(presentation='gauss_code')
             [[-3, 1, -2], [-2, 3, -1], [-1, 2, -3]]
-            
+
         ::
-        
+
             sage: L = Link([[1, 2, 3, 4], [3, 2, 1, 4]])
             sage: L.arcs()
             [[2, 4], [1], [3]]
@@ -404,8 +402,6 @@ class Link(object):
             [[-2, -1], [-1, -2], [2, 1]]
             sage: L.gauss_code()
             [[-1, -2], [2, 1]]
-
-
         """
         if presentation == 'pd':
             G = DiGraph()
@@ -442,25 +438,26 @@ class Link(object):
                     rescom[0] = par + rescom[0]
                     res = res + rescom
             return res
-            
+
     def fundamental_group(self, presentation='wirtinger'):
         r"""
-        Return the fundamental group of the complement of the link.
-    
+        Return the fundamental group of the complement of ``self``.
+
         INPUT:
-        
-        - presentation -- one of 'wirtinger' (default) or 'braid'
-        
+
+        - ``presentation`` -- string; one of the following:
+
+          * ``'wirtinger'`` - (default) the Wirtinger presentation
+            (see :wikipedia:`Link_group`)
+          * ``'braid'`` - the presentation is given by the braid action
+            on the free group (see chapter 2 of [Bir1975]_)
+
         OUTPUT:
-        
-        - A finitely presented group.
-          If 'wirtinger' is given, then the Wirtinger presentation of the fundamental group
-          of the complement is given (see :wikipedia:`Link_group`).
-          If 'braid' is given, then the presentation is given by the braid action on the free group
-          (see chapter 2 of [Bir1975]_).
-        
+
+        - a finitely presented group
+
         EXAMPLES::
-        
+
             sage: L = Link([[1, 2, 3, 4], [3, 2, 1, 4]])
             sage: L.fundamental_group()
             Finitely presented group < x0, x1, x2 | x1*x0^-1*x2^-1*x0, x2*x0*x1^-1*x0^-1 >
@@ -469,20 +466,24 @@ class Link(object):
 
         We can see, for instance, that the  two presentations of the group
         of the figure eight knot correspond to isomorphic groups::
-        
+
             sage: K8 = Knot([[[1, -2, 4, -3, 2, -1, 3, -4]], [1, 1, -1, -1]])
             sage: GA = K8.fundamental_group()
             sage: GA
-            Finitely presented group < x0, x1, x2, x3 | x2*x0*x3^-1*x0^-1, x0*x2*x1^-1*x2^-1, x1*x3^-1*x2^-1*x3, x3*x1^-1*x0^-1*x1 >
+            Finitely presented group < x0, x1, x2, x3 |
+             x2*x0*x3^-1*x0^-1, x0*x2*x1^-1*x2^-1,
+             x1*x3^-1*x2^-1*x3, x3*x1^-1*x0^-1*x1 >
             sage: GB = K8.fundamental_group(presentation='braid')
             sage: GB
-            Finitely presented group < x0, x1, x2 | x1*x2^-1*x1^-1*x0*x1*x2*x1*x2^-1*x1^-1*x0^-1*x1*x2*x1^-1*x0^-1, x1*x2^-1*x1^-1*x0*x1*x2*x1^-1*x2^-1*x1^-1*x0^-1*x1*x2*x1^-1*x0*x1*x2*x1*x2^-1*x1^-1*x0^-1*x1*x2*x1^-2, x1*x2^-1*x1^-1*x0*x1*x2*x1^-1*x2^-1 >
+            Finitely presented group < x0, x1, x2 |
+             x1*x2^-1*x1^-1*x0*x1*x2*x1*x2^-1*x1^-1*x0^-1*x1*x2*x1^-1*x0^-1,
+             x1*x2^-1*x1^-1*x0*x1*x2*x1^-1*x2^-1*x1^-1*x0^-1*x1*x2*x1^-1*x0*x1*x2*x1*x2^-1*x1^-1*x0^-1*x1*x2*x1^-2, x1*x2^-1*x1^-1*x0*x1*x2*x1^-1*x2^-1 >
             sage: GA.simplified()
-            Finitely presented group < x0, x1 | x1^-1*x0*x1*x0^-1*x1*x0*x1^-1*x0^-1*x1*x0^-1 >
+            Finitely presented group < x0, x1 |
+             x1^-1*x0*x1*x0^-1*x1*x0*x1^-1*x0^-1*x1*x0^-1 >
             sage: GB.simplified()
-            Finitely presented group < x0, x2 | x2^-1*x0*x2^-1*x0^-1*x2*x0*x2^-1*x0*x2*x0^-1 >
-            
-        
+            Finitely presented group < x0, x2 |
+             x2^-1*x0*x2^-1*x0^-1*x2*x0*x2^-1*x0*x2*x0^-1 >
         """
         from sage.groups.free_group import FreeGroup
         if presentation == 'braid':
@@ -490,13 +491,13 @@ class Link(object):
             F = FreeGroup(b.strands())
             rels = []
             for x in F.gens():
-                rels.append(x*b/x)
+                rels.append(x * b / x)
             return F.quotient(rels)
         elif presentation == 'wirtinger':
             arcs = self.arcs(presentation='pd')
             F = FreeGroup(len(arcs))
             rels = []
-            for crossing,orientation in zip(self.pd_code(), self.orientation()):
+            for crossing, orientation in zip(self.pd_code(), self.orientation()):
                 a = arcs.index([i for i in arcs if crossing[0] in i][0])
                 b = arcs.index([i for i in arcs if crossing[1] in i][0])
                 c = arcs.index([i for i in arcs if crossing[2] in i][0])
@@ -505,7 +506,7 @@ class Link(object):
                 if orientation < 0:
                     elb = elb.inverse()
                 elc = F.gen(c)
-                rels.append(ela*elb/elc/elb)
+                rels.append(ela * elb / elc / elb)
             return F.quotient(rels)
 
     def __repr__(self):

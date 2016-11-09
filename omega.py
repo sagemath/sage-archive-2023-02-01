@@ -54,7 +54,7 @@ def Omega_P(a, x, y):
             Omega_P(a, x[:-1], y))  /  (x[-1] - x[-2])
 
 
-def Omega_fundamental(a, x, y):
+def Omega_fundamental(a, x, y, group_factors=False):
     r"""
     Return `\Omega_{\ge}` of the expression specified by the input.
 
@@ -92,22 +92,42 @@ def Omega_fundamental(a, x, y):
         (x^2*y*z*w + x*y^2*z*w - x*y*z*w - x*y*z - x*y*w + 1,
          (-x + 1, -y + 1, -x*z + 1, -x*w + 1, -y*z + 1, -y*w + 1))
     """
-    if not y:
-        factors_denominator = tuple(1 - xx for xx in x)
-        return (1 - (prod(factors_denominator) *
-                     sum(HomogenousSymmetricFunction(j, x)
-                         for j in srange(-a))
-                     if a < 0 else 0),
-                factors_denominator)
+    def flatten(z):
+        return sum((tuple(zz) for zz in z), tuple())
 
-    if not x:
-        return (sum(HomogenousSymmetricFunction(j, x)
-                    for j in srange(a+1)),
-                tuple())
+    if group_factors:
+        flat_x = flatten(x)
+        flat_y = flatten(y)
+    else:
+        flat_x = x
+        flat_y = y
+        x = tuple((xx,) for xx in x)
+        y = tuple((yy,) for yy in y)
 
-    return (Omega_P(a, x, y),
-            tuple(1 - xx for xx in x) +
-            tuple(1 - xx*yy for xx in x for yy in y))
+    if not flat_y:
+        numerator = 1 - (prod(factors_denominator) *
+                         sum(HomogenousSymmetricFunction(j, flat_x)
+                             for j in srange(-a))
+                         if a < 0 else 0)
+        factors_denominator = \
+            tuple(tuple(1 - xx for xx in gx) for gx in x)
+
+    elif not flat_x:
+        numerator = sum(HomogenousSymmetricFunction(j, flat_x)
+                        for j in srange(a+1))
+        factors_denominator = (tuple(),)
+
+    else:
+        numerator = Omega_P(a, flat_x, flat_y)
+        factors_denominator = \
+            tuple(tuple(1 - xx for xx in gx) for gx in x) + \
+            tuple(tuple(1 - xx*yy for xx in gx for yy in gy)
+                  for gx in x for gy in y)
+
+    if not group_factors:
+        factors_denominator = flatten(factors_denominator)
+
+    return numerator, factors_denominator
 
 
 def Omega_higher(a, z):

@@ -91,6 +91,15 @@ def Omega_fundamental(a, x, y, group_factors=False):
         sage: Omega_fundamental(0, [x, y], [z, w])
         (x^2*y*z*w + x*y^2*z*w - x*y*z*w - x*y*z - x*y*w + 1,
          (-x + 1, -y + 1, -x*z + 1, -x*w + 1, -y*z + 1, -y*w + 1))
+
+        sage: Omega_fundamental(-2, [x], [y])
+        (x^2, (-x + 1, -x*y + 1))
+        sage: Omega_fundamental(-1, [x], [y])
+        (x, (-x + 1, -x*y + 1))
+        sage: Omega_fundamental(1, [x], [y])
+        (-x*y + y + 1, (-x + 1, -x*y + 1))
+        sage: Omega_fundamental(2, [x], [y])
+        (-x*y^2 - x*y + y^2 + y + 1, (-x + 1, -x*y + 1))
     """
     def flatten(z):
         return sum((tuple(zz) for zz in z), tuple())

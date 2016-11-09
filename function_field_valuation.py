@@ -605,12 +605,16 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         """
         F = self.residue_ring().coerce(F)
-        if F in self._base_valuation.residue_ring().fraction_field():
+        if F in self._base_valuation.residue_ring():
+            num = self._base_valuation.residue_ring()(F)
+            den = self._base_valuation.residue_ring()(1)
+        elif F in self._base_valuation.residue_ring().fraction_field():
             num = self._base_valuation.residue_ring()(F.numerator())
             den = self._base_valuation.residue_ring()(F.denominator())
+        else:
+            raise NotImplementedError("lifting not implemented for this valuation")
 
-            return self.domain()(self._base_valuation.lift(num)) / self.domain()(self._base_valuation.lift(den))
-        raise NotImplementedError("lifting not implemented for this valuation")
+        return self.domain()(self._base_valuation.lift(num)) / self.domain()(self._base_valuation.lift(den))
 
     def value_group(self):
         r"""

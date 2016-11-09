@@ -772,13 +772,9 @@ class SimplicialComplexMorphism(Morphism):
 
             sage: one = Hom(K,K).identity()
             sage: one.is_contiguous_to(f)
-            Traceback (most recent call last):
-            ...
-            ValueError: the maps must have the same domain and codomain
-            sage: one.is_contiguous_to(K)
-            Traceback (most recent call last):
-            ...
-            ValueError: 'other' must be a morphism of simplicial complexes
+            False
+            sage: one.is_contiguous_to(3) # nonsensical input
+            False
         """
         if not isinstance(other, SimplicialComplexMorphism):
             return False

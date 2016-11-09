@@ -975,12 +975,15 @@ class AugmentedValuationWithTrivialResidueRing(AugmentedValuation_base, Inductiv
         # We only have to do that if psi is non-trivial
         if self.psi().degree() > 1:
             from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
+            from sage.rings.function_field.function_field_element import FunctionFieldElement_polymod
             if isinstance(F, PolynomialQuotientRingElement):
-                G = F.lift().change_variable_name(self._base_valuation.residue_ring().variable_name())
+                G = F.lift()
+            elif isinstance(F, FunctionFieldElement_polymod):
+                G = F.element()
             else:
-                G = F.polynomial(self._base_valuation.residue_ring().variable_name())
+                G = F.polynomial()
             assert(G(self._residue_field_generator()) == F)
-            F = G
+            F = G.change_variable_name(self._base_valuation.residue_ring().variable_name())
 
         H = self._base_valuation.lift(F)
         return self.domain()(H)

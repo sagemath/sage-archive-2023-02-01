@@ -185,7 +185,7 @@ def Omega_higher(a, z):
                 w = self.var
                 return [L_high(rho**j * w) for j in srange(abs(self.exponent))]
             else:
-                return [self.value]
+                return [L_high(self.value)]
         def x(self):
             return self.z(positive=True)
         def y(self):
@@ -218,54 +218,50 @@ def Omega_higher(a, z):
             Omega_map[factor.var] = factor
 
     # 0. apply Omega
-    numerator_high, factors_denominator_high = Omega_fundamental(
+    def nonempty(T):
+        return tuple(t for t in T if t)
+    numerator, factors_denominator = Omega_fundamental(
         a,
-        sum((factor.x() for factor in z), []),
-        sum((factor.y() for factor in z), []))
+        nonempty(factor.x() for factor in z),
+        nonempty(factor.y() for factor in z),
+        group_factors=True)
 
-    # 1. multiply factors of denominator with common helper-variable
-    vars_Omega = set(L_high.gens()[:nv])
-    factor_Omega = {v: 1 for v in vars_Omega}
-    factors_else = []
-    for factor in factors_denominator_high:
-        v = set(factor.variables()) & vars_Omega
-        assert len(v) <= 1
-        if len(v) == 1:
-            factor_Omega[v.pop()] *= factor
-        else:
-            factors_else.append(factor)
+    # 1. multiply grouped factors of denominator
+    factors_denominator = tuple(prod(factor for factor in factors)
+                                for factors in factors_denominator)
 
     # 2. substitute helper variable with actual value
     def subs_Omega(factor, v):
         f = Omega_map[v]
-        m = abs(f.exponent)
+        value = f.value
+        exponent = abs(f.exponent)
         p = tuple(v.dict().popitem()[0]).index(1)
         def subs_e(e):
             e = list(e)
-            assert e[p] % m == 0
-            e[p] = e[p] // m
+            assert e[p] % exponent == 0
+            e[p] = e[p] // exponent
             return tuple(e)
         P = factor.parent()
         result = P({subs_e(e): c for e, c in iteritems(factor.dict())})
-        return result.subs({v: f.value})
+        return result.subs({v: value})
 
-    factor_Omega = list(subs_Omega(factor, v)
-                        for v, factor in iteritems(factor_Omega))
-    factors_denominator_low = factors_else + factor_Omega
-
+    vars_Omega = L_high.gens()[:nv]
     def subs_all_Omega(factor):
         for v in vars_Omega:
             factor = subs_Omega(factor, v)
         return factor
 
-    from sage.rings.fraction_field import FractionField_generic
-    if isinstance(numerator_high.parent(), FractionField_generic):
-        numerator_low = subs_all_Omega(L_high(numerator_high.numerator())) / \
-                        subs_all_Omega(L_high(numerator_high.denominator()))
-    else:
-        numerator_low = subs_all_Omega(numerator_high)
+    factors_denominator = tuple(subs_all_Omega(factor)
+                                for factor in factors_denominator)
 
-    return numerator_low, factors_denominator_low
+    from sage.rings.fraction_field import FractionField_generic
+    if isinstance(numerator.parent(), FractionField_generic):
+        numerator = subs_all_Omega(L_high(numerator.numerator())) / \
+                    subs_all_Omega(L_high(numerator.denominator()))
+    else:
+        numerator = subs_all_Omega(numerator)
+
+    return numerator, factors_denominator
 
 
 def Omega(var, numerator, factors_denominator, operator=operator.ge):

@@ -387,6 +387,88 @@ def _multi_variate(base_ring, names, n, sparse, order):
     _save_in_cache(key, P)
     return P
 
+def _split_dict_(D, indices, group_by=None):
+    r"""
+    Split the dictionary ``D`` by ``indices`` and ``group_by``.
+
+    INPUT:
+
+    - ``D`` -- a dictionary.
+
+    - ``indices`` -- a tuple or list of nonnegative integers.
+
+    - ``group_by`` -- a tuple or list of nonnegative integers.
+      If this is ``None`` (default), then no grouping is done.
+
+    OUTPUT:
+
+    A dictionary.
+
+    TESTS::
+
+        sage: from sage.rings.polynomial.laurent_polynomial_ring import _split_dict_
+        sage: D = {(0,0,0,0): 'a', (1,0,0,0): 'b',
+        ....:      (1,0,0,2): 'c', (1,2,0,3): 'd'}
+        sage: _split_dict_(D, [1,0,3])
+        {(0, 0, 0): 'a', (0, 1, 0): 'b', (0, 1, 2): 'c', (2, 1, 3): 'd'}
+        sage: _split_dict_(D, [2,3], [0,1])
+        {(0, 0): {(0, 0): 'a'},
+         (1, 0): {(0, 0): 'b', (0, 2): 'c'},
+         (1, 2): {(0, 3): 'd'}}
+        sage: _split_dict_(D, [3,1], [0])
+        {(0,): {(0, 0): 'a'}, (1,): {(0, 0): 'b', (2, 0): 'c', (3, 2): 'd'}}
+
+        sage: _split_dict_(D, [0,None,1,3])
+        {(0, 0, 0, 0): 'a', (1, 0, 0, 0): 'b',
+         (1, 0, 0, 2): 'c', (1, 0, 2, 3): 'd'}
+        sage: _split_dict_(D, [0,1], [None,3,None])
+        {(0, 0, 0): {(0, 0): 'a', (1, 0): 'b'},
+         (0, 2, 0): {(1, 0): 'c'},
+         (0, 3, 0): {(1, 2): 'd'}}
+        sage: _split_dict_(D, [None,3,1], [0,None])
+        {(0, 0): {(0, 0, 0): 'a'},
+         (1, 0): {(0, 0, 0): 'b', (0, 2, 0): 'c',
+                     (0, 3, 2): 'd'}}
+
+        sage: _split_dict_(D, [0,1])
+        Traceback (most recent call last):
+        ...
+        SplitDictError: split not possible
+        sage: _split_dict_(D, [0], [1])
+        Traceback (most recent call last):
+        ...
+        SplitDictError: split not possible
+        sage: _split_dict_({}, [])
+        {}
+    """
+    from six import iteritems, iterkeys
+
+    if not D:
+        return {}
+    if group_by is None:
+        group_by = tuple()
+
+    class SplitDictError(ValueError):
+        pass
+    def get(T, i):
+        return T[i] if i is not None else 0
+    def extract(T, indices):
+        return tuple(get(T, i) for i in indices)
+
+    remaining = sorted(set(range(len(next(iterkeys(D)))))
+                       - set(indices) - set(group_by))
+    result = {}
+    for K, V in iteritems(D):
+        if not all(r == 0 for r in extract(K, remaining)):
+            raise SplitDictError('split not possible')
+        G = extract(K, group_by)
+        I = extract(K, indices)
+        result.setdefault(G, dict()).update({I: V})
+    if not group_by:
+        return result.popitem()[1]
+    else:
+        return result
+
 class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
     """
     Laurent polynomial ring (base class).

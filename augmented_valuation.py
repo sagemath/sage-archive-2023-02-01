@@ -963,6 +963,29 @@ class AugmentedValuationWithTrivialResidueRing(AugmentedValuation_base, Inductiv
 
         A polynomial in the domain of the valuation with reduction ``F``.
 
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+
+            sage: w = v.augmentation(x, 1)
+            sage: w.lift(1/2)
+            1/2
+
+            sage: w = v.augmentation(x^2 + x + 1, infinity)
+            sage: w.lift(w.residue_ring().gen())
+            x
+
+        A case with non-trivial base valuation::
+            
+            sage: R.<u> = Qq(4, 10)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, infinity)
+            sage: w.lift(w.residue_ring().gen())
+            (1 + O(2^10))*x
+
         """
         F = self.residue_ring().coerce(F)
 

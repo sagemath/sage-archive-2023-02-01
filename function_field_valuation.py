@@ -31,9 +31,80 @@ extensions::
     (x - 1)-adic valuation
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
-    sage: v.extensions(L) # long time
+    sage: w = v.extensions(L); w # long time
     [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
      [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
+
+TESTS:
+
+Run test suite for classical places over rational function fields::
+
+    sage: K.<x> = FunctionField(QQ)
+    sage: v = FunctionFieldValuation(K, 1)
+    sage: TestSuite(v).run() # long time
+
+    sage: v = FunctionFieldValuation(K, x^2 + 1)
+    sage: TestSuite(v).run() # long time
+
+    sage: v = FunctionFieldValuation(K, 1/x)
+    sage: TestSuite(v).run() # long time
+
+Run test suite over classical places of finite extensions::
+
+    sage: K.<x> = FunctionField(QQ)
+    sage: v = FunctionFieldValuation(K, x - 1)
+    sage: R.<y> = K[]
+    sage: L.<y> = K.extension(y^2 - x)
+    sage: ws = v.extensions(L) # long time
+    sage: for w in ws: TestSuite(w).run() # long time
+
+Run test suite for valuations that do not correspond to a classical place::
+
+    sage: K.<x> = FunctionField(QQ)
+    sage: R.<x> = QQ[]
+    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: w = FunctionFieldValuation(K, v)
+    sage: TestSuite(w).run() # long time
+
+Run test suite for some other classical places over large ground fields::
+
+    sage: K.<t> = FunctionField(GF(3))
+    sage: M.<x> = FunctionField(K)
+    sage: v = FunctionFieldValuation(M, x^3 - t)
+    sage: TestSuite(v).run() # long time
+
+Run test suite for extensions over the infinite place::
+
+    sage: K.<x> = FunctionField(QQ)
+    sage: v = FunctionFieldValuation(K, 1/x)
+    sage: R.<y> = K[]
+    sage: L.<y> = K.extension(y^2 - 1/(x^2 + 1))
+    sage: w = v.extensions(L)
+    sage: TestSuite(w).run()
+
+Run test suite for extensions which come from the splitting in the base field::
+
+    sage: K.<x> = FunctionField(QQ)
+    sage: v = FunctionFieldValuation(K, x^2 + 1)
+    sage: L.<x> = FunctionField(GaussianIntegers().fraction_field())
+    sage: ws = v.extensions(L)
+    sage: for w in ws: TestSuite(w).run() # long time
+
+Run test suite for a finite place with residual degree and ramification::
+
+    sage: K.<t> = FunctionField(GF(3))
+    sage: L.<x> = FunctionField(K)
+    sage: v = FunctionFieldValuation(L, x^6 - t)
+    sage: TestSuite(v).run() # long time
+
+Run test suite for a valuation which is backed by limit valuation::
+
+    sage: K.<x> = FunctionField(QQ)
+    sage: R.<y> = K[]
+    sage: L.<y> = K.extension(y^2 - (x^2 + x + 1))
+    sage: v = FunctionFieldValuation(K, x - 1)
+    sage: w = v.extension(L)
+    sage: TestSuite(w).run() # long time
 
 AUTHORS:
 

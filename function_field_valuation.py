@@ -401,7 +401,11 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         if domain.base_field() is domain:
             # valuation is a base valuation on K[x] that induces a valuation on K(x)
-            return parent.__make_element_class__(FiniteRationalFunctionFieldValuation)(parent, valuation)
+            if valuation.restriction(domain.constant_base_field()).is_trivial():
+                # valuation corresponds to a finite place
+                return parent.__make_element_class__(FiniteRationalFunctionFieldValuation)(parent, valuation)
+            else:
+                return parent.__make_element_class__(NonClassicalRationalFunctionFieldValuation)(parent, valuation)
         else:
             # valuation is a limit valuation that singles out an extension
             return parent.__make_element_class__(FunctionFieldFromLimitValuation)(parent, valuation, domain.polynomial(), extra_args['approximants'])
@@ -601,9 +605,11 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         """
         F = self.residue_ring().coerce(F)
-        if F in self._base_valuation.residue_ring():
-            f = self._base_valuation.lift(F)
-            return self.domain()(f)
+        if F in self._base_valuation.residue_ring().fraction_field():
+            num = self._base_valuation.residue_ring()(F.numerator())
+            den = self._base_valuation.residue_ring()(F.denominator())
+
+            return self.domain()(self._base_valuation.lift(num)) / self.domain()(self._base_valuation.lift(den))
         raise NotImplementedError("lifting not implemented for this valuation")
 
     def value_group(self):
@@ -711,6 +717,47 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             return [FunctionFieldValuation(L, w) for w in W]
 
         return super(InducedFunctionFieldValuation_base, self).extensions(L)
+
+    def _call_(self, f):
+        r"""
+        Evaluate this valuation at the function ``f``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, x) # indirect doctest
+            sage: v((x+1)/x^2)
+            -2
+            
+        """
+        return self._base_valuation(f.numerator()) - self._base_valuation(f.denominator())
+
+    def residue_ring(self):
+        r"""
+        Return the residue field of this valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: FunctionFieldValuation(K, x).residue_ring()
+            Rational Field
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2))
+            sage: w = FunctionFieldValuation(K, v)
+            sage: w.residue_ring()
+            Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+
+            sage: R.<x> = QQ[]
+            sage: vv = v.augmentation(x, 1)
+            sage: w = FunctionFieldValuation(K, vv)
+            sage: w.residue_ring()
+            Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            
+        """
+        return self._base_valuation.residue_ring().fraction_field()
 
 class InfiniteRationalFunctionFieldValuation(RationalFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base):
     r"""
@@ -863,42 +910,22 @@ class FiniteRationalFunctionFieldValuation(ClassicalFunctionFieldValuation_base,
         sage: q = FunctionFieldValuation(L, x^6 - t); q
         (x^6 + 2*t)-adic valuation
 
-    TESTS::
+    """
 
-        sage: TestSuite(v).run() # long time
-        sage: TestSuite(w).run() # long time
-        sage: TestSuite(u).run() # long time
-        sage: TestSuite(q).run() # long time
+class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
+    r"""
+    Valuation induced by a valuation on the underlying polynomial ring which is
+    non-classical.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: K.<x> = FunctionField(QQ)
+        sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2))
+        sage: w = FunctionFieldValuation(K, v); w # indirect doctest
+        2-adic valuation
 
     """
-    def _call_(self, f):
-        r"""
-        Evaluate this valuation at the function ``f``.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: v = FunctionFieldValuation(K, x) # indirect doctest
-            sage: v((x+1)/x^2)
-            -2
-            
-        """
-        return self._base_valuation(f.numerator()) - self._base_valuation(f.denominator())
-
-    def residue_ring(self):
-        r"""
-        Return the residue field of this valuation.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: FunctionFieldValuation(K, 1/x).residue_ring()
-            Rational Field
-
-        """
-        return self._base_valuation.residue_ring().base()
 
 class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
     r"""

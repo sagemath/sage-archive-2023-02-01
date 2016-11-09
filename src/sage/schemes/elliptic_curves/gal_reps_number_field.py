@@ -787,7 +787,7 @@ def deg_one_primes_iter(K, principal_only=False):
     An iterator over degree 1 primes of `K` up to the given norm,
     optionally yielding only principal primes.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: K.<a> = QuadraticField(-5)
         sage: from sage.schemes.elliptic_curves.gal_reps_number_field import deg_one_primes_iter

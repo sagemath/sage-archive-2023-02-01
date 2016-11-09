@@ -816,13 +816,57 @@ class pAdicValuation_padic(pAdicValuation_base):
             sage: v.shift(R(2),3)
             2*3^3 + O(3^23)
 
+        TESTS:
+
+        Make sure that we work around the following bug in p-adics::
+
+            sage: R = Zp(3)
+            sage: R(1) >> 1 # this should throw an exception
+            O(3^19)
+
+        However, our shift gets this right::
+
+            sage: v = pAdicValuation(Zp(3))
+            sage: v.shift(R(1), -1)
+            Traceback (most recent call last):
+            ...
+            ValueError: can not shift down 1 + O(3^20) by 1 in 3-adic Ring with capped relative precision 20 with respect to 3-adic valuation
+
+        Note that the same happens for ZpCA::
+
+            sage: R = ZpCA(3)
+            sage: R(1) >> 1 # this should throw an exception
+            O(3^19)
+
+        But we also detect that one::
+
+            sage: v = pAdicValuation(ZpCA(3))
+            sage: v.shift(R(1), -1)
+            Traceback (most recent call last):
+            ...
+            ValueError: can not shift down 1 + O(3^20) by 1 in 3-adic Ring with capped absolute precision 20 with respect to 3-adic valuation
+
         """
         from sage.rings.all import QQ, ZZ
         c = self.domain().coerce(c)
+        if c == 0:
+            if v == 0:
+                return c
+            raise ValueError("can not shift a zero")
+
         v = QQ(v)
         if v not in self.value_group():
             raise ValueError("%r is not in the value group of %r"%(v, self))
         v = ZZ(v * self.domain().ramification_index())
+
+        # Work around a bug in ZpCR/ZpCA p-adics
+        # TODO: fix this upstream
+        from sage.rings.padics.padic_capped_absolute_element import pAdicCappedAbsoluteElement
+        from sage.rings.padics.padic_capped_relative_element import pAdicCappedRelativeElement
+        from sage.categories.fields import Fields
+        if (isinstance(c, pAdicCappedAbsoluteElement) or (isinstance(c, pAdicCappedRelativeElement) and c.parent() not in Fields())) and -v > self(c):
+            raise ValueError("can not shift down %r by %r in %r with respect to %r"%(c, -v, self.domain(), self))
+
         return c<<v
 
     def _repr_(self):

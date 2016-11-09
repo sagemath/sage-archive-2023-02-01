@@ -383,7 +383,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 sage: v.shift(2, -2)
                 Traceback (most recent call last):
                 ...
-                TypeError: no conversion of this rational to integer
+                ValueError: can not shift 2 down by 2 in Integer Ring with respect to 2-adic valuation
 
             The element is the same after several shifts that produce an
             element of the original valuation::
@@ -424,13 +424,20 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             x = self.domain().coerce(x)
-            from sage.rings.all import QQ, ZZ
+            from sage.rings.all import QQ, ZZ, infinity
             s = QQ.coerce(s)
             if s == 0:
                 return x
+            if x == 0:
+                raise ValueError("can not shift zero")
             if s not in self.value_group():
                 raise ValueError("s must be in the value group of this valuation")
-            return self.domain()(x * (self.uniformizer() ** ZZ(s/self.value_group().gen())))
+            if s < 0 and ~self.uniformizer() not in self.domain():
+                from sage.categories.fields import Fields
+                assert(self.domain() not in Fields())
+                if -s > self(x):
+                    raise ValueError("can not shift %r down by %r in %r with respect to %r"%(x, -s, self.domain(), self))
+            return self.domain()(x * (self.domain().fraction_field()(self.uniformizer()) ** ZZ(s/self.value_group().gen())))
 
         @abstract_method
         def residue_ring(self):
@@ -742,16 +749,24 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             V = tester.some_elements(self.value_group().some_elements())
             from sage.categories.cartesian_product import cartesian_product
             for x, n in tester.some_elements(cartesian_product([S,V])):
-                v = self(x)
-                from sage.categories.fields import Fields
-                if n < 0 and self.domain() not in Fields():
-                    # note that shifting might not be possible in this case even if -n > v
+                if x == 0 and n != 0:
+                    with tester.assertRaises(ValueError):
+                        self.shift(x, n)
                     continue
+
+                v = self(x)
                 try:
                     y = self.shift(x, n)
                 except NotImplementedError:
                     # not all valuations can implement consistent shifts
                     continue
+                except ValueError:
+                    from sage.categories.fields import Fields
+                    if -n > v and self.domain() not in Fields():
+                        # note that shifting might not be possible in this case even if -n > v
+                        continue
+                    raise
+
                 tester.assertIs(y.parent(), self.domain())
                 tester.assertEqual(self(y), v + n)
                 # shifts preserve reductions

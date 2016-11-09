@@ -7,8 +7,8 @@ Implements augmentations of valutions as defined in [ML1936].
 TESTS::
 
     sage: from mac_lane import * # optional: standalone
-    sage: R.<x> = QQ[]
-    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: R.<x> = ZZ[]
+    sage: v = GaussValuation(R, pAdicValuation(ZZ, 2))
     sage: w = v.augmentation(x, 1)
     sage: TestSuite(w).run() # long time
 
@@ -433,9 +433,6 @@ class AugmentedValuation_base(InductiveValuation):
         """
         if s not in self.value_group():
             raise ValueError("s must be in the value group of the valuation")
-        from sage.categories.fields import Fields
-        if s < 0 and not self.domain().base_ring() in Fields():
-            raise NotImplementedError("only implemented for polynomial rings over fields")
 
         ret = self.domain().one()
         while s not in self._base_valuation.value_group():

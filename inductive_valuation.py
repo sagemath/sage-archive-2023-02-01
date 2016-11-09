@@ -204,7 +204,7 @@ class InductiveValuation(DevelopingValuation):
             sage: w.equivalence_unit(-1)
             Traceback (most recent call last):
             ...
-            TypeError: no conversion of this rational to integer
+            ValueError: can not shift 1 down by 1 in Integer Ring with respect to 2-adic valuation
 
         """
         
@@ -303,6 +303,16 @@ class InductiveValuation(DevelopingValuation):
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v.element_with_valuation(-2)
             1/4
+
+        Depending on the base ring, an element of valuation ``s`` might not
+        exist::
+
+            sage: R.<x> = ZZ[]
+            sage: v = GaussValuation(R, pAdicValuation(ZZ, 2))
+            sage: v.element_with_valuation(-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: can not shift 1 down by 2 in Integer Ring with respect to 2-adic valuation
             
         """
 
@@ -321,7 +331,13 @@ class InductiveValuation(DevelopingValuation):
         tester = self._tester(**options)
         chain = self.augmentation_chain()
         for s in tester.some_elements(self.value_group().some_elements()):
-            R = self.element_with_valuation(s)
+            try:
+                R = self.element_with_valuation(s)
+            except ValueError:
+                from sage.categories.fields import Fields
+                if self.domain() not in Fields():
+                    raise
+                continue
             tester.assertEqual(self(R), s)
             if chain != [self]:
                 base = chain[1]

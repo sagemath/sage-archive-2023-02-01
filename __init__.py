@@ -438,6 +438,87 @@ def vector_space(self):
 sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic.vector_space = vector_space
 del(vector_space)
 
+# make some_elements() non-trivial for number fields
+def some_elements(self):
+    r"""
+    TESTS::
+
+        sage: K = GaussianIntegers().fraction_field()
+        sage: list(K.some_elements())
+        [I, 0, 1, 1/2, 2*I, -I, -2, 0, 0]
+
+    """
+    for element in self.polynomial_ring().some_elements():
+        yield element(self.gen())
+sage.rings.number_field.number_field.NumberField_generic.some_elements = some_elements
+del(some_elements)
+
+# make some_elements() deterministic for function fields
+def some_elements(self):
+    r"""
+    TESTS::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: list(K.some_elements()) == list(K.some_elements())
+        True
+
+    """
+    for num in self._ring.some_elements():
+        for den in self._ring.some_elements():
+            if den != 0:
+                yield self(num) / self(den)
+sage.rings.function_field.function_field.RationalFunctionField.some_elements = some_elements
+del(some_elements)
+
+def some_elements(self):
+    r"""
+    TESTS::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x)
+        sage: list(L.some_elements()) == list(L.some_elements())
+        True
+
+    """
+    for element in self._ring.some_elements():
+        yield self(element)
+sage.rings.function_field.function_field.FunctionField_polymod.some_elements = some_elements
+del(some_elements)
+
+# make some_elements() non-trivial for fraction fields
+def some_elements(self):
+    r"""
+    TESTS::
+
+        sage: R.<x> = QQ[]
+        sage: K = R.fraction_field()
+        sage: len(list(K.some_elements()))
+        72
+
+    """
+    for num in self.ring().some_elements():
+        for den in self.ring().some_elements():
+            if den != 0:
+                yield self(num) / self(den)
+sage.rings.fraction_field.FractionField_generic.some_elements = some_elements
+
+# make some_elements() non-trivial for orders in number fields
+def some_elements(self):
+    r"""
+    TESTS::
+
+        sage: R = GaussianIntegers()
+        sage: list(R.some_elements())
+        [I, 0, 1, 2*I, -I, -2, 0, 0]
+
+    """
+    for element in self.fraction_field().some_elements():
+        if element in self:
+            yield self(element)
+sage.rings.number_field.order.Order.some_elements = some_elements
+del(some_elements)
+
 # register modules at some standard places so imports work as exepcted
 r"""
 sage: from sage.rings.valuation.gauss_valuation import GaussValuation

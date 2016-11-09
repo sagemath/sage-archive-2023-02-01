@@ -767,9 +767,21 @@ class SimplicialComplexMorphism(Morphism):
             sage: h = H({0: 1, 1: 2})
             sage: f.is_contiguous_to(h)
             False
+
+        TESTS::
+
+            sage: one = Hom(K,K).identity()
+            sage: one.is_contiguous_to(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: the maps must have the same domain and codomain
+            sage: one.is_contiguous_to(K)
+            Traceback (most recent call last):
+            ...
+            ValueError: 'other' must be a morphism of simplicial complexes
         """
         if not isinstance(other, SimplicialComplexMorphism):
-            raise ValueError("'other' must be a simplicial complex")
+            return False
         if self.codomain() != other.codomain() or self.domain() != other.domain():
             return False
         domain = self.domain()

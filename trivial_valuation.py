@@ -166,7 +166,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
 
     TESTS::
 
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def __init__(self, parent):

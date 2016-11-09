@@ -1185,7 +1185,7 @@ class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudo
 
     TESTS::
 
-        sage: TestSuite(w).run()
+        sage: TestSuite(w).run() # long time
 
     """
     pass

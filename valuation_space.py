@@ -729,7 +729,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
                 sage: from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
-                sage: v._test_shift()
+                sage: v._test_shift() # long time
 
             """
             tester = self._tester(**options)

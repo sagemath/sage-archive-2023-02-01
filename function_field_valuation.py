@@ -79,8 +79,8 @@ Run test suite for extensions over the infinite place::
     sage: v = FunctionFieldValuation(K, 1/x)
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - 1/(x^2 + 1))
-    sage: w = v.extensions(L)
-    sage: TestSuite(w).run()
+    sage: w = v.extensions(L) # long time
+    sage: TestSuite(w).run() # long time
 
 Run test suite for extensions which come from the splitting in the base field::
 

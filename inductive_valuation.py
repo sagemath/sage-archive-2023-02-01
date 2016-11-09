@@ -439,7 +439,9 @@ class InductiveValuation(DevelopingValuation):
         r"""
         Test that every instance that is a :class:`InductiveValuation` is
         either a :class:`FiniteInductiveValuation` or a
-        :class:`InfiniteInductiveValuation`.
+        :class:`InfiniteInductiveValuation`. Same for
+        :class:`FinalInductiveValuation` and
+        :class:`NonFinalInductiveValuation`.
 
         EXAMPLES::
 
@@ -451,6 +453,7 @@ class InductiveValuation(DevelopingValuation):
         """
         tester = self._tester(**options)
         tester.assertTrue(isinstance(self, InfiniteInductiveValuation) != isinstance(self, FiniteInductiveValuation))
+        tester.assertTrue(isinstance(self, FinalInductiveValuation) != isinstance(self, NonFinalInductiveValuation))
 
 
 class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
@@ -459,15 +462,13 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
     :class:`GaussValuation` which is a discrete valuation, i.e., the last key
     polynomial has finite valuation.
 
-    EXAMPLES::
+    TESTS::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, TrivialValuation(QQ))
-
-    TESTS::
-
-        sage: TestSuite(v).run() # long time
+        sage: isinstance(v, FiniteInductiveValuation)
+        True
 
     """
 
@@ -1167,28 +1168,36 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
 
 class FinalInductiveValuation(InductiveValuation):
-    pass
+    r"""
+    Abstract base class for an inductive valuation which can not be augmented further.
+
+    TESTS::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, TrivialValuation(QQ))
+        sage: w = v.augmentation(x^2 + x + 1, infinity)
+        sage: isinstance(w, FinalInductiveValuation)
+        True
+
+    """
 
 
 class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudoValuation):
     r"""
-    Abstract base class for iterated :class:`AugmentedValuation` on top of a
-    :class:`GaussValuation` which is not discrete valuation, i.e., the last key
-    polynomial has infinite valuation.
+    Abstract base class for an inductive valuation which is not discrete, i.e.,
+    which assigns infinite valuation to its last key polynomial.
 
-    EXAMPLES::
+    TESTS::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x^2 + x + 1, infinity)
-
-    TESTS::
-
-        sage: TestSuite(w).run() # long time
+        sage: isinstance(w, InfiniteInductiveValuation)
+        True
 
     """
-    pass
 
 
 def _lift_to_maximal_precision(c):

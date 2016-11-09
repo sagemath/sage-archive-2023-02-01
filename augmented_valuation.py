@@ -136,7 +136,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.path.dirname(os.getcwd()))
 
 from inductive_valuation import _lift_to_maximal_precision
-from inductive_valuation import NonFinalInductiveValuation, FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation
+from inductive_valuation import FinalInductiveValuation, NonFinalInductiveValuation, FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation
 from valuation import InfiniteDiscretePseudoValuation, DiscreteValuation
 
 from sage.misc.cachefunc import cached_method
@@ -229,9 +229,9 @@ class AugmentedValuationFactory(UniqueFactory):
         parent = DiscretePseudoValuationSpace(base_valuation.domain())
         if mu < infinity:
             if base_valuation.is_trivial():
-                return parent.__make_element_class__(FiniteAugmentedValuationWithTrivialResidueRing)(parent, base_valuation, phi, mu)
+                return parent.__make_element_class__(FinalFiniteAugmentedValuation)(parent, base_valuation, phi, mu)
             else:
-                return parent.__make_element_class__(FiniteAugmentedValuationWithNonTrivialResidueRing)(parent, base_valuation, phi, mu)
+                return parent.__make_element_class__(NonFinalFiniteAugmentedValuation)(parent, base_valuation, phi, mu)
         else:
             return parent.__make_element_class__(InfiniteAugmentedValuation)(parent, base_valuation, phi, mu)
 
@@ -785,7 +785,21 @@ class AugmentedValuation_base(InductiveValuation):
         return super(AugmentedValuation_base, self)._ge_(other)
 
 
-class AugmentedValuationWithTrivialResidueRing(AugmentedValuation_base, InductiveValuation):
+class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
+    r"""
+    An augmented valuation which can not be augmented anymore, either because
+    it augments a trivial valuation or because it is infinite.
+
+    TESTS::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, TrivialValuation(QQ))
+        sage: w = v.augmentation(x, 1)
+        sage: isinstance(w, FinalAugmentedValuation)
+        True
+
+    """
     @cached_method
     def residue_ring(self):
         r"""
@@ -1012,7 +1026,20 @@ class AugmentedValuationWithTrivialResidueRing(AugmentedValuation_base, Inductiv
         return self.domain()(H)
 
 
-class AugmentedValuationWithNonTrivialResidueRing(AugmentedValuation_base, NonFinalInductiveValuation):
+class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValuation):
+    r"""
+    An augmented valuation which can be augmented further.
+
+    TESTS::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: w = v.augmentation(x^2 + x + 1, 1)
+        sage: isinstance(w, NonFinalAugmentedValuation)
+        True
+
+    """
     @cached_method
     def residue_ring(self):
         r"""
@@ -1394,6 +1421,22 @@ class AugmentedValuationWithNonTrivialResidueRing(AugmentedValuation_base, NonFi
 
 
 class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation):
+    r"""
+    A finite augmented valuation, i.e., an augmented valuation which is
+    discrete, or equivalently an augmented valuation which assigns to its last
+    key polynomial a finite valuation.
+
+    TESTS::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<u> = Qq(4, 5)
+        sage: S.<x> = R[]
+        sage: v = GaussValuation(S)
+        sage: w = v.augmentation(x^2 + x + u, 1/2)
+        sage: isinstance(w, FiniteAugmentedValuation)
+        True
+
+    """
     @cached_method
     def value_group(self):
         """
@@ -1454,15 +1497,57 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             yield self._base_valuation(c) + i*self._mu
 
 
-class FiniteAugmentedValuationWithTrivialResidueRing(FiniteAugmentedValuation, AugmentedValuationWithTrivialResidueRing):
-    pass
+class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValuation):
+    r"""
+    An augmented valuation which is discrete, i.e., which assigns a finite
+    valuation to its last key polynomial, but which can not be further
+    augmented.
+
+    TESTS::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, TrivialValuation(QQ))
+        sage: w = v.augmentation(x, 1)
+        sage: isinstance(w, FinalFiniteAugmentedValuation)
+        True
+
+    """
 
 
-class FiniteAugmentedValuationWithNonTrivialResidueRing(FiniteAugmentedValuation, AugmentedValuationWithNonTrivialResidueRing):
-    pass
+class NonFinalFiniteAugmentedValuation(FiniteAugmentedValuation, NonFinalAugmentedValuation):
+    r"""
+    An augmented valuation which is discrete, i.e., which assigns a finite
+    valuation to its last key polynomial, and which can be augmented furter.
+
+    TESTS::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: w = v.augmentation(x, 1)
+        sage: isinstance(w, NonFinalFiniteAugmentedValuation)
+        True
+
+    """
 
 
-class InfiniteAugmentedValuation(AugmentedValuationWithTrivialResidueRing, InfiniteInductiveValuation):
+class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValuation):
+    r"""
+    An augmented valuation which is infinite, i.e., which assigns valuation
+    infinity to its last key polynomial (and which can therefore not be
+    augmented further.)
+
+    TESTS::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: w = v.augmentation(x, infinity)
+        sage: isinstance(w, InfiniteAugmentedValuation)
+        True
+
+    """
     @cached_method
     def value_group(self):
         """

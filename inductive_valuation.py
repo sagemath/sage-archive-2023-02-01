@@ -452,6 +452,7 @@ class InductiveValuation(DevelopingValuation):
         tester = self._tester(**options)
         tester.assertTrue(isinstance(self, InfiniteInductiveValuation) != isinstance(self, FiniteInductiveValuation))
 
+
 class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
     r"""
     Abstract base class for iterated :class:`AugmentedValuation` on top of a
@@ -466,9 +467,12 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
     TESTS::
 
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
+
+
+class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     def augmentation(self, phi, mu, check=True):
         r"""
         Return the inductive valuation which extends this valuation by mapping
@@ -522,6 +526,130 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         """
         from augmented_valuation import AugmentedValuation
         return AugmentedValuation(self, phi, mu, check)
+
+    def mac_lane_step(self, G, assume_squarefree=False):
+        r"""
+        Perform an approximation step towards the squarefree non-constant
+        polynomial ``G`` with this valuation.
+
+        This performs the individual steps that are used in
+        :meth:`mac_lane_approximants`.
+
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: S.<y> = K[]
+            sage: F = y^2 - x^2 - x^3 - 3
+            sage: v0 = GaussValuation(K._ring,pAdicValuation(QQ, 3))
+            sage: v1 = v0.augmentation(K._ring.gen(), 1/3)
+            sage: mu0 = FunctionFieldValuation(K, v1)
+            sage: eta0 = GaussValuation(S, mu0)
+            sage: eta1 = eta0.mac_lane_step(F)[0]
+            sage: eta2 = eta1.mac_lane_step(F)[0]
+            sage: eta2
+            [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ]
+
+        """
+        G = self.domain().coerce(G)
+
+        if G.is_constant():
+            raise ValueError("G must not be constant")
+
+        from sage.misc.misc import verbose
+        verbose("Expanding %s towards %s"%(self, G), caller_name = "mac_lane_step")
+
+        if not G.is_monic() or self(G) < 0:
+            # G must be monic, there is no fundamental reason for this, but the implementation makes this assumption in some places.
+            # G must be integral, otherwise, e.g., the effective degree is too low
+            # We try to turn G into a monic integral polynomial that describes the same extension
+            # This might fail if the constants of our polynomial ring do not form a field
+            return self.mac_lane_step(self.monic_integral_model(G), assume_squarefree=assume_squarefree)
+
+        if not assume_squarefree and not G.is_squarefree():
+            raise ValueError("G must be squarefree")
+
+        from sage.rings.all import infinity
+        assert self(G) != infinity # this is a valuation and G is non-zero
+
+        if self.is_key(G):
+            return [self.augmentation(G, infinity)]
+
+        F = self.equivalence_decomposition(G)
+        assert len(F), "%s equivalence-decomposese as an equivalence-unit %s"%(G, F)
+
+        ret = []
+        for phi,e in F:
+            if G == phi:
+                # Something strange happened here:
+                # G is not a key (we checked that before) but phi==G is; so phi must have less precision than G
+                # this can happen if not all coefficients of G have the same precision
+                # if we drop some precision of G then it will be a key (but is
+                # that really what we should do?)
+                assert not G.base_ring().is_exact()
+                prec = min([c.precision_absolute() for c in phi.list()])
+                g = G.map_coefficients(lambda c:c.add_bigoh(prec))
+                assert self.is_key(g)
+                return [self.augmentation(g, infinity)]
+
+            if phi == self.phi():
+                # a factor phi in the equivalence decomposition means that we
+                # found an actual factor of G, i.e., we can set
+                # v(phi)=infinity
+                # However, this should already have happened in the last step
+                # (when this polynomial had -infinite slope in the Newton
+                # polygon.)
+                if self.is_gauss_valuation(): # unless in the first step
+                    pass
+                else:
+                    continue
+
+            verbose("Determining the valuation for %s"%phi, level=2, caller_name="mac_lane_step")
+            w = self.augmentation(phi, self(phi), check=False)
+            NP = w.newton_polygon(G).principal_part()
+            verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=2, caller_name="mac_lane_step")
+            slopes = NP.slopes(repetition=False)
+            if NP.vertices()[0][0] != 0:
+                slopes = [-infinity] + slopes
+
+            if not slopes:
+                q,r = G.quo_rem(phi)
+                assert not r.is_zero()
+                phi = phi.coefficients(sparse=False)
+                for i,c in enumerate(r.coefficients(sparse=False)):
+                    if not c.is_zero():
+                        v = w(c)
+                        # for a correct result we need to add O(pi^v) in degree i
+                        # we try to find the coefficient of phi where such an
+                        # error can be introduced without losing much absolute
+                        # precision on phi
+                        best = i
+                        for j in range(i):
+                            if w(q[j]) < w(q[best]):
+                                best = j
+                        # now add the right O() to phi in degree i - best
+                        phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
+
+                phi = G.parent()(phi)
+                w = self._base_valuation.augmentation(phi, infinity)
+                ret.append(w)
+                continue
+
+            for i in range(len(slopes)):
+                slope = slopes[i]
+                verbose("Slope = %s"%slope, level=3, caller_name="mac_lane_step")
+                new_mu = self(phi) - slope
+                base = self
+                if phi.degree() == base.phi().degree():
+                    assert new_mu > self(phi)
+                    if not base.is_gauss_valuation():
+                        base = base._base_valuation
+                new_leaf = base.augmentation(phi, new_mu)
+                assert slope is -infinity or 0 in new_leaf.newton_polygon(G).slopes(repetition=False)
+                ret.append(new_leaf)
+
+        assert ret
+        return ret
 
     def is_key(self, phi, explain=False):
         r"""
@@ -659,130 +787,6 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
                    list(self.coefficients(f))[-1].is_constant() and \
                    list(self.valuations(f))[0] == self(f) and \
                    tau.divides(len(list(self.coefficients(f))) - 1)
-
-    def mac_lane_step(self, G, assume_squarefree=False):
-        r"""
-        Perform an approximation step towards the squarefree non-constant
-        polynomial ``G`` with this valuation.
-
-        This performs the individual steps that are used in
-        :meth:`mac_lane_approximants`.
-
-        TESTS::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: S.<y> = K[]
-            sage: F = y^2 - x^2 - x^3 - 3
-            sage: v0 = GaussValuation(K._ring,pAdicValuation(QQ, 3))
-            sage: v1 = v0.augmentation(K._ring.gen(), 1/3)
-            sage: mu0 = FunctionFieldValuation(K, v1)
-            sage: eta0 = GaussValuation(S, mu0)
-            sage: eta1 = eta0.mac_lane_step(F)[0]
-            sage: eta2 = eta1.mac_lane_step(F)[0]
-            sage: eta2
-            [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ]
-
-        """
-        G = self.domain().coerce(G)
-
-        if G.is_constant():
-            raise ValueError("G must not be constant")
-
-        from sage.misc.misc import verbose
-        verbose("Expanding %s towards %s"%(self, G), caller_name = "mac_lane_step")
-
-        if not G.is_monic() or self(G) < 0:
-            # G must be monic, there is no fundamental reason for this, but the implementation makes this assumption in some places.
-            # G must be integral, otherwise, e.g., the effective degree is too low
-            # We try to turn G into a monic integral polynomial that describes the same extension
-            # This might fail if the constants of our polynomial ring do not form a field
-            return self.mac_lane_step(self.monic_integral_model(G), assume_squarefree=assume_squarefree)
-
-        if not assume_squarefree and not G.is_squarefree():
-            raise ValueError("G must be squarefree")
-
-        from sage.rings.all import infinity
-        assert self(G) != infinity # this is a valuation and G is non-zero
-
-        if self.is_key(G):
-            return [self.augmentation(G, infinity)]
-
-        F = self.equivalence_decomposition(G)
-        assert len(F), "%s equivalence-decomposese as an equivalence-unit %s"%(G, F)
-
-        ret = []
-        for phi,e in F:
-            if G == phi:
-                # Something strange happened here:
-                # G is not a key (we checked that before) but phi==G is; so phi must have less precision than G
-                # this can happen if not all coefficients of G have the same precision
-                # if we drop some precision of G then it will be a key (but is
-                # that really what we should do?)
-                assert not G.base_ring().is_exact()
-                prec = min([c.precision_absolute() for c in phi.list()])
-                g = G.map_coefficients(lambda c:c.add_bigoh(prec))
-                assert self.is_key(g)
-                return [self.augmentation(g, infinity)]
-
-            if phi == self.phi():
-                # a factor phi in the equivalence decomposition means that we
-                # found an actual factor of G, i.e., we can set
-                # v(phi)=infinity
-                # However, this should already have happened in the last step
-                # (when this polynomial had -infinite slope in the Newton
-                # polygon.)
-                if self.is_gauss_valuation(): # unless in the first step
-                    pass
-                else:
-                    continue
-
-            verbose("Determining the valuation for %s"%phi, level=2, caller_name="mac_lane_step")
-            w = self.augmentation(phi, self(phi), check=False)
-            NP = w.newton_polygon(G).principal_part()
-            verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=2, caller_name="mac_lane_step")
-            slopes = NP.slopes(repetition=False)
-            if NP.vertices()[0][0] != 0:
-                slopes = [-infinity] + slopes
-
-            if not slopes:
-                q,r = G.quo_rem(phi)
-                assert not r.is_zero()
-                phi = phi.coefficients(sparse=False)
-                for i,c in enumerate(r.coefficients(sparse=False)):
-                    if not c.is_zero():
-                        v = w(c)
-                        # for a correct result we need to add O(pi^v) in degree i
-                        # we try to find the coefficient of phi where such an
-                        # error can be introduced without losing much absolute
-                        # precision on phi
-                        best = i
-                        for j in range(i):
-                            if w(q[j]) < w(q[best]):
-                                best = j
-                        # now add the right O() to phi in degree i - best
-                        phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
-
-                phi = G.parent()(phi)
-                w = self._base_valuation.augmentation(phi, infinity)
-                ret.append(w)
-                continue
-
-            for i in range(len(slopes)):
-                slope = slopes[i]
-                verbose("Slope = %s"%slope, level=3, caller_name="mac_lane_step")
-                new_mu = self(phi) - slope
-                base = self
-                if phi.degree() == base.phi().degree():
-                    assert new_mu > self(phi)
-                    if not base.is_gauss_valuation():
-                        base = base._base_valuation
-                new_leaf = base.augmentation(phi, new_mu)
-                assert slope is -infinity or 0 in new_leaf.newton_polygon(G).slopes(repetition=False)
-                ret.append(new_leaf)
-
-        assert ret
-        return ret
 
     @cached_method
     def _equivalence_reduction(self, f):
@@ -1129,8 +1133,11 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
                 tester.assertIs(f.parent(), self.domain())
                 tester.assertTrue(self.is_key(f))
 
-                w = self.augmentation(f, self(f) + 1)
-                tester.assertGreaterEqual(len(w.residue_ring()(F).roots()), 1)
+                from sage.rings.all import infinity
+                w = self.augmentation(f, infinity)
+                F = F.change_ring(w.residue_ring())
+                roots = F.roots(multiplicities=False)
+                tester.assertGreaterEqual(len(roots), 1)
 
     def _test_is_equivalence_irreducible(self, **options):
         r"""
@@ -1159,7 +1166,11 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         tester.assertFalse(self.is_equivalence_irreducible(self.phi() ** 2))
 
 
-class InfiniteInductiveValuation(InductiveValuation, InfiniteDiscretePseudoValuation):
+class FinalInductiveValuation(InductiveValuation):
+    pass
+
+
+class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudoValuation):
     r"""
     Abstract base class for iterated :class:`AugmentedValuation` on top of a
     :class:`GaussValuation` which is not discrete valuation, i.e., the last key

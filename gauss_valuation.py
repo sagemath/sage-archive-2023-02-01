@@ -49,7 +49,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.getcwd())
     sys.path.append(os.path.dirname(os.getcwd()))
 
-from inductive_valuation import FiniteInductiveValuation
+from inductive_valuation import NonFinalInductiveValuation
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
@@ -134,7 +134,7 @@ class GaussValuationFactory(UniqueFactory):
 
 GaussValuation = GaussValuationFactory("GaussValuation")
 
-class GaussValuation_generic(FiniteInductiveValuation):
+class GaussValuation_generic(NonFinalInductiveValuation):
     """
     A Gauss valuation on a polynomial ring ``domain``.
 
@@ -159,7 +159,7 @@ class GaussValuation_generic(FiniteInductiveValuation):
 
     TESTS::
 
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def __init__(self, parent, v):
@@ -174,7 +174,7 @@ class GaussValuation_generic(FiniteInductiveValuation):
             True
 
         """
-        FiniteInductiveValuation.__init__(self, parent, parent.domain().gen())
+        NonFinalInductiveValuation.__init__(self, parent, parent.domain().gen())
 
         self._base_valuation = v
 

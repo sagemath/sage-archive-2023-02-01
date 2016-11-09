@@ -474,7 +474,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v0 = GaussValuation(K._ring,pAdicValuation(QQ,3))
             sage: v1 = v0.augmentation(K._ring.gen(),1/3)
             sage: mu0 = FunctionFieldValuation(K, v1)
-            sage: mu0.mac_lane_approximants(F)
+            sage: mu0.mac_lane_approximants(F) # long time
             [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + 2*x) = 2/3 ]]
 

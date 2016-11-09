@@ -955,6 +955,10 @@ class AugmentedValuationWithTrivialResidueRing(AugmentedValuation_base, Inductiv
 
         - ``F`` -- an element of the :meth:`residue_ring`
 
+        ALGORITHM:
+
+        We simply undo the steps performed in :meth:`reduce`.
+
         OUTPUT:
 
         A polynomial in the domain of the valuation with reduction ``F``.
@@ -967,29 +971,19 @@ class AugmentedValuationWithTrivialResidueRing(AugmentedValuation_base, Inductiv
         if F.is_one():
             return self.domain().one()
 
-        if self._base_valuation.is_trivial():
-            if self._mu == 0:
-                raise NotImplementedError
-            if self.phi() == self.domain().gen():
-                # this is a valuation of the form [p-adic valuation, v(x) = 1]
-                constant = self.restriction(self.domain().base_ring()).lift(F)
-                assert constant in self.domain().base_ring()
-                return self.domain()(constant)
+        # Write F as a polynomial in self._residue_field_generator()
+        # We only have to do that if psi is non-trivial
+        if self.psi().degree() > 1:
+            from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
+            if isinstance(F, PolynomialQuotientRingElement):
+                G = F.lift().change_variable_name(self._base_valuation.residue_ring().variable_name())
             else:
-                if self.phi().degree() == 1:
-                    # this is a classical valuation of a rational point, of the
-                    # form [trivial, v(x + 1) = 1]
-                    assert self.domain().base_ring() is self.residue_ring()
-                    return self.domain()(F)
-                if self.phi().change_variable_name(self.residue_ring().polynomial().variable_name()) == self.residue_ring().polynomial():
-                    # this is a classical valuation of a point, of the from
-                    # [trivial, v(x^2 + 1) = 1]
-                    if hasattr(F, 'polynomial'):
-                        u = F.polynomial()
-                    if hasattr(F, 'element'):
-                        u = F.element()
-                    return self.domain()(u.change_variable_name(self.phi().variable_name()))
-                raise NotImplementedError
+                G = F.polynomial(self._base_valuation.residue_ring().variable_name())
+            assert(G(self._residue_field_generator()) == F)
+            F = G
+
+        H = self._base_valuation.lift(F)
+        return self.domain()(H)
 
 
 class AugmentedValuationWithNonTrivialResidueRing(AugmentedValuation_base, NonFinalInductiveValuation):
@@ -1491,50 +1485,3 @@ class InfiniteAugmentedValuation(AugmentedValuationWithTrivialResidueRing, Infin
         yield self._base_valuation(self.coefficients(f).next())
         for i in range(num_infty_coefficients):
             yield infinity
-
-    def lift(self, F):
-        """
-        Return a polynomial which :meth:`reduce`s to ``F``.
-
-        INPUT:
-
-        - ``F`` -- an element of the :meth:`residue_ring`
-
-        OUTPUT:
-
-        a polynomial in the domain of the valuation with reduction ``F``, monic
-        if ``F`` is monic
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<u> = Qq(4, 10)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-
-            sage: w = v.augmentation(x^2 + x + u, infinity)
-            sage: r = w.residue_ring()
-            sage: u1 = w.residue_ring().gen()
-            sage: w.lift(1)
-            1 + O(2^10)
-            sage: w.lift(0)
-            0
-            sage: w.lift(u1)
-            (1 + O(2^10))*x
-
-        """
-        F = self.residue_ring().coerce(F)
-
-        if self.residue_ring() == self._base_valuation.residue_ring():
-            return self._base_valuation.lift(F)
-        else:
-            if F not in self._base_valuation.residue_ring():
-                if hasattr(F, 'polynomial'):
-                    F = F.polynomial(self._base_valuation.residue_ring().variable_name())
-                elif hasattr(F, 'element'):
-                    F = F.element(self._base_valuation.residue_ring().variable_name())
-                elif hasattr(F, 'lift'):
-                    F = F.lift().change_variable_name(self._base_valuation.residue_ring().variable_name())
-                else:
-                    raise NotImplementedError
-            return self._base_valuation.lift(F)

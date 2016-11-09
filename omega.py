@@ -232,35 +232,38 @@ def Omega_higher(a, z):
                                 for factors in factors_denominator)
 
     # 2. substitute helper variable with actual value
-    def subs_Omega(factor, v):
-        f = Omega_map[v]
-        value = f.value
-        exponent = abs(f.exponent)
-        p = tuple(v.dict().popitem()[0]).index(1)
+    def subs_power(expression, var, exponent, value):
+        r"""
+        Substitute ``var^exponent`` by ``value`` in ``expression``.
+        """
+        p = tuple(var.dict().popitem()[0]).index(1)
         def subs_e(e):
             e = list(e)
             assert e[p] % exponent == 0
             e[p] = e[p] // exponent
             return tuple(e)
-        P = factor.parent()
-        result = P({subs_e(e): c for e, c in iteritems(factor.dict())})
-        return result.subs({v: value})
+        parent = expression.parent()
+        result = parent({subs_e(e): c for e, c in iteritems(expression.dict())})
+        return result.subs({var: value})
 
-    vars_Omega = L_high.gens()[:nv]
-    def subs_all_Omega(factor):
-        for v in vars_Omega:
-            factor = subs_Omega(factor, v)
-        return factor
+    def subs_Omega(expression):
+        r"""
+        Substitute all helper variables by their actual values.
+        """
+        for var, factor in iteritems(Omega_map):
+            expression = subs_power(expression, var,
+                                    abs(factor.exponent), factor.value)
+        return expression
 
-    factors_denominator = tuple(subs_all_Omega(factor)
+    factors_denominator = tuple(subs_Omega(factor)
                                 for factor in factors_denominator)
 
     from sage.rings.fraction_field import FractionField_generic
     if isinstance(numerator.parent(), FractionField_generic):
-        numerator = subs_all_Omega(L_high(numerator.numerator())) / \
-                    subs_all_Omega(L_high(numerator.denominator()))
+        numerator = subs_Omega(L_high(numerator.numerator())) / \
+                    subs_Omega(L_high(numerator.denominator()))
     else:
-        numerator = subs_all_Omega(numerator)
+        numerator = subs_Omega(numerator)
 
     return numerator, factors_denominator
 

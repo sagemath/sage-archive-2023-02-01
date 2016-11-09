@@ -724,19 +724,15 @@ class SimplicialComplexMorphism(Morphism):
 
     def is_contiguous_to(self, other):
         r"""
-        ``True`` if this map is contiguous to ``other``
-
-        INPUT:
-
-        - ``other`` -- another morphism of simplicial complexes
+        Return ``True`` if ``self`` is contiguous to ``other``.
 
         Two morphisms `f_0, f_1: K \to L` are *contiguous* if for any
         simplex `\sigma \in K`, the union `f_0(\sigma) \cup
         f_1(\sigma)` is a simplex in `L`. This is not a transitive
         relation, but it induces an equivalence relation on simplicial
         maps: `f` is equivalent to `g` if there is a finite sequence
-        `f_0=f`, `f_1`, ..., `f_n=g` such that `f_i` and `f_{i+1}` are
-        contiguous for each `i`.
+        `f_0 = f`, `f_1`, ..., `f_n = g` such that `f_i` and `f_{i+1}`
+        are contiguous for each `i`.
 
         This is related to maps being homotopic: if they are
         contiguous, then they induce homotopic maps on the geometric
@@ -748,8 +744,14 @@ class SimplicialComplexMorphism(Morphism):
 
         See Section 3.5 of Spanier [Spa1966]_ for details.
 
-        Implementation: it is enough to check when `\sigma` ranges
-        over the facets.
+        ALGORITHM:
+
+        It is enough to check when `\sigma` ranges over the facets.
+
+        INPUT:
+
+        - ``other`` -- a simplicial complex morphism with the same
+          domain and codomain as ``self``
 
         EXAMPLES::
 
@@ -767,10 +769,11 @@ class SimplicialComplexMorphism(Morphism):
             False
         """
         if not isinstance(other, SimplicialComplexMorphism):
-            raise ValueError
+            raise ValueError("'other' must be a simplicial complex")
         if self.codomain() != other.codomain() or self.domain() != other.domain():
             return False
         domain = self.domain()
         codomain = self.codomain()
         return all(Simplex(self(sigma).set().union(other(sigma))) in codomain
                    for sigma in domain.facets())
+

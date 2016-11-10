@@ -41,13 +41,13 @@ Run test suite for classical places over rational function fields::
 
     sage: K.<x> = FunctionField(QQ)
     sage: v = FunctionFieldValuation(K, 1)
-    sage: TestSuite(v).run() # long time
+    sage: TestSuite(v).run(max_runs=100) # long time
 
     sage: v = FunctionFieldValuation(K, x^2 + 1)
-    sage: TestSuite(v).run() # long time
+    sage: TestSuite(v).run(max_runs=100) # long time
 
     sage: v = FunctionFieldValuation(K, 1/x)
-    sage: TestSuite(v).run() # long time
+    sage: TestSuite(v).run(max_runs=100) # long time
 
 Run test suite over classical places of finite extensions::
 
@@ -56,7 +56,7 @@ Run test suite over classical places of finite extensions::
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
     sage: ws = v.extensions(L) # long time
-    sage: for w in ws: TestSuite(w).run() # long time
+    sage: for w in ws: TestSuite(w).run(max_runs=100) # long time
 
 Run test suite for valuations that do not correspond to a classical place::
 
@@ -71,7 +71,7 @@ Run test suite for some other classical places over large ground fields::
     sage: K.<t> = FunctionField(GF(3))
     sage: M.<x> = FunctionField(K)
     sage: v = FunctionFieldValuation(M, x^3 - t)
-    sage: TestSuite(v).run() # long time
+    sage: TestSuite(v).run(max_runs=10) # long time
 
 Run test suite for extensions over the infinite place::
 
@@ -88,14 +88,14 @@ Run test suite for extensions which come from the splitting in the base field::
     sage: v = FunctionFieldValuation(K, x^2 + 1)
     sage: L.<x> = FunctionField(GaussianIntegers().fraction_field())
     sage: ws = v.extensions(L)
-    sage: for w in ws: TestSuite(w).run() # long time
+    sage: for w in ws: TestSuite(w).run(max_runs=100) # long time
 
 Run test suite for a finite place with residual degree and ramification::
 
     sage: K.<t> = FunctionField(GF(3))
     sage: L.<x> = FunctionField(K)
     sage: v = FunctionFieldValuation(L, x^6 - t)
-    sage: TestSuite(v).run() # long time
+    sage: TestSuite(v).run(max_runs=10) # long time
 
 Run test suite for a valuation which is backed by limit valuation::
 
@@ -425,7 +425,7 @@ class FunctionFieldValuation_base(DiscreteValuation):
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, FunctionFieldValuation_base)
         True
-        sage: TestSuite(v).run() # long time
+        sage: TestSuite(v).run(max_runs=100) # long time
 
     """
     def extensions(self, L):

@@ -370,7 +370,7 @@ cdef class Graphics3d(SageObject):
         points, lines = [], []
         if not hasattr(self, 'all'):
             self += Graphics3d()
-        for p in self.all:
+        for p in self.flatten().all:
             if hasattr(p, 'loc'):
                 color = p._extra_kwds.get('color', 'blue')
                 points.append("{{point:{}, size:{}, color:'{}'}}".format(json.dumps(p.loc), p.size, color))

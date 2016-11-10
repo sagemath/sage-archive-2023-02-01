@@ -38,23 +38,23 @@ class OpenInterval(DifferentiableManifold):
 
     - ``lower`` -- lower bound of the interval (possibly ``-Infinity``)
     - ``upper`` -- upper bound of the interval (possibly ``+Infinity``)
-    - ``subinterval_of`` -- (default: ``None``) another open interval, to which
-      the constructed interval is a subset of.
-    - ``name`` -- (default: ``None``) string; name (symbol) given to the
-      interval; if ``None``, the name is constructed from ``lower`` and
-      ``upper``
+    - ``ambient`` -- (default: ``None``) another open interval,
+      to which the constructed interval is a subset of
+    - ``name`` -- (default: ``None``) string; name (symbol) given to
+      the interval; if ``None``, the name is constructed from ``lower``
+      and ``upper``
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      interval; if ``None``, the LaTeX symbol is constructed from ``lower`` and
-      ``upper`` if ``name`` is ``None``, otherwise, it is set to ``name``
+      interval; if ``None``, the LaTeX symbol is constructed from ``lower``
+      and ``upper`` if ``name`` is ``None``, otherwise, it is set to ``name``
     - ``coordinate`` -- (default: ``None``) string defining the symbol of the
       canonical coordinate set on the interval; if none is provided and
       ``names`` is ``None``, the symbol 't' is used
     - ``names`` -- (default: ``None``) used only when ``coordinate`` is
       ``None``: it must be a single-element tuple containing the canonical
-      coordinate symbol (this is guaranteed if the shortcut operator ``<>`` is
+      coordinate symbol (this is guaranteed if the shortcut ``<names>`` is
       used, see examples below)
-    - ``start_index`` -- (default: 0) unique value of the index for vectors and
-      forms on the interval manifold.
+    - ``start_index`` -- (default: 0) unique value of the index for vectors
+      and forms on the interval manifold
 
     EXAMPLES:
 
@@ -63,16 +63,12 @@ class OpenInterval(DifferentiableManifold):
         sage: I = OpenInterval(0, pi); I
         Real interval (0, pi)
         sage: latex(I)
-        \left( 0 , \pi \right)
-        sage: type(I)
-        <class 'sage.manifolds.differentiable.real_line.OpenInterval_with_category'>
+        \left(0, \pi\right)
 
     ``I`` is a 1-dimensional smooth manifold over `\RR`::
 
         sage: I.category()
         Category of smooth manifolds over Real Field with 53 bits of precision
-        sage: isinstance(I, sage.manifolds.differentiable.manifold.DifferentiableManifold)
-        True
         sage: I.base_field()
         Real Field with 53 bits of precision
         sage: dim(I)
@@ -83,7 +79,8 @@ class OpenInterval(DifferentiableManifold):
         sage: I.diff_degree()
         +Infinity
 
-    The instance is unique (as long as the constructor arguments are the same)::
+    The instance is unique (as long as the constructor arguments
+    are the same)::
 
         sage: I is OpenInterval(0, pi)
         True
@@ -95,7 +92,7 @@ class OpenInterval(DifferentiableManifold):
         sage: I  # default display
         Real interval (0, pi)
         sage: latex(I)  # default LaTeX display
-        \left( 0 , \pi \right)
+        \left(0, \pi\right)
         sage: I1 = OpenInterval(0, pi, name='I'); I1
         Real interval I
         sage: latex(I1)
@@ -124,7 +121,7 @@ class OpenInterval(DifferentiableManifold):
         <type 'sage.symbolic.expression.Expression'>
 
     However, it can be obtained in the same step as the interval construction
-    by means of the shortcut operator ``<>``::
+    by means of the shortcut ``I.<names>``::
 
         sage: I.<t> = OpenInterval(0, pi)
         sage: t
@@ -137,8 +134,8 @@ class OpenInterval(DifferentiableManifold):
         sage: preparse("I.<t> = OpenInterval(0, pi)")
         "I = OpenInterval(Integer(0), pi, names=('t',)); (t,) = I._first_ngens(1)"
 
-    In particular the ``<>`` operator can be used to set a canonical
-    coordinate symbol different from 't'::
+    In particular the shortcut can be used to set a canonical
+    coordinate symbol different from ``'t'``::
 
         sage: J.<x> = OpenInterval(0, pi)
         sage: J.canonical_chart()
@@ -146,15 +143,15 @@ class OpenInterval(DifferentiableManifold):
         sage: J.canonical_coordinate()
         x
 
-    The LaTeX symbol of the canonical coordinate can be adjusted via the same
-    syntax as a chart declaration (see
+    The LaTeX symbol of the canonical coordinate can be adjusted via
+    the same syntax as a chart declaration (see
     :class:`~sage.manifolds.chart.RealChart`)::
 
         sage: J.<x> = OpenInterval(0, pi, coordinate=r'x:\xi')
         sage: latex(x)
         {\xi}
         sage: latex(J.canonical_chart())
-        \left(\left( 0 , \pi \right),({\xi})\right)
+        \left(\left(0, \pi\right),({\xi})\right)
 
     An element of the open interval ``I``::
 
@@ -179,8 +176,8 @@ class OpenInterval(DifferentiableManifold):
         sage: I(2) == I((2,))
         True
 
-    By default, the coordinates passed for the element ``x`` are those relative
-    to the canonical chart::
+    By default, the coordinates passed for the element ``x`` are those
+    relative to the canonical chart::
 
         sage: I(2) ==  I((2,), chart=I.canonical_chart())
         True
@@ -200,12 +197,13 @@ class OpenInterval(DifferentiableManifold):
         (2,)
 
     The construction of a subinterval can be performed via the argument
-    ``subinterval_of`` of ``OpenInterval``::
+    ``ambient`` of ``OpenInterval``::
 
-        sage: J = OpenInterval(0, 1, subinterval_of=I); J
+        sage: J = OpenInterval(0, 1, ambient=I); J
         Real interval (0, 1)
 
-    However, it is recommended to use the method :meth:`open_interval` instead::
+    However, it is recommended to use the method :meth:`open_interval`
+    instead::
 
         sage: J = I.open_interval(0, 1); J
         Real interval (0, 1)
@@ -244,8 +242,8 @@ class OpenInterval(DifferentiableManifold):
         Join of Category of subobjects of sets and Category of smooth manifolds
          over Real Field with 53 bits of precision
 
-    On the contrary, ``I``, which has not been created as a subinterval, is
-    in the category of smooth manifolds (see
+    On the contrary, ``I``, which has not been created as a subinterval,
+    is in the category of smooth manifolds (see
     :class:`~sage.categories.manifolds.Manifolds`)::
 
         sage: I.category()
@@ -290,10 +288,10 @@ class OpenInterval(DifferentiableManifold):
         sage: XK.coord_range()
         t: (1/2, 1)
 
-
     """
-    def __init__(self, lower, upper, subinterval_of=None, name=None,
-                 latex_name=None, coordinate=None, names=None, start_index=0):
+    def __init__(self, lower, upper, ambient=None,
+                 name=None, latex_name=None,
+                 coordinate=None, names=None, start_index=0):
         r"""
         Construct an open inverval.
 
@@ -309,26 +307,24 @@ class OpenInterval(DifferentiableManifold):
         """
         if latex_name is None:
             if name is None:
-                latex_name = r"\left(" + latex(lower) + ", " + latex(upper) + \
-                             r"\right)"
+                latex_name = r"\left({}, {}\right)".format(latex(lower), latex(upper))
             else:
                 latex_name = name
         if name is None:
             name = "({}, {})".format(lower, upper)
-        if subinterval_of is None:
+        if ambient is None:
             ambient_manifold = None
         else:
-            if not isinstance(subinterval_of, OpenInterval):
-                raise TypeError("the argument subinterval_of must be an open "
-                                + "interval")
-            ambient_manifold = subinterval_of.manifold()
+            if not isinstance(ambient, OpenInterval):
+                raise TypeError("the argument ambient must be an open interval")
+            ambient_manifold = ambient.manifold()
         field = 'real'
         structure = RealDifferentialStructure()
         DifferentiableManifold.__init__(self, 1, name, field, structure,
                                         ambient=ambient_manifold,
                                         latex_name=latex_name,
                                         start_index=start_index)
-        if subinterval_of is None:
+        if ambient is None:
             if coordinate is None:
                 if names is None:
                     coordinate = 't'
@@ -337,64 +333,64 @@ class OpenInterval(DifferentiableManifold):
             self._canon_chart = self.chart(coordinates=coordinate)
             t = self._canon_chart[start_index]
         else:
-            if lower < subinterval_of.lower_bound():
+            if lower < ambient.lower_bound():
                 raise ValueError("the lower bound is smaller than that of "
                                  + "the containing interval")
-            if upper > subinterval_of.upper_bound():
+            if upper > ambient.upper_bound():
                 raise ValueError("the upper bound is larger than that of "
                                  + "the containing interval")
-            self._supersets.update(subinterval_of._supersets)
-            for sd in subinterval_of._supersets:
+            self._supersets.update(ambient._supersets)
+            for sd in ambient._supersets:
                 sd._subsets.add(self)
-            subinterval_of._top_subsets.add(self)
-            t = subinterval_of.canonical_coordinate()
+            ambient._top_subsets.add(self)
+            t = ambient.canonical_coordinate()
         if lower != minus_infinity:
             if upper != infinity:
-                restrictions = [t>lower, t<upper]
+                restrictions = [t > lower, t < upper]
             else:
-                restrictions = t>lower
+                restrictions = t > lower
         else:
             if upper != infinity:
-                restrictions = t<upper
+                restrictions = t < upper
             else:
                 restrictions = None
-        if subinterval_of is None:
+        if ambient is None:
             if restrictions is not None:
                 self._canon_chart.add_restrictions(restrictions)
         else:
-            self._canon_chart = subinterval_of.canonical_chart().restrict(self,
+            self._canon_chart = ambient.canonical_chart().restrict(self,
                                                      restrictions=restrictions)
         self._lower = lower
         self._upper = upper
 
     def _repr_(self):
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
         TESTS::
 
             sage: I = OpenInterval(-1, pi)
-            sage: I._repr_()
-            'Real interval (-1, pi)'
+            sage: I
+            Real interval (-1, pi)
             sage: I = OpenInterval(-1, +oo)
-            sage: I._repr_()
-            'Real interval (-1, +Infinity)'
+            sage: I
+            Real interval (-1, +Infinity)
             sage: I = OpenInterval(-oo,0)
-            sage: I._repr_()
-            'Real interval (-Infinity, 0)'
+            sage: I
+            Real interval (-Infinity, 0)
 
         """
         return "Real interval " + self._name
 
     def _first_ngens(self, n):
         r"""
-        Return the coordinate of the canonical chart
+        Return the coordinate of the canonical chart.
 
         This is useful only for the use of Sage preparser.
 
         INPUT:
 
-        - ``n`` -- the number of coordinates: must be 1.
+        - ``n`` -- the number of coordinates: must be 1
 
         TESTS::
 
@@ -419,7 +415,7 @@ class OpenInterval(DifferentiableManifold):
         This is a redefinition of
         :meth:`sage.manifolds.differentiable.DifferentiableManifold._element_constructor_`
         to allow for construction from a number (considered as the canonical
-        coordinate)
+        coordinate).
 
         INPUT:
 
@@ -435,12 +431,12 @@ class OpenInterval(DifferentiableManifold):
           point; if none is provided, the LaTeX symbol is set to ``name``
         - ``check_coords`` -- (default: ``True``) determines whether ``coords``
           are valid coordinates for the chart ``chart``; for symbolic
-          coordinates, it is recommended to set ``check_coords`` to ``False``.
+          coordinates, it is recommended to set ``check_coords`` to ``False``
 
         OUTPUT:
 
-        - an instance of :class:`~sage.manifolds.point.TopologicalManifoldPoint`
-          representing a point in the current interval.
+        - :class:`~sage.manifolds.point.TopologicalManifoldPoint`
+          representing a point in the current interval
 
         EXAMPLES::
 
@@ -472,8 +468,7 @@ class OpenInterval(DifferentiableManifold):
 
     def _Hom_(self, other, category=None):
         r"""
-        Construct the set of curves in ``other`` with parameter in the current
-        open interval.
+        Construct the set of curves in ``other`` with parameter in ``self``.
 
         INPUT:
 
@@ -483,7 +478,7 @@ class OpenInterval(DifferentiableManifold):
 
         OUTPUT:
 
-        - the set of curves I --> M,  where I is the current open interval
+        - the set of curves `I \to M`,  where `I` is ``self``
 
         .. SEEALSO::
 
@@ -502,22 +497,20 @@ class OpenInterval(DifferentiableManifold):
             True
 
         """
-        from sage.manifolds.differentiable.manifold_homset import \
-                                                         DifferentiableCurveSet
+        from sage.manifolds.differentiable.manifold_homset import DifferentiableCurveSet
         return DifferentiableCurveSet(self, other)
 
     def canonical_chart(self):
         r"""
-        Return the canonical chart defined on the interval
+        Return the canonical chart defined on ``self``.
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`
+        - :class:`~sage.manifolds.differentiable.chart.RealDiffChart`
 
         EXAMPLES:
 
-        Canonical chart on the interval `(0,\pi)`::
+        Canonical chart on the interval `(0, \pi)`::
 
             sage: I = OpenInterval(0, pi)
             sage: I.canonical_chart()
@@ -545,7 +538,7 @@ class OpenInterval(DifferentiableManifold):
 
         EXAMPLES:
 
-        Canonical coordinate on the interval `(0,\pi)`::
+        Canonical coordinate on the interval `(0, \pi)`::
 
             sage: I = OpenInterval(0, pi)
             sage: I.canonical_coordinate()
@@ -626,7 +619,7 @@ class OpenInterval(DifferentiableManifold):
 
     def open_interval(self, lower, upper, name=None, latex_name=None):
         r"""
-        Define an open subinterval of the current interval.
+        Define an open subinterval of ``self``.
 
         INPUT:
 
@@ -642,13 +635,12 @@ class OpenInterval(DifferentiableManifold):
 
         OUTPUT:
 
-        - instance of class
-          :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
-          representing the open interval (``lower``, ``upper``).
+        - :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+          representing the open interval (``lower``, ``upper``)
 
         EXAMPLES:
 
-        The interval `(0,\pi)` as a subinterval of `(-4,4)`::
+        The interval `(0, \pi)` as a subinterval of `(-4, 4)`::
 
             sage: I = OpenInterval(-4, 4)
             sage: J = I.open_interval(0, pi); J
@@ -663,7 +655,7 @@ class OpenInterval(DifferentiableManifold):
             sage: J.manifold() is I
             True
 
-        The subinterval `(-4,4)` is ``I`` itself::
+        The subinterval `(-4, 4)` is ``I`` itself::
 
             sage: I.open_interval(-4, 4) is I
             True
@@ -673,16 +665,16 @@ class OpenInterval(DifferentiableManifold):
             return self
         # To cope with the unique representation framework, we have to
         # distinguish several cases, instead of performing a mere
-        # return OpenInterval(lower, upper, subinterval_of=self, name=name,
+        # return OpenInterval(lower, upper, ambient=self, name=name,
         #                     latex_name=latex_name)
         if name is None:
             if latex_name is None:
-                return OpenInterval(lower, upper, subinterval_of=self)
-            return OpenInterval(lower, upper, subinterval_of=self,
+                return OpenInterval(lower, upper, ambient=self)
+            return OpenInterval(lower, upper, ambient=self,
                                 latex_name=latex_name)
         if latex_name is None:
-            return OpenInterval(lower, upper, subinterval_of=self, name=name)
-        return OpenInterval(lower, upper, subinterval_of=self, name=name,
+            return OpenInterval(lower, upper, ambient=self, name=name)
+        return OpenInterval(lower, upper, ambient=self, name=name,
                             latex_name=latex_name)
 
 
@@ -695,18 +687,19 @@ class RealLine(OpenInterval):
 
     INPUT:
 
-    - ``name`` -- (default: 'R') string; name (symbol) given to the real line
-    - ``latex_name`` -- (default: r'\\RR') string; LaTeX symbol to denote the
-      real line
+    - ``name`` -- (default: ``'R'``) string; name (symbol) given to
+      the real line
+    - ``latex_name`` -- (default: ``r'\RR'``) string; LaTeX symbol to
+      denote the real line
     - ``coordinate`` -- (default: ``None``) string defining the symbol of the
       canonical coordinate set on the real line; if none is provided and
       ``names`` is ``None``, the symbol 't' is used
     - ``names`` -- (default: ``None``) used only when ``coordinate`` is
       ``None``: it must be a single-element tuple containing the canonical
-      coordinate symbol (this is guaranteed if the shortcut operator ``<>`` is
+      coordinate symbol (this is guaranteed if the shortcut ``<names>`` is
       used, see examples below)
-    - ``start_index`` -- (default: 0) unique value of the index for vectors and
-      forms on the real line manifold.
+    - ``start_index`` -- (default: 0) unique value of the index for vectors
+      and forms on the real line manifold
 
     EXAMPLES:
 
@@ -753,7 +746,7 @@ class RealLine(OpenInterval):
         <type 'sage.symbolic.expression.Expression'>
 
     However, it can be obtained in the same step as the real line construction
-    by means of the shortcut operator ``<>``::
+    by means of the shortcut ``R.<names>``::
 
         sage: R.<t> = RealLine()
         sage: t
@@ -766,7 +759,7 @@ class RealLine(OpenInterval):
         sage: preparse("R.<t> = RealLine()")
         "R = RealLine(names=('t',)); (t,) = R._first_ngens(1)"
 
-    In particular the ``<>`` operator is to be used to set a canonical
+    In particular the shortcut is to be used to set a canonical
     coordinate symbol different from 't'::
 
         sage: R.<x> = RealLine()
@@ -816,7 +809,7 @@ class RealLine(OpenInterval):
         sage: p.coord()
         (a,)
 
-    The real line is considered as the open interval `(-\infty,+\infty)`::
+    The real line is considered as the open interval `(-\infty, +\infty)`::
 
         sage: isinstance(R, sage.manifolds.differentiable.real_line.OpenInterval)
         True
@@ -856,7 +849,7 @@ class RealLine(OpenInterval):
 
     def _repr_(self):
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
         TESTS::
 
@@ -869,3 +862,4 @@ class RealLine(OpenInterval):
 
         """
         return "Real number line " + self._name
+

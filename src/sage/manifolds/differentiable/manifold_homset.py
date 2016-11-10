@@ -209,27 +209,24 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
     r"""
     Set of differentiable curves in a differentiable manifold.
 
-    Given an open interval `I` of `\RR` (possibly `I=\RR`) and
-    a differentiable manifold `M` over `\RR`, the class
-    :class:`DifferentiableCurveSet` implements the set `\mathrm{Hom}(I,M)` of
-    morphisms (i.e. differentiable curves) `I\rightarrow M`.
-
-    This is a Sage *parent* class, whose *element* class is
-    :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`.
+    Given an open interval `I` of `\RR` (possibly `I = \RR`) and
+    a differentiable manifold `M` over `\RR`, this is the set
+    `\mathrm{Hom}(I,M)` of morphisms (i.e. differentiable curves) `I \to M`.
 
     INPUT:
 
-    - ``domain`` -- open interval `I\subset \RR` (domain of the morphisms),
-      as an instance of
-      :class:`~sage.manifolds.differentiable.real_line.OpenInterval` or
-      of :class:`~sage.manifolds.differentiable.real_line.RealLine` if `I=\RR`
-    - ``codomain`` -- differentiable manifold `M` (codomain of the morphisms),
-      as an instance of
+    - ``domain`` --
+      :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+      if an open interval `I \subset \RR` (domain of the morphisms),
+      or :class:`~sage.manifolds.differentiable.real_line.RealLine`
+      if `I = \RR`
+    - ``codomain`` --
       :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+      differentiable manifold `M` (codomain of the morphisms)
     - ``name`` -- (default: ``None``) string; name given to the set of
-      curves; if none is provided, Hom(I,M) will be used
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      set of curves; if none is provided, `\mathrm{Hom}(I,M)` will be used
+      curves; if ``None``, ``Hom(I, M)`` will be used
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+      the set of curves; if ``None``, `\mathrm{Hom}(I,M)` will be used
 
     EXAMPLES:
 
@@ -244,8 +241,6 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         Set of Morphisms from Real number line R to 2-dimensional
          differentiable manifold M in Category of smooth manifolds over Real
          Field with 53 bits of precision
-        sage: type(H)
-        <class 'sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet_with_category'>
         sage: H.category()
         Category of homsets of topological spaces
         sage: latex(H)
@@ -257,9 +252,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
     An element of ``H`` is a curve in ``M``::
 
-        sage: H.Element
-        <class 'sage.manifolds.differentiable.curve.DifferentiableCurve'>
-        sage: c = H.an_element() ; c
+        sage: c = H.an_element(); c
         Curve in the 2-dimensional differentiable manifold M
         sage: c.display()
         R --> M
@@ -291,7 +284,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         (0, 1) --> U
            t |--> (x, y) = (1/(t^2 + 1) - 1/2, 0)
 
-    The set of curves `\RR\longrightarrow \RR` is a set of (manifold)
+    The set of curves `\RR \longrightarrow \RR` is a set of (manifold)
     endomorphisms::
 
         sage: E = Hom(R, R) ; E
@@ -309,7 +302,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         sage: E in Monoids()
         True
 
-    The identity element of the monoid is of course the identity map of `\RR`::
+    The identity element of the monoid is the identity map of `\RR`::
 
         sage: E.one()
         Identity map Id_R of the Real number line R
@@ -329,13 +322,13 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
         sage: TestSuite(E).run()
 
-    Similarly, the set of curves `I\longrightarrow I` is a monoid, whose
+    Similarly, the set of curves `I \longrightarrow I` is a monoid, whose
     elements are (manifold) endomorphisms::
 
         sage: EI = Hom(I, I) ; EI
         Set of Morphisms from Real interval (0, 1) to Real interval (0, 1) in
-        Join of Category of subobjects of sets and Category of smooth manifolds
-        over Real Field with 53 bits of precision
+         Join of Category of subobjects of sets and
+             Category of smooth manifolds over Real Field with 53 bits of precision
         sage: EI.category()
         Category of endsets of subobjects of sets and topological spaces
         sage: EI is End(I)
@@ -359,36 +352,37 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         sage: TestSuite(EI).run()
 
     """
-
     Element = DifferentiableCurve
 
     def __init__(self, domain, codomain, name=None, latex_name=None):
         r"""
+        Initialize ``self``.
+
         TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: R.<t> = RealLine()
-            sage: H = Hom(R, M) ; H
+            sage: H = Hom(R, M); H
             Set of Morphisms from Real number line R to 3-dimensional
              differentiable manifold M in Category of smooth manifolds over
              Real Field with 53 bits of precision
             sage: TestSuite(H).run()
             sage: Hom(R, M) is Hom(R, M)
             True
-            sage: H = Hom(R, R) ; H
+            sage: H = Hom(R, R); H
             Set of Morphisms from Real number line R to Real number line R in
              Category of smooth manifolds over Real Field with 53 bits of
              precision
             sage: TestSuite(H).run()
             sage: I = R.open_interval(-1, 2)
-            sage: H = Hom(I, M) ; H
+            sage: H = Hom(I, M); H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
              differentiable manifold M in Join of Category of subobjects of
              sets and Category of smooth manifolds over Real Field with 53 bits
              of precision
             sage: TestSuite(H).run()
-            sage: H = Hom(I, I) ; H
+            sage: H = Hom(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval (-1, 2)
              in Join of Category of subobjects of sets and Category of smooth
              manifolds over Real Field with 53 bits of precision
@@ -401,7 +395,6 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         DifferentiableManifoldHomset.__init__(self, domain, codomain, name=name,
                                               latex_name=latex_name)
 
-
     #### Parent methods ####
 
     def _element_constructor_(self, coord_expression, name=None,
@@ -409,12 +402,12 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
                               is_identity=False):
         r"""
         Construct an element of ``self``, i.e. a differentiable curve
-        I --> M, where I is a real interval and M some differentiable manifold.
+        `I \to M`, where `I` is a real interval and `M` some
+        differentiable manifold.
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+        - :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
 
         EXAMPLES::
 
@@ -437,12 +430,11 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
     def _an_element_(self):
         r"""
-        Construct some element.
+        Construct some element of ``self``.
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+        - :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
 
         EXAMPLES::
 
@@ -485,7 +477,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         # Determination of an interval (x1, x2) arround target_point:
         xmin = bounds[0][0]
         xmax = bounds[1][0]
-        one_half = QQ(1)/QQ(2)
+        one_half = QQ(1) / QQ(2)
         if xmin == -Infinity:
             if xmax == Infinity:
                 x1 = - one_half
@@ -498,11 +490,12 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
                 x1 = xmin + one_half
                 x2 = xmin + 3*one_half
             else:
-                dx = (xmax - xmin)/4
+                dx = (xmax - xmin) / 4
                 x1 = xmin + dx
                 x2 = xmax - dx
         # The coordinate function defining the curve:
         t = dom.canonical_coordinate()
-        target_coord[0] = x1 + (x2-x1)/(1+t*t)
+        target_coord[0] = x1 + (x2-x1) / (1+t*t)
         coord_expression = {chart2: target_coord}
         return self.element_class(self, coord_expression)
+

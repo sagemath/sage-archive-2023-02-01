@@ -2468,13 +2468,15 @@ class DifferentiableManifold(TopologicalManifold):
             raise ValueError("{} is not a point on the {}".format(point, self))
         return TangentSpace(point)
 
-    def curve(self, coord_expression, param, chart=None, name=None,
-              latex_name=None):
+    def curve(self, coord_expression, param, chart=None,
+              name=None, latex_name=None):
         r"""
         Define a differentiable curve in the manifold.
 
-        See :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
-        for details.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+            for details.
 
         INPUT:
 
@@ -2486,25 +2488,28 @@ class DifferentiableManifold(TopologicalManifold):
           - (ii) a single coordinate expression in a given chart on the
             manifold, the latter being provided by the argument ``chart``
 
-          In both cases, if the dimension of the manifold is 1, a single
+          in both cases, if the dimension of the manifold is 1, a single
           coordinate expression can be passed instead of a tuple with
           a single element
-        - ``param`` -- a tuple of the type ``(t, t_min, t_max)``, where ``t``
-          is the curve parameter used in ``coord_expression``, ``t_min`` is its
-          minimal value and ``t_max`` its maximal value; if ``t_min=-Infinity``
-          and ``t_max=+Infinity``, they can be omitted and ``t`` can be passed
-          for ``param``, instead of the tuple ``(t, t_min, t_max)``
+        - ``param`` -- a tuple of the type ``(t, t_min, t_max)``, where
+
+          * ``t`` is the curve parameter used in ``coord_expression``;
+          * ``t_min`` is its minimal value;
+          * ``t_max`` its maximal value;
+
+          if ``t_min=-Infinity`` and ``t_max=+Infinity``, they can be
+          omitted and ``t`` can be passed for ``param`` instead of the
+          tuple ``(t, t_min, t_max)``
         - ``chart`` -- (default: ``None``) chart on the manifold used for
           case (ii) above; if ``None`` the default chart of the manifold is
-          assumed.
+          assumed
         - ``name`` -- (default: ``None``) string; symbol given to the curve
         - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
           the curve; if none is provided, ``name`` will be used
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+        - :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
 
         EXAMPLES:
 
@@ -2563,3 +2568,4 @@ class DifferentiableManifold(TopologicalManifold):
                 # case self.dim()=1
                 coord_expression = {chart: (coord_expression,)}
         return curve_set(coord_expression, name=name, latex_name=latex_name)
+

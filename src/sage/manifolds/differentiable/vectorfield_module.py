@@ -2,14 +2,15 @@ r"""
 Vector Field Modules
 
 The set of vector fields along a differentiable manifold `U` with values on
-a differentiable manifold `M` via a differentiable map `\Phi: U\rightarrow M`
-(possibly `U=M` and `\Phi=\mathrm{Id}_M`) is a module over the algebra
-`C^k(U)` of differentiable scalar fields on `U`. If `\Phi` is the identity map,
-this module is considered a Lie algebroid under the Lie bracket `[\ ,\ ]`  (cf. :wikipedia:`Lie_algebroid`). It is a free module iff `M` is parallelizable.
-Accordingly, two classes are devoted to vector field modules:
+a differentiable manifold `M` via a differentiable map `\Phi: U \to M`
+(possibly `U = M` and `\Phi=\mathrm{Id}_M`) is a module over the algebra
+`C^k(U)` of differentiable scalar fields on `U`. If `\Phi` is the identity
+map, this module is considered a Lie algebroid under the Lie bracket `[\ ,\ ]`
+(cf. :wikipedia:`Lie_algebroid`). It is a free module if and only if `M` is
+parallelizable. Accordingly, there are two classes for vector field modules:
 
 - :class:`VectorFieldModule` for vector fields with values on a
-  generic (in practice, not parallelizable) differentiable manifold `M`
+  generic (in practice, not parallelizable) differentiable manifold `M`.
 - :class:`VectorFieldFreeModule` for vector fields with values on a
   parallelizable manifold `M`.
 

@@ -6,16 +6,15 @@ Given a differentiable manifold `M`, a *differentiable curve* curve in
 
 .. MATH::
 
-    \gamma: I \longrightarrow M
+    \gamma: I \longrightarrow M,
 
 where `I` is an interval of `\RR`.
 
-Differentiable curves are implemented by the class :class:`DifferentiableCurve`.
+Differentiable curves are implemented by :class:`DifferentiableCurve`.
 
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
-
 
 REFERENCES:
 
@@ -34,6 +33,7 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.misc.latex import latex
+from sage.misc.decorators import options
 from sage.manifolds.point import ManifoldPoint
 from sage.manifolds.differentiable.diff_map import DiffMap
 from sage.manifolds.utilities import simplify_chain_real
@@ -47,18 +47,15 @@ class DifferentiableCurve(DiffMap):
 
     .. MATH::
 
-        \gamma: I \longrightarrow M
+        \gamma: I \longrightarrow M,
 
     where `I` is an interval of `\RR`.
 
-    This is a Sage *element* class, whose *parent* class is
-    :class:`~sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet`.
-
     INPUT:
 
-    - ``parent`` -- the set of curves `\mathrm{Hom}(I, M)` to which the curve
-      belongs; this must be an instance of
+    - ``parent`` --
       :class:`~sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet`
+      the set of curves `\mathrm{Hom}(I, M)` to which the curve belongs
     - ``coord_expression`` -- (default: ``None``) dictionary (possibly empty)
       of the functions of the curve parameter `t` expressing the curve in
       various charts of `M`, the keys of the dictionary being the charts and
@@ -69,10 +66,10 @@ class DifferentiableCurve(DiffMap):
       the curve; if none is provided, ``name`` will be used
     - ``is_isomorphism`` -- (default: ``False``) determines whether the
       constructed object is a diffeomorphism; if set to ``True``,
-      then `M` must have dimension one.
+      then `M` must have dimension one
     - ``is_identity`` -- (default: ``False``) determines whether the
       constructed object is the identity map; if set to ``True``,
-      then `M` must be the interval `I`.
+      then `M` must be the interval `I`
 
     EXAMPLES:
 
@@ -137,8 +134,8 @@ class DifferentiableCurve(DiffMap):
         c: (0, 2*pi) --> M
            t |--> (x, y) = (sin(t), 1/2*sin(2*t))
 
-    Another map method is of course ``__call__``, which returns the image of a
-    point in the curve's domain::
+    Another map method is using the usual call syntax, which returns
+    the image of a point in the curve's domain::
 
         sage: t0 = pi/2
         sage: I(t0)
@@ -148,9 +145,8 @@ class DifferentiableCurve(DiffMap):
         sage: c(I(t0)).coord(X)
         (1, 0)
 
-    For curves, the value of the parameter, instead of the corresponding point
-    in the real line manifold, can be passed directly to the method
-    ``__call__``::
+    For curves, the value of the parameter, instead of the corresponding
+    point in the real line manifold, can be passed directly::
 
         sage: c(t0)
         Point c(1/2*pi) on the 2-dimensional differentiable manifold M
@@ -176,8 +172,8 @@ class DifferentiableCurve(DiffMap):
         c: (0, 2*pi) --> M
            t |--> (x, y) = (sin(t), 1/2*sin(2*t))
 
-    Note that a curve in `M` can also be created as a differentiable map
-    `I\rightarrow M`::
+    Note that a curve in `M` can also be created as a differentiable
+    map `I \to M`::
 
         sage: c1 = I.diff_map(M, coord_functions={X: [sin(t), sin(2*t)/2]},
         ....:                 name='c') ; c1
@@ -211,7 +207,7 @@ class DifferentiableCurve(DiffMap):
     Plot of the curve and its tangent vector field::
 
         sage: show(c.plot(thickness=2, aspect_ratio=1) +
-        ....:      v.plot(chart=X, nb_values=17, scale=0.5))
+        ....:      v.plot(chart=X, number_values=17, scale=0.5))
 
     .. PLOT::
 
@@ -220,10 +216,10 @@ class DifferentiableCurve(DiffMap):
         t = RealLine().canonical_coordinate()
         c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
         v = c.tangent_vector_field()
-        g = c.plot(thickness=2, aspect_ratio=1) + v.plot(chart=X, nb_values=17, scale=0.5)
+        g = c.plot(thickness=2, aspect_ratio=1) + v.plot(chart=X, number_values=17, scale=0.5)
         sphinx_plot(g)
 
-    Value of the tangent vector field at `t=\pi`::
+    Value of the tangent vector field at `t = \pi`::
 
         sage: v.at(R(pi))
         Tangent vector c' at Point on the 2-dimensional differentiable
@@ -233,8 +229,8 @@ class DifferentiableCurve(DiffMap):
         sage: v.at(R(pi)).display()
         c' = -d/dx + d/dy
 
-    Curves `\RR\rightarrow\RR` can be composed: the operator `\circ` is
-    denoted by ``*``::
+    Curves `\RR \to \RR` can be composed: the operator `\circ` is
+    given by ``*``::
 
         sage: f = R.curve(t^2, (t,-oo,+oo))
         sage: g = R.curve(cos(t), (t,-oo,+oo))
@@ -261,19 +257,11 @@ class DifferentiableCurve(DiffMap):
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()
             sage: I = R.open_interval(0, 2*pi)
-            sage: from sage.manifolds.differentiable.curve import DifferentiableCurve
-            sage: c = DifferentiableCurve(Hom(I,M), coord_expression={X: (cos(t), sin(2*t))},
-            ....:                   name='c') ; c
-            Curve c in the 2-dimensional differentiable manifold M
-
-        To pass the test suite, the curve must be constructed from the parent
-        and not from a direct call to DifferentiableCurve::
-
             sage: c = Hom(I,M)({X: (cos(t), sin(2*t))},  name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
             sage: TestSuite(c).run()
 
-        The identity of interval I::
+        The identity of interval ``I``::
 
             sage: c = Hom(I,I)({}, is_identity=True) ; c
             Identity map Id_(0, 2*pi) of the Real interval (0, 2*pi)
@@ -305,19 +293,17 @@ class DifferentiableCurve(DiffMap):
 
     def _repr_(self):
         r"""
-        Return a string representation of the object.
+        Return a string representation of ``self``.
 
         TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()
-            sage: c = M.curve([cos(t), sin(2*t)], (t, 0, 2*pi))
-            sage: c._repr_()
-            'Curve in the 2-dimensional differentiable manifold M'
-            sage: c = M.curve([cos(t), sin(2*t)], (t, 0, 2*pi), name='c')
-            sage: c._repr_()
-            'Curve c in the 2-dimensional differentiable manifold M'
+            sage: M.curve([cos(t), sin(2*t)], (t, 0, 2*pi))
+            Curve in the 2-dimensional differentiable manifold M
+            sage: M.curve([cos(t), sin(2*t)], (t, 0, 2*pi), name='c')
+            Curve c in the 2-dimensional differentiable manifold M
 
         """
         if self._codomain._dim == 1:
@@ -332,7 +318,7 @@ class DifferentiableCurve(DiffMap):
         r"""
         Reduction function for the pickle protocole.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -439,6 +425,7 @@ class DifferentiableCurve(DiffMap):
         # Case of a point in the domain:
         if isinstance(t, ManifoldPoint):
             return DiffMap.__call__(self, t)
+
         # Case of a value of the canonical coordinate in the domain:
         codom = self._codomain
         canon_chart = self._domain._canon_chart
@@ -456,11 +443,11 @@ class DifferentiableCurve(DiffMap):
         if simplify:
             coords = [simplify_chain_real(coords[i]) for i in range(n)]
         if self._name is not None:
-            name = self._name + "({})".format(t)
+            name = "{}({})".format(self._name, t)
         else:
             name = None
         if self._latex_name is not None:
-            latex_name = self._latex_name + r"\left(" + latex(t) + r"\right)"
+            latex_name = r"{}\left({}\right)".format(self._latex_name, latex(t))
         else:
             latex_name = None
         return codom.element_class(codom, coords=coords, chart=chart_pair[1],
@@ -506,7 +493,7 @@ class DifferentiableCurve(DiffMap):
              (0, 2*pi) mapped into the 2-dimensional differentiable manifold R^2
 
         Value of the tangent vector field for some specific value of the
-        curve parameter (`t=\pi`)::
+        curve parameter (`t = \pi`)::
 
             sage: R(pi) in c.domain()  # pi in (0, 2*pi)
             True
@@ -559,7 +546,7 @@ class DifferentiableCurve(DiffMap):
         if latex_name is None:
             if name is None:
                 if self._latex_name is not None:
-                    latex_name = r"{" + self._latex_name + r"'}"
+                    latex_name = r"{%s'}"%(self._latex_name)
             else:
                 latex_name = name
         if name is None and self._name is not None:
@@ -574,23 +561,19 @@ class DifferentiableCurve(DiffMap):
                 jacob = self.differential_functions(canon_chart, chart)
                 restrict = self.restrict(canon_chart.domain(),
                                      subcodomain=chart.domain())
-                fmodule = restrict._domain.vector_field_module(dest_map=
-                                                                      restrict)
+                fmodule = restrict._domain.vector_field_module(dest_map=restrict)
                 frame = fmodule.basis(from_frame=chart.frame())
-                resu_rest = resu.restrict(canon_chart.domain(), dest_map=
-                                                                      restrict)
+                resu_rest = resu.restrict(canon_chart.domain(), dest_map=restrict)
                 resu_rest.add_comp(frame)[:, canon_chart] = [jacob[i][0]
-                                                          for i in range(dim)]
+                                                             for i in range(dim)]
             except ValueError:
                 pass
         return resu
 
-
+    @options(thickness=1, plot_points=75, max_range=8, aspect_ratio='automatic')
     def plot(self, chart=None, ambient_coords=None, mapping=None, prange=None,
              include_end_point=(True, True), end_point_offset=(0.001, 0.001),
-             max_range=8, parameters=None, color='red',  style='-',
-             thickness=1, plot_points=75, label_axes=True,
-             aspect_ratio='automatic'):
+             parameters=None, color='red', style='-', label_axes=True, **kwds):
         r"""
         Plot the current curve in a Cartesian graph based on the
         coordinates of some ambient chart.
@@ -607,47 +590,60 @@ class DifferentiableCurve(DiffMap):
         - ``chart`` -- (default: ``None``) the ambient chart (see above);
           if ``None``, the default chart of the codomain of the curve (or of
           the curve composed with `\Phi`) is used
-        - ``ambient_coords`` -- (default: ``None``) tuple containing the 2 or 3
-          coordinates of the ambient chart in terms of which the plot is
-          performed; if ``None``, all the coordinates of the ambient chart are
-          considered
+
+        - ``ambient_coords`` -- (default: ``None``) tuple containing the 2
+          or 3 coordinates of the ambient chart in terms of which the plot
+          is performed; if ``None``, all the coordinates of the ambient chart
+          are considered
+
         - ``mapping`` -- (default: ``None``) differentiable mapping `\Phi`
           (instance of
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`)
           providing the link between the curve and the ambient chart ``chart``
           (cf. above); if ``None``, the ambient chart is supposed to be defined
           on the codomain of the curve.
+
         - ``prange`` -- (default: ``None``) range of the curve parameter for
           the plot; if ``None``, the entire parameter range declared during the
           curve construction is considered (with -Infinity
           replaced by ``-max_range`` and +Infinity by ``max_range``)
+
         - ``include_end_point`` -- (default: ``(True, True)``) determines
           whether the end points of ``prange`` are included in the plot
+
         - ``end_point_offset`` -- (default: ``(0.001, 0.001)``) offsets from
           the end points when they are not included in the plot: if
           ``include_end_point[0] == False``, the minimal value of the curve
           parameter used for the plot is ``prange[0] + end_point_offset[0]``,
           while if ``include_end_point[1] == False``, the maximal value is
           ``prange[1] - end_point_offset[1]``.
+
         - ``max_range`` -- (default: 8) numerical value substituted to
           +Infinity if the latter is the upper bound of the parameter range;
           similarly ``-max_range`` is the numerical valued substituted for
           -Infinity
+
         - ``parameters`` -- (default: ``None``) dictionary giving the numerical
           values of the parameters that may appear in the coordinate expression
           of the curve
+
         - ``color`` -- (default: 'red') color of the drawn curve
+
         - ``style`` -- (default: '-') color of the drawn curve; NB: ``style``
           is effective only for 2D plots
+
         - ``thickness`` -- (default: 1) thickness of the drawn curve
+
         - ``plot_points`` -- (default: 75) number of points to plot the curve
+
         - ``label_axes`` -- (default: ``True``) boolean determining whether the
           labels of the coordinate axes of ``chart`` shall be added to the
           graph; can be set to ``False`` if the graph is 3D and must be
           superposed with another graph.
-        - ``aspect_ratio`` -- (default: 'automatic') aspect ratio of the plot;
-          the default value ('automatic') applies only for 2D plots; for
-          3D plots, the default value is ``1`` instead.
+
+        - ``aspect_ratio`` -- (default: ``'automatic'``) aspect ratio of the
+          plot; the default value (``'automatic'``) applies only for 2D plots;
+          for 3D plots, the default value is ``1`` instead
 
         OUTPUT:
 
@@ -721,7 +717,7 @@ class DifferentiableCurve(DiffMap):
             sage: c = S2.curve([2*atan(exp(-t/10)), t], (t, -oo, +oo), name='c')
             sage: graph_c = c.plot(mapping=F, max_range=40,
             ....:                  plot_points=200, thickness=2, label_axes=False)  # 3D plot
-            sage: graph_S2 = XS.plot(X3, mapping=F, nb_values=11, color='black') # plot of the sphere
+            sage: graph_S2 = XS.plot(X3, mapping=F, number_values=11, color='black') # plot of the sphere
             sage: show(graph_c + graph_S2) # the loxodrome + the sphere
 
         Example of use of the argument ``parameters``: we define a curve with
@@ -754,6 +750,13 @@ class DifferentiableCurve(DiffMap):
         from sage.manifolds.chart import RealChart
         from sage.manifolds.utilities import set_axes_labels
         #
+        # Get the @options from kwds
+        #
+        thickness = kwds.pop('thickness')
+        plot_points = kwds.pop('plot_points')
+        max_range = kwds.pop('max_range')
+        aspect_ratio = kwds.pop('aspect_ratio')
+        #
         # The "effective" curve to be plotted
         #
         if mapping is None:
@@ -776,8 +779,8 @@ class DifferentiableCurve(DiffMap):
         if n_pc != 2 and n_pc !=3:
             raise ValueError("the number of coordinates involved in the " +
                              "plot must be either 2 or 3, not {}".format(n_pc))
-        ind_pc = [chart[:].index(pc) for pc in ambient_coords] # indices of plot
-                                                            # coordinates
+        # indices of plot coordinates
+        ind_pc = [chart[:].index(pc) for pc in ambient_coords]
         #
         # Parameter range for the plot
         #
@@ -842,7 +845,7 @@ class DifferentiableCurve(DiffMap):
         resu = Graphics()
         resu += line(plot_curve, color=color, linestyle=style,
                      thickness=thickness)
-        if n_pc==2:  # 2D graphic
+        if n_pc == 2:  # 2D graphic
             resu.set_aspect_ratio(aspect_ratio)
             if label_axes:
                 # We update the dictionary _extra_kwds (options to be passed
@@ -859,3 +862,4 @@ class DifferentiableCurve(DiffMap):
                 labels = [str(pc) for pc in ambient_coords]
                 resu = set_axes_labels(resu, *labels)
         return resu
+

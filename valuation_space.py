@@ -776,7 +776,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         def _test_residue_ring(self, **options):
             r"""
-            Check the correctness of residue fields.
+            Check the correctness of residue rings.
 
             TESTS::
 
@@ -787,7 +787,17 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             """
             tester = self._tester(**options)
 
-            r = self.residue_ring()
+            try:
+                r = self.residue_ring()
+            except NotImplementedError:
+                # over non-fields (and especially polynomial rings over
+                # non-fields) computation of the residue ring is often
+                # difficult and not very interesting
+                from sage.categories.fields import Fields
+                if self.domain() in Fields():
+                    raise
+                return
+
             if r.zero() == r.one():
                 # residue ring is the zero rng
                 tester.assertGreater(self(1), 0)
@@ -809,6 +819,17 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             tester = self._tester(**options)
+
+            try:
+                k = self.residue_ring()
+            except NotImplementedError:
+                # over non-fields (and especially polynomial rings over
+                # non-fields) computation of the residue ring is often
+                # difficult and not very interesting
+                from sage.categories.fields import Fields
+                if self.domain() in Fields():
+                    raise
+                return
 
             for x in tester.some_elements(self.domain().some_elements()):
                 if self(x) < 0:
@@ -838,6 +859,17 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             tester = self._tester(**options)
+
+            try:
+                k = self.residue_ring()
+            except NotImplementedError:
+                # over non-fields (and especially polynomial rings over
+                # non-fields) computation of the residue ring is often
+                # difficult and not very interesting
+                from sage.categories.fields import Fields
+                if self.domain() in Fields():
+                    raise
+                return
 
             for X in tester.some_elements(self.residue_ring().some_elements()):
                 x = self.lift(X)
@@ -933,6 +965,14 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 from sage.categories.fields import Fields
                 # a discrete valuation on a field has a residue field
                 tester.assertFalse(self.domain() in Fields())
+                return
+            except NotImplementedError:
+                # over non-fields (and especially polynomial rings over
+                # non-fields) computation of the residue field is often
+                # difficult and not very interesting
+                from sage.categories.fields import Fields
+                if self.domain() in Fields():
+                    raise
                 return
 
             c = self.residue_field().characteristic()

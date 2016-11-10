@@ -152,6 +152,11 @@ class InductiveValuation(DevelopingValuation):
         """
         f = self.domain().coerce(f)
 
+        from sage.categories.fields import Fields
+        if not self.domain().base_ring() in Fields():
+            # the xgcd does in general not work, i.e., return 1, unless over a field
+            raise NotImplementedError("only implemented for polynomial rings over fields")
+
         if not self.is_equivalence_unit(f):
             raise ValueError("f must be an equivalence unit but %r is not"%(f,))
 
@@ -333,11 +338,13 @@ class InductiveValuation(DevelopingValuation):
         for s in tester.some_elements(self.value_group().some_elements()):
             try:
                 R = self.element_with_valuation(s)
-            except ValueError:
+            except (ValueError, NotImplementedError):
+                # this is often not possible unless the underlying ring of
+                # constants is a field
                 from sage.categories.fields import Fields
-                if self.domain().base() in Fields():
-                    raise
-                continue
+                if self.domain().base() not in Fields():
+                    continue
+                raise
             tester.assertEqual(self(R), s)
             if chain != [self]:
                 base = chain[1]
@@ -411,12 +418,13 @@ class InductiveValuation(DevelopingValuation):
         for s in tester.some_elements(value_group.some_elements()):
             try:
                 R = self.equivalence_unit(s)
-            except ValueError:
+            except (ValueError, NotImplementedError):
+                # this is often not possible unless the underlying ring of
+                # constants is a field
                 from sage.categories.fields import Fields
-                if s >= 0 or self.domain().base() in Fields():
-                    raise
-                continue
-
+                if self.domain().base() not in Fields():
+                    continue
+                raise
             tester.assertIs(R.parent(), self.domain())
             tester.assertEqual(self(R), s)
             tester.assertTrue(self.is_equivalence_unit(R))
@@ -452,7 +460,15 @@ class InductiveValuation(DevelopingValuation):
         S = tester.some_elements(self.domain().some_elements())
         for f in S:
             if self.is_equivalence_unit(f):
-                g = self.equivalence_reciprocal(f)
+                try:
+                    g = self.equivalence_reciprocal(f)
+                except (ValueError, NotImplementedError):
+                    # this is often not possible unless the underlying ring of
+                    # constants is a field
+                    from sage.categories.fields import Fields
+                    if self.domain().base() not in Fields():
+                        continue
+                    raise
                 tester.assertEqual(self.reduce(f*g), 1)
 
     def _test_inductive_valuation_inheritance(self, **options):
@@ -882,6 +898,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         """
         f = self.domain().coerce(f)
 
+        if not self.domain().base_ring().is_field():
+            domain = self.domain().change_ring(self.domain().base_ring().fraction_field())
+            v = self.extension(domain)
+            return v.is_equivalence_irreducible(v.domain()(f))
+
         if f.is_constant():
             raise ValueError("f must not be constant")
 
@@ -1077,6 +1098,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         """
         f = self.domain().coerce(f)
 
+        from sage.categories.fields import Fields
+        if not self.domain().base_ring() in Fields():
+            raise NotImplementedError("only implemented for polynomial rings over fields")
+
         if f.is_zero():
             raise ValueError("zero has no minimal representative")
 
@@ -1147,10 +1172,25 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         """
         tester = self._tester(**options)
+    
+        try:
+            k = self.residue_ring()
+        except NotImplementedError:
+            from sage.categories.fields import Fields
+            if self.domain().base() in Fields():
+                raise
+            return
+
         S = tester.some_elements(self.residue_ring().some_elements())
         for F in S:
             if F.is_monic() and not F.is_constant() and F.is_irreducible():
-                f = self.lift_to_key(F)
+                try:
+                    f = self.lift_to_key(F)
+                except NotImplementedError:
+                    from sage.categories.fields import Fields
+                    if self.domain().base() in Fields():
+                        raise
+                    continue
                 tester.assertIs(f.parent(), self.domain())
                 tester.assertTrue(self.is_key(f))
 

@@ -1,1 +1,1 @@
-* Replace almost all doctests with the ring case. If it works over rings, then it will work over fields.
+* Check every methods about limitations in the ring case (and correction of the docstring)

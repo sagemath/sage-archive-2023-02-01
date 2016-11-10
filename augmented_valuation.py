@@ -4,11 +4,31 @@ Augmented valuations on polynomial rings
 
 Implements augmentations of valutions as defined in [ML1936].
 
-TESTS::
+Starting from a :class:`GaussValuation`, we can create augmented valuations on
+polynomial rings::
 
     sage: from mac_lane import * # optional: standalone
+    sage: R.<x> = QQ[]
+    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: w = v.augmentation(x, 1); w
+    [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ]
+    sage: w(x)
+    1
+
+This also works for polynomial rings over base rings which are not fields.
+However, much of the functionality is only available over fields::
+
     sage: R.<x> = ZZ[]
     sage: v = GaussValuation(R, pAdicValuation(ZZ, 2))
+    sage: w = v.augmentation(x, 1); w
+    [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ]
+    sage: w(x)
+    1
+
+TESTS::
+
+    sage: R.<x> = QQ[]
+    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
     sage: w = v.augmentation(x, 1)
     sage: TestSuite(w).run() # long time
 
@@ -105,6 +125,13 @@ extends the residue field::
 
     sage: ww = w.augmentation((x^2 + x + u)^2 + 2, infinity)
     sage: TestSuite(ww).run() # long time
+
+Run the test suite if the polynomial ring is not over a field::
+
+    sage: R.<x> = ZZ[]
+    sage: v = GaussValuation(R, pAdicValuation(ZZ, 2))
+    sage: w = v.augmentation(x, 1)
+    sage: TestSuite(w).run() # long time
 
 REFERENCES:
 
@@ -478,19 +505,15 @@ class AugmentedValuation_base(InductiveValuation):
         These do, however, not exist for all values of ``s``.
 
         """
+        from sage.categories.fields import Fields
+        if not self.domain().base_ring() in Fields():
+            raise NotImplementedError("only implemented for polynomial rings over fields")
+
         if s not in self.value_group():
             raise ValueError("s must be in the value group of the valuation")
 
         if self.value_group() == self._base_valuation.value_group():
-            try:
-                return self._base_valuation.shift(x, s)
-            except ValueError:
-                from sage.categories.fields import Fields
-                # only report a ValueError if we are over a field, otherwise,
-                # falling through to the NotImplementedError below seems to be
-                # the better error to report
-                if self.domain().base() in Fields():
-                    raise
+            return self._base_valuation.shift(x, s)
 
         if self._base_valuation.value_group().is_trivial():
             # We could implement a consistent shift in this case by multplying
@@ -785,6 +808,24 @@ class AugmentedValuation_base(InductiveValuation):
 
         return super(AugmentedValuation_base, self)._ge_(other)
 
+    def is_trivial(self):
+        r"""
+        Return whether this valuation is trivial, i.e., zero outside of zero.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w.is_trivial()
+            False
+
+        """
+        # We need to override the default implementation from valuation_space
+        # because that one uses uniformizer() which might not be implemented if
+        # the base ring is not a field.
+        return False
 
 class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
     r"""
@@ -837,6 +878,8 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
             Finite Field of size 2
 
         """
+        # the following is correct, even if the polynomial ring is not over a field
+
         generator = 'u' + str(len(self.augmentation_chain()) - 1)
 
         base = self._base_valuation.residue_ring().base()
@@ -1066,6 +1109,10 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
             Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
 
         """
+        from sage.categories.fields import Fields
+        if self.domain().base() not in Fields():
+            raise NotImplementedError("only implemented for polynomial rings over fields")
+
         generator = 'u' + str(len(self.augmentation_chain()) - 1)
 
         base = self._base_valuation.residue_ring().base()
@@ -1345,6 +1392,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         from sage.categories.fields import Fields
         if not self.domain().base_ring() in Fields():
             raise NotImplementedError("only implemented for polynomial rings over fields")
+
         if self._base_valuation.is_gauss_valuation() and self._mu == infinity:
             raise TypeError("there are no keys over this valuation")
 

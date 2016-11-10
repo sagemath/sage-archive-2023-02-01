@@ -630,9 +630,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             tester = self._tester(**options)
-            S = tester.some_elements(self.domain().some_elements())
-            from sage.categories.cartesian_product import cartesian_product
-            for x,y in tester.some_elements(cartesian_product([S,S])):
+            S = self.domain().some_elements()
+            from itertools import product
+            for x,y in tester.some_elements(product(S,S)):
                 tester.assertGreaterEqual(self(x+y),min(self(x),self(y)))
                 if self(x) != self(y):
                     tester.assertEqual(self(x+y),min(self(x),self(y)))
@@ -664,9 +664,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             tester = self._tester(**options)
-            S = list(self.domain().some_elements())
-            from sage.categories.cartesian_product import cartesian_product
-            for x,y in tester.some_elements(cartesian_product([S,S])):
+            S = self.domain().some_elements()
+            from itertools import product
+            for x,y in tester.some_elements(product(S,S)):
                 tester.assertEqual(self(x*y),self(x)+self(y))
 
         def _test_no_infinite_units(self, **options):
@@ -745,10 +745,10 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 # trivial valuations can not perform non-trivial shifts
                 return
 
-            S = tester.some_elements(self.domain().some_elements())
-            V = tester.some_elements(self.value_group().some_elements())
-            from sage.categories.cartesian_product import cartesian_product
-            for x, n in tester.some_elements(cartesian_product([S,V])):
+            S = self.domain().some_elements()
+            V = self.value_group().some_elements()
+            from itertools import product
+            for x, n in tester.some_elements(product(S,V)):
                 if x == 0 and n != 0:
                     with tester.assertRaises((ValueError, NotImplementedError)):
                         self.shift(x, n)

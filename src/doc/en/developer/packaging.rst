@@ -329,6 +329,96 @@ should contain a section like this::
 which applies the patches to the sources.
 
 
+.. _section-spkg-patch-or-repackage:
+
+When to patch, when to repackage, when to autoconfiscate
+--------------------------------------------------------
+
+- Use unpatched original upstream tarball when possible.
+
+  Sometimes it may seem as if you need to patch a (hand-written)
+  ``Makefile`` because it "hard-codes" some paths or compiler flags::
+
+      --- a/Makefile
+      +++ b/Makefile
+      @@ -77,7 +77,7 @@
+       # This is a Makefile.
+       # Handwritten.
+
+      -DESTDIR = /usr/local
+      +DESTDIR = $(SAGE_ROOT)/local
+       BINDIR   = $(DESTDIR)/bin
+       INCDIR   = $(DESTDIR)/include
+       LIBDIR   = $(DESTDIR)/lib
+
+  Don't use patching for that.  Makefile variables can be overridden
+  from the command-line.  Just use the following in ``spkg-install``::
+
+      $(MAKE) DESTDIR="$SAGE_ROOT/local"
+
+- Check if Debian or another distribution already provides patches
+  for upstream.  Use them, don't reinvent the wheel.
+
+- If the upstream Makefile does not build shared libraries,
+  don't bother trying to patch it.
+  
+  Autoconfiscate the package instead and use the standard facilities
+  of Automake and Libtool.  This ensures that the shared library build
+  is portable between Linux and macOS.
+
+- If you have to make changes to ``configure.ac`` or other source
+  files of the autotools build system (or if you are autoconfiscating
+  the package), then you can't use patching; make a :ref:`modified
+  tarball <section-spkg-src>` instead.
+
+- If the patch would be huge, don't use patching.  Make a
+  :ref:`modified tarball <section-spkg-src>` instead.
+
+- Otherwise, :ref:`maintain a set of patches
+  <section-spkg-patch-maintenance>`.
+
+
+.. _section-spkg-patch-maintenance:
+
+How to maintain a set of patches
+--------------------------------
+
+We recommend the following workflow for maintaining a set of patches.
+
+- Fork the package and put it on a public git repository.
+
+  If upstream has a public version control repository, import it from
+  there.  If upstream does not have a public version control
+  repository, import the current sources from the upstream tarball.
+  Let's call the branch ``upstream``.
+
+- Create a branch for the changes necessary for Sage, let's call it
+  ``sage_package_VERSION``, where ``version`` is the upstream version
+  number.
+
+- Make the changes and commit them to the branch.
+
+- Generate the patches against the ``upstream`` branch::
+
+      rm -Rf SAGE_ROOT/build/pkgs/PACKAGE/patches
+      mkdir SAGE_ROOT/build/pkgs/PACKAGE/patches
+      git format-patch -o SAGE_ROOT/build/pkgs/PACKAGE/patches/ upstream
+  
+- Optionally, create an ``spkg-src`` file in the Sage package's
+  directory that regenerates the patch directory using the above
+  commmands.
+
+- When a new upstream version becomes available, merge (or import) it
+  into ``upstream``, then create a new branch and rebase in on top of
+  the updated upstream::
+
+      git checkout sage_package_OLDVERSION
+      git checkout -b sage_package_NEWVERSION
+      git rebase upstream
+
+  Then regenerate the patches.
+
+
 .. _section-spkg-src:
 
 Modified Tarballs

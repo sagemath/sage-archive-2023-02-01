@@ -1417,21 +1417,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: _.parent()
             Multivariate Laurent Polynomial Ring in x0, x1, x2 over Rational Field
         """
-        if isinstance(x, LaurentPolynomial_mpair):
-            # check if parent contains all the generators of x.parent() for coercions
-            try: 
-                inject_dict = dict(enumerate([parent.variable_names().index(v) for v in x.parent().variable_names()]))
-                tmp_x = x.dict()
-                x = dict()
-                n = int(parent.ngens())
-                m = len(inject_dict)
-                for k in tmp_x.keys():
-                    img_k = ETuple(dict([(inject_dict[a],k[a]) for a in xrange(m)]),n)
-                    x[img_k] = tmp_x[k]
-            # otherwise just pass along a dict for conversions 
-            except:
-                x = x.dict()
-        elif isinstance(x, PolyDict):
+        if isinstance(x, PolyDict):
             x = x.dict()
         if isinstance(x, dict):
             self._mon = ETuple({},int(parent.ngens()))

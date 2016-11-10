@@ -980,8 +980,6 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             a
             sage: V(Mc)
             c
-            sage: V(N(Mc))  # not tested
-            c
 
             sage: M(L(0))
             0
@@ -994,13 +992,18 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
 
         """
         if isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
-            if set(self.variable_names()) & set(x.parent().variable_names()):
+            P = x.parent()
+            if set(self.variable_names()) & set(P.variable_names()):
                 if isinstance(x, LaurentPolynomial_univariate):
                     d = {(k,): v for k, v in iteritems(x.dict())}
                 else:
                     d = x.dict()
-                x = _split_laurent_polynomial_dict_(self, x.parent(), d)
+                x = _split_laurent_polynomial_dict_(self, P, d)
                 x = {k[0]: v for k, v in iteritems(x)}
+            elif self.base_ring().has_coerce_map_from(P):
+                x = self.base_ring()(x)
+            elif len(self.variable_names()) == len(P.variable_names()):
+                x = x.dict()
 
         return LaurentPolynomial_univariate(self, x)
 
@@ -1081,14 +1084,24 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             a
             sage: M(Vc)
             c
+
+            sage: P = LaurentPolynomialRing(QQ, 'a, b')
+            sage: Q = LaurentPolynomialRing(P, 'c, d')
+            sage: Q(P.0)
+            a
         """
         if isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
-            if set(self.variable_names()) & set(x.parent().variable_names()):
+            P = x.parent()
+            if set(self.variable_names()) & set(P.variable_names()):
                 if isinstance(x, LaurentPolynomial_univariate):
                     d = {(k,): v for k, v in iteritems(x.dict())}
                 else:
                     d = x.dict()
-                x = _split_laurent_polynomial_dict_(self, x.parent(), d)
+                x = _split_laurent_polynomial_dict_(self, P, d)
+            elif self.base_ring().has_coerce_map_from(P):
+                x = self.base_ring()(x)
+            elif len(self.variable_names()) == len(P.variable_names()):
+                x = x.dict()
 
         return LaurentPolynomial_mpair(self, x)
 

@@ -145,6 +145,10 @@ def lifting(p, t, A, G):
         Traceback (most recent call last):
         ...
         ValueError: A*G is not zero mod 5^9
+
+    ALGORITHM:
+
+    [HR2016]_, Algorithm 1.
     """
     if t == 0:
         return matrix(A.parent().base(), A.ncols(), 0)
@@ -325,6 +329,10 @@ class ComputeMinimalPolynomials(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: x^2 is not in N_{(2^1)}(B)
+
+        ALGORITHM:
+
+        [HR2016]_, Algorithms 2 and 3.
         """
         if not all((g(self._B) % p**t).is_zero()
                    for g in pt_generators):
@@ -387,6 +395,10 @@ class ComputeMinimalPolynomials(SageObject):
             sage: generators_4 = [2*x^2 + 2*x, x^2 + 3*x + 2]
             sage: C.current_nu(2, 2, generators_4, nu_1)
             x^2 + 3*x + 2
+
+        ALGORITHM:
+
+        [HR2016]_, Algorithm 4.
 
         TESTS::
 
@@ -466,6 +478,10 @@ class ComputeMinimalPolynomials(SageObject):
            sage: (M*g % 4).is_zero()
            True
 
+        ALGORITHM:
+
+        [HR2016]_, Algorithm 5.
+
         TESTS::
 
            sage: nu_2 = x^2 + x
@@ -515,7 +531,6 @@ class ComputeMinimalPolynomials(SageObject):
         not included in the full set `\mathcal{S}` except when the
         minimal polynomial of `B` is also a ``(p^s_max)``-minimal
         polynomial.
-
 
         EXAMPLES::
 
@@ -648,6 +663,10 @@ class ComputeMinimalPolynomials(SageObject):
             {2: x^2 + 3*x + 2}
             sage: C.p_minimal_polynomials(2, s_max=3)
             {2: x^2 + 3*x + 2}
+
+        ALGORITHM:
+
+        [HR2016]_, Algorithm 5.
         """
 
         mu_B = self._B.minimal_polynomial()

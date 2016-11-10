@@ -199,7 +199,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
     
         """
         DiscretePseudoValuation.__init__(self, parent)
-        self._initial_approximation = approximation # kept for consistent printing and equality tests
+        self._initial_approximation = approximation
         self._approximation = approximation
 
     def reduce(self, f):
@@ -411,7 +411,29 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
         """
         F = self.residue_ring().coerce(F)
-        return self._approximation.lift(F)
+        return self._initial_approximation.lift(F)
+
+    def shift(self, x, s):
+        r"""
+        Return a modified version of ``x`` whose valuation is increased by ``s``.
+
+        The element returned is such that repeated shifts which go back to
+        the original valuation produce the same element in reduction.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - (x - 1))
+
+            sage: v = FunctionFieldValuation(K, 0)
+            sage: w = v.extension(L)
+            sage: w.shift(y, 1)
+            x*y
+
+        """
+        return self._initial_approximation.shift(x, s)
 
     def uniformizer(self):
         r"""
@@ -430,7 +452,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             y
 
         """
-        return self._approximation.uniformizer()
+        return self._initial_approximation.uniformizer()
 
     def _improve_approximation(self):
         r"""
@@ -580,7 +602,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             Finite Field of size 2
 
         """
-        R = self._approximation.residue_ring()
+        R = self._initial_approximation.residue_ring()
         from sage.categories.fields import Fields
         if R in Fields():
             # the approximation ends in v(phi)=infty

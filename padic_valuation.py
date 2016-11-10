@@ -23,7 +23,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.path.dirname(os.getcwd()))
 
 from valuation import DiscreteValuation
-from limit_valuation import FiniteExtensionFromLimitValuation
+from mapped_valuation import FiniteExtensionFromLimitValuation
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById
@@ -677,7 +677,6 @@ class pAdicValuation_base(DiscreteValuation):
             if is_NumberField(ring.fraction_field()):
                 if ring.base().fraction_field() is self.domain().fraction_field():
                     from valuation_space import DiscretePseudoValuationSpace
-                    from limit_valuation import FiniteExtensionFromInfiniteValuation
                     parent = DiscretePseudoValuationSpace(ring)
                     approximants = self.mac_lane_approximants(ring.fraction_field().relative_polynomial().change_ring(self.domain()))
                     return [pAdicValuation(ring, approximant) for approximant in approximants]

@@ -132,7 +132,7 @@ from sage.misc.abstract_method import abstract_method
 
 from valuation import DiscreteValuation
 from trivial_valuation import TrivialValuation
-from limit_valuation import FiniteExtensionFromLimitValuation
+from mapped_valuation import FiniteExtensionFromLimitValuation, DomainMappedValuation
 
 class FunctionFieldValuationFactory(UniqueFactory):
     r"""
@@ -456,12 +456,32 @@ class FunctionFieldValuation_base(DiscreteValuation):
         """
         K = self.domain()
         from sage.categories.function_fields import FunctionFields
-        if L is self.domain():
+        if L is K:
             return [self]
         if L in FunctionFields():
             if K.is_subring(L):
                 if L.base() is K:
-                    # L is a simple extension of the domain of this valuation
+                    # L = K[y]/(G) is a simple extension of the domain of this valuation
+                    G = L.polynomial()
+                    if not G.is_monic():
+                        G = G / G.leading_coefficient()
+                    if any(self(c) < 0 for c in G.coefficients()):
+                        # rewrite L = K[u]/(H) with H integral and compute the extensions
+                        from gauss_valuation import GaussValuation
+                        g = GaussValuation(G.parent(), self)
+                        y_to_u, u_to_y, H = g.monic_integral_model(G)
+                        M = K.extension(H, names=L.variable_names())
+                        H_extensions = self.extensions(M)
+
+                        # turn these extensions into extensions on L by applying the substitutions
+                        from sage.rings.morphism import RingHomomorphism_im_gens
+                        if type(y_to_u) == RingHomomorphism_im_gens and type(u_to_y) == RingHomomorphism_im_gens:
+                            # both maps are trivial on the constants
+                            M_to_L = M.hom(L(u_to_y(u_to_y.domain().gen())))
+                            L_to_M = L.hom(M(y_to_u(y_to_u.domain().gen())))
+                            return [DomainMappedValuation(L, w, L_to_M, M_to_L) for w in H_extensions]
+                        else:
+                            raise NotImplementedError
                     return [FunctionFieldValuation(L, w) for w in self.mac_lane_approximants(L.polynomial())]
                 elif L.base() is not L and K.is_subring(L):
                     # recursively call this method for the tower of fields

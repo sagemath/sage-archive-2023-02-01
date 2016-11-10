@@ -284,7 +284,7 @@ class InductiveValuation(DevelopingValuation):
         r"""
         Return a monic integral irreducible polynomial which defines the same
         extension of the base ring of the domain as the irreducible polynomial
-        ``G``.
+        ``G`` together with maps between the old and the new polynomial.
 
         EXAMPLES::
 
@@ -292,7 +292,11 @@ class InductiveValuation(DevelopingValuation):
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v.monic_integral_model(5*x^2 + 1/2*x + 1/4)
-            x^2 + 1/5*x + 1/5
+            (Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
+               Defn: x |--> 1/2*x,
+             Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
+               Defn: x |--> 2*x,
+            x^2 + 1/5*x + 1/5)
 
         """
 
@@ -566,8 +570,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
     def mac_lane_step(self, G, assume_squarefree=False):
         r"""
-        Perform an approximation step towards the squarefree non-constant
-        polynomial ``G`` with this valuation.
+        Perform an approximation step towards the squarefree monic non-constant
+        integral polynomial ``G`` with this valuation.
 
         This performs the individual steps that are used in
         :meth:`mac_lane_approximants`.
@@ -596,12 +600,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from sage.misc.misc import verbose
         verbose("Expanding %s towards %s"%(self, G), caller_name = "mac_lane_step")
 
-        if not G.is_monic() or self(G) < 0:
-            # G must be monic, there is no fundamental reason for this, but the implementation makes this assumption in some places.
-            # G must be integral, otherwise, e.g., the effective degree is too low
-            # We try to turn G into a monic integral polynomial that describes the same extension
-            # This might fail if the constants of our polynomial ring do not form a field
-            return self.mac_lane_step(self.monic_integral_model(G), assume_squarefree=assume_squarefree)
+        if not G.is_monic():
+            raise ValueError("G must be monic")
+
+        if self(G) < 0:
+            raise ValueError("G must be integral")
 
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")

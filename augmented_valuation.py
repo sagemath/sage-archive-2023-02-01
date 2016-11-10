@@ -65,7 +65,6 @@ Run the test suite for an augmentation of a ramified augmentation::
     sage: ww = w.augmentation(x^4 + 8, 5)
     sage: TestSuite(ww).run() # long time
 
-
 Run the test suite for a ramified augmentation of an unramified augmentation::
 
     sage: R.<x> = QQ[]
@@ -757,7 +756,7 @@ class AugmentedValuation_base(InductiveValuation):
         r"""
         Return a monic integral irreducible polynomial which defines the same
         extension of the base ring of the domain as the irreducible polynomial
-        ``G``.
+        ``G`` together with maps between the old and the new polynomial.
 
         EXAMPLES::
 
@@ -767,7 +766,11 @@ class AugmentedValuation_base(InductiveValuation):
             sage: w = v.augmentation(x^2 + x + 1, 1)
 
             sage: w.monic_integral_model(5*x^2 + 1/2*x + 1/4)
-            x^2 + 1/5*x + 1/5
+            (Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
+               Defn: x |--> 1/2*x,
+             Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
+               Defn: x |--> 2*x,
+            x^2 + 1/5*x + 1/5)
 
         """
         return self._base_valuation.monic_integral_model(G)

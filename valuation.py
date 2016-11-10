@@ -394,8 +394,8 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         INPUT:
 
-        - ``G`` -- a square-free polynomial defined over a univariate
-          polynomial ring over the :meth:`domain` of this valuation.
+        - ``G`` -- a square-free monic integral polynomial defined over a
+          univariate polynomial ring over the :meth:`domain` of this valuation.
 
         - ``precision_cap`` -- a number, infinity, or ``None`` (default:
           ``None``); the approximants are always determined such that they are in
@@ -708,11 +708,10 @@ class DiscreteValuation(DiscretePseudoValuation):
         # on domain that extends its restriction to the base field.
         from sage.rings.all import infinity
         if valuation(G) != infinity:
-            G_integral = valuation.monic_integral_model(G)
             v = valuation
             while not v.is_gauss_valuation():
-                if v(G_integral) <= v._base_valuation(G_integral):
-                    raise ValueError("The valuation %r is not an approximant for a valuation which extends %r with respect to %r since the valuation of %r does not increase in every step"%(valuation, self, G, G_integral))
+                if v(G) <= v._base_valuation(G):
+                    raise ValueError("The valuation %r is not an approximant for a valuation which extends %r with respect to %r since the valuation of %r does not increase in every step"%(valuation, self, G, G))
                 v = v._base_valuation
 
         if approximants is None:

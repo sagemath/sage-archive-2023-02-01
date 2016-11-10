@@ -633,7 +633,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         r"""
         Return a monic integral irreducible polynomial which defines the same
         extension of the base ring of the domain as the irreducible polynomial
-        ``G``.
+        ``G`` together with maps between the old and the new polynomial.
 
         EXAMPLES::
 
@@ -641,19 +641,31 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: R.<x> = Qp(2, 5)[]
             sage: v = GaussValuation(R)
             sage: v.monic_integral_model(5*x^2 + 1/2*x + 1/4)
-            (1 + O(2^5))*x^2 + (1 + 2^2 + 2^3 + O(2^5))*x + (1 + 2^2 + 2^3 + O(2^5))
+            (Ring endomorphism of Univariate Polynomial Ring in x over 2-adic Field with capped relative precision 5
+               Defn: (1 + O(2^5))*x |--> (2^-1 + O(2^4))*x,
+             Ring endomorphism of Univariate Polynomial Ring in x over 2-adic Field with capped relative precision 5
+               Defn: (1 + O(2^5))*x |--> (2 + O(2^6))*x,
+            (1 + O(2^5))*x^2 + (1 + 2^2 + 2^3 + O(2^5))*x + (1 + 2^2 + 2^3 + O(2^5)))
 
         """
         if not G.is_monic():
             # this might fail if the base ring is not a field
             G = G / G.leading_coefficient()
-        while self(G) < 0:
-            u = self._base_valuation.uniformizer()
-            x = G.parent().gen()
+
+        x = G.parent().gen()
+        u = self._base_valuation.uniformizer()
+
+        factor = 1
+        substitution = x
+        H = G
+        while self(H) < 0:
             # this might fail if the base ring is not a field
-            G = G.parent(G(x/u) * (u ** G.degree()))
-        assert G.is_monic()
-        return G
+            factor *= u
+            substitution = x/factor
+            H = G(substitution) * (factor ** G.degree())
+
+        assert H.is_monic()
+        return H.parent().hom(substitution, G.parent()), G.parent().hom(x / substitution[1], H.parent()), H
             
     def _ge_(self, other):
         r"""

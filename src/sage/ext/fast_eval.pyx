@@ -586,17 +586,17 @@ cdef class FastDoubleFunc:
 
             lx = left.nargs
             rx = right.nargs
-            if lx != nx:
+            if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
 
             lx = left.nops
             rx = right.nops
-            if lx != nx:
+            if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
 
             lx = left.max_height
             rx = right.max_height
-            if lx != nx:
+            if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
 
             for i from 0 <= i < self.nops:

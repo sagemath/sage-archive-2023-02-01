@@ -335,7 +335,7 @@ cdef class Morphism(Map):
             definition = repr(self)
         return hash((domain, codomain, definition))
 
-    cpdef _richcmp_(left, right, int po):
+    cpdef _richcmp_(left, right, int op):
         if left is right:
             return rich_to_bool(op, 0)
         if not isinstance(right, Morphism):
@@ -349,7 +349,7 @@ cdef class Morphism(Map):
         if lcodomain != rcodomain:
             return richcmp_not_equal(lcodomain, rcodomain, op)
         try:
-            gens = domain.gens()
+            gens = ldomain.gens()
             for x in gens:
                 lx = left(x)
                 rx = right(x)

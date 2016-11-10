@@ -966,7 +966,42 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             sage: L = LaurentPolynomialRing(QQ, 'x')
             sage: L(1/2)
             1/2
+
+        ::
+
+            sage: U = LaurentPolynomialRing(QQ, 'a')
+            sage: V = LaurentPolynomialRing(QQ, 'c')
+            sage: L.<a, b, c, d> = LaurentPolynomialRing(QQ)
+            sage: M = LaurentPolynomialRing(QQ, 'c, d')
+            sage: Mc, Md = M.gens()
+            sage: N = LaurentPolynomialRing(M, 'a, b')
+            sage: Na, Nb = N.gens()
+            sage: U(Na)
+            a
+            sage: V(Mc)
+            c
+            sage: V(N(Mc))  # not tested
+            c
+
+            sage: M(L(0))
+            0
+            sage: N(L(0))
+            0
+            sage: L(M(0))
+            0
+            sage: L(N(0))
+            0
+
         """
+        if isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
+            if set(self.variable_names()) & set(x.parent().variable_names()):
+                if isinstance(x, LaurentPolynomial_univariate):
+                    d = {(k,): v for k, v in iteritems(x.dict())}
+                else:
+                    d = x.dict()
+                x = _split_laurent_polynomial_dict_(self, x.parent(), d)
+                x = {k[0]: v for k, v in iteritems(x)}
+
         return LaurentPolynomial_univariate(self, x)
 
     def __reduce__(self):
@@ -1011,16 +1046,18 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
 
             sage: L.<a, b, c, d> = LaurentPolynomialRing(QQ)
             sage: M = LaurentPolynomialRing(QQ, 'c, d')
+            sage: Mc, Md = M.gens()
             sage: N = LaurentPolynomialRing(M, 'a, b')
+            sage: Na, Nb = N.gens()
             sage: M(c/d)
             c*d^-1
             sage: N(a*b/c/d)
             (c^-1*d^-1)*a*b
             sage: N(c/d)
             c*d^-1
-            sage: L(M.gens()[0])
+            sage: L(Mc)
             c
-            sage: L(N.gens()[1])
+            sage: L(Nb)
             b
 
             sage: M(L(0))
@@ -1031,10 +1068,27 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             0
             sage: L(N(0))
             0
+
+            sage: U = LaurentPolynomialRing(QQ, 'a')
+            sage: Ua = U.gen()
+            sage: V = LaurentPolynomialRing(QQ, 'c')
+            sage: Vc = V.gen()
+            sage: L(Ua)
+            a
+            sage: L(Vc)
+            c
+            sage: N(Ua)
+            a
+            sage: M(Vc)
+            c
         """
-        if isinstance(x, LaurentPolynomial_mpair):
+        if isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
             if set(self.variable_names()) & set(x.parent().variable_names()):
-                x = _split_laurent_polynomial_dict_(self, x.parent(), x.dict())
+                if isinstance(x, LaurentPolynomial_univariate):
+                    d = {(k,): v for k, v in iteritems(x.dict())}
+                else:
+                    d = x.dict()
+                x = _split_laurent_polynomial_dict_(self, x.parent(), d)
 
         return LaurentPolynomial_mpair(self, x)
 

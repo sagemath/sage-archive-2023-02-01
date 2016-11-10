@@ -470,7 +470,7 @@ class AugmentedValuation_base(InductiveValuation):
         The element returned is such that repeated shifts which go back to
         the original valuation produce the same element in reduction.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]

@@ -1131,7 +1131,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     @abstract_method
     def lift_to_key(self, F):
         """
-        Lift the irreducible polynomial ``F`` from the ;meth:`residue_ring` to
+        Lift the irreducible polynomial ``F`` from the :meth:`residue_ring` to
         a key polynomial over this valuation.
 
         INPUT:

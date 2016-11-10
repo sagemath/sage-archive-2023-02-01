@@ -9,7 +9,7 @@ Let `B` be an `n\times n`-matrix over a principal ideal domain `D`.
 For an ideal `J`, the `J`-ideal of `B` is defined to be
 `N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.
 
-For a prime element `p` of `D` and `t\ge 0`, a `p^t`-minimal polynomial of `B` is a monic
+For a prime element `p` of `D` and `t\ge 0`, a `(p^t)`-minimal polynomial of `B` is a monic
 polynomial `f\in N_{(p^t)}(B)` of minimal degree.
 
 This module computes these minimal polynomials.
@@ -23,7 +23,7 @@ Let `p` be a prime element of `D`. Then there is a finite set `\mathcal{S}_p` of
 
 holds where `b(t) = \min\{r\in \mathcal{S}_p \mid r \ge s\}`. The
 degree of `\nu_{ps}` is strictly increasing in `s\in \mathcal{S}_p` and
-`\nu_{ps}` is a `p^s`-minimal polynomial. If `t\le \max\mathcal{S}_p`,
+`\nu_{ps}` is a `(p^s)`-minimal polynomial. If `t\le \max\mathcal{S}_p`,
 then the summand `\mu_BD[X]` can be omitted.
 
 EXAMPLES::
@@ -215,7 +215,7 @@ class ComputeMinimalPolynomials(SageObject):
     For an ideal `J`, the `J`-ideal of `B` is defined to be
     `N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.
 
-    For a prime element `p` of `D` and `t\ge 0`, a `p^t`-minimal polynomial of `B` is a monic
+    For a prime element `p` of `D` and `t\ge 0`, a `(p^t)`-minimal polynomial of `B` is a monic
     polynomial `f\in N_{(p^t)}(B)` of minimal degree.
 
     The characteristic polynomial of `B` is denoted by `\chi_B`; `n` is the size of `B`.
@@ -276,7 +276,7 @@ class ComputeMinimalPolynomials(SageObject):
         - ``pt_generators`` -- a list `(g_1, \ldots, g_s)` of polynomials in
           `D[X]` such that `N_{p^t}(B) = (g_1, \ldots, g_s) + pN_{p^{t-1}}(B)`.
 
-        - ``prev_nu`` -- a `p^{t-1}`-minimal polynomial of `B`.
+        - ``prev_nu`` -- a `(p^{t-1})`-minimal polynomial of `B`.
 
         OUTPUT:
 
@@ -338,7 +338,7 @@ class ComputeMinimalPolynomials(SageObject):
 
     def current_nu(self, p, t, pt_generators, prev_nu):
         r"""
-        Compute `p^t`-minimal polynomial of `B`.
+        Compute `(p^t)`-minimal polynomial of `B`.
 
         INPUT:
 
@@ -349,11 +349,11 @@ class ComputeMinimalPolynomials(SageObject):
         - ``pt_generators`` -- a list `(g_1, \ldots, g_s)` of polynomials in
           `D[X]` such that `N_{p^t}(B) = (g_1, \ldots, g_s) + pN_{p^{t-1}}(B)`.
 
-        - ``prev_nu`` -- a `p^{t-1}`-minimal polynomial of `B`.
+        - ``prev_nu`` -- a `(p^{t-1})`-minimal polynomial of `B`.
 
         OUTPUT:
 
-        A `p^t`-minimal polynomial of `B`.
+        A `(p^t)`-minimal polynomial of `B`.
 
         EXAMPLES::
 
@@ -421,7 +421,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         - ``t`` -- a positive integer
 
-        - ``nu_t`` -- a `p^t`-minimal polynomial of `B`
+        - ``nu_t`` -- a `(p^t)`-minimal polynomial of `B`
 
         OUTPUT:
 
@@ -464,13 +464,13 @@ class ComputeMinimalPolynomials(SageObject):
 
     def p_minimal_polynomials(self, p, s_max=None):
         r"""
-        Compute `p^t`-minimal polynomials `\nu_t` of `B`.
+        Compute `(p^t)`-minimal polynomials `\nu_t` of `B`.
 
         INPUT:
 
         - ``p`` -- an integer prime
 
-        - ``s_max`` -- a positive integer (Default: ``None``). If set, only `p^t`-minimal polynomials for
+        - ``s_max`` -- a positive integer (Default: ``None``). If set, only `(p^t)`-minimal polynomials for
           ``t <= s_max`` are computed.
 
         OUTPUT:
@@ -478,15 +478,15 @@ class ComputeMinimalPolynomials(SageObject):
         A dictionary. Keys are a finite subset `\mathcal{S}` of the positive integers,
         the values are the associated `p^s`-polynomials `\nu_s`, `s\in\mathcal{S}`.
 
-        For `0<t\le \max\mathcal{S}`, a `p^t`-minimal polynomial is given by `\nu_s`
+        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is given by `\nu_s`
         where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.
-        For `t>\max\mathcal{S}`, the minimial polynomial of `B` is also a `p^t`-minimal
+        For `t>\max\mathcal{S}`, the minimial polynomial of `B` is also a `(p^t)`-minimal
         polynomial.
 
         If ``s_max`` is set, only those `\nu_s` with ``s <= s_max``
         are returned where ``s_max`` is always included even if it is
         not included in the full set `\mathcal{S}` except when the
-        minimal polynomial of `B` is also a ``p^s_max`` minimal
+        minimal polynomial of `B` is also a ``(p^s_max)``-minimal
         polynomial.
 
 
@@ -676,7 +676,7 @@ class ComputeMinimalPolynomials(SageObject):
 
     def prime_candidates(self):
         r"""
-        Determine those primes `p` where `\mu_B` might not be a `p`-minimal polynomial.
+        Determine those primes `p` where `\mu_B` might not be a `(p)`-minimal polynomial.
 
         OUTPUT:
 
@@ -697,7 +697,7 @@ class ComputeMinimalPolynomials(SageObject):
              {}
 
         This means that `3` and `5` were candidates, but actually, `\mu_B` turns
-        out to be a `3`-minimal polynomial and a `5`-minimal polynomial.
+        out to be a `(3)`-minimal polynomial and a `(5)`-minimal polynomial.
         """
         F, T = (self._B).frobenius(2)
 

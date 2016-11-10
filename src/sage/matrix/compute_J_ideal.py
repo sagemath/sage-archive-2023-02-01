@@ -9,17 +9,20 @@ Let `B` be an `n\times n`-matrix over a principal ideal domain `D`.
 For an ideal `J`, the `J`-ideal of `B` is defined to be
 `N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.
 
-For a prime element `p` of `D` and `t\ge 0`, a `(p^t)`-minimal polynomial of `B` is a monic
-polynomial `f\in N_{(p^t)}(B)` of minimal degree.
+For a prime element `p` of `D` and `t\ge 0`, a `(p^t)`-minimal polynomial of `B`
+is a monic polynomial `f\in N_{(p^t)}(B)` of minimal degree.
 
 This module computes these minimal polynomials.
 
-Let `p` be a prime element of `D`. Then there is a finite set `\mathcal{S}_p` of positive integers and monic polynomials `\nu_{ps}` for `s\in\mathcal{S}_p`  such that for `t\ge 1`,
+Let `p` be a prime element of `D`. Then there is a finite set `\mathcal{S}_p` of
+positive integers and monic polynomials `\nu_{ps}` for `s\in\mathcal{S}_p` such
+that for `t\ge 1`,
 
 .. MATH::
 
    N_{(p^t)}(B) = \mu_BD[X] + p^tD[X]
-   + \sum_{\substack{s\in\mathcal{S}_p \\ s \le  b(t) }} p^{\max\{0,t-s\}}\nu_{ps}D[X]
+   + \sum_{\substack{s\in\mathcal{S}_p \\ s \le  b(t) }}
+   p^{\max\{0,t-s\}}\nu_{ps}D[X]
 
 holds where `b(t) = \min\{r\in \mathcal{S}_p \mid r \ge s\}`. The
 degree of `\nu_{ps}` is strictly increasing in `s\in \mathcal{S}_p` and
@@ -37,21 +40,25 @@ EXAMPLES::
     [2, 3, 5]
     sage: for t in range(4):
     ....:     print C.null_ideal(2^t)
-    Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
-    Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
-    Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
-    Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate Polynomial Ring in x over Integer Ring
+    Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial
+    Ring in x over Integer Ring
+    Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial
+    Ring in x over Integer Ring
+    Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial
+    Ring in x over Integer Ring
+    Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate Polynomial
+    Ring in x over Integer Ring
     sage: C.p_minimal_polynomials(2)
     {2: x^2 + 3*x + 2}
 
 
 REFERENCES:
 
-.. [R2016] Roswitha Rissner, Null ideals of matrices over residue class rings of principal ideal domains. Linear Algebra Appl.,
-   494:44--69, 2016.
+.. [R2016] Roswitha Rissner, Null ideals of matrices over residue class rings of
+   principal ideal domains. Linear Algebra Appl., 494:44--69, 2016.
 
-.. [HR2016] Clemens Heuberger and Roswitha Rissner, Computing `J`-Ideals of a Matrix Over a Principal Ideal
-   Domain, Preprint, 2016.
+.. [HR2016] Clemens Heuberger and Roswitha Rissner, Computing `J`-Ideals of a
+   Matrix Over a Principal Ideal Domain, Preprint, 2016.
 
 AUTHORS:
 
@@ -103,12 +110,15 @@ def lifting(p, t, A, G):
 
     - ``A`` -- a `c\times d` matrix  over `D[X]`
 
-    - ``G`` -- a matrix over `D[X]`. The columns of `\begin{pmatrix}p^{t-1}I& G\end{pmatrix}` are generators of
-      `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^{t-1}}\}`. Can be set to ``None`` if ``t`` is zero.
+    - ``G`` -- a matrix over `D[X]`. The columns of
+      `\begin{pmatrix}p^{t-1}I& G\end{pmatrix}` are generators
+      of `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^{t-1}}\}`.
+      Can be set to ``None`` if ``t`` is zero.
 
     OUTPUT:
 
-    A matrix `F` over `D[X]` such that the columns of `\begin{pmatrix}p^tI&F&pG\end{pmatrix}` are generators of
+    A matrix `F` over `D[X]` such that the columns of
+    `\begin{pmatrix}p^tI&F&pG\end{pmatrix}` are generators of
     `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^t}\}`.
 
     EXAMPLES::
@@ -213,15 +223,17 @@ class ComputeMinimalPolynomials(SageObject):
 
     OUTPUT:
 
-    An object which allows to call ``p_minimal_polynomials`` and ``null_ideal``. TODO: integer valued polynomials
+    An object which allows to call ``p_minimal_polynomials`` and
+    ``null_ideal``. TODO: integer valued polynomials
 
     For an ideal `J`, the `J`-ideal of `B` is defined to be
     `N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.
 
-    For a prime element `p` of `D` and `t\ge 0`, a `(p^t)`-minimal polynomial of `B` is a monic
-    polynomial `f\in N_{(p^t)}(B)` of minimal degree.
+    For a prime element `p` of `D` and `t\ge 0`, a `(p^t)`-minimal polynomial of
+    `B` is a monic polynomial `f\in N_{(p^t)}(B)` of minimal degree.
 
-    The characteristic polynomial of `B` is denoted by `\chi_B`; `n` is the size of `B`.
+    The characteristic polynomial of `B` is denoted by `\chi_B`; `n` is the size
+    of `B`.
 
     EXAMPLES::
 
@@ -230,10 +242,14 @@ class ComputeMinimalPolynomials(SageObject):
         sage: C = ComputeMinimalPolynomials(B)
         sage: for t in range(4):
         ....:     print C.null_ideal(2^t)
-        Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
-        Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
-        Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
-        Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial
+        Ring in x over Integer Ring
+        Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial
+        Ring in x over Integer Ring
+        Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial
+        Ring in x over Integer Ring
+        Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate
+        Polynomial Ring in x over Integer Ring
         sage: C.p_minimal_polynomials(2)
         {2: x^2 + 3*x + 2}
     """
@@ -269,7 +285,8 @@ class ComputeMinimalPolynomials(SageObject):
 
     def find_monic_replacements(self, p, t, pt_generators, prev_nu):
         r"""
-        Replace possibly non-monic generators of `N_{p^t}(B)` by monic generators
+        Replace possibly non-monic generators of `N_{p^t}(B)` by monic
+        generators
 
         INPUT:
 
@@ -310,7 +327,8 @@ class ComputeMinimalPolynomials(SageObject):
         """
         if not all((g(self._B) % p**t).is_zero()
                    for g in pt_generators):
-            raise ValueError("%s are not in N_{%s^%s}(B)" % (pt_generators, p, t))
+            raise ValueError("%s are not in N_{%s^%s}(B)" %
+                             (pt_generators, p, t))
 
         if not (prev_nu(self._B) % p**(t-1)).is_zero():
             raise ValueError("%s is not in N_{%s^%s}(B)" % (prev_nu, p, t-1))
@@ -382,11 +400,11 @@ class ComputeMinimalPolynomials(SageObject):
         """
         if not all((g(self._B) % p**t).is_zero()
                    for g in pt_generators):
-            raise ValueError("%s are not in N_{%s^%s}(B)" % (pt_generators, p, t))
+            raise ValueError("%s are not in N_{%s^%s}(B)" %
+                             (pt_generators, p, t))
 
         if not (prev_nu(self._B) % p**(t-1)).is_zero():
             raise ValueError("%s is not in N_{%s^%s}(B)" % (prev_nu, p, t-1))
-        
 
         generators = self.find_monic_replacements(p, t, pt_generators, prev_nu)
 
@@ -474,18 +492,19 @@ class ComputeMinimalPolynomials(SageObject):
 
         - ``p`` -- an integer prime
 
-        - ``s_max`` -- a positive integer (Default: ``None``). If set, only `(p^t)`-minimal polynomials for
-          ``t <= s_max`` are computed.
+        - ``s_max`` -- a positive integer (Default: ``None``). If set, only
+          `(p^t)`-minimal polynomials for ``t <= s_max`` are computed.
 
         OUTPUT:
 
-        A dictionary. Keys are a finite subset `\mathcal{S}` of the positive integers,
-        the values are the associated `p^s`-polynomials `\nu_s`, `s\in\mathcal{S}`.
+        A dictionary. Keys are a finite subset `\mathcal{S}` of the positive
+        integers, the values are the associated `p^s`-polynomials `\nu_s`,
+        `s\in\mathcal{S}`.
 
-        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is given by `\nu_s`
-        where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.
-        For `t>\max\mathcal{S}`, the minimial polynomial of `B` is also a `(p^t)`-minimal
-        polynomial.
+        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is given by
+        `\nu_s` where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.  For
+        `t>\max\mathcal{S}`, the minimial polynomial of `B` is also a
+        `(p^t)`-minimal polynomial.
 
         If ``s_max`` is set, only those `\nu_s` with ``s <= s_max``
         are returned where ``s_max`` is always included even if it is
@@ -502,11 +521,16 @@ class ComputeMinimalPolynomials(SageObject):
             {2: x^2 + 3*x + 2}
             sage: set_verbose(1)
             sage: C.p_minimal_polynomials(2)
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) ------------------------------------------
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) p=2, t=1:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) Result of lifting:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) F=
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [x^2 + x]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            ------------------------------------------
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            p=2, t=1:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            Result of lifting:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            F=
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            [x^2 + x]
             [      x]
             [      0]
             [      1]
@@ -516,13 +540,20 @@ class ComputeMinimalPolynomials(SageObject):
             [      0]
             [      0]
             [  x + 1]
-            verbose 1 (...: calculate_nu.py, current_nu) ------------------------------------------
-            verbose 1 (...: calculate_nu.py, current_nu) [x^2 + x]
-            verbose 1 (...: calculate_nu.py, current_nu) Generators with (p^t)-generating property:
-            verbose 1 (...: calculate_nu.py, current_nu) [x^2 + x]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) nu=x^2 + x
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) corresponding columns for G
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [x^2 + x]
+            verbose 1 (...: calculate_nu.py, current_nu)
+            ------------------------------------------
+            verbose 1 (...: calculate_nu.py, current_nu)
+            [x^2 + x]
+            verbose 1 (...: calculate_nu.py, current_nu)
+            Generators with (p^t)-generating property:
+            verbose 1 (...: calculate_nu.py, current_nu)
+            [x^2 + x]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            nu=x^2 + x
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            corresponding columns for G
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            [x^2 + x]
             [  x + 2]
             [      0]
             [      1]
@@ -532,11 +563,16 @@ class ComputeMinimalPolynomials(SageObject):
             [     10]
             [      0]
             [  x + 1]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) ------------------------------------------
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) p=2, t=2:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) Result of lifting:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) F=
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [  2*x^2 + 2*x x^2 + 3*x + 2]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            ------------------------------------------
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            p=2, t=2:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            Result of lifting:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            F=
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            [  2*x^2 + 2*x x^2 + 3*x + 2]
             [          2*x         x + 4]
             [            0             0]
             [            2             1]
@@ -546,13 +582,20 @@ class ComputeMinimalPolynomials(SageObject):
             [            0            10]
             [            0             0]
             [      2*x + 2         x + 3]
-            verbose 1 (...: calculate_nu.py, current_nu) ------------------------------------------
-            verbose 1 (...: calculate_nu.py, current_nu) [2*x^2 + 2*x, x^2 + 3*x + 2]
-            verbose 1 (...: calculate_nu.py, current_nu) Generators with (p^t)-generating property:
-            verbose 1 (...: calculate_nu.py, current_nu) [x^2 + 3*x + 2]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) nu=x^2 + 3*x + 2
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) corresponding columns for G
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [x^2 + 3*x + 2]
+            verbose 1 (...: calculate_nu.py, current_nu)
+            ------------------------------------------
+            verbose 1 (...: calculate_nu.py, current_nu)
+            [2*x^2 + 2*x, x^2 + 3*x + 2]
+            verbose 1 (...: calculate_nu.py, current_nu)
+            Generators with (p^t)-generating property:
+            verbose 1 (...: calculate_nu.py, current_nu)
+            [x^2 + 3*x + 2]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            nu=x^2 + 3*x + 2
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            corresponding columns for G
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            [x^2 + 3*x + 2]
             [        x + 4]
             [            0]
             [            1]
@@ -562,11 +605,16 @@ class ComputeMinimalPolynomials(SageObject):
             [           10]
             [            0]
             [        x + 3]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) ------------------------------------------
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) p=2, t=3:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) Result of lifting:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) F=
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) [x^3 + 7*x^2 + 6*x x^3 + 3*x^2 + 2*x]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            ------------------------------------------
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            p=2, t=3:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            Result of lifting:
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            F=
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            [x^3 + 7*x^2 + 6*x x^3 + 3*x^2 + 2*x]
             [        x^2 + 8*x         x^2 + 4*x]
             [                0                 0]
             [                x             x + 4]
@@ -576,12 +624,18 @@ class ComputeMinimalPolynomials(SageObject):
             [             10*x              10*x]
             [                0                 0]
             [        x^2 + 7*x     x^2 + 3*x + 4]
-            verbose 1 (...: calculate_nu.py, current_nu) ------------------------------------------
-            verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-            verbose 1 (...: calculate_nu.py, current_nu) Generators with (p^t)-generating property:
-            verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-            verbose 1 (...: calculate_nu.py, current_nu) [x^3 + 7*x^2 + 6*x]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials) nu=x^3 + 7*x^2 + 6*x
+            verbose 1 (...: calculate_nu.py, current_nu)
+            ------------------------------------------
+            verbose 1 (...: calculate_nu.py, current_nu)
+            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            verbose 1 (...: calculate_nu.py, current_nu)
+            Generators with (p^t)-generating property:
+            verbose 1 (...: calculate_nu.py, current_nu)
+            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            verbose 1 (...: calculate_nu.py, current_nu)
+            [x^3 + 7*x^2 + 6*x]
+            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            nu=x^3 + 7*x^2 + 6*x
             {2: x^2 + 3*x + 2}
             sage: set_verbose(0)
             sage: C.p_minimal_polynomials(2, s_max=1)
@@ -648,17 +702,23 @@ class ComputeMinimalPolynomials(SageObject):
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: C.null_ideal()
-            Principal ideal (x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
+            Principal ideal (x^3 + x^2 - 12*x - 20)
+            of Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(2)
-            Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x)
+            of Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(4)
-            Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2)
+            of Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(8)
-            Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4)
+            of Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(3)
-            Ideal (3, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (3, x^3 + x^2 - 12*x - 20)
+            of Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(6)
-            Ideal (6, x^3 + x^2 - 12*x - 20, 3*x^2 + 3*x) of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (6, x^3 + x^2 - 12*x - 20, 3*x^2 + 3*x)
+            of Univariate Polynomial Ring in x over Integer Ring
         """
         generators = [self._ZX((self._B).minimal_polynomial())]
 
@@ -680,7 +740,8 @@ class ComputeMinimalPolynomials(SageObject):
 
     def prime_candidates(self):
         r"""
-        Determine those primes `p` where `\mu_B` might not be a `(p)`-minimal polynomial.
+        Determine those primes `p` where `\mu_B` might not be a
+        `(p)`-minimal polynomial.
 
         OUTPUT:
 
@@ -707,4 +768,3 @@ class ComputeMinimalPolynomials(SageObject):
 
         return [p for
                 (p, t) in factor(T.det())]
-

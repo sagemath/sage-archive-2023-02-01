@@ -212,6 +212,9 @@ REFERENCES:
              Conference, AMS/IP Studies in Advanced Mathematics 35
              (2003). :arxiv:`math/0204057v1`
 
+.. [Bir1975] \J. Birman. *Braids, Links, and Mapping Class Groups*,
+             Princeton University Press, 1975
+
 .. [BK1992] \U. Brehm and W. Kuhnel, "15-vertex triangulations of an
             8-manifold", Math. Annalen 294 (1992), no. 1, 167-193.
 

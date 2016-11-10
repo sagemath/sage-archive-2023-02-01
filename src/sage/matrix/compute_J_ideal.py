@@ -26,6 +26,8 @@ degree of `\nu_{ps}` is strictly increasing in `s\in \mathcal{S}_p` and
 `\nu_{ps}` is a `(p^s)`-minimal polynomial. If `t\le \max\mathcal{S}_p`,
 then the summand `\mu_BD[X]` can be omitted.
 
+TODO: integer valued polynomials
+
 EXAMPLES::
 
     sage: from calculate_nu import ComputeMinimalPolynomials # not tested
@@ -211,7 +213,7 @@ class ComputeMinimalPolynomials(SageObject):
 
     OUTPUT:
 
-    An object which allows to call ``p_minimal_polynomials`` and ``null_ideal``.
+    An object which allows to call ``p_minimal_polynomials`` and ``null_ideal``. TODO: integer valued polynomials
 
     For an ideal `J`, the `J`-ideal of `B` is defined to be
     `N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.

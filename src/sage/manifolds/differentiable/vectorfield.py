@@ -577,18 +577,16 @@ class VectorField(TensorField):
         Rather, we have to select some coordinates for the plot, via
         the argument ``ambient_coords``. For instance, for a 3D plot::
 
-            sage: g = v.plot(ambient_coords=(x, y, z), fixed_coords={t: 1})
-            sage: print(g)
+            sage: v.plot(ambient_coords=(x, y, z), fixed_coords={t: 1})  # long time
             Graphics3d Object
-            sage: g = v.plot(ambient_coords=(x, y, t), fixed_coords={z: 0},
-            ....:            ranges={x: (-2,2), y: (-2,2), t: (-1, 4)},
-            ....:            number_values=4)
-            sage: print(g)
+            sage: v.plot(ambient_coords=(x, y, t), fixed_coords={z: 0},  # long time
+            ....:        ranges={x: (-2,2), y: (-2,2), t: (-1, 4)},
+            ....:        number_values=4)
             Graphics3d Object
 
         or, for a 2D plot::
 
-            sage: v.plot(ambient_coords=(x, y), fixed_coords={t: 1, z: 0})
+            sage: v.plot(ambient_coords=(x, y), fixed_coords={t: 1, z: 0})  # long time
             Graphics object consisting of 64 graphics primitives
 
         .. PLOT::
@@ -602,7 +600,7 @@ class VectorField(TensorField):
 
         ::
 
-            sage: v.plot(ambient_coords=(x, t), fixed_coords={y: 1, z: 0})
+            sage: v.plot(ambient_coords=(x, t), fixed_coords={y: 1, z: 0})  # long time
             Graphics object consisting of 72 graphics primitives
 
         .. PLOT::
@@ -632,7 +630,8 @@ class VectorField(TensorField):
              differentiable manifold S^2
             sage: graph_v = v.plot(chart=X3, mapping=F, label_axes=False)
             sage: graph_S2 = XS.plot(chart=X3, mapping=F, number_values=9)
-            sage: show(graph_v + graph_S2)
+            sage: graph_v + graph_S2
+            Graphics3d Object
 
         """
         from sage.rings.infinity import Infinity

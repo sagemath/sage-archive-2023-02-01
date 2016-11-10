@@ -131,19 +131,22 @@ def lifting(p, t, A, G):
         sage: G0 = lifting(5, 0, A, None)
         sage: G1 = lifting(5, 1, A, G0); G1
         []
-        sage: assert (A*G1 % 5).is_zero()
+        sage: (A*G1 % 5).is_zero()
+        True
         sage: A = matrix([[1, X, X^2], [2*X, X^2, 3*X^3]])
         sage: G0 = lifting(5, 0, A, None)
         sage: G1 = lifting(5, 1, A, G0); G1
         [3*X^2]
         [    X]
         [    1]
-        sage: assert (A*G1 % 5).is_zero()
+        sage: (A*G1 % 5).is_zero()
+        True
         sage: G2 = lifting(5, 2, A, G1); G2
         [15*X^2 23*X^2]
         [   5*X      X]
         [     5      1]
-        sage: assert (A*G2 % 25).is_zero()
+        sage: (A*G2 % 25).is_zero()
+        True
         sage: lifting(5, 10, A, G1)
         Traceback (most recent call last):
         ...

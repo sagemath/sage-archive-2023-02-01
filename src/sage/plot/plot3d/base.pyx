@@ -1,5 +1,5 @@
 r"""
-Base classes for 3D Graphics objects and plotting
+Base Classes for 3D Graphics Objects and Plotting
 
 AUTHORS:
 
@@ -8,6 +8,8 @@ AUTHORS:
 - Robert Bradshaw (2007-08): Cythonization, much optimization
 
 - William Stein (2008)
+
+- Paul Masson (2016): Three.js support 
 
 .. TODO::
 
@@ -345,7 +347,21 @@ cdef class Graphics3d(SageObject):
 
         INPUT:
 
-        Optional keyword arguments.
+        Optional keyword arguments. Currently supported:
+
+        - ``aspect_ratio`` -- (default: [1,1,1]) list or tuple of three numeric
+          values; `z`-aspect is automatically reduced when large but can be overridden
+
+        - ``axes_labels`` -- (default: ['x','y','z']) list or tuple of three strings;
+          set to False to remove all labels
+
+        - ``decimals`` -- (default: 0) integer determining decimals displayed in labels
+
+        - ``frame`` -- (default: True) Boolean determining whether frame is drawn
+
+        - ``opacity`` -- (default: 1) numeric value for transparency of surfaces
+
+        - ``thickness`` -- (default: 1) numeric value for thickness of lines
 
         OUTPUT:
 
@@ -1358,8 +1374,9 @@ end_scene""" % (render_params.antialiasing,
 
            * 'tachyon': Ray tracer generates a static PNG image
 
-           * 'canvas3d': Web-based 3D viewer powered by JavaScript and
-             <canvas> (notebook only)
+           * 'canvas3d': Web-based 3D viewer using JavaScript (notebook only)
+
+           * 'threejs': Web-based 3D viewer using JavaScript
 
         -  ``verbosity`` -- display information about rendering
            the figure

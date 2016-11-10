@@ -352,6 +352,8 @@ cdef class Graphics3d(SageObject):
         - ``aspect_ratio`` -- (default: [1,1,1]) list or tuple of three numeric
           values; `z`-aspect is automatically reduced when large but can be overridden
 
+        - ``axes`` -- (default: False) Boolean determining whether coordinate axes are drawn
+
         - ``axes_labels`` -- (default: ['x','y','z']) list or tuple of three strings;
           set to False to remove all labels
 
@@ -369,10 +371,11 @@ cdef class Graphics3d(SageObject):
         :class:`sage.repl.rich_output.output_graphics3d.OutputSceneThreejs`.
         """
         options = {}
-        options['frame'] = kwds.get('frame', True)
         options['aspect_ratio'] = [float(i) for i in kwds.get('aspect_ratio', [1,1,1])]
+        options['axes'] = kwds.get('axes', False)
         options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
         options['decimals'] = int(kwds.get('decimals', 0))
+        options['frame'] = kwds.get('frame', True)
         options['opacity'] = float(kwds.get('opacity', 1))
         options['thickness'] = float(kwds.get('thickness', 1))
 

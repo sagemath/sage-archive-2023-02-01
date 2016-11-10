@@ -33,11 +33,12 @@ EXAMPLES::
     sage: C = ComputeMinimalPolynomials(B)
     sage: C.prime_candidates()
     [2, 3, 5]
-    sage: for t in range(3):
+    sage: for t in range(4):
     ....:     print C.null_ideal(2^t)
     Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
     Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
     Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
+    Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate Polynomial Ring in x over Integer Ring
     sage: C.p_minimal_polynomials(2)
     {2: x^2 + 3*x + 2}
 
@@ -225,11 +226,12 @@ class ComputeMinimalPolynomials(SageObject):
         sage: from calculate_nu import ComputeMinimalPolynomials # not tested
         sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
         sage: C = ComputeMinimalPolynomials(B)
-        sage: for t in range(3):
+        sage: for t in range(4):
         ....:     print C.null_ideal(2^t)
         Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial Ring in x over Integer Ring
         Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial Ring in x over Integer Ring
         Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate Polynomial Ring in x over Integer Ring
         sage: C.p_minimal_polynomials(2)
         {2: x^2 + 3*x + 2}
     """

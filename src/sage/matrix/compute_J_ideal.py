@@ -201,7 +201,7 @@ def p_part(f, p):
     EXAMPLES::
 
         sage: X = polygen(ZZ, 'X')
-        sage: f = X^3 + 5*X+25
+        sage: f = X^3 + 5*X + 25
         sage: g = p_part(f, 5); g
         X + 5
         sage: f - 5*g
@@ -287,7 +287,7 @@ class ComputeMinimalPolynomials(SageObject):
     def find_monic_replacements(self, p, t, pt_generators, prev_nu):
         r"""
         Replace possibly non-monic generators of `N_{(p^t)}(B)` by monic
-        generators
+        generators.
 
         INPUT:
 
@@ -438,6 +438,8 @@ class ComputeMinimalPolynomials(SageObject):
 
     def mccoy_column(self, p, t, nu_t):
         r"""
+        Compute matrix for McCoy's criterion.
+
         INPUT:
 
         - ``p`` -- a prime element in `D`
@@ -449,8 +451,8 @@ class ComputeMinimalPolynomials(SageObject):
         OUTPUT:
 
         An `(n^2 + 1) \times 1` matrix `g` with first entry ``nu_t`` such that
-        `(b -\chi_B I)g \equiv 0\pmod{p^t}` where `b` consists
-        of the entries of `\operatorname{adj}(X-B)`.
+        `\begin{pmatrix}b& -\chi_B I\end{pmatrix}g \equiv 0\pmod{p^t}` where `b`
+        consists of the entries of `\operatorname{adj}(X-B)`.
 
         EXAMPLES::
 
@@ -492,7 +494,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         INPUT:
 
-        - ``p`` -- an integer prime
+        - ``p`` -- an prime in `D`
 
         - ``s_max`` -- a positive integer (Default: ``None``). If set, only
           `(p^t)`-minimal polynomials for ``t <= s_max`` are computed.
@@ -500,12 +502,12 @@ class ComputeMinimalPolynomials(SageObject):
         OUTPUT:
 
         A dictionary. Keys are a finite subset `\mathcal{S}` of the positive
-        integers, the values are the associated `p^s`-polynomials `\nu_s`,
-        `s\in\mathcal{S}`.
+        integers, the values are the associated `(p^s)`-minimal polynomials
+        `\nu_s`, `s\in\mathcal{S}`.
 
         For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is given by
         `\nu_s` where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.  For
-        `t>\max\mathcal{S}`, the minimial polynomial of `B` is also a
+        `t>\max\mathcal{S}`, the minimal polynomial of `B` is also a
         `(p^t)`-minimal polynomial.
 
         If ``s_max`` is set, only those `\nu_s` with ``s <= s_max``

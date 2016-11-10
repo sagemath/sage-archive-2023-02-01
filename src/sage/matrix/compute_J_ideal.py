@@ -526,11 +526,11 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             ------------------------------------------
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            p=2, t=1:
+            p = 2, t = 1:
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             Result of lifting:
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            F=
+            F =
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             [x^2 + x]
             [      x]
@@ -551,7 +551,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, current_nu)
             [x^2 + x]
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            nu=x^2 + x
+            nu = x^2 + x
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             corresponding columns for G
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
@@ -568,11 +568,11 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             ------------------------------------------
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            p=2, t=2:
+            p = 2, t = 2:
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             Result of lifting:
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            F=
+            F =
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             [  2*x^2 + 2*x x^2 + 3*x + 2]
             [          2*x         x + 4]
@@ -593,7 +593,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, current_nu)
             [x^2 + 3*x + 2]
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            nu=x^2 + 3*x + 2
+            nu = x^2 + 3*x + 2
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             corresponding columns for G
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
@@ -610,11 +610,11 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             ------------------------------------------
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            p=2, t=3:
+            p = 2, t = 3:
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             Result of lifting:
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            F=
+            F =
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             [x^3 + 7*x^2 + 6*x x^3 + 3*x^2 + 2*x]
             [        x^2 + 8*x         x^2 + 4*x]
@@ -637,7 +637,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, current_nu)
             [x^3 + 7*x^2 + 6*x]
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            nu=x^3 + 7*x^2 + 6*x
+            nu = x^3 + 7*x^2 + 6*x
             {2: x^2 + 3*x + 2}
             sage: set_verbose(0)
             sage: C.p_minimal_polynomials(2, s_max=1)
@@ -658,15 +658,15 @@ class ComputeMinimalPolynomials(SageObject):
             deg_prev_nu = nu.degree()
             t += 1
             verbose("------------------------------------------")
-            verbose("p=%s, t=%s:" % (p, t))
+            verbose("p = %s, t = %s:" % (p, t))
 
             verbose("Result of lifting:")
-            verbose("F=")
+            verbose("F =")
             verbose(lifting(p, t, self._A, G))
 
             nu = self.current_nu(p, t, list(lifting(p, t, self._A, G)[0]), nu)
 
-            verbose("nu=%s" % nu)
+            verbose("nu = %s" % nu)
             if nu.degree() >= deg_mu:
                 return p_min_polys
 

@@ -1,1 +1,5 @@
 * Check every methods about limitations in the ring case (and correction of the docstring)
+
+* Fix date formatting 2016-11-01
+
+* Properly call super classes

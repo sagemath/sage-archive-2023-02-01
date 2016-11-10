@@ -285,7 +285,7 @@ class ComputeMinimalPolynomials(SageObject):
 
     def find_monic_replacements(self, p, t, pt_generators, prev_nu):
         r"""
-        Replace possibly non-monic generators of `N_{p^t}(B)` by monic
+        Replace possibly non-monic generators of `N_{(p^t)}(B)` by monic
         generators
 
         INPUT:
@@ -295,14 +295,14 @@ class ComputeMinimalPolynomials(SageObject):
         - ``t`` -- a non-negative integer
 
         - ``pt_generators`` -- a list `(g_1, \ldots, g_s)` of polynomials in
-          `D[X]` such that `N_{p^t}(B) = (g_1, \ldots, g_s) + pN_{p^{t-1}}(B)`.
+          `D[X]` such that `N_{(p^t)}(B) = (g_1, \ldots, g_s) + pN_{(p^{t-1})}(B)`.
 
         - ``prev_nu`` -- a `(p^{t-1})`-minimal polynomial of `B`.
 
         OUTPUT:
 
         A list `(h_1, \ldots, h_r)` of monic polynomials such that
-        `N_{p^t}(B) = (h_1, \ldots, h_r) + pN_{p^{t-1}}(B)`.
+        `N_{(p^t)}(B) = (h_1, \ldots, h_r) + pN_{(p^{t-1})}(B)`.
 
         EXAMPLES::
 
@@ -319,19 +319,19 @@ class ComputeMinimalPolynomials(SageObject):
             sage: C.find_monic_replacements(2, 3, generators_4, nu_1)
             Traceback (most recent call last):
             ...
-            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] are not in N_{2^3}(B)
+            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] are not in N_{(2^3)}(B)
             sage: C.find_monic_replacements(2, 2, generators_4, x^2)
             Traceback (most recent call last):
             ...
-            ValueError: x^2 is not in N_{2^1}(B)
+            ValueError: x^2 is not in N_{(2^1)}(B)
         """
         if not all((g(self._B) % p**t).is_zero()
                    for g in pt_generators):
-            raise ValueError("%s are not in N_{%s^%s}(B)" %
+            raise ValueError("%s are not in N_{(%s^%s)}(B)" %
                              (pt_generators, p, t))
 
         if not (prev_nu(self._B) % p**(t-1)).is_zero():
-            raise ValueError("%s is not in N_{%s^%s}(B)" % (prev_nu, p, t-1))
+            raise ValueError("%s is not in N_{(%s^%s)}(B)" % (prev_nu, p, t-1))
 
         (X,) = self._ZX.gens()
 
@@ -369,7 +369,7 @@ class ComputeMinimalPolynomials(SageObject):
         - ``t`` -- a positive integer
 
         - ``pt_generators`` -- a list `(g_1, \ldots, g_s)` of polynomials in
-          `D[X]` such that `N_{p^t}(B) = (g_1, \ldots, g_s) + pN_{p^{t-1}}(B)`.
+          `D[X]` such that `N_{(p^t)}(B) = (g_1, \ldots, g_s) + pN_{(p^{t-1})}(B)`.
 
         - ``prev_nu`` -- a `(p^{t-1})`-minimal polynomial of `B`.
 
@@ -392,19 +392,19 @@ class ComputeMinimalPolynomials(SageObject):
             sage: C.current_nu(2, 3, generators_4, nu_1)
             Traceback (most recent call last):
             ...
-            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] are not in N_{2^3}(B)
+            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] are not in N_{(2^3)}(B)
             sage: C.current_nu(2, 2, generators_4, x^2)
             Traceback (most recent call last):
             ...
-            ValueError: x^2 is not in N_{2^1}(B)
+            ValueError: x^2 is not in N_{(2^1)}(B)
         """
         if not all((g(self._B) % p**t).is_zero()
                    for g in pt_generators):
-            raise ValueError("%s are not in N_{%s^%s}(B)" %
+            raise ValueError("%s are not in N_{(%s^%s)}(B)" %
                              (pt_generators, p, t))
 
         if not (prev_nu(self._B) % p**(t-1)).is_zero():
-            raise ValueError("%s is not in N_{%s^%s}(B)" % (prev_nu, p, t-1))
+            raise ValueError("%s is not in N_{(%s^%s)}(B)" % (prev_nu, p, t-1))
 
         generators = self.find_monic_replacements(p, t, pt_generators, prev_nu)
 
@@ -686,7 +686,7 @@ class ComputeMinimalPolynomials(SageObject):
 
     def null_ideal(self, b=0):
         r"""
-        Return the `(b)`-ideal `N_{b}(B)=\{ f\in D[X] \mid f(B)\in M_n(bD)\}`.
+        Return the `(b)`-ideal `N_{(b)}(B)=\{ f\in D[X] \mid f(B)\in M_n(bD)\}`.
 
         INPUT:
 

@@ -23,7 +23,7 @@ AUTHORS:
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
 from sage.libs.gsl.all cimport *
-import sage.gsl.interpolation
+import sage.libs.gsl.interpolation
 
 
 cdef class PyFunctionWrapper:
@@ -307,11 +307,11 @@ class ode_solver(object):
     .. code-block:: cython
 
           %cython
-          cimport sage.gsl.ode
-          import sage.gsl.ode
+          cimport sage.libs.gsl.ode
+          import sage.libs.gsl.ode
           from sage.libs.gsl.all cimport *
 
-          cdef class van_der_pol(sage.gsl.ode.ode_system):
+          cdef class van_der_pol(sage.libs.gsl.ode.ode_system):
               cdef int c_f(self,double t, double *y,double *dydt):
                   dydt[0]=y[1]
                   dydt[1]=-y[0]-1000*y[1]*(y[0]*y[0]-1)
@@ -360,7 +360,7 @@ class ode_solver(object):
 
     def interpolate_solution(self,i=0):
         pts = [(t,y[i]) for t,y in self.solution]
-        return sage.gsl.interpolation.spline(pts)
+        return sage.libs.gsl.interpolation.spline(pts)
 
     def plot_solution(self, i=0, filename=None, interpolate=False, **kwds):
         r"""

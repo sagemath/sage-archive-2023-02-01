@@ -146,7 +146,7 @@ from sage.homology.all   import *
 
 from sage.quadratic_forms.all import *
 
-from sage.gsl.all        import *
+from sage.libs.gsl.all   import *
 
 from sage.games.all      import *
 

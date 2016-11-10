@@ -199,7 +199,7 @@ class DefiniteIntegral(BuiltinFunction):
             sage: integrate(x^2.7 * e^(-2.4*x), x, 0, 3).n()
             0.154572952320790
         """
-        from sage.gsl.integration import numerical_integral
+        from sage.libs.gsl.integration import numerical_integral
         # The gsl routine returns a tuple, which also contains the error.
         # We only return the result.
         return numerical_integral(f, a, b)[0]
@@ -347,7 +347,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
        - 'mathematica_free' - use http://integrals.wolfram.com/
 
-       - 'fricas' - use FriCAS (the optional fricas spkg has to be installed) 
+       - 'fricas' - use FriCAS (the optional fricas spkg has to be installed)
 
     To prevent automatic evaluation use the ``hold`` argument.
 

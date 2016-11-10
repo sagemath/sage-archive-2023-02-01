@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from .fft import FastFourierTransform, FFT
+from .fast_fourier_transform import FastFourierTransform, FFT
 
 from .interpolation import spline, Spline
 from .dwt import WaveletTransform,DWT

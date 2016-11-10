@@ -37,11 +37,11 @@ from sage.rings.all import CDF
 
 from sage.arith.srange import srange
 
-from sage.gsl.interpolation import spline
+from sage.libs.gsl.interpolation import spline
 
 from sage.plot.complex_plot import ComplexPlot
 
-from sage.gsl.integration import numerical_integral
+from sage.libs.gsl.integration import numerical_integral
 
 
 import numpy as np

@@ -42,6 +42,6 @@ REFERENCES:
 
 from sage.misc.superseded import deprecation
 deprecation(9084, "the module sage.gsl.probability_distribution has moved"
-            " to the package sage.probability")
+            " to sage.probability.probability_distribution")
 
 from sage.probability.probability_distribution import *

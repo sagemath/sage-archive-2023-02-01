@@ -494,7 +494,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         INPUT:
 
-        - ``p`` -- an prime in `D`
+        - ``p`` -- a prime in `D`
 
         - ``s_max`` -- a positive integer (Default: ``None``). If set, only
           `(p^t)`-minimal polynomials for ``t <= s_max`` are computed.

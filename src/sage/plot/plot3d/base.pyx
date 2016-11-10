@@ -379,6 +379,9 @@ cdef class Graphics3d(SageObject):
         options['opacity'] = float(kwds.get('opacity', 1))
         options['thickness'] = float(kwds.get('thickness', 1))
 
+        if not options['frame']:
+            options['axes_labels'] = False
+
         lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
 
         b = self.bounding_box()

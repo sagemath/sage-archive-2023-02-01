@@ -3053,7 +3053,7 @@ def HigmanSimsGraph(relabel=True):
         sage: K.is_isomorphic(A) and K.is_isomorphic(B)
         True
         sage: C = H.subgraph(range(25,75))
-        sage: D = H.subgraph(range(0,25)+range(75,100))
+        sage: D = H.subgraph(list(range(0,25))+list(range(75,100)))
         sage: K.is_isomorphic(C) and K.is_isomorphic(D)
         True
 

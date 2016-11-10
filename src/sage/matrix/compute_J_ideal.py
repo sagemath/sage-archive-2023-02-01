@@ -642,6 +642,10 @@ class ComputeMinimalPolynomials(SageObject):
             sage: set_verbose(0)
             sage: C.p_minimal_polynomials(2, s_max=1)
             {1: x^2 + x}
+            sage: C.p_minimal_polynomials(2, s_max=2)
+            {2: x^2 + 3*x + 2}
+            sage: C.p_minimal_polynomials(2, s_max=3)
+            {2: x^2 + 3*x + 2}
         """
 
         mu_B = self._B.minimal_polynomial()

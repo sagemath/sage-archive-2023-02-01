@@ -2518,7 +2518,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         """
         if not self.is_constant():
             raise ValueError('{} is not constant.'.format(self))
-        return ZZ(self.dict().get(ETuple((0,)*len(self.parent().gens())), 0))
+        return ZZ(self.dict().get(ETuple({}, len(self.parent().gens())), 0))
 
     def _rational_(self):
         r"""
@@ -2545,7 +2545,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if not self.is_constant():
             raise ValueError('{} is not constant.'.format(self))
         from sage.rings.rational_field import QQ
-        return QQ(self.dict().get(ETuple((0,)*len(self.parent().gens())), 0))
+        return QQ(self.dict().get(ETuple({}, len(self.parent().gens())), 0))
 
     def _symbolic_(self, R):
         """

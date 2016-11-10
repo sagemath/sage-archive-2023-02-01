@@ -21,7 +21,7 @@ through an infinite valuation on `K[x]` which maps `G` to infinity::
 
 AUTHORS:
 
-- Julian Rüth (10-11-2016): initial version
+- Julian Rüth (2016-11-10): initial version
 
 """
 #*****************************************************************************

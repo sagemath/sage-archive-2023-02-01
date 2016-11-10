@@ -7,7 +7,7 @@ defined by a `\phi`-adic expansion.
 
 AUTHORS:
 
-- Julian Rüth (15-04-2013): initial version
+- Julian Rüth (2013-04-15): initial version
 
 """
 #*****************************************************************************

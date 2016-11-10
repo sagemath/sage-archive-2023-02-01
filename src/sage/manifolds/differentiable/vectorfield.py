@@ -859,6 +859,23 @@ class VectorField(TensorField):
                 resu = set_axes_labels(resu, *labels)
         return resu
 
+    def bracket(self, other):
+        """
+        Return the Lie bracket ``[self, other]``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure='smooth')
+            sage: X.<x,y,z> = M.chart()
+            sage: v = -X.frame()[0] + 2*X.frame()[1] - (x^2 - y)*X.frame()[2]
+            sage: w = (z + y) * X.frame()[1] - X.frame()[2]
+            sage: vw = v.bracket(w); vw
+            Vector field on the 3-dimensional differentiable manifold M
+            sage: vw.display()
+            (-x^2 + y + 2) d/dy + (-y - z) d/dz
+        """
+        return other.lie_der(self)
+
 #******************************************************************************
 
 class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal, VectorField):

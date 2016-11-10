@@ -512,16 +512,16 @@ class DiffMap(ContinuousMap):
 
     def differential(self, point):
         r"""
-        Return the differential of the differentiable map at a given point.
+        Return the differential of ``self`` at a given point.
 
         If the differentiable map is
 
         .. MATH::
 
-            \Phi: M \longrightarrow N
+            \Phi: M \longrightarrow N,
 
-        where `M` and `N` are differentiable manifolds, the *differential* of
-        `\Phi` at a point `p\in M` is the tangent space linear map:
+        where `M` and `N` are differentiable manifolds, the *differential*
+        of `\Phi` at a point `p \in M` is the tangent space linear map:
 
         .. MATH::
 
@@ -532,20 +532,19 @@ class DiffMap(ContinuousMap):
         .. MATH::
 
             \begin{array}{rccc}
-            \forall v\in T_p M,\quad \mathrm{d}\Phi_p(v) : & C^k(N) &
-                                                \longrightarrow & \mathbb{R} \\
+            \forall v\in T_p M,\quad \mathrm{d}\Phi_p(v) :
+                                & C^k(N) & \longrightarrow & \mathbb{R} \\
                                 & f & \longmapsto & v(f\circ \Phi)
             \end{array}
 
         INPUT:
 
-        - ``point`` -- point `p` in the domain `M` of the differentiable map
-          `\Phi`
+        - ``point`` -- point `p` in the domain `M` of the differentiable
+          map `\Phi`
 
         OUTPUT:
 
-        - `\mathrm{d}\Phi_p`, the differential of `\Phi` at `p`, as an
-          instance of
+        - `\mathrm{d}\Phi_p`, the differential of `\Phi` at `p`, as a
           :class:`~sage.tensor.modules.free_module_morphism.FiniteRankFreeModuleMorphism`
 
         EXAMPLES:
@@ -586,6 +585,7 @@ class DiffMap(ContinuousMap):
         tsp_source = point._manifold.tangent_space(point)
         # Search for a common chart to perform the computation
         chartp = None
+
         # 1/ Search without any extra computation
         for chart in point._coordinates:
             for chart_pair in self._diff:
@@ -602,6 +602,7 @@ class DiffMap(ContinuousMap):
                     chartp = chart_pair
                 except ValueError:
                     pass
+
         if chartp is None:
             # 3/ Search with a coordinate evaluation of self
             for chart1 in point._coordinates:
@@ -614,9 +615,11 @@ class DiffMap(ContinuousMap):
                         pass
                 if chartp is not None:
                     break
+
         if chartp is None:
             raise ValueError("no common chart have been found for the " +
                      "coordinate expressions of {} and {}".format(self, point))
+
         diff_funct = self.differential_functions(*chartp)
         chart1 = chartp[0]
         chart2 = chartp[1]
@@ -624,19 +627,19 @@ class DiffMap(ContinuousMap):
         n1 = self._domain.dim()
         n2 = self._codomain.dim()
         matrix = [[diff_funct[i][j](*coord_point) for j in range(n1)]
-                                                            for i in range(n2)]
+                  for i in range(n2)]
         bases = (chart1.frame().at(point), chart2.frame().at(image_point))
         if self._name is not None and point._name is not None:
-            name = 'd' + self._name + '_' + point._name
+            name = 'd%s_%s'%(self._name, point._name)
         else:
             name = None
         if self._latex_name is not None and point._latex_name is not None:
-            latex_name = r'\mathrm{d}' + self._latex_name + r'_{' + \
-                         point._latex_name + '}'
+            latex_name = r'\mathrm{d}%s_{%s}'%(self._latex_name,
+                                               point._latex_name)
         else:
             latex_name = None
-        return tsp_source.hom(tsp_image, matrix, bases=bases, name=name,
-                              latex_name=latex_name)
+        return tsp_source.hom(tsp_image, matrix, bases=bases,
+                              name=name, latex_name=latex_name)
 
     def differential_functions(self, chart1=None, chart2=None):
         r"""

@@ -1654,7 +1654,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     def at(self, point):
         r"""
-        Value of the tensor field at a point of its domain.
+        Value of ``self`` at a point of its domain.
 
         If the current tensor field is
 
@@ -1666,22 +1666,20 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         .. MATH::
 
-            \Phi:\ U \longrightarrow M
+            \Phi:\ U \longrightarrow M,
 
-        where `U` and `M` are two manifolds (possibly `U=M` and
-        `\Phi=\mathrm{Id}_M`), then for any point `p\in U`, `t(p)` is a tensor
-        on the tangent space to `M` at the point `\Phi(p)`.
+        where `U` and `M` are two manifolds (possibly `U = M` and
+        `\Phi = \mathrm{Id}_M`), then for any point `p\in U`, `t(p)` is
+        a tensor on the tangent space to `M` at the point `\Phi(p)`.
 
         INPUT:
 
-        - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in the
-          domain of the tensor field (`U`)
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`
+          point `p` in the domain of the tensor field `U`
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
+        - :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
           representing the tensor `t(p)` on the tangent vector space
           `T_{\Phi(p)} M`
 
@@ -1718,8 +1716,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: wp.display()
             w = 2 dx + 4 dy
 
-        A tensor field of type (1,1) yields a tensor of type(1,1) in the
-        tangent space::
+        A tensor field of type `(1,1)` yields a tensor of type `(1,1)`
+        in the tangent space::
 
             sage: t = M.tensor_field(1, 1, name='t')
             sage: t[0,0], t[0,1], t[1,1] = 1+x, x*y, 1-y
@@ -1788,3 +1786,4 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             for ind, val in comp._comp.items():
                 comp_resu._comp[ind] = val(point)
         return resu
+

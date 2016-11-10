@@ -2899,7 +2899,7 @@ class TensorField(ModuleElement):
 
     def at(self, point):
         r"""
-        Value of the tensor field at a point of its domain.
+        Value of ``self`` at a point of its domain.
 
         If the current tensor field is
 
@@ -2911,22 +2911,20 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-            \Phi:\ U \longrightarrow M
+            \Phi:\ U \longrightarrow M,
 
-        where `U` and `M` are two manifolds (possibly `U=M` and
-        `\Phi=\mathrm{Id}_M`), then for any point `p\in U`, `t(p)` is a tensor
-        on the tangent space to `M` at the point `\Phi(p)`.
+        where `U` and `M` are two manifolds (possibly `U = M` and
+        `\Phi = \mathrm{Id}_M`), then for any point `p \in U`, `t(p)`
+        is a tensor on the tangent space to `M` at the point `\Phi(p)`.
 
         INPUT:
 
-        - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in the
-          domain of the tensor field (`U`)
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` in the domain of the tensor field `U`
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
+        - :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
           representing the tensor `t(p)` on the tangent vector space
           `T_{\Phi(p)} M`
 
@@ -2974,3 +2972,4 @@ class TensorField(ModuleElement):
         for dom, rst in self._restrictions.items():
             if point in dom:
                 return rst.at(point)
+

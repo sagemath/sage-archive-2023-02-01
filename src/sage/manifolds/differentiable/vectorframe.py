@@ -872,23 +872,20 @@ class VectorFrame(FreeModuleBasis):
 
     def at(self, point):
         r"""
-        Return the value of the frame at a given point, i.e. a basis of the
-        tangent vector space.
+        Return the value of ``self`` at a given point,
+        i.e. a basis of the tangent vector space.
 
         INPUT:
 
-        - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in
-          the domain `U` of the vector frame (denoted `e` hereafter)
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`; point
+          `p` in the domain `U` of the vector frame (denoted `e` hereafter)
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`
+        - :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`
           representing the basis `e(p)` of the tangent vector space
-          `T_{\Phi(p)} M`, where `\Phi: U \rightarrow M` is
-          the differentiable map associated with `e` (possibly
-          `\Phi = \mathrm{Id}_U`)
+          `T_{\Phi(p)} M`, where `\Phi: U \to M` is the differentiable
+          associated with `e` (possibly `\Phi = \mathrm{Id}_U`)
 
         EXAMPLES:
 
@@ -938,9 +935,9 @@ class VectorFrame(FreeModuleBasis):
              Basis (f_0,f_1) on the Tangent space at Point p on the
              2-dimensional differentiable manifold M]
 
-        Moreover, the changes of bases in the tangent space have been computed
-        from the known relation between the frames ``e`` and ``f``
-        (field of automorphisms ``aut`` defined above)::
+        Moreover, the changes of bases in the tangent space have been
+        computed from the known relation between the frames ``e`` and
+        ``f`` (field of automorphisms ``aut`` defined above)::
 
             sage: Tp.change_of_basis(ep, fp)
             Automorphism of the Tangent space at Point p on the 2-dimensional
@@ -974,19 +971,21 @@ class VectorFrame(FreeModuleBasis):
         # Case of a non-trivial destination map
         if self._from_frame is not None:
             if self._dest_map.is_identity():  #!# probably not necessary
-                raise ValueError("the destination map should not be the " +
-                                 "identity")
+                raise ValueError("the destination map should not be the identity")
             ambient_point = self._dest_map(point)
             return self._from_frame.at(ambient_point)
+
         # Determination of the tangent space:
         if point not in self._domain:
             raise ValueError("the {} is not a point in the ".format(point) +
                              "domain of {}".format(self))
+
         if self._dest_map.is_identity():
             ambient_point = point
         else:
             ambient_point = self._dest_map(point)
         ts = ambient_point._manifold.tangent_space(ambient_point)
+
         # If the basis has already been constructed, it is simply returned:
         ts_frame_bases = ts._frame_bases
         if self in ts_frame_bases:
@@ -994,37 +993,34 @@ class VectorFrame(FreeModuleBasis):
         for frame in ts_frame_bases:
             if self in frame._subframes or self in frame._superframes:
                 return ts_frame_bases[frame]
+
         # If this point is reached, the basis has to be constructed from
         # scratch:
         basis = ts.basis(symbol=self._symbol, latex_symbol=self._latex_symbol)
         # Names of basis vectors set to those of the frame vector fields:
         n = ts.dim()
-        for i in range(n):
-            basis._vec[i]._name = self._vec[i]._name
-            basis._vec[i]._latex_name = self._vec[i]._latex_name
-        basis._name = "(" + \
-                ",".join([basis._vec[i]._name for i in range(n)]) + ")"
-        basis._latex_name = r"\left(" + \
-             ",".join([basis._vec[i]._latex_name for i in range(n)])+ \
-             r"\right)"
+        for i,v in enumerate(self._vec):
+            basis._vec[i]._name = v._name
+            basis._vec[i]._latex_name = v._latex_name
+        basis._name = "({})".format(",".join([v._name for v in basis._vec]))
+        basis._latex_name = r"\left({}\right)".format(",".join([v._latex_name
+                                                                for v in basis._vec]))
         basis._symbol = basis._name
         basis._latex_symbol = basis._latex_name
         # Names of cobasis linear forms set to those of the coframe
         # 1-forms:
         coframe = self.coframe()
         cobasis = basis.dual_basis()
-        for i in range(n):
-            cobasis._form[i]._name = coframe._form[i]._name
-            cobasis._form[i]._latex_name = coframe._form[i]._latex_name
-        cobasis._name = "(" + \
-             ",".join([cobasis._form[i]._name for i in range(n)]) + ")"
-        cobasis._latex_name = r"\left(" + \
-          ",".join([cobasis._form[i]._latex_name for i in range(n)])+ \
-          r"\right)"
+        for i,form in enumerate(coframe._form):
+            cobasis._form[i]._name = form._name
+            cobasis._form[i]._latex_name = form._latex_name
+        cobasis._name = "({})".format(",".join([cb._name for cb in cobasis._form]))
+        cobasis._latex_name = r"\left({}\right)".format(",".join([f._latex_name
+                                                                  for f in cobasis._form]))
         ts_frame_bases[self] = basis
         # Update of the change of bases in the tangent space:
         for frame_pair, automorph in self._domain._frame_changes.items():
-            frame1 = frame_pair[0] ; frame2 = frame_pair[1]
+            frame1 = frame_pair[0]; frame2 = frame_pair[1]
             if frame1 is self:
                 fr2 = None
                 for frame in ts_frame_bases:
@@ -1366,25 +1362,22 @@ class CoFrame(FreeModuleCoBasis):
         """
         return "Coframe " + self._name
 
-
     def at(self, point):
         r"""
-        Return the value of the coframe at a given point on the manifold, i.e.
-        a basis of the dual of the tangent space at the point.
+        Return the value of ``self`` at a given point on the manifold,
+        i.e. a basis of the dual of the tangent space at the point.
 
         INPUT:
 
-        - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in
-          the domain `U` of the coframe (denoted `f` hereafter)
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` in the domain `U` of the coframe (denoted `f` hereafter)
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.tensor.modules.free_module_basis.FreeModuleCoBasis`
+        - :class:`~sage.tensor.modules.free_module_basis.FreeModuleCoBasis`
           representing the basis `f(p)` of the vector space `T^*_{\Phi(p)} M`,
           dual to the tangent space `T_{\Phi(p)} M`, where
-          `\Phi: U \rightarrow M` is the differentiable map associated with
+          `\Phi: U \to M` is the differentiable map associated with
           the coframe (possibly `\Phi = \mathrm{Id}_U`)
 
         EXAMPLES:

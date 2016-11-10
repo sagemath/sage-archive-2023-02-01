@@ -1153,36 +1153,32 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     def at(self, point):
         r"""
-        Value of the field of tangent-space automorphisms at a given point.
+        Value of ``self`` at a given point.
 
         If the current field of tangent-space automorphisms is
 
         .. MATH::
 
-            a:\ U  \longrightarrow T^{(1,1)} M
+            a:\ U \longrightarrow T^{(1,1)} M
 
         associated with the differentiable map
 
         .. MATH::
 
-            \Phi:\ U \longrightarrow M
+            \Phi:\ U \longrightarrow M,
 
-        where `U` and `M` are two manifolds (possibly `U=M` and
-        `\Phi=\mathrm{Id}_M`), then for any point `p\in U`, `a(p)` is an
-        automorphism of the tangent space `T_{\Phi(p)}M`.
+        where `U` and `M` are two manifolds (possibly `U = M` and
+        `\Phi = \mathrm{Id}_M`), then for any point `p \in U`,
+        `a(p)` is an automorphism of the tangent space `T_{\Phi(p)}M`.
 
         INPUT:
 
-        - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` in the
-          domain of the field of automorphisms `a`
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` in the domain of the field of automorphisms `a`
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
-          representing the automorphism `a(p)` of the tangent vector space
-          `T_{\Phi(p)}M`
+        - the automorphism `a(p)` of the tangent vector space `T_{\Phi(p)}M`
 
         EXAMPLES:
 
@@ -1242,3 +1238,4 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             for ind, val in comp._comp.items():
                 comp_resu._comp[ind] = val(point)
         return resu
+

@@ -32,22 +32,14 @@ class TangentSpace(FiniteRankFreeModule):
     r"""
     Tangent space to a differentiable manifold at a given point.
 
-    Let `M` be a differentiable manifold of dimension `n` over a topological
-    field `K` and `p\in M`. Since the tangent space `T_p M`  is a
-    `n`-dimensional vector space over `K` without any distinguished basis,
-    the class :class:`TangentSpace` inherits from
-    :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`,
-    which implements free modules of finite rank (hence vector spaces of finite
-    dimension) without any distinguished basis.
-
-    This is a Sage *parent* class, the corresponding *element* class being
-    :class:`~sage.manifolds.differentiable.tangent_vector.TangentVector`.
+    Let `M` be a differentiable manifold of dimension `n` over a
+    topological field `K` and `p \in M`. The tangent space `T_p M` is an
+    `n`-dimensional vector space over `K` (without a distinguished basis).
 
     INPUT:
 
-    - ``point`` -- (instance of
-      :class:`~sage.manifolds.point.ManifoldPoint`) point `p` at which the
-      tangent space is defined.
+    - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+      point `p` at which the tangent space is defined
 
     EXAMPLES:
 
@@ -59,18 +51,10 @@ class TangentSpace(FiniteRankFreeModule):
         sage: Tp = M.tangent_space(p) ; Tp
         Tangent space at Point p on the 2-dimensional differentiable manifold M
 
-    Tangent spaces actually belong to a dynamically generated subclass of
-    :class:`TangentSpace`::
+    Tangent spaces are free modules of finite rank over :class:`SymbolicRing`
+    (actually vector spaces of finite dimension over the manifold base
+    field `K`, with `K=\RR` here)::
 
-        sage: type(Tp)
-        <class 'sage.manifolds.differentiable.tangent_space.TangentSpace_with_category'>
-
-    They are free modules of finite rank over Sage's Symbolic Ring (actually
-    vector spaces of finite dimension over the manifold base field `K`, with
-    `K=\RR` here)::
-
-        sage: isinstance(Tp, FiniteRankFreeModule)
-        True
         sage: Tp.base_ring()
         Symbolic Ring
         sage: Tp.category()
@@ -111,8 +95,7 @@ class TangentSpace(FiniteRankFreeModule):
         sage: Tp in ModulesWithBasis(SR)
         False
 
-    It is simply in the category of modules, as any instance of
-    :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`::
+    It is simply in the category of modules::
 
         sage: Tp in Modules(SR)
         True
@@ -126,23 +109,24 @@ class TangentSpace(FiniteRankFreeModule):
     A typical element::
 
         sage: v = Tp.an_element() ; v
-        Tangent vector at Point p on the 2-dimensional differentiable
-         manifold M
+        Tangent vector at Point p on the
+         2-dimensional differentiable manifold M
         sage: v.display()
         d/dx + 2 d/dy
         sage: v.parent()
-        Tangent space at Point p on the 2-dimensional differentiable
-         manifold M
+        Tangent space at Point p on the
+         2-dimensional differentiable manifold M
 
     The zero vector::
 
         sage: Tp.zero()
-        Tangent vector zero at Point p on the 2-dimensional differentiable
-         manifold M
+        Tangent vector zero at Point p on the
+         2-dimensional differentiable manifold M
         sage: Tp.zero().display()
         zero = 0
         sage: Tp.zero().parent()
-        Tangent space at Point p on the 2-dimensional differentiable manifold M
+        Tangent space at Point p on the
+         2-dimensional differentiable manifold M
 
     Tangent spaces are unique::
 
@@ -161,13 +145,6 @@ class TangentSpace(FiniteRankFreeModule):
     compare equal::
 
         sage: p1 == p
-        True
-
-    This results from the unique representation behavior of the class
-    :class:`TangentSpace`, which is inherited from
-    :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`::
-
-        sage: isinstance(Tp, UniqueRepresentation)
         True
 
     The tangent-space uniqueness holds even if the points are created in
@@ -189,7 +166,6 @@ class TangentSpace(FiniteRankFreeModule):
         for more documentation.
 
     """
-
     Element = TangentVector
 
     def __init__(self, point):
@@ -209,9 +185,8 @@ class TangentSpace(FiniteRankFreeModule):
 
         """
         manif = point._manifold
-        name = "T_" + str(point._name) + " " + str(manif._name)
-        latex_name = r"T_{" + str(point._latex_name) + "}\," + \
-                     str(manif._latex_name)
+        name = "T_{} {}".format(point._name, manif._name)
+        latex_name = r"T_{%s}\,%s"%(point._latex_name, manif._latex_name)
         self._point = point
         self._manif = manif
         FiniteRankFreeModule.__init__(self, SR, manif._dim, name=name,
@@ -219,38 +194,34 @@ class TangentSpace(FiniteRankFreeModule):
                                       start_index=manif._sindex)
         # Initialization of bases of the tangent space from existing vector
         # frames around the point:
-        self._frame_bases = {} # dictionary of bases of the tangent vector
-                               # derived from vector frames (keys: vector
-                               # frames)
+
+        # dictionary of bases of the tangent vector derived from vector
+        # frames (keys: vector frames)
+        self._frame_bases = {}
         for frame in point.parent()._top_frames:
             if point in frame._domain:
                 basis = self.basis(symbol=frame._symbol,
                                    latex_symbol=frame._latex_symbol)
                 # Names of basis vectors set to those of the frame vector
                 # fields:
-                n = manif._dim
-                for i in range(n):
-                    basis._vec[i]._name = frame._vec[i]._name
-                    basis._vec[i]._latex_name = frame._vec[i]._latex_name
-                basis._name = "(" + \
-                        ",".join([basis._vec[i]._name for i in range(n)]) + ")"
-                basis._latex_name = r"\left(" + \
-                     ",".join([basis._vec[i]._latex_name for i in range(n)])+ \
-                     r"\right)"
+                for i,v in enumerate(frame._vec):
+                    basis._vec[i]._name = v._name
+                    basis._vec[i]._latex_name = v._latex_name
+                basis._name = "({})".format(",".join(v._name for v in basis._vec))
+                basis._latex_name = r"\left({}\right)".format(
+                                 ",".join(v._latex_name for v in basis._vec))
                 basis._symbol = basis._name
                 basis._latex_symbol = basis._latex_name
                 # Names of cobasis linear forms set to those of the coframe
                 # 1-forms:
                 coframe = frame.coframe()
                 cobasis = basis.dual_basis()
-                for i in range(n):
-                    cobasis._form[i]._name = coframe._form[i]._name
-                    cobasis._form[i]._latex_name = coframe._form[i]._latex_name
-                cobasis._name = "(" + \
-                     ",".join([cobasis._form[i]._name for i in range(n)]) + ")"
-                cobasis._latex_name = r"\left(" + \
-                  ",".join([cobasis._form[i]._latex_name for i in range(n)])+ \
-                  r"\right)"
+                for i,f in enumerate(coframe._form):
+                    cobasis._form[i]._name = f._name
+                    cobasis._form[i]._latex_name = f._latex_name
+                cobasis._name = "({})".format(",".join(f._name for f in cobasis._form))
+                cobasis._latex_name = r"\left({}\right)".format(
+                             ",".join(f._latex_name for f in cobasis._form))
                 self._frame_bases[frame] = basis
         # The basis induced by the default frame of the manifold subset
         # in which the point has been created is declared the default
@@ -262,7 +233,7 @@ class TangentSpace(FiniteRankFreeModule):
         # frames around the point:
         for frame_pair, automorph in point.parent()._frame_changes.items():
             if point in automorph.domain():
-                frame1 = frame_pair[0] ; frame2 = frame_pair[1]
+                frame1, frame2 = frame_pair[0], frame_pair[1]
                 fr1, fr2 = None, None
                 for frame in self._frame_bases:
                     if frame1 in frame._subframes:
@@ -293,28 +264,26 @@ class TangentSpace(FiniteRankFreeModule):
 
     def _repr_(self):
         r"""
-        String representation of the object.
+        String representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((3,-2), name='p')
             sage: Tp = M.tangent_space(p)
-            sage: Tp._repr_()
-            'Tangent space at Point p on the 2-dimensional differentiable manifold M'
-            sage: repr(Tp)  # indirect doctest
-            'Tangent space at Point p on the 2-dimensional differentiable manifold M'
+            sage: Tp
+            Tangent space at Point p on the
+             2-dimensional differentiable manifold M
 
         """
-        description = "Tangent space at {}".format(self._point)
-        return description
+        return "Tangent space at {}".format(self._point)
 
     def _an_element_(self):
         r"""
-        Construct some (unnamed) vector in the tangent space
+        Construct some (unnamed) vector in ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -334,9 +303,9 @@ class TangentSpace(FiniteRankFreeModule):
 
     def dimension(self):
         r"""
-        Return the vector space dimension of the tangent space.
+        Return the vector space dimension of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -363,9 +332,9 @@ class TangentSpace(FiniteRankFreeModule):
 
     def base_point(self):
         r"""
-        Return the manifold point at which the tangent space is defined.
+        Return the manifold point at which ``self``is defined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -378,3 +347,4 @@ class TangentSpace(FiniteRankFreeModule):
 
         """
         return self._point
+

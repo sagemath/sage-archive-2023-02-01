@@ -2426,22 +2426,20 @@ class DifferentiableManifold(TopologicalManifold):
 
     def tangent_space(self, point):
         r"""
-        Tangent space to the manifold at a given point.
+        Tangent space to ``self`` at a given point.
 
         INPUT:
 
-        - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.ManifoldPoint`) point `p` on the
-          manifold
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` on the manifold
 
         OUTPUT:
 
-        - a
-          :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`
+        - :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`
           representing the tangent vector space `T_{p} M`, where `M` is the
-          current manifold.
+          current manifold
 
-        EXAMPLE:
+        EXAMPLES:
 
         A tangent space to a 2-dimensional manifold::
 
@@ -2469,3 +2467,4 @@ class DifferentiableManifold(TopologicalManifold):
         if point not in self:
             raise ValueError("{} is not a point on the {}".format(point, self))
         return TangentSpace(point)
+

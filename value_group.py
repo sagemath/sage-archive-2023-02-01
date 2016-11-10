@@ -62,6 +62,7 @@ class DiscreteValuationCodomain(UniqueRepresentation, Parent):
         """
         from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
         from sage.categories.additive_monoids import AdditiveMonoids
+        UniqueRepresentation.__init__(self)
         Parent.__init__(self, facade=(QQ, FiniteEnumeratedSet([infinity])), category=AdditiveMonoids())
 
     def _element_constructor_(self, x):
@@ -174,6 +175,7 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
 
         # We can not set the facade to DiscreteValuationCodomain since there
         # are some issues with iterated facades currently
+        UniqueRepresentation.__init__(self)
         Parent.__init__(self, facade=QQ, category=Modules(ZZ))
 
     def _element_constructor_(self, x):

@@ -180,6 +180,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
     
         """
         TrivialDiscretePseudoValuation_base.__init__(self, parent)
+        InfiniteDiscretePseudoValuation.__init__(self, parent)
 
     def _call_(self, x):
         r"""
@@ -315,6 +316,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
     
         """
         TrivialDiscretePseudoValuation_base.__init__(self, parent)
+        DiscreteValuation.__init__(self, parent)
 
     def _call_(self, x):
         r"""

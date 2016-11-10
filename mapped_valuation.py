@@ -139,6 +139,7 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         """
         DiscretePseudoValuation.__init__(self, parent)
+
         self._base_valuation = base_valuation 
 
     def _repr_(self):
@@ -393,7 +394,6 @@ class DomainMappedValuation_base(MappedValuation_base):
             sage: TestSuite(w).run() # long time
 
         """
-        DiscreteValuation.__init__(self, parent)
         MappedValuation_base.__init__(self, parent, base_valuation)
 
         from sage.categories.homset import Hom

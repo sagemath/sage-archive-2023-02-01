@@ -57,6 +57,8 @@ class DevelopingValuation(DiscretePseudoValuation):
             True
 
         """
+        DiscretePseudoValuation.__init__(self, parent)
+
         domain = parent.domain()
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         if not is_PolynomialRing(domain) or not domain.ngens() == 1:
@@ -66,7 +68,6 @@ class DevelopingValuation(DiscretePseudoValuation):
         if phi.is_constant() or not phi.is_monic():
             raise ValueError("phi must be a monic non-constant polynomial but %r is not"%(phi,))
 
-        DiscretePseudoValuation.__init__(self, parent)
         self._phi = phi
 
     def phi(self):

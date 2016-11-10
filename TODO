@@ -1,3 +1,1 @@
 * Check every methods about limitations in the ring case (and correction of the docstring)
-
-* Properly call super classes

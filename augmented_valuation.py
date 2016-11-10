@@ -835,16 +835,29 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
     An augmented valuation which can not be augmented anymore, either because
     it augments a trivial valuation or because it is infinite.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, TrivialValuation(QQ))
         sage: w = v.augmentation(x, 1)
-        sage: isinstance(w, FinalAugmentedValuation)
-        True
 
     """
+    def __init__(self, parent, v, phi, mu):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: w = v.augmentation(x, 1)
+            sage: isinstance(w, FinalAugmentedValuation)
+            True
+
+        """
+        AugmentedValuation_base.__init__(self, parent, v, phi, mu)
+        FinalInductiveValuation.__init__(self, parent, phi)
+
     @cached_method
     def residue_ring(self):
         r"""
@@ -1077,16 +1090,29 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
     r"""
     An augmented valuation which can be augmented further.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x^2 + x + 1, 1)
-        sage: isinstance(w, NonFinalAugmentedValuation)
-        True
 
     """
+    def __init__(self, parent, v, phi, mu):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: isinstance(w, NonFinalAugmentedValuation)
+            True
+
+        """
+        AugmentedValuation_base.__init__(self, parent, v, phi, mu)
+        NonFinalInductiveValuation.__init__(self, parent, phi)
+
     @cached_method
     def residue_ring(self):
         r"""
@@ -1478,17 +1504,31 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
     discrete, or equivalently an augmented valuation which assigns to its last
     key polynomial a finite valuation.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<u> = Qq(4, 5)
         sage: S.<x> = R[]
         sage: v = GaussValuation(S)
         sage: w = v.augmentation(x^2 + x + u, 1/2)
-        sage: isinstance(w, FiniteAugmentedValuation)
-        True
 
     """
+    def __init__(self, parent, v, phi, mu):
+        r"""
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: isinstance(w, FiniteAugmentedValuation)
+            True
+
+        """
+        AugmentedValuation_base.__init__(self, parent, v, phi, mu)
+        FiniteInductiveValuation.__init__(self, parent, phi)
+
     @cached_method
     def value_group(self):
         """
@@ -1555,16 +1595,28 @@ class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValu
     valuation to its last key polynomial, but which can not be further
     augmented.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, TrivialValuation(QQ))
         sage: w = v.augmentation(x, 1)
-        sage: isinstance(w, FinalFiniteAugmentedValuation)
-        True
 
     """
+    def __init__(self, parent, v, phi, mu):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: w = v.augmentation(x, 1)
+            sage: isinstance(w, FinalFiniteAugmentedValuation)
+            True
+
+        """
+        FiniteAugmentedValuation.__init__(self, parent, v, phi, mu)
+        FinalAugmentedValuation.__init__(self, parent, v, phi, mu)
 
 
 class NonFinalFiniteAugmentedValuation(FiniteAugmentedValuation, NonFinalAugmentedValuation):
@@ -1572,16 +1624,28 @@ class NonFinalFiniteAugmentedValuation(FiniteAugmentedValuation, NonFinalAugment
     An augmented valuation which is discrete, i.e., which assigns a finite
     valuation to its last key polynomial, and which can be augmented furter.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x, 1)
-        sage: isinstance(w, NonFinalFiniteAugmentedValuation)
-        True
 
     """
+    def __init__(self, parent, v, phi, mu):
+        r"""
+        TESTS::
+    
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x, 1)
+            sage: isinstance(w, NonFinalFiniteAugmentedValuation)
+            True
+    
+        """
+        FiniteAugmentedValuation.__init__(self, parent, v, phi, mu)
+        NonFinalAugmentedValuation.__init__(self, parent, v, phi, mu)
 
 
 class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValuation):
@@ -1590,16 +1654,29 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
     infinity to its last key polynomial (and which can therefore not be
     augmented further.)
 
-    TESTS::
+    EXAMPLES::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x, infinity)
-        sage: isinstance(w, InfiniteAugmentedValuation)
-        True
 
     """
+    def __init__(self, parent, v, phi, mu):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x, infinity)
+            sage: isinstance(w, InfiniteAugmentedValuation)
+            True
+
+        """
+        FinalAugmentedValuation.__init__(self, parent, v, phi, mu)
+        InfiniteInductiveValuation.__init__(self, parent, phi)
+
     @cached_method
     def value_group(self):
         """

@@ -502,18 +502,59 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
     :class:`GaussValuation` which is a discrete valuation, i.e., the last key
     polynomial has finite valuation.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, TrivialValuation(QQ))
-        sage: isinstance(v, FiniteInductiveValuation)
-        True
 
     """
+    def __init__(self, parent, phi):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: isinstance(v, FiniteInductiveValuation)
+            True
+
+        """
+        InductiveValuation.__init__(self, parent, phi)
+        DiscreteValuation.__init__(self, parent)
 
 
 class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
+    r"""
+    Abstract base class for iterated :class:`AugmentedValuation` on top of a
+    :class:`GaussValuation` which can be extended further through
+    :meth:`augmentation`.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<u> = Qq(4,5)
+        sage: S.<x> = R[]
+        sage: v = GaussValuation(S)
+        sage: v = v.augmentation(x^2 + x + u, 1)
+
+    """
+    def __init__(self, parent, phi):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4,5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v = v.augmentation(x^2 + x + u, 1)
+            sage: isinstance(v, NonFinalInductiveValuation)
+            True
+
+        """
+        FiniteInductiveValuation.__init__(self, parent, phi)
+        DiscreteValuation.__init__(self, parent)
+
     def augmentation(self, phi, mu, check=True):
         r"""
         Return the inductive valuation which extends this valuation by mapping
@@ -1251,16 +1292,28 @@ class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudo
     Abstract base class for an inductive valuation which is not discrete, i.e.,
     which assigns infinite valuation to its last key polynomial.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x^2 + x + 1, infinity)
-        sage: isinstance(w, InfiniteInductiveValuation)
-        True
 
     """
+    def __init__(self, parent, base_valuation):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, infinity)
+            sage: isinstance(w, InfiniteInductiveValuation)
+            True
+
+        """
+        FinalInductiveValuation.__init__(self, parent, base_valuation)
+        InfiniteDiscretePseudoValuation.__init__(self, parent)
 
 
 def _lift_to_maximal_precision(c):

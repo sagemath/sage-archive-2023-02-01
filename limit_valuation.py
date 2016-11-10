@@ -199,6 +199,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
     
         """
         DiscretePseudoValuation.__init__(self, parent)
+
         self._initial_approximation = approximation
         self._approximation = approximation
 
@@ -387,6 +388,8 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
     
         """
         LimitValuation_generic.__init__(self, parent, approximation)
+        InfiniteDiscretePseudoValuation.__init__(self, parent)
+
         self._G = G
 
     def lift(self, F):

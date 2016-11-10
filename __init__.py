@@ -37,7 +37,7 @@ from augmented_valuation import AugmentedValuation
 # local file and the instances that come from the mac_lane import define
 # different types)
 from trivial_valuation import TrivialDiscreteValuation, TrivialDiscretePseudoValuation
-from function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, FunctionFieldFromLimitValuation
+from function_field_valuation import FunctionFieldValuation_base, RationalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, FunctionFieldFromLimitValuation, InfiniteRationalFunctionFieldValuation, FiniteRationalFunctionFieldValuation, NonClassicalRationalFunctionFieldValuation
 from limit_valuation import LimitValuation, MacLaneLimitValuation, LimitValuation_generic
 from mapped_valuation import MappedValuation_base, FiniteExtensionFromLimitValuation, FiniteExtensionFromInfiniteValuation, DomainMappedValuation_base, DomainMappedValuation, DomainMappedDiscreteValuation
 from augmented_valuation import FiniteAugmentedValuation, InfiniteAugmentedValuation
@@ -46,7 +46,7 @@ from valuation import DiscretePseudoValuation, DiscreteValuation, InfiniteDiscre
 from padic_valuation import pAdicValuation_base, pAdicValuation_int, pAdicValuation_padic, pAdicFromLimitValuation
 from developing_valuation import DevelopingValuation
 from augmented_valuation import AugmentedValuation_base, FinalAugmentedValuation, NonFinalAugmentedValuation, FinalFiniteAugmentedValuation, NonFinalFiniteAugmentedValuation
-from inductive_valuation import FiniteInductiveValuation, FinalInductiveValuation, InfiniteInductiveValuation
+from inductive_valuation import FiniteInductiveValuation, FinalInductiveValuation, InfiniteInductiveValuation, NonFinalInductiveValuation
 
 # =================
 # MONKEY PATCH SAGE

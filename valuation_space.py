@@ -84,15 +84,18 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             True
 
         """
-        from sage.categories.domains import Domains
-        if domain not in Domains():
-            raise ValueError("domain must be an integral domain")
-
         from value_group import DiscreteValuationCodomain
         # A valuation is a map from an additive semigroup to an additive semigroup, however, it
         # does not preserve that structure. It is therefore only a morphism in the category of sets.
         from sage.categories.all import Sets
+
+        UniqueRepresentation.__init__(self)
         Homset.__init__(self, domain, DiscreteValuationCodomain(), category = Sets())
+
+        from sage.categories.domains import Domains
+        if domain not in Domains():
+            raise ValueError("domain must be an integral domain")
+
 
     @lazy_attribute
     def _abstract_element_class(self):

@@ -416,9 +416,9 @@ class pAdicValuation_base(DiscreteValuation):
             True
 
         """
-        from sage.rings.all import ZZ
-
         DiscreteValuation.__init__(self, parent)
+
+        from sage.rings.all import ZZ
         self._p = ZZ(p)
 
     def p(self):

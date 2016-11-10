@@ -587,12 +587,13 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             True
             
         """
+        FunctionFieldValuation_base.__init__(self, parent)
+
         domain = parent.domain()
         if base_valuation.domain() is not domain._ring:
             raise ValueError("base valuation must be defined on %r but %r is defined on %r"%(domain._ring, base_valuation, base_valuation.domain()))
 
         self._base_valuation = base_valuation
-        RationalFunctionFieldValuation_base.__init__(self, parent)
 
     def uniformizer(self):
         r"""
@@ -798,6 +799,20 @@ class InfiniteRationalFunctionFieldValuation(RationalFunctionFieldValuation_base
         sage: TestSuite(v).run() # long time
 
     """
+    def __init__(self, parent):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, 1/x) # indirect doctest
+            sage: isinstance(v, InfiniteRationalFunctionFieldValuation)
+            True
+
+        """
+        RationalFunctionFieldValuation_base.__init__(self, parent)
+        ClassicalFunctionFieldValuation_base.__init__(self, parent)
+
     def _call_(self, f):
         r"""
         Evaluate this valuation at the rational function ``f``.
@@ -935,6 +950,21 @@ class FiniteRationalFunctionFieldValuation(ClassicalFunctionFieldValuation_base,
         (x^6 + 2*t)-adic valuation
 
     """
+    def __init__(self, parent, base_valuation):
+        r"""
+        TESTS::
+    
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, x + 1)
+            sage: isinstance(v, FiniteRationalFunctionFieldValuation)
+            True
+    
+        """
+        ClassicalFunctionFieldValuation_base.__init__(self, parent)
+        InducedFunctionFieldValuation_base.__init__(self, parent, base_valuation)
+        RationalFunctionFieldValuation_base.__init__(self, parent)
+
 
 class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
     r"""
@@ -950,6 +980,20 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
         2-adic valuation
 
     """
+    def __init__(self, parent, base_valuation):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2))
+            sage: w = FunctionFieldValuation(K, v)
+            sage: isinstance(w, NonClassicalRationalFunctionFieldValuation)
+            True
+
+        """
+        InducedFunctionFieldValuation_base.__init__(self, parent, base_valuation)
+        RationalFunctionFieldValuation_base.__init__(self, parent)
 
 class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
     r"""

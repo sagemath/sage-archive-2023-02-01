@@ -1335,6 +1335,11 @@ REFERENCES:
              systems: Algorithmic, game-theoretic, and logical
              foundations.* Cambridge University Press, 2008.
 
+.. [Spa1966] Edwin H. Spanier, *Algebraic Topology*,
+             Springer-Verlag New York, 1966.
+             :doi:`10.1007/978-1-4684-9322-1`,
+             ISBN 978-1-4684-9322-1.
+
 .. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.

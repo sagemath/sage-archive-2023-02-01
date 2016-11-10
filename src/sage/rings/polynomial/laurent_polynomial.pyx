@@ -391,6 +391,24 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return iter(self.__u)
 
+    def is_constant(self):
+        r"""
+        Return whether this laurent polynomial is constant.
+
+        EXAMPLES::
+
+            sage: L.<a> = LaurentPolynomialRing(QQ)
+            sage: L(0).is_constant()
+            True
+            sage: L(42).is_constant()
+            True
+            sage: a.is_constant()
+            False
+            sage: (1/a).is_constant()
+            False
+        """
+        D = self.dict()
+        return not D or len(D) == 1 and next(iterkeys(D)) == 0
     def _symbolic_(self, R):
         """
         EXAMPLES::
@@ -2395,6 +2413,24 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         return out
 
+    def is_constant(self):
+        r"""
+        Return whether this laurent polynomial is constant.
+
+        EXAMPLES::
+
+            sage: L.<a, b> = LaurentPolynomialRing(QQ)
+            sage: L(0).is_constant()
+            True
+            sage: L(42).is_constant()
+            True
+            sage: a.is_constant()
+            False
+            sage: (1/b).is_constant()
+            False
+        """
+        D = self.dict()
+        return not D or len(D) == 1 and all(i == 0 for i in next(iterkeys(D)))
     def _symbolic_(self, R):
         """
         EXAMPLES::

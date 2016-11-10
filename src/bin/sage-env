@@ -271,10 +271,10 @@ export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC_SRC="$SAGE_SRC/doc"
 export SAGE_DOC="$SAGE_SHARE/doc/sage"
 
-if [ -z "${SAGE_ORIG_PATH_SET}" ]; then 
-    SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
-    SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
-fi 
+if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
+    SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH
+    SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET
+fi
 export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
@@ -337,8 +337,8 @@ if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
     export SAGE_REPO_ANONYMOUS
 fi
 if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then
-	SAGE_REPO_AUTHENTICATED="ssh://git@trac.sagemath.org:2222/sage.git"
-	export SAGE_REPO_AUTHENTICATED
+        SAGE_REPO_AUTHENTICATED="ssh://git@trac.sagemath.org:2222/sage.git"
+        export SAGE_REPO_AUTHENTICATED
 fi
 if [ -z "$SAGE_DISTFILES" ]; then
     SAGE_DISTFILES="$SAGE_ROOT/upstream"
@@ -445,27 +445,27 @@ if [ -d "$SAGE_LOCAL/lib/R/share" ] ; then
    R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
    if ! [ -f "$R_MAKEVARS_SITE" ] ; then
        if ! [ -a "$R_MAKEVARS_SITE" ] ; then
-	   echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
+           echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
        else
-	   >&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
+           >&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
        fi
    fi
 fi
 if [ -d "$DOT_SAGE" ] ; then
     if ! [ -d "$DOT_SAGE/R" ] ; then
-	if ! [ -a  "$DOT_SAGE/R" ] ; then
-	    mkdir -p "$DOT_SAGE/R"
-	else
-	    >&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
-	fi
+        if ! [ -a  "$DOT_SAGE/R" ] ; then
+            mkdir -p "$DOT_SAGE/R"
+        else
+            >&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
+        fi
     fi
     R_MAKEVARS_USER="$DOT_SAGE/R/Makevars.user" && export R_MAKEVARS_USER
     if ! [ -f "$R_MAKEVARS_USER" ] ; then
-	if ! [ -a "$R_MAKEVARS_USER" ] ; then
-	    echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
-	else
-	    >&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
-	fi
+        if ! [ -a "$R_MAKEVARS_USER" ] ; then
+            echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
+        else
+            >&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
+        fi
     fi
 fi
 export MAXIMA_PREFIX="$SAGE_LOCAL"

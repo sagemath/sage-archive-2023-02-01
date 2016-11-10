@@ -1,5 +1,10 @@
 """
 Auto-generate methods for PARI functions.
+
+Run tests from the ``SAGE_SRC`` directory::
+
+    sage: from sage.env import SAGE_SRC
+    sage: os.chdir(SAGE_SRC)
 """
 
 #*****************************************************************************

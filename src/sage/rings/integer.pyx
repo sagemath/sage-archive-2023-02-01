@@ -1560,7 +1560,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
 
-    cdef void _to_ZZ(self, ZZ_c *z):
+    cdef int _to_ZZ(self, ZZ_c *z) except -1:
         sig_on()
         mpz_to_ZZ(z, self.value)
         sig_off()

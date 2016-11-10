@@ -687,22 +687,19 @@ class FreeModule_generic(Module):
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
 
             sage: FreeModule(GF(7),3).category()
-            Category of finite dimensional vector spaces with basis over
-             (finite fields and subquotients of monoids and quotients of semigroups)
+            Category of finite enumerated finite dimensional vector spaces with basis over
+             (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: V = QQ^4; V.category()
             Category of finite dimensional vector spaces with basis over
              (quotient fields and metric spaces)
             sage: V = GF(5)**20; V.category()
-            Category of finite dimensional vector spaces with basis over
-             (finite fields and subquotients of monoids
-              and quotients of semigroups)
+            Category of finite enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: FreeModule(ZZ,3).category()
             Category of finite dimensional modules with basis over
              (euclidean domains and infinite enumerated sets
               and metric spaces)
             sage: (QQ^0).category()
-            Category of finite dimensional vector spaces with basis
-             over (quotient fields and metric spaces)
+            Category of finite enumerated finite dimensional vector spaces with basis over (quotient fields and metric spaces)
 
         TESTS::
 
@@ -744,6 +741,11 @@ done from the right side.""")
         if category is None:
             from sage.categories.all import FreeModules
             category = FreeModules(base_ring.category()).FiniteDimensional()
+            try:
+                if base_ring.is_finite() or rank == 0:
+                    category = category.Enumerated().Finite()
+            except:
+                pass
 
         super(FreeModule_generic, self).__init__(base_ring, category=category)
         self.__coordinate_ring = coordinate_ring
@@ -1839,21 +1841,6 @@ done from the right side.""")
             True
         """
         return self.__is_sparse
-
-    def list(self):
-        """
-        Return a list of all elements of ``self``.
-
-        EXAMPLES::
-
-            sage: (GF(3)^2).list()
-            [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]
-            sage: (ZZ^2).list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: since it is infinite, cannot list Ambient free module of rank 2 over the principal ideal domain Integer Ring
-        """
-        return self._list_from_iterator_cached()
 
     def ngens(self):
         """

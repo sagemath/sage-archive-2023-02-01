@@ -346,12 +346,12 @@ class IndexedSequence(SageObject):
                   for chid in Gd]
         elif not(J[0] in ZZ) and G.is_finite() and F == ZZ or (F.is_field() and F.base_ring()==QQ):
             ## assumes J is the list of conj class representatives of a
-            ## PermuationGroup(...) or Matrixgroup(...)
+            ## PermutationGroup(...) or Matrixgroup(...)
             chi = G.character_table()
             FT = [sum([S[i]*chi[i,j] for i in range(N)]) for j in range(N)]
         else:
             raise ValueError("list elements must be in QQ(zeta_"+str(N)+")")
-        return IndexedSequence(FT,J)
+        return IndexedSequence(FT, J)
 
     def idft(self):
         """

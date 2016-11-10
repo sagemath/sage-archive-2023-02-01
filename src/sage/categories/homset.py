@@ -114,7 +114,7 @@ def Hom(X, Y, category=None, check=True):
         Vector space of dimension 3 over Rational Field
         sage: G = AlternatingGroup(3)
         sage: Hom(G, G)
-        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite permutation groups
+        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite enumerated permutation groups
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
 
@@ -151,7 +151,7 @@ def Hom(X, Y, category=None, check=True):
         sage: Hom(X, Y)
         Set of Morphisms from Integer Ring
          to Symmetric group of order 3! as a permutation group
-         in Join of Category of monoids and Category of enumerated sets
+         in Category of enumerated monoids
 
     Otherwise, if ``category`` is specified, then ``category`` is used,
     after checking that ``X`` and ``Y`` are indeed in ``category``::
@@ -455,7 +455,7 @@ def End(X, category=None):
 
         sage: G = AlternatingGroup(3)
         sage: S = End(G); S
-        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite permutation groups
+        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite enumerated permutation groups
         sage: from sage.categories.homset import is_Endset
         sage: is_Endset(S)
         True
@@ -784,7 +784,7 @@ class Homset(Set_generic):
 
             sage: H = Hom(AlternatingGroup(4), AlternatingGroup(7))
             sage: H.homset_category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
         """
         return self.__category
 

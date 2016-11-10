@@ -31,7 +31,7 @@ AUTHORS:
 - Simon Spicer (2013-03): Added code for modular degrees and congruence
   numbers of higher level
 
-- Simon Spicer (2014-08): Added new analytic rank computatation functionality
+- Simon Spicer (2014-08): Added new analytic rank computation functionality
 
 """
 

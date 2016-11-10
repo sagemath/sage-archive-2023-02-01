@@ -56,10 +56,10 @@ cdef class Lfunction:
             sage: Lfunction_from_character(DirichletGroup(5)[1])
             L-function with complex Dirichlet coefficients
         """
-        cdef int i              #for indexing loops
-        cdef Integer tmpi       #for accessing integer values
-        cdef RealNumber tmpr    #for accessing real values
-        cdef ComplexNumber tmpc #for accessing complexe values
+        cdef int i              # for indexing loops
+        cdef Integer tmpi       # for accessing integer values
+        cdef RealNumber tmpr    # for accessing real values
+        cdef ComplexNumber tmpc # for accessing complex values
 
         cdef char *NAME = name
         cdef int what_type = what_type_L

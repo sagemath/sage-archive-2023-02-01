@@ -469,9 +469,9 @@ def _split_dict_(D, indices, group_by=None):
         return result
 
 def _split_laurent_polynomial_dict_(P, M, d):
+    vars_P = P.variable_names()
     vars_M = M.variable_names()
-    vars = P.variable_names()
-    if not set(vars_M) & set(vars):
+    if not set(vars_M) & set(vars_P):
         raise TypeError('no common variables')
 
     def index(T, value):
@@ -479,6 +479,7 @@ def _split_laurent_polynomial_dict_(P, M, d):
             return T.index(value)
         except ValueError:
             return None
+
     def value(d):
         assert d
         if len(d) == 1:
@@ -487,7 +488,7 @@ def _split_laurent_polynomial_dict_(P, M, d):
                 return P.base_ring()(v)
         return P.base_ring()(M(d))
 
-    group_by = tuple(index(vars_M, var) for var in vars)
+    group_by = tuple(index(vars_M, var) for var in vars_P)
     indices = range(len(vars_M))
     for g in group_by:
         if g is not None:

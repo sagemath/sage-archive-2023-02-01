@@ -1019,14 +1019,15 @@ class HasseDiagram(DiGraph):
 
     def prime_elements(self):
         r"""
-        Return the join-prime and meet-prime elements of the poset.
-
-        The poset is assumed to be bounded, and this is *not*
-        checked. This function is mostly useful for lattices.
+        Return the join-prime and meet-prime elements of the bounded poset.
 
         An element `x` of a poset `P` is join-prime if the subposet
         induced by `\{y \in P \mid y \not\ge x\}` has a top element.
         Meet-prime is defined dually.
+
+        .. NOTE::
+
+            The poset is expected to be bounded, and this is *not* checked.
 
         OUTPUT:
 
@@ -1047,7 +1048,7 @@ class HasseDiagram(DiGraph):
         for e in range(n):
             # Join-primes are join-irreducibles, only check those.
             if self.in_degree(e) == 1:
-                upset = list(self.depth_first_search(e))
+                upset = frozenset(self.depth_first_search(e))
                 # The complement of the upper set of a join-prime must have
                 # a top element. Maximal elements of the complement are those
                 # covered by only elements in the upper set. If there is only
@@ -1056,12 +1057,12 @@ class HasseDiagram(DiGraph):
                 meet_prime = None
                 for u in upset:
                     for m in self.neighbors_in(u):
-                        if m not in upset:
-                            if all(u_ in upset for u_ in
-                                   self.neighbor_out_iterator(m)):
-                                if meet_prime is not None:
-                                    break
-                                meet_prime = m
+                        if (m not in upset and
+                            all(u_ in upset for u_ in
+                                self.neighbor_out_iterator(m))):
+                            if meet_prime is not None:
+                                break
+                            meet_prime = m
                     else:  # Python has no multilevel break. Sorry for that.
                         continue
                     break

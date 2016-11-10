@@ -51,6 +51,9 @@ EXAMPLES::
     sage: C.p_minimal_polynomials(2)
     {2: x^2 + 3*x + 2}
 
+.. TODO::
+
+   Test code over PIDs other than ZZ.
 
 REFERENCES:
 

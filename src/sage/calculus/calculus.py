@@ -426,7 +426,7 @@ lazy_import('sage.interfaces.maxima_lib','maxima')
 
 
 ########################################################
-def symbolic_sum(expression, v, a, b, algorithm='maxima'):
+def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     r"""
     Returns the symbolic sum `\sum_{v = a}^b expression` with respect
     to the variable `v` with endpoints `a` and `b`.
@@ -450,6 +450,8 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
       - ``'mathematica'`` - (optional) use Mathematica
 
       - ``'giac'`` - (optional) use Giac
+
+    - ``hold`` - (default: ``False``) if ``True`` don't evaluate
 
     EXAMPLES::
 
@@ -557,6 +559,19 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         sage: symbolic_sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional - maple
         (x + 1)^n
 
+    If you don't want to evaluate immediately give the ``hold`` keyword::
+
+        sage: s = sum(n, n, 1, k, hold=True); s
+        sum(n, n, 1, k)
+        sage: s.unhold()
+        1/2*k^2 + 1/2*k
+        sage: s.subs(k == 10)
+        sum(n, n, 1, 10)
+        sage: s.subs(k == 10).unhold()
+        55
+        sage: s.subs(k == 10).n()
+        55.0000000000000
+
     TESTS:
 
     :trac:`10564` is fixed::
@@ -571,6 +586,8 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
        the summation the result might not be convertable into a Sage
        expression.
     """
+    from sage.functions.other import symbolic_sum as ssum
+    print ('SUM',expression,v,a,b)
     if not is_SymbolicVariable(v):
         if isinstance(v, str):
             v = var(v)
@@ -580,8 +597,19 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
     if v in SR(a).variables() or v in SR(b).variables():
         raise ValueError("summation limits must not depend on the summation variable")
 
+    if hold == True:
+        return ssum(expression, v, a, b)
+
     if algorithm == 'maxima':
-        return maxima.sr_sum(expression,v,a,b)
+        from sage.symbolic.function import SymbolicFunction
+        result = maxima.sr_sum(expression,v,a,b)
+        try:
+            op = result.operator()
+        except AttributeError:
+            return result
+        if isinstance(op, SymbolicFunction):
+            return ssum(*(result.operands()))
+        return result
 
     elif algorithm == 'mathematica':
         try:

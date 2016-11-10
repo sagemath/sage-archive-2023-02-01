@@ -818,7 +818,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         r"""
         Return the discriminant of self, which is by definition
 
-        .. math::
+        .. MATH::
 
             (-1)^{m(m-1)/2} {\mbox{\tt resultant}}(a, a')/lc(a),
 

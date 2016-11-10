@@ -471,7 +471,7 @@ cdef class PariInstance(PariInstance_auto):
         For more information about how precision works in the PARI
         interface, see :mod:`sage.libs.pari.pari_instance`.
 
-        .. note::
+        .. NOTE::
 
            In Sage, the PARI stack is different than in GP or the
            PARI C library. In Sage, instead of the PARI stack
@@ -486,7 +486,7 @@ cdef class PariInstance(PariInstance_auto):
            over the way PARI works, but it scales much better and is
            far more robust for large projects.
 
-        .. note::
+        .. NOTE::
 
            If you do not want prime numbers, put ``maxprime=2``, but be
            careful because many PARI functions require this table. If

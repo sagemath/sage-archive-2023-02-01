@@ -1740,7 +1740,7 @@ class FanMorphism(FreeModuleMorphism):
         and the restriction of the :meth:`codomain_fan`, i.e. if ``self`` maps
         `\Sigma \to \Sigma'`, then we have factorization into
 
-        .. math::
+        .. MATH::
 
             \Sigma
             \twoheadrightarrow

@@ -290,7 +290,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         r"""
         Return the matrix exponential of this matrix $X$, which is the matrix
 
-        .. math::
+        .. MATH::
 
            e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
 

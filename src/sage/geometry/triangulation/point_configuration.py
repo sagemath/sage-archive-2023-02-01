@@ -1676,7 +1676,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         The distance function used in this method is `d_{aff}(x,y)^2`,
         the square of the usual affine distance function
 
-        .. math::
+        .. MATH::
 
             d_{aff}(x,y) = |x-y|
 
@@ -1713,7 +1713,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         d_{FS}(x,y)^2`, where `d_{FS}` is the Fubini-Study distance of
         projective points. Recall the Fubini-Studi distance function
 
-        .. math::
+        .. MATH::
 
             d_{FS}(x,y) = \arccos \sqrt{ \frac{(x\cdot y)^2}{|x|^2 |y|^2} }
 

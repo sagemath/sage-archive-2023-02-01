@@ -9,7 +9,7 @@ distributed solver. There are solvers that are good at one or the
 other, e.g. ManySat (parallel) or PSolver (distributed), but we wish
 to excel at all." -- http://www.msoos.org/cryptominisat2/
 
-.. note::
+.. NOTE::
 
     Our SAT solver interfaces are 1-based, i.e., literals start at
     1. This is consistent with the popular DIMACS format for SAT
@@ -58,7 +58,7 @@ cdef class CryptoMiniSat(SatSolver):
         sage: cms()                                      # optional - cryptominisat
         (None, True, True, False)
 
-    .. note::
+    .. NOTE::
 
         Do not import 'sage.sat.solvers.cryptominisat.cryptominisat'
         directly, but use 'sage.sat.solvers.cryptominisat' which
@@ -184,7 +184,7 @@ cdef class CryptoMiniSat(SatSolver):
 
         - ``lits`` - a tuple of integers != 0
 
-        .. note::
+        .. NOTE::
 
             If any element ``e`` in ``lits`` has ``abs(e)`` greater
             than the number of variables generated so far, then new
@@ -222,7 +222,7 @@ cdef class CryptoMiniSat(SatSolver):
         - ``lits`` - a tuple of integers != 0
         - ``isfalse`` - set to ``True`` if the XOR chain should evaluate to ``False``
 
-        .. note::
+        .. NOTE::
 
             If any element ``e`` in ``lits`` has ``abs(e)`` greater
             than the number of variables generated so far, then new

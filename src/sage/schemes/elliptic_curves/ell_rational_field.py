@@ -6535,7 +6535,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             `q` in `S`. (Such points are not covered by the main part
             of the code).  We know
 
-            .. math::
+            .. MATH::
 
                x=\frac{\xi}{\p_1^{\alpha_1} \cdot \dots \cdot \p_s^{\alpha_s}},\ (gcd(\xi,\p_i)=1),\ p_i \in S
 

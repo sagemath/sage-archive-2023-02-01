@@ -3314,7 +3314,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         To a `d`-dimensional fan `\Sigma`, one can canonically
         associate a chain complex `K^\bullet`
 
-        .. math::
+        .. MATH::
 
             0 \longrightarrow
             \ZZ^{\Sigma(d)} \longrightarrow
@@ -3328,7 +3328,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         complex computes the homology of `|\Sigma|\subset N_\RR` with
         arbitrary support,
 
-        .. math::
+        .. MATH::
 
             H_i(K) = H_{d-i}(|\Sigma|, \ZZ)_{\text{non-cpct}}
 
@@ -3338,7 +3338,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         For a complete fan, there is an extended chain complex
 
-        .. math::
+        .. MATH::
 
             0 \longrightarrow
             \ZZ \longrightarrow

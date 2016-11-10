@@ -1248,7 +1248,7 @@ def laplace(ex, t, s):
     defined for all real numbers `t \geq 0`, is the function
     `F(s)` defined by
 
-    .. math::
+    .. MATH::
 
                       F(s) = \int_{0}^{\infty} e^{-st} f(t) dt.
 
@@ -1278,7 +1278,7 @@ def laplace(ex, t, s):
     A BATTLE BETWEEN the X-women and the Y-men (by David
     Joyner): Solve
 
-    .. math::
+    .. MATH::
 
                    x' = -16y, x(0)=270,  y' = -x + 1, y(0) = 90.
 
@@ -1349,7 +1349,7 @@ def inverse_laplace(ex, t, s):
     DEFINITION: The inverse Laplace transform of a function
     `F(s)`, is the function `f(t)` defined by
 
-    .. math::
+    .. MATH::
 
                       F(s) = \frac{1}{2\pi i} \int_{\gamma-i\infty}^{\gamma + i\infty} e^{st} F(s) dt,
 

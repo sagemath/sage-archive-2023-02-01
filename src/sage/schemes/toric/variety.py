@@ -235,7 +235,7 @@ cohomology ring `H^*(X,\QQ)` and the rational Chow ring `A^*(X,\QQ) =
 A_{d-*}(X)\otimes \QQ` are isomorphic except for a doubling in
 degree. More precisely, the Chow group has the same rank
 
-  .. math::
+  .. MATH::
 
        A_{d-k}(X) \otimes \QQ \simeq H^{2k}(X,\QQ)
 

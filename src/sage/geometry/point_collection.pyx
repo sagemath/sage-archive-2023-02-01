@@ -670,7 +670,7 @@ cdef class PointCollection(SageObject):
         r"""
         Return the dimension of the space spanned by points of ``self``.
 
-        .. note:: You can use either :meth:`dim` or :meth:`dimension`.
+        .. NOTE:: You can use either :meth:`dim` or :meth:`dimension`.
 
         OUTPUT:
 

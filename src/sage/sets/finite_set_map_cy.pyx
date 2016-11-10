@@ -252,7 +252,7 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
 
         OUTPUT: ``None``
 
-        .. note:: if you need speed, please use instead :meth:`_setimage`
+        .. NOTE:: if you need speed, please use instead :meth:`_setimage`
 
         EXAMPLES::
 
@@ -277,7 +277,7 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
 
         - ``i`` -- any object.
 
-        .. note:: if you need speed, please use instead :meth:`_getimage`
+        .. NOTE:: if you need speed, please use instead :meth:`_getimage`
 
         EXAMPLES::
 

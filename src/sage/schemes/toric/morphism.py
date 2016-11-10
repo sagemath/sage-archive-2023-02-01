@@ -60,7 +60,7 @@ homogeneously rescaled coordinates of a point of `\mathbb{P}^1` map to the same
 point in `\mathbb{P}^2` up to its homogeneous rescalings. It is not
 equivariant with respect to the torus actions
 
-.. math::
+.. MATH::
 
     \CC^\times \times \mathbb{P}^1,
     (\mu,[u:v]) \mapsto [u:\mu v]
@@ -137,7 +137,7 @@ If we denote the homogeneous coordinates of `O_{\mathbb{P}^1}(2)` by
 `x`, `t`, `y` corresponding to the rays `(1,2)`, `(1,1)`, and `(1,0)`
 then the blow-up map is [BB]_:
 
-.. math::
+.. MATH::
 
     f: O_{\mathbb{P}^1}(2) \to \CC^2/\ZZ_2, \quad
     (x,t,y) \mapsto \left( x\sqrt{t}, y\sqrt{t} \right)
@@ -985,7 +985,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         The intermediate varieties are universal in the following sense. Let
         ``self`` map `X` to `X'` and let `X_s`, `X_i` sit in between, that is,
 
-        .. math::
+        .. MATH::
 
             X
             \twoheadrightarrow

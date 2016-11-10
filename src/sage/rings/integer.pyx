@@ -736,7 +736,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         Set this integer from a string in base 32.
 
-        .. note::
+        .. NOTE::
 
            Integers are supposed to be immutable, so you should not
            use this function.
@@ -1136,7 +1136,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Return the hexadecimal digits of self in lower case.
 
-        .. note::
+        .. NOTE::
 
            '0x' is *not* prepended to the result like is done by the
            corresponding Python function on int or long. This is for
@@ -1162,7 +1162,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Return the digits of self in base 8.
 
-        .. note::
+        .. NOTE::
 
            '0' is *not* prepended to the result like is done by the
            corresponding Python function on int or long. This is for
@@ -4596,7 +4596,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(-81).is_power_of(-3)
             False
 
-        .. note::
+        .. NOTE::
 
            For large integers self, is_power_of() is faster than
            is_perfect_power(). The following examples gives some indication of
@@ -4771,7 +4771,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
           If True, use a provable primality test.  If unset, use the
           :mod:`default arithmetic proof flag <sage.structure.proof.proof>`.
 
-        .. note::
+        .. NOTE::
 
            Integer primes are by definition *positive*! This is
            different than Magma, but the same as in PARI. See also the

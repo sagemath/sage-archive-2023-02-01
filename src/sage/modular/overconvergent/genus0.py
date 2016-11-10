@@ -22,7 +22,7 @@ The Theory
 
 Let `p` be one of the above primes, so `X_0(p)` has genus 0, and let
 
-.. math::
+.. MATH::
 
     f_p = \sqrt[p-1]{\frac{\Delta(pz)}{\Delta(z)}}
 
@@ -32,7 +32,7 @@ Furthermore, if we work over `\CC_p`, the `r`-overconvergent locus on `X_0(p)`
 (or of `X_0(1)`, via the canonical subgroup lifting), corresponds to the
 `p`-adic disc
 
-.. math::
+.. MATH::
 
     |f_p|_p \le p^{\frac{12r}{p-1}}.
 

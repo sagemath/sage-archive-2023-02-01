@@ -647,7 +647,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         OUTPUT: the inverse of self
 
-        .. note::
+        .. NOTE::
 
            - The n x n cases for n <= 2 are handcoded for speed.
 
@@ -763,7 +763,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
              "integer" -- clear denominators and call det on integer matrix
 
-        .. note::
+        .. NOTE::
 
            It would be *VERY VERY* hard for det to fail even with
            proof=False.
@@ -1825,7 +1825,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
            proof=True.
 
 
-        .. note::
+        .. NOTE::
 
            IMPORTANT: If you expect that the subspaces in the answer
            are spanned by vectors with small height coordinates, use
@@ -1885,7 +1885,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         -  ``**kwds`` - passed on to echelon function.
 
-        .. note::
+        .. NOTE::
 
            IMPORTANT: If you expect that the subspaces in the answer are
            spanned by vectors with small height coordinates, use

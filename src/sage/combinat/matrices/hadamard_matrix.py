@@ -696,7 +696,7 @@ def RSHCD_324(e):
     and for the case `\epsilon=-1` from the "twist" `M'` of `M`, using Lemma 11
     in [HX10]_. Namely, it turns out that the matrix
 
-    .. math::
+    .. MATH::
 
         M'=\begin{pmatrix} M_{12} & M_{11}\\ M_{11}^\top & M_{21} \end{pmatrix},
         \quad\text{where}\quad

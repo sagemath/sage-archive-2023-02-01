@@ -1692,7 +1692,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         - for every two facets `S` and `T`, there is a sequence of
           facets
 
-          .. math::
+          .. MATH::
 
             S = f_0, f_1, ..., f_n = T
 

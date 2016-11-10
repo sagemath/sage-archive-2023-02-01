@@ -2150,7 +2150,7 @@ cdef class Matrix(matrix0.Matrix):
         If this matrix is sparse, return a dense matrix with the same
         entries. If this matrix is dense, return this matrix (not a copy).
 
-        .. note::
+        .. NOTE::
 
            The definition of "dense" and "sparse" in Sage have nothing to
            do with the number of nonzero entries. Sparse and dense are
@@ -2217,7 +2217,7 @@ cdef class Matrix(matrix0.Matrix):
         entries. If this matrix is sparse, return this matrix (not a
         copy).
 
-        .. note::
+        .. NOTE::
 
            The definition of "dense" and "sparse" in Sage have nothing
            to do with the number of nonzero entries. Sparse and dense are

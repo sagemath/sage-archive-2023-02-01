@@ -2638,7 +2638,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         do the multiplication. This could be used over a generic base
         ring.
 
-        .. note::
+        .. NOTE::
 
            -  Since this is implemented in interpreted Python, it could be
               hugely sped up by reimplementing it in Pyrex.
@@ -2725,7 +2725,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ALGORITHM: The basic idea is to use that
 
-        .. math::
+        .. MATH::
 
             (aX + b) (cX + d) = acX^2 + ((a+b)(c+d)-ac-bd)X + bd
 
@@ -2734,14 +2734,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         instead of the naive four. Given f and g of arbitrary degree bigger
         than one, let e be min(deg(f),deg(g))/2. Write
 
-        .. math::
+        .. MATH::
 
             f = a X^e + b   \text{ and }   g = c X^e + d
 
 
         and use the identity
 
-        .. math::
+        .. MATH::
 
             (aX^e + b) (cX^e + d) = ac X^{2e} +((a+b)(c+d) - ac - bd)X^e + bd
 
@@ -4455,7 +4455,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             be a list of the prime divisors of ``n``; otherwise it
             will be computed.
 
-        .. note::
+        .. NOTE::
 
           Computation of the prime divisors of ``n`` can dominate the running
           time of this method, so performing this computation externally
@@ -6106,7 +6106,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         The discriminant is
 
-        .. math::
+        .. MATH::
 
             R_n := a_n^{2 n-2} \prod_{1<i<j<n} (r_i-r_j)^2,
 
@@ -6781,7 +6781,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         elements of K and checking whether the polynomial evaluates to zero
         at that value.
 
-        .. note::
+        .. NOTE::
 
            We mentioned above that polynomials with multiple roots are
            always ill-conditioned; if your input is given to n bits of

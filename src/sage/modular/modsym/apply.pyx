@@ -63,7 +63,7 @@ def apply_to_monomial(int i, int j, int a, int b, int c, int d):
     r"""
     Return a list of the coefficients of
 
-    .. math::
+    .. MATH::
 
         (aX + bY)^i (cX + dY)^{j-i},
 

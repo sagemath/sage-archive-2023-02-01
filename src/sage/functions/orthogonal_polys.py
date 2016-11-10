@@ -4,14 +4,14 @@ Orthogonal Polynomials
 -  The Chebyshev polynomial of the first kind arises as a solution
    to the differential equation
 
-   .. math::
+   .. MATH::
 
          (1-x^2)\,y'' - x\,y' + n^2\,y = 0
 
 
    and those of the second kind as a solution to
 
-   .. math::
+   .. MATH::
 
          (1-x^2)\,y'' - 3x\,y' + n(n+2)\,y = 0.
 
@@ -19,7 +19,7 @@ Orthogonal Polynomials
    The Chebyshev polynomials of the first kind are defined by the
    recurrence relation
 
-   .. math::
+   .. MATH::
 
      T_0(x) = 1 \, T_1(x) = x \, T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x). \,
 
@@ -27,7 +27,7 @@ Orthogonal Polynomials
    The Chebyshev polynomials of the second kind are defined by the
    recurrence relation
 
-   .. math::
+   .. MATH::
 
      U_0(x) = 1 \, U_1(x) = 2x \, U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x). \,
 
@@ -36,7 +36,7 @@ Orthogonal Polynomials
    For integers `m,n`, they satisfy the orthogonality
    relations
 
-   .. math::
+   .. MATH::
 
      \int_{-1}^1 T_n(x)T_m(x)\,\frac{dx}{\sqrt{1-x^2}} =\left\{ \begin{matrix} 0 &: n\ne m~~~~~\\ \pi &: n=m=0\\ \pi/2 &: n=m\ne 0 \end{matrix} \right.
 
@@ -44,7 +44,7 @@ Orthogonal Polynomials
    and
 
 
-   .. math::
+   .. MATH::
 
      \int_{-1}^1 U_n(x)U_m(x)\sqrt{1-x^2}\,dx =\frac{\pi}{2}\delta_{m,n}.
 
@@ -55,7 +55,7 @@ Orthogonal Polynomials
 
 -  The Hermite polynomials are defined either by
 
-   .. math::
+   .. MATH::
 
      H_n(x)=(-1)^n e^{x^2/2}\frac{d^n}{dx^n}e^{-x^2/2}
 
@@ -63,7 +63,7 @@ Orthogonal Polynomials
    (the "probabilists' Hermite polynomials"), or by
 
 
-   .. math::
+   .. MATH::
 
      H_n(x)=(-1)^n e^{x^2}\frac{d^n}{dx^n}e^{-x^2}
 
@@ -72,7 +72,7 @@ Orthogonal Polynomials
    implements the latter flavor. These satisfy the orthogonality
    relation
 
-   .. math::
+   .. MATH::
 
      \int_{-\infty}^\infty H_n(x)H_m(x)\,e^{-x^2}\,dx ={n!2^n}{\sqrt{\pi}}\delta_{nm}
 
@@ -83,19 +83,19 @@ Orthogonal Polynomials
 -  Each *Legendre polynomial* `P_n(x)` is an `n`-th degree polynomial.
    It may be expressed using Rodrigues' formula:
 
-   .. math::
+   .. MATH::
 
       P_n(x) = (2^n n!)^{-1} {\frac{d^n}{dx^n} } \left[ (x^2 -1)^n \right].
 
    These are solutions to Legendre's differential equation:
 
-   .. math::
+   .. MATH::
 
       {\frac{d}{dx}} \left[ (1-x^2) {\frac{d}{dx}} P(x) \right] + n(n+1)P(x) = 0.
 
    and satisfy the orthogonality relation
 
-   .. math::
+   .. MATH::
 
       \int_{-1}^{1} P_m(x) P_n(x)\,dx = {\frac{2}{2n + 1}} \delta_{mn}
 
@@ -107,7 +107,7 @@ Orthogonal Polynomials
    `P_\ell^m(x)` can be given in terms of the "usual"
    Legendre polynomials by
 
-   .. math::
+   .. MATH::
 
      \begin{array}{ll} P_\ell^m(x)    &=  (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}P_\ell(x) \\ &=  \frac{(-1)^m}{2^\ell \ell!} (1-x^2)^{m/2}\frac{d^{\ell+m}}{dx^{\ell+m}}(x^2-1)^\ell. \end{array}
 
@@ -115,7 +115,7 @@ Orthogonal Polynomials
    Assuming `0 \le m \le \ell`, they satisfy the orthogonality
    relation:
 
-   .. math::
+   .. MATH::
 
       \int_{-1}^{1} P_k ^{(m)} P_\ell ^{(m)} dx  = \frac{2 (\ell+m)!}{(2\ell+1)(\ell-m)!}\ \delta _{k,\ell},
 
@@ -127,7 +127,7 @@ Orthogonal Polynomials
    Legendre polynomials by
 
 
-   .. math::
+   .. MATH::
 
      Q_\ell^m(x)   =  (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}Q_\ell(x).
 
@@ -137,7 +137,7 @@ Orthogonal Polynomials
 
 -  Laguerre polynomials may be defined by the Rodrigues formula
 
-   .. math::
+   .. MATH::
 
       L_n(x)=\frac{e^x}{n!}\frac{d^n}{dx^n}\left(e^{-x} x^n\right).
 
@@ -145,14 +145,14 @@ Orthogonal Polynomials
    They are solutions of Laguerre's equation:
 
 
-   .. math::
+   .. MATH::
 
       x\,y'' + (1 - x)\,y' + n\,y = 0\,
 
    and satisfy the orthogonality relation
 
 
-   .. math::
+   .. MATH::
 
       \int_0^\infty L_m(x) L_n(x) e^{-x}\,dx = \delta_{mn}.
 
@@ -162,7 +162,7 @@ Orthogonal Polynomials
    Rodrigues formula:
 
 
-   .. math::
+   .. MATH::
 
        L_n^{(\alpha)}(x)   = {\frac{x^{-\alpha} e^x}{n!}}{\frac{d^n}{dx^n}} \left(e^{-x} x^{n+\alpha}\right) .
 
@@ -177,7 +177,7 @@ Orthogonal Polynomials
    are obtained from hypergeometric series in cases where the series
    is in fact finite:
 
-   .. math::
+   .. MATH::
 
      P_n^{(\alpha,\beta)}(z) =\frac{(\alpha+1)_n}{n!} \,_2F_1\left(-n,1+\alpha+\beta+n;\alpha+1;\frac{1-z}{2}\right) ,
 
@@ -187,7 +187,7 @@ Orthogonal Polynomials
    explicit expression
 
 
-   .. math::
+   .. MATH::
 
      P_n^{(\alpha,\beta)} (z) = \frac{\Gamma (\alpha+n+1)}{n!\Gamma (\alpha+\beta+n+1)} \sum_{m=0}^n \binom{n}{m} \frac{\Gamma (\alpha + \beta + n + m + 1)}{\Gamma (\alpha + m + 1)} \left(\frac{z-1}{2}\right)^m .
 
@@ -200,14 +200,14 @@ Orthogonal Polynomials
    `\alpha=\beta=a-1/2` by
 
 
-   .. math::
+   .. MATH::
 
      C_n^{(a)}(x)= \frac{\Gamma(a+1/2)}{\Gamma(2a)}\frac{\Gamma(n+2a)}{\Gamma(n+a+1/2)} P_n^{(a-1/2,a-1/2)}(x).
 
 
    They satisfy the orthogonality relation
 
-   .. math::
+   .. MATH::
 
      \int_{-1}^1(1-x^2)^{a-1/2}C_m^{(a)}(x)C_n^{(a)}(x)\, dx =\delta_{mn}2^{1-2a}\pi \frac{\Gamma(n+2a)}{(n+a)\Gamma^2(a)\Gamma(n+1)} ,
 
@@ -216,7 +216,7 @@ Orthogonal Polynomials
    in cases where the series is in fact finite:
 
 
-   .. math::
+   .. MATH::
 
      C_n^{(a)}(z) =\frac{(2a)^{\underline{n}}}{n!} \,_2F_1\left(-n,2a+n;a+\frac{1}{2};\frac{1-z}{2}\right)
 
@@ -231,14 +231,14 @@ For completeness, the Pochhammer symbol, introduced by Leo August
 Pochhammer, `(x)_n`, is used in the theory of special
 functions to represent the "rising factorial" or "upper factorial"
 
-.. math::
+.. MATH::
 
          (x)_n=x(x+1)(x+2)\cdots(x+n-1)=\frac{(x+n-1)!}{(x-1)!}.
 
 
 On the other hand, the "falling factorial" or "lower factorial" is
 
-.. math::
+.. MATH::
 
      x^{\underline{n}}=\frac{x!}{(x-n)!} ,
 

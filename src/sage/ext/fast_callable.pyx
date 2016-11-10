@@ -1837,7 +1837,8 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: base^expo
         1.00000095367477
 
-    Make sure we don't overflow the stack with highly nested expressions (#11766)::
+    Make sure we do not overflow the stack with highly nested expressions
+    (:trac:`11766`)::
 
         sage: R.<x> = CC[]
         sage: f = R(range(100000))

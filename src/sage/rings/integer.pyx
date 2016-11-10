@@ -553,7 +553,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(u'0X2AEEF')
             175855
 
-        Test conversion from PARI (#11685)::
+        Test conversion from PARI (:trac:`11685`)::
 
             sage: ZZ(pari(-3))
             -3

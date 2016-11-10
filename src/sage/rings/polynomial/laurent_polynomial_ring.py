@@ -469,6 +469,34 @@ def _split_dict_(D, indices, group_by=None):
         return result
 
 def _split_laurent_polynomial_dict_(P, M, d):
+    r"""
+    Helper function for splitting a multivariate laurent polynomial
+    during conversion.
+
+    INPUT:
+
+    - ``P`` -- the parent to which we want to convert.
+
+    - ``M`` -- the parent from which we want to convert.
+
+    - ``d`` -- a dictionary mapping tuples (representing the exponents)
+      to their coefficients. This is the dictionary corresponding to
+      an element of ``M``.
+
+    OUTPUT:
+
+    A dictionary corresponding to an element of ``P``.
+
+    TESTS::
+
+        sage: L.<a, b, c, d> = LaurentPolynomialRing(ZZ)
+        sage: M = LaurentPolynomialRing(ZZ, 'c, d')
+        sage: N = LaurentPolynomialRing(M, 'a, b')
+        sage: M(c/d + 1/c)  # indirect doctest
+        c*d^-1 + c^-1
+        sage: N(a + b/c/d + 1/b)  # indirect doctest
+        a + (c^-1*d^-1)*b + b^-1
+    """
     vars_P = P.variable_names()
     vars_M = M.variable_names()
     if not set(vars_M) & set(vars_P):

@@ -613,7 +613,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: X = CombinatorialFreeModule(QQ, list(range(3)), prefix="x")
+                sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
                 sage: x = X.basis()
                 sage: V = X.echelon_form([x[0]-x[1], x[0]-x[2],x[1]-x[2]]); V
                 [x[0] - x[2], x[1] - x[2]]
@@ -639,7 +639,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             ::
 
                 sage: R.<x,y> = QQ[]
-                sage: C = CombinatorialFreeModule(R, list(range(3)), prefix='x')
+                sage: C = CombinatorialFreeModule(R, range(3), prefix='x')
                 sage: x = C.basis()
                 sage: C.echelon_form([x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]])
                 [x[0] - x[2], x[1] - x[2]]
@@ -704,7 +704,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             `x_0, x_1, x_2`. The submodule is spanned by `y_0 = x_0 - x_1` and
             `y_1 - x_1 - x_2`, and its basis elements are indexed by `0` and `1`::
 
-                sage: X = CombinatorialFreeModule(QQ, list(range(3)), prefix="x")
+                sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
                 sage: x = X.basis()
                 sage: gens = [x[0] - x[1], x[1] - x[2]]; gens
                 [x[0] - x[1], x[1] - x[2]]
@@ -726,7 +726,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             By using a family to specify a basis of the submodule, we obtain a
             submodule whose index set coincides with the index set of the family::
 
-                sage: X = CombinatorialFreeModule(QQ, list(range(3)), prefix="x")
+                sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
                 sage: x = X.basis()
                 sage: gens = Family({1 : x[0] - x[1], 3: x[1] - x[2]}); gens
                 Finite family {1: x[0] - x[1], 3: x[1] - x[2]}
@@ -750,7 +750,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             It is not necessary that the generators of the submodule form
             a basis (an explicit basis will be computed)::
 
-                sage: X = CombinatorialFreeModule(QQ, list(range(3)), prefix="x")
+                sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
                 sage: x = X.basis()
                 sage: gens = [x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]]; gens
                 [x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]]
@@ -794,7 +794,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             the lift morphism is (lower) unitriangular::
 
                 sage: R.<a,b> = QQ[]
-                sage: C = CombinatorialFreeModule(R, list(range(3)), prefix='x')
+                sage: C = CombinatorialFreeModule(R, range(3), prefix='x')
                 sage: x = C.basis()
                 sage: gens = [x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]]
                 sage: Y = C.submodule(gens, unitriangular=True)

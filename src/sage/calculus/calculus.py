@@ -587,7 +587,6 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
        expression.
     """
     from sage.functions.other import symbolic_sum as ssum
-    print ('SUM',expression,v,a,b)
     if not is_SymbolicVariable(v):
         if isinstance(v, str):
             v = var(v)

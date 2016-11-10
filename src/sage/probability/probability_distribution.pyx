@@ -45,7 +45,6 @@ include "cysignals/memory.pxi"
 from sage.libs.gsl.all cimport *
 import sage.misc.prandom as random
 import sys
-import integration
 from sage.modules.free_module_element import vector
 
 #TODO: Add more distributions available in gsl
@@ -75,7 +74,7 @@ cdef class ProbabilityDistribution:
         """
         To be implemented by a derived class::
 
-            sage: P = sage.gsl.probability_distribution.ProbabilityDistribution()
+            sage: P = sage.probability.probability_distribution.ProbabilityDistribution()
         """
 
         pass
@@ -84,7 +83,7 @@ cdef class ProbabilityDistribution:
         """
         To be implemented by a derived class::
 
-            sage: P = sage.gsl.probability_distribution.ProbabilityDistribution()
+            sage: P = sage.probability.probability_distribution.ProbabilityDistribution()
             sage: P.get_random_element()
             Traceback (most recent call last):
             ...
@@ -113,7 +112,7 @@ cdef class ProbabilityDistribution:
 
         EXAMPLE::
 
-            sage: from sage.gsl.probability_distribution import GeneralDiscreteDistribution
+            sage: from sage.probability.probability_distribution import GeneralDiscreteDistribution
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
             sage: h, b = X.generate_histogram_data(bins = 10)
@@ -139,7 +138,7 @@ cdef class ProbabilityDistribution:
 
     def generate_histogram_plot(self, name, num_samples = 1000, bins = 50):
         """
-        Save the histogram from :func:`generate_histogram_data() <sage.gsl.ProbabilityDistribution.generate_histogram_data>`
+        Save the histogram from :func:`generate_histogram_data() <sage.libs.gsl.ProbabilityDistribution.generate_histogram_data>`
         to a file.
 
         INPUT:
@@ -158,7 +157,7 @@ cdef class ProbabilityDistribution:
         ``my_general_distribution_plot.png`` in the temporary
         directory ``SAGE_TMP``::
 
-            sage: from sage.gsl.probability_distribution import GeneralDiscreteDistribution
+            sage: from sage.probability.probability_distribution import GeneralDiscreteDistribution
             sage: import os
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)

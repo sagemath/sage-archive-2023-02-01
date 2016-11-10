@@ -239,7 +239,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x")
+                sage: X = CombinatorialFreeModule(QQ, list(range(3)), prefix="x")
                 sage: x = X.basis()
                 sage: Y = X.quotient_module([x[0]-x[1], x[1]-x[2]], already_echelonized=True)
                 sage: Y.print_options(prefix='y'); Y
@@ -253,7 +253,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 3*y[2]
 
                 sage: R.<a,b> = QQ[]
-                sage: C = CombinatorialFreeModule(R, range(3), prefix='x')
+                sage: C = CombinatorialFreeModule(R, list(range(3)), prefix='x')
                 sage: x = C.basis()
                 sage: gens = [x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]]
                 sage: Y = X.quotient_module(gens)

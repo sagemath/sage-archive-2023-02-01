@@ -1428,8 +1428,8 @@ class Polyhedron_base(Element):
             sage: triangle.vertices_list()
             [[0, 1], [1, 0], [1, 1]]
             sage: a_simplex = Polyhedron(ieqs = [
-            ...            [0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]
-            ...        ], eqns = [[1,-1,-1,-1,-1]])
+            ....:          [0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]
+            ....:      ], eqns = [[1,-1,-1,-1,-1]])
             sage: a_simplex.vertices_list()
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
             sage: a_simplex.vertices_list() == [list(v) for v in a_simplex.vertex_generator()]
@@ -1482,8 +1482,8 @@ class Polyhedron_base(Element):
             sage: triangle.vertices()
             (A vertex at (0, 1), A vertex at (1, 0), A vertex at (1, 1))
             sage: a_simplex = Polyhedron(ieqs = [
-            ...            [0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]
-            ...        ], eqns = [[1,-1,-1,-1,-1]])
+            ....:          [0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]
+            ....:      ], eqns = [[1,-1,-1,-1,-1]])
             sage: a_simplex.vertices()
             (A vertex at (1, 0, 0, 0), A vertex at (0, 1, 0, 0),
              A vertex at (0, 0, 1, 0), A vertex at (0, 0, 0, 1))
@@ -2296,7 +2296,7 @@ class Polyhedron_base(Element):
 
             sage: cube = polytopes.hypercube(3)
             sage: triangulation = cube.triangulate(
-            ...      engine='internal') # to make doctest independent of TOPCOM
+            ....:    engine='internal') # to make doctest independent of TOPCOM
             sage: triangulation
             (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
             sage: simplex_indices = triangulation[0]; simplex_indices
@@ -3127,7 +3127,7 @@ class Polyhedron_base(Element):
             sage: a_face.dim()
             1
             sage: set(a_face.ambient_Vrepresentation()) == \
-            ...   set([square.Vrepresentation(0), square.Vrepresentation(2)])
+            ....: set([square.Vrepresentation(0), square.Vrepresentation(2)])
             True
             sage: a_face.ambient_Vrepresentation()
             (A vertex at (-1, -1), A vertex at (1, -1))
@@ -3152,7 +3152,7 @@ class Polyhedron_base(Element):
         TESTS::
 
             sage: c5_20 = Polyhedron(vertices = [[i,i^2,i^3,i^4,i^5]
-            ...       for i in range(1,21)])
+            ....:     for i in range(1,21)])
             sage: c5_20_fl = c5_20.face_lattice() # long time
             sage: [len(x) for x in c5_20_fl.level_sets()] # long time
             [1, 20, 190, 580, 680, 272, 1]
@@ -3181,7 +3181,7 @@ class Polyhedron_base(Element):
             sage: Polyhedron(lines=[(1,0),(0,1)], vertices=[(0,0)]).face_lattice().level_sets()
             [[<>], [<0,1,2>]]
             sage: Polyhedron(lines=[(1,0)], rays=[(0,1)], vertices=[(0,0)])\
-            ...       .face_lattice().level_sets()
+            ....:     .face_lattice().level_sets()
             [[<>], [<0,1>], [<0,1,2>]]
             sage: Polyhedron(vertices=[(0,)], lines=[(1,)]).face_lattice().level_sets()
             [[<>], [<0,1>]]
@@ -3317,7 +3317,7 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[[1, 2, 3], [1, 3, 2],
-            ...       [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [0, 0, 0]])
+            ....:     [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [0, 0, 0]])
             sage: p.f_vector()
             (1, 7, 12, 7, 1)
         """
@@ -4302,7 +4302,7 @@ class Polyhedron_base(Element):
         Finally, the 3-d reflexive polytope number 4078::
 
             sage: v = [(1,0,0), (0,1,0), (0,0,1), (0,0,-1), (0,-2,1),
-            ...        (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
+            ....:      (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
             sage: P = Polyhedron(v)
             sage: pts1 = P.integral_points()                     # Sage's own code
             sage: all(P.contains(p) for p in pts1)

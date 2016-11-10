@@ -274,7 +274,7 @@ class CyclicCode(AbstractLinearCode):
         sage: g = x ** 3 + x + 1
         sage: C = codes.CyclicCode(generator_pol = g, length = n)
         sage: C
-        [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
+        [7, 4] Cyclic Code over GF(2)
 
     We can also provide a code (2). In that case, the program will try to
     extract a generator polynomial (see :meth:`find_generator_polynomial`
@@ -283,7 +283,7 @@ class CyclicCode(AbstractLinearCode):
         sage: C = codes.GeneralizedReedSolomonCode(GF(2 ** 3, 'a').list()[1:2 ** 3], 2 ** 2)
         sage: Cc = codes.CyclicCode(code = C)
         sage: Cc
-        [7, 4] Cyclic Code over Finite Field in a of size 2^3 with x^3 + (a^2 + 1)*x^2 + a*x + a^2 + 1 as generator polynomial
+        [7, 4] Cyclic Code over GF(8)
 
     Finally, we can give (a subset of) a defining set for the code (3).
     In this case, the generator polynomial will be computed::
@@ -292,7 +292,7 @@ class CyclicCode(AbstractLinearCode):
         sage: n = 15
         sage: Cc = codes.CyclicCode(length = n, field = F, D = [1,2])
         sage: Cc
-        [15, 13] Cyclic Code over Finite Field in a of size 2^4 with x^2 + (a^2 + a)*x + a^3 as generator polynomial
+        [15, 13] Cyclic Code over GF(16)
     """
 
     _registered_encoders = {}
@@ -521,11 +521,11 @@ class CyclicCode(AbstractLinearCode):
             sage: g = x ** 3 + x + 1
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             sage: C
-            [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
+            [7, 4] Cyclic Code over GF(2)
         """
-        return ("[%s, %s] Cyclic Code over %s with %s as generator polynomial"
+        return ("[%s, %s] Cyclic Code over GF(%s)"
                 % (self.length(), self.dimension(),
-                   self.base_field(), self.generator_polynomial()))
+                   self.base_field().cardinality()))
 
     def _latex_(self):
         r"""
@@ -538,11 +538,11 @@ class CyclicCode(AbstractLinearCode):
             sage: g = x ** 3 + x + 1
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             sage: latex(C)
-            [7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2} \textnormal{ with } x^{3} + x + 1 \textnormal{ as generator polynomial}
+            [7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2}
         """
-        return ("[%s, %s] \\textnormal{ Cyclic Code over } %s \\textnormal{ with } %s \\textnormal{ as generator polynomial}"
+        return ("[%s, %s] \\textnormal{ Cyclic Code over } %s"
                 % (self.length(), self.dimension(),
-                   self.base_field()._latex_(), self.generator_polynomial()._latex_()))
+                   self.base_field()._latex_()))
 
     def generator_polynomial(self):
         r"""
@@ -779,7 +779,7 @@ class CyclicCodePolynomialEncoder(Encoder):
         sage: C = codes.CyclicCode(generator_pol = g, length = n)
         sage: E = codes.encoders.CyclicCodePolynomialEncoder(C)
         sage: E
-        Polynomial-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
+        Polynomial-style encoder for [7, 4] Cyclic Code over GF(2)
     """
 
     def __init__(self, code):
@@ -792,8 +792,7 @@ class CyclicCodePolynomialEncoder(Encoder):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             sage: E = codes.encoders.CyclicCodePolynomialEncoder(C)
             sage: E
-            Polynomial-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
-
+            Polynomial-style encoder for [7, 4] Cyclic Code over GF(2)
         """
         if not isinstance(code, CyclicCode):
             raise ValueError("code has to be a CyclicCode")
@@ -830,7 +829,7 @@ class CyclicCodePolynomialEncoder(Encoder):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             sage: E = codes.encoders.CyclicCodePolynomialEncoder(C)
             sage: E
-            Polynomial-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
+            Polynomial-style encoder for [7, 4] Cyclic Code over GF(2)
         """
         return "Polynomial-style encoder for %s" % self.code()
 
@@ -846,7 +845,7 @@ class CyclicCodePolynomialEncoder(Encoder):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             sage: E = codes.encoders.CyclicCodePolynomialEncoder(C)
             sage: latex(E)
-            \textnormal{Polynomial-style encoder for }[7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2} \textnormal{ with } x^{3} + x + 1 \textnormal{ as generator polynomial}
+            \textnormal{Polynomial-style encoder for }[7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2}
         """
         return "\\textnormal{Polynomial-style encoder for }%s" % self.code()._latex_()
 
@@ -952,7 +951,7 @@ class CyclicCodeVectorEncoder(Encoder):
         sage: C = codes.CyclicCode(generator_pol = g, length = n)
         sage: E = codes.encoders.CyclicCodeVectorEncoder(C)
         sage: E
-        Vector-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
+        Vector-style encoder for [7, 4] Cyclic Code over GF(2)
     """
 
     def __init__(self, code):
@@ -966,8 +965,7 @@ class CyclicCodeVectorEncoder(Encoder):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             sage: E = codes.encoders.CyclicCodeVectorEncoder(C)
             sage: E
-            Vector-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
-
+            Vector-style encoder for [7, 4] Cyclic Code over GF(2)
         """
         if not isinstance(code, CyclicCode):
             raise ValueError("code has to be a CyclicCode")
@@ -1004,7 +1002,7 @@ class CyclicCodeVectorEncoder(Encoder):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             sage: E = codes.encoders.CyclicCodeVectorEncoder(C)
             sage: E
-            Vector-style encoder for [7, 4] Cyclic Code over Finite Field of size 2 with x^3 + x + 1 as generator polynomial
+            Vector-style encoder for [7, 4] Cyclic Code over GF(2)
         """
         return "Vector-style encoder for %s" % self.code()
 
@@ -1020,7 +1018,7 @@ class CyclicCodeVectorEncoder(Encoder):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             sage: E = codes.encoders.CyclicCodeVectorEncoder(C)
             sage: latex(E)
-            \textnormal{Vector-style encoder for }[7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2} \textnormal{ with } x^{3} + x + 1 \textnormal{ as generator polynomial}
+            \textnormal{Vector-style encoder for }[7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2}
         """
         return "\\textnormal{Vector-style encoder for }%s" % self.code()._latex_()
 

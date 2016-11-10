@@ -10,6 +10,7 @@ Elements of Laurent polynomial rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import iterkeys, iteritems
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
@@ -2482,11 +2483,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         except ValueError:
             # call _derivative() recursively on coefficients
             return P({m: c._derivative(var)
-                      for (m, c) in self.dict().iteritems()})
+                      for (m, c) in iteritems(self.dict())})
 
         # compute formal derivative with respect to generator
         d = {}
-        for m, c in self.dict().iteritems():
+        for m, c in iteritems(self.dict()):
             if m[index] != 0:
                 new_m = [u for u in m]
                 new_m[index] += -1

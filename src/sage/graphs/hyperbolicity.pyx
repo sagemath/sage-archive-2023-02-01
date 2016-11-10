@@ -637,12 +637,12 @@ cdef tuple hyperbolicity_BCCM(int N,
       value larger than 1.0, the function stop computations as soon as the
       ratio between the upper bound and the best found solution is less than
       the approximation factor. When the approximation factor is 1.0, the
-      problem is solved optimaly.
+      problem is solved optimally.
 
      - ``additive_gap`` -- When sets to a positive number, the function stop
        computations as soon as the difference between the upper bound and the
        best found solution is less than additive gap. When the gap is 0.0, the
-       problem is solved optimaly.
+       problem is solved optimally.
 
     - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
       some information during execution
@@ -893,12 +893,12 @@ cdef tuple hyperbolicity_CCL(int N,
       value larger than 1.0, the function stop computations as soon as the
       ratio between the upper bound and the best found solution is less than
       the approximation factor. When the approximation factor is 1.0, the
-      problem is solved optimaly.
+      problem is solved optimally.
 
      - ``additive_gap`` -- When sets to a positive number, the function stop
        computations as soon as the difference between the upper bound and the
        best found solution is less than additive gap. When the gap is 0.0, the
-       problem is solved optimaly.
+       problem is solved optimally.
 
     - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
       some information during execution
@@ -1126,13 +1126,13 @@ def hyperbolicity(G,
       is set to some value (larger than 1.0), the function stop computations as
       soon as the ratio between the upper bound and the best found solution is
       less than the approximation factor. When the approximation factor is 1.0,
-      the problem is solved optimaly. This parameter is used only when the
+      the problem is solved optimally. This parameter is used only when the
       chosen algorithm is ``'CCL'``, ``'CCL+FA'``, or ``'BCCM'``.
 
     - ``additive_gap`` -- (default: None) When sets to a positive number, the
       function stop computations as soon as the difference between the upper
       bound and the best found solution is less than additive gap. When the gap
-      is 0.0, the problem is solved optimaly. This parameter is used only when
+      is 0.0, the problem is solved optimally. This parameter is used only when
       the chosen algorithm is ``'CCL'`` or ``'CCL+FA'``, or ``'BCCM'``.
 
     - ``verbose`` -- (default: ``False``) is a boolean set to True to display

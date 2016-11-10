@@ -27,6 +27,7 @@ from sage.libs.gmp.mpq cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpq cimport *
 from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.fmpq_poly cimport *
 
 from sage.interfaces.all import singular as singular_default
 

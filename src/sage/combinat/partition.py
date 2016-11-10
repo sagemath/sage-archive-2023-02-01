@@ -1226,7 +1226,7 @@ class Partition(CombinatorialElement):
 
             sage: plist = [int(F(3*x)) for x in range(1,11)]; plist
             [3, 6, 9, 1, 4, 7, 10, 2, 5, 8]
-            sage: range(1,11)
+            sage: list(range(1, 11))
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
             sage: p = PermutationGroupElement('(3,4,8,7,9)')
             sage: p.sign()

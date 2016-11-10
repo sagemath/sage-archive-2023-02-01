@@ -1740,7 +1740,7 @@ class TensorField(ModuleElement):
 
         - ``other`` -- a tensor field, in the same tensor module as ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor field resulting from the addition of ``self``
           and ``other``
@@ -1807,7 +1807,7 @@ class TensorField(ModuleElement):
 
         - ``other`` -- a tensor field, in the same tensor module as ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor field resulting from the subtraction of ``other``
           from ``self``
@@ -1876,7 +1876,7 @@ class TensorField(ModuleElement):
         - ``scalar`` -- scalar field in the scalar field algebra over which
           the module containing ``self`` is defined
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor field ``scalar * self``
 
@@ -1940,7 +1940,7 @@ class TensorField(ModuleElement):
           object that can be coerced to a scalar field on the same manifold
           as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor field resulting from the tensor product of ``self``
           with ``other`` (or from the product ``other * self`` if ``other``
@@ -2054,7 +2054,7 @@ class TensorField(ModuleElement):
         - ``scalar`` -- scalar field in the scalar field algebra over which
           the module containing ``self`` is defined
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor field ``scalar * self``
 

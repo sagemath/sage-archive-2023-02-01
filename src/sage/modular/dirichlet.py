@@ -1466,7 +1466,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: eps = f.character()
             sage: eps.minimize_base_ring() == eps
             True
-        
+
         A related bug (see :trac:`18086`)::
 
             sage: K.<a,b>=NumberField([x^2 + 1, x^2 - 3])
@@ -2670,7 +2670,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
              Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1,
              Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -zeta4]
         """
-        return self._list_from_iterator_cached()
+        return self._list_from_iterator()
 
     def modulus(self):
         """

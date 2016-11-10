@@ -376,7 +376,7 @@ from six import itervalues
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 from sage.misc.unknown import Unknown
-from sage.env import SAGE_SHARE
+from sage.env import GRAPHS_DATA_DIR
 
 #*****************************************************************************
 #      Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -818,11 +818,11 @@ class GraphClasses(UniqueRepresentation):
         # Save a systemwide updated copy whenever possible
 
         try:
-            z.extract(_XML_FILE, os.path.join(SAGE_SHARE,'graphs'))
-            z.extract(_SMALLGRAPHS_FILE, os.path.join(SAGE_SHARE,'graphs'))
+            z.extract(_XML_FILE, GRAPHS_DATA_DIR)
+            z.extract(_SMALLGRAPHS_FILE, GRAPHS_DATA_DIR)
         except IOError:
             z.extract(_XML_FILE, SAGE_TMP)
-            z.extract(_SMALLGRAPHS_FILE, os.path.join(SAGE_SHARE,'graphs'))
+            z.extract(_SMALLGRAPHS_FILE, GRAPHS_DATA_DIR)
 
     def _parse_db(self, directory):
         r"""
@@ -835,14 +835,14 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLE::
 
-            sage: from sage.env import SAGE_SHARE
-            sage: graph_classes._parse_db(os.path.join(SAGE_SHARE,'graphs'))
+            sage: from sage.env import GRAPHS_DATA_DIR
+            sage: graph_classes._parse_db(GRAPHS_DATA_DIR)
         """
         import xml.etree.cElementTree as ET
         import os.path
         from sage.graphs.graph import Graph
 
-        xml_file = os.path.join(SAGE_SHARE,'graphs',_XML_FILE)
+        xml_file = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
         tree = ET.ElementTree(file=xml_file)
         root = tree.getroot()
         DB = _XML_to_dict(root)
@@ -856,7 +856,7 @@ class GraphClasses(UniqueRepresentation):
         inclusions = DB['Inclusions']['incl']
 
         # Parses the list of ISGCI small graphs
-        smallgraph_file = open(os.path.join(SAGE_SHARE,'graphs',_SMALLGRAPHS_FILE),'r')
+        smallgraph_file = open(os.path.join(GRAPHS_DATA_DIR,_SMALLGRAPHS_FILE),'r')
         smallgraphs = {}
 
         for l in smallgraph_file.readlines():
@@ -928,15 +928,15 @@ class GraphClasses(UniqueRepresentation):
 
             # Which copy is the most recent on the disk ?
             if (os.path.getmtime(os.path.join(SAGE_DB,_XML_FILE)) >
-                os.path.getmtime(os.path.join(SAGE_SHARE,'graphs',_XML_FILE))):
+                os.path.getmtime(os.path.join(GRAPHS_DATA_DIR,_XML_FILE))):
 
                 directory = os.path.join(SAGE_DB,_XML_FILE)
 
             else:
-                directory = os.path.join(SAGE_SHARE,'graphs',_XML_FILE)
+                directory = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
         except IOError as e:
-            directory = os.path.join(SAGE_SHARE,'graphs',_XML_FILE)
+            directory = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
         self._parse_db(directory)
 

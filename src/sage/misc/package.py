@@ -144,7 +144,7 @@ def pip_installed_packages():
         sage: d['beautifulsoup']   # optional - beautifulsoup
         '...'
     """
-    proc = subprocess.Popen(["pip", "list"], stdout=subprocess.PIPE)
+    proc = subprocess.Popen(["pip", "list", "--no-index"], stdout=subprocess.PIPE)
     stdout = str(proc.communicate()[0])
     return dict((name.lower(), version) for name,version in PIP_VERSION.findall(stdout))
 

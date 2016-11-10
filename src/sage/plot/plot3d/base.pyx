@@ -1456,7 +1456,7 @@ end_scene""" % (render_params.antialiasing,
         filename. This can be either:
 
         - an image file (of type: PNG, BMP, GIF, PPM, or TIFF) rendered
-          using Tachyon,
+          using Jmol (default) or Tachyon,
 
         - a Sage object file (of type ``.sobj``) that you can load back later
           (a pickle),
@@ -1471,12 +1471,12 @@ end_scene""" % (render_params.antialiasing,
 
         - ``filename`` -- string. Where to save the image or object.
 
-        - ``**kwds`` -- When specifying an image file to be rendered by Tachyon,
-          any of the viewing options accepted by show() are valid as keyword
-          arguments to this function and they will behave in the same way.
-          Accepted keywords include: ``viewer``, ``verbosity``, ``figsize``,
-          ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``, ``frame``, and
-          ``axes``. Default values are provided.
+        - ``**kwds`` -- When specifying an image file to be rendered by Tachyon
+          or Jmol, any of the viewing options accepted by show() are valid as
+          keyword arguments to this function and they will behave in the same
+          way. Accepted keywords include: ``viewer``, ``verbosity``,
+          ``figsize``, ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``,
+          ``frame``, and ``axes``. Default values are provided.
 
         EXAMPLES::
 
@@ -1489,15 +1489,15 @@ end_scene""" % (render_params.antialiasing,
 
             sage: G.save(f, zoom=2, figsize=[5, 10])
 
-        But some extra parameters don't make sense (like ``viewer``, since
-        rendering is done using Tachyon only). They will be ignored::
+        Using Tachyon instead of the default viewer (Jmol) to create the
+        image::
 
-            sage: G.save(f, viewer='jmol') # Looks the same
+            sage: G.save(f, viewer='tachyon')
 
         Since Tachyon only outputs PNG images, PIL will be used to convert to
         alternate formats::
 
-            sage: cube().save(tmp_filename(ext='.gif'))
+            sage: cube().save(tmp_filename(ext='.gif'), viewer='tachyon')
 
         Here is how to save in one of the data formats::
 
@@ -1512,7 +1512,7 @@ end_scene""" % (render_params.antialiasing,
             SageObject.save(self, filename)
         elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif',
                      '.jpg', '.jpeg']:
-            self.save_image(filename)
+            self.save_image(filename, **kwds)
         elif filename.endswith('.spt.zip'):
             scene = self._rich_repr_jmol(**kwds)
             scene.jmol.save(filename)

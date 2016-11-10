@@ -687,7 +687,7 @@ cdef class GenericGraphBackend(SageObject):
             elif isinstance(self,DenseGraphBackend):
                 data_structure = "dense"
             elif isinstance(self,StaticSparseBackend):
-                implementaton = "static_sparse"
+                implementation = "static_sparse"
             else:
                 raise Exception
             multiedges = (<CGraphBackend> self)._multiple_edges

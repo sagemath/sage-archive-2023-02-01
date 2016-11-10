@@ -4599,28 +4599,28 @@ cdef class gen(gen_auto):
         deprecation(18203, "rnfpolredabs() is deprecated in PARI, port your code to use rnfpolredbest() instead")
         return gen_auto.rnfpolredabs(*args, **kwds)
 
+
 cdef gen new_ref(GEN g, gen parent):
     """
-    Create a new gen pointing to the given GEN, which is allocated as a
-    part of parent.g.
+    Create a new ``gen`` pointing to ``g``, which is allocated as a
+    part of ``parent.g``.
 
     .. note::
 
-       As a rule, there should never be more than one sage gen
-       pointing to a given Pari GEN. So that means there is only
-       one case where this function should be used: when a
-       complicated Pari GEN is allocated with a single gen
-       pointing to it, and one needs a gen pointing to one of its
-       components.
+        As a rule, there should never be more than one ``gen``
+        pointing to a given PARI ``GEN``.  This function should only
+        be used when a complicated ``GEN`` is allocated with a single
+        ``gen`` pointing to it, and one needs a ``gen`` pointing to
+        one of its components.
 
-       For example, doing x = pari("[1,2]") allocates a gen pointing to
-       the list [1,2], but x[0] has no gen wrapping it, so new_ref
-       should be used there. Then parent would be x in this
-       case. See __getitem__ for an example of usage.
+        For example, doing ``x = pari("[1, 2]")`` allocates a ``gen``
+        pointing to the list ``[1, 2]``.  To create a ``gen`` pointing
+        to the first element, one can do ``new_ref(gel(x.g, 1), x)``.
+        See :meth:`gen.__getitem__` for an example of usage.
 
     EXAMPLES::
 
-        sage: pari("[[1,2],3]")[0][1] ## indirect doctest
+        sage: pari("[[1, 2], 3]")[0][1]  # indirect doctest
         2
     """
     cdef gen p = gen.__new__(gen)
@@ -4629,7 +4629,7 @@ cdef gen new_ref(GEN g, gen parent):
     p.refers_to = {-1: parent}
     return p
 
-    
+
 cpdef gen objtogen(s):
     """
     Convert any Sage/Python object to a PARI gen.

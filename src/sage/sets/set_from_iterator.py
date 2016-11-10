@@ -404,7 +404,8 @@ class EnumeratedSetFromIterator(Parent):
         TESTS::
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
-            sage: S = EnumeratedSetFromIterator(xrange, args=(1,4))
+            sage: from six.moves import range
+            sage: S = EnumeratedSetFromIterator(range, args=(1,4))
             sage: S(1)  # indirect doctest
             1
             sage: S(0)  # indirect doctest

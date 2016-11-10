@@ -118,9 +118,9 @@ write_to_tty()
 {
     # Try writing to terminal.  Suppress the possible error message
     if ! ( cat > /dev/tty ) 2> /dev/null ; then
-	# Fall back to writing to stdout
-	cat
-	return 1
+        # Fall back to writing to stdout
+        cat
+        return 1
     fi
 }
 
@@ -201,8 +201,8 @@ while true; do
             INFO=1;;
         -y)
             YES=1;;
-	-n)
-	    YES=-1;;
+        -n)
+            YES=-1;;
         -d)
             SAGE_INSTALL_FETCH_ONLY=1;;
         -s)
@@ -290,10 +290,10 @@ elif [ -z "$PKG_HAS_PATH" ]; then
 
         # Warning for experimental packages
         if [ x`cat "$PKG_SCRIPTS/type"` = x"experimental" -a $INFO = 0 ]; then
-	    if [ $YES != 1 ]; then
-		# We use /dev/tty here because our output may be redirected
-		# to a logfile, or line-buffered.
-		write_to_tty <<EOF
+            if [ $YES != 1 ]; then
+                # We use /dev/tty here because our output may be redirected
+                # to a logfile, or line-buffered.
+                write_to_tty <<EOF
 =========================== WARNING ===========================
 You are about to download and install the experimental package
 $PKG_NAME.  This probably won't work at all for you! There
@@ -301,23 +301,23 @@ is no guarantee that it will build correctly, or behave as
 expected. Use at your own risk!
 ===============================================================
 EOF
-		if [ $? -ne 0 ]; then
-		    echo "Terminal not available for prompting.  Use 'sage -i -y $PKG_BASE'"
-		    echo "to install experimental packages in non-interactive mode."
-		    YES=-1
-		fi
-		if [ $YES != -1 ]; then
-		    read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
-		else
-		    answer=n
-		fi
-		case "$answer" in
-		    n*|N*) exit 1;;
-		esac
-		# Confirm the user's input.  (This gives important
-		# feedback to the user when output is redirected to a logfile.)
-		echo > /dev/tty "OK, installing $PKG_NAME now..."
-	    fi
+                if [ $? -ne 0 ]; then
+                    echo "Terminal not available for prompting.  Use 'sage -i -y $PKG_BASE'"
+                    echo "to install experimental packages in non-interactive mode."
+                    YES=-1
+                fi
+                if [ $YES != -1 ]; then
+                    read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+                else
+                    answer=n
+                fi
+                case "$answer" in
+                    n*|N*) exit 1;;
+                esac
+                # Confirm the user's input.  (This gives important
+                # feedback to the user when output is redirected to a logfile.)
+                echo > /dev/tty "OK, installing $PKG_NAME now..."
+            fi
         fi
 
     else
@@ -337,9 +337,9 @@ fi
 if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     cat "$PKG_SCRIPTS/SPKG.txt"
     if [ -r "$PKG_SCRIPTS/type" ] ; then
-	echo "== Type =="
-	echo
-	cat "$PKG_SCRIPTS/type"
+        echo "== Type =="
+        echo
+        cat "$PKG_SCRIPTS/type"
     fi
     exit 0
 fi
@@ -353,11 +353,11 @@ if [ ! -f "$PKG_SRC" ]; then
     else
         # Handle all the legacy cruft. This branch can be deleted once
         # we get rid of old-style spkgs
-	if [ $YES = -1 ]; then
-	    # User provided -n option, so don't even try to download the package"
-	    echo "Old-style packages disabled by use of '-n' option"
-	    exit 1
-	fi
+        if [ $YES = -1 ]; then
+            # User provided -n option, so don't even try to download the package"
+            echo "Old-style packages disabled by use of '-n' option"
+            exit 1
+        fi
         if [ $INFO -eq 0 ]; then
             echo "Attempting to download package $PKG_NAME"
         else
@@ -402,13 +402,13 @@ if [ ! -f "$PKG_SRC" ]; then
                         # If the download failed (for whatever reason),
                         # fall through and use the .spkg file.
                     else
-			if [ $YES != 1 ]; then
-			    # Warn and ask the user if downloading an
-			    # experimental package.
-			    # Add a deprecation note for other packages,
-			    # since old-style packages are deprecated.
-			    if [ $repo = experimental ]; then
-				write_to_tty <<EOF
+                        if [ $YES != 1 ]; then
+                            # Warn and ask the user if downloading an
+                            # experimental package.
+                            # Add a deprecation note for other packages,
+                            # since old-style packages are deprecated.
+                            if [ $repo = experimental ]; then
+                                write_to_tty <<EOF
 ================================ WARNING =================================
 You are about to download and install an unmaintained experimental
 package. This probably won't work at all for you! There is no guarantee
@@ -420,22 +420,22 @@ For more information about making Sage packages, see
 http://doc.sagemath.org/html/en/developer/packaging.html
 ==========================================================================
 EOF
-				if [ $? -ne 0 ]; then
-				    echo "Terminal not available for prompting.  Use 'sage -i -y $PKG_BASE'"
-				    echo "to install experimental packages in non-interactive mode."
-				    YES=-1
-				fi
-				if [ $YES != -1 ]; then
-				    read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
-				else
-				    answer=n
-				fi
-				case "$answer" in
-				    n*|N*) exit 1;;
-				esac
-			    else
-				# Deprecated since Sage 6.9, Trac #19158
-				write_to_tty <<EOF
+                                if [ $? -ne 0 ]; then
+                                    echo "Terminal not available for prompting.  Use 'sage -i -y $PKG_BASE'"
+                                    echo "to install experimental packages in non-interactive mode."
+                                    YES=-1
+                                fi
+                                if [ $YES != -1 ]; then
+                                    read -p "Are you sure you want to continue [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+                                else
+                                    answer=n
+                                fi
+                                case "$answer" in
+                                    n*|N*) exit 1;;
+                                esac
+                            else
+                                # Deprecated since Sage 6.9, Trac #19158
+                                write_to_tty <<EOF
 ================================== NOTE ==================================
 You are about to download and install an old-style package. While this
 might still work fine, old-style packages are unmaintained and deprecated.
@@ -446,21 +446,21 @@ For more information about making Sage packages, see
 http://doc.sagemath.org/html/en/developer/packaging.html
 ==========================================================================
 EOF
-				if [ $? = 0 -a $YES != -1 ]; then
-				   read -t 30 -p "Are you sure (automatically continuing in 30 seconds) [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
-				elif [ $YES = -1 ]; then
-				    answer=n
-				else
-				    answer=y
-				fi
-				case "$answer" in
-				    n*|N*) exit 1;;
-				esac
-			    fi
-			    # Confirm the user's input.  (This gives important
-			    # feedback to the user when output is redirected to a logfile.)
-			    echo > /dev/tty "OK, installing $PKG_NAME now..."
-			fi
+                                if [ $? = 0 -a $YES != -1 ]; then
+                                   read -t 30 -p "Are you sure (automatically continuing in 30 seconds) [Y/n]? " answer < /dev/tty > /dev/tty 2>&1
+                                elif [ $YES = -1 ]; then
+                                    answer=n
+                                else
+                                    answer=y
+                                fi
+                                case "$answer" in
+                                    n*|N*) exit 1;;
+                                esac
+                            fi
+                            # Confirm the user's input.  (This gives important
+                            # feedback to the user when output is redirected to a logfile.)
+                            echo > /dev/tty "OK, installing $PKG_NAME now..."
+                        fi
                     fi
                     PKG_URL="$MIRROR/$repo/$pkg.spkg"
                     break
@@ -635,7 +635,7 @@ echo "Finished extraction"
 if [ ! -f spkg-install ]; then
     echo '#!/usr/bin/env bash' > spkg-install
     if [ -x configure ]; then
-        echo './configure --prefix="$SAGE_LOCAL" && make && make install' >> spkg-install
+        echo './configure --prefix="$SAGE_LOCAL" && make && $SAGE_SUDO make install' >> spkg-install
     elif [ -f setup.py ]; then
         echo 'python setup.py install' >> spkg-install
     else
@@ -702,15 +702,38 @@ export rsync_proxy=$http_proxy
 ##################################################################
 # Actually install
 ##################################################################
+if [ -r spkg-build ]; then
+    # Package has both spkg-build and spkg-install
+    if [ ! -x spkg-build ]; then
+	echo >&2 "WARNING: spkg-build is not executable, making it executable"
+	chmod +x spkg-build
+    fi
+fi
+
 if [ ! -x spkg-install ]; then
     echo >&2 "WARNING: spkg-install is not executable, making it executable"
     chmod +x spkg-install
 fi
 
-time ./spkg-install
-if [ $? -ne 0 ]; then
-    error_msg "Error installing package $PKG_NAME" "make"
-    exit 1
+if [ -x spkg-build ]; then
+    # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
+    time ./spkg-build
+    if [ $? -ne 0 ]; then
+	error_msg "Error building package $PKG_NAME" "make"
+	exit 1
+    fi
+    time $SAGE_SUDO ./spkg-install
+    if [ $? -ne 0 ]; then
+	error_msg "Error installing package $PKG_NAME" "make"
+	exit 1
+    fi
+else
+    # Package only has spkg-install
+    time ./spkg-install
+    if [ $? -ne 0 ]; then
+	error_msg "Error installing package $PKG_NAME" "make"
+	exit 1
+    fi
 fi
 
 echo "Successfully installed $PKG_NAME"

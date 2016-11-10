@@ -2281,7 +2281,7 @@ def BraidGroup(n=None, names='s'):
         (g0, g1)
 
     Since the word problem for the braid groups is solvable, their Cayley graph
-    can be localy obtained as follows (see :trac:`16059`)::
+    can be locally obtained as follows (see :trac:`16059`)::
 
         sage: def ball(group, radius):
         ....:     ret = set()

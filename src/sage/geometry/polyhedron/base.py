@@ -442,7 +442,7 @@ class Polyhedron_base(Element):
     def _is_subpolyhedron(self, other):
         """
         Test whether ``self`` is a (not necessarily strict)
-        sub-polyhdedron of ``other``.
+        sub-polyhedron of ``other``.
 
         INPUT:
 

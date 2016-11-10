@@ -497,7 +497,7 @@ class AutomorphismField(TensorField):
 
         - ``other`` -- an automorphism of the same module as ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - the automorphism resulting from the composition of ``other`` and
         ``self``

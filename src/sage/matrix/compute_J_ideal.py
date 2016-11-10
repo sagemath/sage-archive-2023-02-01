@@ -727,6 +727,11 @@ class ComputeMinimalPolynomials(SageObject):
             sage: C.null_ideal(6)
             Ideal (6, x^3 + x^2 - 12*x - 20, 3*x^2 + 3*x)
             of Univariate Polynomial Ring in x over Integer Ring
+
+        .. TODO::
+
+           Remove minimal polynomial if not required.
+
         """
         generators = [self._ZX((self._B).minimal_polynomial())]
 

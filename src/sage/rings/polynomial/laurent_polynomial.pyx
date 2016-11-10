@@ -409,6 +409,61 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         D = self.dict()
         return not D or len(D) == 1 and next(iterkeys(D)) == 0
+
+    def _integer_(self):
+        r"""
+        Convert this laurent polynomial to an integer.
+
+        This is only possible if the laurent polynomial is constant.
+
+        OUTPUT:
+
+        An integer.
+
+        TESTS::
+
+            sage: L.<a> = LaurentPolynomialRing(QQ)
+            sage: L(42)._integer_()
+            42
+            sage: a._integer_()
+            Traceback (most recent call last):
+            ...
+            ValueError: a is not constant.
+            sage: L(2/3)._integer_()
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+        """
+        if not self.is_constant():
+            raise ValueError('{} is not constant.'.format(self))
+        from sage.rings.integer_ring import ZZ
+        return ZZ(self.dict().get(0, 0))
+
+    def _rational_(self):
+        r"""
+        Convert this laurent polynomial to a rational.
+
+        This is only possible if the laurent polynomial is constant.
+
+        OUTPUT:
+
+        A rational.
+
+        TESTS::
+
+            sage: L.<a> = LaurentPolynomialRing(QQ)
+            sage: L(42)._rational_()
+            42
+            sage: a._rational_()
+            Traceback (most recent call last):
+            ...
+            ValueError: a is not constant.
+        """
+        if not self.is_constant():
+            raise ValueError('{} is not constant.'.format(self))
+        from sage.rings.rational_field import QQ
+        return QQ(self.dict().get(0, 0))
+
     def _symbolic_(self, R):
         """
         EXAMPLES::
@@ -2431,6 +2486,61 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         """
         D = self.dict()
         return not D or len(D) == 1 and all(i == 0 for i in next(iterkeys(D)))
+
+    def _integer_(self):
+        r"""
+        Convert this laurent polynomial to an integer.
+
+        This is only possible if the laurent polynomial is constant.
+
+        OUTPUT:
+
+        An integer.
+
+        TESTS::
+
+            sage: L.<a, b> = LaurentPolynomialRing(QQ)
+            sage: L(42)._integer_()
+            42
+            sage: a._integer_()
+            Traceback (most recent call last):
+            ...
+            ValueError: a is not constant.
+            sage: L(2/3)._integer_()
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+        """
+        if not self.is_constant():
+            raise ValueError('{} is not constant.'.format(self))
+        from sage.rings.integer_ring import ZZ
+        return ZZ(self.dict().get(ETuple((0,)*len(self.parent().gens())), 0))
+
+    def _rational_(self):
+        r"""
+        Convert this laurent polynomial to a rational.
+
+        This is only possible if the laurent polynomial is constant.
+
+        OUTPUT:
+
+        A rational.
+
+        TESTS::
+
+            sage: L.<a, b> = LaurentPolynomialRing(QQ)
+            sage: L(42)._rational_()
+            42
+            sage: a._rational_()
+            Traceback (most recent call last):
+            ...
+            ValueError: a is not constant.
+        """
+        if not self.is_constant():
+            raise ValueError('{} is not constant.'.format(self))
+        from sage.rings.rational_field import QQ
+        return QQ(self.dict().get(ETuple((0,)*len(self.parent().gens())), 0))
+
     def _symbolic_(self, R):
         """
         EXAMPLES::

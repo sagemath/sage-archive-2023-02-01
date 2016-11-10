@@ -144,13 +144,14 @@ def lifting(p, t, A, G):
         sage: lifting(5, 10, A, G1)
         Traceback (most recent call last):
         ...
-        AssertionError: A*G is not zero mod 5^9
+        ValueError: A*G is not zero mod 5^9
     """
     if t == 0:
         return matrix(A.parent().base(), A.ncols(), 0)
 
-    assert (A*G % p**(t-1)).is_zero(),\
-        "A*G is not zero mod %s^%s" % (p, t-1)
+    if not (A*G % p**(t-1)).is_zero():
+        raise ValueError(
+            "A*G is not zero mod %s^%s" % (p, t-1))
 
     P = A.parent()
     ZZX = P.base()
@@ -469,11 +470,12 @@ class ComputeMinimalPolynomials(SageObject):
            sage: C.mccoy_column(2, 2, nu_2)
            Traceback (most recent call last):
            ...
-           AssertionError: x^2 + x not in (2^2)-ideal
+           ValueError: x^2 + x not in (2^2)-ideal
 
         """
-        assert (nu_t(self._B) % p**t).is_zero(),\
-            "%s not in (%s^%s)-ideal" % (nu_t, p, t)
+        if not (nu_t(self._B) % p**t).is_zero():
+            raise ValueError(
+                "%s not in (%s^%s)-ideal" % (nu_t, p, t))
         chi_B = self._ZX(self._B.characteristic_polynomial())
         column = [nu_t] + [(nu_t*b).quo_rem(chi_B)[0]
                            for b in self._A[:, 0].list()]

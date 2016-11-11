@@ -815,7 +815,6 @@ class ComputeMinimalPolynomials(SageObject):
         This means that `3` and `5` were candidates, but actually, `\mu_B` turns
         out to be a `(3)`-minimal polynomial and a `(5)`-minimal polynomial.
         """
-        F, T = (self._B).frobenius(2)
+        F, T = self._B.frobenius(2)
 
-        return [p for
-                (p, t) in factor(T.det())]
+        return [p for (p, t) in factor(T.det())]

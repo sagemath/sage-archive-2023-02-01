@@ -934,7 +934,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         - ``other`` -- a tensor field (instance of :class:`TensorFieldParal`)
 
-        OUPUT:
+        OUTPUT:
 
         - common coordinate frame; if no common basis is found, ``None``
           is returned
@@ -1467,7 +1467,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
           object that can be coerced to a scalar field on the same manifold
           as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor field resulting from the tensor product of ``self``
           with ``other`` (or from the product ``other * self`` if ``other``

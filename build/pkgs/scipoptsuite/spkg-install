@@ -143,7 +143,7 @@ fi
 
 cd $SRC/$SCIP_DIR
 # for clp add the option LPS=clp
-## added -rpath.  Abusing LIBBUILD_o is of course a hack. 
+## added -rpath.  Abusing LIBBUILD_o is of course a hack.
 $MAKE OPT=$OPT LPSOPT=$OPT VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=true READLINE=true \
      USRCFLAGS="$CFLAGS" USRCXXFLAGS="$CXXFLAGS" USRLDFLAGS="$LDFLAGS" \
      LIBBUILD_o="-Wl,-rpath,$SAGE_LOCAL/lib -lgmp -lz -lreadline -o " \

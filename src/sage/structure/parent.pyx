@@ -1194,132 +1194,6 @@ cdef class Parent(category_object.CategoryObject):
         else:
             return (<map.Map>mor)._call_(x)
 
-    # TODO: move this method in EnumeratedSets (.Finite?) as soon as
-    # all Sage enumerated sets are in this category
-    def _list_from_iterator_cached(self):
-        r"""
-        Return a list of the elements of ``self``.
-
-        OUTPUT:
-
-        A list of all the elements produced by the iterator
-        defined for the object.  The result is cached. An
-        infinite set may define an iterator, allowing one
-        to search through the elements, but a request by
-        this method for the entire list should fail.
-
-        NOTE:
-
-        Some objects ``X`` do not know if they are finite or not. If
-        ``X.is_finite()`` fails with a ``NotImplementedError``, then
-        ``X.list()`` will simply try. In that case, it may run without
-        stopping.
-
-        However, if ``X`` knows that it is infinite, then running
-        ``X.list()`` will raise an appropriate error, while running
-        ``list(X)`` will run indefinitely.  For many Sage objects
-        ``X``, using ``X.list()`` is preferable to using ``list(X)``.
-
-        Nevertheless, since the whole list of elements is created and
-        cached by ``X.list()``, it may be better to do ``for x in
-        X:``, not ``for x in X.list():``.
-
-        EXAMPLES::
-
-            sage: R = Integers(11)
-            sage: R.list()    # indirect doctest
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-            sage: ZZ.list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: since it is infinite, cannot list Integer Ring
-
-        Trying to list an infinite vector space raises an error
-        instead of running forever (see :trac:`10470`)::
-
-            sage: (QQ^2).list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
-
-        TESTS:
-
-        The following tests the caching by adjusting the cached version::
-
-            sage: R = Integers(3)
-            sage: R.list()
-            [0, 1, 2]
-            sage: R._list[0] = 'junk'
-            sage: R.list()
-            ['junk', 1, 2]
-
-        Here we test that for an object that does not know whether it
-        is finite or not.  Calling ``X.list()`` simply tries to create
-        the list (but here it fails, since the object is not
-        iterable). This was fixed :trac:`11350` ::
-
-            sage: R.<t,p> = QQ[]
-            sage: Q = R.quotient(t^2-t+1)
-            sage: Q.is_finite()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-            sage: Q.list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: object does not support iteration
-
-        Here is another example. We artificially create a version of
-        the ring of integers that does not know whether it is finite
-        or not::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: class MyIntegers_class(IntegerRing_class):
-            ....:      def is_finite(self):
-            ....:          raise NotImplementedError
-            sage: MyIntegers = MyIntegers_class()
-            sage: MyIntegers.is_finite()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        Asking for ``list(MyIntegers)`` will also raise an exception::
-
-            sage: list(MyIntegers)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        """
-        try:
-            if self._list is not None:
-                return self._list
-        except AttributeError:
-            pass
-        # if known to be infinite, give up
-        # if unsure, proceed (which will hang for an infinite set)
-        #
-        # TODO: The test below should really be:
-        #   if self in Sets().Infinite():
-        # However many infinite parents are not yet declared as such,
-        # which triggers some doctests failure; see e.g. matrix_space.py.
-        # For now we keep the current test as a workaround (see #16239).
-        infinite = False # We do it this way so we can raise a NotImplementedError
-        try:
-            if self in Sets().Infinite() or not self.is_finite():
-                infinite = True
-        except (AttributeError, NotImplementedError):
-            pass
-        if infinite:
-            raise NotImplementedError( 'since it is infinite, cannot list {}'.format(self) )
-        the_list = list(self.__iter__())
-        try:
-            self._list = the_list
-        except AttributeError:
-            pass
-        return the_list
-
     def __nonzero__(self):
         """
         By default, all Parents are treated as True when used in an if
@@ -1373,22 +1247,6 @@ cdef class Parent(category_object.CategoryObject):
             return -1
         else:
             return 1
-
-
-    # Should be moved and merged into the EnumeratedSets() category (#12955)
-    def __len__(self):
-        """
-        Returns the number of elements in self. This is the naive algorithm
-        of listing self and counting the elements.
-
-        EXAMPLES::
-
-            sage: len(GF(5))
-            5
-            sage: len(MatrixSpace(GF(2), 3, 3))
-            512
-        """
-        return len(self.list())
 
     # Should be moved and merged into the EnumeratedSets() category (#12955)
     def __getitem__(self, n):
@@ -2859,6 +2717,14 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
 #         return Sets()
 
     def object(self):
+        """
+        Return the underlying object of ``self``.
+
+        EXAMPLES::
+
+            sage: Set(QQ).object()
+            Rational Field
+        """
         return self
 
     def __nonzero__(self):

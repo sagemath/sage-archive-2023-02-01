@@ -17,7 +17,7 @@ Home page: https://github.com/aaren/pandoc-attributes
 == Dependencies ==
 
 * Python
-* setuptools 
+* setuptools
 * pandocfilters
 
 == Special Update/Build Instructions ==

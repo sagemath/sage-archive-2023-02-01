@@ -229,7 +229,7 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
 
         sage: W = Words(range(20))
 
-        sage: w = W(range(1,10)*2)
+        sage: w = W(list(range(1, 10)) * 2)
         sage: type(w)
         <class 'sage.combinat.words.word.FiniteWord_char'>
         sage: w
@@ -244,7 +244,7 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
 
         sage: w.is_lyndon()
         False
-        sage: W(range(10)+[10,10]).is_lyndon()
+        sage: W(list(range(10)) + [10, 10]).is_lyndon()
         True
 
         sage: w.is_square_free()

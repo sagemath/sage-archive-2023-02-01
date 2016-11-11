@@ -1022,7 +1022,7 @@ class InfinitePolynomial_sparse(RingElement):
             Fsmall = dict([[k[0], [e for e in k[1]]] for k in other.footprint().items()])
             ltbig = slt
             ltsmall = olt
-        # Case 1: one of the Infintie Polynomials is scalar.
+        # Case 1: one of the Infinite Polynomials is scalar.
         if not Fsmall:
             return (rawcmp, 1, ltbig/ltsmall)
         # "not Fbig" is now impossible, because we only consider *global* monomial orderings.

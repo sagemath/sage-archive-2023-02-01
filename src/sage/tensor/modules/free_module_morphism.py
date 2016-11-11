@@ -692,7 +692,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         OUTPUT:
 
-        - the homomorphism resulting from the multiphication of ``self`` by
+        - the homomorphism resulting from the multiplication of ``self`` by
           ``scalar``
 
         EXAMPLES::
@@ -972,7 +972,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             NotImplementedError: FiniteRankFreeModuleMorphism.is_surjective()
              has not been implemented yet
 
-        except for the identity endomorphisme (!)::
+        except for the identity endomorphism (!)::
 
             sage: End(M).one().is_surjective()
             True

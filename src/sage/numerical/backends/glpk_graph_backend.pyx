@@ -1,4 +1,3 @@
-# distutils: language = c++
 """
 GLPK Backend for access to GLPK graph functions
 

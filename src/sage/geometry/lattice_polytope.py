@@ -112,7 +112,7 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
-from sage.env import SAGE_SHARE
+from sage.env import POLYTOPE_DATA_DIR
 from sage.modules.all import vector, span
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -134,9 +134,6 @@ import os
 import subprocess
 from six import StringIO
 from functools import reduce
-
-
-data_location = os.path.join(SAGE_SHARE,'reflexive_polytopes')
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):
@@ -418,7 +415,7 @@ def ReflexivePolytopes(dim):
         raise NotImplementedError("only 2- and 3-dimensional reflexive polytopes are available!")
     if _rp[dim] is None:
         rp = read_all_polytopes(
-            os.path.join(data_location, "reflexive_polytopes_%dd" % dim))
+            os.path.join(POLYTOPE_DATA_DIR, "reflexive_polytopes_%dd" % dim))
         for n, p in enumerate(rp):
             # Data files have normal form of reflexive polytopes
             p.normal_form.set_cache(p._vertices)

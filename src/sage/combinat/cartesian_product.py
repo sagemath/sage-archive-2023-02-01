@@ -197,7 +197,7 @@ class CartesianProduct_iters(CombinatorialClass):
         EXAMPLES::
 
             sage: from sage.combinat.cartesian_product import CartesianProduct_iters
-            sage: CartesianProduct_iters(range(2), range(3))
+            sage: CartesianProduct_iters(list(range(2)), list(range(3)))
             Cartesian product of [0, 1], [0, 1, 2]
         """
         return "Cartesian product of " + ", ".join(map(str, self.iters))

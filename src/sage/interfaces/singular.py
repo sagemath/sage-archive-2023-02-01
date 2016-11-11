@@ -1087,7 +1087,7 @@ class Singular(ExtraTabCompletion, Expect):
             //        block   2 : ordering C
             sage: singular.set_ring(R)
             sage: singular.current_ring()
-            polynomial ring, over a field, local/mixed ordering
+            polynomial ring, over a field, local ordering
             //   characteristic : 7
             //   number of vars : 2
             //        block   1 : ordering ds
@@ -1179,7 +1179,12 @@ class Singular(ExtraTabCompletion, Expect):
 
     def version(self):
         """
-        EXAMPLES:
+        Return the version of Singular being used.
+
+        EXAMPLES::
+
+            sage: singular.version()
+            "Singular ... version 4.0.3 ...
         """
         return singular_version()
 
@@ -1996,7 +2001,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             //        block   2 : ordering C
             sage: R.set_ring()
             sage: singular.current_ring()
-            polynomial ring, over a field, local/mixed ordering
+            polynomial ring, over a field, local ordering
             //   characteristic : 7
             //   number of vars : 2
             //        block   1 : ordering ds
@@ -2372,9 +2377,12 @@ def singular_console():
 
 def singular_version():
     """
-    Returns the version of Singular being used.
+    Return the version of Singular being used.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: singular.version()
+        "Singular ... version 4.0.3 ...
     """
     return singular.eval('system("--version");')
 

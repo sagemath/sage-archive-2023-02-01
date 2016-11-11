@@ -717,7 +717,7 @@ class ComputeMinimalPolynomials(SageObject):
                 return p_min_polys
 
             if nu.degree() == deg_prev_nu:
-                G = G.matrix_from_columns(range(G.ncols()-1))
+                G = G.delete_columns([G.ncols() - 1])
                 del p_min_polys[t-1]
 
             column = self.mccoy_column(p, t, nu) 

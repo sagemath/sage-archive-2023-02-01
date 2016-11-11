@@ -582,7 +582,8 @@ cdef class FastDoubleFunc:
         cdef int c, i
         cdef FastDoubleFunc left, right
         try:
-            left, right = self, other
+            left = <FastDoubleFunc?>self
+            right = <FastDoubleFunc?>other
 
             lx = left.nargs
             rx = right.nargs

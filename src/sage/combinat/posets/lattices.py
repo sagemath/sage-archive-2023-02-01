@@ -78,6 +78,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_sublattice` | Return ``True`` if the lattice is a sublattice of given lattice.
     :meth:`~FiniteLatticePoset.sublattices` | Return all sublattices of the lattice.
     :meth:`~FiniteLatticePoset.sublattices_lattice` | Return the lattice of sublattices.
+    :meth:`~FiniteLatticePoset.isomorphic_sublattices_iterator` | Return an iterator over the sublattices isomorphic to given lattice.
     :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
     :meth:`~FiniteLatticePoset.skeleton` | Return the skeleton of the lattice.
@@ -2351,6 +2352,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             but only if ``other`` directly contains the lattice as an
             sublattice.
 
+        .. SEEALSO::
+
+            :meth:`isomorphic_sublattices_iterator`
+
         EXAMPLES:
 
         A pentagon sublattice in a non-modular lattice::
@@ -2492,6 +2497,67 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if element_constructor == 'lattice':
             return L.relabel(lambda x: self.sublattice(x))
         return L
+
+    def isomorphic_sublattices_iterator(self, other):
+        """
+        Return an iterator over the sublattices of the lattice isomorphic to ``other``.
+
+        INPUT:
+
+        - other --  a finite lattice
+
+        .. SEEALSO::
+
+            :meth:`sage.combinat.posets.posets.FinitePoset.isomorphic_subposets_iterator`
+
+        EXAMPLES:
+
+        A non-modular lattice contains a pentagon sublattice::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [5, 6], 4: [7], 5: [7], 6: [7]})
+            sage: L.is_modular()
+            False
+            sage: N5 = Posets.PentagonPoset()
+            sage: N5_in_L = next(L.isomorphic_sublattices_iterator(N5)); N5_in_L
+            Finite lattice containing 5 elements
+            sage: N5_in_L.list()
+            [1, 3, 6, 4, 7]
+
+        A divisor lattice is modular, hence does not contain the
+        pentagon as sublattice, even if it has the pentagon
+        subposet::
+
+            sage: D12 = Posets.DivisorLattice(12)
+            sage: D12.has_isomorphic_subposet(N5)
+            True
+            sage: list(D12.isomorphic_sublattices_iterator(N5))
+            []
+
+        .. WARNING::
+
+            This function will return same sublattice as many times as
+            there are automorphism on it. This is due to
+            :meth:`~sage.graphs.generic_graph.GenericGraph.subgraph_search_iterator`
+            returning labelled subgraphs.
+
+        TESTS::
+
+            sage: E = LatticePoset()
+            sage: P = LatticePoset({1: []})
+            sage: list(N5.isomorphic_sublattices_iterator(E))
+            [Finite lattice containing 0 elements]
+            sage: len(list(N5.isomorphic_sublattices_iterator(P)))
+            5
+        """
+        from itertools import combinations
+        if not isinstance(other, FiniteLatticePoset):
+            raise TypeError('the input is not a finite lattice')
+        H = self._hasse_diagram
+        self_closure = H.transitive_closure()
+        other_closure = other._hasse_diagram.transitive_closure()
+        for g in self_closure.subgraph_search_iterator(other_closure, induced=True):
+            if all(H._meet[a, b] in g and H._join[a, b] in g for a, b in combinations(g, 2)):
+                yield self.sublattice([self._vertex_to_element(v) for v in g])
 
     def maximal_sublattices(self):
         r"""

@@ -1841,7 +1841,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
     (:trac:`11766`)::
 
         sage: R.<x> = CC[]
-        sage: f = R(range(100000))
+        sage: f = R(list(range(100000)))
         sage: ff = fast_callable(f)
         sage: f(0.5)
         2.00000000000000

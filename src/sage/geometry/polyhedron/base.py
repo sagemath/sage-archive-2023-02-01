@@ -338,14 +338,14 @@ class Polyhedron_base(Element):
 
             sage: vertices = [(0,0,0,0),(1,0,0,0),(0,1,0,0),(1,1,0,0),(0,0,1,0),(0,0,0,1)]
             sage: def loop_polyhedra():
-            ....:     for i in range(0,100):
+            ....:     for i in range(100):
             ....:         p = Polyhedron(vertices)
 
             sage: timeit('loop_polyhedra()')                   # not tested - random
             5 loops, best of 3: 79.5 ms per loop
 
             sage: def loop_polyhedra_with_recycling():
-            ....:     for i in range(0,100):
+            ....:     for i in range(100):
             ....:         p = Polyhedron(vertices)
             ....:         p._delete()
 
@@ -1525,7 +1525,7 @@ class Polyhedron_base(Element):
             base_ring = self.base_ring()
         m = matrix(base_ring, self.ambient_dim(), self.n_vertices())
         for i,v in enumerate(self.vertices()):
-            for j in range(0,self.ambient_dim()):
+            for j in range(self.ambient_dim()):
                 m[j,i] = v[j]
         return m
 
@@ -3190,12 +3190,12 @@ class Polyhedron_base(Element):
         """
         coatom_to_Hindex = [ h.index() for h in self.inequality_generator() ]
         Hindex_to_coatom = [None] * self.n_Hrepresentation()
-        for i in range(0,len(coatom_to_Hindex)):
+        for i in range(len(coatom_to_Hindex)):
             Hindex_to_coatom[ coatom_to_Hindex[i] ] = i
 
         atom_to_Vindex = [ v.index() for v in self.Vrep_generator() if not v.is_line() ]
         Vindex_to_atom = [None] * self.n_Vrepresentation()
-        for i in range(0,len(atom_to_Vindex)):
+        for i in range(len(atom_to_Vindex)):
                         Vindex_to_atom[ atom_to_Vindex[i] ] = i
 
         atoms_incidences   = [ tuple([ Hindex_to_coatom[h.index()]
@@ -4164,7 +4164,7 @@ class Polyhedron_base(Element):
             raise ValueError('Empty polytope is not allowed')
         if not self.is_compact():
             raise ValueError('Only polytopes (compact polyhedra) are allowed.')
-        for i in range(0,self.ambient_dim()):
+        for i in range(self.ambient_dim()):
             coords = [ v[i] for v in self.vertex_generator() ]
             max_coord = max(coords)
             min_coord = min(coords)
@@ -4725,7 +4725,7 @@ class Polyhedron_base(Element):
 
         # Construct the graph.
         G = Graph()
-        for i in range(0, len(V)):
+        for i in range(len(V)):
             for j in range(i+1, len(V)):
                 c_ij = rational_approximation(V[i] * Qplus * V[j])
                 G.add_edge(index0+i, index0+j, edge_label(i, j, c_ij))

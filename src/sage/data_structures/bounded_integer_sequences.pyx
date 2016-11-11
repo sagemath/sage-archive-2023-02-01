@@ -871,7 +871,7 @@ cdef class BoundedIntegerSequence:
 
         TESTS::
 
-            sage: S = BoundedIntegerSequence(10^8, range(9))
+            sage: S = BoundedIntegerSequence(10^8, list(range(9)))
             sage: S[-1]
             8
             sage: S[8]

@@ -635,3 +635,23 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         if other.is_trivial():
             return other.is_discrete_valuation()
         return super(MacLaneLimitValuation, self)._ge_(other)
+
+    def restriction(self, ring):
+        r"""
+        Return the restriction of this valuation to ``ring``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: w = v.extension(L)
+            sage: w._base_valuation.restriction(K)
+            2-adic valuation
+
+        """
+        if ring.is_subring(self.domain().base()):
+            return self._initial_approximation.restriction(ring)
+        return super(MacLaneLimitValuation, self).restriction(ring)

@@ -40,67 +40,7 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
     sys.path.append(os.path.dirname(os.getcwd()))
 
 from valuation import DiscreteValuation, DiscretePseudoValuation
-from sage.structure.factory import UniqueFactory
-
-class DomainMappedValuationFactory(UniqueFactory):
-    r"""
-    Return a valuation which treats the valuation ``base`` like a valuation on
-    ``domain`` by sending its arguments through ``to_base`` and ``from_base``
-    respectively.
-
-    EXAMPLES::
-
-        sage: from mac_lane import * # optional: standalone
-        sage: K.<x> = FunctionField(GF(2))
-        sage: R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 + y + x^3)
-        sage: v = FunctionFieldValuation(K, 1/x)
-        sage: w = v.extension(L); w
-        Valuation at the infinite place
-
-    """
-    def create_key(self, domain, base, to_base, from_base):
-        r"""
-        Create a key which uniquely identifies a valuation.
-
-        TESTS::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(GF(2))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 + y + x^3)
-            sage: v = FunctionFieldValuation(K, 1/x)
-            sage: w = v.extension(L) # indirect doctest
-            sage: ww = v.extension(L)
-            sage: w is ww
-            True
-            
-        """
-        return domain, base, to_base, from_base
-
-    def create_object(self, version, key):
-        r"""
-        Create a valuation from ``key``.
-
-        TESTS::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(GF(2))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 + y + x^3)
-            sage: v = FunctionFieldValuation(K, 1/x)
-            sage: w = v.extension(L) # indirect doctest
-
-        """
-        domain, base, to_base, from_base = key
-        from valuation_space import DiscretePseudoValuationSpace
-        parent = DiscretePseudoValuationSpace(domain)
-        if base.is_discrete_valuation():
-            return parent.__make_element_class__(DomainMappedDiscreteValuation)(parent, base, to_base, from_base)
-        else:
-            raise NotImplementedError
-
-DomainMappedValuation = DomainMappedValuationFactory("DomainMappedValuation")
+from sage.misc.abstract_method import abstract_method
 
 class MappedValuation_base(DiscretePseudoValuation):
     r"""
@@ -142,9 +82,12 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         self._base_valuation = base_valuation 
 
+    @abstract_method
     def _repr_(self):
         r"""
         Return a printable representation of this valuation.
+
+        Subclasses must override this method.
 
         EXAMPLES::
 
@@ -157,7 +100,6 @@ class MappedValuation_base(DiscretePseudoValuation):
             2-adic valuation
 
         """
-        return repr(self._base_valuation)
 
     def residue_ring(self):
         r"""
@@ -356,132 +298,6 @@ class MappedValuation_base(DiscretePseudoValuation):
             # note that the converse might not be true
 
 
-class DomainMappedValuation_base(MappedValuation_base):
-    r"""
-    A valuation which is implemented another proxy "base" valuation with which
-    is shares the :meth:`residue_ring` but not the domain.
-
-    EXAMPLES::
-
-        sage: from mac_lane import * # optional: standalone
-        sage: K.<x> = FunctionField(GF(2))
-        sage: R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 + y + x^3)
-        sage: v = FunctionFieldValuation(K, 1/x)
-        sage: w = v.extension(L); w
-        Valuation at the infinite place
-
-        sage: w(x)
-        -1
-        sage: w(y)
-        -3/2
-        sage: w.uniformizer()
-        1/x^2*y
-
-    """
-    def __init__(self, parent, base_valuation, to_base, from_base):
-        r"""
-        TESTS::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(GF(2))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 + y + x^3)
-            sage: v = FunctionFieldValuation(K, 1/x)
-            sage: w = v.extension(L)
-            sage: isinstance(w, DomainMappedValuation_base)
-            True
-            sage: TestSuite(w).run() # long time
-
-        """
-        MappedValuation_base.__init__(self, parent, base_valuation)
-
-        from sage.categories.homset import Hom
-        if to_base not in Hom(self.domain(), base_valuation.domain()):
-            raise ValueError("to_base must map from %r to %r"%(self.domain(), base_valuation.domain()))
-        if from_base not in Hom(base_valuation.domain(), self.domain()):
-            raise ValueError("from_base must map from %r to %r"%(base_valuation.domain(), self.domain()))
-
-        self._to_base = to_base
-        self._from_base = from_base
-
-    def _to_base_domain(self, f):
-        r"""
-        Return ``f`` as an element in the domain of ``_base_valuation``.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(GF(2))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 + y + x^3)
-            sage: v = FunctionFieldValuation(K, 1/x)
-            sage: w = v.extension(L)
-            sage: w._to_base_domain(y)
-            x^2*y
-
-        """
-        return self._to_base(f)
-
-    def _from_base_domain(self, f):
-        r"""
-        Return ``f`` as an element in the domain of this valuation.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(GF(2))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 + y + x^3)
-            sage: v = FunctionFieldValuation(K, 1/x)
-            sage: w = v.extension(L)
-            sage: w._from_base_domain(w._to_base_domain(y))
-            y
-
-        r"""
-        return self._from_base(f)
-
-    def scale(self, scalar):
-        r"""
-        Return this valuation scaled by ``scalar``.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(GF(2))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 + y + x^3)
-            sage: v = FunctionFieldValuation(K, 1/x)
-            sage: w = v.extension(L)
-            sage: 3*w
-            3 * Valuation at the infinite place
-
-        """
-        from sage.rings.all import QQ
-        if scalar in QQ and scalar > 0 and scalar != 1:
-            return DomainMappedValuation(self.domain(), self._base_valuation.scale(scalar), self._to_base, self._from_base)
-        return super(DomainMappedValuation_base, self).scale(scalar)
-
-
-class DomainMappedDiscreteValuation(DomainMappedValuation_base, DiscreteValuation):
-    r"""
-    A discrete valuation which is implemented through another proxy "base"
-    valuation.
-
-    TESTS::
-
-        sage: from mac_lane import * # optional: standalone
-        sage: K.<x> = FunctionField(GF(2))
-        sage: R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 + y + x^3)
-        sage: v = FunctionFieldValuation(K, 1/x)
-        sage: w = v.extension(L)
-        sage: isinstance(w, DomainMappedDiscreteValuation)
-        True
-    """
-    pass
-
-
 class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuation):
     r"""
     A valuation on a quotient of the form `L=K[x]/(G)` with an irreducible `G`
@@ -507,11 +323,26 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
         sage: w = v.extension(L); w
         (x)-adic valuation
 
-    TESTS::
-
-        sage: TestSuite(w).run() # long time
-
     """
+    def __init__(self, parent, base_valuation):
+        r"""
+        TESTS::
+    
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+    
+            sage: v = FunctionFieldValuation(K, 0)
+            sage: w = v.extension(L)
+            sage: isinstance(w, FiniteExtensionFromInfiniteValuation)
+            True
+            sage: TestSuite(w).run() # long time
+    
+        """
+        MappedValuation_base.__init__(self, parent, base_valuation)
+        DiscreteValuation.__init__(self, parent)
+
     def _eq_(self, other):
         r"""
         Return whether this valuation is indistinguishable from ``other``.
@@ -530,6 +361,26 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
 
         """
         return isinstance(other, FiniteExtensionFromInfiniteValuation) and self._base_valuation == other._base_valuation
+
+    def restriction(self, ring):
+        r"""
+        Return the restriction of this valuation to ``ring``.
+
+        EXAMPLES:
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: w = v.extension(L)
+            sage: w.restriction(K) is v
+            True
+
+        """
+        if ring.is_subring(self._base_valuation.domain().base()):
+            return self._base_valuation.restriction(ring)
+        return super(FiniteExtensionFromInfiniteValuation, self).restriction(ring)
 
 
 class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):

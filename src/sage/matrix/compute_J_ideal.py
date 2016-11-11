@@ -304,8 +304,8 @@ class ComputeMinimalPolynomials(SageObject):
         adjoint = (X - B).adjoint()
         d = B.nrows()**2
         b = matrix(d, 1, adjoint.list())
-        chi_B = B.charpoly(X)
-        self._A = matrix.block([[b , -chi_B*matrix.identity(d)]])
+        self.chi_B = B.charpoly(X)
+        self._A = matrix.block([[b , -self.chi_B*matrix.identity(d)]])
         self._DX = X.parent()
 
 
@@ -514,14 +514,15 @@ class ComputeMinimalPolynomials(SageObject):
         if not (nu_t(self._B) % p**t).is_zero():
             raise ValueError(
                 "%s not in (%s^%s)-ideal" % (nu_t, p, t))
-        chi_B = self._DX(self._B.characteristic_polynomial())
-        column = [nu_t] + [(nu_t*b).quo_rem(chi_B)[0]
-                           for b in self._A[:, 0].list()]
 
-        assert (self._A * matrix(self._DX,
-                                 (self._A).ncols(), 1, column) % p**t).is_zero(),\
+        column = matrix(self._DX, self._A.ncols(), 1,
+                        [nu_t] + [(nu_t*b).quo_rem(self.chi_B)[0]
+                                  for b in self._A[:, 0].list()])
+
+        assert (self._A * column % p**t).is_zero(),\
                                  "McCoy column is not correct"
-        return  matrix(self._DX, self._A.ncols(), 1, column)
+
+        return  column
 
 
     def p_minimal_polynomials(self, p, s_max=None):

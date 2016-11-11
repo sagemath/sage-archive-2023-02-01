@@ -155,6 +155,16 @@ def lifting(p, t, A, G):
     ALGORITHM:
 
     [HR2016]_, Algorithm 1.
+
+    TESTS::
+
+        sage: A = matrix([[1, X], [X, X^2]])
+        sage: G0 = lifting(5, 0, A, None)
+        sage: G1 = lifting(5, 1, A, G0); G1
+        Traceback (most recent call last):
+        ...
+        ValueError: [  1   X|]
+        [  X X^2|] does not have full rank
     """
     DX = A.parent().base()
     (X,) = DX.gens()
@@ -185,6 +195,9 @@ def lifting(p, t, A, G):
                for j in range(Db.ncols()))
 
     r = Db.rank()
+    if r != c:
+        raise ValueError("{} does not have full rank".format(ARb))
+
     T = Tb.change_ring(DX)
 
     F1 = matrix.block([[p**(t-1) * matrix.identity(d), G]])*T

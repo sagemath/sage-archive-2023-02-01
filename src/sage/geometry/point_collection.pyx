@@ -272,12 +272,13 @@ cdef class PointCollection(SageObject):
         """
         if not isinstance(right, PointCollection):
             return NotImplemented
-        cdef PointCollection pc = right
-        left_m = self._module
-        right_m = pc._module
+        cdef PointCollection left_pc = self
+        cdef PointCollection right_pc = right
+        left_m = left_pc._module
+        right_m = right_pc._module
         if left_m != right_m:
             return richcmp_not_equal(left_m, right_m, op)
-        return richcmp(self._points, pc._points, op)
+        return richcmp(left_pc._points, right_pc._points, op)
 
     def __getitem__(self, n):
         r"""

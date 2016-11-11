@@ -365,12 +365,11 @@ class ComputeMinimalPolynomials(SageObject):
 
         replacements = []
         for f in pt_generators:
-            g = self._DX(f)
-            nu = self._DX(prev_nu)
-            p_prt = self._DX(p_part(g, p))
+            g = f
+            p_prt = p_part(g, p)
 
             while g != p*p_prt:
-                r = p_prt.quo_rem(nu)[1]
+                r = p_prt.quo_rem(prev_nu)[1]
                 g2 = g - p*p_prt
                 d, u, v = xgcd(g2.leading_coefficient(), p)
                 tmp_h = p*r + g2
@@ -378,7 +377,7 @@ class ComputeMinimalPolynomials(SageObject):
                 replacements.append(h % p**t)
                 #reduce coefficients mod p^t to keep coefficients small
                 g = g.quo_rem(h)[1]
-                p_prt = self._DX(p_part(g,p))
+                p_prt = p_part(g, p)
 
         replacements = list(set(replacements))
         assert all( g.is_monic() for g in replacements),\

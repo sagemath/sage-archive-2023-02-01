@@ -305,6 +305,7 @@ class ComputeMinimalPolynomials(SageObject):
         d = B.nrows()**2
         b = matrix(d, 1, adjoint.list())
         self.chi_B = B.charpoly(X)
+        self.mu_B = B.minimal_polynomial()
         self._A = matrix.block([[b , -self.chi_B*matrix.identity(d)]])
         self._DX = X.parent()
 
@@ -583,7 +584,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, current_nu)
             ------------------------------------------
             verbose 1 (...: calculate_nu.py, current_nu)
-            [x^2 + x]
+            (x^2 + x)
             verbose 1 (...: calculate_nu.py, current_nu)
             Generators with (p^t)-generating property:
             verbose 1 (...: calculate_nu.py, current_nu)
@@ -625,7 +626,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, current_nu)
             ------------------------------------------
             verbose 1 (...: calculate_nu.py, current_nu)
-            [2*x^2 + 2*x, x^2 + 3*x + 2]
+            (2*x^2 + 2*x, x^2 + 3*x + 2)
             verbose 1 (...: calculate_nu.py, current_nu)
             Generators with (p^t)-generating property:
             verbose 1 (...: calculate_nu.py, current_nu)
@@ -667,7 +668,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, current_nu)
             ------------------------------------------
             verbose 1 (...: calculate_nu.py, current_nu)
-            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            (x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x)
             verbose 1 (...: calculate_nu.py, current_nu)
             Generators with (p^t)-generating property:
             verbose 1 (...: calculate_nu.py, current_nu)
@@ -690,8 +691,7 @@ class ComputeMinimalPolynomials(SageObject):
         [HR2016]_, Algorithm 5.
         """
 
-        mu_B = self._B.minimal_polynomial()
-        deg_mu = mu_B.degree()
+        deg_mu = self.mu_B.degree()
 
         t = 0
         p_min_polys = {}
@@ -710,21 +710,21 @@ class ComputeMinimalPolynomials(SageObject):
             verbose("F =")
             verbose(lifting(p, t, self._A, G))
 
-            nu = self.current_nu(p, t, list(lifting(p, t, self._A, G)[0]), nu)
+            nu = self.current_nu(p, t, lifting(p, t, self._A, G)[0], nu)
 
             verbose("nu = %s" % nu)
             if nu.degree() >= deg_mu:
                 return p_min_polys
 
-
             if nu.degree() == deg_prev_nu:
                 G = G.matrix_from_columns(range(G.ncols()-1))
                 del p_min_polys[t-1]
 
+            column = self.mccoy_column(p, t, nu) 
             verbose("corresponding columns for G")
-            verbose(self.mccoy_column(p, t, nu))
+            verbose(column)
 
-            G = matrix.block([[p * G, self.mccoy_column(p, t, nu)]])
+            G = matrix.block([[p * G, column]])
             p_min_polys[t] = nu
 
             # allow early stopping for small t

@@ -370,10 +370,9 @@ class ComputeMinimalPolynomials(SageObject):
 
             while g != p*p_prt:
                 r = p_prt.quo_rem(prev_nu)[1]
-                g2 = g - p*p_prt
-                d, u, v = xgcd(g2.leading_coefficient(), p)
-                tmp_h = p*r + g2
-                h = u*tmp_h + v*p*prev_nu*X**(tmp_h.degree()-prev_nu.degree())
+                g1 = g - p*p_prt
+                d, u, v = xgcd(g1.leading_coefficient(), p)
+                h = u*(p*r + g1) + v*p*prev_nu*X**(g1.degree()-prev_nu.degree())
                 replacements.append(h % p**t)
                 #reduce coefficients mod p^t to keep coefficients small
                 g = g.quo_rem(h)[1]

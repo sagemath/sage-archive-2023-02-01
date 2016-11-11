@@ -1048,8 +1048,12 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
                     d = {(k,): v for k, v in iteritems(x.dict())}
                 else:
                     d = x.dict()
-                x = _split_laurent_polynomial_dict_(self, P, d)
-                x = {k[0]: v for k, v in iteritems(x)}
+                try:
+                    x = _split_laurent_polynomial_dict_(self, P, d)
+                except (ValueError, TypeError):
+                    pass
+                else:
+                    x = {k[0]: v for k, v in iteritems(x)}
             elif self.base_ring().has_coerce_map_from(P):
                 x = self.base_ring()(x)
             elif len(self.variable_names()) == len(P.variable_names()):
@@ -1152,6 +1156,14 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             sage: Q = LaurentPolynomialRing(P, 'c, d')
             sage: Q(P.0)
             a
+
+        ::
+
+            sage: A.<a> = LaurentPolynomialRing(QQ)
+            sage: B.<b> = LaurentPolynomialRing(A)
+            sage: C = LaurentPolynomialRing(QQ, 'a, b')
+            sage: C(B({1: a}))
+            a*b
         """
         from sage.symbolic.expression import Expression
         if isinstance(x, Expression):
@@ -1164,7 +1176,10 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
                     d = {(k,): v for k, v in iteritems(x.dict())}
                 else:
                     d = x.dict()
-                x = _split_laurent_polynomial_dict_(self, P, d)
+                try:
+                    x = _split_laurent_polynomial_dict_(self, P, d)
+                except (ValueError, TypeError):
+                    pass
             elif self.base_ring().has_coerce_map_from(P):
                 x = self.base_ring()(x)
             elif len(self.variable_names()) == len(P.variable_names()):

@@ -299,9 +299,9 @@ class ComputeMinimalPolynomials(SageObject):
 
         self._B = B
         X = polygen(B.base_ring())
-        adjunct = (X-B).adjoint()
+        adjoint = (X - B).adjoint()
         d = B.nrows()**2
-        b = matrix(d, 1, adjunct.list())
+        b = matrix(d, 1, adjoint.list())
         chi_B = B.charpoly(X)
         self._A = matrix.block([[b , -chi_B*matrix.identity(d)]])
         self._A.set_immutable()

@@ -379,8 +379,9 @@ class ComputeMinimalPolynomials(SageObject):
                 p_prt = p_part(g, p)
 
         replacements = list(set(replacements))
-        assert all( g.is_monic() for g in replacements),\
+        assert all(g.is_monic() for g in replacements),\
             "Something went wrong in find_monic_replacements"
+
         return replacements
 
 

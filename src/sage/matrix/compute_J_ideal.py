@@ -469,7 +469,7 @@ class ComputeMinimalPolynomials(SageObject):
         return g
 
 
-    def mccoy_column(self, p, t, nu_t):
+    def mccoy_column(self, p, t, nu):
         r"""
         Compute matrix for McCoy's criterion.
 
@@ -479,11 +479,11 @@ class ComputeMinimalPolynomials(SageObject):
 
         - ``t`` -- a positive integer
 
-        - ``nu_t`` -- a `(p^t)`-minimal polynomial of `B`
+        - ``nu`` -- a `(p^t)`-minimal polynomial of `B`
 
         OUTPUT:
 
-        An `(n^2 + 1) \times 1` matrix `g` with first entry ``nu_t`` such that
+        An `(n^2 + 1) \times 1` matrix `g` with first entry ``nu`` such that
         `\begin{pmatrix}b& -\chi_B I\end{pmatrix}g \equiv 0\pmod{p^t}` where `b`
         consists of the entries of `\operatorname{adj}(X-B)`.
 
@@ -512,12 +512,12 @@ class ComputeMinimalPolynomials(SageObject):
            ValueError: x^2 + x not in (2^2)-ideal
 
         """
-        if not (nu_t(self._B) % p**t).is_zero():
+        if not (nu(self._B) % p**t).is_zero():
             raise ValueError(
-                "%s not in (%s^%s)-ideal" % (nu_t, p, t))
+                "%s not in (%s^%s)-ideal" % (nu, p, t))
 
         column = matrix(self._DX, self._A.ncols(), 1,
-                        [nu_t] + [(nu_t*b).quo_rem(self.chi_B)[0]
+                        [nu] + [(nu*b).quo_rem(self.chi_B)[0]
                                   for b in self._A[:, 0].list()])
 
         assert (self._A * column % p**t).is_zero(),\

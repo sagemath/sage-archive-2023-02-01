@@ -121,11 +121,11 @@ See :ref:`section-package-types` for the meaning of these types.
 
 .. _section-spkg-install:
 
-Install Script
---------------
+Build and install scripts
+-------------------------
 
-The ``spkg-install`` file is a shell script or Python script which
-installs the package.
+The ``spkg-build`` and ``spkg-install`` files are shell scripts or
+Python scripts which build and install the package.
 In the best case, the upstream project can simply be installed by the
 usual configure / make / make install steps. In that case, the build
 script would simply consist of::
@@ -146,6 +146,11 @@ script would simply consist of::
         exit 1
     fi
 
+The install script would consist of::
+
+    #!/usr/bin/env bash
+
+    cd src
     $MAKE install
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing PACKAGE_NAME."
@@ -153,8 +158,8 @@ script would simply consist of::
     fi
 
 Note that the top-level directory inside the tarball is renamed to
-``src`` before calling the ``spkg-install`` script, so you can just use
-``cd src`` instead of ``cd foo-1.3``.
+``src`` before calling the ``spkg-build`` and ``spkg-install``
+scripts, so you can just use ``cd src`` instead of ``cd foo-1.3``.
 
 If there is any meaningful documentation included but not installed by
 ``make install``, then you can add something like the following to
@@ -169,6 +174,17 @@ install it::
         mkdir -p "$SAGE_SHARE/doc/PACKAGE_NAME"
         cp -R doc/* "$SAGE_SHARE/doc/PACKAGE_NAME"
     fi
+
+Many packages currently do not separate the build and install steps
+and only provide a ``spkg-install`` file that does both.  The
+separation is useful in particular for root-owned install hierarchies:
+
+- If ``spkg-build`` exists, it is first called, followed by
+  ``$SAGE_SUDO spkg-install``.
+
+- Otherwise, only ``spkg-install`` is called (without ``$SAGE_SUDO``).
+  Such packages would prefix all commands in ``spkg-install`` that
+  write into the installation hierarchy with ``$SAGE_SUDO``.
 
 
 .. _section-spkg-check:

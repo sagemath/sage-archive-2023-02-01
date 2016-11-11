@@ -329,7 +329,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
             return self.create_key_and_extra_args(domain, valuation)
         elif generator == ~domain.gen():
             # generator is 1/x, the infinite place
-            return (domain, ~domain.gen()), {}
+            return (domain, (FunctionFieldValuation(domain, domain.gen()), ~domain.gen(), ~domain.gen())), {}
         else:
             raise ValueError("a place must be given by an irreducible polynomial or the inverse of the generator; %r does not define a place over %r"%(generator, domain))
 
@@ -394,7 +394,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         """
         # equality is probably broken if we allow for trivial maps
-        assert(gen_image != gen_preimage)
+        assert(gen_image != domain.gen())
 
         if gen_image not in valuation.domain():
             raise ValueError("gen_image must be an element of the domain of valuation but %r is not in %r"%(gen_image, valuation.domain()))
@@ -405,7 +405,8 @@ class FunctionFieldValuationFactory(UniqueFactory):
         gen_preimage = domain(gen_preimage)
 
         if valuation.domain() is valuation.domain().base():
-            raise NotImplementedError("mapped valuations on rational function fields are not supported")
+            if gen_image != ~domain.gen() or gen_preimage != ~domain.gen() or valuation != FunctionFieldValuation(domain, domain.gen()):
+                raise NotImplementedError("mapped valuations on rational function fields are not supported")
 
         return (domain, (valuation, gen_image, gen_preimage)), {}
 
@@ -429,13 +430,11 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         if isinstance(valuation, tuple) and len(valuation) == 3:
             valuation, gen_image, gen_preimage = valuation
-            return parent.__make_element_class__(FunctionFieldMappedValuation)(parent, valuation, gen_image, gen_preimage)
-
-        if valuation in domain:
-            # only the infinite place is handled with an element instead of a base valuation
-            # any other element should have been replace with a valuation by _create_key_from_place
-            assert(valuation == ~domain.gen())
-            return parent.__make_element_class__(InfiniteRationalFunctionFieldValuation)(parent)
+            if gen_image == ~domain.gen() and gen_preimage == ~domain.gen() and valuation == FunctionFieldValuation(domain, domain.gen()):
+                # valuation at the infinite place
+                return parent.__make_element_class__(InfiniteRationalFunctionFieldValuation)(parent)
+            else:
+                return parent.__make_element_class__(FunctionFieldExtensionMappedValuation)(parent, valuation, gen_image, gen_preimage)
 
         if domain is valuation.domain():
             # we can not just return valuation in this case
@@ -468,7 +467,6 @@ class FunctionFieldValuation_base(DiscreteValuation):
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, FunctionFieldValuation_base)
         True
-        sage: TestSuite(v).run(max_runs=100) # long time
 
     """
     def extensions(self, L):
@@ -492,7 +490,7 @@ class FunctionFieldValuation_base(DiscreteValuation):
             sage: v = FunctionFieldValuation(K, 1/x)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - 1/(x^2 + 1))
-            sage: v.extensions(L)
+            sage: v.extensions(L) # long time
             [[ Valuation at the infinite place, v(y - 1/x) = 3 ]-adic valuation,
              [ Valuation at the infinite place, v(y + 1/x) = 3 ]-adic valuation]
 
@@ -561,7 +559,6 @@ class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, RationalFunctionFieldValuation_base)
         True
-        sage: TestSuite(v).run() # long time
 
     """
 
@@ -578,7 +575,6 @@ class ClassicalFunctionFieldValuation_base(FunctionFieldValuation_base):
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, ClassicalFunctionFieldValuation_base)
         True
-        sage: TestSuite(v).run() # long time
 
     """
     def _test_classical_residue_field(self, **options):
@@ -630,7 +626,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         sage: from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: v = FunctionFieldValuation(K, x^2 + 1) # indirect doctest
-        sage: TestSuite(v).run() # long time
 
     """
     def __init__(self, parent, base_valuation):
@@ -841,143 +836,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         """
         return self._base_valuation.residue_ring().fraction_field()
 
-class InfiniteRationalFunctionFieldValuation(RationalFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base):
-    r"""
-    Valuation of the infinite place of a function field.
-
-    EXAMPLES::
-
-        sage: from mac_lane import * # optional: standalone
-        sage: K.<x> = FunctionField(QQ)
-        sage: v = FunctionFieldValuation(K, 1/x) # indirect doctest
-
-    TESTS::
-
-        sage: TestSuite(v).run() # long time
-
-    """
-    def __init__(self, parent):
-        r"""
-        TESTS::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: v = FunctionFieldValuation(K, 1/x) # indirect doctest
-            sage: isinstance(v, InfiniteRationalFunctionFieldValuation)
-            True
-
-        """
-        RationalFunctionFieldValuation_base.__init__(self, parent)
-        ClassicalFunctionFieldValuation_base.__init__(self, parent)
-
-    def _call_(self, f):
-        r"""
-        Evaluate this valuation at the rational function ``f``.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: v = FunctionFieldValuation(K, 1/x)
-            sage: v(x/(x^2 + 1))
-            1
-
-        """
-        if f.is_zero():
-            return infinity
-        return f.denominator().degree() - f.numerator().degree()
-
-    def _repr_(self):
-        r"""
-        Return a printable representation of this valuation.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: FunctionFieldValuation(K, 1/x) # indirect doctest
-            Valuation at the infinite place
-
-        """
-        return "Valuation at the infinite place"
-
-    def residue_ring(self):
-        r"""
-        Return the residue field of this valuation.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: FunctionFieldValuation(K, 1/x).residue_ring()
-            Rational Field
-
-        """
-        return self.domain().constant_field()
-
-    def uniformizer(self):
-        r"""
-        Return a uniformizer of this valuation.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: FunctionFieldValuation(K, 1/x).uniformizer()
-            1/x
-
-        """
-        return ~self.domain().gen()
-
-    def reduce(self, f):
-        r"""
-        Return the reduction of ``f`` with respect to this valuation.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(GF(2))
-            sage: v = FunctionFieldValuation(K, 1/x)
-            sage: v.reduce(1/x)
-            0
-            sage: v.reduce( x*(x+1) / (x^2+x+1) )
-            1
-            sage: v.reduce(x)
-            Traceback (most recent call last):
-            ...
-            ValueError: reduction is only defined for elements of non-negative valuation
-
-        """
-        f = self.domain().coerce(f)
-
-        if self(f) < 0:
-            raise ValueError("reduction is only defined for elements of non-negative valuation")
-        if self(f) > 0:
-            return self.residue_ring().zero()
-
-        from sage.rings.function_field.function_field_valuation import FunctionFieldValuation
-        return FunctionFieldValuation(self.domain(), self.domain().gen()).reduce(f.element()(~self.domain().gen()))
-
-    def lift(self, F):
-        r"""
-        Lift ``F`` from :meth:`residue_ring` to :meth:`domain` such that
-        :meth:`reduce` of the lift produces ``F``.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(GF(2))
-            sage: v = FunctionFieldValuation(K, 1/x)
-
-            sage: v.lift(v.residue_ring().one())
-            1
-
-        """
-        F = self.residue_ring().coerce(F)
-        # the infinite place has a trivial residue field extension
-        assert F in self.domain()
-        return self.domain()(F)
-
 class FiniteRationalFunctionFieldValuation(ClassicalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
     r"""
     Valuation of a finite place of a function field.
@@ -1071,7 +929,6 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
 
         sage: isinstance(w, FunctionFieldFromLimitValuation)
         True
-        sage: TestSuite(w).run() # long time
 
     """
     def _to_base_domain(self, f):
@@ -1113,27 +970,17 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
         return super(FunctionFieldFromLimitValuation, self).scale(scalar)
 
 
-class FunctionFieldMappedValuation(FunctionFieldValuation_base, MappedValuation_base):
+class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValuation_base):
     r"""
-    A valuation on a finite extensions of function fields `L=K[y]/(G)` where `K` is
-    another function field which redirects to another ``base_valuation`` on an
-    isomorphism function field `M=K[y]/(H)`.
+    A valuation on a function field which relies on a ``base_valuation`` on an
+    isomorphic function field.
 
     EXAMPLES::
-
+    
         sage: from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(GF(2))
-        sage: R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 + y + x^3)
-        sage: v = FunctionFieldValuation(K, 1/x)
-        sage: w = v.extension(L)
-
-        sage: w(x)
-        -1
-        sage: w(y)
-        -3/2
-        sage: w.uniformizer()
-        1/x^2*y
+        sage: v = FunctionFieldValuation(K, 1/x); v
+        Valuation at the infinite place
 
     """
     def __init__(self, parent, base_valuation, gen_image, gen_preimage):
@@ -1142,13 +989,9 @@ class FunctionFieldMappedValuation(FunctionFieldValuation_base, MappedValuation_
     
             sage: from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(GF(2))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 + y + x^3)
             sage: v = FunctionFieldValuation(K, 1/x)
-            sage: w = v.extension(L)
-            sage: isinstance(w, FunctionFieldMappedValuation)
+            sage: isinstance(v, FunctionFieldMappedValuation_base)
             True
-            sage: TestSuite(w).run() # long time
     
         """
         FunctionFieldValuation_base.__init__(self, parent)
@@ -1196,27 +1039,77 @@ class FunctionFieldMappedValuation(FunctionFieldValuation_base, MappedValuation_
         r"""
         return self._from_base(f)
 
-    def scale(self, scalar):
+
+class InfiniteRationalFunctionFieldValuation(FunctionFieldMappedValuation_base, RationalFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base):
+    r"""
+    Valuation of the infinite place of a function field.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: K.<x> = FunctionField(QQ)
+        sage: v = FunctionFieldValuation(K, 1/x) # indirect doctest
+
+    """
+    def __init__(self, parent):
         r"""
-        Return this valuation scaled by ``scalar``.
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, 1/x) # indirect doctest
+            sage: isinstance(v, InfiniteRationalFunctionFieldValuation)
+            True
+
+        """
+        x = parent.domain().gen()
+        FunctionFieldMappedValuation_base.__init__(self, parent, FunctionFieldValuation(parent.domain(), x), 1/x, 1/x)
+        RationalFunctionFieldValuation_base.__init__(self, parent)
+        ClassicalFunctionFieldValuation_base.__init__(self, parent)
+
+    def _repr_(self):
+        r"""
+        Return a printable representation of this valuation.
 
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(GF(2))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 + y + x^3)
-            sage: v = FunctionFieldValuation(K, 1/x)
-            sage: w = v.extension(L)
-            sage: 3*w
-            3 * Valuation at the infinite place
+            sage: K.<x> = FunctionField(QQ)
+            sage: FunctionFieldValuation(K, 1/x) # indirect doctest
+            Valuation at the infinite place
 
         """
-        from sage.rings.all import QQ
-        if scalar in QQ and scalar > 0 and scalar != 1:
-            return FunctionFieldValuation(self.domain(), (self._base_valuation.scale(scalar), self._gen_image, self._gen_preimage))
-        return super(FunctionFieldMappedValuation, self).scale(scalar)
+        return "Valuation at the infinite place"
 
+
+class FunctionFieldExtensionMappedValuation(FunctionFieldMappedValuation_base):
+    r"""
+    A valuation on a finite extensions of function fields `L=K[y]/(G)` where `K` is
+    another function field which redirects to another ``base_valuation`` on an
+    isomorphism function field `M=K[y]/(H)`.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: K.<x> = FunctionField(GF(2))
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 + y + x^3)
+        sage: v = FunctionFieldValuation(K, 1/x)
+        sage: w = v.extension(L)
+
+        sage: w(x)
+        -1
+        sage: w(y)
+        -3/2
+        sage: w.uniformizer()
+        1/x^2*y
+
+    TESTS::
+
+        sage: isinstance(w, FunctionFieldExtensionMappedValuation)
+        True
+
+    """
     def _repr_(self):
         r"""
         Return a printable representation of this valuation.
@@ -1262,3 +1155,24 @@ class FunctionFieldMappedValuation(FunctionFieldValuation_base, MappedValuation_
         if ring.is_subring(self.domain().base()):
             return self._base_valuation.restriction(ring)
         return super(FunctionFieldMappedValuation, self).restriction(ring)
+
+    def scale(self, scalar):
+        r"""
+        Return this valuation scaled by ``scalar``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 + y + x^3)
+            sage: v = FunctionFieldValuation(K, 1/x)
+            sage: w = v.extension(L)
+            sage: 3*w
+            3 * Valuation at the infinite place
+
+        """
+        from sage.rings.all import QQ
+        if scalar in QQ and scalar > 0 and scalar != 1:
+            return FunctionFieldValuation(self.domain(), (self._base_valuation.scale(scalar), self._gen_image, self._gen_preimage))
+        return super(FunctionFieldMappedValuation_base, self).scale(scalar)

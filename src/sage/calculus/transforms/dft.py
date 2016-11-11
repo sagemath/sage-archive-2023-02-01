@@ -84,8 +84,8 @@ from sage.arith.all import factor
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
 from sage.functions.all import sin, cos
-from sage.libs.gsl.fast_fourier_transform import FastFourierTransform
-from sage.libs.gsl.dwt import WaveletTransform
+from sage.calculus.transforms.fft import FastFourierTransform
+from sage.calculus.transforms.dwt import WaveletTransform
 
 from sage.structure.sage_object import SageObject
 from sage.structure.sequence import Sequence

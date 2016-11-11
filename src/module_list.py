@@ -208,7 +208,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('*', ['sage/calculus/*.pyx']),
+    Extension('*', ['sage/calculus/**/*.pyx']),
 
     ################################
     ##

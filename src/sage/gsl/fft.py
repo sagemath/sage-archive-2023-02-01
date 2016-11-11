@@ -22,6 +22,6 @@ AUTHORS:
 
 from sage.misc.superseded import deprecation
 deprecation(9084, "the module sage.gsl.fft has moved"
-            " to sage.libs.gsl.fast_fourier_transform")
+            " to sage.calculus.transforms.fft")
 
-from sage.libs.gsl.fast_fourier_transform import *
+from sage.calculus.transforms.fft import *

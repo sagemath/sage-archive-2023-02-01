@@ -20,6 +20,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.superseded import deprecation
-deprecation(9084, "the module sage.gsl.ode has moved to sage.libs.gsl.ode")
+deprecation(9084, "the module sage.gsl.ode has moved to sage.calculus.ode")
 
-from sage.libs.gsl.ode import *
+from sage.calculus.ode import *

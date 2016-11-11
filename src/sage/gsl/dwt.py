@@ -22,6 +22,6 @@ AUTHOR:
 #*****************************************************************************
 
 from sage.misc.superseded import deprecation
-deprecation(9084, "the module sage.gsl.dwt has moved to sage.libs.gsl.dwt")
+deprecation(9084, "the module sage.gsl.dwt has moved to sage.calculus.transforms.dwt")
 
-from sage.libs.gsl.dwt import *
+from sage.calculus.transforms.dwt import *

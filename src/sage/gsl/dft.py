@@ -74,6 +74,6 @@ AUTHORS:
 ##########################################################################
 
 from sage.misc.superseded import deprecation
-deprecation(9084, "the module sage.gsl.dft has moved to sage.libs.gsl.dft")
+deprecation(9084, "the module sage.gsl.dft has moved to sage.calculus.transforms.dft")
 
-from sage.libs.gsl.dft import *
+from sage.calculus.transforms.dft import *

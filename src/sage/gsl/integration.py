@@ -26,6 +26,6 @@ AUTHORS:
 
 from sage.misc.superseded import deprecation
 deprecation(9084, "the module sage.gsl.integration has moved"
-            " to sage.libs.gsl.integration")
+            " to sage.calculus.integration")
 
-from sage.libs.gsl.integration import *
+from sage.calculus.integration import *

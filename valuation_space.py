@@ -72,7 +72,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
     TESTS::
 
-        sage: TestSuite(H).run()
+        sage: TestSuite(H).run() # long time
 
     """
     def __init__(self, domain):
@@ -95,7 +95,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         from sage.categories.domains import Domains
         if domain not in Domains():
             raise ValueError("domain must be an integral domain")
-
 
     @lazy_attribute
     def _abstract_element_class(self):
@@ -120,6 +119,26 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         class_name = "%s._abstract_element_class"%self.__class__.__name__
         from sage.structure.dynamic_class import dynamic_class
         return dynamic_class(class_name, (super(DiscretePseudoValuationSpace,self)._abstract_element_class, self.__class__.ElementMethods))
+
+    def _get_action_(self, S, op, self_on_left):
+        r"""
+        Return the ``op`` action of ``S`` on elements in this space.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 2)
+            sage: from operator import mul
+            sage: v.parent().get_action(ZZ, mul) # indirect doctest
+
+        """
+        from operator import mul, div
+        from sage.rings.all import QQ, InfinityRing, ZZ
+        if op == mul and not self_on_left and (S is InfinityRing or S is QQ or S is ZZ):
+            return ScaleAction(S, self)
+        if op == div and self_on_left and (S is InfinityRing or S is QQ or S is ZZ):
+            return InverseScaleAction(self, S)
+        return None
 
     def _an_element_(self):
         r"""
@@ -620,6 +639,102 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 return self.restriction(ring)
             raise NotImplementedError("changing %r from %r to %r not implemented"%(self, self.domain(), ring))
 
+        def scale(self, scalar):
+            r"""
+            Return this valuation scaled by ``scalar``.
+
+            INPUT:
+
+            - ``scalar`` -- a non-negative rational number or infinity
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 3)
+                sage: w = v.scale(3)
+                sage: w(3)
+                3
+        
+            Scaling can also be done through multiplication with a scalar::
+
+                sage: w/3 == v
+                True
+
+            Multiplication by zero produces the trivial discrete valuation::
+
+                sage: w = 0*v
+                sage: w(3)
+                0
+                sage: w(0)
+                +Infinity
+
+            Multiplication by infinity produces the trivial discrete
+            pseudo-valuation::
+
+                sage: w = infinity*v
+                sage: w(3)
+                +Infinity
+                sage: w(0)
+                +Infinity
+
+            """
+            from sage.rings.all import infinity
+            if scalar == infinity:
+                from trivial_valuation import TrivialPseudoValuation
+                return TrivialPseudoValuation(self.domain())
+            if scalar == 0:
+                from trivial_valuation import TrivialValuation
+                return TrivialValuation(self.domain())
+            if scalar == 1:
+                return self
+            if scalar < 0:
+                raise ValueError("scalar must be non-negative")
+            if self.is_trivial():
+                return self
+
+            from scaled_valuation import ScaledValuation_generic
+            if isinstance(self, ScaledValuation_generic):
+                return self._base_valuation.scale(scalar * self._scale)
+
+            from scaled_valuation import ScaledValuation
+            return ScaledValuation(self, scalar)
+
+        def _test_scale(self, **options):
+            r"""
+            Check that :meth:`scale` works correctly.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 3)
+                sage: v._test_scale()
+
+            """
+            tester = self._tester(**options)
+
+            from sage.rings.all import infinity, QQ
+            from trivial_valuation import TrivialValuation, TrivialPseudoValuation
+
+            tester.assertEqual(QQ(0)*self, TrivialValuation(self.domain()))
+            tester.assertEqual(infinity*self, TrivialPseudoValuation(self.domain()))
+
+            for s in tester.some_elements(QQ.some_elements()):
+                if s < 0:
+                    with tester.assertRaises(ValueError):
+                        s * self
+                    continue
+                if s == 0:
+                    continue
+
+                scaled = s * self
+
+                tester.assertEqual(self.is_trivial(), scaled.is_trivial())
+                if not self.is_trivial():
+                    tester.assertEqual(self.uniformizer(), scaled.uniformizer())
+                    tester.assertEqual(scaled(self.uniformizer()), s * self(self.uniformizer()))
+                unscaled = scaled / s
+                tester.assertEqual(self, unscaled)
+
         def _test_add(self, **options):
             r"""
             Check that the (strict) triangle equality is satisfied for the
@@ -1018,3 +1133,57 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester.assertLessEqual(TrivialValuation(self.domain()), self)
             tester.assertGreaterEqual(TrivialPseudoValuation(self.domain()), self)
 
+from sage.categories.action import Action
+class ScaleAction(Action):
+    r"""
+    Action of integers, rationals and the infinity ring on valuations by
+    scaling it.
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: v = pAdicValuation(QQ, 5)
+        sage: from operator import mul
+        sage: v.parent().get_action(IntegerRing, mul, self_on_left=False)
+
+    """
+    def _call_(self, s, v):
+        r"""
+        Let ``s`` act on ``v``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 5)
+            sage: 3*v # indirect doctest
+            3 * 5-adic valuation
+            
+        """
+        return v.scale(s)
+
+class InverseScaleAction(Action):
+    r"""
+    Action of integers, rationals and the infinity ring on valuations by
+    scaling it (with the inverse of the scalar.)
+
+    EXAMPLES::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: v = pAdicValuation(QQ, 5)
+        sage: from operator import div
+        sage: v.parent().get_action(IntegerRing, div, self_on_left=True)
+
+    """
+    def _call_(self, v, s):
+        r"""
+        Let ``s`` act on ``v`` (by division.)
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 5)
+            sage: v/3 # indirect doctest
+            1/3 * 5-adic valuation
+            
+        """
+        return v.scale(1/s)

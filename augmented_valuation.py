@@ -830,6 +830,25 @@ class AugmentedValuation_base(InductiveValuation):
         # the base ring is not a field.
         return False
 
+    def scale(self, scalar):
+        r"""
+        Return this valuation scaled by ``scalar``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: 3*w # indirect doctest
+            [ Gauss valuation induced by 3 * 2-adic valuation, v(x^2 + x + 1) = 3 ]
+
+        """
+        from sage.rings.all import QQ
+        if scalar in QQ and scalar != 0:
+            return self._base_valuation.scale(scalar).augmentation(self.phi(), scalar*self._mu)
+        return super(AugmentedValuation_base, self).scale(scalar)
+
 class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
     r"""
     An augmented valuation which can not be augmented anymore, either because

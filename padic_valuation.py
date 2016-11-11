@@ -404,7 +404,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         sage: TestSuite(pAdicValuation(ZZ, 3)).run() # long time
         sage: TestSuite(pAdicValuation(QQ, 5)).run() # long time
-        sage: TestSuite(pAdicValuation(Zp(5), 5)).run()
+        sage: TestSuite(pAdicValuation(Zp(5), 5)).run() # long time
 
     """
     def __init__(self, parent, p):
@@ -717,7 +717,7 @@ class pAdicValuation_padic(pAdicValuation_base):
 
     TESTS::
 
-        sage: TestSuite(v).run() # optional: integrated
+        sage: TestSuite(v).run() # optional: integrated, long time
 
     """
     def __init__(self, parent):
@@ -922,7 +922,7 @@ class pAdicValuation_int(pAdicValuation_base):
 
     TESTS::
 
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def _repr_(self):

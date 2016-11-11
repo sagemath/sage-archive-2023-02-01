@@ -32,6 +32,8 @@ import function_field_valuation
 from function_field_valuation import FunctionFieldValuation
 import augmented_valuation
 from augmented_valuation import AugmentedValuation
+import scaled_valuation
+from scaled_valuation import ScaledValuation
 
 # fix unpickling and type checks of classes (otherwise, the instances of the
 # local file and the instances that come from the mac_lane import define
@@ -47,6 +49,7 @@ from padic_valuation import pAdicValuation_base, pAdicValuation_int, pAdicValuat
 from developing_valuation import DevelopingValuation
 from augmented_valuation import AugmentedValuation_base, FinalAugmentedValuation, NonFinalAugmentedValuation, FinalFiniteAugmentedValuation, NonFinalFiniteAugmentedValuation
 from inductive_valuation import FiniteInductiveValuation, FinalInductiveValuation, InfiniteInductiveValuation, NonFinalInductiveValuation
+from scaled_valuation import ScaledValuation_generic
 
 # =================
 # MONKEY PATCH SAGE
@@ -543,3 +546,4 @@ register_factory_unpickle("FunctionFieldValuation", FunctionFieldValuation)
 register_factory_unpickle("AugmentedValuation", AugmentedValuation)
 register_factory_unpickle("LimitValuation", LimitValuation)
 register_factory_unpickle("DomainMappedValuation", DomainMappedValuation)
+register_factory_unpickle("ScaledValuation", ScaledValuation)

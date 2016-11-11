@@ -692,3 +692,21 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         if other.is_trivial():
             return other.is_discrete_valuation()
         return super(GaussValuation_generic, self)._ge_(other)
+
+    def scale(self, scalar):
+        r"""
+        Return this valuation scaled by ``scalar``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: 3*v # indirect doctest
+            Gauss valuation induced by 3 * 2-adic valuation
+
+        """
+        from sage.rings.all import QQ
+        if scalar in QQ and scalar != 0:
+            return GaussValuation(self.domain(), self._base_valuation.scale(scalar))
+        return super(GaussValuation_generic, self).scale(scalar)

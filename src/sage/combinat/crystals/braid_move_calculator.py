@@ -63,7 +63,7 @@ class BraidMoveCalculator(object):
         current_last_word = input_word
         current_first_letter = k
         output_word_list = [current_last_word] 
-        for counter in xrange(1, coxeter_matrix_entry):
+        for counter in range(1, coxeter_matrix_entry):
             current_word_list = self.put_in_front(current_first_letter, current_last_word[1:])
             output_word_list += [partial_braid_word(counter) + word 
                                  for word in current_word_list[1:]]

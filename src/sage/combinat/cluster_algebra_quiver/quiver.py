@@ -28,7 +28,7 @@ AUTHORS:
 - Gregg Musiker
 - Christian Stump
 
-.. seealso:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`.
+.. SEEALSO:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`.
 """
 #*****************************************************************************
 #       Copyright (C) 2011 Gregg Musiker <musiker@math.mit.edu>

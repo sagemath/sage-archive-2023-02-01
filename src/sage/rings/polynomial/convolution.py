@@ -327,9 +327,9 @@ def _negaconvolution_fft(L1, L2, n):
    ::
 
        sage: for n in range(3, 10):
-       ...      L1 = [ZZ.random_element(100) for _ in range(1 << n)]
-       ...      L2 = [ZZ.random_element(100) for _ in range(1 << n)]
-       ...      assert _negaconvolution_naive(L1, L2) == _negaconvolution_fft(L1, L2, n)
+       ....:    L1 = [ZZ.random_element(100) for _ in range(1 << n)]
+       ....:    L2 = [ZZ.random_element(100) for _ in range(1 << n)]
+       ....:    assert _negaconvolution_naive(L1, L2) == _negaconvolution_fft(L1, L2, n)
 """
    assert n >= 3
 
@@ -384,10 +384,10 @@ def _convolution_fft(L1, L2):
    ::
 
        sage: for len1 in range(4, 30):
-       ...      for len2 in range(4, 30):
-       ...         L1 = [ZZ.random_element(100) for _ in range(len1)]
-       ...         L2 = [ZZ.random_element(100) for _ in range(len2)]
-       ...         assert _convolution_naive(L1, L2) == _convolution_fft(L1, L2)
+       ....:    for len2 in range(4, 30):
+       ....:       L1 = [ZZ.random_element(100) for _ in range(len1)]
+       ....:       L2 = [ZZ.random_element(100) for _ in range(len2)]
+       ....:       assert _convolution_naive(L1, L2) == _convolution_fft(L1, L2)
    """
    R = parent(L1[0])
 

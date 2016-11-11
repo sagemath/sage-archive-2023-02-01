@@ -329,7 +329,7 @@ class GlobalCputime:
         sage: float(t) #output somewhat random
         2.1088339999999999
 
-    .. seealso::
+    .. SEEALSO::
 
       :func:`cputime`
     """
@@ -1112,11 +1112,11 @@ def is_iterator(it):
         True
 
         sage: class wrong():
-        ...      def __init__(self): self.n = 5
-        ...      def next(self):
-        ...          self.n -= 1
-        ...          if self.n == 0: raise StopIteration
-        ...          return self.n
+        ....:    def __init__(self): self.n = 5
+        ....:    def next(self):
+        ....:        self.n -= 1
+        ....:        if self.n == 0: raise StopIteration
+        ....:        return self.n
         sage: x = wrong()
         sage: is_iterator(x)
         False
@@ -1126,7 +1126,7 @@ def is_iterator(it):
         TypeError: iteration over non-sequence
 
         sage: class good(wrong):
-        ...      def __iter__(self): return self
+        ....:    def __iter__(self): return self
         sage: x = good()
         sage: is_iterator(x)
         True

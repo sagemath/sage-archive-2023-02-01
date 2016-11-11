@@ -1090,11 +1090,11 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 
         sage: from sage.graphs.graph_decompositions import vertex_separation
         sage: for i in range(10):
-        ...       G = digraphs.RandomDirectedGNP(10, 0.2)
-        ...       ve, le = vertex_separation.vertex_separation(G)
-        ...       vm, lm = vertex_separation.vertex_separation_MILP(G)
-        ...       if ve != vm:
-        ...          print("The solution is not optimal!")
+        ....:     G = digraphs.RandomDirectedGNP(10, 0.2)
+        ....:     ve, le = vertex_separation.vertex_separation(G)
+        ....:     vm, lm = vertex_separation.vertex_separation_MILP(G)
+        ....:     if ve != vm:
+        ....:        print("The solution is not optimal!")
 
     Comparison with different values of the integrality parameter::
 

@@ -650,7 +650,7 @@ class AlgebraicForm(FormsBase):
             sage: from sage.rings.invariant_theory import AlgebraicForm
             sage: R.<x,y,z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: base = AlgebraicForm(3, 3, p, [x,y,z])
             sage: m = [x^3, y^3, z^3, x^2*y, x^2*z, x*y^2, y^2*z, x*z^2, y*z^2, x*y*z]
             sage: base._extract_coefficients(m)
@@ -1028,7 +1028,7 @@ class QuadraticForm(AlgebraicForm):
             sage: R.inject_variables()
             Defining a20, a11, a02, a10, a01, a00, x, y, z
             sage: p = ( a20*x^2 + a11*x*y + a02*y^2 +
-            ...         a10*x*z + a01*y*z + a00*z^2 )
+            ....:       a10*x*z + a01*y*z + a00*z^2 )
             sage: quadratic = invariant_theory.ternary_quadratic(p, x,y,z)
             sage: quadratic.dual().dual().form().factor()
             (1/4) * 
@@ -1522,7 +1522,7 @@ class TernaryQuadratic(QuadraticForm):
 
             sage: R.<x,y,z,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a20*x^2 + a11*x*y + a02*y^2 +
-            ...         a10*x*z + a01*y*z + a00*z^2 )
+            ....:       a10*x*z + a01*y*z + a00*z^2 )
             sage: invariant_theory.ternary_quadratic(p, x,y,z).coeffs()
             (a20, a02, a00, a11, a10, a01)
             sage: invariant_theory.ternary_quadratic(p.subs(z=1), x, y).coeffs()
@@ -1550,7 +1550,7 @@ class TernaryQuadratic(QuadraticForm):
 
             sage: R.<x,y,z,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a20*x^2 + a11*x*y + a02*y^2 +
-            ...         a10*x*z + a01*y*z + a00*z^2 )
+            ....:       a10*x*z + a01*y*z + a00*z^2 )
             sage: invariant_theory.ternary_quadratic(p, x,y,z).scaled_coeffs()
             (a20, a02, a00, 1/2*a11, 1/2*a10, 1/2*a01)
             sage: invariant_theory.ternary_quadratic(p.subs(z=1), x, y).scaled_coeffs()
@@ -1587,14 +1587,14 @@ class TernaryQuadratic(QuadraticForm):
 
             sage: R.<a,a_,b,b_,c,c_,f,f_,g,g_,h,h_,x,y,z> = QQ[]
             sage: p = ( a*x^2 + 2*h*x*y + b*y^2 +
-            ...         2*g*x*z + 2*f*y*z + c*z^2 )
+            ....:       2*g*x*z + 2*f*y*z + c*z^2 )
             sage: Q = invariant_theory.ternary_quadratic(p, [x,y,z])
             sage: Q.matrix()
             [a h g]
             [h b f]
             [g f c]
             sage: p = ( a_*x^2 + 2*h_*x*y + b_*y^2 +
-            ...         2*g_*x*z + 2*f_*y*z + c_*z^2 )
+            ....:       2*g_*x*z + 2*f_*y*z + c_*z^2 )
             sage: Q_ = invariant_theory.ternary_quadratic(p, [x,y,z])
             sage: Q_.matrix()
             [a_ h_ g_]
@@ -1638,8 +1638,8 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z> = QQ[]
             sage: p = 2837*x^3 + 1363*x^2*y + 6709*x^2*z + \
-            ...     5147*x*y^2 + 2769*x*y*z + 912*x*z^2 + 4976*y^3 + \
-            ...     2017*y^2*z + 4589*y*z^2 + 9681*z^3
+            ....:   5147*x*y^2 + 2769*x*y*z + 912*x*z^2 + 4976*y^3 + \
+            ....:   2017*y^2*z + 4589*y*z^2 + 9681*z^3
             sage: cubic = invariant_theory.ternary_cubic(p)
             sage: cubic._check_covariant('S_invariant', invariant=True)
             sage: cubic._check_covariant('T_invariant', invariant=True)
@@ -1707,7 +1707,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: invariant_theory.ternary_cubic(p, x,y,z).coeffs()
             (a30, a03, a00, a21, a20, a12, a02, a10, a01, a11)
             sage: invariant_theory.ternary_cubic(p.subs(z=1), x, y).coeffs()
@@ -1743,7 +1743,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: invariant_theory.ternary_cubic(p, x,y,z).scaled_coeffs()
             (a30, a03, a00, 1/3*a21, 1/3*a20, 1/3*a12, 1/3*a02, 1/3*a10, 1/3*a01, 1/6*a11)
         """
@@ -1846,7 +1846,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z,X,Y,Z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: cubic = invariant_theory.ternary_cubic(p, x,y,z)
             sage: cubic.polar_conic()
             [  3*x*a30 + y*a21 + z*a20 x*a21 + y*a12 + 1/2*z*a11 x*a20 + 1/2*y*a11 + z*a10]
@@ -1931,7 +1931,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: cubic = invariant_theory.ternary_cubic(p, x,y,z)
             sage: len(list(cubic.Theta_covariant()))
             6952
@@ -1989,7 +1989,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z> = QQ[]
             sage: monomials = (x^3, y^3, z^3, x^2*y, x^2*z, x*y^2,
-            ...                y^2*z, x*z^2, y*z^2, x*y*z)
+            ....:              y^2*z, x*z^2, y*z^2, x*y*z)
             sage: random_poly = sum([ randint(0,10000) * m for m in monomials ])
             sage: cubic = invariant_theory.ternary_cubic(random_poly)
             sage: U = cubic.form()

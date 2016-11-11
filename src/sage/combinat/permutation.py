@@ -5014,8 +5014,10 @@ class Permutations(UniqueRepresentation, Parent):
             Standard permutations
             sage: Permutations(5, 3)
             Permutations of {1,...,5} of length 3
+            sage: Permutations([1,2,3,4,6])
+            Permutations of the set [1, 2, 3, 4, 6]
             sage: Permutations([1,2,3,4,5])
-            Permutations of the set [1, 2, 3, 4, 5]
+            Standard permutations of 5
         """
         valid_args = ['descents', 'bruhat_smaller', 'bruhat_greater',
                       'recoils_finer', 'recoils_fatter', 'recoils', 'avoiding']
@@ -5073,12 +5075,20 @@ class Permutations(UniqueRepresentation, Parent):
                 else:
                     return Permutations_nk(n,k)
             else:
-                #In this case, we have that n is a list
-                if [n.index(_) for _ in n] == list(range(len(n))):
-                    if k is None:
-                        return Permutations_set(n)
+                # In this case, we have that n is a list
+                # Because of UniqueRepresentation, we require the elements
+                #   to be hashable
+                if len(set(n)) == len(n):
+                    if list(n) == list(range(1, len(n)+1)):
+                        if k is None:
+                            return StandardPermutations_n(len(n))
+                        else:
+                            return Permutations_nk(len(n), k)
                     else:
-                        return Permutations_setk(n,k)
+                        if k is None:
+                            return Permutations_set(n)
+                        else:
+                            return Permutations_setk(n,k)
                 else:
                     if k is None:
                         return Permutations_mset(n)
@@ -5285,9 +5295,9 @@ class Permutations_nk(Permutations):
         EXAMPLES::
 
             sage: Permutations(3,2).random_element()
-            [0, 1]
+            [1, 2]
         """
-        return sample(range(self.n), self.k)
+        return sample(range(1, self.n+1), self.k)
 
 class Permutations_mset(Permutations):
     r"""
@@ -5720,7 +5730,7 @@ class Permutations_setk(Permutations_set):
         """
         TESTS::
 
-            sage: P = Permutations([1,2,3],2)
+            sage: P = Permutations([1,2,4],2)
             sage: TestSuite(P).run()
         """
         Permutations_set.__init__(self, s)
@@ -5730,12 +5740,12 @@ class Permutations_setk(Permutations_set):
         """
         EXAMPLES::
 
-            sage: p = Permutations([1,2,3],2)
-            sage: [1,2,3] in p
+            sage: p = Permutations([1,2,4],2)
+            sage: [1,2,4] in p
             False
             sage: [2,2] in p
             False
-            sage: [1,3] in p
+            sage: [1,4] in p
             True
             sage: [2,1] in p
             True
@@ -5749,8 +5759,8 @@ class Permutations_setk(Permutations_set):
         """
         TESTS::
 
-            sage: repr(Permutations([1,2,3],2))
-            'Permutations of the set [1, 2, 3] of length 2'
+            sage: repr(Permutations([1,2,4],2))
+            'Permutations of the set [1, 2, 4] of length 2'
         """
         return "Permutations of the set %s of length %s"%(list(self._set), self.k)
 
@@ -5758,8 +5768,8 @@ class Permutations_setk(Permutations_set):
         """
         EXAMPLES::
 
-            sage: [i for i in Permutations([1,2,3],2)] # indirect doctest
-            [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
+            sage: [i for i in Permutations([1,2,4],2)]
+            [[1, 2], [1, 4], [2, 1], [2, 4], [4, 1], [4, 2]]
         """
         for perm in itertools.permutations(self._set, self.k):
             yield self.element_class(self, perm)
@@ -5768,7 +5778,7 @@ class Permutations_setk(Permutations_set):
         """
         EXAMPLES::
 
-            sage: Permutations([1,2,3],2).random_element()
+            sage: Permutations([1,2,4], 2).random_element()
             [1, 2]
         """
         return sample(self._set, self.k)

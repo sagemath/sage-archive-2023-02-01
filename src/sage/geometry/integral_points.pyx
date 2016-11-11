@@ -33,7 +33,7 @@ from sage.misc.all import prod, uniq
 # you.
 #
 ## def parallelotope_points(spanning_points, lattice):
-##     # compute points in the open parallelotope, see [BrunsKoch]
+##     # compute points in the open parallelotope, see [BK2001]
 ##     R = matrix(spanning_points).transpose()
 ##     D,U,V = R.smith_form()
 ##     e = D.diagonal()          # the elementary divisors

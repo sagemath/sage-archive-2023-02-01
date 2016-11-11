@@ -551,7 +551,7 @@ cdef int PS_all_new_cells(PartitionStack *PS, bitset_t** nonsingletons_ptr):
     nonsingletons_ptr[0] = nonsingletons
     return count
 
-cdef int PS_find_element(PartitionStack *PS, bitset_t b, int x):
+cdef int PS_find_element(PartitionStack *PS, bitset_t b, int x) except -1:
     """
     Find the cell containing x, store its entries to b and return the location
     of the beginning of the cell.
@@ -562,6 +562,8 @@ cdef int PS_find_element(PartitionStack *PS, bitset_t b, int x):
         if PS.entries[i] == x:
             location = i
             break
+    else:
+        raise ValueError("element not found")
     while location > 0 and PS.levels[location-1] > PS.depth:
         location -= 1
     i = 0

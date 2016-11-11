@@ -3,7 +3,7 @@ r"""
 Delsarte, a.k.a. Linear Programming (LP), upper bounds
 
 This module provides LP upper bounds for the parameters of codes,
-introduced in [De73]_.
+introduced in [De1973]_.
 
 The exact LP solver PPL is used by default, ensuring that no
 rounding/overflow problems occur.
@@ -154,7 +154,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
 
 def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):
     """
-    Find the Delsarte bound [De73]_ on codes in Hamming space ``H_q^n``
+    Find the Delsarte bound [De1973]_ on codes in Hamming space ``H_q^n``
     of minimal distance ``d``
 
 
@@ -222,12 +222,6 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
        sage: delsarte_bound_hamming_space(11,3,-4)
        Solver exception: PPL : There is no feasible solution
        False
-
-    REFERENCES:
-
-    .. [De73] \P. Delsarte, An algebraic approach to the association schemes of coding theory,
-       Philips Res. Rep., Suppl., vol. 10, 1973.
-
     """
     from sage.numerical.mip import MIPSolverException
     A, p = _delsarte_LP_building(n, d, 0, q, isinteger, solver)

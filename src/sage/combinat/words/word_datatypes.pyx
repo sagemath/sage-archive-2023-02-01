@@ -261,7 +261,7 @@ cdef class WordDatatype_list(WordDatatype):
 
         EXAMPLES::
 
-            sage: w = Word(range(10))
+            sage: w = Word(list(range(10)))
             sage: w * w
             word: 01234567890123456789
 

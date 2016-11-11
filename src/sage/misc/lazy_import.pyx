@@ -217,9 +217,9 @@ cdef class LazyImport(object):
            ``__get__``::
 
                sage: class Foo(object):
-               ...       lazy_import('sage.all', 'plot')
+               ....:     lazy_import('sage.all', 'plot')
                sage: class Bar(Foo):
-               ...       pass
+               ....:     pass
                sage: type(Foo.__dict__['plot'])
                <type 'sage.misc.lazy_import.LazyImport'>
 
@@ -500,7 +500,7 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: class Foo:
-            ...       my_method = LazyImport('sage.all', 'my_method')
+            ....:     my_method = LazyImport('sage.all', 'my_method')
 
         Now we can use it as a usual method::
 
@@ -1033,9 +1033,9 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at
     We check that :func:`lazy_import` also works for methods::
 
         sage: class Foo(object):
-        ...       lazy_import('sage.all', 'plot')
+        ....:     lazy_import('sage.all', 'plot')
         sage: class Bar(Foo):
-        ...       pass
+        ....:     pass
         sage: type(Foo.__dict__['plot'])
         <type 'sage.misc.lazy_import.LazyImport'>
         sage: 'EXAMPLES' in Bar.plot.__doc__

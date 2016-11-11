@@ -26,7 +26,7 @@ EXAMPLES::
 
     sage: n = previous_prime_power(2^16 - 1)
     sage: while is_prime(n):
-    ...    n = previous_prime_power(n)
+    ....:  n = previous_prime_power(n)
     sage: factor(n)
     251^2
     sage: k = GF(n,'c'); type(k)

@@ -183,7 +183,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             a^2 + 1
             sage: P([])
             0
-            sage: P(list(range(15)))
+            sage: P(range(15))
             6*a^13 + 5*a^12 + 4*a^11 + 3*a^10 + 2*a^9 + a^8 + 6*a^6 + 5*a^5 + 4*a^4 + 3*a^3 + 2*a^2 + a
         """
         cdef list l_in = x
@@ -217,7 +217,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
         EXAMPLES::
 
-            sage: a = ZZ['x'](list(range(17)))
+            sage: a = ZZ['x'](range(17))
             sage: R = Integers(7)['x']
             sage: R(a)
             2*x^16 + x^15 + 6*x^13 + 5*x^12 + 4*x^11 + 3*x^10 + 2*x^9 + x^8 + 6*x^6 + 5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x
@@ -226,7 +226,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
         The following test from :trac:`12173` used to be horribly slow::
 
-            sage: a = ZZ['x'](list(range(100000)))
+            sage: a = ZZ['x'](range(100000))
             sage: R = Integers(3)['x']
             sage: R(a)  # long time (7s on sage.math, 2013)
             2*x^99998 + ... + x
@@ -477,7 +477,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         EXAMPLES::
 
             sage: P.<a>=GF(7)[]
-            sage: a = P(list(range(10))); b = P(list(range(5, 15)))
+            sage: a = P(range(10)); b = P(range(5, 15))
             sage: a._mul_trunc_(b, 5)
             4*a^4 + 6*a^3 + 2*a^2 + 5*a
 
@@ -509,7 +509,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         EXAMPLES::
 
             sage: P.<a>=GF(7)[]
-            sage: b = P(list(range(10))); c = P(list(range(5, 15)))
+            sage: b = P(range(10)); c = P(range(5, 15))
             sage: b._mul_trunc_opposite(c, 10)
             5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10 + 2*a^9 + 5*a^8 + 4*a^5 + 4*a^4 + 6*a^3 + 2*a^2 + 5*a
             sage: list(b._mul_trunc_opposite(c, 10))[10:18]

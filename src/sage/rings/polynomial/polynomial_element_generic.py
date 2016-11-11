@@ -208,7 +208,7 @@ class Polynomial_generic_sparse(Polynomial):
         EXAMPLES::
 
             sage: R.<w> = PolynomialRing(ZZ, sparse=True)
-            sage: f = R(list(range(9))); f
+            sage: f = R(range(9)); f
             8*w^8 + 7*w^7 + 6*w^6 + 5*w^5 + 4*w^4 + 3*w^3 + 2*w^2 + w
             sage: f._derivative()
             64*w^7 + 49*w^6 + 36*w^5 + 25*w^4 + 16*w^3 + 9*w^2 + 4*w + 1

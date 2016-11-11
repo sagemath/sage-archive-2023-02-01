@@ -11,6 +11,7 @@ Using Andries Brouwer's `database of strongly regular graphs
 non-existence results. Note that some constructions are missing, and that some
 strongly regular graphs that exist in the database cannot be automatically built
 by Sage. Help us if you know any.
+An outline of the implementation can be found in [CP16]_.
 
 .. NOTE::
 
@@ -20,7 +21,7 @@ by Sage. Help us if you know any.
 
 REFERENCES:
 
-.. [BvL84] \A. Brouwer, J van Lint,
+.. [BvL84] \A. Brouwer, J. van Lint,
    Strongly regular graphs and partial geometries,
    Enumeration and design,
    (Waterloo, Ont., 1982) (1984): 85-122.

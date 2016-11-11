@@ -5085,7 +5085,7 @@ def IoninKharaghani765Graph():
         zero matrix of order 45, and every off-diagonal entry `\omega^k` by the
         matrix `N(\sigma^k(X_1, X_2, X_3, X_4, X_5))` (through the association
         of `\omega^k` with an element of `G`). Then `S` is a symmetric incidence
-        matrix of a symmetric `(765, 192, 48)`-design with zer diagonal, and
+        matrix of a symmetric `(765, 192, 48)`-design with zero diagonal, and
         therefore `S` is an adjacency matrix of a strongly regular graph with
         parameters `(765, 192, 48, 48)`.
 
@@ -5110,7 +5110,7 @@ def IoninKharaghani765Graph():
        New families of strongly regular graphs.
        Journal of Combinatorial Designs,
        Vol 11 (2003), no. 3, 208–217,
-       http://doi.org/10.1002/jcd.10038
+       :doi:`10.1002/jcd.10038`
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     K = GF(3)

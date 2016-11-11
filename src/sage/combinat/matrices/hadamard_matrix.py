@@ -728,7 +728,8 @@ def RSHCD_324(e):
 
     .. [CP16] \N. Cohen, D. Pasechnik,
        Implementing Brouwer's database of strongly regular graphs,
-       http://arxiv.org/abs/1601.00181
+       Designs, Codes, and Cryptography, 2016
+       :doi:`10.1007/s10623-016-0264-x`
     """
 
     from sage.graphs.generators.smallgraphs import JankoKharaghaniTonchevGraph as JKTG

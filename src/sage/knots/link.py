@@ -2406,9 +2406,143 @@ class Link(object):
                 return -L(auxdic)
         else:
             raise ValueError('normalization must be either `lm` or `az`')
+        
+    def _coloring_matrix(self, n):
+        r"""
+        Return the coloring matrix of self.
+        The coloring matrix is a matrix over a prime field
+        whose right kernel gives the colorings of the diagram.
+        
+        INPUT:
+        
+        - n - the number of colors to consider.
+        
+        OUTPUT:
+        
+        a matrix over the smallest prime field with cardinality
+        bigger or equal than n.
+        
+        EXAMPLES::
+        
+            sage: K = Link([[[1, -2, 3, -1, 2, -3]], [1, 1, 1]])
+            sage: K._coloring_matrix(3)
+            [2 2 2]
+            [2 2 2]
+            [2 2 2]
+            sage: K8 = Knot([[[1, -2, 4, -3, 2, -1, 3, -4]], [1, 1, -1, -1]])
+            sage: K8._coloring_matrix(4)
+            [2 0 4 4]
+            [4 4 2 0]
+            [0 4 4 2]
+            [4 2 0 4]
+            
+        REFERENCES:
+        
+        .. :wikipedia:`Fox_n-coloring`
+
+        """
+        from sage.arith.misc import next_prime
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
+        p = next_prime(n-1)
+        arcs = self.arcs(presentation='pd')
+        F = FiniteField(p)
+        di = len(arcs)
+        M = matrix(F, di, di)
+        crossings = self.pd_code()
+        for i in range(di):
+            crossing = crossings[i]
+            for j in range(di):
+                arc = arcs[j]
+                if crossing[1] in arc:
+                    M[i,j] += 2
+                if crossing[0] in arc:
+                    M[i,j] -= 1
+                if crossing[2] in arc:
+                    M[i,j] -= 1
+        return M
+        
+        
+
+    def is_coloreable(self, n):
+        r"""
+        Return weather the link is n-coloreable.
+        
+        A Link is n-coloreable if its arcs can be painted with n colours,
+        labeled from 0 to n-1, in such a way that at any crossing, the average
+        of the indices of the undercrossings equals the index of the
+        overcrossing.
+        
+        INPUT:
+        
+        - n -- the number of colors to consider
+        
+        EXAMPLES:
+        
+        We show that the trefoil knot is 3-coloreable, but the figure eight kne isn't:: 
+        
+            sage: K = Link([[[1, -2, 3, -1, 2, -3]], [1, 1, 1]])
+            sage: K.is_coloreable(3)
+            True
+            sage: K8 = Link([[[1, -2, 4, -3, 2, -1, 3, -4]], [1, 1, -1, -1]])
+            sage: K8.is_coloreable(3)
+            False
+
+        REFERENCES:
+        
+        .. :wikipedia:`Fox_n-coloring`
+        """
+        return self._coloring_matrix(n).nullity() > 1
+        
+        
+    def colorings(self, n):
+        r"""
+        Return the n-colorings of self.
+        
+        INPUT:
+        
+        - n -- the number of colors to consider.
+        
+        OUTPUT:
+        
+        a list with the colorings. Each coloring is represented as 
+        a dictionary that maps a tuple of the edges forming each arc
+        (as in the PD code) to the index of the corresponding color.
+        
+        EXAMPLES::
+        
+            sage: K = Link([[[1, -2, 3, -1, 2, -3]], [1, 1, 1]])
+            sage: K.colorings(3)
+            [{(1, 2): 2, (3, 4): 1, (5, 6): 0},
+            {(1, 2): 0, (3, 4): 1, (5, 6): 2},
+            {(1, 2): 0, (3, 4): 2, (5, 6): 1},
+            {(1, 2): 2, (3, 4): 0, (5, 6): 1},
+            {(1, 2): 1, (3, 4): 0, (5, 6): 2},
+            {(1, 2): 1, (3, 4): 2, (5, 6): 0}]
+            sage: K.pd_code()
+            [[4, 1, 5, 2], [2, 5, 3, 6], [6, 3, 1, 4]]
+            sage: K.arcs('pd')
+            [[1, 2], [3, 4], [5, 6]]
+
+        REFERENCES:
+        
+        .. :wikipedia:`Fox_n-coloring`
+        """
+        M = self._coloring_matrix(n)
+        K = M.right_kernel()
+        res = set([])
+        arcs = self.arcs('pd')
+        for coloring in K:
+            colors = sorted(set(coloring))
+            if len(colors) == n:
+                colors = {b:a for a,b in enumerate(colors)}
+                res.add(tuple(colors[c] for c in coloring))
+        return [{tuple(arc):col for arc,col in zip(arcs, c)} for c in res]
+
+        
 
 
-    def plot(self, gap=0.1, component_gap=0.5, solver=None, **kwargs):
+
+    def plot(self, gap=0.1, component_gap=0.5, solver=None, color='blue', **kwargs):
         r"""
         Plot ``self``.
 
@@ -2422,6 +2556,9 @@ class Link(object):
 
         - ``solver`` -- the linear solver to use, see
           :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+          
+        - ``color`` -- (default: blue') a color or a coloring (as returned
+          by :method:`self.colorings()`.
 
         The usual keywords for plots can be used here too.
 
@@ -2548,6 +2685,23 @@ class Link(object):
             L = Link([[[-1,2,-3,1,-2,3], [4,-5,6,-4,5,-6]], [1,1,1,1,1,1]])
             sphinx_plot(L.plot())
 
+        If a coloring is passed, the different arcs are plotted with the corresponding
+        colors::
+        
+            sage: B = BraidGroup(4)
+            sage: b = B([1,2,3,1,2,-1,-3,2,3])
+            sage: L = Link(b)
+            sage: L.plot(color=L.colorings(3)[0])
+            Launched png viewer for Graphics object consisting of 41 graphics primitives
+            
+        .. PLOT::
+            :width: 300 px
+            
+            B = BraidGroup(4)
+            b = B([1, 2, 3, 1, 2, -1, -3, 2, 3])
+            L = Link(b)
+            sphinx_plot(L.plot(color=L.colorings(3)[0]))
+
         TESTS:
 
         Check that :trac:`20315` is fixed::
@@ -2562,6 +2716,16 @@ class Link(object):
             sage: L.plot(solver='Gurobi')  # optional - Gurobi
             Graphics object consisting of ... graphics primitives
         """
+        if type(color) is str:
+            coloring = {int(i):color for i in set(flatten(self.pd_code()))}
+        else:
+            from sage.plot.colors import rainbow
+            ncolors = len(set(color.values()))
+            arcs = self.arcs()
+            if len(color) != len(arcs):
+                raise ValueError("Number of entries in the color vector must match the number of arcs")
+            rainb = rainbow(ncolors)
+            coloring = {int(i):rainb[color[tuple(j)]] for j in arcs for i in j}
         comp = self._isolated_components()
         # Handle isolated components individually
         if len(comp) > 1:
@@ -2580,8 +2744,6 @@ class Link(object):
                     P.xdata = [p + xtra for p in P.xdata]
             return P1 + P2
 
-        if not 'color' in kwargs:
-            kwargs['color'] = 'blue'
         if not 'axes' in kwargs:
             kwargs['axes'] = False
         if not 'aspect_ratio' in kwargs:
@@ -2593,7 +2755,7 @@ class Link(object):
 
         # Special case for the unknot
         if not self.pd_code():
-            return circle((0,0), ZZ(1)/ZZ(2), **kwargs)
+            return circle((0,0), ZZ(1)/ZZ(2), color=color, **kwargs)
 
         # The idea is the same followed in spherogram, but using MLP instead of
         # network flows.
@@ -2742,6 +2904,7 @@ class Link(object):
                     i+=1
             c = crossings.keys()[i]
             e = c[j]
+            kwargs['color'] = coloring[e]
             used_edges.append(e)
             direction = (crossings[c][2] - c.index(e)) % 4
             orien = self.orientation()[self.pd_code().index(list(c))]

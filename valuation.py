@@ -634,7 +634,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             assert expandables
 
             for v in expandables:
-                leaves.extend(v.mac_lane_step(G))
+                leaves.extend(v.mac_lane_step(G, assume_squarefree=True))
 
         return leaves
 

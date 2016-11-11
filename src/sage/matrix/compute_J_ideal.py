@@ -734,7 +734,7 @@ class ComputeMinimalPolynomials(SageObject):
 
     def null_ideal(self, b=0):
         r"""
-        Return the `(b)`-ideal `N_{(b)}(B)=\{ f\in D[X] \mid f(B)\in M_n(bD)\}`.
+        Return the `(b)`-ideal `N_{(b)}(B)=\{f\in D[X] \mid f(B)\in M_n(bD)\}`.
 
         INPUT:
 
@@ -773,17 +773,15 @@ class ComputeMinimalPolynomials(SageObject):
            Remove minimal polynomial if not required.
 
         """
-        generators = [self._DX((self._B).minimal_polynomial())]
+        generators = [self.mu_B]
 
         if b != 0:
             generators = [self._DX(b)] + generators
             for (p, t) in factor(b):
                 cofactor = b // p**t
                 p_polynomials = self.p_minimal_polynomials(p, t)
-                generators = generators + \
-                             [self._DX(cofactor*p**(t-s)*p_polynomial)
-                              for s, p_polynomial in p_polynomials.iteritems()]
-
+                generators += [cofactor*p**(t-s)*nu
+                               for s, nu in p_polynomials.iteritems()]
 
             assert all((g(self._B) % b).is_zero() for g in generators), \
                 "Polynomials not in %s-ideal" % (b,)

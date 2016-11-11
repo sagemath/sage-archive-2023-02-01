@@ -92,6 +92,8 @@ Classes and Methods
 # http://www.gnu.org/licenses/
 # *****************************************************************************
 
+import heapq
+
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_function
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -444,26 +446,26 @@ class ComputeMinimalPolynomials(SageObject):
         verbose("Generators with (p^t)-generating property:")
         verbose(generators)
 
+        heap = list((f.degree(), f) for f in generators)
+        heapq.heapify(heap)
 
         # find poly of minimal degree
-        g = generators[0]
-        for f in generators:
-            if f.degree() < g.degree():
-                g = f
+        deg_g, g = heapq.heappop(heap)
 
         # find nu
-        while len(generators) > 1:
-            f = (set(generators) - set([g])).pop()
+        while heap:
+            deg_f, f = heapq.heappop(heap)
             #take first element in generators not equal g
-            generators.remove(f)
             r = (f.quo_rem(g)[1]) % p**t
-            generators = generators + self.find_monic_replacements(p, t, [r], prev_nu)
-            verbose(generators)
+            if r != 0:
+                for h in self.find_monic_replacements(p, t, [r], prev_nu):
+                    heapq.heappush(heap, (h.degree(), h))
+                if heap and heap[0][0] < deg_g:
+                    deg_g, g = heapq.heappushpop(heap, (deg_g, g))
 
-            if generators[-1].degree() < g.degree():
-                g = generators[-1]
+            verbose([g] + [h for (deg_h, h) in heap])
 
-        return generators[0]
+        return g
 
 
     def mccoy_column(self, p, t, nu_t):
@@ -670,9 +672,9 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: calculate_nu.py, current_nu)
             [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
             verbose 1 (...: calculate_nu.py, current_nu)
-            [x^3 + 7*x^2 + 6*x]
+            [x^3 + 3*x^2 + 2*x]
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
-            nu = x^3 + 7*x^2 + 6*x
+            nu = x^3 + 3*x^2 + 2*x
             {2: x^2 + 3*x + 2}
             sage: set_verbose(0)
             sage: C.p_minimal_polynomials(2, s_max=1)

@@ -298,11 +298,11 @@ class ode_solver(object):
     .. code-block:: cython
 
           %cython
-          cimport sage.libs.gsl.ode
-          import sage.libs.gsl.ode
+          cimport sage.calculus.ode
+          import sage.calculus.ode
           from sage.libs.gsl.all cimport *
 
-          cdef class van_der_pol(sage.libs.gsl.ode.ode_system):
+          cdef class van_der_pol(sage.calculus.ode.ode_system):
               cdef int c_f(self,double t, double *y,double *dydt):
                   dydt[0]=y[1]
                   dydt[1]=-y[0]-1000*y[1]*(y[0]*y[0]-1)
@@ -351,7 +351,7 @@ class ode_solver(object):
 
     def interpolate_solution(self,i=0):
         pts = [(t,y[i]) for t,y in self.solution]
-        return sage.libs.gsl.interpolation.spline(pts)
+        return sage.calculus.interpolation.spline(pts)
 
     def plot_solution(self, i=0, filename=None, interpolate=False, **kwds):
         r"""

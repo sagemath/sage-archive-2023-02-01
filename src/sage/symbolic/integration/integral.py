@@ -199,7 +199,7 @@ class DefiniteIntegral(BuiltinFunction):
             sage: integrate(x^2.7 * e^(-2.4*x), x, 0, 3).n()
             0.154572952320790
         """
-        from sage.libs.gsl.integration import numerical_integral
+        from sage.calculus.integration import numerical_integral
         # The gsl routine returns a tuple, which also contains the error.
         # We only return the result.
         return numerical_integral(f, a, b)[0]

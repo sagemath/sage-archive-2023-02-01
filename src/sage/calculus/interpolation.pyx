@@ -100,7 +100,7 @@ cdef class Spline:
             sage: S = spline([(1,1), (2,3), (4,5)]); S
             [(1, 1), (2, 3), (4, 5)]
             sage: type(S)
-            <type 'sage.libs.gsl.interpolation.Spline'>
+            <type 'sage.calculus.interpolation.Spline'>
         """
         self.v = list(v)
         self.started = 0

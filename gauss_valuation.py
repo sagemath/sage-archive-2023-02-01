@@ -707,6 +707,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         """
         from sage.rings.all import QQ
-        if scalar in QQ and scalar != 0:
+        if scalar in QQ and scalar > 0 and scalar != 1:
             return GaussValuation(self.domain(), self._base_valuation.scale(scalar))
         return super(GaussValuation_generic, self).scale(scalar)

@@ -1034,3 +1034,23 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
 
         """
         return f.element()
+
+    def scale(self, scalar):
+        r"""
+        Return this valuation scaled by ``scalar``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - (x^2 + x + 1))
+            sage: v = FunctionFieldValuation(K, x - 1) # indirect doctest
+            sage: w = v.extension(L)
+            sage: 3*w
+            3 * (x - 1)-adic valuation
+
+        """
+        if scalar in QQ and scalar > 0 and scalar != 1:
+            return FunctionFieldValuation(self.domain(), self._base_valuation._initial_approximation.scale(scalar))
+        return super(FunctionFieldFromLimitValuation, self).scale(scalar)

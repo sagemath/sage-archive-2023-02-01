@@ -441,6 +441,27 @@ class DomainMappedValuation_base(MappedValuation_base):
         r"""
         return self._from_base(f)
 
+    def scale(self, scalar):
+        r"""
+        Return this valuation scaled by ``scalar``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 + y + x^3)
+            sage: v = FunctionFieldValuation(K, 1/x)
+            sage: w = v.extension(L)
+            sage: 3*w
+            3 * Valuation at the infinite place
+
+        """
+        from sage.rings.all import QQ
+        if scalar in QQ and scalar > 0 and scalar != 1:
+            return DomainMappedValuation(self.domain(), self._base_valuation.scale(scalar), self._to_base, self._from_base)
+        return super(DomainMappedValuation_base, self).scale(scalar)
+
 
 class DomainMappedDiscreteValuation(DomainMappedValuation_base, DiscreteValuation):
     r"""

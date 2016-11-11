@@ -845,7 +845,7 @@ class AugmentedValuation_base(InductiveValuation):
 
         """
         from sage.rings.all import QQ
-        if scalar in QQ and scalar != 0:
+        if scalar in QQ and scalar > 0 and scalar != 1:
             return self._base_valuation.scale(scalar).augmentation(self.phi(), scalar*self._mu)
         return super(AugmentedValuation_base, self).scale(scalar)
 

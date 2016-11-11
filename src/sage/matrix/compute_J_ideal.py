@@ -156,18 +156,19 @@ def lifting(p, t, A, G):
 
     [HR2016]_, Algorithm 1.
     """
+    DX = A.parent().base()
+    (X,) = DX.gens()
+    D = DX.base_ring()
+    d = A.ncols()
+    c = A.nrows()
+
     if t == 0:
-        return matrix(A.parent().base(), A.ncols(), 0)
+        return matrix(DX, d, 0)
 
     if not (A*G % p**(t-1)).is_zero():
         raise ValueError(
             "A*G is not zero mod %s^%s" % (p, t-1))
 
-    P = A.parent()
-    DX = P.base()
-    (X,) = DX.gens()
-    D = DX.base_ring()
-    d = A.ncols()
 
     R = A*G/p**(t-1)
     R.change_ring(DX)

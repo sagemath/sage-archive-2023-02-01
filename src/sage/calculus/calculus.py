@@ -586,7 +586,6 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
        the summation the result might not be convertable into a Sage
        expression.
     """
-    from sage.functions.other import symbolic_sum as ssum
     if not is_SymbolicVariable(v):
         if isinstance(v, str):
             v = var(v)
@@ -597,18 +596,11 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         raise ValueError("summation limits must not depend on the summation variable")
 
     if hold == True:
+        from sage.functions.other import symbolic_sum as ssum
         return ssum(expression, v, a, b)
 
     if algorithm == 'maxima':
-        from sage.symbolic.function import SymbolicFunction
-        result = maxima.sr_sum(expression,v,a,b)
-        try:
-            op = result.operator()
-        except AttributeError:
-            return result
-        if isinstance(op, SymbolicFunction):
-            return ssum(*(result.operands()))
-        return result
+        return maxima.sr_sum(expression,v,a,b)
 
     elif algorithm == 'mathematica':
         try:

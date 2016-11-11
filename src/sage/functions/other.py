@@ -2582,7 +2582,7 @@ conjugate = Function_conjugate()
 class Function_sum(BuiltinFunction):
     """
     Placeholder symbolic sum function that is only accessible internally.
-    
+
     EXAMPLES::
 
         sage: from sage.functions.other import symbolic_sum as ssum

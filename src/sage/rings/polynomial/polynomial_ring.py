@@ -907,8 +907,16 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
         r"""
-        Returns the list of variable names of this and its base rings, as if
-        it were a single multi-variate polynomial.
+        Return the list of variable names of this ring and its base rings,
+        as if it were a single multi-variate polynomial.
+
+        INPUT:
+
+        - ``depth`` -- an integer or :mod:`Infinity <sage.rings.infinity>`.
+
+        OUTPUT:
+
+        A tuple of strings.
 
         EXAMPLES::
 

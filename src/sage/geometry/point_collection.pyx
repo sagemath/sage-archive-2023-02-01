@@ -270,10 +270,13 @@ cdef class PointCollection(SageObject):
             sage: c == d
             False
         """
-        if not isinstance(right, PointCollection):
+        cdef PointCollection left_pc, right_pc
+        try:
+            left_pc = <PointCollection?>self
+            right_pc = <PointCollection?>right
+        except TypeError:
             return NotImplemented
-        cdef PointCollection left_pc = self
-        cdef PointCollection right_pc = right
+
         left_m = left_pc._module
         right_m = right_pc._module
         if left_m != right_m:

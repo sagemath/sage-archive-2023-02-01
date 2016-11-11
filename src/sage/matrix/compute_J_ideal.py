@@ -164,13 +164,13 @@ def lifting(p, t, A, G):
             "A*G is not zero mod %s^%s" % (p, t-1))
 
     P = A.parent()
-    ZZX = P.base()
-    (X,) = ZZX.gens()
-    D = ZZX.base_ring()
+    DX = P.base()
+    (X,) = DX.gens()
+    D = DX.base_ring()
     d = A.ncols()
 
     R = A*G/p**(t-1)
-    R.change_ring(ZZX)
+    R.change_ring(DX)
 
     AR = matrix.block([[A, R]])
     Fp = D.quotient(p*D)
@@ -184,7 +184,7 @@ def lifting(p, t, A, G):
                for j in range(Db.ncols()))
 
     r = Db.rank()
-    T = Tb.change_ring(ZZX)
+    T = Tb.change_ring(DX)
 
     F1 = matrix.block([[p**(t-1) * matrix.identity(d), G]])*T
     F = F1.matrix_from_columns(range(r, F1.ncols()))
@@ -217,8 +217,8 @@ def p_part(f, p):
         sage: f - 5*g
         X^3
     """
-    ZZX = f.parent()
-    (X,) = ZZX.gens()
+    DX = f.parent()
+    (X,) = DX.gens()
     return sum(c//p * X**i for
                i, c in enumerate(f.list())
                if c % p == 0)
@@ -291,7 +291,7 @@ class ComputeMinimalPolynomials(SageObject):
         chi_B = B.charpoly(X)
         self._A = matrix.block([[b , -chi_B*matrix.identity(d)]])
         self._A.set_immutable()
-        self._ZX = X.parent()
+        self._DX = X.parent()
 
 
     def find_monic_replacements(self, p, t, pt_generators, prev_nu):
@@ -348,13 +348,13 @@ class ComputeMinimalPolynomials(SageObject):
         if not (prev_nu(self._B) % p**(t-1)).is_zero():
             raise ValueError("%s is not in N_{(%s^%s)}(B)" % (prev_nu, p, t-1))
 
-        (X,) = self._ZX.gens()
+        (X,) = self._DX.gens()
 
         replacements = []
         for f in pt_generators:
-            g = self._ZX(f)
-            nu = self._ZX(prev_nu)
-            p_prt = self._ZX(p_part(g, p))
+            g = self._DX(f)
+            nu = self._DX(prev_nu)
+            p_prt = self._DX(p_part(g, p))
 
             while g != p*p_prt:
                 r = p_prt.quo_rem(nu)[1]
@@ -365,7 +365,7 @@ class ComputeMinimalPolynomials(SageObject):
                 replacements.append(h % p**t)
                 #reduce coefficients mod p^t to keep coefficients small
                 g = g.quo_rem(h)[1]
-                p_prt = self._ZX(p_part(g,p))
+                p_prt = self._DX(p_part(g,p))
 
         replacements = list(set(replacements))
         assert all( g.is_monic() for g in replacements),\
@@ -500,14 +500,14 @@ class ComputeMinimalPolynomials(SageObject):
         if not (nu_t(self._B) % p**t).is_zero():
             raise ValueError(
                 "%s not in (%s^%s)-ideal" % (nu_t, p, t))
-        chi_B = self._ZX(self._B.characteristic_polynomial())
+        chi_B = self._DX(self._B.characteristic_polynomial())
         column = [nu_t] + [(nu_t*b).quo_rem(chi_B)[0]
                            for b in self._A[:, 0].list()]
 
-        assert (self._A * matrix(self._ZX,
+        assert (self._A * matrix(self._DX,
                                  (self._A).ncols(), 1, column) % p**t).is_zero(),\
                                  "McCoy column is not correct"
-        return  matrix(self._ZX, self._A.ncols(), 1, column)
+        return  matrix(self._DX, self._A.ncols(), 1, column)
 
 
     def p_minimal_polynomials(self, p, s_max=None):
@@ -680,9 +680,9 @@ class ComputeMinimalPolynomials(SageObject):
 
         t = 0
         p_min_polys = {}
-        nu = self._ZX(1)
+        nu = self._DX(1)
         d = self._A.ncols()
-        G = matrix(self._ZX, d, 0)
+        G = matrix(self._DX, d, 0)
 
 
         while True:
@@ -758,22 +758,22 @@ class ComputeMinimalPolynomials(SageObject):
            Remove minimal polynomial if not required.
 
         """
-        generators = [self._ZX((self._B).minimal_polynomial())]
+        generators = [self._DX((self._B).minimal_polynomial())]
 
         if b != 0:
-            generators = [self._ZX(b)] + generators
+            generators = [self._DX(b)] + generators
             for (p, t) in factor(b):
                 cofactor = b // p**t
                 p_polynomials = self.p_minimal_polynomials(p, t)
                 generators = generators + \
-                             [self._ZX(cofactor*p**(t-s)*p_polynomial)
+                             [self._DX(cofactor*p**(t-s)*p_polynomial)
                               for s, p_polynomial in p_polynomials.iteritems()]
 
 
             assert all((g(self._B) % b).is_zero() for g in generators), \
                 "Polynomials not in %s-ideal" % (b,)
 
-        return self._ZX.ideal(generators)
+        return self._DX.ideal(generators)
 
 
     def prime_candidates(self):

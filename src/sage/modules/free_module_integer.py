@@ -717,13 +717,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         ALGORITHM:
 
-        Uses parts of the algorithm from [Vit1996]_.
-
-        REFERENCES:
-
-        .. [Vit1996] \E. Viterbo, E. Biglieri. *Computing the Voronoi Cell
-           of a Lattice: The Diamond-Cutting Algorithm*.
-           IEEE Transactions on Information Theory, 1996.
+        Uses parts of the algorithm from [VB1996]_.
         """
         if not self._basis_is_LLL_reduced:
             self.LLL()
@@ -792,14 +786,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         ALGORITHM:
 
-        Uses the algorithm from [Mic2010]_.
-
-        REFERENCES:
-
-        .. [Mic2010] \D. Micciancio, P. Voulgaris. *A Deterministic Single
-           Exponential Time Algorithm for Most Lattice Problems based on
-           Voronoi Cell Computations*.
-           Proceedings of the 42nd ACM Symposium Theory of Computation, 2010.
+        Uses the algorithm from [MV2010]_.
         """
         voronoi_cell = self.voronoi_cell()
 

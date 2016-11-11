@@ -73,11 +73,10 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 #########################################################
 # PARI C library
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz
-
-import sage.libs.pari.pari_instance
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
-
+from sage.libs.pari.convert_gmp cimport INT_to_mpz
+from sage.libs.pari.convert_flint cimport (_new_GEN_from_fmpz_mat_t,
+           _new_GEN_from_fmpz_mat_t_rotate90, integer_matrix)
+from sage.libs.pari.stack cimport clear_stack
 from sage.libs.pari.paridecl cimport *
 #########################################################
 
@@ -86,6 +85,8 @@ include "sage/ext/stdsage.pxi"
 
 
 from sage.arith.multi_modular cimport MultiModularBasis
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_mat cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -1195,18 +1196,15 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         -  ``algorithm`` - 'generic' (default), 'flint' or 'linbox'
 
-
-        .. note::
-
-           Linbox charpoly disabled on 64-bit machines, since it hangs
-           in many cases.
-
         EXAMPLES::
 
             sage: A = matrix(ZZ,6, range(36))
             sage: f = A.charpoly(); f
             x^6 - 105*x^5 - 630*x^4
             sage: f(A) == 0
+            True
+            sage: g = A.charpoly(algorithm='flint')
+            sage: f == g
             True
             sage: n=20; A = Mat(ZZ,n)(range(n^2))
             sage: A.charpoly()
@@ -1244,7 +1242,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             return g.change_variable_name(var)
 
         if algorithm == 'flint' or (algorithm == 'linbox' and not USE_LINBOX_POLY):
-            g = PolynomialRing(ZZ,names = var).gen()
+            g = (<Polynomial_integer_dense_flint>(PolynomialRing(ZZ,names = var).gen()))._new()
             sig_on()
             fmpz_mat_charpoly(g.__poly,self._matrix)
             sig_off()
@@ -1808,11 +1806,11 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         Check that :trac:`12280` is fixed::
 
             sage: m = matrix([(-2, 1, 9, 2, -8, 1, -3, -1, -4, -1),
-            ...               (5, -2, 0, 1, 0, 4, -1, 1, -2, 0),
-            ...               (-11, 3, 1, 0, -3, -2, -1, -11, 2, -2),
-            ...               (-1, 1, -1, -2, 1, -1, -1, -1, -1, 7),
-            ...               (-2, -1, -1, 1, 1, -2, 1, 0, 2, -4)]).stack(
-            ...               200 * identity_matrix(ZZ, 10))
+            ....:             (5, -2, 0, 1, 0, 4, -1, 1, -2, 0),
+            ....:             (-11, 3, 1, 0, -3, -2, -1, -11, 2, -2),
+            ....:             (-1, 1, -1, -2, 1, -1, -1, -1, -1, 7),
+            ....:             (-2, -1, -1, 1, 1, -2, 1, 0, 2, -4)]).stack(
+            ....:             200 * identity_matrix(ZZ, 10))
             sage: matrix(ZZ,m).hermite_form(algorithm='pari', include_zero_rows=False)
             [  1   0   2   0  13   5   1 166  72  69]
             [  0   1   1   0  20   4  15 195  65 190]
@@ -2209,7 +2207,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`smith_form`
         """
@@ -2304,7 +2302,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: m = MatrixSpace(ZZ, 0,0)(0); d,u,v = m.smith_form(); u*m*v == d
             True
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`elementary_divisors`
         """
@@ -2433,9 +2431,9 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         EXAMPLES::
 
             sage: A = matrix(ZZ, [[4, 7, 9, 7, 5, 0],
-            ...                   [1, 0, 5, 8, 9, 1],
-            ...                   [0, 1, 0, 1, 9, 7],
-            ...                   [4, 7, 6, 5, 1, 4]])
+            ....:                 [1, 0, 5, 8, 9, 1],
+            ....:                 [0, 1, 0, 1, 9, 7],
+            ....:                 [4, 7, 6, 5, 1, 4]])
 
             sage: result = A._right_kernel_matrix(algorithm='pari')
             sage: result[0]
@@ -2696,7 +2694,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         - ``prune`` -- (default: ``0``) The optional parameter
           ``prune`` can be set to any positive number to invoke the
-          Volume Heuristic from [SH95]_. This can significantly reduce
+          Volume Heuristic from [SH1995]_. This can significantly reduce
           the running time, and hence allow much bigger block size,
           but the quality of the reduction is of course not as good in
           general. Higher values of ``prune`` mean better quality, and
@@ -2707,7 +2705,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         - ``use_givens`` -- Use Given's orthogonalization. This is a
           bit slower, but generally much more stable, and is really
           the preferred orthogonalization strategy. For a nice
-          description of this, see Chapter 5 of [GL96]_.
+          description of this, see Chapter 5 of [GL1996]_.
 
         fpLLL SPECIFIC INPUT:
 
@@ -2743,16 +2741,6 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         ALGORITHM:
 
         Calls either NTL or fpLLL.
-
-        REFERENCES:
-
-        .. [SH95] \C. P. Schnorr and H. H. Hörner. *Attacking the
-            Chor-Rivest Cryptosystem by Improved Lattice Reduction*.
-            Advances in Cryptology - EUROCRYPT '95. LNCS Volume 921,
-            1995, pp 1-12.
-
-        .. [GL96] \G. Golub and C. van Loan. *Matrix Computations*.
-            3rd edition, Johns Hopkins Univ. Press, 1996.
         """
         if delta is None:
             delta = 0.99
@@ -3642,7 +3630,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         # now convert d to a Sage integer e
         cdef Integer e = <Integer>PY_NEW(Integer)
         INT_to_mpz(e.value, d)
-        pari.clear_stack()
+        clear_stack()
         return e
 
     def _det_ntl(self):
@@ -5407,7 +5395,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: type(pari(a))
             <type 'sage.libs.pari.gen.gen'>
         """
-        return pari.integer_matrix(self._matrix, self._nrows, self._ncols, 0)
+        return integer_matrix(self._matrix, self._nrows, self._ncols, 0)
 
     def _rank_pari(self):
         """
@@ -5422,7 +5410,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         sig_on()
         cdef long r = rank(pari_GEN(self))
-        pari.clear_stack()
+        clear_stack()
         return r
 
     def _hnf_pari(self, int flag=0, bint include_zero_rows=True):
@@ -5488,10 +5476,10 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         cdef GEN A
         sig_on()
-        A = pari._new_GEN_from_fmpz_mat_t_rotate90(self._matrix, self._nrows, self._ncols)
+        A = _new_GEN_from_fmpz_mat_t_rotate90(self._matrix, self._nrows, self._ncols)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
-        pari.clear_stack()  # This calls sig_off()
+        clear_stack()  # This calls sig_off()
         return B
 
 
@@ -5548,11 +5536,11 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             [1 2 3]
             [0 3 6]
         """
-        cdef gen H = pari.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
+        cdef gen H = integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
         sig_on()
         B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
-        pari.clear_stack()  # This calls sig_off()
+        clear_stack()  # This calls sig_off()
         return B
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows):
@@ -5587,7 +5575,7 @@ cdef inline GEN pari_GEN(Matrix_integer_dense B):
     For internal use only; this directly uses the PARI stack.
     One should call ``sig_on()`` before and ``sig_off()`` after.
     """
-    cdef GEN A = pari._new_GEN_from_fmpz_mat_t(B._matrix, B._nrows, B._ncols)
+    cdef GEN A = _new_GEN_from_fmpz_mat_t(B._matrix, B._nrows, B._ncols)
     return A
 
 

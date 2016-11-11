@@ -1,5 +1,5 @@
 r"""
-This contains a few time-critial auxillary cython functions for
+This contains a few time-critical auxillary cython functions for
 finite complex or real reflection groups.
 """
 #*****************************************************************************
@@ -21,7 +21,7 @@ cdef class Iterator(object):
     Iterator class for reflection groups.
     """
     cdef int n
-    cdef int N # number of refections/positive roots
+    cdef int N  # number of reflections / positive roots
     cdef tuple S
     cdef str algorithm
     cdef bint tracking_words

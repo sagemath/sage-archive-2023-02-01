@@ -606,7 +606,7 @@ class Simplex(SageObject):
 
         :type rename_vertices: boolean; optional, default ``True``
 
-        Algorithm: see Hatcher, p. 277-278 [Hat]_ (who in turn refers to
+        Algorithm: see Hatcher, p. 277-278 [Hat2002]_ (who in turn refers to
         Eilenberg-Steenrod, p. 68): given ``S = Simplex(m)`` and
         ``T = Simplex(n)``, then `S \times T` can be
         triangulated as follows: for each path `f` from `(0,0)` to
@@ -823,6 +823,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
     :type name_check: boolean; optional, default ``False``
     :param is_mutable: Set to ``False`` to make this immutable
     :type is_mutable: boolean; optional, default ``True``
+    :param category: the category of the simplicial complex
+    :type category: category; optional, default finite simplicial complexes
     :return: a simplicial complex
 
     ``maximal_faces`` should be a list or tuple or set (indeed,
@@ -927,7 +929,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
                  sort_facets=True,
                  name_check=False,
                  is_mutable=True,
-                 is_immutable=False):
+                 is_immutable=False,
+                 category=None):
         """
         Define a simplicial complex.  See ``SimplicialComplex`` for more
         documentation.
@@ -965,7 +968,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if (maximal_faces is not None and
             from_characteristic_function is not None):
             raise ValueError("maximal_faces and from_characteristic_function cannot be both defined")
-        Parent.__init__(self, category=SimplicialComplexes().Finite())
+        category = SimplicialComplexes().Finite().or_subcategory(category)
+        Parent.__init__(self, category=category)
 
         C = None
         vertex_set = ()
@@ -1885,8 +1889,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         If the simplicial complex `M` happens to be a pseudomanifold
         (see :meth:`is_pseudomanifold`), then this instead constructs
-        Datta's one-point suspension (see p. 434 in the cited
-        article): choose a vertex `u` in `M` and choose a new vertex
+        Datta's one-point suspension (see [Dat2007]_, p. 434):
+        choose a vertex `u` in `M` and choose a new vertex
         `w` to add.  Denote the join of simplices by "`*`".  The
         facets in the one-point suspension are of the two forms
 
@@ -1894,11 +1898,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
           `u`
 
         - `w * \beta` where `\beta` is any facet of `M`.
-
-        REFERENCES:
-
-        - Basudeb Datta, "Minimal triangulations of manifolds",
-          J. Indian Inst. Sci. 87 (2007), no. 4, 429-449.
 
         EXAMPLES::
 
@@ -2369,7 +2368,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         coefficients in ``base_ring``.
 
         The term "algebraic topological model" is defined by Pilarczyk
-        and Réal [PR]_.
+        and Réal [PR2015]_.
 
         INPUT:
 
@@ -2917,11 +2916,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         REFERENCES:
 
-        .. [BW96] Anders Bjorner and Michelle L. Wachs.
-           *Shellable nonpure complexes and posets. I*.
-           Trans. of Amer. Math. Soc. **348** No. 4. (1996)
+        - [BW1996]_
         """
-        # Quick check by Lemma 2.2 in [BW96]
+        # Quick check by Lemma 2.2 in [BW1996]
         if self.dimension() != len(list(shelling_order[0])) - 1:
             return False
 
@@ -2955,7 +2952,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                force, hence can be very slow.
 
             2. This is shellability in the general (nonpure) sense of
-               Bjorner and Wachs [BW96]_. This method does not check purity.
+               Bjorner and Wachs [BW1996]_. This method does not check purity.
 
         .. SEEALSO::
 
@@ -2980,7 +2977,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X.is_shellable()
             False
 
-        Examples from Figure 1 in [BW96]_::
+        Examples from Figure 1 in [BW1996]_::
 
             sage: X = SimplicialComplex([[1,2,3], [3,4], [4,5], [5,6], [4,6]])
             sage: X.is_shellable()
@@ -3679,13 +3676,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         REFERENCES:
 
-        .. [BP2000] \V. M. Bukhshtaber and T. E. Panov, "Moment-angle complexes
-           and combinatorics of simplicial manifolds," *Uspekhi
-           Mat. Nauk* 55 (2000), 171--172.
-
-        .. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
-           manifolds and complexes into a cubic lattice", *Uspekhi
-           Mat. Nauk* 47 (1992), 219-220.
+        - [BP2000]_
+        - [SS1992]_
 
         EXAMPLES::
 
@@ -4286,7 +4278,7 @@ def facets_for_RP4():
     a certain subgroup `G` of the symmetric group `S_{16}`. Then the set
     of all facets is the `G`-orbit of the two given facets.
 
-    See the description in Example 3.12 in Datta [Da2007]_.
+    See the description in Example 3.12 in Datta [Dat2007]_.
 
     EXAMPLES::
 

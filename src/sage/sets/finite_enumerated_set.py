@@ -270,7 +270,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
 
     def unrank(self,i):
         r"""
-        Return the element at position i.
+        Return the element at position ``i``.
 
         EXAMPLES::
 
@@ -280,7 +280,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             sage: S[3]
             Traceback (most recent call last):
             ...
-            IndexError: list index out of range
+            IndexError: tuple index out of range
             sage: S[-1], S[-2], S[-3]
             (-51, 'a', 1)
             sage: S[-4]

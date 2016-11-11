@@ -38,10 +38,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.<x,y> = ZZ['x,y']; R
             Multivariate Polynomial Ring in x, y over Integer Ring
             sage: class CR(CommutativeRing):
-            ...       def __init__(self):
-            ...           CommutativeRing.__init__(self,self)
-            ...       def __call__(self,x):
-            ...           return None
+            ....:     def __init__(self):
+            ....:         CommutativeRing.__init__(self,self)
+            ....:     def __call__(self,x):
+            ....:         return None
             sage: cr = CR()
             sage: cr.is_commutative()
             True
@@ -850,7 +850,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
             sage: R.<x> = PolynomialRing(Integers(3), 1)
             sage: R.random_element()
-            -x^2 + x
+            2*x^2 + x
 
         To produce a dense polynomial, pick ``terms=Infinity``::
 

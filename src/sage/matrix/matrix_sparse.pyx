@@ -10,6 +10,7 @@ Base class for sparse matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 cimport cython
 cimport matrix
@@ -307,7 +308,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         EXAMPLES::
 
-            sage: M = Matrix(QQ, 3, 6, xrange(18), sparse=true); M
+            sage: M = Matrix(QQ, 3, 6, range(18), sparse=true); M
             [ 0  1  2  3  4  5]
             [ 6  7  8  9 10 11]
             [12 13 14 15 16 17]
@@ -697,7 +698,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         Differentiate with respect to var by differentiating each element
         with respect to var.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`derivative`
 
@@ -811,9 +812,14 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jason Grout: sparse matrix optimizations
         """
-        if not isinstance(rows, list):
+        if isinstance(rows, range):
+            rows = list(rows)
+        elif not isinstance(rows, list):
             raise TypeError("rows must be a list of integers")
-        if not isinstance(columns, list):
+
+        if isinstance(columns, range):
+            columns = list(columns)
+        elif not isinstance(columns, list):
             raise TypeError("columns must be a list of integers")
 
         cdef Py_ssize_t nrows, ncols,k,r,i,j

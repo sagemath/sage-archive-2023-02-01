@@ -120,7 +120,7 @@ def construction_3_4(k,n,m,r,s,explain_construction=False):
     - ``k,n,m,r,s`` (integers) -- we assume that `s<n` and `1\leq r,s`
 
       The following designs must be available: `OA(k,n)`, `OA(k,m)`,
-      `OA(k,m+1)`, `OA(k,m+2)`, `OA(k,s)`. Additionnally, it requires either a
+      `OA(k,m+1)`, `OA(k,m+2)`, `OA(k,s)`. Additionally, it requires either a
       `OA(k,m+r)` or a `OA(k,m+r+1)`.
 
     - ``explain_construction`` (boolean) -- return a string describing

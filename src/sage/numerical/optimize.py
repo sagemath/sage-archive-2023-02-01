@@ -370,7 +370,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
       - ``'default'``  -- default choices
 
       - ``'l-bfgs-b'`` -- only effective if you specify bound constraints.
-        See [ZBN97]_.
+        See [ZBN1997]_.
 
     - ``gradient`` -- Optional gradient function. This will be computed
       automatically for symbolic functions. This is only used when the
@@ -412,14 +412,6 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         (-10.0, 10.0)
         sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],algorithm='l-bfgs-b')
         (-10.0, 10.0)
-
-
-    REFERENCES:
-
-    .. [ZBN97] \C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778:
-      L-BFGS-B, FORTRAN routines for large scale bound constrained
-      optimization. ACM Transactions on Mathematical Software, Vol 23, Num. 4,
-      pp.550--560, 1997.
     """
     from sage.symbolic.expression import Expression
     import scipy

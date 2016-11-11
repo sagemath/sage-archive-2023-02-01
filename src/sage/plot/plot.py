@@ -895,7 +895,7 @@ def plot(funcs, *args, **kwds):
 
       - a list or dictionary of colors (valid only if `X` is a list):
         if a dictionary, keys are taken from ``range(len(X))``;
-        the entries/values of the list/dictonary may be any of the options above.
+        the entries/values of the list/dictionary may be any of the options above.
 
       - 'automatic' -- maps to default ('blue') if `X` is a single Sage object; and
         maps to a fixed sequence of regularly spaced colors if `X` is a list.

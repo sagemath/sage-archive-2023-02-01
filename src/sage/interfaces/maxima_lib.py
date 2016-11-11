@@ -1619,7 +1619,8 @@ def sr_to_max(expr):
             return maxima(expr).ecl()
 
 # This goes from EclObject to SR
-max_to_pynac_table = sage.symbolic.pynac.symbol_table['maxima']
+from sage.libs.pynac.pynac import symbol_table
+max_to_pynac_table = symbol_table['maxima']
 
 
 def max_to_sr(expr):

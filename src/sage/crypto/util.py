@@ -339,7 +339,7 @@ def carmichael_lambda(n):
         ....:     for k in range(1, n):
         ....:         L = znpower(n, k)
         ....:         ones = [1] * len(L)
-        ....:         T = [L[i] == ones[i] for i in xrange(len(L))]
+        ....:         T = [L[i] == ones[i] for i in range(len(L))]
         ....:         if all(T):
         ....:             return k
         sage: c == my_carmichael(n)
@@ -381,8 +381,7 @@ def carmichael_lambda(n):
 
     REFERENCES:
 
-    .. [Carmichael2010] Carmichael function,
-      http://en.wikipedia.org/wiki/Carmichael_function
+    - :wikipedia:`Carmichael_function`
     """
     n = Integer(n)
     # sanity check

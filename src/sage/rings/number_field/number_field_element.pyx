@@ -64,13 +64,10 @@ from sage.categories.fields import Fields
 
 from sage.modules.free_module_element import vector
 
-from sage.libs.pari.all import pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance
-
 from sage.structure.element cimport Element, generic_power_c, FieldElement
 from sage.structure.element import canonical_coercion, parent, coerce_binop
 
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+from sage.libs.pari import pari
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -3683,7 +3680,7 @@ cdef class NumberFieldElement(FieldElement):
         The numerator ideal of a number field element `a` is the ideal of
         the ring of integers `R` obtained by intersecting `aR` with `R`.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`denominator_ideal`
 
@@ -3714,7 +3711,7 @@ cdef class NumberFieldElement(FieldElement):
         integral ideal consisting of all elements of the ring of
         integers `R` whose product with `a` is also in `R`.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`numerator_ideal`
 

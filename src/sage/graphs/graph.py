@@ -1797,13 +1797,13 @@ class Graph(GenericGraph):
         are not overfull::
 
             sage: def check_overfull_Kn_even(n):
-            ...       i = 0
-            ...       while i <= n:
-            ...           if graphs.CompleteGraph(i).is_overfull():
-            ...               print("A complete graph of even order cannot be overfull.")
-            ...               return
-            ...           i += 2
-            ...       print("Complete graphs of even order up to %s are not overfull." % n)
+            ....:     i = 0
+            ....:     while i <= n:
+            ....:         if graphs.CompleteGraph(i).is_overfull():
+            ....:             print("A complete graph of even order cannot be overfull.")
+            ....:             return
+            ....:         i += 2
+            ....:     print("Complete graphs of even order up to %s are not overfull." % n)
             ...
             sage: check_overfull_Kn_even(100)  # long time
             Complete graphs of even order up to 100 are not overfull.
@@ -1819,13 +1819,13 @@ class Graph(GenericGraph):
         are overfull::
 
             sage: def check_overfull_Kn_odd(n):
-            ...       i = 3
-            ...       while i <= n:
-            ...           if not graphs.CompleteGraph(i).is_overfull():
-            ...               print("A complete graph of odd order > 1 must be overfull.")
-            ...               return
-            ...           i += 2
-            ...       print("Complete graphs of odd order > 1 up to %s are overfull." % n)
+            ....:     i = 3
+            ....:     while i <= n:
+            ....:         if not graphs.CompleteGraph(i).is_overfull():
+            ....:             print("A complete graph of odd order > 1 must be overfull.")
+            ....:             return
+            ....:         i += 2
+            ....:     print("Complete graphs of odd order > 1 up to %s are overfull." % n)
             ...
             sage: check_overfull_Kn_odd(100)  # long time
             Complete graphs of odd order > 1 up to 100 are overfull.
@@ -1893,12 +1893,12 @@ class Graph(GenericGraph):
         cycle::
 
             sage: if not g.is_forest():
-            ...      cycle = g.is_even_hole_free(certificate = True)
-            ...      if cycle.order() % 2 == 1:
-            ...          print("Error !")
-            ...      if not cycle.is_isomorphic(
-            ...             graphs.CycleGraph(cycle.order())):
-            ...          print("Error !")
+            ....:    cycle = g.is_even_hole_free(certificate = True)
+            ....:    if cycle.order() % 2 == 1:
+            ....:        print("Error !")
+            ....:    if not cycle.is_isomorphic(
+            ....:           graphs.CycleGraph(cycle.order())):
+            ....:        print("Error !")
             ...
             sage: print("Everything is Fine !")
             Everything is Fine !
@@ -1916,7 +1916,7 @@ class Graph(GenericGraph):
         Making sure there are no other counter-examples around ::
 
             sage: t = lambda x : (Graph(x).is_forest() or
-            ...         isinstance(Graph(x).is_even_hole_free(certificate = True),Graph))
+            ....:       isinstance(Graph(x).is_even_hole_free(certificate = True),Graph))
             sage: all( t(graphs.RandomBipartite(10,10,.5)) for i in range(100) )
             True
 
@@ -2165,11 +2165,11 @@ class Graph(GenericGraph):
         Comparison of algorithms::
 
             sage: for i in range(10): # long test
-            ...       G = graphs.RandomBarabasiAlbert(50,2)
-            ...       bm = G.is_triangle_free(algorithm='matrix')
-            ...       bb = G.is_triangle_free(algorithm='bitset')
-            ...       if bm != bb:
-            ...          print("That's not good!")
+            ....:     G = graphs.RandomBarabasiAlbert(50,2)
+            ....:     bm = G.is_triangle_free(algorithm='matrix')
+            ....:     bb = G.is_triangle_free(algorithm='bitset')
+            ....:     if bm != bb:
+            ....:        print("That's not good!")
 
         Asking for an unknown algorithm::
 
@@ -2249,7 +2249,7 @@ class Graph(GenericGraph):
             sage: g = graphs.CompleteGraph(10)
             sage: sets = Subsets(Set(range(10)))
             sage: for i in range(10, 25):
-            ...      g.add_edges([(i,k) for k in sets.random_element()])
+            ....:    g.add_edges([(i,k) for k in sets.random_element()])
             sage: g.is_split()
             True
 
@@ -2636,12 +2636,12 @@ class Graph(GenericGraph):
             sage: Graph(':FgGE@I@GxGs', loops=False, multiedges=False).is_perfect()
             False
             sage: g = Graph({0: [2, 3, 4, 5],
-            ...              1: [3, 4, 5, 6],
-            ...              2: [0, 4, 5, 6],
-            ...              3: [0, 1, 5, 6],
-            ...              4: [0, 1, 2, 6],
-            ...              5: [0, 1, 2, 3],
-            ...              6: [1, 2, 3, 4]})
+            ....:            1: [3, 4, 5, 6],
+            ....:            2: [0, 4, 5, 6],
+            ....:            3: [0, 1, 5, 6],
+            ....:            4: [0, 1, 2, 6],
+            ....:            5: [0, 1, 2, 3],
+            ....:            6: [1, 2, 3, 4]})
             sage: g.is_perfect()
             False
 
@@ -3323,23 +3323,23 @@ class Graph(GenericGraph):
         While this is not::
 
             sage: try:
-            ...      g.bounded_outdegree_orientation(ceil(mad/2-1))
-            ...      print("Error")
+            ....:    g.bounded_outdegree_orientation(ceil(mad/2-1))
+            ....:    print("Error")
             ... except ValueError:
-            ...       pass
+            ....:     pass
 
         TESTS:
 
         As previously for random graphs, but more intensively::
 
             sage: for i in range(30):      # long time (up to 6s on sage.math, 2012)
-            ...       g = graphs.RandomGNP(40, .4)
-            ...       b = lambda v : ceil(g.degree(v)/2)
-            ...       D = g.bounded_outdegree_orientation(b)
-            ...       if not (
-            ...            all( D.out_degree(v) <= b(v) for v in g ) or
-            ...            D.size() != g.size()):
-            ...           print("Something wrong happened")
+            ....:     g = graphs.RandomGNP(40, .4)
+            ....:     b = lambda v : ceil(g.degree(v)/2)
+            ....:     D = g.bounded_outdegree_orientation(b)
+            ....:     if not (
+            ....:          all( D.out_degree(v) <= b(v) for v in g ) or
+            ....:          D.size() != g.size()):
+            ....:         print("Something wrong happened")
 
         """
         self._scream_if_not_simple()
@@ -4462,9 +4462,9 @@ class Graph(GenericGraph):
             sage: c = [floor(i/n) for i in isr]
             sage: color_classes = [[],[],[]]
             sage: for v,i in enumerate(c):
-            ...     color_classes[i].append(v)
+            ....:   color_classes[i].append(v)
             sage: for classs in color_classes:
-            ...     g.subgraph(classs).size() == 0
+            ....:   g.subgraph(classs).size() == 0
             True
             True
             True
@@ -5568,9 +5568,9 @@ class Graph(GenericGraph):
             sage: g.clique_number(algorithm="MILP")
             2
             sage: for i in range(10):                                            # optional - mcqd
-            ...       g = graphs.RandomGNP(15,.5)                                # optional - mcqd
-            ...       if g.clique_number() != g.clique_number(algorithm="mcqd"): # optional - mcqd
-            ...           print("This is dead wrong !")                          # optional - mcqd
+            ....:     g = graphs.RandomGNP(15,.5)                                # optional - mcqd
+            ....:     if g.clique_number() != g.clique_number(algorithm="mcqd"): # optional - mcqd
+            ....:         print("This is dead wrong !")                          # optional - mcqd
         """
         self._scream_if_not_simple(allow_loops=False)
         if algorithm=="Cliquer":
@@ -5878,34 +5878,34 @@ class Graph(GenericGraph):
         The cardinality of the vertex cover is unchanged when reduction rules are used. First for trees::
 
            sage: for i in range(20):
-           ...       g = graphs.RandomTree(20)
-           ...       vc1_set = g.vertex_cover()
-           ...       vc1 = len(vc1_set)
-           ...       vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
-           ...       if vc1 != vc2:
-           ...           print("Error :", vc1, vc2)
-           ...           print("With reduction rules :", vc1)
-           ...           print("Without reduction rules :", vc2)
-           ...           break
-           ...       g.delete_vertices(vc1_set)
-           ...       if g.size() != 0:
-           ...           print("This thing is not a vertex cover !")
+           ....:     g = graphs.RandomTree(20)
+           ....:     vc1_set = g.vertex_cover()
+           ....:     vc1 = len(vc1_set)
+           ....:     vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
+           ....:     if vc1 != vc2:
+           ....:         print("Error :", vc1, vc2)
+           ....:         print("With reduction rules :", vc1)
+           ....:         print("Without reduction rules :", vc2)
+           ....:         break
+           ....:     g.delete_vertices(vc1_set)
+           ....:     if g.size() != 0:
+           ....:         print("This thing is not a vertex cover !")
 
         Then for random GNP graphs::
 
            sage: for i in range(20):
-           ...       g = graphs.RandomGNP(50,4/50)
-           ...       vc1_set = g.vertex_cover()
-           ...       vc1 = len(vc1_set)
-           ...       vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
-           ...       if vc1 != vc2:
-           ...           print("Error :", vc1, vc2)
-           ...           print("With reduction rules :", vc1)
-           ...           print("Without reduction rules :", vc2)
-           ...           break
-           ...       g.delete_vertices(vc1_set)
-           ...       if g.size() != 0:
-           ...           print("This thing is not a vertex cover !")
+           ....:     g = graphs.RandomGNP(50,4/50)
+           ....:     vc1_set = g.vertex_cover()
+           ....:     vc1 = len(vc1_set)
+           ....:     vc2 = g.vertex_cover(value_only = True, reduction_rules = False)
+           ....:     if vc1 != vc2:
+           ....:         print("Error :", vc1, vc2)
+           ....:         print("With reduction rules :", vc1)
+           ....:         print("Without reduction rules :", vc2)
+           ....:         break
+           ....:     g.delete_vertices(vc1_set)
+           ....:     if g.size() != 0:
+           ....:         print("This thing is not a vertex cover !")
 
         Testing mcqd::
 

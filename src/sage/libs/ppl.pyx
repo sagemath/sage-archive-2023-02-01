@@ -2868,7 +2868,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         r"""
         Assign to ``self`` the concatenation of ``self`` and ``y``.
 
-        This functions returns the Cartiesian product of ``self`` and
+        This function returns the Cartesian product of ``self`` and
         ``y``.
 
         Viewing a polyhedron as a set of tuples (its points), it is

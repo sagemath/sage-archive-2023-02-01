@@ -505,7 +505,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         (2, 4, 12, 24, 120)
 
         sage: F.category()
-        Category of finite commutative groups
+        Category of finite enumerated commutative groups
 
     TESTS::
 
@@ -534,10 +534,10 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
             sage: A = AbelianGroup([3,3])
             sage: A.category()
-            Category of finite commutative groups
+            Category of finite enumerated commutative groups
             sage: A = AbelianGroup([3,0,7])
             sage: A.category()
-            Category of commutative groups
+            Category of infinite commutative groups
         """
         assert isinstance(names, (six.string_types, tuple))
         assert isinstance(generator_orders, tuple)
@@ -548,7 +548,9 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         self._assign_names(names)
         cat = Groups().Commutative()
         if all(order > 0 for order in generator_orders):
-            cat = cat.Finite()
+            cat = cat.Finite().Enumerated()
+        else:
+            cat = cat.Infinite()
         AbelianGroupBase.__init__(self, category=cat)
 
     def is_isomorphic(left, right):
@@ -734,11 +736,11 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: H.dual_group()
             Traceback (most recent call last):
             ...
-            ValueError: the group must be finite
+            ValueError: group must be finite
         """
         from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup_class
         if not self.is_finite():
-            raise ValueError('the group must be finite')
+            raise ValueError('group must be finite')
         if base_ring is None:
             from sage.rings.number_field.number_field import CyclotomicField
             base_ring = CyclotomicField(lcm(self.gens_orders()))
@@ -1104,11 +1106,12 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G.order()
             +Infinity
         """
-        from sage.rings.all import infinity
         length = prod(self.gens_orders())
         if length == 0:
             return infinity
         return length
+
+    cardinality = order
 
     def permutation_group(self):
         r"""
@@ -1217,7 +1220,6 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
                 raise TypeError('Subgroup generators must belong to the given group.')
         return AbelianGroup_subgroup(self, gensH, names)
 
-    @cached_method
     def list(self):
         """
         Return tuple of all elements of this group.
@@ -1235,9 +1237,29 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G.list()
             (1,)
         """
-        if not(self.is_finite()):
-           raise NotImplementedError("Group must be finite")
+        if not self.is_finite():
+           raise NotImplementedError("group must be finite")
         return tuple(iter(self))
+
+    def __len__(self):
+        """
+        Return the length of ``self``.
+
+        EXAMPLES::
+
+            sage: G = AbelianGroup(2,[2,3])
+            sage: len(G)
+            6
+            sage: G = AbelianGroup(3,[2,3,0])
+            sage: len(G)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: group must be finite
+        """
+        length = prod(self.gens_orders())
+        if length == 0:
+            raise NotImplementedError("group must be finite")
+        return int(length)
 
     def __iter__(self):
         """
@@ -1318,7 +1340,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
              Trivial Abelian subgroup]
         """
         if not self.is_finite():
-            raise ValueError("Group must be finite")
+            raise ValueError("group must be finite")
         from sage.misc.misc import verbose
 
         if self.is_trivial():

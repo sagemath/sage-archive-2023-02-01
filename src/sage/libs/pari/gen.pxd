@@ -11,4 +11,5 @@ cdef class gen_auto:
 cdef class gen(gen_auto):
     pass
 
+cdef gen new_ref(GEN g, gen parent)
 cpdef gen objtogen(s)

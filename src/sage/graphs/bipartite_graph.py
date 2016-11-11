@@ -149,7 +149,7 @@ class BipartiteGraph(Graph):
     4. From a reduced adjacency matrix::
 
         sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-        ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+        ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
         sage: M
         [1 1 1 0 0 0 0]
         [1 0 0 1 1 0 0]
@@ -1085,7 +1085,7 @@ class BipartiteGraph(Graph):
         EXAMPLE::
 
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-            ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+            ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: M
             [1 1 1 0 0 0 0]
             [1 0 0 1 1 0 0]
@@ -1200,7 +1200,7 @@ class BipartiteGraph(Graph):
         Bipartite graphs that are not weighted will return a matrix over ZZ::
 
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-            ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+            ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: B = BipartiteGraph(M)
             sage: N = B.reduced_adjacency_matrix()
             sage: N

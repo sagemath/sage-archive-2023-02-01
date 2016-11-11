@@ -14,10 +14,8 @@ AUTHORS:
 
 REFERENCES:
 
-- [Lee11]_ \J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
-  Springer (New York) (2011)
-- [Lee13]_ \J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
-  Springer (New York, 2013)
+- [Lee2011]_
+- [Lee2013]_
 
 EXAMPLES:
 

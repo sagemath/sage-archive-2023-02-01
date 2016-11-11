@@ -154,6 +154,7 @@ extlinks = {
     'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
     'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
     'doi': ('https://dx.doi.org/%s', 'doi:'),
+    'pari': ('http://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
     'mathscinet': ('http://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
     }
 

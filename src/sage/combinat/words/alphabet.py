@@ -233,7 +233,7 @@ def build_alphabet(data=None, names=None, name=None):
         data = NonNegativeIntegers()
 
     # data is an iterable
-    if isinstance(data, (tuple,list,str)) or data in Sets():
+    if isinstance(data, (tuple, list, str, range)) or data in Sets():
         if names is not None:
             if not isinstance(names, str):
                 raise TypeError("names must be a string when data is a set")

@@ -806,6 +806,7 @@ element of the parent?)::
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
+      running ._test_new() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
       pass
@@ -817,6 +818,7 @@ element of the parent?)::
     running ._test_enumerated_set_iter_cardinality() . . . pass
     running ._test_enumerated_set_iter_list() . . . pass
     running ._test_eq() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_pickling() . . . pass
     running ._test_some_elements() . . . pass
@@ -1016,14 +1018,14 @@ permutation groups (no surprise)::
     sage: P = PermutationGroup([[(1,2,3)]]); P
     Permutation Group with generators [(1,2,3)]
     sage: P.category()
-    Category of finite permutation groups
+    Category of finite enumerated permutation groups
 
 In this case, the group is commutative, so we can specify this::
 
     sage: P = PermutationGroup([[(1,2,3)]], category=PermutationGroups().Finite().Commutative()); P
     Permutation Group with generators [(1,2,3)]
     sage: P.category()
-    Category of finite commutative permutation groups
+    Category of finite enumerated commutative permutation groups
 
 This feature can even be used, typically in experimental code, to add
 more structure to existing parents, and in particular to add methods
@@ -1290,7 +1292,7 @@ The infrastructure allows for specifying further deduction rules, in
 order to encode mathematical facts like Wedderburn's theorem::
 
     sage: DivisionRings() & Sets().Finite()
-    Category of finite fields
+    Category of finite enumerated fields
 
 .. NOTE::
 
@@ -1381,7 +1383,7 @@ for a category with two operations `+` and `*`::
     Category of fields
 
     sage: Rings().Division().Finite()
-    Category of finite fields
+    Category of finite enumerated fields
 
 or for more advanced categories::
 

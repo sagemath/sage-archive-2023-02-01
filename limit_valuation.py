@@ -655,3 +655,43 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         if ring.is_subring(self.domain().base()):
             return self._initial_approximation.restriction(ring)
         return super(MacLaneLimitValuation, self).restriction(ring)
+
+    def _weakly_separating_element(self, other):
+        r"""
+        Return an element in the domain of this valuation which has
+        positive valuation with respect to this valuation and higher
+        valuation with respect to this valuation than with respect to
+        ``other``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: w = v.extension(L)
+            sage: v = pAdicValuation(QQ, 5)
+            sage: u,uu = v.extensions(L)
+            sage: w._base_valuation._weakly_separating_element(u._base_valuation)
+            sage: u._base_valuation._weakly_separating_element(uu._base_valuation)
+
+        """
+        from scaled_valuation import ScaledValuation_generic
+        v = self.restriction(self.domain().base())
+        if isinstance(v, ScaledValuation_generic):
+            v = v._base_valuation
+        u = other.restriction(self.domain().base())
+        if isinstance(u, ScaledValuation_generic):
+            u = u._base_valuation
+
+        if u == v:
+            # phi of the initial approximant must be good enough to separate it
+            # from any other approximant of an extension
+            ret = self._initial_approximation.phi()
+            assert(self(ret) > other(ret)) # I could not come up with an example where this fails
+            return ret
+        else:
+            # if the valuations are sane, it should be possible to separate
+            # them with constants
+            return self.domain()(v._weakly_separating_element(u))

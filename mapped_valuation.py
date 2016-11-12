@@ -382,6 +382,30 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             return self._base_valuation.restriction(ring)
         return super(FiniteExtensionFromInfiniteValuation, self).restriction(ring)
 
+    def _weakly_separating_element(self, other):
+        r"""
+        Return an element in the domain of this valuation which has
+        positive valuation with respect to this valuation and higher
+        valuation with respect to this valuation than with respect to
+        ``other``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: w = v.extension(L)
+            sage: v = pAdicValuation(QQ, 5)
+            sage: u,uu = v.extensions(L)
+            sage: u.separating_element([w,uu]) # indirect doctest
+
+        """
+        if isinstance(other, FiniteExtensionFromInfiniteValuation):
+            return self.domain()(self._base_valuation._weakly_separating_element(other._base_valuation))
+        super(FiniteExtensionFromInfiniteValuation, self)._weakly_separating_element(other)
+
 
 class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
     r"""

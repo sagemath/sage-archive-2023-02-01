@@ -29,7 +29,21 @@ degree of `\nu_{ps}` is strictly increasing in `s\in \mathcal{S}_p` and
 `\nu_{ps}` is a `(p^s)`-minimal polynomial. If `t\le \max\mathcal{S}_p`,
 then the summand `\mu_BD[X]` can be omitted.
 
-TODO: integer valued polynomials
+All computations are done by the class
+:class:`ComputeMinimalPolynomials` where various intermediate results
+are cached. It provides the following methods:
+
+* :meth:`~ComputeMinimalPolynomials.p_minimal_polynomials`
+  computes `\mathcal{S}_p` and the monic polynomials `\nu_{ps}`.
+
+* :meth:`~ComputeMinimalPolynomials.null_ideal` determines `N_{(p^t)}(B)`.
+
+* :meth:`~ComputeMinimalPolynomials.prime_candidates` determines all primes `p`
+  where `\mathcal{S}_p` might be non-empty.
+
+* :meth:`~ComputeMinimalPolynomials.integer_valued_polynomials` determines
+  the generators of the ring `\{f \in K[X] \mid f(B) \in M_n(D)\}`
+  of integer valued polynomials on `B`.
 
 EXAMPLES::
 
@@ -50,6 +64,15 @@ EXAMPLES::
     Ring in x over Integer Ring
     sage: C.p_minimal_polynomials(2)
     {2: x^2 + 3*x + 2}
+    sage: C.integer_valued_polynomials()
+    (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
+
+The last output means that
+
+.. MATH::
+
+   \{f \in \mathbb{Q}[X] \mid f(B) \in M_3(\mathbb{Z})\} =
+   (x^3 + x^2 - 12x - 20)\mathbb{Q}[X] + \mathbb{Z}[X] +  \frac{1}{4}(x^2 + 3x + 2) \mathbb{Z}[X].
 
 .. TODO::
 
@@ -251,8 +274,8 @@ class ComputeMinimalPolynomials(SageObject):
 
     OUTPUT:
 
-    An object which allows to call ``p_minimal_polynomials`` and
-    ``null_ideal``. TODO: integer valued polynomials
+    An object which allows to call :meth:`p_minimal_polynomials`,
+    :meth:`null_ideal` and :meth:`integer_valued_polynomials`.
 
     For an ideal `J`, the `J`-ideal of `B` is defined to be
     `N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.
@@ -268,6 +291,8 @@ class ComputeMinimalPolynomials(SageObject):
         sage: from calculate_nu import ComputeMinimalPolynomials # not tested
         sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
         sage: C = ComputeMinimalPolynomials(B)
+        sage: C.prime_candidates()
+        [2, 3, 5]
         sage: for t in range(4):
         ....:     print C.null_ideal(2^t)
         Principal ideal (1) of Univariate Polynomial
@@ -280,6 +305,8 @@ class ComputeMinimalPolynomials(SageObject):
         Polynomial Ring in x over Integer Ring
         sage: C.p_minimal_polynomials(2)
         {2: x^2 + 3*x + 2}
+        sage: C.integer_valued_polynomials()
+        (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
     """
     def __init__(self, B):
         r"""

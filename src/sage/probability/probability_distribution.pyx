@@ -964,7 +964,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         sage: X = GeneralDiscreteDistribution(P)
         sage: nr_samples = 10000
         sage: for _ in range(nr_samples):
-        ...       counts[X.get_random_element()] += 1
+        ....:     counts[X.get_random_element()] += 1
         sage: [1.0*x/nr_samples for x in counts]
         [0.304200000000000, 0.397300000000000, 0.298500000000000]
 
@@ -975,7 +975,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         sage: X = GeneralDiscreteDistribution(P, seed = 0)
         sage: counts = [0, 0]
         sage: for _ in range(10000):
-        ...       counts[X.get_random_element()] += 1
+        ....:     counts[X.get_random_element()] += 1
         sage: float(counts[1]/counts[0])
         3.042037186742118
 

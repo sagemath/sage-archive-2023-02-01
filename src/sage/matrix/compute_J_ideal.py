@@ -94,12 +94,12 @@ Classes and Methods
 
 import heapq
 
+from sage.arith.misc import factor, xgcd
 from sage.matrix.constructor import matrix
-from sage.misc.cachefunc import cached_function
-from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.misc.misc import verbose
+from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
-from time import time
 
 
 def lifting(p, t, A, G):

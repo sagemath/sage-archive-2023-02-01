@@ -97,6 +97,7 @@ import heapq
 from sage.arith.misc import factor, xgcd
 from sage.matrix.constructor import matrix
 from sage.misc.misc import verbose
+from sage.rings.infinity import Infinity
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
@@ -309,6 +310,7 @@ class ComputeMinimalPolynomials(SageObject):
         self.mu_B = B.minimal_polynomial()
         self._A = matrix.block([[b , -self.chi_B*matrix.identity(d)]])
         self._DX = X.parent()
+        self._cache = {}
 
 
     def find_monic_replacements(self, p, t, pt_generators, prev_nu):
@@ -562,6 +564,7 @@ class ComputeMinimalPolynomials(SageObject):
             sage: C.p_minimal_polynomials(2)
             {2: x^2 + 3*x + 2}
             sage: set_verbose(1)
+            sage: C = ComputeMinimalPolynomials(B)
             sage: C.p_minimal_polynomials(2)
             verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
             ------------------------------------------
@@ -693,15 +696,22 @@ class ComputeMinimalPolynomials(SageObject):
         """
 
         deg_mu = self.mu_B.degree()
+        if s_max is None:
+            s_max = Infinity
 
-        t = 0
-        p_min_polys = {}
-        nu = self._DX(1)
-        d = self._A.ncols()
-        G = matrix(self._DX, d, 0)
+        if p in self._cache:
+            (t, G, p_min_polys) = self._cache[p]
+            if t < Infinity:
+                nu = G[0][0]
+        else:
+            t = 0
+            p_min_polys = {}
+            nu = self._DX(1)
+            d = self._A.ncols()
+            G = matrix(self._DX, d, 0)
 
 
-        while True:
+        while t < s_max:
             deg_prev_nu = nu.degree()
             t += 1
             verbose("------------------------------------------")
@@ -715,7 +725,8 @@ class ComputeMinimalPolynomials(SageObject):
 
             verbose("nu = %s" % nu)
             if nu.degree() >= deg_mu:
-                return p_min_polys
+                t = Infinity
+                break
 
             if nu.degree() == deg_prev_nu:
                 G = G.delete_columns([G.ncols() - 1])
@@ -728,9 +739,20 @@ class ComputeMinimalPolynomials(SageObject):
             G = matrix.block([[p * G, column]])
             p_min_polys[t] = nu
 
-            # allow early stopping for small t
-            if t == s_max:
-                return p_min_polys
+        self._cache[p] = (t, G, p_min_polys)
+
+        if s_max < t:
+            result = {r: polynomial
+                      for r, polynomial in p_min_polys.iteritems()
+                      if r < s_max}
+            next_t_candidates = list(r for r in p_min_polys if r >= s_max)
+            if next_t_candidates:
+                next_t = min(next_t_candidates)
+                result.update({s_max: p_min_polys[next_t] % p**s_max})
+
+            return result
+
+        return p_min_polys
 
 
     def null_ideal(self, b=0):

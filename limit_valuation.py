@@ -672,21 +672,29 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: v = pAdicValuation(QQ, 2)
             sage: w = v.extension(L)
             sage: v = pAdicValuation(QQ, 5)
-            sage: u,uu = v.extensions(L)
-            sage: w._base_valuation._weakly_separating_element(u._base_valuation)
-            sage: u._base_valuation._weakly_separating_element(uu._base_valuation)
+            sage: u,uu = v.extensions(L) # long time
+            sage: w._base_valuation._weakly_separating_element(u._base_valuation) # long time
+            2
+            sage: u._base_valuation._weakly_separating_element(uu._base_valuation) # long time
+            t + 2
 
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, 1/x)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - 1/(x^2 + 1))
-            sage: u,uu = v.extensions(L)
+            sage: u,uu = v.extensions(L) # long time
             sage: v = FunctionFieldValuation(K, x)
             sage: w,ww = v.extensions(L)
             sage: v = FunctionFieldValuation(K, 1)
             sage: v = v.extension(L)
-            sage: u.separating_element([uu,ww,w,v]) 
+            sage: u.separating_element([uu,ww,w,v]) # long time
             ((-8*x^4 - 12*x^2 - 4)/(x^2 - x))*y + (8*x^4 + 8*x^2 + 1)/(x^3 - x^2)
+
+        The underlying algorithm is quite naive and might not terminate in
+        reasonable time. In particular, the order of the arguments sometimes
+        has a huge impact on the runtime::
+
+            sage: u.separating_element([ww,w,v,uu]) # not tested, takes forever
 
         """
         from scaled_valuation import ScaledValuation_generic

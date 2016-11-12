@@ -400,6 +400,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: v = pAdicValuation(QQ, 5)
             sage: u,uu = v.extensions(L)
             sage: u.separating_element([w,uu]) # indirect doctest
+            1/20*t + 7/20
 
         """
         if isinstance(other, FiniteExtensionFromInfiniteValuation):

@@ -741,7 +741,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
                 delta = self._strictly_separating_element(others[i])
                 if others[i](ret) == 0:
-                    # combining powers of ret and delta, we produce a separating element for self and others[:i+1]
+                    # combining powers of ret and delta, we produce a
+                    # separating element for self and others[:i+1]
                     factor = ret
                     ret = delta
                     while any(other(ret) >= 0 for other in others[:i]):
@@ -752,9 +753,13 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     # and has negative valuation with respect to others[:i]
                     from sage.rings.all import NN
                     for r in iter(NN):
+                        # When we enter this loop we are essentially out of
+                        # luck.  The size of the coefficients is likely going
+                        # through the roof here and this is not going to
+                        # terminate in reasonable time.
                         factor = (ret**r)/(1+ret**r)
                         ret = factor * delta
-                        if others[i](ret) < 0 and all([other(ret) < 0 for other in others[:i]]):
+                        if all([other(ret) < 0 for other in others[:i+1]]):
                             break
             return ret
 
@@ -817,7 +822,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 assert(dd/nn > d/n)
                 for b in iter(NN):
                     # we naĩvely find the smallest b which can satisfy such an equation
-                    # there are faster algorithms for this https://dl.acm.org/citation.cfm?id=1823943&CFID=864015776&CFTOKEN=26270402
+                    # there are faster algorithms for this
+                    # https://dl.acm.org/citation.cfm?id=1823943&CFID=864015776&CFTOKEN=26270402
                     if b == 0:
                         continue
                     assert(b <= n + nn) # (a+b)/(n+nn) is a solution

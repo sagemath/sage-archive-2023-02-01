@@ -2583,3 +2583,27 @@ class Function_conjugate(GinacFunction):
                                conversions=dict(sympy='conjugate'))
 
 conjugate = Function_conjugate()
+
+
+class Function_sum(BuiltinFunction):
+    """
+    Placeholder symbolic sum function that is only accessible internally.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_sum as ssum
+        sage: ssum(x, x, 1, 10)
+        sum(x, x, 1, 10)
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_sum as ssum
+            sage: maxima(ssum(x, x, 1, 10))
+            55
+        """
+        BuiltinFunction.__init__(self, "sum", nargs=4,
+                               conversions=dict(maxima='sum'))
+
+symbolic_sum = Function_sum()

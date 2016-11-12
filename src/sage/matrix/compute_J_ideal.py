@@ -40,11 +40,11 @@ EXAMPLES::
     [2, 3, 5]
     sage: for t in range(4):
     ....:     print C.null_ideal(2^t)
-    Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial
+    Principal ideal (1) of Univariate Polynomial
     Ring in x over Integer Ring
-    Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial
+    Ideal (2, x^2 + x) of Univariate Polynomial
     Ring in x over Integer Ring
-    Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial
+    Ideal (4, x^2 + 3*x + 2) of Univariate Polynomial
     Ring in x over Integer Ring
     Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate Polynomial
     Ring in x over Integer Ring
@@ -269,11 +269,11 @@ class ComputeMinimalPolynomials(SageObject):
         sage: C = ComputeMinimalPolynomials(B)
         sage: for t in range(4):
         ....:     print C.null_ideal(2^t)
-        Ideal (1, x^3 + x^2 - 12*x - 20) of Univariate Polynomial
+        Principal ideal (1) of Univariate Polynomial
         Ring in x over Integer Ring
-        Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x) of Univariate Polynomial
+        Ideal (2, x^2 + x) of Univariate Polynomial
         Ring in x over Integer Ring
-        Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2) of Univariate Polynomial
+        Ideal (4, x^2 + 3*x + 2) of Univariate Polynomial
         Ring in x over Integer Ring
         Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate
         Polynomial Ring in x over Integer Ring
@@ -300,7 +300,8 @@ class ComputeMinimalPolynomials(SageObject):
             raise TypeError("square matrix required.")
 
         self._B = B
-        X = polygen(B.base_ring())
+        self._D = B.base_ring()
+        X = polygen(self._D)
         adjoint = (X - B).adjoint()
         d = B.nrows()**2
         b = matrix(d, 1, adjoint.list())
@@ -753,10 +754,10 @@ class ComputeMinimalPolynomials(SageObject):
             Principal ideal (x^3 + x^2 - 12*x - 20)
             of Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(2)
-            Ideal (2, x^3 + x^2 - 12*x - 20, x^2 + x)
+            Ideal (2, x^2 + x)
             of Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(4)
-            Ideal (4, x^3 + x^2 - 12*x - 20, x^2 + 3*x + 2)
+            Ideal (4, x^2 + 3*x + 2)
             of Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(8)
             Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4)
@@ -765,27 +766,33 @@ class ComputeMinimalPolynomials(SageObject):
             Ideal (3, x^3 + x^2 - 12*x - 20)
             of Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(6)
-            Ideal (6, x^3 + x^2 - 12*x - 20, 3*x^2 + 3*x)
+            Ideal (6, 2*x^3 + 2*x^2 - 24*x - 40, 3*x^2 + 3*x)
             of Univariate Polynomial Ring in x over Integer Ring
-
-        .. TODO::
-
-           Remove minimal polynomial if not required.
-
         """
-        generators = [self.mu_B]
+        mu_B_coefficients = []
+        generators = []
 
-        if b != 0:
-            generators = [self._DX(b)] + generators
+        if b == 0:
+            mu_B_coefficients = [1]
+        else:
             for (p, t) in factor(b):
                 cofactor = b // p**t
                 p_polynomials = self.p_minimal_polynomials(p, t)
                 generators += [cofactor*p**(t-s)*nu
                                for s, nu in p_polynomials.iteritems()]
+                if not p_polynomials or max(p_polynomials.iterkeys()) < t:
+                    mu_B_coefficients.append(cofactor)
 
             assert all((g(self._B) % b).is_zero() for g in generators), \
                 "Polynomials not in %s-ideal" % (b,)
 
+        if mu_B_coefficients:
+            (mu_B_coefficient,) = self._D.ideal(mu_B_coefficients).gens()
+            generators = [mu_B_coefficient * self.mu_B] + generators
+
+        if b != 0:
+            generators = [self._DX(b)] + generators
+            
         return self._DX.ideal(generators)
 
 

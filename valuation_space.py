@@ -747,7 +747,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     while any(other(ret) >= 0 for other in others[:i]):
                         assert(others[i](ret) < 0)
                         ret *= factor
-                else: # others[i](ret) < 0
+                else: # others[i](ret) > 0
                     # construct an element which approximates a unit with respect to others[i]
                     # and has negative valuation with respect to others[:i]
                     from sage.rings.all import NN

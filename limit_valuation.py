@@ -676,6 +676,18 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: w._base_valuation._weakly_separating_element(u._base_valuation)
             sage: u._base_valuation._weakly_separating_element(uu._base_valuation)
 
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, 1/x)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - 1/(x^2 + 1))
+            sage: u,uu = v.extensions(L)
+            sage: v = FunctionFieldValuation(K, x)
+            sage: w,ww = v.extensions(L)
+            sage: v = FunctionFieldValuation(K, 1)
+            sage: v = v.extension(L)
+            sage: u.separating_element([uu,ww,w,v]) 
+            ((-8*x^4 - 12*x^2 - 4)/(x^2 - x))*y + (8*x^4 + 8*x^2 + 1)/(x^3 - x^2)
+
         """
         from scaled_valuation import ScaledValuation_generic
         v = self.restriction(self.domain().base())

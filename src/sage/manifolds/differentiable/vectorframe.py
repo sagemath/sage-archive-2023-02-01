@@ -872,8 +872,8 @@ class VectorFrame(FreeModuleBasis):
 
     def at(self, point):
         r"""
-        Return the value of ``self`` at a given point,
-        i.e. a basis of the tangent vector space.
+        Return the value of ``self`` at a given point, this value being
+        a basis of the tangent vector space at the point.
 
         INPUT:
 
@@ -884,7 +884,7 @@ class VectorFrame(FreeModuleBasis):
 
         - :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`
           representing the basis `e(p)` of the tangent vector space
-          `T_{\Phi(p)} M`, where `\Phi: U \to M` is the differentiable
+          `T_{\Phi(p)} M`, where `\Phi: U \to M` is the differentiable map
           associated with `e` (possibly `\Phi = \mathrm{Id}_U`)
 
         EXAMPLES:
@@ -1364,8 +1364,8 @@ class CoFrame(FreeModuleCoBasis):
 
     def at(self, point):
         r"""
-        Return the value of ``self`` at a given point on the manifold,
-        i.e. a basis of the dual of the tangent space at the point.
+        Return the value of ``self`` at a given point on the manifold, this
+        value being a basis of the dual of the tangent space at the point.
 
         INPUT:
 
@@ -1378,7 +1378,7 @@ class CoFrame(FreeModuleCoBasis):
           representing the basis `f(p)` of the vector space `T^*_{\Phi(p)} M`,
           dual to the tangent space `T_{\Phi(p)} M`, where
           `\Phi: U \to M` is the differentiable map associated with
-          the coframe (possibly `\Phi = \mathrm{Id}_U`)
+          `f` (possibly `\Phi = \mathrm{Id}_U`)
 
         EXAMPLES:
 

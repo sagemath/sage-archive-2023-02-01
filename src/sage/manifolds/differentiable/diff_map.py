@@ -514,7 +514,7 @@ class DiffMap(ContinuousMap):
         r"""
         Return the differential of ``self`` at a given point.
 
-        If the differentiable map is
+        If the differentiable map ``self`` is
 
         .. MATH::
 

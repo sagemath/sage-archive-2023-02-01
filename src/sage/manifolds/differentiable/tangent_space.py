@@ -7,6 +7,7 @@ differentiable manifold.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -51,7 +52,8 @@ class TangentSpace(FiniteRankFreeModule):
         sage: Tp = M.tangent_space(p) ; Tp
         Tangent space at Point p on the 2-dimensional differentiable manifold M
 
-    Tangent spaces are free modules of finite rank over :class:`SymbolicRing`
+    Tangent spaces are free modules of finite rank over
+    :class:`~sage.symbolic.ring.SymbolicRing`
     (actually vector spaces of finite dimension over the manifold base
     field `K`, with `K=\RR` here)::
 
@@ -332,7 +334,7 @@ class TangentSpace(FiniteRankFreeModule):
 
     def base_point(self):
         r"""
-        Return the manifold point at which ``self``is defined.
+        Return the manifold point at which ``self`` is defined.
 
         EXAMPLES::
 

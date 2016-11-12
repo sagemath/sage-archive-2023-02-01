@@ -519,7 +519,8 @@ class VectorField(TensorField):
             sage: Parallelism().set('tensor', nproc=2)
             sage: Parallelism().get('tensor')
             2
-            sage: v.plot(scale=0.5,  number_values=10, linestyle='--', width=1, arrowsize=6)
+            sage: v.plot(scale=0.5,  number_values=10, linestyle='--', width=1,
+            ....:        arrowsize=6)
             Graphics object consisting of 100 graphics primitives
 
         .. PLOT::
@@ -531,6 +532,7 @@ class VectorField(TensorField):
             sphinx_plot(g)
 
         ::
+
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         Plots along a line of fixed coordinate::

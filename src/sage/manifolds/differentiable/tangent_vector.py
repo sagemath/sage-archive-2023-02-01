@@ -7,6 +7,7 @@ manifold.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
+- Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:
 
@@ -36,7 +37,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
     - ``parent`` --
       :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`;
-      the tangent space to which the vector belongs (must be an
+      the tangent space to which the vector belongs
     - ``name`` -- (default: ``None``) string; symbol given to the vector
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
       the the vector; if ``None``, ``name`` will be used
@@ -339,6 +340,7 @@ class TangentVector(FiniteRankFreeModuleElement):
             sage: (X.plot(ambient_coords=(t,x,z))  # long time
             ....:  + v.plot(ambient_coords=(t,x,z),
             ....:           label_offset=0.5, width=6))
+            Graphics3d Object
 
         An example of plot via a differential mapping: plot of a vector tangent
         to a 2-sphere viewed in `\RR^3`::

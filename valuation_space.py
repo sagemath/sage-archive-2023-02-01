@@ -731,6 +731,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             if len(others)==0:
                 return self.uniformizer()
 
+            # see the proof of Lemma 6.9 in http://www1.spms.ntu.edu.sg/~frederique/antchap6.pdf
             ret = self._strictly_separating_element(others[0])
             for i in range(1, len(others)):
                 # ret is an element which separates self and others[:i]
@@ -752,10 +753,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     from sage.rings.all import NN
                     for r in iter(NN):
                         factor = (ret**r)/(1+ret**r)
-                        assert(others[i](factor) > 0)
-                        assert(all(other(factor) < 0 for other in others))
-                        if others[i](ret * factor) < 0:
-                            ret *= factor
+                        ret = factor * delta
+                        if others[i](ret) < 0 and all([other(ret) < 0 for other in others[:i]]):
                             break
             return ret
 

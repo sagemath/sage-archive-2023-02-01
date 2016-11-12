@@ -699,6 +699,172 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             from scaled_valuation import ScaledValuation
             return ScaledValuation(self, scalar)
 
+        def separating_element(self, others):
+            r"""
+            Return an element in the domain of this valuation which has
+            positive valuation with respect to this valuation but negative
+            valuation with respect to the valuations in ``others``.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v2 = pAdicValuation(QQ, 2)
+                sage: v3 = pAdicValuation(QQ, 3)
+                sage: v5 = pAdicValuation(QQ, 5)
+                sage: v2.separating_element([v3,v5])
+                4/15
+
+            """
+            try:
+                iter(others)
+            except TypeError:
+                raise ValueError("others must be a list of valuations")
+
+            for other in others + [self]:
+                if other.parent() is not self.parent():
+                    raise ValueError("all valuations must be valuations on %r but %r is a valuation on %r"%(self.domain(), other, other.domain()))
+                if not other.is_discrete_valuation():
+                    raise ValueError("all valuationss must be discrete valuations but %r is not"%(other,))
+                if other.is_trivial():
+                    raise ValueError("all valuations must be non-trivial but %r is not"%(other,))
+
+            if len(others)==0:
+                return self.uniformizer()
+
+            ret = self._strictly_separating_element(others[0])
+            for i in range(1, len(others)):
+                # ret is an element which separates self and others[:i]
+                if others[i](ret) < 0:
+                    # it also separates self and others[i]
+                    continue
+
+                delta = self._strictly_separating_element(others[i])
+                if others[i](ret) == 0:
+                    # combining powers of ret and delta, we produce a separating element for self and others[:i+1]
+                    factor = ret
+                    ret = delta
+                    while any(other(ret) >= 0 for other in others[:i]):
+                        assert(others[i](ret) < 0)
+                        ret *= factor
+                else: # others[i](ret) < 0
+                    # construct an element which approximates a unit with respect to others[i]
+                    # and has negative valuation with respect to others[:i]
+                    from sage.rings.all import NN
+                    for r in iter(NN):
+                        factor = (ret**r)/(1+ret**r)
+                        assert(others[i](factor) > 0)
+                        assert(all(other(factor) < 0 for other in others))
+                        if others[i](ret * factor) < 0:
+                            ret *= factor
+                            break
+            return ret
+
+        def _strictly_separating_element(self, other):
+            r"""
+            Return an element in the domain of this valuation which has
+            positive valuation with respect to this valuation but negative
+            valuation with respect to ``other``.
+
+            .. NOTE::
+            
+                Overriding this method tends to be a nuissance as you need to
+                handle all possible types (as in Python type) of valuations.
+                This is essentially the same problem that you have when
+                implementing operators such as ``+`` or ``>=``. A sufficiently
+                fancy multimethod implementation could solve that here but
+                there is currently nothing like that in Sage/Python.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v2 = pAdicValuation(QQ, 2)
+                sage: v3 = pAdicValuation(QQ, 3)
+                sage: v2._strictly_separating_element(v3)
+                2/3
+
+            """
+            from sage.rings.all import ZZ, NN, infinity
+
+            numerator = self._weakly_separating_element(other)
+            n = self(numerator)
+            nn = other(numerator)
+            assert(n > 0)
+            assert(nn != infinity)
+            if (nn < 0):
+                return numerator
+
+            denominator = other._weakly_separating_element(self)
+            d = self(denominator)
+            dd = other(denominator)
+            assert(dd > 0)
+            assert(d != infinity)
+            if d < 0:
+                return self.domain()(1/denominator)
+
+            # We need non-negative integers a and b such that
+            # a*n - b*d > 0 and a*nn - b*dd < 0
+            if nn == 0:
+                # the above becomes b != 0 and a/b > d/n
+                b = 1
+                if d/n in ZZ:
+                    a = d/n + 1
+                else:
+                    a = (d/n).ceil()
+            else:
+                # Since n,nn,d,dd are all non-negative this is essentially equivalent to
+                # a/b > d/n and b/a > nn/dd
+                # which is 
+                # dd/nn > a/b > d/n
+                assert(dd/nn > d/n)
+                for b in iter(NN):
+                    # we naĩvely find the smallest b which can satisfy such an equation
+                    # there are faster algorithms for this https://dl.acm.org/citation.cfm?id=1823943&CFID=864015776&CFTOKEN=26270402
+                    if b == 0:
+                        continue
+                    assert(b <= n + nn) # (a+b)/(n+nn) is a solution
+                    if nn/dd/b in ZZ:
+                        a = nn/dd/b + 1
+                    else:
+                        a = (nn/dd/b).ceil()
+                    assert(a/b > d/n)
+                    if dd/nn > a/b:
+                        break
+                
+            ret = self.domain()(numerator**a / denominator**b)
+            assert(self(ret) > 0)
+            assert(other(ret) < 0)
+            return ret
+
+        def _weakly_separating_element(self, other):
+            r"""
+            Return an element in the domain of this valuation which has
+            positive valuation with respect to this valuation and higher
+            valuation with respect to this valuation than with respect to
+            ``other``.
+
+            .. NOTE::
+            
+                Overriding this method tends to be a nuissance as you need to
+                handle all possible types (as in Python type) of valuations.
+                This is essentially the same problem that you have when
+                implementing operators such as ``+`` or ``>=``. A sufficiently
+                fancy multimethod implementation could solve that here but
+                there is currently nothing like that in Sage/Python.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v2 = pAdicValuation(QQ, 2)
+                sage: v3 = pAdicValuation(QQ, 3)
+                sage: v2._weakly_separating_element(v3)
+                2
+
+            """
+            ret = self.uniformizer()
+            if self(ret) > other(ret):
+                return ret
+            raise NotImplementedError("weakly separating element for %r and %r"%(self, other))
+
         def _test_scale(self, **options):
             r"""
             Check that :meth:`scale` works correctly.

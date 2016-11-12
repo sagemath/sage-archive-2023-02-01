@@ -238,3 +238,47 @@ class ScaledValuation_generic(DiscreteValuation):
 
         """
         return ScaledValuation(self._base_valuation.restriction(ring), self._scale)
+
+    def _strictly_separating_element(self, other):
+        r"""
+        Return an element in the domain of this valuation which has positive
+        valuation with respect to this valuation but negative valuation with
+        respect to ``other``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v2 = pAdicValuation(QQ, 2)
+            sage: v3 = 12 * pAdicValuation(QQ, 3)
+            sage: v2._strictly_separating_element(v3)
+            2/3
+
+        """
+        return self._base_valuation._strictly_separating_element(other)
+
+    def _weakly_separating_element(self, other):
+        r"""
+        Return an element in the domain of this valuation which has
+        positive valuation with respect to this valuation and higher
+        valuation with respect to this valuation than with respect to
+        ``other``.
+
+        .. NOTE::
+        
+            Overriding this method tends to be a nuissance as you need to
+            handle all possible types (as in Python type) of valuations.
+            This is essentially the same problem that you have when
+            implementing operators such as ``+`` or ``>=``. A sufficiently
+            fancy multimethod implementation could solve that here but
+            there is currently nothing like that in Sage/Python.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v2 = pAdicValuation(QQ, 2)
+            sage: v3 = 12 * pAdicValuation(QQ, 3)
+            sage: v2._weakly_separating_element(v3)
+            2
+
+        """
+        return self._base_valuation._weakly_separating_element(other)

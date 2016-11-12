@@ -347,7 +347,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
         r"""
         Return whether this valuation is indistinguishable from ``other``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
             sage: K = QQ
@@ -366,7 +366,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
         r"""
         Return the restriction of this valuation to ``ring``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
             sage: K = QQ

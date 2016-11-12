@@ -848,3 +848,31 @@ class ComputeMinimalPolynomials(SageObject):
         F, T = self._B.frobenius(2)
 
         return [p for (p, t) in factor(T.det())]
+
+    def integer_valued_polynomials(self):
+        r"""
+        Determine the generators of the ring of integer valued polynomials on `B`.
+
+        OUTPUT:
+
+        A pair ``(mu_B, P)`` where ``P`` is a list of polynomials in `K[X]`
+        such that
+
+        .. MATH::
+
+           \{f \in K[X] \mid f(B) \in M_n(D)\} = \mu_B K[X] + \sum_{g\in P} g D[X]
+
+        where `K` denotes the fraction field of `D`.
+
+        EXAMPLES::
+
+             sage: from calculate_nu import compute_nu # not tested
+             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+             sage: C = ComputeMinimalPolynomials(B)
+             sage: C.integer_valued_polynomials()
+             (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
+        """
+        return (self.mu_B, [self._DX(1)] +
+                [nu/p**s
+                 for p in self.prime_candidates()
+                 for s, nu in self.p_minimal_polynomials(p).iteritems()])

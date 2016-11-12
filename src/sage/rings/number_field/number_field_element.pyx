@@ -67,7 +67,7 @@ from sage.modules.free_module_element import vector
 from sage.structure.element cimport Element, generic_power_c, FieldElement
 from sage.structure.element import canonical_coercion, parent, coerce_binop
 
-from sage.libs.pari import pari
+from sage.libs.cypari2 import pari
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ

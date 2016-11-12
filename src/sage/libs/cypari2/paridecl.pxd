@@ -4,8 +4,7 @@ Declarations for non-inline functions from PARI.
 
 This file contains all declarations from headers/paridecl.h from
 the PARI distribution, except the inline functions which are in
-sage/libs/pari/declinl.pxi (that file is automatically included by
-this file).
+declinl.pxi (that file is automatically included by this file).
 
 
 AUTHORS:
@@ -30,7 +29,7 @@ from libc.stdio cimport FILE
 cdef extern from '<stdarg.h>':
     ctypedef void* va_list
 
-cdef extern from "sage/libs/pari/parisage.h":
+cdef extern from "sage/libs/cypari2/cypari.h":
     char* PARIVERSION
 
     # parierr.h
@@ -4494,7 +4493,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     long   vali(GEN x)
     int    varncmp(long x, long y)
 
-cdef extern from "sage/libs/pari/parisage.h":
+cdef extern from "sage/libs/cypari2/cypari.h":
     GEN set_gel(GEN x, long n, GEN z)              # gel(x, n) = z
     GEN set_gmael(GEN x, long i, long j, GEN z)    # gmael(x, i, j) = z
     GEN set_gcoeff(GEN x, long i, long j, GEN z)   # gcoeff(x, i, j) = z

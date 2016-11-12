@@ -469,27 +469,6 @@ can first restore your graphical session, before you attempt to log
 into a text based session.
 
 
-When I run doctests on Mac OS X I see the messages with "malloc", but in the end Sage reports that everything went fine.
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-The "malloc" messages you refer to might be something such as the
-following::
-
-    sage -t  src/sage/libs/pari/gen.pyx
-    python(4563) malloc: *** vm_allocate(size=4096000000) failed (error code=3)
-    python(4563) malloc: *** error: can't allocate region
-    python(4563) malloc: *** set a breakpoint in szone_error to debug
-
-The issue above is not a doctest failure. It is an error message
-printed by the system and it is exactly what one expects to see. In
-that particular doctest, we try to allocate a very large list in Pari
-that does not fit into physical memory (it is at least 100GB in
-size). So Mac OS X tells you that it could not allocate a chunk of
-memory roughly 4 GB in size, which is expected, if you are using Sage
-on a 32-bit version of OS X and you have compiled Sage in 32-bit bit
-mode or your binary Sage distribution is 32-bit.
-
-
 Sage 2.9 and higher fails compiling ATLAS on Linux. How can I fix this?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

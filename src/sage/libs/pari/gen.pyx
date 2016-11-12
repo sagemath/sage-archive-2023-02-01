@@ -65,6 +65,7 @@ Now it takes much less than a second::
 #*****************************************************************************
 
 from __future__ import absolute_import, division, print_function
+from six.moves import range
 
 import types
 cimport cython
@@ -4763,8 +4764,7 @@ cpdef gen objtogen(s):
     if isinstance(s, complex):
         return new_t_COMPLEX_from_double(PyComplex_RealAsDouble(s), PyComplex_ImagAsDouble(s))
 
-    if isinstance(s, (list, types.XRangeType,
-                        tuple, types.GeneratorType)):
+    if isinstance(s, (list, range, tuple, types.GeneratorType)):
         length = len(s)
         v = pari_instance._empty_vector(length)
         for i from 0 <= i < length:

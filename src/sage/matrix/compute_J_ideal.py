@@ -719,9 +719,10 @@ class ComputeMinimalPolynomials(SageObject):
 
             verbose("Result of lifting:")
             verbose("F =")
-            verbose(lifting(p, t, self._A, G))
+            F = lifting(p, t, self._A, G)
+            verbose(F)
 
-            nu = self.current_nu(p, t, lifting(p, t, self._A, G)[0], nu)
+            nu = self.current_nu(p, t, F[0], nu)
 
             verbose("nu = %s" % nu)
             if nu.degree() >= deg_mu:

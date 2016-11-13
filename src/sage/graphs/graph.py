@@ -1849,6 +1849,12 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: The certificate parameter must be either a boolean or a non negative integer.
+
+        The graph might be mutable or immutable::
+
+            sage: G = Graph(M+K5, immutable=True)
+            sage: G.is_apex()
+            True
         """
         if not certificate: # None, False, 0
             certificate = 0
@@ -1875,7 +1881,7 @@ class Graph(GenericGraph):
                 return (False, []) if certificate else False
             else:
                 # We proceed with the non planar component
-                H = P[0]
+                H = P[0].copy(immutable=False) if P[0].is_immutable() else P[0]
 
         elif self.is_planar():
             # A planar graph is apex.
@@ -1883,7 +1889,7 @@ class Graph(GenericGraph):
 
         else:
             # We make a basic copy of the graph since we will modify it
-            H = Graph([e for e in self.edge_iterator(labels=0)])
+            H = Graph([e for e in self.edge_iterator(labels=0)], immutable=False)
 
 
         # General case: basic implementation

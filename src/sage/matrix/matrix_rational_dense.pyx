@@ -51,7 +51,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
@@ -172,7 +171,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Rational z
 
         if entries is None: return
-        if isinstance(entries, range):
+        if isinstance(entries, xrange):
             entries = list(entries)
         if isinstance(entries, (list, tuple)):
             if len(entries) != self._nrows * self._ncols:

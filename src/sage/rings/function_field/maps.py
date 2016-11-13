@@ -216,7 +216,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         """
         if not isinstance(d, FunctionFieldDerivation):
             raise TypeError("d must be a derivation on a function field")
-        from function_field import is_FunctionField
+        from .function_field import is_FunctionField
         if not is_FunctionField(L):
             raise TypeError("L must be a function field")
         if d.domain() is not L.base_ring():

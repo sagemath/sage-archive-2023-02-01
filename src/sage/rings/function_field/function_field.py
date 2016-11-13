@@ -1236,7 +1236,7 @@ class FunctionField_polymod(FunctionField):
             NotImplementedError: construction of separable models not implemented
 
         """
-        from maps import FunctionFieldDerivation_separable
+        from .maps import FunctionFieldDerivation_separable
         if self.polynomial().gcd(self.polynomial().derivative()).is_one():
             return FunctionFieldDerivation_separable(self, self.base_ring().derivation())
         else:

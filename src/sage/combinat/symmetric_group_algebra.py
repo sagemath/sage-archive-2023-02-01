@@ -701,6 +701,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         P = self.basis().keys()
         if SGA.basis().keys() is P: # Indexed by permutations
             return self.epsilon_ik(x[1], x[2])
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if P == SymmetricGroup(self.n):
             return self.epsilon_ik(x[1], x[2])
         ret = SGA.epsilon_ik(x[1], x[2], mult='r2l')

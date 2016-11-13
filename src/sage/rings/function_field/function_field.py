@@ -508,6 +508,19 @@ class FunctionField_polymod(FunctionField):
         self._populate_coercion_lists_(coerce_list=[base_field, self._ring])
         self._gen = self(self._ring.gen())
 
+        # allow conversion into the function fields which this field extends
+        from sage.categories.morphism import SetMorphism
+        intermediate_field = self.base_field()
+        intermediate_field.register_conversion(SetMorphism(self.Hom(intermediate_field), self._to_base_field))
+        while intermediate_field.base_field() is not intermediate_field:
+            # intermediate_field is not rational, so register a conversion into its base field
+            base_field = intermediate_field.base_field()
+            base_field.register_conversion(base_field.convert_map_from(intermediate_field) * intermediate_field.convert_map_from(self))
+            intermediate_field = base_field
+        # allow conversion into the constant base field by going through the underlying rational function field
+        self.constant_base_field().register_conversion(self.constant_base_field().convert_map_from(intermediate_field) *
+                        intermediate_field.convert_map_from(self))
+
     def __reduce__(self):
         """
         Returns the arguments which were used to create this instance. The rationale for this is explained in the documentation of ``UniqueRepresentation``.
@@ -538,6 +551,49 @@ class FunctionField_polymod(FunctionField):
 
         """
         return self._hash
+
+    def _to_base_field(self, f):
+        r"""
+        Return ``f`` as an element of the :meth:`base_field`.
+
+        INPUT:
+
+        - ``f`` -- an element of this function field which is already defined
+          over the base field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: L._to_base_field(L(x))
+            x
+            sage: L._to_base_field(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: y is not an element of the base field
+
+        TESTS:
+
+        Verify that :trac:`21872` has been resolved::
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2 - y)
+
+            sage: M(1) in QQ
+            True
+            sage: M(y) in L
+            True
+            sage: M(x) in K
+            True
+            sage: z in K
+            False
+
+        """
+        K = self.base_field()
+        if f.element().is_constant():
+            return K(f.element())
+        raise ValueError("%r is not an element of the base field"%(f,))
 
     def monic_integral_model(self, names):
         """

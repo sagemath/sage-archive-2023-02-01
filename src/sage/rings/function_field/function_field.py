@@ -7,9 +7,9 @@ AUTHORS:
 
 - Robert Bradshaw (2010-05-30): added is_finite()
 
-- Julian Rueth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24): fixed hom(),
-  extension(); use @cached_method; added derivation(); added support for
-  relative vector spaces
+- Julian Rueth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24, 2016-11-13):
+  fixed hom(), extension(); use @cached_method; added derivation(); added
+  support for relative vector spaces; fixed conversion to base fields
 
 - Maarten Derickx (2011-09-11): added doctests
 
@@ -71,7 +71,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2011-2014 Julian Rueth <julian.rueth@gmail.com>
+#       Copyright (C) 2011-2016 Julian Rueth <julian.rueth@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -1224,6 +1224,9 @@ class RationalFunctionField(FunctionField):
         self._field = R.fraction_field()
         self._populate_coercion_lists_(coerce_list=[self._field])
         self._gen = self(R.gen())
+        # allow conversion from K(x) into K
+        from sage.categories.morphism import SetMorphism
+        self.constant_base_field().register_conversion(SetMorphism(self.Hom(self.constant_base_field()), self._to_constant_base_field))
 
     def __reduce__(self):
         """
@@ -1321,6 +1324,42 @@ class RationalFunctionField(FunctionField):
                 pass
             raise Err
         return FunctionFieldElement_rational(self, x)
+
+    def _to_constant_base_field(self, f):
+        r"""
+        Return ``f`` as an element of the :meth:`constant_base_field`.
+
+        INPUT:
+
+        - ``f`` -- an element of this rational function field which is a
+          constant
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K._to_constant_base_field(K(1))
+            1
+            sage: K._to_constant_base_field(K(x))
+            Traceback (most recent call last):
+            ...
+            ValueError: only constants can be converted into the constant base field but x is not a constant
+
+        TESTS:
+
+        Verify that :trac:`21872` has been resolved::
+
+            sage: K(1) in QQ # indirect doctest
+            True
+            sage: x in QQ
+            False
+
+        """
+        K = self.constant_base_field()
+        if f.denominator() in K and f.numerator() in K:
+            # When K is not exact, f.denominator() might not be an exact 1, so
+            # we need to divide explicitly to get the correct precision
+            return K(f.numerator()) / K(f.denominator())
+        raise ValueError("only constants can be converted into the constant base field but %r is not a constant"%(f,))
 
     def _to_bivariate_polynomial(self, f):
         """

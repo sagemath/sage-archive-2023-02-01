@@ -1404,7 +1404,7 @@ class RationalFunctionField(FunctionField):
 
         Verify that :trac:`21872` has been resolved::
 
-            sage: K(1) in QQ # indirect doctest
+            sage: K(1) in QQ
             True
             sage: x in QQ
             False

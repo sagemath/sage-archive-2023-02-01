@@ -395,9 +395,7 @@ class DegreeSequences:
             sage: all(seq in DS for seq in DS)
             True
         """
-
-        loc_sequences = init(self._n)
-        return iter(loc_sequences)
+        return iter( init(self._n) )
 
     def __dealloc__():
         """

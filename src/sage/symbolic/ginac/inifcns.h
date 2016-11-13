@@ -230,6 +230,12 @@ DECLARE_FUNCTION_1P(factorial)
 /** Binomial function. */
 DECLARE_FUNCTION_2P(binomial)
 
+/** Rising factorial function. */
+DECLARE_FUNCTION_2P(rising_factorial)
+
+/** Falling factorial function. */
+DECLARE_FUNCTION_2P(falling_factorial)
+
 /** Hermite polynomial. */
 DECLARE_FUNCTION_2P(hermite)
 

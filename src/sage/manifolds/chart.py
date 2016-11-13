@@ -1866,7 +1866,7 @@ class RealChart(Chart):
     @options(max_range=8, color='red',  style='-', thickness=1, plot_points=75,
              label_axes=True)
     def plot(self, chart=None, ambient_coords=None, mapping=None,
-             fixed_coords=None, ranges=None, nb_values=None,
+             fixed_coords=None, ranges=None, number_values=None,
              steps=None, parameters=None, **kwds):
         r"""
         Plot ``self`` as a grid in a Cartesian graph based on
@@ -1907,16 +1907,16 @@ class RealChart(Chart):
           entire coordinate range declared during the chart construction
           is considered (with ``-Infinity`` replaced by ``-max_range``
           and ``+Infinity`` by ``max_range``)
-        - ``nb_values`` -- (default: ``None``) either an integer or a dictionary
-          with keys the coordinates to be drawn and values the number of
-          constant values of the coordinate to be considered; if ``nb_values``
-          is a single integer, it represents the number of constant values for
-          all coordinates; if ``nb_values`` is ``None``, it is set to 9 for a
-          2D plot and to 5 for a 3D plot
+        - ``number_values`` -- (default: ``None``) either an integer or a
+          dictionary with keys the coordinates to be drawn and values the
+          number of constant values of the coordinate to be considered; if
+          ``number_values`` is a single integer, it represents the number of
+          constant values for all coordinates; if ``number_values`` is ``None``,
+          it is set to 9 for a 2D plot and to 5 for a 3D plot
         - ``steps`` -- (default: ``None``) dictionary with keys the coordinates
           to be drawn and values the step between each constant value of
           the coordinate; if ``None``, the step is computed from the coordinate
-          range (specified in ``ranges``) and ``nb_values``. On the contrary
+          range (specified in ``ranges``) and ``number_values``. On the contrary
           if the step is provided for some coordinate, the corresponding
           number of constant values is deduced from it and the coordinate range.
         - ``parameters`` -- (default: ``None``) dictionary giving the numerical
@@ -2001,8 +2001,10 @@ class RealChart(Chart):
 
         Call with non-default values::
 
-            sage: g = c_pol.plot(c_cart, ranges={ph:(pi/4,pi)}, nb_values={r:7, ph:17},
-            ....:                color={r:'red', ph:'green'}, style={r:'-', ph:'--'})
+            sage: g = c_pol.plot(c_cart, ranges={ph:(pi/4,pi)},
+            ....:                number_values={r:7, ph:17},
+            ....:                color={r:'red', ph:'green'},
+            ....:                style={r:'-', ph:'--'})
 
         .. PLOT::
 
@@ -2011,7 +2013,7 @@ class RealChart(Chart):
             U = R2.open_subset('U', coord_def={c_cart: (y!=0, x<0)})
             c_pol = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi'); r, ph = c_pol[:]
             pol_to_cart = c_pol.transition_map(c_cart, [r*cos(ph), r*sin(ph)])
-            g = c_pol.plot(c_cart, ranges={ph:(pi/4,pi)}, nb_values={r:7, ph:17}, \
+            g = c_pol.plot(c_cart, ranges={ph:(pi/4,pi)}, number_values={r:7, ph:17},
                            color={r:'red', ph:'green'}, style={r:'-', ph:'--'})
             sphinx_plot(g)
 
@@ -2089,9 +2091,9 @@ class RealChart(Chart):
             sphinx_plot(c_xy.plot(c_cart, mapping=Phi))
 
         NB: to get a better coverage of the whole sphere, one should increase
-        the coordinate sampling via the argument ``nb_values`` or the
-        argument ``steps`` (only the default value, ``nb_values = 5``, is used
-        here, which is pretty low).
+        the coordinate sampling via the argument ``number_values`` or the
+        argument ``steps`` (only the default value, ``number_values = 5``, is
+        used here, which is pretty low).
 
         The same plot without the ``(X,Y,Z)`` axes labels::
 
@@ -2142,8 +2144,8 @@ class RealChart(Chart):
             U = S2.open_subset('U'); V = S2.open_subset('V'); S2.declare_union(U,V)
             c_xy = U.chart('x y'); x, y = c_xy[:]
             c_uv = V.chart('u v'); u, v = c_uv[:]
-            xy_to_uv = c_xy.transition_map(c_uv, (x/(x**2+y**2), y/(x**2+y**2)), \
-                              intersection_name='W', restrictions1= x**2+y**2!=0, \
+            xy_to_uv = c_xy.transition_map(c_uv, (x/(x**2+y**2), y/(x**2+y**2)),
+                              intersection_name='W', restrictions1= x**2+y**2!=0,
                               restrictions2= u**2+v**2!=0)
             uv_to_xy = xy_to_uv.inverse()
             c_uvW = c_uv.restrict(U.intersection(V))
@@ -2168,13 +2170,14 @@ class RealChart(Chart):
             U = S2.open_subset('U'); V = S2.open_subset('V'); S2.declare_union(U,V)
             c_xy = U.chart('x y'); x, y = c_xy[:]
             c_uv = V.chart('u v'); u, v = c_uv[:]
-            xy_to_uv = c_xy.transition_map(c_uv, (x/(x**2+y**2), y/(x**2+y**2)), \
-                              intersection_name='W', restrictions1= x**2+y**2!=0, \
+            xy_to_uv = c_xy.transition_map(c_uv, (x/(x**2+y**2), y/(x**2+y**2)),
+                              intersection_name='W', restrictions1= x**2+y**2!=0,
                               restrictions2= u**2+v**2!=0)
             uv_to_xy = xy_to_uv.inverse()
             c_uvW = c_uv.restrict(U.intersection(V))
             gu1 = c_uvW.plot(c_xy, fixed_coords={u: 1}, max_range=20, plot_points=300)
-            gv1 = c_uvW.plot(c_xy, fixed_coords={v: 1}, max_range=20, plot_points=300, color='green')
+            gv1 = c_uvW.plot(c_xy, fixed_coords={v: 1}, max_range=20, plot_points=300,
+                             color='green')
             sphinx_plot(gu1+gv1)
 
         Note that we have set ``max_range=20`` to have a wider range for
@@ -2255,7 +2258,7 @@ class RealChart(Chart):
         plot_points = kwds['plot_points']
         label_axes = kwds['label_axes']
 
-        def _plot_xx_list(xx_list, rem_coords, ranges, steps, nb_values):
+        def _plot_xx_list(xx_list, rem_coords, ranges, steps, number_values):
             r"""
             Helper function to plot the coordinate grid.
             """
@@ -2265,7 +2268,7 @@ class RealChart(Chart):
             resu = []
             for xx in xx_list:
                 xc = xmin
-                for i in range(nb_values[coord]):
+                for i in range(number_values[coord]):
                     nxx = list(xx)
                     nxx[self._xx.index(coord)] = xc
                     resu.append(nxx)
@@ -2275,7 +2278,7 @@ class RealChart(Chart):
             else:
                 rem_coords.remove(coord)
                 return _plot_xx_list(resu, rem_coords, ranges, steps,
-                                     nb_values)
+                                     number_values)
 
         if chart is None:
             chart = self
@@ -2374,25 +2377,25 @@ class RealChart(Chart):
                     xmax = numerical_approx(bounds[1][0] - 1.e-3)
                 ranges0[coord] = (xmin, xmax)
         ranges = ranges0
-        if nb_values is None:
+        if number_values is None:
             if nca == 2: # 2D plot
-                nb_values = 9
+                number_values = 9
             else:   # 3D plot
-                nb_values = 5
-        if not isinstance(nb_values, dict):
-            nb_values0 = {}
+                number_values = 5
+        if not isinstance(number_values, dict):
+            number_values0 = {}
             for coord in coords:
-                nb_values0[coord] = nb_values
-            nb_values = nb_values0
+                number_values0[coord] = number_values
+            number_values = number_values0
         if steps is None:
             steps = {}
         for coord in coords:
             if coord not in steps:
                 steps[coord] = ((ranges[coord][1] - ranges[coord][0])
-                                / (nb_values[coord]-1))
+                                / (number_values[coord]-1))
             else:
                 from sage.functions.other import floor
-                nb_values[coord] = 1 + floor((ranges[coord][1] - ranges[coord][0])
+                number_values[coord] = 1 + floor((ranges[coord][1] - ranges[coord][0])
                                              / steps[coord])
         if not isinstance(color, dict):
             color0 = {}
@@ -2433,7 +2436,7 @@ class RealChart(Chart):
             xx_list = [xx0]
             if len(rem_coords) >= 1:
                 xx_list = _plot_xx_list(xx_list, rem_coords, ranges, steps,
-                                        nb_values)
+                                        number_values)
             xmin, xmax = ranges[coord]
             nbp = plot_points[coord]
             dx = (xmax - xmin) / (nbp-1)

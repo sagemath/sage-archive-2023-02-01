@@ -652,7 +652,7 @@ class VectorField(TensorField):
             Vector field d/dph on the Open subset U of the 2-dimensional
              differentiable manifold S^2
             sage: graph_v = v.plot(chart=X3, mapping=F, label_axes=False)
-            sage: graph_S2 = XS.plot(chart=X3, mapping=F, nb_values=9)
+            sage: graph_S2 = XS.plot(chart=X3, mapping=F, number_values=9)
             sage: graph_v + graph_S2
             Graphics3d Object
 
@@ -668,7 +668,7 @@ class VectorField(TensorField):
                                             cos(th)]}, name='F')
             v = XS.frame()[1]
             graph_v = v.plot(chart=X3, mapping=F, label_axes=False)
-            graph_S2 = XS.plot(chart=X3, mapping=F, nb_values=9)
+            graph_S2 = XS.plot(chart=X3, mapping=F, number_values=9)
             sphinx_plot(graph_v + graph_S2)
 
         Note that the default values of some arguments of the method ``plot``

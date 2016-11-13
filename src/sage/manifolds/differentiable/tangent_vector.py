@@ -371,7 +371,7 @@ class TangentVector(FiniteRankFreeModuleElement):
             Tangent vector d/dph at Point p on the 2-dimensional differentiable
              manifold S^2
             sage: graph_v = v.plot(mapping=F)
-            sage: graph_S2 = XS.plot(chart=X3, mapping=F, nb_values=9)  # long time
+            sage: graph_S2 = XS.plot(chart=X3, mapping=F, number_values=9)  # long time
             sage: graph_v + graph_S2  # long time
             Graphics3d Object
 
@@ -388,7 +388,7 @@ class TangentVector(FiniteRankFreeModuleElement):
             p = U.point((pi/4, 7*pi/4), name='p')
             v = XS.frame()[1].at(p)
             graph_v = v.plot(mapping=F)
-            graph_S2 = XS.plot(chart=X3, mapping=F, nb_values=9)
+            graph_S2 = XS.plot(chart=X3, mapping=F, number_values=9)
             sphinx_plot(graph_v + graph_S2)
 
         """

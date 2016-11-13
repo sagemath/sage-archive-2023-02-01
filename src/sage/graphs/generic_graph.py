@@ -4026,6 +4026,10 @@ class GenericGraph(GenericGraph_pyx):
           Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
           2004.
 
+        .. SEEALSO::
+
+          - :meth:`~Graph.is_apex`
+
         INPUT:
 
         - ``kuratowski`` - returns a tuple with boolean as first entry. If the

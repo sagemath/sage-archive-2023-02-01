@@ -1767,6 +1767,10 @@ class Graph(GenericGraph):
         See :wikipedia:`the wikipedia article on Apex graph <Apex_graph>` for
         more information.
 
+        .. SEEALSO::
+
+          - :meth:`~GenericGraph.is_planar`
+
         INPUT:
 
         - ``certificate``: when set to ``None``, ``False`` or ``0``, the method
@@ -1782,7 +1786,6 @@ class Graph(GenericGraph):
         this parameter is set to ``True``, the method also returns the (possibly
         empty) list of all apex vertices. When the parameter is set to a
         positive integer `k`, the returned list is bounded to `k` apex vertices.
-
 
         EXAMPLES:
 

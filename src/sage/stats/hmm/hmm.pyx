@@ -1326,13 +1326,19 @@ def unpickle_discrete_hmm_v1(A, B, pi, n_out, emission_symbols, emission_symbols
     TESTS::
 
         sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[0.5,0.5]], [1,0],['a','b'])
-        sage: loads(dumps(m)) == m   # indirect test
+        sage: m2 = loads(dumps(m))
+        sage: m2 == m   # indirect test
+        True
+        sage: str(m2) == str(m)   # indirect test
+        True
+        sage: m2.log_likelihood('baa'*2) == m.log_likelihood('baa'*2)   # indirect test
         True
     """
     cdef DiscreteHiddenMarkovModel m = DiscreteHiddenMarkovModel.__new__(DiscreteHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi
+    m.N = len(pi)
     m.n_out = n_out
     m._emission_symbols = emission_symbols
     m._emission_symbols_dict = emission_symbols_dict

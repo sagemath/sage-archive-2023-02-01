@@ -354,14 +354,14 @@ class FunctionField(Field):
             d = self.derivation()
         except NotImplementedError:
             return # some function fields no not implement derivation() yet
-        from sage.combinat.cartesian_product import CartesianProduct
+        from itertools import product
         # Leibniz's law
-        for x,y in tester.some_elements(CartesianProduct(S, S)):
+        for x,y in tester.some_elements(product(S, S)):
             tester.assert_(d(x*y) == x*d(y) + d(x)*y)
         # Linearity
-        for x,y in tester.some_elements(CartesianProduct(S, S)):
+        for x,y in tester.some_elements(product(S, S)):
             tester.assert_(d(x+y) == d(x) + d(y))
-        for c,x in tester.some_elements(CartesianProduct(K, S)):
+        for c,x in tester.some_elements(product(K, S)):
             tester.assert_(d(c*x) == c*d(x))
         # Constants map to zero
         for c in tester.some_elements(K):

@@ -1950,7 +1950,7 @@ class Graph(GenericGraph):
                 return []
             else:
                 # We proceed with the non planar component
-                H = P[0].copy(immutable=False) if P[0].is_immutable() else P[0]
+                H = Graph(P[0].edges(labels=0), immutable=False, loops=False, multiedges=False) if P[0].is_immutable() else P[0]
 
         elif self.is_planar():
             # A planar graph is apex.
@@ -1958,7 +1958,7 @@ class Graph(GenericGraph):
 
         else:
             # We make a basic copy of the graph since we will modify it
-            H = Graph([e for e in self.edge_iterator(labels=0)], immutable=False)
+            H = Graph(self.edges(labels=0), immutable=False, loops=False, multiedges=False)
 
 
         # General case: basic implementation

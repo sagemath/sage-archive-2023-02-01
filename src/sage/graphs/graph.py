@@ -1754,12 +1754,12 @@ class Graph(GenericGraph):
         Test if the graph is apex.
 
         A graph is apex if it can be made planar by the removal of a single
-        vertex. The deleted vertex is called `an apex` of the graph, and a graph
-        may have more than one apex. For instance, in the minimal nonplanar
-        graphs `K_5` or `K_{3,3}`, every vertex is an apex. The apex graphs
-        include graphs that are themselves planar, in which case again every
-        vertex is an apex. The null graph is also counted as an apex graph even
-        though it has no vertex to remove.
+        vertex. The deleted vertex is called ``an apex`` of the graph, and a
+        graph may have more than one apex. For instance, in the minimal
+        nonplanar graphs `K_5` or `K_{3,3}`, every vertex is an apex. The apex
+        graphs include graphs that are themselves planar, in which case again
+        every vertex is an apex. The null graph is also counted as an apex graph
+        even though it has no vertex to remove.
 
         If the graph is not connected, we say that it is apex if it has at most
         one non planar connected component and that this component is apex.
@@ -1770,10 +1770,10 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``certificate``: when set to ``None``, ``False`` or ``0``, the method
-        ends as soon as an apex is found. When set to ``True``, the method also
-        returns the list of all apex of the graph, possibly empty if the graph
-        is not apex. When set to an integer `k`, the method ends as soon as `k`
-        apex vertices are found.
+          ends as soon as an apex is found. When set to ``True``, the method
+          also returns the list of all apex of the graph, possibly empty if the
+          graph is not apex. When set to an integer `k`, the method ends as soon
+          as `k` apex vertices are found.
 
         OUTPUT:
 
@@ -1801,7 +1801,7 @@ class Graph(GenericGraph):
             sage: G.is_apex(certificate=3)
             (True, [0, 1, 2])
 
-        A 2D grid is an apex graph, and it remains an apex graph when adding a universal vertex::
+        A 2D grid is apex, and it remains apex when adding a universal vertex::
 
             sage: G = graphs.Grid2dGraph(4,4)
             sage: G.is_apex()
@@ -1810,7 +1810,7 @@ class Graph(GenericGraph):
             sage: G.is_apex(certificate=True)
             (True, ['universal'])
 
-        The Petersen graph is not an apex graph::
+        The Petersen graph is not apex::
 
             sage: G = graphs.PetersenGraph()
             sage: G.is_apex()
@@ -1825,7 +1825,7 @@ class Graph(GenericGraph):
             sage: (M+K5+K5).is_apex()
             False
 
-        Neighbors of an apex of degree 2 are apex:
+        Neighbors of an apex of degree 2 are apex::
 
             sage: G = graphs.Grid2dGraph(5,5)
             sage: G.add_path([(1,1),'x',(3,3)])

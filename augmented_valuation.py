@@ -849,6 +849,39 @@ class AugmentedValuation_base(InductiveValuation):
             return self._base_valuation.scale(scalar).augmentation(self.phi(), scalar*self._mu)
         return super(AugmentedValuation_base, self).scale(scalar)
 
+    def _residue_ring_generator_name(self):
+        r"""
+        Return a name for a generator of the residue ring.
+
+        This method is used by :meth:`residue_ring` to work around name clashes
+        with names in subrings of the residue ring.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: w._residue_ring_generator_name()
+            'u1'
+            
+        """
+        base = self._base_valuation.residue_ring().base()
+        # we need a name for a generator that is not present already in base
+        generator = 'u' + str(len(self.augmentation_chain()) - 1)
+        while True:
+            try:
+                base(generator)
+                generator = 'u' + generator
+            except NameError:
+                # use this name, it has no meaning in base
+                return generator
+            except TypeError:
+                # use this name, base can not handle strings, so hopefully,
+                # there are no variable names (such as in QQ or GF(p))
+                return generator
+    
+
 class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
     r"""
     An augmented valuation which can not be augmented anymore, either because
@@ -912,20 +945,33 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
             sage: w.residue_ring()
             Finite Field of size 2
 
+        TESTS:
+
+        We avoid clashes in generator names::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = FunctionFieldValuation(K, x^2 + 2)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 + x^2)
+            sage: w = v.extension(L)
+            sage: w.residue_field()
+            Number Field in uu1 with defining polynomial y^2 - 2 over its base field
+            sage: w.residue_field().base_field()
+            Number Field in u1 with defining polynomial x^2 + 2
+
         """
         # the following is correct, even if the polynomial ring is not over a field
 
-        generator = 'u' + str(len(self.augmentation_chain()) - 1)
-
         base = self._base_valuation.residue_ring().base()
         if self.psi().degree() > 1:
+            generator = self._residue_ring_generator_name()
+            return base.extension(self.psi(), names=generator)
+        else:
             # Do not call extension() if self.psi().degree() == 1:
             # In that case the resulting field appears to be the same as the original field,
             # however, it is not == to the original field (for finite fields at
             # least) but a distinct copy (this is a bug in finite field's
             # extension() implementation.)
-            return base.extension(self.psi(), names=generator)
-        else:
             return base
 
     def reduce(self, f):
@@ -1161,16 +1207,17 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         if self.domain().base() not in Fields():
             raise NotImplementedError("only implemented for polynomial rings over fields")
 
-        generator = 'u' + str(len(self.augmentation_chain()) - 1)
-
         base = self._base_valuation.residue_ring().base()
         if self.psi().degree() > 1:
+            generator = self._residue_ring_generator_name()
+            base = base.extension(self.psi(), names=generator)
+        else:
             # Do not call extension() if self.psi().degree() == 1:
             # In that case the resulting field appears to be the same as the original field,
             # however, it is not == to the original field (for finite fields at
             # least) but a distinct copy (this is a bug in finite field's
             # extension() implementation.)
-            base = base.extension(self.psi(), names=generator)
+            pass
         return base[self.domain().variable_name()]
 
     def reduce(self, f):

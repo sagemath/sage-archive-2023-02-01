@@ -13,9 +13,6 @@ or http://dot2tex.googlecode.com/
 == License ==
  * MIT
 
-== SPKG Maintainers ==
- * Nicolas M. Thiery
-
 == Upstream Contact ==
  * Kjell Magne Fauske, km@fauskes.net
 

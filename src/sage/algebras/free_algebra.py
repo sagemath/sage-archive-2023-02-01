@@ -118,7 +118,6 @@ Note that the letterplace implementation can only be used if the corresponding
     NotImplementedError: The letterplace implementation is not available for the free algebra you requested
 
 """
-
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #  Copyright (C) 2005,2006 William Stein <wstein@gmail.com>
@@ -127,8 +126,10 @@ Note that the letterplace implementation can only be used if the corresponding
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six.moves import range
 import six
+
 from sage.categories.rings import Rings
 
 from sage.monoids.free_monoid import FreeMonoid
@@ -146,6 +147,8 @@ from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_l
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.combinat.words.word import Word
+from sage.structure.category_object import normalize_names
+
 
 class FreeAlgebraFactory(UniqueFactory):
     """
@@ -299,7 +302,7 @@ class FreeAlgebraFactory(UniqueFactory):
             arg1 = name
         if arg2 is None:
             arg2 = len(arg1)
-        names = sage.structure.parent_gens.normalize_names(arg2, arg1)
+        names = normalize_names(arg2, arg1)
         return base_ring, names
 
     def create_object(self, version, key):
@@ -345,7 +348,7 @@ def is_FreeAlgebra(x):
         True
         sage: is_FreeAlgebra(FreeAlgebra(ZZ,10,'x',implementation='letterplace'))
         True
-        sage: is_FreeAlgebra(FreeAlgebra(ZZ,10,'x',implementation='letterplace', degrees=range(1,11)))
+        sage: is_FreeAlgebra(FreeAlgebra(ZZ,10,'x',implementation='letterplace', degrees=list(range(1,11))))
         True
 
     """
@@ -470,7 +473,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         return self.__ngens <= 1 and self.base_ring().is_commutative()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Two free algebras are considered the same if they have the same
         base ring, number of generators and variable names, and the same
@@ -498,14 +501,14 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
         """
         if not isinstance(other, FreeAlgebra_generic):
-            return -1
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
-        c = cmp(self.__ngens, other.ngens())
-        if c: return c
-        c = cmp(self.variable_names(), other.variable_names())
-        if c: return c
-        return 0
+            return False
+        if self.base_ring() != other.base_ring():
+            return False
+        if self.__ngens != other.ngens():
+            return False
+        if self.variable_names() != other.variable_names():
+            return False
+        return True
 
     def _repr_(self):
         """
@@ -589,7 +592,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                 M = self._indices
                 def exp_to_monomial(T):
                     out = []
-                    for i in xrange(len(T)):
+                    for i in range(len(T)):
                         if T[i]:
                             out.append((i%ngens,T[i]))
                     return M(out)
@@ -779,7 +782,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         if mats is None:
             return super(FreeAlgebra_generic, self).quotient(mons, names)
-        import free_algebra_quotient
+        from . import free_algebra_quotient
         return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
 
     quo = quotient
@@ -848,8 +851,8 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         n = self.__ngens
         cmat = Matrix(base_ring, n)
         dmat = Matrix(self, n)
-        for i in xrange(n):
-            for j in xrange(i+1,n):
+        for i in range(n):
+            for j in range(i + 1, n):
                 cmat[i,j] = 1
         for (to_commute,commuted) in relations.iteritems():
             #This is dirty, coercion is broken
@@ -984,8 +987,6 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             ret = ret * (self(x * y) - self(y * x))
         return ret
 
-from sage.misc.cache import Cache
-cache = Cache(FreeAlgebra_generic)
 
 class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
     """

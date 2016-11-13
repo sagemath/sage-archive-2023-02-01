@@ -143,7 +143,7 @@ def fan_isomorphism_generator(fan1, fan2):
 
     graph1 = fan1.vertex_graph()
     graph2 = fan2.vertex_graph()
-    graph_iso = graph1.is_isomorphic(graph2, edge_labels=True, certify=True)
+    graph_iso = graph1.is_isomorphic(graph2, edge_labels=True, certificate=True)
     if not graph_iso[0]:
         return
     graph_iso = graph_iso[1]
@@ -348,9 +348,17 @@ def fan_2d_echelon_forms(fan):
         ...       perm_rays = [ rays[perm(i+1)-1] for i in range(len(rays)) ]
         ...       fan2 = Fan(perm_cones, rays=[m*vector(r) for r in perm_rays])
         ...       assert fan_2d_echelon_form(fan2) in echelon_forms
+        
+    The trivial case was fixed in :trac:`18613`::
+        
+        sage: fan = Fan([], lattice=ToricLattice(2))
+        sage: fan_2d_echelon_forms(fan)
+        frozenset({[]})
+        sage: parent(list(_)[0])
+        Full MatrixSpace of 2 by 0 dense matrices over Integer Ring
     """
     if fan.nrays() == 0:
-        return frozenset()
+        return frozenset([fan_2d_echelon_form(fan)])
     rays = list(fan_2d_cyclically_ordered_rays(fan))
     echelon_forms = []
     for i in range(2):
@@ -383,6 +391,5 @@ def fan_2d_echelon_form(fan):
         [ 1  0 -1]
         [ 0  1 -1]
     """
-    ray_matrix = fan_2d_cyclically_ordered_rays(fan).matrix()
-    return ray_matrix.transpose().echelon_form()
-
+    ray_matrix = fan_2d_cyclically_ordered_rays(fan).column_matrix()
+    return ray_matrix.echelon_form()

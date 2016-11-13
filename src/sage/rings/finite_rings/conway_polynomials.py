@@ -9,8 +9,13 @@ AUTHORS:
 
 - Peter Bruin
 """
+from __future__ import absolute_import
+from six.moves import range
+
+from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
+from sage.rings.integer import Integer
 import sage.databases.conway
 
 def conway_polynomial(p, n):
@@ -90,7 +95,7 @@ def exists_conway_polynomial(p, n):
     """
     return sage.databases.conway.ConwayPolynomials().has_polynomial(p,n)
 
-class PseudoConwayLattice(SageObject):
+class PseudoConwayLattice(WithEqualityById, SageObject):
     r"""
     A pseudo-Conway lattice over a given finite prime field.
 
@@ -128,8 +133,25 @@ class PseudoConwayLattice(SageObject):
         sage: PCL = PseudoConwayLattice(2, use_database=False)
         sage: PCL.polynomial(3)
         x^3 + x + 1
-    """
 
+    TESTS::
+
+        sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
+        sage: PCL = PseudoConwayLattice(3)
+        sage: hash(PCL)  # random
+        8738829832350
+
+        sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
+        sage: PseudoConwayLattice(3) == PseudoConwayLattice(3)
+        False
+        sage: PseudoConwayLattice(3) != PseudoConwayLattice(3)
+        True
+        sage: P = PseudoConwayLattice(5)
+        sage: P == P
+        True
+        sage: P != P
+        False
+    """
     def __init__(self, p, use_database=True):
         """
         TESTS::
@@ -157,33 +179,6 @@ class PseudoConwayLattice(SageObject):
         else:
             self.nodes = {}
 
-    def __cmp__(self, other):
-        """
-        TEST::
-
-            sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
-            sage: PCL3 = PseudoConwayLattice(3)
-            sage: PCL5 = PseudoConwayLattice(5)
-            sage: PCL3 == PCL3
-            True
-            sage: PCL3 == PCL5
-            False
-            sage: PCL3 = PseudoConwayLattice(3, use_database=False)
-            sage: PCL5 = PseudoConwayLattice(5, use_database=False)
-            sage: PCL5 == PCL5
-            True
-            sage: PCL3 == PCL5
-            False
-
-        """
-        if self is other:
-            return 0
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        return cmp((self.p, self.nodes),
-                   (other.p, other.nodes))
-
     def polynomial(self, n):
         r"""
         Return the pseudo-Conway polynomial of degree `n` in this
@@ -206,7 +201,7 @@ class PseudoConwayLattice(SageObject):
 
         REFERENCE:
 
-        .. [HL99] L. Heath and N. Loehr (1999).  New algorithms for
+        .. [HL99] \L. Heath and N. Loehr (1999).  New algorithms for
            generating Conway polynomials over finite fields.
            Proceedings of the tenth annual ACM-SIAM symposium on
            discrete algorithms, pp. 429-437.
@@ -226,6 +221,7 @@ class PseudoConwayLattice(SageObject):
             return self.nodes[n]
 
         p = self.p
+        n = Integer(n)
 
         if n == 1:
             f = self.ring.gen() - FiniteField(p).multiplicative_generator()
@@ -323,8 +319,8 @@ def _find_pow_of_frobenius(p, n, x, y):
         11
 
     """
-    from integer_mod import mod
-    for i in xrange(n):
+    from .integer_mod import mod
+    for i in range(n):
         if x == y: break
         y = y**p
     else:
@@ -417,7 +413,7 @@ def _frobenius_shift(K, generators, check_only=False):
     p = K.characteristic()
     n = K.degree()
     compatible = {}
-    from integer_mod import mod
+    from .integer_mod import mod
     for m in n.divisors():
         compatible[m] = {}
     for q, x in generators.iteritems():
@@ -443,7 +439,7 @@ def _frobenius_shift(K, generators, check_only=False):
             j = qlist.index(mqlist[k])
             i = qlist.index(mqlist[k-1])
             crt[(i,j)].append(_find_pow_of_frobenius(p, m, compatible[m][qlist[j]], compatible[m][qlist[i]]))
-    from integer_mod import mod
+    from .integer_mod import mod
     pairs = crt.keys()
     for i, j in pairs:
         L = crt[(i,j)]

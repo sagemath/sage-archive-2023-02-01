@@ -15,7 +15,7 @@ AUTHOR:
 #*****************************************************************************
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 cdef extern from "bernmm/bern_rat.h":
@@ -75,7 +75,7 @@ def bernmm_bern_rat(long k, int num_threads = 1):
     cdef Rational x
 
     if k < 0:
-        raise ValueError, "k must be non-negative"
+        raise ValueError("k must be non-negative")
 
     x = Rational()
     sig_on()
@@ -125,11 +125,19 @@ def bernmm_bern_modp(long p, long k):
         sage: bernmm_bern_modp(p, k)
         1972762
 
+    TESTS:
+
+    Check that bernmm works with the new NTL single precision modular
+    arithmetic from :trac:`19874`::
+
+        sage: from sage.rings.bernmm import bernmm_bern_modp
+        sage: bernmm_bern_modp(7, 128) == bernoulli(128) % 7
+        True
     """
     cdef long x
 
     if k < 0:
-        raise ValueError, "k must be non-negative"
+        raise ValueError("k must be non-negative")
 
     sig_on()
     x = bern_modp(p, k)

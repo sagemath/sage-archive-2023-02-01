@@ -27,7 +27,7 @@ The Macaulay2 interface offers three pieces of functionality:
 
 EXAMPLES::
 
-    sage: print macaulay2('3/5 + 7/11') # optional - macaulay2
+    sage: print(macaulay2('3/5 + 7/11')) # optional - macaulay2
     68
     --
     55
@@ -38,14 +38,14 @@ EXAMPLES::
     125
 
     sage: R = macaulay2('ZZ/5[x,y,z]')  # optional - macaulay2
-    sage: print R                       # optional - macaulay2
+    sage: print(R)                       # optional - macaulay2
     ZZ
     --[x..z, Degrees => {3:1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
      5                                                       {GRevLex => {3:1}  }
                                                              {Position => Up    }
     sage: x = macaulay2('x')            # optional - macaulay2
     sage: y = macaulay2('y')            # optional - macaulay2
-    sage: print (x+y)^5                 # optional - macaulay2
+    sage: print((x+y)^5)                # optional - macaulay2
      5    5
     x  + y
     sage: parent((x+y)^5)               # optional - macaulay2
@@ -53,11 +53,11 @@ EXAMPLES::
 
     sage: R = macaulay2('QQ[x,y,z,w]')  # optional - macaulay2
     sage: f = macaulay2('x^4 + 2*x*y^3 + x*y^2*w + x*y*z*w + x*y*w^2 + 2*x*z*w^2 + y^4 + y^3*w + 2*y^2*z*w + z^4 + w^4') # optional - macaulay2
-    sage: print f                       # optional - macaulay2
+    sage: print(f)                      # optional - macaulay2
      4       3    4    4      2     3                2           2         2    4
     x  + 2x*y  + y  + z  + x*y w + y w + x*y*z*w + 2y z*w + x*y*w  + 2x*z*w  + w
     sage: g = f * macaulay2('x+y^5')    # optional - macaulay2
-    sage: print g.factor()              # optional - macaulay2
+    sage: print(g.factor())             # optional - macaulay2
       4       3    4    4      2     3                2           2         2    4   5
     (x  + 2x*y  + y  + z  + x*y w + y w + x*y*z*w + 2y z*w + x*y*w  + 2x*z*w  + w )(y  + x)
 
@@ -95,6 +95,7 @@ TODO:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 
@@ -102,6 +103,7 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     AsciiArtString)
 
 from sage.misc.multireplace import multiple_replace
+from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import re
 
@@ -147,11 +149,11 @@ def remove_output_labels(s):
 PROMPT = "_EGAS_ : "
 
 
-class Macaulay2(Expect):
+class Macaulay2(ExtraTabCompletion, Expect):
     """
     Interface to the Macaulay2 interpreter.
     """
-    def __init__(self, maxread=10000, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         """
         Initialize a Macaulay2 interface instance.
@@ -185,7 +187,6 @@ class Macaulay2(Expect):
                         name = 'macaulay2',
                         prompt = PROMPT,
                         command = "M2 --no-debug --no-readline --silent -e '%s'" % init_str,
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -529,7 +530,7 @@ class Macaulay2(Expect):
             r = r[:end]
         return AsciiArtString(r)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Return a list of tab completions for Macaulay2.
 
@@ -539,12 +540,12 @@ class Macaulay2(Expect):
 
         TESTS::
 
-            sage: names = macaulay2.trait_names() # optional - macaulay2
+            sage: names = macaulay2._tab_completion() # optional - macaulay2
             sage: 'ring' in names                 # optional - macaulay2
             True
             sage: macaulay2.eval("abcabc = 4")    # optional - macaulay2
             4
-            sage: names = macaulay2.trait_names() # optional - macaulay2
+            sage: names = macaulay2._tab_completion() # optional - macaulay2
             sage: "abcabc" in names               # optional - macaulay2
             True
         """
@@ -602,7 +603,7 @@ class Macaulay2(Expect):
         return self.new("new %s from %s"%(type.name(), value.name()))
 
 
-class Macaulay2Element(ExpectElement):
+class Macaulay2Element(ExtraTabCompletion, ExpectElement):
     def _latex_(self):
         """
         EXAMPLES::
@@ -636,13 +637,13 @@ class Macaulay2Element(ExpectElement):
             sage: R = macaulay2("QQ[x,y,z]/(x^3-y^3-z^3)") # optional - macaulay2
             sage: x = macaulay2('x')                       # optional - macaulay2
             sage: y = macaulay2('y')                       # optional - macaulay2
-            sage: print x+y                                # optional - macaulay2
+            sage: print(x+y)                               # optional - macaulay2
             x + y
-            sage: print macaulay2("QQ[x,y,z]")             # optional - macaulay2
+            sage: print(macaulay2("QQ[x,y,z]"))            # optional - macaulay2
             QQ[x..z, Degrees => {3:1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
                                                                      {GRevLex => {3:1}  }
                                                                      {Position => Up    }
-            sage: print macaulay2("QQ[x,y,z]/(x+y+z)")     # optional - macaulay2
+            sage: print(macaulay2("QQ[x,y,z]/(x+y+z)"))    # optional - macaulay2
             QQ[x, y, z]
             -----------
              x + y + z
@@ -782,7 +783,7 @@ class Macaulay2Element(ExpectElement):
                                                                      {Position => Up    }
             sage: f = (x^3 + 2*y^2*x)^7; f                  # optional - macaulay2
             x^21 + 2*x^7*y^14
-            sage: h = macaulay2(f); print h                 # optional - macaulay2
+            sage: h = macaulay2(f); print(h)                # optional - macaulay2
              21     7 14
             x   + 2x y
             sage: f1 = (x^2 + 2*y*x)                        # optional - macaulay2
@@ -827,7 +828,7 @@ class Macaulay2Element(ExpectElement):
 
             sage: R = macaulay2.ring('QQ','(x,y)')               # optional - macaulay2
             sage: f = macaulay2('x^3 + 3*y^11 + 5')              # optional - macaulay2
-            sage: print f                                        # optional - macaulay2
+            sage: print(f)                                       # optional - macaulay2
              3     11
             x  + 3y   + 5
             sage: f.sage_polystring()                            # optional - macaulay2
@@ -842,7 +843,7 @@ class Macaulay2Element(ExpectElement):
             sage: S = macaulay2('QQ[a..d]')                     # optional - macaulay2
             sage: R = S/macaulay2('a^3+b^3+c^3+d^3')            # optional - macaulay2
             sage: X = R.Proj()                                  # optional - macaulay2
-            sage: print X.structure_sheaf()                     # optional - macaulay2
+            sage: print(X.structure_sheaf())                    # optional - macaulay2
             OO
               sage...
         """
@@ -868,7 +869,7 @@ class Macaulay2Element(ExpectElement):
 
     subs = substitute
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Return a list of tab completions for ``self``.
 
@@ -881,7 +882,7 @@ class Macaulay2Element(ExpectElement):
         TEST::
 
             sage: a = macaulay2("QQ[x,y]")   # optional - macaulay2
-            sage: traits = a.trait_names()   # optional - macaulay2
+            sage: traits = a._tab_completion()   # optional - macaulay2
             sage: "generators" in traits     # optional - macaulay2
             True
         """
@@ -1167,7 +1168,7 @@ class Macaulay2Function(ExpectFunction):
         """
         EXAMPLES::
 
-            sage: print macaulay2.load._sage_doc_()  # optional - macaulay2
+            sage: print(macaulay2.load._sage_doc_())  # optional - macaulay2
             load -- read Macaulay2 commands
             *******************************
             ...
@@ -1180,7 +1181,7 @@ class Macaulay2Function(ExpectFunction):
         """
         EXAMPLES::
 
-            sage: print macaulay2.gb._sage_src_() # optional - macaulay2
+            sage: print(macaulay2.gb._sage_src_())  # optional - macaulay2
             code(methods gb)
             ...
         """
@@ -1221,6 +1222,9 @@ def macaulay2_console():
         ...
 
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%macaulay2 magics instead.')
     os.system('M2')
 
 

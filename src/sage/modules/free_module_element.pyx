@@ -104,6 +104,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import itervalues
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -121,6 +122,7 @@ from sage.misc.derivative import multi_derivative
 
 from sage.rings.ring cimport Ring
 from sage.rings.integer cimport Integer, smallInteger
+from sage.arith.numerical_approx cimport digits_to_bits
 
 # For the norm function, we cache Sage integers 1 and 2
 __one__ = smallInteger(1)
@@ -580,8 +582,8 @@ def prepare(v, R, degree=None):
         sage: prepare(c, None)
         ([2.0, 3.0], Real Double Field)
 
-    This checks a bug listed at Trac #10595.  Without good evidence for a ring, the default
-    is the integers. ::
+    This checks a bug listed at :trac:`10595`. Without good evidence
+    for a ring, the default is the integers. ::
 
         sage: prepare([], None)
         ([], Integer Ring)
@@ -1133,15 +1135,30 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             return sib.name('vector')(self.base_ring(),
                                       [sib(e, 2) for e in self])
 
-    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         r"""
-        Implements numerical approximation of a free module element
-        by calling the ``n()`` method on all of its entries.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision, by approximating all
+        entries.
+
+        INPUT:
+
+        - ``prec`` -- precision in bits
+
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- which algorithm to use to compute the
+          approximation of the entries (the accepted algorithms depend
+          on the object)
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         EXAMPLES::
 
             sage: v = vector(RealField(212), [1,2,3])
-            sage: v.N()
+            sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
             Vector space of dimension 3 over Real Field with 53 bits of precision
@@ -1162,8 +1179,6 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
             sage: u = vector(QQ, [1/2, 1/3, 1/4])
             sage: u.n()
-            (0.500000000000000, 0.333333333333333, 0.250000000000000)
-            sage: u.N()
             (0.500000000000000, 0.333333333333333, 0.250000000000000)
             sage: u.numerical_approx()
             (0.500000000000000, 0.333333333333333, 0.250000000000000)
@@ -1230,6 +1245,18 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: _.parent()
             Vector space of dimension 3 over Real Field with 75 bits of precision
 
+        ::
+
+            sage: v = vector(GF(2), [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 0.000000000000000, 1.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 0.0000000000000000000000, 1.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+
         TESTS:
 
         Sparse vectors have a similar method that works efficiently for
@@ -1242,7 +1269,9 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u
             (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
         """
-        return vector([e.n(prec, digits, algorithm) for e in self])
+        if prec is None:
+            prec = digits_to_bits(digits)
+        return vector([e.numerical_approx(prec, algorithm=algorithm) for e in self])
 
     def row(self):
         r"""
@@ -1544,7 +1573,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             if isinstance(ord, AnInfinity):
                return ord
             v.append(ord)
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         return lcm(v)
 
     def iteritems(self):
@@ -1670,7 +1699,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         s = sum([a**p for a in abs_self])
         return s**(__one__/p)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         EXAMPLES::
 
@@ -1920,6 +1949,17 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def lift(self):
         """
+        Lift ``self`` to the cover ring.
+
+        OUTPUT:
+
+        Return a lift of self to the covering ring of the base ring `R`,
+        which is by definition the ring returned by calling
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        on `R`, or just `R` itself if the
+        :meth:`~sage.rings.quotient_ring.QuotientRing_nc.cover_ring`
+        method is not defined.
+
         EXAMPLES::
 
             sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
@@ -1928,8 +1968,48 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             (5, 2, 6, 1)
             sage: parent(V.lift())
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+
+        If the base ring does not have a cover method, return a copy of the vector::
+
+            sage: W = vector(QQ, [1, 2, 3])
+            sage: W1 = W.lift()
+            sage: W is W1
+            False
+            sage: parent(W1)
+            Vector space of dimension 3 over Rational Field
         """
-        return self.change_ring(self.base_ring().cover_ring())
+        try:
+            return self.change_ring(self.base_ring().cover_ring())
+        except AttributeError:
+            from copy import copy
+            return copy(self)
+
+    def lift_centered(self):
+        """
+        Lift to a congruent, centered vector.
+
+        INPUT:
+
+        - ``self`` A vector with coefficients in `Integers(n)`.
+
+        OUTPUT:
+
+        - The unique integer vector `v` such that foreach `i`,
+          `Mod(v[i],n) = Mod(self[i],n)` and `-n/2 < v[i] \leq n/2`.
+
+        EXAMPLES::
+
+            sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
+            (5, 2, 6, 1)
+            sage: V.lift_centered()
+            (-2, 2, -1, 1)
+            sage: parent(V.lift_centered())
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
+        """
+        R = self.base_ring().cover_ring()
+        l = [foo.lift_centered() for foo in self]
+        P = self.parent().change_ring(R)
+        return P(l)
 
     def __pos__(self):
         """
@@ -2077,23 +2157,33 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
+
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
             sage: v = vector([0,0,0,0,1/2,0,3/14])
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
 
-        In some cases when copy=False, we get back a dangerous reference::
+        In some cases, when ``copy=False``, we get back a dangerous
+        reference::
 
             sage: v = vector({0:5, 2:3/7}, sparse=True)
             sage: v.dict(copy=False)
@@ -2109,6 +2199,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             if c:
                 e[i] = c
         return e
+
+    monomial_coefficients = dict
 
     #############################
     # Plotting
@@ -2312,7 +2404,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         else:
             return points(v, **kwds)
 
-    cpdef Element _dot_product_coerce_(left, Vector right):
+    cpdef _dot_product_coerce_(left, Vector right):
         """
         Return the dot product of left and right.
 
@@ -2488,7 +2580,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             0
 
         The cross product is defined for degree seven vectors as well.
-        [WIKIPEDIA:CROSSPRODUCT]_
+        [Crossproduct]_
         The 3-D cross product is achieved using the quaternians,
         whereas the 7-D cross product is achieved using the octions. ::
 
@@ -2538,12 +2630,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u.cross_product(v)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cross product only defined for vectors of length three or seven, not (7 and 3)
-
-        REFERENCES:
-
-        .. [WIKIPEDIA:CROSSPRODUCT] Algebraic Properties of the Cross Product
-           http://en.wikipedia.org/wiki/Cross_product
+            TypeError: Cross product only defined for vectors of length three or seven, not (7 and 3)
 
         AUTHOR:
 
@@ -2568,7 +2655,92 @@ cdef class FreeModuleElement(Vector):   # abstract base class
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 
         else:
-            raise ArithmeticError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+
+    def cross_product_matrix(self):
+        r"""
+        Return the matrix which describes a cross product
+        between ``self`` and some other vector.
+
+        This operation is sometimes written using the `hat operator`_.
+        It is only defined for vectors of length 3 or 7.
+        For a vector `v` the cross product matrix `\hat{v}`
+        is a matrix which satisfies `\hat{v} \cdot w = v \times w`
+        and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
+        The basis vectors are assumed to be orthonormal.
+
+        .. _hat operator: http://en.wikipedia.org/wiki/Hat_operator#Cross_product
+
+        OUTPUT:
+
+        The cross product matrix of this vector.
+
+        EXAMPLES::
+
+            sage: v = vector([1, 2, 3])
+            sage: vh = v.cross_product_matrix()
+            sage: vh
+            [ 0 -3  2]
+            [ 3  0 -1]
+            [-2  1  0]
+            sage: w = random_vector(3, x=1, y=100)
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+
+        TESTS::
+
+            sage: F = GF(previous_prime(2^32))
+            sage: v = random_vector(F, 3)
+            sage: w = random_vector(F, 3)
+            sage: vh = v.cross_product_matrix()
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+            sage: v = random_vector(F, 7)
+            sage: w = random_vector(F, 7)
+            sage: vh = v.cross_product_matrix()
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+            sage: random_vector(F, 5).cross_product_matrix()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cross product only defined for vectors of length three or seven, not 5
+        """
+        from sage.matrix.matrix_space import MatrixSpace
+        rank = self.parent().rank()
+        R = self.base_ring()
+        zero = R.zero()
+        if rank == 3:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
+                [ zero, -s[2],  s[1]],
+                [ s[2],  zero, -s[0]],
+                [-s[1],  s[0],  zero]])
+        elif rank == 7:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
+                [ zero, -s[3], -s[6],  s[1], -s[5],  s[4],  s[2]],
+                [ s[3],  zero, -s[4], -s[0],  s[2], -s[6],  s[5]],
+                [ s[6],  s[4],  zero, -s[5], -s[1],  s[3], -s[0]],
+                [-s[1],  s[0],  s[5],  zero, -s[6], -s[2],  s[4]],
+                [ s[5], -s[2],  s[1],  s[6],  zero, -s[0], -s[3]],
+                [-s[4],  s[6], -s[3],  s[2],  s[0],  zero, -s[1]],
+                [-s[2], -s[5],  s[0], -s[4],  s[3],  s[1],  zero]])
+        else:
+            raise TypeError("Cross product only defined for vectors of length three or seven, not {}".format(rank))
 
     def pairwise_product(self, right):
         """
@@ -3709,11 +3881,11 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers
-            [(0.5, 5.551115123125784e-15, 21, 0), (0.3333333333333..., 3.70074341541719e-15, 21, 0), (0.45969769413186..., 5.103669643922841e-15, 21, 0)]
+            [(0.5, 5.55111512312578e-15, 21, 0), (0.3333333333333..., 3.70074341541719e-15, 21, 0), (0.45969769413186..., 5.10366964392284e-15, 21, 0)]
 
             sage: r=vector([t,0,1], sparse=True)
             sage: r.nintegral(t,0,1)
-            ((0.5, 0.0, 1.0), {0: (0.5, 5.551115123125784e-15, 21, 0), 2: (1.0, 1.11022302462515...e-14, 21, 0)})
+            ((0.5, 0.0, 1.0), {0: (0.5, 5.55111512312578e-15, 21, 0), 2: (1.0, 1.11022302462515...e-14, 21, 0)})
 
         """
         # If Cython supported lambda functions, we would just do
@@ -3949,7 +4121,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef ModuleElement _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         Add left and right.
 
@@ -3966,7 +4138,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef ModuleElement _sub_(left, ModuleElement right):
+    cpdef _sub_(left, right):
         """
         Subtract right from left.
 
@@ -3984,7 +4156,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         v = [(<RingElement> a[i])._sub_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -3998,7 +4170,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             v = [left * x for x in self._entries]
         return self._new_c(v)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -4016,7 +4188,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef Vector _pairwise_product_(left, Vector right):
+    cpdef _pairwise_product_(left, Vector right):
         """
         EXAMPLES::
 
@@ -4392,7 +4564,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 entries = dict(entries)  # make a copy/convert to dict
         self._entries = entries
 
-    cpdef ModuleElement _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         Add left and right.
 
@@ -4414,7 +4586,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 v[i] = a
         return left._new_c(v)
 
-    cpdef ModuleElement _sub_(left, ModuleElement right):
+    cpdef _sub_(left, right):
         """
         EXAMPLES::
 
@@ -4434,7 +4606,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 v[i] = -a
         return left._new_c(v)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -4450,7 +4622,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return self._new_c(v)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -4466,7 +4638,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return self._new_c(v)
 
-    cpdef Element _dot_product_coerce_(left, Vector right):
+    cpdef _dot_product_coerce_(left, Vector right):
         """
         Return the dot product of left and right.
 
@@ -4495,8 +4667,21 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w = vector(R, [], sparse=True)
             sage: parent(v._dot_product_coerce_(w))
             Univariate Polynomial Ring in x over Real Double Field
+
+        TESTS:
+
+        Check that :trac:`19377` is fixed::
+
+            sage: w = vector(ZZ, (1,2,3), sparse=False)
+            sage: v = vector(ZZ, (1,2,3), sparse=True)
+            sage: v._dot_product_coerce_(w)
+            14
         """
-        cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
+        cdef dict e
+        try:
+            e = (<FreeModuleElement_generic_sparse?>right)._entries
+        except TypeError:
+            e = right.dict()
         z = left.base_ring().zero()
         if left.base_ring() is not right.base_ring():
             z *= right.base_ring().zero()
@@ -4505,7 +4690,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 z += a * e[i]
         return z
 
-    cpdef Vector _pairwise_product_(left, Vector right):
+    cpdef _pairwise_product_(left, Vector right):
         """
         EXAMPLES::
 
@@ -4523,7 +4708,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return left._new_c(v)
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two sparse free module elements.
 
@@ -4730,36 +4915,47 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             d = d.denominator()
         except AttributeError:
             return d
-        for y in self._entries.itervalues():
+        for y in itervalues(self._entries):
             d = d.lcm(y.denominator())
         return d
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
+
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
             sage: v = vector([0,0,0,0,1/2,0,3/14], sparse=True)
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
         """
         if copy:
             return dict(self._entries)
         else:
             return self._entries
 
+    monomial_coefficients = dict
+
     def list(self, copy=True):
         """
-        Return list of elements of self.
+        Return list of elements of ``self``.
 
         INPUT:
 
@@ -4818,10 +5014,25 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return len(self._entries)
 
-    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Returns a numerical approximation of self by calling the n() method
-        on all of its entries.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision, by approximating all
+        entries.
+
+        INPUT:
+
+        - ``prec`` -- precision in bits
+
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- which algorithm to use to compute the
+          approximation of the entries (the accepted algorithms depend
+          on the object)
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         EXAMPLES::
 
@@ -4835,6 +5046,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: _.parent()
             Sparse vector space of dimension 3 over Real Field with 75 bits of precision
         """
-        return vector(dict([(e[0], e[1].n(prec, digits, algorithm)) for e in
-                            self._entries.iteritems()]), sparse=True)
-
+        if prec is None:
+            prec = digits_to_bits(digits)
+        return vector({k: v.numerical_approx(prec, algorithm=algorithm)
+                for k, v in self._entries.iteritems()}, sparse=True)

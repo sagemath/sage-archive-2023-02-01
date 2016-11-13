@@ -89,7 +89,7 @@ cdef class Group(Parent):
             sage: G._repr_option('element_is_atomic')
             False
 
-        Check for #8119::
+        Check for :trac:`8119`::
 
             sage: G = SymmetricGroup(2)
             sage: h = hash(G)
@@ -229,21 +229,6 @@ cdef class Group(Parent):
         """
         from sage.misc.all import prod
         return prod(self.gens())
-
-    def random_element(self, bound=None):
-        """
-        Return a random element of this group.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: G.random_element()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
 
     def quotient(self, H):
         """

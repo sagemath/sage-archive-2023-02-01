@@ -21,17 +21,23 @@ EXAMPLE::
     sage: D.defining_polynomials()[0].parent()
     Multivariate Polynomial Ring in x0, x1 over Rational Field
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
-#  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.all import PolynomialRing, RR, PowerSeriesRing, LaurentSeriesRing, O
 from sage.functions.all import log
+from sage.structure.category_object import normalize_names
 
-import sage.schemes.plane_curves.projective_curve as plane_curve
+import sage.schemes.curves.projective_curve as plane_curve
 
 def is_HyperellipticCurve(C):
     """
@@ -44,7 +50,7 @@ def is_HyperellipticCurve(C):
     """
     return isinstance(C,HyperellipticCurve_generic)
 
-class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
+class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
     def __init__(self, PP, f, h=None, names=None, genus=None):
         x, y, z = PP.gens()
         df = f.degree()
@@ -56,15 +62,15 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             deg = max(df,dh+1)
             F0 = sum([ h[i]*x**i*z**(dh-i) for i in range(dh+1) ])
             F = y**2*z**(deg-2) + F0*y*z**(deg-dh-1) - F1*z**(deg-df)
-        plane_curve.ProjectiveCurve_generic.__init__(self,PP,F)
+        plane_curve.ProjectivePlaneCurve.__init__(self,PP,F)
         R = PP.base_ring()
         if names is None:
-            names = ["x","y"]
-        elif isinstance(names,str):
-            names = names.split(",")
+            names = ("x", "y")
+        else:
+            names = normalize_names(2, names)
         self._names = names
-        P1 = PolynomialRing(R,name=names[0])
-        P2 = PolynomialRing(P1,name=names[1])
+        P1 = PolynomialRing(R, name=names[0])
+        P2 = PolynomialRing(P1, name=names[1])
         self._PP = PP
         self._printing_ring = P2
         self._hyperelliptic_polynomials = (f,h)
@@ -89,7 +95,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: H.base_extend(FiniteField(7^2, 'a'))
             Hyperelliptic Curve over Finite Field in a of size 7^2 defined by y^2 = x^8 + x + 5
         """
-        from constructor import HyperellipticCurve
+        from .constructor import HyperellipticCurve
         f, h = self._hyperelliptic_polynomials
         y = self._printing_ring.variable_name()
         x = self._printing_ring.base_ring().variable_name()
@@ -162,8 +168,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: set_verbose(None)
             sage: H.is_singular()
             False
-            sage: from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
-            sage: ProjectiveCurve_generic.is_singular(H)
+            sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
+            sage: ProjectivePlaneCurve.is_singular(H)
             True
         """
         return False
@@ -189,8 +195,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: set_verbose(None)
             sage: H.is_smooth()
             True
-            sage: from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
-            sage: ProjectiveCurve_generic.is_smooth(H)
+            sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
+            sage: ProjectivePlaneCurve.is_smooth(H)
             False
         """
         return True
@@ -224,7 +230,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return self._genus
 
     def jacobian(self):
-        import jacobian_generic
+        from . import jacobian_generic
         return jacobian_generic.HyperellipticJacobian_generic(self)
 
     def odd_degree_model(self):
@@ -297,7 +303,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         x = f.parent().gen()
         fnew =  f((x*rt + 1)/x).numerator() # move rt to "infinity"
 
-        from constructor import HyperellipticCurve
+        from .constructor import HyperellipticCurve
         return HyperellipticCurve(fnew, 0, names=self._names, PP=self._PP)
 
     def has_odd_degree_model(self):

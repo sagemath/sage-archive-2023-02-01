@@ -18,7 +18,6 @@ fi
 
 # Pick up Sage's zlib:
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 
 cd src
 

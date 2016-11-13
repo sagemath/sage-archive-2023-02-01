@@ -13,11 +13,14 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+from __future__ import division, print_function
+
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 include "decl.pxi"
 include 'misc.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ import unpickle_class_value
 
@@ -33,7 +36,7 @@ cdef inline ntl_ZZ make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
     y.x = x[0]
-    ZZ_delete(x)
+    del x
     return y
 
 # You must do sig_on() before calling this function
@@ -47,7 +50,7 @@ cdef inline ntl_ZZX make_ZZX(ZZX_c* x):
     cdef ntl_ZZX y
     y = ntl_ZZX()
     y.x = x[0]
-    ZZX_delete(x)
+    del x
     return y
 
 # You must do sig_on() before calling this function
@@ -67,7 +70,7 @@ cdef proof_flag(t):
 ##############################################################################
 
 
-cdef class ntl_ZZX:
+cdef class ntl_ZZX(object):
     r"""
     The class \class{ZZX} implements polynomials in $\Z[X]$, i.e.,
     univariate polynomials with integer coefficients.
@@ -139,12 +142,6 @@ cdef class ntl_ZZX:
         """
         return unpickle_class_value, (ntl_ZZX, self.list())
 
-    def __cinit__(self):
-        ZZX_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZX_destruct(&self.x)
-
     def __repr__(self):
         """
         Return the string representation of self.
@@ -183,7 +180,7 @@ cdef class ntl_ZZX:
             [1 4 3]
         """
         if i < 0:
-            raise IndexError, "index (i=%s) must be >= 0"%i
+            raise IndexError("index (i=%s) must be >= 0" % i)
         cdef ntl_ZZ cc
         if isinstance(a, ntl_ZZ):
             cc = a
@@ -251,11 +248,11 @@ cdef class ntl_ZZX:
 
         sage: x = ntl.ZZX([2, 3, 5, -7, 11])
         sage: i = x.getitem_as_int_doctest(3)
-        sage: print i
+        sage: i
          -7
-        sage: print type(i)
+        sage: type(i)
          <type 'int'>
-        sage: print x.getitem_as_int_doctest(15)
+        sage: x.getitem_as_int_doctest(15)
          0
         """
         return self.getitem_as_int(i)
@@ -321,7 +318,7 @@ cdef class ntl_ZZX:
         sig_off()
         return r
 
-    def __div__(ntl_ZZX self, ntl_ZZX other):
+    def __truediv__(ntl_ZZX self, ntl_ZZX other):
         """
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
@@ -345,11 +342,14 @@ cdef class ntl_ZZX:
         cdef ZZX_c* q
         q = ZZX_div(&self.x, &other.x, &divisible)
         if not divisible:
-            ZZX_delete(q)
+            del q
             sig_off()
-            raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
+            raise ArithmeticError("self (=%s) is not divisible by other (=%s)"%(self, other))
         result = make_ZZX_sig_off(q)
         return result
+
+    def __div__(self, other):
+        return self / other
 
     def __mod__(ntl_ZZX self, ntl_ZZX other):
         """
@@ -426,11 +426,12 @@ cdef class ntl_ZZX:
         from copy import copy
         return generic.power(self, n, copy(one_ZZX))
 
-    def __cmp__(ntl_ZZX self, ntl_ZZX other):
+    def __richcmp__(ntl_ZZX self, other, int op):
         """
-        Decide whether or not self and other are equal.
+        Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.ZZX([1,2,3])
             sage: g = ntl.ZZX([1,2,3,0])
             sage: f == g
@@ -438,10 +439,19 @@ cdef class ntl_ZZX:
             sage: g = ntl.ZZX([0,1,2,3])
             sage: f == g
             False
+            sage: f == ntl.ZZ(0)
+            False
         """
-        if ZZX_equal(self.x, other.x):
-            return 0
-        return -1
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("polynomials are not ordered")
+
+        cdef ntl_ZZX b
+        try:
+            b = <ntl_ZZX?>other
+        except TypeError:
+            b = ntl_ZZX(other)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def is_zero(self):
         """
@@ -882,11 +892,10 @@ cdef class ntl_ZZX:
             [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -512 1344 -1176 343]
         """
         if m < 0:
-            raise ArithmeticError, "m (=%s) must be positive"%m
+            raise ArithmeticError("m (=%s) must be positive" % m)
         n = self.constant_term()
         if n != ntl_ZZ(1) and n != ntl_ZZ(-1):
-            raise ArithmeticError, \
-                  "The constant term of self must be 1 or -1."
+            raise ArithmeticError("The constant term of self must be 1 or -1.")
         sig_on()
         return make_ZZX_sig_off(ZZX_invert_and_truncate(&self.x, m))
 
@@ -939,7 +948,7 @@ cdef class ntl_ZZX:
             ValueError: polynomial must be monic.
         """
         if not self.is_monic():
-            raise ValueError, "polynomial must be monic."
+            raise ValueError("polynomial must be monic.")
         sig_on()
         cdef char* t
         t = ZZX_trace_list(&self.x)
@@ -1116,8 +1125,8 @@ cdef class ntl_ZZX:
         F = []
         for i from 0 <= i < n:
             F.append((make_ZZX(v[i]), e[i]))
-        sage_free(v)
-        sage_free(e)
+        sig_free(v)
+        sig_free(e)
         return F
 
 

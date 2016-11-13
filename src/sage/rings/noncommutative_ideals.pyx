@@ -8,6 +8,8 @@
 ###############################################################################
 
 """
+Ideals of non-commutative rings
+
 Generic implementation of one- and two-sided ideals of non-commutative rings.
 
 AUTHOR:
@@ -50,6 +52,7 @@ TESTS::
     Left Ideal (Sq(2) + Sq(4), Sq(1,1)) of mod 2 Steenrod algebra, milnor basis
     sage: TestSuite(IL).run(skip=['_test_category'],verbose=True)
     running ._test_eq() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_pickling() . . . pass
 
@@ -227,7 +230,7 @@ class Ideal_nc(Ideal_generic):
 
         """
         if side not in ['left','right','twosided']:
-            raise ValueError, "Ideals are left, right or twosided, but not %s"%side
+            raise ValueError("Ideals are left, right or twosided, but not %s" % side)
         self.__side = side
         Ideal_generic.__init__(self, ring, gens, coerce=coerce)
 
@@ -349,4 +352,4 @@ class Ideal_nc(Ideal_generic):
                 if other.side()=='left':
                     return other
                 return other.ring().ideal(other.gens(),side='twosided')
-        raise NotImplementedError, "Can not multiply non-commutative ideals."
+        raise NotImplementedError("Can not multiply non-commutative ideals.")

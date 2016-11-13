@@ -14,27 +14,23 @@ generators. You can print the generators as arbitrary strings using
 the optional ``names`` argument to the
 ``FreeMonoid`` function.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
+#       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.structure.parent_gens import normalize_names
-from free_monoid_element import FreeMonoidElement
+from sage.structure.category_object import normalize_names
+from .free_monoid_element import FreeMonoidElement
 
-from monoid import Monoid_class
+from .monoid import Monoid_class
 
 from sage.combinat.words.finite_word import FiniteWord_class
 

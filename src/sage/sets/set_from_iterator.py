@@ -60,16 +60,19 @@ The module also provides decorator for functions and methods::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
+from six.moves import range
 
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import EmptySetError
-from itertools import izip_longest
+
 import os
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.lazy_list import lazy_list
+
 
 class EnumeratedSetFromIterator(Parent):
     """
@@ -81,13 +84,13 @@ class EnumeratedSetFromIterator(Parent):
 
     - ``args`` -- tuple -- arguments to be sent to the function ``f``
 
-    - ``kwds`` -- dictionnary -- keywords to be sent to the function ``f``
+    - ``kwds`` -- dictionary -- keywords to be sent to the function ``f``
 
     - ``name`` -- an optional name for the set
 
     - ``category`` -- (default: ``None``) an optional category for that
       enumerated set. If you know that your iterator will stop after a finite
-      number of steps you should set it as :class:`FiniteEnumeratedSets`, conversly if
+      number of steps you should set it as :class:`FiniteEnumeratedSets`, conversely if
       you know that your iterator will run over and over you should set it as
       :class:`InfiniteEnumeratedSets`.
 
@@ -180,6 +183,24 @@ class EnumeratedSetFromIterator(Parent):
                                          *getattr(self, '_args', ()),
                                         **getattr(self, '_kwds', {}))))
 
+    def __hash__(self):
+        r"""
+        A simple hash using the first elements of the set.
+
+        EXAMPLES::
+
+            sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
+            sage: E = EnumeratedSetFromIterator(xsrange, (1,200))
+            sage: hash(E)
+            4600916458883504074 # 64-bit
+            -2063607862         # 32-bit
+        """
+        try:
+            return hash(self._cache[:13])
+        except AttributeError:
+            from itertools import islice
+            return hash(tuple(islice(self, 13)))
+
     def __reduce__(self):
         r"""
         Support for pickle.
@@ -227,7 +248,7 @@ class EnumeratedSetFromIterator(Parent):
         """
         l = []
         i = iter(self)
-        for _ in xrange(6):
+        for _ in range(6):
             try:
                 l.append(next(i))
             except StopIteration:
@@ -336,7 +357,7 @@ class EnumeratedSetFromIterator(Parent):
             sage: E5 != E5
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __iter__(self):
         r"""
@@ -383,7 +404,8 @@ class EnumeratedSetFromIterator(Parent):
         TESTS::
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
-            sage: S = EnumeratedSetFromIterator(xrange, args=(1,4))
+            sage: from six.moves import range
+            sage: S = EnumeratedSetFromIterator(range, args=(1,4))
             sage: S(1)  # indirect doctest
             1
             sage: S(0)  # indirect doctest
@@ -440,7 +462,7 @@ class Decorator:
             sage: from sage.sets.set_from_iterator import Decorator
             sage: d = Decorator()
             sage: d.f = Integer.is_prime
-            sage: print sage_getdoc(d)   # indirect doctest
+            sage: print(sage_getdoc(d))   # indirect doctest
                Test whether "self" is prime.
             ...
                Calls the PARI "isprime" function.
@@ -476,7 +498,7 @@ class Decorator:
             sage: from sage.sets.set_from_iterator import Decorator
             sage: d = Decorator()
             sage: d.f = Rational.is_square
-            sage: print sage_getsource(d.f)   # indirect doctest
+            sage: print(sage_getsource(d.f))   # indirect doctest
             def is_square(self):
             ...
                 return mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value))
@@ -839,7 +861,7 @@ class EnumeratedSetFromIterator_method_decorator(object):
         ...    @set_from_method
         ...    def f(self): return xsrange(self.n())
         sage: a = A()
-        sage: print a.f.__class__
+        sage: print(a.f.__class__)
         sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
         sage: a.f()
         {0, 1, 2, 3, 4, ...}
@@ -954,9 +976,9 @@ class EnumeratedSetFromIterator_method_decorator(object):
             ...    @set_from_method
             ...    def f(self): return xsrange(self.n())
             sage: a = A()
-            sage: print A.f.__class__
+            sage: print(A.f.__class__)
             sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
-            sage: print a.f.__class__
+            sage: print(a.f.__class__)
             sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
         """
         # You would hardly ever see an instance of this class alive.
@@ -996,5 +1018,5 @@ class DummyExampleForPicklingTest:
             sage: d.f()
             {4, 5, 6, 7, 8, ...}
         """
-        from sage.misc.misc import xsrange
+        from sage.arith.srange import xsrange
         return xsrange(self.start, self.stop)

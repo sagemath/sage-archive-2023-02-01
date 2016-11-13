@@ -9,8 +9,8 @@ Integer vectors modulo the action of a permutation group
 #              The full text of the GPL is available at:
 #                    http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-from itertools import imap
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.semirings.all import NN
 
@@ -82,13 +82,13 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
 
         sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
         sage: I.category()
-        Join of Category of infinite enumerated sets and Category of quotients of sets
+        Category of infinite enumerated quotients of sets
         sage: I.cardinality()
         +Infinity
         sage: I.list()
         Traceback (most recent call last):
         ...
-        NotImplementedError: infinite list
+        NotImplementedError: cannot list an infinite set
         sage: p = iter(I)
         sage: for i in range(10): next(p)
         [0, 0, 0]
@@ -167,10 +167,10 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
 
         sage: I = IntegerVectorsModPermutationGroup(SymmetricGroup(5)) # long time
         sage: for i in range(10): # long time
-        ...       d1 = I.subset(i).cardinality()
-        ...       d2 = Partitions(i, max_length=5).cardinality()
-        ...       print d1
-        ...       assert d1 == d2
+        ....:     d1 = I.subset(i).cardinality()
+        ....:     d2 = Partitions(i, max_length=5).cardinality()
+        ....:     print(d1)
+        ....:     assert d1 == d2
         1
         1
         2
@@ -191,10 +191,10 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         1
         sage: I = IntegerVectorsModPermutationGroup(G) # long time
         sage: for i in range(10): # long time
-        ...       d1 = I.subset(i).cardinality()
-        ...       d2 = IntegerVectors(i,6).cardinality()
-        ...       print d1
-        ...       assert d1 == d2
+        ....:     d1 = I.subset(i).cardinality()
+        ....:     d2 = IntegerVectors(i,6).cardinality()
+        ....:     print(d1)
+        ....:     assert d1 == d2
         1
         6
         21
@@ -273,7 +273,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: I
             Integer vectors of length 4 enumerated up to the action of Permutation Group with generators [(1,2,3,4)]
             sage: I.category()
-            Join of Category of infinite enumerated sets and Category of quotients of sets
+            Category of infinite enumerated quotients of sets
             sage: TestSuite(I).run()
         """
         SearchForest.__init__(self, algorithm = 'breadth', category = InfiniteEnumeratedSets().Quotients())
@@ -293,7 +293,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
             Integer vectors of length 3 enumerated up to the action of Permutation Group with generators [(1,2,3)]
         """
-        return "Integer vectors of length %s enumerated up to the action of %s"%(str(self.n), self._permgroup.__repr__())
+        return "Integer vectors of length %s enumerated up to the action of %r"%(self.n, self._permgroup)
 
     def ambient(self):
         r"""

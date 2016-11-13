@@ -72,6 +72,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##########################################################################
+from __future__ import print_function
 
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.plot.all import polygon, line, text
@@ -79,7 +80,7 @@ from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.groups.perm_gps.permgroup_element import is_PermutationGroupElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
-from sage.rings.arith import factor
+from sage.arith.all import factor
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
 from sage.functions.all import sin, cos
@@ -215,7 +216,7 @@ class IndexedSequence(SageObject):
             sage: s
             Indexed sequence: [0, 1, 2]
              indexed by [0, 1, 2]
-            sage: print s
+            sage: print(s)
             Indexed sequence: [0, 1, 2]
              indexed by [0, 1, 2]
             sage: I = GF(3)
@@ -345,12 +346,12 @@ class IndexedSequence(SageObject):
                   for chid in Gd]
         elif not(J[0] in ZZ) and G.is_finite() and F == ZZ or (F.is_field() and F.base_ring()==QQ):
             ## assumes J is the list of conj class representatives of a
-            ## PermuationGroup(...) or Matrixgroup(...)
+            ## PermutationGroup(...) or Matrixgroup(...)
             chi = G.character_table()
             FT = [sum([S[i]*chi[i,j] for i in range(N)]) for j in range(N)]
         else:
             raise ValueError("list elements must be in QQ(zeta_"+str(N)+")")
-        return IndexedSequence(FT,J)
+        return IndexedSequence(FT, J)
 
     def idft(self):
         """
@@ -390,8 +391,7 @@ class IndexedSequence(SageObject):
             sage: A = [exp(-2*pi*i*I/5) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: s.dct()
-            <BLANKLINE>
-            Indexed sequence: [1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1]
+            Indexed sequence: [1/16*(sqrt(5) + I*sqrt(-2*sqrt(5) + 10) + ...
             indexed by [0, 1, 2, 3, 4]
         """
         from sage.symbolic.constants import pi
@@ -483,7 +483,7 @@ class IndexedSequence(SageObject):
             b = T+[E(0) for i in range(2*M)]
         N = max(M,N)
         c = [sum([a[i]*b[j-i] for i in range(N)]) for j in range(2*N-1)]
-        #print [[b[j-i] for i in range(N)] for j in range(N)]
+        #print([[b[j-i] for i in range(N)] for j in range(N)])
         return c
 
     def convolution_periodic(self, other):

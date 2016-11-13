@@ -31,8 +31,11 @@ TESTS::
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import range
 
-from graph import Graph
+from .graph import Graph
 
 class BipartiteGraph(Graph):
     r"""
@@ -146,7 +149,7 @@ class BipartiteGraph(Graph):
     4. From a reduced adjacency matrix::
 
         sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-        ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+        ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
         sage: M
         [1 1 1 0 0 0 0]
         [1 0 0 1 1 0 0]
@@ -223,7 +226,7 @@ class BipartiteGraph(Graph):
     TESTS:
 
     Make sure we can create a ``BipartiteGraph`` with keywords but no
-    positional arguments (trac #10958).
+    positional arguments (:trac:`10958`).
 
     ::
 
@@ -232,7 +235,7 @@ class BipartiteGraph(Graph):
         True
 
     Ensure that we can construct a ``BipartiteGraph`` with isolated vertices
-    via the reduced adjacency matrix (trac #10356)::
+    via the reduced adjacency matrix (:trac:`10356`)::
 
         sage: a=BipartiteGraph(matrix(2,2,[1,0,1,0]))
         sage: a
@@ -300,8 +303,8 @@ class BipartiteGraph(Graph):
             Graph.__init__(self, *args, **kwds)
             ncols = data.ncols()
             nrows = data.nrows()
-            self.left = set(xrange(ncols))
-            self.right = set(xrange(ncols, nrows + ncols))
+            self.left = set(range(ncols))
+            self.right = set(range(ncols, nrows + ncols))
 
             # ensure that the vertices exist even if there
             # are no associated edges (trac #10356)
@@ -521,7 +524,7 @@ class BipartiteGraph(Graph):
         vertices.  Vertices that already exist in the graph will not be added
         again.
 
-        INPUTS:
+        INPUT:
 
         - ``vertices`` -- sequence of vertices to add.
 
@@ -793,6 +796,23 @@ class BipartiteGraph(Graph):
         Graph.add_edge(self, u, v, label)
         return
 
+    def complement(self):
+        """
+        Return a complement of this graph.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph({1: [2, 4], 3: [4, 5]})
+            sage: G = B.complement(); G
+            Graph on 5 vertices
+            sage: G.edges(labels=False)
+            [(1, 3), (1, 5), (2, 3), (2, 4), (2, 5), (4, 5)]
+        """
+        # This is needed because complement() of generic graph
+        # would return a graph of class BipartiteGraph that is
+        # not bipartite. See ticket #12376.
+        return Graph(self).complement()
+
     def to_undirected(self):
         """
         Return an undirected Graph (without bipartite constraint) of the given
@@ -919,9 +939,9 @@ class BipartiteGraph(Graph):
 
         ::
 
-            sage: x = polygen(ZZ)
+            sage: x = polygen(QQ)
             sage: g = BipartiteGraph(graphs.CompleteBipartiteGraph(16, 16))
-            sage: factorial(16)*laguerre(16,x^2) == g.matching_polynomial(algorithm='rook')
+            sage: bool(factorial(16)*laguerre(16,x^2) == g.matching_polynomial(algorithm='rook'))
             True
 
         Compute the matching polynomial of a line with `60` vertices::
@@ -1048,8 +1068,8 @@ class BipartiteGraph(Graph):
 
         # now we have all the edges in our graph, just fill in the
         # bipartite partitioning
-        self.left = set(xrange(num_cols))
-        self.right = set(xrange(num_cols, num_cols + num_rows))
+        self.left = set(range(num_cols))
+        self.right = set(range(num_cols, num_cols + num_rows))
 
         # return self for chaining calls if desired
         return self
@@ -1065,7 +1085,7 @@ class BipartiteGraph(Graph):
         EXAMPLE::
 
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-            ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+            ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: M
             [1 1 1 0 0 0 0]
             [1 0 0 1 1 0 0]
@@ -1092,12 +1112,12 @@ class BipartiteGraph(Graph):
             ....:             b.save_afile(file_name)
             ....:             b2 = BipartiteGraph(file_name)
             ....:             if b != b2:
-            ....:                 print "Load/save failed for code with edges:"
-            ....:                 print b.edges()
+            ....:                 print("Load/save failed for code with edges:")
+            ....:                 print(b.edges())
             ....:                 break
             ....:         except Exception:
-            ....:             print "Exception encountered for graph of order "+ str(order)
-            ....:             print "with edges: "
+            ....:             print("Exception encountered for graph of order "+ str(order))
+            ....:             print("with edges: ")
             ....:             g.edges()
             ....:             raise
         """
@@ -1180,7 +1200,7 @@ class BipartiteGraph(Graph):
         Bipartite graphs that are not weighted will return a matrix over ZZ::
 
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-            ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+            ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: B = BipartiteGraph(M)
             sage: N = B.reduced_adjacency_matrix()
             sage: N

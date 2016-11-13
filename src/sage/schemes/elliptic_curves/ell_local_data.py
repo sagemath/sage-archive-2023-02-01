@@ -80,6 +80,7 @@ AUTHORS:
 - Chris Wuthrich: more documentation 2010-01
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -107,8 +108,8 @@ from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalI
 from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.ideal import is_Ideal
 
-from constructor import EllipticCurve
-from kodaira_symbol import KodairaSymbol
+from .constructor import EllipticCurve
+from .kodaira_symbol import KodairaSymbol
 
 class EllipticCurveLocalData(SageObject):
     r"""
@@ -705,7 +706,7 @@ class EllipticCurveLocalData(SageObject):
             sage: E.tamagawa_number(K.ideal(2))
             4
 
-        This is to show that the bug :trac: `11630` is fixed. (The computation of the class group would produce a warning)::
+        This is to show that the bug :trac:`11630` is fixed. (The computation of the class group would produce a warning)::
         
             sage: K.<t> = NumberField(x^7-2*x+177)
             sage: E = EllipticCurve([0,1,0,t,t])

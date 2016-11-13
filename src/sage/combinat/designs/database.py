@@ -46,6 +46,8 @@ REFERENCES:
 Functions
 ---------
 """
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      OA_from_Vmt,
@@ -54,7 +56,7 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
                                                      OA_from_PBD,
                                                      OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
-from orthogonal_arrays import wilson_construction
+from .orthogonal_arrays import wilson_construction
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
@@ -94,7 +96,7 @@ def MOLS_10_2():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_10_2
         sage: MOLS = MOLS_10_2()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
 
     The design is available from the general constructor::
@@ -136,7 +138,7 @@ def MOLS_12_5():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_12_5
         sage: MOLS = MOLS_12_5()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
     """
     M = """
@@ -168,7 +170,7 @@ def MOLS_14_4():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_14_4
         sage: MOLS = MOLS_14_4()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
 
     The design is available from the general constructor::
@@ -178,7 +180,7 @@ def MOLS_14_4():
 
     REFERENCE:
 
-    .. [Todorov12] D.T. Todorov,
+    .. [Todorov12] \D.T. Todorov,
       Four mutually orthogonal Latin squares of order 14,
       Journal of Combinatorial Designs 2012, vol.20 n.8 pp.363-367
     """
@@ -212,7 +214,7 @@ def MOLS_15_4():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_15_4
         sage: MOLS = MOLS_15_4()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
 
     The design is available from the general constructor::
@@ -251,7 +253,7 @@ def MOLS_18_3():
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
         sage: from sage.combinat.designs.database import MOLS_18_3
         sage: MOLS = MOLS_18_3()
-        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        sage: print(are_mutually_orthogonal_latin_squares(MOLS))
         True
 
     The design is available from the general constructor::
@@ -315,7 +317,7 @@ def OA_7_18():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_18
         sage: OA = OA_7_18()
-        sage: print is_orthogonal_array(OA,7,18,2)
+        sage: is_orthogonal_array(OA,7,18,2)
         True
 
     The design is available from the general constructor::
@@ -370,7 +372,7 @@ def OA_9_40():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_40
         sage: OA = OA_9_40()
-        sage: print is_orthogonal_array(OA,9,40,2)
+        sage: is_orthogonal_array(OA,9,40,2)
         True
 
     The design is available from the general constructor::
@@ -378,7 +380,7 @@ def OA_9_40():
         sage: designs.orthogonal_arrays.is_available(9,40)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None)],
@@ -409,7 +411,7 @@ def OA_7_66():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_66
         sage: OA = OA_7_66()
-        sage: print is_orthogonal_array(OA,7,66,2)
+        sage: is_orthogonal_array(OA,7,66,2)
         True
 
     The design is available from the general constructor::
@@ -449,7 +451,7 @@ def OA_7_68():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_68
         sage: OA = OA_7_68()
-        sage: print is_orthogonal_array(OA,7,68,2)
+        sage: is_orthogonal_array(OA,7,68,2)
         True
 
     The design is available from the general constructor::
@@ -489,7 +491,7 @@ def OA_8_69():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_69
         sage: OA = OA_8_69()
-        sage: print is_orthogonal_array(OA,8,69,2)
+        sage: is_orthogonal_array(OA,8,69,2)
         True
 
     The design is available from the general constructor::
@@ -562,7 +564,7 @@ def OA_7_74():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_74
         sage: OA = OA_7_74()
-        sage: print is_orthogonal_array(OA,7,74,2)
+        sage: is_orthogonal_array(OA,7,74,2)
         True
 
     The design is available from the general constructor::
@@ -602,7 +604,7 @@ def OA_8_76():
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_76
         sage: OA = OA_8_76()
-        sage: print is_orthogonal_array(OA,8,76,2)
+        sage: is_orthogonal_array(OA,8,76,2)
         True
 
     The design is available from the general constructor::
@@ -670,7 +672,7 @@ def OA_11_80():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_80
         sage: OA = OA_11_80()
-        sage: print is_orthogonal_array(OA,11,80,2)
+        sage: is_orthogonal_array(OA,11,80,2)
         True
 
     The design is available from the general constructor::
@@ -678,7 +680,7 @@ def OA_11_80():
         sage: designs.orthogonal_arrays.is_available(11,80)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None)],
@@ -712,7 +714,7 @@ def OA_15_112():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_15_112
         sage: OA = OA_15_112()
-        sage: print is_orthogonal_array(OA,15,112,2)
+        sage: is_orthogonal_array(OA,15,112,2)
         True
 
     The design is available from the general constructor::
@@ -720,7 +722,7 @@ def OA_15_112():
         sage: designs.orthogonal_arrays.is_available(15,112)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
@@ -762,7 +764,7 @@ def OA_9_120():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_120
         sage: OA = OA_9_120()
-        sage: print is_orthogonal_array(OA,9,120,2)
+        sage: is_orthogonal_array(OA,9,120,2)
         True
 
     The design is available from the general constructor::
@@ -770,7 +772,7 @@ def OA_9_120():
         sage: designs.orthogonal_arrays.is_available(9,120)
         True
     """
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     RBIBD_120 = RBIBD_120_8_1()
     equiv = [RBIBD_120[i*15:(i+1)*15] for i in range(17)]
 
@@ -811,7 +813,7 @@ def OA_9_135():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_135
         sage: OA = OA_9_135()
-        sage: print is_orthogonal_array(OA,9,135,2)
+        sage: is_orthogonal_array(OA,9,135,2)
         True
 
     The design is available from the general constructor::
@@ -826,8 +828,8 @@ def OA_9_135():
         sage: G
         Ring of integers modulo 273
     """
-    from bibd import BIBD_from_difference_family
-    from difference_family import singer_difference_set
+    from .bibd import BIBD_from_difference_family
+    from .difference_family import singer_difference_set
     G,B = singer_difference_set(16,2)
     PG16 = BIBD_from_difference_family(G,B)
 
@@ -891,7 +893,7 @@ def OA_11_160():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_160
         sage: OA = OA_11_160()
-        sage: print is_orthogonal_array(OA,11,160,2)
+        sage: is_orthogonal_array(OA,11,160,2)
         True
 
     The design is available from the general constructor::
@@ -899,7 +901,7 @@ def OA_11_160():
         sage: designs.orthogonal_arrays.is_available(11,160)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
          [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
@@ -934,7 +936,7 @@ def OA_16_176():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_16_176
         sage: OA = OA_16_176()
-        sage: print is_orthogonal_array(OA,16,176,2)
+        sage: is_orthogonal_array(OA,16,176,2)
         True
 
     The design is available from the general constructor::
@@ -942,7 +944,7 @@ def OA_16_176():
         sage: designs.orthogonal_arrays.is_available(16,176)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(1 ,None),(4 ,None),(9 ,None)],
@@ -993,7 +995,7 @@ def OA_11_185():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_185
         sage: OA = OA_11_185()
-        sage: print is_orthogonal_array(OA,11,185,2)
+        sage: is_orthogonal_array(OA,11,185,2)
         True
 
     The design is available from the general constructor::
@@ -1015,7 +1017,7 @@ def OA_11_185():
     # Lines of the Fano subplane that are contained in blocks
     fano_lines = [B for B in BIBD if sum(x%39==0 for x in B) == 3]
 
-    # Points on a line of the Fano sublane
+    # Points on a line of the Fano subplane
     on_a_fano_line = set().union(*fano_lines)
 
     # Not on a line of the Fano plane
@@ -1069,7 +1071,7 @@ def OA_10_205():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_205
         sage: OA = OA_10_205()
-        sage: print is_orthogonal_array(OA,10,205,2)
+        sage: is_orthogonal_array(OA,10,205,2)
         True
 
     The design is available from the general constructor::
@@ -1133,7 +1135,7 @@ def OA_16_208():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_16_208
         sage: OA = OA_16_208()                        # not tested -- too long
-        sage: print is_orthogonal_array(OA,16,208,2)  # not tested -- too long
+        sage: is_orthogonal_array(OA,16,208,2)  # not tested -- too long
         True
 
     The design is available from the general constructor::
@@ -1141,7 +1143,7 @@ def OA_16_208():
         sage: designs.orthogonal_arrays.is_available(16,208)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (1 ,None)],
@@ -1192,7 +1194,7 @@ def OA_15_224():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_15_224
         sage: OA = OA_15_224()                         # not tested -- too long
-        sage: print is_orthogonal_array(OA,15,224,2)   # not tested -- too long
+        sage: is_orthogonal_array(OA,15,224,2)   # not tested -- too long
         True
 
     The design is available from the general constructor::
@@ -1200,7 +1202,7 @@ def OA_15_224():
         sage: designs.orthogonal_arrays.is_available(15,224)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
@@ -1243,7 +1245,7 @@ def OA_11_254():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_254
         sage: OA = OA_11_254()
-        sage: print is_orthogonal_array(OA,11,254,2)
+        sage: is_orthogonal_array(OA,11,254,2)
         True
 
     The design is available from the general constructor::
@@ -1278,7 +1280,7 @@ def OA_20_352():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_20_352
         sage: OA = OA_20_352()                        # not tested (~25s)
-        sage: print is_orthogonal_array(OA,20,352,2)  # not tested (~25s)
+        sage: is_orthogonal_array(OA,20,352,2)  # not tested (~25s)
         True
 
     The design is available from the general constructor::
@@ -1286,7 +1288,7 @@ def OA_20_352():
         sage: designs.orthogonal_arrays.is_available(20,352)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     # Column 8, line 6 : 4,25 became 4,27
     #           line 17: 3,0  became 3,None
@@ -1337,7 +1339,7 @@ def OA_20_416():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_20_416
         sage: OA = OA_20_416()                        # not tested (~35s)
-        sage: print is_orthogonal_array(OA,20,416,2)  # not tested
+        sage: is_orthogonal_array(OA,20,416,2)  # not tested
         True
 
     The design is available from the general constructor::
@@ -1345,7 +1347,7 @@ def OA_20_416():
         sage: designs.orthogonal_arrays.is_available(20,416)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     Z = None
     A=[
@@ -1397,7 +1399,7 @@ def OA_20_544():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_20_544
         sage: OA = OA_20_544()                        # not tested (too long ~1mn)
-        sage: print is_orthogonal_array(OA,20,544,2)  # not tested
+        sage: is_orthogonal_array(OA,20,544,2)  # not tested
         True
 
     The design is available from the general constructor::
@@ -1405,7 +1407,7 @@ def OA_20_544():
         sage: designs.orthogonal_arrays.is_available(20,544)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     Z = None
 
@@ -1461,7 +1463,7 @@ def OA_17_560():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_17_560
         sage: OA = OA_17_560()
-        sage: print is_orthogonal_array(OA,17,560,2)
+        sage: is_orthogonal_array(OA,17,560,2)
         True
 
     The design is available from the general constructor::
@@ -1469,7 +1471,7 @@ def OA_17_560():
         sage: designs.orthogonal_arrays.is_available(17,560)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     alpha = 5
     beta  = 4
     p     = 2
@@ -1477,7 +1479,7 @@ def OA_17_560():
     m     = 16
     n     = p**alpha
 
-    G = GF(p**alpha,prefix='x',conway=True)
+    G = GF(p**alpha,prefix='x')
     G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
     G_to_int = {v:i for i,v in enumerate(G_set)}
     # Builds an OA(n+1,n) whose last n-1 colums are
@@ -1525,7 +1527,7 @@ def OA_11_640():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_640
         sage: OA = OA_11_640()                        # not tested (too long)
-        sage: print is_orthogonal_array(OA,11,640,2)  # not tested (too long)
+        sage: is_orthogonal_array(OA,11,640,2)  # not tested (too long)
         True
 
     The design is available from the general constructor::
@@ -1533,7 +1535,7 @@ def OA_11_640():
         sage: designs.orthogonal_arrays.is_available(11,640)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
@@ -1575,7 +1577,7 @@ def OA_10_796():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_796
         sage: OA = OA_10_796()
-        sage: print is_orthogonal_array(OA,10,796,2)
+        sage: is_orthogonal_array(OA,10,796,2)
         True
 
     The design is available from the general constructor::
@@ -1585,13 +1587,13 @@ def OA_10_796():
     """
     from sage.combinat.designs.orthogonal_arrays import OA_relabel
     from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
-    from orthogonal_arrays import incomplete_orthogonal_array
+    from .orthogonal_arrays import incomplete_orthogonal_array
 
     OA = orthogonal_array(17,47)
     OA = OA_relabel(OA,17,47,blocks=[OA[0]]) # making sure [46]*17 is a block
     PBD = [[i*47+x for i,x in enumerate(B) if (x<46 or i<13)] for B in OA]
     extra_point = 10000
-    PBD.extend([range(i*47,(i+1)*47-int(i>=13))+[extra_point] for i in range(17)]) # Adding the columns
+    PBD.extend([list(range(i*47,(i+1)*47-int(i>=13)))+[extra_point] for i in range(17)]) # Adding the columns
 
     rel = {v:i for i,v in enumerate(set(range(17*47)).difference([(i+1)*47-1 for i in range(13,17)]))}
     rel[extra_point] = len(rel)
@@ -1653,7 +1655,7 @@ def OA_10_469():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_469
         sage: OA = OA_10_469()
-        sage: print is_orthogonal_array(OA,10,469,2)
+        sage: is_orthogonal_array(OA,10,469,2)
         True
 
     The design is available from the general constructor::
@@ -1661,8 +1663,8 @@ def OA_10_469():
         sage: designs.orthogonal_arrays.is_available(10,469)
         True
     """
-    from orthogonal_arrays_build_recursive import _reorder_matrix
-    from orthogonal_arrays import incomplete_orthogonal_array
+    from .orthogonal_arrays_build_recursive import _reorder_matrix
+    from .orthogonal_arrays import incomplete_orthogonal_array
 
     OA = []
 
@@ -1733,11 +1735,11 @@ def OA_520_plus_x(x):
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_520_plus_x
         sage: OA = OA_520_plus_x(0)                   # not tested (already tested in OA_10_520)
-        sage: print is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520)
+        sage: is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520)
         True
 
     """
-    from orthogonal_arrays import incomplete_orthogonal_array
+    from .orthogonal_arrays import incomplete_orthogonal_array
     k = 9+x+1
 
     # The OA(17,31) with a block [30,30,...]
@@ -1749,7 +1751,7 @@ def OA_520_plus_x(x):
     # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
     new_point = 31*17
     PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
-    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
+    PBD.extend([list(range(i*31,i*31+30+bool(i<9+x)))+[new_point] for i in range(17)]) # extended (+truncated) groups
 
     relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
     PBD = [[relabel[xx] for xx in B] for B in PBD]
@@ -1782,7 +1784,7 @@ def OA_10_520():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_520
         sage: OA = OA_10_520()
-        sage: print is_orthogonal_array(OA,10,520,2)
+        sage: is_orthogonal_array(OA,10,520,2)
         True
 
     The design is available from the general constructor::
@@ -1804,7 +1806,7 @@ def OA_12_522():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_12_522
         sage: OA = OA_12_522()
-        sage: print is_orthogonal_array(OA,12,522,2)
+        sage: is_orthogonal_array(OA,12,522,2)
         True
 
     The design is available from the general constructor::
@@ -1826,7 +1828,7 @@ def OA_14_524():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_14_524
         sage: OA = OA_14_524()
-        sage: print is_orthogonal_array(OA,14,524,2)
+        sage: is_orthogonal_array(OA,14,524,2)
         True
 
     The design is available from the general constructor::
@@ -1852,7 +1854,7 @@ def OA_15_896():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_15_896
         sage: OA = OA_15_896()                          # not tested -- too long (~2min)
-        sage: print is_orthogonal_array(OA,15,896,2)    # not tested -- too long
+        sage: is_orthogonal_array(OA,15,896,2)    # not tested -- too long
         True
 
     The design is available from the general constructor::
@@ -1860,7 +1862,7 @@ def OA_15_896():
         sage: designs.orthogonal_arrays.is_available(15,896)
         True
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
@@ -1903,7 +1905,7 @@ def OA_9_1078():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_1078
         sage: OA = OA_9_1078()                       # not tested -- ~3s
-        sage: print is_orthogonal_array(OA,9,1078,2) # not tested -- ~3s
+        sage: is_orthogonal_array(OA,9,1078,2) # not tested -- ~3s
         True
 
     The design is available from the general constructor::
@@ -1929,7 +1931,7 @@ def OA_25_1262():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_25_1262
         sage: OA = OA_25_1262()                       # not tested -- too long
-        sage: print is_orthogonal_array(OA,25,1262,2) # not tested -- too long
+        sage: is_orthogonal_array(OA,25,1262,2) # not tested -- too long
         True
 
     The design is available from the general constructor::
@@ -1970,7 +1972,7 @@ def OA_9_1612():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_1612
         sage: OA = OA_9_1612()                       # not tested -- ~6s
-        sage: print is_orthogonal_array(OA,9,1612,2) # not tested -- ~6s
+        sage: is_orthogonal_array(OA,9,1612,2) # not tested -- ~6s
         True
 
     The design is available from the general constructor::
@@ -2000,7 +2002,7 @@ def OA_10_1620():
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_1620
         sage: OA = OA_10_1620()                       # not tested -- ~7s
-        sage: print is_orthogonal_array(OA,10,1620,2) # not tested -- ~7s
+        sage: is_orthogonal_array(OA,10,1620,2) # not tested -- ~7s
         True
 
     The design is available from the general constructor::
@@ -3026,6 +3028,7 @@ DF = {
 
 ( 11, 4,6):
   {(11,): [[0,1,8,9],[0,2,5,7],[0,1,4,5],[0,2,3,5],[0,4,5,9]]},
+
 ( 15, 4,6):
   {(15,): [[0,1,2,3],[0,2,4,6],[0,4,8,12],[0,8,1,9],
            [3,6,9,12],[0,1,5,10],[0,2,5,10]]},
@@ -3061,6 +3064,9 @@ DF = {
 ( 43,15,10):
   {(43,): [[1,3,6,13,18,21,22,25,26,27,33,35,36,38,40],
            [9,10,11,13,16,17,19,23,26,27,28,33,35,38,39]]},
+( 45,12, 3):
+  {(3,3,5): [[(0,0,0),(0,0,1),(0,0,2),(0,2,1),(0,0,3),(0,1,1),
+              (1,0,0),(1,1,2),(1,2,3),(2,0,0),(2,1,3),(2,2,2)]]},
 ( 46,10, 6):
   {(46,): [[0,2,11,13,21,22,30,33,34,40],[0,2,6,7,22,23,28,32,35,38],
            [0,2,4,7,8,9,12,23,26,41]]},
@@ -3539,7 +3545,7 @@ def DM_45_7_1():
 
         sage: _ = designs.difference_matrix(45,7)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.categories.cartesian_product import cartesian_product
 
     G533 = cartesian_product((FiniteField(5),FiniteField(3),FiniteField(3)))
@@ -3592,7 +3598,7 @@ def DM_48_9_1():
 
         sage: _ = designs.difference_matrix(48,9)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F16 = FiniteField(16,'x')
     F3 = FiniteField(3)
     F3F16 = F3.cartesian_product(F16)
@@ -3684,7 +3690,7 @@ def DM_52_6_1():
         sage: _ = designs.difference_matrix(52,6)
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F4  = FiniteField(4,'z')
     G13 = FiniteField(13)
     G = F4.cartesian_product(G13)
@@ -3796,7 +3802,7 @@ def DM_56_8_1():
 
         sage: _ = designs.difference_matrix(56,8)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     F8  = FiniteField(8,'z')
     F7  = FiniteField(7)
     G   = F8.cartesian_product(F7)
@@ -3923,7 +3929,7 @@ def DM_75_8_1():
 
         sage: _ = designs.difference_matrix(75,8)
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.categories.cartesian_product import cartesian_product
 
     F3 = FiniteField(3)
@@ -4085,7 +4091,7 @@ def RBIBD_120_8_1():
 
         sage: _ = designs.balanced_incomplete_block_design(120,8)
     """
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     n=273
 
     # Base block of a cyclic BIBD(273,16,1)
@@ -4120,6 +4126,84 @@ def RBIBD_120_8_1():
 
     equiv = [[M.nonzero_positions_in_row(x) for x in S] for S in equiv]
     return [B for S in equiv for B in S]
+
+def BIBD_45_9_8(from_code=False):
+    r"""
+    Return a `(45,9,1)`-BIBD.
+
+    This BIBD is obtained from the codewords of minimal weight in the
+    :func:`~sage.coding.code_constructions.ExtendedQuadraticResidueCode` of
+    length 48. This construction appears in VII.11.2 from [DesignHandbook]_,
+    which cites [HT95]_.
+
+    INPUT:
+
+    - ``from_code`` (boolean) -- whether to build the design from hardcoded data
+      (default) or from the code object (much longer).
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_45_9_8
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: B = BalancedIncompleteBlockDesign(45, BIBD_45_9_8(),lambd=8); B
+        (45,9,8)-Balanced Incomplete Block Design
+
+    TESTS:
+
+    From the definition (takes around 12s)::
+
+        sage: B2 = Hypergraph(BIBD_45_9_8(from_code=True)) # not tested
+        sage: B2.is_isomorphic(B)                          # not tested
+        True
+
+    REFERENCE:
+
+    .. [HT95] \W. Huffman and V. Tonchev,
+       The existence of extremal self-dual `[50, 25, 10]` codes and
+       quasi-symmetric `2-(49, 9, 6)` designs,
+       Designs, Codes and Cryptography
+       September 1995, Volume 6, Issue 2, pp 97-106
+    """
+    if from_code:
+        from sage.coding.code_constructions import ExtendedQuadraticResidueCode
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
+        C = ExtendedQuadraticResidueCode(47,FiniteField(2))
+        min_weight = [map(int,x)[3:] for x in C
+                      if x.hamming_weight() == 12 and
+                      x[0]==1 and x[1]==1 and x[2]==1]
+
+        return [[i for i,v in enumerate(x) if v] for x in min_weight]
+
+    from sage.rings.integer import Integer
+    B = ['acs1v', 'l8lsx', '4ga1vw', '6q9amr', 'nb3ui8', 'sgjocw', '11vsoy2', '28791ts', '30tm1z8', '38ktnwh',
+         '3saz8jk', '41qkwme', '4g3jxmt', '56qhwuc', '711w45k', '8nz2gx4', '903uha8', '957z8dc', '9wejz7k', 'fs905ic',
+         'ftzzh28', 'gb4g448', 'hvreal0', 'nqlhxu8', 'rmluazm', 'vlyqayx', 'w52detk', 'zisjk02', 'zw9811c', '10i7qfl1',
+         '13ibtse8', '1rbsbvvc', '1sdy0o5c', '1z14s09e', '2nbz5a80', '2uuhib2a', '2wkn4r9d', '3iaaat5w', '3iiwq53s',
+         '3j9ubv43', '3mpxpngz', '3qamndc0', '3saomh3t', '3uhhi5cw', '4334rx4x', '4dxy3xts', '4tn9w2z1', '4vlr2h00',
+         '59f1meqm', '59h6udc1', '5cep4nc0', '5ddcxsw2', '70msua7k', '70ofjm82', '70p8jig0', '721o664h', '72jutmfk',
+         '74jowaad', '78ihrfgo', '7meufihs', '7wv5mtxj', '84akgj0w', '8m9vyb60', '8s0c6p04', '8soi6m8g', '9kawy0ow',
+         'awnpg9a8', 'biu8xww0', 'e1lptwxx', 'e79x2we8', 'eh0t1q9y', 'eh65daci', 'ehxytwjk', 'extc1udk', 'f4toqhpg',
+         'fgeqg214', 'ftiem9lk', 'fw77kcnc', 'h5kt9cf4', 'hjwhwym8', 'hz8d60xs', 'jb6bp0g0', 'l22bzw1w', 'l3pj9hq8',
+         'lbj1fubp', 'lxal1lk2', 's27vq70q', 's2bb5mki', 's2w95y0w', 's3cek9og', 's4703jk4', 's67g5qf5', 's8kgdkat',
+         'sckruupw', 'se4vzkao', 'si57d0vl', 'sjhd20i8', 'sqne2mf6', 'sxtju9ds', 'ttd710kw', 'ttkayw5e', 'u96baslc',
+         'vtdhrbj5', 'y79i706c', 'zycu7tsa', '10uwf8sh4', '11boo6mmc', '12sxyeebs', '163xyccg3', '16cpesdfk',
+         '18q18bpc0', '1k4hvvgq4', '1k5f63ok4', '1k5olig3u', '1k6fsqalm', '1kacr2gi8', '1kcc6rzu1', '1kkpot632',
+         '1kwdghpts', '1l2644l68', '1l3yxmj9s', '1m04wgmyo', '1mtm16z5s', '1np6u1q0w', '1nuo1tbfk', '1oy4n1mo0',
+         '1r5lsxju0', '1sx57vdfq', '1v4j675ds', '1y5oldkzm', '1ydfr4jno', '1ylc38ah4', '1z14mw0td', '223vcx1xc',
+         '26xq9hn29', '2c7wa6r0w', '2cbc8qbcw', '2jn9ojll5', '2qjlkoz69', '2tr1zn5ds', '348vfurgh', '348vlaoc0',
+         '348ynt0qx', '34ahl37ds', '34b3cgc8y', '34ooa1ix0', '34r4ejl82', '35p5m8r28', '360i7uazl', '36289j761',
+         '3650mzlzg', '36aev2c00', '36noxmex2', '36vlw3k3k', '37rw4rghs', '37t554ikq', '387avhseb', '3b9o5lbwi',
+         '3ewmteale', '3ibz0r8n4', '3id5iv5ky', '3ihxwcvvc', '3k5k1k174', '3pau9ujnl', '3wf1e2dck', '43rfm4du8',
+         '47pqff6yo', '4e2i4y684', '4hio30v0o', '4odb0lr5s', '4odcmkvt0', '4p94elixc', '4p9zffz0k', '4qciqf9mp',
+         '4ywafln9c', '5hf4nw08w', '68ijggco4', '68jq73cxs', '68maap98g', '68prdfhqg', '68qm8divl', '691ibd2ps',
+         '69dbnd8ur', '69esd0djg', '69w6eo0sh', '6ad6zcetk', '6aonwwkjk', '6aozhe8zl', '6cvyitslw', '6dr7i6olg',
+         '6fibvzxtw', '6fmd4bv28', '6gmqtkr9e', '6j14n6n7k', '6miukvtc1', '6mjvifon4', '6mormb3fm', '6mr9hvhna',
+         '6q533lm6w', '6rsie7cbk', '6tjgpxic0', '70k7ao9m0', '7103zqlvk', '71i1x52bm', '7447g0dfw', '7sogja9z4',
+         '7up5z9m9u', '7w7esu6fm', '7zmqtlrpd', '81tsbnzsw', '8kofgi1he', '8mhi35nc1', '9cv1pjiaw', '9d6ef1dah',
+         '9dftsor9c', '9du8c1vcw', '9jr5vsnj4', 'a8b405mps', 'ajqhmxkj4', 'ax2xsvfic']
+    B = [Integer(x,base=36) for x in B]
+    return [[i for i in range(45) if x&(1<<i)]
+            for x in B]
 
 def BIBD_66_6_1():
     r"""
@@ -4226,7 +4310,7 @@ def BIBD_111_6_1():
         (111,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     bibd = [(( 0,0), ( 1,0), ( 3,0), ( 7,0), (17,0), ( 0,1)),
             (( 0,0), ( 5,0), (19,1), (28,1), (10,2), (30,2)),
             (( 5,0), (33,0), (13,1), (34,1), (19,2), ( 7,2)),
@@ -4280,7 +4364,7 @@ def BIBD_136_6_1():
         (136,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     inf=(None,None)
     bibd = [((0,0), ( 3,0), (15,0), (35,0), ( 6,2), (10,2)),
             ((0,0), (22,0), (11,1), (30,1), ( 1,2), (18,2)),
@@ -4308,7 +4392,7 @@ def BIBD_141_6_1():
         (141,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     a = 'a'
     inf = (None,None)
     bibd = [((0,0), (16,0), (24,0), (24,1), (15,2), (25,2)),
@@ -4339,7 +4423,7 @@ def BIBD_171_6_1():
         (171,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     bibd = [(( 0,0), (19,0), (39,0), (41,0), (14,1), (38,2)),
             (( 0,0), (21,0), (44,0), (48,0), (26,1), (11,2)),
             (( 0,0), ( 1,0), (43,0), ( 8,2), (15,2), (44,2)),
@@ -4352,6 +4436,67 @@ def BIBD_171_6_1():
                       frozenset(((x+1) %57,      y) for x,y in B)]
     bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
     return IncidenceStructure(bibd)._blocks
+
+def HigmanSimsDesign():
+    r"""
+    Return the Higman-Sims designs, which is a `(176, 50, 14)`-BIBD.
+
+    This design is built from a from the :func:`WittDesign
+    <sage.combinat.designs.block_design.WittDesign>` `W` on 24 points. We define
+    two points `a,b`, and consider:
+
+    - The collection `W_a` of all blocks of `W` containing `a` but not
+      containing `b`.
+
+    - The collection `W_b` of all blocks of `W` containing `b` but not
+      containing `a`.
+
+    The design is then obtained from the incidence structure produced by the
+    blocks `A\in W_a` and `B\in W_b` whose intersection has cardinality 2. This
+    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of [BvL84]_.
+
+    EXAMPLE::
+
+        sage: H = designs.HigmanSimsDesign(); H  # optional - gap_packages
+        Incidence structure with 176 points and 176 blocks
+        sage: H.is_t_design(return_parameters=1) # optional - gap_packages
+        (True, (2, 176, 50, 14))
+
+    Make sure that the automorphism group of this designs is isomorphic to the
+    automorphism group of the
+    :func:`~sage.graphs.generators.smallgraphs.HigmanSimsGraph`. Note that the
+    first of those permutation groups acts on 176 points, while the second acts
+    on 100::
+
+        sage: gH = H.automorphism_group()                        # optional - gap_packages
+        sage: gG = graphs.HigmanSimsGraph().automorphism_group() # optional - gap_packages
+        sage: gG.is_isomorphic(gG)                   # long time # optional - gap_packages
+        True
+
+    REFERENCE:
+
+    .. [KY04] \S. Klee and L. Yates,
+       Tight Subdesigns of the Higman-Sims Design,
+       Rose-Hulman Undergraduate Math. J 5.2 (2004).
+       https://www.rose-hulman.edu/mathjournal/archives/2004/vol5-n2/paper9/v5n2-9pd.pdf
+    """
+    from sage.combinat.designs.block_design import WittDesign
+    from .incidence_structures import IncidenceStructure
+    W = WittDesign(24)
+    a,b = 0,1
+    Wa = [set(B) for B in W
+          if (a     in B and
+              b not in B)]
+    Wb = [set(B) for B in W
+          if (b     in B and
+              a not in B)]
+
+    H = [[i for i,A in enumerate(Wa) if len(A&B) != 2]
+         for B in Wb]
+
+    H = IncidenceStructure(H)
+
+    return H
 
 def BIBD_196_6_1():
     r"""
@@ -4367,7 +4512,7 @@ def BIBD_196_6_1():
         (196,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     a = 'a'
     bibd = [((0,0), ( 2,0), (12,0), (45,0), ( 3,1), (11,a)),
             ((0,0), ( 3,0), ( 8,0), ( 5,1), (17,1), (39,a)),
@@ -4399,7 +4544,7 @@ def BIBD_201_6_1():
         (201,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     bibd = [((0,0), ( 1,0), ( 4,2), ( 9,2), (34,2), (62,2)),
             ((0,1), ( 2,1), (15,1), ( 8,2), (27,2), (49,2)),
             ((0,0), ( 3,0), (22,0), (54,1), (13,2), (40,2)),
@@ -4422,6 +4567,7 @@ def BIBD_201_6_1():
 # This dictionary is used by designs.BalancedIncompleteBlockDesign
 
 BIBD_constructions = {
+    ( 45,9,8): BIBD_45_9_8,
     ( 66,6,1): BIBD_66_6_1,
     ( 76,6,1): BIBD_76_6_1,
     ( 96,6,1): BIBD_96_6_1,
@@ -4432,6 +4578,7 @@ BIBD_constructions = {
     (136,6,1): BIBD_136_6_1,
     (141,6,1): BIBD_141_6_1,
     (171,6,1): BIBD_171_6_1,
+    (176,50,14): HigmanSimsDesign,
     (196,6,1): BIBD_196_6_1,
     (201,6,1): BIBD_201_6_1,
 }
@@ -4447,7 +4594,7 @@ LIST_OF_BIBD = "\n".join("    - `\lambda={}`:\n       ".format(l) +
 # For the definition see the documentation of the class
 # EvenlyDistributedSetsBacktracker in the file evenly_distributed_sets.pyx
 #
-# EDS is a dictionnary of dictionnaries whose keys are the integers
+# EDS is a dictionary of dictionaries whose keys are the integers
 # 4, 5,..., 10. For each k in {4,...,10} the keys of EDS[k] are the prime powers
 # `q` so that `q = 1 modulo k(k-1)`.
 # The value at position EDS[k][q] is one of:

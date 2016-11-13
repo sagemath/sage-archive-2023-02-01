@@ -1,27 +1,46 @@
 r"""
 Platonic Solids
 
-EXAMPLES: The five platonic solids in a row;
+EXAMPLES: The five platonic solids in a row:
 
 ::
 
-    sage: G = tetrahedron((0,-3.5,0), color='blue') + cube((0,-2,0),color=(.25,0,.5)) +\
-          octahedron(color='red') + dodecahedron((0,2,0), color='orange') +\
-          icosahedron(center=(0,4,0), color='yellow')
+    sage: G = tetrahedron((0,-3.5,0), color='blue') + cube((0,-2,0),color=(.25,0,.5))
+    sage: G += octahedron(color='red') + dodecahedron((0,2,0), color='orange')
+    sage: G += icosahedron(center=(0,4,0), color='yellow')
     sage: G.show(aspect_ratio=[1,1,1])
+
+.. PLOT::
+
+    G = tetrahedron((0,-3.5,0), color='blue') + cube((0,-2,0),color=(.25,0,.5))
+    G += octahedron(color='red') + dodecahedron((0,2,0), color='orange')
+    G += icosahedron(center=(0,4,0), color='yellow')
+    sphinx_plot(G)
 
 All the platonic solids in the same place::
 
-    sage: G = tetrahedron(color='blue',opacity=0.7) + \
-          cube(color=(.25,0,.5), opacity=0.7) +\
-          octahedron(color='red', opacity=0.7) + \
-          dodecahedron(color='orange', opacity=0.7) + icosahedron(opacity=0.7)
+    sage: G = tetrahedron(color='blue',opacity=0.7)
+    sage: G += cube(color=(.25,0,.5), opacity=0.7)
+    sage: G += octahedron(color='red', opacity=0.7)
+    sage: G += dodecahedron(color='orange', opacity=0.7) + icosahedron(opacity=0.7)
     sage: G.show(aspect_ratio=[1,1,1])
+
+.. PLOT::
+
+    G = tetrahedron(color='blue',opacity=0.7)
+    G += cube(color=(.25,0,.5), opacity=0.7)
+    G += octahedron(color='red', opacity=0.7)
+    G += dodecahedron(color='orange', opacity=0.7) + icosahedron(opacity=0.7)
+    sphinx_plot(G)
 
 Display nice faces only::
 
     sage: icosahedron().stickers(['red','blue'], .075, .1)
     Graphics3d Object
+
+.. PLOT::
+
+    sphinx_plot(icosahedron().stickers(['red','blue'], .075, .1))
 
 AUTHORS:
 
@@ -29,6 +48,7 @@ AUTHORS:
 
 - William Stein
 """
+from __future__ import absolute_import
 
 
 #*****************************************************************************
@@ -46,14 +66,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-
 from sage.rings.all import RDF
 from sage.matrix.constructor import matrix
+from .shapes import Box, ColorCube
+from .shapes2 import frame3d
+from .index_face_set import IndexFaceSet
 
-from shapes import Box, ColorCube
-from shapes2 import frame3d
-from index_face_set import IndexFaceSet
 
 def index_face_set(face_list, point_list, enclosed, **kwds):
     """
@@ -62,14 +80,14 @@ def index_face_set(face_list, point_list, enclosed, **kwds):
 
     INPUT:
 
-    -  ``face_list`` - list of faces, given explicitly from the
-       solid invocation
+    - ``face_list`` -- list of faces, given explicitly from the
+      solid invocation
 
-    -  ``point_list`` - list of points, given explicitly from the
-       solid invocation
+    - ``point_list`` -- list of points, given explicitly from the
+      solid invocation
 
-    -  ``enclosed`` - boolean (default passed is always True
-       for these solids)
+    - ``enclosed`` -- boolean (default passed is always ``True``
+      for these solids)
 
     TESTS:
 
@@ -92,7 +110,7 @@ def index_face_set(face_list, point_list, enclosed, **kwds):
         center = kwds['center']
         del kwds['center']
     else:
-        center = (0,0,0)
+        center = (0, 0, 0)
     if 'size' in kwds:
         size = kwds['size']
         del kwds['size']
@@ -101,6 +119,7 @@ def index_face_set(face_list, point_list, enclosed, **kwds):
     I = IndexFaceSet(face_list, point_list, enclosed=enclosed, **kwds)
     return prep(I, center, size, kwds)
 
+
 def prep(G, center, size, kwds):
     """
     Helper function that scales and translates the platonic
@@ -108,78 +127,102 @@ def prep(G, center, size, kwds):
 
     INPUT:
 
-    -  ``center`` - 3-tuple indicating the center (default passed
-       from :func:`index_face_set` is the origin `(0,0,0)`)
+    - ``center`` -- 3-tuple indicating the center (default passed
+      from :func:`index_face_set` is the origin `(0,0,0)`)
 
-    -  ``size`` - number indicating amount to scale by (default
-       passed from :func:`index_face_set` is 1)
+    - ``size`` -- number indicating amount to scale by (default
+      passed from :func:`index_face_set` is 1)
 
-    -  ``kwds`` - a dictionary of keywords, passed from solid
-       invocation by :func:`index_face_set`
+    - ``kwds`` -- a dictionary of keywords, passed from solid
+      invocation by :func:`index_face_set`
 
     TESTS:
 
     Verify that scaling and moving the center work together properly,
-    and that keywords are passed (see Trac #10796)::
+    and that keywords are passed (see :trac:`10796`)::
 
         sage: octahedron(center=(2,0,0),size=2,color='red')
         Graphics3d Object
     """
     if size != 1:
         G = G.scale(size)
-    if center != (0,0,0):
+    if center != (0, 0, 0):
         G = G.translate(center)
     G._set_extra_kwds(kwds)
     return G
 
-def tetrahedron(center=(0,0,0), size=1, **kwds):
+
+def tetrahedron(center=(0, 0, 0), size=1, **kwds):
     """
     A 3d tetrahedron.
 
     INPUT:
 
-    -  ``center`` - (default: (0,0,0))
+    - ``center`` -- (default: (0,0,0))
 
-    -  ``size`` - (default: 1)
+    - ``size`` -- (default: 1)
 
     - ``color`` -- a string (``"red"``, ``"green"``, etc)
       or a tuple (r, g, b) with r, g, b numbers between 0 and 1
 
-    -  ``opacity`` - (default: 1) if less than 1 then is
-       transparent
-
+    - ``opacity`` -- (default: 1) if less than 1 then is
+      transparent
 
     EXAMPLES: A default colored tetrahedron at the origin::
 
         sage: tetrahedron()
         Graphics3d Object
 
+    .. PLOT::
+
+        sphinx_plot(tetrahedron())
+
     A transparent green tetrahedron in front of a solid red one::
 
         sage: tetrahedron(opacity=0.8, color='green') + tetrahedron((-2,1,0),color='red')
         Graphics3d Object
 
+    .. PLOT::
+
+        sphinx_plot(tetrahedron(opacity=0.8, color='green') + tetrahedron((-2,1,0),color='red'))
+
     A translucent tetrahedron sharing space with a sphere::
 
-        sage: tetrahedron(color='yellow',opacity=0.7) + sphere(r=.5, color='red')
+        sage: tetrahedron(color='yellow',opacity=0.7) + sphere(size=.5, color='red')
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(tetrahedron(color='yellow',opacity=0.7) + sphere(size = .5, color='red'))
 
     A big tetrahedron::
 
         sage: tetrahedron(size=10)
         Graphics3d Object
 
+    .. PLOT::
+
+        sphinx_plot(tetrahedron(size=10))
+
     A wide tetrahedron::
 
         sage: tetrahedron(aspect_ratio=[1,1,1]).scale((4,4,1))
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(tetrahedron(aspect_ratio=[1,1,1]).scale((4,4,1)))
 
     A red and blue tetrahedron touching noses::
 
         sage: tetrahedron(color='red') + tetrahedron((0,0,-2)).scale([1,1,-1])
         Graphics3d Object
 
-    A Dodecahedral complex of 5 tetrahedrons (a more elaborate examples
+    .. PLOT::
+
+        sphinx_plot(tetrahedron(color='red') + tetrahedron((0,0,-2)).scale([1,1,-1]))
+
+    A Dodecahedral complex of 5 tetrahedrons (a more elaborate example
     from Peter Jipsen)::
 
         sage: v=(sqrt(5.)/2-5/6, 5/6*sqrt(3.)-sqrt(15.)/2, sqrt(5.)/3)
@@ -191,12 +234,23 @@ def tetrahedron(center=(0,0,0), size=1, **kwds):
         sage: t5=tetrahedron(color='orange', opacity=0.5).rotateZ(t).rotate(v,8*pi/5)
         sage: show(t1+t2+t3+t4+t5, frame=False, zoom=1.3)
 
+    .. PLOT::
+
+        v=(sqrt(5.)/2-5/6, 5/6*sqrt(3.)-sqrt(15.)/2, sqrt(5.)/3)
+        t=acos(sqrt(5.)/3)/2
+        t1=tetrahedron(aspect_ratio=(1,1,1), opacity=0.5).rotateZ(t)
+        t2=tetrahedron(color='red', opacity=0.5).rotateZ(t).rotate(v,2*pi/5)
+        t3=tetrahedron(color='green', opacity=0.5).rotateZ(t).rotate(v,4*pi/5)
+        t4=tetrahedron(color='yellow', opacity=0.5).rotateZ(t).rotate(v,6*pi/5)
+        t5=tetrahedron(color='orange', opacity=0.5).rotateZ(t).rotate(v,8*pi/5)
+        sphinx_plot(t1+t2+t3+t4+t5)
+
     AUTHORS:
 
     - Robert Bradshaw and William Stein
     """
     RR = RDF
-    one = RR(1)
+    one = RR.one()
     sqrt2 = RR(2).sqrt()
     sqrt6 = RR(6).sqrt()
     point_list = [(0,0,1),
@@ -205,34 +259,34 @@ def tetrahedron(center=(0,0,0), size=1, **kwds):
                   ( -sqrt2/3, -sqrt6/3, -one/3)]
     face_list = [[0,1,2],[1,3,2],[0,2,3],[0,3,1]]
     if 'aspect_ratio' not in kwds:
-        kwds['aspect_ratio'] = [1,1,1]
+        kwds['aspect_ratio'] = [1, 1, 1]
     return index_face_set(face_list, point_list, enclosed=True, center=center, size=size, **kwds)
 
-def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None, **kwds):
+
+def cube(center=(0, 0, 0), size=1, color=None, frame_thickness=0,
+         frame_color=None, **kwds):
     """
     A 3D cube centered at the origin with default side lengths 1.
 
     INPUT:
 
+    - ``center`` -- (default: (0,0,0))
 
-    -  ``center`` - (default: (0,0,0))
+    - ``size`` -- (default: 1) the side lengths of the
+      cube
 
-    -  ``size`` - (default: 1) the side lengths of the
-       cube
+    - ``color`` -- a string that describes a color; this
+      can also be a list of 3-tuples or strings length 6 or 3, in which
+      case the faces (and oppositive faces) are colored.
 
-    -  ``color`` - a string that describes a color; this
-       can also be a list of 3-tuples or strings length 6 or 3, in which
-       case the faces (and oppositive faces) are colored.
+    - ``frame_thickness`` -- (default: 0) if positive,
+      then thickness of the frame
 
-    -  ``frame_thickness`` - (default: 0) if positive,
-       then thickness of the frame
+    - ``frame_color`` -- (default: None) if given, gives
+      the color of the frame
 
-    -  ``frame_color`` - (default: None) if given, gives
-       the color of the frame
-
-    -  ``opacity`` - (default: 1) if less than 1 then it's
-       transparent
-
+    - ``opacity`` -- (default: 1) if less than 1 then it's
+      transparent
 
     EXAMPLES:
 
@@ -241,20 +295,36 @@ def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None
         sage: cube()
         Graphics3d Object
 
+    .. PLOT::
+
+        sphinx_plot(cube())
+
     A red cube::
 
         sage: cube(color="red")
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(cube(color="red"))
 
     A transparent grey cube that contains a red cube::
 
         sage: cube(opacity=0.8, color='grey') + cube(size=3/4)
         Graphics3d Object
 
+    .. PLOT::
+
+        sphinx_plot(cube(opacity=0.8, color='grey') + cube(size=3/4))
+
     A transparent colored cube::
 
         sage: cube(color=['red', 'green', 'blue'], opacity=0.5)
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(cube(color=['red', 'green', 'blue'], opacity=0.5))
 
     A bunch of random cubes::
 
@@ -262,18 +332,38 @@ def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None
         sage: sum([cube((10*a,10*b,10*c), size=random()/3, color=(a,b,c)) for a,b,c in v])
         Graphics3d Object
 
+    .. PLOT::
+
+        v = [(random(), random(), random()) for _ in range(30)]
+        sphinx_plot(sum([cube((10*a,10*b,10*c), size=random()/3, color=(a,b,c)) for a,b,c in v]))
+
     Non-square cubes (boxes)::
 
         sage: cube(aspect_ratio=[1,1,1]).scale([1,2,3])
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(cube(aspect_ratio=[1,1,1]).scale([1,2,3]))
+
+    ::
+
         sage: cube(color=['red', 'blue', 'green'],aspect_ratio=[1,1,1]).scale([1,2,3])
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(cube(color=['red', 'blue', 'green'],aspect_ratio=[1,1,1]).scale([1,2,3]))
 
     And one that is colored::
 
         sage: cube(color=['red', 'blue', 'green', 'black', 'white', 'orange'],
         ....:      aspect_ratio=[1,1,1]).scale([1,2,3])
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(cube(color=['red', 'blue', 'green', 'black', 'white', 'orange'],aspect_ratio=[1,1,1]).scale([1,2,3]))
 
     A nice translucent color cube with a frame::
 
@@ -282,15 +372,20 @@ def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None
         sage: c
         Graphics3d Object
 
+    .. PLOT::
+
+        c = cube(color=['red', 'blue', 'green'], frame=False, frame_thickness=2,frame_color='brown', opacity=0.8)
+        sphinx_plot(c)
+
     A raytraced color cube with frame and transparency::
 
         sage: c.show(viewer='tachyon')
 
-    This shows #11272 has been fixed::
+    This shows :trac:`11272` has been fixed::
 
         sage: cube(center=(10, 10, 10), size=0.5).bounding_box()
         ((9.75, 9.75, 9.75), (10.25, 10.25, 10.25))
-
+        
     AUTHORS:
 
     - William Stein
@@ -300,7 +395,7 @@ def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None
     else:
         if color is not None:
             kwds['color'] = color
-        B = Box(0.5,0.5,0.5, **kwds)
+        B = Box(0.5, 0.5, 0.5, **kwds)
     if frame_thickness > 0:
         if frame_color is None:
             B += frame3d((-0.5,-0.5,-0.5),(0.5,0.5,0.5), thickness=frame_thickness)
@@ -308,64 +403,80 @@ def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None
             B += frame3d((-0.5,-0.5,-0.5),(0.5,0.5,0.5), thickness=frame_thickness, color=frame_color)
     return prep(B, center, size, kwds)
 
-def octahedron(center=(0,0,0), size=1, **kwds):
+
+def octahedron(center=(0, 0, 0), size=1, **kwds):
     r"""
     Return an octahedron.
 
     INPUT:
 
+    - ``center`` -- (default: (0,0,0))
 
-    -  ``center`` - (default: (0,0,0))
+    - ``size`` -- (default: 1)
 
-    -  ``size`` - (default: 1)
+    - ``color`` -- a string that describes a color; this
+      can also be a list of 3-tuples or strings length 6 or 3, in which
+      case the faces (and oppositive faces) are colored.
 
-    -  ``color`` - a string that describes a color; this
-       can also be a list of 3-tuples or strings length 6 or 3, in which
-       case the faces (and oppositive faces) are colored.
-
-    -  ``opacity`` - (default: 1) if less than 1 then is
-       transparent
-
+    - ``opacity`` -- (default: 1) if less than 1 then is
+      transparent
 
     EXAMPLES::
 
-        sage: octahedron((1,4,3), color='orange') + \
-        ....:            octahedron((0,2,1), size=2, opacity=0.6)
+        sage: G = octahedron((1,4,3), color='orange')
+        sage: G += octahedron((0,2,1), size=2, opacity=0.6)
+        sage: G
         Graphics3d Object
+
+    .. PLOT::
+
+        G = octahedron((1,4,3), color='orange')
+        G += octahedron((0,2,1), size=2, opacity=0.6)
+        sphinx_plot(G)
+
     """
     if 'aspect_ratio' not in kwds:
-        kwds['aspect_ratio'] = [1,1,1]
+        kwds['aspect_ratio'] = [1, 1, 1]
     return prep(Box(1,1,1).dual(**kwds), center, size, kwds)
 
-def dodecahedron(center=(0,0,0), size=1, **kwds):
+
+def dodecahedron(center=(0, 0, 0), size=1, **kwds):
     r"""
     A dodecahedron.
 
     INPUT:
 
+    - ``center`` -- (default: (0,0,0))
 
-    -  ``center`` - (default: (0,0,0))
+    - ``size`` -- (default: 1)
 
-    -  ``size`` - (default: 1)
+    - ``color`` -- a string that describes a color; this
+      can also be a list of 3-tuples or strings length 6 or 3, in which
+      case the faces (and oppositive faces) are colored.
 
-    -  ``color`` - a string that describes a color; this
-       can also be a list of 3-tuples or strings length 6 or 3, in which
-       case the faces (and oppositive faces) are colored.
-
-    -  ``opacity`` - (default: 1) if less than 1 then is
-       transparent
-
+    - ``opacity`` -- (default: 1) if less than 1 then is transparent
 
     EXAMPLES: A plain Dodecahedron::
 
         sage: dodecahedron()
         Graphics3d Object
 
+    .. PLOT::
+
+        sphinx_plot(dodecahedron())
+
     A translucent dodecahedron that contains a black sphere::
 
-        sage: dodecahedron(color='orange', opacity=0.8) + \
-        ....:      sphere(size=0.5, color='black')
+        sage: G = dodecahedron(color='orange', opacity=0.8)
+        sage: G += sphere(size=0.5, color='black')
+        sage: G
         Graphics3d Object
+
+    .. PLOT::
+
+        G = dodecahedron(color='orange', opacity=0.8)
+        G += sphere(size=0.5, color='black')
+        sphinx_plot(G)
 
     CONSTRUCTION: This is how we construct a dodecahedron. We let one
     point be `Q = (0,1,0)`.
@@ -442,38 +553,45 @@ def dodecahedron(center=(0,0,0), size=1, **kwds):
 #        return Graphics3dGroup(vertex_spheres)
 
 
-def icosahedron(center=(0,0,0), size=1, **kwds):
+def icosahedron(center=(0, 0, 0), size=1, **kwds):
     r"""
     An icosahedron.
 
     INPUT:
 
+    - ``center`` -- (default: (0, 0, 0))
 
-    -  ``center`` - (default: (0,0,0))
+    - ``size`` -- (default: 1)
 
-    -  ``size`` - (default: 1)
+    - ``color`` -- a string that describes a color; this
+      can also be a list of 3-tuples or strings length 6 or 3, in which
+      case the faces (and oppositive faces) are colored.
 
-    -  ``color`` - a string that describes a color; this
-       can also be a list of 3-tuples or strings length 6 or 3, in which
-       case the faces (and oppositive faces) are colored.
-
-    -  ``opacity`` - (default: 1) if less than 1 then is
-       transparent
-
+    - ``opacity`` -- (default: 1) if less than 1 then is transparent
 
     EXAMPLES::
 
         sage: icosahedron()
         Graphics3d Object
 
-    Two icosahedrons at different positions of different sizes.
+    .. PLOT::
 
-    ::
+        sphinx_plot(icosahedron())
 
-        sage: icosahedron((-1/2,0,1), color='orange') + \
-        ....:      icosahedron((2,0,1), size=1/2, aspect_ratio=[1,1,1])
+    Two icosahedrons at different positions of different sizes. ::
+
+        sage: p = icosahedron((-1/2,0,1), color='orange')
+        sage: p += icosahedron((2,0,1), size=1/2, color='red', aspect_ratio=[1,1,1])
+        sage: p
         Graphics3d Object
+
+    .. PLOT::
+
+        p = icosahedron((-1/2,0,1), color='orange')
+        p += icosahedron((2,0,1), size = 0.5, color='red', aspect_ratio=[1,1,1])
+        sphinx_plot(p)
+
     """
     if 'aspect_ratio' not in kwds:
-        kwds['aspect_ratio'] = [1,1,1]
+        kwds['aspect_ratio'] = [1, 1, 1]
     return prep(dodecahedron().dual(**kwds), center, size, kwds)

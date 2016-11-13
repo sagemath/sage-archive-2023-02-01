@@ -13,19 +13,38 @@ build: all-build
 
 # Defer unknown targets to build/make/Makefile
 %::
-	$(MAKE) configure logs
-	+cd build/make && ./pipestatus \
-		"./install '$@' 2>&1" \
-		"tee -a ../../logs/install.log"
+	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
+	$(MAKE) build/make/Makefile
+	+build/bin/sage-logger \
+		"cd build/make && ./install '$@'" logs/install.log
 
-logs:
-	mkdir -p $@
+# If configure was run before, rerun it with the old arguments.
+# Otherwise, run configure with argument $PREREQ_OPTIONS.
+build/make/Makefile: configure build/make/deps build/pkgs/*/*
+	rm -f config.log
+	mkdir -p logs/pkgs
+	ln -s logs/pkgs/config.log config.log
+	@if [ -x config.status ]; then \
+		./config.status --recheck && ./config.status; \
+	else \
+		./configure $$PREREQ_OPTIONS; \
+	fi || ( \
+		if [ "x$$SAGE_PORT" = x ]; then \
+			echo "If you would like to try to build Sage anyway (to help porting),"; \
+			echo "export the variable 'SAGE_PORT' to something non-empty."; \
+			exit 1; \
+		else \
+			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
+		fi; )
 
 # Preemptively download all standard upstream source tarballs.
 download:
 	export SAGE_ROOT=$$(pwd) && \
 	export PATH=$$SAGE_ROOT/src/bin:$$PATH && \
 	./src/bin/sage-download-upstream
+
+dist: build/make/Makefile
+	./sage --sdist
 
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
 # running the secure notebook. This make target requires internet
@@ -62,7 +81,7 @@ bootstrap-clean:
 maintainer-clean: distclean bootstrap-clean
 	rm -rf upstream
 
-micro_release: bdist-clean lib-clean
+micro_release: bdist-clean sagelib-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 
@@ -75,56 +94,48 @@ test: all
 check: test
 
 testall: all
-	$(TESTALL) --optional=all --logfile=logs/testall.log
+	$(TESTALL) --optional=sage,optional,external --logfile=logs/testall.log
 
 testlong: all
 	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong: all
-	$(TESTALL) --long --optional=all --logfile=logs/testalllong.log
+	$(TESTALL) --long --optional=sage,optional,external --logfile=logs/testalllong.log
 
 ptest: all
 	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall: all
-	$(PTESTALL) --optional=all --logfile=logs/ptestall.log
+	$(PTESTALL) --optional=sage,optional,external --logfile=logs/ptestall.log
 
 ptestlong: all
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong: all
-	$(PTESTALL) --long --optional=all --logfile=logs/ptestalllong.log
+	$(PTESTALL) --long --optional=sage,optional,external --logfile=logs/ptestalllong.log
 
+testoptional: all
+	$(TESTALL) --optional=sage,optional --logfile=logs/testoptional.log
 
-testoptional: testall # just an alias
+testoptionallong: all
+	$(TESTALL) --long --optional=sage,optional --logfile=logs/testoptionallong.log
 
-testoptionallong: testalllong # just an alias
+ptestoptional: all
+	$(PTESTALL) --optional=sage,optional --logfile=logs/ptestoptional.log
 
-ptestoptional: ptestall # just an alias
+ptestoptionallong: all
+	$(PTESTALL) --long --optional=sage,optional --logfile=logs/ptestoptionallong.log
 
-ptestoptionallong: ptestalllong # just an alias
-
-configure: configure.ac src/bin/sage-version.sh \
-        m4/ax_c_check_flag.m4 m4/ax_gcc_option.m4 m4/ax_gcc_version.m4 m4/ax_gxx_option.m4 m4/ax_gxx_version.m4 m4/ax_prog_perl_version.m4
+configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d
 
 install:
-	echo "Experimental use only!"
-	if [ "$(DESTDIR)" = "" ]; then \
-		echo >&2 "Set the environment variable DESTDIR to the install path."; \
-		exit 1; \
-	fi
-	# Make sure we remove only an existing directory. If $(DESTDIR)/sage is
-	# a file instead of a directory then the mkdir statement later will fail
-	if [ -d "$(DESTDIR)"/sage ]; then \
-		rm -rf "$(DESTDIR)"/sage; \
-	fi
-	mkdir -p "$(DESTDIR)"/sage
-	mkdir -p "$(DESTDIR)"/bin
-	cp -Rp * "$(DESTDIR)"/sage
-	rm -f "$(DESTDIR)"/bin/sage
-	ln -s ../sage/sage "$(DESTDIR)"/bin/sage
-	"$(DESTDIR)"/bin/sage -c # Run sage-location
+	@echo "******************************************************************"
+	@echo "The '$@' target is no longer supported:"
+	@echo "either build SageMath in-place or use the binary packaging scripts"
+	@echo "from https://github.com/sagemath/binary-pkg"
+	@echo "******************************************************************"
+	@exit 1
 
 
 .PHONY: default build install micro_release \

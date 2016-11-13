@@ -37,7 +37,8 @@ if [ "$UNAME" = FreeBSD ]; then
     export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 fi
 
-python setup.py install
+$PIP_INSTALL .
+
 if [ $? -ne 0 ]; then
     echo "Error building/installing cvxopt"
     exit 1

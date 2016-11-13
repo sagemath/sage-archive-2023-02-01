@@ -457,7 +457,7 @@ class Triangulation(Element):
             \phi_T(p_i) = \sum_{t\in T, t\owns p_i} Vol(t)
 
         that is, the total volume of all simplices containing `p_i`.
-        See also [GKZ]_ page 220 equation 1.4.
+        See also [GKZ1994]_ page 220 equation 1.4.
 
         OUTPUT:
 
@@ -737,7 +737,7 @@ class Triangulation(Element):
         functions with fixed creases forms an open cone. This cone can
         be interpreted as the cone of normal vectors at a point of the
         secondary polytope, which is why we call it normal cone. See
-        [GKZ]_ Section 7.1 for details.
+        [GKZ1994]_ Section 7.1 for details.
 
         OUTPUT:
 
@@ -782,7 +782,7 @@ class Triangulation(Element):
         from sage.libs.ppl import Variable, Constraint, Constraint_System, Linear_Expression, C_Polyhedron
         from sage.matrix.constructor import matrix
         from sage.misc.misc import uniq
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         pc = self.point_configuration()
         cs = Constraint_System()
         for facet in self.interior_facets():

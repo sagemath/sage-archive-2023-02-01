@@ -1,4 +1,9 @@
-from six import *
+"""
+Python 2 and 3 Compatibility
+"""
+from __future__ import absolute_import
+
+from .six import *
 
 def with_metaclass(meta, *bases):
     """

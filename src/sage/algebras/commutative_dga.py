@@ -61,6 +61,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import six
 from sage.structure.unique_representation import UniqueRepresentation
@@ -253,7 +254,7 @@ class Differential(UniqueRepresentation, Morphism):
             sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ)
             sage: B = A.cdg_algebra({x: x*y, y: x*y, z: z*t, t: t*z})
             sage: D = B.differential()
-            sage: print D._repr_defn()
+            sage: print(D._repr_defn())
             x --> x*y
             y --> x*y
             z --> z*t
@@ -2516,6 +2517,16 @@ class CohomologyClass(SageObject):
             [x - 2]
         """
         self._x = x
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.algebras.commutative_dga import CohomologyClass
+            sage: hash(CohomologyClass(sin)) == hash(sin)
+            True
+        """
+        return hash(self._x)
 
     def _repr_(self):
         """

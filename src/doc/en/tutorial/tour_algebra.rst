@@ -4,7 +4,7 @@ Basic Algebra and Calculus
 Sage can perform various computations related to basic algebra and
 calculus: for example, finding solutions to equations,
 differentiation, integration, and Laplace transforms. See the
-`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
+`Sage Constructions <http://doc.sagemath.org/html/en/constructions/>`_
 documentation for more examples.
 
 In all these examples, it is important to note that the variables in the
@@ -164,7 +164,7 @@ solve the equation :math:`x'+x-1=0`:
 ::
 
     sage: t = var('t')    # define a variable t
-    sage: x = function('x',t)   # define x to be a function of that variable
+    sage: x = function('x')(t)   # define x to be a function of that variable
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
     (_C + e^t)*e^(-t)

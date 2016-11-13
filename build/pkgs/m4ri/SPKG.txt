@@ -9,10 +9,6 @@ GF(2).  (See also m4ri/README for a brief overview.)
 
  * GNU General Public License Version 2 or later (see src/COPYING)
 
-== Maintainers ==
-
- * Martin Albrecht
-
 == Upstream Contact ==
 
  * Authors: Martin Albrecht et al.

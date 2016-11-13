@@ -15,17 +15,19 @@ Coerce actions
 
 import operator
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
-from sage.structure.element cimport parent_c
 
-from sage.categories.action import InverseAction, PrecomposedAction
-from coerce_exceptions import CoercionException
+from .element cimport (parent_c, coercion_model,
+        Element, ModuleElement, RingElement)
+from .parent cimport Parent
+from .coerce_exceptions import CoercionException
+from sage.categories.action cimport InverseAction, PrecomposedAction
+
 
 cdef _record_exception():
-    from element import get_coercion_model
-    get_coercion_model()._record_exception()
+    coercion_model._record_exception()
 
 cdef inline an_element(R):
     if isinstance(R, Parent):
@@ -329,7 +331,7 @@ cdef class ModuleAction(Action):
             # The right thing to do is a normal multiplication
             raise CoercionException("Best viewed as standard multiplication")
         # Objects are implemented with the assumption that
-        # _rmul_ is given an element of the base ring
+        # _lmul_/_rmul_ are given an element of the base ring
         if G is not base:
             # first we try the easy case of coercing G to the base ring of S
             self.connecting = base._internal_coerce_map_from(G)
@@ -510,6 +512,26 @@ cdef class ModuleAction(Action):
             with precomposition on right by Conversion via FractionFieldElement map:
               From: Univariate Polynomial Ring in y over Integer Ring
               To:   Fraction Field of Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring
+
+        TESTS:
+
+        See :trac:`19521`::
+
+            sage: Q.<y> = SR.subring(no_variables=True)[[]]
+            sage: (y / 1).parent()
+            Power Series Ring in y over Symbolic Constants Subring
+            sage: R.<x> = SR.subring(no_variables=True)[]
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.explain(x, 1, operator.div)
+            Action discovered.
+                Right inverse action by Symbolic Constants Subring on
+                Univariate Polynomial Ring in x over Symbolic Constants Subring
+                with precomposition on right by Conversion map:
+                  From: Integer Ring
+                  To:   Symbolic Constants Subring
+            Result lives in Univariate Polynomial Ring in x over
+            Symbolic Constants Subring
+            Univariate Polynomial Ring in x over Symbolic Constants Subring
         """
         K = self.G._pseudo_fraction_field()
         if K is self.G:
@@ -522,7 +544,28 @@ cdef class ModuleAction(Action):
             K = pushout(self.G._pseudo_fraction_field(), R)
             if K is None:
                 K = R._pseudo_fraction_field()
-            for _, Ri in reversed(construction_tower(K)):
+
+            # Suppose we have parents of a construction tower
+            #   A -> B -> C <- D <- E -> F <- G -> H,
+            # where the arrows specify the direction of coercion (i.e.
+            # A -> B means A coerces to B). Note that B = FA(A), C = FB(B), ...
+            # As we want to find a "smallest" parent with some properties,
+            # we need the order
+            #   A, B, E, D, C, G, F, H
+            # for our search. Thus the elements connected with a <- have to
+            # be reversed. See code below.
+            tower = []
+            reversed_part = []
+            for Fi, Ri in reversed(construction_tower(K)):
+                if Fi is not None and Fi.coercion_reversed:
+                    reversed_part.append((Fi, Ri))
+                else:
+                    tower.append((Fi, Ri))
+                    if reversed_part:
+                        tower += reversed(reversed_part)
+                        reversed_part = []
+            assert(not reversed_part)
+            for _, Ri in tower:
                 if not Ri.has_coerce_map_from(self.G):
                     continue
                 Ki = Ri._pseudo_fraction_field()
@@ -566,7 +609,7 @@ cdef class LeftModuleAction(ModuleAction):
             g = self.connecting._call_(g)
         if self.extended_base is not None:
             a = self.extended_base(a)
-        return (<ModuleElement>a)._rmul_(<RingElement>g)  # a * g
+        return (<ModuleElement>a)._rmul_(<RingElement>g)  # g * a
 
 
 cdef class RightModuleAction(ModuleAction):
@@ -591,7 +634,6 @@ cdef class RightModuleAction(ModuleAction):
             sage: A._call_(x+5, 2) # safe only when arguments have exactly the correct parent
             2*x + 10
         """
-        cdef PyObject* tmp
         if self.connecting is not None:
             g = self.connecting._call_(g)
         if self.extended_base is not None:
@@ -685,9 +727,9 @@ cdef class IntegerMulAction(Action):
         """
         if not self._is_left:
             a, nn = nn, a
-        if not PyInt_CheckExact(nn):
+        if type(nn) is not int:
             nn = PyNumber_Int(nn)
-            if not PyInt_CheckExact(nn):
+            if type(nn) is not int:
                 return fast_mul(a, nn)
         return fast_mul_long(a, PyInt_AS_LONG(nn))
 
@@ -702,7 +744,7 @@ cdef class IntegerMulAction(Action):
             ...
             TypeError: No generic module division by Z.
         """
-        raise TypeError, "No generic module division by Z."
+        raise TypeError("No generic module division by Z.")
 
     def _repr_name_(self):
         """

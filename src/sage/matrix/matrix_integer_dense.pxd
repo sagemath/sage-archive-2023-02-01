@@ -1,14 +1,13 @@
 from sage.libs.gmp.types cimport *
-from sage.libs.flint.fmpz cimport *
-from sage.libs.flint.fmpz_mat cimport *
+from sage.libs.flint.types cimport fmpz_mat_t
 
-cimport matrix_dense
+from .matrix_dense cimport Matrix_dense
 from sage.rings.integer cimport Integer
 from sage.ext.mod_int cimport *
 
 ctypedef long* GEN
 
-cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_integer_dense(Matrix_dense):
     cdef fmpz_mat_t _matrix  # Always initialized in __cinit__
     cdef bint _initialized_mpz
     cdef mpz_t * _entries    # Only used if _initialized_mpz
@@ -36,7 +35,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef int* _hnf_modn_impl(Matrix_integer_dense self, unsigned int det,
             Py_ssize_t nrows, Py_ssize_t ncols) except NULL
 
-    cdef Matrix_integer_dense _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)
+    cdef Matrix_integer_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols)
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows)
 

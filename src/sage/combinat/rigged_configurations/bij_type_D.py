@@ -542,7 +542,7 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
             self._graph.pop(0) # Remove the dummy at the start
             from sage.graphs.digraph import DiGraph
             from sage.graphs.dot2tex_utils import have_dot2tex
-            self._graph = DiGraph(self._graph)
+            self._graph = DiGraph(self._graph, format="list_of_edges")
             if have_dot2tex():
                 self._graph.set_latex_options(format="dot2tex", edge_labels=True)
 

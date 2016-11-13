@@ -19,7 +19,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from cpython.object cimport *
 from sage.misc.constant_function import ConstantFunction
@@ -28,17 +28,8 @@ import operator
 
 import homset
 
-include "sage/ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
-def make_morphism(_class, parent, _dict, _slots):
-    # from element.pyx
-    cdef Morphism mor = _class.__new__(_class)
-    mor._set_parent(parent)
-    mor._update_slots(_slots)
-    if HAS_DICTIONARY(mor):
-        mor.__dict__ = _dict
-    return mor
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
@@ -139,7 +130,7 @@ cdef class Morphism(Map):
               Defn: t |--> t + 1
             sage: f._repr_short()
             't |--> t + 1'
-            sage: print f._repr_short()
+            sage: print(f._repr_short())
             t |--> t + 1
 
             sage: R.<u,v> = ZZ[]
@@ -148,7 +139,7 @@ cdef class Morphism(Map):
             Ring endomorphism of Multivariate Polynomial Ring in u, v over Integer Ring
               Defn: u |--> v
                     v |--> u + v
-            sage: print f._repr_short()
+            sage: print(f._repr_short())
             u |--> v, v |--> u + v
 
         AUTHOR:
@@ -170,7 +161,10 @@ cdef class Morphism(Map):
             sage: R.<t> = ZZ[]
             sage: f = R.hom([t**2])
             sage: f.category()
-            Category of endsets of unital magmas and right modules over (euclidean domains and infinite enumerated sets) and left modules over (euclidean domains and infinite enumerated sets)
+            Category of endsets of unital magmas and right modules over
+             (euclidean domains and infinite enumerated sets and metric spaces)
+             and left modules over (euclidean domains
+             and infinite enumerated sets and metric spaces)
 
             sage: K = CyclotomicField(12)
             sage: L = CyclotomicField(132)
@@ -341,7 +335,7 @@ cdef class Morphism(Map):
             definition = repr(self)
         return hash((domain, codomain, definition))
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())
@@ -422,9 +416,9 @@ cdef class SetMorphism(Morphism):
         """
         INPUT:
 
-         - ``parent`` -- a Homset
-         - ``function`` -- a Python function that takes elements
-           of the domain as input and returns elements of the domain.
+        - ``parent`` -- a Homset
+        - ``function`` -- a Python function that takes elements
+          of the domain as input and returns elements of the domain.
 
         EXAMPLES::
 
@@ -445,7 +439,7 @@ cdef class SetMorphism(Morphism):
         """
         INPUT:
 
-         - ``x`` -- an element of ``self.domain()``
+        - ``x`` -- an element of ``self.domain()``
 
         Returns the result of ``self`` applied on ``x``.
 
@@ -471,8 +465,8 @@ cdef class SetMorphism(Morphism):
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
             sage: def foo(x,*args,**kwds):
-            ....:  print 'foo called with',args,kwds
-            ....:  return x
+            ....:     print('foo called with {} {}'.format(args, kwds))
+            ....:     return x
             sage: f = SetMorphism(Hom(R,R,Rings()), foo)
             sage: f(2,'hello world',test=1)     # indirect doctest
             foo called with ('hello world',) {'test': 1}
@@ -482,13 +476,13 @@ cdef class SetMorphism(Morphism):
         try:
             return self._function(x, *args, **kwds)
         except Exception:
-            raise TypeError("Underlying map %s does not accept additional arguments"%type(self._function))
+            raise TypeError("Underlying map %s does not accept additional arguments" % type(self._function))
 
     cdef dict _extra_slots(self, dict _slots):
         """
         INPUT:
 
-         - ``_slots`` -- a dictionary
+        - ``_slots`` -- a dictionary
 
         Extends the dictionary with extra slots for this class.
 
@@ -559,9 +553,10 @@ cdef class SetMorphism(Morphism):
     def __richcmp__(self, right, int op):
         """
         INPUT:
-         - ``self``  -- SetMorphism
-         - ``right`` -- any object
-         - ``op``    -- integer
+
+        - ``self``  -- SetMorphism
+        - ``right`` -- any object
+        - ``op``    -- integer
 
         EXAMPLES::
 

@@ -21,7 +21,7 @@ Sage example in ./integration.tex, line 103::
     sage: fp = plot(f, 1, 3, color='red')
     sage: n = 4
     sage: interp_points = [(1+2*u/(n-1), N(f(1+2*u/(n-1))))
-    ....:                  for u in xrange(n)]
+    ....:                  for u in range(n)]
     sage: A = PolynomialRing(RR, 'x')
     sage: pp = plot(A.lagrange_polynomial(interp_points), 1, 3, fill='axis')
     sage: show(fp+pp)
@@ -68,13 +68,13 @@ Sage example in ./integration.tex, line 417::
 Sage example in ./integration.tex, line 430::
 
     sage: sage.calculus.calculus.nintegral(sin(sin(x)), x, 0, 1)
-    (0.430606103120690..., 4.780688102287053...e-15, 21, 0)
+    (0.430606103120690..., 4.78068810228705...e-15, 21, 0)
 
 Sage example in ./integration.tex, line 436::
 
     sage: g(x) = sin(sin(x))
     sage: g.nintegral(x, 0, 1)
-    (0.430606103120690..., 4.780688102287053...e-15, 21, 0)
+    (0.430606103120690..., 4.78068810228705...e-15, 21, 0)
 
 Sage example in ./integration.tex, line 465::
 

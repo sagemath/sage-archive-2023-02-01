@@ -20,6 +20,7 @@ EXAMPLES::
      An inequality (1, -0.5773502691896258?) x + 0 >= 0,
      An inequality (0, 1.154700538379252?) x + 0 >= 0)
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
@@ -31,7 +32,7 @@ EXAMPLES::
 #*****************************************************************************
 
 
-from base import Polyhedron_base
+from .base import Polyhedron_base
 
 
 class Polyhedron_field(Polyhedron_base):
@@ -55,6 +56,15 @@ class Polyhedron_field(Polyhedron_base):
         sage: K.<sqrt3> = NumberField(x^2-3)
         sage: p = Polyhedron([(0,0), (1,0), (1/2, sqrt3/2)])
         sage: TestSuite(p).run()
+
+    Check that :trac:`19013` is fixed::
+
+        sage: K.<phi> = NumberField(x^2-x-1, embedding=1.618)
+        sage: P1 = Polyhedron([[0,1],[1,1],[1,-phi+1]])
+        sage: P2 = Polyhedron(ieqs=[[-1,-phi,0]])
+        sage: P1.intersection(P2)
+        The empty polyhedron in (Number Field in phi with defining polynomial
+        x^2 - x - 1)^2
     """
     def _is_zero(self, x):
         """
@@ -200,9 +210,9 @@ class Polyhedron_field(Polyhedron_base):
              An inequality (-0.1419794359520263?, -1.698172434277148?) x + 1.200789243901438? >= 0,
              An inequality (0.3001973109753594?, 0.600394621950719?) x - 0.4245431085692869? >= 0)
             sage: p.Vrepresentation()
-            (A vertex at (0.?e-15, 0.707106781186548?),
+            (A vertex at (0, 0.7071067811865475?),
              A vertex at (1.414213562373095?, 0),
-             A vertex at (4.000000000000000?, 0.372677996249965?))
+             A vertex at (4, 0.372677996249965?))
         """
         self._Vrepresentation = []
         parent = self.parent()
@@ -227,9 +237,9 @@ class Polyhedron_field(Polyhedron_base):
              An inequality (-0.1419794359520263?, -1.698172434277148?) x + 1.200789243901438? >= 0,
              An inequality (0.3001973109753594?, 0.600394621950719?) x - 0.4245431085692869? >= 0)
             sage: p.Vrepresentation()
-            (A vertex at (0.?e-15, 0.707106781186548?),
+            (A vertex at (0, 0.7071067811865475?),
              A vertex at (1.414213562373095?, 0),
-             A vertex at (4.000000000000000?, 0.372677996249965?))
+             A vertex at (4, 0.372677996249965?))
         """
         self._Hrepresentation = []
         parent = self.parent()

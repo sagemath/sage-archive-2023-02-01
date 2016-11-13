@@ -12,10 +12,6 @@ Website: http://pypi.python.org/pypi/setuptools/
 
 PSF or ZPL. i.e Python Software Foundation License or Zope Public License
 
-== SPKG Maintainers ==
-
- * Jaap Spies, (j.spies@hccnet.nl)
-
 == Upstream Contact ==
  * Phillip J. Eby (distutils-sig@python org)
 

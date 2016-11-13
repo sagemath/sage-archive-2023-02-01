@@ -360,7 +360,7 @@ class IntegerRangeFinite(IntegerRange):
                 elt = x
             except (ValueError, TypeError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+        if abs(self._step).divides(Integer(elt)-self._begin):
             return (self._begin <= elt < self._end and self._step > 0) or \
                    (self._begin >= elt > self._end and self._step < 0)
         return False
@@ -429,11 +429,11 @@ class IntegerRangeFinite(IntegerRange):
 
     def __getitem__(self, i):
         r"""
-        Return the i-th elt of this integer range.
+        Return the i-th element of this integer range.
 
         EXAMPLES::
 
-            sage: I=IntegerRange(1,13,5)
+            sage: I = IntegerRange(1,13,5)
             sage: I[0], I[1], I[2]
             (1, 6, 11)
             sage: I[3]
@@ -449,10 +449,10 @@ class IntegerRangeFinite(IntegerRange):
 
             sage: I = IntegerRange(13,1,-1)
             sage: l = I.list()
-            sage: [I[i] for i in xrange(I.cardinality())] == l
+            sage: [I[i] for i in range(I.cardinality())] == l
             True
             sage: l.reverse()
-            sage: [I[i] for i in xrange(-1,-I.cardinality()-1,-1)] == l
+            sage: [I[i] for i in range(-1,-I.cardinality()-1,-1)] == l
             True
         """
         if isinstance(i,slice):
@@ -577,7 +577,7 @@ class IntegerRangeInfinite(IntegerRange):
                 elt = Integer(elt)
             except (TypeError, ValueError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+        if abs(self._step).divides(Integer(elt)-self._begin):
             return (self._step > 0 and elt >= self._begin) or \
                    (self._step < 0 and elt <= self._begin)
         return False
@@ -737,7 +737,7 @@ class IntegerRangeFromMiddle(IntegerRange):
                 elt = Integer(elt)
             except (TypeError, ValueError):
                 return False
-        if (self._step.__abs__()).divides(Integer(elt)-self._middle_point):
+        if abs(self._step).divides(Integer(elt)-self._middle_point):
             return (self._begin <= elt and elt < self._end) or \
                    (self._begin >= elt and elt > self._end)
         return False

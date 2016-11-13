@@ -83,22 +83,23 @@ The solution is iterable. This may be used to explicitly list the positions of e
 pentamino::
 
     sage: for p in s: p                                   # long time (<1s)
-    Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 2, 0)], Color: deeppink
-    Polyomino: [(0, 0, 1), (0, 1, 0), (0, 1, 1), (0, 2, 1), (1, 2, 1)], Color: deeppink
-    Polyomino: [(0, 2, 0), (0, 3, 0), (0, 4, 0), (1, 4, 0), (1, 4, 1)], Color: green
-    Polyomino: [(0, 3, 1), (1, 3, 1), (2, 2, 0), (2, 2, 1), (2, 3, 1)], Color: green
-    Polyomino: [(1, 3, 0), (2, 3, 0), (2, 4, 0), (2, 4, 1), (3, 4, 0)], Color: red
-    Polyomino: [(1, 0, 1), (2, 0, 1), (2, 1, 0), (2, 1, 1), (3, 1, 1)], Color: red
-    Polyomino: [(2, 0, 0), (3, 0, 0), (3, 0, 1), (3, 1, 0), (4, 0, 0)], Color: gray
-    Polyomino: [(3, 2, 0), (4, 0, 1), (4, 1, 0), (4, 1, 1), (4, 2, 0)], Color: purple
-    Polyomino: [(3, 2, 1), (3, 3, 0), (3, 3, 1), (4, 2, 1), (4, 3, 1)], Color: yellow
-    Polyomino: [(3, 4, 1), (3, 5, 1), (4, 3, 0), (4, 4, 0), (4, 4, 1)], Color: blue
-    Polyomino: [(0, 4, 1), (0, 5, 0), (0, 5, 1), (0, 6, 1), (1, 5, 0)], Color: midnightblue
+    Polyomino: [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 2, 0), (1, 1, 0)], Color: deeppink
+    Polyomino: [(0, 1, 1), (1, 1, 1), (1, 2, 1), (2, 1, 0), (2, 1, 1)], Color: deeppink
+    Polyomino: [(1, 0, 0), (1, 0, 1), (2, 0, 1), (3, 0, 1), (3, 1, 1)], Color: orange
+    Polyomino: [(2, 0, 0), (3, 0, 0), (4, 0, 0), (4, 0, 1), (4, 1, 1)], Color: green
+    Polyomino: [(0, 2, 1), (0, 3, 1), (0, 4, 1), (1, 4, 0), (1, 4, 1)], Color: green
+    Polyomino: [(0, 3, 0), (0, 4, 0), (1, 2, 0), (1, 3, 0), (1, 3, 1)], Color: red
+    Polyomino: [(2, 2, 0), (3, 1, 0), (3, 2, 0), (3, 2, 1), (4, 1, 0)], Color: red
+    Polyomino: [(2, 2, 1), (2, 3, 0), (2, 3, 1), (2, 4, 0), (3, 4, 0)], Color: purple
+    Polyomino: [(3, 3, 0), (4, 2, 0), (4, 2, 1), (4, 3, 0), (4, 3, 1)], Color: yellow
+    Polyomino: [(3, 3, 1), (3, 4, 1), (4, 4, 0), (4, 4, 1), (4, 5, 0)], Color: blue
+    Polyomino: [(2, 4, 1), (2, 5, 0), (2, 5, 1), (3, 5, 0), (3, 6, 0)], Color: blue
+    Polyomino: [(3, 5, 1), (4, 5, 1), (4, 6, 0), (4, 6, 1), (4, 7, 0)], Color: purple
+    Polyomino: [(2, 7, 1), (3, 6, 1), (3, 7, 0), (3, 7, 1), (4, 7, 1)], Color: gray
     Polyomino: [(0, 6, 0), (0, 7, 0), (0, 7, 1), (1, 7, 0), (2, 7, 0)], Color: darkblue
-    Polyomino: [(1, 7, 1), (2, 6, 0), (2, 6, 1), (2, 7, 1), (3, 6, 0)], Color: blue
-    Polyomino: [(1, 5, 1), (1, 6, 0), (1, 6, 1), (2, 5, 0), (2, 5, 1)], Color: yellow
-    Polyomino: [(3, 6, 1), (3, 7, 0), (3, 7, 1), (4, 5, 1), (4, 6, 1)], Color: purple
-    Polyomino: [(3, 5, 0), (4, 5, 0), (4, 6, 0), (4, 7, 0), (4, 7, 1)], Color: orange
+    Polyomino: [(1, 5, 1), (1, 6, 1), (1, 7, 1), (2, 6, 0), (2, 6, 1)], Color: midnightblue
+    Polyomino: [(0, 5, 0), (0, 5, 1), (0, 6, 1), (1, 5, 0), (1, 6, 0)], Color: yellow
+
 
 To get all the solutions, use the iterator returned by the ``solve``
 method. Note that finding the first solution is the most time consuming
@@ -152,6 +153,14 @@ solver to play with it::
     sage: x                                          # long time (fast)
     Dancing links solver for 96 columns and 5484 rows
 
+TESTS:
+
+We check that all pentaminos are equal to their canonical translate::
+
+    sage: from sage.games.quantumino import pentaminos
+    sage: all(p == p.canonical() for p in pentaminos)
+    True
+
 REFERENCES:
 
 - [1] `Family Games America's Quantumino
@@ -181,10 +190,10 @@ from sage.combinat.tiling import Polyomino, TilingSolver
 ################################################
 pentaminos = []
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,2,0), (1,1,1)], color='deeppink'))
-pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (-1,0,0), (0,0,1)], color='deeppink'))
+pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,0,1), (2,0,0), (2,1,0)], color='deeppink'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,2,0), (0,0,1)], color='green'))
 pentaminos.append(Polyomino([(0,0,0), (0,1,0), (0,2,0), (1,0,0), (1,0,1)], color='green'))
-pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,0,1), (1,-1,1)], color='red'))
+pentaminos.append(Polyomino([(0,1,0), (1,0,1), (1,1,0), (1,1,1), (1,2,0)], color='red'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,0,1), (2,0,1)], color='red'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,2,0), (1,2,1)], color='orange'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (0,1,0), (0,2,0), (0,2,1)], color='orange'))
@@ -196,7 +205,7 @@ pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,1,1), (2,1,1)], color
 pentaminos.append(Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1), (1,2,1)], color='blue'))
 pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (2,1,0), (2,1,1)], color='purple'))
 pentaminos.append(Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,2,0), (1,2,1)], color='purple'))
-pentaminos.append(Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,0,1), (1,-1,0)], color='gray'))
+pentaminos.append(Polyomino([(0,1,0), (1,0,0), (1,1,0), (1,1,1), (1,2,0)], color='gray'))
 
 def show_pentaminos(box=(5,8,2)):
     r"""
@@ -223,8 +232,8 @@ def show_pentaminos(box=(5,8,2)):
     """
     G = Graphics()
     for i,p in enumerate(pentaminos):
-        x = 3.5 * (i%4)
-        y = 3.5 * (i/4)
+        x = 4 * (i%4)
+        y = 4 * (i/4)
         q = p + (x, y, 0)
         G += q.show3d()
         G += text3d(str(i), (x,y,2))
@@ -252,6 +261,8 @@ class QuantuminoState(SageObject):
     - ``pentos`` - list of 16 3d pentamino representing the (partial)
       solution
     - ``aside`` - 3d polyomino, the unused 3D pentamino
+    - ``box`` - tuple of size three (optional, default: ``(5,8,2)``),
+      size of the box
 
     EXAMPLES::
 
@@ -271,7 +282,7 @@ class QuantuminoState(SageObject):
         Quantumino state where the following pentamino is put aside :
         Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (1, 0, 0), (1, 0, 1)], Color: green
     """
-    def __init__(self, pentos, aside):
+    def __init__(self, pentos, aside, box=(5,8,2)):
         r"""
         EXAMPLES::
 
@@ -286,6 +297,7 @@ class QuantuminoState(SageObject):
         assert isinstance(aside, Polyomino), "aside must be a Polyomino"
         self._pentos = pentos
         self._aside = aside
+        self._box = box
 
     def __repr__(self):
         r"""
@@ -361,8 +373,14 @@ class QuantuminoState(SageObject):
         G = Graphics()
         for p in self:
             G += p.show3d(size=size)
-        aside_pento = self._aside.canonical() + (2.5*size/0.75,-4*size/0.75,0)
+        aside_pento = self._aside.canonical() + (2,-4,0)
         G += aside_pento.show3d(size=size)
+
+        # the box to fill
+        half_box = tuple(a/2 for a in self._box)
+        b = cube(color='gray',opacity=0.2).scale(self._box).translate(half_box)
+        b = b.translate((0, -.5, -.5))
+        G += b
 
         # hack to set the aspect ratio to 1
         a,b = G.bounding_box()
@@ -487,22 +505,22 @@ class QuantuminoSolver(SageObject):
         The explicit solution::
 
             sage: for p in s: p                                  # long time (fast)
-            Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 2, 0)], Color: deeppink
-            Polyomino: [(0, 0, 1), (0, 1, 0), (0, 1, 1), (0, 2, 1), (1, 2, 1)], Color: deeppink
-            Polyomino: [(0, 2, 0), (0, 3, 0), (0, 4, 0), (1, 4, 0), (1, 4, 1)], Color: green
-            Polyomino: [(0, 3, 1), (1, 3, 1), (2, 2, 0), (2, 2, 1), (2, 3, 1)], Color: green
-            Polyomino: [(1, 3, 0), (2, 3, 0), (2, 4, 0), (2, 4, 1), (3, 4, 0)], Color: red
-            Polyomino: [(1, 0, 1), (2, 0, 0), (2, 0, 1), (2, 1, 0), (3, 0, 1)], Color: midnightblue
-            Polyomino: [(0, 4, 1), (0, 5, 0), (0, 5, 1), (0, 6, 0), (1, 5, 0)], Color: red
-            Polyomino: [(2, 1, 1), (3, 0, 0), (3, 1, 0), (3, 1, 1), (4, 0, 0)], Color: blue
-            Polyomino: [(3, 2, 0), (4, 0, 1), (4, 1, 0), (4, 1, 1), (4, 2, 0)], Color: purple
-            Polyomino: [(3, 2, 1), (3, 3, 0), (4, 2, 1), (4, 3, 0), (4, 3, 1)], Color: yellow
-            Polyomino: [(3, 3, 1), (3, 4, 1), (4, 4, 0), (4, 4, 1), (4, 5, 0)], Color: blue
-            Polyomino: [(0, 6, 1), (0, 7, 0), (0, 7, 1), (1, 5, 1), (1, 6, 1)], Color: purple
-            Polyomino: [(1, 6, 0), (1, 7, 0), (1, 7, 1), (2, 7, 0), (3, 7, 0)], Color: darkblue
-            Polyomino: [(2, 5, 0), (2, 6, 0), (3, 6, 0), (4, 6, 0), (4, 6, 1)], Color: orange
-            Polyomino: [(2, 5, 1), (3, 5, 0), (3, 5, 1), (3, 6, 1), (4, 5, 1)], Color: gray
-            Polyomino: [(2, 6, 1), (2, 7, 1), (3, 7, 1), (4, 7, 0), (4, 7, 1)], Color: orange
+            Polyomino: [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 2, 0), (1, 1, 0)], Color: deeppink
+            Polyomino: [(0, 1, 1), (1, 1, 1), (1, 2, 1), (2, 1, 0), (2, 1, 1)], Color: deeppink
+            Polyomino: [(1, 0, 0), (1, 0, 1), (2, 0, 1), (3, 0, 1), (3, 1, 1)], Color: orange
+            Polyomino: [(2, 0, 0), (3, 0, 0), (4, 0, 0), (4, 0, 1), (4, 1, 1)], Color: green
+            Polyomino: [(0, 2, 1), (0, 3, 1), (0, 4, 1), (1, 4, 0), (1, 4, 1)], Color: green
+            Polyomino: [(0, 3, 0), (0, 4, 0), (1, 2, 0), (1, 3, 0), (1, 3, 1)], Color: red
+            Polyomino: [(2, 2, 0), (3, 1, 0), (3, 2, 0), (3, 2, 1), (4, 1, 0)], Color: red
+            Polyomino: [(2, 2, 1), (2, 3, 0), (2, 3, 1), (2, 4, 1), (3, 3, 0)], Color: midnightblue
+            Polyomino: [(3, 3, 1), (3, 4, 1), (4, 2, 0), (4, 2, 1), (4, 3, 1)], Color: purple
+            Polyomino: [(3, 4, 0), (4, 3, 0), (4, 4, 0), (4, 4, 1), (4, 5, 0)], Color: gray
+            Polyomino: [(1, 5, 1), (1, 6, 1), (2, 4, 0), (2, 5, 0), (2, 5, 1)], Color: blue
+            Polyomino: [(0, 5, 0), (0, 5, 1), (0, 6, 1), (1, 5, 0), (1, 6, 0)], Color: yellow
+            Polyomino: [(0, 6, 0), (0, 7, 0), (0, 7, 1), (1, 7, 0), (2, 7, 0)], Color: darkblue
+            Polyomino: [(1, 7, 1), (2, 6, 0), (2, 6, 1), (2, 7, 1), (3, 6, 0)], Color: blue
+            Polyomino: [(3, 7, 0), (4, 5, 1), (4, 6, 0), (4, 6, 1), (4, 7, 0)], Color: purple
+            Polyomino: [(3, 5, 0), (3, 5, 1), (3, 6, 1), (3, 7, 1), (4, 7, 1)], Color: orange
 
         Enumerate the solutions::
 
@@ -551,7 +569,7 @@ class QuantuminoSolver(SageObject):
         T = self.tiling_solver()
         aside = pentaminos[self._aside]
         for pentos in T.solve(partial=partial):
-            yield QuantuminoState(pentos, aside)
+            yield QuantuminoState(pentos, aside, self._box)
 
     def number_of_solutions(self):
         r"""

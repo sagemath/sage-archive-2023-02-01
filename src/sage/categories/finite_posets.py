@@ -33,7 +33,7 @@ class FinitePosets(CategoryWithAxiom):
         sage: FinitePosets().example()
         NotImplemented
 
-    .. seealso:: :class:`~sage.categories.posets.Posets`, :func:`Poset`
+    .. SEEALSO:: :class:`~sage.categories.posets.Posets`, :func:`Poset`
 
     TESTS::
 
@@ -152,7 +152,7 @@ class FinitePosets(CategoryWithAxiom):
                responsible for the conversions between integers and subsets to
                elements of ``D`` and ``B`` and back.
 
-            .. seealso:: :meth:`FiniteLatticePosets.ParentMethods.is_lattice_morphism`
+            .. SEEALSO:: :meth:`FiniteLatticePosets.ParentMethods.is_lattice_morphism`
             """
             image = set(f(x) for x in self)
             if len(image) != self.cardinality():
@@ -209,7 +209,7 @@ class FinitePosets(CategoryWithAxiom):
 
             FIXME: should this be ``is_order_preserving_morphism``?
 
-            .. seealso:: :meth:`is_poset_isomorphism`
+            .. SEEALSO:: :meth:`is_poset_isomorphism`
 
             TESTS:
 
@@ -312,7 +312,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P.order_filter_generators(I)
                 {{2, 3}, {1}}
 
-            .. seealso:: :meth:`order_ideal_generators`
+            .. SEEALSO:: :meth:`order_ideal_generators`
             """
             return self.order_ideal_generators(filter, direction='up')
 
@@ -441,10 +441,10 @@ class FinitePosets(CategoryWithAxiom):
 
             Let us hold back defining this, and introduce birational
             toggles and birational rowmotion first. These notions have
-            been introduced in [EP13]_ as generalizations of the notions
+            been introduced in [EP2013]_ as generalizations of the notions
             of toggles (:meth:`order_ideal_toggle`) and :meth:`rowmotion
             <rowmotion>` on order ideals of a finite poset. They
-            have been studied further in [GR13]_.
+            have been studied further in [GR2013]_.
 
             Let `\mathbf{K}` be a field, and `P` be a finite poset. Let
             `\widehat{P}` denote the poset obtained from `P` by adding a
@@ -495,9 +495,9 @@ class FinitePosets(CategoryWithAxiom):
             <sage.rings.semirings.tropical_semiring.TropicalSemiring>`,
             in which case birational rowmotion relates to classical
             constructions such as promotion of rectangular semistandard
-            Young tableaux (page 5 of [EP13b]_ and future work, via the
+            Young tableaux (page 5 of [EP2013b]_ and future work, via the
             related notion of birational *promotion*) and rowmotion on
-            order ideals of the poset ([EP13]_).
+            order ideals of the poset ([EP2013]_).
 
             The *birational free labelling* is a special labelling
             defined for every finite poset `P` and every linear extension
@@ -569,22 +569,6 @@ class FinitePosets(CategoryWithAxiom):
             The birational free labelling of the poset ``self`` and the
             linear extension ``linear_extension``. Or, if ``reduced``
             is set to ``True``, the reduced birational free labelling.
-
-            REFERENCES:
-
-            .. [EP13] David Einstein, James Propp.
-               *Combinatorial, piecewise-linear, and birational homomesy
-               for products of two chains*.
-               :arxiv:`1310.5294v1`.
-
-            .. [EP13b] David Einstein, James Propp.
-               *Piecewise-linear and birational toggling*.
-               Extended abstract for FPSAC 2014.
-               http://faculty.uml.edu/jpropp/fpsac14.pdf
-
-            .. [GR13] Darij Grinberg, Tom Roby.
-               *Iterative properties of birational rowmotion I*.
-               http://web.mit.edu/~darij/www/algebra/skeletal.pdf
 
             EXAMPLES:
 
@@ -910,7 +894,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: t1 = V.birational_toggle(1, t)
                 Traceback (most recent call last):
                 ...
-                ZeroDivisionError: Rational division by zero
+                ZeroDivisionError: rational division by zero
 
             We don't get into zero-division issues in the tropical
             semiring (unless the zero of the tropical semiring appears
@@ -1012,7 +996,7 @@ class FinitePosets(CategoryWithAxiom):
                 x = FF.one() / b
             else:
                 x = FF.sum(FF.one() / newdict[j] for j in uppers)
-                # ``FF.sum``, not ``sum``, see :trac:`15591`.
+                # ``FF.sum``, not ``sum``, see trac #15591.
             x = FF.one() / x
             # Construct the sum ``y`` of the labels at the elements
             # covered by ``v``:
@@ -1145,7 +1129,7 @@ class FinitePosets(CategoryWithAxiom):
                 [(1, a*b/x4), (2, (x1*x2*b + x1*x3*b)/(x2*x4)),
                  (3, (x1*x2*b + x1*x3*b)/(x3*x4)), (4, (x2*b + x3*b)/x4)]
 
-            A result of [GR13]_ states that applying birational rowmotion
+            A result of [GR2013]_ states that applying birational rowmotion
             `n+m` times to a `\mathbf{K}`-labelling `f` of the poset
             `[n] \times [m]` gives back `f`. Let us check this::
 
@@ -1678,7 +1662,7 @@ class FinitePosets(CategoryWithAxiom):
                     next = self.order_ideal_toggles(next, vs)
                     yield element_constructor(next)
 
-        def order_ideals_lattice(self, as_ideals=True, facade=False):
+        def order_ideals_lattice(self, as_ideals=True, facade=None):
             r"""
             Return the lattice of order ideals of a poset ``self``,
             ordered by inclusion.
@@ -1700,10 +1684,13 @@ class FinitePosets(CategoryWithAxiom):
             - ``as_ideals`` -- Boolean, if ``True`` (default) returns
               a poset on the set of order ideals, otherwise on the set
               of antichains
+            - ``facade`` -- Boolean or ``None`` (default). Whether to
+              return a facade lattice or not. By default return facade
+              lattice if the poset is a facade poset.
 
             EXAMPLES::
 
-                sage: P = Posets.PentagonPoset(facade = True)
+                sage: P = Posets.PentagonPoset()
                 sage: P.cover_relations()
                 [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
                 sage: J = P.order_ideals_lattice(); J
@@ -1727,10 +1714,15 @@ class FinitePosets(CategoryWithAxiom):
                 sage: J.cover_relations()
                 [[{}, {0}], [{0}, {0, 2}], [{0}, {0, 1}], [{0, 2}, {0, 1, 2}], [{0, 1}, {0, 1, 2}], [{0, 1, 2}, {0, 1, 2, 3}]]
 
-            .. NOTE:: we use facade posets in the examples above just
-               to ensure a nicer ordering in the output.
+                sage: P = Poset({1:[2]})
+                sage: J_facade = P.order_ideals_lattice()
+                sage: J_nonfacade = P.order_ideals_lattice(facade=False)
+                sage: type(J_facade[0]) == type(J_nonfacade[0])
+                False
             """
             from sage.combinat.posets.lattices import LatticePoset
+            if facade is None:
+                facade = self._is_facade
             if as_ideals:
                 from sage.misc.misc import attrcall
                 from sage.sets.set import Set

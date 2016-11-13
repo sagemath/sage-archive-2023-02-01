@@ -91,17 +91,31 @@ class Fields(CategoryWithAxiom):
             sage: GR in Fields()
             True
 
-        The following tests against a memory leak fixed in :trac:`13370`::
+        The following tests against a memory leak fixed in :trac:`13370`. In order
+        to prevent non-deterministic deallocation of fields that have been created
+        in other doctests, we introduced a strong reference to all previously created
+        uncollected objects in :trac:`19244`. ::
 
             sage: import gc
             sage: _ = gc.collect()
-            sage: n = len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)])
+            sage: permstore = [X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]
+            sage: n = len(permstore)
             sage: for i in prime_range(100):
-            ...     R = ZZ.quotient(i)
-            ...     t = R in Fields()
+            ....:     R = ZZ.quotient(i)
+            ....:     t = R in Fields()
+
+        First, we show that there are now more quotient rings in cache than before::
+
+            sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) > n
+            True
+
+        When we delete the last quotient ring created in the loop and then do a garbage
+        collection, all newly created rings vanish::
+
+            sage: del R
             sage: _ = gc.collect()
             sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) - n
-            1
+            0
 
         """
         try:
@@ -221,7 +235,7 @@ class Fields(CategoryWithAxiom):
                 x
 
             """
-            ret = EuclideanDomains().ElementMethods().gcd(f,g)
+            ret = EuclideanDomains().element_class.gcd(f,g)
             c = ret.leading_coefficient()
             if c.is_unit():
                 return (1/c)*ret
@@ -299,7 +313,7 @@ class Fields(CategoryWithAxiom):
             - ``f`` -- a univariate non-zero polynomial over this field
 
             ALGORITHM: For rings of characteristic zero, we use the algorithm
-            descriped in [Yun]_. Other fields may provide their own
+            descriped in [Yun1976]_. Other fields may provide their own
             implementation by overriding this method.
 
             EXAMPLES::
@@ -317,13 +331,6 @@ class Fields(CategoryWithAxiom):
                 sage: f = QQbar['x'](1)
                 sage: f.squarefree_decomposition()
                 1
-
-            REFERENCES:
-
-            .. [Yun] Yun, David YY. On square-free decomposition algorithms.
-               In Proceedings of the third ACM symposium on Symbolic and algebraic
-               computation, pp. 26-35. ACM, 1976.
-
             """
             from sage.structure.factorization import Factorization
             if f.degree() == 0:

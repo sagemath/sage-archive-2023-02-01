@@ -17,9 +17,10 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.integer import Integer
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.rings.number_field.all import NumberField
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.polynomial.all import PolynomialRing
@@ -106,7 +107,7 @@ class SplittingData:
         TESTS::
 
             sage: from sage.rings.number_field.splitting_field import SplittingData
-            sage: print SplittingData(pari("polcyclo(24)"), 2)
+            sage: print(SplittingData(pari("polcyclo(24)"), 2))
             SplittingData(x^8 - x^4 + 1, 2)
         """
         return "SplittingData(%s, %s)"%(self.pol, self.dm)
@@ -325,8 +326,8 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
         sage: try:  # long time (4s on sage.math, 2014)
         ....:     (x^8+x+1).splitting_field('b', abort_degree=60, simplify=False)
         ....: except SplittingFieldAbort as e:
-        ....:     print e.degree_divisor
-        ....:     print e.degree_multiple
+        ....:     print(e.degree_divisor)
+        ....:     print(e.degree_multiple)
         120
         1440
 

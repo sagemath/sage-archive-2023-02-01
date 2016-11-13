@@ -22,12 +22,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+from __future__ import division
+
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -49,7 +51,7 @@ ZZ_sage = IntegerRing()
 #
 ##############################################################################
 
-cdef class ntl_zz_pX:
+cdef class ntl_zz_pX(object):
     r"""
     The class \class{zz_pX} implements polynomial arithmetic modulo $p$,
     for p smaller than a machine word.
@@ -80,7 +82,7 @@ cdef class ntl_zz_pX:
             [1, 1]
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus."
+            raise ValueError("You must specify a modulus.")
 
         cdef long n
         cdef Py_ssize_t i
@@ -108,20 +110,17 @@ cdef class ntl_zz_pX:
                 if (self.c.p == (<IntegerMod_int>a).__modulus.int32): ## this is slow
                     zz_pX_SetCoeff_long(self.x, i, (<IntegerMod_int>a).ivalue)
                 else:
-                    raise ValueError, \
-                          "Mismatched modulus for converting to zz_pX."
+                    raise ValueError("Mismatched modulus for converting to zz_pX.")
             elif isinstance(a, IntegerMod_int64):
                 if (self.c.p == (<IntegerMod_int64>a).__modulus.int64): ## this is slow
                     zz_pX_SetCoeff_long(self.x, i, (<IntegerMod_int64>a).ivalue)
                 else:
-                    raise ValueError, \
-                          "Mismatched modulus for converting to zz_pX."
+                    raise ValueError("Mismatched modulus for converting to zz_pX.")
             elif isinstance(a, IntegerMod_gmp):
                 if (p_sage == (<IntegerMod_gmp>a).__modulus.sageInteger): ## this is slow
                     zz_pX_SetCoeff_long(self.x, i, mpz_get_si((<IntegerMod_gmp>a).value))
                 else:
-                    raise ValueError, \
-                          "Mismatched modulus for converting to zz_pX."
+                    raise ValueError("Mismatched modulus for converting to zz_pX.")
             elif isinstance(a, Integer):
                 zz_pX_SetCoeff_long(self.x, i, mpz_fdiv_ui((<Integer>a).value, self.c.p))
             elif isinstance(a, int):
@@ -149,7 +148,6 @@ cdef class ntl_zz_pX:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            zz_pX_construct(&self.x)
             return
         if isinstance(modulus, ntl_zz_pContext_class):
             self.c = <ntl_zz_pContext_class>modulus
@@ -161,15 +159,11 @@ cdef class ntl_zz_pX:
             try:
                 modulus = int(modulus)
             except Exception:
-                raise ValueError, "%s is not a valid modulus."%modulus
+                raise ValueError("%s is not a valid modulus." % modulus)
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
 
         ## now that we've determined the modulus, set that modulus.
         self.c.restore_c()
-        zz_pX_construct(&self.x)
-
-    def __dealloc__(self):
-        zz_pX_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -233,7 +227,7 @@ cdef class ntl_zz_pX:
         if not isinstance(i, long):
             i = long(i)
         if (i < zero):
-            raise ValueError, "index (=%s) is out of range"%i
+            raise ValueError("index (=%s) is out of range" % i)
         if not isinstance(val, long):
             val = long(val)
         self.c.restore_c()
@@ -271,7 +265,7 @@ cdef class ntl_zz_pX:
         if not isinstance(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         y = self._new()
         self.c.restore_c()
         zz_pX_add(y.x, self.x, (<ntl_zz_pX>other).x)
@@ -293,7 +287,7 @@ cdef class ntl_zz_pX:
         if not isinstance(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         self.c.restore_c()
         y = self._new()
         zz_pX_sub(y.x, self.x, (<ntl_zz_pX>other).x)
@@ -313,7 +307,7 @@ cdef class ntl_zz_pX:
         if not isinstance(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         self.c.restore_c()
         y = self._new()
         sig_on()
@@ -321,7 +315,7 @@ cdef class ntl_zz_pX:
         sig_off()
         return y
 
-    def __div__(ntl_zz_pX self, other):
+    def __truediv__(ntl_zz_pX self, other):
         """
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
@@ -349,15 +343,18 @@ cdef class ntl_zz_pX:
         if not isinstance(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         self.c.restore_c()
         q = self._new()
         sig_on()
         divisible = zz_pX_divide(q.x, self.x, (<ntl_zz_pX>other).x)
         sig_off()
         if not divisible:
-            raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
+            raise ArithmeticError("self (=%s) is not divisible by other (=%s)" % (self, other))
         return q
+
+    def __div__(self, other):
+        return self / other
 
     def __mod__(ntl_zz_pX self, other):
         """
@@ -379,7 +376,7 @@ cdef class ntl_zz_pX:
         if not isinstance(other, ntl_zz_pX):
             other = ntl_zz_pX(other, modulus=self.c)
         elif self.c is not (<ntl_zz_pX>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         self.c.restore_c()
         y = self._new()
         sig_on()
@@ -397,7 +394,7 @@ cdef class ntl_zz_pX:
             [1, 0, 10, 0, 5, 0, 0, 0, 10, 0, 8, 0, 10, 0, 0, 0, 5, 0, 10, 0, 1]
         """
         if n < 0:
-            raise ValueError, "Only positive exponents allowed."
+            raise ValueError("Only positive exponents allowed.")
         cdef ntl_zz_pX y = self._new()
         self.c.restore_c()
         sig_on()
@@ -520,11 +517,12 @@ cdef class ntl_zz_pX:
         sig_off()
         return y
 
-    def __cmp__(ntl_zz_pX self, other):
+    def __richcmp__(ntl_zz_pX self, other, int op):
         """
-        Decide whether or not self and other are equal.
+        Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_pX([1,2,3],20)
             sage: g = ntl.zz_pX([1,2,3,0],20)
             sage: f == g
@@ -532,17 +530,21 @@ cdef class ntl_zz_pX:
             sage: g = ntl.zz_pX([0,1,2,3],20)
             sage: f == g
             False
+            sage: f != [0]
+            True
         """
-        if not isinstance(other, ntl_zz_pX):
-            return cmp(ntl_zz_pX, other.parent())
-        if not (self.c is (<ntl_zz_pX>other).c):
-            return cmp(self.c.p, (<ntl_zz_pX>other).c.p)
-
         self.c.restore_c()
-        if (NTL_zz_pX_DOUBLE_EQUALS(self.x, (<ntl_zz_pX>other).x)):
-            return 0
-        else:
-            return -1
+
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("polynomials are not ordered")
+
+        cdef ntl_zz_pX b
+        try:
+            b = <ntl_zz_pX?>other
+        except TypeError:
+            b = ntl_zz_pX(other, self.c)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def list(self):
         """
@@ -714,11 +716,10 @@ cdef class ntl_zz_pX:
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 4, 4, 3]
         """
         if m < 0:
-            raise ArithmeticError, "m (=%s) must be positive"%m
+            raise ArithmeticError("m (=%s) must be positive" % m)
         n = self.constant_term()
         if n != 1 and n != -1:
-            raise ArithmeticError, \
-                  "The constant term of self must be 1 or -1."
+            raise ArithmeticError("The constant term of self must be 1 or -1.")
 
         cdef ntl_zz_pX y = self._new()
 

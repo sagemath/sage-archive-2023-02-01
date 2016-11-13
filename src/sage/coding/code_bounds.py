@@ -18,18 +18,13 @@ AUTHORS:
 
 - Dima Pasechnik (2012-10): added LP bounds.
 
-Let `F` be a finite field (we denote the finite field with
-`q` elements by `\GF{q}`).
-A subset `C` of `V=F^n` is called a code of
-length `n`. A subspace of `V` (with the standard
-basis) is called a linear code of length `n`. If its
-dimension is denoted `k` then we typically store a basis of
-`C` as a `k\times n` matrix (the rows are the basis
-vectors). If `F=\GF{2}` then `C` is
-called a binary code. If `F` has `q` elements
-then `C` is called a `q`-ary code. The elements
-of a code `C` are called codewords. The information rate
-of `C` is
+Let `F` be a finite field (we denote the finite field with `q` elements by
+`\GF{q}`).  A subset `C` of `V=F^n` is called a code of length `n`. A subspace
+of `V` (with the standard basis) is called a linear code of length `n`. If its
+dimension is denoted `k` then we typically store a basis of `C` as a `k\times
+n` matrix (the rows are the basis vectors). If `F=\GF{2}` then `C` is called a
+binary code. If `F` has `q` elements then `C` is called a `q`-ary code. The
+elements of a code `C` are called codewords. The information rate of `C` is
 
 
 .. math::
@@ -37,10 +32,9 @@ of `C` is
      R={\frac{\log_q\vert C\vert}{n}},
 
 
-where `\vert C\vert` denotes the number of elements of
-`C`. If `{\bf v}=(v_1,v_2,...,v_n)`,
-`{\bf w}=(w_1,w_2,...,w_n)` are vectors in
-`V=F^n` then we define
+where `\vert C\vert` denotes the number of elements of `C`. If `{\bf
+v}=(v_1,v_2,...,v_n)`, `{\bf w}=(w_1,w_2,...,w_n)` are vectors in `V=F^n` then
+we define
 
 
 .. math::
@@ -48,37 +42,30 @@ where `\vert C\vert` denotes the number of elements of
      d({\bf v},{\bf w}) =\vert\{i\ \vert\ 1\leq i\leq n,\ v_i\not= w_i\}\vert
 
 
-to be the Hamming distance between `{\bf v}` and
-`{\bf w}`. The function
-`d:V\times V\rightarrow \Bold{N}` is called the Hamming
-metric. The weight of a vector (in the Hamming metric) is
-`d({\bf v},{\bf 0})`. The minimum distance of a linear
-code is the smallest non-zero weight of a codeword in `C`.
-The relatively minimum distance is denoted
+to be the Hamming distance between `{\bf v}` and `{\bf w}`. The function
+`d:V\times V\rightarrow \Bold{N}` is called the Hamming metric. The weight of a
+vector (in the Hamming metric) is `d({\bf v},{\bf 0})`. The minimum distance of
+a linear code is the smallest non-zero weight of a codeword in `C`.  The
+relatively minimum distance is denoted
 
 
 .. math::
 
      \delta = d/n.
 
-A linear code with length
-`n`, dimension `k`, and minimum distance
-`d` is called an `[n,k,d]_q`-code and
-`n,k,d` are called its parameters. A (not necessarily
-linear) code `C` with length `n`, size
-`M=|C|`, and minimum distance `d` is called an
-`(n,M,d)_q`-code (using parentheses instead of square
+A linear code with length `n`, dimension `k`, and minimum distance `d` is
+called an `[n,k,d]_q`-code and `n,k,d` are called its parameters. A (not
+necessarily linear) code `C` with length `n`, size `M=|C|`, and minimum
+distance `d` is called an `(n,M,d)_q`-code (using parentheses instead of square
 brackets). Of course, `k=\log_q(M)` for linear codes.
 
-What is the "best" code of a given length? Let `F` be a
-finite field with `q` elements. Let `A_q(n,d)`
-denote the largest `M` such that there exists a
-`(n,M,d)` code in `F^n`. Let `B_q(n,d)`
-(also denoted `A^{lin}_q(n,d)`) denote the largest
-`k` such that there exists a `[n,k,d]` code in
-`F^n`. (Of course, `A_q(n,d)\geq B_q(n,d)`.)
-Determining `A_q(n,d)` and `B_q(n,d)` is one of
-the main problems in the theory of error-correcting codes.
+What is the "best" code of a given length? Let `F` be a finite field with `q`
+elements. Let `A_q(n,d)` denote the largest `M` such that there exists a
+`(n,M,d)` code in `F^n`. Let `B_q(n,d)` (also denoted `A^{lin}_q(n,d)`) denote
+the largest `k` such that there exists a `[n,k,d]` code in `F^n`. (Of course,
+`A_q(n,d)\geq B_q(n,d)`.) Determining `A_q(n,d)` and `B_q(n,d)` is one of the
+main problems in the theory of error-correcting codes. For more details see
+[HP2003]_ and [Lin1999]_.
 
 These quantities related to solving a generalization of the
 childhood game of "20 questions".
@@ -170,12 +157,8 @@ TODO:
 
 - mrrw2_bound_asymp(delta,q), "second" asymptotic
   McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
-
-REFERENCES:
-
-- C. Huffman, V. Pless, Fundamentals of error-correcting codes,
-  Cambridge Univ. Press, 2003.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Joyner <wdj@usna.edu>
@@ -188,10 +171,10 @@ REFERENCES:
 
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, RDF
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.functions.all import log, sqrt
 from sage.misc.decorators import rename_keyword
-from delsarte_bounds import delsarte_bound_hamming_space, \
+from .delsarte_bounds import delsarte_bound_hamming_space, \
                 delsarte_bound_additive_hamming_space
 
 @rename_keyword(deprecation=6094, method="algorithm")
@@ -217,17 +200,17 @@ def codesize_upper_bound(n,d,q,algorithm=None):
 
     EXAMPLES::
 
-        sage: codesize_upper_bound(10,3,2)
+        sage: codes.bounds.codesize_upper_bound(10,3,2)
         93
-        sage: codesize_upper_bound(24,8,2,algorithm="LP")
+        sage: codes.bounds.codesize_upper_bound(24,8,2,algorithm="LP")
         4096
-        sage: codesize_upper_bound(10,3,2,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.codesize_upper_bound(10,3,2,algorithm="gap")  # optional - gap_packages (Guava package)
         85
-        sage: codesize_upper_bound(11,3,4,algorithm=None)
+        sage: codes.bounds.codesize_upper_bound(11,3,4,algorithm=None)
         123361
-        sage: codesize_upper_bound(11,3,4,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.codesize_upper_bound(11,3,4,algorithm="gap")  # optional - gap_packages (Guava package)
         123361
-        sage: codesize_upper_bound(11,3,4,algorithm="LP")
+        sage: codes.bounds.codesize_upper_bound(11,3,4,algorithm="LP")
         109226
 
     """
@@ -254,11 +237,11 @@ def dimension_upper_bound(n,d,q,algorithm=None):
 
     EXAMPLES::
 
-        sage: dimension_upper_bound(10,3,2)
+        sage: codes.bounds.dimension_upper_bound(10,3,2)
         6
-        sage: dimension_upper_bound(30,15,4)
+        sage: codes.bounds.dimension_upper_bound(30,15,4)
         13
-        sage: dimension_upper_bound(30,15,4,algorithm="LP")
+        sage: codes.bounds.dimension_upper_bound(30,15,4,algorithm="LP")
         12
 
     """
@@ -277,7 +260,7 @@ def volume_hamming(n,q,r):
 
     EXAMPLES::
 
-        sage: volume_hamming(10,2,3)
+        sage: codes.bounds.volume_hamming(10,2,3)
         176
     """
     ans=sum([factorial(n)/(factorial(i)*factorial(n-i))*(q-1)**i for i in range(r+1)])
@@ -290,7 +273,7 @@ def gilbert_lower_bound(n,q,d):
 
     EXAMPLES::
 
-        sage: gilbert_lower_bound(10,2,3)
+        sage: codes.bounds.gilbert_lower_bound(10,2,3)
         128/7
     """
     ans=q**n/volume_hamming(n,q,d-1)
@@ -306,14 +289,14 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
 
     EXAMPLES::
 
-        sage: plotkin_upper_bound(10,2,3)
+        sage: codes.bounds.plotkin_upper_bound(10,2,3)
         192
-        sage: plotkin_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.plotkin_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         192
     """
     if algorithm=="gap":
+        gap.load_package("guava")
         ans=gap.eval("UpperBoundPlotkin(%s,%s,%s)"%(n,d,q))
-        #print "calling Guava ..."
         return QQ(ans)
     else:
         t = 1 - 1/q
@@ -338,13 +321,13 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
 
     EXAMPLES::
 
-        sage: griesmer_upper_bound(10,2,3)
+        sage: codes.bounds.griesmer_upper_bound(10,2,3)
         128
-        sage: griesmer_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.griesmer_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         128
     """
     if algorithm=="gap":
-        #print "calling Guava ..."
+        gap.load_package("guava")
         ans=gap.eval("UpperBoundGriesmer(%s,%s,%s)"%(n,d,q))
         return QQ(ans)
     else:
@@ -373,15 +356,15 @@ def elias_upper_bound(n,q,d,algorithm=None):
 
     EXAMPLES::
 
-        sage: elias_upper_bound(10,2,3)
+        sage: codes.bounds.elias_upper_bound(10,2,3)
         232
-        sage: elias_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
+        sage: codes.bounds.elias_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         232
 
     """
     r = 1-1/q
     if algorithm=="gap":
-        #print "calling Guava ..."
+        gap.load_package("guava")
         ans=gap.eval("UpperBoundElias(%s,%s,%s)"%(n,d,q))
         return QQ(ans)
     else:
@@ -425,7 +408,7 @@ def hamming_upper_bound(n,q,d):
 
     EXAMPLES::
 
-        sage: hamming_upper_bound(10,2,3)
+        sage: codes.bounds.hamming_upper_bound(10,2,3)
         93
     """
     return int((q**n)/(volume_hamming(n, q, int((d-1)/2))))
@@ -452,7 +435,7 @@ def singleton_upper_bound(n,q,d):
 
     EXAMPLES::
 
-        sage: singleton_upper_bound(10,2,3)
+        sage: codes.bounds.singleton_upper_bound(10,2,3)
         256
     """
     return q**(n - d + 1)
@@ -464,7 +447,7 @@ def gv_info_rate(n,delta,q):
 
     EXAMPLES::
 
-        sage: RDF(gv_info_rate(100,1/4,3))  # abs tol 1e-15
+        sage: RDF(codes.bounds.gv_info_rate(100,1/4,3))  # abs tol 1e-15
         0.36704992608261894
     """
     q = ZZ(q)
@@ -484,20 +467,20 @@ def entropy(x, q=2):
 
     EXAMPLES::
 
-        sage: entropy(0, 2)
+        sage: codes.bounds.entropy(0, 2)
         0
-        sage: entropy(1/5,4)
+        sage: codes.bounds.entropy(1/5,4)
         1/5*log(3)/log(4) - 4/5*log(4/5)/log(4) - 1/5*log(1/5)/log(4)
-        sage: entropy(1, 3)
+        sage: codes.bounds.entropy(1, 3)
         log(2)/log(3)
 
     Check that values not within the limits are properly handled::
 
-        sage: entropy(1.1, 2)
+        sage: codes.bounds.entropy(1.1, 2)
         Traceback (most recent call last):
         ...
         ValueError: The entropy function is defined only for x in the interval [0, 1]
-        sage: entropy(1, 1)
+        sage: codes.bounds.entropy(1, 1)
         Traceback (most recent call last):
         ...
         ValueError: The value q must be an integer greater than 1
@@ -571,9 +554,9 @@ def gv_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: RDF(gv_bound_asymp(1/4,2))
+        sage: RDF(codes.bounds.gv_bound_asymp(1/4,2))
         0.18872187554086...
-        sage: f = lambda x: gv_bound_asymp(x,2)
+        sage: f = lambda x: codes.bounds.gv_bound_asymp(x,2)
         sage: plot(f,0,1)
         Graphics object consisting of 1 graphics primitive
     """
@@ -586,9 +569,9 @@ def hamming_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: RDF(hamming_bound_asymp(1/4,2))
+        sage: RDF(codes.bounds.hamming_bound_asymp(1/4,2))
         0.456435556800...
-        sage: f = lambda x: hamming_bound_asymp(x,2)
+        sage: f = lambda x: codes.bounds.hamming_bound_asymp(x,2)
         sage: plot(f,0,1)
         Graphics object consisting of 1 graphics primitive
     """
@@ -600,9 +583,9 @@ def singleton_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: singleton_bound_asymp(1/4,2)
+        sage: codes.bounds.singleton_bound_asymp(1/4,2)
         3/4
-        sage: f = lambda x: singleton_bound_asymp(x,2)
+        sage: f = lambda x: codes.bounds.singleton_bound_asymp(x,2)
         sage: plot(f,0,1)
         Graphics object consisting of 1 graphics primitive
     """
@@ -615,7 +598,7 @@ def plotkin_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: plotkin_bound_asymp(1/4,2)
+        sage: codes.bounds.plotkin_bound_asymp(1/4,2)
         1/2
     """
     r = 1-1/q
@@ -628,7 +611,7 @@ def elias_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: elias_bound_asymp(1/4,2)
+        sage: codes.bounds.elias_bound_asymp(1/4,2)
         0.39912396330...
     """
     r = 1-1/q
@@ -641,7 +624,7 @@ def mrrw1_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: mrrw1_bound_asymp(1/4,2)   # abs tol 4e-16
+        sage: codes.bounds.mrrw1_bound_asymp(1/4,2)   # abs tol 4e-16
         0.3545789026652697
     """
     return RDF(entropy((q-1-delta*(q-2)-2*sqrt((q-1)*delta*(1-delta)))/q,q))

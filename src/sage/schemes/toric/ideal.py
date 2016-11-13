@@ -152,7 +152,7 @@ AUTHORS:
 #   * Implement the Di Biase & Urbanke algorithm
 #   * Implement the Conti & Traverso algorithm (for educational purposes)
 #   * Cythonize the Buchberger algorithm for toric ideals
-#   * Use the (multiple) weighted homegeneity during Groebner basis computations
+#   * Use the (multiple) weighted homogeneity during Groebner basis computations
 
 
 
@@ -176,7 +176,7 @@ class ToricIdeal(MPolynomialIdeal):
       ``z1``, ...
 
     - ``base_ring`` -- a ring (optional). Default: `\QQ`. The base
-      ring of the ideal. A toric ideal uses only coefficents `\pm 1`.
+      ring of the ideal. A toric ideal uses only coefficients `\pm 1`.
 
     - ``polynomial_ring`` -- a polynomial ring (optional). The
       polynomial ring to construct the ideal in.

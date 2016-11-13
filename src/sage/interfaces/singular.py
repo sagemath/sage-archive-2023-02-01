@@ -64,6 +64,7 @@ factorization::
 
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
+    polynomial ring, over a field, global ordering
     //   characteristic : 0
     //   number of vars : 2
     //        block   1 : ordering dp
@@ -241,6 +242,7 @@ Groebner basis for some ideal, using Singular through Sage.
 
     sage: singular.lib('poly.lib')
     sage: singular.ring(32003, '(a,b,c,d,e,f)', 'lp')
+            polynomial ring, over a field, global ordering
             //   characteristic : 32003
             //   number of vars : 6
             //        block   1 : ordering lp
@@ -315,7 +317,9 @@ see :trac:`11645`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import range
 
 import os
 import re
@@ -323,16 +327,18 @@ import sys
 import pexpect
 from time import sleep
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sequence import Sequence
-
 from sage.structure.element import RingElement
 
 import sage.rings.integer
 
 from sage.misc.misc import get_verbose
 from sage.misc.superseded import deprecation
+
+from six import reraise as raise_
 
 class SingularError(RuntimeError):
     """
@@ -341,7 +347,7 @@ class SingularError(RuntimeError):
     pass
 
 
-class Singular(Expect):
+class Singular(ExtraTabCompletion, Expect):
     r"""
     Interface to the Singular interpreter.
 
@@ -361,7 +367,7 @@ class Singular(Expect):
 
     - David Joyner and William Stein
     """
-    def __init__(self, maxread=1000, script_subdirectory=None,
+    def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None,
                  seed=None):
         """
@@ -378,7 +384,6 @@ class Singular(Expect):
                         # no tty, fine grained cputime()
                         # and do not display CTRL-C prompt
                         command = "Singular -t --ticks-per-sec 1000 --cntrlc=a",
-                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -609,6 +614,7 @@ class Singular(Expect):
             // dimension (affine) = 0
             // degree (affine)  = 8
             // ** right side is not a datum, assignment ignored
+            ...
 
         rather than ignored
 
@@ -634,7 +640,7 @@ class Singular(Expect):
         # Uncomment the print statements below for low-level debugging of
         # code that involves the singular interfaces.  Everything goes
         # through here.
-        #print "input: %s"%x
+
         x = str(x).rstrip().rstrip(';')
         x = x.replace("> ",">\t") #don't send a prompt  (added by Martin Albrecht)
         if not allow_semicolon and x.find(";") != -1:
@@ -650,7 +656,7 @@ class Singular(Expect):
         if get_verbose() > 0:
             for line in s.splitlines():
                 if line.startswith("//"):
-                    print line
+                    print(line)
             return s
         else:
             return s
@@ -785,20 +791,33 @@ class Singular(Expect):
 
         return SingularElement(self, type, x, False)
 
-    def has_coerce_map_from_impl(self, S):
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` if ``S`` admits a coercion map into the
+        Singular interface.
+
+        EXAMPLES::
+
+            sage: singular._coerce_map_from_(ZZ)
+            True
+            sage: singular.coerce_map_from(ZZ)
+            Call morphism:
+              From: Integer Ring
+              To:   Singular
+            sage: singular.coerce_map_from(float)
+        """
         # we want to implement this without coercing, since singular has state.
         if hasattr(S, 'an_element'):
             if hasattr(S.an_element(), '_singular_'):
                 return True
             try:
                 self._coerce_(S.an_element())
+                return True
             except TypeError:
-                return False
-            return True
+                pass
         elif S is int or S is long:
             return True
-        raise NotImplementedError
-
+        return None
 
     def cputime(self, t=None):
         r"""
@@ -980,6 +999,7 @@ class Singular(Expect):
 
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: R
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 3
             //        block   1 : ordering dp
@@ -1019,7 +1039,7 @@ class Singular(Expect):
             sage: R = singular.ring(7, '(a,b)', 'ds')
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.new('10*a')
-            1.000e+01*a
+            (1.000e+01)*a
             sage: R.set_ring()
             sage: singular.new('10*a')
             3*a
@@ -1059,6 +1079,7 @@ class Singular(Expect):
             sage: R = singular.ring(7, '(a,b)', 'ds')
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.current_ring()
+            polynomial ring, over a field, global ordering
             //   characteristic : 0 (real)
             //   number of vars : 2
             //        block   1 : ordering lp
@@ -1066,6 +1087,7 @@ class Singular(Expect):
             //        block   2 : ordering C
             sage: singular.set_ring(R)
             sage: singular.current_ring()
+            polynomial ring, over a field, local ordering
             //   characteristic : 7
             //   number of vars : 2
             //        block   1 : ordering ds
@@ -1107,12 +1129,14 @@ class Singular(Expect):
 
             sage: r = PolynomialRing(GF(127),3,'xyz', order='invlex')
             sage: r._singular_()
+            polynomial ring, over a field, global ordering
             //   characteristic : 127
             //   number of vars : 3
             //        block   1 : ordering rp
             //                  : names    x y z
             //        block   2 : ordering C
             sage: singular.current_ring()
+            polynomial ring, over a field, global ordering
             //   characteristic : 127
             //   number of vars : 3
             //        block   1 : ordering rp
@@ -1125,13 +1149,13 @@ class Singular(Expect):
         else:
             return None
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
          Return a list of all Singular commands.
 
          EXAMPLES::
 
-             sage: singular.trait_names()
+             sage: singular._tab_completion()
              ['exteriorPower',
               ...
               'stdfglm']
@@ -1155,7 +1179,12 @@ class Singular(Expect):
 
     def version(self):
         """
-        EXAMPLES:
+        Return the version of Singular being used.
+
+        EXAMPLES::
+
+            sage: singular.version()
+            "Singular ... version 4.0.3 ...
         """
         return singular_version()
 
@@ -1222,7 +1251,7 @@ class Singular(Expect):
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
 
     def _keyboard_interrupt(self):
-        print "Interrupting %s..." % self
+        print("Interrupting %s..." % self)
         try:
             self._expect.sendline(chr(4))
         except pexpect.ExceptionPexpect as msg:
@@ -1230,7 +1259,9 @@ class Singular(Expect):
         self._start()
         raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
-class SingularElement(ExpectElement):
+    
+class SingularElement(ExtraTabCompletion, ExpectElement):
+    
     def __init__(self, parent, type, value, is_name=False):
         """
         EXAMPLES::
@@ -1248,7 +1279,7 @@ class SingularElement(ExpectElement):
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise TypeError, x, sys.exc_info()[2]
+                raise_(TypeError, x, sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise
@@ -1296,7 +1327,7 @@ class SingularElement(ExpectElement):
                 s = self.parent().get_using_file(self._name)
         except AttributeError:
             s = self.parent().get(self._name)
-        if s.__contains__(self._name):
+        if self._name in s:
             if hasattr(self, '__custom_name'):
                 s =  s.replace(self._name, self.__dict__['__custom_name'])
             elif self.type() == 'matrix':
@@ -1328,6 +1359,7 @@ class SingularElement(ExpectElement):
             sage: cpQ=copy(Q)
             sage: cpQ.set_ring()
             sage: cpQ
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 2
             //        block   1 : ordering dp
@@ -1506,6 +1538,15 @@ class SingularElement(ExpectElement):
             sage: R.base_ring()('I')
             1.00000000000000*I
 
+        An example where the base ring is a polynomial ring over an extension of the rational field::
+
+            sage: singular.eval('ring r7 = (0,a), (x,y), dp')
+            ''
+            sage: singular.eval('minpoly = a2 + 1')
+            ''
+            sage: singular('r7').sage_global_ring()
+            Multivariate Polynomial Ring in x, y over Number Field in a with defining polynomial a^2 + 1
+
         In our last example, the base ring is a quotient ring::
 
             sage: singular.eval('ring r6 = (9,a), (x,y,z),lp')
@@ -1566,7 +1607,7 @@ class SingularElement(ExpectElement):
                     singular.eval('short=%s'%is_short)
                 else:
                     minpoly = ZZ[charstr[1]](minpoly)
-                BR = br.extension(minpoly,name=charstr[1])
+                BR = br.extension(minpoly,names=charstr[1])
         else:
             BR = br
 
@@ -1574,7 +1615,10 @@ class SingularElement(ExpectElement):
         # using Singular's term order
         from sage.rings.polynomial.term_order import termorder_from_singular
         from sage.all import PolynomialRing
-        if singular.eval('typeof(basering)')=='ring':
+        # Meanwhile Singulars quotient rings are also of 'ring' type, not 'qring' as it was in the past.
+        # To find out if a singular ring is a quotient ring or not checking for ring type does not help
+        # and instead of that we we check if the quotient ring is zero or not:
+        if (singular.eval('ideal(basering)==0')=='1'):
             return PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
         P = PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
         return P.quotient(singular('ringlist(basering)[4]')._sage_(P), names=singular.eval('varstr(basering)'))
@@ -1696,10 +1740,17 @@ class SingularElement(ExpectElement):
             singular_poly_list = self.parent().eval("string(coef(%s,%s))"%(\
                     self.name(),variable_str)).split(",")
 
-        if singular_poly_list == ['1','0'] :
-            return R(0)
+        # Directly treat constants
+        if singular_poly_list[0] in ['1', '(1.000e+00)']:
+            return R(singular_poly_list[1])
 
         coeff_start = len(singular_poly_list) // 2
+
+        # Singular 4 puts parentheses around floats and sign outside them
+        charstr = self.parent().eval('charstr(basering)').split(',',1)
+        if charstr[0] in ['real', 'complex']:
+              for i in range(coeff_start, 2 * coeff_start):
+                  singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 
         if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented
@@ -1752,7 +1803,7 @@ class SingularElement(ExpectElement):
                         exp = int(1)
 
                 if kcache is None:
-                    sage_repr[exp]=k(singular_poly_list[coeff_start+i])
+                    sage_repr[exp] = k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
                     if elem not in kcache:
@@ -1835,7 +1886,7 @@ class SingularElement(ExpectElement):
         ::
 
             sage: singular.eval('ring R = integer, (x,y,z),lp')
-            '// ** redefining R **'
+            '// ** redefining R (ring R = integer, (x,y,z),lp;)'
             sage: I = singular.ideal(['x^2','y*z','z+x'])
             sage: I.sage()
             Ideal (x^2, y*z, x + z) of Multivariate Polynomial Ring in x, y, z over Integer Ring
@@ -1857,7 +1908,8 @@ class SingularElement(ExpectElement):
         Note that the current base ring has not been changed by asking for another ring::
 
             sage: singular('basering')
-            //   coeff. ring is : Integers
+            polynomial ring, over a domain, global ordering
+            //   coeff. ring is : integer
             //   number of vars : 3
             //        block   1 : ordering lp
             //                  : names    x y z
@@ -1901,8 +1953,8 @@ class SingularElement(ExpectElement):
             from sage.matrix.constructor import matrix
             from sage.rings.integer_ring import ZZ
             A =  matrix(ZZ, int(self.nrows()), int(self.ncols()))
-            for i in xrange(A.nrows()):
-                for j in xrange(A.ncols()):
+            for i in range(A.nrows()):
+                for j in range(A.ncols()):
                     A[i,j] = sage.rings.integer.Integer(str(self[i+1,j+1]))
             return A
         elif typ == 'string':
@@ -1941,6 +1993,7 @@ class SingularElement(ExpectElement):
             sage: R = singular.ring(7, '(a,b)', 'ds')
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.current_ring()
+            polynomial ring, over a field, global ordering
             //   characteristic : 0 (real)
             //   number of vars : 2
             //        block   1 : ordering lp
@@ -1948,6 +2001,7 @@ class SingularElement(ExpectElement):
             //        block   2 : ordering C
             sage: R.set_ring()
             sage: singular.current_ring()
+            polynomial ring, over a field, local ordering
             //   characteristic : 7
             //   number of vars : 2
             //        block   1 : ordering ds
@@ -2009,7 +2063,7 @@ class SingularElement(ExpectElement):
             return str(self)
         return [X.sage_structured_str_list() for X in self]
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         Returns the possible tab-completions for self. In this case, we
         just return all the tab completions for the Singular object.
@@ -2017,12 +2071,12 @@ class SingularElement(ExpectElement):
         EXAMPLES::
 
             sage: R = singular.ring(0,'(x,y)','dp')
-            sage: R.trait_names()
+            sage: R._tab_completion()
             ['exteriorPower',
              ...
              'stdfglm']
         """
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
     def type(self):
         """
@@ -2059,7 +2113,7 @@ class SingularElement(ExpectElement):
             l = self.ncols()
         else:
             l = len(self)
-        for i in range(1, l+1):
+        for i in range(1, l + 1):
             yield self[i]
 
     def _singular_(self):
@@ -2203,6 +2257,7 @@ def reduce_load():
     By :trac:`18848`, pickling actually often works::
 
         sage: loads(dumps(singular.ring()))
+        polynomial ring, over a field, global ordering
         //   characteristic : 0
         //   number of vars : 1
         //        block   1 : ordering lp
@@ -2226,13 +2281,15 @@ def generate_docstring_dictionary():
         sage: from sage.interfaces.singular import generate_docstring_dictionary
         sage: generate_docstring_dictionary()
     """
+    from sage.env import SAGE_LOCAL
+
     global nodes
     global node_names
 
     nodes.clear()
     node_names.clear()
 
-    singular_docdir = os.environ["SAGE_LOCAL"]+"/share/singular/"
+    singular_docdir = SAGE_LOCAL+"/share/singular/"
 
     new_node = re.compile("File: singular\.hlp,  Node: ([^,]*),.*")
     new_lookup = re.compile("\* ([^:]*):*([^.]*)\..*")
@@ -2312,14 +2369,20 @@ def singular_console():
              by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Nov 2007
         FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%singular magics instead.')
     os.system('Singular')
 
 
 def singular_version():
     """
-    Returns the version of Singular being used.
+    Return the version of Singular being used.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: singular.version()
+        "Singular ... version 4.0.3 ...
     """
     return singular.eval('system("--version");')
 
@@ -2449,42 +2512,42 @@ class SingularGBLogPrettyPrinter:
                     continue
 
                 elif re.match(SingularGBLogPrettyPrinter.new_elem,token) and verbosity >= 3:
-                    print "New element found."
+                    print("New element found.")
 
                 elif re.match(SingularGBLogPrettyPrinter.red_zero,token) and verbosity >= 2:
-                    print "Reduction to zero."
+                    print("Reduction to zero.")
 
                 elif re.match(SingularGBLogPrettyPrinter.red_post, token) and verbosity >= 2:
-                    print "Reduction postponed."
+                    print("Reduction postponed.")
 
                 elif re.match(SingularGBLogPrettyPrinter.cri_hilb, token) and verbosity >= 2:
-                    print "Hilber series criterion applied."
+                    print("Hilber series criterion applied.")
 
                 elif re.match(SingularGBLogPrettyPrinter.hig_corn, token) and verbosity >= 1:
-                    print "Maximal degree found: %s"%token
+                    print("Maximal degree found: %s" % token)
 
                 elif re.match(SingularGBLogPrettyPrinter.num_crit, token) and verbosity >= 1:
-                    print "Leading term degree: %2d. Critical pairs: %s."%(self.curr_deg,token[1:-1])
+                    print("Leading term degree: %2d. Critical pairs: %s."%(self.curr_deg,token[1:-1]))
 
                 elif re.match(SingularGBLogPrettyPrinter.red_num, token) and verbosity >= 3:
-                    print "Performing complete reduction of %s elements."%token[3:-1]
+                    print("Performing complete reduction of %s elements."%token[3:-1])
 
                 elif re.match(SingularGBLogPrettyPrinter.deg_lead, token):
                     if verbosity >= 1:
-                        print "Leading term degree: %2d."%int(token)
+                        print("Leading term degree: %2d." % int(token))
                     self.curr_deg = int(token)
                     if self.max_deg < self.curr_deg:
                         self.max_deg = self.curr_deg
 
                 elif re.match(SingularGBLogPrettyPrinter.red_para, token) and verbosity >= 3:
                     m,n = re.match(SingularGBLogPrettyPrinter.red_para,token).groups()
-                    print "Parallel reduction of %s elements with %s non-zero output elements."%(m,n)
+                    print("Parallel reduction of %s elements with %s non-zero output elements." % (m, n))
 
                 elif re.match(SingularGBLogPrettyPrinter.red_betr, token) and verbosity >= 3:
-                    print "Replaced reductor by 'better' one."
+                    print("Replaced reductor by 'better' one.")
 
                 elif re.match(SingularGBLogPrettyPrinter.non_mini, token) and verbosity >= 2:
-                    print "New reductor with non-minimal leading term found."
+                    print("New reductor with non-minimal leading term found.")
 
     def flush(self):
         """

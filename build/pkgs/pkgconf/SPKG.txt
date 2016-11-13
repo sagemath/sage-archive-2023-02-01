@@ -9,10 +9,6 @@ dependencies.
 
 ISC License (equivalent to Simplified BSD)
 
-== SPKG Maintainers ==
-
-* Volker Braun
-
 == Upstream Contact ==
 
 https://github.com/pkgconf/pkgconf

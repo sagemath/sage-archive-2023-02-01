@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 IPython Backend for the Sage Rich Output System
 
@@ -371,39 +371,26 @@ class BackendIPythonCommandline(BackendIPython):
                       .format(jmol_cmd, launch_script))
         return 'Launched jmol viewer for {0}'.format(plain_text)
 
-    def launch_sage3d(self, output_wavefront, plain_text):
+    def is_in_terminal(self):
         """
-        Launch the stand-alone java3d viewer
+        Test whether the UI is meant to run in a terminal
 
-        INPUT:
-
-        - ``output_wavefront`` --
-          :class:`~sage.repl.rich_output.output_graphics3d.OutputSceneWavefront`. The
-          scene to launch Java3d with.
-
-        - ``plain_text`` -- string. The plain text representation.
+        See
+        :meth:`sage.repl.rich_output.display_manager.DisplayManager.is_in_terminal`
+        for details.
 
         OUTPUT:
 
-        String. Human-readable message indicating that the viewer was launched.
+        ``True`` for the IPython commandline.
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
             sage: backend = BackendIPythonCommandline()
-            sage: from sage.repl.rich_output.output_graphics3d import OutputSceneWavefront
-            sage: backend.launch_sage3d(OutputSceneWavefront.example(), 'Graphics3d object')
-            'Launched Java 3D viewer for Graphics3d object'
+            sage: backend.is_in_terminal()
+            True
         """
-        from sage.env import SAGE_LOCAL
-        sage3d = os.path.join(SAGE_LOCAL, 'bin', 'sage3d')
-        obj = output_wavefront.obj_filename()
-        from sage.doctest import DOCTEST_MODE
-        if not DOCTEST_MODE:
-            os.system('{0} {1} 2>/dev/null 1>/dev/null &'
-                      .format(sage3d, obj))
-        return 'Launched Java 3D viewer for {0}'.format(plain_text)
-
+        return True
     
 class BackendIPythonNotebook(BackendIPython):
     """
@@ -464,6 +451,7 @@ class BackendIPythonNotebook(BackendIPython):
         """
         return set([
             OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
+            OutputHtml,
             OutputImagePng, OutputImageJpg,
             OutputImageSvg, OutputImagePdf,
             OutputSceneJmol,
@@ -511,6 +499,10 @@ class BackendIPythonNotebook(BackendIPython):
         elif isinstance(rich_output, OutputLatex):
             return ({u'text/html':  rich_output.mathjax(),
                      u'text/plain': plain_text.text.get_unicode(),
+            }, {})
+        elif isinstance(rich_output, OutputHtml):
+            return ({u'text/html':  rich_output.html.get(),
+                     u'text/plain': plain_text.text.get(),
             }, {})
         elif isinstance(rich_output, OutputImagePng):
             return ({u'image/png':  rich_output.png.get(),

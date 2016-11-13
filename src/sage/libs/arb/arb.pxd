@@ -1,14 +1,10 @@
-from sage.libs.arb.arf cimport arf_t
-from sage.libs.arb.mag cimport mag_t
+# distutils: libraries = arb
+
+from sage.libs.arb.types cimport *
 from sage.libs.flint.types cimport fmpz_t, fmpq_t
 from sage.libs.mpfr cimport mpfr_t
 
 cdef extern from "arb.h":
-
-    ctypedef struct arb_struct:
-        pass
-    ctypedef arb_struct arb_t[1]
-    ctypedef arb_struct * arb_ptr
 
     arf_t arb_midref(arb_t x)
     mag_t arb_radref(arb_t x)
@@ -97,6 +93,7 @@ cdef extern from "arb.h":
     bint arb_contains_nonpositive(const arb_t x)
     bint arb_contains_positive(const arb_t x)
     bint arb_contains_nonnegative(const arb_t x)
+    bint arb_contains_int(const arb_t x)
 
     void arb_neg(arb_t y, const arb_t x)
     void arb_neg_round(arb_t y, const arb_t x, long prec)
@@ -211,6 +208,7 @@ cdef extern from "arb.h":
     void arb_rising_ui_rs(arb_t z, const arb_t x, unsigned long n, unsigned long step, long prec)
     void arb_rising_ui_rec(arb_t z, const arb_t x, unsigned long n, long prec)
     void arb_rising_ui(arb_t z, const arb_t x, unsigned long n, long prec)
+    void arb_rising(arb_t z, const arb_t x, const arb_t n, long prec)
     void arb_rising_fmpq_ui(arb_t z, const fmpq_t x, unsigned long n, long prec)
     void arb_rising2_ui_bs(arb_t u, arb_t v, const arb_t x, unsigned long n, long prec)
     void arb_rising2_ui_rs(arb_t u, arb_t v, const arb_t x, unsigned long n, unsigned long step, long prec)
@@ -250,3 +248,7 @@ cdef extern from "arb.h":
     void arb_chebyshev_u_ui(arb_t a, unsigned long n, const arb_t x, long prec)
     void arb_chebyshev_t2_ui(arb_t a, arb_t b, unsigned long n, const arb_t x, long prec)
     void arb_chebyshev_u2_ui(arb_t a, arb_t b, unsigned long n, const arb_t x, long prec)
+    void arb_bell_fmpz(arb_t z, const fmpz_t n, long prec)
+    void arb_bell_ui(arb_t z, unsigned long n, long prec)
+    void arb_doublefac_ui(arb_t z, unsigned long n, long prec)
+

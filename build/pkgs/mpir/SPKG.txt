@@ -11,9 +11,6 @@ See http://www.mpir.org
 == License ==
  * LGPL V3+
 
-== SPKG Maintainers ==
- * William Stein
-
 == Upstream Contact ==
  * The Google group mpir-devel
  * thempirteam@googlemail.com

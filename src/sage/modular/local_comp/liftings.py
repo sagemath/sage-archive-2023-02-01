@@ -7,7 +7,7 @@ problems.
 """
 
 from sage.rings.all import ZZ, Zmod
-from sage.rings.arith import crt, inverse_mod
+from sage.arith.all import crt, inverse_mod
 from sage.modular.modsym.p1list import lift_to_sl2z
 
 def lift_to_gamma1(g, m, n):

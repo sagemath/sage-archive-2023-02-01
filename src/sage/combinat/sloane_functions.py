@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Functions that compute some of the sequences in Sloane's tables
 
@@ -54,7 +55,7 @@ We agree with the online database::
     ....:     L = max(2, len(online_list) // 2)
     ....:     sage_list = sloane.__getattribute__(t).list(L)
     ....:     if online_list[:L] != sage_list:
-    ....:         print t, 'seems wrong'
+    ....:         print('{} seems wrong'.format(t))
 
 .. SEEALSO::
 
@@ -121,13 +122,14 @@ AUTHORS:
 ########################################################################
 
 # just used for handy .load, .save, etc.
+from __future__ import print_function, absolute_import
 
 import inspect
 from sage.structure.sage_object import SageObject
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 from sage.rings.integer_ring import ZZ
 from sage.functions.all import prime_pi
-import partition
+from . import partition
 from sage.rings.integer import Integer as Integer_class
 
 Integer = ZZ
@@ -300,7 +302,7 @@ class SloaneSequence(SageObject):
 ########################################################################
 
 # You may have to import more here when defining new sequences
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.combinat import combinat
@@ -313,16 +315,12 @@ class A000001(SloaneSequence):
         r"""
         Number of groups of order `n`.
 
-        Note: The database_gap-4.4.9 must be installed for
-        `n > 50`.
-
-        run ``sage -i database_gap-4.4.9`` or higher first.
+        Note: The package database_gap must be installed for
+        `n > 50`: run ``sage -i database_gap`` first.
 
         INPUT:
 
-
-        -  ``n`` - positive integer
-
+        -  ``n`` -- positive integer
 
         OUTPUT: integer
 
@@ -334,13 +332,13 @@ class A000001(SloaneSequence):
             Traceback (most recent call last):
             ...
             ValueError: input n (=0) must be a positive integer
-            sage: a(1) #optional database_gap
+            sage: a(1)
             1
-            sage: a(2) #optional database_gap
+            sage: a(2)
             1
-            sage: a(9) #optional database_gap
+            sage: a(9)
             2
-            sage: a.list(16) #optional database_gap
+            sage: a.list(16)
             [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
             sage: a(60)  # optional - database_gap
             13
@@ -373,10 +371,9 @@ class A000001(SloaneSequence):
         if n <= 50:
             return self._small[n-1]
         try:
-            return Integer(gap.gap.eval('NumberSmallGroups(%s)'%n))
+            return Integer(gap.gap.eval('NumberSmallGroups(%s)' % n))
         except Exception:  # help, don't know what to do here? Jaap
-            print "Install database_gap first. See optional packages"
-
+            print("Install database_gap first. See optional packages.")
 
 
 class A000027(SloaneSequence):
@@ -882,7 +879,7 @@ class A007318(SloaneSequence):
     def __init__(self):
         r"""
         Pascal's triangle read by rows:
-        `C(n,k) = {n \choose k} = \frac {n!} {(k!(n-k)!)}`,
+        `C(n,k) = \binom{n}{k} = \frac {n!} {(k!(n-k)!)}`,
         `0 \le k \le n`.
 
         INPUT:
@@ -4198,20 +4195,17 @@ class A000108(SloaneSequence):
     def __init__(self):
         r"""
         Catalan numbers:
-        `C_n = \frac{{{2n}\choose{n}}}{n+1} = \frac {(2n)!}{n!(n+1)!}`.
+        `C_n = \frac{\binom{2n}{n}}{n+1} = \frac{(2n)!}{n!(n+1)!}`.
+
         Also called Segner numbers.
 
         INPUT:
 
-
         -  ``n`` - non negative integer
-
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 
@@ -5123,7 +5117,7 @@ class A000984(SloaneSequence):
     def __init__(self):
         r"""
         Central binomial coefficients:
-        `2n \choose n = \frac {(2n)!} {(n!)^2}`.
+        `\binom{2n}{n} = \frac {(2n)!} {(n!)^2}`.
 
         INPUT:
 
@@ -5178,7 +5172,7 @@ class A001405(SloaneSequence):
     def __init__(self):
         r"""
         Central binomial coefficients:
-        `n \choose \lfloor \frac {n}{ 2} \rfloor`.
+        `\binom{n}{\lfloor \frac {n}{ 2} \rfloor}`.
 
         INPUT:
 
@@ -5234,7 +5228,7 @@ class A000292(SloaneSequence):
     def __init__(self):
         r"""
         Tetrahedral (or pyramidal) numbers:
-        `{n+2} \choose 3 = n(n+1)(n+2)/6`.
+        `\binom{n+2}{3} = n(n+1)(n+2)/6`.
 
         INPUT:
 
@@ -6455,7 +6449,7 @@ class A001157(SloaneSequence):
 class A008683(SloaneSequence):
     def __init__(self):
         r"""
-        Moebius function `\mu(n)`.
+        Möbius function `\mu(n)`.
 
         INPUT:
 
@@ -6581,19 +6575,15 @@ class A000204(SloaneSequence):
 class A000217(SloaneSequence):
     def __init__(self):
         r"""
-        Triangular numbers: `a(n) = {n+1} \choose 2) = n(n+1)/2`.
+        Triangular numbers: `a(n) = \binom{n+1}{2} = n(n+1)/2`.
 
         INPUT:
 
-
         -  ``n`` - non negative integer
-
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 
@@ -9727,6 +9717,15 @@ class Sloane(SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: dog
+
+        ::
+
+            sage: sloane.__repr__
+            <method-wrapper '__repr__' of Sloane object at 0x...>
+            sage: sloane.__name__
+            Traceback (most recent call last):
+            ...
+            AttributeError: __name__
         """
         try:
             return SageObject.__getattribute__(self, name)
@@ -9737,7 +9736,7 @@ class Sloane(SageObject):
                 seq = f()
                 setattr(self, name, seq)
                 return seq
-            except AttributeError:
+            except (AttributeError, TypeError):
                 raise AttributeError(name)
 
 sloane = Sloane()

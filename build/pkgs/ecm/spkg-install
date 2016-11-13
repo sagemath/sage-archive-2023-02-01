@@ -22,6 +22,9 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Use newer version of config.guess and config.sub (see Trac #19724)
+cp "$SAGE_ROOT"/config/config.* .
+
 ###############################################################################
 # Set up environment variables, depending on SAGE_* settings:
 # Note that GMP-ECM is written in C (and assembler) - no C++ sources.
@@ -144,11 +147,11 @@ else
         # The compiler supports '-march=native', but the assembler might not
         # support (some of) the instructions emitted with this (e.g. the
         # Apple assembler doesn't know AVX yet).
-        cat >foo.c <<-"EOF"
-		double d;
-		unsigned long fancy_insns() { return (unsigned long) d; }
-		int main () { return 0; }
-	EOF
+        cat >foo.c <<EOF
+                double d;
+                unsigned long fancy_insns() { return (unsigned long) d; }
+                int main () { return 0; }
+EOF
         if $CC -march=native -o foo foo.c &>/dev/null && ./foo >/dev/null; then
             cpu_params="-march=native"
         else

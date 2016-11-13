@@ -28,26 +28,29 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function, absolute_import
 
 from cpython.list cimport *
+from cpython.object cimport PyObject
 
 import os
 from functools import reduce
 from random import randint
 import zipfile
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 
 from sage.misc.misc import sage_makedirs
 from sage.env import SAGE_LOCAL
 from sage.doctest import DOCTEST_MODE
 
+from sage.misc.fast_methods cimport hash_by_id
+
 from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
 from sage.misc.temporary_file import tmp_filename
-from texture import Texture, is_Texture
-from transform cimport Transformation, point_c, face_c
+from .texture import Texture, is_Texture
+from .transform cimport Transformation, point_c, face_c
 include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
@@ -79,6 +82,16 @@ cdef class Graphics3d(SageObject):
         """
         self._extra_kwds = dict()
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.plot.plot3d.base import Graphics3d
+            sage: hash(Graphics3d()) # random
+            140658972348064
+        """
+        return hash_by_id(<void *> self)
+
     def _repr_(self):
         """
         Return a string representation.
@@ -90,7 +103,7 @@ cdef class Graphics3d(SageObject):
         EXAMPLES::
 
             sage: S = sphere((0, 0, 0), 1)
-            sage: print S
+            sage: print(S)
             Graphics3d Object
         """
         return str(self)
@@ -116,9 +129,6 @@ cdef class Graphics3d(SageObject):
         can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
         opts = self._process_viewing_options(kwds)
         viewer = opts.get('viewer', None)
-        if viewer == 'java3d':
-            from sage.misc.superseded import deprecation
-            deprecation(17234, 'use viewer="wavefront" instead of "java3d"')
         # make sure viewer is one of the supported options
         if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
             import warnings
@@ -485,7 +495,6 @@ cdef class Graphics3d(SageObject):
                 a_max[i] = a_max[i] + 1
         return a_min, a_max
 
-
     def bounding_box(self):
         """
         Return the lower and upper corners of a 3d bounding box for ``self``.
@@ -677,7 +686,7 @@ cdef class Graphics3d(SageObject):
 
         EXAMPLES::
 
-            sage: print sphere((1, 2, 3), 5).x3d()
+            sage: print(sphere((1, 2, 3), 5).x3d())
             <X3D version='3.0' profile='Immersive' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation=' http://www.web3d.org/specifications/x3d-3.0.xsd '>
             <head>
             <meta name='title' content='sage3d'/>
@@ -691,7 +700,7 @@ cdef class Graphics3d(SageObject):
             </X3D>
 
             sage: G = icosahedron() + sphere((0,0,0), 0.5, color='red')
-            sage: print G.x3d()
+            sage: print(G.x3d())
             <X3D version='3.0' profile='Immersive' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation=' http://www.web3d.org/specifications/x3d-3.0.xsd '>
             <head>
             <meta name='title' content='sage3d'/>
@@ -728,7 +737,7 @@ cdef class Graphics3d(SageObject):
 
         EXAMPLES::
 
-            sage: print sphere((1, 2, 3), 5, color='yellow').tachyon()
+            sage: print(sphere((1, 2, 3), 5, color='yellow').tachyon())
             begin_scene
             resolution 400 400
                      camera
@@ -749,7 +758,7 @@ cdef class Graphics3d(SageObject):
 
             sage: G = icosahedron(color='red') + sphere((1,2,3), 0.5, color='yellow')
             sage: G.show(viewer='tachyon', frame=false)
-            sage: print G.tachyon()
+            sage: print(G.tachyon())
             begin_scene
             ...
             Texdef texture...
@@ -808,7 +817,7 @@ end_scene""" % (render_params.antialiasing,
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import ColorCube
-            sage: print ColorCube(1, ['red', 'yellow', 'blue']).obj()
+            sage: print(ColorCube(1, ['red', 'yellow', 'blue']).obj())
             g obj_1
             usemtl ...
             v 1 1 1
@@ -848,7 +857,7 @@ end_scene""" % (render_params.antialiasing,
             sage: z.namelist()
             ['obj_...pmesh', 'SCRIPT']
 
-            sage: print z.read('SCRIPT')
+            sage: print(z.read('SCRIPT'))
             data "model list"
             2
             empty
@@ -874,7 +883,7 @@ end_scene""" % (render_params.antialiasing,
             label "hi"
             isosurface fullylit; pmesh o* fullylit; set antialiasdisplay on;
 
-            sage: print z.read(z.namelist()[0])
+            sage: print(z.read(z.namelist()[0]))
             24
             0.5 0.5 0.5
             -0.5 0.5 0.5
@@ -1061,7 +1070,7 @@ end_scene""" % (render_params.antialiasing,
         EXAMPLES::
 
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow', opacity=0.5)
-            sage: print G.mtl_str()
+            sage: print(G.mtl_str())
             newmtl ...
             Ka 0.5 5e-06 5e-06
             Kd 1.0 1e-05 1e-05
@@ -1187,7 +1196,7 @@ end_scene""" % (render_params.antialiasing,
         T = [xyz_min[i] - a_min[i] for i in range(3)]
         X = X.translate(T)
         if frame:
-            from shapes2 import frame3d, frame_labels
+            from .shapes2 import frame3d, frame_labels
             F = frame3d(xyz_min, xyz_max, opacity=0.5, color=(0,0,0), thickness=thickness)
             if labels:
                 F += frame_labels(xyz_min, xyz_max, a_min_orig, a_max_orig)
@@ -1196,7 +1205,7 @@ end_scene""" % (render_params.antialiasing,
 
         if axes:
             # draw axes
-            from shapes import arrow3d
+            from .shapes import arrow3d
             A = (arrow3d((min(0,a_min[0]),0, 0), (max(0,a_max[0]), 0,0),
                              thickness, color="blue"),
                  arrow3d((0,min(0,a_min[1]), 0), (0, max(0,a_max[1]), 0),
@@ -1223,7 +1232,7 @@ end_scene""" % (render_params.antialiasing,
 
         # Remove all of the keys that are viewing options, since the remaining
         # kwds might be passed on.
-        for key_to_remove in SHOW_DEFAULTS.keys():
+        for key_to_remove in SHOW_DEFAULTS:
             kwds.pop(key_to_remove, None)
 
         # deal with any aspect_ratio instances passed from the default options to plot
@@ -1284,8 +1293,6 @@ end_scene""" % (render_params.antialiasing,
            * 'jmol': Interactive 3D viewer using Java
 
            * 'tachyon': Ray tracer generates a static PNG image
-
-           * 'java3d': Interactive OpenGL based 3D
 
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)
@@ -1449,7 +1456,7 @@ end_scene""" % (render_params.antialiasing,
         filename. This can be either:
 
         - an image file (of type: PNG, BMP, GIF, PPM, or TIFF) rendered
-          using Tachyon,
+          using Jmol (default) or Tachyon,
 
         - a Sage object file (of type ``.sobj``) that you can load back later
           (a pickle),
@@ -1464,12 +1471,12 @@ end_scene""" % (render_params.antialiasing,
 
         - ``filename`` -- string. Where to save the image or object.
 
-        - ``**kwds`` -- When specifying an image file to be rendered by Tachyon,
-          any of the viewing options accepted by show() are valid as keyword
-          arguments to this function and they will behave in the same way.
-          Accepted keywords include: ``viewer``, ``verbosity``, ``figsize``,
-          ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``, ``frame``, and
-          ``axes``. Default values are provided.
+        - ``**kwds`` -- When specifying an image file to be rendered by Tachyon
+          or Jmol, any of the viewing options accepted by show() are valid as
+          keyword arguments to this function and they will behave in the same
+          way. Accepted keywords include: ``viewer``, ``verbosity``,
+          ``figsize``, ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``,
+          ``frame``, and ``axes``. Default values are provided.
 
         EXAMPLES::
 
@@ -1482,15 +1489,15 @@ end_scene""" % (render_params.antialiasing,
 
             sage: G.save(f, zoom=2, figsize=[5, 10])
 
-        But some extra parameters don't make sense (like ``viewer``, since
-        rendering is done using Tachyon only). They will be ignored::
+        Using Tachyon instead of the default viewer (Jmol) to create the
+        image::
 
-            sage: G.save(f, viewer='jmol') # Looks the same
+            sage: G.save(f, viewer='tachyon')
 
         Since Tachyon only outputs PNG images, PIL will be used to convert to
         alternate formats::
 
-            sage: cube().save(tmp_filename(ext='.gif'))
+            sage: cube().save(tmp_filename(ext='.gif'), viewer='tachyon')
 
         Here is how to save in one of the data formats::
 
@@ -1505,27 +1512,23 @@ end_scene""" % (render_params.antialiasing,
             SageObject.save(self, filename)
         elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif',
                      '.jpg', '.jpeg']:
-            self.save_image(filename)
+            self.save_image(filename, **kwds)
         elif filename.endswith('.spt.zip'):
             scene = self._rich_repr_jmol(**kwds)
             scene.jmol.save(filename)
         elif ext == '.x3d':
-            outfile = file(filename, 'w')
-            outfile.write(self.x3d())
-            outfile.close()
+            with open(filename, 'w') as outfile:
+                outfile.write(self.x3d())
         elif ext == '.stl':
-            outfile = file(filename, 'w')
-            outfile.write(self.stl_ascii_string())
-            outfile.close()
+            with open(filename, 'w') as outfile:
+                outfile.write(self.stl_ascii_string())
         elif ext == '.amf':
             # todo : zip the output file ?
-            outfile = file(filename, 'w')
-            outfile.write(self.amf_ascii_string())
-            outfile.close()
+            with open(filename, 'w') as outfile:
+                outfile.write(self.amf_ascii_string())
         elif ext == '.ply':
-            outfile = file(filename, 'w')
-            outfile.write(self.ply_ascii_string())
-            outfile.close()
+            with open(filename, 'w') as outfile:
+                outfile.write(self.ply_ascii_string())
         else:
             raise ValueError('filetype {} not supported by save()'.format(ext))
 
@@ -1562,7 +1565,7 @@ end_scene""" % (render_params.antialiasing,
             '    endloop']
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
-            sage: print p.stl_ascii_string(name='triangle')
+            sage: print(p.stl_ascii_string(name='triangle'))
             solid triangle
             facet normal 0.0 0.832050294338 -0.554700196225
                 outer loop
@@ -1637,7 +1640,7 @@ end_scene""" % (render_params.antialiasing,
             'end_header']
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
-            sage: print p.ply_ascii_string(name='triangle')
+            sage: print(p.ply_ascii_string(name='triangle'))
             ply
             format ascii 1.0
             comment triangle
@@ -1702,7 +1705,7 @@ end_scene""" % (render_params.antialiasing,
             '<?xml version="1.0" encoding="utf-8"?><amf><object id="surface"><mesh><vertices><vertex><coordinates><x>2.94871794872</x><y>-0.384615384615</y><z>-0.39358974359'
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
-            sage: print p.amf_ascii_string(name='triangle')
+            sage: print(p.amf_ascii_string(name='triangle'))
             <?xml version="1.0" encoding="utf-8"?><amf><object id="triangle"><mesh><vertices><vertex><coordinates><x>0.0</x><y>0.0</y><z>0.0</z></coordinates></vertex><vertex><coordinates><x>1.0</x><y>2.0</y><z>3.0</z></coordinates></vertex><vertex><coordinates><x>3.0</x><y>0.0</y><z>0.0</z></coordinates></vertex></vertices><volume><triangle><v1>0</v1><v2>1</v2><v3>2</v3></triangle></volume></mesh></object></amf>
         """
         faces = self.index_faces()
@@ -1728,6 +1731,20 @@ end_scene""" % (render_params.antialiasing,
         string_list += ['</volume></mesh></object></amf>']
         return "".join(string_list)
 
+    def plot(self):
+        """
+        Draw a 3D plot of this graphics object, which just returns this
+        object since this is already a 3D graphics object.
+        Needed to support PLOT in doctrings, see :trac:`17498`
+
+        EXAMPLES::
+
+            sage: S = sphere((0,0,0), 2)
+            sage: S.plot() is S
+            True
+
+        """
+        return self
 
 # if you add any default parameters you must update some code below
 SHOW_DEFAULTS = {'viewer': 'jmol',
@@ -1882,7 +1899,7 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: G = sphere() + sphere((1,2,3))
-            sage: print G.x3d_str()
+            sage: print(G.x3d_str())
             <Transform translation='0 0 0'>
             <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
@@ -1982,7 +1999,8 @@ class Graphics3dGroup(Graphics3d):
                 all.append(g)
         return Graphics3dGroup(all)
 
-
+    def plot(self):
+        return self
 
 class TransformGroup(Graphics3dGroup):
     """
@@ -2565,7 +2583,7 @@ def flatten_list(L):
         sage: flatten_list([['a'], [[['b'], 'c'], ['d'], [[['e', 'f', 'g']]]]])
         ['a', 'b', 'c', 'd', 'e', 'f', 'g']
     """
-    if not PyList_CheckExact(L):
+    if type(L) is not list:
         return [L]
     flat = []
     L_stack = []; L_pop = L_stack.pop
@@ -2574,7 +2592,7 @@ def flatten_list(L):
     while i < PyList_GET_SIZE(L) or PyList_GET_SIZE(L_stack) > 0:
         while i < PyList_GET_SIZE(L):
             tmp = <object>PyList_GET_ITEM(L, i)
-            if PyList_CheckExact(tmp):
+            if type(tmp) is list:
                 PyList_Append(L_stack, L)
                 L = tmp
                 PyList_Append(i_stack, i)

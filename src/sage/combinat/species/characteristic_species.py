@@ -1,6 +1,7 @@
 """
 Characteristic Species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,10 +16,12 @@ Characteristic Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
-from generating_series import factorial_stream
-from structure import GenericSpeciesStructure
-from set_species import SetSpecies
+from six.moves import range
+
+from .species import GenericCombinatorialSpecies
+from .generating_series import factorial_stream
+from .structure import GenericSpeciesStructure
+from .set_species import SetSpecies
 from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -55,7 +58,7 @@ class CharacteristicSpeciesStructure(GenericSpeciesStructure):
             {'a', 'b', 'c'}
         """
         P = self.parent()
-        rng = range(1, P._n+1)
+        rng = list(range(1, P._n + 1))
         return CharacteristicSpeciesStructure(P, self._labels, rng)
 
 

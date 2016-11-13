@@ -46,7 +46,7 @@ from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.structure.sequence import Sequence
 from sage.structure.element import MonoidElement
 from sage.groups.old import Group
-from sage.rings.arith import LCM
+from sage.arith.all import LCM
 from sage.rings.all import ZZ
 
 
@@ -411,7 +411,7 @@ class ClassGroup(AbelianGroupWithValues_class):
         sage: G = K.class_group(); G
         Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
         sage: G.category()
-        Category of finite commutative groups
+        Category of finite enumerated commutative groups
 
     Note the distinction between abstract generators, their ideal, and
     exponents::

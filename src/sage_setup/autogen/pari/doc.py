@@ -4,11 +4,13 @@ Handle PARI documentation for Sage
 """
 
 from __future__ import unicode_literals
-import re, subprocess
+import re
+import subprocess
 from six import unichr
 
 
-leading_ws = re.compile("^ +", re.MULTILINE)
+leading_ws = re.compile("^( +)", re.MULTILINE)
+trailing_ws = re.compile("( +)$", re.MULTILINE)
 double_space = re.compile("  +")
 
 end_space = re.compile(r"(@\[end[a-z]*\])([A-Za-z])")
@@ -21,6 +23,7 @@ dollars = re.compile(r"@\[dollar\]\s*(.*?)\s*@\[dollar\]", re.DOTALL)
 doubledollars = re.compile(r"@\[doubledollar\]\s*(.*?)\s*@\[doubledollar\]", re.DOTALL)
 
 math_loop = re.compile(r"(@\[start[A-Z]*MATH\][^@]*)@\[[a-z]*\]")
+math_backslash = re.compile(r"(@\[start[A-Z]*MATH\][^@]*)=BACKSLASH=")
 
 prototype = re.compile("^[^\n]*\n\n")
 library_syntax = re.compile("The library syntax is.*", re.DOTALL)
@@ -35,7 +38,8 @@ escape_mid = re.compile(r"^(\S.*)[|]", re.MULTILINE)
 escape_percent = re.compile(r"^(\S.*)[%]", re.MULTILINE)
 escape_hash = re.compile(r"^(\S.*)[#]", re.MULTILINE)
 
-label_link = re.compile(r"(Section *)?\[@\[startbold\]Label: *(se:)?([^@]*)@\[endbold\]\]")
+label_define = re.compile(r"@\[label [a-zA-Z0-9:]*\]")
+label_ref = re.compile(r"(Section *)?@\[startref\](se:)?([^@]*)@\[endref\]")
 
 
 def sub_loop(regex, repl, text):
@@ -81,7 +85,7 @@ def raw_to_rest(doc):
     EXAMPLES::
 
         sage: from sage_setup.autogen.pari.doc import raw_to_rest
-        sage: print raw_to_rest("@[startbold]hello world@[endbold]")
+        sage: print(raw_to_rest("@[startbold]hello world@[endbold]"))
         :strong:`hello world`
 
     TESTS::
@@ -90,11 +94,18 @@ def raw_to_rest(doc):
         Traceback (most recent call last):
         ...
         SyntaxError: @ found: @[invalid]
+
+        sage: s = '@3@[startbold]*@[endbold] snip @[dollar]0@[dollar]\ndividing @[dollar]#E@[dollar].'
+        sage: raw_to_rest(s)
+        u'- snip :math:`0`\n  dividing :math:`\\#E`.'
     """
     doc = doc.decode("utf-8")
 
     # Work around a specific problem with doc of "component"
     doc = doc.replace("[@[dollar]@[dollar]]", "[]")
+
+    # Work around a specific problem with doc of "algdivl"
+    doc = doc.replace(r"\y@", r"\backslash y@")
 
     # Special characters
     doc = doc.replace("@[lt]", "<")
@@ -102,13 +113,15 @@ def raw_to_rest(doc):
     doc = doc.replace("@[pm]", "±")
     doc = doc.replace("@[nbrk]", unichr(0xa0))
     doc = doc.replace("@[agrave]", "à")
+    doc = doc.replace("@[aacute]", "á")
     doc = doc.replace("@[eacute]", "é")
     doc = doc.replace("@[ouml]", "ö")
     doc = doc.replace("@[uuml]", "ü")
     doc = doc.replace("\\'{a}", "á")
 
-    # Remove leading whitespace from every line
+    # Remove leading and trailing whitespace from every line
     doc = leading_ws.sub("", doc)
+    doc = trailing_ws.sub("", doc)
 
     # Remove multiple spaces
     doc = double_space.sub(" ", doc)
@@ -117,13 +130,18 @@ def raw_to_rest(doc):
     # insert a non-breaking space
     doc = end_space.sub("\\1" + unichr(0xa0) + "\\2", doc)
 
-    # Remove links
-    doc = label_link.sub("``\\3`` (in the PARI manual)", doc)
+    # Fix labels and references
+    doc = label_define.sub("", doc)
+    doc = label_ref.sub("``\\3`` (in the PARI manual)", doc)
 
     # Bullet items
     doc = doc.replace("@3@[startbold]*@[endbold] ", "@BULLET  ")
     doc = sub_loop(bullet_loop, "\\1  \\3", doc)
     doc = doc.replace("@BULLET  ", "- ")
+
+    # Add =VOID= in front of all leading whitespace (which was
+    # intentionally added) to avoid confusion with verbatim blocks.
+    doc = leading_ws.sub(r"=VOID=\1", doc)
 
     # Verbatim blocks
     doc = begin_verb.sub("::\n\n@0", doc)
@@ -134,31 +152,29 @@ def raw_to_rest(doc):
     # Remove all further markup from within verbatim blocks
     doc = sub_loop(verb_loop, "\\1", doc)
 
-    # Replace (except in verbatim blocks)
-    # \ -> \\
-    # | -> \|
-    # % -> \%
-    # # -> \#
-    doc = sub_loop(escape_backslash, "\\1@BACKSLASH", doc)
-    doc = sub_loop(escape_mid, "\\1@MID", doc)
-    doc = sub_loop(escape_percent, "\\1@PERCENT", doc)
-    doc = sub_loop(escape_hash, "\\1@HASH", doc)
-    doc = doc.replace("@BACKSLASH", "\\\\")
-    doc = doc.replace("@MID", "\\|")
-    doc = doc.replace("@PERCENT", "\\%")
-    doc = doc.replace("@HASH", "\\#")
-
-    doc = doc.replace("@[dollar]@[dollar]", "@[doubledollar]")
-
     # Pair dollars -> beginmath/endmath
+    doc = doc.replace("@[dollar]@[dollar]", "@[doubledollar]")
     doc = dollars.sub(r"@[startMATH]\1@[endMATH]", doc)
     doc = doubledollars.sub(r"@[startDISPLAYMATH]\1@[endDISPLAYMATH]", doc)
+
+    # Replace special characters (except in verbatim blocks)
+    # \ -> =BACKSLASH=
+    # | -> =MID=
+    # % -> =PERCENT=
+    # # -> =HASH=
+    doc = sub_loop(escape_backslash, "\\1=BACKSLASH=", doc)
+    doc = sub_loop(escape_mid, "\\1=MID=", doc)
+    doc = sub_loop(escape_percent, "\\1=PERCENT=", doc)
+    doc = sub_loop(escape_hash, "\\1=HASH=", doc)
 
     # Math markup
     doc = doc.replace("@[obr]", "{")
     doc = doc.replace("@[cbr]", "}")
     doc = doc.replace("@[startword]", "\\")
     doc = doc.replace("@[endword]", "")
+    # (special rules for Hom and Frob, see trac ticket 21005)
+    doc = doc.replace("@[startlword]Hom@[endlword]", "\\text{Hom}")
+    doc = doc.replace("@[startlword]Frob@[endlword]", "\\text{Frob}")
     doc = doc.replace("@[startlword]", "\\")
     doc = doc.replace("@[endlword]", "")
     doc = doc.replace("@[startbi]", "\\mathbb{")
@@ -174,6 +190,16 @@ def raw_to_rest(doc):
 
     # Remove extra markup inside math blocks
     doc = sub_loop(math_loop, "\\1", doc)
+
+    # Replace special characters by escape sequences
+    # Note that =BACKSLASH= becomes an unescaped backslash in math mode
+    # but an escaped backslash otherwise.
+    doc = sub_loop(math_backslash, r"\1\\", doc)
+    doc = doc.replace("=BACKSLASH=", r"\\")
+    doc = doc.replace("=MID=", r"\|")
+    doc = doc.replace("=PERCENT=", r"\%")
+    doc = doc.replace("=HASH=", r"\#")
+    doc = doc.replace("=VOID=", "")
 
     # Handle DISPLAYMATH
     doc = doc.replace("@[endDISPLAYMATH]", "\n\n")
@@ -228,7 +254,7 @@ def get_raw_doc(function):
 
         sage: from sage_setup.autogen.pari.doc import get_raw_doc
         sage: get_raw_doc("cos")
-        '@[startbold]cos@[dollar](x)@[dollar]:@[endbold]\n\n\n\nCosine of @[dollar]x@[dollar].\n\n\nThe library syntax is @[startcode]GEN @[startbold]gcos@[endbold](GEN x, long prec)@[endcode].\n\n\n'
+        '@[startbold]cos@[dollar](x)@[dollar]:@[endbold]\n\n@[label se:cos]\nCosine of @[dollar]x@[dollar].\n\n\nThe library syntax is @[startcode]GEN @[startbold]gcos@[endbold](GEN x, long prec)@[endcode].\n\n\n'
         sage: get_raw_doc("abcde")
         Traceback (most recent call last):
         ...
@@ -252,19 +278,19 @@ def get_rest_doc(function):
     EXAMPLES::
 
         sage: from sage_setup.autogen.pari.doc import get_rest_doc
-        sage: print get_rest_doc("teichmuller")
+        sage: print(get_rest_doc("teichmuller"))
         Teichmüller character of the :math:`p`-adic number :math:`x`, i.e. the unique
-        :math:`(p-1)`-th root of unity congruent to :math:`x / p^{v_p(x)}` modulo :math:`p`.
+        :math:`(p-1)`-th root of unity congruent to :math:`x / p^{v_p(x)}` modulo :math:`p`...
 
     ::
 
-        sage: print get_rest_doc("weber")
+        sage: print(get_rest_doc("weber"))
         One of Weber's three :math:`f` functions.
         If :math:`flag = 0`, returns
         <BLANKLINE>
         .. MATH::
         <BLANKLINE>
-            f(x) = \exp(-i\Pi/24).\eta((x+1)/2)/\eta(x) {such that}
+            f(x) = \exp(-i\pi/24).\eta((x+1)/2)/\eta(x) {such that}
             j = (f^{24}-16)^3/f^{24},
         <BLANKLINE>
         where :math:`j` is the elliptic :math:`j`-invariant (see the function :literal:`ellj`).
@@ -284,14 +310,19 @@ def get_rest_doc(function):
         <BLANKLINE>
         Note the identities :math:`f^8 = f_1^8+f_2^8` and :math:`ff_1f_2 = \sqrt2`.
 
+
     ::
 
-        sage: print get_rest_doc("ellap")
-        Let :math:`E` be an :emphasis:`ell` structure as output by :literal:`ellinit`, defined over
-        :math:`\mathbb{Q}` or a finite field :math:`\mathbb{F}_q`. The argument :math:`p` is best left omitted if the
-        curve is defined over a finite field, and must be a prime number otherwise.
-        This function computes the trace of Frobenius :math:`t` for the elliptic curve :math:`E`,
-        defined by the equation :math:`\#E(\mathbb{F}_q) = q+1 - t`.
+        sage: print(get_rest_doc("ellap"))
+        Let :math:`E` be an :literal:`ell` structure as output by :literal:`ellinit`, defined over
+        a number field or a finite field :math:`\mathbb{F}_q`. The argument :math:`p` is best left
+        omitted if the curve is defined over a finite field, and must be a prime
+        number or a maximal ideal otherwise. This function computes the trace of
+        Frobenius :math:`t` for the elliptic curve :math:`E`, defined by the equation :math:`\#E(\mathbb{F}_q)
+        = q+1 - t` (for primes of good reduction).
+        <BLANKLINE>
+        When the characteristic of the finite field is large, the availability of
+        the :literal:`seadata` package will speed the computation.
         <BLANKLINE>
         If the curve is defined over :math:`\mathbb{Q}`, :math:`p` must be explicitly given and the
         function computes the trace of the reduction over :math:`\mathbb{F}_p`.
@@ -325,19 +356,53 @@ def get_rest_doc(function):
             ? ellap(E)
             %8 = -3
         <BLANKLINE>
+        If the curve is defined over a more general number field than :math:`\mathbb{Q}`,
+        the maximal ideal :math:`p` must be explicitly given in :literal:`idealprimedec`
+        format. If :math:`p` is above :math:`2` or :math:`3`, the function currently assumes (without
+        checking) that the given model is locally minimal at :math:`p`. There is no
+        restriction at other primes.
+        <BLANKLINE>
+        ::
+        <BLANKLINE>
+            ? K = nfinit(a^2+1); E = ellinit([1+a,0,1,0,0], K);
+            ? fa = idealfactor(K, E.disc)
+            %2 =
+            [ [5, [-2, 1]~, 1, 1, [2, -1; 1, 2]] 1]
+        <BLANKLINE>
+            [[13, [5, 1]~, 1, 1, [-5, -1; 1, -5]] 2]
+            ? ellap(E, fa[1,1])
+            %3 = -1 \\ non-split multiplicative reduction
+            ? ellap(E, fa[2,1])
+            %4 = 1 \\ split multiplicative reduction
+            ? P17 = idealprimedec(K,17)[1];
+            ? ellap(E, P17)
+            %6 = 6 \\ good reduction
+            ? E2 = ellchangecurve(E, [17,0,0,0]);
+            ? ellap(E2, P17)
+            %8 = 6 \\ same, starting from a non-miminal model
+        <BLANKLINE>
+            ? P3 = idealprimedec(K,3)[1];
+            ? E3 = ellchangecurve(E, [3,0,0,0]);
+            ? ellap(E, P3) \\ OK: E is minimal at P3
+            %11 = -2
+            ? ellap(E3, P3) \\ junk: E3 is not minimal at P3 | 3
+            %12 = 0
+        <BLANKLINE>
         :strong:`Algorithms used.` If :math:`E/\mathbb{F}_q` has CM by a principal imaginary
-        quadratic order we use a fast explicit formula (involving essentially Kronecker
-        symbols and Cornacchia's algorithm), in :math:`O(\log q)^2`.
+        quadratic order we use a fast explicit formula (involving essentially
+        Kronecker symbols and Cornacchia's algorithm), in :math:`O(\log q)^2`.
         Otherwise, we use Shanks-Mestre's baby-step/giant-step method, which runs in
         time :math:`~{O}(q^{1/4})` using :math:`~{O}(q^{1/4})` storage, hence becomes
-        unreasonable when :math:`q` has about 30 digits. If the :literal:`seadata` package is
-        installed, the :literal:`SEA` algorithm becomes available, heuristically in
-        :math:`~{O}(\log q)^4`, and primes of the order of 200 digits become feasible.
-        In very small characteristic (2,3,5,7 or :math:`13`), we use Harley's algorithm.
+        unreasonable when :math:`q` has about 30 digits. Above this range, the :literal:`SEA`
+        algorithm becomes available, heuristically in :math:`~{O}(\log q)^4`, and
+        primes of the order of 200 digits become feasible. In small
+        characteristic we use Mestre's (p = 2), Kohel's (p = 3,5,7,13), Satoh-Harley
+        (all in :math:`~{O}(p^{2} n^2)`) or Kedlaya's (in :math:`~{O}(p n^3)`)
+        algorithms.
 
     ::
 
-        sage: print get_rest_doc("bitor")
+        sage: print(get_rest_doc("bitor"))
         bitwise (inclusive)
         :literal:`or` of two integers :math:`x` and :math:`y`, that is the integer
         <BLANKLINE>

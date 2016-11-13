@@ -55,25 +55,23 @@ TESTS::
 """
 
 #*****************************************************************************
-#       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2004, 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2006 Iftikhar Burhanuddin <burhanud@usc.edu>
-#  Distributed under the terms of the GNU General Public License (GPL)
 #
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import math
 
 import sage.modular.hecke.all as hecke
 import sage.rings.all as rings
+from sage.arith.all import kronecker, next_prime
 from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.arithgroup.all import Gamma0
 from sage.libs.pari.all import pari
@@ -286,7 +284,7 @@ def supersingular_D(prime):
     D = -1
     while True:
         Dmod4 = rings.Mod(D,4)
-        if Dmod4 in (0,1) and (rings.kronecker(D,prime) != 1):
+        if Dmod4 in (0,1) and (kronecker(D,prime) != 1):
             return D
         D = D - 1
 
@@ -332,23 +330,23 @@ def supersingular_j(FF):
         raise ValueError("%s is not a prime"%prime)
     if not(rings.Integer(FF.cardinality())) == rings.Integer(prime**2):
         raise ValueError("%s is not a quadratic extension"%FF)
-    if rings.kronecker(-1, prime) != 1:
+    if kronecker(-1, prime) != 1:
         j_invss = 1728                 #(2^2 * 3)^3
-    elif rings.kronecker(-2, prime) != 1:
+    elif kronecker(-2, prime) != 1:
         j_invss = 8000                 #(2^2 * 5)^3
-    elif rings.kronecker(-3, prime) != 1:
+    elif kronecker(-3, prime) != 1:
         j_invss = 0                    #0^3
-    elif rings.kronecker(-7, prime) != 1:
+    elif kronecker(-7, prime) != 1:
         j_invss = 16581375             #(3 * 5 * 17)^3
-    elif rings.kronecker(-11, prime) != 1:
+    elif kronecker(-11, prime) != 1:
         j_invss = -32768               #-(2^5)^3
-    elif rings.kronecker(-19, prime) != 1:
+    elif kronecker(-19, prime) != 1:
         j_invss = -884736              #-(2^5 * 3)^3
-    elif rings.kronecker(-43, prime) != 1:
+    elif kronecker(-43, prime) != 1:
         j_invss = -884736000           #-(2^6 * 3 * 5)^3
-    elif rings.kronecker(-67, prime) != 1:
+    elif kronecker(-67, prime) != 1:
         j_invss = -147197952000        #-(2^5 * 3 * 5 * 11)^3
-    elif rings.kronecker(-163, prime) != 1:
+    elif kronecker(-163, prime) != 1:
         j_invss = -262537412640768000  #-(2^6 * 3 * 5 * 23 * 29)^3
     else:
         D = supersingular_D(prime)
@@ -733,7 +731,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             p = 997
 
         while self.level() % p == 0:
-             p = rings.next_prime(p)
+             p = next_prime(p)
 
         ell = 2
         t = self.hecke_matrix(ell).change_ring(rings.GF(p))

@@ -1,5 +1,10 @@
 """
 Read and parse the file pari.desc
+
+Run tests from the ``SAGE_SRC`` directory::
+
+    sage: from sage.env import SAGE_SRC
+    sage: os.chdir(SAGE_SRC)
 """
 
 #*****************************************************************************
@@ -28,10 +33,9 @@ def sage_src_pari():
 
         sage: from sage_setup.autogen.pari.parser import sage_src_pari
         sage: sage_src_pari()
-        '.../src/sage/libs/pari'
+        'sage/libs/pari'
     """
-    SAGE_SRC = os.environ['SAGE_SRC']
-    return os.path.join(SAGE_SRC, 'sage', 'libs', 'pari')
+    return os.path.join('sage', 'libs', 'pari')
 
 def pari_share():
     r"""
@@ -41,13 +45,19 @@ def pari_share():
 
         sage: from sage_setup.autogen.pari.parser import pari_share
         sage: pari_share()
-        '.../local/share/pari'
+        '.../share/pari'
     """
-    SAGE_LOCAL = os.environ["SAGE_LOCAL"]
-    return os.path.join(SAGE_LOCAL, "share", "pari")
+    from subprocess import Popen, PIPE
+    gp = Popen(["gp", "-f", "-q"], stdin=PIPE, stdout=PIPE)
+    out = gp.communicate("print(default(datadir))")[0]
+    datadir = out.strip()
+    if not os.path.isdir(datadir):
+        raise EnvironmentError("PARI data directory {!r} does not exist".format(datadir))
+    return datadir
+
 
 paren_re = re.compile(r"[(](.*)[)]")
-argname_re = re.compile(r"[ {]*([A-Za-z0-9_]+)")
+argname_re = re.compile(r"[ {]*([A-Za-z_][A-Za-z0-9_]*)")
 
 def read_pari_desc():
     """
@@ -111,7 +121,7 @@ def read_decl():
 
         sage: from sage_setup.autogen.pari.parser import read_decl
         sage: read_decl()
-        {'ABC_to_bnr', ..., 'zx_to_ZX'}
+        {'ABC_to_bnr', ..., 'zx_to_zv'}
     """
     s = set()
     with open(os.path.join(sage_src_pari(), "paridecl.pxd")) as f:

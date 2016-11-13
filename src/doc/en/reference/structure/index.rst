@@ -9,7 +9,6 @@ Sage Objects
 
    sage/structure/sage_object
    sage/structure/category_object
-   sage/structure/generators
 
 Parents
 -------
@@ -102,9 +101,6 @@ Utilities
    sage/structure/factory
    sage/structure/dynamic_class
    sage/structure/mutability
-
-   sage/structure/coerce_dict
-   sage/structure/coerce_exceptions
 
 Internals
 ---------

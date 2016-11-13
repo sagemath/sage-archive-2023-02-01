@@ -1,5 +1,6 @@
 r"""
-Introduction to the p-adics
+Introduction to the `p`-adics
+==========================================
 
 This tutorial outlines what you need to know in order to use
 `p`-adics in Sage effectively.

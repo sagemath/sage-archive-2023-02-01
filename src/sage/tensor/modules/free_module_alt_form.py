@@ -29,6 +29,7 @@ REFERENCES:
 - Chap. 15 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
 
 """
+from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
@@ -474,7 +475,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             b = 0.333333333333333 e^1/\e^2 + 2.50000000000000 e^1/\e^3
              + 4.00000000000000 e^2/\e^3
 
-        The output format is then controled by the argument ``format_spec`` of
+        The output format is then controlled by the argument ``format_spec`` of
         the method :meth:`display`::
 
             sage: b.display(format_spec=10)  # 10 bits of precision
@@ -617,7 +618,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             True
 
         """
-        from format_utilities import is_atomic
+        from .format_utilities import is_atomic
         if not isinstance(other, FreeModuleAltForm):
             raise TypeError("the second argument for the exterior product " +
                             "must be an alternating form")

@@ -85,7 +85,7 @@ cpdef fibers(f, domain):
         sage: fibers(lambda x: 1, [1,1,1])
         {1: {1}}
 
-    .. seealso:: :func:`fibers_args` if one needs to pass extra
+    .. SEEALSO:: :func:`fibers_args` if one needs to pass extra
        arguments to ``f``.
     """
     result = {}
@@ -515,7 +515,7 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
 
             sage: F = FiniteSetMaps(["a", "b", "c", "d"], ["u", "v", "w"])
             sage: fs = F._from_list_([1, 0, 2, 1])
-            sage: map(fs.getimage, ["a", "b", "c", "d"])
+            sage: list(map(fs.getimage, ["a", "b", "c", "d"]))
             ['v', 'u', 'w', 'v']
         """
         parent = self._parent
@@ -605,7 +605,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
     """
     Maps from ``range(n)`` to itself.
 
-    .. seealso:: :class:`FiniteSetMap_MN` for assumptions on the parent
+    .. SEEALSO:: :class:`FiniteSetMap_MN` for assumptions on the parent
 
     TESTS::
 
@@ -634,7 +634,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
         """
         Return the ``n``-th power of ``self``.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- a positive integer
         - ``dummy`` -- not used; must be set to ``None`` (for compatibility only).
@@ -650,7 +650,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
             [0, 1, 2]
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self, n, self.parent().one())
 
 
@@ -658,7 +658,7 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
     """
     Maps from a set to itself
 
-    .. seealso:: :class:`FiniteSetMap_Set` for assumptions on the parent
+    .. SEEALSO:: :class:`FiniteSetMap_Set` for assumptions on the parent
 
     TESTS::
 
@@ -692,7 +692,7 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
         """
         Return the ``n``-th power of self.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- a positive integer
         - ``dummy`` -- not used; must be set to None (for compatibility only).
@@ -708,5 +708,5 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
             True
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self, n, self.parent().one())

@@ -1,14 +1,9 @@
+# distutils: libraries = arb
+
+from sage.libs.arb.types cimport *
 from sage.libs.flint.types cimport fmpz_t, fmpq_t
 
 cdef extern from "mag.h":
-    ctypedef struct mag_struct:
-        pass
-    ctypedef mag_struct mag_t[1]
-    ctypedef mag_struct * mag_ptr
-    ctypedef const mag_struct * mag_srcptr
-
-    long MAG_BITS
-
     void mag_init(mag_t x)
     void mag_clear(mag_t x)
     void mag_init_set(mag_t x, const mag_t y)

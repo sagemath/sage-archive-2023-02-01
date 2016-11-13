@@ -82,7 +82,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
     is defined by
     
     .. math::
-    
+
         (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
         (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
     
@@ -151,7 +151,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
 
         - ``v`` (optional) -- a vector of length ``self.degree()``
 
-        - ``perm`` (optional) -- a permutaton of degree ``self.degree()``
+        - ``perm`` (optional) -- a permutation of degree ``self.degree()``
 
         - ``autom`` (optional) -- an automorphism of the ring
 

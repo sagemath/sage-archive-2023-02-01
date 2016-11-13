@@ -57,35 +57,35 @@ TESTS::
     sage: m == loads(dumps(m))
     True
 """
+from __future__ import absolute_import
 
-#########################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
-# system packages
-
-# Sage packages
-import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 import sage.modular.modsym.all as modsym
 import sage.modules.free_module as free_module
 import sage.rings.all as rings
+from sage.arith.all import is_prime
 
 from sage.structure.sequence import Sequence
 
 
-import cuspidal_submodule
-import defaults
-import eisenstein_submodule
-import eis_series
-import space
-import submodule
+
+from . import defaults
+from . import eisenstein_submodule
+from . import eis_series
+from . import space
+from . import submodule
 
 
 class ModularFormsAmbient(space.ModularFormsSpace,
@@ -187,7 +187,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             1 + q^3 + q^4 + 2*q^5 + O(q^6)
             ]
         """
-        import constructor
+        from . import constructor
         M = constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
         return M
 
@@ -228,7 +228,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         """
         if not (N % self.level() == 0 or self.level() % N == 0):
             raise ValueError("N (=%s) must be a divisor or a multiple of the level of self (=%s)" % (N, self.level()))
-        import constructor
+        from . import constructor
         return constructor.ModularForms(self.group()._new_group_from_level(N), self.weight(), self.base_ring(), prec=self.prec())
 
     def _degeneracy_raising_matrix(self, M, t):
@@ -485,10 +485,11 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             Cuspidal subspace of dimension 2 of Modular Forms space of dimension 13 for
             Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
         """
+        from .cuspidal_submodule import CuspidalSubmodule
         try:
             return self.__cuspidal_submodule
         except AttributeError:
-            self.__cuspidal_submodule = cuspidal_submodule.CuspidalSubmodule(self)
+            self.__cuspidal_submodule = CuspidalSubmodule(self)
         return self.__cuspidal_submodule
 
     def eisenstein_submodule(self):
@@ -692,7 +693,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             return self.__the_dim_new_eisenstein
         except AttributeError:
             if arithgroup.is_Gamma0(self.group()) and self.weight() == 2:
-                if rings.is_prime(self.level()):
+                if is_prime(self.level()):
                     d = 1
                 else:
                     d = 0

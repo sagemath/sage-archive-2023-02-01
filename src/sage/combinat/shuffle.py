@@ -57,7 +57,7 @@ Author:
 import collections
 import itertools
 
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.structure.sage_object import SageObject
 
 ## TODO: Think about Parent/Element for this and the category
@@ -187,11 +187,10 @@ class SetShuffleProduct(SageObject):
              {1, 3, 4},
              {1, 3, 4}]
         """
-        def shuffle_elements(pair):
-            return ShuffleProduct(*pair, element_constructor=self._element_constructor_)
-
         return itertools.chain.from_iterable(
-                itertools.imap(shuffle_elements, itertools.product(self._l1, self._l2)))
+                ShuffleProduct(*pair,
+                               element_constructor=self._element_constructor_)
+                for pair in itertools.product(self._l1, self._l2))
 
     def cardinality(self):
         """

@@ -250,6 +250,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
               running ._test_eq() . . . pass
+              running ._test_new() . . . pass
               running ._test_nonzero_equal() . . . pass
               running ._test_not_implemented_methods() . . . pass
               running ._test_pickling() . . . pass
@@ -259,6 +260,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
             running ._test_elements_eq_transitive() . . . pass
             running ._test_elements_neq() . . . pass
             running ._test_eq() . . . pass
+            running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -268,7 +270,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
         """
         if not isinstance(R,MPolynomialRing_libsingular):
-            raise TypeError, "A letterplace algebra must be provided by a polynomial ring of type %s"%MPolynomialRing_libsingular
+            raise TypeError("A letterplace algebra must be provided by a polynomial ring of type %s" % MPolynomialRing_libsingular)
         self.__ngens = R.ngens()
         if degrees is None:
             varnames = R.variable_names()
@@ -286,7 +288,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
             self._degrees = tuple([int(1)]*self.__ngens)
         else:
             if (not isinstance(degrees,(tuple,list))) or len(degrees)!=self.__ngens-1 or any([i<=0 for i in degrees]):
-                raise TypeError, "The generator degrees must be given by a list or tuple of %d positive integers"%(self.__ngens-1)
+                raise TypeError("The generator degrees must be given by a list or tuple of %d positive integers" % (self.__ngens-1))
             self._degrees = tuple([int(i) for i in degrees])
             self.set_degbound(max(self._degrees))
         self._populate_coercion_lists_(coerce_list=[base_ring])
@@ -339,7 +341,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
         """
         if i>=self.__ngens-self._nb_slackvars:
-            raise ValueError, "This free algebra only has %d generators"%(self.__ngens-self._nb_slackvars)
+            raise ValueError("This free algebra only has %d generators" % (self.__ngens-self._nb_slackvars))
         if self._gens is not None:
             return self._gens[i]
         deg = self._degrees[i]
@@ -618,7 +620,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
                 continue
             var_ind, exp = tmp[0]
             if len(tmp)>1 or exp>1:
-                raise NotImplementedError, "\n  Apparently you tried to view the letterplace algebra with\n  shift-multiplication as the free algebra over a finitely\n  generated free abelian monoid.\n  In principle, this is correct, but it is not implemented, yet."
+                raise NotImplementedError("\n  Apparently you tried to view the letterplace algebra with\n  shift-multiplication as the free algebra over a finitely\n  generated free abelian monoid.\n  In principle, this is correct, but it is not implemented, yet.")
 
             out.append(self._names[var_ind])
             i += (self._degrees[var_ind]-1)
@@ -656,7 +658,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
                 continue
             var_ind, exp = tmp[0]
             if len(tmp)>1 or exp>1:
-                raise NotImplementedError, "\n  Apparently you tried to view the letterplace algebra with\n  shift-multiplication as the free algebra over a finitely\n  generated free abelian monoid.\n  In principle, this is correct, but it is not implemented, yet."
+                raise NotImplementedError("\n  Apparently you tried to view the letterplace algebra with\n  shift-multiplication as the free algebra over a finitely\n  generated free abelian monoid.\n  In principle, this is correct, but it is not implemented, yet.")
 
             out.append(names[var_ind])
             i += (self._degrees[var_ind]-1)
@@ -833,7 +835,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         if not D:
             return self.zero()
         cdef int l
-        for e in D.iterkeys():
+        for e in D:
             l = len(e)
             break
         cdef dict out = {}

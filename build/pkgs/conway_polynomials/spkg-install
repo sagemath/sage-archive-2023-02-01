@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-from sage.all import save
+from sage.structure.sage_object import save
 from sage.env import SAGE_SHARE
 
 install_root = os.path.join(SAGE_SHARE, 'conway_polynomials')

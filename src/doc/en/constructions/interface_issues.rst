@@ -182,7 +182,7 @@ Yes, you can output some of your results into LaTeX.
 
     sage: M = MatrixSpace(RealField(),3,3)
     sage: A = M([1,2,3, 4,5,6, 7,8,9])
-    sage: print latex(A)
+    sage: print(latex(A))
     \left(\begin{array}{rrr}
         1.00000000000000 & 2.00000000000000 & 3.00000000000000 \\
         4.00000000000000 & 5.00000000000000 & 6.00000000000000 \\
@@ -206,7 +206,7 @@ is also available:
     sage: x = PolynomialRing(QQ,3, 'x').gens()
     sage: f = x[0] + x[1] - 2*x[1]*x[2]
     sage: h = f /(x[1] + x[2])
-    sage: print latex(h)
+    sage: print(latex(h))
     \frac{-2 x_{1} x_{2} + x_{0} + x_{1}}{x_{1} + x_{2}}
 
 Sage and other computer algebra systems
@@ -301,8 +301,8 @@ directory of Sage) with the following content:
 
 ::
 
-    print "Hello World"
-    print 2^3
+    print("Hello World")
+    print(2^3)
 
 .. index:: load into Sage
 
@@ -362,37 +362,6 @@ version of Sage (which is the "source" version, not the "binary").
 #. cd ``sage-*`` (we call this ``SAGE_ROOT``) and type ``make``. Now be
    patient because this process make take 2 hours or so.
 
-#. Optional: When the compilation is finished, type on the command
-   line in the Sage home directory:
-
-   ::
-
-       ./sage -i database_jones_numfield
-       ./sage -i database_gap-4.4.8
-       ./sage -i database_cremona_ellcurve-2005.11.03
-       ./sage -i gap_packages-4.4.8_1
-
-   This last package loads the GAP GPL'd packages braid, ctbllib,
-   DESIGN, FactInt, GAPDoc, GRAPE, LAGUNA, SONATA 2.3, and TORIC . It
-   also compiles (automatically) the C programs in GUAVA and GRAPE.
-
-   Other optional packages to install are at
-   http://modular.math.washington.edu/sage/packages/optional/.
-
-   .. index:: installation of packages
-
-   Another way: download packages from
-   http://sage.scipy.org/sage/packages/optional/ and save to the
-   directory ``SAGE_ROOT``. Type
-
-   ::
-
-       /sage -i sage-package.spkg
-
-   for each ``sage-package`` you download (use ``sage -f`` if you are
-   reinstalling.) This might be useful if you have a CD of these
-   packages but no (or a very slow) internet connection.
-
 
 .. index:: Python and Sage
 
@@ -425,7 +394,7 @@ use an editor to read the code itself.
 ===========================
 
 Sage has many special functions (see the reference
-manual at http://sagemath.org/doc/reference/functions/),
+manual at http://doc.sagemath.org/html/en/reference/functions/),
 and most of them can be
 manipulated symbolically. Where this is not implemented,
 it is possible that other symbolic packages have the

@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
@@ -20,8 +21,8 @@ AUTHORS:
 #*****************************************************************************
 
 
-from padic_extension_generic import pAdicExtensionGeneric
-from sage.rings.finite_rings.constructor import GF
+from .padic_extension_generic import pAdicExtensionGeneric
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
     """
@@ -31,7 +32,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         """
         Initializes self
 
-        INPUTS::
+        INPUT:
 
             - poly -- Polynomial defining this extension.
             - prec -- The precision cap
@@ -78,7 +79,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         """
         Returns the ramification index of self over the subring K.
 
-        INPUTS::
+        INPUT:
 
             - K -- a subring (or subfield) of self.  Defaults to the
               base.
@@ -99,7 +100,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         """
         Returns the inertia degree of self over the subring K.
 
-        INPUTS::
+        INPUT:
 
             - K -- a subring (or subfield) of self.  Defaults to the
               base.
@@ -141,7 +142,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         """
         Returns the discriminant of self over the subring K.
 
-        INPUTS::
+        INPUT:
 
             - K -- a subring/subfield (defaults to the base ring).
 
@@ -182,7 +183,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
         Every unramified extension is Galois.
 
-        INPUTS::
+        INPUT:
 
             - K -- a subring/subfield (defaults to the base ring).
 

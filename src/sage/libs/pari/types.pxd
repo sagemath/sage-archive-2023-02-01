@@ -1,3 +1,4 @@
+# distutils: depends = pari/pari.h
 """
 Declarations for types used by PARI
 
@@ -73,8 +74,10 @@ cdef extern from "sage/libs/pari/parisage.h":
     struct forvec_t
     struct entree
     struct gp_context
+    struct nfbasic_t
     struct pariFILE
     struct pari_mt
+    struct pari_stack
     struct pari_thread
     struct pari_timer
     struct GENbin

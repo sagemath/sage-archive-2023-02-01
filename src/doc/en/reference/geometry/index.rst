@@ -90,5 +90,6 @@ Internals
    sage/geometry/fan_isomorphism
    sage/geometry/hasse_diagram
    sage/geometry/integral_points
+   sage/geometry/hyperplane_arrangement/check_freeness
 
 .. include:: ../footer.txt

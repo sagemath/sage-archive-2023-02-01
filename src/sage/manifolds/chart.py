@@ -1863,9 +1863,10 @@ class RealChart(Chart):
         # All tests have been passed:
         return True
 
-    @options(color='red',  style='-', thickness=1, plot_points=75, label_axes=True)
+    @options(max_range=8, color='red',  style='-', thickness=1, plot_points=75,
+             label_axes=True)
     def plot(self, chart=None, ambient_coords=None, mapping=None,
-             fixed_coords=None, ranges=None, max_range=8, nb_values=None,
+             fixed_coords=None, ranges=None, nb_values=None,
              steps=None, parameters=None, **kwds):
         r"""
         Plot ``self`` as a grid in a Cartesian graph based on
@@ -1906,12 +1907,6 @@ class RealChart(Chart):
           entire coordinate range declared during the chart construction
           is considered (with ``-Infinity`` replaced by ``-max_range``
           and ``+Infinity`` by ``max_range``)
-        - ``max_range`` -- (default: 8) numerical value substituted to
-          +Infinity if the latter is the upper bound of the range of a
-          coordinate for which the plot is performed over the entire coordinate
-          range (i.e. for which no specific plot range has been set in
-          ``ranges``); similarly ``-max_range`` is the numerical valued
-          substituted for ``-Infinity``
         - ``nb_values`` -- (default: ``None``) either an integer or a dictionary
           with keys the coordinates to be drawn and values the number of
           constant values of the coordinate to be considered; if ``nb_values``
@@ -1927,6 +1922,12 @@ class RealChart(Chart):
         - ``parameters`` -- (default: ``None``) dictionary giving the numerical
           values of the parameters that may appear in the relation between
           the two coordinate systems
+        - ``max_range`` -- (default: 8) numerical value substituted to
+          +Infinity if the latter is the upper bound of the range of a
+          coordinate for which the plot is performed over the entire coordinate
+          range (i.e. for which no specific plot range has been set in
+          ``ranges``); similarly ``-max_range`` is the numerical valued
+          substituted for ``-Infinity``
         - ``color`` -- (default: ``'red'``) either a single color or a
           dictionary of colors, with keys the coordinates to be drawn,
           representing the colors of the lines along which the coordinate
@@ -1962,11 +1963,25 @@ class RealChart(Chart):
 
         EXAMPLES:
 
-        Grid of polar coordinates in terms of Cartesian coordinates in the
-        Euclidean plane::
+        A 2-dimensional chart plotted in terms of itself results in a
+        rectangular grid::
 
             sage: R2 = Manifold(2, 'R^2', structure='topological') # the Euclidean plane
             sage: c_cart.<x,y> = R2.chart() # Cartesian coordinates
+            sage: g = c_cart.plot()  # equivalent to c_cart.plot(c_cart)
+            sage: g
+            Graphics object consisting of 18 graphics primitives
+
+        .. PLOT::
+
+            R2 = Manifold(2, 'R^2', structure='topological')
+            c_cart = R2.chart('x y')
+            g = c_cart.plot()
+            sphinx_plot(g)
+
+        Grid of polar coordinates in terms of Cartesian coordinates in the
+        Euclidean plane::
+
             sage: U = R2.open_subset('U', coord_def={c_cart: (y!=0, x<0)}) # the complement of the segment y=0 and x>0
             sage: c_pol.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi') # polar coordinates on U
             sage: pol_to_cart = c_pol.transition_map(c_cart, [r*cos(ph), r*sin(ph)])
@@ -2028,22 +2043,9 @@ class RealChart(Chart):
             g = c_pol.plot(c_cart, fixed_coords={ph: pi/4})
             sphinx_plot(g)
 
-        A chart can be plotted in terms of itself, resulting in a rectangular
-        grid::
-
-            sage: g = c_cart.plot()  # equivalent to c_cart.plot(c_cart)
-            sage: g # a rectangular grid
-            Graphics object consisting of 18 graphics primitives
-
-        .. PLOT::
-
-            R2 = Manifold(2, 'R^2', structure='topological')
-            c_cart = R2.chart('x y'); x, y = c_cart[:]
-            g = c_cart.plot()
-            sphinx_plot(g)
-
-        An example with the ambient chart given by the coordinate expression of
-        some manifold map: 3D plot of the stereographic charts on the
+        An example with the ambient chart lying in an another manifold (the
+        plot is then performed via some manifold map passed as the
+        argument ``mapping``): 3D plot of the stereographic charts on the
         2-sphere::
 
             sage: S2 = Manifold(2, 'S^2', structure='topological') # the 2-sphere
@@ -2065,8 +2067,31 @@ class RealChart(Chart):
             sage: g = c_xy.plot(c_cart, mapping=Phi)
             sage: g
             Graphics3d Object
-            sage: type(g)
-            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+
+        .. PLOT::
+
+            S2 = Manifold(2, 'S^2', structure='topological')
+            U = S2.open_subset('U') ; V = S2.open_subset('V')
+            S2.declare_union(U,V)
+            c_xy = U.chart('x y'); x, y = c_xy[:]
+            c_uv = V.chart('u v'); u, v = c_uv[:]
+            xy_to_uv = c_xy.transition_map(c_uv, (x/(x**2+y**2), y/(x**2+y**2)),
+                             intersection_name='W', restrictions1= x**2+y**2!=0,
+                             restrictions2= u**2+v**2!=0)
+            uv_to_xy = xy_to_uv.inverse()
+            R3 = Manifold(3, 'R^3', structure='topological')
+            c_cart = R3.chart('X Y Z')
+            Phi = S2.continuous_map(R3, {(c_xy, c_cart): [2*x/(1+x**2+y**2),
+                              2*y/(1+x**2+y**2), (x**2+y**2-1)/(1+x**2+y**2)],
+                              (c_uv, c_cart): [2*u/(1+u**2+v**2),
+                              2*v/(1+u**2+v**2), (1-u**2-v**2)/(1+u**2+v**2)]},
+                              name='Phi', latex_name=r'\Phi')
+            sphinx_plot(c_xy.plot(c_cart, mapping=Phi))
+
+        NB: to get a better coverage of the whole sphere, one should increase
+        the coordinate sampling via the argument ``nb_values`` or the
+        argument ``steps`` (only the default value, ``nb_values = 5``, is used
+        here, which is pretty low).
 
         The same plot without the ``(X,Y,Z)`` axes labels::
 
@@ -2077,6 +2102,28 @@ class RealChart(Chart):
             sage: g2 = c_uv.plot(c_cart, mapping=Phi, color='green')
             sage: g + g2
             Graphics3d Object
+
+        .. PLOT::
+
+            S2 = Manifold(2, 'S^2', structure='topological')
+            U = S2.open_subset('U') ; V = S2.open_subset('V')
+            S2.declare_union(U,V)
+            c_xy = U.chart('x y'); x, y = c_xy[:]
+            c_uv = V.chart('u v'); u, v = c_uv[:]
+            xy_to_uv = c_xy.transition_map(c_uv, (x/(x**2+y**2), y/(x**2+y**2)),
+                             intersection_name='W', restrictions1= x**2+y**2!=0,
+                             restrictions2= u**2+v**2!=0)
+            uv_to_xy = xy_to_uv.inverse()
+            R3 = Manifold(3, 'R^3', structure='topological')
+            c_cart = R3.chart('X Y Z')
+            Phi = S2.continuous_map(R3, {(c_xy, c_cart): [2*x/(1+x**2+y**2),
+                              2*y/(1+x**2+y**2), (x**2+y**2-1)/(1+x**2+y**2)],
+                              (c_uv, c_cart): [2*u/(1+u**2+v**2),
+                              2*v/(1+u**2+v**2), (1-u**2-v**2)/(1+u**2+v**2)]},
+                              name='Phi', latex_name=r'\Phi')
+            g = c_xy.plot(c_cart, mapping=Phi, label_axes=False)
+            g2 = c_uv.plot(c_cart, mapping=Phi, color='green')
+            sphinx_plot(g+g2)
 
         South stereographic chart drawned in terms of the North one (we split
         the plot in four parts to avoid the singularity at `(u,v)=(0,0)`)::
@@ -2138,8 +2185,14 @@ class RealChart(Chart):
         rectangular grid::
 
             sage: g = c_cart.plot() # equivalent to c_cart.plot(c_cart)  # long time
-            sage: g  # a 3D mesh cube  # long time
+            sage: g  # long time
             Graphics3d Object
+
+        .. PLOT::
+
+            R3 = Manifold(3, 'R^3', structure='topological')
+            c_cart = R3.chart('X Y Z')
+            sphinx_plot(c_cart.plot())
 
         A 4-dimensional chart plotted in terms of itself (the plot is
         performed for at most 3 coordinates, which must be specified via
@@ -2148,10 +2201,20 @@ class RealChart(Chart):
             sage: M = Manifold(4, 'M', structure='topological')
             sage: X.<t,x,y,z> = M.chart()
             sage: g = X.plot(ambient_coords=(t,x,y)) # the coordinate z is not depicted  # long time
-            sage: g  # a 3D mesh cube  # long time
+            sage: g  # long time
             Graphics3d Object
+
+        .. PLOT::
+
+            M = Manifold(4, 'M', structure='topological')
+            X = M.chart('t x y z'); t,x,y,z = X[:]
+            g = X.plot(ambient_coords=(t,x,y))
+            sphinx_plot(g)
+
+        ::
+
             sage: g = X.plot(ambient_coords=(t,y)) # the coordinates x and z are not depicted
-            sage: g  # a 2D mesh square
+            sage: g
             Graphics object consisting of 18 graphics primitives
 
         .. PLOT::
@@ -2161,6 +2224,22 @@ class RealChart(Chart):
             g = X.plot(ambient_coords=(t,y))
             sphinx_plot(g)
 
+        Note that the default values of some arguments of the method ``plot``
+        are stored in the dictionary ``plot.options``::
+
+            sage: X.plot.options  # random (dictionary output)
+            {'color': 'red', 'label_axes': True, 'max_range': 8,
+             'plot_points': 75, 'style': '-', 'thickness': 1}
+
+        so that they can be adjusted by the user::
+
+            sage: X.plot.options['color'] = 'blue'
+
+        From now on, all chart plots will use blue as the default color.
+        To restore the original default options, it suffices to type::
+
+            sage: X.plot.reset()
+
         """
         from sage.misc.functional import numerical_approx
         from sage.plot.graphics import Graphics
@@ -2169,6 +2248,7 @@ class RealChart(Chart):
         from .utilities import set_axes_labels
 
         # Extract the kwds options
+        max_range = kwds['max_range']
         color = kwds['color']
         style = kwds['style']
         thickness = kwds['thickness']

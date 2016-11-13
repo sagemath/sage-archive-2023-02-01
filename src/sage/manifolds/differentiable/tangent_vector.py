@@ -342,6 +342,16 @@ class TangentVector(FiniteRankFreeModuleElement):
             ....:           label_offset=0.5, width=6))
             Graphics3d Object
 
+        .. PLOT::
+
+            M = Manifold(4, 'M')
+            X = M.chart('t x y z'); t,x,y,z = X[:]
+            p = M((0,1,2,3), name='p'); Tp = M.tangent_space(p)
+            v = Tp((5,4,3,2), name='v')
+            g = X.plot(ambient_coords=(t,x,z)) + v.plot(ambient_coords=(t,x,z),
+                       label_offset=0.5, width=6)
+            sphinx_plot(g)
+
         An example of plot via a differential mapping: plot of a vector tangent
         to a 2-sphere viewed in `\RR^3`::
 
@@ -356,14 +366,30 @@ class TangentVector(FiniteRankFreeModuleElement):
             sage: F.display() # the standard embedding of S^2 into R^3
             F: S^2 --> R^3
             on U: (th, ph) |--> (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
-            sage: p = U.point((pi/4, pi/4), name='p')
-            sage: v = XS.frame()[1].at(p) ; v
+            sage: p = U.point((pi/4, 7*pi/4), name='p')
+            sage: v = XS.frame()[1].at(p) ; v  # the coordinate vector d/dphi at p
             Tangent vector d/dph at Point p on the 2-dimensional differentiable
              manifold S^2
             sage: graph_v = v.plot(mapping=F)
-            sage: graph_S2 = XS.plot(chart=X3, mapping=F, number_values=9)  # long time
+            sage: graph_S2 = XS.plot(chart=X3, mapping=F, nb_values=9)  # long time
             sage: graph_v + graph_S2  # long time
             Graphics3d Object
+
+        .. PLOT::
+
+            S2 = Manifold(2, 'S^2')
+            U = S2.open_subset('U')
+            XS = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
+            th, ph = XS[:]
+            R3 = Manifold(3, 'R^3')
+            X3 = R3.chart('x y z')
+            F = S2.diff_map(R3, {(XS, X3): [sin(th)*cos(ph), sin(th)*sin(ph),
+                                            cos(th)]}, name='F')
+            p = U.point((pi/4, 7*pi/4), name='p')
+            v = XS.frame()[1].at(p)
+            graph_v = v.plot(mapping=F)
+            graph_S2 = XS.plot(chart=X3, mapping=F, nb_values=9)
+            sphinx_plot(graph_v + graph_S2)
 
         """
         from sage.plot.arrow import arrow2d

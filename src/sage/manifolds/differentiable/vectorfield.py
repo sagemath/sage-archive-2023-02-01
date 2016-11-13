@@ -370,10 +370,10 @@ class VectorField(TensorField):
                 resu._express[chart] = funct
         return resu
 
-    @options(max_range=8, scale=1)
+    @options(max_range=8, scale=1, color='blue')
     def plot(self, chart=None, ambient_coords=None, mapping=None,
              chart_domain=None, fixed_coords=None, ranges=None,
-             number_values=None, steps=None, color='blue',
+             number_values=None, steps=None,
              parameters=None, label_axes=True, **extra_options):
         r"""
         Plot the vector field in a Cartesian graph based on the coordinates
@@ -416,13 +416,6 @@ class VectorField(TensorField):
           construction of ``chart_domain`` is considered (with ``-Infinity``
           replaced by ``-max_range`` and ``+Infinity`` by ``max_range``)
 
-        - ``max_range`` -- (default: 8) numerical value substituted to
-          ``+Infinity`` if the latter is the upper bound of the range of a
-          coordinate for which the plot is performed over the entire coordinate
-          range (i.e. for which no specific plot range has been set in
-          ``ranges``); similarly ``-max_range`` is the numerical valued
-          substituted for ``-Infinity``
-
         - ``number_values`` -- (default: ``None``) either an integer or a
           dictionary with keys the coordinates of ``chart_domain`` to be
           used and values the number of values of the coordinate for sampling
@@ -439,12 +432,6 @@ class VectorField(TensorField):
           for some coordinate, the corresponding number of values is deduced
           from it and the coordinate range
 
-        - ``scale`` -- (default: 1) value by which the lengths of the arrows
-          representing the vectors is multiplied
-
-        - ``color`` -- (default: 'blue') color of the arrows representing
-          the vectors
-
         - ``parameters`` -- (default: ``None``) dictionary giving the numerical
           values of the parameters that may appear in the coordinate expression
           of the vector field (see example below)
@@ -453,6 +440,19 @@ class VectorField(TensorField):
           the labels of the coordinate axes of ``chart`` shall be added to
           the graph; can be set to ``False`` if the graph is 3D and must be
           superposed with another graph
+
+        - ``color`` -- (default: 'blue') color of the arrows representing
+          the vectors
+
+        - ``max_range`` -- (default: 8) numerical value substituted to
+          ``+Infinity`` if the latter is the upper bound of the range of a
+          coordinate for which the plot is performed over the entire coordinate
+          range (i.e. for which no specific plot range has been set in
+          ``ranges``); similarly ``-max_range`` is the numerical valued
+          substituted for ``-Infinity``
+
+        - ``scale`` -- (default: 1) value by which the lengths of the arrows
+          representing the vectors is multiplied
 
         - ``**extra_options`` -- extra options for the arrow plot, like
           ``linestyle``, ``width`` or ``arrowsize`` (see
@@ -516,9 +516,7 @@ class VectorField(TensorField):
 
         Plot using parallel computation::
 
-            sage: Parallelism().set('tensor', nproc=2)
-            sage: Parallelism().get('tensor')
-            2
+            sage: Parallelism().set(nproc=2)
             sage: v.plot(scale=0.5,  number_values=10, linestyle='--', width=1,
             ....:        arrowsize=6)
             Graphics object consisting of 100 graphics primitives
@@ -533,12 +531,12 @@ class VectorField(TensorField):
 
         ::
 
-            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+            sage: Parallelism().set(nproc=1)  # switch off parallelization
 
         Plots along a line of fixed coordinate::
 
             sage: v.plot(fixed_coords={x: -2})
-            Graphics object consisting of 8 graphics primitives
+            Graphics object consisting of 9 graphics primitives
 
         .. PLOT::
 
@@ -579,24 +577,47 @@ class VectorField(TensorField):
         Rather, we have to select some coordinates for the plot, via
         the argument ``ambient_coords``. For instance, for a 3D plot::
 
-            sage: v.plot(ambient_coords=(x, y, z), fixed_coords={t: 1})  # long time
+            sage: v.plot(ambient_coords=(x, y, z), fixed_coords={t: 1},  # long time
+            ....:        number_values=4)
             Graphics3d Object
+
+        .. PLOT::
+
+            M = Manifold(4, 'M')
+            X = M.chart('t x y z') ; t,x,y,z = X[:]
+            v = M.vector_field(name='v')
+            v[:] = (t/8)**2, -t*y/4, t*x/4, t*z/4
+            sphinx_plot(v.plot(ambient_coords=(x, y, z), fixed_coords={t: 1},
+                               number_values=4))
+
+        ::
+
             sage: v.plot(ambient_coords=(x, y, t), fixed_coords={z: 0},  # long time
             ....:        ranges={x: (-2,2), y: (-2,2), t: (-1, 4)},
             ....:        number_values=4)
             Graphics3d Object
-
-        or, for a 2D plot::
-
-            sage: v.plot(ambient_coords=(x, y), fixed_coords={t: 1, z: 0})  # long time
-            Graphics object consisting of 64 graphics primitives
 
         .. PLOT::
 
             M = Manifold(4, 'M')
             X = M.chart('t x y z'); t,x,y,z = X[:]
             v = M.vector_field(name='v')
-            v[:] = v[:] = (t/8)**2, -t*y/4, t*x/4, t*z/4
+            v[:] = (t/8)**2, -t*y/4, t*x/4, t*z/4
+            sphinx_plot(v.plot(ambient_coords=(x, y, t), fixed_coords={z: 0},
+                               ranges={x: (-2,2), y: (-2,2), t: (-1, 4)},
+                               number_values=4))
+
+        or, for a 2D plot::
+
+            sage: v.plot(ambient_coords=(x, y), fixed_coords={t: 1, z: 0})  # long time
+            Graphics object consisting of 80 graphics primitives
+
+        .. PLOT::
+
+            M = Manifold(4, 'M')
+            X = M.chart('t x y z'); t,x,y,z = X[:]
+            v = M.vector_field(name='v')
+            v[:] = (t/8)**2, -t*y/4, t*x/4, t*z/4
             g = v.plot(ambient_coords=(x, y), fixed_coords={t: 1, z: 0})
             sphinx_plot(g)
 
@@ -627,13 +648,43 @@ class VectorField(TensorField):
             sage: F.display() # the standard embedding of S^2 into R^3
             F: S^2 --> R^3
             on U: (th, ph) |--> (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
-            sage: v = XS.frame()[1] ; v
+            sage: v = XS.frame()[1] ; v  # the coordinate vector d/dphi
             Vector field d/dph on the Open subset U of the 2-dimensional
              differentiable manifold S^2
             sage: graph_v = v.plot(chart=X3, mapping=F, label_axes=False)
-            sage: graph_S2 = XS.plot(chart=X3, mapping=F, number_values=9)
+            sage: graph_S2 = XS.plot(chart=X3, mapping=F, nb_values=9)
             sage: graph_v + graph_S2
             Graphics3d Object
+
+        .. PLOT::
+
+            S2 = Manifold(2, 'S^2')
+            U = S2.open_subset('U')
+            XS = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
+            th, ph = XS[:]
+            R3 = Manifold(3, 'R^3')
+            X3 = R3.chart('x y z')
+            F = S2.diff_map(R3, {(XS, X3): [sin(th)*cos(ph), sin(th)*sin(ph),
+                                            cos(th)]}, name='F')
+            v = XS.frame()[1]
+            graph_v = v.plot(chart=X3, mapping=F, label_axes=False)
+            graph_S2 = XS.plot(chart=X3, mapping=F, nb_values=9)
+            sphinx_plot(graph_v + graph_S2)
+
+        Note that the default values of some arguments of the method ``plot``
+        are stored in the dictionary ``plot.options``::
+
+            sage: v.plot.options  # random (dictionary output)
+            {'color': 'blue', 'max_range': 8, 'scale': 1}
+
+        so that they can be adjusted by the user::
+
+            sage: v.plot.options['color'] = 'red'
+
+        From now on, all plots of vector fields will use red as the default
+        color. To restore the original default options, it suffices to type::
+
+            sage: v.plot.reset()
 
         """
         from sage.rings.infinity import Infinity
@@ -648,8 +699,9 @@ class VectorField(TensorField):
         #
         # 1/ Treatment of input parameters
         #    -----------------------------
-        scale = extra_options.pop("scale")
         max_range = extra_options.pop("max_range")
+        scale = extra_options.pop("scale")
+        color = extra_options.pop("color")
         if chart is None:
             chart = self._domain.default_chart()
         elif not isinstance(chart, RealChart):
@@ -663,12 +715,13 @@ class VectorField(TensorField):
         elif not chart_domain.domain().is_subset(self._domain):
             raise ValueError("the domain of {} is not ".format(chart_domain) +
                              "included in the domain of {}".format(self))
+        coords_full = tuple(chart_domain[:]) # all coordinates of chart_domain
         if fixed_coords is None:
-            coords = chart_domain._xx
+            coords = coords_full
         else:
             fixed_coord_list = fixed_coords.keys()
             coords = []
-            for coord in chart_domain._xx:
+            for coord in coords_full:
                 if coord not in fixed_coord_list:
                     coords.append(coord)
             coords = tuple(coords)
@@ -688,7 +741,7 @@ class VectorField(TensorField):
                 ranges0[coord] = (numerical_approx(ranges[coord][0]),
                                   numerical_approx(ranges[coord][1]))
             else:
-                bounds = chart_domain._bounds[chart_domain[:].index(coord)]
+                bounds = chart_domain._bounds[coords_full.index(coord)]
                 xmin0 = bounds[0][0]
                 xmax0 = bounds[1][0]
                 if xmin0 == -Infinity:
@@ -733,14 +786,17 @@ class VectorField(TensorField):
             if mapping is not None:
                 vector = mapping.pushforward(vector)
                 mapping = None
-        nc = len(chart_domain[:])
+        nc = len(coords_full)
         ncp = len(coords)
         xx = [0] * nc
         if fixed_coords is not None:
             if len(fixed_coords) != nc - ncp:
                 raise ValueError("bad number of fixed coordinates")
             for fc, val in fixed_coords.items():
-                xx[chart_domain[:].index(fc)] = val
+                xx[coords_full.index(fc)] = val
+        ind_coord = []
+        for coord in coords:
+            ind_coord.append(coords_full.index(coord))
 
         resu = Graphics()
         ind = [0] * ncp
@@ -758,7 +814,7 @@ class VectorField(TensorField):
 
             while ind != ind_max:
                 for i in  range(ncp):
-                    xx[i] = xmin[i] + ind[i]*step_tab[i]
+                    xx[ind_coord[i]] = xmin[i] + ind[i]*step_tab[i]
 
                 if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
                                                   parameters=parameters):
@@ -819,10 +875,10 @@ class VectorField(TensorField):
                 resu += val
 
         else:
+            # sequential plot
             while ind != ind_max:
-                for i in  range(ncp):
-                    xx[i] = xmin[i] + ind[i]*step_tab[i]
-
+                for i in range(ncp):
+                    xx[ind_coord[i]] = xmin[i] + ind[i]*step_tab[i]
                 if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
                                                   parameters=parameters):
                     point = dom(xx, chart=chart_domain)
@@ -832,7 +888,6 @@ class VectorField(TensorField):
                                                   color=color, print_label=False,
                                                   parameters=parameters,
                                                   **extra_options)
-
                 # Next index:
                 ret = 1
                 for pos in range(ncp-1, -1, -1):
@@ -1226,4 +1281,3 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal, VectorFiel
                 res += v[i, chart] * f.diff(i)
             resu._express[chart] = res
         return resu
-

@@ -1781,12 +1781,6 @@ class Graph(GenericGraph):
             sage: G.is_apex()
             True
 
-        A 2D grid is apex, and it remains apex when adding a universal vertex::
-
-            sage: G = graphs.Grid2dGraph(4,4)
-            sage: G.is_apex()
-            True
-
         The Petersen graph is not apex::
 
             sage: G = graphs.PetersenGraph()
@@ -1846,7 +1840,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``k``: when set to ``None``, the method returns the list of all apex
+        - ``k`` -- when set to ``None``, the method returns the list of all apex
           of the graph, possibly empty if the graph is not apex. When set to a
           positive integer, the method ends as soon as `k` apex vertices are
           found.
@@ -1874,7 +1868,8 @@ class Graph(GenericGraph):
             [0, 1, 2]
 
         A `4\\times 4`-grid is apex and each of its vertices is an apex. When
-        adding a universal vertex, the resulting graph is apex ::
+        adding a universal vertex, the resulting graph is apex and the universal
+        vertex is the unique apex vertex ::
 
             sage: G = graphs.Grid2dGraph(4,4)
             sage: G.apex_vertices() == G.vertices()
@@ -1924,7 +1919,7 @@ class Graph(GenericGraph):
             sage: G.apex_vertices(k=-1)
             Traceback (most recent call last):
             ...
-            ValueError: Parameter k must be a non negative integer.
+            ValueError: parameter k must be a non negative integer
 
         The graph might be mutable or immutable::
 
@@ -1935,7 +1930,7 @@ class Graph(GenericGraph):
         if k is None:
             k = self.order()
         elif k < 0 :
-            raise ValueError("Parameter k must be a non negative integer.")
+            raise ValueError("parameter k must be a non negative integer")
 
         # Easy cases: null graph, subgraphs of K_5 and K_3,3
         if self.order() <= 5 or ( self.order() <= 6 and self.is_bipartite() ):
@@ -1992,7 +1987,7 @@ class Graph(GenericGraph):
                     # The neighbors of an apex of degree 2 also are
                     apex.update(self.neighbors(u))
 
-                if len(apex)>=k:
+                if len(apex) >= k:
                     return list(apex)[:k]
 
             H.add_edges(E)

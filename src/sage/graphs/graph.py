@@ -1749,6 +1749,177 @@ class Graph(GenericGraph):
                     return (False, cycle)
 
     @doc_index("Graph properties")
+    def is_apex(self, certificate=False):
+        """
+        Test if the graph is apex.
+
+        A graph is apex if it can be made planar by the removal of a single
+        vertex. The deleted vertex is called `an apex` of the graph, and a graph
+        may have more than one apex. For instance, in the minimal nonplanar
+        graphs `K_5` or `K_{3,3}`, every vertex is an apex. The apex graphs
+        include graphs that are themselves planar, in which case again every
+        vertex is an apex. The null graph is also counted as an apex graph even
+        though it has no vertex to remove.
+
+        If the graph is not connected, we say that it is apex if it has at most
+        one non planar connected component and that this component is apex.
+
+        See :wikipedia:`the wikipedia article on Apex graph <Apex_graph>` for
+        more information.
+
+        INPUT:
+
+        - ``certificate``: when set to ``None``, ``False`` or ``0``, the method
+        ends as soon as an apex is found. When set to ``True``, the method also
+        returns the list of all apex of the graph, possibly empty if the graph
+        is not apex. When set to an integer `k`, the method ends as soon as `k`
+        apex vertices are found.
+
+        OUTPUT:
+
+        When the ``certificate`` parameter is ``None``, ``False`` or ``0``, the
+        method returns a boolean indicating if the graph is apex or not.  When
+        this parameter is set to ``True``, the method also returns the (possibly
+        empty) list of all apex vertices. When the parameter is set to a
+        positive integer `k`, the returned list is bounded to `k` apex vertices.
+
+
+        EXAMPLES:
+
+        `K_5` and `K_{3,3}` are apex graphs, and each of their vertices is an apex::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.is_apex()
+            True
+            sage: G.is_apex(certificate=True)
+            (True, [0, 1, 2, 3, 4])
+            sage: G = graphs.CompleteBipartiteGraph(3,3)
+            sage: G.is_apex()
+            True
+            sage: G.is_apex(certificate=True)
+            (True, [0, 1, 2, 3, 4, 5])
+            sage: G.is_apex(certificate=3)
+            (True, [0, 1, 2])
+
+        A 2D grid is an apex graph, and it remains an apex graph when adding a universal vertex::
+
+            sage: G = graphs.Grid2dGraph(4,4)
+            sage: G.is_apex()
+            True
+            sage: G.add_edges([('universal',v) for v in G.vertex_iterator()])
+            sage: G.is_apex(certificate=True)
+            (True, ['universal'])
+
+        The Petersen graph is not an apex graph::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.is_apex()
+            False
+
+        A graph is apex if all its connected components are apex, but at most one is not planar::
+
+            sage: M = graphs.Grid2dGraph(3,3)
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: (M+K5).is_apex()
+            True
+            sage: (M+K5+K5).is_apex()
+            False
+
+        Neighbors of an apex of degree 2 are apex:
+
+            sage: G = graphs.Grid2dGraph(5,5)
+            sage: G.add_path([(1,1),'x',(3,3)])
+            sage: G.is_planar()
+            False
+            sage: G.is_apex(certificate=True)
+            (True, ['x', (2, 2), (3, 3), (1, 1)])
+
+
+        TESTS:
+
+        The null graph is apex::
+
+            sage: G = Graph()
+            sage: G.is_apex(certificate=True)
+            (True, [])
+
+        The ``certificate`` cannot be a negative integer::
+
+            sage: G.is_apex(certificate=-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The certificate parameter must be either a boolean or a non negative integer.
+        """
+        if not certificate: # None, False, 0
+            certificate = 0
+        elif certificate is True:
+            certificate = self.order() + 1 # The +1 is to cope with the null graph
+        elif certificate < 0 :
+            raise ValueError("The certificate parameter must be either a boolean or a non negative integer.")
+
+        # Easy cases: null graph, subgraphs of K_5 and K_3,3
+        if self.order() <= 5 or ( self.order() <= 6 and self.is_bipartite() ):
+            return (True, self.vertices()[:certificate]) if certificate else True
+
+
+        if not self.is_connected():
+            # We search for its non planar connected components. If it has more
+            # than one such component, the graph is not apex. It is apex if
+            # either it has no such component, in which case the graph is
+            # planar, or if its unique non planar component is apex.
+
+            P = [H for H in self.connected_components_subgraphs() if not H.is_planar()]
+            if not P: # The graph is planar
+                return (True, self.vertices()[:certificate]) if certificate else True
+            elif len(P) > 1:
+                return (False, []) if certificate else False
+            else:
+                # We proceed with the non planar component
+                H = P[0]
+
+        elif self.is_planar():
+            # A planar graph is apex.
+            return (True, self.vertices()[:certificate]) if certificate else True
+
+        else:
+            # We make a basic copy of the graph since we will modify it
+            H = Graph([e for e in self.edge_iterator(labels=0)])
+
+
+        # General case: basic implementation
+        #
+        # Test for each vertex if the its removal makes the graph planar.
+        # Obviously, we don't test vertices of degree one. Furthermore, if a
+        # vertex of degree 2 is an apex, its neighbors also are. So we start
+        # with vertices of degree 2.
+        V = sorted([(d,u) for u,d in H.degree(labels=True).iteritems() if d > 1])
+        apex = set()
+        for deg,u in V:
+
+            if u in apex: # True if neighbor of an apex of degree 2
+                if deg == 2:
+                    # We ensure that its neighbors are known apex
+                    apex.update(H.neighbors(u))
+                    if len(apex) >= certificate:
+                        return True, list(apex)[:certificate]
+                continue
+
+            E = H.edges_incident(u, labels=0)
+            H.delete_vertex(u)
+            if H.is_planar():
+                apex.add(u)
+                if deg == 2:
+                    # The neighbors of an apex of degree 2 also are
+                    apex.update(self.neighbors(u))
+
+                if len(apex)>=certificate:
+                    return (True, list(apex)[:certificate]) if certificate else True
+
+            H.add_edges(E)
+
+        return (len(apex) > 0, list(apex)) if certificate else False
+
+    @doc_index("Graph properties")
     def is_overfull(self):
         r"""
         Tests whether the current graph is overfull.

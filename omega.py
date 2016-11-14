@@ -37,29 +37,29 @@ def HomogenousSymmetricFunction(j, x):
                for p in IntegerVectors(j, length=len(x)))
 
 
-def Omega_P(a, n, m):
+def Omega_numerator(a, n, m):
     r"""
     EXAMPLES::
 
         sage: L.<x0, x1, x2, y0, y1, y2> = LaurentPolynomialRing(QQ)
-        sage: Omega_P(0, 1, 1)
+        sage: Omega_numerator(0, 1, 1)
         1
-        sage: Omega_P(0, 2, 1)
+        sage: Omega_numerator(0, 2, 1)
         -x0*x1*y0 + 1
-        sage: Omega_P(0, 1, 2)
+        sage: Omega_numerator(0, 1, 2)
         1
-        sage: Omega_P(0, 3, 1)
+        sage: Omega_numerator(0, 3, 1)
         x0*x1*x2*y0^2 + x0*x1*x2*y0 - x0*x1*y0 - x0*x2*y0 - x1*x2*y0 + 1
-        sage: Omega_P(0, 2, 2)
+        sage: Omega_numerator(0, 2, 2)
         x0^2*x1*y0*y1 + x0*x1^2*y0*y1 - x0*x1*y0*y1 - x0*x1*y0 - x0*x1*y1 + 1
 
-        sage: Omega_P(-2, 1, 1)
+        sage: Omega_numerator(-2, 1, 1)
         x0^2
-        sage: Omega_P(-1, 1, 1)
+        sage: Omega_numerator(-1, 1, 1)
         x0
-        sage: Omega_P(1, 1, 1)
+        sage: Omega_numerator(1, 1, 1)
         -x0*y0 + y0 + 1
-        sage: Omega_P(2, 1, 1)
+        sage: Omega_numerator(2, 1, 1)
         -x0*y0^2 - x0*y0 + y0^2 + y0 + 1
     """
     Y = LaurentPolynomialRing(
@@ -168,7 +168,7 @@ def Omega_fundamental(a, x, y, group_factors=False):
         factors_denominator = (tuple(),)
 
     else:
-        numerator = Omega_P(a, flat_x, flat_y)
+        numerator = Omega_numerator(a, len(flat_x), len(flat_y))
         factors_denominator = \
             tuple(tuple(1 - xx for xx in gx) for gx in x) + \
             tuple(tuple(1 - xx*yy for xx in gx for yy in gy)

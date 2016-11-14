@@ -300,8 +300,8 @@ We plot the Riemann zeta function along the critical line and see
 the first few zeros::
 
     sage: i = CDF.0      # define i this way for maximum speed.
-    sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27, rgbcolor=(0.8,0,0))
-    sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27, color=hue(0.7))
+    sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1, 27, rgbcolor=(0.8,0,0))
+    sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1, 27, color=hue(0.7))
     sage: print(p1 + p2)
     Graphics object consisting of 2 graphics primitives
     sage: p1 + p2    # display it
@@ -311,8 +311,8 @@ the first few zeros::
 
     from sage.rings.complex_double import ComplexDoubleElement
     i = ComplexDoubleElement(0,1)      # define i this way for maximum speed.
-    p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27, rgbcolor=(0.8,0,0))
-    p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27, color=hue(0.7))
+    p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1, 27, rgbcolor=(0.8,0,0))
+    p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1, 27, color=hue(0.7))
     g = p1 + p2
     sphinx_plot(g)
 
@@ -545,8 +545,6 @@ AUTHORS:
 - Aaron Lauve (2016-07-13): reworked handling of 'color' when passed
   a list of functions; now more in-line with other CAS's. Added list functionality
   to linestyle and legend_label options as well. (:trac:`12962`)
-
-- Lennart Jern (2016-10): better documentation for plot ticks. (:trac:`16857`)
 """
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>

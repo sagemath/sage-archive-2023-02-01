@@ -53,7 +53,6 @@ Comprehensive Module list
     sage/combinat/crystals/affinization
     sage/combinat/crystals/alcove_path
     sage/combinat/crystals/all
-    sage/combinat/crystals/braid_move_calculator
     sage/combinat/crystals/catalog
     sage/combinat/crystals/catalog_elementary_crystals
     sage/combinat/crystals/catalog_infinity_crystals
@@ -214,6 +213,7 @@ Comprehensive Module list
     sage/combinat/root_system/all
     sage/combinat/root_system/ambient_space
     sage/combinat/root_system/associahedron
+    sage/combinat/root_system/braid_move_calculator
     sage/combinat/root_system/branching_rules
     sage/combinat/root_system/cartan_matrix
     sage/combinat/root_system/cartan_type

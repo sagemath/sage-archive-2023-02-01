@@ -49,7 +49,7 @@ def pari_share():
     """
     from subprocess import Popen, PIPE
     gp = Popen(["gp", "-f", "-q"], stdin=PIPE, stdout=PIPE)
-    out = gp.communicate("print(default(datadir))")[0]
+    out = gp.communicate(b"print(default(datadir))")[0]
     datadir = out.strip()
     if not os.path.isdir(datadir):
         raise EnvironmentError("PARI data directory {!r} does not exist".format(datadir))

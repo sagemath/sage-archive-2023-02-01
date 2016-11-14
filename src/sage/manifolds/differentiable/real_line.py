@@ -690,7 +690,7 @@ class RealLine(OpenInterval):
 
     - ``name`` -- (default: ``'R'``) string; name (symbol) given to
       the real line
-    - ``latex_name`` -- (default: ``r'\RR'``) string; LaTeX symbol to
+    - ``latex_name`` -- (default: ``r'\Bold{R}'``) string; LaTeX symbol to
       denote the real line
     - ``coordinate`` -- (default: ``None``) string defining the symbol of the
       canonical coordinate set on the real line; if none is provided and
@@ -709,7 +709,7 @@ class RealLine(OpenInterval):
         sage: R = RealLine() ; R
         Real number line R
         sage: latex(R)
-        \RR
+        \Bold{R}
 
     ``R`` is a 1-dimensional real smooth manifold::
 
@@ -779,7 +779,7 @@ class RealLine(OpenInterval):
         sage: latex(x)
         {\xi}
         sage: latex(R.canonical_chart())
-        \left(\RR,({\xi})\right)
+        \left(\Bold{R},({\xi})\right)
 
     The LaTeX symbol of the real line itself can also be customized::
 
@@ -830,8 +830,8 @@ class RealLine(OpenInterval):
         [Real interval (0, 1), Real number line R]
 
     """
-    def __init__(self, name='R', latex_name=r'\RR', coordinate=None, names=None,
-                 start_index=0):
+    def __init__(self, name='R', latex_name=r'\Bold{R}', coordinate=None,
+                 names=None, start_index=0):
         r"""
         Construct the real line manifold.
 

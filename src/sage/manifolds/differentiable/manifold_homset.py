@@ -245,7 +245,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         sage: H.category()
         Category of homsets of topological spaces
         sage: latex(H)
-        \mathrm{Hom}\left(\RR,M\right)
+        \mathrm{Hom}\left(\Bold{R},M\right)
         sage: H.domain()
         Real number line R
         sage: H.codomain()

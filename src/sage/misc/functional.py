@@ -22,11 +22,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six.moves import range
+from six.moves import builtins
 
 import sage.misc.latex
 import sage.interfaces.expect
 import sage.interfaces.mathematica
-
 
 from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
@@ -34,10 +35,6 @@ from sage.rings.real_double import RDF, RealDoubleElement
 import sage.rings.real_mpfr
 import sage.rings.complex_field
 import sage.rings.integer
-
-from six.moves import builtins
-
-LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
@@ -449,15 +446,15 @@ def symbolic_sum(expression, *args, **kwds):
         In particular, this does not work::
 
             sage: n = var('n')
-            sage: list=[1,2,3,4,5]
-            sage: sum(list[n],n,0,3)
+            sage: mylist = [1,2,3,4,5]
+            sage: sum(mylist[n], n, 0, 3)
             Traceback (most recent call last):
             ...
             TypeError: unable to convert n to an integer
             
         Use python ``sum()`` instead::
 
-            sage: sum(list[n] for n in range(4))
+            sage: sum(mylist[n] for n in range(4))
             10
             
         Also, only a limited number of functions are recognized in symbolic sums::
@@ -700,7 +697,7 @@ def interval(a, b):
         sage: 4 in I
         False
     """
-    return range(a,b+1)
+    return list(range(a, b + 1))
 
 def xinterval(a, b):
     r"""
@@ -715,7 +712,7 @@ def xinterval(a, b):
         sage: 6 in I
         False
     """
-    return xrange(a, b+1)
+    return range(a, b + 1)
 
 def is_commutative(x):
     """
@@ -1094,36 +1091,31 @@ def numerator(x):
         return x
     return x.numerator()
 
-# Following is the top-level numerical_approx function.
-# Implement a ._numerical_approx(prec, digits, algorithm) method for your
-# objects to enable the three top-level functions and three methods
 
 def numerical_approx(x, prec=None, digits=None, algorithm=None):
     r"""
-    Returns a numerical approximation of an object ``x`` with at
-    least ``prec`` bits (or decimal ``digits``) of precision.
+    Return a numerical approximation of ``self`` with ``prec`` bits
+    (or decimal ``digits``) of precision.
+
+    No guarantee is made about the accuracy of the result.
 
     .. note::
 
-       Both upper case ``N`` and lower case ``n`` are aliases for
-       :func:`numerical_approx`, and all three may be used as
-       methods.
+       Lower case :func:`n` is an alias for :func:`numerical_approx`
+       and may be used as a method.
 
     INPUT:
 
-    -  ``x`` - an object that has a numerical_approx
-       method, or can be coerced into a real or complex field
-    -  ``prec`` (optional) - an integer (bits of
-       precision)
-    -  ``digits`` (optional) - an integer (digits of
-       precision)
-    -  ``algorithm`` (optional) - a string specifying
-       the algorithm to use for functions that implement
-       more than one
+    - ``prec`` -- precision in bits
 
-    If neither the ``prec`` or ``digits`` are specified,
-    the default is 53 bits of precision.  If both are
-    specified, then ``prec`` is used.
+    - ``digits`` -- precision in decimal digits (only used if
+      ``prec`` is not given)
+
+    - ``algorithm`` -- which algorithm to use to compute this
+      approximation (the accepted algorithms depend on the object)
+
+    If neither ``prec`` nor ``digits`` is given, the default
+    precision is 53 bits (roughly 16 digits).
 
     EXAMPLES::
 
@@ -1148,16 +1140,14 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         sage: numerical_approx(9)
         9.00000000000000
 
-    You can also usually use method notation.  ::
+    You can also usually use method notation::
 
         sage: (pi^2 + e).n()
-        12.5878862295484
-        sage: (pi^2 + e).N()
         12.5878862295484
         sage: (pi^2 + e).numerical_approx()
         12.5878862295484
 
-    Vectors and matrices may also have their entries approximated.  ::
+    Vectors and matrices may also have their entries approximated::
 
         sage: v = vector(RDF, [1,2,3])
         sage: v.n()
@@ -1292,56 +1282,19 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         0.000000000000000
     """
     if prec is None:
-        if digits is None:
-            prec = 53
-        else:
-            prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
+        from sage.arith.numerical_approx import digits_to_bits
+        prec = digits_to_bits(digits)
     try:
-        return x._numerical_approx(prec, algorithm=algorithm)
+        n = x.numerical_approx
     except AttributeError:
-        pass
-
-    from sage.structure.element import parent
-    B = parent(x)
-
-    RR = sage.rings.real_mpfr.RealField(prec)
-    map = RR.coerce_map_from(B)
-    if map is not None:
-        return map(x)
-    CC = sage.rings.complex_field.ComplexField(prec)
-    map = CC.coerce_map_from(B)
-    if map is not None:
-        return map(x)
-
-    # Coercion didn't work: there are 3 possibilities:
-    # (1) There is a coercion possible to a lower precision
-    # (2) There is a conversion but no coercion
-    # (3) The type doesn't convert at all
-
-    # Figure out input precision to check for case (1)
-    try:
-        inprec = x.prec()
-    except AttributeError:
-        if prec > 53 and CDF.has_coerce_map_from(B):
-            # If we can coerce to CDF, assume input precision was 53 bits
-            inprec = 53
-        else:
-            # Otherwise, assume precision wasn't the issue
-            inprec = prec
-
-    if prec > inprec:
-        raise TypeError("cannot approximate to a precision of %s bits, use at most %s bits" % (prec, inprec))
-
-    # The issue is not precision, try conversion instead
-    try:
-        return RR(x)
-    except (TypeError, ValueError):
-        pass
-    return CC(x)
-
+        from sage.arith.numerical_approx import numerical_approx_generic
+        return numerical_approx_generic(x, prec)
+    else:
+        return n(prec, algorithm=algorithm)
 
 n = numerical_approx
 N = numerical_approx
+
 
 def objgens(x):
     """
@@ -1366,26 +1319,6 @@ def objgen(x):
         x
     """
     return x.objgen()
-
-def one(R):
-    """
-    Returns the one element of the ring R.
-
-    EXAMPLES::
-
-        sage: one(RR)
-        doctest:...: DeprecationWarning: one(R) is deprecated, use R.one() or R(1) instead
-        See http://trac.sagemath.org/17158 for details.
-        1.00000000000000
-        sage: R.<x> = PolynomialRing(QQ)
-        sage: one(R)*x == x
-        True
-        sage: one(R) in R
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(17158, 'one(R) is deprecated, use R.one() or R(1) instead')
-    return R(1)
 
 def order(x):
     """
@@ -1600,24 +1533,3 @@ def transpose(x):
         [3 6 9]
     """
     return x.transpose()
-
-
-def zero(R):
-    """
-    Returns the zero element of the ring R.
-
-    EXAMPLES::
-
-        sage: zero(RR)
-        doctest:...: DeprecationWarning: zero(R) is deprecated, use R.zero() or R(0) instead
-        See http://trac.sagemath.org/17158 for details.
-        0.000000000000000
-        sage: R.<x> = PolynomialRing(QQ)
-        sage: zero(R) in R
-        True
-        sage: zero(R)*x == zero(R)
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(17158, 'zero(R) is deprecated, use R.zero() or R(0) instead')
-    return R(0)

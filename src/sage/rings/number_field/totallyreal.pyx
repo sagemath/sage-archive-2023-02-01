@@ -113,12 +113,9 @@ import math
 import sys
 
 from sage.libs.gmp.mpz cimport *
-from sage.libs.pari.types cimport *
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari import pari
 from sage.libs.pari.gen cimport gen as pari_gen
-
-import sage.libs.pari.pari_instance
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+from sage.libs.pari.convert cimport new_t_POL_from_int_star
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -253,8 +250,8 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
         sage: enumerate_totallyreal_fields_prim(2, 10)
         [[5, x^2 - x - 1], [8, x^2 - 2]]
-        sage: enumerate_totallyreal_fields_prim(2, 10)[0][1].parent()
-        Interface to the PARI C library
+        sage: type(enumerate_totallyreal_fields_prim(2, 10)[0][1])
+        <type 'sage.libs.pari.gen.gen'>
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][0].parent()
         Integer Ring
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][1].parent()
@@ -372,7 +369,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         T.incr(f_out,0,0,phc_flag)
 
     while f_out[n]:
-        nf = pari.new_t_POL_from_int_star(f_out, n_int+1, 0)
+        nf = new_t_POL_from_int_star(f_out, n_int+1, 0)
         if verb_int:
             print("==>", nf, "[")
             for j from 0 <= j < n-1:

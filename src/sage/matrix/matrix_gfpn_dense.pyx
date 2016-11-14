@@ -1111,30 +1111,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
-        return self._rmul_(self._base_ring(-1))
-
-    cpdef _rmul_(self, RingElement left):
-        """
-        EXAMPLES::
-
-            sage: M = MatrixSpace(GF(9,'x'),3,3)(sorted(list(GF(9,'x'))))
-            sage: K.<x> = GF(9)
-            sage: M = MatrixSpace(K,3,3)(list(K))
-            sage: x*M    # indirect doctest
-            [      0   x + 1 2*x + 1]
-            [      2     2*x 2*x + 2]
-            [  x + 2       1       x]
-            sage: -M == (-1)*M
-            True
-
-        """
-        if self.Data == NULL:
-            return self.__copy__()
-        FfSetField(self.Data.Field)
-        cdef Matrix_gfpn_dense OUT = self.__copy__()
-        OUT._cache = {}
-        MatMulScalar(OUT.Data, FfFromInt(self._converter.field_to_int(left)))
-        return OUT
+        return self._lmul_(self._base_ring(-1))
 
     cpdef _lmul_(self, RingElement right):
         """
@@ -1144,6 +1121,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: K.<x> = GF(9)
             sage: M = MatrixSpace(K,3,3)(sorted(list(K)))
             sage: x*M    # indirect doctest
+            [      0       x     2*x]
+            [  x + 1 2*x + 1       1]
+            [2*x + 2       2   x + 2]
+            sage: M*x    # indirect doctest
             [      0       x     2*x]
             [  x + 1 2*x + 1       1]
             [2*x + 2       2   x + 2]

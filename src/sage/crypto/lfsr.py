@@ -4,7 +4,7 @@ Linear feedback shift register (LFSR) sequence commands
 Stream ciphers have been used for a long time as a source of
 pseudo-random number generators.
 
-S. Golomb [G]_ gives a list of three statistical properties a
+S. Golomb [Go1967]_ gives a list of three statistical properties a
 sequence of numbers `{\bf a}=\{a_n\}_{n=1}^\infty`,
 `a_n\in \{0,1\}`, should display to be considered
 "random". Define the autocorrelation of `{\bf a}` to be
@@ -118,15 +118,8 @@ The sequence of `0,1`'s is periodic with period
 `P=2^4-1=15` and satisfies Golomb's three randomness
 conditions. However, this sequence of period 15 can be "cracked"
 (i.e., a procedure to reproduce `g(x)`) by knowing only 8
-terms! This is the function of the Berlekamp-Massey algorithm [M]_,
+terms! This is the function of the Berlekamp-Massey algorithm [Mas1969]_,
 implemented as ``berlekamp_massey.py``.
-
-.. [G] Solomon Golomb, Shift register sequences, Aegean Park Press,
-  Laguna Hills, Ca, 1967
-
-.. [M] James L. Massey, "Shift-Register Synthesis and BCH Decoding."
-  IEEE Trans. on Information Theory, vol. 15(1), pp. 122-127, Jan
-  1969.
 
 AUTHORS:
 

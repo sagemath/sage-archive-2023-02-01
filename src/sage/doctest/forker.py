@@ -106,7 +106,7 @@ def init_sage():
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
 
-    # Use the rich output backend for doctest 
+    # Use the rich output backend for doctest
     from sage.repl.rich_output import get_display_manager
     dm = get_display_manager()
     from sage.repl.rich_output.backend_doctest import BackendDoctest
@@ -115,10 +115,6 @@ def init_sage():
     # Switch on extra debugging
     from sage.structure.debug_options import debug
     debug.refine_category_hash_check = True
-
-    # Disable IPython colors during doctests
-    from sage.repl.interpreter import DEFAULT_SAGE_CONFIG
-    DEFAULT_SAGE_CONFIG.TerminalInteractiveShell.colors = 'NoColor'
 
     # We import readline before forking, otherwise Pdb doesn't work
     # os OS X: http://trac.sagemath.org/14289
@@ -129,35 +125,38 @@ def init_sage():
     stringPict.terminal_width = lambda self:0
 
 
-def warning_function(file):
+def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
     r"""
-    Creates a function that prints warnings to the given file.
+    Displays a warning message with a traceback.
 
-    INPUT:
+    INPUT: see :func:`warnings.showwarning`.
 
-    - ``file`` -- an open file handle.
-
-    OUTPUT:
-
-    - a function that prings warnings to the given file.
+    OUTPUT: None
 
     EXAMPLES::
 
-        sage: from sage.doctest.forker import warning_function
-        sage: import tempfile
-        sage: F = tempfile.TemporaryFile()
-        sage: wrn = warning_function(F)
-        sage: wrn("bad stuff", UserWarning, "myfile.py", 0)
-        sage: F.seek(0)
-        sage: F.read()
-        'doctest:...: UserWarning: bad stuff\n'
+        sage: from sage.doctest.forker import showwarning_with_traceback
+        sage: showwarning_with_traceback("bad stuff", UserWarning, "myfile.py", 0)
+        doctest:warning
+          ...
+          File "<doctest sage.doctest.forker.showwarning_with_traceback[1]>", line 1, in <module>
+            showwarning_with_traceback("bad stuff", UserWarning, "myfile.py", Integer(0))
+        :
+        UserWarning: bad stuff
     """
-    def doctest_showwarning(message, category, filename, lineno, file=file, line=None):
-        try:
-            file.write(warnings.formatwarning(message, category, 'doctest', lineno, line))
-        except IOError:
-            pass # the file (probably stdout) is invalid
-    return doctest_showwarning
+    # Get traceback to display in warning
+    tb = traceback.extract_stack()
+    tb = tb[:-1]  # Drop this stack frame for showwarning_with_traceback()
+
+    # Format warning
+    lines = ["doctest:warning\n"]  # Match historical warning messages in doctests
+    lines.extend(traceback.format_list(tb))
+    lines.append(":\n")            # Match historical warning messages in doctests
+    lines.extend(traceback.format_exception_only(category, message))
+    try:
+        file.writelines(lines)
+    except IOError:
+        pass # the file is invalid
 
 
 class SageSpoofInOut(SageObject):
@@ -609,7 +608,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
         """
         self.setters = {}
         randstate.set_random_seed(long(0))
-        warnings.showwarning = warning_function(sys.stdout)
+        warnings.showwarning = showwarning_with_traceback
         self.running_doctest_digest = hashlib.md5()
         self.test = test
         if compileflags is None:
@@ -1088,15 +1087,13 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: _ = sage0.eval("import doctest, sys, os, multiprocessing, subprocess")
             sage: _ = sage0.eval("from sage.doctest.parsing import SageOutputChecker")
             sage: _ = sage0.eval("import sage.doctest.forker as sdf")
-            sage: _ = sage0.eval("sdf.init_sage()")
             sage: _ = sage0.eval("from sage.doctest.control import DocTestDefaults")
             sage: _ = sage0.eval("DD = DocTestDefaults(debug=True)")
             sage: _ = sage0.eval("ex1 = doctest.Example('a = 17', '')")
             sage: _ = sage0.eval("ex2 = doctest.Example('2*a', '1')")
             sage: _ = sage0.eval("DT = doctest.DocTest([ex1,ex2], globals(), 'doubling', None, 0, None)")
             sage: _ = sage0.eval("DTR = sdf.SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)")
-            sage: sage0._prompt = r"debug: "
-            sage: print(sage0.eval("DTR.run(DT, clear_globs=False)")) # indirect doctest
+            sage: print(sage0.eval("sdf.init_sage(); DTR.run(DT, clear_globs=False)")) # indirect doctest
             **********************************************************************
             Line 1, in doubling
             Failed example:
@@ -1110,7 +1107,6 @@ class SageDocTestRunner(doctest.DocTestRunner):
             ...
             sage: sage0.eval("a")
             '...17'
-            sage: sage0._prompt = "sage: "
             sage: sage0.eval("quit")
             'Returning to doctests...TestResults(failed=1, attempted=2)'
         """
@@ -1144,13 +1140,14 @@ class SageDocTestRunner(doctest.DocTestRunner):
                         print(src)
                         if ex.want:
                             print(doctest._indent(ex.want[:-1]))
-                    from sage.repl.interpreter import DEFAULT_SAGE_CONFIG
+                    from sage.repl.configuration import sage_ipython_config
+                    from sage.repl.prompts import DebugPrompts
                     from IPython.terminal.embed import InteractiveShellEmbed
-                    import copy
-                    cfg = copy.deepcopy(DEFAULT_SAGE_CONFIG)
-                    prompt_config = cfg.PromptManager
-                    prompt_config.in_template = 'debug: '
-                    prompt_config.in2_template = '.....: '
+                    cfg = sage_ipython_config.default()
+                    # Currently this doesn't work: prompts only work in pty
+                    # We keep simple_prompt=True, prompts will be "In [0]:"
+                    # cfg.InteractiveShell.prompts_class = DebugPrompts
+                    # cfg.InteractiveShell.simple_prompt = False
                     shell = InteractiveShellEmbed(config=cfg, banner1='', user_ns=dict(globs))
                     shell(header='', stack_depth=2)
                 except KeyboardInterrupt:
@@ -1248,6 +1245,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: _ = sage0.eval("ex = doctest.Example('E = EllipticCurve([0,0]); E', 'A singular Elliptic Curve')")
             sage: _ = sage0.eval("DT = doctest.DocTest([ex], globals(), 'singular_curve', None, 0, None)")
             sage: _ = sage0.eval("DTR = sdf.SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)")
+            sage: old_prompt = sage0._prompt
             sage: sage0._prompt = r"\(Pdb\) "
             sage: sage0.eval("DTR.run(DT, clear_globs=False)") # indirect doctest
             '... ArithmeticError("invariants " + str(ainvs) + " define a singular curve")'
@@ -1257,7 +1255,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             '...EllipticCurve_field.__init__(self, K, ainvs)'
             sage: sage0.eval("p ainvs")
             '(0, 0, 0, 0, 0)'
-            sage: sage0._prompt = "sage: "
+            sage: sage0._prompt = old_prompt
             sage: sage0.eval("quit")
             'TestResults(failed=1, attempted=1)'
         """
@@ -1413,11 +1411,13 @@ class DocTestDispatcher(SageObject):
         for source in self.controller.sources:
             heading = self.controller.reporter.report_head(source)
             self.controller.log(heading)
-            outtmpfile = tempfile.TemporaryFile()
-            result = DocTestTask(source)(self.controller.options,
-                    outtmpfile, self.controller.logger)
-            outtmpfile.seek(0)
-            output = outtmpfile.read()
+
+            with tempfile.TemporaryFile() as outtmpfile:
+                result = DocTestTask(source)(self.controller.options,
+                        outtmpfile, self.controller.logger)
+                outtmpfile.seek(0)
+                output = outtmpfile.read()
+
             self.controller.reporter.report(source, False, 0, result, output)
 
     def parallel_dispatch(self):
@@ -1938,7 +1938,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: len(W.output) > 0
             True
         """
-        from Queue import Empty
+        from six.moves.queue import Empty
         try:
             self.result = self.result_queue.get(block=False)
         except Empty:

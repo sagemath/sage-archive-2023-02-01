@@ -255,13 +255,13 @@ cdef class WordDatatype_list(WordDatatype):
 
         - ``other`` - word represented by a list
 
-        OUPUT:
+        OUTPUT:
 
         word
 
         EXAMPLES::
 
-            sage: w = Word(range(10))
+            sage: w = Word(list(range(10)))
             sage: w * w
             word: 01234567890123456789
 
@@ -597,7 +597,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         - ``other`` - word represented by an str
 
-        OUPUT:
+        OUTPUT:
 
         word
 
@@ -1104,7 +1104,7 @@ cdef class WordDatatype_tuple(WordDatatype):
 
         - ``other`` - word represented by a tuple
 
-        OUPUT:
+        OUTPUT:
 
         word
 

@@ -74,7 +74,7 @@ ring
     sage: P.<a,b,c,d,e> = PolynomialRing(GF(2), 5, order='lex')
     sage: I1 = ideal([a*b + c*d + 1, a*c*e + d*e, a*b*e + c*e, b*c + c*d*e + 1])
     sage: for f in I1.groebner_basis():
-    ...     f
+    ....:   f
     a + c^2*d + c + d^2*e
     b*c + d^3*e^2 + d^3*e + d^2*e^2 + d*e + e + 1
     b*e + d*e^2 + d*e + e
@@ -90,7 +90,7 @@ to the ideal to force the solutions in `\GF{2}`.
 
     sage: J = I1 + sage.rings.ideal.FieldIdeal(P)
     sage: for f in J.groebner_basis():
-    ...     f
+    ....:   f
     a + d + 1
     b + 1
     c + 1
@@ -112,7 +112,7 @@ x_n]` containing `I` (that is, the ideals `J` satisfying `I \subset J
     sage: Q = P.quotient( sage.rings.ideal.FieldIdeal(P) )
     sage: I2 = ideal([Q(f) for f in I1.gens()])
     sage: for f in I2.groebner_basis():
-    ...     f
+    ....:   f
     abar + dbar + 1
     bbar + 1
     cbar + 1
@@ -123,7 +123,7 @@ This quotient ring is exactly what PolyBoRi handles well::
     sage: B.<a,b,c,d,e> = BooleanPolynomialRing(5, order='lex')
     sage: I2 = ideal([B(f) for f in I1.gens()])
     sage: for f in I2.groebner_basis():
-    ...     f
+    ....:   f
     a + d + 1
     b + 1
     c + 1
@@ -161,7 +161,7 @@ user too::
 
 ::
 
-    sage: [Variable(i, r) for i in xrange(r.ngens())]
+    sage: [Variable(i, r) for i in range(r.ngens())]
     [x(0), x(1), y(0), y(1), y(2)]
 
 For details on this interface see:
@@ -204,10 +204,8 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 
 from sage.rings.ideal import FieldIdeal
 
-from sage.structure.element cimport Element
-from sage.structure.element cimport RingElement
-from sage.structure.element cimport ModuleElement
-from sage.structure.element cimport have_same_parent_c, coercion_model
+from sage.structure.element cimport (Element, RingElement,
+        have_same_parent, coercion_model)
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
@@ -1372,6 +1370,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: B.<x,y> = BooleanPolynomialRing(2)
             sage: B._singular_() # indirect doctest
+            polynomial ring, over a field, global ordering
             //   characteristic : 2
             //   number of vars : 2
             //        block   1 : ordering lp
@@ -2996,7 +2995,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return left._add_(right)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         EXAMPLE::
 
@@ -3005,15 +3004,8 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: f = a*z + b + 1
             sage: f*k(1)  # indirect doctest
             a*z + b + 1
-        """
-        if left:
-            return new_BP_from_PBPoly(self._parent, self._pbpoly)
-        else:
-            return self._parent.zero()
 
-    cpdef _lmul_(self, RingElement right):
-        """
-        EXAMPLE::
+        ::
 
             sage: B.<a,b,z> = BooleanPolynomialRing(3)
             sage: k = B.base_ring()
@@ -3021,7 +3013,10 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: k(0)*f # indirect doctest
             0
         """
-        return self._rmul_(right)
+        if left:
+            return new_BP_from_PBPoly(self._parent, self._pbpoly)
+        else:
+            return self._parent.zero()
 
     cpdef _mul_(left, right):
         """
@@ -3110,7 +3105,7 @@ cdef class BooleanPolynomial(MPolynomial):
                 return (br or bl) == (op == Py_NE)
 
         # Copy from Element.__richcmp__
-        if have_same_parent_c(left, right):
+        if have_same_parent(left, right):
             return (<Element>left)._richcmp_(<Element>right, op)
         else:
             return coercion_model.richcmp(left, right, op)
@@ -3145,8 +3140,8 @@ cdef class BooleanPolynomial(MPolynomial):
             0
         """
         cdef int res
-        from itertools import izip
-        for lm, rm in izip(left, right):
+        from builtins import zip
+        for lm, rm in zip(left, right):
             res = cmp(lm, rm)
             if res != 0:
                 return res
@@ -4175,7 +4170,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         M = self.set()
         try: # 0
-            d = iter(M).next().degree()
+            d = next(iter(M)).degree()
         except StopIteration:
             return True
         for m in M:
@@ -4617,7 +4612,7 @@ cdef class BooleanPolynomial(MPolynomial):
             r =  new_BS_from_PBSet(pb_zeros(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
             L= []
             for e in r:
-                l = [0 for _ in xrange(n)]
+                l = [0] * n
                 for i in e.iterindex():
                     l[i] = 1
                 L.append(tuple(l))
@@ -5038,7 +5033,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
             sage: R.<a111,a112,a121,a122,b111,b112,b211,b212,c111,c112> = BooleanPolynomialRing(order='lex')
             sage: I = (a111 * b111 * c111 + a112 * b112 * c112 - 1, a111 * b211 * c111 + a112 * b212 * c112 - 0,
-            ...        a121 * b111 * c111 + a122 * b112 * c112, a121 * b211 * c111 + a122 * b212 * c112 - 1)*R
+            ....:      a121 * b111 * c111 + a122 * b112 * c112, a121 * b211 * c111 + a122 * b212 * c112 - 1)*R
             sage: I.groebner_basis()
             [a111 + b212, a112 + b211, a121 + b112, a122 + b111, b111*b112 + b111 + b112 + 1,
              b111*b211 + b111 + b211 + 1, b111*b212 + b112*b211 + 1, b112*b212 + b112 + b212 + 1,
@@ -5059,10 +5054,10 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: R.inject_variables()
             Defining s0s0, ...
             sage: problem = [s1s0*s1s1, s0s0*s0s1 + s0s0 + s0s1 + s2s0 + s3s0*s3s1 + s3s0 + s3s1,
-            ...              s1s1 + s2s0 + s3s0 + s3s1 + 1, s0s0*s0s1 + s1s1 + s3s0*s3s1 + s3s0,
-            ...              s0s1 + s1s0 + s1s1 + s3s0, s0s0*s0s1 + s0s0 + s0s1 + s1s1 + s2s0 + s3s1,
-            ...              s0s1 + s1s0, s0s0*s0s1 + s0s0 + s0s1 + s1s0 + s2s0 + s3s1,
-            ...              s0s0 + s2s0 + s3s0*s3s1 + s3s0 + 1, s0s0 + s1s1]
+            ....:            s1s1 + s2s0 + s3s0 + s3s1 + 1, s0s0*s0s1 + s1s1 + s3s0*s3s1 + s3s0,
+            ....:            s0s1 + s1s0 + s1s1 + s3s0, s0s0*s0s1 + s0s0 + s0s1 + s1s1 + s2s0 + s3s1,
+            ....:            s0s1 + s1s0, s0s0*s0s1 + s0s0 + s0s1 + s1s0 + s2s0 + s3s1,
+            ....:            s0s0 + s2s0 + s3s0*s3s1 + s3s0 + 1, s0s0 + s1s1]
             sage: ideal(problem).groebner_basis()
             [1]
 
@@ -6196,7 +6191,7 @@ cdef class BooleanPolynomialVector:
             sage: from brial import BooleanPolynomialVector
             sage: v = BooleanPolynomialVector()
             sage: for i in range(5):
-            ...     v.append(B.random_element())
+            ....:   v.append(B.random_element())
 
             sage: list(v)
             [a*b + a + b*e + c*d + e*f, a*d + c*d + d*f + e + f, a*c + a*e + b*c + c*f + f, a*c + a*d + a*e + a*f + b*e, b*c + b*d + c*d + c + 1]

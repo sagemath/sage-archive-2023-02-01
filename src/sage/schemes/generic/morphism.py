@@ -3,7 +3,7 @@ Scheme morphism
 
 .. NOTE::
 
-    You should never create the morphisms directy. Instead, use the
+    You should never create the morphisms directly. Instead, use the
     :meth:`~sage.schemes.generic.scheme.hom` and
     :meth:`~sage.structure.parent.Hom` methods that are inherited by
     all schemes.
@@ -77,10 +77,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
-from sage.structure.element import AdditiveGroupElement, RingElement, Element, generic_power, parent
+from __future__ import absolute_import, print_function
+
+import operator
+from sage.structure.element import (AdditiveGroupElement, RingElement,
+        Element, generic_power, parent, get_coercion_model)
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
 from sage.categories.number_fields import NumberFields
@@ -101,6 +103,9 @@ from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
 from sage.categories.morphism import Morphism
+
+coercion_model = get_coercion_model()
+
 
 def is_SchemeMorphism(f):
     """
@@ -146,7 +151,7 @@ class SchemeMorphism(Element):
         sub-class of :class:`~sage.structure.element.ModuleElement` and
         :class:`SchemeMorphism`, but Cython would currently confuse cpdef
         attributes of the two base classes. Proper inheritance should be used
-        as soon as this bug is fixed.
+        as soon as this bug is fixed. See :trac:`14711`.
 
     EXAMPLES::
 
@@ -383,7 +388,7 @@ class SchemeMorphism(Element):
               Defn: Structure map) codomain
         """
         if not isinstance(right, SchemeMorphism):
-            raise TypeError("right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self))
+            return coercion_model.bin_op(self, right, operator.mul)
         if right.codomain() != self.domain():
             raise TypeError("self (=%s) domain must equal right (=%s) codomain"%(self, right))
         if isinstance(self, SchemeMorphism_id):
@@ -391,7 +396,6 @@ class SchemeMorphism(Element):
         if isinstance(right, SchemeMorphism_id):
             return self
         return self._composition(right)
-
 
     def __pow__(self, n, dummy=None):
         """
@@ -979,7 +983,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         INPUT:
 
-        - ``x`` -- a point in the domain or a list or tuple that defines a point in the domain.
+        - ``x`` -- a point in the domain or a list or tuple that
+          defines a point in the domain.
 
         OUTPUT:
 
@@ -1022,10 +1027,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             defined by:
               x, but a `pushforward` method is not properly implemented
 
-        ::
-
         It is possible to avoid the checks on the resulting point which can be
-        useful for indeterminacies, but be careful!!
+        useful for indeterminacies, but be careful!! ::
 
             sage: PS.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(PS,PS)
@@ -1034,16 +1037,12 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: f(P,check=False)
             (0 : 0)
 
-        ::
-
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
             sage: X=P.subscheme(x^2-y^2);
             sage: H=Hom(X,X)
             sage: f=H([x^2,y^2,z^2]);
             sage: f([4,4,1])
             (16 : 16 : 1)
-
-        ::
 
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
             sage: X=P.subscheme(x^2-y^2);
@@ -1107,9 +1106,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               x, but a `pushforward` method is not properly implemented
 
         It is possible to avoid the checks on the resulting point which can be
-        useful for indeterminacies, but be careful!!
-
-        ::
+        useful for indeterminacies, but be careful!! ::
 
             sage: PS.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(PS,PS)
@@ -1330,6 +1327,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
 
+
         Check that :trac:`16834` is fixed::
 
             sage: A.<x,y,z> = AffineSpace(RR, 3)
@@ -1423,6 +1421,18 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             Scheme endomorphism of Affine Space of dimension 2 over Algebraic Field
               Defn: Defined on coordinates by sending (x, y) to
                     (1.122462048309373?*x/y, y + 1)
+
+        ::
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: H = End(A)
+            sage: phi = H([x/y, y])
+            sage: emb = K.embeddings(QQbar)[0]
+            sage: phi.change_ring(emb)
+            Scheme endomorphism of Affine Space of dimension 2 over Algebraic Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x/y, y)
         """
         K = self.codomain().base_ring()
         T = self.domain().change_ring(R)
@@ -1434,7 +1444,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         if isinstance(R, Morphism):
             if R.domain() == self.base_ring():
-                R = self.coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
+                R = self.domain().ambient_space().coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
         G = []
         for f in self:
             if isinstance(f, FractionFieldElement):
@@ -1442,6 +1452,86 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             else:
                 G.append(f.change_ring(R))
         return(H(G, check))
+
+    def _composition_(self, other, homset):
+        r"""
+        Straightforward implementation of composition for scheme morphisms
+        defined by polynomials.
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 -29/16*y^2, y^2])
+            sage: g = H([y,x+y])
+            sage: h = f*g
+            sage: h
+            Scheme endomorphism of Projective Space of dimension 1 over Rational
+            Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (-29/16*x^2 - 29/8*x*y - 13/16*y^2 : x^2 + 2*x*y + y^2)
+            sage: p = P((1,3))
+            sage: h(p) == f(g(p))
+            True
+
+            sage: Q = ProjectiveSpace(QQ,2)
+            sage: H2 = Hom(P,Q)
+            sage: h2 = H2([x^2+y^2,x^2,y^2+2*x^2])
+            sage: h2 * f
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^4 - 29/8*x^2*y^2 + 1097/256*y^4 : x^4 - 29/8*x^2*y^2 + 841/256*y^4 : 2*x^4 - 29/4*x^2*y^2 + 969/128*y^4)
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: A1.<z> = AffineSpace(QQ, 1)
+            sage: H = End(A)
+            sage: f = H([x^2+y^2, y^2/x])
+            sage: H1 = Hom(A, A1)
+            sage: g = H1([x + y^2])
+            sage: g*f
+            Scheme morphism:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    ((x^4 + x^2*y^2 + y^4)/x^2)
+            sage: f*g
+            Traceback (most recent call last):
+            ...
+            TypeError: self (=Scheme endomorphism of Affine Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x^2 + y^2, y^2/x)) domain must equal right (=Scheme morphism:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    (y^2 + x)) codomain
+
+        Not both defined by polynomials::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2 - 2)
+            sage: p1, p2 = K.Hom(K)
+            sage: R.<x,y> = K[]
+            sage: q1 = R.Hom(R)(p1)
+            sage: A = AffineSpace(R)
+            sage: f1 = A.Hom(A)(q1)
+            sage: g = A.Hom(A)([x^2-y, y+1])
+            sage: g*f1
+            Composite map:
+              From: Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 - 2
+              To:   Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 - 2
+              Defn:   Generic endomorphism of Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 - 2
+                    then
+                      Generic endomorphism of Affine Space of dimension 2 over Number Field in a with defining polynomial x^2 - 2
+        """
+        try:
+            opolys = tuple(other._polys)
+        except AttributeError:
+            return super(SchemeMorphism_polynomial, self)._composition_(other, homset)
+        return homset([p(*opolys) for p in self._polys])
 
 ############################################################################
 # Rational points on schemes, which we view as morphisms determined

@@ -49,7 +49,7 @@ cdef extern from "Solver.h" namespace "CMSat":
         int      restart_first      #The initial restart limit.  (default 100)
         float    restart_inc        #The factor with which the restart limit is multiplied in each
                                     #restart.  (default 1.5)
-        float    learntsize_factor  #The intitial limit for learnt clauses is a factor of the
+        float    learntsize_factor  #The initial limit for learnt clauses is a factor of the
                                     #original clauses.  (default 1 / 3)
         float    learntsize_inc     #The limit for learnt clauses is multiplied with this factor
                                     #each restart.  (default 1.1)
@@ -82,7 +82,7 @@ cdef extern from "Solver.h" namespace "CMSat":
                                      #clauses thereby removing a variable)
         bint      doHeuleProcess     #Perform local subsitutuion as per Heule's theis
         bint      doSchedSimp        #Should simplifyProblem() be scheduled regularly? (if set to
-                                     #FALSE, a lot of opmitisations are disabled)
+                                     #FALSE, a lot of optimisations are disabled)
         bint      doSatELite         #Should try to subsume & self-subsuming resolve &
                                      #variable-eliminate & block-clause eliminate?
         bint      doXorSubsumption   #Should try to subsume & local-subsitute xor clauses
@@ -100,7 +100,7 @@ cdef extern from "Solver.h" namespace "CMSat":
                                      #minimization" of PrecoSat
         bint      doFailedLit        #Carry out Failed literal probing + doubly propagated literal
                                      #detection + 2-long xor clause detection during failed literal
-                                     #probing + hyper-binary resoolution
+                                     #probing + hyper-binary resolution
         bint      doRemUselessBins   #Should try to remove useless binary clauses at the beginning
                                      #of solving?
         bint      doSubsWBins

@@ -29,6 +29,8 @@ limitations and lack of robustness w.r.t. input.
 #*****************************************************************************
 from __future__ import print_function
 
+from builtins import object
+
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.cachefunc import cached_method
 from sage.combinat.integer_lists.base cimport IntegerListsBackend
@@ -114,7 +116,7 @@ class IntegerListsLex(IntegerLists):
 
     - ``name`` -- a string or ``None`` (default: ``None``) if set,
       this will be passed down to :meth:`Parent.rename` to specify the
-      name of ``self``. It is recommented to use rename method directly
+      name of ``self``. It is recommended to use rename method directly
       because this feature may become deprecated.
 
     - ``element_constructor`` -- a function (or callable) that creates
@@ -264,7 +266,7 @@ class IntegerListsLex(IntegerLists):
     below the diagonal::
 
         sage: def dyck_words(n):
-        ....:     return IntegerListsLex(length=n, ceiling=range(n+1), min_slope=0)
+        ....:     return IntegerListsLex(length=n, ceiling=list(range(n+1)), min_slope=0)
         sage: [dyck_words(n).cardinality() for n in range(8)]
         [1, 1, 2, 5, 14, 42, 132, 429]
         sage: dyck_words(3).list()
@@ -1285,7 +1287,7 @@ class IntegerListsLexIter(object):
             self._current_sum -= self._current_list[-1]
             self._current_list.pop()
 
-    def next(self):
+    def __next__(self):
         r"""
         Return the next element in the iteration.
 

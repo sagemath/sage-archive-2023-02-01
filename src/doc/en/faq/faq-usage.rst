@@ -360,9 +360,9 @@ As a third alternative, use the raw suffix::
     array([  7.5,  10.5])
 
 You can also disable the preprocessor in your code via
-``preparse(False)``. You can may start IPython alone from the command
+``preparser(False)``. You can start IPython alone from the command
 line ``sage -ipython`` which does not pre-load anything
-Sage-specific. Or switching the Notebook language to "Python".
+Sage-specific. Or switch the Notebook language to "Python".
 
 
 How do I save an object so I don't have to compute it each time I open a worksheet?
@@ -387,9 +387,9 @@ You might want to convert ASCII characters such as "Big Mac" to ASCII
 numerals for further processing. In Sage and Python, you can use ``ord``,
 e.g. ::
 
-    sage: map(ord, "abcde")
+    sage: list(map(ord, "abcde"))
     [97, 98, 99, 100, 101]
-    sage: map(ord, "Big Mac")
+    sage: list(map(ord, "Big Mac"))
     [66, 105, 103, 32, 77, 97, 99]
 
 

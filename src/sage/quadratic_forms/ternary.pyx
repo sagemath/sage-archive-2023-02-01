@@ -55,7 +55,7 @@ def red_mfact(a,b):
 def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
     """
     Find the coefficients of the equivalent unique reduced ternary form according to the conditions
-    of Dickson's "Studies in the Theory of Numbers", pp164-171, and the tranformation matrix.
+    of Dickson's "Studies in the Theory of Numbers", pp164-171, and the transformation matrix.
     See TernaryQF.is_eisenstein_reduced for the conditions.
 
     EXAMPLES::

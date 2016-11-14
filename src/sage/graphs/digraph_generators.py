@@ -60,6 +60,7 @@ Functions and methods
 #                         http://www.gnu.org/licenses/
 ################################################################################
 from __future__ import print_function
+from six.moves import range
 
 from   math import sin, cos, pi
 from sage.misc.randstate import current_randstate
@@ -204,7 +205,7 @@ class DiGraphGenerators():
 
     ::
 
-        sage: for i in range(0, 5):
+        sage: for i in range(5):
         ....:     print(len(list(digraphs(i))))
         1
         1
@@ -280,7 +281,7 @@ class DiGraphGenerators():
                 raise NotImplementedError("vertices='strings' is only valid for n<=30.")
             from sage.graphs.generic_graph_pyx import int_to_binary_string
             butterfly = {}
-            for v in xrange(2**n):
+            for v in range(2 ** n):
                 for i in range(n):
                     w = v
                     w ^= (1 << i)   # push 1 to the left by i and xor with w
@@ -296,7 +297,7 @@ class DiGraphGenerators():
             from copy import copy
             butterfly = {}
             for v in VectorSpace(FiniteField(2),n):
-                for i in xrange(n):
+                for i in range(n):
                     w=copy(v)
                     w[i] += 1 # Flip the ith bit
                     # We must call tuple since vectors are mutable.  To obtain
@@ -328,7 +329,7 @@ class DiGraphGenerators():
         g.name("Path")
 
         if n:
-            g.add_path(range(n))
+            g.add_path(list(range(n)))
 
         g.set_pos({i:(i,0) for i in range(n)})
         return g
@@ -371,7 +372,7 @@ class DiGraphGenerators():
 
         if n:
             from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(g, range(n))
+            _circle_embedding(g, list(range(n)))
 
         return g
 
@@ -419,7 +420,7 @@ class DiGraphGenerators():
 
         if n:
             from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(g, range(n))
+            _circle_embedding(g, list(range(n)))
 
         return g
 
@@ -557,7 +558,7 @@ class DiGraphGenerators():
 
         if n:
             from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(G, range(n))
+            _circle_embedding(G, list(range(n)))
 
         return G
 
@@ -585,7 +586,7 @@ class DiGraphGenerators():
             g.add_edge(0,0)
             return g
         else:
-            g.add_edges([(i,i+1) for i in xrange(n-1)])
+            g.add_edges([(i,i+1) for i in range(n-1)])
             g.add_edge(n-1,0)
             return g
 
@@ -629,7 +630,7 @@ class DiGraphGenerators():
 
         G=DiGraph(n, name="Circulant graph ("+str(integers)+")", loops=loops)
 
-        _circle_embedding(G, range(n))
+        _circle_embedding(G, list(range(n)))
         for v in range(n):
             G.add_edges([(v,(v+j)%n) for j in integers])
 
@@ -683,8 +684,8 @@ class DiGraphGenerators():
         from sage.combinat.words.words import Words
         from sage.rings.integer import Integer
 
-        W = Words(range(k) if isinstance(k, Integer) else k, n)
-        A = Words(range(k) if isinstance(k, Integer) else k, 1)
+        W = Words(list(range(k)) if isinstance(k, Integer) else k, n)
+        A = Words(list(range(k)) if isinstance(k, Integer) else k, 1)
         g = DiGraph(loops=True)
 
         if vertices == 'strings':
@@ -732,7 +733,7 @@ class DiGraphGenerators():
         EXAMPLE::
 
             sage: GB = digraphs.GeneralizedDeBruijn(8, 2)
-            sage: GB.is_isomorphic(digraphs.DeBruijn(2, 3), certify = True)
+            sage: GB.is_isomorphic(digraphs.DeBruijn(2, 3), certificate = True)
             (True, {0: '000', 1: '001', 2: '010', 3: '011', 4: '100', 5: '101', 6: '110', 7: '111'})
 
         TESTS:
@@ -769,8 +770,8 @@ class DiGraphGenerators():
 
         GB = DiGraph(loops = True)
         GB.allow_multiple_edges(True)
-        for u in xrange(n):
-            for a in xrange(u*d, u*d+d):
+        for u in range(n):
+            for a in range(u*d, u*d+d):
                 GB.add_edge(u, a%n)
 
         GB.name( "Generalized de Bruijn digraph (n=%s, d=%s)"%(n,d) )
@@ -800,11 +801,11 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: II = digraphs.ImaseItoh(8, 2)
-            sage: II.is_isomorphic(digraphs.DeBruijn(2, 3), certify = True)
+            sage: II.is_isomorphic(digraphs.DeBruijn(2, 3), certificate = True)
             (True, {0: '010', 1: '011', 2: '000', 3: '001', 4: '110', 5: '111', 6: '100', 7: '101'})
 
             sage: II = digraphs.ImaseItoh(12, 2)
-            sage: II.is_isomorphic(digraphs.Kautz(2, 3), certify = True)
+            sage: II.is_isomorphic(digraphs.Kautz(2, 3), certificate = True)
             (True, {0: '010', 1: '012', 2: '021', 3: '020', 4: '202', 5: '201', 6: '210', 7: '212', 8: '121', 9: '120', 10: '102', 11: '101'})
 
 
@@ -837,8 +838,8 @@ class DiGraphGenerators():
 
         II = DiGraph(loops = True)
         II.allow_multiple_edges(True)
-        for u in xrange(n):
-            for a in xrange(-u*d-d, -u*d):
+        for u in range(n):
+            for a in range(-u*d-d, -u*d):
                 II.add_edge(u, a % n)
 
         II.name( "Imase and Itoh digraph (n=%s, d=%s)"%(n,d) )
@@ -883,7 +884,7 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: K = digraphs.Kautz(2, 3)
-            sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certify = True)
+            sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certificate = True)
             (True,
              {'010': 0,
               '012': 1,
@@ -1307,7 +1308,7 @@ class DiGraphGenerators():
 
         if n:
             from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(G, range(n))
+            _circle_embedding(G, list(range(n)))
 
         return G
 
@@ -1403,9 +1404,9 @@ class DiGraphGenerators():
             g = DiGraph(vertices, implementation=implementation, sparse=sparse)
             gens = []
             for i in range(vertices-1):
-                gen = range(i)
+                gen = list(range(i))
                 gen.append(i+1); gen.append(i)
-                gen += range(i+2, vertices)
+                gen += list(range(i + 2, vertices))
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property, dig=True, implementation=implementation, sparse=sparse):
                 if extra_property(gg):

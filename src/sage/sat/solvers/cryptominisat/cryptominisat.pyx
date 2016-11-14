@@ -40,7 +40,7 @@ from solverconf cimport SolverConf
 from sage.misc.misc import get_verbose
 
 cdef extern from "cryptominisat_helper.h":
-     # Cython doesn't handle cdef vec[Lit] foo = solver.get_unitary_learnts() propertly. It will
+     # Cython doesn't handle cdef vec[Lit] foo = solver.get_unitary_learnts() properly. It will
      # declare foo first and then assign the answer of get_unitary_learnts() to foo. This requires
      # that operator= is available which isn't necessarily the case.
      cdef uint32_t*  get_unitary_learnts_helper(Solver* solver, uint32_t* num)

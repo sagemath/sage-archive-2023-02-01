@@ -21,9 +21,9 @@ see :trac:`12849`::
     sage: from sage.env import SAGE_DOC
     sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
     sage: for line in open(docfilename):
-    ....:     if "#sage.symbolic.expression.Expression.N" in line:
+    ....:     if "#sage.symbolic.expression.Expression.numerical_approx" in line:
     ....:         print(line)
-    <code class="descname">N</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
+    <code class="descname">numerical_approx</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
 
 Check that sphinx is not imported at Sage start-up::
 

@@ -32,7 +32,7 @@ class RootSpace(CombinatorialFreeModule):
 
     This class is also used for coroot spaces (or lattices).
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`RootSystem`
         - :meth:`RootSystem.root_lattice` and :meth:`RootSystem.root_space`

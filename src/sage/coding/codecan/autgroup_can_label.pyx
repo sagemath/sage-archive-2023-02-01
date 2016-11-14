@@ -38,12 +38,6 @@ AUTHORS:
 
 - Thomas Feulner (2012-11-15): initial version
 
-REFERENCES:
-
-.. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
-  Canonical Representatives of Their Semilinear Isometry Classes.
-  Advances in Mathematics of Communications 3 (4), pp. 363-383, Nov 2009
-
 EXAMPLES::
 
     sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel

@@ -4,16 +4,10 @@ Wigner, Clebsch-Gordan, Racah, and Gaunt coefficients
 Collection of functions for calculating Wigner 3-`j`, 6-`j`, 9-`j`,
 Clebsch-Gordan, Racah as well as Gaunt coefficients exactly, all
 evaluating to a rational number times the square root of a rational
-number [Rasch03]_.
+number [RH2003]_.
 
 Please see the description of the individual functions for further
 details and examples.
-
-REFERENCES:
-
-.. [Rasch03] \J. Rasch and A. C. H. Yu, 'Efficient Storage Scheme for
-  Pre-calculated Wigner 3j, 6j and Gaunt Coefficients', SIAM
-  J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
 
 AUTHORS:
 
@@ -131,7 +125,7 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
          =(-1)^J \begin{pmatrix} j_1 & j_2 & j_3 \\ -m_1 & -m_2 & -m_3 \end{pmatrix}
 
     - symmetric with respect to the 72 additional symmetries based on
-      the work by [Regge58]_
+      the work by [Reg1958]_
 
     - zero for `j_1`, `j_2`, `j_3` not fulfilling triangle relation
 
@@ -142,19 +136,11 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
 
     ALGORITHM:
 
-    This function uses the algorithm of [Edmonds74]_ to calculate the
+    This function uses the algorithm of [Ed1974]_ to calculate the
     value of the 3-`j` symbol exactly. Note that the formula contains
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
-    algebra system [Rasch03]_.
-
-    REFERENCES:
-
-    .. [Regge58] 'Symmetry Properties of Clebsch-Gordan Coefficients',
-      T. Regge, Nuovo Cimento, Volume 10, pp. 544 (1958)
-
-    .. [Edmonds74] 'Angular Momentum in Quantum Mechanics',
-      A. R. Edmonds, Princeton University Press (1974)
+    algebra system [RH2003]_.
 
     AUTHORS:
 
@@ -222,7 +208,7 @@ def clebsch_gordan(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     Calculates the Clebsch-Gordan coefficient
     `\langle j_1 m_1 \; j_2 m_2 | j_3 m_3 \rangle`.
 
-    The reference for this function is [Edmonds74]_.
+    The reference for this function is [Ed1974]_.
 
     INPUT:
 
@@ -358,11 +344,11 @@ def racah(aa, bb, cc, dd, ee, ff, prec=None):
 
     ALGORITHM:
 
-    This function uses the algorithm of [Edmonds74]_ to calculate the
+    This function uses the algorithm of [Ed1974]_ to calculate the
     value of the 6-`j` symbol exactly. Note that the formula contains
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
-    algebra system [Rasch03]_.
+    algebra system [RH2003]_.
 
     AUTHORS:
 
@@ -475,23 +461,18 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
           =\begin{Bmatrix} j_4 & j_2 & j_6 \\ j_1 & j_5 & j_3 \end{Bmatrix}
           =\begin{Bmatrix} j_4 & j_5 & j_3 \\ j_1 & j_2 & j_6 \end{Bmatrix}
 
-    - additional 6 symmetries [Regge59]_ giving rise to 144 symmetries
+    - additional 6 symmetries [Reg1959]_ giving rise to 144 symmetries
       in total
 
     - only non-zero if any triple of `j`'s fulfill a triangle relation
 
     ALGORITHM:
 
-    This function uses the algorithm of [Edmonds74]_ to calculate the
+    This function uses the algorithm of [Ed1974]_ to calculate the
     value of the 6-`j` symbol exactly. Note that the formula contains
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
-    algebra system [Rasch03]_.
-
-    REFERENCES:
-
-    .. [Regge59] 'Symmetry Properties of Racah Coefficients',
-      T. Regge, Nuovo Cimento, Volume 11, pp. 116 (1959)
+    algebra system [RH2003]_.
     """
     res = (-1) ** int(j_1 + j_2 + j_4 + j_5) * \
         racah(j_1, j_2, j_5, j_4, j_3, j_6, prec)
@@ -559,11 +540,11 @@ def wigner_9j(j_1, j_2, j_3, j_4, j_5, j_6, j_7, j_8, j_9, prec=None):
 
     ALGORITHM:
 
-    This function uses the algorithm of [Edmonds74]_ to calculate the
+    This function uses the algorithm of [Ed1974]_ to calculate the
     value of the 3-`j` symbol exactly. Note that the formula contains
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
-    algebra system [Rasch03]_.
+    algebra system [RH2003]_.
     """
     imin = 0
     imax = min(j_1 + j_9, j_2 + j_6, j_4 + j_8)
@@ -664,7 +645,7 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
           =Y(l_1,l_2,l_3,-m_1,-m_2,-m_3)
 
     - symmetric with respect to the 72 Regge symmetries as inherited
-      for the 3-`j` symbols [Regge58]_
+      for the 3-`j` symbols [Reg1958]_
 
     - zero for `l_1`, `l_2`, `l_3` not fulfilling triangle relation
 
@@ -676,17 +657,11 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
 
     ALGORITHM:
 
-    This function uses the algorithm of [Liberatodebrito82]_ to
+    This function uses the algorithm of [LdB1982]_ to
     calculate the value of the Gaunt coefficient exactly. Note that
     the formula contains alternating sums over large factorials and is
     therefore unsuitable for finite precision arithmetic and only
-    useful for a computer algebra system [Rasch03]_.
-
-    REFERENCES:
-
-    .. [Liberatodebrito82] 'FORTRAN program for the integral of three
-      spherical harmonics', A. Liberato de Brito,
-      Comput. Phys. Commun., Volume 25, pp. 81-85 (1982)
+    useful for a computer algebra system [RH2003]_.
 
     AUTHORS:
 

@@ -1509,9 +1509,21 @@ class FGP_Module_class(Module):
         self.__cardinality = infinity if 0 in v else prod(v)
         return self.__cardinality
 
+    def list(self):
+        """
+        Return a list of the elements of ``self``.
+
+        EXAMPLES::
+
+            sage: V = ZZ^2; W = V.span([[1,2],[3,4]])
+            sage: list(V/W)
+            [(0), (1)]
+        """
+        return [e for e in self]
+
     def __iter__(self):
         """
-        Return iterator over all elements of self.
+        Return iterator over all elements of ``self``.
 
         EXAMPLES::
 
@@ -1524,7 +1536,7 @@ class FGP_Module_class(Module):
             sage: len(z)
             24
 
-        We test that the trivial module is handled correctly (cf. trac #6561)::
+        We test that the trivial module is handled correctly (:trac:`6561`)::
 
             sage: A = (ZZ**1)/(ZZ**1); list(A) == [A(0)]
             True

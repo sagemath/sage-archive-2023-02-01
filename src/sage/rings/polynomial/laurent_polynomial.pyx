@@ -80,7 +80,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                 f = parent.polynomial_ring()((<LaurentPolynomial_univariate>f).__u)
         elif (not isinstance(f, Polynomial)) or (parent is not f.parent()):
             if isinstance(f, dict):
-                v = min(f.keys())
+                v = min(f)
                 f = dict((i-v,c) for i,c in f.items())
                 n += v
             f = parent.polynomial_ring()(f)
@@ -1327,14 +1327,38 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             4*w*z^3 + w^-1*z^-1
             sage: L(1/2)
             1/2
+
+        TESTS::
+
+        Check that :trac:`19538` is fixed
+            
+            sage: R = LaurentPolynomialRing(QQ,'x2,x0')
+            sage: S = LaurentPolynomialRing(QQ,'x',3)
+            sage: f = S.coerce_map_from(R)
+            sage: f(R.gen(0) + R.gen(1)^2)
+            x0^2 + x2
+            sage: _.parent()
+            Multivariate Laurent Polynomial Ring in x0, x1, x2 over Rational Field
         """
         if isinstance(x, LaurentPolynomial_mpair):
-            x = x.dict()
+            # check if parent contains all the generators of x.parent() for coercions
+            try: 
+                inject_dict = dict(enumerate([parent.variable_names().index(v) for v in x.parent().variable_names()]))
+                tmp_x = x.dict()
+                x = dict()
+                n = int(parent.ngens())
+                m = len(inject_dict)
+                for k in tmp_x.keys():
+                    img_k = ETuple(dict([(inject_dict[a],k[a]) for a in xrange(m)]),n)
+                    x[img_k] = tmp_x[k]
+            # otherwise just pass along a dict for conversions 
+            except Exception:
+                x = x.dict()
         elif isinstance(x, PolyDict):
             x = x.dict()
         if isinstance(x, dict):
             self._mon = ETuple({},int(parent.ngens()))
-            for k in x.keys(): # ETuple-ize keys, set _mon
+            for k in x: # ETuple-ize keys, set _mon
                 if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
                     self._mon = ETuple({}, int(parent.ngens()))
                     break
@@ -1346,7 +1370,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 self._mon = self._mon.emin(k) # point-wise min of _mon and k
             if len(self._mon.nonzero_positions()) != 0: # factor out _mon
                 D = {}
-                for k in x.keys():
+                for k in x:
                     D[k.esub(self._mon)] = x[k]
                 x = D
         else: # since x should coerce into parent, _mon should be (0,...,0)
@@ -1427,7 +1451,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
         if i is None:
             e = None
-            for k in D.keys():
+            for k in D:
                 if e is None:
                     e = k
                 else:
@@ -1437,7 +1461,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 self._mon = self._mon.eadd(e)
         else:
             e = None
-            for k in D.keys():
+            for k in D:
                 if e is None or k[i] < e:
                     e = k[i]
             if e > 0:
@@ -1452,7 +1476,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: a = w^2*z^-1+3; a
             w^2*z^-1 + 3
             sage: d = a._dict()
-            sage: keys = list(sorted(d.keys())); keys
+            sage: keys = list(sorted(d)); keys
             [(0, 0), (2, -1)]
             sage: d[keys[0]]
             3
@@ -1463,7 +1487,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
         if len(self._mon.nonzero_positions()) > 0:
             DD = {}
-            for k in D.keys():
+            for k in D:
                 DD[k.eadd(self._mon)] = D[k]
             return DD
         else:
@@ -1521,12 +1545,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         try:
-            cmpfn = self.parent().term_order().compare_tuples
+            key = self.parent().term_order().sortkey
         except AttributeError:
-            cmpfn = None
+            key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self._prod.poly_repr(self.parent().variable_names(),
-                                    atomic_coefficients=atomic, cmpfn=cmpfn)
+                                    atomic_coefficients=atomic, sortkey=key)
 
     def _latex_(self):
         """
@@ -1542,12 +1566,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         try:
-            cmpfn = self.parent().term_order().compare_tuples
+            key = self.parent().term_order().sortkey
         except AttributeError:
-            cmpfn = None
+            key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self._prod.latex(self.parent().variable_names(),
-                                atomic_coefficients=atomic, cmpfn=cmpfn)
+                                atomic_coefficients=atomic, sortkey=key)
 
     def __invert__(LaurentPolynomial_mpair self):
         """
@@ -1866,7 +1890,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         g = self.parent().gens()
         nvars = len(g)
         vars = []
-        for k in d.keys():
+        for k in d:
             vars = union(vars,k.nonzero_positions())
             if len(vars) == nvars:
                 break
@@ -2358,7 +2382,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         d = self._dict()
         out = 0
-        for mon in d.keys():
+        for mon in d:
             term = d[mon]
             for i in range(len(mon)):
                 if i in vars:
@@ -2397,7 +2421,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         documentation for the global derivative() function for more
         details.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`_derivative`
 
@@ -2425,7 +2449,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         is with respect to the generator. Otherwise, _derivative(var) is called
         recursively for each coefficient of this polynomial.
 
-        .. seealso:: :meth:`derivative`
+        .. SEEALSO:: :meth:`derivative`
 
         EXAMPLES::
 

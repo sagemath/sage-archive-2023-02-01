@@ -20,6 +20,8 @@ REFERENCE:
 #*****************************************************************************
 from __future__ import print_function
 
+from sage.misc.decorators import rename_keyword
+
 include 'data_structures_pyx.pxi' # includes bitsets
 
 from sage.graphs.base.sparse_graph cimport SparseGraph
@@ -89,7 +91,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
                 G_in = copy(G_in)
                 to = G_in.relabel(return_map=True)
                 frm = {}
-                for v in to.iterkeys():
+                for v in to:
                     frm[to[v]] = v
                 if first:
                     partition = [[to[v] for v in cell] for cell in partn]
@@ -170,7 +172,8 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     sig_free(output)
     return output_py
 
-def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=False,
+@rename_keyword(deprecation=21111, certify='certificate')
+def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificate=False,
                     verbosity=0, use_indicator_function=True, sparse=True,
                     base=False, order=False):
     """
@@ -189,7 +192,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         acts on.  (The point is that graphs are arbitrarily labelled, often
         0..n-1, and permutation groups always act on 1..n.  This dictionary
         maps vertex labels (such as 0..n-1) to the domain of the permutations.)
-    certify -- if True, return the permutation from G to its canonical label.
+    certificate -- if True, return the permutation from G to its canonical label.
     verbosity -- currently ignored
     use_indicator_function -- option to turn off indicator function
         (True is generally faster)
@@ -205,7 +208,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         list of generators in list-permutation format -- always
         dict -- if dict_rep
         graph -- if lab
-        dict -- if certify
+        dict -- if certificate
         list -- if base
         integer -- if order
 
@@ -271,8 +274,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: GD = DenseGraph(20)
         sage: GS = SparseGraph(20)
         sage: for i,j,_ in G.edge_iterator():
-        ...    GD.add_arc(i,j); GD.add_arc(j,i)
-        ...    GS.add_arc(i,j); GS.add_arc(j,i)
+        ....:  GD.add_arc(i,j); GD.add_arc(j,i)
+        ....:  GS.add_arc(i,j); GS.add_arc(j,i)
         sage: Pi=[range(20)]
         sage: a,b = st(G, Pi)
         sage: asp,bsp = st(GS, Pi)
@@ -355,6 +358,13 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: st(Graph(':Dkw'), [range(5)], lab=False, dig=True)
         [[4, 1, 2, 3, 0], [0, 2, 1, 3, 4]]
 
+    TESTS::
+
+        sage: G = Graph()
+        sage: st(G, [], certify=True)
+        doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+        See http://trac.sagemath.org/21111 for details.
+        ([], Graph on 0 vertices, {})
     """
     cdef CGraph G
     cdef int i, j, n
@@ -372,7 +382,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
             G_in = copy(G_in)
             to = G_in.relabel(return_map=True)
             frm = {}
-            for v in to.iterkeys():
+            for v in to:
                 frm[to[v]] = v
             partition = [[to[v] for v in cell] for cell in partition]
         else:
@@ -421,7 +431,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
                 else:
                     G_C = DenseGraph(n)
             return_tuple.append(G_C)
-        if certify:
+        if certificate:
             return_tuple.append({})
         if base:
             return_tuple.append([])
@@ -439,7 +449,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sig_free(GS.scratch)
         raise MemoryError
 
-    lab_new = lab or certify
+    lab_new = lab or certificate
     output = get_aut_gp_and_can_lab(<void *>GS, part, G.num_verts, &all_children_are_equivalent, &refine_by_degree, &compare_graphs, lab, NULL, NULL, NULL)
     sig_free( GS.scratch )
     # prepare output
@@ -449,7 +459,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     return_tuple = [list_of_gens]
     if dict_rep:
         ddd = {}
-        for v in frm.iterkeys():
+        for v in frm:
             ddd[frm[v]] = v if v != 0 else n
         return_tuple.append(ddd)
     if lab:
@@ -465,7 +475,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
                 for j in G.out_neighbors(i):
                     G_C.add_arc(output.relabeling[i],output.relabeling[j])
         return_tuple.append(G_C)
-    if certify:
+    if certificate:
         dd = {}
         for i from 0 <= i < G.num_verts:
             dd[frm[i]] = output.relabeling[i]
@@ -735,16 +745,16 @@ def all_labeled_graphs(n):
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in [1..5]:  # long time (4s on sage.math, 2011)
-        ...    Glist[n] = all_labeled_graphs(n)
-        ...    Giso[n] = []
-        ...    for g in Glist[n]:
-        ...        a, b = st(g, [range(n)])
-        ...        inn = False
-        ...        for gi in Giso[n]:
-        ...            if b == gi:
-        ...                inn = True
-        ...        if not inn:
-        ...            Giso[n].append(b)
+        ....:  Glist[n] = all_labeled_graphs(n)
+        ....:  Giso[n] = []
+        ....:  for g in Glist[n]:
+        ....:      a, b = st(g, [range(n)])
+        ....:      inn = False
+        ....:      for gi in Giso[n]:
+        ....:          if b == gi:
+        ....:              inn = True
+        ....:      if not inn:
+        ....:          Giso[n].append(b)
         sage: for n in Giso:  # long time
         ....:    print("{} {}".format(n, len(Giso[n])))
         1 1
@@ -1538,7 +1548,7 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
     ::
 
         sage: for n in [0..7]:
-        ...     generate_dense_graphs_vert_addition(n)
+        ....:   generate_dense_graphs_vert_addition(n)
         1
         2
         4

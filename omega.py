@@ -37,21 +37,62 @@ def HomogenousSymmetricFunction(j, x):
                for p in IntegerVectors(j, length=len(x)))
 
 
-def Omega_P(a, x, y):
-    if len(x) == 1:
-        return x[0]**(-a) + \
-            (prod(1 - x[0]*yy for yy in y) *
-             sum(HomogenousSymmetricFunction(j, y) * (1-x[0]**(j-a))
-                 for j in srange(a))
-             if a > 0 else 0)
+def Omega_P(a, n, m):
+    r"""
+    EXAMPLES::
 
-    return (x[-1] * (1-x[-2]) *
-            prod(1 - x[-2]*yy for yy in y) *
-            Omega_P(a, x[:-2] + x[-1:], y)
-            -
-            x[-2] * (1-x[-1]) *
-            prod(1 - x[-1]*yy for yy in y) *
-            Omega_P(a, x[:-1], y))  /  (x[-1] - x[-2])
+        sage: L.<x0, x1, x2, y0, y1, y2> = LaurentPolynomialRing(QQ)
+        sage: Omega_P(0, 1, 1)
+        1
+        sage: Omega_P(0, 2, 1)
+        -x0*x1*y0 + 1
+        sage: Omega_P(0, 1, 2)
+        1
+        sage: Omega_P(0, 3, 1)
+        x0*x1*x2*y0^2 + x0*x1*x2*y0 - x0*x1*y0 - x0*x2*y0 - x1*x2*y0 + 1
+        sage: Omega_P(0, 2, 2)
+        x0^2*x1*y0*y1 + x0*x1^2*y0*y1 - x0*x1*y0*y1 - x0*x1*y0 - x0*x1*y1 + 1
+
+        sage: Omega_P(-2, 1, 1)
+        x0^2
+        sage: Omega_P(-1, 1, 1)
+        x0
+        sage: Omega_P(1, 1, 1)
+        -x0*y0 + y0 + 1
+        sage: Omega_P(2, 1, 1)
+        -x0*y0^2 - x0*y0 + y0^2 + y0 + 1
+    """
+    Y = LaurentPolynomialRing(
+        QQ, ', '.join('y{}'.format(mm) for mm in range(m)))
+    y = Y.gens()
+
+    def P(n):
+        if n == 1:
+            L = LaurentPolynomialRing(Y, 'x0')
+            x0 = L.gen()
+            return x0**(-a) + \
+                (prod(1 - x0*yy for yy in y) *
+                 sum(HomogenousSymmetricFunction(j, y) * (1-x0**(j-a))
+                     for j in srange(a))
+                 if a > 0 else 0)
+        else:
+            Pprev = P(n-1)
+            L = LaurentPolynomialRing(Pprev.parent(), 'x{}'.format(n-1))
+            x1 = L.gen()
+            x2 = Pprev.parent().gen()
+            p1 = L(Pprev.subs({x2: x1}))
+            p2 = L(Pprev)
+            x2 = L({0: x2})
+            q, r = (x1 * (1-x2) * prod(1 - x2*yy for yy in y) * p1 - \
+                    x2 * (1-x1) * prod(1 - x1*yy for yy in y) * p2).quo_rem(x1 - x2)
+            assert r == 0
+            return q
+
+    from itertools import chain
+    XY = LaurentPolynomialRing(QQ, ', '.join(chain(
+        iter('x{}'.format(nn) for nn in range(n)),
+        iter('y{}'.format(mm) for mm in range(m)))))
+    return XY(P(n))
 
 
 def Omega_fundamental(a, x, y, group_factors=False):

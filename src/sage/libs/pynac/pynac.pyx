@@ -1789,7 +1789,7 @@ cdef object py_atan2(object x, object y) except +:
         sage: py_atan2(RR100(0), RR100(1))
         1.5707963267948966192313216916
     """
-    from sage.symbolic.constants import pi
+    from sage.symbolic.constants import pi, NaN
     parent = parent_c(x)
     assert parent is parent_c(y)
     if parent is ZZ:
@@ -1808,7 +1808,7 @@ cdef object py_atan2(object x, object y) except +:
         if sgn_x > 0:
             return 0
         elif x == 0:
-            raise ValueError("arctan2(0,0) undefined")
+            return parent(NaN)
         else:
             return pi_n
 

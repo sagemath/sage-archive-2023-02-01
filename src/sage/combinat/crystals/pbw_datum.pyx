@@ -321,8 +321,7 @@ cpdef tuple tropical_plucker_relation(tuple a, lusztig_datum):
     Apply the tropical Plucker relation of type ``a`` to ``lusztig_datum``.
 
     The relations are obtained by tropicalizing the relations in
-    Proposition 7.1 of the paper of Berenstein and Zelevinsky cited
-    below.
+    Proposition 7.1 of [BZ01]_.
 
     INPUT:
 
@@ -340,12 +339,6 @@ cpdef tuple tropical_plucker_relation(tuple a, lusztig_datum):
         (8, 1, 2, 3)
         sage: tropical_plucker_relation((-2,-1), (1,2,3,4))
         (6, 1, 2, 3)
-
-    REFERENCES:
-
-    .. [Berenstein-Zelevinsky01] \A. Berenstein, A. Zelevinsky
-       *Tensor product multiplicities, canonical bases and totally positive varieties*
-       Invent. Math. **143** (2002). no. 1. 77-128.
     """
     if a == (0, 0): # A1xA1
         t1, t2 = lusztig_datum

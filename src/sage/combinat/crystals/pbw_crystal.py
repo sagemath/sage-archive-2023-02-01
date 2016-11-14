@@ -30,7 +30,7 @@ class PBWCrystalElement(Element):
     """
     A crystal element in the PBW model.
     """
-    def __init__(self, parent, long_word, lusztig_datum):
+    def __init__(self, parent, lusztig_datum, long_word=None):
         """
         Initialize ``self``.
 
@@ -42,6 +42,8 @@ class PBWCrystalElement(Element):
             sage: TestSuite(b).run()
         """
         Element.__init__(self, parent)
+        if long_word is None:
+            long_word = parent._default_word
         self._pbw_datum = PBWDatum(parent._pbw_datum_parent, long_word, lusztig_datum)
 
     def _repr_(self):
@@ -206,7 +208,7 @@ class PBWCrystalElement(Element):
         if new_lusztig_datum[0] == 0:
             return None
         new_lusztig_datum[0] -= 1
-        return type(self)(self.parent(), new_long_word, tuple(new_lusztig_datum))
+        return type(self)(self.parent(), tuple(new_lusztig_datum), new_long_word)
 
     def f(self, i):
         """
@@ -225,7 +227,7 @@ class PBWCrystalElement(Element):
         new_long_word = equiv_PBWDatum.long_word 
         new_lusztig_datum = list(equiv_PBWDatum.lusztig_datum)
         new_lusztig_datum[0] += 1
-        return type(self)(self.parent(), new_long_word, tuple(new_lusztig_datum))
+        return type(self)(self.parent(), tuple(new_lusztig_datum), new_long_word)
 
     def epsilon(self, i):
         r"""
@@ -293,16 +295,29 @@ class PBWCrystalElement(Element):
             True
         """
         starred_pbw_datum = self._pbw_datum.star()
-        return type(self)(self.parent(), starred_pbw_datum.long_word,
-                             starred_pbw_datum.lusztig_datum)
+        return type(self)(self.parent(), starred_pbw_datum.lusztig_datum,
+                             starred_pbw_datum.long_word)
 
 
 class PBWCrystal(Parent, UniqueRepresentation):
     r"""
     Crystal of `\mathcal{B}(\infty)` given by PBW monomials.
 
-    A model of the crystal  `\mathcal{B}(\infty)` whose elements are
+    A model of the crystal `\mathcal{B}(\infty)` whose elements are
     PBW datum up to equivalence by the tropical Plucker relations.
+
+    EXAMPLES::
+
+        sage: PBW = crystals.infinity.PBW(['B', 3])
+        sage: hw = PBW.highest_weight_vector()
+        sage: hw.f_string([1,2,2,3,3,1,3,3,2,3,2,1,3,1,2,3,1,2,1,3,2])
+        PBW monomial with Lusztig datum (1, 1, 1, 3, 1, 0, 0, 1, 1)
+        sage: PBW([1,1,1,3,1,0,0,1,1])
+        PBW monomial with Lusztig datum (1, 1, 1, 3, 1, 0, 0, 1, 1)
+        sage: x = PBW([1,1,1,3,1,0,0,1,1], [3,2,1,3,2,3,2,1,2]); x
+        PBW monomial with Lusztig datum (1, 1, 1, 0, 1, 0, 5, 1, 1)
+        sage: x.to_highest_weight()[1]
+        [1, 2, 2, 2, 2, 2, 1, 3, 3, 3, 3, 2, 3, 2, 3, 3, 2, 3, 3, 2, 1, 3]
     """
     @staticmethod
     def __classcall__(cls, cartan_type):
@@ -341,8 +356,8 @@ class PBWCrystal(Parent, UniqueRepresentation):
         self._default_word = self._pbw_datum_parent._long_word_begin_with(i)
         zero_lusztig_datum = [0]*len(self._default_word)
         self.module_generators = (self.element_class(self, 
-                                                     self._default_word,
-                                                     zero_lusztig_datum),)
+                                                     zero_lusztig_datum,
+                                                     self._default_word),)
 
     def _repr_(self):
         """

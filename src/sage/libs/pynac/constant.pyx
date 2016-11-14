@@ -61,6 +61,8 @@ cdef class PynacConstant:
             self.pointer = <GConstant *>&g_Catalan
         elif self._name == "euler_gamma":
             self.pointer = <GConstant *>&g_Euler
+        elif self._name == "NaN":
+            self.pointer = <GConstant *>&g_NaN
         else:
             GConstant_construct(&self.object, name, texname, domain)
             self.pointer = &self.object

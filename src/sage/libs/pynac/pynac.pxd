@@ -216,6 +216,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
     GEx g_Pi "Pi"
     GEx g_Catalan "Catalan"
     GEx g_Euler "Euler"
+    GEx g_NaN "NaN"
 
     GConstant* GConstant_construct(void *mem, char* name, char* texname, unsigned domain)
     bint is_a_constant "is_a<constant>" (GEx e)

@@ -92,7 +92,17 @@ def Omega_numerator(a, n, m):
     XY = LaurentPolynomialRing(QQ, ', '.join(chain(
         iter('x{}'.format(nn) for nn in range(n)),
         iter('y{}'.format(mm) for mm in range(m)))))
-    return XY(P(n))
+
+    if m == 0:
+        return XY(1 - (prod(factors_denominator) *
+                       sum(HomogenousSymmetricFunction(j, XY.gens())
+                           for j in srange(-a))
+                       if a < 0 else 0))
+    elif n == 0:
+        return XY(sum(HomogenousSymmetricFunction(j, XY.gens())
+                      for j in srange(a+1)))
+    else:
+        return XY(P(n))
 
 
 def Omega_fundamental(a, x, y, group_factors=False):
@@ -154,26 +164,14 @@ def Omega_fundamental(a, x, y, group_factors=False):
         x = tuple((xx,) for xx in x)
         y = tuple((yy,) for yy in y)
 
-    if not flat_y:
-        numerator = 1 - (prod(factors_denominator) *
-                         sum(HomogenousSymmetricFunction(j, flat_x)
-                             for j in srange(-a))
-                         if a < 0 else 0)
-        factors_denominator = \
-            tuple(tuple(1 - xx for xx in gx) for gx in x)
+    numerator = Omega_numerator(a, len(flat_x), len(flat_y))
+    numerator = numerator.subs(
+        {xi: xj for xi, xj in zip(numerator.parent().gens(), flat_x+flat_y)})
 
-    elif not flat_x:
-        numerator = sum(HomogenousSymmetricFunction(j, flat_x)
-                        for j in srange(a+1))
-        factors_denominator = (tuple(),)
-
-    else:
-        numerator = Omega_numerator(a, len(flat_x), len(flat_y))
-        factors_denominator = \
-            tuple(tuple(1 - xx for xx in gx) for gx in x) + \
-            tuple(tuple(1 - xx*yy for xx in gx for yy in gy)
-                  for gx in x for gy in y)
-
+    Factors_denominator = \
+        tuple(tuple(1 - xx for xx in gx) for gx in x) + \
+        tuple(tuple(1 - xx*yy for xx in gx for yy in gy)
+              for gx in x for gy in y)
     if not group_factors:
         factors_denominator = flatten(factors_denominator)
 

@@ -28,12 +28,11 @@ class BraidMoveCalculator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+            sage: from sage.combinat.root_system.braid_move_calculator import BraidMoveCalculator
             sage: W = CoxeterGroup(['C',3])
             sage: B = BraidMoveCalculator(W)
             sage: TestSuite(B).run(skip="_test_pickling")
         """
-        self.coxeter_group = coxeter_group
         self.coxeter_matrix = coxeter_group.coxeter_matrix()
 
     def _apply_put_in_front_recur_step(self, k, input_word, coxeter_matrix_entry):        
@@ -42,7 +41,7 @@ class BraidMoveCalculator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+            sage: from sage.combinat.root_system.braid_move_calculator import BraidMoveCalculator
             sage: W = CoxeterGroup(['C',3])
             sage: B = BraidMoveCalculator(W)
             sage: B.put_in_front(2, (3, 2, 3, 1, 2, 3, 1, 2, 1)) # indirect doctest
@@ -85,7 +84,7 @@ class BraidMoveCalculator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+            sage: from sage.combinat.root_system.braid_move_calculator import BraidMoveCalculator
             sage: W = CoxeterGroup(['C',3])
             sage: B = BraidMoveCalculator(W)
             sage: B.put_in_front(2, (3, 2, 3, 1, 2, 3, 1, 2, 1))
@@ -122,7 +121,7 @@ class BraidMoveCalculator(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+            sage: from sage.combinat.root_system.braid_move_calculator import BraidMoveCalculator
             sage: W = CoxeterGroup(['A',5])
             sage: B = BraidMoveCalculator(W)
             sage: B.chain_of_reduced_words((1,2,1,3,2,1,4,3,2,1,5,4,3,2,1), # not tested

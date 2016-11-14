@@ -20,6 +20,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import richcmp
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
@@ -53,7 +54,7 @@ class PBWCrystalElement(Element):
             sage: u = B.highest_weight_vector()
             sage: u.f_string([1,2,3,4,2,3,2,3,4,1,2])
             PBW monomial with Lusztig datum 
-            (0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 2)
+            (0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 2)
         """
         pbw_datum = self._pbw_datum.convert_to_new_long_word(self.parent()._default_word)
         return "PBW monomial with Lusztig datum {}".format(pbw_datum.lusztig_datum)
@@ -68,11 +69,11 @@ class PBWCrystalElement(Element):
             sage: u = B.highest_weight_vector()
             sage: b = u.f_string([1,2,3,4,2,3,2,3,4,1,2])
             sage: latex(b)
-            f_{\alpha_{1}} 
-            f_{\alpha_{4}} 
-            f_{\alpha_{2} + 2\alpha_{3} + 2\alpha_{4}} 
-            f_{\alpha_{2} + 2\alpha_{3}}^{2} 
-            f_{\alpha_{1} + \alpha_{2}}
+            f_{\alpha_{4}}^{2}
+             f_{\alpha_{3}}
+             f_{\alpha_{1} + \alpha_{2} + 2\alpha_{3}}
+             f_{\alpha_{1} + \alpha_{2}}
+             f_{\alpha_{2}}^{2}
         """
         pbw_datum = self._pbw_datum.convert_to_new_long_word(self.parent()._default_word)
         lusztig_datum = list(pbw_datum.lusztig_datum)
@@ -143,7 +144,7 @@ class PBWCrystalElement(Element):
         return not (self == other)
 
     # Necessary for displaying subcrystals
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Return comparison of ``self`` and ``other``.
 
@@ -154,14 +155,16 @@ class PBWCrystalElement(Element):
             sage: b = u.f_string([2,1,2,2,2,2,1,1,2,1,2,1,2,1,2,2])
             sage: bp = u.f_string([2,1,2,2,1,1,2,2,2,1,2,1,2])
             sage: w = [1, 2, 1]
-            sage: cmp(b, bp) == cmp(b.lusztig_datum(w), bp.lusztig_datum(w))
+            sage: (b < bp) == (b.lusztig_datum(w) < bp.lusztig_datum(w))
+            True
+            sage: (b > bp) == (b.lusztig_datum(w) > bp.lusztig_datum(w))
             True
         """
         i = self.parent().index_set()[0]
         word = self.parent()._pbw_datum_parent._long_word_begin_with(i)
         lusztig_datum = tuple(self._pbw_datum.convert_to_new_long_word(word).lusztig_datum)
         other_lusztig_datum = tuple(other._pbw_datum.convert_to_new_long_word(word).lusztig_datum)
-        return cmp(lusztig_datum, other_lusztig_datum)
+        return richcmp(lusztig_datum, other_lusztig_datum, op)
 
     @cached_method
     def __hash__(self):
@@ -191,9 +194,9 @@ class PBWCrystalElement(Element):
             sage: B = crystals.infinity.PBW(['B', 3])
             sage: b = B.highest_weight_vector()
             sage: c = b.f_string([2,1,3,2,1,3,2,2]); c
-            PBW monomial with Lusztig datum (0, 0, 0, 1, 1, 0, 0, 0, 1)
+            PBW monomial with Lusztig datum (0, 1, 0, 1, 0, 0, 0, 1, 2)
             sage: c.e(2)
-            PBW monomial with Lusztig datum (0, 0, 2, 0, 0, 0, 0, 0, 1)
+            PBW monomial with Lusztig datum (0, 1, 0, 1, 0, 0, 0, 1, 1)
             sage: c.e_string([2,2,1,3,2,1,3,2]) == b
             True
         """
@@ -403,12 +406,12 @@ class PBWCrystal(Parent, UniqueRepresentation):
             [1, 3, 2, 3, 1, 2, 3, 1, 2]
             sage: x = B.highest_weight_vector().f_string([2,1,3,2,3,1,2,3,3,1])
             sage: x
-            PBW monomial with Lusztig datum (1, 3, 0, 1, 0, 0, 0, 1, 1)
+            PBW monomial with Lusztig datum (1, 2, 2, 0, 0, 0, 0, 0, 1)
             sage: B.set_default_long_word([2,1,3,2,1,3,2,3,1])
             sage: B.default_long_word()
             [2, 1, 3, 2, 1, 3, 2, 3, 1]
             sage: x
-            PBW monomial with Lusztig datum (0, 0, 1, 0, 1, 1, 0, 0, 2)
+            PBW monomial with Lusztig datum (2, 0, 0, 0, 0, 0, 1, 3, 2)
 
         TESTS::
 

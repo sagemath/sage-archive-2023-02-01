@@ -24,7 +24,7 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.root_system.root_system import RootSystem
-from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+from sage.combinat.root_system.braid_move_calculator import BraidMoveCalculator
 
 class PBWDatum(object):
     """
@@ -281,7 +281,7 @@ def compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datum):
 
     EXAMPLES::
 
-        sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+        sage: from sage.combinat.root_system.braid_move_calculator import BraidMoveCalculator
         sage: from sage.combinat.crystals.pbw_datum import enhance_braid_move_chain
         sage: from sage.combinat.crystals.pbw_datum import compute_new_lusztig_datum
         sage: ct = CartanType(['A', 2])
@@ -294,7 +294,7 @@ def compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datum):
 
     TESTS::
 
-        sage: from sage.combinat.crystals.braid_move_calculator import BraidMoveCalculator
+        sage: from sage.combinat.root_system.braid_move_calculator import BraidMoveCalculator
         sage: from sage.combinat.crystals.pbw_datum import enhance_braid_move_chain
         sage: from sage.combinat.crystals.pbw_datum import compute_new_lusztig_datum
         sage: ct = CartanType(['A', 2])
@@ -336,9 +336,9 @@ def tropical_plucker_relation(a, lusztig_datum):
         sage: tropical_plucker_relation((-1,-1), (1,2,3))
         (4, 1, 2)
         sage: tropical_plucker_relation((-1,-2), (1,2,3,4))
-        (6, 1, 2, 3)
-        sage: tropical_plucker_relation((-2,-1), (1,2,3,4))
         (8, 1, 2, 3)
+        sage: tropical_plucker_relation((-2,-1), (1,2,3,4))
+        (6, 1, 2, 3)
 
     REFERENCES:
 
@@ -387,9 +387,8 @@ def tropical_plucker_relation(a, lusztig_datum):
                 t1+t2+2*t3+t4+t5-pi1)
     else: # (-1,-2) and (-1,-3)
         reversed_lusztig_datum = tuple(reversed(lusztig_datum))
-        return tuple(reversed(
-            tropical_plucker_relation(tuple(reversed(a)),
-                                           reversed_lusztig_datum)))
+        return tuple(reversed(tropical_plucker_relation((a[1], a[0]),
+                                                        reversed_lusztig_datum)))
 
 # Maybe we need to be more specific, and pass not the Cartan type, but the root lattice?
 # TODO: Move to PBW_data?

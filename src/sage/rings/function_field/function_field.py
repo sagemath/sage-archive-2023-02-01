@@ -117,6 +117,26 @@ class FunctionField(Field):
         sage: isinstance(K, sage.rings.function_field.function_field.FunctionField)
         True
     """
+    def __init__(self, base_field, names, category = CAT):
+        r"""
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: from sage.rings.function_field.function_field import FunctionField
+            sage: isinstance(K, FunctionField)
+            True
+
+        """
+        Field.__init__(self, base_field, names=names, category=category)
+
+        # allow conversion into the constant base field
+        from sage.categories.homset import Hom
+        from .maps import FunctionFieldConversionToConstantBaseField
+        to_constant_base_field = FunctionFieldConversionToConstantBaseField(Hom(self, self.constant_base_field()))
+        # the conversion map must not keep this field alive if that is the only reference to it
+        to_constant_base_field._make_weak_references()
+        self.constant_base_field().register_conversion(to_constant_base_field)
+
     def is_perfect(self):
         r"""
         Return whether this field is perfect, i.e., its characteristic is `p=0`
@@ -520,20 +540,12 @@ class FunctionField_polymod(FunctionField):
         self._base_field = base_field
         self._polynomial = polynomial
 
-        Field.__init__(self, base_field,
-                                names=names, category = category)
+        FunctionField.__init__(self, base_field, names=names, category = category)
 
         self._hash = hash(polynomial)
         self._ring = self._polynomial.parent()
         self._populate_coercion_lists_(coerce_list=[base_field, self._ring])
         self._gen = self(self._ring.gen())
-
-        # allow conversion into the constant base field
-        from sage.categories.morphism import SetMorphism
-        to_constant_base_field = SetMorphism(self.Hom(self.constant_base_field()), self._to_constant_base_field)
-        # the conversion map must not keep this field alive if that is the only reference to it
-        to_constant_base_field._make_weak_references()
-        self.constant_base_field().register_conversion(to_constant_base_field)
 
     def __reduce__(self):
         """
@@ -1319,20 +1331,14 @@ class RationalFunctionField(FunctionField):
             raise TypeError("constant_field must be a field")
         self._element_class = element_class
         self._element_init_pass_parent = False
-        Field.__init__(self, self, names=names, category = category)
+        self._constant_field = constant_field
+        FunctionField.__init__(self, self, names=names, category = category)
         R = constant_field[names[0]]
         self._hash = hash((constant_field, names))
-        self._constant_field = constant_field
         self._ring = R
         self._field = R.fraction_field()
         self._populate_coercion_lists_(coerce_list=[self._field])
         self._gen = self(R.gen())
-        # allow conversion from K(x) into K
-        from sage.categories.morphism import SetMorphism
-        to_constant_base_field = SetMorphism(self.Hom(self.constant_base_field()), self._to_constant_base_field)
-        # the conversion map must not keep this field alive if that is the only reference to it
-        to_constant_base_field._make_weak_references()
-        self.constant_base_field().register_conversion(to_constant_base_field)
 
     def __reduce__(self):
         """

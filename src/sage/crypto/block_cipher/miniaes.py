@@ -38,7 +38,7 @@ from sage.structure.sage_object import SageObject
 class MiniAES(SageObject):
     r"""
     This class implements the Mini Advanced Encryption Standard (Mini-AES)
-    described in [P02]_. Note that Phan's Mini-AES is for educational purposes
+    described in [Pha2002]_. Note that Phan's Mini-AES is for educational purposes
     only and is not secure for practical purposes. Mini-AES is a version of
     the AES with all parameters significantly reduced, but at the same time
     preserving the structure of AES. The goal of Mini-AES is to allow a
@@ -129,11 +129,6 @@ class MiniAES(SageObject):
         sage: plaintxt = maes.decrypt(C, key)
         sage: plaintxt == P
         True
-
-    REFERENCES:
-
-    .. [P02] \R. C.-W. Phan. Mini advanced encryption standard (mini-AES): a
-      testbed for cryptanalysis students. Cryptologia, 26(4):283--306, 2002.
     """
 
     def __init__(self):

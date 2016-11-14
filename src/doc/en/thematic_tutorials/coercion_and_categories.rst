@@ -1594,6 +1594,7 @@ Let us see what tests are actually performed::
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
+      running ._test_new() . . . pass
       running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
@@ -1605,6 +1606,7 @@ Let us see what tests are actually performed::
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -1764,6 +1766,7 @@ interesting.
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
       running ._test_factorisation() . . . pass
+      running ._test_new() . . . pass
       running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
@@ -1775,6 +1778,7 @@ interesting.
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass

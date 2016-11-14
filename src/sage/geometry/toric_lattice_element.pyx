@@ -160,22 +160,6 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         N(1, 2, 3)
         sage: TestSuite(e).run()
     """
-
-    # We do not add any new functionality, we actually limit the existing one
-    # instead. In particular, there is no need in __init__, but the following
-    # function ensures that _add_ etc. return ToricLatticeElement, rather
-    # than Vector_integer_dense. Its code is copied from the base class with
-    # the type name replacements.
-    # It is not detected by doctest coverage, the original has no
-    # documentation, and I don't feel I can clearly define the exact part of
-    # the initialization process which is done by it. So I will leave it
-    # without any further documentation as well...
-    cdef _new_c(self):
-        cdef ToricLatticeElement y
-        y = ToricLatticeElement.__new__(ToricLatticeElement)
-        y._init(self._degree, self._parent)
-        return y
-
     def __cmp__(self, right):
         r"""
         Compare ``self`` and ``right``.
@@ -451,8 +435,9 @@ def unpickle_v1(parent, entries, degree, is_mutable):
     v = ToricLatticeElement.__new__(ToricLatticeElement)
     v._init(degree, parent)
     cdef Integer z
-    for i from 0 <= i < degree:
+    cdef Py_ssize_t i
+    for i in range(degree):
         z = Integer(entries[i])
-        mpz_init_set(v._entries[i], z.value)
+        mpz_set(v._entries[i], z.value)
     v._is_mutable = is_mutable
     return v

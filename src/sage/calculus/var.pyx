@@ -1,6 +1,8 @@
+# cython: old_style_globals=True
 """
 Symbolic variables
 """
+
 from sage.symbolic.function_factory import function as new_function
 from sage.symbolic.ring import SR
 

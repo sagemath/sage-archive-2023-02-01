@@ -196,7 +196,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
     try:
         m, n = latin_squares_graph_parameters(v,k,l,mu)
-    except:
+    except Exception:
         return
     if orthogonal_array(m,n,existence=True):
         from sage.graphs.generators.intersection import OrthogonalArrayBlockGraph

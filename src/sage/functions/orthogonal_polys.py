@@ -253,27 +253,23 @@ Patashnik in their book Concrete Mathematics.
 
 REFERENCES:
 
-.. [ASHandbook] Abramowitz and Stegun: Handbook of Mathematical Functions,
-    http://www.math.sfu.ca/ cbm/aands/
+- [AS1964]_
 
-.. :wikipedia:`Chebyshev_polynomials`
+- :wikipedia:`Chebyshev_polynomials`
 
-.. :wikipedia:`Legendre_polynomials`
+- :wikipedia:`Legendre_polynomials`
 
-.. :wikipedia:`Hermite_polynomials`
+- :wikipedia:`Hermite_polynomials`
 
-.. http://mathworld.wolfram.com/GegenbauerPolynomial.html
+- http://mathworld.wolfram.com/GegenbauerPolynomial.html
 
-.. :wikipedia:`Jacobi_polynomials`
+- :wikipedia:`Jacobi_polynomials`
 
-.. :wikipedia:`Laguerre_polynomia`
+- :wikipedia:`Laguerre_polynomia`
 
-.. :wikipedia:`Associated_Legendre_polynomials`
+- :wikipedia:`Associated_Legendre_polynomials`
 
-.. [EffCheby] Wolfram Koepf: Effcient Computation of Chebyshev Polynomials
-    in Computer Algebra
-    Computer Algebra Systems: A Practical Guide.
-    John Wiley, Chichester (1999): 79-99.
+- [Koe1999]_
 
 AUTHORS:
 
@@ -592,7 +588,7 @@ class Func_chebyshev_T(ChebyshevFunction):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.31 page 778 and 6.1.22 page 256.
+    - [AS1964]_ 22.5.31 page 778 and 6.1.22 page 256.
 
     EXAMPLES::
 
@@ -643,7 +639,7 @@ class Func_chebyshev_T(ChebyshevFunction):
     def _eval_special_values_(self, n, x):
         """
         Values known for special values of x.
-        For details see [ASHandbook]_ 22.4 (p. 777)
+        For details see [AS1964]_ 22.4 (p. 777)
 
         EXAMPLES:
 
@@ -755,8 +751,8 @@ class Func_chebyshev_T(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_T`` using an explicit formula.
-        See [ASHandbook]_ 227 (p. 782) for details for the recursions.
-        See also [EffCheby]_ for fast evaluation techniques.
+        See [AS1964]_ 227 (p. 782) for details for the recurions.
+        See also [Koe1999]_ for fast evaluation techniques.
 
         INPUT:
 
@@ -913,7 +909,7 @@ class Func_chebyshev_U(ChebyshevFunction):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.8.3 page 783 and 6.1.22 page 256.
+    - [AS1964]_ 22.8.3 page 783 and 6.1.22 page 256.
 
     EXAMPLES::
 
@@ -962,8 +958,8 @@ class Func_chebyshev_U(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_U`` using an explicit formula.
-        See [ASHandbook]_ 227 (p. 782) for details on the recursions.
-        See also [EffCheby]_ for the recursion formulas.
+        See [AS1964]_ 227 (p. 782) for details on the recurions.
+        See also [Koe1999]_ for the recursion formulas.
 
         INPUT:
 
@@ -1124,7 +1120,7 @@ class Func_chebyshev_U(ChebyshevFunction):
     def _eval_special_values_(self, n, x):
         """
         Values known for special values of x.
-        See [ASHandbook]_ 22.4 (p.777).
+        See [AS1964]_ 22.4 (p.777).
 
         EXAMPLES::
 
@@ -1287,7 +1283,7 @@ class Func_hermite(GinacFunction):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.40 and 22.5.41, page 779.
+    - [AS1964]_ 22.5.40 and 22.5.41, page 779.
 
     EXAMPLES::
 
@@ -1356,7 +1352,7 @@ def jacobi_P(n, a, b, x):
 
     REFERENCE:
 
-    - Table on page 789 in [ASHandbook]_.
+    - Table on page 789 in [AS1964]_.
 
     EXAMPLES::
 
@@ -1395,7 +1391,7 @@ def legendre_P(n, x):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.35 page 779.
+    - [AS1964]_ 22.5.35 page 779.
 
     EXAMPLES::
 
@@ -1447,7 +1443,7 @@ class Func_ultraspherical(GinacFunction):
 
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.27
+    - [AS1964]_ 22.5.27
 
     EXAMPLES::
 
@@ -1473,6 +1469,18 @@ class Func_ultraspherical(GinacFunction):
         6949.55439044240
         sage: ultraspherical(5,9/10,RealField(100)(pi))
         6949.4695419382702451843080687
+
+        sage: _ = var('a')
+        sage: gegenbauer(2,a,x)
+        2*(a + 1)*a*x^2 - a
+        sage: gegenbauer(3,a,x)
+        2/3*(2*(a + 1)*a*x^2 - a)*(a + 2)*x - 2/3*(2*a + 1)*a*x
+        sage: gegenbauer(3,a,x).expand()
+        4/3*a^3*x^3 + 4*a^2*x^3 + 8/3*a*x^3 - 2*a^2*x - 2*a*x
+        sage: gegenbauer(10,a,x).expand().coefficient(x,2)
+        1/12*a^6 + 5/4*a^5 + 85/12*a^4 + 75/4*a^3 + 137/6*a^2 + 10*a
+
+    TESTS:
 
     Check that :trac:`17192` is fixed::
 
@@ -1513,7 +1521,7 @@ class Func_laguerre(OrthogonalFunction):
     """
     REFERENCE:
  
-    - [ASHandbook]_ 22.5.16, page 778 and page 789.
+    - [AS1964]_ 22.5.16, page 778 and page 789.
     """
     def __init__(self):
         r"""
@@ -1660,8 +1668,10 @@ class Func_laguerre(OrthogonalFunction):
         diff_param = kwds['diff_param']
         if diff_param == 0:
             raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
-        else:
+        if diff_param == 1:
             return -gen_laguerre(n-1,1,x)
+        else:
+            raise ValueError("illegal differentiation parameter {}".format(diff_param))
 
 laguerre = Func_laguerre()
 
@@ -1669,7 +1679,7 @@ class Func_gen_laguerre(OrthogonalFunction):
     """
     REFERENCE:
 
-    - [ASHandbook]_ 22.5.16, page 778 and page 789.
+    - [AS1964]_ 22.5.16, page 778 and page 789.
     """
     def __init__(self):
         r"""
@@ -1781,7 +1791,7 @@ class Func_gen_laguerre(OrthogonalFunction):
         from sage.libs.mpmath.all import call as mpcall
         return mpcall(mpmath.laguerre, n, a, x, parent=the_parent)
 
-    def _derivative_(self, n, a, x, *args,**kwds):
+    def _derivative_(self, n, a, x, diff_param):
         """
         Return the derivative of `gen_laguerre(n,a,x)`.
 
@@ -1790,6 +1800,10 @@ class Func_gen_laguerre(OrthogonalFunction):
             sage: (a,n)=var('a,n')
             sage: diff(gen_laguerre(n,a,x), x)
             -gen_laguerre(n - 1, a + 1, x)
+            sage: gen_laguerre(n,a,x).diff(a)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the second index is not supported.
 
         TESTS::
 
@@ -1798,10 +1812,14 @@ class Func_gen_laguerre(OrthogonalFunction):
             ...
             NotImplementedError: Derivative w.r.t. to the index is not supported.
         """
-        diff_param = kwds['diff_param']
         if diff_param == 0:
             raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
-        else:
+        elif diff_param == 1:
+            raise NotImplementedError("Derivative w.r.t. to the second index is not supported.")
+        elif diff_param == 2:
             return -gen_laguerre(n - 1, a + 1, x)
+        else:
+            raise ValueError("illegal differentiation parameter {}".format(diff_param))
+
 
 gen_laguerre = Func_gen_laguerre()

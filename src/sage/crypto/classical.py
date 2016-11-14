@@ -247,8 +247,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
 
     REFERENCES:
 
-    .. [Sti06] Douglas R. Stinson. *Cryptography: Theory and Practice*.
-      3rd edition, Chapman \& Hall/CRC, 2006.
+    - [Sti2006]_
     """
 
     def __init__(self, A):
@@ -423,7 +422,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         of all candidate decipherments corresponding to a ciphertext `C`,
         the smaller is the rank `R_{\chi^2}(M_{a_i,b_i})` the more likely
         that `(a_i,b_i)` is the secret key. This key ranking method is
-        based on the Pearson chi-square test [PearsonTest09]_.
+        based on the Pearson chi-square test [PearsonTest]_.
 
         INPUT:
 
@@ -632,7 +631,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         of all candidate decipherments corresponding to a ciphertext `C`,
         the smaller is the rank `R_{RSS}(M_{a_i,b_i})` the more likely
         that `(a_i,b_i)` is the secret key. This key ranking method is
-        based on the residual sum of squares measure [RSS09]_.
+        based on the residual sum of squares measure [RSS]_.
 
         INPUT:
 
@@ -1255,7 +1254,7 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         `(a, b) \in \ZZ/n\ZZ \times \ZZ/n\ZZ` with `n` being the size of
         the cipher domain and `\gcd(a, n) = 1`. Let `\varphi(n)` denote
         the Euler phi function of `n`. Then the affine cipher has
-        `n \cdot \varphi(n)` possible keys (see page 10 of [Sti06]_).
+        `n \cdot \varphi(n)` possible keys (see page 10 of [Sti2006]_).
 
         OUTPUT:
 
@@ -2014,7 +2013,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
         of all candidate decipherments corresponding to a ciphertext `C`,
         the smaller is the rank `R_{\chi^2}(M_{k_i})` the more likely
         that `k_i` is the secret key. This key ranking method is based on
-        the Pearson chi-square test [PearsonTest09]_.
+        the Pearson chi-square test [PearsonTest]_.
 
         INPUT:
 
@@ -2146,12 +2145,6 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             Traceback (most recent call last):
             ...
             KeyError: 0
-
-        REFERENCES:
-
-        .. [PearsonTest09] `Pearson chi-square test
-          <http://en.wikipedia.org/wiki/Goodness_of_fit>`_. Wikipedia,
-          accessed 13th October 2009.
         """
         # NOTE: the code here is very similar to that in the method
         # rank_by_chi_square() of the class AffineCryptosystem. The most
@@ -2257,7 +2250,7 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
         of all candidate decipherments corresponding to a ciphertext `C`,
         the smaller is the rank `R_{RSS}(M_{k_i})` the more likely
         that `k_i` is the secret key. This key ranking method is based
-        on the residual sum of squares measure [RSS09]_.
+        on the residual sum of squares measure [RSS]_.
 
         INPUT:
 
@@ -2389,12 +2382,6 @@ class ShiftCryptosystem(SymmetricKeyCryptosystem):
             Traceback (most recent call last):
             ...
             KeyError: 0
-
-        REFERENCES:
-
-        .. [RSS09] `Residual sum of squares
-          <http://en.wikipedia.org/wiki/Residual_sum_of_squares>`_.
-          Wikipedia, accessed 13th October 2009.
         """
         # NOTE: the code in this method is very similar to that in the
         # method rank_by_chi_square(). The only difference here is the

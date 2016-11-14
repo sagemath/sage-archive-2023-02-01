@@ -1537,7 +1537,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
               To:   Projective Plane Curve over Number Field in a with defining
               polynomial a^2 + 1 defined by x^2 + y^2 + z^2
               Defn: Defined on coordinates by sending (s : t) to
-                    (s^2 - t^2 : (a)*s^2 + (a)*t^2 : -2*s*t)
+                    ((-a)*s^2 + (-a)*t^2 : s^2 - t^2 : 2*s*t)
         """
         if self.genus() != 0:
             raise TypeError("this curve must have geometric genus zero")

@@ -1059,7 +1059,7 @@ class ToricVarietyFactory(SageObject):
     def BCdlOG(self, names='v1 v2 c1 c2 v4 v5 b e1 e2 e3 f g v6', base_ring=QQ):
         r"""
         Construct the 5-dimensional toric variety studied in
-        [BCdlOG]_, [HLY]_
+        [BCdlOG]_, [HLY2002]_
 
         INPUT:
 
@@ -1107,10 +1107,7 @@ class ToricVarietyFactory(SageObject):
             Between N=1 Theories and Divisors that Contribute to the
             Superpotential", http://arxiv.org/abs/hep-th/0001208
 
-        ..  [HLY]
-            Yi Hu, Chien-Hao Liu, Shing-Tung Yau, "Toric morphisms and
-            fibrations of toric Calabi-Yau hypersurfaces",
-            http://arxiv.org/abs/math/0010082
+        - [HLY2002]_
         """
         return self._make_CPRFanoToricVariety('BCdlOG', names, base_ring)
 

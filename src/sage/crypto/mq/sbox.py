@@ -26,7 +26,7 @@ class SBox(SageObject):
     bits and transforms them into ``n`` output bits. This is called an
     ``mxn`` S-box and is often implemented as a lookup table. These
     S-boxes are carefully chosen to resist linear and differential
-    cryptanalysis [Heys02]_.
+    cryptanalysis [He2002]_.
 
     This module implements an S-box class which allows an algebraic
     treatment and determine various cryptographic properties.
@@ -71,20 +71,11 @@ class SBox(SageObject):
 
     REFERENCES:
 
-    .. [Heys02] \H. Heys *A Tutorial on Linear and Differential
-      Cryptanalysis* ; 2002' available at
-      http://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf
+    - [He2002]_
 
-    .. [PRESENT07] \A. Bogdanov, L. Knudsen, G. Leander, C. Paar,
-      A. Poschmann, M. Robshaw, Y. Seurin, C. Vikkelsoe *PRESENT: An
-      Ultra-Lightweight Block Cipher*; in Proceedings of CHES 2007;
-      LNCS 7427; pp. 450-466; Springer Verlag 2007; available at
-      http://www.crypto.rub.de/imperia/md/content/texte/publications/conferences/present_ches2007.pdf
+    - [PRESENT07]_
 
-    .. [CDL15] \A. Canteaut, Sebastien Duval, Gaetan Leurent *Construction
-      of Lightweight S-Boxes using Feistel and MISTY Structures*; in
-      Proceedings of SAC 2015; LNCS 9566; pp. 373-393; Springer-Verlag
-      2015; available at http://eprint.iacr.org/2015/711.pdf
+    - [CDL2015]_
     """
 
     def __init__(self, *args,  **kwargs):
@@ -408,7 +399,7 @@ class SBox(SageObject):
         often ``Delta O`` is the actual output difference given
         ``Delta I`` as input difference.
 
-        See [Heys02]_ for an introduction to differential
+        See [He2002]_ for an introduction to differential
         cryptanalysis.
 
         EXAMPLE::
@@ -486,7 +477,7 @@ class SBox(SageObject):
         ``x_i`` and ``y_i`` represent the input and output variables
         of the S-box.
 
-        See [Heys02]_ for an introduction to linear cryptanalysis.
+        See [He2002]_ for an introduction to linear cryptanalysis.
 
         EXAMPLE::
 
@@ -626,7 +617,7 @@ class SBox(SageObject):
         Return a list of polynomials satisfying this S-box.
 
         First, a simple linear fitting is performed for the given
-        ``degree`` (cf. for example [BC03]_). If ``groebner=True`` a
+        ``degree`` (cf. for example [BC2003]_). If ``groebner=True`` a
         Groebner basis is also computed for the result of that
         process.
 
@@ -675,13 +666,6 @@ class SBox(SageObject):
             [y0 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + 1,
              y1 + x0*x2 + x1 + 1,
              y2 + x0 + x1*x2 + x1 + x2 + 1]
-
-        REFERENCES:
-
-        .. [BC03] \A. Biryukov and C. D. Canniere *Block Ciphers and
-          Systems of Quadratic Equations*; in Proceedings of Fast
-          Software Encryption 2003; LNCS 2887; pp. 274-289,
-          Springer-Verlag 2003.
         """
         def nterms(nvars, deg):
             """
@@ -1445,7 +1429,7 @@ def feistel_construction(*args):
     ``args``. The number of round in the construction is equal to the number of
     S-Boxes provided as input. For more results concerning the differential
     uniformity and the nonlinearity of S-Boxes constructed by Feistel structures
-    see [CDL15]_ .
+    see [CDL2015]_ .
 
     INPUT:
 
@@ -1501,7 +1485,7 @@ def misty_construction(*args):
     Return an S-Box constructed by MISTY structure using smaller S-Boxes in
     ``args``. The number of round in the construction is equal to the number of
     S-Boxes provided as input. For further result related to the nonlinearity
-    and differential uniformity of the constructed S-Box one may consult [CDL15]_.
+    and differential uniformity of the constructed S-Box one may consult [CDL2015]_.
 
     INPUT:
 
@@ -1510,7 +1494,7 @@ def misty_construction(*args):
     EXAMPLES:
 
     We construct an `8 \times 8` S-Box using 3-round MISTY structure with the following
-    `4 \times 4` S-Boxes `S1, S2, S3` (see Example 2 in [CDL15]_)::
+    `4 \times 4` S-Boxes `S1, S2, S3` (see Example 2 in [CDL2015]_)::
 
         sage: S1 = mq.SBox([0x4,0x0,0x1,0xF,0x2,0xB,0x6,0x7,0x3,0x9,0xA,0x5,0xC,0xD,0xE,0x8])
         sage: S2 = mq.SBox([0x0,0x0,0x0,0x1,0x0,0xA,0x8,0x3,0x0,0x8,0x2,0xB,0x4,0x6,0xE,0xD])

@@ -13,14 +13,13 @@ The symbolic ring
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .ginac cimport *
+from sage.libs.pynac.pynac cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
-from sage.libs.pari.pari_instance import PariInstance
 from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
@@ -119,7 +118,10 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR.has_coerce_map_from(UnsignedInfinityRing)
             True
 
-        TESTS:
+        TESTS::
+
+            sage: SR.has_coerce_map_from(pari)
+            False
 
         Check if arithmetic with bools works (see :trac:`9560`)::
 
@@ -201,8 +203,6 @@ cdef class SymbolicRing(CommutativeRing):
                   or isinstance(R, ComplexBallField)
                   or is_IntegerModRing(R) or is_FiniteField(R)):
                 return True
-            elif isinstance(R, (Maxima, PariInstance)):
-                return False
             elif isinstance(R, GenericSymbolicSubring):
                 return True
 
@@ -476,6 +476,11 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: latex(SR.wild(0))
             \$0
+
+        Check that :trac:`21455` is fixed::
+
+            sage: coth(SR.wild(0))
+            coth($0)
         """
         return new_Expression_from_GEx(self, g_wild(n))
 

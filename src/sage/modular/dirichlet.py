@@ -57,6 +57,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 import sage.categories.all                  as cat
 from sage.misc.all import prod
@@ -628,7 +629,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         of modulus `N`.  This function returns the generalized
         Bernoulli number `B_{k,\varepsilon}`, as defined by the
         following identity of power series (see for example
-        [Diamond-Im]_, Section 2.2):
+        [DI1995]_, Section 2.2):
 
         .. math::
 
@@ -639,7 +640,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         The ``'recurrence'`` algorithm computes generalized Bernoulli
         numbers via classical Bernoulli numbers using the formula in
-        [Cohen-II]_, Proposition 9.4.5; this is usually optimal.  The
+        [Coh2007]_, Proposition 9.4.5; this is usually optimal.  The
         ``definition`` algorithm uses the definition directly.
 
         .. WARNING::
@@ -650,19 +651,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             the value `B_1 = -1/2` for the classical Bernoulli number.
             Some authors use an alternative definition giving
             `B_{1,\varepsilon} = -1/2`; see the discussion in
-            [Cohen-II]_, Section 9.4.1.
-
-        REFERENCES:
-
-        .. [Cohen-II] \H. Cohen, Number Theory and Diophantine
-           Equations, Volume II.  Graduate Texts in Mathematics 240.
-           Springer, 2007.
-
-        .. [Diamond-Im] \F. Diamond and J. Im, Modular forms and
-           modular curves.  In: V. Kumar Murty (ed.), Seminar on
-           Fermat's Last Theorem (Toronto, 1993-1994), 39-133.  CMS
-           Conference Proceedings 17.  American Mathematical Society,
-           1995.
+            [Coh2007]_, Section 9.4.1.
 
         EXAMPLES::
 
@@ -1083,9 +1072,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
             ...
             NotImplementedError: Characters must be from the same Dirichlet Group.
 
-            sage: all_jacobi_sums = [(DP[i].values_on_gens(),DP[j].values_on_gens(),DP[i].jacobi_sum(DP[j])) \
-            ...                       for i in range(p-1) for j in range(p-1)[i:]]
-            ...
+            sage: all_jacobi_sums = [(DP[i].values_on_gens(),DP[j].values_on_gens(),DP[i].jacobi_sum(DP[j]))
+            ....:                   for i in range(p-1) for j in range(i, p-1)]
             sage: for s in all_jacobi_sums:
             ....:     print(s)
             ((1,), (1,), 5)
@@ -2528,7 +2516,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
         R = self.base_ring()
         p = R.characteristic()
         if p == 0:
-            Auts = [e for e in xrange(1,n) if gcd(e,n) == 1]
+            Auts = [e for e in range(1,n) if gcd(e,n) == 1]
         else:
             if not rings.ZZ(p).is_prime():
                 raise NotImplementedError("Automorphisms for finite non-field base rings not implemented")
@@ -2537,7 +2525,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
             #         k = 1, p, p^2, ..., p^(r-1),
             # where p^r = 1 (mod n), so r is the mult order of p modulo n.
             r = rings.IntegerModRing(n)(p).multiplicative_order()
-            Auts = [p**m for m in xrange(0,r)]
+            Auts = [p**m for m in range(0,r)]
         return Auts
 
     def galois_orbits(self, v=None, reps_only=False, sort=True, check=True):

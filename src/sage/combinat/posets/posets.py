@@ -506,7 +506,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: a + b
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand type(s) for +: 'FinitePoset_with_category.element_class' and 'FinitePoset_with_category.element_class'
+        TypeError: unsupported operand parent(s) for '+': 'Finite poset containing 4 elements' and 'Finite poset containing 4 elements'
         sage: a.element + b.element
         'ab'
 
@@ -1262,7 +1262,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: H = P.hasse_diagram(); H
             Digraph on 6 vertices
             sage: P.cover_relations()
-            [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: H.edges(labels=False)
             [(1, 2), (1, 3), (2, 4), (2, 6), (3, 6), (4, 12), (6, 12)]
 
@@ -3762,7 +3762,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             On the other hand, this returns a full featured enumerated
             set, with containment testing, etc.
 
-        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
+        .. SEEALSO:: :meth:`maximal_antichains`, :meth:`chains`
         """
         vertex_to_element = self._vertex_to_element
 
@@ -4571,7 +4571,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``labels`` -- A pair of elements to use as a bottom and top
           element of the poset. Default is strings ``'bottom'`` and
-          ``'top'``.
+          ``'top'``. Either of them can be ``None``, and then a new
+          bottom or top element will not be added.
 
         EXAMPLES::
 
@@ -4584,6 +4585,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: trafficsign.cover_relations()
             [[-1, 0], [0, 1], [0, 2], [1, -2], [2, -2]]
 
+            sage: Y = V.with_bounds(labels=(-1, None))
+            sage: Y.cover_relations()
+            [[-1, 0], [0, 1], [0, 2]]
+
             sage: P = Posets.PentagonPoset()  # A lattice
             sage: P.with_bounds()
             Finite lattice containing 7 elements
@@ -4594,8 +4599,56 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [['bottom', 'top']]
 
-            sage: LatticePoset({}).with_bounds()
+            sage: L = LatticePoset({}).with_bounds(); L
             Finite lattice containing 2 elements
+            sage: L.meet_irreducibles()  # Trac 21543
+            ['bottom']
+
+            sage: Poset().with_bounds((None, 1))
+            Finite poset containing 1 elements
+            sage: LatticePoset().with_bounds((None, 1))
+            Finite lattice containing 1 elements
+            sage: MeetSemilattice().with_bounds((None, 1))
+            Finite lattice containing 1 elements
+            sage: JoinSemilattice().with_bounds((None, 1))
+            Finite join-semilattice containing 1 elements
+            sage: Poset().with_bounds((1, None))
+            Finite poset containing 1 elements
+            sage: LatticePoset().with_bounds((1, None))
+            Finite lattice containing 1 elements
+            sage: MeetSemilattice().with_bounds((1, None))
+            Finite meet-semilattice containing 1 elements
+            sage: JoinSemilattice().with_bounds((1, None))
+            Finite lattice containing 1 elements
+
+            sage: P = Poset({0: []})
+            sage: L = LatticePoset({0: []})
+            sage: ML = MeetSemilattice({0: []})
+            sage: JL = JoinSemilattice({0: []})
+            sage: P.with_bounds((None, None))
+            Finite poset containing 1 elements
+            sage: L.with_bounds((None, None))
+            Finite lattice containing 1 elements
+            sage: ML.with_bounds((None, None))
+            Finite meet-semilattice containing 1 elements
+            sage: JL.with_bounds((None, None))
+            Finite join-semilattice containing 1 elements
+            sage: P.with_bounds((1, None))
+            Finite poset containing 2 elements
+            sage: L.with_bounds((1, None))
+            Finite lattice containing 2 elements
+            sage: ML.with_bounds((1, None))
+            Finite meet-semilattice containing 2 elements
+            sage: JL.with_bounds((1, None))
+            Finite lattice containing 2 elements
+            sage: P.with_bounds((None, 1))
+            Finite poset containing 2 elements
+            sage: L.with_bounds((None, 1))
+            Finite lattice containing 2 elements
+            sage: ML.with_bounds((None, 1))
+            Finite lattice containing 2 elements
+            sage: JL.with_bounds((None, 1))
+            Finite join-semilattice containing 2 elements
 
             sage: Posets.PentagonPoset().with_bounds(labels=(4, 5))
             Traceback (most recent call last):
@@ -4606,32 +4659,42 @@ class FinitePoset(UniqueRepresentation, Parent):
         if not self._is_facade:
             raise TypeError('the function is not defined on non-facade posets')
 
-        from sage.combinat.posets.lattices import LatticePoset, \
-             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
-             FiniteMeetSemilattice, FiniteJoinSemilattice
-        if ( isinstance(self, FiniteLatticePoset) or
-             isinstance(self, FiniteMeetSemilattice) or
-             isinstance(self, FiniteJoinSemilattice) ):
-            constructor = FiniteLatticePoset
-        else:
-            constructor = FinitePoset
-
         if len(labels) != 2:
             raise ValueError("labels must be a pair")
         new_min, new_max = labels
-
-        if self.cardinality() == 0:
-            return constructor(DiGraph({new_min: [new_max]},
-                                        format="dict_of_lists"))
-
         if new_min in self:
             raise ValueError("the poset already has element %s" % new_min)
         if new_max in self:
             raise ValueError("the poset already has element %s" % new_max)
 
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+        if ( isinstance(self, FiniteLatticePoset) or
+             (isinstance(self, FiniteMeetSemilattice) and new_max is not None) or
+             (isinstance(self, FiniteJoinSemilattice) and new_min is not None) ):
+            constructor = LatticePoset
+        elif isinstance(self, FiniteMeetSemilattice):
+            constructor = MeetSemilattice
+        elif isinstance(self, FiniteJoinSemilattice):
+            constructor = JoinSemilattice
+        else:
+            constructor = Poset
+
+        if self.cardinality() == 0:
+            if new_min is None and new_max is None:
+                return constructor()
+            if new_min is None:
+                return constructor({new_min: []})
+            if new_max is None:
+                return constructor({new_max: []})
+            return constructor({new_min: [new_max]})
+
         D = self.hasse_diagram()
-        D.add_edges([(new_min, e) for e in D.sources()])
-        D.add_edges([(e, new_max) for e in D.sinks()])
+        if new_min is not None:
+            D.add_edges([(new_min, e) for e in D.sources()])
+        if new_max is not None:
+            D.add_edges([(e, new_max) for e in D.sinks()])
 
         return constructor(D)
 
@@ -5358,7 +5421,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]
 
-        .. seealso:: :meth:`antichains`, :meth:`maximal_chains`
+        .. SEEALSO:: :meth:`antichains`, :meth:`maximal_chains`
         """
         # Maximal antichains are maximum cliques on incomparability graph.
         return self.incomparability_graph().cliques_maximal()
@@ -5389,7 +5452,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.maximal_chains()
             [[0, 1, 2, 3, 4, 5]]
 
-        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
+        .. SEEALSO:: :meth:`maximal_antichains`, :meth:`chains`
         """
         if partial is None or len(partial) == 0:
             start = self.minimal_elements()
@@ -6348,8 +6411,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         # we only check for even rank intervals. See for example
         # Richard Ehrenborg, k-Eulerian Posets (Order 18: 227-236, 2001)
         # http://www.ms.uky.edu/~jrge/Papers/k-Eulerian.pdf
-        for rank_diff in xrange(2, k+1, 2):
-            for level in xrange(0, height-rank_diff):
+        for rank_diff in range(2, k + 1, 2):
+            for level in range(height - rank_diff):
                 for i in levels[level]:
                     for j in levels[level+rank_diff]:
                         if H.is_lequal(i, j) and M[i, j] != 1:
@@ -6408,7 +6471,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. [BF1999] Thomas Britz, Sergey Fomin,
            *Finite posets and Ferrers shapes*,
            Advances in Mathematics 158, pp. 86-127 (2001),
-           :arxiv:`math/9912126` (the arXiv version has less errors).
+           :arxiv:`math/9912126` (the arXiv version has fewer errors).
 
         EXAMPLES::
 
@@ -6541,7 +6604,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         ps.reverse()
         return Partition(ps)
 
-    def p_partition_enumerator(self, tup, R, check=False):
+    def p_partition_enumerator(self, tup, R, weights=None, check=False):
         r"""
         Return a `P`-partition enumerator of ``self``.
 
@@ -6560,6 +6623,23 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - if `j \prec i` then `f(i) < f(j)`.
 
+        The optional argument ``weights`` allows constructing a
+        generalized ("weighted") version of the `P`-partition enumerator.
+        Namely, ``weights`` should be a dictionary whose keys are the
+        elements of ``P``.
+        Then, the generalized `P`-partition enumerator corresponding to
+        weights ``weights`` is `\sum_f \prod_{p \in P} x_{f(p)}^{w(p)}`,
+        where the sum is again over all `P`-partitions `f`. Here,
+        `w(p)` is ``weights[p]``. The classical `P`-partition enumerator
+        is the particular case obtained when all `p` satisfy `w(p) = 1`.
+
+        In the language of [Grinb2016a]_, the generalized `P`-partition
+        enumerator is the quasisymmetric function
+        `\Gamma\left(\mathbf{E}, w\right)`, where `\mathbf{E}` is the
+        special double poset `(P, <_P, \prec)`, and where
+        `w` is the dictionary ``weights`` (regarded as a function from
+        `P` to the positive integers).
+
         INPUT:
 
         - ``tup`` -- the tuple containing all elements of `P` (each of
@@ -6567,6 +6647,10 @@ class FinitePoset(UniqueRepresentation, Parent):
           `\prec`
 
         - ``R`` -- a commutative ring
+
+        - ``weights`` -- (optional) a dictionary of positive integers,
+          indexed by elements of `P`; any missing item will be understood
+          as `1`
 
         OUTPUT:
 
@@ -6587,6 +6671,30 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset([[],[]])
             sage: FP = P.p_partition_enumerator((), QQ, check=True); FP
             M[]
+
+        With the ``weights`` parameter::
+
+            sage: P = Poset([[1,2,3,4],[[1,4],[2,4],[4,3]]])
+            sage: FP = P.p_partition_enumerator((3,1,2,4), QQ, weights={1: 1, 2: 2, 3: 1, 4: 1}, check=True); FP
+            M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1] + M[3, 1, 1] + M[4, 1]
+            sage: FP = P.p_partition_enumerator((3,1,2,4), QQ, weights={2: 2}, check=True); FP
+            M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1] + M[3, 1, 1] + M[4, 1]
+
+            sage: P = Poset([['a','b','c'], [['a','b'], ['a','c']]])
+            sage: FP = P.p_partition_enumerator(('b','c','a'), QQ, weights={'a': 3, 'b': 5, 'c': 7}, check=True); FP
+            M[3, 5, 7] + M[3, 7, 5] + M[3, 12]
+
+            sage: P = Poset([['a','b','c'], [['a','c'], ['b','c']]])
+            sage: FP = P.p_partition_enumerator(('b','c','a'), QQ, weights={'a': 3, 'b': 5, 'c': 7}, check=True); FP
+            M[3, 5, 7] + M[3, 12] + M[5, 3, 7] + M[8, 7]
+            sage: FP = P.p_partition_enumerator(('a','b','c'), QQ, weights={'a': 3, 'b': 5, 'c': 7}, check=True); FP
+            M[3, 5, 7] + M[3, 12] + M[5, 3, 7] + M[5, 10] + M[8, 7] + M[15]
+
+        REFERENCES:
+
+        .. [Grinb2016a] Darij Grinberg,
+           *Double posets and the antipode of QSym*,
+           :arxiv:`1509.08355v2`.
         """
         if check:
             if sorted(self.list()) != sorted(tup):
@@ -6597,9 +6705,20 @@ class FinitePoset(UniqueRepresentation, Parent):
         n = len(tup)
         res = QR.zero()
         tupdict = dict(zip(tup, range(n)))
+        if weights is None:
+            # The simple case: ``weights == None``.
+            F = QR.Fundamental()
+            for lin in self.linear_extensions(facade=True):
+                descents = [i + 1 for i in range(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
+                res += F(Composition(from_subset=(descents, n)))
+            return res
         for lin in self.linear_extensions(facade=True):
+            M = QR.Monomial()
+            lin_weights = Composition([weights.get(lin[i], 1) for i in range(n)])
             descents = [i + 1 for i in range(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
-            res += QR.Fundamental()(Composition(from_subset=(descents, n)))
+            d_c = Composition(from_subset=(descents, n))
+            for comp in d_c.finer():
+                res += M[lin_weights.fatten(comp)]
         return res
 
     def cuts(self):

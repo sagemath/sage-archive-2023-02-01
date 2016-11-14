@@ -23,9 +23,6 @@ done
 # Use newer version of config.guess and config.sub (see Trac #19713)
 cp "$SAGE_ROOT"/config/config.* .
 
-# The following prevents autotools to regenerate its files.
-touch aclocal.m4 configure Makefile.in config.h.in
-
 # Note: The following doesn't work with spaces in `$SAGE_LOCAL`, but we don't
 #       support that anyway, since many upstream packages don't.
 #       On the other hand, the only packages GLPK uses that Sage provides are

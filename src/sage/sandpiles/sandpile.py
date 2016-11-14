@@ -2230,8 +2230,7 @@ class Sandpile(DiGraph):
 
         REFERENCES:
 
-        .. [Levine2014] Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-           Priezzhev and Ruelle, Communications in Mathematical Physics.
+        - [Lev2014]_
         """
         st = deepcopy(state)
         V = self.vertices()
@@ -2323,8 +2322,7 @@ class Sandpile(DiGraph):
 
         REFERENCES:
 
-        .. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-           Priezzhev and Ruelle, Communications in Mathematical Physics.
+        - [Lev2014]_
         """
         return self._stationary_density
 
@@ -4125,8 +4123,7 @@ class SandpileConfig(dict):
 
         REFERENCES:
 
-        .. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-           Priezzhev and Ruelle, Communications in Mathematical Physics.
+        - [Lev2014]_
         """
         if v==self.sandpile().sink():
             return 1
@@ -5063,10 +5060,7 @@ class SandpileDivisor(dict):
         if isinstance(D,SandpileDivisor):
             w = vector(D.values())
         else:
-            try:
-                w = vector(D)
-            except:
-                raise SyntaxError(D)
+            w = vector(D)
         # Now test for linear equivalence and find firing vector
         D,U,V = self.sandpile()._smith_form
         b = v - w
@@ -5083,7 +5077,7 @@ class SandpileDivisor(dict):
                     return V*x
                 else:
                     return True
-            except:
+            except Exception:
                 if with_firing_vector:
                     return vector([])
                 else:
@@ -5501,7 +5495,7 @@ class SandpileDivisor(dict):
                 rk += 1
                 try:
                     d = next(i for i,j in enumerate(c) if i==j and i!=0)
-                except:
+                except Exception:
                     d = n - 1
                 k = k - d
                 if k >=0:
@@ -5702,7 +5696,7 @@ class SandpileDivisor(dict):
             v = s.sink()
         try:
             seq = self._weierstrass_rank_seq[v]
-        except:
+        except Exception:
             D = deepcopy(self)
             verts = s.vertices()
             Ei = s.zero_div()
@@ -6896,9 +6890,7 @@ def wilmes_algorithm(M):
 
     REFERENCES:
 
-    .. [Primer2013] Perlman, Perkinson, and Wilmes.  Primer for the algebraic
-       geometry of sandpiles. Tropical and Non-Archimedean Geometry, Contemp.
-       Math., 605, Amer. Math. Soc., Providence, RI, 2013.
+    - [PPW2013]_
     """
     # find the gcd of the row-sums, and perform the corresponding row
     # operations on M

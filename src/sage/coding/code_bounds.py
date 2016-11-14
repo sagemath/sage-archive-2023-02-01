@@ -64,8 +64,8 @@ elements. Let `A_q(n,d)` denote the largest `M` such that there exists a
 `(n,M,d)` code in `F^n`. Let `B_q(n,d)` (also denoted `A^{lin}_q(n,d)`) denote
 the largest `k` such that there exists a `[n,k,d]` code in `F^n`. (Of course,
 `A_q(n,d)\geq B_q(n,d)`.) Determining `A_q(n,d)` and `B_q(n,d)` is one of the
-main problems in the theory of error-correcting codes. For more details see [HP]_
-and [vL]_.
+main problems in the theory of error-correcting codes. For more details see
+[HP2003]_ and [Lin1999]_.
 
 These quantities related to solving a generalization of the
 childhood game of "20 questions".

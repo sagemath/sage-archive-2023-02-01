@@ -30,7 +30,7 @@ class WeightSpace(CombinatorialFreeModule):
 
     This class is also used for coweight spaces (or lattices).
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`RootSystem`
         - :meth:`RootSystem.weight_lattice` and :meth:`RootSystem.weight_space`
@@ -144,7 +144,7 @@ class WeightSpace(CombinatorialFreeModule):
         """
         Guarantees Unique representation
 
-        .. seealso:: :class:`UniqueRepresentation`
+        .. SEEALSO:: :class:`UniqueRepresentation`
 
         TESTS::
 

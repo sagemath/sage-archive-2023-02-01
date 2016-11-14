@@ -190,6 +190,7 @@ Singular предоставляет массивную и продуманную
 
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
+    polynomial ring, over a field, global ordering
     //   characteristic : 0
     //   number of vars : 2
     //        block   1 : ordering dp

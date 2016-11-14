@@ -1440,7 +1440,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         -  Derivative as a ``Polynomial_rational_flint``
 
-        .. seealso:: :meth:`~Polynomial.derivative`
+        .. SEEALSO:: :meth:`~Polynomial.derivative`
 
         EXAMPLES::
 

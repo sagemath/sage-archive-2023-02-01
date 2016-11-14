@@ -171,9 +171,9 @@ class MemoryInfo_proc(MemoryInfo_base):
             sage: from sage.misc.memory_info import MemoryInfo, MemoryInfo_proc
             sage: mem = MemoryInfo()
             sage: if isinstance(mem, MemoryInfo_proc):
-            ...       info = mem._parse_proc_meminfo()
+            ....:     info = mem._parse_proc_meminfo()
             ... else:
-            ...       info = None
+            ....:     info = None
             sage: info   # random output
             {'available_ram': 1749782528,
              'total_swap': 15728635904,
@@ -344,9 +344,9 @@ class MemoryInfo_OSX(MemoryInfo_base):
             sage: from sage.misc.memory_info import MemoryInfo, MemoryInfo_OSX
             sage: mem = MemoryInfo()
             sage: if isinstance(mem, MemoryInfo_OSX):
-            ...       info = mem._parse_top()
+            ....:     info = mem._parse_top()
             ... else:
-            ...       info = None
+            ....:     info = None
             sage: info   # random output
             {'available_ram': 1749782528,
              'total_ram': 16708194304}

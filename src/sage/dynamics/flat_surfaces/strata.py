@@ -11,10 +11,10 @@ a stratum (which corresponds to the SAGE object
 :class:`~sage.dynamics.flat_surfaces.strata.AbelianStratum`).
 
 The work for Abelian differentials was done by Maxim Kontsevich and Anton
-Zorich in [KonZor03]_ and for quadratic differentials by Erwan Lanneau in
-[Lan08]_. Zorich gave an algorithm to pass from a connected component of a
+Zorich in [KZ2003]_ and for quadratic differentials by Erwan Lanneau in
+[Lan2008]_. Zorich gave an algorithm to pass from a connected component of a
 stratum to the associated Rauzy class (for both interval exchange
-transformations and linear involutions) in [Zor08]_ and is implemented for
+transformations and linear involutions) in [Zor2008]_ and is implemented for
 Abelian stratum at different level (approximately one for each component):
 
 - for connected stratum :meth:`~ConnectedComponentOfAbelianStratum.representative`
@@ -25,28 +25,11 @@ Abelian stratum at different level (approximately one for each component):
 - for even component :meth:`~EvenConnectedComponentOfAbelianStratum.representative`
 
 The inverse operation (pass from an interval exchange transformation to
-the connected component) is partially written in [KonZor03]_ and
+the connected component) is partially written in [KZ2003]_ and
 simply named here
 :meth:`~sage.dynamics.interval_exchanges.template.PermutationIET.connected_component`.
 
-All the code here was first available on Mathematica [ZS]_.
-
-REFERENCES:
-
-.. [KonZor03] \M. Kontsevich, A. Zorich "Connected components of the moduli space
-   of Abelian differentials with prescribed singularities" Invent. math. 153,
-   631-678 (2003)
-
-.. [Lan08] \E. Lanneau "Connected components of the strata of the moduli spaces
-   of quadratic differentials", Annales sci. de l'ENS, serie 4, fascicule 1,
-   41, 1-56 (2008)
-
-.. [Zor08] \A. Zorich "Explicit Jenkins-Strebel representatives of all strata of
-   Abelian and quadratic differentials", Journal of Modern Dynamics, vol. 2,
-   no 1, 139-185 (2008) (http://www.math.psu.edu/jmd)
-
-.. [ZS] Anton Zorich, "Generalized Permutation software"
-   (http://perso.univ-rennes1.fr/anton.zorich/Software/software_en.html)
+All the code here was first available on Mathematica [Zor]_.
 
 .. NOTE::
 
@@ -1242,7 +1225,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         INPUT:
 
@@ -1441,7 +1424,7 @@ class HypConnectedComponentOfAbelianStratum(CCA):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         INPUT:
 
@@ -1584,7 +1567,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         EXAMPLES:
 
@@ -1672,7 +1655,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         EXAMPLES:
 

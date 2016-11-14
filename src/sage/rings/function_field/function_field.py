@@ -326,6 +326,26 @@ class FunctionField(Field):
             return True
         return False
 
+    def _convert_map_from_(self, R):
+        r"""
+        Return a conversion from ``R`` to this function field or ``None`` if
+        none exists.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 + x^3 + 4*x + 1)
+            sage: K(L(x)) # indirect doctest
+            x
+        
+        """
+        if isinstance(R, FunctionField_polymod):
+            base_conversion = self.convert_map_from(R.base_field())
+            if base_conversion is not None:
+                from sage.categories.morphism import SetMorphism
+                return base_conversion * SetMorphism(R.Hom(R.base_field()), R._to_base_field)
+
     def _intermediate_fields(self, base):
         r"""
         Return the fields which lie in between ``base`` and this field in the
@@ -508,18 +528,12 @@ class FunctionField_polymod(FunctionField):
         self._populate_coercion_lists_(coerce_list=[base_field, self._ring])
         self._gen = self(self._ring.gen())
 
-        # allow conversion into the function fields which this field extends
+        # allow conversion into the constant base field
         from sage.categories.morphism import SetMorphism
-        intermediate_field = self.base_field()
-        intermediate_field.register_conversion(SetMorphism(self.Hom(intermediate_field), self._to_base_field))
-        while intermediate_field.base_field() is not intermediate_field:
-            # intermediate_field is not rational, so register a conversion into its base field
-            base_field = intermediate_field.base_field()
-            base_field.register_conversion(base_field.convert_map_from(intermediate_field) * intermediate_field.convert_map_from(self))
-            intermediate_field = base_field
-        # allow conversion into the constant base field by going through the underlying rational function field
-        self.constant_base_field().register_conversion(self.constant_base_field().convert_map_from(intermediate_field) *
-                        intermediate_field.convert_map_from(self))
+        to_constant_base_field = SetMorphism(self.Hom(self.constant_base_field()), self._to_constant_base_field)
+        # the conversion map must not keep this field alive if that is the only reference to it
+        to_constant_base_field._make_weak_references()
+        self.constant_base_field().register_conversion(to_constant_base_field)
 
     def __reduce__(self):
         """
@@ -594,6 +608,39 @@ class FunctionField_polymod(FunctionField):
         if f.element().is_constant():
             return K(f.element())
         raise ValueError("%r is not an element of the base field"%(f,))
+
+    def _to_constant_base_field(self, f):
+        r"""
+        Return ``f`` as an element of the :meth:`constant_base_field`.
+
+        INPUT:
+
+        - ``f`` -- an element of this rational function field which is a
+          constant
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: L._to_constant_base_field(L(1))
+            1
+            sage: L._to_constant_base_field(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: y is not an element of the base field
+
+        TESTS:
+
+        Verify that :trac:`21872` has been resolved::
+
+            sage: L(1) in QQ
+            True
+            sage: y in QQ
+            False
+
+        """
+        return self.base_field()._to_constant_base_field(self._to_base_field(f))
 
     def monic_integral_model(self, names):
         """
@@ -1282,7 +1329,10 @@ class RationalFunctionField(FunctionField):
         self._gen = self(R.gen())
         # allow conversion from K(x) into K
         from sage.categories.morphism import SetMorphism
-        self.constant_base_field().register_conversion(SetMorphism(self.Hom(self.constant_base_field()), self._to_constant_base_field))
+        to_constant_base_field = SetMorphism(self.Hom(self.constant_base_field()), self._to_constant_base_field)
+        # the conversion map must not keep this field alive if that is the only reference to it
+        to_constant_base_field._make_weak_references()
+        self.constant_base_field().register_conversion(to_constant_base_field)
 
     def __reduce__(self):
         """

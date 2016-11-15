@@ -928,8 +928,8 @@ class Homset(Set_generic):
             algebraic properties of domain and codomain, it should be
             implemented in ``C.MorphismMethods``.
 
-            At this point, the homset element classes takes precedence over
-            the morphism classes. But this may be subject to change.
+            At this point, the homset element classes take precedence over the
+            morphism classes. But this may be subject to change.
 
 
         .. TODO::

@@ -196,7 +196,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
     try:
         m, n = latin_squares_graph_parameters(v,k,l,mu)
-    except:
+    except Exception:
         return
     if orthogonal_array(m,n,existence=True):
         from sage.graphs.generators.intersection import OrthogonalArrayBlockGraph
@@ -3135,12 +3135,12 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (196  60   14   20  ) that exists. Comment from Brouwer's database: pg(6,9,2)?
+        Sage cannot build a (196  60   14   20  ) that exists. Comment ...
         ...
         In Andries Brouwer's database:
-        - 452 impossible entries
-        - 2936 undecided entries
-        - 1150 realizable entries (Sage misses ... of them)
+        - 462 impossible entries
+        - 2916 undecided entries
+        - 1160 realizable entries (Sage misses ... of them)
 
     """
     global _brouwer_database

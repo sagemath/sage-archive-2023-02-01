@@ -629,7 +629,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         of modulus `N`.  This function returns the generalized
         Bernoulli number `B_{k,\varepsilon}`, as defined by the
         following identity of power series (see for example
-        [Diamond-Im]_, Section 2.2):
+        [DI1995]_, Section 2.2):
 
         .. math::
 
@@ -640,7 +640,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         The ``'recurrence'`` algorithm computes generalized Bernoulli
         numbers via classical Bernoulli numbers using the formula in
-        [Cohen-II]_, Proposition 9.4.5; this is usually optimal.  The
+        [Coh2007]_, Proposition 9.4.5; this is usually optimal.  The
         ``definition`` algorithm uses the definition directly.
 
         .. WARNING::
@@ -651,19 +651,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             the value `B_1 = -1/2` for the classical Bernoulli number.
             Some authors use an alternative definition giving
             `B_{1,\varepsilon} = -1/2`; see the discussion in
-            [Cohen-II]_, Section 9.4.1.
-
-        REFERENCES:
-
-        .. [Cohen-II] \H. Cohen, Number Theory and Diophantine
-           Equations, Volume II.  Graduate Texts in Mathematics 240.
-           Springer, 2007.
-
-        .. [Diamond-Im] \F. Diamond and J. Im, Modular forms and
-           modular curves.  In: V. Kumar Murty (ed.), Seminar on
-           Fermat's Last Theorem (Toronto, 1993-1994), 39-133.  CMS
-           Conference Proceedings 17.  American Mathematical Society,
-           1995.
+            [Coh2007]_, Section 9.4.1.
 
         EXAMPLES::
 
@@ -1478,7 +1466,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: eps = f.character()
             sage: eps.minimize_base_ring() == eps
             True
-        
+
         A related bug (see :trac:`18086`)::
 
             sage: K.<a,b>=NumberField([x^2 + 1, x^2 - 3])
@@ -2682,7 +2670,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
              Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1,
              Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -zeta4]
         """
-        return self._list_from_iterator_cached()
+        return self._list_from_iterator()
 
     def modulus(self):
         """

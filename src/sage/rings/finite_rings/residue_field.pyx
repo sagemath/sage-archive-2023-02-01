@@ -464,9 +464,11 @@ class ResidueField_generic(Field):
             sage: k.<a> = P.residue_field() # indirect doctest
 
             sage: k.category()
-            Category of finite fields
+            Category of finite enumerated fields
             sage: F.category()
-            Join of Category of finite fields and Category of subquotients of monoids and Category of quotients of semigroups
+            Join of Category of finite enumerated fields
+             and Category of subquotients of monoids
+             and Category of quotients of semigroups
 
         TESTS::
 

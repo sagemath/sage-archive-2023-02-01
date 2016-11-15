@@ -1587,7 +1587,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         corresponding nodes of the graph are joined by an edge. Note that
         irreducible components do not have to be of the same dimension.
         
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`~SchemeMorphism_fan_toric_variety_dominant.fiber_component`.
 

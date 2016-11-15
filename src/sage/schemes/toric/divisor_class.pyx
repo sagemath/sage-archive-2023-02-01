@@ -138,12 +138,6 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
         return (_ToricRationalDivisorClass_unpickle_v1,
                 (self._parent, list(self), self._degree, self._is_mutable))
 
-    cdef _new_c(self):
-        cdef ToricRationalDivisorClass y
-        y = ToricRationalDivisorClass.__new__(ToricRationalDivisorClass)
-        y._init(self._degree, self._parent)
-        return y
-
     cpdef _act_on_(self, other, bint self_on_left):
         """
         Act on ``other``.
@@ -334,9 +328,9 @@ def _ToricRationalDivisorClass_unpickle_v1(parent, entries,
     v = ToricRationalDivisorClass.__new__(ToricRationalDivisorClass)
     v._init(degree, parent)
     cdef Rational z
+    cdef Py_ssize_t i
     for i from 0 <= i < degree:
         z = Rational(entries[i])
-        mpq_init(v._entries[i])
         mpq_set(v._entries[i], z.value)
     v._is_mutable = is_mutable
     return v

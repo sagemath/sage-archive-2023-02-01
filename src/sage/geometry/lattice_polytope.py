@@ -112,7 +112,7 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
-from sage.env import SAGE_SHARE
+from sage.env import POLYTOPE_DATA_DIR
 from sage.modules.all import vector, span
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -134,9 +134,6 @@ import os
 import subprocess
 from six import StringIO
 from functools import reduce
-
-
-data_location = os.path.join(SAGE_SHARE,'reflexive_polytopes')
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):
@@ -418,7 +415,7 @@ def ReflexivePolytopes(dim):
         raise NotImplementedError("only 2- and 3-dimensional reflexive polytopes are available!")
     if _rp[dim] is None:
         rp = read_all_polytopes(
-            os.path.join(data_location, "reflexive_polytopes_%dd" % dim))
+            os.path.join(POLYTOPE_DATA_DIR, "reflexive_polytopes_%dd" % dim))
         for n, p in enumerate(rp):
             # Data files have normal form of reflexive polytopes
             p.normal_form.set_cache(p._vertices)
@@ -3142,9 +3139,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         same. Normal form is not defined and thus cannot be used for polytopes
         whose dimension is smaller than the dimension of the ambient space.
 
-        The original algorithm was presented in [KS98]_ and implemented
+        The original algorithm was presented in [KS1998]_ and implemented
         in PALP. A modified version of the PALP algorithm is discussed in
-        [GK13]_ and available here as "palp_modified".
+        [GK2013]_ and available here as "palp_modified".
 
         INPUT:
 
@@ -3171,14 +3168,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         - a :class:`point collection <PointCollection>` in the :meth:`lattice`
           of ``self`` or a tuple of it and a permutation.
-
-        REFERENCES:
-
-        .. [KS98] Maximilian Kreuzer and Harald Skarke, Classification of
-            Reflexive Polyhedra in Three Dimensions, arXiv:hep-th/9805190
-            
-        .. [GK13] Roland Grinis and Alexander Kasprzyk, Normal forms of
-            convex lattice polytopes, arXiv:1301.6641
 
         EXAMPLES:
         
@@ -4460,25 +4449,8 @@ class NefPartition(SageObject,
         &=
         \mathrm{Conv} \left(\Delta_0, \Delta_1, \dots, \Delta_{k-1}\right).
 
-    See Section 4.3.1 in [CK99]_ and references therein for further details, or
-    [BN08]_ for a purely combinatorial approach.
-
-    REFERENCES:
-
-    ..  [BN08]
-        Victor V. Batyrev and Benjamin Nill.
-        Combinatorial aspects of mirror symmetry.
-        In *Integer points in polyhedra --- geometry, number theory,
-        representation theory, algebra, optimization, statistics*,
-        volume 452 of *Contemp. Math.*, pages 35--66.
-        Amer. Math. Soc., Providence, RI, 2008.
-        arXiv:math/0703456v2 [math.CO].
-
-    ..  [CK99]
-        David A. Cox and Sheldon Katz.
-        *Mirror symmetry and algebraic geometry*,
-        volume 68 of *Mathematical Surveys and Monographs*.
-        American Mathematical Society, Providence, RI, 1999.
+    See Section 4.3.1 in [CK1999]_ and references therein for further details, or
+    [BN2008]_ for a purely combinatorial approach.
 
     EXAMPLES:
 
@@ -4847,7 +4819,7 @@ class NefPartition(SageObject,
 
         ALGORITHM:
 
-        See Proposition 3.19 in [BN08]_.
+        See Proposition 3.19 in [BN2008]_.
 
         EXAMPLES::
 
@@ -4865,7 +4837,7 @@ class NefPartition(SageObject,
         try:
             return self._dual
         except AttributeError:
-            # Delta and nabla are interchanged compared to [BN08]_.
+            # Delta and nabla are interchanged compared to [BN2008]_.
             nabla_polar = self.nabla_polar()
             n = nabla_polar.nvertices()
             vertex_to_part = [-1] * n

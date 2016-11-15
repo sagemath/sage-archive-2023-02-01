@@ -1,4 +1,7 @@
-"Dependency usage tracking for citations"
+# cython: old_style_globals=True
+"""
+Dependency usage tracking for citations
+"""
 
 from sage.misc.all import tmp_filename
 from sage.env import SAGE_ROOT

@@ -397,12 +397,7 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         REFERENCES:
 
-        ..  [PALP]
-            Maximilian Kreuzer, Harald Skarke:
-            "PALP: A Package for Analyzing Lattice Polytopes
-            with Applications to Toric Geometry"
-            Comput.Phys.Commun. 157 (2004) 87-106
-            :arxiv:`math/0204356`
+        - [PALP]_
         """
         return self.is_compact() and self.interior_contains(self.ambient_space().zero())
 

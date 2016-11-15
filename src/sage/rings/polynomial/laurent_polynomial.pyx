@@ -1352,7 +1352,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     img_k = ETuple(dict([(inject_dict[a],k[a]) for a in xrange(m)]),n)
                     x[img_k] = tmp_x[k]
             # otherwise just pass along a dict for conversions 
-            except:
+            except Exception:
                 x = x.dict()
         elif isinstance(x, PolyDict):
             x = x.dict()
@@ -1545,12 +1545,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         try:
-            cmpfn = self.parent().term_order().compare_tuples
+            key = self.parent().term_order().sortkey
         except AttributeError:
-            cmpfn = None
+            key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self._prod.poly_repr(self.parent().variable_names(),
-                                    atomic_coefficients=atomic, cmpfn=cmpfn)
+                                    atomic_coefficients=atomic, sortkey=key)
 
     def _latex_(self):
         """
@@ -1566,12 +1566,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if self._prod is None:
             self._compute_polydict()
         try:
-            cmpfn = self.parent().term_order().compare_tuples
+            key = self.parent().term_order().sortkey
         except AttributeError:
-            cmpfn = None
+            key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self._prod.latex(self.parent().variable_names(),
-                                atomic_coefficients=atomic, cmpfn=cmpfn)
+                                atomic_coefficients=atomic, sortkey=key)
 
     def __invert__(LaurentPolynomial_mpair self):
         """
@@ -2421,7 +2421,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         documentation for the global derivative() function for more
         details.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`_derivative`
 
@@ -2449,7 +2449,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         is with respect to the generator. Otherwise, _derivative(var) is called
         recursively for each coefficient of this polynomial.
 
-        .. seealso:: :meth:`derivative`
+        .. SEEALSO:: :meth:`derivative`
 
         EXAMPLES::
 

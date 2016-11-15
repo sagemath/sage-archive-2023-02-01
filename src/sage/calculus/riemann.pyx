@@ -87,7 +87,7 @@ cdef class Riemann_Map:
     inaccurate. Error computations for the ellipse can be found in the
     documentation for :meth:`analytic_boundary` and :meth:`analytic_interior`.
 
-    [BSV]_ provides an overview of the Riemann map and discusses the research
+    [BSV2010]_ provides an overview of the Riemann map and discusses the research
     that lead to the creation of this module.
 
     INPUT:
@@ -192,17 +192,9 @@ cdef class Riemann_Map:
     ALGORITHM:
 
     This class computes the Riemann Map via the Szego kernel using an
-    adaptation of the method described by [KT]_.
+    adaptation of the method described by [KT1986]_.
 
-    REFERENCES:
 
-    .. [KT] \N. Kerzman and M. R. Trummer. "Numerical Conformal Mapping via
-      the Szego kernel". Journal of Computational and Applied Mathematics,
-      14(1-2): 111--123, 1986.
-
-    .. [BSV] \M. Bolt, S. Snoeyink, E. Van Andel. "Visual representation of
-      the Riemann map and Ahlfors map via the Kerzman-Stein equation".
-      Involve 3-4 (2010), 405-420.
     """
     cdef int N, B, ncorners
     cdef f
@@ -309,7 +301,7 @@ cdef class Riemann_Map:
     cdef _generate_theta_array(self):
         """
         Generates the essential data for the Riemann map, primarily the
-        Szego kernel and boundary correspondence.  See [KT]_ for the algorithm.
+        Szego kernel and boundary correspondence.  See [KT1986]_ for the algorithm.
 
         TESTS::
 

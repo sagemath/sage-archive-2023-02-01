@@ -160,7 +160,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
     (that is, `S_n`-invariant elements of `R\langle x_1, x_2, \ldots, x_n \rangle`).
 
     This ring is implemented as a Hopf algebra whose basis elements are
-    indexed by set parititions.
+    indexed by set partitions.
 
     Let `A = \{A_1, A_2, \ldots, A_r\}` be a set partition of the integers
     `\{ 1, 2, \ldots, k \}`.  A monomial basis element indexed by `A`

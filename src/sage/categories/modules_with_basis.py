@@ -342,7 +342,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: phi.category_for() # todo: not implemented (ZZ is currently not in Modules(ZZ))
                 Category of modules over Integer Ring
 
-            Or more generaly any ring admitting a coercion map from
+            Or more generally any ring admitting a coercion map from
             the base ring::
 
                 sage: phi = X.module_morphism(on_basis=lambda i: i, codomain=RR )

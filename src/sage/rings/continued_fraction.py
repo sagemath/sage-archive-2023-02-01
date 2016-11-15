@@ -142,7 +142,7 @@ fractions. For them special methods give access to preperiod and period::
 On the following we can remark how the tail may change even in the same
 quadratic field::
 
-    sage: for i in xrange(20): print(continued_fraction(i*sqrt2))
+    sage: for i in range(20): print(continued_fraction(i*sqrt2))
     [0]
     [1; (2)*]
     [2; (1, 4)*]
@@ -255,9 +255,9 @@ def rat_interval_cf_list(r1, r2):
         sage: from sage.rings.continued_fraction import rat_interval_cf_list
         sage: rat_interval_cf_list(257/113, 5224/2297)
         [2, 3, 1, 1, 1, 4]
-        sage: for prec in xrange(10,54):
+        sage: for prec in range(10,54):
         ....:     R = RealIntervalField(20)
-        ....:     for _ in xrange(100):
+        ....:     for _ in range(100):
         ....:         x = R.random_element() * R.random_element() + R.random_element() / 100
         ....:         l = x.lower().exact_rational()
         ....:         u = x.upper().exact_rational()
@@ -900,11 +900,11 @@ class ContinuedFraction_base(SageObject):
 
             sage: cf = continued_fraction(pi)
             sage: i = iter(cf)
-            sage: [next(i) for _ in xrange(10)]
+            sage: [next(i) for _ in range(10)]
             [3, 7, 15, 1, 292, 1, 1, 1, 2, 1]
-            sage: [next(i) for _ in xrange(10)]
+            sage: [next(i) for _ in range(10)]
             [3, 1, 14, 2, 1, 1, 2, 2, 2, 2]
-            sage: [next(i) for _ in xrange(10)]
+            sage: [next(i) for _ in range(10)]
             [1, 84, 2, 1, 1, 15, 3, 13, 1, 4]
         """
         yield self.quotient(0)
@@ -1236,7 +1236,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
         EXAMPLES::
 
             sage: cf = continued_fraction([(12,5),(1,3)])
-            sage: [cf.quotient(i) for i in xrange(10)]
+            sage: [cf.quotient(i) for i in range(10)]
             [12, 5, 1, 3, 1, 3, 1, 3, 1, 3]
         """
         n = int(n)
@@ -2376,7 +2376,7 @@ def continued_fraction(x, value=None):
     Note the value returned for floating point number is the continued fraction
     associated to the rational number you obtain with a conversion::
 
-        sage: for _ in xrange(10):
+        sage: for _ in range(10):
         ....:     x = RR.random_element()
         ....:     cff = continued_fraction(x)
         ....:     cfe = QQ(x).continued_fraction()

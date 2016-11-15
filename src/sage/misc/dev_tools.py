@@ -49,7 +49,7 @@ def runsnake(command):
     :func:`runsnake` further assumes that the system wide Python is
     installed in ``/usr/bin/python``.
 
-    .. seealso::
+    .. SEEALSO::
 
         - `The runsnake website <http://www.vrplumber.com/programming/runsnakerun/>`_
         - ``%prun``

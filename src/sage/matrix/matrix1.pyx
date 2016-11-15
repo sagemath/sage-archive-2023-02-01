@@ -18,6 +18,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from cpython cimport *
 
@@ -1677,7 +1678,9 @@ cdef class Matrix(matrix0.Matrix):
             [5 4]
             [0 7]
         """
-        if not (isinstance(columns, list) or isinstance(columns, tuple)):
+        if isinstance(columns, range):
+            columns = list(columns)
+        elif not isinstance(columns, (list, tuple)):
             raise TypeError("columns (=%s) must be a list of integers" % columns)
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
@@ -1746,7 +1749,9 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (isinstance(dcols, list) or isinstance(dcols, tuple)):
+        if isinstance(dcols, range):
+            dcols = list(dcols)
+        elif not isinstance(dcols, (list, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=dcols))
         cdef list cols, diff_cols
 
@@ -1773,7 +1778,9 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if not (isinstance(rows, list) or isinstance(rows, tuple)):
+        if isinstance(rows, range):
+            rows = list(rows)
+        elif not isinstance(rows, (list, tuple)):
             raise TypeError("rows must be a list of integers")
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
@@ -1788,7 +1795,6 @@ cdef class Matrix(matrix0.Matrix):
                 A.set_unsafe(k,c, self.get_unsafe(rows[i],c))
             k += 1
         return A
-
 
     def delete_rows(self, drows, check=True):
         """
@@ -1842,7 +1848,9 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (isinstance(drows, list) or isinstance(drows, tuple)):
+        if isinstance(drows, range):
+            drows = list(drows)
+        elif not isinstance(drows, (list, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=drows))
         cdef list rows, diff_rows
 
@@ -1893,9 +1901,14 @@ cdef class Matrix(matrix0.Matrix):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
-        if not isinstance(rows, list):
+        if isinstance(rows, range):
+            rows = list(rows)
+        elif not isinstance(rows, list):
             raise TypeError("rows must be a list of integers")
-        if not isinstance(columns, list):
+
+        if isinstance(columns, range):
+            columns = list(columns)
+        elif not isinstance(columns, list):
             raise TypeError("columns must be a list of integers")
 
         cdef Matrix A

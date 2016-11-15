@@ -213,39 +213,33 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             raise TypeError("Base field is fixed to prime subfield.")
 
         k = self.parent()
-
-        v = self.polynomial().list()
-
-        ret = [v[i] for i in range(len(v))]
-
-        for i in range(k.degree() - len(ret)):
-            ret.append(0)
+        p = self.polynomial()
+        ret = p.list() + [0] * (k.degree() - p.degree() - 1)
 
         if reverse:
-            ret = list(reversed(ret))
+            ret.reverse()
         return k.vector_space()(ret)
 
     def _matrix_(self, reverse=False):
         """
-        Return the matrix of right multiplication by the element on
+        Return the matrix of left multiplication by the element on
         the power basis `1, x, x^2, \ldots, x^{d-1}` for the field
-        extension.  Thus the \emph{rows} of this matrix give the images
+        extension.  Thus the \emph{columns} of this matrix give the images
         of each of the `x^i`.
 
         INPUT:
 
-        - ``reverse`` - if True act on vectors in reversed order
+        - ``reverse`` -- if True, act on vectors in reversed order
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(2^4)
-            sage: a._vector_(reverse=True), a._matrix_(reverse=True) * a._vector_(reverse=True)
-            ((0, 0, 1, 0), (0, 1, 0, 0))
-            sage: vector(a), matrix(a) * vector(a)
-            ((0, 1, 0, 0), (0, 0, 1, 0))
+            sage: b = k.random_element()
+            sage: vector(a*b) == matrix(a) * vector(b)
+            True
+            sage: (a*b)._vector_(reverse=True) == a._matrix_(reverse=True) * b._vector_(reverse=True)
+            True
         """
-        import sage.matrix.matrix_space
-
         K = self.parent()
         a = K.gen()
         x = K(1)
@@ -253,22 +247,18 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         columns = []
 
-        if not reverse:
-            l = xrange(d)
-        else:
-            l = reversed(range(d))
-
-        for i in l:
-            columns.append( (self * x)._vector_() )
+        for i in xrange(d):
+            columns.append( (self * x)._vector_(reverse=reverse) )
             x *= a
 
-        k = K.base_ring()
-        M = sage.matrix.matrix_space.MatrixSpace(k, d)
-
         if reverse:
-            return M(columns)
-        else:
-            return M(columns).transpose()
+            columns.reverse()
+
+        from sage.matrix.matrix_space import MatrixSpace
+        M = MatrixSpace(K.base_ring(), d)
+
+        return M(columns).transpose()
+
     def _latex_(self):
         r"""
         Return the latex representation of self, which is just the
@@ -329,7 +319,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``var`` - default: ``None`` - a string for a new variable name to use.
+        - ``var`` -- default: ``None`` - a string for a new variable name to use.
 
         EXAMPLES::
 
@@ -374,11 +364,11 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``var`` - string (default: 'x')
+        - ``var`` -- string (default: 'x')
 
-        - ``algorithm`` - string (default: 'matrix')
+        - ``algorithm`` -- string (default: 'matrix')
 
-          - 'matrix' - return the charpoly computed from the matrix of
+          - 'matrix' -- return the charpoly computed from the matrix of
             left multiplication by self
 
           - 'pari' -- use pari's charpoly routine on polymods, which
@@ -561,7 +551,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
                This option is not implemented!
 
-        -  ``all`` - bool (default: ``False``); if ``True``, return all
+        -  ``all`` -- bool (default: ``False``); if ``True``, return all
            square roots of ``self``, instead of just one.
 
         .. WARNING::
@@ -608,17 +598,17 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``n`` - integer `\geq 1`
+        - ``n`` -- integer `\geq 1`
 
-        - ``extend`` - bool (default: ``False``); if ``True``, return an `n`\th
+        - ``extend`` -- bool (default: ``False``); if ``True``, return an `n`\th
           root in an extension ring, if necessary. Otherwise, raise a
           ValueError if the root is not in the base ring.  Warning:
           this option is not implemented!
 
-        - ``all`` - bool (default: ``False``); if ``True``, return all `n`\th
+        - ``all`` -- bool (default: ``False``); if ``True``, return all `n`\th
           roots of ``self``, instead of just one.
 
-        - ``algorithm`` - string (default: ``None``); 'Johnston' is the only
+        - ``algorithm`` -- string (default: ``None``); 'Johnston' is the only
           currently supported option.  For IntegerMod elements, the problem
           is reduced to the prime modulus case using CRT and `p`-adic logs,
           and then this algorithm used.
@@ -731,7 +721,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``k`` - integer (default: 1, must fit in C int type)
+        - ``k`` -- integer (default: 1, must fit in C int type)
 
         Note that if `k` is negative, then this computes the appropriate root.
 
@@ -765,7 +755,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``k`` - integer (default: 1, must fit in C int type)
+        - ``k`` -- integer (default: 1, must fit in C int type)
 
         Note that if `k` is negative, then this computes the appropriate power.
 

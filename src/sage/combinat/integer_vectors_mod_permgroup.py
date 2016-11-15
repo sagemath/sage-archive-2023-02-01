@@ -82,13 +82,13 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
 
         sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
         sage: I.category()
-        Join of Category of infinite enumerated sets and Category of quotients of sets
+        Category of infinite enumerated quotients of sets
         sage: I.cardinality()
         +Infinity
         sage: I.list()
         Traceback (most recent call last):
         ...
-        NotImplementedError: infinite list
+        NotImplementedError: cannot list an infinite set
         sage: p = iter(I)
         sage: for i in range(10): next(p)
         [0, 0, 0]
@@ -273,7 +273,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: I
             Integer vectors of length 4 enumerated up to the action of Permutation Group with generators [(1,2,3,4)]
             sage: I.category()
-            Join of Category of infinite enumerated sets and Category of quotients of sets
+            Category of infinite enumerated quotients of sets
             sage: TestSuite(I).run()
         """
         SearchForest.__init__(self, algorithm = 'breadth', category = InfiniteEnumeratedSets().Quotients())

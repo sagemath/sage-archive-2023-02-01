@@ -16,7 +16,7 @@ Home page: https://github.com/aaren/notedown
 == Dependencies ==
 
 * Python
-* setuptools 
+* setuptools
 * nbformat
 * nbconvert
 * six

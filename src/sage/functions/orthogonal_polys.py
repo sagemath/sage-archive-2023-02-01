@@ -751,7 +751,7 @@ class Func_chebyshev_T(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_T`` using an explicit formula.
-        See [AS1964]_ 227 (p. 782) for details for the recurions.
+        See [AS1964]_ 227 (p. 782) for details for the recursions.
         See also [Koe1999]_ for fast evaluation techniques.
 
         INPUT:
@@ -958,7 +958,8 @@ class Func_chebyshev_U(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_U`` using an explicit formula.
-        See [AS1964]_ 227 (p. 782) for details on the recurions.
+
+        See [AS1964]_ 227 (p. 782) for details on the recursions.
         See also [Koe1999]_ for the recursion formulas.
 
         INPUT:
@@ -1323,6 +1324,12 @@ class Func_hermite(GinacFunction):
         Traceback (most recent call last):
         ...
         RuntimeError: hermite_eval: The index n must be a nonnegative integer
+
+        sage: _ = var('m x')
+        sage: hermite(m, x).diff(m)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: derivative w.r.t. to the index is not supported yet
     """
     def __init__(self):
         r"""
@@ -1435,11 +1442,25 @@ def legendre_Q(n, x):
 
 
 class Func_ultraspherical(GinacFunction):
-    """
-    Returns the ultraspherical (or Gegenbauer) polynomial for integers
-    `n > -1`.
+    r"""
+    Return the ultraspherical (or Gegenbauer) polynomial gegenbauer(n,a,x),
 
-    Computed using Maxima.
+    .. MATH::
+
+        C_n^{a}(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k\frac{\Gamma(n-k+a)}
+        {\Gamma(a)k!(n-2k)!}(2x)^{n-2k}.
+
+    When `n` is a nonnegative integer, this formula gives a
+    polynomial in `z` of degree `n`, but all parameters are
+    permitted to be complex numbers. When `a = 1/2`, the
+    Gegenbauer polynomial reduces to a Legendre polynomial.
+
+    Computed using Pynac.
+
+    For numerical evaluation, consider using the `mpmath library,
+    <http://mpmath.org/doc/current/functions/orthogonal.html#gegenbauer-polynomials>`_,
+    as it also allows complex numbers (and negative `n` as well);
+    see the examples below.
 
     REFERENCE:
 
@@ -1452,15 +1473,12 @@ class Func_ultraspherical(GinacFunction):
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: ultraspherical(2,3/2,x)
         15/2*x^2 - 3/2
-        sage: ultraspherical(2,1/2,x)
-        3/2*x^2 - 1/2
         sage: ultraspherical(1,1,x)
         2*x
         sage: t = PolynomialRing(RationalField(),"t").gen()
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
-        sage: var('x')
-        x
+        sage: _=var('x');
         sage: for N in range(100):
         ....:     n = ZZ.random_element().abs() + 5
         ....:     a = QQ.random_element().abs() + 5
@@ -1470,15 +1488,46 @@ class Func_ultraspherical(GinacFunction):
         sage: ultraspherical(5,9/10,RealField(100)(pi))
         6949.4695419382702451843080687
 
-        sage: _ = var('a')
+        sage: _ = var('a n')
         sage: gegenbauer(2,a,x)
         2*(a + 1)*a*x^2 - a
         sage: gegenbauer(3,a,x)
-        2/3*(2*(a + 1)*a*x^2 - a)*(a + 2)*x - 2/3*(2*a + 1)*a*x
+        4/3*(a + 2)*(a + 1)*a*x^3 - 2*(a + 1)*a*x
         sage: gegenbauer(3,a,x).expand()
         4/3*a^3*x^3 + 4*a^2*x^3 + 8/3*a*x^3 - 2*a^2*x - 2*a*x
         sage: gegenbauer(10,a,x).expand().coefficient(x,2)
         1/12*a^6 + 5/4*a^5 + 85/12*a^4 + 75/4*a^3 + 137/6*a^2 + 10*a
+        sage: ex = gegenbauer(100,a,x)
+        sage: (ex.subs(a==55/98) - gegenbauer(100,55/98,x)).is_trivial_zero()
+        True
+
+        sage: gegenbauer(2,-3,x)
+        12*x^2 + 3
+        sage: gegenbauer(120,-99/2,3)
+        1654502372608570682112687530178328494861923493372493824
+        sage: gegenbauer(5,9/2,x)
+        21879/8*x^5 - 6435/4*x^3 + 1287/8*x
+        sage: gegenbauer(15,3/2,5)
+        3903412392243800
+
+        sage: derivative(gegenbauer(n,a,x),x)
+        2*a*gegenbauer(n - 1, a + 1, x)
+        sage: derivative(gegenbauer(3,a,x),x)
+        4*(a + 2)*(a + 1)*a*x^2 - 2*(a + 1)*a
+        sage: derivative(gegenbauer(n,a,x),a)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: derivative w.r.t. to the second index is not supported yet
+
+    Numerical evaluation with the mpmath library::
+
+        sage: from mpmath import gegenbauer as gegenbauer_mp
+        sage: from mpmath import mp
+        sage: mp.pretty = True; mp.dps=25
+        sage: gegenbauer_mp(-7,0.5,0.3)
+        0.1291811875
+        sage: gegenbauer_mp(2+3j, -0.75, -1000j)
+        (-5038991.358609026523401901 + 9414549.285447104177860806j)
 
     TESTS:
 

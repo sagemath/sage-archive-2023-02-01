@@ -1,4 +1,4 @@
-numpy libfplll
+$(PYTHON) cython cysignals numpy libfplll
 
 ----------
 All lines of this file are ignored except the first.

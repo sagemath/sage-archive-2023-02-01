@@ -330,6 +330,10 @@ REFERENCES:
             Analysis*. Cambridge University Press, New
             York. 2012. IBSN 978-1-107-01617-0.
 
+.. [Cha92] Chameni-Nembua C. and Monjardet B.
+           *Les Treillis Pseudocomplémentés Finis*
+           Europ. J. Combinatorics (1992) 13, 89-107.
+
 .. [Cha2006] Ruth Charney. *An introduction to right-angled Artin
              groups*. http://people.brandeis.edu/~charney/papers/RAAGfinal.pdf,
              :arxiv:`math/0610668`.

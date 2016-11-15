@@ -71,9 +71,9 @@ if [[ "$V" = 0 && $use_prefix = true ]]; then
     ( exec>> $logfile 2>&1 ; eval "$cmd" )
     status=$?
     if [[ $status != 0 ]]; then
-	echo "  [$logname] error installing, exit status $status. Log file: $logfile"
+        echo "  [$logname] error installing, exit status $status. Log file: $logfile"
     else
-	echo "  [$logname] successfully installed."
+        echo "  [$logname] successfully installed."
     fi
     exit $status
 else
@@ -81,13 +81,13 @@ else
     # We trap SIGINT such that SIGINT interrupts the main process being
     # run, not the logging.
     ( exec 2>&1; eval "$cmd" ) | \
-	( trap '' SIGINT; tee -a "$logfile" | $SED )
+        ( trap '' SIGINT; tee -a "$logfile" | $SED )
 
     pipestatus=(${PIPESTATUS[*]})
 
     if [ ${pipestatus[1]} -ne 0 ]; then
-	exit ${pipestatus[1]}
+        exit ${pipestatus[1]}
     else
-	exit ${pipestatus[0]}
+        exit ${pipestatus[0]}
     fi
 fi

@@ -59,7 +59,7 @@ def QuasiQuadraticResidueCode(p):
     EXAMPLES::
 
         sage: C = codes.QuasiQuadraticResidueCode(11); C   # optional - gap_packages (Guava package)
-        Linear code of length 22, dimension 11 over Finite Field of size 2
+        [22, 11] linear code over GF(2)
 
     REFERENCES:
 
@@ -102,9 +102,9 @@ def RandomLinearCodeGuava(n, k, F):
     EXAMPLES::
 
         sage: C = codes.RandomLinearCodeGuava(30,15,GF(2)); C      # optional - gap_packages (Guava package)
-        Linear code of length 30, dimension 15 over Finite Field of size 2
+        [30, 15] linear code over GF(2)
         sage: C = codes.RandomLinearCodeGuava(10,5,GF(4,'a')); C      # optional - gap_packages (Guava package)
-        Linear code of length 10, dimension 5 over Finite Field in a of size 2^2
+        [10, 5] linear code over GF(4)
 
     AUTHOR: David Joyner (11-2005)
     """

@@ -1090,7 +1090,7 @@ cdef class Dist_vector(Dist):
 
         OUTPUT:
 
-        - this distribtion, after normalizing.
+        - this distribution, after normalizing.
 
         .. WARNING::
 

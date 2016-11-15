@@ -122,7 +122,7 @@ class HasseDiagram(DiGraph):
         """
         return self.topological_sort_generator()
 
-    def is_linear_extension(self,lin_ext=None):
+    def is_linear_extension(self, lin_ext=None):
         r"""
         Test if an ordering is a linear extension.
 
@@ -130,18 +130,18 @@ class HasseDiagram(DiGraph):
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
-            sage: H.is_linear_extension(range(4))
+            sage: H.is_linear_extension(list(range(4)))
             True
             sage: H.is_linear_extension([3,2,1,0])
             False
         """
         if lin_ext is None or lin_ext == list(range(len(self))):
-            for x,y in self.cover_relations_iterator():
+            for x, y in self.cover_relations_iterator():
                 if not x < y:
                     return False
             return True
         else:
-            for x,y in self.cover_relations_iterator():
+            for x, y in self.cover_relations_iterator():
                 if not lin_ext.index(x) < lin_ext.index(y):
                     return False
             return True
@@ -2099,6 +2099,55 @@ class HasseDiagram(DiGraph):
         max_sublats = self.maximal_sublattices()
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
+
+    def skeleton(self):
+        """
+        Return the skeleton of the lattice.
+
+        The lattice is expected to be pseudocomplemented and non-empty.
+
+        The skeleton of the lattice is the subposet induced by
+        those elements that are the pseudocomplement to at least one
+        element.
+
+        OUTPUT:
+
+        List of elements such that the subposet induced by them is
+        the skeleton of the lattice.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3, 4], 2: [4],
+            ....:                   3: [5], 4: [5]})
+            sage: H.skeleton()
+            [5, 2, 0, 3]
+        """
+        p_atoms = []
+        for atom in self.neighbor_out_iterator(0):
+            p_atom = self.pseudocomplement(atom)
+            if p_atom is None:
+                raise ValueError("lattice is not pseudocomplemented")
+            p_atoms.append(p_atom)
+        n = len(p_atoms)
+        mt = self._meet
+        pos = [0] * n
+        meets = [self.order()-1] * n
+        result = [self.order()-1]
+        i = 0
+
+        while i >= 0:
+            new_meet = mt[meets[i-1], p_atoms[pos[i]]]
+            result.append(new_meet)
+            if pos[i] == n-1:
+                i -= 1
+                pos[i] = pos[i]+1
+            else:
+                meets[i] = new_meet
+                pos[i+1] = pos[i]+1
+                i += 1
+
+        return result
 
     def is_convex_subset(self, S):
         r"""

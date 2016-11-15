@@ -236,7 +236,7 @@ class PBWCrystalElement(Element):
         EXAMPLES::
 
             sage: B = crystals.infinity.PBW(["A2"])
-            sage: s = B((1,2,1), (3,0,0))
+            sage: s = B((3,0,0), (1,2,1))
             sage: s.epsilon(1)
             3
             sage: s.epsilon(2)
@@ -252,7 +252,7 @@ class PBWCrystalElement(Element):
         EXAMPLES::
 
             sage: B = crystals.infinity.PBW(['A', 2])
-            sage: s = B((1,2,1), (3,0,0))
+            sage: s = B((3,0,0), (1,2,1))
             sage: s.phi(1)
             -3
             sage: s.phi(2)
@@ -269,7 +269,7 @@ class PBWCrystalElement(Element):
         EXAMPLES::
 
             sage: B = crystals.infinity.PBW(['A', 2])
-            sage: s = B((1,2,1), (2,2,2))
+            sage: s = B((2,2,2), (1,2,1))
             sage: s.weight()
             (-4, 0, 4)
         """
@@ -282,10 +282,18 @@ class PBWCrystalElement(Element):
         Return the starred crystal element corresponding
         to ``self``.
 
+        Let `b` be an element of ``self`` with Lusztig datum
+        `(b_1, \ldots, b_N)` with respect to `w_0 = s_{i_1} \cdots s_{i_N}`.
+        Then `b^*` is the element with Lusztig datum `(b_N, \ldots, b_1)`
+        with respect to `w_0 = s_{i_N^*} \cdots s_{i_1^*}`, where
+        `i_j^* = \omega(i_j)` with `\omega` being the :meth:`automorphism
+        <sage.combinat.root_system.cartan_type.CartanType_standard_finite.opposition_automorphism>`
+        given by the action of `w_0` on the simple roots.
+
         EXAMPLES::
 
             sage: P = crystals.infinity.PBW(['A', 2])
-            sage: P((1,2,1), (1,2,3)).star() == P((1,2,1), (3,2,1))
+            sage: P((1,2,3), (1,2,1)).star() == P((3,2,1), (2,1,2))
             True
 
             sage: B = crystals.infinity.PBW(['E', 6])
@@ -293,6 +301,34 @@ class PBWCrystalElement(Element):
             sage: c = b.f_string([1,2,6,3,4,2,5,2,3,4,1,6])
             sage: c == c.star().star()
             True
+
+        TESTS::
+
+            sage: from itertools import product
+            sage: def test_star(PBW, depth):
+            ....:     S = crystals.infinity.Star(PBW)
+            ....:     for f_str in product(*([PBW.index_set()]*depth)):
+            ....:         x = PBW.highest_weight_vector().f_string(f_str).star()
+            ....:         y = S.highest_weight_vector().f_string(f_str)
+            ....:         assert x.lusztig_datum() == y.value.lusztig_datum()
+            sage: P = crystals.infinity.PBW(['A', 2])
+            sage: test_star(P, 5)
+            sage: P = crystals.infinity.PBW(['A', 3])
+            sage: test_star(P, 5)
+            sage: P = crystals.infinity.PBW(['B', 3])
+            sage: test_star(P, 5)
+            sage: P = crystals.infinity.PBW(['C', 3])
+            sage: test_star(P, 5)
+            sage: P = crystals.infinity.PBW(['D', 4])
+            sage: test_star(P, 5)  # long time
+            sage: P = crystals.infinity.PBW(['D', 5])
+            sage: test_star(P, 4)  # long time
+            sage: P = crystals.infinity.PBW(['E', 6])
+            sage: test_star(P, 4)  # long time
+            sage: P = crystals.infinity.PBW(['F', 4])
+            sage: test_star(P, 4)  # long time
+            sage: P = crystals.infinity.PBW(['G', 2])
+            sage: test_star(P, 5)
         """
         starred_pbw_datum = self._pbw_datum.star()
         return type(self)(self.parent(), starred_pbw_datum.lusztig_datum,

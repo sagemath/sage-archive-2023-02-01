@@ -169,10 +169,11 @@ class PBWDatum(object):
             sage: from sage.combinat.crystals.pbw_datum import PBWData, PBWDatum
             sage: P = PBWData("A2")
             sage: L1 = PBWDatum(P, (1,2,1), (1,2,3))
-            sage: L1.star() == PBWDatum(P, (1,2,1), (3,2,1))
+            sage: L1.star() == PBWDatum(P, (2,1,2), (3,2,1))
             True
         """
-        reversed_long_word = reversed(self.long_word)
+        aut = self.parent.cartan_type.opposition_automorphism()
+        reversed_long_word = [aut[i] for i in reversed(self.long_word)]
         reversed_lusztig_datum = reversed(self.lusztig_datum)
         return PBWDatum(self.parent, reversed_long_word, reversed_lusztig_datum)
 

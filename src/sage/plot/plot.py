@@ -150,7 +150,7 @@ both axes, even if it is quite close::
 When the labels have quite different orders of magnitude or are very
 large, scientific notation (the `e` notation for powers of ten) is used::
 
-    sage: plot(x^2,(x,480,500))  # no scientific notation
+    sage: plot(x^2, (x,480,500))  # no scientific notation
     Graphics object consisting of 1 graphics primitive
 
 .. PLOT::

@@ -171,6 +171,40 @@ from sage.combinat.skew_tableau import SkewTableau
 from copy import copy
 
 class GrowthDiagram(SageObject):
+    r"""
+    The base class all variants of growth diagrams inherit from.
+
+    Inheriting classes should provide an ``__init__`` method that
+    checks that ``labels``, when provided, are of the correct
+    type, and sets the following attributes:
+
+    - ``self._zero``, the the zero element of the vertices of the
+      graphs,
+
+    - ``self._rank_function``, the rank function of the dual
+      graded graphs,
+
+    - ``self._covers_1``, ``self._covers_2``, functions taking
+      two vertices as arguments and return True if the first
+      covers the second in the respective graded graph.
+
+    It should then call the ``__init__`` method of this class.
+
+    EXAMPLES::
+
+        sage: w = [3,3,2,4,1]; G = GrowthDiagramRSK(w)
+        sage: [G.P_symbol(), G.Q_symbol()]
+        [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+        sage: RSK(w)
+        [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+
+    TESTS::
+
+        sage: G = GrowthDiagramRSK()
+        Traceback (most recent call last):
+        ...
+        ValueError: please provide a filling or a sequence of labels.
+    """
     def __init__(self,
                  filling = None,
                  shape = None,
@@ -218,22 +252,6 @@ class GrowthDiagram(SageObject):
           If ``labels`` is ``None`` (in which case ``filling`` must
           not be ``None``) the value of ``self._zero`` is used to
           initialise ``labels``.
-
-        EXAMPLES::
-
-            sage: w = [3,3,2,4,1]; G = GrowthDiagramRSK(w)
-            sage: [G.P_symbol(), G.Q_symbol()]
-            [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
-            sage: RSK(w)
-            [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
-
-        TESTS::
-
-            sage: G = GrowthDiagramRSK()
-            Traceback (most recent call last):
-            ...
-            ValueError: please provide a filling or a sequence of labels.
-
         """
         try:
             self._covers_1((self._zero, self._zero))
@@ -966,42 +984,36 @@ class GrowthDiagramBinWord(GrowthDiagram):
     .. automethod:: _forward_rule
     .. automethod:: _backward_rule
 
-    TESTS:
+    TESTS::
+
+        sage: G = GrowthDiagramBinWord([1,3,2])
+        sage: G._zero
+        word:
+        sage: G = GrowthDiagramBinWord(labels = [[1,1],[1,1,0],[0,1]])
+        Traceback (most recent call last):
+        ...
+        AssertionError: 01 has smaller rank than 110 but isn't covered by it!
+
+        sage: G = GrowthDiagramBinWord(labels = [[1,1],[1,0,1],[0,1]])
+        Traceback (most recent call last):
+        ...
+        AssertionError: 11 has smaller rank than 101 but isn't covered by it!
+
+        sage: pi = Permutations(10).random_element()
+        sage: G = GrowthDiagramBinWord(pi)
+        sage: list(GrowthDiagramBinWord(labels=G.out_labels())) == list(G)
+        True
 
     Test that the Kleitman Greene invariant is indeed the descent word::
 
         sage: r=4; all(Word([0 if i in w.descents(from_zero=False) else 1 for i in range(r)]) == GrowthDiagramBinWord(w).out_labels()[r] for w in Permutations(r))
         True
+
     """
     def __init__(self,
                  filling = None,
                  shape = None,
                  labels = None):
-        r"""
-        Initialize the zero element and the rank function of the dual
-        graded graphs on binary words.  Make sure that ``labels`` are
-        binary words.
-
-        TESTS::
-
-            sage: G = GrowthDiagramBinWord([1,3,2])
-            sage: G._zero
-            word:
-            sage: G = GrowthDiagramBinWord(labels = [[1,1],[1,1,0],[0,1]])
-            Traceback (most recent call last):
-            ...
-            AssertionError: 01 has smaller rank than 110 but isn't covered by it!
-
-            sage: G = GrowthDiagramBinWord(labels = [[1,1],[1,0,1],[0,1]])
-            Traceback (most recent call last):
-            ...
-            AssertionError: 11 has smaller rank than 101 but isn't covered by it!
-
-            sage: pi = Permutations(10).random_element()
-            sage: G = GrowthDiagramBinWord(pi)
-            sage: list(GrowthDiagramBinWord(labels=G.out_labels())) == list(G)
-            True
-        """
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [Word(la, alphabet=[0,1]) for la in labels]
@@ -1012,6 +1024,8 @@ class GrowthDiagramBinWord(GrowthDiagram):
         super(GrowthDiagramBinWord, self).__init__(filling = filling,
                                                    shape = shape,
                                                    labels = labels)
+    __init__.__doc__ = GrowthDiagram.__init__.__doc__
+
 
     @staticmethod
     def _forward_rule(y, t, x, content):
@@ -1140,23 +1154,17 @@ class GrowthDiagramSylvester(GrowthDiagram):
 
     .. automethod:: _forward_rule
 
+    TESTS::
+
+        sage: G = GrowthDiagramSylvester([1,3,2])
+        sage: G._zero
+        .
+
     """
     def __init__(self,
                  filling = None,
                  shape = None,
                  labels = None):
-        r"""
-        Initialize the zero element and the rank function of the dual
-        graded graphs on binary trees.  Make sure that ``labels`` are
-        binary trees.
-
-        TESTS::
-
-            sage: G = GrowthDiagramSylvester([1,3,2])
-            sage: G._zero
-            .
-
-        """
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [BinaryTree(la) for la in labels]
@@ -1165,6 +1173,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
         super(GrowthDiagramSylvester, self).__init__(filling = filling,
                                                      shape = shape,
                                                      labels = labels)
+    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     @staticmethod
     def _forward_rule(y, t, x, content):
@@ -1371,42 +1380,37 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
 
     .. automethod:: _forward_rule
     .. automethod:: _backward_rule
+
+    TESTS::
+
+        sage: G = GrowthDiagramYoungFibonacci([1,3,2])
+        sage: G._zero
+        word:
+        sage: G = GrowthDiagramYoungFibonacci(labels = [[1],[1,0],[1]])
+        Traceback (most recent call last):
+        ...
+        ValueError: 0 not in alphabet!
+
+        sage: G = GrowthDiagramYoungFibonacci(labels = [[1,1],[1,2]])
+        Traceback (most recent call last):
+        ...
+        AssertionError: 11 has smaller rank than 12 but isn't covered by it!
+
+        sage: G = GrowthDiagramYoungFibonacci(labels = [[1,2],[1,1]])
+        Traceback (most recent call last):
+        ...
+        AssertionError: 11 has smaller rank than 12 but isn't covered by it!
+
+        sage: pi = Permutations(10).random_element()
+        sage: G = GrowthDiagramYoungFibonacci(pi)
+        sage: list(GrowthDiagramYoungFibonacci(labels=G.out_labels())) == list(G)
+        True
+
     """
     def __init__(self,
                  filling = None,
                  shape = None,
                  labels = None):
-        r"""
-        Initialize the zero element and the rank function of the Young
-        Fibonacci lattice.  Make sure that ``labels`` are words in
-        the alphabet 1,2.
-
-        TESTS::
-
-            sage: G = GrowthDiagramYoungFibonacci([1,3,2])
-            sage: G._zero
-            word:
-            sage: G = GrowthDiagramYoungFibonacci(labels = [[1],[1,0],[1]])
-            Traceback (most recent call last):
-            ...
-            ValueError: 0 not in alphabet!
-
-            sage: G = GrowthDiagramYoungFibonacci(labels = [[1,1],[1,2]])
-            Traceback (most recent call last):
-            ...
-            AssertionError: 11 has smaller rank than 12 but isn't covered by it!
-
-            sage: G = GrowthDiagramYoungFibonacci(labels = [[1,2],[1,1]])
-            Traceback (most recent call last):
-            ...
-            AssertionError: 11 has smaller rank than 12 but isn't covered by it!
-
-            sage: pi = Permutations(10).random_element()
-            sage: G = GrowthDiagramYoungFibonacci(pi)
-            sage: list(GrowthDiagramYoungFibonacci(labels=G.out_labels())) == list(G)
-            True
-
-        """
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [Word(la, alphabet=[1,2]) for la in labels]
@@ -1429,6 +1433,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
         super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
                                                           shape = shape,
                                                           labels = labels)
+    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     @staticmethod
     def _forward_rule(shape3, shape2, shape1, content):
@@ -1533,27 +1538,22 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
     relation, but only check partition containment, this class can
     also be used as a base class for growth diagrams modelling domino
     insertion, :class:`GrowthDiagramDomino`.
+
+    TESTS::
+
+        sage: G = GrowthDiagramBurge([])                                    # indirect doctest
+        sage: G._zero
+        []
+        sage: G = GrowthDiagramBurge(labels = [[1],[1]])                    # indirect doctest
+        Traceback (most recent call last):
+        ...
+        ValueError: Can only determine the shape of the growth diagram if ranks of successive labels differ.
+
     """
     def __init__(self,
                  filling = None,
                  shape = None,
                  labels = None):
-        r"""
-        Initialize the zero element and the rank function of the dual
-        graded graphs on integer partitions.  Make sure that
-        ``labels`` are integer partitions.
-
-        TESTS::
-
-            sage: G = GrowthDiagramBurge([])                                    # indirect doctest
-            sage: G._zero
-            []
-            sage: G = GrowthDiagramBurge(labels = [[1],[1]])                    # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: Can only determine the shape of the growth diagram if ranks of successive labels differ.
-
-        """
         if labels is not None:
             labels = [Partition(la) for la in labels]
         self._zero = Partition([])
@@ -1561,6 +1561,7 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
         super(GrowthDiagramOnPartitions, self).__init__(filling = filling,
                                                         shape = shape,
                                                         labels = labels)
+    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     def P_symbol(self):
         r"""

@@ -277,7 +277,7 @@ def clear_vars():
     """
     G = globals()
     from sage.symbolic.ring import is_SymbolicVariable
-    for i in range(65,65+26) + range(97,97+26):
+    for i in list(range(65, 65 + 26)) + list(range(97, 97 + 26)):
         if chr(i) in G and is_SymbolicVariable(G[chr(i)]):
             # We check to see if there is a corresponding pyobject
             # associated with the expression.  This will work for
@@ -287,6 +287,3 @@ def clear_vars():
                 G[chr(i)].pyobject()
             except TypeError:
                 del G[chr(i)]
-
-
-

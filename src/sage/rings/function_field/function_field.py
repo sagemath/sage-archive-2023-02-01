@@ -584,8 +584,8 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``f`` -- an element of this function field which is already defined
-          over the base field
+        - ``f`` -- an element of this function field which lies in the base
+          field.
 
         EXAMPLES::
 
@@ -1444,7 +1444,7 @@ class RationalFunctionField(FunctionField):
         INPUT:
 
         - ``f`` -- an element of this rational function field which is a
-          constant
+          constant of the underlying rational function field.
 
         EXAMPLES::
 

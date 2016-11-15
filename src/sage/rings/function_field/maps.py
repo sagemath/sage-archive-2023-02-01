@@ -463,21 +463,6 @@ class FunctionFieldMorphism(RingHomomorphism):
         self._im_gen = im_gen
         self._base_morphism = base_morphism
 
-    def is_injective(self):
-        """
-        Returns True since homomorphisms of fields are injective.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: f = K.hom(1/x); f
-            Function Field endomorphism of Rational function field in x over Rational Field
-              Defn: x |--> 1/x
-            sage: f.is_injective()
-            True
-        """
-        return True
-
     def _repr_type(self):
         r"""
         Return the type of this map (a morphism of function fields), for the

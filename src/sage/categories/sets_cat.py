@@ -1734,6 +1734,32 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 raising ``NotImplementedError`` could be provided instead.
             """
 
+        def is_injective(self):
+            r"""
+            Return whether this map is injective.
+
+            EXAMPLES::
+
+                sage: f = ZZ.hom(GF(3)); f
+                sage: f.is_injective()
+                False
+
+            Note that many maps do not implement this method::
+
+                sage: R.<x> = ZZ[]
+                sage: f = R.hom([x])
+                sage: f.is_injective()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            """
+            if self.domain().cardinality() <= 1:
+                return True
+            if self.domain().cardinality() > self.codomain().cardinality():
+                return False
+            raise NotImplementedError
+
     Enumerated = LazyImport('sage.categories.enumerated_sets', 'EnumeratedSets', at_startup=True)
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)

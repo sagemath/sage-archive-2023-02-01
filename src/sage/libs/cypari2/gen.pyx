@@ -4763,8 +4763,7 @@ cpdef gen objtogen(s):
     if isinstance(s, complex):
         return new_t_COMPLEX_from_double(PyComplex_RealAsDouble(s), PyComplex_ImagAsDouble(s))
 
-    if isinstance(s, (list, types.XRangeType,
-                        tuple, types.GeneratorType)):
+    if isinstance(s, (list, xrange, tuple, types.GeneratorType)):
         length = len(s)
         v = pari_instance._empty_vector(length)
         for i from 0 <= i < length:

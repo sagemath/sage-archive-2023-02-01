@@ -303,28 +303,6 @@ cdef class WordDatatype_char(WordDatatype):
         else:
             return op == 1 or op == 2 or op == 5
 
-    def __cmp__(self, other):
-        r"""
-        INPUT:
-
-        - ``other`` -- a word (WordDatatype_char)
-
-        TESTS::
-
-            sage: W = Words([0,1,2,3])
-            sage: cmp(W([0,1,0]), W([0,1,0]))
-            0
-            sage: cmp(W([0,1,0,0]), W([0,1,1]))
-            -1
-        """
-        if not isinstance(other, WordDatatype_char):
-            return NotImplemented
-
-        cdef int test = self._lexico_cmp(other)
-        if test:
-            return test
-        return (<Py_ssize_t> self._length) - (<Py_ssize_t> (<WordDatatype_char> other)._length)
-
     cdef int _lexico_cmp(self, WordDatatype_char other) except -2:
         r"""
         Lexicographic comparison of self and other up to

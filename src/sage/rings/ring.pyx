@@ -837,7 +837,16 @@ cdef class Ring(ParentWithGens):
             sage: ZZ.is_subring(GF(19))
             False
 
-        TESTS:
+        TESTS::
+
+            sage: QQ.is_subring(QQ['x'])
+            True
+            sage: QQ.is_subring(GF(7))
+            False
+            sage: QQ.is_subring(CyclotomicField(7))
+            True
+            sage: QQ.is_subring(ZZ)
+            False
 
         Every ring is a subring of itself, :trac:`17287`::
 

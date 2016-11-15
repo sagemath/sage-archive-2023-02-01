@@ -778,38 +778,6 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         return True
 
-    def is_subring(self, K):
-        r"""
-        Return ``True`` if `\QQ` is a subring of `K`.
-
-        We are only able to determine this in some cases, e.g., when
-        `K` is a field or of positive characteristic.
-
-        EXAMPLES::
-
-            sage: QQ.is_subring(QQ)
-            True
-            sage: QQ.is_subring(QQ['x'])
-            True
-            sage: QQ.is_subring(GF(7))
-            False
-            sage: QQ.is_subring(CyclotomicField(7))
-            True
-            sage: QQ.is_subring(ZZ)
-            False
-            sage: QQ.is_subring(Frac(ZZ))
-            True
-        """
-        if K.is_field():
-            return K.characteristic() == 0
-        if K.characteristic() != 0:
-            return False
-        try:
-            self.embeddings(K)
-        except (TypeError, ValueError):
-            return False
-        return True
-
     def is_field(self, proof = True):
         """
         Return ``True``, since the rational field is a field.

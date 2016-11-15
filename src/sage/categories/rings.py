@@ -17,6 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
 from sage.structure.element import Element
 from functools import reduce
+from sage.misc.cachefunc import cached_method
 
 class Rings(CategoryWithAxiom):
     """
@@ -59,6 +60,7 @@ class Rings(CategoryWithAxiom):
     _base_category_class_and_axiom = (Rngs, "Unital")
 
     class MorphismMethods:
+        @cached_method
         def is_injective(self):
             """
             Return whether or not this morphism is injective.

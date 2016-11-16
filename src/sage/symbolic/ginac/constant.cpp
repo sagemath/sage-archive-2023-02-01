@@ -96,6 +96,8 @@ ex constant::unarchive(const archive_node &n, lst &sym_lst)
 			return Catalan;
 		else if (s == Euler.name)
 			return Euler;
+		else if (s == NaN.name)
+			return NaN;
 		else {
 			ans = py_funcs.py_get_constant(s.c_str());
 			if (PyErr_Occurred() != nullptr) {

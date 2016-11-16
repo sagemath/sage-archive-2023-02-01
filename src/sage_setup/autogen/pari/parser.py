@@ -37,6 +37,7 @@ def sage_src_pari():
     """
     return os.path.join('sage', 'libs', 'pari')
 
+
 def pari_share():
     r"""
     Return the directory where the PARI data files are stored.
@@ -45,7 +46,7 @@ def pari_share():
 
         sage: from sage_setup.autogen.pari.parser import pari_share
         sage: pari_share()
-        '.../share/pari'
+        u'.../share/pari'
     """
     from subprocess import Popen, PIPE
     gp = Popen(["gp", "-f", "-q"], stdin=PIPE, stdout=PIPE)

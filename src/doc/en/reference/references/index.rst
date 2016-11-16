@@ -447,6 +447,9 @@ REFERENCES:
              manifolds", J. Indian Inst. Sci. 87 (2007), no. 4,
              429-449.
 
+.. [Dav1997] B.A. Davey, H.A. Priestley, "Introduction to Lattices and
+             Order, 1997.
+
 .. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
               Lyubashevsky. *Lattice Signatures and Bimodal
               Gaussians*; in Advances in Cryptology – CRYPTO 2013;

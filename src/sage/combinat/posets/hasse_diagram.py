@@ -2207,9 +2207,9 @@ class HasseDiagram(DiGraph):
 
         INPUT:
 
-        - ``parts``, a list of lists -- congruences to add
-        - ``start``, a disjoint set -- already computed congruence (or ``None``)
-        - ``stop_pairs``, a list of pairs -- list of pairs for stopping computation
+        - ``parts`` -- a list of lists; congruences to add
+        - ``start`` -- a disjoint set; already computed congruence (or ``None``)
+        - ``stop_pairs`` -- a list of pairs; list of pairs for stopping computation
 
         OUTPUT:
 
@@ -2221,8 +2221,7 @@ class HasseDiagram(DiGraph):
 
         ALGORITHM:
 
-        Use the quadrilateral argument from Introduction to Lattices and
-        Order, B.A. Davey, H.A. Priestley. 1997. p. 120.
+        Use the quadrilateral argument from page 120 of [Dav1997]_.
 
         Basically we take one block from todo-list, search quadrilateral
         blocks up and down against the block, and then complete them to

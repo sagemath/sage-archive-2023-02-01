@@ -1624,11 +1624,23 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return True
         raise AssertionError("bug in is_orthocomplemented()")
 
-    def is_atomic(self):
+    def is_atomic(self, certificate=False):
         r"""
         Return ``True`` if the lattice is atomic, and ``False`` otherwise.
 
         A lattice is atomic if every element can be written as a join of atoms.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where `e` is a join-irreducible element
+          that is not an atom. If ``certificate=False`` return
+          ``True`` or ``False``.
 
         EXAMPLES::
 
@@ -1639,6 +1651,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset({0: [1, 2], 1: [3], 2: [3], 3:[4]})
             sage: L.is_atomic()
             False
+            sage: L.is_atomic(certificate=True)
+            (False, 4)
 
         TESTS::
 
@@ -1659,16 +1673,37 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             :meth:`~FiniteLatticePoset.is_coatomic`
         """
-        return (self.cardinality() == 0 or
-                self._hasse_diagram.out_degree(0) ==
-                self._hasse_diagram.in_degree().count(1))
+        if not certificate:
+            return (self.cardinality() == 0 or
+                    self._hasse_diagram.out_degree(0) ==
+                    self._hasse_diagram.in_degree().count(1))
+        if self.cardinality() < 3:
+            return (True, None)
+        H = self._hasse_diagram
+        atoms = set(H.neighbors_out(0))
+        for v in H:
+            if H.in_degree(v) == 1 and v not in atoms:
+                return (False, self._vertex_to_element(v))
+        return (True, None)
 
-    def is_coatomic(self):
+    def is_coatomic(self, certificate=False):
         r"""
         Return ``True`` if the lattice is coatomic, and ``False`` otherwise.
 
         A lattice is coatomic if every element can be written as a meet
         of coatoms; i.e. if the dual of the lattice is atomic.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where `e` is a meet-irreducible element
+          that is not a coatom. If ``certificate=False`` return
+          ``True`` or ``False``.
 
         EXAMPLES::
 
@@ -1679,6 +1714,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset({1: [2], 2: [3, 4], 3: [5], 4:[5]})
             sage: L.is_coatomic()
             False
+            sage: L.is_coatomic(certificate=True)
+            (False, 1)
 
         TESTS::
 
@@ -1690,10 +1727,20 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             :meth:`~FiniteLatticePoset.is_atomic`
         """
         n = self.cardinality()
-        if n == 0:
-            return True
-        return (self._hasse_diagram.in_degree(n-1) ==
-                self._hasse_diagram.out_degree().count(1))
+        if not certificate:
+            if n == 0:
+                return True
+            return (self._hasse_diagram.in_degree(n-1) ==
+                    self._hasse_diagram.out_degree().count(1))
+
+        if self.cardinality() < 3:
+            return (True, None)
+        H = self._hasse_diagram
+        coatoms = set(H.neighbors_in(n-1))
+        for v in H:
+            if H.out_degree(v) == 1 and v not in coatoms:
+                return (False, self._vertex_to_element(v))
+        return (True, None)
 
     def is_geometric(self):
         """

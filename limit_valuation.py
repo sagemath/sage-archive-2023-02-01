@@ -355,7 +355,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
 class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuation):
     r"""
     A limit valuation that is a pseudo-valuation on polynomial ring `K[x]`
-    which sends an irreducible polynomial `G` to infinity.
+    which sends a square-free polynomial `G` to infinity.
 
     This uses the MacLane algorithm to compute the next element in the limit.
 

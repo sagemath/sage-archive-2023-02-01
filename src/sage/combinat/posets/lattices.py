@@ -40,8 +40,8 @@ List of (semi)lattice methods
 
     :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
     :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
-    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
-    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if all elements with common upper cover have a common lower cover.
+    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if all elements with common lower cover have a common upper cover.
     :meth:`~FiniteLatticePoset.is_semidistributive` | Return ``True`` if the lattice is both join- and meet-semidistributive.
     :meth:`~FiniteLatticePoset.is_join_semidistributive` | Return ``True`` if the lattice is join-semidistributive.
     :meth:`~FiniteLatticePoset.is_meet_semidistributive` | Return ``True`` if the lattice is meet-semidistributive.
@@ -1809,27 +1809,35 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         g.add_edge(0, self.cardinality()-1)
         return g.is_planar()
 
-    def is_modular(self, L=None):
+    def is_modular(self, L=None, certificate=False):
         r"""
         Return ``True`` if the lattice is modular and ``False`` otherwise.
 
+        A lattice is *modular* if `x \le b` implies
+        `x \vee (a \wedge b) = (x \vee a) \wedge b` for all `x`, `a` and
+        `b` in the lattice. There are other equivalent definitions,
+        see :wikipedia:`Modular_lattice`.
+
         Using the parameter ``L``, this can also be used to check that
-        some subset of elements are all modular.
+        some subset of elements are all modular. An element `x` in a
+        lattice `L` is *modular* if `x \leq b` implies
+        for every `a, b \in L`.
 
         INPUT:
 
         - ``L`` -- (default: ``None``) a list of elements to check being
           modular, if ``L`` is ``None``, then this checks the entire lattice
 
-        An element `x` in a lattice `L` is *modular* if `x \leq b` implies
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
 
-        .. MATH::
+        OUTPUT:
 
-            x \vee (a \wedge b) = (x \vee a) \wedge b
-
-        for every `a, b \in L`. We say `L` is modular if `x` is modular
-        for all `x \in L`. There are other equivalent definitions,
-        see :wikipedia:`Modular_lattice`.
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (x, a, b))``, where `a`, `b` and `x` are elements
+          of the lattice such that `x < b` but
+          `x \vee (a \wedge b) \not= (x \vee a) \wedge b`.
+          If ``certificate=False`` return ``True`` or ``False``.
 
         .. SEEALSO::
 
@@ -1846,29 +1854,46 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_modular()
             False
 
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_modular()
-            True
-
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
-            sage: L.is_modular()
-            False
+            sage: L.is_modular(certificate=True)
+            (False, (2, 6, 4))
             sage: [L.is_modular([x]) for x in L]
             [True, True, False, True, True, False, True]
 
-        ALGORITHM:
+        TESTS::
 
-        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+            sage: all(Posets.ChainPoset(i).is_modular() for i in range(4))
+            True
         """
+        if certificate and L is not None:
+            raise ValueError("parameters L and certificate can not be combined")
+        if not certificate and L is None:
+            return self.is_upper_semimodular() and self.is_lower_semimodular()
+        if certificate:
+            tmp = self.is_lower_semimodular(certificate=True)
+            if not tmp[0]:
+                a, b = tmp[1]
+                t = self.meet(a, b)
+                for x in self.upper_covers(t):
+                    if self.is_less_than(x, b):
+                        return (False, (x, a, b))
+                    if self.is_less_than(x, a):
+                        return (False, (x, b, a))
+            tmp = self.is_upper_semimodular(certificate=True)
+            if not tmp[0]:
+                x, a = tmp[1]
+                t = self.join(x, a)
+                for b in self.lower_covers(t):
+                    if self.is_greater_than(b, x):
+                        return (False, (x, a, b))
+                    if self.is_greater_than(b, a):
+                        return (False, (a, x, b))
+            return (True, None)
+
         if not self.is_ranked():
             return False
         H = self._hasse_diagram
         n = H.order()
-        if L is None:
-            return all(H._rank[a] + H._rank[b] ==
-                       H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
-                       for a in range(n) for b in range(a + 1, n))
-
         L = [self._element_to_vertex_dict[x] for x in L]
         return all(H._rank[a] + H._rank[b] ==
                    H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]

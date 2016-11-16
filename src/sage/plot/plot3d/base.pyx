@@ -369,6 +369,11 @@ cdef class Graphics3d(SageObject):
 
         Instance of
         :class:`sage.repl.rich_output.output_graphics3d.OutputSceneThreejs`.
+
+        EXAMPLES::
+
+            sage: sphere()._rich_repr_threejs()
+            OutputSceneThreejs container
         """
         options = {}
         options['aspect_ratio'] = [float(i) for i in kwds.get('aspect_ratio', [1,1,1])]

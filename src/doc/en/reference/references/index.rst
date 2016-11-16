@@ -448,8 +448,8 @@ REFERENCES:
              429-449.
 
 .. [Dav1997] B.A. Davey, H.A. Priestley,
-	     *Introduction to Lattices and Order*,
-	     Cambridge University Press, 1997.
+             *Introduction to Lattices and Order*,
+             Cambridge University Press, 1997.
 
 .. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
               Lyubashevsky. *Lattice Signatures and Bimodal

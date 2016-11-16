@@ -1080,7 +1080,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from sage.misc.all import prod
         unit *= self.lift(self.residue_ring()(prod([ psi.leading_coefficient()**e for psi,e in F ])))
         F = [(self.lift_to_key(psi/psi.leading_coefficient()),e) for psi,e in F]
-        unit *= prod([self.equivalence_unit(-self(g))**e for g,e in F])
+        unit *= prod([self.equivalence_reciprocal(self.equivalence_unit(self(g)))**e for g,e in F])
 
         if phi_divides:
             for i,(g,e) in enumerate(F):
@@ -1190,6 +1190,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         :meth:`augmentation` with this polynomial adjoins a root of ``F`` to
         the resulting :meth:`residue_ring`.
 
+        More specifically, if ``F`` is not the generator of the residue ring,
+        then multiplying ``f`` with the :meth:`equivalence_reciprocal` of the
+        :meth:`equivalence_unit` of the valuation of ``f``, produces a unit
+        which reduces to ``F``.
+
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
@@ -1238,11 +1243,20 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 tester.assertIs(f.parent(), self.domain())
                 tester.assertTrue(self.is_key(f))
 
+                # check that augmentation produces a valuation with roots of F
+                # in the residue ring
                 from sage.rings.all import infinity
                 w = self.augmentation(f, infinity)
                 F = F.change_ring(w.residue_ring())
                 roots = F.roots(multiplicities=False)
                 tester.assertGreaterEqual(len(roots), 1)
+                
+                # check that f has the right reduction
+                if F == F.parent().gen():
+                    tester.assertTrue(self.is_equivalent(f, self.phi()))
+                else:
+                    tester.assertEqual(self.reduce(f * self.equivalence_reciprocal(self.equivalence_unit(self(f)))), F)
+
 
     def _test_is_equivalence_irreducible(self, **options):
         r"""

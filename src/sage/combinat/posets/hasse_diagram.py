@@ -655,18 +655,6 @@ class HasseDiagram(DiGraph):
         """
         return bool(self.rank_function())
 
-    def is_graded(self):
-        r"""
-        Deprecated, has conflicting definition of "graded" vs. "ranked"
-        with posets.
-
-        Return ``True`` if the Hasse diagram is ranked. For definition
-        of ranked see :meth:`~rank_function`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16998, "Use is_ranked(). Definition conflict with posets.")
-        return self.is_ranked()
-
     def covers(self,x,y):
         """
         Returns True if y covers x and False otherwise.
@@ -1451,23 +1439,6 @@ class HasseDiagram(DiGraph):
                 return i
 
         return None
-
-    def complements(self):
-        r"""
-        Deprecated.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17138, "This function is broken. Do not use.")
-        jn = self.join_matrix()
-        mt = self.meet_matrix()
-        n = self.cardinality()
-        c = [None for x in range(n)]
-        for x in range(n):
-            for y in range(x,n):
-                if jn[x][y]==n-1 and mt[x][y]==0:
-                    c[x]=y
-                    c[y]=x
-        return c
 
     def pseudocomplement(self, element):
         """

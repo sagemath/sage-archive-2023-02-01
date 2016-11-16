@@ -1204,26 +1204,22 @@ class HasseDiagram(DiGraph):
             return matrix(0)
         if not self.has_top():
             raise ValueError("not a join-semilattice: no top element")
-        join = [[0 for x in range(n)] for x in range(n)]
-        le = self.lequal_matrix()
-        uc = [sorted([n-1-y for y in self.neighbors_out(x)]) for
-                x in reversed(range(n))]
+        join = [[n for x in range(n)] for x in range(n)]
+        uc = [self.neighbors_out(x) for x in range(n)]  # uc = upper covers
 
-        for x in range(n): # x=x_k
+        for x in range(n-1, -1, -1):
             join[x][x] = x
-
-            for y in range(x):
+            for y in range(n-1, x, -1):
                 T = [join[y][z] for z in uc[x]]
 
-                q = max(T)
+                q = min(T)
                 for z in T:
-                    if not le[n-1-q, n-1-z]:
-                        raise LatticeError('join', n-1-x, n-1-y)
+                    if join[z][q] != z:
+                        raise LatticeError('join', x, y)
                 join[x][y] = q
                 join[y][x] = q
 
-        return matrix(ZZ, [[n-1-join[n-1-x][n-1-y] for y in range(n)]
-                           for x in range(n)])
+        return matrix(ZZ, join)
 
     def join_matrix(self):
         r"""

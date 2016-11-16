@@ -3068,8 +3068,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: B = crystals.infinity.MVPolytopes(['A',3])
                 sage: L = RootSystem(['A',3]).ambient_space()
                 sage: p = B.highest_weight_vector().f_string([2,1,3,2])
-                sage: L = RootSystem(['A',3]).ambient_space()
                 sage: L.plot_mv_polytope(p)
+                Graphics3d Object
             """
             from sage.geometry.polyhedron.all import Polyhedron
             plot_options = self.plot_parse_options(**options)

@@ -9,6 +9,7 @@ Elements of Laurent polynomial rings
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
@@ -79,7 +80,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                 f = parent.polynomial_ring()((<LaurentPolynomial_univariate>f).__u)
         elif (not isinstance(f, Polynomial)) or (parent is not f.parent()):
             if isinstance(f, dict):
-                v = min(f.keys())
+                v = min(f)
                 f = dict((i-v,c) for i,c in f.items())
                 n += v
             f = parent.polynomial_ring()(f)
@@ -379,7 +380,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: R.<t> = LaurentPolynomialRing(QQ)
             sage: f = -5/t^(2) + t + t^2 - 10/3*t^3; f
             -5*t^-2 + t + t^2 - 10/3*t^3
-            sage: for a in f: print a
+            sage: for a in f: print(a)
             -5
             0
             0
@@ -388,6 +389,33 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             -10/3
         """
         return iter(self.__u)
+
+    def _symbolic_(self, R):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(QQ)
+            sage: f = x^3 + 2/x
+            sage: g = f._symbolic_(SR); g
+            (x^4 + 2)/x
+            sage: g(x=2)
+            9
+
+            sage: g = SR(f)
+            sage: g(x=2)
+            9
+
+        The polynomial does not have to be over a field of
+        characteristic 0::
+
+            sage: R.<w> = LaurentPolynomialRing(GF(7))
+            sage: f = SR(2*w^3 + 1); f
+            2*w^3 + 1
+            sage: f.variables()
+            (w,)
+        """
+        d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
+        return self.subs(**d)
 
     def dict(self):
         """
@@ -468,7 +496,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                 self.__u = self.__u._parent(coeffs)
         self.__normalize()
 
-    cpdef ModuleElement _add_(self, ModuleElement right_m):
+    cpdef _add_(self, right_m):
         """
         Add two Laurent polynomials with the same parent.
 
@@ -517,7 +545,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         # 3. Add
         return LaurentPolynomial_univariate(self._parent, f1 + f2, m)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right_m):
+    cpdef _sub_(self, right_m):
         """
         Subtract two Laurent polynomials with the same parent.
 
@@ -580,7 +608,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return LaurentPolynomial_univariate(self._parent, -self.__u, self.__n)
 
-    cpdef RingElement _mul_(self, RingElement right_r):
+    cpdef _mul_(self, right_r):
         """
         EXAMPLES::
 
@@ -595,7 +623,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         """
         EXAMPLES::
 
@@ -606,7 +634,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return LaurentPolynomial_univariate(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         """
         EXAMPLES::
 
@@ -657,7 +685,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             raise ValueError("exponent must be an integer")
         return LaurentPolynomial_univariate(self._parent, self.__u**right, self.__n*right)
 
-    cpdef RingElement _floordiv_(self, RingElement rhs):
+    cpdef _floordiv_(self, rhs):
         """
         Perform division with remainder and return the quotient.
 
@@ -727,7 +755,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return LaurentPolynomial_univariate(self._parent, self.__u, self.__n - k)
 
-    cpdef RingElement _div_(self, RingElement rhs):
+    cpdef _div_(self, rhs):
         """
         EXAMPLES::
 
@@ -864,7 +892,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         rl = LaurentPolynomial_univariate(self._parent, r, 0)
         return (ql, rl)
 
-    cpdef int _cmp_(self, Element right_r) except -2:
+    cpdef int _cmp_(self, right_r) except -2:
         r"""
         Comparison of ``self`` and ``right_r``.
 
@@ -1299,14 +1327,38 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             4*w*z^3 + w^-1*z^-1
             sage: L(1/2)
             1/2
+
+        TESTS::
+
+        Check that :trac:`19538` is fixed
+            
+            sage: R = LaurentPolynomialRing(QQ,'x2,x0')
+            sage: S = LaurentPolynomialRing(QQ,'x',3)
+            sage: f = S.coerce_map_from(R)
+            sage: f(R.gen(0) + R.gen(1)^2)
+            x0^2 + x2
+            sage: _.parent()
+            Multivariate Laurent Polynomial Ring in x0, x1, x2 over Rational Field
         """
         if isinstance(x, LaurentPolynomial_mpair):
-            x = x.dict()
+            # check if parent contains all the generators of x.parent() for coercions
+            try: 
+                inject_dict = dict(enumerate([parent.variable_names().index(v) for v in x.parent().variable_names()]))
+                tmp_x = x.dict()
+                x = dict()
+                n = int(parent.ngens())
+                m = len(inject_dict)
+                for k in tmp_x.keys():
+                    img_k = ETuple(dict([(inject_dict[a],k[a]) for a in xrange(m)]),n)
+                    x[img_k] = tmp_x[k]
+            # otherwise just pass along a dict for conversions 
+            except:
+                x = x.dict()
         elif isinstance(x, PolyDict):
             x = x.dict()
         if isinstance(x, dict):
             self._mon = ETuple({},int(parent.ngens()))
-            for k in x.keys(): # ETuple-ize keys, set _mon
+            for k in x: # ETuple-ize keys, set _mon
                 if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
                     self._mon = ETuple({}, int(parent.ngens()))
                     break
@@ -1318,7 +1370,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 self._mon = self._mon.emin(k) # point-wise min of _mon and k
             if len(self._mon.nonzero_positions()) != 0: # factor out _mon
                 D = {}
-                for k in x.keys():
+                for k in x:
                     D[k.esub(self._mon)] = x[k]
                 x = D
         else: # since x should coerce into parent, _mon should be (0,...,0)
@@ -1351,7 +1403,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: len({hash(w^i*z^j) for i in [-2..2] for j in [-2..2]}) > 20
             True
+
+        Check that :trac:`20490` is fixed::
+
+            sage: R.<a,b> = LaurentPolynomialRing(ZZ)
+            sage: p = a*~a
+            sage: p._fraction_pair()
+            (a, a)
+            sage: p == R.one()
+            True
+            sage: hash(p) == hash(R.one())
+            True
         """
+        self._normalize()
         return hash(self._poly) ^ hash(self._mon)
 
     cdef _new_c(self):
@@ -1387,7 +1451,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
         if i is None:
             e = None
-            for k in D.keys():
+            for k in D:
                 if e is None:
                     e = k
                 else:
@@ -1397,7 +1461,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 self._mon = self._mon.eadd(e)
         else:
             e = None
-            for k in D.keys():
+            for k in D:
                 if e is None or k[i] < e:
                     e = k[i]
             if e > 0:
@@ -1412,7 +1476,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: a = w^2*z^-1+3; a
             w^2*z^-1 + 3
             sage: d = a._dict()
-            sage: keys = list(sorted(d.keys())); keys
+            sage: keys = list(sorted(d)); keys
             [(0, 0), (2, -1)]
             sage: d[keys[0]]
             3
@@ -1423,7 +1487,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
         if len(self._mon.nonzero_positions()) > 0:
             DD = {}
-            for k in D.keys():
+            for k in D:
                 DD[k.eadd(self._mon)] = D[k]
             return DD
         else:
@@ -1468,7 +1532,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if len(coeffs) != 1:
             return False
         return coeffs[0].is_unit()
-        
+
     def _repr_(self):
         """
         EXAMPLES::
@@ -1539,7 +1603,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             P = self.parent()
             try:
                 c = c.inverse_of_unit()
-            except (AttributeError, ZeroDivisionError):
+            except (AttributeError, ZeroDivisionError, ArithmeticError):
                 c = ~c
                 if c.parent() is not P.base_ring():
                     P = P.change_ring(c.parent())
@@ -1826,7 +1890,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         g = self.parent().gens()
         nvars = len(g)
         vars = []
-        for k in d.keys():
+        for k in d:
             vars = union(vars,k.nonzero_positions())
             if len(vars) == nvars:
                 break
@@ -1875,7 +1939,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 denom *= var[i] ** (-j)
         return (numer, denom)
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Returns the Laurent polynomial self + right.
 
@@ -1900,7 +1964,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             ans._poly += right._poly
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         Returns the Laurent polynomial self - right.
 
@@ -1927,7 +1991,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             ans._poly -= right._poly
         return ans
 
-    cpdef RingElement _div_(self, RingElement rhs):
+    cpdef _div_(self, rhs):
         """
         Return the division of ``self`` by ``rhs``.
 
@@ -1981,7 +2045,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         d = self._poly.dict()
         return len(d) == 1 and 1 in d.values()
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Returns -self.
 
@@ -1998,7 +2062,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = -self._poly
         return ans
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Returns self * right where right is in self's base ring.
 
@@ -2015,7 +2079,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly * right
         return ans
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         Returns left*self where left is in self's base ring.
 
@@ -2032,7 +2096,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = left * self._poly
         return ans
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Return self*right.
 
@@ -2049,7 +2113,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly * (<LaurentPolynomial_mpair>right)._poly
         return ans
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Perform division with remainder and return the quotient.
 
@@ -2085,7 +2149,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly // (<LaurentPolynomial_mpair>right)._poly
         return ans
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         """
         EXAMPLES::
 
@@ -2318,7 +2382,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         d = self._dict()
         out = 0
-        for mon in d.keys():
+        for mon in d:
             term = d[mon]
             for i in range(len(mon)):
                 if i in vars:
@@ -2329,6 +2393,24 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             out += term
 
         return out
+
+    def _symbolic_(self, R):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = x^3 + y/x
+            sage: g = f._symbolic_(SR); g
+            x^3 + y/x
+            sage: g(x=2,y=2)
+            9
+
+            sage: g = SR(f)
+            sage: g(x=2,y=2)
+            9
+        """
+        d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
+        return self.subs(**d)
 
     def derivative(self, *args):
         r"""

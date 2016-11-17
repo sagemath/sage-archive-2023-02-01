@@ -172,6 +172,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import print_function, absolute_import
+from six import itervalues
+
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
     r"""
@@ -1910,7 +1913,7 @@ class SIE_call(SageInputExpression):
         """
         refs = self._sie_args[:]
         refs.append(self._sie_func)
-        refs.extend(self._sie_kwargs.itervalues())
+        refs.extend(itervalues(self._sie_kwargs))
         return refs
 
     def _sie_format(self, sif):
@@ -3143,7 +3146,7 @@ class SIE_import_name(SageInputExpression):
             sage: sie._sie_prepare(sif)
             sage: sie._sie_format(sif)
             ('make_integer(sad)', 40)
-            sage: print sif._commands
+            sage: print(sif._commands)
             from sage.rings.integer import make_integer
             from sage.foo import happy as sad
         """

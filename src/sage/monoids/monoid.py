@@ -28,7 +28,7 @@ def is_Monoid(x):
     return isinstance(x, Monoid_class)
 
 class Monoid_class(Parent):
-    def __init__(self,names):
+    def __init__(self, names):
         r"""
         EXAMPLES::
 
@@ -42,7 +42,8 @@ class Monoid_class(Parent):
             sage: TestSuite(F).run()
         """
         from sage.categories.monoids import Monoids
-        Parent.__init__(self, base=self,names=names,category=Monoids())
+        category = Monoids().FinitelyGeneratedAsMagma()
+        Parent.__init__(self, base=self, names=names, category=category)
 
     @cached_method
     def gens(self):
@@ -56,3 +57,17 @@ class Monoid_class(Parent):
             (a, b, c, d, e)
         """
         return tuple(self.gen(i) for i in range(self.ngens()))
+
+    def monoid_generators(self):
+        r"""
+        Returns the generators for ``self``.
+
+        EXAMPLES::
+
+            sage: F.<a,b,c,d,e> = FreeMonoid(5)
+            sage: F.monoid_generators()
+            Family (a, b, c, d, e)
+        """
+        from sage.sets.family import Family
+        return Family(self.gens())
+

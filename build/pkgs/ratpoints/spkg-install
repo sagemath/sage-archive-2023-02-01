@@ -22,8 +22,7 @@ else
 fi
 
 # Copy CFLAGS set externally to CCFLAGS.
-# Prepend -fnested-functions if supported by the compiler.
-CCFLAGS="`testcflags.sh -fnested-functions` $CFLAGS"
+CCFLAGS="$CFLAGS"
 
 # When CFLAG64 is not set, set it to the default -m64
 if [[ -z $CFLAG64 ]]; then

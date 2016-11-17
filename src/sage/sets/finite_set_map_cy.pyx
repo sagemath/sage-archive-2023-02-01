@@ -515,7 +515,7 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
 
             sage: F = FiniteSetMaps(["a", "b", "c", "d"], ["u", "v", "w"])
             sage: fs = F._from_list_([1, 0, 2, 1])
-            sage: map(fs.getimage, ["a", "b", "c", "d"])
+            sage: list(map(fs.getimage, ["a", "b", "c", "d"]))
             ['v', 'u', 'w', 'v']
         """
         parent = self._parent
@@ -650,7 +650,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
             [0, 1, 2]
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self, n, self.parent().one())
 
 
@@ -708,5 +708,5 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
             True
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self, n, self.parent().one())

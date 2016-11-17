@@ -1,7 +1,6 @@
 from .types cimport *
 from sage.libs.gmp.types cimport *
 from sage.libs.flint.types cimport fmpz_t, fmpz_mat_t
-from sage.structure.parent_base cimport ParentWithBase
 cimport cython
 
 from sage.libs.pari.gen cimport gen
@@ -10,13 +9,13 @@ cpdef long prec_bits_to_words(unsigned long prec_in_bits)
 cpdef long prec_words_to_bits(long prec_in_words)
 cpdef long default_bitprec()
 
-cdef class PariInstance_auto(ParentWithBase):
+cdef class PariInstance_auto:
     pass
 
 @cython.final
 cdef class PariInstance(PariInstance_auto):
     cdef long _real_precision
-    cdef gen PARI_ZERO, PARI_ONE, PARI_TWO
+    cdef readonly gen PARI_ZERO, PARI_ONE, PARI_TWO
     cpdef gen zero(self)
     cpdef gen one(self)
     cdef inline gen new_gen(self, GEN x)
@@ -35,7 +34,7 @@ cdef class PariInstance(PariInstance_auto):
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address)
     cdef gen new_ref(self, GEN g, gen parent)
     cdef gen _empty_vector(self, long n)
-    cdef long get_var(self, v)
+    cdef long get_var(self, v) except -2
     cdef GEN _new_GEN_from_fmpz_mat_t(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc)
     cdef GEN _new_GEN_from_fmpz_mat_t_rotate90(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc)
     cdef gen integer_matrix(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf)

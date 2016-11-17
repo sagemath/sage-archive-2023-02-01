@@ -14,6 +14,7 @@ overridden by subclasses.
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 import operator as _operator
 from sage.rings.rational_field import QQ
@@ -21,6 +22,7 @@ from sage.symbolic.ring import SR
 from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
+from sage.functions.piecewise import piecewise
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
@@ -347,7 +349,7 @@ class Converter(object):
 
             sage: from sage.symbolic.expression_conversions import Converter
             sage: a = function('f', x).diff(x); a
-            D[0](f)(x)
+            diff(f(x), x)
             sage: Converter().derivative(a, a.operator())
             Traceback (most recent call last):
             ...
@@ -492,11 +494,11 @@ class InterfaceInit(Converter):
             sage: m = InterfaceInit(maxima)
             sage: f = function('f')
             sage: a = f(x).diff(x); a
-            D[0](f)(x)
-            sage: print m.derivative(a, a.operator())
+            diff(f(x), x)
+            sage: print(m.derivative(a, a.operator()))
             diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 1)
             sage: b = f(x).diff(x, x)
-            sage: print m.derivative(b, b.operator())
+            sage: print(m.derivative(b, b.operator()))
             diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 2)
 
         We can also convert expressions where the argument is not just a
@@ -523,7 +525,7 @@ class InterfaceInit(Converter):
 
             sage: f = function('f', x)
             sage: df = f.diff(x); df
-            D[0](f)(x)
+            diff(f(x), x)
             sage: maxima(df)
             'diff('f(_SAGE_VAR_x),_SAGE_VAR_x,1)
 
@@ -552,7 +554,7 @@ class InterfaceInit(Converter):
             sage: x, y = var('x y')
             sage: f = function('f')(x, y)
             sage: f_x = f.diff(x); f_x
-            D[0](f)(x, y)
+            diff(f(x, y), x)
             sage: maxima(f_x)
             'diff('f(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)
 
@@ -574,6 +576,13 @@ class InterfaceInit(Converter):
             sage: bool(b.sage() == a)
             True
 
+        Test a special case (:trac:`16697`)::
+
+            sage: x,y = var('x,y')
+            sage: (gamma_inc(x,y).diff(x))
+            diff(gamma(x, y), x)
+            sage: (gamma_inc(x,x+1).diff(x)).simplify()
+            -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
         """
         #This code should probably be moved into the interface
         #object in a nice way.
@@ -840,7 +849,7 @@ class AlgebraicConverter(Converter):
             if base == e and expt / (pi*I) in QQ:
                 return exp(expt)._algebraic_(self.field)
 
-        raise TypeError("unable to convert %s to %s"%(ex, self.field))
+        raise TypeError("unable to convert %r to %s"%(ex, self.field))
 
     def composition(self, ex, operator):
         """
@@ -902,8 +911,8 @@ class AlgebraicConverter(Converter):
             #We have to handle the case where we get the same symbolic
             #expression back.  For example, QQbar(zeta(7)).  See
             #ticket #12665.
-            if cmp(res, ex) == 0:
-                raise TypeError("unable to convert %s to %s"%(ex, self.field))
+            if (res - ex).is_trivial_zero():
+                raise TypeError("unable to convert %r to %s"%(ex, self.field))
         return self.field(res)
 
 def algebraic(ex, field):
@@ -1209,6 +1218,7 @@ class FastFloatConverter(Converter):
             1.2
 
         Using ``_fast_float_`` on a function which is the identity is
+        Using _fast_float_ on a function which is the identity is
         now supported (see :trac:`10246`)::
 
             sage: f = symbolic_expression(x).function(x)
@@ -1298,7 +1308,7 @@ class FastFloatConverter(Converter):
         try:
             return self.ff.fast_float_constant(float(ex))
         except TypeError:
-            raise ValueError("free variable: %s" % repr(ex))
+            raise NotImplementedError("free variable: %s" % repr(ex))
 
     def arithmetic(self, ex, operator):
         """
@@ -1840,7 +1850,7 @@ class SubstituteFunction(ExpressionTreeWalker):
             sage: s = SubstituteFunction(foo(x), foo, bar)
             sage: f = foo(x).diff(x)
             sage: s.derivative(f, f.operator())
-            D[0](bar)(x)
+            diff(bar(x), x)
 
         TESTS:
 
@@ -1857,4 +1867,57 @@ class SubstituteFunction(ExpressionTreeWalker):
             return operator.change_function(self.new)(*[self(_) for _ in ex.operands()])
         else:
             return operator(*[self(_) for _ in ex.operands()])
+
+class HoldRemover(ExpressionTreeWalker):
+    def __init__(self, ex, exclude=None):
+        """
+        A class that walks the tree and evaluates every operator
+        that is not in a given list of exceptions.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import HoldRemover
+            sage: ex = sin(pi*cos(0, hold=True), hold=True); ex
+            sin(pi*cos(0))
+            sage: h = HoldRemover(ex)
+            sage: h()
+            0
+            sage: h = HoldRemover(ex, [sin])
+            sage: h()
+            sin(pi)
+            sage: h = HoldRemover(ex, [cos])
+            sage: h()
+            sin(pi*cos(0))
+            sage: ex = atan2(0, 0, hold=True) + hypergeometric([1,2], [3,4], 0, hold=True)
+            sage: h = HoldRemover(ex, [atan2])
+            sage: h()
+            arctan2(0, 0) + 1
+            sage: h = HoldRemover(ex, [hypergeometric])
+            sage: h()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: arctan2_eval(): arctan2(0,0) encountered
+        """
+        self.ex = ex
+        if exclude is None:
+            exclude = []
+        self._exclude = exclude
+
+    def composition(self, ex, operator):
+        """
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import HoldRemover
+            sage: ex = sin(pi*cos(0, hold=True), hold=True); ex
+            sin(pi*cos(0))
+            sage: h = HoldRemover(ex)
+            sage: h()
+            0
+        """
+        if not operator:
+            return self
+        if operator in self._exclude:
+            return operator(*map(self, ex.operands()), hold=True)
+        else:
+            return operator(*map(self, ex.operands()))
 

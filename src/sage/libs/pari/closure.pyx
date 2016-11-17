@@ -27,7 +27,7 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 from cpython.tuple cimport *
 from cpython.object cimport PyObject_Call
@@ -35,10 +35,9 @@ from cpython.ref cimport Py_INCREF
 
 include "cysignals/signals.pxi"
 from .paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
 
-from pari_instance cimport pari_instance
-from gen cimport objtogen
+from .pari_instance cimport pari_instance
+from .gen cimport objtogen
 
 
 cdef inline GEN call_python_func_impl "call_python_func"(GEN* args, object py_func) except NULL:
@@ -164,7 +163,7 @@ cpdef gen objtoclosure(f):
         ...
         PariError: call_python: forbidden multiplication t_VEC (1 elts) * t_VEC (1 elts)
     """
-    pari_catch_sig_on()
+    sig_on()
     # Convert f to a t_INT containing the address of f
     cdef GEN f_int = utoi(<ulong><PyObject*>f)
     # Create a t_CLOSURE which calls call_python() with py_func equal to f

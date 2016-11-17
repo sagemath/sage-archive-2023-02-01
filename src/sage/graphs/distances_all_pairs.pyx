@@ -110,28 +110,28 @@ AUTHOR:
 
 REFERENCE:
 
-.. [KRG96b] S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
+.. [KRG96b] \S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
   Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49, 1996.
 
-.. [GYLL93c] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
+.. [GYLL93c] \I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
   results in the theory of the Wiener number. *Indian Journal of
   Chemistry*, 32A:651--661, 1993.
 
-.. [CGH+13] P. Crescenzi, R. Grossi, M. Habib, L. Lanzi, A. Marino. On computing
+.. [CGH+13] \P. Crescenzi, R. Grossi, M. Habib, L. Lanzi, A. Marino. On computing
   the diameter of real-world undirected graphs. *Theor. Comput. Sci.* 514: 84-95
   (2013) http://dx.doi.org/10.1016/j.tcs.2012.09.018
 
-.. [CGI+10] P. Crescenzi, R. Grossi, C. Imbrenda, L. Lanzi, and A. Marino.
+.. [CGI+10] \P. Crescenzi, R. Grossi, C. Imbrenda, L. Lanzi, and A. Marino.
   Finding the Diameter in Real-World Graphs: Experimentally Turning a Lower
   Bound into an Upper Bound. Proceedings of *18th Annual European Symposium on
   Algorithms*. Lecture Notes in Computer Science, vol. 6346, 302-313. Springer
   (2010).
 
-.. [MLH08] C. Magnien, M. Latapy, and M. Habib. Fast computation of empirically
+.. [MLH08] \C. Magnien, M. Latapy, and M. Habib. Fast computation of empirically
   tight bounds for the diameter of massive graphs. *ACM Journal of Experimental
   Algorithms* 13 (2008) http://dx.doi.org/10.1145/1412228.1455266
 
-.. [TK13] F. W. Takes and W. A. Kosters. Computing the eccentricity distribution
+.. [TK13] \F. W. Takes and W. A. Kosters. Computing the eccentricity distribution
   of large graphs. *Algorithms* 6:100-118 (2013)
   http://dx.doi.org/10.3390/a6010100
 
@@ -148,6 +148,7 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "sage/data_structures/binary_matrix.pxi"
 from libc.string cimport memset
@@ -312,16 +313,16 @@ cdef unsigned short * c_shortest_path_all_pairs(G) except NULL:
     """
 
     cdef unsigned int n = G.order()
-    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
+    cdef unsigned short * distances = <unsigned short *> sig_malloc(n*n*sizeof(unsigned short))
     if distances == NULL:
         raise MemoryError()
-    cdef unsigned short * predecessors = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
+    cdef unsigned short * predecessors = <unsigned short *> sig_malloc(n*n*sizeof(unsigned short))
     if predecessors == NULL:
-        sage_free(distances)
+        sig_free(distances)
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, predecessors, distances, NULL)
 
-    sage_free(distances)
+    sig_free(distances)
 
     return predecessors
 
@@ -387,7 +388,7 @@ def shortest_path_all_pairs(G):
 
         c_predecessors += n
 
-    sage_free(predecessors)
+    sig_free(predecessors)
     return d
 
 #############
@@ -404,7 +405,7 @@ cdef unsigned short * c_distances_all_pairs(G):
     """
 
     cdef unsigned int n = G.order()
-    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
+    cdef unsigned short * distances = <unsigned short *> sig_malloc(n*n*sizeof(unsigned short))
     if distances == NULL:
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, NULL, distances, NULL)
@@ -462,7 +463,7 @@ def distances_all_pairs(G):
         d[int_to_vertex[j]] = d_tmp
         c_distances += n
 
-    sage_free(distances)
+    sig_free(distances)
     return d
 
 def is_distance_regular(G, parameters = False):
@@ -551,7 +552,7 @@ def is_distance_regular(G, parameters = False):
     try:
         binary_matrix_init(b_distance_matrix,n*(diameter+2),n)
     except MemoryError:
-        sage_free(distance_matrix)
+        sig_free(distance_matrix)
         bitset_free(b_tmp)
         raise
 
@@ -589,12 +590,12 @@ def is_distance_regular(G, parameters = False):
                 ci[d] = c
 
             elif bi[d] != b or ci[d] != c:
-                sage_free(distance_matrix)
+                sig_free(distance_matrix)
                 binary_matrix_free(b_distance_matrix)
                 bitset_free(b_tmp)
                 return False
 
-    sage_free(distance_matrix)
+    sig_free(distance_matrix)
     binary_matrix_free(b_distance_matrix)
     bitset_free(b_tmp)
 
@@ -662,13 +663,13 @@ def distances_and_predecessors_all_pairs(G):
     if n == 0:
         return {}, {}
 
-    cdef unsigned short * distances = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
+    cdef unsigned short * distances = <unsigned short *> sig_malloc(n*n*sizeof(unsigned short))
     if distances == NULL:
         raise MemoryError()
     cdef unsigned short * c_distances = distances
-    cdef unsigned short * predecessor = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
+    cdef unsigned short * predecessor = <unsigned short *> sig_malloc(n*n*sizeof(unsigned short))
     if predecessor == NULL:
-        sage_free(distances)
+        sig_free(distances)
         raise MemoryError()
     cdef unsigned short * c_predecessor = predecessor
 
@@ -701,8 +702,8 @@ def distances_and_predecessors_all_pairs(G):
         c_distances += n
         c_predecessor += n
 
-    sage_free(distances)
-    sage_free(predecessor)
+    sig_free(distances)
+    sig_free(predecessor)
 
     return d_distance, d_predecessor
 
@@ -719,7 +720,7 @@ cdef uint32_t * c_eccentricity(G) except NULL:
     """
     cdef unsigned int n = G.order()
 
-    cdef uint32_t * ecc = <uint32_t *> sage_calloc(n, sizeof(uint32_t))
+    cdef uint32_t * ecc = <uint32_t *> sig_calloc(n, sizeof(uint32_t))
     if ecc == NULL:
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, NULL, NULL, ecc)
@@ -752,12 +753,12 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
     # allocated some data structures
     cdef bitset_t seen
     bitset_init(seen, n)
-    cdef uint32_t * distances = <uint32_t *>sage_malloc(3 * n * sizeof(uint32_t))
-    cdef uint32_t * LB        = <uint32_t *>sage_calloc(n, sizeof(uint32_t))
+    cdef uint32_t * distances = <uint32_t *>sig_malloc(3 * n * sizeof(uint32_t))
+    cdef uint32_t * LB        = <uint32_t *>sig_calloc(n, sizeof(uint32_t))
     if distances==NULL or LB==NULL:
         bitset_free(seen)
-        sage_free(LB)
-        sage_free(distances)
+        sig_free(LB)
+        sig_free(distances)
         free_short_digraph(sd)
         raise MemoryError()
     cdef uint32_t * waiting_list = distances + n
@@ -799,7 +800,7 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
 
     sig_off()
 
-    sage_free(distances)
+    sig_free(distances)
     bitset_free(seen)
     free_short_digraph(sd)
 
@@ -888,7 +889,7 @@ def eccentricity(G, algorithm="standard"):
     from sage.rings.integer import Integer
     cdef list l_ecc = [Integer(ecc[i]) if ecc[i]!=UINT32_MAX else +Infinity for i in range(n)]
 
-    sage_free(ecc)
+    sig_free(ecc)
 
     return l_ecc
 
@@ -1097,7 +1098,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     # Allocate some arrays and a bitset
     cdef bitset_t seen
     bitset_init(seen, n)
-    cdef uint32_t * distances = <uint32_t *>sage_malloc(3 * n * sizeof(uint32_t))
+    cdef uint32_t * distances = <uint32_t *>sig_malloc(3 * n * sizeof(uint32_t))
     if distances==NULL:
         bitset_free(seen)
         raise MemoryError()
@@ -1110,7 +1111,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     # infinite.
     tmp = diameter_lower_bound_2sweep(n, p_vertices, source, distances, predecessors, waiting_list, seen)
     if tmp==UINT32_MAX:
-        sage_free(distances)
+        sig_free(distances)
         bitset_free(seen)
         return (UINT32_MAX, 0, 0, 0)
 
@@ -1135,7 +1136,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
         # We perform a new 2sweep call from m
         tmp = diameter_lower_bound_2sweep(n, p_vertices, m, distances, predecessors, waiting_list, seen)
 
-    sage_free(distances)
+    sig_free(distances)
     bitset_free(seen)
 
     return (LB, s, m, d)
@@ -1180,7 +1181,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     # We allocate some arrays and a bitset
     cdef bitset_t seen
     bitset_init(seen, n)    
-    cdef uint32_t * distances = <uint32_t *>sage_malloc(4 * n * sizeof(uint32_t))
+    cdef uint32_t * distances = <uint32_t *>sig_malloc(4 * n * sizeof(uint32_t))
     if distances==NULL:
         bitset_free(seen)
         raise MemoryError()
@@ -1226,7 +1227,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
             LB = tmp
 
 
-    sage_free(distances)
+    sig_free(distances)
     bitset_free(seen)
 
     # We finally return the computed diameter
@@ -1325,13 +1326,13 @@ def diameter(G, algorithm='iFUB', source=None):
         sage: d1 = diameter(G, algorithm='standard')
         sage: d2 = diameter(G, algorithm='iFUB')
         sage: d3 = diameter(G, algorithm='iFUB', source=G.random_vertex())
-        sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
+        sage: if d1!=d2 or d1!=d3: print("Something goes wrong!")
 
     Comparison of lower bound algorithms::
 
         sage: lb2 = diameter(G, algorithm='2sweep')
         sage: lbm = diameter(G, algorithm='multi-sweep')
-        sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
+        sage: if not (lb2<=lbm and lbm<=d3): print("Something goes wrong!")
 
     TEST:
 
@@ -1374,7 +1375,7 @@ def diameter(G, algorithm='iFUB', source=None):
     if algorithm=='2sweep':
         # We need to allocate arrays and bitset
         bitset_init(seen, n)
-        tab = <uint32_t *> sage_malloc(2* n * sizeof(uint32_t))
+        tab = <uint32_t *> sig_malloc(2* n * sizeof(uint32_t))
         if tab == NULL:
             free_short_digraph(sd)
             bitset_free(seen)
@@ -1383,7 +1384,7 @@ def diameter(G, algorithm='iFUB', source=None):
         LB = diameter_lower_bound_2sweep(n, sd.neighbors, isource, tab, NULL, tab+n, seen)
 
         bitset_free(seen)
-        sage_free(tab)
+        sig_free(tab)
 
     elif algorithm=='multi-sweep':
         LB = diameter_lower_bound_multi_sweep(n, sd.neighbors, isource)[0]
@@ -1442,7 +1443,7 @@ def wiener_index(G):
     cdef uint64_t s = 0
     for 0 <= i < NN:
         s += distances[i]
-    sage_free(distances)
+    sig_free(distances)
     return Integer(s)/2
 
 ##########################
@@ -1527,7 +1528,7 @@ def distances_distribution(G):
     for 0 <= i < NN:
         count[ distances[i] ] = count.get(distances[i],0) + 1
 
-    sage_free(distances)
+    sig_free(distances)
 
     # We normalize the distribution
     for j in count:
@@ -1595,7 +1596,7 @@ def floyd_warshall(gg, paths = True, distances = False):
 
         sage: g = graphs.Grid2dGraph(2,2)
         sage: from sage.graphs.distances_all_pairs import floyd_warshall
-        sage: print floyd_warshall(g)
+        sage: print(floyd_warshall(g))
         {(0, 1): {(0, 1): None, (1, 0): (0, 0), (0, 0): (0, 1), (1, 1): (0, 1)},
         (1, 0): {(0, 1): (0, 0), (1, 0): None, (0, 0): (1, 0), (1, 1): (1, 0)},
         (0, 0): {(0, 1): (0, 0), (1, 0): (0, 0), (0, 0): None, (1, 1): (0, 1)},

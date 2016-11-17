@@ -145,14 +145,19 @@ TEST::
    would be called ``Ideal`` but an ideal is a very distinct object
    from its generators and thus this is not an ideal in Sage.
 
-.. [BPW06] J. Buchmann, A. Pychkine, R.-P. Weinmann
+.. [BPW06] \J. Buchmann, A. Pychkine, R.-P. Weinmann
    *Block Ciphers Sensitive to Groebner Basis Attacks*
    in Topics in Cryptology -- CT RSA'06; LNCS 3860; pp. 313--331; Springer Verlag 2006;
    pre-print available at http://eprint.iacr.org/2005/200
 
+.. [CMR05] C. Cid, S. Murphy, M. Robshaw Small Scale Variants of the AES;
+   in Proceedings of Fast Software Encryption 2005; LNCS 3557;
+   Springer Verlag 2005; available at http://www.isg.rhul.ac.uk/~sean/smallAES-fse05.pdf
+
 Classes
 -------
 """
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 
@@ -415,7 +420,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: print F.ring().repr_long()
+            sage: print(F.ring().repr_long())
             Polynomial Ring
              Base Ring : Finite Field of size 2
                   Size : 20 Variables
@@ -1369,7 +1374,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: sols = S.solve(n=Infinity)
             sage: print(reproducible_repr(sols))
             [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0]]
 
         We can force the use of exhaustive search if the optional
@@ -1396,13 +1401,13 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: R.<x,y,z,t> = BooleanPolynomialRing()
             sage: S = Sequence([x*y+z, y*z+x, x+y+z+1])
             sage: sols = S.solve(n=Infinity)
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
         Not eliminating linear variables::
 
             sage: sols = S.solve(n=Infinity, eliminate_linear_variables=False)
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
         A tricky case where the linear equations are insatisfiable::

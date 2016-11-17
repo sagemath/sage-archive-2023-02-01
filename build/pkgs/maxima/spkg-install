@@ -87,7 +87,7 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then
 
     # The Maxima HTML docs are already built, we just need to copy
     # them to the sage installation.
-    MAXIMA_DOCS=$SAGE_ROOT/local/share/doc/maxima
+    MAXIMA_DOCS=$SAGE_SHARE/doc/maxima
     MAXIMA_FIGURES=$MAXIMA_DOCS/figures
 
     mkdir -p $MAXIMA_FIGURES

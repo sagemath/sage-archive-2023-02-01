@@ -210,7 +210,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         """
         #vector(foo) might pass in ZZ
         if isinstance(reverse, Parent):
-            raise TypeError, "Base field is fixed to prime subfield."
+            raise TypeError("Base field is fixed to prime subfield.")
 
         k = self.parent()
 
@@ -312,8 +312,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: t_element = t._pari_('b')
             sage: t_element
             3*b^2 + 2*b + 4
-            sage: t_element.parent()
-            Interface to the PARI C library
+            sage: type(t_element)
+            <type 'sage.libs.pari.gen.gen'>
         """
         if var is None:
             var = self.parent().variable_name()
@@ -405,7 +405,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             R = PolynomialRing(self.parent().prime_subfield(), var)
             return R(self._pari_().charpoly('x').lift())
         else:
-            raise ValueError, "unknown algorithm '%s'"%algorithm
+            raise ValueError("unknown algorithm '%s'" % algorithm)
 
     def norm(self):
         """

@@ -23,23 +23,23 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function, absolute_import
 
 import math
-import shapes
+from . import shapes
 
-from base import PrimitiveObject, point_list_bounding_box
+from .base import PrimitiveObject, point_list_bounding_box
 
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.misc.decorators import options, rename_keyword
 from sage.arith.srange import srange
 
-from texture import Texture
+from .texture import Texture
 
 TACHYON_PIXEL = 1/200.0
 
-from shapes import Text, Sphere
+from .shapes import Text, Sphere
 
 from sage.structure.element import is_Vector
 
@@ -133,7 +133,8 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         Graphics3d Object
         sage: line3d((x, x^2, x^3) for x in range(5))
         Graphics3d Object
-        sage: from itertools import izip; line3d(izip([2,3,5,7], [11, 13, 17, 19], [-1, -2, -3, -4]))
+        sage: from builtins import zip
+        sage: line3d(zip([2,3,5,7], [11, 13, 17, 19], [-1, -2, -3, -4]))
         Graphics3d Object
     """
     points = list(points)
@@ -225,7 +226,7 @@ def bezier3d(path, **options):
         sage: curve
         Graphics3d Object
     """
-    import parametric_plot3d as P3D
+    from . import parametric_plot3d as P3D
     from sage.modules.free_module_element import vector
     from sage.symbolic.ring import SR
 
@@ -765,7 +766,7 @@ class Point(PrimitiveObject):
         """
         T = render_params.transform
         if T is None:
-            import transform
+            from . import transform
             T = transform.Transformation()
         render_params.push_transform(~T)
         S = shapes.Sphere(self.size / 200.0).translate(T(self.loc))
@@ -924,7 +925,7 @@ class Line(PrimitiveObject):
         """
         T = render_params.transform
         if T is None:
-            import transform
+            from . import transform
             T = transform.Transformation()
         render_params.push_transform(~T)
         L = line3d([T(P) for P in self.points], radius=self.thickness / 200.0, arrow_head=self.arrow_head, texture=self.texture)
@@ -1087,13 +1088,13 @@ def point3d(v, size=5, **kwds):
     We check to make sure this works with vectors and other iterables::
 
         sage: pl = point3d([vector(ZZ,(1, 0, 0)), vector(ZZ,(0, 1, 0)), (-1, -1, 0)])
-        sage: print point(vector((2,3,4)))
+        sage: print(point(vector((2,3,4))))
         Graphics3d Object
 
         sage: c = polytopes.hypercube(3)
         sage: v = c.vertices()[0];  v
         A vertex at (-1, -1, -1)
-        sage: print point(v)
+        sage: print(point(v))
         Graphics3d Object
 
     We check to make sure the options work::

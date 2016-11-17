@@ -25,7 +25,7 @@ The form `a*x^2 + b*y^2 + c*z^2 + r*yz + s*xz + t*xy` is stored as a tuple (a, b
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ
@@ -173,7 +173,7 @@ class TernaryQF(SageObject):
         EXAMPLES::
 
             sage: Q = TernaryQF([1, 1, 0, 2, -3, -1])
-            sage: print Q._repr_()
+            sage: print(Q._repr_())
             Ternary quadratic form with integer coefficients:
             [1 1 0]
             [2 -3 -1]
@@ -396,7 +396,7 @@ class TernaryQF(SageObject):
 
     def is_negative_definite(self):
         """
-        Determines if the ternary quadratic form is negatice definite.
+        Determine if the ternary quadratic form is negative definite.
 
         EXAMPLES::
 
@@ -408,9 +408,7 @@ class TernaryQF(SageObject):
             6
             sage: Q.is_negative_definite()
             False
-
         """
-
         d1 = self._a
         if d1 == 0:
             return False

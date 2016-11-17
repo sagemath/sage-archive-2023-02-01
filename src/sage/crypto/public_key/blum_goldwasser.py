@@ -9,12 +9,12 @@ on this scheme.
 
 REFERENCES:
 
-.. [BlumGoldwasser1985] M. Blum and S. Goldwasser. An Efficient
+.. [BlumGoldwasser1985] \M. Blum and S. Goldwasser. An Efficient
   Probabilistic Public-Key Encryption Scheme Which Hides All Partial
   Information. In *Proceedings of CRYPTO 84 on Advances in Cryptology*,
   pp. 289--299, Springer, 1985.
 
-.. [MenezesEtAl1996] A. J. Menezes, P. C. van Oorschot, and S. A. Vanstone.
+.. [MenezesEtAl1996] \A. J. Menezes, P. C. van Oorschot, and S. A. Vanstone.
   *Handbook of Applied Cryptography*. CRC Press, 1996.
 
 AUTHORS:
@@ -38,6 +38,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from operator import xor
 
@@ -113,7 +114,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         ([[0, 0, 1, 0], [0, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [0, 1, 0, 0]], 139680)
         sage: M = bg.decrypt(C, prikey); M
         [[1, 0, 0, 1], [1, 1, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [1, 1, 0, 0]]
-        sage: M = "".join(map(lambda x: str(x), flatten(M))); M
+        sage: M = "".join(str(x) for x in flatten(M)); M
         '10011100000100001100'
         sage: M == P
         True
@@ -349,7 +350,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         x0 = mod(v*a*p + u*b*q, n).lift()
         # perform the decryption
         M = []
-        for i in xrange(t):
+        for i in range(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
             M.append(list(map(xor, p, c[i])))
@@ -528,7 +529,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         # perform the encryption
         to_int = lambda x: int(str(x))
         C = []
-        for i in xrange(t):
+        for i in range(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
             # xor p with a sub-block of length h. There are t sub-blocks of

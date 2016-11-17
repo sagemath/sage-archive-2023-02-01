@@ -398,11 +398,12 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             for mor in T[:-1]:
                 #ALGORITHM:
                 #`split_convolve` moves terms of the form x # y to x*Ti(y1) # y2 in Sweedler notation.
-                split_convolve = lambda (x,y): ( ((xy1,y2),c*d)
-                                                 for ((y1,y2),d) in H.term(y).coproduct()
-                                                 for (xy1,c) in H.term(x)*mor(H.term(y1)) )
+                def split_convolve(x_y):
+                    x, y = x_y
+                    return (((xy1,y2),c*d)
+                        for ((y1,y2),d) in H.term(y).coproduct()
+                        for (xy1,c) in H.term(x)*mor(H.term(y1)))
                 out = HH.module_morphism(on_basis=lambda t: HH.sum_of_terms(split_convolve(t)), codomain=HH)(out)
 
             #Apply final map `T_n` to last term, `y`, and multiply.
-            return HH.module_morphism(on_basis=lambda (x,y): H.term(x)*T[-1](H.term(y)), codomain=H)(out)
-
+            return HH.module_morphism(on_basis=lambda xy: H.term(xy[0])*T[-1](H.term(xy[1])), codomain=H)(out)

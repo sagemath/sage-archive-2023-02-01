@@ -1,6 +1,7 @@
 """
 Stream Cryptosystems
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -11,9 +12,10 @@ Stream Cryptosystems
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
-from cryptosystem import SymmetricKeyCryptosystem
-from stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
+from .cryptosystem import SymmetricKeyCryptosystem
+from .stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
 
 from sage.crypto.util import random_blum_prime
 from sage.monoids.string_monoid import BinaryStrings
@@ -345,12 +347,12 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
 
     REFERENCES:
 
-    .. [BlumBlumShub1982] L. Blum, M. Blum, and M. Shub.
+    .. [BlumBlumShub1982] \L. Blum, M. Blum, and M. Shub.
       Comparison of Two Pseudo-Random Number Generators.
       *Advances in Cryptology: Proceedings of Crypto '82*,
       pp.61--78, 1982.
 
-    .. [BlumBlumShub1986] L. Blum, M. Blum, and M. Shub.
+    .. [BlumBlumShub1986] \L. Blum, M. Blum, and M. Shub.
       A Simple Unpredictable Pseudo-Random Number Generator.
       *SIAM Journal on Computing*, 15(2):364--383, 1986.
     """
@@ -388,7 +390,7 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
         x0 = power_mod(s, 2, n)
     # start generating pseudorandom bits
     z = []
-    for i in xrange(length):
+    for i in range(length):
         x1 = power_mod(x0, 2, n)
         z.append(x1 % 2)
         x0 = x1

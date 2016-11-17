@@ -1,6 +1,7 @@
 """
 Examples of commutative additive monoids
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -11,7 +12,7 @@ Examples of commutative additive monoids
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.all import CommutativeAdditiveMonoids
-from commutative_additive_semigroups import FreeCommutativeAdditiveSemigroup
+from .commutative_additive_semigroups import FreeCommutativeAdditiveSemigroup
 
 class FreeCommutativeAdditiveMonoid(FreeCommutativeAdditiveSemigroup):
     r"""
@@ -109,20 +110,20 @@ class FreeCommutativeAdditiveMonoid(FreeCommutativeAdditiveSemigroup):
         return self(())
 
     class Element(FreeCommutativeAdditiveSemigroup.Element):
-        def __nonzero__(self):
+        def __bool__(self):
             """
             Check if ``self`` is not the zero of the monoid
 
             EXAMPLES::
 
                 sage: M = CommutativeAdditiveMonoids().example()
-                sage: M.zero().__nonzero__()
-                False
                 sage: bool(M.zero())
                 False
                 sage: [bool(m) for m in M.additive_semigroup_generators()]
                 [True, True, True, True]
             """
             return any(x for x in self.value.values())
+
+        __nonzero__ = __bool__
 
 Example = FreeCommutativeAdditiveMonoid

@@ -37,7 +37,7 @@ from sage.rings.integer cimport Integer
 from sage.misc.all import prod
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
@@ -257,13 +257,13 @@ def matching_polynomial(G, complement=True, name=None):
     # delete_and_add will need the rest of the memory.
 
     fmpz_poly_init(pol)  # sets to zero
-    edges_mem = <int *> sage_malloc(2 * nedges * nedges * sizeof(int))
-    edges = <int **> sage_malloc(2 * nedges * sizeof(int *))
+    edges_mem = <int *> sig_malloc(2 * nedges * nedges * sizeof(int))
+    edges = <int **> sig_malloc(2 * nedges * sizeof(int *))
     if edges_mem is NULL or edges is NULL:
         if edges_mem is not NULL:
-            sage_free(edges_mem)
+            sig_free(edges_mem)
         if edges is not NULL:
-            sage_free(edges)
+            sig_free(edges)
         raise MemoryError("Error allocating memory for matchpoly.")
 
     for i from 0 <= i < 2 * nedges:
@@ -294,8 +294,8 @@ def matching_polynomial(G, complement=True, name=None):
         coeffs_ZZ.append(c_ZZ * (-1)**((nverts - i) / 2))
 
     f = x.parent()(coeffs_ZZ)
-    sage_free(edges_mem)
-    sage_free(edges)
+    sig_free(edges_mem)
+    sig_free(edges)
     fmpz_poly_clear(pol)
     if name is not None:
         return f.change_variable_name(name)

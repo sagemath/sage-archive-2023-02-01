@@ -32,11 +32,12 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.misc import repr_lincomb
 from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.combinat.free_module import CombinatorialFreeModuleElement
-from sage.algebras.algebra_element import AlgebraElement
+from sage.structure.element import AlgebraElement
 
 # We need to have AlgebraElement first to avoid a segfault...
 class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
@@ -83,12 +84,11 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
             sage: repr(-x+3*y*z)    # indirect doctest
             '-x + 3*y*z'
 
-        Trac ticket #11068 enables the use of local variable names::
+        Trac ticket :trac:`11068` enables the use of local variable names::
 
             sage: from sage.structure.parent_gens import localvars
             sage: with localvars(A, ['a','b','c']):
-            ...    print -x+3*y*z
-            ...
+            ....:    print(-x+3*y*z)
             -a + 3*b*c
 
         """

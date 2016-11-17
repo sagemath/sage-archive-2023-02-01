@@ -22,11 +22,11 @@ EXAMPLES::
 
 AUTHOR:
 
+- Rusydi H. Makarim (2016-07-09): add is_plateaued()
 - Yann Laigle-Chapuy (2010-02-26): add basic arithmetic
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
-
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
@@ -291,7 +291,7 @@ cdef class BooleanFunction(SageObject):
             if L.is_power_of(2):
                 x = ZZ("0x"+x).digits(base=2,padto=4*L)
             else:
-                raise ValueError, "the length of the truth table must be a power of 2"
+                raise ValueError("the length of the truth table must be a power of 2")
         from types import GeneratorType
         if isinstance(x, (list,tuple,GeneratorType)):
         # initialisation from a truth table
@@ -301,7 +301,7 @@ cdef class BooleanFunction(SageObject):
             if L.is_power_of(2):
                 self._nvariables = L.exact_log(2)
             else:
-                raise ValueError, "the length of the truth table must be a power of 2"
+                raise ValueError("the length of the truth table must be a power of 2")
 
             # then, initialize our bitset
             bitset_init(self._truth_table, L)
@@ -341,7 +341,7 @@ cdef class BooleanFunction(SageObject):
             bitset_init(self._truth_table,(1<<self._nvariables))
             bitset_copy(self._truth_table,(<BooleanFunction>x)._truth_table)
         else:
-            raise TypeError, "unable to init the Boolean function"
+            raise TypeError("unable to init the Boolean function")
 
     def __dealloc__(self):
         bitset_free(self._truth_table)
@@ -467,7 +467,7 @@ cdef class BooleanFunction(SageObject):
         nb_limbs = self._truth_table.limbs
         if nb_limbs == 1:
             L = len(self)
-            for i in range(L):
+            for i in xrange(L):
                 res[i  ]=self[i]
                 res[i+L]=other[i]
             return res
@@ -572,7 +572,7 @@ cdef class BooleanFunction(SageObject):
                     t = "%08x"%self._truth_table.bits[i]
                 S = t + S
             return S
-        raise ValueError, "unknown output format"
+        raise ValueError("unknown output format")
 
     def __len__(self):
         """
@@ -633,14 +633,14 @@ cdef class BooleanFunction(SageObject):
         """
         if isinstance(x, (int,long,Integer)):
             if x > self._truth_table.size:
-                raise IndexError, "index out of bound"
+                raise IndexError("index out of bound")
             return bitset_in(self._truth_table,x)
         elif isinstance(x, list):
             if len(x) != self._nvariables:
-                raise ValueError, "bad number of inputs"
+                raise ValueError("bad number of inputs")
             return self(ZZ(map(bool,x),2))
         else:
-            raise TypeError, "cannot apply Boolean function to provided element"
+            raise TypeError("cannot apply Boolean function to provided element")
 
     def __iter__(self):
         """
@@ -688,14 +688,14 @@ cdef class BooleanFunction(SageObject):
 
         if self._walsh_hadamard_transform is None:
             n =  self._truth_table.size
-            temp = <long *>sage_malloc(sizeof(long)*n)
+            temp = <long *>sig_malloc(sizeof(long)*n)
 
             for 0<= i < n:
                 temp[i] = (bitset_in(self._truth_table,i)<<1)-1
 
             walsh_hadamard(temp, self._nvariables)
-            self._walsh_hadamard_transform = tuple( [temp[i] for i in xrange(n)] )
-            sage_free(temp)
+            self._walsh_hadamard_transform = tuple(temp[i] for i in xrange(n))
+            sig_free(temp)
 
         return self._walsh_hadamard_transform
 
@@ -756,7 +756,7 @@ cdef class BooleanFunction(SageObject):
             sage: B.is_symmetric()
             True
         """
-        cdef list T = [ self(2**i-1) for i in range(self._nvariables+1) ]
+        cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         for i in xrange(2**self._nvariables):
             if T[ hamming_weight_int(i) ] != bitset_in(self._truth_table, i):
                 return False
@@ -862,15 +862,15 @@ cdef class BooleanFunction(SageObject):
 
         if self._autocorrelation is None:
             n =  self._truth_table.size
-            temp = <long *>sage_malloc(sizeof(long)*n)
+            temp = <long *>sig_malloc(sizeof(long)*n)
             W = self.walsh_hadamard_transform()
 
             for 0<= i < n:
                 temp[i] = W[i]*W[i]
 
             walsh_hadamard(temp, self._nvariables)
-            self._autocorrelation = tuple( [temp[i]>>self._nvariables for i in xrange(n)] )
-            sage_free(temp)
+            self._autocorrelation = tuple(temp[i]>>self._nvariables for i in xrange(n))
+            sig_free(temp)
 
         return self._autocorrelation
 
@@ -965,9 +965,9 @@ cdef class BooleanFunction(SageObject):
 
         from sage.matrix.constructor import Matrix
         from sage.arith.all import binomial
-        M = Matrix(GF(2),sum([binomial(self._nvariables,i) for i in xrange(d+1)]),len(s))
+        M = Matrix(GF(2),sum(binomial(self._nvariables,i) for i in xrange(d+1)),len(s))
 
-        for i in xrange(1,d+1):
+        for i in xrange(1, d + 1):
             C = Combinations(self._nvariables,i)
             for c in C:
                 r.append(prod([G[i] for i in c]))
@@ -1019,14 +1019,33 @@ cdef class BooleanFunction(SageObject):
         f = self
         g = ~self
         for i in xrange(self._nvariables):
-            for fun in [f,g]:
+            for fun in [f, g]:
                 A = fun.annihilator(i)
                 if A is not None:
                     if annihilator:
                         return i,A
                     else:
                         return i
-        raise ValueError, "you just found a bug!"
+        raise ValueError("you just found a bug!")
+
+    def is_plateaued(self):
+        r"""
+        Return ``True`` if this function is plateaued, i.e. its Walsh transform
+        takes at most three values `0` and `\pm \lambda`, where `\lambda` is some
+        positive integer.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: R.<x0, x1, x2, x3> = BooleanPolynomialRing()
+            sage: f = BooleanFunction(x0*x1 + x2 + x3)
+            sage: f.walsh_hadamard_transform()
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, -8, -8, 8)
+            sage: f.is_plateaued()
+            True
+        """
+        W = self.absolute_walsh_spectrum()
+        return (len(W) == 1) or (len(W) == 2 and 0 in W)
 
     def __setitem__(self, i, y):
         """

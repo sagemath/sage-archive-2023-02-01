@@ -50,7 +50,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
@@ -91,11 +91,9 @@ import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
-
 #########################################################
 
-cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_rational_dense(Matrix_dense):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -133,19 +131,19 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
            This is for internal use only, or if you really know what
            you're doing.
         """
-        matrix_dense.Matrix_dense.__init__(self, parent)
+        Matrix_dense.__init__(self, parent)
 
         cdef Py_ssize_t i, k
 
         sig_on()
-        self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
+        self._entries = <mpq_t *> sig_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
         if self._entries == NULL:
             sig_off()
             raise MemoryError("out of memory allocating a matrix")
 
-        self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._nrows)
+        self._matrix =  <mpq_t **> sig_malloc(sizeof(mpq_t*) * self._nrows)
         if self._matrix == NULL:
-            sage_free(self._entries)
+            sig_free(self._entries)
             self._entries = NULL
             sig_off()
             raise MemoryError("out of memory allocating a matrix")
@@ -166,8 +164,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         for i from 0 <= i < self._nrows * self._ncols:
             mpq_clear(self._entries[i])
-        sage_free(self._entries)
-        sage_free(self._matrix)
+        sig_free(self._entries)
+        sig_free(self._matrix)
 
     def __init__(self, parent, entries=None, coerce=True, copy=True):
 
@@ -268,7 +266,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             data = ''
         else:
             n = self._nrows*self._ncols*10
-            s = <char*> sage_malloc(n * sizeof(char))
+            s = <char*> sig_malloc(n * sizeof(char))
             t = s
             len_so_far = 0
 
@@ -280,9 +278,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     if len_so_far + m + 1 >= n:
                         # copy to new string with double the size
                         n = 2*n + m + 1
-                        tmp = <char*> sage_malloc(n * sizeof(char))
+                        tmp = <char*> sig_malloc(n * sizeof(char))
                         strcpy(tmp, s)
-                        sage_free(s)
+                        sig_free(s)
                         s = tmp
                         t = s + len_so_far
                     #endif
@@ -295,7 +293,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     t = t + 1
             sig_off()
             data = str(s)[:-1]
-            sage_free(s)
+            sig_free(s)
         return data
 
     cdef _unpickle_version0(self, data):
@@ -326,7 +324,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES::
 
@@ -344,7 +342,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             mpq_mul(M._entries[i], self._entries[i], _x.value)
         return M
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two dense matrices over QQ.
 
@@ -379,7 +377,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_off()
         return M
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two dense matrices over QQ.
 
@@ -412,7 +410,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_off()
         return M
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         cdef mpq_t *a
         cdef mpq_t *b
         cdef Py_ssize_t i, j
@@ -429,7 +427,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                         return 1
         return 0
 
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 
@@ -786,7 +784,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         if self._nrows <= 2:
             # use generic special cased code.
-            return matrix_dense.Matrix_dense.determinant(self)
+            return Matrix_dense.determinant(self)
 
         if algorithm == "default":
             if self._nrows <= 7:
@@ -947,7 +945,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             x = f.parent().gen()
             g = f(x * denom) * (1 / (denom**f.degree()))
         elif algorithm == 'generic':
-            g = matrix_dense.Matrix_dense.charpoly(self, var)
+            g = Matrix_dense.charpoly(self, var)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
 
@@ -1006,7 +1004,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             x = f.parent().gen()
             g = f(x * denom) * (1 / (denom**f.degree()))
         elif algorithm == 'generic':
-            g = matrix_dense.Matrix_dense.minpoly(self, var)
+            g = Matrix_dense.minpoly(self, var)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
 
@@ -1029,7 +1027,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [ -53/5   55/3   61/3]
             [   5/3 -37/45 -73/45]
             [   -27   76/3   67/3]
-            sage: (pari(a)*pari(a))._sage_() == a*a
+            sage: (pari(a)*pari(a)).sage() == a*a
             True
         """
         if self._nrows <= 6 and self._ncols <= 6 and right._nrows <= 6 and right._ncols <= 6 and \
@@ -1253,7 +1251,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             True
 
         Computed result is the negative of the pivot basis, which
-        is just slighltly more efficient to compute. ::
+        is just slightly more efficient to compute. ::
 
             sage: A.right_kernel_matrix(basis='pivot') == -A.right_kernel_matrix(basis='computed')
             True
@@ -1354,7 +1352,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             C.subdivide(self.subdivisions())
             return C
         else:
-            D = matrix_dense.Matrix_dense.change_ring(self, R)
+            D = Matrix_dense.change_ring(self, R)
             D.subdivide(self.subdivisions())
             return D
 
@@ -1518,7 +1516,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         The result is an immutable matrix, so if you want to
         modify the result then you need to make a copy.  This
-        checks that Trac #10543 is fixed. ::
+        checks that :trac:`10543` is fixed. ::
 
             sage: A = matrix(QQ, 2, range(6))
             sage: E = A.echelon_form()
@@ -2027,7 +2025,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 ##         cdef Py_ssize_t k
 
 ##         if not self.is_square():
-##             raise ArithmeticError, "self must be a square matrix"
+##             raise ArithmeticError("self must be a square matrix")
 
 ##         if self.nrows() == 0:
 ##             return decomp_seq([])
@@ -2107,7 +2105,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 ##                         W.rank(), m*g.degree()), level=2, caller_name='simple decomp')
 ##                     j += 1
 ##                     if j > 3*m:
-##                         raise RuntimeError, "likely bug in decomposition"
+##                         raise RuntimeError("likely bug in decomposition")
 ##                 # end if
 ##             #end while
 ##         #end for
@@ -2306,21 +2304,21 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         ::
 
-            sage: A = matrix(QQ,2,3,xrange(6))
+            sage: A = matrix(QQ, 2, 3, xrange(6))
             sage: type(A)
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [0 3]
             [1 4]
             [2 5]
-            sage: print A
+            sage: print(A)
             [0 1 2]
             [3 4 5]
 
         ``.T`` is a convenient shortcut for the transpose::
 
-            sage: print A.T
+            sage: print(A.T)
             [0 3]
             [1 4]
             [2 5]
@@ -2516,7 +2514,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage rational
         cdef Rational e = <Rational>Rational.__new__(Rational)
@@ -2533,7 +2531,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,3,[1..9])._rank_pari()
             2
         """
-        pari_catch_sig_on()
+        sig_on()
         cdef long r = rank(pari_GEN(self))
         pari.clear_stack()
         return r
@@ -2562,7 +2560,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             # pari doesn't work in case of 0 rows or columns
             # This case is easy, since the answer must be the 0 matrix.
             return self.matrix_space(self._nrows, right._ncols).zero_matrix().__copy__()
-        pari_catch_sig_on()
+        sig_on()
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))
         A = new_matrix_from_pari_GEN(self.matrix_space(self._nrows, right._ncols), M)
         pari.clear_stack()
@@ -2586,7 +2584,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             raise ValueError("self must be a square matrix")
         cdef GEN M, d
 
-        pari_catch_sig_on()
+        sig_on()
         M = pari_GEN(self)
         d = ginv(M)
 

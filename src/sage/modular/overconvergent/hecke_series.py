@@ -74,7 +74,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 from sage.functions.all import floor, ceil
 from sage.arith.all import valuation
 from sage.rings.all import ZZ, Zmod, Infinity, Integer
@@ -149,7 +149,7 @@ def low_weight_bases(N,p,m,NN,weightbound):
     """
     generators = []
 
-    for k in xrange(2,weightbound + 2,2):
+    for k in range(2,weightbound + 2,2):
         b = ModularForms(N,k,base_ring=Zmod(p**m)).q_expansion_basis(prec=NN)
         generators.append(list(b))
     return generators
@@ -191,12 +191,12 @@ def random_low_weight_bases(N,p,m,NN,weightbound):
     # this is "approximately" row reduced (it's the mod p^n reduction of a
     # matrix over ZZ in Hermite form)
     RandomLWB = []
-    for i in xrange(len(LWB)):
+    for i in range(len(LWB)):
         n = len(LWB[i])
         c = random_matrix(Zmod(p**m), n)
         while c.det() % p == 0:
             c = random_matrix(Zmod(p**m), n)
-        RandomLWB.append([ sum([c[j, k] * LWB[i][k] for k in xrange(n)]) for j in xrange(n) ])
+        RandomLWB.append([ sum([c[j, k] * LWB[i][k] for k in range(n)]) for j in range(n) ])
 
     return RandomLWB
 
@@ -246,7 +246,7 @@ def low_weight_generators(N,p,m,NN):
     weightbound = max([f.weight() for f in b])
     generators = []
 
-    for k in xrange(2,weightbound + 2,2):
+    for k in range(2,weightbound + 2,2):
         generators.append([f.qexp(NN).change_ring(Zmod(p**m)) for f in b if f.weight() == k])
 
     return generators,weightbound
@@ -274,7 +274,7 @@ def random_solution(B,K):
         [1, 1, 1, 1, 0]
     """
     a = []
-    for i in xrange(B,1,-1):
+    for i in range(B,1,-1):
         ai = ZZ.random_element((K // i) + 1)
         a.append(ai)
         K = K - ai*i
@@ -319,16 +319,16 @@ def ech_form(A,p):
     b = A.ncols()
 
     k = 0 # position pivoting row will be swapped to
-    for j in xrange(b):
+    for j in range(b):
         if k < a:
             pivj = k # find new pivot
-            for i in xrange(k+1,a):
+            for i in range(k+1,a):
                 if valuation(A[i,j],p) < valuation(A[pivj,j],p):
                     pivj = i
             if valuation(A[pivj,j],p) < +Infinity: # else column already reduced
                 A.swap_rows(pivj, k)
                 A.set_row_to_multiple_of_row(k, k, S(ZZ(A[k,j])/(p**valuation(A[k,j],p)))**(-1))
-                for i in xrange(k+1,a):
+                for i in range(k+1,a):
                     A.add_multiple_of_row(i, k, S(-ZZ(A[i,j])/ZZ(A[k,j])))
                 k = k + 1
 
@@ -391,14 +391,14 @@ def random_new_basis_modp(N,p,k,LWBModp,TotalBasisModp,elldash,bound):
 
     NewBasisCode = []
     rk = diminus1
-    for i in xrange(1,mi+1):
+    for i in range(1,mi+1):
         while (rk < diminus1 + i):
             # take random product of basis elements
             exps = random_solution(bound // 2, k // 2)
             TotalBasisi = R(1)
             TotalBasisiCode = []
-            for j in xrange(len(exps)):
-                for l in xrange(exps[j]):
+            for j in range(len(exps)):
+                for l in range(exps[j]):
                     a = ZZ.random_element(len(LWBModp[j]))
                     TotalBasisi = TotalBasisi*LWBModp[j][a]
                     TotalBasisiCode.append([j,a])
@@ -452,7 +452,7 @@ def complementary_spaces_modp(N,p,k0,n,elldash,LWBModp,bound):
     ell = dimension_modular_forms(N,k0 + n*(p-1))
     TotalBasisModp = matrix(GF(p),ell,elldash); # zero matrix
 
-    for i in xrange(n+1):
+    for i in range(n+1):
         NewBasisCodemi = random_new_basis_modp(N,p,k0 + i*(p-1),LWBModp,TotalBasisModp,elldash,bound)
         # TotalBasisModp is passed by reference and updated in function
         CompSpacesCode.append(NewBasisCodemi)
@@ -519,13 +519,13 @@ def complementary_spaces(N,p,k0,n,mdash,elldashp,elldash,modformsring,bound):
 
     Ws = []
     Epm1 = eisenstein_series_qexp(p-1, prec=elldashp, K = Zmod(p**mdash), normalization="constant")
-    for i in xrange(n+1):
+    for i in range(n+1):
         CompSpacesCodemi = CompSpacesCode[i]
         Wi = []
-        for k in xrange(len(CompSpacesCodemi)):
+        for k in range(len(CompSpacesCodemi)):
             CompSpacesCodemik = CompSpacesCodemi[k]
             Wik = Epm1.parent()(1)
-            for j in xrange(len(CompSpacesCodemik)):
+            for j in range(len(CompSpacesCodemik)):
                 l = CompSpacesCodemik[j][0]
                 index = CompSpacesCodemik[j][1]
                 Wik = Wik*LWB[l][index]
@@ -550,7 +550,7 @@ def higher_level_katz_exp(p,N,k0,m,mdash,elldash,elldashp,modformsring,bound):
 
     - ``p`` -- prime at least 5.
     - ``N`` -- positive integer at least 2 and not divisible by p (level).
-    - ``k0`` -- integer in xrange 0 to p-1.
+    - ``k0`` -- integer in range 0 to p-1.
     - ``m,mdash,elldash,elldashp`` -- positive integers.
     - ``modformsring`` -- True or False.
     - ``bound`` -- positive (even) integer.
@@ -581,11 +581,11 @@ def higher_level_katz_exp(p,N,k0,m,mdash,elldash,elldashp,modformsring,bound):
     Wjs = complementary_spaces(N,p,k0,n,mdash,elldashp,elldash,modformsring,bound)
 
     Basis = []
-    for j in xrange(n+1):
+    for j in range(n+1):
         Wj = Wjs[j]
         dimj = len(Wj)
         Ep1minusj = Ep1**(-j)
-        for i in xrange(dimj):
+        for i in range(dimj):
             wji = Wj[i]
             b = p**floor(ordr*j) * wji * Ep1minusj
             Basis.append(b)
@@ -594,8 +594,8 @@ def higher_level_katz_exp(p,N,k0,m,mdash,elldash,elldashp,modformsring,bound):
 
     ell = len(Basis)
     M = matrix(S,ell,elldashp)
-    for i in xrange(ell):
-        for j in xrange(elldashp):
+    for i in range(ell):
+        for j in range(elldashp):
             M[i,j] = Basis[i][j]
 
     ech_form(M,p) # put it into echelon form
@@ -750,10 +750,10 @@ def higher_level_UpGj(p,N,klist,m,modformsring,bound):
         Gkdiv = G**kdiv
 
         T = matrix(S,ell,elldash)
-        for i in xrange(ell):
+        for i in range(ell):
             ei = R(e[i].list())
             Gkdivei = Gkdiv*ei; # act by G^kdiv
-            for j in xrange(0, elldash):
+            for j in range(0, elldash):
                 T[i,j] = Gkdivei[p*j]
 
         verbose("done steps 4b and 5", t)
@@ -768,10 +768,10 @@ def higher_level_UpGj(p,N,klist,m,modformsring,bound):
         verbose("solving a square matrix problem of dimension %s" % ell)
         verbose("elldash is %s" % elldash)
 
-        for i in xrange(0,ell):
+        for i in range(0,ell):
             Ti = T[i]
-            for j in xrange(0,ell):
-                ej = Ti.parent()([e[j][l] for l in xrange(0,elldash)])
+            for j in range(0,ell):
+                ej = Ti.parent()([e[j][l] for l in range(0,elldash)])
                 ejleadpos = ej.nonzero_positions()[0]
                 lj = ZZ(ej[ejleadpos])
                 A[i,j] = S(ZZ(Ti[j])/lj)
@@ -861,11 +861,11 @@ def compute_Wi(k,p,h,hj,E4,E6):
     # call here somehow.
     r = E6**(2*d + b) * E4**a
 
-    prec = E4.prec() # everything gets trucated to this precision
+    prec = E4.prec() # everything gets truncated to this precision
 
     # Construct basis for Wi
     Wi = []
-    for j in xrange(e+1,d+1):
+    for j in range(e+1,d+1):
         # compute aj = delta^j*E6^(2*(d-j) + b)*E4^a
         verbose("k = %s, computing Delta^%s E6^%s E4^%s" % (k, j, 2*(d-j) + b, a), level=2)
         aj = (hj * r).truncate_powerseries(prec)
@@ -915,7 +915,7 @@ def katz_expansions(k0,p,ellp,mdash,n):
     # deal of time). The effect is that Ep1mi = Ep1 ** (-i).
     Ep1m1 = ~Ep1
     Ep1mi = 1
-    for i in xrange(0,n+1):
+    for i in range(0,n+1):
         Wi,hj = compute_Wi(k0 + i*(p-1),p,h,hj,E4,E6)
         for bis in Wi:
             eis = p**floor(i/(p+1)) * Ep1mi * bis
@@ -986,7 +986,7 @@ def level1_UpGj(p,klist,m):
         kdiv = k // (p-1)
         Gkdiv = G**kdiv
         u = []
-        for i in xrange(0,ell):
+        for i in range(0,ell):
             ei = e[i]
             ui = Gkdiv*ei
             u.append(ui)
@@ -998,8 +998,8 @@ def level1_UpGj(p,klist,m):
         S = e[0][0].parent()
         T = matrix(S,ell,ell)
 
-        for i in xrange(0,ell):
-            for j in xrange(0,ell):
+        for i in range(0,ell):
+            for j in range(0,ell):
                 T[i,j] = u[i][p*j]
 
         verbose("done step 5", t)
@@ -1012,10 +1012,10 @@ def level1_UpGj(p,klist,m):
         A = matrix(S,ell,ell)
         verbose("solving a square matrix problem of dimension %s" % ell, t)
 
-        for i in xrange(0,ell):
+        for i in range(0,ell):
             Ti = T[i]
-            for j in xrange(0,ell):
-                ej = Ti.parent()([e[j][l] for l in xrange(0,ell)])
+            for j in range(0,ell):
+                ej = Ti.parent()([e[j][l] for l in range(0,ell)])
                 lj = ZZ(ej[j])
                 A[i,j] = S(ZZ(Ti[j])/lj)
                 Ti = Ti - A[i,j]*ej
@@ -1054,7 +1054,7 @@ def is_valid_weight_list(klist,p):
     if len(klist) == 0:
         raise ValueError("List of weights must be non-empty")
     k0 = klist[0] % (p-1)
-    for i in xrange(1,len(klist)):
+    for i in range(1,len(klist)):
         if (klist[i] % (p-1)) != k0:
             raise ValueError("List of weights must be all congruent modulo p-1 = %s, but given list contains %s and %s which are not congruent" % (p-1, klist[0], klist[i]))
 
@@ -1145,7 +1145,7 @@ def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
         if oneweight:
             return 1
         else:
-            return [1 for i in xrange(len(klist))]
+            return [1 for i in range(len(klist))]
 
     if N == 1:
         Alist = level1_UpGj(p,klist,m)

@@ -7,6 +7,7 @@ AUTHORS:
 
 Sage supports a wide range of specific free string monoids.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -19,9 +20,9 @@ Sage supports a wide range of specific free string monoids.
 #*****************************************************************************
 
 
-from free_monoid import FreeMonoid_class
-from string_monoid_element import StringMonoidElement
-from string_ops import strip_encoding
+from .free_monoid import FreeMonoid_class
+from .string_monoid_element import StringMonoidElement
+from .string_ops import strip_encoding
 
 import weakref
 
@@ -903,7 +904,7 @@ class AlphabeticStringMonoid(StringMonoid_class):
 
         REFERENCES:
 
-        .. [BekPip82] H. Beker and F. Piper. *Cipher Systems: The
+        .. [BekPip82] \H. Beker and F. Piper. *Cipher Systems: The
           Protection of Communications*. John Wiley and Sons, 1982.
 
         .. [Lew00] Robert Edward Lewand. *Cryptological Mathematics*.

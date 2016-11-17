@@ -634,7 +634,7 @@ cdef class CoxGroup(SageObject):
         """
         Return the Coxeter graph for this Coxeter group.
 
-        OUTPUT:: a Sage graph
+        OUTPUT: a Sage graph
 
         .. NOTE::
 
@@ -1204,7 +1204,7 @@ class CoxGroupIterator(object):
         """
         return self
 
-    def next(self):
+    def __next__(self):
         """
         Return the next element in the associated Coxeter group.
 
@@ -1223,6 +1223,9 @@ class CoxGroupIterator(object):
         (<CoxGroup>self.group).x.prod_nbr(w.word, self.n)
         self.n += 1
         return w
+
+    next = __next__
+
 
 CoxGroup_cache = {}
 def get_CoxGroup(cartan_type):

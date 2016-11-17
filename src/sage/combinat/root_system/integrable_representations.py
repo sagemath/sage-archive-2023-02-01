@@ -10,6 +10,7 @@ Integrable Representations of Affine Lie Algebras
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import CategoryObject
@@ -185,7 +186,10 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
 
             sage: Lambda = RootSystem(['A',3,1]).weight_lattice(extended=true).fundamental_weights()
             sage: V = IntegrableRepresentation(Lambda[1]+Lambda[2]+Lambda[3])
-            sage: TestSuite(V).run()
+
+        Some methods required by the category are not implemented::
+
+            sage: TestSuite(V).run()  # known bug (#21387)
         """
         CategoryObject.__init__(self, base=ZZ, category=Modules(ZZ))
 
@@ -932,7 +936,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sage: V = IntegrableRepresentation(2*Lambda[0])
             sage: S = V.strings(depth=25)
             sage: for k in S:
-            ....:     print "{}: {}".format(k, ' '.join(str(x) for x in S[k]))
+            ....:     print("{}: {}".format(k, ' '.join(str(x) for x in S[k])))
             2*Lambda[0]: 1 1 3 5 10 16 28 43 70 105 161 236 350 501 722 1016 1431 1981 2741 3740 5096 6868 9233 12306 16357
             2*Lambda[1] - delta: 1 2 4 7 13 21 35 55 86 130 196 287 420 602 858 1206 1687 2331 3206 4368 5922 7967 10670 14193 18803
         """

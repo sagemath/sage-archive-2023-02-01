@@ -40,7 +40,9 @@ Named associative algebras
    :maxdepth: 2
 
    sage/algebras/affine_nil_temperley_lieb
+   sage/combinat/diagram_algebras
    sage/algebras/clifford_algebra
+   sage/combinat/descent_algebra
    sage/algebras/hall_algebra
    sage/algebras/iwahori_hecke_algebra
    sage/combinat/posets/incidence_algebras
@@ -48,6 +50,7 @@ Named associative algebras
    sage/combinat/posets/moebius_algebra
    sage/algebras/nil_coxeter_algebra
    sage/algebras/orlik_solomon
+   sage/combinat/partition_algebra
    sage/algebras/quatalg/quaternion_algebra
    sage/algebras/schur_algebra
    sage/algebras/steenrod/steenrod_algebra

@@ -7,6 +7,7 @@ Finite Enumerated Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 import itertools
 
@@ -271,11 +272,11 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 Let's take an example::
 
                     sage: class Example(Parent):
-                    ...       def __init__(self):
-                    ...           Parent.__init__(self, category = FiniteEnumeratedSets())
-                    ...       def __iter__(self):
-                    ...           print "hello!"
-                    ...           for x in [1,2,3]: yield x
+                    ....:     def __init__(self):
+                    ....:         Parent.__init__(self, category = FiniteEnumeratedSets())
+                    ....:     def __iter__(self):
+                    ....:         print("hello!")
+                    ....:         for x in [1,2,3]: yield x
                     sage: C = Example()
                     sage: list(C)
                     hello!
@@ -539,7 +540,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     sage: C.rank(C((0,0,0)))
                     0
 
-                    sage: for c in C: print C.rank(c)
+                    sage: for c in C: print(C.rank(c))
                     0
                     1
                     2
@@ -562,12 +563,13 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     sage: C.unrank(54213)
                     ('a', 86, [7, 5, 4, 4])
                 """
+                from builtins import zip
                 from sage.rings.integer_ring import ZZ
                 x = self(x)
                 b = ZZ.one()
                 rank = ZZ.zero()
-                for f,c in itertools.izip(reversed(x.cartesian_factors()),
-                                          reversed(self.cartesian_factors())):
+                for f, c in zip(reversed(x.cartesian_factors()),
+                                reversed(self.cartesian_factors())):
                     rank += b * c.rank(f)
                     b *= c.cardinality()
                 return rank

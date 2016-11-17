@@ -1,4 +1,4 @@
-$(PYTHON) atlas
+$(PYTHON) $(BLAS) | setuptools pip pkgconfig
 
 ----------
 All lines of this file are ignored except the first.

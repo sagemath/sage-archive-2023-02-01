@@ -60,16 +60,19 @@ The module also provides decorator for functions and methods::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
+from six.moves import range
 
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import EmptySetError
-from itertools import izip_longest
+
 import os
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.lazy_list import lazy_list
+
 
 class EnumeratedSetFromIterator(Parent):
     """
@@ -87,7 +90,7 @@ class EnumeratedSetFromIterator(Parent):
 
     - ``category`` -- (default: ``None``) an optional category for that
       enumerated set. If you know that your iterator will stop after a finite
-      number of steps you should set it as :class:`FiniteEnumeratedSets`, conversly if
+      number of steps you should set it as :class:`FiniteEnumeratedSets`, conversely if
       you know that your iterator will run over and over you should set it as
       :class:`InfiniteEnumeratedSets`.
 
@@ -245,7 +248,7 @@ class EnumeratedSetFromIterator(Parent):
         """
         l = []
         i = iter(self)
-        for _ in xrange(6):
+        for _ in range(6):
             try:
                 l.append(next(i))
             except StopIteration:
@@ -458,7 +461,7 @@ class Decorator:
             sage: from sage.sets.set_from_iterator import Decorator
             sage: d = Decorator()
             sage: d.f = Integer.is_prime
-            sage: print sage_getdoc(d)   # indirect doctest
+            sage: print(sage_getdoc(d))   # indirect doctest
                Test whether "self" is prime.
             ...
                Calls the PARI "isprime" function.
@@ -494,7 +497,7 @@ class Decorator:
             sage: from sage.sets.set_from_iterator import Decorator
             sage: d = Decorator()
             sage: d.f = Rational.is_square
-            sage: print sage_getsource(d.f)   # indirect doctest
+            sage: print(sage_getsource(d.f))   # indirect doctest
             def is_square(self):
             ...
                 return mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value))
@@ -857,7 +860,7 @@ class EnumeratedSetFromIterator_method_decorator(object):
         ...    @set_from_method
         ...    def f(self): return xsrange(self.n())
         sage: a = A()
-        sage: print a.f.__class__
+        sage: print(a.f.__class__)
         sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
         sage: a.f()
         {0, 1, 2, 3, 4, ...}
@@ -972,9 +975,9 @@ class EnumeratedSetFromIterator_method_decorator(object):
             ...    @set_from_method
             ...    def f(self): return xsrange(self.n())
             sage: a = A()
-            sage: print A.f.__class__
+            sage: print(A.f.__class__)
             sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
-            sage: print a.f.__class__
+            sage: print(a.f.__class__)
             sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
         """
         # You would hardly ever see an instance of this class alive.

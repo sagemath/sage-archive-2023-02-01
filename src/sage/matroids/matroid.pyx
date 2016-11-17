@@ -120,6 +120,7 @@ additional functionality (e.g. linear extensions).
 - Optimization
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
     - :meth:`max_weight_coindependent() <sage.matroids.matroid.Matroid.max_weight_coindependent>`
+    - :meth:`is_max_weight_independent_generic() <sage.matroids.matroid.Matroid.is_max_weight_independent_generic>`
     - :meth:`intersection() <sage.matroids.matroid.Matroid.intersection>`
     - :meth:`intersection_unweighted() <sage.matroids.matroid.Matroid.intersection_unweighted>`
 
@@ -287,23 +288,23 @@ Testing. Note that the abstract base class does not support pickling::
 REFERENCES
 ==========
 
-..  [BC79] R. E. Bixby, W. H. Cunningham, Matroids, Graphs, and 3-Connectivity. In Graph theory and related topics (Proc. Conf., Univ. Waterloo, Waterloo, ON, 1977), 91-103
-..  [Cunningham86] W. H. Cunningham, Improved Bounds for Matroid Partition and Intersection Algorithms. SIAM Journal on Computing 1986 15:4, 948-957
-..  [CMO11] C. Chun, D. Mayhew, J. Oxley, A chain theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 101 (2011), 141-189.
-..  [CMO12] C. Chun, D. Mayhew, J. Oxley,  Towards a splitter theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 102 (2012), 688-700.
-..  [Cunningham] W. H. Cunningham. Improved bounds for matroid partition and intersection algorithms. SIAM J. Comput. 15, 4 (November 1986), 948-957.
+..  [BC79] \R. E. Bixby, W. H. Cunningham, Matroids, Graphs, and 3-Connectivity. In Graph theory and related topics (Proc. Conf., Univ. Waterloo, Waterloo, ON, 1977), 91-103
+..  [Cunningham86] \W. H. Cunningham, Improved Bounds for Matroid Partition and Intersection Algorithms. SIAM Journal on Computing 1986 15:4, 948-957
+..  [CMO11] \C. Chun, D. Mayhew, J. Oxley, A chain theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 101 (2011), 141-189.
+..  [CMO12] \C. Chun, D. Mayhew, J. Oxley,  Towards a splitter theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 102 (2012), 688-700.
+..  [Cunningham] \W. H. Cunningham. Improved bounds for matroid partition and intersection algorithms. SIAM J. Comput. 15, 4 (November 1986), 948-957.
 ..  [GG12] Jim Geelen and Bert Gerards, Characterizing graphic matroids by a system of linear equations, submitted, 2012. Preprint: http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
-..  [GR01] C.Godsil and G.Royle, Algebraic Graph Theory. Graduate Texts in Mathematics, Springer, 2001.
+..  [GR01] \C.Godsil and G.Royle, Algebraic Graph Theory. Graduate Texts in Mathematics, Springer, 2001.
 ..  [Hlineny] Petr Hlineny, "Equivalence-free exhaustive generation of matroid representations", Discrete Applied Mathematics 154 (2006), pp. 1210-1222.
 ..  [Hochstaettler] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid", preprint.
-..  [Lyons] R. Lyons, Determinantal probability measures. Publications Mathematiques de l'Institut des Hautes Etudes Scientifiques 98(1)  (2003), pp. 167-212.
+..  [Lyons] \R. Lyons, Determinantal probability measures. Publications Mathematiques de l'Institut des Hautes Etudes Scientifiques 98(1)  (2003), pp. 167-212.
 ..  [Oxley1] James Oxley, "Matroid theory", Oxford University Press, 1992.
 ..  [Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University Press, 2011.
-..  [Pen12] R. Pendavingh, On the evaluation at `(-i, i)` of the Tutte polynomial of a binary matroid. Preprint: :arxiv:`1203.0910`
-..  [PvZ] R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid 
+..  [Pen12] \R. Pendavingh, On the evaluation at `(-i, i)` of the Tutte polynomial of a binary matroid. Preprint: :arxiv:`1203.0910`
+..  [PvZ] \R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid
     representations over partial fields, Journal of Combinatorial Theory, 
     Series B, Volume 100, Issue 1, January 2010, Pages 36-67
-..  [Rajan] A. Rajan, Algorithmic applications of connectivity and related topics in matroid theory. Ph.D. Thesis, Northwestern university, 1987.
+..  [Rajan] \A. Rajan, Algorithmic applications of connectivity and related topics in matroid theory. Ph.D. Thesis, Northwestern university, 1987.
 
 AUTHORS:
 
@@ -325,15 +326,17 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations, product
-from set_system cimport SetSystem
+from .set_system cimport SetSystem
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.graph import Graph
 from sage.matrix.constructor import matrix
 from sage.misc.superseded import deprecation
 
-from utilities import newlabel, sanitize_contractions_deletions, spanning_forest, spanning_stars
+from .utilities import newlabel, sanitize_contractions_deletions, spanning_forest, spanning_stars
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -1097,20 +1100,24 @@ cdef class Matroid(SageObject):
             {'e', 'f', 'g', 'h'}, {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'}},
             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
         """
-        import minor_matroid
+        from . import minor_matroid
         return minor_matroid.MinorMatroid(self, contractions, deletions)
 
-    cpdef _has_minor(self, N):
+    cpdef _has_minor(self, N, bint certificate=False):
         """
-        Test if matroid has the specified minor.
+        Test if matroid has the specified minor,
+        and optionally return frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         INPUT:
 
-        - ``N`` -- An instance of a ``Matroid`` object.
+        - ``N`` -- An instance of a ``Matroid`` object,
+        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns
+          ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
+          and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 
         OUTPUT:
 
-        Boolean.
+        boolean or tuple.
 
         EXAMPLES::
 
@@ -1119,6 +1126,9 @@ cdef class Matroid(SageObject):
             False
             sage: M._has_minor(matroids.Uniform(2, 4))
             True
+            sage: M._has_minor(matroids.Uniform(2, 4), certificate=True)
+            (True, (frozenset({'a', 'c'}), frozenset({'b', 'e'}),
+                {0: 'h', 1: 'd', 2: 'g', 3: 'f'}))
 
         .. TODO::
 
@@ -1126,17 +1136,25 @@ cdef class Matroid(SageObject):
             See [Hlineny]_ p.1219 for hints to that end.
         """
         if self is N:
+            if certificate:
+               return True, (frozenset(), frozenset(), {x: x for x in self.groundset()})
             return True
         rd = self.full_rank() - N.full_rank()
         cd = self.full_corank() - N.full_corank()
         if rd < 0 or cd < 0:
+            if certificate:
+                return False, None
             return False
         YY = self.dual().independent_r_sets(cd)
         for X in self.independent_r_sets(rd):
             for Y in YY:
                 if X.isdisjoint(Y):
                     if N._is_isomorphic(self._minor(contractions=X, deletions=Y)):
+                        if certificate:
+                            return True, (X, Y, N._isomorphism(self._minor(contractions=X, deletions=Y)))
                         return True
+        if certificate:
+            return False, None
         return False
 
     cpdef _line_length(self, F):
@@ -1193,7 +1211,7 @@ cdef class Matroid(SageObject):
             sage: [sorted(C) for C in N.circuits() if len(C) == 3]
             [[0, 1, 6]]
         """
-        import basis_matroid
+        from . import basis_matroid
         return basis_matroid.BasisMatroid(self)._extension(element, hyperplanes)
 
     # ** user-facing methods **
@@ -1448,7 +1466,7 @@ cdef class Matroid(SageObject):
 
     cpdef closure(self, X):
         """
-        Return the closure of a set.
+        Return the closure of a set ``X``.
 
         A set is *closed* if adding any extra element to it will increase the
         rank of the set. The *closure* of a set is the smallest closed set
@@ -1481,9 +1499,10 @@ cdef class Matroid(SageObject):
         r"""
         Return the ``k``-closure of ``X``.
 
-        A set `S` is `k`-*closed* if the closure of any `k` element subsets
-        is contained in `S`. The `k`-*closure* of a set `X` is the smallest
-        `k`-closed set containing `X`.
+        A subset `S` of the groundset is `k`-*closed* if the closure of
+        any subset `T` of `S` satisfying `|T| \leq k` is contained in `S`.
+        The `k`-*closure* of a set `X` is the smallest `k`-closed set
+        containing `X`.
 
         INPUT:
 
@@ -1502,7 +1521,7 @@ cdef class Matroid(SageObject):
             [1, 2]
 
             sage: Q = RootSystem(['D',4]).root_lattice()
-            sage: m = matrix(map(lambda x: x.to_vector(), Q.positive_roots()))
+            sage: m = matrix([x.to_vector() for x in Q.positive_roots()])
             sage: m = m.transpose(); m
             [1 0 0 0 1 0 0 0 1 1 1 1]
             [0 1 0 0 1 1 1 1 1 1 1 2]
@@ -1674,7 +1693,7 @@ cdef class Matroid(SageObject):
 
     cpdef max_coindependent(self, X):
         """
-        Compute a maximal coindependent subset.
+        Compute a maximal coindependent subset of ``X``.
 
         A set is *coindependent* if it is independent in the dual matroid.
         A set is coindependent if and only if the complement is *spanning*
@@ -1709,7 +1728,7 @@ cdef class Matroid(SageObject):
 
     cpdef coclosure(self, X):
         """
-        Return the coclosure of a set.
+        Return the coclosure of a set ``X``.
 
         A set is *coclosed* if it is closed in the dual matroid. The
         *coclosure* of `X` is the smallest coclosed set containing `X`.
@@ -1832,7 +1851,8 @@ cdef class Matroid(SageObject):
         r"""
         Return the set of loops of the matroid.
 
-        A *loop* is a one-element dependent set.
+        A *loop* is an element `u` of the groundset such that the
+        one-element set `\{ u \}` is dependent.
 
         OUTPUT:
 
@@ -1850,7 +1870,7 @@ cdef class Matroid(SageObject):
 
     cpdef is_independent(self, X):
         r"""
-        Check if a subset is independent in the matroid.
+        Check if a subset ``X`` is independent in the matroid.
 
         INPUT:
 
@@ -1878,7 +1898,7 @@ cdef class Matroid(SageObject):
 
     cpdef is_dependent(self, X):
         r"""
-        Check if a subset is dependent in the matroid.
+        Check if a subset ``X`` is dependent in the matroid.
 
         INPUT:
 
@@ -2001,7 +2021,7 @@ cdef class Matroid(SageObject):
             True
 
             sage: Q = RootSystem(['D',4]).root_lattice()
-            sage: m = matrix(map(lambda x: x.to_vector(), Q.positive_roots()))
+            sage: m = matrix([x.to_vector() for x in Q.positive_roots()])
             sage: m = m.transpose(); m
             [1 0 0 0 1 0 0 0 1 1 1 1]
             [0 1 0 0 1 1 1 1 1 1 1 2]
@@ -2061,8 +2081,9 @@ cdef class Matroid(SageObject):
         r"""
         Return the set of coloops of the matroid.
 
-        A *coloop* is a one-element cocircuit. It is a loop of the dual of the
-        matroid.
+        A *coloop* is an element `u` of the groundset such that the
+        one-element set `\{ u \}` is a cocircuit. In other words, a coloop
+        is a loop of the dual of the matroid.
 
         OUTPUT:
 
@@ -3006,7 +3027,7 @@ cdef class Matroid(SageObject):
 
         REFERENCE:
 
-        .. [DLHK2007] J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
+        .. [DLHK2007] \J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
           of matroid polytopes and polymatroids. Discrete & Computational
           Geometry, Volume 42, Issue 4. :arxiv:`0710.4346`,
           :doi:`10.1007/s00454-008-9120-8`
@@ -3066,7 +3087,7 @@ cdef class Matroid(SageObject):
 
     # isomorphism and equality
 
-    cpdef is_isomorphic(self, other):
+    cpdef is_isomorphic(self, other, certificate=False):
         r"""
         Test matroid isomorphism.
 
@@ -3076,11 +3097,13 @@ cdef class Matroid(SageObject):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid,
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean,
+        and, if certificate = True, a dictionary or None
 
         EXAMPLES::
 
@@ -3088,6 +3111,8 @@ cdef class Matroid(SageObject):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1.is_isomorphic(M2)
             True
+            sage: M1.is_isomorphic(M2, certificate=True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
             sage: G3 = graphs.CompleteGraph(4)
             sage: M1.is_isomorphic(G3)
             Traceback (most recent call last):
@@ -3099,12 +3124,14 @@ cdef class Matroid(SageObject):
             sage: M2 = matroids.named_matroids.NonFano()
             sage: M1.is_isomorphic(M2)
             False
+            sage: M1.is_isomorphic(M2, certificate=True)
+            (False, None)
         """
         if not isinstance(other, Matroid):
             raise TypeError("can only test for isomorphism between matroids.")
-        return self._is_isomorphic(other)
+        return self._is_isomorphic(other, certificate)
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -3112,11 +3139,17 @@ cdef class Matroid(SageObject):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid,
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean,
+        and, if certificate = True, a dictionary giving the isomophism or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -3124,6 +3157,8 @@ cdef class Matroid(SageObject):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
+            sage: M1._is_isomorphic(M2, certificate=True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
 
             sage: M1 = matroids.named_matroids.Fano()
             sage: M2 = matroids.named_matroids.NonFano()
@@ -3131,6 +3166,8 @@ cdef class Matroid(SageObject):
             False
 
         """
+        if certificate:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if self is other:
             return True
         return (self.full_rank() == other.full_rank() and self.nonbases()._isomorphism(other.nonbases()) is not None)
@@ -3434,8 +3471,8 @@ cdef class Matroid(SageObject):
             sage: M._is_isomorphism(N, morphism)
             True
         """
-        import basis_exchange_matroid
-        import basis_matroid
+        from . import basis_exchange_matroid
+        from . import basis_matroid
         sf = basis_matroid.BasisMatroid(self)
         if not isinstance(other, basis_exchange_matroid.BasisExchangeMatroid):
             ot = basis_matroid.BasisMatroid(other)
@@ -3510,7 +3547,7 @@ cdef class Matroid(SageObject):
             sage: M1 == M3  # indirect doctest
             True
         """
-        import basis_matroid
+        from . import basis_matroid
         if op in [0, 1, 4, 5]:  # <, <=, >, >=
             return NotImplemented
         if left.__class__ != right.__class__:
@@ -3846,7 +3883,7 @@ cdef class Matroid(SageObject):
             {'a', 'e', 'i'}, {'b', 'd', 'i'}, {'g', 'h', 'i'}},
             3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}'
         """
-        import dual_matroid
+        from . import dual_matroid
         return dual_matroid.DualMatroid(self)
 
     cpdef truncation(self):
@@ -3880,17 +3917,21 @@ cdef class Matroid(SageObject):
         return self._extension(l, [])._minor(contractions=frozenset([l]),
                                              deletions=frozenset([]))
 
-    cpdef has_minor(self, N):
+    cpdef has_minor(self, N, bint certificate=False):
         """
-        Check if ``self`` has a minor isomorphic to ``N``.
+        Check if ``self`` has a minor isomorphic to ``N``,
+        and optionally return frozensets ``X`` and ``Y`` so that ``N`` is isomorphic to ``self.minor(X, Y)``.
 
         INPUT:
 
-        - ``N`` -- A matroid.
+        - ``N`` -- An instance of a ``Matroid`` object,
+        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns
+          ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
+          and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 
         OUTPUT:
 
-        Boolean.
+        boolean or tuple.
 
         .. SEEALSO::
 
@@ -3909,10 +3950,19 @@ cdef class Matroid(SageObject):
             False
             sage: matroids.named_matroids.NonFano().has_minor(M)
             True
+            sage: matroids.named_matroids.NonFano().has_minor(M, certificate=True)
+            (True, (frozenset(), frozenset({'g'}),
+                {0: 'b', 1: 'c', 2: 'a', 3: 'd', 4: 'e', 5: 'f'}))
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.has_minor(M, True)
+            (True,
+             (frozenset(),
+              frozenset(),
+              {'a': 'a', 'b': 'b', 'c': 'c', 'd': 'd', 'e': 'e', 'f': 'f', 'g': 'g'}))
         """
         if not isinstance(N, Matroid):
             raise ValueError("N must be a matroid.")
-        return self._has_minor(N)
+        return self._has_minor(N, certificate)
 
     cpdef has_line_minor(self, k, hyperlines=None):
         """
@@ -4303,7 +4353,7 @@ cdef class Matroid(SageObject):
             sage: len(list(M.linear_subclasses(line_length=5)))
             44
         """
-        import extension
+        from . import extension
         return extension.LinearSubclasses(self, line_length=line_length, subsets=subsets)
 
     cpdef extensions(self, element=None, line_length=None, subsets=None):
@@ -4362,7 +4412,7 @@ cdef class Matroid(SageObject):
             5
 
         """
-        import extension
+        from . import extension
         if element is None:
             element = newlabel(self.groundset())
         else:
@@ -4888,7 +4938,7 @@ cdef class Matroid(SageObject):
 
         - ``k`` -- a integer greater or equal to 1.
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is k-connected,
+          then return ``True, None`` if the matroid is k-connected,
           and ``False, X`` otherwise, where ``X`` is a `<k`-separation
 
         OUTPUT:
@@ -5017,7 +5067,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
         - ``algorithm`` -- (default: ``None``); specify which algorithm 
           to compute 3-connectivity:
@@ -5096,7 +5146,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 4-connected,
+          then return ``True, None`` if the matroid is 4-connected,
           and ``False,`` `X` otherwise, where `X` is a `<4`-separation
         - ``algorithm`` -- (default: ``None``); specify which algorithm 
           to compute 4-connectivity:
@@ -5147,7 +5197,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
@@ -5276,7 +5326,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
@@ -5354,7 +5404,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 4-connected,
+          then return ``True, None`` if the matroid is 4-connected,
           and ``False,`` `X` otherwise, where `X` is a `<4`-separation
 
         OUTPUT:
@@ -5610,7 +5660,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
+          then return ``True, None`` if the matroid is 3-connected,
           and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
@@ -6093,7 +6143,7 @@ cdef class Matroid(SageObject):
         EXAMPLES::
 
             sage: PR = RootSystem(['A',4]).root_lattice().positive_roots()
-            sage: m = matrix(map(lambda x: x.to_vector(), PR)).transpose()
+            sage: m = matrix([x.to_vector() for x in PR]).transpose()
             sage: M = Matroid(m)
             sage: M.is_k_closed(3)
             True
@@ -6101,7 +6151,7 @@ cdef class Matroid(SageObject):
             True
 
             sage: PR = RootSystem(['D',4]).root_lattice().positive_roots()
-            sage: m = matrix(map(lambda x: x.to_vector(), PR)).transpose()
+            sage: m = matrix([x.to_vector() for x in PR]).transpose()
             sage: M = Matroid(m)
             sage: M.is_k_closed(3)
             False
@@ -6118,9 +6168,21 @@ cdef class Matroid(SageObject):
 
     # matroid chordality
 
-    cpdef _is_circuit_chordal(self, frozenset C):
+    cpdef _is_circuit_chordal(self, frozenset C, bint certificate=False):
         """
         Check if the circuit ``C`` has a chord.
+
+        INPUT:
+
+        - ``C`` -- a circuit
+        - ``certificate`` -- (default: ``False``) a boolean, if ``True``
+          return ``True, (x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and
+          ``Bx`` are circuits whose union is the elements of ``C``
+          together with ``x``, if ``False`` return ``False, None``
+
+        OUTPUT:
+
+        - boolean or tuple
 
         EXAMPLES::
 
@@ -6130,8 +6192,12 @@ cdef class Matroid(SageObject):
             sage: M = matroids.named_matroids.Fano()
             sage: M._is_circuit_chordal(frozenset(['b','c','d']))
             False
+            sage: M._is_circuit_chordal(frozenset(['b','c','d']), certificate=True)
+            (False, None)
             sage: M._is_circuit_chordal(frozenset(['a','b','d','e']))
             True
+            sage: M._is_circuit_chordal(frozenset(['a','b','d','e']), certificate=True)
+            (True, ('c', frozenset({'b', 'c', 'd'}), frozenset({'a', 'c', 'e'})))
         """
         cdef set X
         cdef frozenset Ax, Bx
@@ -6145,10 +6211,14 @@ cdef class Matroid(SageObject):
             if not self._is_independent(Bx):
                 # If x is spanned by C, then A+x is the unique circuit in C-e+x;
                 #    so x is a chord iff the complementary B is a circuit.
+                if certificate:
+                    return True, (x, frozenset(Ax), frozenset(Bx))
                 return True
+        if certificate:
+            return False, None
         return False
 
-    cpdef is_circuit_chordal(self, C):
+    cpdef is_circuit_chordal(self, C, bint certificate=False):
         r"""
         Check if the circuit ``C`` has a chord.
 
@@ -6156,19 +6226,35 @@ cdef class Matroid(SageObject):
         exists sets `A, B` such that `C = A \sqcup B` and `A + x` and
         `B + x` are circuits.
 
+        INPUT:
+
+        - ``C`` -- a circuit
+        - ``certificate`` -- (default: ``False``) a boolean, if ``True``
+          return ``True, (x, Ax, Bx)``, where ``x`` is a chord and ``Ax`` and
+          ``Bx`` are circuits whose union is the elements of ``C``
+          together with ``x``, if ``False`` return ``False, None``
+
+        OUTPUT:
+
+        - boolean or tuple
+
         EXAMPLES::
 
             sage: M = matroids.named_matroids.Fano()
             sage: M.is_circuit_chordal(['b','c','d'])
             False
+            sage: M.is_circuit_chordal(['b','c','d'], certificate=True)
+            (False, None)
             sage: M.is_circuit_chordal(['a','b','d','e'])
             True
+            sage: M.is_circuit_chordal(['a','b','d','e'], certificate=True)
+            (True, ('c', frozenset({'b', 'c', 'd'}), frozenset({'a', 'c', 'e'})))
         """
         if not self.is_circuit(C):
             raise ValueError("input C is not a circuit")
-        return self._is_circuit_chordal(frozenset(C))
+        return self._is_circuit_chordal(frozenset(C), certificate)
 
-    cpdef is_chordal(self, k1=4, k2=None):
+    cpdef is_chordal(self, k1=4, k2=None, bint certificate=False):
         r"""
         Return if a matroid is ``[k1, k2]``-chordal.
 
@@ -6183,6 +6269,13 @@ cdef class Matroid(SageObject):
         - ``k1`` -- (optional) the integer `k_1`
         - ``k2`` -- (optional) the integer `k_2`; if not specified,
           then this method returns if ``self`` is `k_1`-chordal
+        - ``certificate`` -- (default: ``False``) boolean;  if
+          ``True`` return ``True, C``, where ``C`` is a non
+          ``k1`` ``k2`` circuit
+
+        Output:
+
+        - boolean or tuple
 
         .. SEEALSO::
 
@@ -6201,6 +6294,8 @@ cdef class Matroid(SageObject):
             [False, False, False, False, True, True]
             sage: M.is_chordal(4, 5)
             False
+            sage: M.is_chordal(4, 5, certificate=True)
+            (False, frozenset({'a', 'b', 'e', 'f', 'g'}))
         """
         cdef frozenset C
         if k2 is None:
@@ -6209,6 +6304,8 @@ cdef class Matroid(SageObject):
             if len(C) < k1 or len(C) > k2:
                 continue
             if not self._is_circuit_chordal(C):
+                if certificate:
+                    return False, frozenset(C)
                 return False
         return True
 
@@ -6407,6 +6504,299 @@ cdef class Matroid(SageObject):
             else:
                 res.discard(e)
         return frozenset(res)
+
+    cpdef is_max_weight_independent_generic(self, X=None, weights=None):
+        r"""
+        Test if only one basis of the subset ``X`` has maximal
+        weight.
+
+        The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
+
+
+        INPUT:
+
+        - ``X`` -- (default: the ground set of ``self``) a subset of
+          ``self.groundset()`` (given as a list, tuple or set).
+        - ``weights`` -- a dictionary or function mapping the elements of
+          ``X`` to nonnegative weights.
+
+        OUTPUT:
+
+        Boolean.
+
+        ALGORITHM:
+
+        The greedy algorithm. If a weight function is given, then sort the elements 
+        of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
+        lists its elements. Then greedily select elements if they are independent
+        of all that was selected before. If an element is not independent of the
+        previously selected elements, then we check if it is independent with the
+        previously selected elements with higher weight.
+
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import setprint
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.is_max_weight_independent_generic()
+            False
+
+            sage: def wt(x):
+            ....:   return x
+            ....:
+            sage: M = matroids.Uniform(2, 8)
+            sage: M.is_max_weight_independent_generic(weights=wt)
+            True
+            sage: M.is_max_weight_independent_generic(weights={x: x for x in M.groundset()})
+            True
+            sage: M.is_max_weight_independent_generic()
+            False
+
+        Here is an example from [GriRei2014]_ (Example 7.56 in v3)::
+
+            sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
+            ....:                 [-1,  0,  1,  1],
+            ....:                 [ 0, -1, -1, -1]])
+            sage: M = Matroid(A)
+            sage: M.is_max_weight_independent_generic()
+            False
+            sage: M.is_max_weight_independent_generic(weights={0: 1, 1: 3, 2: 3, 3: 2})
+            True
+            sage: M.is_max_weight_independent_generic(weights={0: 1, 1: 3, 2: 2, 3: 2})
+            False
+            sage: M.is_max_weight_independent_generic(weights={0: 2, 1: 3, 2: 1, 3: 1})
+            True
+        """
+        res = []
+        r = 0
+        if X is None:
+            X = self.groundset()
+        else:
+            if not self.groundset().issuperset(X):
+                raise ValueError("input is not a subset of the groundset.")
+        if len(X) == 0:
+            return True
+
+        # If there are no weights, then our elements are already in weakly
+        # decreasing order.
+        if weights is None:
+            Y = list(X)
+            for e in Y:
+                res.append(e)
+                if self._rank(res) > r:
+                    r += 1
+                else:
+                    del res[-1]
+                    if self._rank([e]) >= 1:
+                        return False
+            return True
+
+
+        # Construct ``Y``: a list of all elements of ``X``
+        # in order of weakly decreasing weight.
+        # and a dictionary that gives the weights of the elements of ``X``.
+        else:
+            wt = []
+            wt_dic = {}
+            try:
+                for e in X:
+                    wt.append((weights[e], e))
+                    wt_dic[e] = weights[e]
+            except (IndexError, TypeError, ValueError):
+                try:
+                    wt = []
+                    for e in X:
+                        wt.append((weights(e), e))
+                        wt_dic[e] = weights(e)
+                except (TypeError, ValueError):
+                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
+
+            wt = sorted(wt, reverse=True)
+            if wt[-1][1] < 0:
+                raise ValueError("nonnegative weights were expected.")
+            Y = [e for (w, e) in wt]
+
+        # ``res`` is a partially built maximal weighted basis. Namely,
+        # at the beginning of each iteration of the for-loop below,
+        # ``res`` is a maximal weighted basis of the set of all elements
+        # of ``Y`` already iterated over (in the order in which they have
+        # appeared in ``Y``).
+        # ``smres`` is the list of the elements of ``res`` that have
+        # strictly larger weight than ``e`` (at least, after the first
+        # if-clause).
+        # If ``smres`` is independent when ``e`` was not added to ``res``,
+        # then ``e`` could have been added to ``res`` if we made different
+        # choices in the greedy algorithm, so the maximal weight basis is
+        # not unique. Conversely, if every ``e`` that is iterated over
+        # but dependent on ``res`` at the time of its iteration is
+        # already dependent on ``smres``, the our maximal weight basis is
+        # unique.
+        smres = []
+        for e in Y:
+            if len(res) >= 1:                  # This guarantees that ``smres`` is the elements of ``res`` that have strictly larger weight than ``e``.
+                if wt_dic[e] < wt_dic[res[-1]]:
+                    smres=res[:]
+            res.append(e)
+            if self._rank(res) > r:
+                r += 1
+            else:
+                smres.append(e)
+                if self._rank(smres) >= len(smres):
+                    return False
+                del smres[-1]
+                del res[-1]
+        return True
+
+    cpdef is_max_weight_coindependent_generic(self, X=None, weights=None):
+        r"""
+        Test if only one cobasis of the subset ``X`` has maximal
+        weight.
+
+        The *weight* of a subset ``S`` is ``sum(weights(e) for e in S)``.
+
+        INPUT:
+
+        - ``X`` -- (default: the ground set of ``self``) a subset of
+          ``self.groundset()`` (given as a list, tuple or set).
+        - ``weights`` -- a dictionary or function mapping the elements of
+          ``X`` to nonnegative weights.
+
+        OUTPUT:
+
+        Boolean.
+
+        ALGORITHM:
+
+        The greedy algorithm. If a weight function is given, then sort the elements 
+        of ``X`` by increasing weight, and otherwise use the ordering in which ``X`` 
+        lists its elements. Then greedily select elements if they are coindependent
+        of all that was selected before. If an element is not coindependent of the
+        previously selected elements, then we check if it is coindependent with the
+        previously selected elements with higher weight.
+
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import setprint
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.is_max_weight_coindependent_generic()
+            False
+
+            sage: def wt(x):
+            ....:   return x
+            ....:
+            sage: M = matroids.Uniform(2, 8)
+            sage: M.is_max_weight_coindependent_generic(weights=wt)
+            True
+            sage: M.is_max_weight_coindependent_generic(weights={x: x for x in M.groundset()})
+            True
+            sage: M.is_max_weight_coindependent_generic()
+            False
+
+            sage: M=matroids.Uniform(2,5) 
+            sage: wt={0: 1, 1: 1, 2: 1, 3: 2, 4: 2}
+            sage: M.is_max_weight_independent_generic(weights=wt)
+            True
+            sage: M.dual().is_max_weight_coindependent_generic(weights=wt)
+            True
+
+
+
+        Here is an example from [GriRei2014]_ (Example 7.56 in v3)::
+
+            sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
+            ....:                 [-1,  0,  1,  1],
+            ....:                 [ 0, -1, -1, -1]])
+            sage: M = Matroid(A)
+            sage: M.is_max_weight_coindependent_generic()
+            False
+            sage: M.is_max_weight_coindependent_generic(weights={0: 1, 1: 3, 2: 3, 3: 2})
+            True
+            sage: M.is_max_weight_coindependent_generic(weights={0: 1, 1: 3, 2: 2, 3: 2})
+            False
+            sage: M.is_max_weight_coindependent_generic(weights={0: 2, 1: 3, 2: 1, 3: 1})
+            False
+        """
+        res = []
+        r = 0
+        if X is None:
+            X = self.groundset()
+        else:
+            if not self.groundset().issuperset(X):
+                raise ValueError("input is not a subset of the groundset.")
+        if len(X) == 0:
+            return True
+
+        # If there are no weights, then our elements are already in weakly
+        # decreasing order.
+        if weights is None:
+            Y = list(X)
+            for e in Y:
+                res.append(e)
+                if self._corank(res) > r:
+                    r += 1
+                else:
+                    del res[-1]
+                    if self._corank([e]) >= 1:
+                        return False
+            return True
+
+
+        # Construct ``Y``: a list of all elements of ``X``
+        # in order of weakly decreasing weight.
+        # and a dictionary that gives the weights of the elementns of X.
+        else:
+            wt = []
+            wt_dic = {}
+            try:
+                for e in X:
+                    wt.append((weights[e], e))
+                    wt_dic[e] = weights[e]
+            except (IndexError, TypeError, ValueError):
+                try:
+                    wt = []
+                    for e in X:
+                        wt.append((weights(e), e))
+                        wt_dic[e] = weights(e)
+                except (TypeError, ValueError):
+                    raise TypeError("the weights argument does not seem to be a collection of weights for the set X.")
+
+            wt = sorted(wt, reverse = True)
+            if wt[-1][1] < 0:
+                raise ValueError("nonnegative weights were expected.")
+            Y = [e for (w, e) in wt]
+
+        # ``res`` is a partially built maximal weighted cobasis. Namely,
+        # at the beginning of each iteration of the for-loop below,
+        # ``res`` is a maximal weighted cobasis of the set of all elements
+        # of ``Y`` already iterated over (in the order in which they have
+        # appeared in ``Y``).
+        # ``smres`` is the list of the elements of ``res`` that have
+        # strictly larger weight than ``e`` (at least, after the first
+        # if-clause).
+        # If ``smres`` is coindependent when ``e`` was not added to ``res``,
+        # then ``e`` could have been added to ``res`` if we made different
+        # choices in the greedy algorithm, so the maximal weight cobasis is
+        # not unique. Conversely, if every ``e`` that is iterated over
+        # but codependent on ``res`` at the time of its iteration is
+        # already codependent on ``smres``, the our maximal weight cobasis
+        # is unique.
+        smres = []
+        for e in Y:
+            if len(res) >= 1:                  # This guarantees that ``smres`` is the elements of ``res`` that have strictly larger weight than ``e``.
+                if wt_dic[e] < wt_dic[res[-1]]:
+                    smres=res[:]
+            res.append(e)
+            if self._corank(res) > r:
+                r += 1
+            else:
+                smres.append(e)
+                if self._corank(smres) >= len(smres):
+                    return False
+                del smres[-1]
+                del res[-1]
+        return True
+
 
     cpdef intersection(self, other, weights=None):
         r"""
@@ -7186,7 +7576,7 @@ cdef class Matroid(SageObject):
             sage: G.show()
 
         """
-        import matroids_plot_helpers
+        from . import matroids_plot_helpers
         if pos_method == 1  and pos_dict != None:
         # check sanity of pos_dict and add it to cached info if sane
             if matroids_plot_helpers.posdict_is_sane(self, pos_dict) == True: 
@@ -7292,8 +7682,8 @@ cdef class Matroid(SageObject):
         if self.rank() > 3:
             raise NotImplementedError
         # check sanity of pos_dict and add it to cached info if sane
-        if(pos_dict!=None):
-            import matroids_plot_helpers
+        if pos_dict is not None:
+            from . import matroids_plot_helpers
             if matroids_plot_helpers.posdict_is_sane(self,pos_dict) ==True:
                 self._cached_info={'plot_positions':pos_dict,'lineorders':lineorders}
         return
@@ -7326,4 +7716,3 @@ cdef class Matroid(SageObject):
         """
         from sage.homology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
-

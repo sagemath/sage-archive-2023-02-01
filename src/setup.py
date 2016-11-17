@@ -2,8 +2,7 @@
 from __future__ import print_function
 
 import os, sys, time, errno, platform, subprocess, glob
-from distutils.core import setup
-
+from distutils.core import setup, DistutilsSetupError
 
 def excepthook(*exc):
     """
@@ -24,7 +23,7 @@ def excepthook(*exc):
 
     try:
         logfile = os.path.join(os.environ['SAGE_LOGS'],
-                "sage-%s.log" % os.environ['SAGE_VERSION'])
+                "sagelib-%s.log" % os.environ['SAGE_VERSION'])
     except:
         pass
     else:
@@ -36,6 +35,19 @@ def excepthook(*exc):
 
 sys.excepthook = excepthook
 
+
+#########################################################
+### Check build-base
+#########################################################
+
+build_base = 'build' # the distutils default. Changing it is not supported by this setup.sh.
+
+#########################################################
+### Set source directory
+#########################################################
+
+import sage.env
+sage.env.SAGE_SRC = os.getcwd()
 
 #########################################################
 ### List of Extensions
@@ -64,6 +76,7 @@ except KeyError:
     keep_going = False
 
 # search for dependencies and add to gcc -I<path>
+# this depends on SAGE_CYTHONIZED
 include_dirs = sage_include_directories(use_sources=True)
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
@@ -71,23 +84,26 @@ include_dirs = sage_include_directories(use_sources=True)
 extra_compile_args = [ "-fno-strict-aliasing" ]
 extra_link_args = [ ]
 
-# comment these four lines out to turn on warnings from gcc
-import distutils.sysconfig
-NO_WARN = True
-if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
-    extra_compile_args.append('-w')
-
 DEVEL = False
 if DEVEL:
     extra_compile_args.append('-ggdb')
 
-# Work around GCC-4.8.0 bug which miscompiles some sig_on() statements,
-# as witnessed by a doctest in sage/libs/gap/element.pyx if the
-# compiler flag -Og is used. See also
+# Work around GCC-4.8 bug which miscompiles some sig_on() statements:
 # * http://trac.sagemath.org/sage_trac/ticket/14460
+# * http://trac.sagemath.org/sage_trac/ticket/20226
 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
 if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
-    extra_compile_args.append('-fno-tree-dominator-opts')
+    extra_compile_args.append('-fno-tree-copyrename')
+
+#########################################################
+### Generate some Python/Cython sources
+#########################################################
+
+make = os.environ.get("MAKE", 'make')
+make_cmdline = "{} -f generate_py_source.mk SAGE_SRC={}".format(make, sage.env.SAGE_SRC)
+status = subprocess.call(make_cmdline, shell=True)
+if status != 0:
+    raise DistutilsSetupError("{} failed".format(make_cmdline))
 
 #########################################################
 ### Testing related stuff
@@ -413,8 +429,8 @@ class sage_build_ext(build_ext):
             # ignore build-lib -- put the compiled extension into
             # the source tree along with pure Python modules
 
-            modpath = string.split(fullname, '.')
-            package = string.join(modpath[0:-1], '.')
+            modpath = fullname.split('.')
+            package = '.'.join(modpath[0:-1])
             base = modpath[-1]
 
             build_py = self.get_finalized_command('build_py')
@@ -561,7 +577,7 @@ def run_cythonize():
         print('Enabling Cython debugging support')
         debug = True
         Cython.Compiler.Main.default_options['gdb_debug'] = True
-        Cython.Compiler.Main.default_options['output_dir'] = 'build'
+        Cython.Compiler.Main.default_options['output_dir'] = build_base
 
     profile = False
     if os.environ.get('SAGE_PROFILE', None) == 'yes':
@@ -575,7 +591,7 @@ def run_cythonize():
     Cython.Compiler.Main.default_options['cache'] = False
 
     force = True
-    version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
+    version_file = os.path.join(SAGE_CYTHONIZED, '.cython_version')
     version_stamp = '\n'.join([
         'cython version: ' + str(Cython.__version__),
         'debug: ' + str(debug),
@@ -616,6 +632,11 @@ python_packages, python_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'])
 python_data_files = find_extra_files(python_packages,
     ".", SAGE_CYTHONIZED, SAGE_LIB, ["ntlwrap.cpp"])
+
+log.info('python_packages = {0}'.format(python_packages))
+log.info('python_modules = {0}'.format(python_modules))
+log.info('python_data_files = {0}'.format(python_data_files))
+
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
 
@@ -626,7 +647,7 @@ print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t
 print('Cleaning up stale installed files....')
 t = time.time()
 from sage_setup.clean import clean_install_dir
-output_dirs = SITE_PACKAGES + glob.glob(os.path.join(SAGE_SRC, 'build', 'lib*'))
+output_dirs = SITE_PACKAGES + glob.glob(os.path.join(build_base, 'lib*'))
 for output_dir in output_dirs:
     print('- cleaning {0}'.format(output_dir))
     clean_install_dir(output_dir, python_packages, python_modules,

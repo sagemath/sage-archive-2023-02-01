@@ -247,6 +247,8 @@ In case of symmetries, only non-redundant components are stored::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
+from six import itervalues
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
@@ -263,7 +265,7 @@ class Components(SageObject):
     The "frame" can be a basis of some vector space or a vector frame on some
     manifold (i.e. a field of bases).
     The stored quantities can be tensor components or non-tensorial quantities,
-    such as connection coefficients or structure coefficents. The symmetries
+    such as connection coefficients or structure coefficients. The symmetries
     over some indices are dealt by subclasses of the class :class:`Components`.
 
     INPUT:
@@ -1119,7 +1121,7 @@ class Components(SageObject):
         # any zero value
         # In other words, the full method should be
         #   return self.comp == {}
-        for val in self._comp.itervalues():
+        for val in itervalues(self._comp):
             if val != 0:
                 return False
         return True
@@ -1967,8 +1969,7 @@ class Components(SageObject):
             else:
                 o_sym = []
                 o_antisym = []
-            # print "s_sym, s_antisym: ", s_sym, s_antisym
-            # print "o_sym, o_antisym: ", o_sym, o_antisym
+
             res_sym = []
             res_antisym = []
             for isym in s_sym:
@@ -2003,10 +2004,6 @@ class Components(SageObject):
                 if len(r_isym) > 1:
                     res_antisym.append(r_isym)
                     max_len_antisym = max(max_len_antisym, len(r_isym))
-            # print "res_sym: ", res_sym
-            # print "res_antisym: ", res_antisym
-            # print "max_len_sym: ", max_len_sym
-            # print "max_len_antisym: ", max_len_antisym
         #
         # Construction of the result object in view of the remaining symmetries:
         #
@@ -2113,14 +2110,15 @@ class Components(SageObject):
             sage: from sage.tensor.modules.comp import Components
             sage: V = VectorSpace(QQ,3)
             sage: c = Components(QQ, V.basis(), 1)
-            sage: for ind in c.index_generator(): print ind,
-            (0,) (1,) (2,)
+            sage: list(c.index_generator())
+            [(0,), (1,), (2,)]
             sage: c = Components(QQ, V.basis(), 1, start_index=1)
-            sage: for ind in c.index_generator(): print ind,
-            (1,) (2,) (3,)
+            sage: list(c.index_generator())
+            [(1,), (2,), (3,)]
             sage: c = Components(QQ, V.basis(), 2)
-            sage: for ind in c.index_generator(): print ind,
-            (0, 0) (0, 1) (0, 2) (1, 0) (1, 1) (1, 2) (2, 0) (2, 1) (2, 2)
+            sage: list(c.index_generator())
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0),
+             (2, 1), (2, 2)]
 
         """
         si = self._sindex
@@ -2162,11 +2160,13 @@ class Components(SageObject):
             sage: from sage.tensor.modules.comp import Components
             sage: V = VectorSpace(QQ,3)
             sage: c = Components(QQ, V.basis(), 2)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 0) (0, 1) (0, 2) (1, 0) (1, 1) (1, 2) (2, 0) (2, 1) (2, 2)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0),
+             (2, 1), (2, 2)]
             sage: c = Components(QQ, V.basis(), 2, start_index=1)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (1, 1) (1, 2) (1, 3) (2, 1) (2, 2) (2, 3) (3, 1) (3, 2) (3, 3)
+            sage: list(c.non_redundant_index_generator())
+            [(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1),
+             (3, 2), (3, 3)]
 
         """
         for ind in self.index_generator():
@@ -2307,7 +2307,7 @@ class Components(SageObject):
             sum = 0
             for perm in sym_group.list():
                 # action of the permutation on [0,1,...,n_sym-1]:
-                perm_action = map(lambda x: x-1, perm.domain())
+                perm_action = [x - 1 for x in perm.domain()]
                 ind_perm = list(ind)
                 for k in range(n_sym):
                     ind_perm[pos[perm_action[k]]] = ind[pos[k]]
@@ -2458,7 +2458,7 @@ class Components(SageObject):
             sum = 0
             for perm in sym_group.list():
                 # action of the permutation on [0,1,...,n_sym-1]:
-                perm_action = map(lambda x: x-1, perm.domain())
+                perm_action = [x - 1 for x in perm.domain()]
                 ind_perm = list(ind)
                 for k in range(n_sym):
                     ind_perm[pos[perm_action[k]]] = ind[pos[k]]
@@ -2508,7 +2508,7 @@ class CompWithSym(Components):
     The "frame" can be a basis of some vector space or a vector frame on some
     manifold (i.e. a field of bases).
     The stored quantities can be tensor components or non-tensorial quantities,
-    such as connection coefficients or structure coefficents.
+    such as connection coefficients or structure coefficients.
 
     Subclasses of :class:`CompWithSym` are
 
@@ -2859,8 +2859,6 @@ class CompWithSym(Components):
                 # Permutation linking indsym_ordered to indsym:
                 #  (the +1 is required to fulfill the convention of Permutation)
                 perm = [indsym.index(i) +1 for i in indsym_ordered]
-                #c# print "indsym_ordered, indsym: ", indsym_ordered, indsym
-                #c# print "Permutation: ", Permutation(perm), " signature = ",  \
                 #c#     Permutation(perm).signature()
                 sign *= Permutation(perm).signature()
         ind = tuple(ind)
@@ -3537,61 +3535,63 @@ class CompWithSym(Components):
             ...    CompFullySym, CompFullyAntiSym
             sage: V = VectorSpace(QQ, 2)
             sage: c = CompFullySym(QQ, V.basis(), 2)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 0) (0, 1) (1, 1)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 0), (0, 1), (1, 1)]
             sage: c = CompFullySym(QQ, V.basis(), 2, start_index=1)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (1, 1) (1, 2) (2, 2)
+            sage: list(c.non_redundant_index_generator())
+            [(1, 1), (1, 2), (2, 2)]
             sage: c = CompFullyAntiSym(QQ, V.basis(), 2)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 1)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 1)]
 
         Indices on a 3-dimensional space::
 
             sage: V = VectorSpace(QQ, 3)
             sage: c = CompFullySym(QQ, V.basis(), 2)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 0) (0, 1) (0, 2) (1, 1) (1, 2) (2, 2)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)]
             sage: c = CompFullySym(QQ, V.basis(), 2, start_index=1)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (1, 1) (1, 2) (1, 3) (2, 2) (2, 3) (3, 3)
+            sage: list(c.non_redundant_index_generator())
+            [(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)]
             sage: c = CompFullyAntiSym(QQ, V.basis(), 2)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 1) (0, 2) (1, 2)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 1), (0, 2), (1, 2)]
             sage: c = CompWithSym(QQ, V.basis(), 3, sym=(1,2))  # symmetry on the last two indices
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 0, 0) (0, 0, 1) (0, 0, 2) (0, 1, 1) (0, 1, 2) (0, 2, 2)
-             (1, 0, 0) (1, 0, 1) (1, 0, 2) (1, 1, 1) (1, 1, 2) (1, 2, 2)
-             (2, 0, 0) (2, 0, 1) (2, 0, 2) (2, 1, 1) (2, 1, 2) (2, 2, 2)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 1), (0, 1, 2),
+             (0, 2, 2), (1, 0, 0), (1, 0, 1), (1, 0, 2), (1, 1, 1),
+             (1, 1, 2), (1, 2, 2), (2, 0, 0), (2, 0, 1), (2, 0, 2),
+             (2, 1, 1), (2, 1, 2), (2, 2, 2)]
             sage: c = CompWithSym(QQ, V.basis(), 3, antisym=(1,2))  # antisymmetry on the last two indices
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 0, 1) (0, 0, 2) (0, 1, 2) (1, 0, 1) (1, 0, 2) (1, 1, 2)
-             (2, 0, 1) (2, 0, 2) (2, 1, 2)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 0, 1), (0, 0, 2), (0, 1, 2), (1, 0, 1), (1, 0, 2), (1, 1, 2),
+             (2, 0, 1), (2, 0, 2), (2, 1, 2)]
             sage: c = CompFullySym(QQ, V.basis(), 3)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 0, 0) (0, 0, 1) (0, 0, 2) (0, 1, 1) (0, 1, 2) (0, 2, 2)
-             (1, 1, 1) (1, 1, 2) (1, 2, 2) (2, 2, 2)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 1), (0, 1, 2), (0, 2, 2),
+             (1, 1, 1), (1, 1, 2), (1, 2, 2), (2, 2, 2)]
             sage: c = CompFullyAntiSym(QQ, V.basis(), 3)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 1, 2)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 1, 2)]
 
         Indices on a 4-dimensional space::
 
             sage: V = VectorSpace(QQ, 4)
             sage: c = Components(QQ, V.basis(), 1)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0,) (1,) (2,) (3,)
+            sage: list(c.non_redundant_index_generator())
+            [(0,), (1,), (2,), (3,)]
             sage: c = CompFullyAntiSym(QQ, V.basis(), 2)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 1) (0, 2) (0, 3) (1, 2) (1, 3) (2, 3)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
             sage: c = CompFullyAntiSym(QQ, V.basis(), 3)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 1, 2) (0, 1, 3) (0, 2, 3) (1, 2, 3)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
             sage: c = CompFullyAntiSym(QQ, V.basis(), 4)
-            sage: for ind in c.non_redundant_index_generator(): print ind,
-            (0, 1, 2, 3)
+            sage: list(c.non_redundant_index_generator())
+            [(0, 1, 2, 3)]
             sage: c = CompFullyAntiSym(QQ, V.basis(), 5)
-            sage: for ind in c.non_redundant_index_generator(): print ind,  # nothing since c is identically zero in this case (for 5 > 4)
+            sage: list(c.non_redundant_index_generator())  # nothing since c is identically zero in this case (for 5 > 4)
+            []
 
         """
         si = self._sindex
@@ -3921,7 +3921,7 @@ class CompWithSym(Components):
             sum = 0
             for perm in sym_group.list():
                 # action of the permutation on [0,1,...,n_sym-1]:
-                perm_action = map(lambda x: x-1, perm.domain())
+                perm_action = [x - 1 for x in perm.domain()]
                 ind_perm = list(ind)
                 for k in range(n_sym):
                     ind_perm[pos[perm_action[k]]] = ind[pos[k]]
@@ -4050,10 +4050,9 @@ class CompWithSym(Components):
 
         Some check of the antisymmetrization::
 
-            sage: for i in range(3):
-            ....:     for j in range(i,3):
-            ....:         print (s[2,2,i,j], s[2,2,i,j] == (c[2,2,i,j] - c[2,2,j,i])/2),
-            (0, True) (-6, True) (-20, True) (0, True) (-12, True) (0, True)
+            sage: all(s[2,2,i,j] == (c[2,2,i,j] - c[2,2,j,i])/2
+            ....:     for i in range(3) for j in range(i,3))
+            True
 
         The full antisymmetrization results in zero because of the symmetry on the
         first two indices::
@@ -4186,7 +4185,7 @@ class CompWithSym(Components):
             sum = 0
             for perm in sym_group.list():
                 # action of the permutation on [0,1,...,n_sym-1]:
-                perm_action = map(lambda x: x-1, perm.domain())
+                perm_action = [x - 1 for x in perm.domain()]
                 ind_perm = list(ind)
                 for k in range(n_sym):
                     ind_perm[pos[perm_action[k]]] = ind[pos[k]]

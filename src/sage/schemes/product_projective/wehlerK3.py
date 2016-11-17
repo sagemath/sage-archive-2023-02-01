@@ -16,15 +16,15 @@ AUTHORS:
 
     REFERENCES:
 
-    .. [FaHu] J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
+    .. [FaHu] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
                 Wehler K3 Surfaces over finite fields
                 :arxiv:`1309.6598`, 2013.
-    .. [CaSi] G. Call and J. Silverman. Computing the Canonical Height on
+    .. [CaSi] \G. Call and J. Silverman. Computing the Canonical Height on
                 K3 Surfaces. Mathematics of Comp. , 65 (1996), 259-290.
-    .. [Wehl] J. Wehler. Hypersurfaces of the Flag Variety: Deformation
+    .. [Wehl] \J. Wehler. Hypersurfaces of the Flag Variety: Deformation
                 Theory and the Theorems of Kodaira-Spencer, Torelli,
                 Lefschetz, M. Noether, and Serre. Math. Z. 198 (1988), 21-38
-    .. [Hutzthesis] B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
+    .. [Hutzthesis] \B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
                 than one. PhD Thesis, Brown University 2007
 
 """

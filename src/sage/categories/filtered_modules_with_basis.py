@@ -105,7 +105,6 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
         sage: TestSuite(C).run()
     """
     class ParentMethods:
-
         # TODO: which syntax do we prefer?
         # A.basis(degree = 3)
         # A.basis().subset(degree=3)
@@ -154,14 +153,14 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                  over Integer Ring(i))_{i in Partitions}
 
             Checking this method on a filtered algebra. Note that this
-            will typically raise an ``AttributeError`` when this feature
-            is not implemented. ::
+            will typically raise a ``NotImplementedError`` when this
+            feature is not implemented. ::
 
                 sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
                 sage: A.basis(4)
                 Traceback (most recent call last):
                 ...
-                AttributeError: 'IndexedFreeAbelianMonoid_with_category' object has no attribute 'subset'
+                NotImplementedError: infinite list
 
             Without arguments, the full basis is returned::
 
@@ -180,11 +179,66 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                  The exterior algebra of rank 2 over Rational Field(i))_{i in
                  Subsets of {0, 1}}
             """
-            from sage.sets.family import Family
             if d is None:
+                from sage.sets.family import Family
                 return Family(self._indices, self.monomial)
             else:
-                return Family(self._indices.subset(size=d), self.monomial)
+                return self.homogeneous_component_basis(d)
+
+        # TODO: Change `list(self._indices)` to `self._indices` and move
+        #   this fallback to the category of finite-dimensional filtered
+        #   modules with basis when it is implemented and the MRO issues
+        #   are fixed (see trac #19397)
+        def homogeneous_component_basis(self, d):
+            """
+            Return a basis for the ``d``-th homogeneous component of ``self``.
+
+            EXAMPLES::
+
+                sage: A = GradedModulesWithBasis(ZZ).example()
+                sage: A.homogeneous_component_basis(4)
+                Lazy family (Term map from Partitions to An example of a graded module with basis:
+                             the free module on partitions over Integer Ring(i))_{i in Partitions of the integer 4}
+
+                sage: cat = GradedModulesWithBasis(ZZ)
+                sage: C = CombinatorialFreeModule(ZZ, ['a', 'b'], category=cat)
+                sage: C.degree_on_basis = lambda x: 1 if x == 'a' else 2
+                sage: C.homogeneous_component_basis(1)
+                Finite family {'a': B['a']}
+                sage: C.homogeneous_component_basis(2)
+                Finite family {'b': B['b']}
+            """
+            from sage.sets.family import Family
+            try:
+                S = self._indices.subset(size=d)
+            except (AttributeError, ValueError, TypeError):
+                S = [i for i in list(self._indices) if self.degree_on_basis(i) == d]
+            return Family(S, self.monomial)
+
+        def homogeneous_component(self, d):
+            """
+            Return the ``d``-th homogeneous component of ``self``.
+
+            EXAMPLES::
+
+                sage: A = GradedModulesWithBasis(ZZ).example()
+                sage: A.homogeneous_component(4)
+                Degree 4 homogeneous component of An example of a graded module
+                 with basis: the free module on partitions over Integer Ring
+            """
+            from sage.categories.modules_with_basis import ModulesWithBasis
+            from sage.categories.filtered_algebras import FilteredAlgebras
+            if self.base_ring() in FilteredAlgebras:
+                raise NotImplementedError("this is only a natural module over"
+                                          " the degree 0 component of the filtered"
+                                          " algebra and coordinate rings are not"
+                                          " yet implemented for submodules")
+            category = ModulesWithBasis(self.category().base_ring())
+            M = self.submodule(self.homogeneous_component_basis(d),
+                               category=category,
+                               already_echelonized=True)
+            M.rename("Degree {} homogeneous component of {}".format(d, self))
+            return M
 
         def graded_algebra(self):
             r"""
@@ -832,12 +886,14 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 0
 
                 sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
-                sage: g = A.an_element() - 2 * A.algebra_generators()['x'] * A.algebra_generators()['y']; g
+                sage: G = A.algebra_generators()
+                sage: g = A.an_element() - 2 * G['x'] * G['y']; g
                 U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
+                 + 2*U['x'] + 3*U['y'] + 1
                 sage: g.homogeneous_component(-1)
                 0
                 sage: g.homogeneous_component(0)
-                0
+                1
                 sage: g.homogeneous_component(2)
                 -2*U['x']*U['y']
                 sage: g.homogeneous_component(5)
@@ -896,22 +952,25 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 2*P[] + 2*P[1] + 3*P[2]
 
                 sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
-                sage: g = A.an_element() - 2 * A.algebra_generators()['x'] * A.algebra_generators()['y']; g
+                sage: G = A.algebra_generators()
+                sage: g = A.an_element() - 2 * G['x'] * G['y']; g
                 U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
+                 + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(-1)
                 0
                 sage: g.truncate(0)
                 0
                 sage: g.truncate(2)
-                0
+                2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(3)
-                -2*U['x']*U['y']
+                -2*U['x']*U['y'] + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(5)
-                -2*U['x']*U['y']
+                -2*U['x']*U['y'] + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(7)
-                -2*U['x']*U['y']
+                -2*U['x']*U['y'] + 2*U['x'] + 3*U['y'] + 1
                 sage: g.truncate(8)
                 U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
+                 + 2*U['x'] + 3*U['y'] + 1
 
             TESTS:
 
@@ -925,4 +984,5 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             degree_on_basis = self.parent().degree_on_basis
             return self.parent().sum_of_terms((i, c) for (i, c) in self
                                               if degree_on_basis(i) < n)
+
 

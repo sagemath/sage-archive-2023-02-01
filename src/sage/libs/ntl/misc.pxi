@@ -1,7 +1,7 @@
 # distutils: depends = NTL/ZZ.h
 
 include "cysignals/signals.pxi"
-from sage.ext.memory cimport sage_free
+include "cysignals/memory.pxi"
 
 # Unset the signal handler and create a string from the buffer,
 # then free the memory in the buffer.
@@ -17,7 +17,7 @@ cdef object string(char* s):
     sig_off()
     # Makes a python string and deletes what is pointed to by s.
     t = str(s)
-    sage_free(s)
+    sig_free(s)
     return t
 
 cdef object string_delete(char* s):

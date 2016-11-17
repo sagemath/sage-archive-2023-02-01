@@ -1,5 +1,9 @@
+"""
+Symbolic variables
+"""
 from sage.symbolic.function_factory import function as new_function
 from sage.symbolic.ring import SR
+
 
 def var(*args, **kwds):
     r"""
@@ -197,7 +201,7 @@ def function(s, *args, **kwds):
         sage: g.diff(y)
         (x, y) |--> 1/2*cos(1/2*y)
         sage: k = g.diff(x); k
-        (x, y) |--> 2*supersin(x)*D[0](supersin)(x)
+        (x, y) |--> 2*supersin(x)*diff(supersin(x), x)
 
     Custom typesetting of symbolic functions in LaTeX, either using latex_name
     keyword::

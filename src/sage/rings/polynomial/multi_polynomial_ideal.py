@@ -232,6 +232,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.interfaces.all import (singular as singular_default,
                                  macaulay2 as macaulay2_default,
@@ -412,10 +413,9 @@ class MPolynomialIdeal_magma_repr:
             else:
                 mgb = mself.GroebnerBasis()
 
-
         if prot == "sage":
-            print
-            print "Highest degree reached during computation: %2d."%log_parser.max_deg
+            print("")
+            print("Highest degree reached during computation: %2d." % log_parser.max_deg)
 
         # TODO: rewrite this to be much more sophisticated in multi-level nested cases.
         mgb = [str(mgb[i+1]) for i in range(len(mgb))]
@@ -1445,8 +1445,8 @@ class MPolynomialIdeal_singular_repr(
                 raise TypeError("algorithm '%s' unknown"%algorithm)
         self.__gb_singular = S
         if prot == "sage":
-            print
-            print "Highest degree reached during computation: %2d."%log_parser.max_deg
+            print("")
+            print("Highest degree reached during computation: %2d." % log_parser.max_deg)
         return S
 
     @require_field
@@ -1971,12 +1971,12 @@ class MPolynomialIdeal_singular_repr(
     @libsingular_gb_standard_options
     def elimination_ideal(self, variables):
         r"""
-        Returns the elimination ideal this ideal with respect to the
+        Return the elimination ideal of this ideal with respect to the
         variables given in ``variables``.
 
         INPUT:
 
-        - ``variables`` - a list or tuple of variables in ``self.ring()``
+        - ``variables`` -- a list or tuple of variables in ``self.ring()``
 
         EXAMPLE::
 
@@ -3366,7 +3366,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
                                         symmetry=symmetry, verbose=verbose)
 
-    @cached_method
+    @cached_method(do_pickle=True)
     def groebner_basis(self, algorithm='', deg_bound=None, mult_bound=None, prot=False, *args, **kwds):
         r"""
         Return the reduced Groebner basis of this ideal.
@@ -3647,6 +3647,15 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
              5*b*c + 156*c^2 + 112*b + 948*c,
              50*c^2 + 600*b + 650*c, a + 2*b + 2*c + 999, 125*b]
 
+        ::
+
+            sage: R.<x,y,z> = PolynomialRing(Zmod(2233497349584))
+            sage: I = R.ideal([z*(x-3*y), 3^2*x^2-y*z, z^2+y^2])
+            sage: I.groebner_basis()
+            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
+            [2*z^4, y*z^2 + 81*z^3, 248166372176*z^3, 9*x^2 - y*z, y^2 + z^2, x*z +
+            2233497349581*y*z, 248166372176*y*z]
+
         Sage also supports local orderings::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,3,order='negdegrevlex')
@@ -3724,7 +3733,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
                         ch = self.ring().base_ring().characteristic()
                         R = self.ring().change_ring(ZZ)
-                        I = R.ideal([R(f) for f in self.gens()+(ch,)])
+                        I = R.ideal([R(f) for f in self.gens()] + [R(ch)])
 
                         gb = toy_d_basis.d_basis(I, *args, **kwds)
 

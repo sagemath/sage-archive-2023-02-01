@@ -15,7 +15,8 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-
+from __future__ import absolute_import, division
+from six.moves import range
 
 from copy import copy
 from math import sin, cos, pi
@@ -637,8 +638,8 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         Fq = FiniteField(q**2, 'a')
         PG = map(vector, ProjectiveSpace(m - 1, Fq))
         map(lambda x: x.set_immutable(), PG)
-        def P(x,y):
-            return sum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0
+        def P(x, y):
+            return sum(x[j] * y[m - 1 - j] ** q for j in range(m)) == 0
 
         V = filter(lambda x: P(x,x), PG)
         G = Graph([V,lambda x,y:  # bottleneck is here, of course:
@@ -688,7 +689,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
 
     REFERENCE:
 
-    .. [Hu75] X. L. Hubaut.
+    .. [Hu75] \X. L. Hubaut.
       Strongly regular graphs.
       Disc. Math. 13(1975), pp 357--381.
       http://dx.doi.org/10.1016/0012-365X(75)90057-6
@@ -809,7 +810,7 @@ def SymplecticDualPolarGraph(m, q):
 
     REFERENCE:
 
-    .. [Co81] A. M. Cohen,
+    .. [Co81] \A. M. Cohen,
       `A synopsis of known distance-regular graphs with large diameters
       <http://persistent-identifier.org/?identifier=urn:nbn:nl:ui:18-6775>`_,
       Stichting Mathematisch Centrum, 1981.
@@ -833,7 +834,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     obtained as a two-graph descendant of the
     :func:`Taylor's two-graph <sage.combinat.designs.twographs.taylor_twograph>` `T`.
     This graph admits a partition into cliques of size `q`, which are useful in
-    :func:`TaylorTwographSRG <sage.graphs.generators.classical_geometries.TaylorTwographSRG>`,
+    :func:`~sage.graphs.graph_generators.GraphGenerators.TaylorTwographSRG`,
     a strongly regular graph on `q^3+1` vertices in the
     Seidel switching class of `T`, for which we need `(q^2+1)/2` cliques.
     The cliques are the `q^2` lines on `v_0` of the projective plane containing the unital
@@ -865,7 +866,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     TESTS::
 
         sage: g,l,_=graphs.TaylorTwographDescendantSRG(3,clique_partition=True)
-        sage: all(map(lambda x: g.is_clique(x), l))
+        sage: all(g.is_clique(x) for x in l)
         True
         sage: graphs.TaylorTwographDescendantSRG(4)
         Traceback (most recent call last):
@@ -882,11 +883,12 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     from sage.schemes.projective.projective_space import ProjectiveSpace
     from sage.modules.free_module_element import free_module_element as vector
     from sage.rings.finite_rings.integer_mod import mod
-    from __builtin__ import sum
+    from six.moves.builtins import sum
     Fq = FiniteField(q**2, 'a')
     PG = map(tuple,ProjectiveSpace(2, Fq))
-    def S(x,y):
-        return sum(map(lambda j: x[j]*y[2-j]**q, xrange(3)))
+
+    def S(x, y):
+        return sum(x[j] * y[2 - j] ** q for j in range(3))
 
     V = filter(lambda x: S(x,x)==0, PG) # the points of the unital
     v0 = V[0]
@@ -919,7 +921,7 @@ def TaylorTwographSRG(q):
 
     .. SEEALSO::
 
-        * :func:`TaylorTwographDescendantSRG <sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG>`
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.TaylorTwographDescendantSRG`
 
     EXAMPLES::
 
@@ -972,7 +974,7 @@ def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
     .. [GQwiki] `Generalized quadrangle
       <http://en.wikipedia.org/wiki/Generalized_quadrangle>`__
 
-    .. [PT09] S. Payne, J. A. Thas.
+    .. [PT09] \S. Payne, J. A. Thas.
       Finite generalized quadrangles.
       European Mathematical Society,
       2nd edition, 2009.
@@ -1046,7 +1048,7 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     supplying your own hyperoval::
 
         sage: F=GF(4,'b')
-        sage: O=[vector(F,(0,0,0,1)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,0,0,1)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: g=graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F); g
         T2*(O,4); GQ(3, 5): Graph on 64 vertices
         sage: g.is_strongly_regular(parameters=True)
@@ -1055,12 +1057,12 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     TESTS::
 
         sage: F=GF(4,'b') # repeating a point...
-        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
         RuntimeError: incorrect hyperoval size
-        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
@@ -1163,12 +1165,12 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     TESTS::
 
         sage: F=GF(4,'b') # repeating a point...
-        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
         RuntimeError: incorrect hyperoval size
-        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+[vector(F, (0,1,x^2,x)) for x in F]
         sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
@@ -1184,14 +1186,14 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     from sage.rings.finite_rings.finite_field_constructor import GF
     from itertools import combinations
 
-    p, k = is_prime_power(q,get_data=True)
-    if k==0 or p!=2:
+    p, k = is_prime_power(q, get_data=True)
+    if k == 0 or p != 2:
         raise ValueError('q must be a power of 2')
 
     if hyperoval_matching is None:
-        hyperoval_matching = map(lambda k: (2*k+1,2*k), xrange(1+q/2))
+        hyperoval_matching = [(2 * k + 1, 2 * k) for k in range(1 + q // 2)]
     if field is None:
-        F = GF(q,'a')
+        F = GF(q, 'a')
     else:
         F = field
 
@@ -1199,14 +1201,14 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     G = T2starGeneralizedQuadrangleGraph(q, field=F, dual=True, hyperoval=hyperoval, check_hyperoval=check_hyperoval)
 
     def normalize(v):  # make sure the 1st non-0 coordinate is 1.
-        d=next(x for x in v if x!=F.zero())
-        return vector(map(lambda x: x/d, v))
+        d = next(x for x in v if x != F.zero())
+        return vector([x / d for x in v])
 
     # build the partition into independent sets
     P = map(lambda x: normalize(x[0]-x[1]), G.vertices())
     O = list(set(map(tuple,P)))
     I_ks = {x:[] for x in range(q+2)} # the partition into I_k's
-    for i in xrange(len(P)):
+    for i in range(len(P)):
         I_ks[O.index(tuple(P[i]))].append(i)
 
     # perform the adjustment of the edges, as described.
@@ -1278,7 +1280,7 @@ def CossidentePenttilaGraph(q):
 
     REFERENCES:
 
-    .. [CP05] A.Cossidente and T.Penttila
+    .. [CP05] \A.Cossidente and T.Penttila
        Hemisystems on the Hermitian surface
        Journal of London Math. Soc. 72(2005), 731-741
     """

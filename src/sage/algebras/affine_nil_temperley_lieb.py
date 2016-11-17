@@ -21,7 +21,7 @@ class AffineNilTemperleyLiebTypeA(CombinatorialFreeModule):
 
     REFERENCES:
 
-        .. [P2005] A. Postnikov, Affine approach to quantum Schubert calculus, Duke Math. J. 128 (2005) 473-509
+        .. [P2005] \A. Postnikov, Affine approach to quantum Schubert calculus, Duke Math. J. 128 (2005) 473-509
 
     INPUT:
 

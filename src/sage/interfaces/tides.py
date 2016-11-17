@@ -6,7 +6,7 @@ This module contains tools to write the .c files needed for TIDES [TI]_ .
 Tides is an integration engine based on the Taylor method. It is implemented
 as a c library. The user must translate its initial value problem (IVP) into a
 pair of .c files that will then be compiled and linked against the TIDES
-library. The reulting binary will produce the desired output. The tools in this
+library. The resulting binary will produce the desired output. The tools in this
 module can be used to automate the generation of these files from the symbolic
 expression of the differential equation.
 
@@ -33,7 +33,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM Transactions on Mathematical Software*, *39* (1), 1-28.
+.. [ALG924] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM Transactions on Mathematical Software*, *39* (1), 1-28.
 
 .. [TI]
    A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
@@ -669,7 +669,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     - ``parameter_values`` -- the values of the parameters for the particular
        initial value problem.
 
-    - ``dig`` -- the number of digits of precission that will be used in the integration
+    - ``dig`` -- the number of digits of precision that will be used in the integration
 
     - ``tolrel`` -- the relative tolerance.
 

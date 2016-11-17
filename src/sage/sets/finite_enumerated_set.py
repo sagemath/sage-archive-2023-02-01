@@ -15,6 +15,7 @@ Finite Enumerated Sets
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -169,7 +170,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: for i in FiniteEnumeratedSet([1,2,3]): print i
+            sage: for i in FiniteEnumeratedSet([1,2,3]): print(i)
             1
             2
             3

@@ -56,6 +56,10 @@ if [ "$UNAME" = Darwin ]; then
     mkdir "$CUR"/include
     cp -rp "${xcode}"/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr/include/openssl "$CUR"/include
     export CFLAGS="-I$CUR/include"
+    if [ $MACOSX_VERSION -ge 16 ]; then
+        echo "OS X 10.$[$MACOSX_VERSION-4] Building with clang."
+        CC=clang
+    fi
 elif [ "$UNAME" = SunOS ]; then
     # Enable some C99 features on Solaris. This in particular enables
     # the isinf() and isfinite() functions. It works both for C and
@@ -86,6 +90,14 @@ build()
         exit 1
     fi
 
+    # On OS X, test to see if _scproxy built before installing.
+    if [ "$UNAME" = "Darwin" ]; then
+        if [ -z `find build -name _scproxy.so` ]; then
+            echo >&2 "Error: the _scproxy module failed to build."
+            exit 1
+        fi
+    fi
+
     # Remove old libraries
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
@@ -108,14 +120,15 @@ build()
     fi
 }
 
-
 build
+
+PYTHON_VERSION=$("$SAGE_LOCAL/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
 cd "$SAGE_LOCAL/lib"
 
 # Make symbolic link (after removing old link first)
 rm -f python
-ln -s python2.7 python
+ln -s python${PYTHON_VERSION} python
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating symbolic link"
     exit 1
@@ -128,7 +141,10 @@ fi
 # x.y.z with x >= 10).
 if [ "$UNAME" = "Darwin" ] && \
     [ `uname -r | cut '-d.' -f1` -gt 9 ]; then
-    rm -f "$SAGE_LOCAL/lib/python2.7/config/libpython2.7.a"
+    rm -f "$SAGE_LOCAL/lib/python$PYTHON_VERSION/config/libpython${PYTHON_VERSION}.a"
+elif [ "$UNAME" = "CYGWIN" ]; then
+    # See http://trac.sagemath.org/ticket/20437
+    ln -sf "python/config/libpython${PYTHON_VERSION}.dll.a" "$SAGE_LOCAL/lib/libpython${PYTHON_VERSION}.dll.a"
 fi
 
 # Make sure extension modules were built correctly.
@@ -145,6 +161,15 @@ for module in ctypes math hashlib crypt readline socket ; do
         import_errors=true
     fi
 done
+
+if [ "$UNAME" = "Darwin" ]; then
+    if python -c "import _scproxy"; then
+        echo "_scproxy module imported OK"
+    else
+        echo >&2 "_scproxy module failed to import"
+        import_errors=true
+    fi
+fi
 
 if $import_errors; then
     echo >&2 "Error: One or more modules failed to import."

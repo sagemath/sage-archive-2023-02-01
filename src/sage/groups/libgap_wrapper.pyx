@@ -12,13 +12,13 @@ parent and :class:`ParentLibGAP` ::
     sage: from sage.groups.libgap_wrapper import ElementLibGAP, ParentLibGAP
     sage: from sage.groups.group import Group
     sage: class FooElement(ElementLibGAP):
-    ...       pass
+    ....:     pass
     sage: class FooGroup(Group, ParentLibGAP):
-    ...       Element = FooElement
-    ...       def __init__(self):
-    ...           lg = libgap(libgap.CyclicGroup(3))    # dummy
-    ...           ParentLibGAP.__init__(self, lg)
-    ...           Group.__init__(self)
+    ....:     Element = FooElement
+    ....:     def __init__(self):
+    ....:         lg = libgap(libgap.CyclicGroup(3))    # dummy
+    ....:         ParentLibGAP.__init__(self, lg)
+    ....:         Group.__init__(self)
 
 Note how we call the constructor of both superclasses to initialize
 ``Group`` and ``ParentLibGAP`` separately. The parent class implements
@@ -96,13 +96,13 @@ class ParentLibGAP(SageObject):
         sage: from sage.groups.libgap_wrapper import ElementLibGAP, ParentLibGAP
         sage: from sage.groups.group import Group
         sage: class FooElement(ElementLibGAP):
-        ...       pass
+        ....:     pass
         sage: class FooGroup(Group, ParentLibGAP):
-        ...       Element = FooElement
-        ...       def __init__(self):
-        ...           lg = libgap(libgap.CyclicGroup(3))    # dummy
-        ...           ParentLibGAP.__init__(self, lg)
-        ...           Group.__init__(self)
+        ....:     Element = FooElement
+        ....:     def __init__(self):
+        ....:         lg = libgap(libgap.CyclicGroup(3))    # dummy
+        ....:         ParentLibGAP.__init__(self, lg)
+        ....:         Group.__init__(self)
         sage: FooGroup()
         <pc group of size 3 with 1 generators>
     """
@@ -238,10 +238,15 @@ class ParentLibGAP(SageObject):
             [ f1^-1*f4^-1*f1*f4, f1^-1*f5^-1*f1*f5, f1^-1*f6^-1*f1*f6, f2^-1*f4^-1*f2*f4,
               f2^-1*f5^-1*f2*f5, f2^-1*f6^-1*f2*f6, f3^-1*f4^-1*f3*f4, f3^-1*f5^-1*f3*f5,
               f3^-1*f6^-1*f3*f6 ]
+
+        We can also convert directly to libgap::
+
+            sage: libgap(GL(2, ZZ))
+            GL(2,Integers)
         """
         return self._libgap
 
-    _gap_ = gap
+    _libgap_ = _gap_ = gap
 
     @cached_method
     def _gap_gens(self):
@@ -406,13 +411,13 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         sage: from sage.groups.libgap_wrapper import ElementLibGAP, ParentLibGAP
         sage: from sage.groups.group import Group
         sage: class FooElement(ElementLibGAP):
-        ...       pass
+        ....:     pass
         sage: class FooGroup(Group, ParentLibGAP):
-        ...       Element = FooElement
-        ...       def __init__(self):
-        ...           lg = libgap(libgap.CyclicGroup(3))    # dummy
-        ...           ParentLibGAP.__init__(self, lg)
-        ...           Group.__init__(self)
+        ....:     Element = FooElement
+        ....:     def __init__(self):
+        ....:         lg = libgap(libgap.CyclicGroup(3))    # dummy
+        ....:         ParentLibGAP.__init__(self, lg)
+        ....:         Group.__init__(self)
         sage: FooGroup()
         <pc group of size 3 with 1 generators>
         sage: FooGroup().gens()
@@ -535,7 +540,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             from sage.misc.latex import latex
             return latex(self._repr_())
 
-    cpdef MonoidElement _mul_(left, MonoidElement right):
+    cpdef _mul_(left, right):
         """
         Multiplication of group elements
 
@@ -556,7 +561,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         P = left.parent()
         return P.element_class(P, left.gap() * right.gap())
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         This method implements comparison.
 
@@ -580,7 +585,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         return cmp((<ElementLibGAP>left)._libgap,
                    (<ElementLibGAP>right)._libgap)
 
-    cpdef MultiplicativeGroupElement _div_(left, MultiplicativeGroupElement right):
+    cpdef _div_(left, right):
         """
         Division of group elements.
 

@@ -216,7 +216,7 @@ The interface is loaded by a cell containing the sole code :
 
 "%load_ext rpy2.ipython"
 
-After executon of this code, the %R and %%R magics are available :
+After execution of this code, the %R and %%R magics are available :
 
 - %R allows the execution of a single line of R code. Data exchange is
    possible via the -i and -o options. Do "%R?" in a standalone cell
@@ -263,11 +263,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import print_function, absolute_import
+from six.moves import range
+import six
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.env import DOT_SAGE
 import re
-import six
 import sage.rings.integer
 from sage.structure.element import parent
 from sage.misc.cachefunc import cached_method
@@ -489,7 +491,7 @@ class R(ExtraTabCompletion, Expect):
         """
         cmd = """options(repos="%s"); install.packages("%s")"""%(RRepositoryURL, package_name)
         os.system("time echo '%s' | R --vanilla"%cmd)
-        print "Please restart Sage in order to use '%s'."%package_name
+        print("Please restart Sage in order to use '%s'." % package_name)
 
     def __repr__(self):
         """
@@ -577,7 +579,7 @@ class R(ExtraTabCompletion, Expect):
         """
         EXAMPLES::
 
-            sage: print r._install_hints()
+            sage: print(r._install_hints())
             R is currently installed with Sage.
         """
         return "R is currently installed with Sage.\n"
@@ -592,7 +594,7 @@ class R(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: print r._source("c")
+            sage: print(r._source("c"))
             function (..., recursive = FALSE)  .Primitive("c")
         """
         if s[-2:] == "()":
@@ -611,7 +613,7 @@ class R(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: print r.source("c")
+            sage: print(r.source("c"))
             function (..., recursive = FALSE)  .Primitive("c")
         """
         return self._source(s)
@@ -705,7 +707,7 @@ class R(ExtraTabCompletion, Expect):
         #The following was more structural, but breaks on my machine.  (stein)
         #p = p._sage_()
         #s = p['_Dim'][0]
-        #l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in xrange(0,s)]
+        #l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in range(0,s)]
         #return l
 
     def _object_class(self):
@@ -1036,9 +1038,9 @@ class R(ExtraTabCompletion, Expect):
                 except IOError:
                     pass
             if verbose and use_disk_cache:
-                print "\nBuilding R command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+                print("\nBuilding R command completion list (this takes")
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % COMMANDS_CACHE)
             v = self._commands()
             self.__tab_completion = v
             if len(v) > 200 and use_disk_cache:
@@ -1384,7 +1386,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
             return P.new('%s[%s]'%(self._name, n))
         else:
             L = []
-            for i in xrange(len(n)):
+            for i in range(len(n)):
                 if parent(n[i]) is P:
                     L.append(n[i].name())
                 else:
@@ -1941,7 +1943,7 @@ class RFunctionElement(FunctionElement):
 
             sage: a = r([1,2,3])
             sage: length = a.length
-            sage: print length._sage_doc_()
+            sage: print(length._sage_doc_())
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>
@@ -1957,7 +1959,7 @@ class RFunctionElement(FunctionElement):
 
             sage: a = r([1,2,3])
             sage: length = a.length
-            sage: print length._sage_src_()
+            sage: print(length._sage_src_())
             function (x)  .Primitive("length")
         """
         M = self._obj.parent()
@@ -2020,7 +2022,7 @@ class RFunction(ExpectFunction):
         EXAMPLES::
 
             sage: length = r.length
-            sage: print length._sage_doc_()
+            sage: print(length._sage_doc_())
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>
@@ -2035,7 +2037,7 @@ class RFunction(ExpectFunction):
         EXAMPLES::
 
             sage: length = r.length
-            sage: print length._sage_src_()
+            sage: print(length._sage_src_())
             function (x)  .Primitive("length")
 
         """

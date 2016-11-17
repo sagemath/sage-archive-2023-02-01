@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.misc.all import cached_method
 from sage.categories.semigroups import Semigroups
@@ -134,14 +135,14 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
          ([], [1], (1, 'right')),
          ([], [2], (2, 'left')),
          ([], [2], (2, 'right'))]
-        sage: map(sorted, M.j_classes())
+        sage: list(map(sorted, M.j_classes()))
         [[[1], [1, 1]], [[], [2]]]
         sage: M.j_classes_of_idempotents()
         [[[1, 1]], [[]]]
         sage: M.j_transversal_of_idempotents()
         [[1, 1], []]
 
-        sage: map(attrcall('pseudo_order'), M.list())
+        sage: list(map(attrcall('pseudo_order'), M.list()))
         [[1, 0], [3, 1], [2, 0], [2, 1]]
 
     We can also use it to get submonoids from groups. We check that in the
@@ -627,9 +628,9 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         if self._constructed:
             return iter(self._elements)
         else:
-            return self._iter_concurent()
+            return self._iter_concurrent()
 
-    def _iter_concurent(self):
+    def _iter_concurrent(self):
         """
         We need to take special care since several iterators may run
         concurrently.
@@ -865,15 +866,15 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
                 sage: R = IntegerModRing(15)
                 sage: M = AutomaticSemigroup(Family({1: R(3), 2: R(5)}), one=R.one())
                 sage: M.construct()
-                sage: for m in M: print m, m.reduced_word()
-                1  []
-                3  [1]
-                5  [2]
-                9  [1, 1]
-                0  [1, 2]
-                10 [2, 2]
-                12 [1, 1, 1]
-                6  [1, 1, 1, 1]
+                sage: for m in M: print((m, m.reduced_word()))
+                (1, [])
+                (3, [1])
+                (5, [2])
+                (9, [1, 1])
+                (0, [1, 2])
+                (10, [2, 2])
+                (12, [1, 1, 1])
+                (6, [1, 1, 1, 1])
 
             TESTS:
 

@@ -27,6 +27,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 from math import isnan
@@ -36,7 +38,7 @@ from sage.misc.temporary_file import tmp_filename
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
-from colors import rgbcolor
+from .colors import rgbcolor
 
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
@@ -94,10 +96,10 @@ class Graphics(WithEqualityById, SageObject):
 
     EXAMPLES::
 
-        sage: G = Graphics(); print G
+        sage: G = Graphics(); print(G)
         Graphics object consisting of 0 graphics primitives
         sage: c = circle((1,1), 1)
-        sage: G+=c; print G
+        sage: G+=c; print(G)
         Graphics object consisting of 1 graphics primitive
 
     Here we make a graphic of embedded isosceles triangles, coloring
@@ -919,7 +921,7 @@ class Graphics(WithEqualityById, SageObject):
             'Graphics object consisting of 1 graphics primitive'
             sage: str(S)
             'Graphics object consisting of 1 graphics primitive'
-            sage: print S
+            sage: print(S)
             Graphics object consisting of 1 graphics primitive
         """
         s = "Graphics object consisting of %s graphics primitives"%(len(self))
@@ -933,7 +935,7 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLE::
 
-            sage: G = circle((1,1),2) + circle((2,2),5); print G
+            sage: G = circle((1,1),2) + circle((2,2),5); print(G)
             Graphics object consisting of 2 graphics primitives
             sage: G[1]
             Circle defined by (2.0,2.0) with r=5.0
@@ -947,7 +949,7 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
+            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print(G)
             Graphics object consisting of 3 graphics primitives
             sage: len(G)
             3
@@ -961,12 +963,12 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
+            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print(G)
             Graphics object consisting of 3 graphics primitives
             sage: len(G)
             3
             sage: del(G[2])
-            sage: print G
+            sage: print(G)
             Graphics object consisting of 2 graphics primitives
             sage: len(G)
             2
@@ -980,12 +982,12 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print G
+            sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); print(G)
             Graphics object consisting of 3 graphics primitives
 
         ::
 
-            sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]); print p
+            sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]); print(p)
             Graphics object consisting of 1 graphics primitive
 
         ::
@@ -1010,15 +1012,15 @@ class Graphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: S = circle((0,0), 2)
-            sage: print int(0) + S
+            sage: print(int(0) + S)
             Graphics object consisting of 1 graphics primitive
-            sage: print S + int(0)
+            sage: print(S + int(0))
             Graphics object consisting of 1 graphics primitive
 
         The following would fail were it not for this function::
 
             sage: v = [circle((0,0), 2), circle((2,3), 1)]
-            sage: print sum(v)
+            sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
         if isinstance(other, (int, long)) and other == 0:
@@ -1340,7 +1342,7 @@ class Graphics(WithEqualityById, SageObject):
                 labelspacing=0.02, loc='best',
                 markerscale=0.6, ncol=1, numpoints=2,
                 shadow=True, title=None)
-    def show(self, filename=None, linkmode=False, **kwds):
+    def show(self, **kwds):
         r"""
         Show this graphics image immediately.
 
@@ -1679,7 +1681,7 @@ class Graphics(WithEqualityById, SageObject):
         Logarithmic scale can be used for various kinds of plots. Here are
         some examples.::
 
-            sage: G = list_plot(map(lambda i: 10**i, range(10))) # long time
+            sage: G = list_plot([10**i for i in range(10)]) # long time
             sage: G.show(scale='semilogy') # long time
 
         ::
@@ -1739,7 +1741,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: def maple_leaf(t):
             ....:     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
             sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, color="red",plot_points=1000) # long time
-            sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) )) # long time
+            sage: p.show(gridlines=([-3,-2.75,..,3], range(-1,5,2))) # long time
 
         Add grid lines at specific positions (using functions).
 
@@ -2001,31 +2003,7 @@ class Graphics(WithEqualityById, SageObject):
             ...
             ValueError: figsize should be a positive number or a list of two positive numbers, not [2, 3, 4]
             sage: P.show(figsize=[sqrt(2),sqrt(3)])
-
-        ::
-
-            sage: P = plot(x^2,(x,0,1))
-            sage: P.show(linkmode=True)
-            doctest:...: DeprecationWarning: the filename and linkmode arguments are deprecated, use save() to save
-            See http://trac.sagemath.org/17234 for details.
-            doctest:...: DeprecationWarning: use tmp_filename instead
-            See http://trac.sagemath.org/17234 for details.
-            "<img src='cell:///...png'>"
         """
-        if filename or linkmode:
-            from sage.misc.superseded import deprecation
-            deprecation(17234,'the filename and linkmode arguments are deprecated, '
-                        'use save() to save')
-            if filename is None:
-                from sage.misc.temporary_file import graphics_filename
-                filename = graphics_filename()
-            self.save(filename, **kwds)
-            if linkmode:
-                return "<img src='cell://%s'>" % filename
-            else:
-                html("<img src='cell://%s'>" % filename)
-                return
-
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
         dm.display_immediately(self, **kwds)
@@ -2301,7 +2279,7 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 x_formatter = OldScalarFormatter()
         elif x_formatter in SR:
-            from misc import _multiple_of_constant
+            from .misc import _multiple_of_constant
             x_const = x_formatter
             x_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,x_const))
@@ -2327,7 +2305,7 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 y_formatter = OldScalarFormatter()
         elif y_formatter in SR:
-            from misc import _multiple_of_constant
+            from .misc import _multiple_of_constant
             y_const = y_formatter
             y_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,y_const))
@@ -2504,7 +2482,7 @@ class Graphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: c = circle((1,1),1)
-            sage: print c.matplotlib()
+            sage: print(c.matplotlib())
             Figure(640x480)
 
         To obtain the first matplotlib axes object inside of the
@@ -3076,7 +3054,7 @@ class Graphics(WithEqualityById, SageObject):
                 labelspacing=0.02, loc='best',
                 markerscale=0.6, ncol=1, numpoints=2,
                 shadow=True, title=None)
-    def save(self, filename=None, **kwds):
+    def save(self, filename, **kwds):
         r"""
         Save the graphics to an image file.
 
@@ -3170,11 +3148,6 @@ class Graphics(WithEqualityById, SageObject):
         transparent = options.pop('transparent')
         fig_tight = options.pop('fig_tight')
 
-        if filename is None:
-            from sage.misc.superseded import deprecation
-            deprecation(17234,'the filename argument is now mandatory')
-            from sage.misc.temporary_file import graphics_filename
-            filename = graphics_filename()
         ext = os.path.splitext(filename)[1].lower()
 
         if ext not in ALLOWED_EXTENSIONS:
@@ -3278,7 +3251,7 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: print polytopes.hypercube(2).plot().description()
+            sage: print(polytopes.hypercube(2).plot().description())
             Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]
@@ -3589,7 +3562,7 @@ class GraphicsArray(WithEqualityById, SageObject):
         # Not clear if there is a way to do this
         raise NotImplementedError('Appending to a graphics array is not yet implemented')
 
-    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None, axes=None,
+    def save(self, filename, dpi=DEFAULT_DPI, figsize=None, axes=None,
              **kwds):
         r"""
         Save the graphics array.
@@ -3634,11 +3607,6 @@ class GraphicsArray(WithEqualityById, SageObject):
         """
         if figsize is not None:
             self._set_figsize_(figsize)
-        if filename is None:
-            from sage.misc.superseded import deprecation
-            deprecation(17234,'the filename argument is now mandatory')
-            from sage.misc.temporary_file import graphics_filename
-            filename = graphics_filename()
 
         #glist is a list of Graphics objects:
         glist = self._glist

@@ -7,13 +7,14 @@ AUTHORS:
 
 - Tom Boothby (2007-02-15).  Initial version free for any use (public domain).
 """
+from __future__ import print_function
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 from cpython.ref cimport PyObject, Py_INCREF, Py_XDECREF
 
 cdef binary_tree_node *BinaryTreeNode(int key, object value):
     cdef binary_tree_node *t
-    t = <binary_tree_node *>sage_malloc(sizeof(binary_tree_node))
+    t = <binary_tree_node *>sig_malloc(sizeof(binary_tree_node))
     t.key = key
     t.left = NULL
     t.right = NULL
@@ -23,7 +24,7 @@ cdef binary_tree_node *BinaryTreeNode(int key, object value):
 
 cdef void free_binary_tree_node(binary_tree_node *self):
     Py_XDECREF(<PyObject *>self.value)
-    sage_free(self)
+    sig_free(self)
 
 cdef inline void binary_tree_dealloc(binary_tree_node *self):
     if self != NULL:
@@ -355,7 +356,7 @@ cdef class BinaryTree:
             sage: t.insert(3,'d')
             sage: t.insert(5,'f')
             sage: while not t.is_empty():
-            ...    print t.pop_max()
+            ....:     print(t.pop_max())
             f
             e
             d
@@ -395,7 +396,7 @@ cdef class BinaryTree:
             sage: t.insert(3,'d')
             sage: t.insert(5,'f')
             sage: while not t.is_empty():
-            ...    print t.pop_min()
+            ....:     print(t.pop_min())
             a
             b
             c

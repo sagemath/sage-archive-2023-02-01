@@ -209,10 +209,10 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-        .. [Morse11] J. Morse, Combinatorics of the K-theory of affine Grassmannians,
+        .. [Morse11] \J. Morse, Combinatorics of the K-theory of affine Grassmannians,
            Adv. in Math., Volume 229, Issue 5, pp. 2950--2984.
 
-        .. [LamSchillingShimozono10] T. Lam, A. Schilling, M.Shimozono, K-theory Schubert calculus of the affine Grassmannian,
+        .. [LamSchillingShimozono10] \T. Lam, A. Schilling, M.Shimozono, K-theory Schubert calculus of the affine Grassmannian,
            Compositio Math. 146 (2010), 811-852.
 
 
@@ -583,9 +583,6 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             return element.coefficient([])
 
     class ElementMethods:
-
-        __mul__ = Magmas.ElementMethods.__mul__.__func__
-
         def _mul_(self, other):
             r"""
             Return the product of two elements ``self`` and ``other``.
@@ -663,7 +660,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
             REFERENCES:
 
-            .. [SZ.2001] M. Shimozono, M. Zabrocki,
+            .. [SZ.2001] \M. Shimozono, M. Zabrocki,
                Hall-Littlewood vertex operators and generalized Kostka polynomials.
                Adv. Math. 158 (2001), no. 1, 66-85.
 
@@ -1243,10 +1240,10 @@ class K_kSchur(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [Morse2011] J. Morse, Combinatorics of the K-theory of affine Grassmannians,
+    .. [Morse2011] \J. Morse, Combinatorics of the K-theory of affine Grassmannians,
         Adv. in Math., Volume 229, Issue 5, pp. 2950--2984.
 
-    .. [LamSchillingShimozono2010] T. Lam, A. Schilling, M.Shimozono, K-theory Schubert calculus of the affine Grassmannian,
+    .. [LamSchillingShimozono2010] \T. Lam, A. Schilling, M.Shimozono, K-theory Schubert calculus of the affine Grassmannian,
         Compositio Math. 146 (2010), 811-852.
     """
 
@@ -1315,9 +1312,10 @@ class K_kSchur(CombinatorialFreeModule):
 
     def _homogeneous_generators_noncommutative_variables_zero_Hecke(self, r):
         r"""
-        Returns the ``r^{th}`` homogeneous generator, viewed as an element inside the
-        affine zero Hecke algebra. This is the sum of all cyclicly decreasing elements
-        of order ``r``.
+        Return the ``r^{th}`` homogeneous generator, viewed as an element inside the
+        affine zero Hecke algebra.
+
+        This is the sum of all cyclically decreasing elements of order ``r``.
 
         INPUT:
 

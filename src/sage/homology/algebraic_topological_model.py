@@ -12,6 +12,7 @@ AUTHORS:
 
 - John H. Palmieri (2015-09)
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2015 John H. Palmieri <palmieri@math.washington.edu>
@@ -29,9 +30,9 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
 from sage.matrix.constructor import matrix, zero_matrix
 from sage.matrix.matrix_space import MatrixSpace
-from chain_complex import ChainComplex
-from chain_complex_morphism import ChainComplexMorphism
-from chain_homotopy import ChainContraction
+from .chain_complex import ChainComplex
+from .chain_complex_morphism import ChainComplexMorphism
+from .chain_homotopy import ChainContraction
 from sage.rings.rational_field import QQ
 
 def algebraic_topological_model(K, base_ring=None):
@@ -49,7 +50,7 @@ def algebraic_topological_model(K, base_ring=None):
     - chain contraction ``phi``
     - chain complex `M`
 
-    This construction appears in a paper by Pilarczyk and Réal [PR]_.
+    This construction appears in a paper by Pilarczyk and Réal [PR2015]_.
     Given a cell complex `K` and a field `F`, there is a chain complex
     `C` associated to `K` with coefficients in `F`. The *algebraic
     topological model* for `K` is a chain complex `M` with trivial
@@ -73,7 +74,7 @@ def algebraic_topological_model(K, base_ring=None):
 
     Given an algebraic topological model for `K`, it is then easy to
     compute cup products and cohomology operations on the cohomology
-    of `K`, as described in [G-DR03]_ and [PR]_.
+    of `K`, as described in [GDR2003]_ and [PR2015]_.
 
     Implementation details: the cell complex `K` must have an
     :meth:`~sage.homology.cell_complex.GenericCellComplex.n_cells`

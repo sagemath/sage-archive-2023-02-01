@@ -8,7 +8,7 @@ various parts or sub-sequences. These kind of polynomial sequences
 which naturally split into parts arise naturally for example in
 algebraic cryptanalysis of symmetric cryptographic primitives. The
 most prominent examples of these systems are: the small scale variants
-of the AES [CMR05]_ (cf. :func:`sage.crypto.mq.sr.SR`) and Flurry/Curry [BPW06]_. By
+of the AES [CMR2005]_ (cf. :func:`sage.crypto.mq.sr.SR`) and Flurry/Curry [BPW06]_. By
 default, a polynomial sequence has exactly one part.
 
 AUTHORS:
@@ -145,7 +145,7 @@ TEST::
    would be called ``Ideal`` but an ideal is a very distinct object
    from its generators and thus this is not an ideal in Sage.
 
-.. [BPW06] J. Buchmann, A. Pychkine, R.-P. Weinmann
+.. [BPW06] \J. Buchmann, A. Pychkine, R.-P. Weinmann
    *Block Ciphers Sensitive to Groebner Basis Attacks*
    in Topics in Cryptology -- CT RSA'06; LNCS 3860; pp. 313--331; Springer Verlag 2006;
    pre-print available at http://eprint.iacr.org/2005/200
@@ -153,6 +153,8 @@ TEST::
 Classes
 -------
 """
+from __future__ import print_function
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 
@@ -415,7 +417,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: print F.ring().repr_long()
+            sage: print(F.ring().repr_long())
             Polynomial Ring
              Base Ring : Finite Field of size 2
                   Size : 20 Variables
@@ -917,7 +919,7 @@ class PolynomialSequence_generic(Sequence_generic):
         g = self.connection_graph()
         C = sorted(g.connected_components())
 
-        P = [[] for _ in xrange(len(C))]
+        P = [[] for _ in range(len(C))]
         for f in self:
             for i,c in enumerate(C):
                 if len(set(f.variables()).difference(c)) == 0:
@@ -1369,7 +1371,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: sols = S.solve(n=Infinity)
             sage: print(reproducible_repr(sols))
             [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0]]
 
         We can force the use of exhaustive search if the optional
@@ -1396,13 +1398,13 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: R.<x,y,z,t> = BooleanPolynomialRing()
             sage: S = Sequence([x*y+z, y*z+x, x+y+z+1])
             sage: sols = S.solve(n=Infinity)
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
         Not eliminating linear variables::
 
             sage: sols = S.solve(n=Infinity, eliminate_linear_variables=False)
-            sage: map( lambda x: S.subs(x), sols)
+            sage: [S.subs(x) for x in sols]
             [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
         A tricky case where the linear equations are insatisfiable::

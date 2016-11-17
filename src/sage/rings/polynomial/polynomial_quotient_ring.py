@@ -35,9 +35,12 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, print_function
+from six.moves import range
+
 import six
 import sage.rings.number_field.all
-import polynomial_element
+from . import polynomial_element
 import sage.rings.rational_field
 import sage.rings.complex_field
 
@@ -112,11 +115,11 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
 
         sage: A.<y> = PolynomialRing(GF(2)); A
         Univariate Polynomial Ring in y over Finite Field of size 2 (using NTL)
-        sage: B = A.quotient(y^2 + y + 1, 'y2'); print B
+        sage: B = A.quotient(y^2 + y + 1, 'y2'); B
         Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
-        sage: C = PolynomialRing(B, 'x'); x=C.gen(); print C
+        sage: C = PolynomialRing(B, 'x'); x=C.gen(); C
         Univariate Polynomial Ring in x over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
-        sage: R = C.quotient(x^3 - 5); print R
+        sage: R = C.quotient(x^3 - 5); R
         Univariate Quotient Polynomial Ring in xbar over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1 with modulus x^3 + 1
 
     Next we create a number field, but viewed as a quotient of a
@@ -158,7 +161,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         sage: R.quotient(f)
         Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
 
-    This shows that the issue at trac 5482 is solved::
+    This shows that the issue at :trac:`5482` is solved::
 
         sage: R.<x> = PolynomialRing(QQ)
         sage: f = x^2-1
@@ -457,7 +460,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         try:
             return self.element_class(self, self.__ring(x), check=False)
         except TypeError:
-            raise TypeError("unable to convert %s into an element of %s"%(x,repr(self)))
+            raise TypeError("unable to convert %r to an element of %s"%(x, self))
 
     def _coerce_map_from_(self, R):
         """
@@ -597,6 +600,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: P.<x> = QQ[]
             sage: Q = P.quo([(x^2+1)])
             sage: singular(Q)        # indirect doctest
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 1
             //        block   1 : ordering lp
@@ -1108,7 +1112,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         clgp_gens = []
         clgp_gens_orders = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 
@@ -1278,7 +1282,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         units = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 
@@ -1405,7 +1409,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         gens = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 

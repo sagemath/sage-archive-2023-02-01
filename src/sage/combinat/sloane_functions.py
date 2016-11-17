@@ -55,7 +55,7 @@ We agree with the online database::
     ....:     L = max(2, len(online_list) // 2)
     ....:     sage_list = sloane.__getattribute__(t).list(L)
     ....:     if online_list[:L] != sage_list:
-    ....:         print t, 'seems wrong'
+    ....:         print('{} seems wrong'.format(t))
 
 .. SEEALSO::
 
@@ -122,13 +122,14 @@ AUTHORS:
 ########################################################################
 
 # just used for handy .load, .save, etc.
+from __future__ import print_function, absolute_import
 
 import inspect
 from sage.structure.sage_object import SageObject
 from sage.arith.srange import srange
 from sage.rings.integer_ring import ZZ
 from sage.functions.all import prime_pi
-import partition
+from . import partition
 from sage.rings.integer import Integer as Integer_class
 
 Integer = ZZ
@@ -370,10 +371,9 @@ class A000001(SloaneSequence):
         if n <= 50:
             return self._small[n-1]
         try:
-            return Integer(gap.gap.eval('NumberSmallGroups(%s)'%n))
+            return Integer(gap.gap.eval('NumberSmallGroups(%s)' % n))
         except Exception:  # help, don't know what to do here? Jaap
-            print "Install database_gap first. See optional packages"
-
+            print("Install database_gap first. See optional packages.")
 
 
 class A000027(SloaneSequence):
@@ -879,7 +879,7 @@ class A007318(SloaneSequence):
     def __init__(self):
         r"""
         Pascal's triangle read by rows:
-        `C(n,k) = {n \choose k} = \frac {n!} {(k!(n-k)!)}`,
+        `C(n,k) = \binom{n}{k} = \frac {n!} {(k!(n-k)!)}`,
         `0 \le k \le n`.
 
         INPUT:
@@ -4195,20 +4195,17 @@ class A000108(SloaneSequence):
     def __init__(self):
         r"""
         Catalan numbers:
-        `C_n = \frac{{{2n}\choose{n}}}{n+1} = \frac {(2n)!}{n!(n+1)!}`.
+        `C_n = \frac{\binom{2n}{n}}{n+1} = \frac{(2n)!}{n!(n+1)!}`.
+
         Also called Segner numbers.
 
         INPUT:
 
-
         -  ``n`` - non negative integer
-
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 
@@ -5120,7 +5117,7 @@ class A000984(SloaneSequence):
     def __init__(self):
         r"""
         Central binomial coefficients:
-        `2n \choose n = \frac {(2n)!} {(n!)^2}`.
+        `\binom{2n}{n} = \frac {(2n)!} {(n!)^2}`.
 
         INPUT:
 
@@ -5175,7 +5172,7 @@ class A001405(SloaneSequence):
     def __init__(self):
         r"""
         Central binomial coefficients:
-        `n \choose \lfloor \frac {n}{ 2} \rfloor`.
+        `\binom{n}{\lfloor \frac {n}{ 2} \rfloor}`.
 
         INPUT:
 
@@ -5231,7 +5228,7 @@ class A000292(SloaneSequence):
     def __init__(self):
         r"""
         Tetrahedral (or pyramidal) numbers:
-        `{n+2} \choose 3 = n(n+1)(n+2)/6`.
+        `\binom{n+2}{3} = n(n+1)(n+2)/6`.
 
         INPUT:
 
@@ -6578,19 +6575,15 @@ class A000204(SloaneSequence):
 class A000217(SloaneSequence):
     def __init__(self):
         r"""
-        Triangular numbers: `a(n) = {n+1} \choose 2) = n(n+1)/2`.
+        Triangular numbers: `a(n) = \binom{n+1}{2} = n(n+1)/2`.
 
         INPUT:
 
-
         -  ``n`` - non negative integer
-
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 

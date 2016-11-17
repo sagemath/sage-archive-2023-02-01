@@ -20,13 +20,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, division, print_function
 
-from .paridecl cimport *
-from .paripriv cimport *
 include "cysignals/signals.pxi"
 
 from cpython cimport PyErr_Occurred
-from pari_instance cimport pari_instance
+
+from .paridecl cimport *
+from .paripriv cimport *
+from .stack cimport new_gen_noclear
 
 
 # We derive PariError from RuntimeError, for backward compatibility with
@@ -44,7 +46,7 @@ class PariError(RuntimeError):
             sage: try:
             ....:     pari('1/0')
             ....: except PariError as err:
-            ....:     print err.errnum()
+            ....:     print(err.errnum())
             31
         """
         return self.args[0]
@@ -58,7 +60,7 @@ class PariError(RuntimeError):
             sage: try:
             ....:     pari('pi()')
             ....: except PariError as e:
-            ....:     print e.errtext()
+            ....:     print(e.errtext())
             not a function in function call
 
         """
@@ -103,7 +105,7 @@ class PariError(RuntimeError):
             sage: try:
             ....:     pari('1/0')
             ....: except PariError as err:
-            ....:     print err
+            ....:     print(err)
             _/_: impossible inverse in gdiv: 0
 
         A syntax error::
@@ -125,7 +127,7 @@ cdef void _pari_init_error_handling():
         sage: try:
         ....:     p = pari.polcyclo(-1)
         ....: except PariError as e:
-        ....:     print e.errtext()
+        ....:     print(e.errtext())
         domain error in polcyclo: index <= 0
 
     Warnings still work just like in GP::
@@ -162,7 +164,7 @@ cdef int _pari_err_handle(GEN E) except 0:
 
     sig_block()
     cdef char* errstr
-    cdef char* s
+    cdef const char* s
     try:
         if errnum == e_STACK:
             # Custom error message for PARI stack overflow
@@ -178,7 +180,7 @@ cdef int _pari_err_handle(GEN E) except 0:
         if s is not NULL:
             pari_error_string = s.decode('ascii') + ": " + pari_error_string
 
-        raise PariError(errnum, pari_error_string, pari_instance.new_gen_noclear(E))
+        raise PariError(errnum, pari_error_string, new_gen_noclear(E))
     finally:
         sig_unblock()
 

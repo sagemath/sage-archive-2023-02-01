@@ -21,8 +21,10 @@ other types will also coerce to the integers, when it makes sense.
 
 ::
 
-    sage: a = Z(1234); b = Z(5678); print a, b
-    1234 5678
+    sage: a = Z(1234); a
+    1234
+    sage: b = Z(5678); b
+    5678
     sage: type(a)
     <type 'sage.rings.integer.Integer'>
     sage: a + b
@@ -40,7 +42,7 @@ other types will also coerce to the integers, when it makes sense.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
@@ -176,8 +178,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     We next illustrate basic arithmetic in `\ZZ`::
 
-        sage: a = Z(1234); b = Z(5678); print a, b
-        1234 5678
+        sage: a = Z(1234); a
+        1234
+        sage: b = Z(5678); b
+        5678
         sage: type(a)
         <type 'sage.rings.integer.Integer'>
         sage: a + b
@@ -354,7 +358,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __richcmp__(left, right, int op):
         """
-        Rich comparsion of ``left`` and ``right``.
+        Rich comparison of ``left`` and ``right``.
 
         TESTS::
 
@@ -405,27 +409,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             \Bold{Z}
         """
         return "\\Bold{Z}"
-
-    def _div(self, integer.Integer left, integer.Integer right):
-        """
-        TESTS::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: A = IntegerRing_class()
-            sage: A._div(12,7)
-            12/7
-            sage: A._div(12,0)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: rational division by zero
-        """
-        cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
-        if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError('rational division by zero')
-        mpz_set(mpq_numref(x.value), left.value)
-        mpz_set(mpq_denref(x.value), right.value)
-        mpq_canonicalize(x.value)
-        return x
 
     def __getitem__(self, x):
         """
@@ -545,7 +528,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: for n in ZZ:
-            ....:  if n < 3: print n
+            ....:  if n < 3: print(n)
             ....:  else: break
             0
             1
@@ -662,7 +645,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             True
         """
         if not ring.is_Ring(other):
-            raise TypeError, "other must be a ring"
+            raise TypeError("other must be a ring")
         if other.characteristic() == 0:
             return True
         else:
@@ -766,8 +749,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: from collections import defaultdict
             sage: d = defaultdict(lambda: 0)
             sage: for _ in range(1000):
-            ...       samp = ZZ.random_element()
-            ...       d[samp] = d[samp] + 1
+            ....:     samp = ZZ.random_element()
+            ....:     d[samp] = d[samp] + 1
 
             sage: sorted(d.items())
             [(-1955, 1), (-1026, 1), (-357, 1), (-248, 1), (-145, 1), (-81, 1), (-80, 1), (-79, 1), (-75, 1), (-69, 1), (-68, 1), (-63, 2), (-61, 1), (-57, 1), (-50, 1), (-37, 1), (-35, 1), (-33, 1), (-29, 2), (-27, 1), (-25, 1), (-23, 2), (-22, 3), (-20, 1), (-19, 1), (-18, 1), (-16, 4), (-15, 3), (-14, 1), (-13, 2), (-12, 2), (-11, 2), (-10, 7), (-9, 3), (-8, 3), (-7, 7), (-6, 8), (-5, 13), (-4, 24), (-3, 34), (-2, 75), (-1, 206), (0, 208), (1, 189), (2, 63), (3, 35), (4, 13), (5, 11), (6, 10), (7, 4), (8, 3), (10, 1), (11, 1), (12, 1), (13, 1), (14, 1), (16, 3), (18, 2), (19, 1), (26, 2), (27, 1), (28, 2), (29, 1), (30, 1), (32, 1), (33, 2), (35, 1), (37, 1), (39, 1), (41, 1), (42, 1), (52, 1), (91, 1), (94, 1), (106, 1), (111, 1), (113, 2), (132, 1), (134, 1), (232, 1), (240, 1), (2133, 1), (3636, 1)]
@@ -781,9 +764,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer z
         z = <integer.Integer>PY_NEW(integer.Integer)
         if x is not None and y is None and x <= 0:
-            raise TypeError, "x must be > 0"
+            raise TypeError("x must be > 0")
         if x is not None and y is not None and x >= y:
-            raise TypeError, "x must be < y"
+            raise TypeError("x must be < y")
         self._randomize_mpz(z.value, x, y, distribution)
         return z
 
@@ -841,7 +824,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 _prev_discrete_gaussian_integer_sampler = (x, D)
             mpz_set(value, r.value)
         else:
-            raise ValueError, "Unknown distribution for the integers: %s"%distribution
+            raise ValueError("Unknown distribution for the integers: %s" % distribution)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         r"""
@@ -925,7 +908,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return sage.rings.rational_field.Q
 
-    def extension(self, poly, names=None, embedding=None):
+    def extension(self, poly, names, **kwds):
         """
         Return the order generated by the specified list of polynomials.
 
@@ -957,11 +940,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             Relative Order in Number Field in a with defining polynomial
             x^2 + 1 over its base field
         """
-        if embedding is not None:
-            if embedding!=[None]*len(embedding):
-                raise NotImplementedError
         from sage.rings.number_field.order import EquationOrder
-        return EquationOrder(poly, names)
+        return EquationOrder(poly, names=names, **kwds)
 
     def quotient(self, I, names=None):
         r"""
@@ -984,10 +964,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             n = I
         elif sage.rings.ideal.is_Ideal(I):
             if not (I.ring() is self):
-                raise TypeError, "I must be an ideal of ZZ"
+                raise TypeError("I must be an ideal of ZZ")
             n = I.gens()[0]
         else:
-            raise TypeError, "I must be an ideal of ZZ or an integer"
+            raise TypeError("I must be an ideal of ZZ or an integer")
         if n == 0:
             return self
         return sage.rings.finite_rings.integer_mod_ring.IntegerModRing(n)
@@ -1050,12 +1030,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             p = self.ideal(prime)
         elif sage.rings.ideal.is_Ideal(prime):
             if not (prime.ring() is self):
-                raise TypeError, "%s is not an ideal of ZZ"%prime
+                raise TypeError("%s is not an ideal of ZZ" % prime)
             p = prime
         else:
-            raise TypeError, "%s is neither an ideal of ZZ nor an integer"%prime
+            raise TypeError("%s is neither an ideal of ZZ nor an integer" % prime)
         if check and not p.is_prime():
-            raise TypeError, "%s is not prime"%prime
+            raise TypeError("%s is not prime" % prime)
         from sage.rings.finite_rings.residue_field import ResidueField
         return ResidueField(p, names = None, check = check)
 
@@ -1095,7 +1075,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if n == 0:
             return self(1)
         else:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
 
     def ngens(self):
         """
@@ -1390,7 +1370,7 @@ def crt_basis(X, xgcd=None):
         (0, 0, 0, 1)
     """
     if not isinstance(X, list):
-        raise TypeError, "X must be a list"
+        raise TypeError("X must be a list")
     if len(X) == 0:
         return []
 

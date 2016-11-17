@@ -18,6 +18,8 @@ Path Semigroups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 import six
 from sage.rings.integer import Integer
@@ -30,8 +32,8 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from paths import QuiverPath
-from representation import QuiverRep
+from .paths import QuiverPath
+from .representation import QuiverRep
 
 #########################
 # Some auxiliary function to create generating functions to count paths.
@@ -64,7 +66,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         sage: S.gens()
         (e_1, e_2, e_3, a, b, c, d)
         sage: S.category()
-        Join of Category of finite semigroups and Category of finite enumerated sets
+        Category of finite enumerated semigroups
 
     In the test suite, we skip the associativity test, as in this example the
     paths used for testing can't be concatenated::
@@ -81,7 +83,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         sage: M
         Monoid formed by the directed paths of Looped multi-digraph on 1 vertex
         sage: M.category()
-        Join of Category of monoids and Category of infinite enumerated sets
+        Category of infinite enumerated monoids
         sage: TestSuite(M).run()
     """
     Element = QuiverPath
@@ -539,7 +541,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: list(A.basis())
             Traceback (most recent call last):
             ...
-            NotImplementedError: infinite list
+            ValueError: the underlying quiver has cycles, thus, there may be an infinity of directed paths
         """
         from sage.all import ZZ
         if self._quiver.is_directed_acyclic() and not self._quiver.has_loops():
@@ -575,7 +577,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: counter = 0
             sage: for p in P:
             ....:     counter += 1
-            ....:     print p
+            ....:     print(p)
             ....:     if counter==20:
             ....:         break
             e_1

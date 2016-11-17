@@ -12,6 +12,7 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 
 from __future__ import absolute_import
 from __future__ import print_function
+from six.moves import range
 
 import logging, optparse, os, shutil, subprocess, sys, re
 
@@ -726,7 +727,7 @@ class ReferenceSubBuilder(DocBuilder):
         filename = self.cache_filename()
         if not os.path.exists(filename):
             return {}
-        import cPickle
+        from six.moves import cPickle
         file = open(self.cache_filename(), 'rb')
         try:
             cache = cPickle.load(file)
@@ -749,7 +750,7 @@ class ReferenceSubBuilder(DocBuilder):
         cache['option_inherited'] = options.inherited
         cache['option_underscore'] = options.underscore
 
-        import cPickle
+        from six.moves import cPickle
         file = open(self.cache_filename(), 'wb')
         cPickle.dump(cache, file)
         file.close()
@@ -767,7 +768,7 @@ class ReferenceSubBuilder(DocBuilder):
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(config, env_pickle)
+            env = BuildEnvironment.frompickle(self.dir, config, env_pickle)
             logger.debug("Opened Sphinx environment: %s", env_pickle)
             return env
         except IOError as err:
@@ -797,7 +798,8 @@ class ReferenceSubBuilder(DocBuilder):
             # env.topickle(env_pickle), which first writes a temporary
             # file.  We adapt sphinx.environment's
             # BuildEnvironment.topickle:
-            import cPickle, types
+            from six.moves import cPickle
+            import types
 
             # remove unpicklable attributes
             env.set_warnfunc(None)
@@ -807,7 +809,7 @@ class ReferenceSubBuilder(DocBuilder):
             for key, val in vars(env.config).items():
                 if key.startswith('_') or isinstance(val, (types.ModuleType,
                                                            types.FunctionType,
-                                                           types.ClassType)):
+                                                           type)):
                     del env.config[key]
             try:
                 cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
@@ -1213,7 +1215,7 @@ def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
         import math
         cols = math.trunc((width - indent) / size)
     s = " " * indent
-    for i in xrange(len(lst)):
+    for i in range(len(lst)):
         if i != 0 and i % cols == 0:
             s += "\n" + " " * indent
         s += "{0:{1}{2}}".format(lst[i], align, size)
@@ -1513,7 +1515,7 @@ def setup_logger(verbose=1, color=True):
     colors = ['darkblue', 'darkred', 'brown', 'reset']
     styles = ['reset', 'reset', 'reset', 'reset']
     format_debug = ""
-    for i in xrange(len(fields)):
+    for i in range(len(fields)):
         format_debug += c.colorize(styles[i], c.colorize(colors[i], fields[i]))
         if i != len(fields):
             format_debug += " "
@@ -1568,6 +1570,32 @@ class IntersphinxCache:
             return i
 
 
+def patch_domain_init():
+    """
+    Applies a monkey-patch to the __init__ method of the Domain class in
+    Sphinx, in order to work around a bug.
+
+    See https://trac.sagemath.org/ticket/21044 as well as
+    https://github.com/sphinx-doc/sphinx/pull/2816 for details about that
+    bug.
+    """
+
+    from sphinx.domains import Domain
+    import copy
+
+    orig_init = Domain.__init__
+
+    def __init__(self, *args, **kwargs):
+        orig_init(self, *args, **kwargs)
+
+        # Replace the original initial_data class attribute with a new
+        # deep-copy of itself, since the bug will cause the original
+        # initial_data to be modified in-place
+        self.__class__.initial_data = copy.deepcopy(self.initial_data)
+
+    Domain.__init__ = __init__
+
+
 def main():
     # Parse the command-line.
     parser = setup_parser()
@@ -1617,10 +1645,12 @@ def main():
 
     ABORT_ON_ERROR = not options.keep_going
 
+    patch_domain_init()
+
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty
     # directories it leaves behind. See Trac #20010.
-    delete_empty_directories(SAGE_DOC)
+    delete_empty_directories(SAGE_DOC_SRC)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()

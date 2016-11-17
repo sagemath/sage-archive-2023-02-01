@@ -6,8 +6,7 @@ This module implements computations of Hecke operators and `U_p`-eigenfunctions
 on `p`-adic overconvergent modular forms of tame level 1, where `p` is one of
 the primes `\{2, 3, 5, 7, 13\}`, using the algorithms described in [Loe2007]_.
 
-.. [Loe2007] David Loeffler, *Spectral expansions of overconvergent modular functions*,
-   Int. Math. Res. Not 2007 (050).  `Arxiv preprint <http://uk.arxiv.org/abs/math/0701168>`_.
+- [Loe2007]_
 
 AUTHORS:
 
@@ -125,7 +124,7 @@ We compute the eigenfunctions of a 4x4 truncation:
 
     sage: efuncs = M.eigenfunctions(4)
     sage: for i in [1..3]:
-    ...       print efuncs[i].q_expansion(prec=4).change_ring(Qp(3,prec=20))
+    ....:     print(efuncs[i].q_expansion(prec=4).change_ring(Qp(3,prec=20)))
     (1 + O(3^20))*q + (2*3 + 3^15 + 3^16 + 3^17 + 2*3^19 + 2*3^20 + O(3^21))*q^2 + (2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13 + 2*3^14 + 2*3^15 + 2*3^16 + 3^17 + 2*3^18 + 2*3^19 + 3^21 + 3^22 + O(3^23))*q^3 + O(q^4)
     (1 + O(3^20))*q + (3 + 2*3^2 + 3^3 + 3^4 + 3^12 + 3^13 + 2*3^14 + 3^15 + 2*3^17 + 3^18 + 3^19 + 3^20 + O(3^21))*q^2 + (3^7 + 3^13 + 2*3^14 + 2*3^15 + 3^16 + 3^17 + 2*3^18 + 3^20 + 2*3^21 + 2*3^22 + 2*3^23 + 2*3^25 + O(3^27))*q^3 + O(q^4)
     (1 + O(3^20))*q + (2*3 + 3^3 + 2*3^4 + 3^6 + 2*3^8 + 3^9 + 3^10 + 2*3^11 + 2*3^13 + 3^16 + 3^18 + 3^19 + 3^20 + O(3^21))*q^2 + (3^9 + 2*3^12 + 3^15 + 3^17 + 3^18 + 3^19 + 3^20 + 2*3^22 + 2*3^23 + 2*3^27 + 2*3^28 + O(3^29))*q^3 + O(q^4)
@@ -172,7 +171,9 @@ classical) does not apply.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import range
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
@@ -189,7 +190,7 @@ from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
 import weakref
 
-from weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
+from .weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
 __ocmfdict = {}
 
 ####################
@@ -323,7 +324,7 @@ class OverconvergentModularFormsSpace(Module):
         self._basis_cache = [self._wtchar.pAdicEisensteinSeries(self._qsr, self.prec())]
         self._uniformiser = self._qsr(EtaProduct(prime, {prime: 24/ZZ(prime-1), ZZ(1):-24/ZZ(prime-1)}).qexp(self.prec()))
 
-        for i in xrange(1, self.prec()):
+        for i in range(1, self.prec()):
             self._basis_cache.append(self._basis_cache[-1] * self._uniformiser * self._const)
 
     #####################################
@@ -896,7 +897,7 @@ class OverconvergentModularFormsSpace(Module):
         x = qexp
         g = self._gsr.gen()
         answer = self._gsr(0)
-        for i in xrange(n):
+        for i in range(n):
             assert(x.valuation() >= i)
             answer += (x[i] / self._basis_cache[i][i])*g**i
             x = x - self._basis_cache[i] * answer[i]
@@ -938,9 +939,9 @@ class OverconvergentModularFormsSpace(Module):
 
         M = MatrixSpace(self.base_ring(), n)
         mat = M(0)
-        for j in xrange(min(n, self.prime())):
+        for j in range(min(n, self.prime())):
             l = self._convert_to_basis(self.hecke_operator(self._basis_cache[j], m))
-            for i in xrange(n):
+            for i in range(n):
                 try:
                     mat[i,j] = l[i]
                 except IndexError:
@@ -953,10 +954,10 @@ class OverconvergentModularFormsSpace(Module):
                             mat[i,j] = 0 # computations are exact for weight 0, and we know these terms are zero
         if use_recurrence:
             if m != self.prime(): raise ValueError("Recurrence method not valid when m != p")
-            for j in xrange(self.prime(), n):
+            for j in range(self.prime(), n):
                 # can only apply recurrence if have i,j both >= p.
                 if j >= self.prec():
-                    for i in xrange(self.prime()):
+                    for i in range(self.prime()):
                         if self.weight() != 0:
                             raise ValueError("n is too large for current precision")
                         else:
@@ -967,19 +968,19 @@ class OverconvergentModularFormsSpace(Module):
 
                 else:
                     l = self._convert_to_basis(self.hecke_operator(self._basis_cache[j], m))
-                    for i in xrange(self.prime()):
+                    for i in range(self.prime()):
                         mat[i,j] = l[i]
-                for i in xrange(self.prime(), n):
-                    for u in xrange(self.prime()):
-                        for v in xrange(self.prime()):
+                for i in range(self.prime(), n):
+                    for u in range(self.prime()):
+                        for v in range(self.prime()):
                             mat[i,j] = mat[i,j] + mat[i-u-1, j-v-1]*self.recurrence_matrix()[u,v]
 
         else:
             if( n*self.prime() > self.prec()):
                 raise ValueError("n is too large")
-            for j in xrange(self.prime(), n):
+            for j in range(self.prime(), n):
                 l = self._convert_to_basis(self.hecke_operator(self._basis_cache[j], m))
-                for i in xrange(n):
+                for i in range(n):
                     mat[i,j] = l[i]
         return mat
 
@@ -999,7 +1000,7 @@ class OverconvergentModularFormsSpace(Module):
         elif is_pAdicField(self.base_ring()):
             slopelist=self.cps_u(n).truncate().newton_slopes()
         else:
-            print "slopes are only defined for base field QQ or a p-adic field"
+            print("slopes are only defined for base field QQ or a p-adic field")
         return [-i for i in slopelist]
 
     def eigenfunctions(self, n, F = None, exact_arith=True):
@@ -1050,7 +1051,6 @@ class OverconvergentModularFormsSpace(Module):
         for (r, d) in eigenvalues:
             v = r.valuation()
             if d != 1:
-                #print "Warning: Root occurs with multiplicity"
                 continue
 
             mr = (m._pari_() - r._pari_())
@@ -1072,7 +1072,7 @@ class OverconvergentModularFormsSpace(Module):
 
             # now calculate the kernel using PARI
 
-            v = mr._pari_().matker()
+            v = mr.matker()
 
             if repr(v) == "[;]":
                 verbose("PARI returned empty eigenspace in slope %s" % r.valuation())
@@ -1086,7 +1086,7 @@ class OverconvergentModularFormsSpace(Module):
                 continue
 
             gexp = self._gsr(0)
-            for i in xrange(v.nrows()):
+            for i in range(v.nrows()):
                 gexp += self._gsr.gen()**i * F(v[i,0])
             gexp = gexp + O(self._gsr.gen()**int(v.nrows()))
 
@@ -1155,7 +1155,7 @@ class OverconvergentModularFormsSpace(Module):
         MM = OverconvergentModularForms(self.prime(), 0, 0, base_ring=QQ)
         m = MM._discover_recurrence_matrix(use_smithline = True).base_extend(self.base_ring())
 
-        r = diagonal_matrix([self._const**i for i in xrange(self.prime())])
+        r = diagonal_matrix([self._const**i for i in range(self.prime())])
         self._cached_recurrence_matrix = (r**(-1)) * m * r
         self._cached_recurrence_matrix.set_immutable()
         return self._cached_recurrence_matrix
@@ -1182,7 +1182,7 @@ class OverconvergentModularFormsSpace(Module):
             h = self._uniformiser.shift(-1) * jq
             fi = self._qsr(1)
             coeffs = []
-            for i in xrange(self.prime()+2):
+            for i in range(self.prime()+2):
                 if not h.valuation() >= i:
                     raise ValueError("Something strange is happening here")
 
@@ -1191,16 +1191,14 @@ class OverconvergentModularFormsSpace(Module):
                 fi = fi*self._uniformiser
             SmiH = f_ring(coeffs)
             assert SmiH.degree() == self.prime() + 1
-            # print "Smithline's H_p is: ",SmiH, " = ",SmiH.factor()
             xyring = PolynomialRing(self.base_ring(), ["x","y"], 2)
             x,y = xyring.gens()
             cc = self.prime() ** (-12/(self.prime() - 1))
             bigI = x*SmiH(y*cc)- y*cc*SmiH(x)
             smallI = xyring(bigI / (x - cc*y))
-            # print "Smithline's I_p is: ", smallI
             r = matrix(ZZ, self.prime(), self.prime())
-            for i in xrange(self.prime()):
-                for j in xrange(self.prime()):
+            for i in range(self.prime()):
+                for j in range(self.prime()):
                     r[i,j] = -smallI[i+1, j+1]
             return r
         else:
@@ -1270,7 +1268,7 @@ class OverconvergentModularFormElement(ModuleElement):
             raise ValueError("Must supply exactly one of a q-expansion and a g-expansion")
         if gexp is not None:
             self._gexp = gexp.add_bigoh(self.parent().prec())
-            self._qexp = sum([self.parent()._basis_cache[i] * gexp[i] for i in xrange(min(gexp.prec(), self.parent().prec()))])
+            self._qexp = sum([self.parent()._basis_cache[i] * gexp[i] for i in range(min(gexp.prec(), self.parent().prec()))])
             self._qexp = self._qexp.add_bigoh(self._gexp.prec())
         else: # qexp is not None
             self._qexp = qexp.add_bigoh(self.parent().prec())
@@ -1544,7 +1542,7 @@ class OverconvergentModularFormElement(ModuleElement):
         if not is_pAdicField(F):
             F = pAdicField(p)
 
-        for i in xrange(self.prec()):
+        for i in range(self.prec()):
             ord = max( ord, 12/ZZ(p - 1)*i*(r - s) - F(self.gexp()[i]).normalized_valuation())
 
         return ord
@@ -1586,7 +1584,7 @@ class OverconvergentModularFormElement(ModuleElement):
         s = self.parent().radius()
         p = self.prime()
 
-        for i in xrange(self.gexp().prec()):
+        for i in range(self.gexp().prec()):
             if 12/ZZ(p - 1)*i*(r - s) - F(self.gexp()[i]).normalized_valuation() == self.r_ord(r):
                 return i
         raise RuntimeError("Can't get here")

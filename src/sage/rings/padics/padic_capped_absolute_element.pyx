@@ -24,9 +24,27 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "CA_template.pxi"
 
-from sage.libs.pari.pari_instance cimport PariInstance
-cdef PariInstance P = sage.libs.pari.pari_instance.pari
+from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
+
+cdef class PowComputer_(PowComputer_base):
+    """
+    A PowComputer for a capped-absolute padic ring.
+    """
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(5)
+            sage: type(R.prime_pow)
+            <type 'sage.rings.padics.padic_capped_absolute_element.PowComputer_'>
+            sage: R.prime_pow._prec_type
+            'capped-abs'
+        """
+        self._prec_type = 'capped-abs'
+        PowComputer_base.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field)
 
 cdef class pAdicCappedAbsoluteElement(CAElement):
     """
@@ -126,10 +144,10 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             mpz_set_ui(holder.value, 0)
         else:
             val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
-        return P.new_gen_from_padic(val, self.absprec - val,
-                                    self.prime_pow.prime.value,
-                                    self.prime_pow.pow_mpz_t_tmp(self.absprec - val),
-                                    holder.value)
+        return new_gen_from_padic(val, self.absprec - val,
+                                  self.prime_pow.prime.value,
+                                  self.prime_pow.pow_mpz_t_tmp(self.absprec - val),
+                                  holder.value)
 
     def _integer_(self, Z=None):
         r"""

@@ -89,7 +89,7 @@ cdef class Group(Parent):
             sage: G._repr_option('element_is_atomic')
             False
 
-        Check for #8119::
+        Check for :trac:`8119`::
 
             sage: G = SymmetricGroup(2)
             sage: h = hash(G)

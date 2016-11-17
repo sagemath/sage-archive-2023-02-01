@@ -129,6 +129,8 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.matrix.all import matrix
 from sage.rings.all import ZZ
@@ -147,7 +149,7 @@ from sage.misc.flatten import flatten
 #load "dancing_links.spyx"
 #load "dancing_links.sage"
 
-from dlxcpp import DLXCPP
+from .dlxcpp import DLXCPP
 from functools import reduce
 
 class LatinSquare:
@@ -213,7 +215,7 @@ class LatinSquare:
 
         EXAMPLES::
 
-            sage: print LatinSquare(matrix(ZZ, [[0, 1], [2, 3]])).__str__()
+            sage: print(LatinSquare(matrix(ZZ, [[0, 1], [2, 3]])).__str__())
             [0 1]
             [2 3]
         """
@@ -226,7 +228,7 @@ class LatinSquare:
 
         EXAMPLES::
 
-            sage: print LatinSquare(matrix(ZZ, [[0, 1], [2, 3]])).__repr__()
+            sage: print(LatinSquare(matrix(ZZ, [[0, 1], [2, 3]])).__repr__())
             [0 1]
             [2 3]
         """
@@ -788,7 +790,7 @@ class LatinSquare:
                     # in the previous for-loop.
                     pass
 
-        return vals.keys()
+        return list(vals)
 
     def random_empty_cell(self):
         """
@@ -819,9 +821,10 @@ class LatinSquare:
                 if self[r, c] < 0:
                     cells[ (r,c) ] = True
 
-        cells = cells.keys()
+        cells = list(cells)
 
-        if len(cells) == 0: return None
+        if not cells:
+            return None
 
         rc = cells[ ZZ.random_element(len(cells)) ]
 
@@ -1011,7 +1014,7 @@ class LatinSquare:
         EXAMPLES::
 
             sage: from sage.combinat.matrices.latin import *
-            sage: print back_circulant(3).latex()
+            sage: print(back_circulant(3).latex())
             \begin{array}{|c|c|c|}\hline 0 & 1 & 2\\\hline 1 & 2 & 0\\\hline 2 & 0 & 1\\\hline\end{array}
         """
 
@@ -1241,12 +1244,12 @@ class LatinSquare:
             sage: B1 = next(g)
             sage: B0, B1 = bitrade(B, B1)
             sage: assert is_bitrade(B0, B1)
-            sage: print B0, "\n,\n", B1
+            sage: print(B0)
             [-1  1  2 -1]
             [-1  2 -1  0]
             [-1 -1 -1 -1]
             [-1  0  1  2]
-            ,
+            sage: print(B1)
             [-1  2  1 -1]
             [-1  0 -1  2]
             [-1 -1 -1 -1]
@@ -2355,7 +2358,7 @@ def alternating_group_bitrade_generators(m):
 
     a = tuple(range(1, 2*m+1 + 1))
 
-    b = tuple(range(m+1, 0, -1) + range(2*m+2, 3*m+1 + 1))
+    b = tuple(range(m + 1, 0, -1)) + tuple(range(2*m+2, 3*m+1 + 1))
 
     a = PermutationGroupElement(a)
     b = PermutationGroupElement(b)
@@ -2788,8 +2791,6 @@ def dlxcpp_rows_and_map(P):
 
                 cmap[(c_OFFSET, r_OFFSET, xy_OFFSET)] = (r,c,e)
 
-                #print "possibility: ", r, c, e, "offsets:", c_OFFSET, r_OFFSET, xy_OFFSET
-
                 #if P[r, c] >= 0: continue
 
                 # We only want the correct value to pop in here
@@ -2838,7 +2839,7 @@ def dlxcpp_find_completions(P, nr_to_find = None):
 
     comps = []
 
-    for i in SOLUTIONS.keys():
+    for i in SOLUTIONS:
         soln = list(i)
 
         from copy import deepcopy

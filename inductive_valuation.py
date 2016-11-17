@@ -612,7 +612,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     def mac_lane_step(self, G, assume_squarefree=False):
         r"""
         Perform an approximation step towards the squarefree monic non-constant
-        integral polynomial ``G`` with this valuation.
+        integral polynomial ``G`` which is not an :meth:`equivalence_unit`.
 
         This performs the individual steps that are used in
         :meth:`mac_lane_approximants`.
@@ -647,6 +647,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if self(G) < 0:
             raise ValueError("G must be integral")
 
+        if self.is_equivalence_unit(G):
+            raise ValueError("G must not be an equivalence-unit")
+
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
 
@@ -657,7 +660,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             return [self.augmentation(G, infinity)]
 
         F = self.equivalence_decomposition(G)
-        assert len(F), "%s equivalence-decomposese as an equivalence-unit %s"%(G, F)
+        assert len(F), "%s equivalence-decomposes as an equivalence-unit %s"%(G, F)
 
         ret = []
         for phi,e in F:

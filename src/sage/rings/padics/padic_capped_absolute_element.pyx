@@ -194,6 +194,12 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             sage: c.parent()
             7-adic Ring with capped absolute precision 10
 
+        Note that reduction of ``c`` dropped to the precision of the unit part
+        of ``7^2``, see :meth:`_mod_`::
+
+            sage: R(7^2).unit_part()
+            1 + O(7^8)
+
         TESTS::
 
             sage: a.residue(0)

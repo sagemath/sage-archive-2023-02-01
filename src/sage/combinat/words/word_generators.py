@@ -2018,6 +2018,7 @@ class WordGenerator(object):
             1,      & \text{if the binary representation of} n \text{ contains no block of consecutive 0's of odd length}\\
             0,      & \text{otherwise}\\
             \end{cases}\\
+
         for `n > 0` with `b_0 = 1`.
 
         For more information see:

@@ -517,7 +517,7 @@ cdef class Polynomial_template(Polynomial):
             raise ValueError("Cannot coerce polynomial with degree %d to integer."%(self.degree()))
         return int(self[0])
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         EXAMPLE::
 
@@ -528,8 +528,6 @@ cdef class Polynomial_template(Polynomial):
             (False, True)
         """
         return not celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
-
-    __nonzero__ = __bool__
 
     cpdef int _cmp_(left, right) except -2:
         """

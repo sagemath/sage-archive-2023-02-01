@@ -327,7 +327,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            "[{vertices:[{x:0,y:0,z:-1},...,color:'#6666ff'}]"
+            "[{vertices:[{x:0,y:0,z:-1},...,color:'#6666ff',opacity:1}]"
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
@@ -381,8 +381,6 @@ cdef class Graphics3d(SageObject):
         options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
         options['decimals'] = int(kwds.get('decimals', 0))
         options['frame'] = kwds.get('frame', True)
-        options['opacity'] = float(kwds.get('opacity', 1))
-        options['thickness'] = float(kwds.get('thickness', 1))
 
         if not options['frame']:
             options['axes_labels'] = False
@@ -400,10 +398,15 @@ cdef class Graphics3d(SageObject):
         for p in self.flatten().all:
             if hasattr(p, 'loc'):
                 color = p._extra_kwds.get('color', 'blue')
-                points.append("{{point:{}, size:{}, color:'{}'}}".format(json.dumps(p.loc), p.size, color))
+                opacity = p._extra_kwds.get('opacity', 1)
+                points.append("{{point:{}, size:{}, color:'{}', opacity:{}}}".format(
+                              json.dumps(p.loc), p.size, color, opacity))
             if hasattr(p, 'points'):
                 color = p._extra_kwds.get('color', 'blue')
-                lines.append("{{points:{}, color:'{}'}}".format(json.dumps(p.points), color))
+                opacity = p._extra_kwds.get('opacity', 1)
+                thickness = p._extra_kwds.get('thickness', 1)
+                lines.append("{{points:{}, color:'{}', opacity:{}, linewidth:{}}}".format(
+                             json.dumps(p.points), color, opacity, thickness))
 
         surfaces = self.json_repr(self.default_render_params())
         surfaces = flatten_list(surfaces)

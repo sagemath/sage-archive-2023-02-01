@@ -1003,7 +1003,7 @@ class pAdicValuation_int(pAdicValuation_base):
             return other.is_discrete_valuation()
         if isinstance(other, pAdicValuation_int):
             return self.p() == other.p()
-        return super(pAdicValuation_base, self)._ge_(self, other)
+        return super(pAdicValuation_base, self)._ge_(other)
 
 
 class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_base):

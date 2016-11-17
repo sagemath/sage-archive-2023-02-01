@@ -129,14 +129,16 @@ class DiscretePseudoValuation(Morphism):
         Since there is no reasonable total order on valuations, this method
         just throws an exception.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        However, comparison with the operators ``>`` and ``<`` might still work
+        when they can fall back to the implementation through ``>=`` and
+        ``<=``::
 
             sage: from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
-            sage: v < v
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Operator not implemented for this valuation.
+            sage: v > v
+            False
 
         Note that this does not affect comparison of valuations which do not
         coerce into a common parent. This is by design in Sage, see
@@ -193,12 +195,16 @@ class DiscretePseudoValuation(Morphism):
             False
 
         """
+        if op == 0: # <
+            return self <= other and not (self >= other)
         if op == 1: # <=
             return self._le_(other)
         if op == 2: # ==
             return self._eq_(other)
         if op == 3: # !=
             return not self == other
+        if op == 4: # >
+            return self >= other and not (self <= other)
         if op == 5: # >=
             return self._ge_(other)
         raise NotImplementedError("Operator not implemented for this valuation.")

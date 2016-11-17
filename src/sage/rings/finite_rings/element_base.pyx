@@ -148,14 +148,16 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
+            sage: from sage.rings.finite_rings.element_base import FinitePolyExtElement
             sage: k.<a> = FiniteField(19^2)
             sage: parent(a)
             Finite Field in a of size 19^2
-            sage: b=a**20;p=b.charpoly("x");p
-            x^2 + 15*x + 4
-            sage: factor(p)
-            (x + 17)^2
-            sage: b.minpoly('x')
+            sage: b=a**20
+            sage: p=FinitePolyExtElement.minpoly(b,"x", algorithm="pari")
+            sage: q=FinitePolyExtElement.minpoly(b,"x", algorithm="matrix")
+            sage: q == p
+            True
+            sage: p
             x + 17
         """
         if self.polynomial().degree() == 0:
@@ -396,15 +398,21 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(19^2)
+            sage: from sage.rings.finite_rings.element_base import FinitePolyExtElement
+            sage: k.<a> = FiniteField(19^2)
             sage: parent(a)
             Finite Field in a of size 19^2
-            sage: a.charpoly('X')
-            X^2 + 18*X + 2
-            sage: a^2 + 18*a + 2
-            0
-            sage: a.charpoly('X', algorithm='pari')
-            X^2 + 18*X + 2
+            sage: b=a**20
+            sage: p=FinitePolyExtElement.charpoly(b,"x", algorithm="pari")
+            sage: q=FinitePolyExtElement.charpoly(b,"x", algorithm="matrix")
+            sage: q == p
+            True
+            sage: p
+            x^2 + 15*x + 4
+            sage: factor(p)
+            (x + 17)^2
+            sage: b.minpoly('x')
+            x + 17
         """
         if algorithm == 'pari':
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

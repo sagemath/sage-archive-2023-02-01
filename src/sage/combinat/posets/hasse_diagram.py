@@ -1045,30 +1045,29 @@ class HasseDiagram(DiGraph):
         join_primes = []
         meet_primes = []
 
+        def add_elements(e):
+            upset = frozenset(self.depth_first_search(e))
+            # The complement of the upper set of a join-prime must have
+            # a top element. Maximal elements of the complement are those
+            # covered by only elements in the upper set. If there is only
+            # one maximal element, it is a meet-prime and 'e' is a
+            # join-prime.
+            meet_prime = None
+            for u in upset:
+                for m in self.neighbor_in_iterator(u):
+                    if (m not in upset and
+                        all(u_ in upset for u_ in
+                            self.neighbor_out_iterator(m))):
+                        if meet_prime is not None:
+                            return
+                        meet_prime = m
+            join_primes.append(e)
+            meet_primes.append(meet_prime)
+
         for e in range(n):
             # Join-primes are join-irreducibles, only check those.
             if self.in_degree(e) == 1:
-                upset = frozenset(self.depth_first_search(e))
-                # The complement of the upper set of a join-prime must have
-                # a top element. Maximal elements of the complement are those
-                # covered by only elements in the upper set. If there is only
-                # one maximal element, it is a meet-prime and 'e' is a
-                # join-prime.
-                meet_prime = None
-                for u in upset:
-                    for m in self.neighbors_in(u):
-                        if (m not in upset and
-                            all(u_ in upset for u_ in
-                                self.neighbor_out_iterator(m))):
-                            if meet_prime is not None:
-                                break
-                            meet_prime = m
-                    else:  # Python has no multilevel break. Sorry for that.
-                        continue
-                    break
-                else:
-                    join_primes.append(e)
-                    meet_primes.append(meet_prime)
+                add_elements(e)
 
         return join_primes, meet_primes
 

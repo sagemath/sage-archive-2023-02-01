@@ -906,7 +906,7 @@ cdef class PowerSeries(AlgebraElement):
         # endif
         return prec
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Return True if this power series is not equal to 0.
 
@@ -925,8 +925,6 @@ cdef class PowerSeries(AlgebraElement):
             True
         """
         return not not self.polynomial()
-
-    __nonzero__ =__bool__
 
     def is_unit(self):
         """

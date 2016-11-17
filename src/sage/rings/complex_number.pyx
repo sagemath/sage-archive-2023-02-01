@@ -859,7 +859,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                                       real_string, digit_precision_bound,
                                       imag_string, digit_precision_bound)
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Return ``True`` if ``self`` is not zero. This is an internal function;
         use :meth:`is_zero()` instead.
@@ -871,8 +871,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             False
         """
         return not (mpfr_zero_p(self.__re) and mpfr_zero_p(self.__im))
-
-    __nonzero__ =__bool__
 
     def prec(self):
         """

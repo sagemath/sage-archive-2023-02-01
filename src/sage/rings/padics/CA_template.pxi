@@ -621,7 +621,7 @@ cdef class CAElement(pAdicTemplateElement):
         """
         return not ciszero(self.value, self.prime_pow)
 
-    __nonzero__ =__bool__
+    __nonzero__ = __bool__
 
     def is_equal_to(self, _right, absprec=None):
         r"""

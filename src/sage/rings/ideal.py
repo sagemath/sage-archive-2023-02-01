@@ -419,7 +419,7 @@ class Ideal_generic(MonoidElement):
                 return True
         return False
 
-    __nonzero__ =__bool__
+    __nonzero__ = __bool__
 
     def base_ring(self):
         r"""

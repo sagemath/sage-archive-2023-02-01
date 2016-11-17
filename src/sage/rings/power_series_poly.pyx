@@ -140,7 +140,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return self.__f.degree()
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Return True if self is nonzero, and False otherwise.
 
@@ -155,8 +155,6 @@ cdef class PowerSeries_poly(PowerSeries):
             False
         """
         return not not self.__f
-
-    __nonzero__ =__bool__
 
     def __call__(self, *x, **kwds):
         """

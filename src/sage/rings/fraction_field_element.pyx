@@ -869,7 +869,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__numerator.valuation(v) - self.__denominator.valuation(v)
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Return ``True`` if this element is nonzero.
 
@@ -887,8 +887,6 @@ cdef class FractionFieldElement(FieldElement):
             True
         """
         return not self.__numerator.is_zero()
-
-    __nonzero__ =__bool__
 
     def is_zero(self):
         """

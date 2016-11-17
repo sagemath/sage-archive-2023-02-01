@@ -3834,7 +3834,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
         self.exactify()
         return self.__bool__()
 
-    __nonzero__ =__bool__
+    __nonzero__ = __bool__
 
     def __pow__(self, e):
         r""" ``self**p`` returns the `p`'th power of self (where `p` can

@@ -16,7 +16,7 @@ AUTHORS:
 - David Harvey (2006-09-15): added nth_root
 
 - Pablo De Napoli (2007-04-01): corrected the implementations of
-  multiplicative_order, is_one; optimized __bool__ ; documented:
+  multiplicative_order, is_one; optimized __nonzero__ ; documented:
   lcm,gcd
 
 - John Cremona (2009-05-15): added support for local and global
@@ -2551,7 +2551,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_neg(x.value, self.value)
         return x
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Return ``True`` if this rational number is nonzero.
 
@@ -2566,8 +2566,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         # A rational number is zero iff its numerator is zero.
         return mpq_sgn(self.value) != 0
-
-    __nonzero__ =__bool__
 
     def __abs__(self):
         """

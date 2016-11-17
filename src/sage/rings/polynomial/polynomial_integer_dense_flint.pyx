@@ -749,7 +749,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         return (fmpz_poly_degree(self.__poly) == -1)
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Check if self is not zero.
 
@@ -764,8 +764,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             True
         """
         return not (fmpz_poly_degree(self.__poly) == -1)
-
-    __nonzero__ =__bool__
 
     @coerce_binop
     def gcd(self, right):

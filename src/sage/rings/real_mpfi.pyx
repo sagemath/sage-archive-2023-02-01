@@ -3731,7 +3731,7 @@ cdef class RealIntervalFieldElement(RingElement):
         elif op == 5: #>=
             return mpfr_lessequal_p(&rt.value.right, &lt.value.left)
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Return ``True`` if ``self`` is not known to be exactly zero.
 
@@ -3749,8 +3749,6 @@ cdef class RealIntervalFieldElement(RingElement):
             True
         """
         return not (mpfr_zero_p(&self.value.left) and mpfr_zero_p(&self.value.right))
-
-    __nonzero__ =__bool__
 
     cpdef int _cmp_(left, right) except -2:
         """

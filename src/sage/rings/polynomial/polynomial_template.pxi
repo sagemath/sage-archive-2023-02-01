@@ -529,7 +529,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return not celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
 
-    __nonzero__ =__bool__
+    __nonzero__ = __bool__
 
     cpdef int _cmp_(left, right) except -2:
         """

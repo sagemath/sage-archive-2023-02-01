@@ -930,7 +930,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if c: return c
         return 0
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         EXAMPLES::
 
@@ -942,8 +942,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         return self.degree() >= 0
-
-    __nonzero__ =__bool__
 
     def __getitem__(self, n):
         r"""

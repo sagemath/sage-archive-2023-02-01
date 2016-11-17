@@ -2265,7 +2265,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self._mul_(~right)
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Return True if this number field element is nonzero.
 
@@ -2283,8 +2283,6 @@ cdef class NumberFieldElement(FieldElement):
             True
         """
         return not IsZero_ZZX(self.__numerator)
-
-    __nonzero__ =__bool__
 
     cpdef _neg_(self):
         r"""

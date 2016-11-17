@@ -988,7 +988,7 @@ cdef class LazyWrapper(LazyFieldElement):
         """
         return <double>self._value
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Check to see if ``self`` is not zero.
 
@@ -1001,8 +1001,6 @@ cdef class LazyWrapper(LazyFieldElement):
             True
         """
         return not not self._value
-
-    __nonzero__ =__bool__
 
     def __hash__(self):
         """

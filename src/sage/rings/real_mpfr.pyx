@@ -3784,7 +3784,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return mpfr_integer_p(self.value) != 0
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Return ``True`` if ``self`` is nonzero.
 
@@ -3807,8 +3807,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
             False
         """
         return not mpfr_zero_p(self.value)
-
-    __nonzero__ =__bool__
 
     cpdef int _cmp_(left, right) except -2:
         """

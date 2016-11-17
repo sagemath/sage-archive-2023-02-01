@@ -1317,7 +1317,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         h += 42082631 * mpz_pythonhash(self.b)
         return h
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Check whether this element is not zero.
 
@@ -1330,8 +1330,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             True
         """
         return mpz_cmp_ui(self.a, 0) != 0 or mpz_cmp_ui(self.b, 0) != 0
-
-    __nonzero__ =__bool__
 
     def _integer_(self, Z=None):
         """

@@ -1043,7 +1043,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
     def is_gen(self):
         return zz_pX_IsX(self.x)
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         TESTS::
 
@@ -1055,8 +1055,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             True
         """
         return not zz_pX_IsZero(self.x)
-
-    __nonzero__ =__bool__
 
     def valuation(self):
         """

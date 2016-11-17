@@ -221,10 +221,8 @@ cdef class LaurentSeries(AlgebraElement):
 
         return self.__u.is_monomial()
 
-    def __bool__(self):
+    def __nonzero__(self):
         return not not self.__u
-
-    __nonzero__ =__bool__
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self(im_gens[0]))

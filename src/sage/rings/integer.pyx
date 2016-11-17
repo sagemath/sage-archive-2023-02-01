@@ -4293,7 +4293,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_cmp_si(self.value, 1) == 0
 
-    def __bool__(self):
+    def __nonzero__(self):
         r"""
         Returns ``True`` if the integer is not `0`, otherwise ``False``.
 
@@ -4305,8 +4305,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         return mpz_sgn(self.value) != 0
-
-    __nonzero__ =__bool__
 
     def is_integral(self):
         """

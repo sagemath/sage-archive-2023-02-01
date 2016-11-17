@@ -975,7 +975,7 @@ cdef class CRElement(pAdicTemplateElement):
         """
         return self.relprec != 0
 
-    __nonzero__ =__bool__
+    __nonzero__ = __bool__
 
     def is_equal_to(self, _right, absprec=None):
         r"""

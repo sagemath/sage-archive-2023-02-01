@@ -1322,16 +1322,23 @@ def unpickle_discrete_hmm_v0(A, B, pi, emission_symbols, name):
     return DiscreteHiddenMarkovModel(A,B,pi,emission_symbols,normalize=False)
 
 def unpickle_discrete_hmm_v1(A, B, pi, n_out, emission_symbols, emission_symbols_dict):
-    """
+    r"""
+    Return a :class:`DiscreteHiddenMarkovModel`, restored from the arguments.
+
+    This function is used internally for unpickling.
+
     TESTS::
 
         sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[0.5,0.5]], [1,0],['a','b'])
-        sage: m2 = loads(dumps(m))
-        sage: m2 == m   # indirect test
+        sage: m2 = loads(dumps(m)) # indirect doctest
+        sage: m2 == m
         True
-        sage: str(m2) == str(m)   # indirect test
+
+    Test that :trac:`15711` has been resolved::
+
+        sage: str(m2) == str(m)
         True
-        sage: m2.log_likelihood('baa'*2) == m.log_likelihood('baa'*2)   # indirect test
+        sage: m2.log_likelihood('baa'*2) == m.log_likelihood('baa'*2)
         True
     """
     cdef DiscreteHiddenMarkovModel m = DiscreteHiddenMarkovModel.__new__(DiscreteHiddenMarkovModel)
@@ -1343,5 +1350,3 @@ def unpickle_discrete_hmm_v1(A, B, pi, n_out, emission_symbols, emission_symbols
     m._emission_symbols = emission_symbols
     m._emission_symbols_dict = emission_symbols_dict
     return m
-
-

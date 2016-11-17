@@ -37,6 +37,13 @@ def HomogenousSymmetricFunction(j, x):
                for p in IntegerVectors(j, length=len(x)))
 
 
+def _laurent_polynomial_ring_(n, m):
+    from itertools import chain
+    return LaurentPolynomialRing(QQ, ', '.join(chain(
+        iter('x{}'.format(nn) for nn in range(n)),
+        iter('y{}'.format(mm) for mm in range(m)))))
+
+
 def Omega_numerator(a, n, m):
     r"""
     EXAMPLES::
@@ -88,10 +95,7 @@ def Omega_numerator(a, n, m):
             assert r == 0
             return q
 
-    from itertools import chain
-    XY = LaurentPolynomialRing(QQ, ', '.join(chain(
-        iter('x{}'.format(nn) for nn in range(n)),
-        iter('y{}'.format(mm) for mm in range(m)))))
+    XY = _laurent_polynomial_ring_(n, m)
 
     if m == 0:
         return XY(1 - (prod(factors_denominator) *
@@ -105,8 +109,44 @@ def Omega_numerator(a, n, m):
         return XY(P(n))
 
 
-def Omega_fundamental(a, x, y, group_factors=False):
+def Omega_factors_denominator(n, m):
     r"""
+    EXAMPLES::
+
+        sage: Omega_factors_denominator(1, 1)
+        ((-x0 + 1,), (-x0*y0 + 1,))
+        sage: Omega_factors_denominator(1, 2)
+        ((-x0 + 1,), (-x0*y0 + 1,), (-x0*y1 + 1,))
+        sage: Omega_factors_denominator(2, 1)
+        ((-x0 + 1,), (-x1 + 1,), (-x0*y0 + 1,), (-x1*y0 + 1,))
+        sage: Omega_factors_denominator(3, 1)
+        ((-x0 + 1,), (-x1 + 1,), (-x2 + 1,),
+         (-x0*y0 + 1,), (-x1*y0 + 1,), (-x2*y0 + 1,))
+        sage: Omega_factors_denominator(2, 2)
+        ((-x0 + 1,), (-x1 + 1,), (-x0*y0 + 1,),
+         (-x0*y1 + 1,), (-x1*y0 + 1,), (-x1*y1 + 1,))
+    """
+    if isinstance(n, tuple):
+        x = n
+        n = sum(x)
+    else:
+        x = tuple(1 for _ in range(n))
+    if isinstance(m, tuple):
+        y = m
+        m = sum(y)
+    else:
+        y = tuple(1 for _ in range(m))
+
+    XY = _laurent_polynomial_ring_(n, m)
+    ixy = iter(XY.gens())
+    x = tuple(tuple(next(ixy) for _ in range(nx)) for nx in x)
+    y = tuple(tuple(next(ixy) for _ in range(my)) for my in y)
+
+    return tuple(tuple(1 - xx for xx in gx) for gx in x) + \
+           tuple(tuple(1 - xx*yy for xx in gx for yy in gy)
+                 for gx in x for gy in y)
+
+
     Return `\Omega_{\ge}` of the expression specified by the input.
 
     .. MATH::

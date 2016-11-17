@@ -1675,7 +1675,7 @@ cdef class SkewPolynomial(AlgebraElement):
         return (self.degree() == self.valuation() and
                 self.leading_coefficient()._is_atomic())
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Test whether ``self`` is nonzero.
 
@@ -1685,13 +1685,15 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = x + 1
-            sage: a.__nonzero__()
+            sage: bool(a)
             True
             sage: b = S.zero()
-            sage: b.__nonzero__()
+            sage: bool(b)
             False
         """
         return not self.is_zero()
+
+    __nonzero__ =__bool__
 
     def base_ring(self):
         r"""

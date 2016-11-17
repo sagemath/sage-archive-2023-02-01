@@ -481,7 +481,7 @@ cdef class FMElement(pAdicTemplateElement):
         cdef long val = self.valuation_c()
         return mpz_cmp_si((<Integer>absprec).value, val) <= 0
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True if this element is distinguishable from zero.
 
@@ -496,6 +496,8 @@ cdef class FMElement(pAdicTemplateElement):
             (False, True)
         """
         return not ciszero(self.value, self.prime_pow)
+
+    __nonzero__ =__bool__
 
     def is_equal_to(self, _right, absprec=None):
         r"""

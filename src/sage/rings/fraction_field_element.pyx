@@ -869,7 +869,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__numerator.valuation(v) - self.__denominator.valuation(v)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if this element is nonzero.
 
@@ -878,15 +878,17 @@ cdef class FractionFieldElement(FieldElement):
             sage: F = ZZ['x,y'].fraction_field()
             sage: x,y = F.gens()
             sage: t = F(0)/x
-            sage: t.__nonzero__()
+            sage: bool(t)
             False
 
         ::
 
-            sage: (1/x).__nonzero__()
+            sage: bool(1/x)
             True
         """
         return not self.__numerator.is_zero()
+
+    __nonzero__ =__bool__
 
     def is_zero(self):
         """

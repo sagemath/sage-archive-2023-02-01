@@ -930,7 +930,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if c: return c
         return 0
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -942,6 +942,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         return self.degree() >= 0
+
+    __nonzero__ =__bool__
 
     def __getitem__(self, n):
         r"""
@@ -8976,7 +8978,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         return make_generic_polynomial, (self._parent, self.__coeffs)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return len(self.__coeffs) > 0
 
     cdef int __normalize(self) except -1:
@@ -8986,7 +8988,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         Check that exceptions are propagated correctly (:trac:`18274`)::
 
             sage: class BrokenRational(Rational):
-            ....:     def __nonzero__(self):
+            ....:     def __bool__(self):
             ....:         raise NotImplementedError("cannot check whether number is non-zero")
             sage: z = BrokenRational()
             sage: R.<x> = QQ[]

@@ -3888,7 +3888,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             return False
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -3902,6 +3902,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             return True
         else:
             return False
+
+    __nonzero__ =__bool__
 
     cpdef _floordiv_(self, right):
         """

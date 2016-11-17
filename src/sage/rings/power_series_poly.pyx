@@ -140,21 +140,23 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return self.__f.degree()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True if self is nonzero, and False otherwise.
 
         EXAMPLES::
 
             sage: R.<t> = GF(11)[[]]
-            sage: (1 + t + O(t^18)).__nonzero__()
+            sage: bool(1 + t + O(t^18))
             True
-            sage: R(0).__nonzero__()
+            sage: bool(R(0))
             False
-            sage: O(t^18).__nonzero__()
+            sage: bool(O(t^18))
             False
         """
         return not not self.__f
+
+    __nonzero__ =__bool__
 
     def __call__(self, *x, **kwds):
         """

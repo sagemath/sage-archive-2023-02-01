@@ -1389,26 +1389,26 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         raise TypeError("can't convert complex interval to complex")
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is not known to be exactly zero.
 
         EXAMPLES::
 
-            sage: CIF(RIF(0, 0), RIF(0, 0)).__nonzero__()
-            False
             sage: bool(CIF(RIF(0, 0), RIF(0, 0)))
             False
-            sage: CIF(RIF(1), RIF(0)).__nonzero__()
+            sage: bool(CIF(RIF(1), RIF(0)))
             True
-            sage: CIF(RIF(0), RIF(1)).__nonzero__()
+            sage: bool(CIF(RIF(0), RIF(1)))
             True
-            sage: CIF(RIF(1, 2), RIF(0)).__nonzero__()
+            sage: bool(CIF(RIF(1, 2), RIF(0)))
             True
-            sage: CIF(RIF(-1, 1), RIF(-1, 1)).__nonzero__()
+            sage: bool(CIF(RIF(-1, 1), RIF(-1, 1)))
             True
         """
-        return self.real().__nonzero__() or self.imag().__nonzero__()
+        return self.real().__bool__() or self.imag().__bool__()
+
+    __nonzero__ =__bool__
 
     cpdef _richcmp_(left, right, int op):
         r"""

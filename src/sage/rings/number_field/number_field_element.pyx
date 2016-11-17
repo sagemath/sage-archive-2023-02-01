@@ -2265,26 +2265,26 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self._mul_(~right)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True if this number field element is nonzero.
 
         EXAMPLES::
 
             sage: m.<b> = CyclotomicField(17)
-            sage: m(0).__nonzero__()
+            sage: bool(m(0))
             False
-            sage: b.__nonzero__()
+            sage: bool(b)
             True
 
-        Nonzero is used by the bool command::
+        ``__bool__`` is used by the bool command::
 
             sage: bool(b + 1)
             True
-            sage: bool(m(0))
-            False
         """
         return not IsZero_ZZX(self.__numerator)
+
+    __nonzero__ =__bool__
 
     cpdef _neg_(self):
         r"""

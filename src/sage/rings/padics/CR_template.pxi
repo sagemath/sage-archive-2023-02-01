@@ -959,7 +959,7 @@ cdef class CRElement(pAdicTemplateElement):
                 return True
         return mpz_cmp_si((<Integer>absprec).value, self.ordp) <= 0
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True if self is distinguishable from zero.
 
@@ -974,6 +974,8 @@ cdef class CRElement(pAdicTemplateElement):
             (False, False, True)
         """
         return self.relprec != 0
+
+    __nonzero__ =__bool__
 
     def is_equal_to(self, _right, absprec=None):
         r"""

@@ -1243,7 +1243,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             elif cim<0: return -1
             else: return 0
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is not zero.
 
@@ -1257,6 +1257,8 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             False
         """
         return not (mpfr_zero_p(self.value.re) and mpfr_zero_p(self.value.im))
+
+    __nonzero__ =__bool__
 
     def is_square(self):
         r"""

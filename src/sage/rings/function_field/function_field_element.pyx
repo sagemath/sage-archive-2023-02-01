@@ -346,7 +346,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         """
         return self._x._repr(name=self.parent().variable_name())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -360,6 +360,8 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             False
         """
         return not not self._x
+
+    __nonzero__ =__bool__
 
     def __hash__(self):
         """
@@ -560,7 +562,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return repr(self._x)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 

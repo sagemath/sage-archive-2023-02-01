@@ -712,7 +712,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         return fmpq_poly_is_one(self.__poly)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns whether or not self is non-zero.
 
@@ -726,6 +726,8 @@ cdef class Polynomial_rational_flint(Polynomial):
             False
         """
         return not fmpq_poly_is_zero(self.__poly)
+
+    __nonzero__ =__bool__
 
     ###########################################################################
     # Shifting                                                                #

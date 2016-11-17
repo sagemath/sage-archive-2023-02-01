@@ -2629,7 +2629,7 @@ cdef class NCPolynomial_plural(RingElement):
         else:
             return False
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -2647,6 +2647,8 @@ cdef class NCPolynomial_plural(RingElement):
             return True
         else:
             return False
+
+    __nonzero__ =__bool__
 
 
 #####################################################################

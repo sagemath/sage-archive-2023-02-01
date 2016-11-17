@@ -749,21 +749,23 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         return (fmpz_poly_degree(self.__poly) == -1)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check if self is not zero.
 
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
-            sage: R(0).__nonzero__()
+            sage: bool(R(0))
             False
-            sage: R(1).__nonzero__()
+            sage: bool(R(1))
             True
-            sage: x.__nonzero__()
+            sage: bool(x)
             True
         """
         return not (fmpz_poly_degree(self.__poly) == -1)
+
+    __nonzero__ =__bool__
 
     @coerce_binop
     def gcd(self, right):

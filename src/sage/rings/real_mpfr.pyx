@@ -3784,29 +3784,31 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return mpfr_integer_p(self.value) != 0
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is nonzero.
 
         EXAMPLES::
 
-            sage: RR(1).__nonzero__()
+            sage: bool(RR(1))
             True
-            sage: RR(0).__nonzero__()
+            sage: bool(RR(0))
             False
-            sage: RR('inf').__nonzero__()
+            sage: bool(RR('inf'))
             True
 
         TESTS:
 
         Check that :trac:`20502` is fixed::
 
-            sage: RR('nan').__nonzero__()
+            sage: bool(RR('nan'))
             True
             sage: RR('nan').is_zero()
             False
         """
         return not mpfr_zero_p(self.value)
+
+    __nonzero__ =__bool__
 
     cpdef int _cmp_(left, right) except -2:
         """

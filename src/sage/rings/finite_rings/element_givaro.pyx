@@ -926,7 +926,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         return self.element
 
-    def __nonzero__(FiniteField_givaroElement self):
+    def __bool__(FiniteField_givaroElement self):
         r"""
         Return ``True`` if ``self != k(0)``.
 
@@ -940,6 +940,8 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             True
         """
         return not self._cache.objectptr.isZero(self.element)
+
+    __nonzero__ =__bool__
 
     def is_one(FiniteField_givaroElement self):
         r"""

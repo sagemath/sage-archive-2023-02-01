@@ -1901,7 +1901,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         return mpz_cmp_si(self.value, 1) == 0
 
-    def __nonzero__(IntegerMod_gmp self):
+    def __bool__(IntegerMod_gmp self):
         """
         Returns ``True`` if this is not `0`, otherwise
         ``False``.
@@ -1914,6 +1914,8 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             True
         """
         return mpz_cmp_si(self.value, 0) != 0
+
+    __nonzero__ =__bool__
 
     cpdef bint is_unit(self):
         """
@@ -2297,7 +2299,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         return self.ivalue == 1
 
-    def __nonzero__(IntegerMod_int self):
+    def __bool__(IntegerMod_int self):
         """
         Returns ``True`` if this is not `0`, otherwise
         ``False``.
@@ -2310,6 +2312,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             True
         """
         return self.ivalue != 0
+
+    __nonzero__ =__bool__
 
     cpdef bint is_unit(IntegerMod_int self):
         """
@@ -3114,7 +3118,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         return self.ivalue == 1
 
-    def __nonzero__(IntegerMod_int64 self):
+    def __bool__(IntegerMod_int64 self):
         """
         Returns ``True`` if this is not `0`, otherwise
         ``False``.
@@ -3127,6 +3131,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             True
         """
         return self.ivalue != 0
+
+    __nonzero__ =__bool__
 
     cpdef bint is_unit(IntegerMod_int64 self):
         """

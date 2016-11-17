@@ -3532,7 +3532,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly.isZero()
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Check if ``self`` is zero.
 
@@ -3553,6 +3553,8 @@ cdef class BooleanPolynomial(MPolynomial):
             True
         """
         return not self._pbpoly.isZero()
+
+    __nonzero__ =__bool__
 
     def is_one(BooleanPolynomial self):
         """

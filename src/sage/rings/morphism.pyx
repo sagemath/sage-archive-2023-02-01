@@ -602,7 +602,7 @@ cdef class RingHomomorphism(RingMap):
             raise TypeError("parent must be a ring homset")
         RingMap.__init__(self, parent)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Every ring map is nonzero unless the domain or codomain is the
         0 ring, since there is no zero map between rings, since 1 goes
@@ -625,6 +625,8 @@ cdef class RingHomomorphism(RingMap):
             False
         """
         return bool(self.codomain().one())
+
+    __nonzero__ =__bool__
 
     def _repr_type(self):
         """

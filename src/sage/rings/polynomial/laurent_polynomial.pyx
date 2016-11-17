@@ -161,7 +161,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return self.__u.is_zero()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check if ``self`` is non-zero.
 
@@ -176,6 +176,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             True
         """
         return not self.__u.is_zero()
+
+    __nonzero__ =__bool__
 
     def _im_gens_(self, codomain, im_gens):
         """

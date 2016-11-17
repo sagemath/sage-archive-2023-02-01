@@ -684,7 +684,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sig_on()
         return self._parent.polynomial_ring()(new_gen(FF_to_FpXQ_i(self.val)))
 
-    def minpoly(FiniteFieldElement_pari_ffelt self, object var='x'):
+    def minpoly(self, var='x'):
         """
         Return the minimal polynomial of ``self``.
 

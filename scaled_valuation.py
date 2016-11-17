@@ -282,3 +282,64 @@ class ScaledValuation_generic(DiscreteValuation):
 
         """
         return self._base_valuation._weakly_separating_element(other)
+
+    def _ge_(self, other):
+        r"""
+        Return whether this valuation is greater or equal to ``other``, a
+        valuation on the same domain.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v2 = pAdicValuation(QQ, 2)
+            sage: 2*v2 >= v2
+            True
+            sage: v2/2 >= 2*v2
+            False
+            sage: 3*v2 > 2*v2
+            True
+
+        Test that non-scaled valuations call through to this method to resolve
+        the scaling::
+
+            sage: v2 > v2/2
+            True
+
+        """
+        if self == other:
+            return True
+        if isinstance(other, ScaledValuation_generic):
+            return (self._scale / other._scale) * self._base_valuation >= other._base_valuation
+        if self._scale >= 1:
+            if self._base_valuation >= other:
+                return True
+        else:
+            assert not self.is_trivial()
+            if self._base_valuation <= other:
+                return False
+        return super(ScaledValuation_generic, self)._ge_(other)
+
+    def _le_(self, other):
+        r"""
+        Return whether this valuation is smaller or equal to ``other``, a
+        valuation on the same domain.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v2 = pAdicValuation(QQ, 2)
+            sage: 2*v2 <= v2
+            False
+            sage: v2/2 <= 2*v2
+            True
+            sage: 3*v2 < 2*v2
+            False
+
+        Test that non-scaled valuations call through to this method to resolve
+        the scaling::
+
+            sage: v2 < v2/2
+            False
+
+        """
+        return other / self._scale >= self._base_valuation

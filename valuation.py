@@ -295,6 +295,9 @@ class DiscretePseudoValuation(Morphism):
 
         """
         if self == other: return True
+        from scaled_valuation import ScaledValuation_generic
+        if isinstance(other, ScaledValuation_generic):
+            return other <= self
         raise NotImplementedError("Operator not implemented for this valuation.")
 
     # Remove the default implementation of Map.__reduce__ that does not play

@@ -560,7 +560,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return repr(self._x)
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         EXAMPLES::
 

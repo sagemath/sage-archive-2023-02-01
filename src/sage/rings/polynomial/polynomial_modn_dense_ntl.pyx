@@ -1604,7 +1604,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
                 return n
         return infinity
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         TESTS::
 

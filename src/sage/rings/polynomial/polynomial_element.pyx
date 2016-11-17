@@ -8976,7 +8976,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         return make_generic_polynomial, (self._parent, self.__coeffs)
 
-    def __bool__(self):
+    def __nonzero__(self):
         return len(self.__coeffs) > 0
 
     cdef int __normalize(self) except -1:

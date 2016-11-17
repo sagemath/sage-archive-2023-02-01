@@ -1406,7 +1406,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: bool(CIF(RIF(-1, 1), RIF(-1, 1)))
             True
         """
-        return self.real().__bool__() or self.imag().__bool__()
+        return bool(self.real()) or bool(self.imag())
 
     cpdef _richcmp_(left, right, int op):
         r"""

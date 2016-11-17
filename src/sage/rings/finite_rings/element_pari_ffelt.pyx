@@ -695,7 +695,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         EXAMPLE::
 
             sage: R.<x> = PolynomialRing(FiniteField(3))
-            sage: F.<a> = FiniteField(3^2, modulus=x^2 + 1)
+            sage: F.<a> = FiniteField(3^2, modulus=x^2 + 1, impl='pari_ffelt')
             sage: a.minpoly('y')
             y^2 + 1
         """
@@ -713,7 +713,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         EXAMPLE::
 
             sage: R.<x> = PolynomialRing(FiniteField(3))
-            sage: F.<a> = FiniteField(3^2, modulus=x^2 + 1)
+            sage: F.<a> = FiniteField(3^2, modulus=x^2 + 1, impl='pari_ffelt')
             sage: a.charpoly('y')
             y^2 + 1
         """

@@ -8990,6 +8990,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: class BrokenRational(Rational):
             ....:     def __bool__(self):
             ....:         raise NotImplementedError("cannot check whether number is non-zero")
+            ....:     __nonzero__ = __bool__
             sage: z = BrokenRational()
             sage: R.<x> = QQ[]
             sage: from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense

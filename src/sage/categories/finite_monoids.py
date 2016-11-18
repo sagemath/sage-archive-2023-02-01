@@ -10,6 +10,7 @@ Finite Monoids
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
 
+
 class FiniteMonoids(CategoryWithAxiom):
     """
     The category of finite (multiplicative) :class:`monoids <Monoids>`.
@@ -67,8 +68,7 @@ class FiniteMonoids(CategoryWithAxiom):
 
             REFERENCES:
 
-            .. [Rho69] Characters and complexity of finite semigroups
-               J. Combinatorial Theory, vol 6, John Rhodes, 1969
+            - [Rho69]_
             """
             from sage.rings.rational_field import QQ
             if base_ring is None:
@@ -130,7 +130,7 @@ class FiniteMonoids(CategoryWithAxiom):
             self_powers = {self.parent().one(): 0}
             k = 1
             self_power_k = self
-            while not self_power_k in self_powers:
+            while self_power_k not in self_powers:
                 self_powers[self_power_k] = k
                 k += 1
                 self_power_k = self_power_k * self

@@ -509,23 +509,46 @@ def Omega(var, expression, denominator=None, op=operator.ge):
     # Below we sort to make the caching more efficient. Doing this here
     # (in contrast to directly in Omega_higher) results in much cleaner
     # code and prevents an additional substitution or passing of a permutation.
-    values, z = zip(*sorted(tuple(decode_factor(factor)
-                                  for factor in factors_denominator),
-                            key=lambda k: -k[1]))
+    decoded_factors = tuple(decode_factor(factor)
+                            for factor in factors_denominator)
 
     result_numerator = 0
     result_factors_denominator = None
     for a, c in iteritems(numerator.dict()):
-        n, fd = Omega_higher(a, z)
-        rules = dict(zip(n.parent().gens(), values))
-
-        fd = tuple(f.subs(rules) for f in fd)
+        n, fd = _Omega_(a, decoded_factors)
         if result_factors_denominator is None:
             result_factors_denominator = fd
         else:
             assert result_factors_denominator == fd
-        result_numerator += c * n.subs(rules)
+        result_numerator += c * n
 
     return Factorization([(result_numerator, 1)] +
                          list((f, -1) for f in result_factors_denominator),
                          sort=False)
+
+
+def _Omega_(a, decoded_factors):
+    r"""
+    Helper function for :func:`Omega` which accesses the low level functions
+    and does the substituting.
+
+    INPUT:
+
+    - ``a`` -- an integer.
+
+    - ``decoded_factors`` -- a tuple or list of pairs `(z, e)` representing
+      a factor `1 - \lambda^e z`.
+
+    OUTPUT:
+
+    A pair representing a quotient as follows: Its first component is the
+    numerator as a laurent polynomial, its second component a factorization
+    of the denominator as a tuple of laurent polynomials.
+    """
+    # Below we sort to make the caching more efficient. Doing this here
+    # (in contrast to directly in Omega_higher) results in much cleaner
+    # code and prevents an additional substitution or passing of a permutation.
+    values, exponents = zip(*sorted(decoded_factors, key=lambda k: -k[1]))
+    n, fd = Omega_higher(a, exponents)
+    rules = dict(zip(n.parent().gens(), values))
+    return n.subs(rules), tuple(f.subs(rules) for f in fd)

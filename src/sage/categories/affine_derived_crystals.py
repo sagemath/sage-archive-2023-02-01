@@ -378,7 +378,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 sage: K2 = crystals.KirillovReshetikhin(['A',2,1],2,1)
                 sage: T1 = crystals.TensorProduct(K1,K2)
                 sage: T2 = crystals.TensorProduct(K2,K1)
-                sage: T1.digraph().is_isomorphic(T2.digraph(), edge_labels = True, certify = True) #todo: not implemented (see #10904 and #10549)
+                sage: T1.digraph().is_isomorphic(T2.digraph(), edge_labels=True, certificate=True) #todo: not implemented (see #10904 and #10549)
                 (True, {[[[1]], [[2], [3]]]: [[[1], [3]], [[2]]], [[[3]], [[2], [3]]]: [[[2], [3]], [[3]]],
                 [[[3]], [[1], [3]]]: [[[1], [3]], [[3]]], [[[1]], [[1], [3]]]: [[[1], [3]], [[1]]], [[[1]],
                 [[1], [2]]]: [[[1], [2]], [[1]]], [[[2]], [[1], [2]]]: [[[1], [2]], [[2]]], [[[3]],
@@ -486,9 +486,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
             REFERENCES:
 
-            .. [FOS2010] \G. Fourier, M. Okado, A. Schilling. *Perfectness of
-               Kirillov-Reshetikhin crystals for nonexceptional types*.
-               Contemp. Math. 506 (2010) 127-143 ( :arxiv:`0811.1604` )
+            [FOS2010]_
 
             EXAMPLES::
 
@@ -849,7 +847,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 grading of the maximal vector in `T`. Then the energy
                 of ``self`` is given by `d - g`.
 
-                For more details, see Theorem 7.5 in [SchillingTingley2011]_.
+                For more details, see Theorem 7.5 in [ST2011]_.
 
                 INPUT:
 
@@ -865,14 +863,6 @@ class KirillovReshetikhinCrystals(Category_singleton):
                   this uses ``'definition'``
 
                 OUTPUT: an integer
-
-                REFERENCES:
-
-                .. [SchillingTingley2011] \A. Schilling, P. Tingley.
-                   *Demazure crystals, Kirillov-Reshetikhin crystals, and
-                   the energy function*.
-                   Electronic Journal of Combinatorics. **19(2)**. 2012.
-                   :arXiv:`1104.2359`
 
                 EXAMPLES::
 
@@ -1089,10 +1079,7 @@ class LocalEnergyFunction(Map):
 
     REFERENCES:
 
-    .. [KKMMNN92] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa,
-       T. Nakashima, and A. Nakayashiki.
-       *Affine crystals and vertex models*.
-       Int. J. Mod. Phys. A, **7** (suppl. 1A), (1992) pp. 449-484.
+    [KKMMNN1992]_
     """
     def __init__(self, B, Bp, normalization=0):
         """

@@ -266,26 +266,26 @@ def Omega_higher(a, exponents):
 
     EXAMPLES::
 
-        sage: Omega_higher(0, [1, -2])
+        sage: Omega_higher(0, (1, -2))
         (1, (-z0 + 1, -z0^2*z1 + 1))
-        sage: Omega_higher(0, [1, -3])
+        sage: Omega_higher(0, (1, -3))
         (1, (-z0 + 1, -z0^3*z1 + 1))
-        sage: Omega_higher(0, [1, -4])
+        sage: Omega_higher(0, (1, -4))
         (1, (-z0 + 1, -z0^4*z1 + 1))
 
-        sage: Omega_higher(0, [2, -1])
+        sage: Omega_higher(0, (2, -1))
         (z0*z1 + 1, (-z0 + 1, -z0*z1^2 + 1))
-        sage: Omega_higher(0, [3, -1])
+        sage: Omega_higher(0, (3, -1))
         (z0*z1^2 + z0*z1 + 1, (-z0 + 1, -z0*z1^3 + 1))
-        sage: Omega_higher(0, [4, -1])
+        sage: Omega_higher(0, (4, -1))
         (z0*z1^3 + z0*z1^2 + z0*z1 + 1, (-z0 + 1, -z0*z1^4 + 1))
 
-        sage: Omega_higher(0, [1, 1, -2])
+        sage: Omega_higher(0, (1, 1, -2))
         (-z0^2*z1*z2 - z0*z1^2*z2 + z0*z1*z2 + 1,
          (-z0 + 1, -z1 + 1, -z0^2*z2 + 1, -z1^2*z2 + 1))
-        sage: Omega_higher(0, [2, -1, -1])
+        sage: Omega_higher(0, (2, -1, -1))
         (z0*z1*z2 + z0*z1 + z0*z2 + 1, (-z0 + 1, -z0*z1^2 + 1, -z0*z2^2 + 1))
-        sage: Omega_higher(0, [2, 1, -1])
+        sage: Omega_higher(0, (2, 1, -1))
         (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1,
          (-z0 + 1, -z1 + 1, -z0*z2^2 + 1, -z1*z2 + 1))
     """

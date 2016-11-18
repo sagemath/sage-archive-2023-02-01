@@ -265,7 +265,7 @@ def Omega_higher(a, exponents):
 
     A pair representing a quotient as follows: Its first component is the
     numerator as a laurent polynomial, its second component a factorization
-    of the denominator as a list of laurent polynomials.
+    of the denominator as a tuple of laurent polynomials.
 
     EXAMPLES::
 

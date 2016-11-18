@@ -6564,7 +6564,7 @@ def glue_graphs(g, h, glue_g, glue_h):
         sage: S = Sandpile(z,0)
         sage: S.h_vector()
         [1, 6, 17, 31, 41, 41, 31, 17, 6, 1]
-        sage: S.resolution() # long time
+        sage: S.resolution()
         'R^1 <-- R^7 <-- R^21 <-- R^35 <-- R^35 <-- R^21 <-- R^7 <-- R^1'
 
     .. NOTE::

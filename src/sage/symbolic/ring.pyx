@@ -38,8 +38,14 @@ cdef class SymbolicRing(CommutativeRing):
 
         EXAMPLES::
 
-            sage: sage.symbolic.ring.SymbolicRing()
+            sage: SR
             Symbolic Ring
+
+        TESTS::
+
+            sage: isinstance(SR, sage.symbolic.ring.SymbolicRing)
+            True
+
         """
         CommutativeRing.__init__(self, self)
         self._populate_coercion_lists_(convert_method_name='_symbolic_')

@@ -46,6 +46,29 @@ def _laurent_polynomial_ring_(n, m):
 
 def Omega_numerator(a, n, m):
     r"""
+    Return the numerator of `\Omega_{\ge}` of the expression
+    specified by the input.
+
+    To be more precise, this calculates
+
+    .. MATH::
+
+        \Omega_{\ge} \frac{\lambda^a}{
+        (1 - x_1 \lambda) \dots (1 - x_n \lambda)
+        (1 - y_1 / \lambda) \dots (1 - y_m / \lambda)
+
+    and returns its numerator.
+
+    INPUT:
+
+    - ``a`` -- an integer.
+
+    - ``n`` and ``m`` -- nonnegative integers.
+
+    OUTPUT:
+
+    A laurent polynomial.
+
     EXAMPLES::
 
         sage: L.<x0, x1, x2, y0, y1, y2> = LaurentPolynomialRing(QQ)
@@ -111,6 +134,31 @@ def Omega_numerator(a, n, m):
 
 def Omega_factors_denominator(n, m):
     r"""
+    Return the denominator of `\Omega_{\ge}` of the expression
+    specified by the input.
+
+    To be more precise, this calculates
+
+    .. MATH::
+
+        \Omega_{\ge} \frac{1}{
+        (1 - x_1 \lambda) \dots (1 - x_n \lambda)
+        (1 - y_1 / \lambda) \dots (1 - y_m / \lambda)
+
+    and returns a factorization of its denominator.
+
+    INPUT:
+
+    - ``n`` and ``m`` -- nonnegative integers or
+      tuples of nonnegative integers. The latter specifys how the factors
+      of the result are grouped. An integer (former case) corresponds to
+      a tuple consisting of that many `1`s.
+
+    OUTPUT:
+
+    A factorization of the denominator as
+    a tuple of tuples of laurent polynomials.
+
     EXAMPLES::
 
         sage: Omega_factors_denominator(1, 1)
@@ -149,6 +197,29 @@ def Omega_factors_denominator(n, m):
 
 def Omega_higher(a, exponents):
     r"""
+    Return `\Omega_{\ge}` of the expression specified by the input.
+
+    To be more precise, this calculates
+
+    .. MATH::
+
+        \Omega_{\ge} \frac{\lambda^a}{
+        (1 - z_1 \lambda^{e_1}) \dots (1 - z_n \lambda^{e_n})
+
+    and returns its numerator and a factorization of its denominator.
+
+    INPUT:
+
+    - ``a`` -- an integer.
+
+    - ``exponents`` -- a tuple of integers.
+
+    OUTPUT:
+
+    A pair representing a quotient as follows: Its first component is the
+    numerator as a laurent polynomial, its second component a factorization
+    of the denominator as a list of laurent polynomials.
+
     EXAMPLES::
 
         sage: Omega_higher(0, [1, -2])
@@ -171,7 +242,8 @@ def Omega_higher(a, exponents):
         sage: Omega_higher(0, [2, -1, -1])
         (z0*z1*z2 + z0*z1 + z0*z2 + 1, (-z0 + 1, -z0*z1^2 + 1, -z0*z2^2 + 1))
         sage: Omega_higher(0, [2, 1, -1])
-        (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1, (-z0 + 1, -z1 + 1, -z0*z2^2 + 1, -z1*z2 + 1))
+        (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1,
+         (-z0 + 1, -z1 + 1, -z0*z2^2 + 1, -z1*z2 + 1))
     """
     if not exponents or any(e == 0 for e in exponents):
         raise NotImplementedError
@@ -232,57 +304,47 @@ def Omega_higher(a, exponents):
 
 def Omega(var, expression, denominator=None, op=operator.ge):
     r"""
+    Return `\Omega_{\mathrm{op}}` of ``expression`` with respect to ``var``.
 
-
-    Return `\Omega_{\ge}` of the expression specified by the input.
-
-    .. MATH::
-
-        \Omega_{\ge} \frac{\lambda^a}{
-        (1 - x_1 \lambda) \dots (1 - x_n \lambda)
-        (1 - y_1 / \lambda) \dots (1 - y_m / \lambda)
-
-    INPUT:
-
-    - ``a`` -- an integer.
-
-    - ``x`` and ``y`` -- lists of laurent polynomials
-
-    OUTPUT:
-
-    A pair representing a quotient as follows: Its first component is the
-    numerator as a laurent polynomial, its second component a factorization
-    of the denominator as a list of laurent polynomials.
-
-
-
-
-
-
-    Return `\Omega_{\ge}` of the expression specified by the input.
+    To be more precise, this calculates
 
     .. MATH::
 
-        \Omega_{\ge} \frac{\lambda^a}{
-        (1 - z_1 \lambda^{e_1}) \dots (1 - z_n \lambda^{e_n})
+        \Omega_{\mathrm{op}} \frac{n}{d_1 \dots d_n}
+
+    for the numerator `n` and the factors `d_1`, ..., `d_n` of
+    the denominator, all of which are laurent polynomials in ``var``
+    and returns a (partial) factorization of the result.
 
     INPUT:
 
-    - ``a`` -- an integer.
+    - ``var`` -- a variable or a representation string of a variable.
 
-    - ``z`` and ``y`` -- a lists with each entry either
-      a laurent polynomial (implicit exponent `1`) or
-      a pair of a laurent polynomial and an integer exponent.
+    - ``expression`` -- an element of the quotient field of some
+      laurent polynomials. If ``denominator`` is specified, then
+      this laurent polynomial is interpreted as the numerator of the
+      expression.
+
+    - ``denominator`` -- a laurent polynomial or a
+      :class:`~sage.structure.factorization.Factorization` (consisting
+      of laurent polynomial factors) or a tuple/list of factors (laurent
+      polynomials).
+
+    - ``op`` -- (default: ``operator.ge``) an operator.
 
     OUTPUT:
 
-    A pair representing a quotient as follows: Its first component is the
-    numerator as a laurent polynomial, its second component a factorization
-    of the denominator as a list of laurent polynomials.
+    A (partial) :class:`~sage.structure.factorization.Factorization`
+    of the result whose factors are laurent polynomials.
+
+    .. NOTE::
+
+        The numerator of the result may not be factored.
 
     EXAMPLES::
 
         sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(QQ)
+
         sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1
         sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu, 1 - z/mu])

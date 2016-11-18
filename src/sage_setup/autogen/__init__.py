@@ -1,5 +1,5 @@
 import os
-from sage.env import SAGE_SRC
+
 
 def autogen_all():
     """
@@ -9,4 +9,4 @@ def autogen_all():
     pari.rebuild()
 
     from sage_setup.autogen import interpreters
-    interpreters.rebuild(os.path.join(SAGE_SRC, "sage", "ext", "interpreters"))
+    interpreters.rebuild(os.path.join("sage", "ext", "interpreters"))

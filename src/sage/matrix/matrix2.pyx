@@ -34,7 +34,7 @@ include "cysignals/signals.pxi"
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
-from sage.structure.element import is_Vector
+from sage.structure.element import is_Vector, get_coercion_model
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -10427,8 +10427,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         INPUT:
 
         - ``other`` -- a matrix, which should be square, and of the same size
-          as ``self``, where the entries of the matrix have a fraction field
-          equal to that of ``self``. Inexact rings are not supported.
+          as ``self``.
 
         - ``transformation`` -- default: ``False`` - if ``True``, the output
           may include the change-of-basis matrix (also known as the similarity
@@ -10454,14 +10453,38 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         When a similarity transformation matrix ``S``  is requested,
         it will satisfy ``self = S.inverse()*other*S``.
 
-        The base rings for the matrices are promoted to their fraction
-        fields for the similarity check using rational form.
+        .. RUBRIC:: rings and coefficients
 
-        Matrices that are similar over the rationals are promoted to the field
-        of algebraic numbers (``QQbar``) for computation of the
-        similarity transformation.
+            Inexact rings are not supported. Only rings having a
+            fraction field can be used as coefficients.
 
-        .. warning::
+            The base rings for the matrices are promoted to a common
+            field for the similarity check using rational form over this field.
+
+            If the fraction fields of both matrices are the same, this
+            field is used. Otherwise, if the fraction fields are only
+            related by a canonical coercion, the common coercion field
+            is used.
+
+            In all cases, the result is about similarity over a common field.
+
+        .. RUBRIC:: similarity transformation
+
+            For computation of the similarity transformation, the
+            matrices are first checked to be similar over their common
+            field.
+
+            In this case, a similarity transformation is then
+            searched for over the common field. If this fails, the
+            matrices are promoted to the algebraic closure of their
+            common field (whenever it is available) and a similarity
+            transformation is looked for over the algebraic closure.
+
+            For example, matrices over the rationals
+            may be promoted to the field of algebraic numbers (``QQbar``)
+            for computation of the similarity transformation.
+
+        .. WARNING::
 
             When the two matrices are similar, this routine may
             fail to find the similarity transformation.  A technical
@@ -10624,7 +10647,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             TypeError: matrix entries must come from an exact field,
             not Complex Double Field
 
-        Base rings for the matrices need to have a fraction field.  So
+        Base rings for the matrices need to have a fraction field. So
         in particular, the ring needs to be at least an integral domain.  ::
 
             sage: Z6 = Integers(6)
@@ -10634,6 +10657,47 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ValueError: base ring of a matrix needs a fraction field,
             maybe the ring is not an integral domain
+
+        If the fraction fields of the entries are unequal and do not
+        coerce in a common field, it is an error.  ::
+
+            sage: A = matrix(GF(3), 2, 2, range(4))
+            sage: B = matrix(GF(2), 2, 2, range(4))
+            sage: A.is_similar(B, transformation=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrices need to have entries with identical fraction fields,
+            not Rational Field and Finite Field of size 2
+
+        An example, where coercion happens::
+
+            sage: A = matrix(ZZ, 2, 2, range(4))
+            sage: B = matrix(GF(2), 2, 2, range(4))
+            sage: A.is_similar(B, transformation=True)
+            ?
+
+        A matrix over the integers and a matrix over the algebraic
+        numbers will be compared over the algebraic numbers.  ::
+
+            sage: A = matrix(ZZ, 2, 2, range(4))
+            sage: B = matrix(QQbar, 2, 2, range(4))
+            sage: A.is_similar(B)
+            True
+
+        TESTS:
+
+        Inputs are checked.  ::
+
+            sage: A = matrix(ZZ, 2, 2, range(4))
+            sage: A.is_similar('garbage')
+            Traceback (most recent call last):
+            ...
+            TypeError: similarity requires a matrix as an argument, not garbage
+            sage: B = copy(A)
+            sage: A.is_similar(B, transformation='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: transformation keyword must be True or False
 
         Mismatched sizes raise an error::
 
@@ -10652,45 +10716,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             Traceback (most recent call last):
             ...
             ValueError: similarity only makes sense for square matrices
-
-        If the fraction fields of the entries are unequal, it is an error.  ::
-
-            sage: A = matrix(ZZ, 2, 2, range(4))
-            sage: B = matrix(GF(2), 2, 2, range(4))
-            sage: A.is_similar(B, transformation=True)
-            Traceback (most recent call last):
-            ...
-            TypeError: matrices need to have entries with identical fraction fields,
-            not Rational Field and Finite Field of size 2
-
-        A matrix over the integers will be promoted to a
-        matrix over the rationals, but may need to be manually
-        promoted to the algebraic numbers.  ::
-
-            sage: A = matrix(ZZ, 2, 2, range(4))
-            sage: B = matrix(QQbar, 2, 2, range(4))
-            sage: A.is_similar(B)
-            Traceback (most recent call last):
-            ...
-            TypeError: matrices need to have entries with identical fraction fields,
-            not Rational Field and Algebraic Field
-            sage: A.change_ring(QQbar).is_similar(B)
-            True
-
-        TESTS:
-
-        Inputs are checked.  ::
-
-            sage: A = matrix(ZZ, 2, 2, range(4))
-            sage: A.is_similar('garbage')
-            Traceback (most recent call last):
-            ...
-            TypeError: similarity requires a matrix as an argument, not garbage
-            sage: B = copy(A)
-            sage: A.is_similar(B, transformation='junk')
-            Traceback (most recent call last):
-            ...
-            ValueError: transformation keyword must be True or False
 
         AUTHOR:
 
@@ -10716,9 +10741,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             mesg += "maybe the ring is not an integral domain"
             raise ValueError(mesg)
         if A.base_ring() != B.base_ring():
-            mesg = 'matrices need to have entries with identical '
-            mesg += 'fraction fields, not {} and {}'
-            raise TypeError(mesg.format(A.base_ring(), B.base_ring()))
+            cm = get_coercion_model()
+            A, B = cm.canonical_coercion(A, B)
         # base rings are equal now, via above check
 
         similar = (A.rational_form() == B.rational_form())

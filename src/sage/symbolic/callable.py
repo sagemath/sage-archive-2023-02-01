@@ -280,6 +280,10 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
             sage: f(x) = 1
             sage: f*e
             x |--> e
+
+        TESTS::
+
+            sage: TestSuite(f.parent()).run()
         """
         self._arguments = arguments
         SymbolicRing.__init__(self, SR)

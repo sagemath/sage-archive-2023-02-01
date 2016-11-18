@@ -39,9 +39,12 @@ def HomogenousSymmetricFunction(j, x):
 
 def _laurent_polynomial_ring_(n, m):
     from itertools import chain
-    return LaurentPolynomialRing(QQ, ', '.join(chain(
+    if n + m == 0:
+        return QQ, tuple()
+    L = LaurentPolynomialRing(QQ, ', '.join(chain(
         iter('x{}'.format(nn) for nn in range(n)),
         iter('y{}'.format(mm) for mm in range(m)))))
+    return L, L.gens()
 
 
 def Omega_numerator(a, n, m):
@@ -91,10 +94,43 @@ def Omega_numerator(a, n, m):
         -x0*y0 + y0 + 1
         sage: Omega_numerator(2, 1, 1)
         -x0*y0^2 - x0*y0 + y0^2 + y0 + 1
+
+    TESTS::
+
+        sage: Omega_factors_denominator(0, 0)
+        ()
+        sage: Omega_numerator(0, 0, 0)
+        1
+        sage: Omega_numerator(+2, 0, 0)
+        1
+        sage: Omega_numerator(-2, 0, 0)
+        0
+
+        sage: Omega_factors_denominator(1, 0)
+        ((1 - x0,),)
+        sage: Omega_numerator(0, 1, 0)
+        1
+        sage: Omega_numerator(+2, 1, 0)
+        1
+        sage: Omega_numerator(-2, 1, 0)
+        x0^2
+
+        sage: Omega_factors_denominator(0, 1)
+        ()
+        sage: Omega_numerator(0, 0, 1)
+        1
+        sage: Omega_numerator(+2, 0, 1)
+        1 + y0 + y0^2
+        sage: Omega_numerator(-2, 0, 1)
+        0
     """
-    Y = LaurentPolynomialRing(
-        QQ, ', '.join('y{}'.format(mm) for mm in range(m)))
-    y = Y.gens()
+    if m == 0:
+        Y = QQ
+        y = tuple()
+    else:
+        Y = LaurentPolynomialRing(
+            QQ, ', '.join('y{}'.format(mm) for mm in range(m)))
+        y = Y.gens()
 
     def P(n):
         if n == 1:
@@ -118,15 +154,15 @@ def Omega_numerator(a, n, m):
             assert r == 0
             return q
 
-    XY = _laurent_polynomial_ring_(n, m)
+    XY, xy_vars = _laurent_polynomial_ring_(n, m)
 
     if m == 0:
-        return XY(1 - (prod(factors_denominator) *
-                       sum(HomogenousSymmetricFunction(j, XY.gens())
+        return XY(1 - (prod(prod(f) for f in Omega_factors_denominator(n, m)) *
+                       sum(HomogenousSymmetricFunction(j, xy_vars)
                            for j in srange(-a))
                        if a < 0 else 0))
     elif n == 0:
-        return XY(sum(HomogenousSymmetricFunction(j, XY.gens())
+        return XY(sum(HomogenousSymmetricFunction(j, xy_vars)
                       for j in srange(a+1)))
     else:
         return XY(P(n))
@@ -173,6 +209,15 @@ def Omega_factors_denominator(n, m):
         sage: Omega_factors_denominator(2, 2)
         ((-x0 + 1,), (-x1 + 1,), (-x0*y0 + 1,),
          (-x0*y1 + 1,), (-x1*y0 + 1,), (-x1*y1 + 1,))
+
+    TESTS::
+
+        sage: Omega_factors_denominator(0, 0)
+        ()
+        sage: Omega_factors_denominator(1, 0)
+        ((1 - x0,),)
+        sage: Omega_factors_denominator(0, 1)
+        ()
     """
     if isinstance(n, tuple):
         x = n
@@ -185,8 +230,7 @@ def Omega_factors_denominator(n, m):
     else:
         y = tuple(1 for _ in range(m))
 
-    XY = _laurent_polynomial_ring_(n, m)
-    ixy = iter(XY.gens())
+    ixy = iter(_laurent_polynomial_ring_(n, m)[1])
     x = tuple(tuple(next(ixy) for _ in range(nx)) for nx in x)
     y = tuple(tuple(next(ixy) for _ in range(my)) for my in y)
 
@@ -288,10 +332,10 @@ def Omega_higher(a, exponents):
             expression = subs_power(expression, var, abs(e))
         return Z(expression)
 
-    xy_var = _laurent_polynomial_ring_(n, m).gens()
-    x_var = iter(xy_var[:n])
-    y_var = iter(xy_var[n:])
-    rules = {next(x_var) if e > 0 else next(y_var):
+    xy_vars = _laurent_polynomial_ring_(n, m)[1]
+    x_vars = iter(xy_vars[:n])
+    y_vars = iter(xy_vars[n:])
+    rules = {next(x_vars) if e > 0 else next(y_vars):
              powers[abs(e)]**j * var
              for e, var in zip(exponents, L.gens()) for j in range(abs(e))}
     factors_denominator = tuple(de_power(prod(f.subs(rules) for f in factors))
@@ -392,6 +436,21 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         sage: Omega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z/mu])
         (-x*y*z^2 - x*y*z + x*z + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-x*z^2 + 1)^-1 * (-y*z + 1)^-1
+
+    TESTS::
+
+        sage: Omega(mu, 1, [1 - x*mu])
+        1 * (-x + 1)^-1
+        sage: Omega(mu, 1, [1 - x/mu])
+        1
+        sage: Omega(mu, 0, [1 - x*mu])
+        0
+        sage: Omega(mu, L(1), [])
+        1
+        sage: Omega(mu, L(0), [])
+        0
+        sage: Omega(mu, 2, [])
+        2
     """
     if op != operator.ge:
         raise NotImplementedError('At the moment, only Omega_ge is implemented.')
@@ -418,12 +477,21 @@ def Omega(var, expression, denominator=None, op=operator.ge):
                                     for factor, exponent in denominator
                                     for _ in range(exponent))
 
+    if not factors_denominator:
+        try:
+            var = numerator.parent()(var)
+        except (TypeError, ValueError):
+            return Factorization([(numerator, 1)])
+        else:
+            return Factorization([(numerator.subs({var: 1}), 1)])
     R = factors_denominator[0].parent()
     var = repr(var)
     L0 = LaurentPolynomialRing(
         R.base_ring(), tuple(v for v in R.variable_names() if v != var))
     L = LaurentPolynomialRing(L0, var)
     numerator = L(numerator)
+    if numerator == 0:
+        return Factorization([], unit=numerator)
     factors_denominator = tuple(L(factor) for factor in factors_denominator)
 
     def decode_factor(factor):

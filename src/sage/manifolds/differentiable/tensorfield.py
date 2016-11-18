@@ -366,7 +366,7 @@ class TensorField(ModuleElement):
 
     ####### Required methods for ModuleElement (beside arithmetic) #######
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
@@ -389,24 +389,20 @@ class TensorField(ModuleElement):
             sage: tv[0,0,0] = 0
             sage: t.set_restriction(tv)
             sage: t.set_restriction(tu)
-            sage: t.__nonzero__()
+            sage: bool(t)
             False
             sage: t.is_zero()  # indirect doctest
             True
             sage: tv[0,0,0] = 1
             sage: t.set_restriction(tv)
-            sage: t.__nonzero__()
+            sage: bool(t)
             True
             sage: t.is_zero()  # indirect doctest
             False
-
         """
-        resu = False
-        for rst in self._restrictions.values():
-            resu = resu or rst.__nonzero__()
-        return resu
+        return any(bool(rst) for rst in self._restrictions.values())
 
-    __bool__ = __nonzero__  # For Python3
+    __nonzero__ = __bool__  # For Python2 compatibility
 
     ##### End of required methods for ModuleElement (beside arithmetic) #####
 

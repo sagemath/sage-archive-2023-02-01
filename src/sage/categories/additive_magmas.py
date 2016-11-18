@@ -766,7 +766,7 @@ class AdditiveMagmas(Category_singleton):
             #     return self == self.parent().zero()
 
             @abstract_method
-            def __nonzero__(self):
+            def __bool__(self):
                 """
                 Return whether ``self`` is not zero.
 
@@ -785,9 +785,11 @@ class AdditiveMagmas(Category_singleton):
                     True
                  """
 
+            __nonzero__ = __bool__
+
             def _test_nonzero_equal(self, **options):
                 r"""
-                Test that ``.__nonzero__()`` behave consistently
+                Test that ``.__bool__()`` behave consistently
                 with `` == 0``.
 
                 TESTS::

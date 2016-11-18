@@ -495,7 +495,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
     # Required module methods
     #
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
@@ -507,22 +507,23 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
             sage: e = M.basis('e') ; f = N.basis('f')
             sage: phi = M.hom(N, [[2,-1,3], [1,0,-4]])
-            sage: phi.__nonzero__()
+            sage: bool(phi)
             True
             sage: phi.is_zero() # indirect doctest
             False
             sage: phi = M.hom(N, 0)
-            sage: phi.__nonzero__()
+            sage: bool(phi)
             False
             sage: phi.is_zero() # indirect doctest
             True
-            sage: Hom(M,N).zero().__nonzero__()
+            sage: bool(Hom(M,N).zero())
             False
-
         """
         # Some matrix representation is picked at random:
         matrix_rep = self._matrices.values()[0]
         return not matrix_rep.is_zero()
+
+    __nonzero__ = __bool__
 
     def _add_(self, other):
         r"""

@@ -1393,7 +1393,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
                     L.append(str(n[i]))
             return P.new('%s[%s]'%(self._name, ','.join(L)))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Implements bool(self).
 
@@ -1415,6 +1415,8 @@ class RElement(ExtraTabCompletion, ExpectElement):
             True
         """
         return "FALSE" in repr(self==0)
+
+    __nonzero__ = __bool__
 
     def _comparison(self, other, symbol):
         """

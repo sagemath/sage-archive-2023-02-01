@@ -506,10 +506,8 @@ class RibbonGraph(SageObject):
         #We first compute the vertices of valency 1 as in _repr_
         repr_sigma = [list(x) for x in self.sigma.cycle_tuples()]
         repr_rho = [list(x) for x in self.rho.cycle_tuples()]
-        darts_rho = [j for i in range(len(repr_rho)) 
-                        for j in repr_rho[i]]
-        darts_sigma = [j for i in range(len(repr_sigma)) 
-                        for j in repr_sigma[i]]
+        darts_rho = flatten(repr_rho)
+        darts_sigma = flatten(repr_sigma)
         val_one = [x for x in darts_rho if x not in darts_sigma]
         for i in range(len(val_one)):
             repr_sigma += [[val_one[i]]]
@@ -519,8 +517,7 @@ class RibbonGraph(SageObject):
         k = max(darts_rho)
 
         #We create the new vertex and append it to sigma.
-        new_vertex = [repr_sigma[vertex][j] 
-                     for j in range(dart1,dart2)]
+        new_vertex = [repr_sigma[vertex][j] for j in range(dart1,dart2)]
         new_vertex.insert(0,k+1)
         repr_sigma.append(new_vertex)
 
@@ -568,10 +565,8 @@ class RibbonGraph(SageObject):
         #the permutation sigma. 
         repr_sigma = [list(x) for x in self.sigma.cycle_tuples()]
         repr_rho = [list(x) for x in self.rho.cycle_tuples()]
-        darts_rho = [j for i in range(len(repr_rho)) 
-                     for j in repr_rho[i]]
-        darts_sigma = [j for i in range(len(repr_sigma)) 
-                        for j in repr_sigma[i]]
+        darts_rho = flatten(repr_rho)
+        darts_sigma = flatten(repr_sigma)
         val_one = [x for x in darts_rho if x not in darts_sigma]
 
         #the total number of vertices of sigma is its number of cycles
@@ -682,10 +677,9 @@ class RibbonGraph(SageObject):
                 else:
                     continue
 
-        cl_bound = _clean(bound)
         #finally the function returns a List of lists. Each list contains
         #a sequence of  numbers and each number corresponds to a half-edge.
-        return cl_bound
+        return _clean(bound)
 
 
     def reduced(self):
@@ -912,59 +906,51 @@ class RibbonGraph(SageObject):
         vertices=[]
 
         for i in range(len(basis)):
-
             vertices = vertices + [[]]
             basis[i].extend(copy.deepcopy(center))
 
             for j in range (len(basis[i])):
-
                 vertices[i].append(_find(aux_sigma,basis[i][j][0])[0])
                 vertices[i].append(_find(aux_sigma,basis[i][j][1])[0])
             k = 0
 
             while k < (len(vertices[i])):
-
                 if (vertices[i].count(vertices[i][k]) == 1):
-
                     m = int(floor(k/2))
                     del basis[i][m]
                     del vertices[i][2*m:2*m+2]
                     k = 0
-                    
+
                 else:
                     k+=1
 
         for i in range (len(basis)):
-            
             for j in range (1,len(basis[i])):
-                
                 n=[t for t, n in list(enumerate(vertices[i])) 
                    if n == vertices[i][2*j-1]][1]
-                
+
                 ind = int(floor(n/2))
-                
+
                 if (j != ind):
-                    
                     basis[i][j], basis[i][ind] = basis[i][ind], basis[i][j]
-                    
+
                     vertices[i][2*j], vertices[i][2*ind] = \
                     vertices[i][2*ind], vertices[i][2*j]
-                
+
                     vertices[i][2*j+1], vertices[i][2*ind+1] = \
                     vertices[i][2*ind+1], vertices[i][2*j+1]
 
                 if (vertices[i][2*j-1] != vertices[i][2*j]):
-                    
                     vertices[i][2*j], vertices[i][2*j+1] = \
                     vertices[i][2*j+1], vertices[i][2*j]
-                
+
                     basis[i][j][0], basis[i][j][1] = \
                     basis[i][j][1], basis[i][j][0]
-                    
+
         #the variable basis is a LIST of Lists of lists. Each List 
         #corresponds to an element of the basis and each list in a List
         #is just a 2-tuple which corresponds to an ''ordered'' edge of rho.
-        
+
         return basis
 
 

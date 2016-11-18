@@ -998,6 +998,33 @@ class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a
     from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
     __metaclass__ = InheritComparisonClasscallMetaclass
 
+    @staticmethod
+    def __classcall__(cls, domain, on_generators, position = 0, codomain = None, category = None, anti = False):
+        r"""
+        Normalize the arguments to create this morphism.
+
+        TESTS::
+
+            sage: from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
+            sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+            sage: Psi = NCSF.Psi()
+            sage: f = AlgebraMorphism(Psi, attrcall('conjugate'), codomain=Psi)
+            sage: g = AlgebraMorphism(Psi, attrcall('conjugate'), codomain=Psi, category = AlgebrasWithBasis(Psi.base_ring()))
+            sage: f is g
+            True
+
+        """
+        if position != 0:
+            raise ValueError("position must be 0")
+        if codomain is None:
+            raise ValueError("codomain must not be None")
+        if category is None:
+            if anti:
+                category = ModulesWithBasis (domain.base_ring())
+            else:
+                category = AlgebrasWithBasis(domain.base_ring())
+        return super(AlgebraMorphism, cls).__classcall__(cls, domain, on_generators, position, codomain, category, anti)
+
     def __init__(self, domain, on_generators, position = 0, codomain = None, category = None, anti = False):
         """
         Given a map on the multiplicative basis of a free algebra, this method
@@ -1083,13 +1110,6 @@ class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a
             True
 
         """
-        assert position == 0
-        assert codomain is not None
-        if category is None:
-            if anti:
-                category = ModulesWithBasis (domain.base_ring())
-            else:
-                category = AlgebrasWithBasis(domain.base_ring())
         self._anti = anti
         self._on_generators = on_generators
         ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, position = position, category = category)

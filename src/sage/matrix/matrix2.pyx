@@ -34,7 +34,8 @@ include "cysignals/signals.pxi"
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
-from sage.structure.element import is_Vector, get_coercion_model
+from sage.structure.element import is_Vector
+from sage.structure.element cimport (have_same_parent, get_coercion_model)
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -55,6 +56,7 @@ import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.matrix_misc import permanental_minor_polynomial
+
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
@@ -10596,7 +10598,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         eigenvalues of the matrix, which may not lie in the field
         used for entries of the matrix.  In this unfortunate case,
         the computation of the transformation may fail with a
-        ``ValueError``, EVEN when the matrices are similar.  This
+        ``RuntimeError``, EVEN when the matrices are similar.  This
         is not the case for matrices over the integers, rationals
         or algebraic numbers, since the computations are done in
         the algebraically closed field of algebraic numbers.
@@ -10666,8 +10668,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.is_similar(B, transformation=True)
             Traceback (most recent call last):
             ...
-            TypeError: matrices need to have entries with identical fraction fields,
-            not Rational Field and Finite Field of size 2
+            TypeError: ?
 
         An example, where coercion happens::
 
@@ -10740,7 +10741,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             mesg = "base ring of a matrix needs a fraction field, "
             mesg += "maybe the ring is not an integral domain"
             raise ValueError(mesg)
-        if A.base_ring() != B.base_ring():
+        if not have_same_parent(A, B):
             cm = get_coercion_model()
             A, B = cm.canonical_coercion(A, B)
         # base rings are equal now, via above check

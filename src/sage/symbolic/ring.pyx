@@ -32,7 +32,7 @@ cdef class SymbolicRing(CommutativeRing):
     """
     Symbolic Ring, parent object for all symbolic expressions.
     """
-    def __init__(self):
+    def __init__(self, base_ring = None):
         """
         Initialize the Symbolic Ring.
 
@@ -47,7 +47,9 @@ cdef class SymbolicRing(CommutativeRing):
             True
 
         """
-        CommutativeRing.__init__(self, self)
+        if base_ring is None:
+            base_ring = self
+        CommutativeRing.__init__(self, base_ring)
         self._populate_coercion_lists_(convert_method_name='_symbolic_')
         self.symbols = {}
 

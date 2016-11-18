@@ -401,12 +401,22 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     # classes is a known Sage metaclass.  This approach won't scale
     # well if we start using metaclasses seriously in Sage.
     for base in bases:
-        if isinstance(base, InheritComparisonClasscallMetaclass):
-            metaclass = DynamicInheritComparisonClasscallMetaclass
-        elif isinstance(base, ClasscallMetaclass):
-            metaclass = DynamicClasscallMetaclass
-        elif isinstance(base, InheritComparisonMetaclass):
-            metaclass = DynamicInheritComparisonMetaclass
+        if isinstance(base, ClasscallMetaclass):
+            if not issubclass(metaclass, ClasscallMetaclass):
+                if metaclass == DynamicMetaclass:
+                    metaclass = DynamicClasscallMetaclass
+                elif metaclass == DynamicInheritComparisonMetaclass:
+                    metaclass = DynamicInheritComparisonClasscallMetaclass
+                else:
+                    raise NotImplementedError("No subclass of %r known that inherits from ClasscallMetaclass"%(metaclass,))
+        if isinstance(base, InheritComparisonMetaclass):
+            if not issubclass(metaclass, InheritComparisonMetaclass):
+                if metaclass == DynamicMetaclass:
+                    metaclass = DynamicInheritComparisonMetaclass
+                elif metaclass == DynamicClasscallMetaclass:
+                    metaclass = DynamicInheritComparisonClasscallMetaclass
+                else:
+                    raise NotImplementedError("No subclass of %r known that inherits from InheritComparisonMetaclass"%(metaclass,))
     return metaclass(name, bases, methods)
 
 

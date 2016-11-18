@@ -391,10 +391,36 @@ def Omega(var, expression, denominator=None, op=operator.ge):
 
         sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1
+
         sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu, 1 - z/mu])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1 * (-x*z + 1)^-1
         sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu])
         (-x*y*z + 1) * (-x + 1)^-1 * (-y + 1)^-1 * (-x*z + 1)^-1 * (-y*z + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^2])
+        1 * (-x + 1)^-1 * (-x^2*y + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu])
+        (x*y + 1) * (-x + 1)^-1 * (-x*y^2 + 1)^-1
+
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu^2])
+        (-x^2*y*z - x*y^2*z + x*y*z + 1) *
+        (-x + 1)^-1 * (-y + 1)^-1 * (-x^2*z + 1)^-1 * (-y^2*z + 1)^-1
+
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^3])
+        1 * (-x + 1)^-1 * (-x^3*y + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^4])
+        1 * (-x + 1)^-1 * (-x^4*y + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu^3, 1 - y/mu])
+        (x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^3 + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu^4, 1 - y/mu])
+        (x*y^3 + x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^4 + 1)^-1
+
+        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu, 1 - z/mu])
+        (x*y*z + x*y + x*z + 1) *
+        (-x + 1)^-1 * (-x*y^2 + 1)^-1 * (-x*z^2 + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z/mu])
+        (-x*y*z^2 - x*y*z + x*z + 1) *
+        (-x + 1)^-1 * (-y + 1)^-1 * (-x*z^2 + 1)^-1 * (-y*z + 1)^-1
+
         sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu, 1 - w/mu])
         (x*y*z*w^2 + x*y*z*w - x*y*w - x*z*w - y*z*w + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-z + 1)^-1 *
@@ -412,30 +438,6 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         (-x*y + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
         sage: Omega(mu, mu^2, [1 - x*mu, 1 - y/mu])
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
-
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^2])
-        1 * (-x + 1)^-1 * (-x^2*y + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^3])
-        1 * (-x + 1)^-1 * (-x^3*y + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^4])
-        1 * (-x + 1)^-1 * (-x^4*y + 1)^-1
-
-        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu])
-        (x*y + 1) * (-x + 1)^-1 * (-x*y^2 + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^3, 1 - y/mu])
-        (x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^3 + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^4, 1 - y/mu])
-        (x*y^3 + x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^4 + 1)^-1
-
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu^2])
-        (-x^2*y*z - x*y^2*z + x*y*z + 1) *
-        (-x + 1)^-1 * (-y + 1)^-1 * (-x^2*z + 1)^-1 * (-y^2*z + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu, 1 - z/mu])
-        (x*y*z + x*y + x*z + 1) *
-        (-x + 1)^-1 * (-x*y^2 + 1)^-1 * (-x*z^2 + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z/mu])
-        (-x*y*z^2 - x*y*z + x*z + 1) *
-        (-x + 1)^-1 * (-y + 1)^-1 * (-x*z^2 + 1)^-1 * (-y*z + 1)^-1
 
     TESTS::
 

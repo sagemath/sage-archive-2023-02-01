@@ -60,15 +60,6 @@ cdef class SymbolicRing(CommutativeRing):
         """
         return the_SymbolicRing, tuple([])
 
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: hash(SR)   #random
-            139682705593888
-        """
-        return hash(SymbolicRing)
-
     def _repr_(self):
         """
         Return a string representation of self.
@@ -489,23 +480,6 @@ cdef class SymbolicRing(CommutativeRing):
             coth($0)
         """
         return new_Expression_from_GEx(self, g_wild(n))
-
-    def __cmp__(self, other):
-        """
-        Compare two symbolic expression rings. They are equal if and only
-        if they have the same type. Otherwise their types are compared.
-
-        EXAMPLES::
-
-            sage: from sage.symbolic.ring import SymbolicRing
-            sage: cmp(SR, RR) #random
-            1
-            sage: cmp(RR, SymbolicRing()) #random
-            -1
-            sage: cmp(SR, SymbolicRing())
-            0
-        """
-        return cmp(type(self), type(other))
 
     def __contains__(self, x):
         r"""

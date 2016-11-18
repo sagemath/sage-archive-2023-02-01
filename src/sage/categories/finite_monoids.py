@@ -29,6 +29,64 @@ class FiniteMonoids(CategoryWithAxiom):
         sage: TestSuite(FiniteMonoids()).run()
     """
 
+    class ParentMethods:
+        def rhodes_radical_congruence(self, base_ring=None):
+            r"""
+            Return the Rhodes radical congruence of the semigroup.
+
+            The Rhodes radical congruence is the congruence induced on S by the
+            map `S \rightarrow kS \rightarrow kS / rad kS` with k a field.
+
+            INPUT:
+
+            - ``base_ring`` (default: `\QQ`) a field
+
+            OUTPUT:
+
+            - A list of couples (m, n) with `m \neq n` in the lexicographic
+              order for the enumeration of the monoid ``self``.
+
+            EXAMPLES::
+
+                sage: M = Monoids().Finite().example()
+                sage: M.rhodes_radical_congruence()
+                [(0, 6), (2, 8), (4, 10)]
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: H3 = HeckeMonoid(SymmetricGroup(3))
+                sage: H3.repr_element_method(style="reduced")
+                sage: H3.rhodes_radical_congruence()
+                [([1, 2], [2, 1]), ([1, 2], [1, 2, 1]), ([2, 1], [1, 2, 1])]
+
+            By Maschke's theorem, every group algebra over `\QQ`
+            is semisimple hence the Rhodes radical of a group must be trivial::
+
+                sage: SymmetricGroup(3).rhodes_radical_congruence()
+                []
+                sage: DihedralGroup(10).rhodes_radical_congruence()
+                []
+
+            REFERENCES:
+
+            .. [Rho69] Characters and complexity of finite semigroups
+               J. Combinatorial Theory, vol 6, John Rhodes, 1969
+            """
+            from sage.rings.rational_field import QQ
+            if base_ring is None:
+                base_ring = QQ
+            kS = self.algebra(base_ring)
+            kSrad = kS.radical()
+            res = []
+            for m in self:
+                for n in self:
+                    if (m == n) or ((n, m) in res):
+                        continue
+                    try:
+                        kSrad.retract(kS(m) - kS(n))
+                        res.append((m, n))
+                    except:
+                        pass
+            return res
+
     class ElementMethods:
         def pseudo_order(self):
             r"""

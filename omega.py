@@ -47,6 +47,7 @@ def _laurent_polynomial_ring_(n, m):
     return L, L.gens()
 
 
+@cached_function
 def Omega_numerator(a, n, m):
     r"""
     Return the numerator of `\Omega_{\ge}` of the expression
@@ -168,6 +169,7 @@ def Omega_numerator(a, n, m):
         return XY(P(n))
 
 
+@cached_function
 def Omega_factors_denominator(n, m):
     r"""
     Return the denominator of `\Omega_{\ge}` of the expression
@@ -239,6 +241,7 @@ def Omega_factors_denominator(n, m):
                  for gx in x for gy in y)
 
 
+@cached_function
 def Omega_higher(a, exponents):
     r"""
     Return `\Omega_{\ge}` of the expression specified by the input.
@@ -503,8 +506,12 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         D.pop(0)
         exponent, coefficient = next(iteritems(D))
         return -coefficient, exponent
-    values, z = zip(*tuple(decode_factor(factor)
-                           for factor in factors_denominator))
+    # Below we sort to make the caching more efficient. Doing this here
+    # (in contrast to directly in Omega_higher) results in much cleaner
+    # code and prevents an additional substitution or passing of a permutation.
+    values, z = zip(*sorted(tuple(decode_factor(factor)
+                                  for factor in factors_denominator),
+                            key=lambda k: -k[1]))
 
     result_numerator = 0
     result_factors_denominator = None

@@ -230,6 +230,11 @@ def Omega_higher(a, z):
 
     return numerator, factors_denominator
 
+
+def Omega(var, expression, denominator=None, op=operator.ge):
+    r"""
+
+
     Return `\Omega_{\ge}` of the expression specified by the input.
 
     .. MATH::
@@ -278,31 +283,110 @@ def Omega_higher(a, z):
 
     EXAMPLES::
 
-        sage: L.<x, y, z, w> = LaurentPolynomialRing(QQ)
+        sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(QQ)
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu])
+        1 * (-x + 1)^-1 * (-x*y + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu, 1 - z/mu])
+        1 * (-x + 1)^-1 * (-x*y + 1)^-1 * (-x*z + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu])
+        (-x*y*z + 1) * (-x + 1)^-1 * (-y + 1)^-1 * (-x*z + 1)^-1 * (-y*z + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu, 1 - w/mu])
+        (x*y*z*w^2 + x*y*z*w - x*y*w - x*z*w - y*z*w + 1) *
+        (-x + 1)^-1 * (-y + 1)^-1 * (-z + 1)^-1 *
+        (-x*w + 1)^-1 * (-y*w + 1)^-1 * (-z*w + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu, 1 - w/mu])
+        (x^2*y*z*w + x*y^2*z*w - x*y*z*w - x*y*z - x*y*w + 1) *
+        (-x + 1)^-1 * (-y + 1)^-1 *
+        (-x*z + 1)^-1 * (-x*w + 1)^-1 * (-y*z + 1)^-1 * (-y*w + 1)^-1
 
-        sage: Omega_higher(0, [(x, 1), (y, -2)])
-        (1, (-x + 1, -x^2*y + 1))
-        sage: Omega_higher(0, [(x, 1), (y, -3)])
-        (1, (-x + 1, -x^3*y + 1))
-        sage: Omega_higher(0, [(x, 1), (y, -4)])
-        (1, (-x + 1, -x^4*y + 1))
+        sage: Omega(mu, mu^-2, [1 - x*mu, 1 - y/mu])
+        x^2 * (-x + 1)^-1 * (-x*y + 1)^-1
+        sage: Omega(mu, mu^-1, [1 - x*mu, 1 - y/mu])
+        x * (-x + 1)^-1 * (-x*y + 1)^-1
+        sage: Omega(mu, mu, [1 - x*mu, 1 - y/mu])
+        (-x*y + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
+        sage: Omega(mu, mu^2, [1 - x*mu, 1 - y/mu])
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
-        sage: Omega_higher(0, [(x, 2), (y, -1)])
-        (x*y + 1, (-x + 1, -x*y^2 + 1))
-        sage: Omega_higher(0, [(x, 3), (y, -1)])
-        (x*y^2 + x*y + 1, (-x + 1, -x*y^3 + 1))
-        sage: Omega_higher(0, [(x, 4), (y, -1)])
-        (x*y^3 + x*y^2 + x*y + 1, (-x + 1, -x*y^4 + 1))
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^2])
+        1 * (-x + 1)^-1 * (-x^2*y + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^3])
+        1 * (-x + 1)^-1 * (-x^3*y + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^4])
+        1 * (-x + 1)^-1 * (-x^4*y + 1)^-1
 
-        sage: Omega_higher(0, [(x, 1), (y, 1), (z, -2)])
-        (-x^2*y*z - x*y^2*z + x*y*z + 1,
-         (-x + 1, -y + 1, -x^2*z + 1, -y^2*z + 1))
-        sage: Omega_higher(0, [(x, 2), (y, -1), (z, -1)])
-        (x*y*z + x*y + x*z + 1, (-x + 1, -x*y^2 + 1, -x*z^2 + 1))
-        sage: Omega_higher(0, [(x, 2), (y, 1), (z, -1)])
-        (-x*y*z^2 - x*y*z + x*z + 1, (-x + 1, -y + 1, -x*z^2 + 1, -y*z + 1))
+        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu])
+        (x*y + 1) * (-x + 1)^-1 * (-x*y^2 + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu^3, 1 - y/mu])
+        (x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^3 + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu^4, 1 - y/mu])
+        (x*y^3 + x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^4 + 1)^-1
 
+        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu^2])
+        (-x^2*y*z - x*y^2*z + x*y*z + 1) *
+        (-x + 1)^-1 * (-y + 1)^-1 * (-x^2*z + 1)^-1 * (-y^2*z + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu, 1 - z/mu])
+        (x*y*z + x*y + x*z + 1) *
+        (-x + 1)^-1 * (-x*y^2 + 1)^-1 * (-x*z^2 + 1)^-1
+        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z/mu])
+        (-x*y*z^2 - x*y*z + x*z + 1) *
+        (-x + 1)^-1 * (-y + 1)^-1 * (-x*z^2 + 1)^-1 * (-y*z + 1)^-1
+    """
+    if op != operator.ge:
+        raise NotImplementedError('TODO')
 
-def Omega(var, numerator, factors_denominator, operator=operator.ge):
-    pass
+    if denominator is None:
+        numerator = expression.numerator()
+        denominator = expression.denominator()
+    else:
+        numerator = expression
 
+    from sage.arith.misc import factor
+    from sage.structure.factorization import Factorization
+
+    if isinstance(denominator, (list, tuple)):
+        factors_denominator = denominator
+    else:
+        if not isinstance(denominator, Factorization):
+            denominator = factor(denominator)
+        if not denominator.is_integral():
+            raise ValueError('TODO')
+        numerator *= denominator.unit()
+        factors_denominator = tuple(factor
+                                    for factor, exponent in denominator
+                                    for _ in range(exponent))
+
+    R = factors_denominator[0].parent()
+    var = repr(var)
+    L0 = LaurentPolynomialRing(
+        R.base_ring(), tuple(v for v in R.variable_names() if v != var))
+    L = LaurentPolynomialRing(L0, var)
+    numerator = L(numerator)
+    factors_denominator = tuple(L(factor) for factor in factors_denominator)
+
+    def decode_factor(factor):
+        D = factor.dict()
+        if len(D) != 2 or D.get(0, 0) != 1:
+            raise NotImplementedError('Cannot handle factor {}'.format(factor))
+        D.pop(0)
+        exponent, coefficient = next(iteritems(D))
+        return -coefficient, exponent
+    values, z = zip(*tuple(decode_factor(factor)
+                           for factor in factors_denominator))
+
+    result_numerator = 0
+    result_factors_denominator = None
+    for a, c in iteritems(numerator.dict()):
+        n, fd = Omega_higher(a, z)
+        rules = dict(zip(n.parent().gens(), values))
+
+        fd = tuple(f.subs(rules) for f in fd)
+        if result_factors_denominator is None:
+            result_factors_denominator = fd
+        else:
+            assert result_factors_denominator == fd
+        result_numerator += c * n.subs(rules)
+
+    return Factorization([(result_numerator, 1)] +
+                         list((f, -1) for f in result_factors_denominator),
+                         sort=False)

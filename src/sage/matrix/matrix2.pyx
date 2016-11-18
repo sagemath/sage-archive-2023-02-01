@@ -34,8 +34,8 @@ include "cysignals/signals.pxi"
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
-from sage.structure.element import is_Vector
-from sage.structure.element cimport (have_same_parent, get_coercion_model)
+from sage.structure.element import (is_Vector, get_coercion_model)
+from sage.structure.element cimport have_same_parent
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -10668,17 +10668,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.is_similar(B, transformation=True)
             Traceback (most recent call last):
             ...
-            TypeError: ?
-
-        An example, where coercion happens::
-
-            sage: A = matrix(ZZ, 2, 2, range(4))
-            sage: B = matrix(GF(2), 2, 2, range(4))
-            sage: A.is_similar(B, transformation=True)
-            ?
+            TypeError: no common canonical parent for objects with parents:
+            'Full MatrixSpace of 2 by 2 dense matrices over Finite Field
+            of size 3' and
+            'Full MatrixSpace of 2 by 2 dense matrices over Finite Field
+            of size 2'
 
         A matrix over the integers and a matrix over the algebraic
-        numbers will be compared over the algebraic numbers.  ::
+        numbers will be compared over the algebraic numbers (by coercion
+        of ``QQ`` in ``QQbar``).  ::
 
             sage: A = matrix(ZZ, 2, 2, range(4))
             sage: B = matrix(QQbar, 2, 2, range(4))

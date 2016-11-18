@@ -477,7 +477,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
            a list of hold onto interface objects and keep them from being
            garbage collected
 
-        .. seealso:: :func:`interface_shell_embed`
+        .. SEEALSO:: :func:`interface_shell_embed`
 
         EXAMPLES::
 

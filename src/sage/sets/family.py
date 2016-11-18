@@ -235,8 +235,8 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     called::
 
         sage: def compute_value(i):
-        ...       print('computing 2*'+str(i))
-        ...       return 2*i
+        ....:     print('computing 2*'+str(i))
+        ....:     return 2*i
         sage: f = Family([3,4,7], compute_value, hidden_keys=[2])
         computing 2*3
         computing 2*4

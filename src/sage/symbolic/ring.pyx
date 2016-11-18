@@ -476,6 +476,11 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: latex(SR.wild(0))
             \$0
+
+        Check that :trac:`21455` is fixed::
+
+            sage: coth(SR.wild(0))
+            coth($0)
         """
         return new_Expression_from_GEx(self, g_wild(n))
 

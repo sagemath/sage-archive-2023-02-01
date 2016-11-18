@@ -193,7 +193,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
         sage: t = WeakTableau([[2,0],[3,2],[1,0]], 3, representation = "bla")
         Traceback (most recent call last):
         ...
-        NotImplementedError: The representation option needs to be 'core', 'bounded', or 'factorized_permuation'
+        NotImplementedError: The representation option needs to be 'core', 'bounded', or 'factorized_permutation'
     """
     if representation == "core":
         return WeakTableau_core(t, k)
@@ -202,7 +202,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableau_factorized_permutation(t, k, inner_shape = inner_shape)
     else:
-        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 def WeakTableaux(k, shape , weight, representation = "core"):
     r"""
@@ -266,7 +266,7 @@ def WeakTableaux(k, shape , weight, representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableaux_factorized_permutation(k, shape, weight)
     else:
-        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 #Abstract class for the elements of weak tableau
 class WeakTableau_abstract(ClonableList):

@@ -38,7 +38,7 @@ fi
     --with-default="$SAGE_LOCAL" \
     --with-cblas="$(pkg-config --libs cblas)" \
     --with-cblas-include="$(pkg-config --cflags cblas)" \
-    "$IML_CONFIGURE" 
+    "$IML_CONFIGURE"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring IML."
     exit 1

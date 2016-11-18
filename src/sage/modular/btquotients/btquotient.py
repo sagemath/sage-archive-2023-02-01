@@ -659,7 +659,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         """
         try:
             return self._edges_leaving_origin
-        except:
+        except AttributeError:
             p = self._p
             self._edges_leaving_origin = [self.edge(self._Mat_22([0, -1, p, 0]))]
             self._edges_leaving_origin.extend([self.edge(self._Mat_22([p, i, 0, 1])) for i in range(p)])
@@ -1748,7 +1748,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         r"""
         Compute the `e_3` invariant defined by the formula
 
-        .. math::
+        .. MATH::
 
            e_k =\prod_{\ell\mid pN^-}\left(1-\left(\frac{-3}{\ell}\right)\right)\prod_{\ell \| N^+}\left(1+\left(\frac{-3}{\ell}\right)\right)\prod_{\ell^2\mid N^+} \nu_\ell(3)
 
@@ -1770,7 +1770,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         r"""
         Compute the `e_4` invariant defined by the formula
 
-        .. math::
+        .. MATH::
 
            e_k =\prod_{\ell\mid pN^-}\left(1-\left(\frac{-k}{\ell}\right)\right)\prod_{\ell \| N^+}\left(1+\left(\frac{-k}{\ell}\right)\right)\prod_{\ell^2\mid N^+} \nu_\ell(k)
 
@@ -2445,7 +2445,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if exact is True:
             try:
                 return self._Iota_exact
-            except:
+            except AttributeError:
                 raise RuntimeError('Exact splitting not available.')
         else:
             if prec is None:

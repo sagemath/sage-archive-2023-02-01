@@ -311,6 +311,7 @@ REFERENCES:
 - [Lee2013]_
 - [KN1963]_
 - [Huy2005]_
+
 """
 
 #*****************************************************************************
@@ -872,7 +873,7 @@ class TopologicalManifold(ManifoldSubset):
             sd._subsets.add(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
-        for chart, restrictions in coord_def.iteritems():
+        for chart, restrictions in coord_def.items():
             if chart not in self._atlas:
                 raise ValueError("the {} does not belong to ".format(chart) +
                                  "the atlas of {}".format(self))
@@ -2242,7 +2243,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         +Infinity
 
     Actually, since ``'smooth'`` is the default value of the parameter
-    ``structure``, the creation of a real smooth manifold can be shorten to::
+    ``structure``, the creation of a real smooth manifold can be shortened to::
 
         sage: M = Manifold(3, 'M'); M
         3-dimensional differentiable manifold M

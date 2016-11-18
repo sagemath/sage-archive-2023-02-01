@@ -696,7 +696,7 @@ def RSHCD_324(e):
     and for the case `\epsilon=-1` from the "twist" `M'` of `M`, using Lemma 11
     in [HX10]_. Namely, it turns out that the matrix
 
-    .. math::
+    .. MATH::
 
         M'=\begin{pmatrix} M_{12} & M_{11}\\ M_{11}^\top & M_{21} \end{pmatrix},
         \quad\text{where}\quad
@@ -728,7 +728,8 @@ def RSHCD_324(e):
 
     .. [CP16] \N. Cohen, D. Pasechnik,
        Implementing Brouwer's database of strongly regular graphs,
-       http://arxiv.org/abs/1601.00181
+       Designs, Codes, and Cryptography, 2016
+       :doi:`10.1007/s10623-016-0264-x`
     """
 
     from sage.graphs.generators.smallgraphs import JankoKharaghaniTonchevGraph as JKTG

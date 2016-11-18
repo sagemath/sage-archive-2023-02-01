@@ -129,6 +129,7 @@ __append_to_doc(
      "HoffmanSingletonGraph",
      "HoltGraph",
      "HortonGraph",
+     "IoninKharaghani765Graph",
      "JankoKharaghaniGraph",
      "JankoKharaghaniTonchevGraph",
      "KittellGraph",
@@ -970,10 +971,10 @@ class GraphGenerators():
         Laplacian) on five vertices::
 
             sage: def DinverseA(g):
-            ...     A=g.adjacency_matrix().change_ring(QQ)
-            ...     for i in range(g.order()):
-            ...         A.rescale_row(i, 1/len(A.nonzero_positions_in_row(i)))
-            ...     return A
+            ....:   A=g.adjacency_matrix().change_ring(QQ)
+            ....:   for i in range(g.order()):
+            ....:       A.rescale_row(i, 1/len(A.nonzero_positions_in_row(i)))
+            ....:   return A
             sage: g=graphs.cospectral_graphs(5, matrix_function=DinverseA, graphs=lambda g: min(g.degree())>0)
             sage: sorted(sorted(g.graph6_string() for g in glist) for glist in g)
             [['Dlg', 'Ds_']]
@@ -1920,6 +1921,7 @@ class GraphGenerators():
     HoffmanSingletonGraph    = staticmethod(sage.graphs.generators.smallgraphs.HoffmanSingletonGraph)
     HoltGraph                = staticmethod(sage.graphs.generators.smallgraphs.HoltGraph)
     HortonGraph              = staticmethod(sage.graphs.generators.smallgraphs.HortonGraph)
+    IoninKharaghani765Graph  = staticmethod(sage.graphs.generators.smallgraphs.IoninKharaghani765Graph)
     JankoKharaghaniGraph     = staticmethod(sage.graphs.generators.smallgraphs.JankoKharaghaniGraph)
     JankoKharaghaniTonchevGraph  = staticmethod(sage.graphs.generators.smallgraphs.JankoKharaghaniTonchevGraph)
     KittellGraph             = staticmethod(sage.graphs.generators.smallgraphs.KittellGraph)

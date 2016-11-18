@@ -33,7 +33,7 @@ The unit element is `\text{Sq}^0` when `p=2` and
 elements also satisfy the *Adem relations*. At the prime 2, these
 have the form
 
-.. math::
+.. MATH::
 
      \text{Sq}^a \text{Sq}^b   = \sum_{c=0}^{[a/2]} \binom{b-c-1}{a-2c} \text{Sq}^{a+b-c} \text{Sq}^c.
 
@@ -117,7 +117,7 @@ defined at all primes.
   P^{s_k}_{t_k}\}` of (distinct) `P^s_t`'s, one chooses an ordering
   and forms the monomials
 
-  .. math::
+  .. MATH::
 
       (P^{s_1}_{t_1})^{i_1} ... (P^{s_k}_{t_k})^{i_k}
 
@@ -155,7 +155,7 @@ defined at all primes.
   `c_{s,t}`'s, one chooses an ordering and forms the resulting
   monomials
 
-  .. math::
+  .. MATH::
 
       c_{s_1, t_1}^{i_1} ... c_{s_k,t_k}^{i_k}
 
@@ -172,14 +172,14 @@ The sub-Hopf algebras of the Steenrod algebra have been
 classified.  Milnor proved that at the prime 2, the dual of the
 Steenrod algebra `A_*` is isomorphic to a polynomial algebra
 
-.. math::
+.. MATH::
 
    A_* \cong \GF{2} [\xi_1, \xi_2, \xi_3, ...].
 
 The Milnor basis is dual to the monomial basis.  Furthermore, any sub-Hopf
 algebra corresponds to a quotient of this of the form
 
-.. math::
+.. MATH::
 
    A_* /(\xi_1^{2^{e_1}}, \xi_2^{2^{e_2}}, \xi_3^{2^{e_3}}, ...).
 
@@ -194,13 +194,13 @@ the condition
 At odd primes, the situation is similar: the dual is isomorphic to the
 tensor product of a polynomial algebra and an exterior algebra,
 
-.. math::
+.. MATH::
 
    A_* = \GF{p} [\xi_1, \xi_2, \xi_3, ...] \otimes \Lambda (\tau_0, \tau_1, ...),
 
 and any sub-Hopf algebra corresponds to a quotient of this of the form
 
-.. math::
+.. MATH::
 
    A_* / (\xi_1^{p^{e_1}}, \xi_2^{p^{e_2}}, ...; \tau_0^{k_0}, \tau_1^{k_1}, ...).
 
@@ -1859,14 +1859,14 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
         The degree of `\text{Sq}(i_1,i_2,i_3,...)` is
 
-        .. math::
+        .. MATH::
 
             i_1 + 3i_2 + 7i_3 + ... + (2^k - 1) i_k + ....
 
         At an odd prime `p`, the degree of `Q_k` is `2p^k - 1` and the
         degree of `\mathcal{P}(i_1, i_2, ...)` is
 
-        .. math::
+        .. MATH::
 
             \sum_{k \geq 0} 2(p^k - 1) i_k.
 
@@ -3051,7 +3051,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         The algebra is generic if it is based on the odd-primary relations,
         i.e. if its dual is a quotient of
 
-        .. math::
+        .. MATH::
 
             A_* = \GF{p} [\xi_1, \xi_2, \xi_3, ...] \otimes \Lambda (\tau_0, \tau_1, ...)
 
@@ -3177,14 +3177,14 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
             The degree of `\text{Sq}(i_1,i_2,i_3,...)` is
 
-            .. math::
+            .. MATH::
 
                 i_1 + 3i_2 + 7i_3 + ... + (2^k - 1) i_k + ....
 
             At an odd prime `p`, the degree of `Q_k` is `2p^k - 1` and the
             degree of `\mathcal{P}(i_1, i_2, ...)` is
 
-            .. math::
+            .. MATH::
 
                 \sum_{k \geq 0} 2(p^k - 1) i_k.
 
@@ -3954,7 +3954,7 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
     plus `\infty`, corresponding to the sub-Hopf algebra dual to this
     quotient of the dual Steenrod algebra:
 
-    .. math::
+    .. MATH::
 
         \GF{2} [\xi_1, \xi_2, \xi_3, ...] / (\xi_1^{2^{e(1)}}, \xi_2^{2^{e(2)}}, \xi_3^{2^{e(3)}}, ...).
 
@@ -4026,7 +4026,7 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
     When `p` is odd, ``profile`` is a pair of functions `e` and `k`,
     corresponding to the quotient
 
-    .. math::
+    .. MATH::
 
         \GF{p} [\xi_1, \xi_2, \xi_3, ...] \otimes \Lambda (\tau_0,
         \tau_1, ...) / (\xi_1^{p^{e_1}}, \xi_2^{p^{e_2}}, ...;
@@ -4098,7 +4098,7 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
     when `p` is set to `2`. We refer to the resulting algebra as the "generic Steenrod algebra" for
     the prime `2`. The dual Hopf algebra is given by
 
-        .. math::
+        .. MATH::
 
             A_* = \GF{2} [\xi_1, \xi_2, \xi_3, ...] \otimes \Lambda (\tau_0, \tau_1, ...)
 

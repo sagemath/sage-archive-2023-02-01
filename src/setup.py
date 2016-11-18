@@ -29,7 +29,7 @@ def excepthook(*exc):
     try:
         logfile = os.path.join(os.environ['SAGE_LOGS'],
                 "sagelib-%s.log" % os.environ['SAGE_VERSION'])
-    except:
+    except Exception:
         pass
     else:
         print("Please email sage-devel (http://groups.google.com/group/sage-devel)", file=sys.stderr)
@@ -362,10 +362,6 @@ class sage_build_ext(build_ext):
         import Cython.Compiler.Options
 
         Cython.Compiler.Options.embed_pos_in_docstring = True
-        # The globals() builtin in Cython was fixed to return to the current scope,
-        # but Sage relies on the broken behavior of returning to the nearest
-        # enclosing Python scope (e.g. to perform variable injection).
-        Cython.Compiler.Options.old_style_globals = True
 
         debug = False
         if os.environ.get('SAGE_DEBUG', None) != 'no':

@@ -154,9 +154,9 @@ from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent_c, coercion_model)
 from sage.structure.parent cimport Parent
 include "sage/ext/python_debug.pxi"
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
-from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
 from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.libs.gmp.mpq cimport mpq_neg
@@ -164,9 +164,9 @@ from sage.libs.gmp.mpq cimport mpq_neg
 from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
-from sage.libs.pari.gen cimport objtogen, gen as pari_gen
+from sage.libs.cypari2.gen cimport objtogen, gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
-from sage.libs.pari.stack cimport new_gen
+from sage.libs.cypari2.stack cimport new_gen
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
@@ -534,11 +534,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         ::
 
             sage: class MyInt(int):
-            ...       pass
+            ....:     pass
             sage: class MyLong(long):
-            ...       pass
+            ....:     pass
             sage: class MyFloat(float):
-            ...       pass
+            ....:     pass
             sage: ZZ(MyInt(3))
             3
             sage: ZZ(MyLong(4))
@@ -553,7 +553,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(u'0X2AEEF')
             175855
 
-        Test conversion from PARI (#11685)::
+        Test conversion from PARI (:trac:`11685`)::
 
             sage: ZZ(pari(-3))
             -3
@@ -736,7 +736,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         Set this integer from a string in base 32.
 
-        .. note::
+        .. NOTE::
 
            Integers are supposed to be immutable, so you should not
            use this function.
@@ -1136,7 +1136,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Return the hexadecimal digits of self in lower case.
 
-        .. note::
+        .. NOTE::
 
            '0x' is *not* prepended to the result like is done by the
            corresponding Python function on int or long. This is for
@@ -1162,7 +1162,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Return the digits of self in base 8.
 
-        .. note::
+        .. NOTE::
 
            '0' is *not* prepended to the result like is done by the
            corresponding Python function on int or long. This is for
@@ -1560,7 +1560,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
 
-    cdef void _to_ZZ(self, ZZ_c *z):
+    cdef int _to_ZZ(self, ZZ_c *z) except -1:
         sig_on()
         mpz_to_ZZ(z, self.value)
         sig_off()
@@ -4365,7 +4365,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         If called on `-1`, `0` or `1`, `b` will be `1`, since there is no
         maximal value of `b`.
 
-        .. seealso::
+        .. SEEALSO::
 
             - :meth:`is_perfect_power`: testing whether an integer is a perfect
               power is usually faster than finding `a` and `b`.
@@ -4557,7 +4557,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Returns ``True`` if there is an integer b with
         `\mathtt{self} = n^b`.
 
-        .. seealso::
+        .. SEEALSO::
 
             - :meth:`perfect_power`: Finds the minimal base for which this
               integer is a perfect power.
@@ -4596,7 +4596,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(-81).is_power_of(-3)
             False
 
-        .. note::
+        .. NOTE::
 
            For large integers self, is_power_of() is faster than
            is_perfect_power(). The following examples gives some indication of
@@ -4667,7 +4667,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
           ``(p,k)`` such that this integer equals ``p^k`` with ``p`` a prime
           and ``k`` a positive integer or the pair ``(self,0)`` otherwise.
 
-        .. seealso::
+        .. SEEALSO::
 
             - :meth:`perfect_power`: Finds the minimal base for which integer
               is a perfect power.
@@ -4771,7 +4771,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
           If True, use a provable primality test.  If unset, use the
           :mod:`default arithmetic proof flag <sage.structure.proof.proof>`.
 
-        .. note::
+        .. NOTE::
 
            Integer primes are by definition *positive*! This is
            different than Magma, but the same as in PARI. See also the
@@ -4946,7 +4946,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Returns ``True`` if ``self`` is a perfect power, ie if there exist integers
         `a` and `b`, `b > 1` with ``self`` `= a^b`.
 
-        .. seealso::
+        .. SEEALSO::
 
             - :meth:`perfect_power`: Finds the minimal base for which this
               integer is a perfect power.
@@ -5592,7 +5592,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: m = n._pari_(); m
             9390823
             sage: type(m)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
 
         TESTS::
 

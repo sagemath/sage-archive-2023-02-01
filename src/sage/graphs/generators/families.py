@@ -286,14 +286,14 @@ def BarbellGraph(n1, n2):
         sage: g = []
         sage: j = []
         sage: for i in range(6):
-        ...       k = graphs.BarbellGraph(i + 2, 4)
-        ...       g.append(k)
+        ....:     k = graphs.BarbellGraph(i + 2, 4)
+        ....:     g.append(k)
         ...
         sage: for i in range(2):
-        ...       n = []
-        ...       for m in range(3):
-        ...           n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...       j.append(n)
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         ...
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
@@ -541,14 +541,14 @@ def CirculantGraph(n, adjacency):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.CirculantGraph(i+3,i)
-        ...    g.append(k)
+        ....:  k = graphs.CirculantGraph(i+3,i)
+        ....:  g.append(k)
         ...
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
+        ....:  n = []
+        ....:  for m in range(3):
+        ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:  j.append(n)
         ...
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
@@ -558,15 +558,15 @@ def CirculantGraph(n, adjacency):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.cycle_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
+        ....:  spr = networkx.cycle_graph(i+3)
+        ....:  k = Graph(spr)
+        ....:  g.append(k)
         ...
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
+        ....:  n = []
+        ....:  for m in range(3):
+        ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:  j.append(n)
         ...
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
@@ -630,14 +630,14 @@ def CubeGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(6):
-        ...    k = graphs.CubeGraph(i+1)
-        ...    g.append(k)
+        ....:  k = graphs.CubeGraph(i+1)
+        ....:  g.append(k)
         ...
         sage: for i in range(2):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
+        ....:  n = []
+        ....:  for m in range(3):
+        ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:  j.append(n)
         ...
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show(figsize=[6,4]) # long time
@@ -839,7 +839,7 @@ def FriendshipGraph(n):
     - The friendship graph `F_n` obtained from `n` copies of the cycle
       graph `C_3`.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`GraphGenerators.ButterflyGraph`
 
@@ -849,13 +849,13 @@ def FriendshipGraph(n):
 
         sage: A = []; B = []
         sage: for i in range(9):
-        ...       g = graphs.FriendshipGraph(i + 1)
-        ...       A.append(g)
+        ....:     g = graphs.FriendshipGraph(i + 1)
+        ....:     A.append(g)
         sage: for i in range(3):
-        ...       n = []
-        ...       for j in range(3):
-        ...           n.append(A[3*i + j].plot(vertex_size=20, vertex_labels=False))
-        ...       B.append(n)
+        ....:     n = []
+        ....:     for j in range(3):
+        ....:         n.append(A[3*i + j].plot(vertex_size=20, vertex_labels=False))
+        ....:     B.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(B)
         sage: G.show()  # long time
 
@@ -2239,14 +2239,14 @@ def WheelGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.WheelGraph(i+3)
-        ...    g.append(k)
+        ....:  k = graphs.WheelGraph(i+3)
+        ....:  g.append(k)
         ...
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
+        ....:  n = []
+        ....:  for m in range(3):
+        ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:  j.append(n)
         ...
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
@@ -2257,15 +2257,15 @@ def WheelGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.wheel_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
+        ....:  spr = networkx.wheel_graph(i+3)
+        ....:  k = Graph(spr)
+        ....:  g.append(k)
         ...
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
+        ....:  n = []
+        ....:  for m in range(3):
+        ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:  j.append(n)
         ...
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time

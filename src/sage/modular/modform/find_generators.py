@@ -337,7 +337,7 @@ class ModularFormsRing(SageObject):
         a list of pairs (k, f), where f is the q-expansion to precision
         ``prec`` of a modular form of weight k.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`gen_forms`, which does exactly the same thing, but returns
             Sage modular form objects rather than bare power series, and keeps

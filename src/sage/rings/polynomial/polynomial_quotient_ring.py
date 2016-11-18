@@ -36,6 +36,7 @@ TESTS::
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
+from six.moves import range
 
 import six
 import sage.rings.number_field.all
@@ -104,7 +105,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
 
     We create the "iterated" polynomial ring quotient
 
-    .. math::
+    .. MATH::
 
                     R = (\GF{2}[y]/(y^{2}+y+1))[x]/(x^3 - 5).
 
@@ -1111,7 +1112,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         clgp_gens = []
         clgp_gens_orders = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 
@@ -1281,7 +1282,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         units = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 
@@ -1408,7 +1409,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         gens = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 

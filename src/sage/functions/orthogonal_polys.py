@@ -4,14 +4,14 @@ Orthogonal Polynomials
 -  The Chebyshev polynomial of the first kind arises as a solution
    to the differential equation
 
-   .. math::
+   .. MATH::
 
          (1-x^2)\,y'' - x\,y' + n^2\,y = 0
 
 
    and those of the second kind as a solution to
 
-   .. math::
+   .. MATH::
 
          (1-x^2)\,y'' - 3x\,y' + n(n+2)\,y = 0.
 
@@ -19,7 +19,7 @@ Orthogonal Polynomials
    The Chebyshev polynomials of the first kind are defined by the
    recurrence relation
 
-   .. math::
+   .. MATH::
 
      T_0(x) = 1 \, T_1(x) = x \, T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x). \,
 
@@ -27,7 +27,7 @@ Orthogonal Polynomials
    The Chebyshev polynomials of the second kind are defined by the
    recurrence relation
 
-   .. math::
+   .. MATH::
 
      U_0(x) = 1 \, U_1(x) = 2x \, U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x). \,
 
@@ -36,7 +36,7 @@ Orthogonal Polynomials
    For integers `m,n`, they satisfy the orthogonality
    relations
 
-   .. math::
+   .. MATH::
 
      \int_{-1}^1 T_n(x)T_m(x)\,\frac{dx}{\sqrt{1-x^2}} =\left\{ \begin{matrix} 0 &: n\ne m~~~~~\\ \pi &: n=m=0\\ \pi/2 &: n=m\ne 0 \end{matrix} \right.
 
@@ -44,7 +44,7 @@ Orthogonal Polynomials
    and
 
 
-   .. math::
+   .. MATH::
 
      \int_{-1}^1 U_n(x)U_m(x)\sqrt{1-x^2}\,dx =\frac{\pi}{2}\delta_{m,n}.
 
@@ -55,7 +55,7 @@ Orthogonal Polynomials
 
 -  The Hermite polynomials are defined either by
 
-   .. math::
+   .. MATH::
 
      H_n(x)=(-1)^n e^{x^2/2}\frac{d^n}{dx^n}e^{-x^2/2}
 
@@ -63,7 +63,7 @@ Orthogonal Polynomials
    (the "probabilists' Hermite polynomials"), or by
 
 
-   .. math::
+   .. MATH::
 
      H_n(x)=(-1)^n e^{x^2}\frac{d^n}{dx^n}e^{-x^2}
 
@@ -72,7 +72,7 @@ Orthogonal Polynomials
    implements the latter flavor. These satisfy the orthogonality
    relation
 
-   .. math::
+   .. MATH::
 
      \int_{-\infty}^\infty H_n(x)H_m(x)\,e^{-x^2}\,dx ={n!2^n}{\sqrt{\pi}}\delta_{nm}
 
@@ -83,19 +83,19 @@ Orthogonal Polynomials
 -  Each *Legendre polynomial* `P_n(x)` is an `n`-th degree polynomial.
    It may be expressed using Rodrigues' formula:
 
-   .. math::
+   .. MATH::
 
       P_n(x) = (2^n n!)^{-1} {\frac{d^n}{dx^n} } \left[ (x^2 -1)^n \right].
 
    These are solutions to Legendre's differential equation:
 
-   .. math::
+   .. MATH::
 
       {\frac{d}{dx}} \left[ (1-x^2) {\frac{d}{dx}} P(x) \right] + n(n+1)P(x) = 0.
 
    and satisfy the orthogonality relation
 
-   .. math::
+   .. MATH::
 
       \int_{-1}^{1} P_m(x) P_n(x)\,dx = {\frac{2}{2n + 1}} \delta_{mn}
 
@@ -107,7 +107,7 @@ Orthogonal Polynomials
    `P_\ell^m(x)` can be given in terms of the "usual"
    Legendre polynomials by
 
-   .. math::
+   .. MATH::
 
      \begin{array}{ll} P_\ell^m(x)    &=  (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}P_\ell(x) \\ &=  \frac{(-1)^m}{2^\ell \ell!} (1-x^2)^{m/2}\frac{d^{\ell+m}}{dx^{\ell+m}}(x^2-1)^\ell. \end{array}
 
@@ -115,7 +115,7 @@ Orthogonal Polynomials
    Assuming `0 \le m \le \ell`, they satisfy the orthogonality
    relation:
 
-   .. math::
+   .. MATH::
 
       \int_{-1}^{1} P_k ^{(m)} P_\ell ^{(m)} dx  = \frac{2 (\ell+m)!}{(2\ell+1)(\ell-m)!}\ \delta _{k,\ell},
 
@@ -127,7 +127,7 @@ Orthogonal Polynomials
    Legendre polynomials by
 
 
-   .. math::
+   .. MATH::
 
      Q_\ell^m(x)   =  (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}Q_\ell(x).
 
@@ -137,7 +137,7 @@ Orthogonal Polynomials
 
 -  Laguerre polynomials may be defined by the Rodrigues formula
 
-   .. math::
+   .. MATH::
 
       L_n(x)=\frac{e^x}{n!}\frac{d^n}{dx^n}\left(e^{-x} x^n\right).
 
@@ -145,14 +145,14 @@ Orthogonal Polynomials
    They are solutions of Laguerre's equation:
 
 
-   .. math::
+   .. MATH::
 
       x\,y'' + (1 - x)\,y' + n\,y = 0\,
 
    and satisfy the orthogonality relation
 
 
-   .. math::
+   .. MATH::
 
       \int_0^\infty L_m(x) L_n(x) e^{-x}\,dx = \delta_{mn}.
 
@@ -162,7 +162,7 @@ Orthogonal Polynomials
    Rodrigues formula:
 
 
-   .. math::
+   .. MATH::
 
        L_n^{(\alpha)}(x)   = {\frac{x^{-\alpha} e^x}{n!}}{\frac{d^n}{dx^n}} \left(e^{-x} x^{n+\alpha}\right) .
 
@@ -177,7 +177,7 @@ Orthogonal Polynomials
    are obtained from hypergeometric series in cases where the series
    is in fact finite:
 
-   .. math::
+   .. MATH::
 
      P_n^{(\alpha,\beta)}(z) =\frac{(\alpha+1)_n}{n!} \,_2F_1\left(-n,1+\alpha+\beta+n;\alpha+1;\frac{1-z}{2}\right) ,
 
@@ -187,7 +187,7 @@ Orthogonal Polynomials
    explicit expression
 
 
-   .. math::
+   .. MATH::
 
      P_n^{(\alpha,\beta)} (z) = \frac{\Gamma (\alpha+n+1)}{n!\Gamma (\alpha+\beta+n+1)} \sum_{m=0}^n \binom{n}{m} \frac{\Gamma (\alpha + \beta + n + m + 1)}{\Gamma (\alpha + m + 1)} \left(\frac{z-1}{2}\right)^m .
 
@@ -200,14 +200,14 @@ Orthogonal Polynomials
    `\alpha=\beta=a-1/2` by
 
 
-   .. math::
+   .. MATH::
 
      C_n^{(a)}(x)= \frac{\Gamma(a+1/2)}{\Gamma(2a)}\frac{\Gamma(n+2a)}{\Gamma(n+a+1/2)} P_n^{(a-1/2,a-1/2)}(x).
 
 
    They satisfy the orthogonality relation
 
-   .. math::
+   .. MATH::
 
      \int_{-1}^1(1-x^2)^{a-1/2}C_m^{(a)}(x)C_n^{(a)}(x)\, dx =\delta_{mn}2^{1-2a}\pi \frac{\Gamma(n+2a)}{(n+a)\Gamma^2(a)\Gamma(n+1)} ,
 
@@ -216,7 +216,7 @@ Orthogonal Polynomials
    in cases where the series is in fact finite:
 
 
-   .. math::
+   .. MATH::
 
      C_n^{(a)}(z) =\frac{(2a)^{\underline{n}}}{n!} \,_2F_1\left(-n,2a+n;a+\frac{1}{2};\frac{1-z}{2}\right)
 
@@ -231,14 +231,14 @@ For completeness, the Pochhammer symbol, introduced by Leo August
 Pochhammer, `(x)_n`, is used in the theory of special
 functions to represent the "rising factorial" or "upper factorial"
 
-.. math::
+.. MATH::
 
          (x)_n=x(x+1)(x+2)\cdots(x+n-1)=\frac{(x+n-1)!}{(x-1)!}.
 
 
 On the other hand, the "falling factorial" or "lower factorial" is
 
-.. math::
+.. MATH::
 
      x^{\underline{n}}=\frac{x!}{(x-n)!} ,
 
@@ -751,7 +751,7 @@ class Func_chebyshev_T(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_T`` using an explicit formula.
-        See [AS1964]_ 227 (p. 782) for details for the recurions.
+        See [AS1964]_ 227 (p. 782) for details for the recursions.
         See also [Koe1999]_ for fast evaluation techniques.
 
         INPUT:
@@ -958,7 +958,8 @@ class Func_chebyshev_U(ChebyshevFunction):
     def eval_formula(self, n, x):
         """
         Evaluate ``chebyshev_U`` using an explicit formula.
-        See [AS1964]_ 227 (p. 782) for details on the recurions.
+
+        See [AS1964]_ 227 (p. 782) for details on the recursions.
         See also [Koe1999]_ for the recursion formulas.
 
         INPUT:
@@ -1323,6 +1324,12 @@ class Func_hermite(GinacFunction):
         Traceback (most recent call last):
         ...
         RuntimeError: hermite_eval: The index n must be a nonnegative integer
+
+        sage: _ = var('m x')
+        sage: hermite(m, x).diff(m)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: derivative w.r.t. to the index is not supported yet
     """
     def __init__(self):
         r"""
@@ -1435,11 +1442,25 @@ def legendre_Q(n, x):
 
 
 class Func_ultraspherical(GinacFunction):
-    """
-    Returns the ultraspherical (or Gegenbauer) polynomial for integers
-    `n > -1`.
+    r"""
+    Return the ultraspherical (or Gegenbauer) polynomial gegenbauer(n,a,x),
 
-    Computed using Maxima.
+    .. MATH::
+
+        C_n^{a}(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k\frac{\Gamma(n-k+a)}
+        {\Gamma(a)k!(n-2k)!}(2x)^{n-2k}.
+
+    When `n` is a nonnegative integer, this formula gives a
+    polynomial in `z` of degree `n`, but all parameters are
+    permitted to be complex numbers. When `a = 1/2`, the
+    Gegenbauer polynomial reduces to a Legendre polynomial.
+
+    Computed using Pynac.
+
+    For numerical evaluation, consider using the `mpmath library,
+    <http://mpmath.org/doc/current/functions/orthogonal.html#gegenbauer-polynomials>`_,
+    as it also allows complex numbers (and negative `n` as well);
+    see the examples below.
 
     REFERENCE:
 
@@ -1452,15 +1473,12 @@ class Func_ultraspherical(GinacFunction):
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: ultraspherical(2,3/2,x)
         15/2*x^2 - 3/2
-        sage: ultraspherical(2,1/2,x)
-        3/2*x^2 - 1/2
         sage: ultraspherical(1,1,x)
         2*x
         sage: t = PolynomialRing(RationalField(),"t").gen()
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
-        sage: var('x')
-        x
+        sage: _=var('x');
         sage: for N in range(100):
         ....:     n = ZZ.random_element().abs() + 5
         ....:     a = QQ.random_element().abs() + 5
@@ -1470,15 +1488,46 @@ class Func_ultraspherical(GinacFunction):
         sage: ultraspherical(5,9/10,RealField(100)(pi))
         6949.4695419382702451843080687
 
-        sage: _ = var('a')
+        sage: _ = var('a n')
         sage: gegenbauer(2,a,x)
         2*(a + 1)*a*x^2 - a
         sage: gegenbauer(3,a,x)
-        2/3*(2*(a + 1)*a*x^2 - a)*(a + 2)*x - 2/3*(2*a + 1)*a*x
+        4/3*(a + 2)*(a + 1)*a*x^3 - 2*(a + 1)*a*x
         sage: gegenbauer(3,a,x).expand()
         4/3*a^3*x^3 + 4*a^2*x^3 + 8/3*a*x^3 - 2*a^2*x - 2*a*x
         sage: gegenbauer(10,a,x).expand().coefficient(x,2)
         1/12*a^6 + 5/4*a^5 + 85/12*a^4 + 75/4*a^3 + 137/6*a^2 + 10*a
+        sage: ex = gegenbauer(100,a,x)
+        sage: (ex.subs(a==55/98) - gegenbauer(100,55/98,x)).is_trivial_zero()
+        True
+
+        sage: gegenbauer(2,-3,x)
+        12*x^2 + 3
+        sage: gegenbauer(120,-99/2,3)
+        1654502372608570682112687530178328494861923493372493824
+        sage: gegenbauer(5,9/2,x)
+        21879/8*x^5 - 6435/4*x^3 + 1287/8*x
+        sage: gegenbauer(15,3/2,5)
+        3903412392243800
+
+        sage: derivative(gegenbauer(n,a,x),x)
+        2*a*gegenbauer(n - 1, a + 1, x)
+        sage: derivative(gegenbauer(3,a,x),x)
+        4*(a + 2)*(a + 1)*a*x^2 - 2*(a + 1)*a
+        sage: derivative(gegenbauer(n,a,x),a)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: derivative w.r.t. to the second index is not supported yet
+
+    Numerical evaluation with the mpmath library::
+
+        sage: from mpmath import gegenbauer as gegenbauer_mp
+        sage: from mpmath import mp
+        sage: mp.pretty = True; mp.dps=25
+        sage: gegenbauer_mp(-7,0.5,0.3)
+        0.1291811875
+        sage: gegenbauer_mp(2+3j, -0.75, -1000j)
+        (-5038991.358609026523401901 + 9414549.285447104177860806j)
 
     TESTS:
 

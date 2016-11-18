@@ -3,8 +3,8 @@ The references for Sage, sorted alphabetically by citation key.
 REFERENCES:
 
 :ref:`A <ref-A>`
-:ref:`B <ref-B>` 
-:ref:`C <ref-C>` 
+:ref:`B <ref-B>`
+:ref:`C <ref-C>`
 :ref:`D <ref-D>`
 :ref:`E <ref-E>`
 :ref:`F <ref-F>`
@@ -212,6 +212,9 @@ REFERENCES:
              Conference, AMS/IP Studies in Advanced Mathematics 35
              (2003). :arxiv:`math/0204057v1`
 
+.. [Bir1975] \J. Birman. *Braids, Links, and Mapping Class Groups*,
+             Princeton University Press, 1975
+
 .. [BK1992] \U. Brehm and W. Kuhnel, "15-vertex triangulations of an
             8-manifold", Math. Annalen 294 (1992), no. 1, 167-193.
 
@@ -329,6 +332,10 @@ REFERENCES:
 .. [Ch2012] Cho-Ho Chu. *Jordan Structures in Geometry and
             Analysis*. Cambridge University Press, New
             York. 2012. IBSN 978-1-107-01617-0.
+
+.. [Cha92] Chameni-Nembua C. and Monjardet B.
+           *Les Treillis Pseudocomplémentés Finis*
+           Europ. J. Combinatorics (1992) 13, 89-107.
 
 .. [Cha2006] Ruth Charney. *An introduction to right-angled Artin
              groups*. http://people.brandeis.edu/~charney/papers/RAAGfinal.pdf,
@@ -670,6 +677,9 @@ REFERENCES:
 .. [Go1967] Solomon Golomb, Shift register sequences, Aegean Park
             Press, Laguna Hills, Ca, 1967
 
+.. [God1968] \R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
+             (Boston) (1968)
+
 .. [Gor1980] Daniel Gorenstein, Finite Groups (New York: Chelsea
              Publishing, 1980)
 
@@ -930,7 +940,7 @@ REFERENCES:
 
 .. [Kur2008] Chris Kurth, "K Farey package for Sage",
              http://wayback.archive-it.org/855/20100510123900/http://www.public.iastate.edu/~kurthc/research/index.html
-    
+
 .. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
             moduli space of Abelian differentials with prescripebd
             singularities" Invent. math. 153, 631-678 (2003)
@@ -961,7 +971,7 @@ REFERENCES:
              Springer-Verlag, GTM volume 202, 2011.
 
 .. [Lee2013] \J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed.,
-             Springer (New York) (2012)
+             Springer (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
 
 .. [Lev2014] Lionel Levine. Threshold state and a conjecture of
              Poghosyan, Poghosyan, Priezzhev and Ruelle,
@@ -1324,6 +1334,11 @@ REFERENCES:
 .. [SLB2008] Shoham, Yoav, and Kevin Leyton-Brown. *Multiagent
              systems: Algorithmic, game-theoretic, and logical
              foundations.* Cambridge University Press, 2008.
+
+.. [Spa1966] Edwin H. Spanier, *Algebraic Topology*,
+             Springer-Verlag New York, 1966.
+             :doi:`10.1007/978-1-4684-9322-1`,
+             ISBN 978-1-4684-9322-1.
 
 .. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi

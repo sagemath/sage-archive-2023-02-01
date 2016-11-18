@@ -194,7 +194,7 @@ class CombinatorialFreeModuleElement(Element):
             [('c', 2), ('b', 3), ('a', 1)]
             sage: F.print_options(sorting_reverse=False) #reset to original state
 
-        .. seealso:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
+        .. SEEALSO:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self.parent().print_options()
         v = self._monomial_coefficients.items()

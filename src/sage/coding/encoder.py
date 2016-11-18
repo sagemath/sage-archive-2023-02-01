@@ -84,7 +84,7 @@ class Encoder(SageObject):
         We can check its parameters::
 
             sage: E.code()
-            Linear code of length 4, dimension 2 over Finite Field of size 2
+            [4, 2] linear code over GF(2)
         """
         self._code = code
 
@@ -147,7 +147,7 @@ class Encoder(SageObject):
             sage: E.encode(word)
             Traceback (most recent call last):
             ...
-            ValueError: The value to encode must be in Vector space of dimension 4 over Finite Field of size 2
+            ArithmeticError: reduction modulo 2 not defined
         """
         M = self.message_space()
         if word not in M:

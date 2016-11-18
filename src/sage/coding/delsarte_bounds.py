@@ -34,13 +34,13 @@ def Krawtchouk(n, q, l, x, check=True):
 
     It is defined by the generating function
 
-    .. math::
+    .. MATH::
 
         (1+(q-1)z)^{n-x}(1-z)^x=\sum_{l} K^{n,q}_l(x)z^l
 
     and is equal to
 
-    .. math::
+    .. MATH::
 
         K^{n,q}_l(x)=\sum_{j=0}^l (-1)^j (q-1)^{(l-j)} \binom{x}{j} \binom{n-x}{l-j},
 

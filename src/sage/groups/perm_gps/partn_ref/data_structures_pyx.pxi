@@ -28,10 +28,12 @@ REFERENCES:
 
 from libc.math cimport log, ceil
 from libc.string cimport memcpy, memset
+from libc.stdlib cimport rand
 
 include 'sage/data_structures/bitset.pxi'
 
 from sage.libs.gmp.mpz cimport *
+from sage.libs.flint.ulong_extras cimport n_is_prime
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.rings.integer cimport Integer
 from sage.groups.perm_gps.partn_ref2.refinement_generic cimport PartitionRefinement_generic
@@ -551,7 +553,7 @@ cdef int PS_all_new_cells(PartitionStack *PS, bitset_t** nonsingletons_ptr):
     nonsingletons_ptr[0] = nonsingletons
     return count
 
-cdef int PS_find_element(PartitionStack *PS, bitset_t b, int x):
+cdef int PS_find_element(PartitionStack *PS, bitset_t b, int x) except -1:
     """
     Find the cell containing x, store its entries to b and return the location
     of the beginning of the cell.
@@ -562,6 +564,8 @@ cdef int PS_find_element(PartitionStack *PS, bitset_t b, int x):
         if PS.entries[i] == x:
             location = i
             break
+    else:
+        raise ValueError("element not found")
     while location > 0 and PS.levels[location-1] > PS.depth:
         location -= 1
     i = 0

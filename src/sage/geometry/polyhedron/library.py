@@ -747,7 +747,7 @@ class Polytopes():
         off all the permutations of `(0, \pm 1, \pm 2)`. For more
         information, see the :wikipedia:`Truncated_octahedron`.
 
-        This is also know as the permutohedron of dimension 3.
+        This is also known as the permutohedron of dimension 3.
 
         EXAMPLES::
 

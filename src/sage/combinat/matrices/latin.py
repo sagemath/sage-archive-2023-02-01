@@ -1710,7 +1710,7 @@ def tau1(T1, T2, cells_map):
     r"""
     The definition of `\tau_1` is
 
-    .. math::
+    .. MATH::
 
        \tau_1 : T1 \rightarrow T1 \\
        \tau_1 = \beta_2^{-1} \beta_3
@@ -1761,7 +1761,7 @@ def tau2(T1, T2, cells_map):
     r"""
     The definition of `\tau_2` is
 
-    .. math::
+    .. MATH::
 
        \tau_2 : T1 \rightarrow T1 \\
        \tau_2 = \beta_3^{-1} \beta_1
@@ -1812,7 +1812,7 @@ def tau3(T1, T2, cells_map):
     r"""
     The definition of `\tau_3` is
 
-    .. math::
+    .. MATH::
 
        \tau_3 : T1 \rightarrow T1 \\
        \tau_3 = \beta_1^{-1} \beta_2

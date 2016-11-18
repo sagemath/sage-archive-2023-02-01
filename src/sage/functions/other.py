@@ -770,7 +770,7 @@ class Function_gamma(GinacFunction):
         r"""
         The Gamma function.  This is defined by
 
-        .. math::
+        .. MATH::
 
             \Gamma(z) = \int_0^\infty t^{z-1}e^{-t} dt
 
@@ -896,6 +896,13 @@ class Function_gamma(GinacFunction):
             True
             sage: float(gamma(8.5)) == gamma(8.5r) == float(gamma(mpmath.mpf(8.5)))
             True
+
+        Check that ``QQbar`` half integers work with the ``pi`` formula::
+
+            sage: gamma(QQbar(1/2))
+            sqrt(pi)
+            sage: gamma(QQbar(-9/2))
+            -32/945*sqrt(pi)
 
         .. SEEALSO::
 
@@ -1026,7 +1033,7 @@ class Function_gamma_inc(BuiltinFunction):
 
         It is defined by the integral
 
-        .. math::
+        .. MATH::
 
             \Gamma(a,z)=\int_z^\infty t^{a-1}e^{-t}\,\mathrm{d}t
 
@@ -1179,7 +1186,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
 
         It is defined by the integral
 
-        .. math::
+        .. MATH::
 
             \Gamma(a,z)=\int_0^z t^{a-1}e^{-t}\,\mathrm{d}t
 
@@ -1426,7 +1433,7 @@ class Function_psi1(GinacFunction):
         The digamma function, `\psi(x)`, is the logarithmic derivative of the
         gamma function.
 
-        .. math::
+        .. MATH::
 
             \psi(x) = \frac{d}{dx} \log(\Gamma(x)) = \frac{\Gamma'(x)}{\Gamma(x)}
 
@@ -1550,7 +1557,7 @@ def psi(x, *args, **kwds):
     The digamma function, `\psi(x)`, is the logarithmic derivative of the
     gamma function.
 
-    .. math::
+    .. MATH::
 
         \psi(x) = \frac{d}{dx} \log(\Gamma(x)) = \frac{\Gamma'(x)}{\Gamma(x)}
 
@@ -1759,7 +1766,7 @@ class Function_binomial(GinacFunction):
         r"""
         Return the binomial coefficient
 
-        .. math::
+        .. MATH::
 
             \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
@@ -1768,7 +1775,7 @@ class Function_binomial(GinacFunction):
         `x`. We extend this definition to include cases when
         `x-m` is an integer but `m` is not by
 
-        .. math::
+        .. MATH::
 
             \binom{x}{m}= \binom{x}{x-m}
 
@@ -1955,7 +1962,7 @@ class Function_beta(GinacFunction):
         r"""
         Return the beta function.  This is defined by
 
-        .. math::
+        .. MATH::
 
             \operatorname{B}(p,q) = \int_0^1 t^{p-1}(1-t)^{q-1} dt
 
@@ -1971,20 +1978,20 @@ class Function_beta(GinacFunction):
         other.  In other cases, GiNaC uses one of the following
         formulas:
 
-        .. math::
+        .. MATH::
 
             \operatorname{B}(p,q) = \frac{\Gamma(p)\Gamma(q)}{\Gamma(p+q)}
 
         or
 
-        .. math::
+        .. MATH::
 
             \operatorname{B}(p,q) = (-1)^q \operatorname{B}(1-p-q, q).
 
 
         For numerical inputs, GiNaC uses the formula
 
-        .. math::
+        .. MATH::
 
             \operatorname{B}(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
 
@@ -2413,6 +2420,12 @@ class Function_real_part(GinacFunction):
             sage: f(x) = function('f')(x)
             sage: latex( f(x).real())
             \Re \left( f\left(x\right) \right)
+
+        Check that some real part expansions evaluate correctly
+        (:trac:`21614`)::
+
+            sage: real(sqrt(sin(x))).subs(x==0)
+            0
         """
         GinacFunction.__init__(self, "real_part",
                                conversions=dict(maxima='realpart',
@@ -2570,3 +2583,27 @@ class Function_conjugate(GinacFunction):
                                conversions=dict(sympy='conjugate'))
 
 conjugate = Function_conjugate()
+
+
+class Function_sum(BuiltinFunction):
+    """
+    Placeholder symbolic sum function that is only accessible internally.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_sum as ssum
+        sage: ssum(x, x, 1, 10)
+        sum(x, x, 1, 10)
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_sum as ssum
+            sage: maxima(ssum(x, x, 1, 10))
+            55
+        """
+        BuiltinFunction.__init__(self, "sum", nargs=4,
+                               conversions=dict(maxima='sum'))
+
+symbolic_sum = Function_sum()

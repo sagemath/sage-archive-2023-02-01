@@ -4,7 +4,7 @@ Dirichlet characters
 
 A :class:`DirichletCharacter` is the extension of a homomorphism
 
-.. math::
+.. MATH::
 
     (\ZZ/N\ZZ)^* \to R^*,
 
@@ -631,7 +631,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         following identity of power series (see for example
         [DI1995]_, Section 2.2):
 
-        .. math::
+        .. MATH::
 
             \sum_{a=1}^N \frac{\varepsilon(a) t e^{at}}{e^{Nt}-1}
             = sum_{k=0}^{\infty} \frac{B_{k,\varepsilon}}{k!} t^k.
@@ -895,7 +895,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         The Gauss sum associated to `\chi` is
 
-        .. math::
+        .. MATH::
 
             g_a(\chi) = \sum_{r \in \ZZ/m\ZZ} \chi(r)\,\zeta^{ar},
 
@@ -980,7 +980,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         The Gauss sum associated to `\chi` is
 
-        .. math::
+        .. MATH::
 
             g_a(\chi) = \sum_{r \in \ZZ/m\ZZ} \chi(r)\,\zeta^{ar},
 
@@ -1049,7 +1049,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         Return the Jacobi sum associated to these Dirichlet characters
         (i.e., J(self,char)). This is defined as
 
-        .. math::
+        .. MATH::
 
             J(\chi, \psi) = \sum_{a \in \ZZ / N\ZZ} \chi(a) \psi(1-a)
 
@@ -1156,7 +1156,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         The Kloosterman sum associated to `\chi` and the integers a,b is
 
-        .. math::
+        .. MATH::
 
             K(a,b,\chi) = \sum_{r \in (\ZZ/m\ZZ)^\times} \chi(r)\,\zeta^{ar+br^{-1}},
 
@@ -1397,14 +1397,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
         r"""
         Let
 
-        .. math::
+        .. MATH::
 
            \varepsilon : (\ZZ/N\ZZ)^* \to \QQ(\zeta_n)
 
         be a Dirichlet character. This function returns an equal Dirichlet
         character
 
-        .. math::
+        .. MATH::
 
            \chi : (\ZZ/N\ZZ)^* \to \QQ(\zeta_m)
 
@@ -1466,7 +1466,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: eps = f.character()
             sage: eps.minimize_base_ring() == eps
             True
-        
+
         A related bug (see :trac:`18086`)::
 
             sage: K.<a,b>=NumberField([x^2 + 1, x^2 - 3])
@@ -2670,7 +2670,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
              Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1,
              Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -zeta4]
         """
-        return self._list_from_iterator_cached()
+        return self._list_from_iterator()
 
     def modulus(self):
         """

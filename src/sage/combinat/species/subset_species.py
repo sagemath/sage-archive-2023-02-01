@@ -217,7 +217,7 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         r"""
         The cycle index series for the species of subsets satisfies
 
-        .. math::
+        .. MATH::
 
              Z_{\mathfrak{p}} = Z_{\mathcal{E}} \cdot Z_{\mathcal{E}}
 

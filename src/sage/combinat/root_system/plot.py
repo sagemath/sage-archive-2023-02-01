@@ -199,7 +199,7 @@ level 1::
 .. NOTE::
 
     Such pictures may tend to be a bit flat, and it may be helpful to
-    play with the aspect_ratio and more generaly with the various
+    play with the aspect_ratio and more generally with the various
     options of the :meth:`~sage.plot.plot3d.base.Graphics3d.show`
     method::
 

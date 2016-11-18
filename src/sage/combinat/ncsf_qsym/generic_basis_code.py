@@ -1076,6 +1076,12 @@ class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a
             sage: f.__class__
             <class 'sage.combinat.ncsf_qsym.generic_basis_code.AlgebraMorphism_with_category'>
             sage: TestSuite(f).run()
+
+        Verify that :trac:`21895` has been resolved::
+
+            sage: f is Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            True
+
         """
         assert position == 0
         assert codomain is not None

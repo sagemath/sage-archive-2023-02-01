@@ -201,7 +201,7 @@ def makeNativeIntStruct(sage.rings.integer.Integer z):
     """
     Function to convert a Sage Integer into class NativeIntStruct.
 
-    .. note::
+    .. NOTE::
 
        This function is only used for the unpickle override below.
     """
@@ -540,7 +540,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         OUTPUT: Integer `x` such that `b^x = a`, if this exists; a ValueError otherwise.
 
-        .. note::
+        .. NOTE::
 
            If the modulus is prime and b is a generator, this calls Pari's ``znlog``
            function, which is rather fast. If not, it falls back on the generic

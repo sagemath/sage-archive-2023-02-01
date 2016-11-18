@@ -1171,7 +1171,7 @@ class CoxGroupIterator(object):
         """
         A class used to iterate over all of the elements of a Coxeter group.
 
-        .. note::
+        .. NOTE::
 
            This will construct all of the elements of the group within
            Coxeter3.  For some groups, this may be too large to fit

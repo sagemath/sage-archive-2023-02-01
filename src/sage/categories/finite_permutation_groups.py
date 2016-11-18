@@ -113,7 +113,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
             Returns the *cycle index* of `G`, which is a gadget counting
             the elements of `G` by cycle type, averaged over the group:
 
-            .. math::
+            .. MATH::
 
                 P = \frac{1}{|G|} \sum_{g\in G} p_{ \operatorname{cycle\ type}(g) }
 

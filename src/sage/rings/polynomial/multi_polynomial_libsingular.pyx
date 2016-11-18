@@ -245,7 +245,7 @@ from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaula
 from sage.misc.all import prod as mul
 from sage.misc.sage_eval import sage_eval
 
-import sage.libs.pari.gen
+import sage.libs.cypari2.gen
 import polynomial_element
 
 permstore=[]
@@ -569,7 +569,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.coerce(1)
             1
 
-        Check if coercion from zero variable polynomial rings work (#7951)::
+        Check if coercion from zero variable polynomial rings work
+        (:trac:`7951`)::
 
             sage: P = PolynomialRing(QQ,0,'')
             sage: R.<x,y> = QQ[]
@@ -840,7 +841,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 _p = p_NSet(_n, _ring)
             return new_MP(self, _p)
 
-        if isinstance(element, (SingularElement, sage.libs.pari.gen.gen)):
+        if isinstance(element, (SingularElement, sage.libs.cypari2.gen.gen)):
             element = str(element)
 
         if isinstance(element, MPolynomial_libsingular) and element.parent() is not self and element.parent() != self:
@@ -2738,7 +2739,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         OUTPUT:
             element of the parent of this element.
 
-        .. note::
+        .. NOTE::
 
            For coefficients of specific monomials, look at :meth:`monomial_coefficient`.
 
@@ -4849,7 +4850,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         Return a Macaulay2 string representation of this polynomial.
 
-        .. note::
+        .. NOTE::
 
            Two identical rings are not canonically isomorphic in M2,
            so we require the user to explicitly set the ring, since
@@ -4995,7 +4996,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         - ``have_ring`` - ignored, accepted for compatibility reasons
 
-        .. note:: See also :meth:`derivative`
+        .. NOTE:: See also :meth:`derivative`
 
         EXAMPLES::
 

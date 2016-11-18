@@ -655,18 +655,6 @@ class HasseDiagram(DiGraph):
         """
         return bool(self.rank_function())
 
-    def is_graded(self):
-        r"""
-        Deprecated, has conflicting definition of "graded" vs. "ranked"
-        with posets.
-
-        Return ``True`` if the Hasse diagram is ranked. For definition
-        of ranked see :meth:`~rank_function`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16998, "Use is_ranked(). Definition conflict with posets.")
-        return self.is_ranked()
-
     def covers(self,x,y):
         """
         Returns True if y covers x and False otherwise.
@@ -1204,26 +1192,22 @@ class HasseDiagram(DiGraph):
             return matrix(0)
         if not self.has_top():
             raise ValueError("not a join-semilattice: no top element")
-        join = [[0 for x in range(n)] for x in range(n)]
-        le = self.lequal_matrix()
-        uc = [sorted([n-1-y for y in self.neighbors_out(x)]) for
-                x in reversed(range(n))]
+        join = [[n for x in range(n)] for x in range(n)]
+        uc = [self.neighbors_out(x) for x in range(n)]  # uc = upper covers
 
-        for x in range(n): # x=x_k
+        for x in range(n-1, -1, -1):
             join[x][x] = x
-
-            for y in range(x):
+            for y in range(n-1, x, -1):
                 T = [join[y][z] for z in uc[x]]
 
-                q = max(T)
+                q = min(T)
                 for z in T:
-                    if not le[n-1-q, n-1-z]:
-                        raise LatticeError('join', n-1-x, n-1-y)
+                    if join[z][q] != z:
+                        raise LatticeError('join', x, y)
                 join[x][y] = q
                 join[y][x] = q
 
-        return matrix(ZZ, [[n-1-join[n-1-x][n-1-y] for y in range(n)]
-                           for x in range(n)])
+        return matrix(ZZ, join)
 
     def join_matrix(self):
         r"""
@@ -1455,23 +1439,6 @@ class HasseDiagram(DiGraph):
                 return i
 
         return None
-
-    def complements(self):
-        r"""
-        Deprecated.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17138, "This function is broken. Do not use.")
-        jn = self.join_matrix()
-        mt = self.meet_matrix()
-        n = self.cardinality()
-        c = [None for x in range(n)]
-        for x in range(n):
-            for y in range(x,n):
-                if jn[x][y]==n-1 and mt[x][y]==0:
-                    c[x]=y
-                    c[y]=x
-        return c
 
     def pseudocomplement(self, element):
         """
@@ -2197,6 +2164,57 @@ class HasseDiagram(DiGraph):
                     ok.add(c)  # Do not re-check this for being our b.
 
         return True
+
+    def kappa(self, a):
+        r"""
+        Return the maximum element greater than the element covered
+        by ``a`` but not greater than ``a``.
+
+        Define `\kappa(a)` as the maximum element of
+        `(\uparrow a_*) \setminus (\uparrow a)`, where `a_*` is the element
+        covered by `a`. It is always a meet-irreducible element, if it exists.
+
+        .. NOTE::
+
+            Element ``a`` is expected to be join-irreducible, and
+            this is *not* checked.
+
+        INPUT:
+
+        - ``a`` -- a join-irreducible element of the lattice
+
+        OUTPUT:
+
+        The element `\kappa(a)` or ``None`` if there
+        is not a unique greatest element with given constraints.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4, 5], 3: [5], 4: [6], 5: [6]})
+            sage: H.kappa(1)
+            5
+            sage: H.kappa(2) is None
+            True
+
+        TESTS::
+
+            sage: H = HasseDiagram({0: [1]})
+            sage: H.kappa(1)
+            0
+        """
+        lc = next(self.neighbor_in_iterator(a))
+        if self.out_degree(lc) == 1:
+            return lc
+        gt_a = set(self.depth_first_search(a))
+        tmp = list(self.depth_first_search(lc, neighbors=lambda v: [v_ for v_ in self.neighbors_out(v) if v_ not in gt_a]))
+        result = None
+        for e in tmp:
+            if all(x not in tmp for x in self.neighbors_out(e)):
+                if result:
+                    return None
+                result = e
+        return result
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

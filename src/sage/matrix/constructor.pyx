@@ -12,8 +12,6 @@ General matrix Constructor
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
-
 import types
 from .matrix_space import MatrixSpace
 from sage.rings.ring import is_Ring
@@ -677,7 +675,7 @@ class MatrixFactory(object):
                 jrange = srange(ncols)
                 arg = [[arg(i, j) for j in jrange] for i in irange]
 
-            if isinstance(arg, range):
+            if isinstance(arg, xrange):
                 arg = list(arg)
             if isinstance(arg, (list, tuple)):
                 if not arg:
@@ -870,6 +868,7 @@ def prepare_dict(w):
     X = [x for _, x in Z]
     entries, ring = prepare(X)
     return dict([(Z[i][0],entries[i]) for i in range(len(entries))]), ring
+
 
 def nrows_from_dict(d):
     """

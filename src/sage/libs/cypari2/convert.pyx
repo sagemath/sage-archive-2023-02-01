@@ -70,13 +70,13 @@ cpdef integer_to_gen(x):
 
     EXAMPLES::
 
-        sage: from sage.libs.pari.convert import integer_to_gen
+        sage: from sage.libs.cypari2.convert import integer_to_gen
         sage: a = integer_to_gen(int(12345)); a; type(a)
         12345
-        <type 'sage.libs.pari.gen.gen'>
+        <type 'sage.libs.cypari2.gen.gen'>
         sage: a = integer_to_gen(long(12345)); a; type(a)
         12345
-        <type 'sage.libs.pari.gen.gen'>
+        <type 'sage.libs.cypari2.gen.gen'>
         sage: integer_to_gen(float(12345))
         Traceback (most recent call last):
         ...
@@ -109,7 +109,7 @@ cpdef gen_to_integer(gen x):
 
     EXAMPLES::
 
-        sage: from sage.libs.pari.convert import gen_to_integer
+        sage: from sage.libs.cypari2.convert import gen_to_integer
         sage: a = gen_to_integer(pari("12345")); a; type(a)
         12345
         <type 'int'>

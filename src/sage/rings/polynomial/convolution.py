@@ -18,7 +18,7 @@ The convolution function is reasonably fast, even though it is
 written in pure Python. For example, the following takes less than
 a second::
 
-    sage: v=convolution(range(1000), range(1000))
+    sage: v = convolution(list(range(1000)), list(range(1000)))
 
 ALGORITHM: Converts the problem to multiplication in the ring
 `S[x]/(x^M - 1)`, where `S = R[y]/(y^K + 1)` (where
@@ -319,9 +319,9 @@ def _negaconvolution_fft(L1, L2, n):
 
        sage: from sage.rings.polynomial.convolution import _negaconvolution_naive
        sage: from sage.rings.polynomial.convolution import _negaconvolution_fft
-       sage: _negaconvolution_naive(range(8), range(5, 13))
+       sage: _negaconvolution_naive(list(range(8)), list(range(5, 13)))
        [-224, -234, -224, -192, -136, -54, 56, 196]
-       sage: _negaconvolution_fft(range(8), range(5, 13), 3)
+       sage: _negaconvolution_fft(list(range(8)), list(range(5, 13)), 3)
        [-224, -234, -224, -192, -136, -54, 56, 196]
 
    ::

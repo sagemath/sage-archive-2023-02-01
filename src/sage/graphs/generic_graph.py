@@ -4026,6 +4026,10 @@ class GenericGraph(GenericGraph_pyx):
           Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
           2004.
 
+        .. SEEALSO::
+
+          - :meth:`~Graph.is_apex`
+
         INPUT:
 
         - ``kuratowski`` - returns a tuple with boolean as first entry. If the
@@ -12125,14 +12129,15 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            Because of a past bug (#11735, #11961), the first implementation
-            (algorithm A) of this method sometimes returned as certificates
-            subgraphs which were **not** holes. Since then, this bug has been
-            fixed and the values are now double-checked before being returned,
-            so that the algorithm only returns correct values or raises an
-            exception. In the case where an exception is raised, the user is
-            advised to switch to the other algorithm. And to **please** report
-            the bug :-)
+            Because of a past bug (:trac:`11735`, :trac:`11961`), the
+            first implementation (algorithm A) of this method
+            sometimes returned as certificates subgraphs which were
+            **not** holes. Since then, this bug has been fixed and the
+            values are now double-checked before being returned, so
+            that the algorithm only returns correct values or raises
+            an exception. In the case where an exception is raised,
+            the user is advised to switch to the other algorithm. And
+            to **please** report the bug :-)
 
         EXAMPLES:
 

@@ -453,7 +453,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             invertible elements on its diagonal. This is used to compute
             preimages and to invert the morphism::
 
-                sage: I = range(1,200)
+                sage: I = list(range(1, 200))
                 sage: X = CombinatorialFreeModule(QQ, I); X.rename("X"); x = X.basis()
                 sage: Y = CombinatorialFreeModule(QQ, I); Y.rename("Y"); y = Y.basis()
                 sage: f = Y.sum_of_monomials * divisors

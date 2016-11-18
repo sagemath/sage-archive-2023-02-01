@@ -426,7 +426,7 @@ lazy_import('sage.interfaces.maxima_lib','maxima')
 
 
 ########################################################
-def symbolic_sum(expression, v, a, b, algorithm='maxima'):
+def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     r"""
     Returns the symbolic sum `\sum_{v = a}^b expression` with respect
     to the variable `v` with endpoints `a` and `b`.
@@ -450,6 +450,8 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
       - ``'mathematica'`` - (optional) use Mathematica
 
       - ``'giac'`` - (optional) use Giac
+
+    - ``hold`` - (default: ``False``) if ``True`` don't evaluate
 
     EXAMPLES::
 
@@ -557,6 +559,19 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         sage: symbolic_sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional - maple
         (x + 1)^n
 
+    If you don't want to evaluate immediately give the ``hold`` keyword::
+
+        sage: s = sum(n, n, 1, k, hold=True); s
+        sum(n, n, 1, k)
+        sage: s.unhold()
+        1/2*k^2 + 1/2*k
+        sage: s.subs(k == 10)
+        sum(n, n, 1, 10)
+        sage: s.subs(k == 10).unhold()
+        55
+        sage: s.subs(k == 10).n()
+        55.0000000000000
+
     TESTS:
 
     :trac:`10564` is fixed::
@@ -579,6 +594,10 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
     if v in SR(a).variables() or v in SR(b).variables():
         raise ValueError("summation limits must not depend on the summation variable")
+
+    if hold == True:
+        from sage.functions.other import symbolic_sum as ssum
+        return ssum(expression, v, a, b)
 
     if algorithm == 'maxima':
         return maxima.sr_sum(expression,v,a,b)
@@ -1248,7 +1267,7 @@ def laplace(ex, t, s):
     defined for all real numbers `t \geq 0`, is the function
     `F(s)` defined by
 
-    .. math::
+    .. MATH::
 
                       F(s) = \int_{0}^{\infty} e^{-st} f(t) dt.
 
@@ -1278,7 +1297,7 @@ def laplace(ex, t, s):
     A BATTLE BETWEEN the X-women and the Y-men (by David
     Joyner): Solve
 
-    .. math::
+    .. MATH::
 
                    x' = -16y, x(0)=270,  y' = -x + 1, y(0) = 90.
 
@@ -1349,7 +1368,7 @@ def inverse_laplace(ex, t, s):
     DEFINITION: The inverse Laplace transform of a function
     `F(s)`, is the function `f(t)` defined by
 
-    .. math::
+    .. MATH::
 
                       F(s) = \frac{1}{2\pi i} \int_{\gamma-i\infty}^{\gamma + i\infty} e^{st} F(s) dt,
 

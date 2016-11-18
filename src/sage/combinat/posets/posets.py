@@ -3601,7 +3601,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_join_semilattice()
 
-    def is_isomorphic(self,other):
+    def is_isomorphic(self, other):
         """
         Returns True if both posets are isomorphic.
 
@@ -3629,6 +3629,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         INPUT:
 
         - ``other`` -- a finite poset
+
+        .. SEEALSO::
+
+            :meth:`sage.combinat.posets.lattices.FiniteLatticePoset.isomorphic_sublattices_iterator`.
 
         EXAMPLES::
 
@@ -6255,11 +6259,11 @@ class FinitePoset(UniqueRepresentation, Parent):
                 return False
         return True
 
-    def is_slender(self):
+    def is_slender(self, certificate=False):
         r"""
         Return ``True`` if the poset is slender, and ``False`` otherwise.
 
-        A finite graded poset is called slender if every rank 2
+        A finite graded poset is *slender* if every rank 2
         interval contains three or four elements, as defined in
         [Stan2009]_. (This notion of "slender" is unrelated to
         the eponymous notion defined by Graetzer and Kelly in
@@ -6271,6 +6275,18 @@ class FinitePoset(UniqueRepresentation, Parent):
         5 distinct elements `x`, `y`, `a`, `b` and `c` such that
         `x \lessdot a,b,c \lessdot y` where `\lessdot` is the covering
         relation.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (a, b))`` so that the interval `[a, b]` has at
+          least five elements. If ``certificate=False`` return
+          ``True`` or ``False``.
 
         EXAMPLES::
 
@@ -6290,6 +6306,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: G.is_slender()
             True
 
+            sage: P = Posets.IntegerPartitions(6)
+            sage: P.is_slender(certificate=True)
+            (False, ((6,), (3, 2, 1)))
+
         TESTS::
 
             sage: Poset().is_slender()  # Test empty poset
@@ -6301,7 +6321,11 @@ class FinitePoset(UniqueRepresentation, Parent):
                 for c in self.upper_covers(y):
                     d[c] = d.get(c, 0) + 1
             if not all(y < 3 for y in itervalues(d)):
+                if certificate:
+                    return (False, (x, c))
                 return False
+        if certificate:
+            return (True, None)
         return True
 
     def is_eulerian(self, k=None, certificate=False):

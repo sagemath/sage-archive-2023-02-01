@@ -26,8 +26,8 @@ include "cysignals/signals.pxi"
 from sage.libs.flint.fmpz cimport fmpz_get_mpz, COEFF_IS_MPZ, COEFF_TO_PTR
 from sage.libs.flint.fmpz_mat cimport *
 
-from .paridecl cimport *
-from .stack cimport new_gen
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.stack cimport new_gen
 from .convert_gmp cimport _new_GEN_from_mpz_t
 
 

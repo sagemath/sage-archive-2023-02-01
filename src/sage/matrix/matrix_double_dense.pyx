@@ -595,7 +595,7 @@ cdef class Matrix_double_dense(Matrix_dense):
           the condition number, the Frobenius norm, which for a
           matrix `A=(a_{ij})` computes
 
-          .. math::
+          .. MATH::
 
                 \left(\sum_{i,j}\left\lvert{a_{i,j}}\right\rvert^2\right)^{1/2}
 
@@ -777,7 +777,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         - ``p = 'frob'``: the Frobenius norm, which for
           a matrix `A=(a_{ij})` computes
 
-          .. math::
+          .. MATH::
 
                 \left(\sum_{i,j}\left\lvert{a_{i,j}}\right\rvert^2\right)^{1/2}
 
@@ -2171,7 +2171,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         ``Q``, ``R`` -- a pair of matrices such that if `A`
         is the original matrix, then
 
-        .. math::
+        .. MATH::
 
           A = QR, \quad Q^\ast Q = I
 
@@ -3000,7 +3000,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         If ``self`` is the matrix `A`, then
 
-        .. math::
+        .. MATH::
 
             A = QT({\overline Q})^t
 
@@ -3283,7 +3283,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         For a matrix `A` the routine returns a lower triangular
         matrix `L` such that,
 
-        .. math::
+        .. MATH::
 
             A = LL^\ast
 
@@ -3438,7 +3438,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         is Hermitian (which reduces to symmetric in the real case),
         and for every nonzero vector `\vec{x}`,
 
-        .. math::
+        .. MATH::
 
             \vec{x}^\ast A \vec{x} > 0
 
@@ -3733,7 +3733,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         r"""
         Calculate the exponential of this matrix X, which is the matrix
 
-        .. math::
+        .. MATH::
 
            e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
 

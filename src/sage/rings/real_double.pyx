@@ -54,7 +54,7 @@ gsl_set_error_handler_off()
 
 import math, operator
 
-from sage.libs.pari.convert cimport new_gen_from_double
+from sage.libs.cypari2.convert cimport new_gen_from_double
 
 import sage.rings.integer
 import sage.rings.rational

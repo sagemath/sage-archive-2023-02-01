@@ -704,7 +704,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: P._to_monomial(54,10,2)
             (2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-        .. note::
+        .. NOTE::
 
             We do not check if the provided index/rank is within the allowed
             range. If it is not an infinite loop will occur.
@@ -1012,7 +1012,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R._macaulay_resultant_getS([29,21,8],[10,20,30])
             0
 
-            sage: R._macaulay_resultant_getS(range(0,9)+[10],range(1,11))
+            sage: R._macaulay_resultant_getS(list(range(9))+[10],list(range(1,11)))
             9
         """
         for i in xrange(len(dlist)):

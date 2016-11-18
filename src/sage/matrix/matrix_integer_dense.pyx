@@ -72,12 +72,12 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
 #########################################################
 # PARI C library
-from sage.libs.pari.gen cimport gen
+from sage.libs.cypari2.gen cimport gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz
 from sage.libs.pari.convert_flint cimport (_new_GEN_from_fmpz_mat_t,
            _new_GEN_from_fmpz_mat_t_rotate90, integer_matrix)
-from sage.libs.pari.stack cimport clear_stack
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.stack cimport clear_stack
+from sage.libs.cypari2.paridecl cimport *
 #########################################################
 
 include "cysignals/signals.pxi"
@@ -1263,7 +1263,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         -  ``algorithm`` - 'linbox' (default) 'generic'
 
 
-        .. note::
+        .. NOTE::
 
            Linbox charpoly disabled on 64-bit machines, since it hangs
            in many cases.
@@ -1734,7 +1734,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: m.echelon_form()
             []
 
-        .. note::
+        .. NOTE::
 
            If 'ntl' is chosen for a non square matrix this function
            raises a ValueError.
@@ -2012,7 +2012,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         -  ``matrix`` - a matrix over ZZ
 
 
-        .. note::
+        .. NOTE::
 
            The result is *not* cached.
 
@@ -2170,7 +2170,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         OUTPUT: list of integers
 
 
-        .. note::
+        .. NOTE::
 
            These are the invariants of the cokernel of *left* multiplication::
 
@@ -2580,7 +2580,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
             sage: A = a._ntl_()
 
-        .. note::
+        .. NOTE::
 
            NTL only knows dense matrices, so if you provide a sparse
            matrix NTL will allocate memory for every zero entry.
@@ -3489,7 +3489,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         -  ``proof`` - bool or None; if None use
            proof.linear_algebra(); only relevant for the padic algorithm.
 
-           .. note::
+           .. NOTE::
 
               It would be *VERY VERY* hard for det to fail even with
               proof=False.
@@ -3903,13 +3903,13 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         ring of `X` is the integers unless a denominator is needed
         in which case the base ring is the rational numbers.
 
-        .. note::
+        .. NOTE::
 
            In Sage one can also write ``A  B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 
-        .. note::
+        .. NOTE::
 
            This is currently only implemented when A is square.
 
@@ -4370,7 +4370,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         and put the matrix (1/d)\*X everywhere else, then you get the
         reduced row echelon form of self, without zero rows at the bottom.
 
-        .. note::
+        .. NOTE::
 
            IML is the actual underlying `p`-adic solver that we
            use.
@@ -5393,7 +5393,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: pari(a)
             [1, 2; 3, 4]
             sage: type(pari(a))
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
         """
         return integer_matrix(self._matrix, self._nrows, self._ncols, 0)
 

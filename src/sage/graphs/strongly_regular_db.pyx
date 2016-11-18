@@ -11,6 +11,7 @@ Using Andries Brouwer's `database of strongly regular graphs
 non-existence results. Note that some constructions are missing, and that some
 strongly regular graphs that exist in the database cannot be automatically built
 by Sage. Help us if you know any.
+An outline of the implementation can be found in [CP16]_.
 
 .. NOTE::
 
@@ -20,7 +21,7 @@ by Sage. Help us if you know any.
 
 REFERENCES:
 
-.. [BvL84] \A. Brouwer, J van Lint,
+.. [BvL84] \A. Brouwer, J. van Lint,
    Strongly regular graphs and partial geometries,
    Enumeration and design,
    (Waterloo, Ont., 1982) (1984): 85-122.
@@ -2540,7 +2541,7 @@ def SRG_630_85_20_10():
     from sage.graphs.generators.intersection import IntersectionGraph
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     hs = HoffmanSingletonGraph()
-    P = range(5)+range(30,35)          # a Petersen in hs
+    P = list(range(5)) + list(range(30, 35))          # a Petersen in hs
     mc = [0, 1, 5, 6, 12, 13, 16, 17, 22, 23, 29, 33, 39, 42, 47]
     assert(hs.subgraph(mc).is_regular(k=0)) # a maximum coclique
     assert(hs.subgraph(P).is_regular(k=3))
@@ -3036,6 +3037,7 @@ def _build_small_srg_database():
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     from sage.graphs.generators.smallgraphs import SchlaefliGraph
     from sage.graphs.generators.smallgraphs import HigmanSimsGraph
+    from sage.graphs.generators.smallgraphs import IoninKharaghani765Graph
     from sage.graphs.generators.smallgraphs import JankoKharaghaniGraph
     from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
     from sage.graphs.generators.smallgraphs import SuzukiGraph
@@ -3075,6 +3077,7 @@ def _build_small_srg_database():
         (416, 100,  36, 20): [SRG_416_100_36_20],
         (560, 208,  72, 80): [SRG_560_208_72_80],
         (630,  85,  20, 10): [SRG_630_85_20_10],
+        (765, 192,  48, 48): [IoninKharaghani765Graph],
         (784, 243,  82, 72): [MathonStronglyRegularGraph, 0],
         (784, 270, 98, 90):  [MathonStronglyRegularGraph, 1],
         (784, 297, 116, 110):[MathonStronglyRegularGraph, 2],

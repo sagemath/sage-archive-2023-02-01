@@ -89,6 +89,7 @@ AUTHORS:
 
 
 from sage.ext.fast_callable import fast_callable, Wrapper
+from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
 
 include "cysignals/memory.pxi"
 
@@ -563,7 +564,7 @@ cdef class FastDoubleFunc:
         L = [op_to_tuple(self.ops[i]) for i from 0 <= i < self.nops]
         return _unpickle_FastDoubleFunc, (self.nargs, self.max_height, L)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Two functions are considered equal if they represent the same
         exact sequence of operations.
@@ -581,21 +582,39 @@ cdef class FastDoubleFunc:
         cdef int c, i
         cdef FastDoubleFunc left, right
         try:
-            left, right = self, other
-            c = cmp((left.nargs, left.nops, left.max_height),
-                    (right.nargs, right.nops, right.max_height))
-            if c != 0:
-                return c
+            left = <FastDoubleFunc?>self
+            right = <FastDoubleFunc?>other
+
+            lx = left.nargs
+            rx = right.nargs
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
+            lx = left.nops
+            rx = right.nops
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
+            lx = left.max_height
+            rx = right.max_height
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
             for i from 0 <= i < self.nops:
-                if left.ops[i].type != right.ops[i].type:
-                    return cmp(left.ops[i].type, right.ops[i].type)
+                lx = left.ops[i].type
+                rx = right.ops[i].type
+                if lx != rx:
+                    return richcmp_not_equal(lx, rx, op)
+
             for i from 0 <= i < self.nops:
-                c = cmp(op_to_tuple(left.ops[i]), op_to_tuple(right.ops[i]))
-                if c != 0:
-                    return c
-            return c
+                lx = op_to_tuple(left.ops[i])
+                rx = op_to_tuple(right.ops[i])
+                if lx != rx:
+                    return richcmp_not_equal(lx, rx, op)
+
+            return rich_to_bool(op, 0)
         except TypeError:
-            return cmp(type(self), type(other))
+            return NotImplemented
 
     def __call__(FastDoubleFunc self, *args):
         """

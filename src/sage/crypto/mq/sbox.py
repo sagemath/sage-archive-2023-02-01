@@ -919,7 +919,7 @@ class SBox(SageObject):
 
         S-Boxes with m!=n also work:
 
-            sage: o = range(8) + range(8)
+            sage: o = list(range(8)) + list(range(8))
             sage: shuffle(o)
             sage: S = mq.SBox(o)
             sage: S.is_permutation()

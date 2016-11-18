@@ -178,20 +178,10 @@ def _find(l, k):
         [1, 1]
 
     """
-    pos=[]
-    found = False
-    i=0
-    while i<len(l) and found!=True:
-        j=0
-        while j<len(l[i]) and found!=True:
-            if (k == l[i][j]):
-                pos.append(i)
-                pos.append(j)
-                found = True
-            else:
-                j+=1
-        i+=1
-    return pos
+    for i,lst in enumerate(l):
+        if k in lst:
+            return [i, lst.index(k)]
+    raise ValueError("element {} not found".format(k))
 
 def _clean(l):
     r"""
@@ -213,17 +203,7 @@ def _clean(l):
         [[1, 2], [2, 1, 7], [1]]
 
     """
-    cl = False
-    k=0
-    aux_l = copy.deepcopy(l)
-    while k < len(aux_l):
-        if len(aux_l[k])==0:
-            del aux_l[k]
-            k=0
-        else:
-            k += 1
-
-    return aux_l
+    return [copy(elt) for elt in l if len(elt)>0]
 
 class RibbonGraph(SageObject):
     r"""
@@ -312,10 +292,8 @@ class RibbonGraph(SageObject):
         #of valency 1.
         repr_sigma = [list(x) for x in self.sigma.cycle_tuples()]
         repr_rho = [list(x) for x in self.rho.cycle_tuples()]
-        darts_rho = [j for i in range(len(repr_rho)) 
-                     for j in repr_rho[i]]
-        darts_sigma = [j for i in range(len(repr_sigma)) 
-                       for j in repr_sigma[i]]
+        darts_rho = flatten(repr_rho)
+        darts_sigma = flatten(repr_sigma)
         val_one = [x for x in darts_rho if x not in darts_sigma]
         for i in range(len(val_one)):
             repr_sigma += [[val_one[i]]]

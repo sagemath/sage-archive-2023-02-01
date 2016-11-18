@@ -394,7 +394,7 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         (-x + 1)^-1 * (-y + 1)^-1 * (-x*z^2 + 1)^-1 * (-y*z + 1)^-1
     """
     if op != operator.ge:
-        raise NotImplementedError('TODO')
+        raise NotImplementedError('At the moment, only Omega_ge is implemented.')
 
     if denominator is None:
         numerator = expression.numerator()
@@ -411,7 +411,8 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         if not isinstance(denominator, Factorization):
             denominator = factor(denominator)
         if not denominator.is_integral():
-            raise ValueError('TODO')
+            raise ValueError('Factorization {} of the denominator '
+                             'contains negative exponents.'.format(denominator))
         numerator *= denominator.unit()
         factors_denominator = tuple(factor
                                     for factor, exponent in denominator

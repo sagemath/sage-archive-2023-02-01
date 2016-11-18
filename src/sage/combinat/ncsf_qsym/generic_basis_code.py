@@ -1019,7 +1019,7 @@ class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a
 
         EXAMPLES:
 
-        We construct explicitly an algbera morphism::
+        We construct explicitly an algebra morphism::
 
             sage: from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)

@@ -147,7 +147,7 @@ def Omega_factors_denominator(n, m):
                  for gx in x for gy in y)
 
 
-def Omega_higher(a, z):
+def Omega_higher(a, exponents):
     r"""
     EXAMPLES::
 
@@ -173,22 +173,21 @@ def Omega_higher(a, z):
         sage: Omega_higher(0, [2, 1, -1])
         (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1, (-z0 + 1, -z1 + 1, -z0*z2^2 + 1, -z1*z2 + 1))
     """
-    if not z or any(zz == 0 for zz in z):
+    if not exponents or any(e == 0 for e in exponents):
         raise NotImplementedError
 
-    x = tuple(zz for zz in z if zz > 0)
-    y = tuple(-zz for zz in z if zz < 0)
-    xy = x + y
+    x = tuple(e for e in exponents if e > 0)
+    y = tuple(-e for e in exponents if e < 0)
     n = sum(x)
     m = sum(y)
 
-    exponents = sorted(set(zz for zz in xy) - set([1]))
+    xy = sorted(set(x + y) - set([1]))
     B = QQ.extension(
-        list(cyclotomic_polynomial(r) for r in exponents),
-        tuple('rho{}'.format(i) for i in range(len(exponents))))
+        list(cyclotomic_polynomial(r) for r in xy),
+        tuple('rho{}'.format(i) for i in range(len(xy))))
     L = LaurentPolynomialRing(B, ', '.join('z{}'.format(nn)
-                                           for nn in range(len(z))))
-    powers = dict(zip(exponents, iter(L(g) for g in B.gens())))
+                                           for nn in range(len(exponents))))
+    powers = dict(zip(xy, iter(L(g) for g in B.gens())))
     powers[2] = L(-1)
     powers[1] = L(1)
 
@@ -211,18 +210,18 @@ def Omega_higher(a, z):
     Z = L.change_ring(QQ)
 
     def de_power(expression):
-        for zz, var in zip(z, L.gens()):
-            if abs(zz) == 1:
+        for e, var in zip(exponents, L.gens()):
+            if abs(e) == 1:
                 continue
-            expression = subs_power(expression, var, abs(zz))
+            expression = subs_power(expression, var, abs(e))
         return Z(expression)
 
     xy_var = _laurent_polynomial_ring_(n, m).gens()
     x_var = iter(xy_var[:n])
     y_var = iter(xy_var[n:])
-    rules = {next(x_var) if zz > 0 else next(y_var):
-             powers[abs(zz)]**j * var
-             for zz, var in zip(z, L.gens()) for j in range(abs(zz))}
+    rules = {next(x_var) if e > 0 else next(y_var):
+             powers[abs(e)]**j * var
+             for e, var in zip(exponents, L.gens()) for j in range(abs(e))}
     factors_denominator = tuple(de_power(prod(f.subs(rules) for f in factors))
                                 for factors in Omega_factors_denominator(x, y))
 

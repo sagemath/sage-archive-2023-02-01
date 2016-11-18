@@ -2763,7 +2763,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
 
     REFERENCE:
 
-    .. [Mu07] M. Muzychuk.
+    .. [Mu07] \M. Muzychuk.
        A generalization of Wallis-Fon-Der-Flaass construction of strongly regular graphs.
        J. Algebraic Combin., 25(2):169–187, 2007.
     """

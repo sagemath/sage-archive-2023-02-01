@@ -39,6 +39,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.realizations import RealizationsCategory
+from sage.structure.unique_representation import UniqueRepresentation
 
 class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
@@ -988,10 +989,15 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             return self.maximal_degree()
 
 
-class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
+class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a better name
     """
     A class for algebra morphism defined on a free algebra from the image of the generators
     """
+
+    # set a metaclass that inherits from the metaclass of UniqueRepresentation and ModuleMorphismByLinearity
+    from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
+
     def __init__(self, domain, on_generators, position = 0, codomain = None, category = None, anti = False):
         """
         Given a map on the multiplicative basis of a free algebra, this method
@@ -1081,6 +1087,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
         self._anti = anti
         self._on_generators = on_generators
         ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, position = position, category = category)
+        UniqueRepresentation.__init__(self)
 
     def _on_basis(self, c):
         r"""
@@ -1109,6 +1116,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
         if self._anti:
             c = reversed(c)
         return self.codomain().prod(self._on_generators(i) for i in c)
+
 
 class GradedModulesWithInternalProduct(Category_over_base_ring):
     r"""

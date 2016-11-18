@@ -1,5 +1,6 @@
 /** @file mpoly-giac.cpp
  * 
+ *  GiNaC Copyright (C) 1999-2008 Johannes Gutenberg University Mainz, Germany
  *  Copyright (C) 2016  Ralf Stephan
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -40,6 +41,7 @@
 #include "power.h"
 #include "operators.h"
 #include "pseries.h"
+#include "relational.h"
 #include "symbol.h"
 #include "function.h"
 #include "utils.h"
@@ -207,6 +209,171 @@ ex gcdpoly(const ex &a, const ex &b, ex *ca=nullptr, ex *cb=nullptr, bool check_
                 return b;
         if (b.is_zero())
                 return a;
+
+        // GCD of numerics
+	if (is_exactly_a<numeric>(a) && is_exactly_a<numeric>(b)) {
+		numeric g = gcd(ex_to<numeric>(a), ex_to<numeric>(b));
+		if ((ca != nullptr) || (cb != nullptr)) {
+			if (g.is_zero()) {
+				if (ca != nullptr)
+					*ca = _ex0;
+				if (cb != nullptr)
+					*cb = _ex0;
+			} else {
+				if (ca != nullptr)
+					*ca = ex_to<numeric>(a) / g;
+				if (cb != nullptr)
+					*cb = ex_to<numeric>(b) / g;
+			}
+		}
+		return g;
+	}
+
+	// Partially factored cases (to avoid expanding large expressions)
+	if (is_exactly_a<mul>(a)) {
+		if (is_exactly_a<mul>(b) && b.nops() > a.nops())
+			goto factored_b;
+factored_a:
+		size_t num = a.nops();
+		exvector g; g.reserve(num);
+		exvector acc_ca; acc_ca.reserve(num);
+		ex part_b = b;
+		for (size_t i=0; i<num; i++) {
+			ex part_ca, part_cb;
+			g.push_back(gcdpoly(a.op(i), part_b, &part_ca, &part_cb, check_args));
+			acc_ca.push_back(part_ca);
+			part_b = part_cb;
+		}
+		if (ca != nullptr)
+			*ca = (new mul(acc_ca))->setflag(status_flags::dynallocated);
+		if (cb != nullptr)
+			*cb = part_b;
+		return (new mul(g))->setflag(status_flags::dynallocated);
+	} else if (is_exactly_a<mul>(b)) {
+		if (is_exactly_a<mul>(a) && a.nops() > b.nops())
+			goto factored_a;
+factored_b:
+		size_t num = b.nops();
+		exvector g; g.reserve(num);
+		exvector acc_cb; acc_cb.reserve(num);
+		ex part_a = a;
+		for (size_t i=0; i<num; i++) {
+			ex part_ca, part_cb;
+			g.push_back(gcdpoly(part_a, b.op(i), &part_ca, &part_cb, check_args));
+			acc_cb.push_back(part_cb);
+			part_a = part_ca;
+		}
+		if (ca != nullptr)
+			*ca = part_a;
+		if (cb != nullptr)
+			*cb = (new mul(acc_cb))->setflag(status_flags::dynallocated);
+		return (new mul(g))->setflag(status_flags::dynallocated);
+	}
+
+	// Input polynomials of the form poly^n are sometimes also trivial
+	if (is_exactly_a<power>(a)) {
+		ex p = a.op(0);
+		const ex& exp_a = a.op(1);
+		if (is_exactly_a<power>(b)) {
+			ex pb = b.op(0);
+			const ex& exp_b = b.op(1);
+			if (p.is_equal(pb)) {
+				// a = p^n, b = p^m, gcd = p^min(n, m)
+				if (exp_a < exp_b) {
+					if (ca != nullptr)
+						*ca = _ex1;
+					if (cb != nullptr)
+						*cb = power(p, exp_b - exp_a);
+					return power(p, exp_a);
+				} else {
+					if (ca != nullptr)
+						*ca = power(p, exp_a - exp_b);
+					if (cb != nullptr)
+						*cb = _ex1;
+					return power(p, exp_b);
+				}
+			} else {
+				ex p_co, pb_co;
+				ex p_gcd = gcdpoly(p, pb, &p_co, &pb_co, check_args);
+				if (p_gcd.is_equal(_ex1)) {
+					// a(x) = p(x)^n, b(x) = p_b(x)^m, gcd (p, p_b) = 1 ==>
+					// gcd(a,b) = 1
+					if (ca != nullptr)
+						*ca = a;
+					if (cb != nullptr)
+						*cb = b;
+					return _ex1;
+					// XXX: do I need to check for p_gcd = -1?
+				} else {
+					// there are common factors:
+					// a(x) = g(x)^n A(x)^n, b(x) = g(x)^m B(x)^m ==>
+					// gcd(a, b) = g(x)^n gcd(A(x)^n, g(x)^(n-m) B(x)^m
+					if (exp_a < exp_b) {
+						return power(p_gcd, exp_a)*
+							gcdpoly(power(p_co, exp_a), power(p_gcd, exp_b-exp_a)*power(pb_co, exp_b), ca, cb, false);
+					} else {
+						return power(p_gcd, exp_b)*
+							gcdpoly(power(p_gcd, exp_a - exp_b)*power(p_co, exp_a), power(pb_co, exp_b), ca, cb, false);
+					}
+				} // p_gcd.is_equal(_ex1)
+			} // p.is_equal(pb)
+
+		} else {
+			if (p.is_equal(b)) {
+				// a = p^n, b = p, gcd = p
+				if (ca != nullptr)
+					*ca = power(p, a.op(1) - 1);
+				if (cb != nullptr)
+					*cb = _ex1;
+				return p;
+			} 
+
+			ex p_co, bpart_co;
+			ex p_gcd = gcdpoly(p, b, &p_co, &bpart_co, false);
+
+			if (p_gcd.is_equal(_ex1)) {
+				// a(x) = p(x)^n, gcd(p, b) = 1 ==> gcd(a, b) = 1
+				if (ca != nullptr)
+					*ca = a;
+				if (cb != nullptr)
+					*cb = b;
+				return _ex1;
+			} else {
+				// a(x) = g(x)^n A(x)^n, b(x) = g(x) B(x) ==> gcd(a, b) = g(x) gcd(g(x)^(n-1) A(x)^n, B(x))
+				return p_gcd*gcdpoly(power(p_gcd, exp_a-1)*power(p_co, exp_a), bpart_co, ca, cb, false);
+			}
+		} // is_exactly_a<power>(b)
+
+	} else if (is_exactly_a<power>(b)) {
+		ex p = b.op(0);
+		if (p.is_equal(a)) {
+			// a = p, b = p^n, gcd = p
+			if (ca != nullptr)
+				*ca = _ex1;
+			if (cb != nullptr)
+				*cb = power(p, b.op(1) - 1);
+			return p;
+		}
+
+		ex p_co, apart_co;
+		const ex& exp_b(b.op(1));
+		ex p_gcd = gcdpoly(a, p, &apart_co, &p_co, false);
+		if (p_gcd.is_equal(_ex1)) {
+			// b=p(x)^n, gcd(a, p) = 1 ==> gcd(a, b) == 1
+			if (ca != nullptr)
+				*ca = a;
+			if (cb != nullptr)
+				*cb = b;
+			return _ex1;
+		} else {
+			// there are common factors:
+			// a(x) = g(x) A(x), b(x) = g(x)^n B(x)^n ==> gcd = g(x) gcd(g(x)^(n-1) A(x)^n, B(x))
+
+			return p_gcd*gcdpoly(apart_co, power(p_gcd, exp_b-1)*power(p_co, exp_b), ca, cb, false);
+		} // p_gcd.is_equal(_ex1)
+	}
+
+
         symbolset s1 = a.symbols();
         const symbolset& s2 = b.symbols();
         s1.insert(s2.begin(), s2.end());

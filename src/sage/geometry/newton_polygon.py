@@ -737,9 +737,10 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
                     raise TypeError("argument must be a list of coordinates or a list of (rational) slopes")
                 x += 1
                 y += slope
-                vertices.append((x,y))
+                vertices.append((x, y))
         else:
             vertices = [(x, y) for (x, y) in arg if y is not Infinity]
+
         if len(vertices) == 0:
             polyhedron = Polyhedron(base_ring=self.base_ring(), ambient_dim=2)
         else:

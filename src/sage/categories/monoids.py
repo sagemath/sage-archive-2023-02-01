@@ -11,6 +11,7 @@ Monoids
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
@@ -299,7 +300,7 @@ class Monoids(CategoryWithAxiom):
             if not n:
                 return self.parent().one()
             result = self
-            for i in range(n-1):
+            for i in range(n - 1):
                 result *= self
             return result
 
@@ -322,7 +323,7 @@ class Monoids(CategoryWithAxiom):
                 return []
             x = self.parent().one()
             l = [x]
-            for i in xrange(n - 1):
+            for i in range(n - 1):
                 x = x * self
                 l.append(x)
             return l
@@ -525,14 +526,14 @@ class Monoids(CategoryWithAxiom):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of monoids constructed as cartesian products of monoids.
+        The category of monoids constructed as Cartesian products of monoids.
 
         This construction gives the direct product of monoids. See
         :wikipedia:`Direct_product` for more information.
         """
         def extra_super_categories(self):
             """
-            A cartesian product of monoids is endowed with a natural
+            A Cartesian product of monoids is endowed with a natural
             group structure.
 
             EXAMPLES::
@@ -568,7 +569,7 @@ class Monoids(CategoryWithAxiom):
                     sage: N = Monoids.free(ZZ)
                     sage: C = cartesian_product([M, N])
                     sage: C.monoid_generators()
-                    Lazy family (gen(i))_{i in The cartesian product of (...)}
+                    Lazy family (gen(i))_{i in The Cartesian product of (...)}
                 """
                 F = self.cartesian_factors()
                 ids = tuple(M.one() for M in F)

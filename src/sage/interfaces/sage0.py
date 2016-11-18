@@ -4,6 +4,7 @@ Interface to Sage
 This is an expect interface to *another* copy of the Sage
 interpreter.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -15,16 +16,18 @@ interpreter.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import cPickle
+from six.moves import cPickle
 import os
+import re
 
-from expect import Expect, ExpectElement, FunctionElement
+from .expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
 
+from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sage_object import dumps, load
 
 
-class Sage(Expect):
+class Sage(ExtraTabCompletion, Expect):
     r"""
     Expect interface to the Sage interpreter itself.
 
@@ -142,14 +145,22 @@ class Sage(Expect):
             command = "python -u"
             prompt = ">>>"
             if init_code is None:
-                init_code = ['from sage.all import *', 'import cPickle']
+                init_code = ['from sage.all import *',
+                             'from six.moves import cPickle']
         else:
-            # Disable the IPython history (implemented as SQLite database)
-            # to avoid problems with locking.
-            command = "sage-ipython --HistoryManager.hist_file=:memory: --colors=NoColor"
-            prompt = "sage: "
+            command = ' '.join([
+                'sage-ipython',
+                # Disable the IPython history (implemented as SQLite database)
+                # to avoid problems with locking.
+                '--HistoryManager.hist_file=:memory:',
+                # Disable everything that prints ANSI codes
+                '--colors=NoColor',
+                '--no-term-title',
+                '--simple-prompt',
+            ])
+            prompt = re.compile('In \[\d+\]: ')
             if init_code is None:
-                init_code = ['import cPickle']
+                init_code = ['from six.moves import cPickle']
 
         Expect.__init__(self,
                         name = 'sage',
@@ -184,11 +195,11 @@ class Sage(Expect):
             s = s[i+1:-1]
         return float(s)
 
-    def trait_names(self):
+    def _tab_completion(self):
         """
         EXAMPLES::
 
-            sage: t = sage0.trait_names()
+            sage: t = sage0._tab_completion()
             sage: len(t) > 100
             True
             sage: 'gcd' in t
@@ -315,7 +326,7 @@ class Sage(Expect):
         Clear the variable named var.
 
         Note that the exact format of the NameError for a cleared variable
-        is slightly platform dependent, see trac #10539.
+        is slightly platform dependent, see :trac:`10539`.
 
         EXAMPLES::
 
@@ -345,7 +356,7 @@ class Sage(Expect):
 
             sage: sage0.console() #not tested
             ----------------------------------------------------------------------
-            | SageMath Version ..., Release Date: ...                            |
+            | SageMath version ..., Release Date: ...                            |
             | Type notebook() for the GUI, and license() for information.        |
             ----------------------------------------------------------------------
             ...
@@ -357,7 +368,7 @@ class Sage(Expect):
         EXAMPLES::
 
             sage: sage0.version()
-            'SageMath Version ..., Release Date: ...'
+            'SageMath version ..., Release Date: ...'
             sage: sage0.version() == version()
             True
         """
@@ -524,11 +535,14 @@ def sage0_console():
 
         sage: sage0_console() #not tested
         ----------------------------------------------------------------------
-        | SageMath Version ..., Release Date: ...                            |
+        | SageMath version ..., Release Date: ...                            |
         | Type notebook() for the GUI, and license() for information.        |
         ----------------------------------------------------------------------
         ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%sage0 magics instead.')
     os.system('sage')
 
 def sage0_version():

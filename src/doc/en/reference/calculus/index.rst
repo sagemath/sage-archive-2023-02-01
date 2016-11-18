@@ -11,9 +11,11 @@ Symbolic Calculus
    sage/calculus/calculus
    sage/symbolic/units
    sage/symbolic/ring
+   sage/symbolic/subring
    sage/symbolic/function
    sage/symbolic/function_factory
    sage/calculus/functional
+   sage/symbolic/series
    sage/symbolic/integration/integral
    sage/symbolic/integration/external
    sage/calculus/test_sympy
@@ -41,6 +43,6 @@ Symbolic Calculus
    sage/symbolic/benchmark
    sage/symbolic/random_tests
 
-   sage/symbolic/pynac
+   sage/libs/pynac/pynac
 
 .. include:: ../footer.txt

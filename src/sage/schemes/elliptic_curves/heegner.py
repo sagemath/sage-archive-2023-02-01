@@ -91,7 +91,8 @@ The above is consistent with the following analytic computation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.misc.all import verbose, prod
 from sage.misc.cachefunc import cached_method
@@ -100,11 +101,12 @@ from sage.structure.sage_object import SageObject
 
 import sage.rings.number_field.number_field_element
 import sage.rings.number_field.number_field as number_field
-import sage.rings.arith as arith
 import sage.rings.all as rings
 from sage.rings.all import (ZZ, GF, QQ, CDF,
                             Integers, RealField, ComplexField, QuadraticField,
-                            gcd, lcm, is_fundamental_discriminant)
+                            is_fundamental_discriminant)
+from sage.arith.all import (gcd, xgcd, lcm, prime_divisors, factorial,
+        binomial)
 from sage.quadratic_forms.all import (BinaryQF,
                                       BinaryQF_reduced_representatives)
 from sage.matrix.all import MatrixSpace, matrix
@@ -315,7 +317,7 @@ class RingClassField(SageObject):
             sage: E.heegner_point(-7).ring_class_field().ramified_primes()
             [7]
         """
-        return arith.prime_divisors(self.__D * self.__c)
+        return prime_divisors(self.__D * self.__c)
 
     def _repr_(self):
         """
@@ -357,8 +359,6 @@ class RingClassField(SageObject):
             sage: E.heegner_point(-20,11).ring_class_field().degree_over_K()
             24
         """
-        D, c = self.__D, self.__c
-
         K = self.quadratic_field()
 
         # Multiply class number by relative degree of the Hilbert class field H over K.
@@ -1002,7 +1002,7 @@ class GaloisGroup(SageObject):
         w = A.coordinate_vector(alpha.vector())
         w *= w.denominator()
         w = w.change_ring(ZZ)
-        n = arith.gcd(w)
+        n = gcd(w)
         w /= n
         c = P1.N()
         w = P1.normalize(ZZ(w[0])%c, ZZ(w[1])%c)
@@ -2717,7 +2717,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
              Q = N
         if Q == 1:
             return self  # trivial special case
-        g, u, v = arith.xgcd(Q*Q, -N)
+        g, u, v = xgcd(Q*Q, -N)
         if g != Q:
             raise ValueError("Q must divide N and be coprime to N/Q")
         tau = self.tau()
@@ -3169,8 +3169,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             8.4...e-31 + 6.0...e-31*I
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
-            sage: P.numerical_approx()
-            (-6.6...e-16 + 1.41421356237310*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
+            sage: P.numerical_approx()  # abs tol 1e-15
+            (-3.15940603400359e-16 + 1.41421356237309*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
 
         A rank 2 curve, where all Heegner points of conductor 1 are 0::
 
@@ -3207,10 +3207,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         tau = ComplexField(prec)(self.tau())
         E = self.curve()
         return E.modular_parametrization()(tau)
-
-    #This line is added to resolve ticket 9032, because both top-level function
-    #and method call _numerical_approx instead of numerical_approx
-    _numerical_approx=numerical_approx
 
     def tau(self):
         r"""
@@ -3284,7 +3280,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: P.x_poly_exact(300)
             x^6 + 1108754853727159228/72351048803252547*x^5 + 88875505551184048168/1953478317687818769*x^4 - 2216200271166098662132/3255797196146364615*x^3 + 14941627504168839449851/9767391588439093845*x^2 - 3456417460183342963918/3255797196146364615*x + 1306572835857500500459/5426328660243941025
         """
-        D, c = self.discriminant(), self.conductor()
         n = self.ring_class_field().degree_over_K()
 
         if algorithm == 'lll':
@@ -3465,7 +3460,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E = EllipticCurve('77a')
             sage: y = E.heegner_point(-52,5); y
             Heegner point of discriminant -52 and conductor 5 on elliptic curve of conductor 77
-            sage: print [z.quadratic_form() for z in y.conjugates_over_K()]
+            sage: print([z.quadratic_form() for z in y.conjugates_over_K()])
             [77*x^2 + 52*x*y + 13*y^2, 154*x^2 + 206*x*y + 71*y^2, 539*x^2 + 822*x*y + 314*y^2, 847*x^2 + 1284*x*y + 487*y^2, 1001*x^2 + 52*x*y + y^2, 1078*x^2 + 822*x*y + 157*y^2, 1309*x^2 + 360*x*y + 25*y^2, 1309*x^2 + 2054*x*y + 806*y^2, 1463*x^2 + 976*x*y + 163*y^2, 2233*x^2 + 2824*x*y + 893*y^2, 2387*x^2 + 2054*x*y + 442*y^2, 3619*x^2 + 3286*x*y + 746*y^2]
             sage: y.quadratic_form()
             77*x^2 + 52*x*y + 13*y^2
@@ -3810,7 +3805,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             True
         """
         N = self.__E.conductor()
-        g, u, v = arith.xgcd(Q*Q, -N)
+        g, u, v = xgcd(Q*Q, -N)
         assert g == Q
         tau = self._qf_to_tau(f)
         tau2 = ((u*Q*tau + v) / (N*tau + Q))
@@ -4144,15 +4139,14 @@ class KolyvaginPoint(HeegnerPoint):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a1'); P = E.kolyvagin_point(-67)
-            sage: PP = P.numerical_approx(); PP
-            (6.00000000000000 ... : -15.0000000000000 ... : 1.00000000000000)
+            sage: PP = P.numerical_approx()
             sage: [c.real() for c in PP]
             [6.00000000000000, -15.0000000000000, 1.00000000000000]
             sage: all([c.imag().abs() < 1e-14 for c in PP])
             True
             sage: P.trace_to_real_numerical()
             (1.61355529131986 : -2.18446840788880 : 1.00000000000000)
-            sage: P.trace_to_real_numerical(prec=80)
+            sage: P.trace_to_real_numerical(prec=80)  # abs tol 1e-21
             (1.6135552913198573127230 : -2.1844684078888023289187 : 1.0000000000000000000000)
 
         """
@@ -4376,7 +4370,7 @@ class KolyvaginCohomologyClass(SageObject):
         if n is None:
             c = kolyvagin_point.conductor()
             E = kolyvagin_point.curve()
-            n = arith.GCD([(p+1).gcd(E.ap(p)) for p in c.prime_divisors()])
+            n = gcd([(p+1).gcd(E.ap(p)) for p in c.prime_divisors()])
 
         if not kolyvagin_point.satisfies_kolyvagin_hypothesis(n):
             raise ValueError("Kolyvagin point does not satisfy Kolyvagin hypothesis for %s"%n)
@@ -4604,7 +4598,7 @@ class HeegnerQuatAlg(SageObject):
             [-8, -39, -43, -51, -79, -95]
         """
         D = ZZ(D); c = ZZ(c)
-        if arith.gcd(c*D, self.__level*self.__ell) != 1 or arith.gcd(c,D) != 1:
+        if gcd(c*D, self.__level*self.__ell) != 1 or gcd(c,D) != 1:
             return False
         if not satisfies_weak_heegner_hypothesis(self.__level, D):
             return False
@@ -4828,7 +4822,7 @@ class HeegnerQuatAlg(SageObject):
             a = Q.theta_series(n+1)[n]
             if a > 0:
                 reps = Q.representation_vector_list(n+1)[-1]
-                k = len([r for r in reps if arith.gcd(r) == 1])
+                k = len([r for r in reps if gcd(r) == 1])
                 assert k%2 == 0
                 v[i] += k/2
         return B(v)
@@ -5572,7 +5566,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
         sage: kolyvagin_reduction_data(EllipticCurve('2350g1'),5, first_only=False)
         (19, 239, -311, 19, 6480, 85680)
     """
-    from ell_generic import is_EllipticCurve
+    from .ell_generic import is_EllipticCurve
     if not is_EllipticCurve(E):
         raise TypeError("E must be an elliptic curve")
 
@@ -6154,7 +6148,7 @@ def make_monic(f):
     n = f.degree()
     f = f / f.leading_coefficient()
     # find lcm of denominators
-    d = arith.lcm([b.denominator() for b in f.list() if b])
+    d = lcm([b.denominator() for b in f.list() if b])
     x = f.variables()[0]
     g = (d**n) * f(x/d)
     return g, d
@@ -6254,8 +6248,8 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         sage: E = EllipticCurve('37a1')
         sage: P = E.kolyvagin_point(-67); P
         Kolyvagin point of discriminant -67 on elliptic curve of conductor 37
-        sage: P.numerical_approx() # imaginary parts approx. 0
-        (6.00000000000000 ... : -15.0000000000000 ... : 1.00000000000000)
+        sage: P.numerical_approx()
+        (6.00000000000000 : -15.0000000000000 : 1.00000000000000)
         sage: P.index()
         6
         sage: g = E((0,-1,1)) # a generator
@@ -6287,7 +6281,9 @@ def ell_heegner_discriminants(self, bound):
         sage: E.heegner_discriminants(30)                     # indirect doctest
         [-7, -8, -19, -24]
     """
-    return [-D for D in xrange(1,bound) if self.satisfies_heegner_hypothesis(-D)]
+    return [-D for D in range(1, bound)
+            if self.satisfies_heegner_hypothesis(-D)]
+
 
 def ell_heegner_discriminants_list(self, n):
     """
@@ -6547,7 +6543,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     c = h/(min_p**2) + B
     verbose("Search would have to be up to height = %s"%c)
 
-    from ell_rational_field import _MAX_HEIGHT
+    from .ell_rational_field import _MAX_HEIGHT
 
     IR = rings.RealIntervalField(20)  # todo: 20?
 
@@ -6668,7 +6664,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
         sage: E.heegner_index_bound()
         ([2], -7, 2)
     """
-    from ell_rational_field import _MAX_HEIGHT
+    from .ell_rational_field import _MAX_HEIGHT
     if max_height is None:
         max_height = _MAX_HEIGHT
     else:
@@ -6731,7 +6727,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
         if ind.absolute_diameter() < 1:
             t, i = ind.is_int()
             if t:   # unique integer in interval, so we've found exact index squared.
-                return arith.prime_divisors(i), D, i
+                return prime_divisors(i), D, i
         raise RuntimeError("Unable to compute bound for e=%s, D=%s (try increasing precision)"%(self, D))
 
     # First try a quick search, in case we get lucky and find
@@ -6969,7 +6965,7 @@ def heegner_sha_an(self, D, prec=53):
     #    You can think this through or just type something like
     #      f = function('f',x); g = function('g',x); diff(f*g,6)
     #    into Sage to be convinced.
-    L = arith.binomial(rE + rF, rE) * (L_E * L_F / (arith.factorial(rE+rF)) )
+    L = binomial(rE + rF, rE) * (L_E * L_F / factorial(rE+rF) )
 
     #  - ||omega||^2 -- the period.  It is twice the volume of the
     #    period lattice.  See the following paper for a derivation:
@@ -6979,7 +6975,7 @@ def heegner_sha_an(self, D, prec=53):
     omega = 2 * abs(E.period_lattice().basis_matrix().det())
 
     #  - The regulator.
-    #    First we compute the regualtor of the subgroup E(QQ) + E^D(QQ)
+    #    First we compute the regulator of the subgroup E(QQ) + E^D(QQ)
     #    of E(K).   The factor of 2 in the regulator
     #    accounts for the fact that the height over K is twice the
     #    height over QQ, i.e., for P in E(QQ) we have h_K(P,P) =

@@ -1,8 +1,4 @@
-from sage.ext.interrupt.interrupt cimport *
+from sage.misc.superseded import deprecation
+deprecation(20002, '''import "cysignals/signals.pxi" instead of "sage/ext/interrupt.pxi"''')
 
-cdef extern from 'sage/ext/interrupt/pxi.h':
-    int import_sage__ext__interrupt__interrupt() except -1
-
-# This *must* be done for every module using interrupt functions
-# otherwise you will get segmentation faults.
-import_sage__ext__interrupt__interrupt()
+include "cysignals/signals.pxi"

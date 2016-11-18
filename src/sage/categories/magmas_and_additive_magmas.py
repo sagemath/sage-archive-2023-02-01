@@ -135,7 +135,7 @@ class MagmasAndAdditiveMagmas(Category_singleton):
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             r"""
-            Implement the fact that this structure is stable under cartesian
+            Implement the fact that this structure is stable under Cartesian
             products.
 
             TESTS::

@@ -5,6 +5,7 @@ Space of modular symbols (base class)
 All the spaces of modular symbols derive from this class. This class is an
 abstract base class.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -22,23 +23,23 @@ abstract base class.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
 import sage.misc.all as misc
 import sage.modular.hecke.all as hecke
-import sage.rings.arith as arith
+import sage.arith.all as arith
 import sage.rings.fast_arith as fast_arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, infinity, Zmod
 from sage.rings.number_field.number_field_base import is_NumberField
 from   sage.structure.all import Sequence, SageObject
-import sage.modular.modsym.ambient
+
 
 from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound given a character
 from sage.modular.modsym.element import ModularSymbolsElement
 
-import hecke_operator
+from . import hecke_operator
 
 from sage.misc.cachefunc import cached_method
 
@@ -379,7 +380,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: ModularSymbols(21,4).cuspidal_submodule().is_ambient()
             False
         """
-        return isinstance(self, sage.modular.modsym.ambient.ModularSymbolsAmbient)
+        from sage.modular.modsym.ambient import ModularSymbolsAmbient
+        return isinstance(self, ModularSymbolsAmbient)
 
     def is_cuspidal(self):
         """
@@ -975,7 +977,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
                 return [X]
             else:
                 # X is a list of elements of a poly quotient ring
-                return [[X[i][j] for i in xrange(prec)] for j in xrange(d)]
+                return [[X[i][j] for i in range(prec)] for j in range(d)]
 
         if self.sign() == 0:
             X = self.plus_submodule(compute_dual=True)
@@ -1038,12 +1040,12 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             X = f.padded_list(prec)
             d = A.dimension()
             if d == 1:
-                return [[X[i][j] for i in xrange(prec)] for j in xrange(n)]
+                return [[X[i][j] for i in range(prec)] for j in range(n)]
             else:
                 # This looks like it might be really slow -- though
                 # perhaps it's nothing compared to the time taken by
                 # whatever computed this in the first place.
-                return [[(X[i].list())[j][k] for i in xrange(prec)] for j in xrange(d) for k in range(n)]
+                return [[(X[i].list())[j][k] for i in range(prec)] for j in range(d) for k in range(n)]
         if self.sign() == 0:
             X = self.plus_submodule(compute_dual=True)
         else:
@@ -1144,7 +1146,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: eps = f.q_eigenform_character('a'); eps
             Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -a - 1
             sage: parent(eps)
-            Group of Dirichlet characters of modulus 13 over Number Field in a with defining polynomial x^2 + 3*x + 3
+            Group of Dirichlet characters modulo 13 with values in Number Field in a with defining polynomial x^2 + 3*x + 3
             sage: eps(3)
             a + 1
 
@@ -1251,7 +1253,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             # should we perhaps check at this point if self is new?
             f = self.q_eigenform(prec, names)
             R = PowerSeriesRing(self.base_ring(), 'q')
-            B = [R([f[i][j] for i in xrange(prec)],prec) for j in range(self.rank())]
+            B = [R([f[i][j] for i in range(prec)],prec) for j in range(self.rank())]
             return B
         else:
             raise NotImplementedError

@@ -2,13 +2,15 @@
 Numerical computation of newforms
 """
 
-#########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 from sage.structure.sage_object  import SageObject
 from sage.structure.sequence     import Sequence
@@ -16,7 +18,8 @@ from sage.modular.modsym.all     import ModularSymbols
 from sage.modular.arithgroup.all import Gamma0
 from sage.modules.all            import vector
 from sage.misc.misc              import verbose
-from sage.rings.all              import CDF, Integer, QQ, next_prime, prime_range
+from sage.rings.all import CDF, Integer, QQ
+from sage.arith.all import next_prime, prime_range
 from sage.misc.prandom           import randint
 from sage.matrix.constructor     import matrix
 
@@ -203,9 +206,9 @@ class NumericalEigenforms(SageObject):
         then they should compare as equal, causing both eigenvectors
         to be absent from the matrix returned.  The remaining eigenvalues
         (ostensibly unique) are visible in the test, which should be
-        indepedent of which eigenvectors are returned, but it does presume
+        independent of which eigenvectors are returned, but it does presume
         an ordering of these eigenvectors for the test to succeed.
-        This exercises a correction in Trac 8018. ::
+        This exercises a correction in :trac:`8018`. ::
 
             sage: n = numerical_eigenforms(61, eps=2.0)
             sage: evectors = n._eigenvectors()
@@ -423,7 +426,7 @@ class NumericalEigenforms(SageObject):
         EXAMPLES::
 
             sage: n = numerical_eigenforms(1,12)
-            sage: n.eigenvalues([3,5,13])  # rel tol 2e-10
+            sage: n.eigenvalues([3,5,13])  # rel tol 2.4e-10
             [[177148.0, 252.00000000001896], [48828126.0, 4830.000000001376], [1792160394038.0, -577737.9999898539]]
         """
         primes = [Integer(p) for p in primes]
@@ -440,7 +443,7 @@ class NumericalEigenforms(SageObject):
             EXAMPLES::
 
                 sage: n = numerical_eigenforms(1,12)  # indirect doctest
-                sage: n.eigenvalues([3,5,13])  # rel tol 2e-10
+                sage: n.eigenvalues([3,5,13])  # rel tol 2.4e-10
                 [[177148.0, 252.00000000001896], [48828126.0, 4830.000000001376], [1792160394038.0, -577737.9999898539]]
             """
             return y.element() * B

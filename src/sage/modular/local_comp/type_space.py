@@ -13,6 +13,8 @@ subgroup. This space is the key to computing the isomorphism class of the local
 component of the newform at `p`.
 
 """
+from __future__ import absolute_import
+from six.moves import range
 
 import operator
 from sage.misc.misc import verbose, cputime
@@ -22,12 +24,12 @@ from sage.modular.modform.constructor import ModularForms
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.rings.all import ZZ, Zmod, QQ
 from sage.rings.fast_arith import prime_range
-from sage.rings.arith import crt
+from sage.arith.all import crt
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method, cached_function
 
-from liftings import lift_gen_to_gamma1, lift_ramified
+from .liftings import lift_gen_to_gamma1, lift_ramified
 
 @cached_function
 def example_type_space(example_no = 0):
@@ -592,7 +594,7 @@ class TypeSpace(SageObject):
         MS = rgens[0].parent()
         for m in MS.basis():
             rows.append([])
-            for i in xrange(len(gens)):
+            for i in range(len(gens)):
                 rows[-1] += (m - rgensinv[i] * m * rgensconj[i]).list()
         S = matrix(rows).left_kernel()
         return [MS(u.list()) for u in S.gens()]
@@ -621,7 +623,7 @@ class TypeSpace(SageObject):
         v = self.eigensymbol_subspace().gen(0)
         w = V.submodule_with_basis([m * v for m in mats]).coordinates(v) #v * self.e_space.diamond_eigenvalue(crt(a, 1, f, self.tame_level())))
         self._a = a
-        self._amat = sum([mats[i] * w[i] for i in xrange(len(mats))])
+        self._amat = sum([mats[i] * w[i] for i in range(len(mats))])
 
     def rho(self, g):
         r"""

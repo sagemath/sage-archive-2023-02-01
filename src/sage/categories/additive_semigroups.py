@@ -105,7 +105,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
 
         def extra_super_categories(self):
             """
-            Implement the fact that a cartesian product of additive semigroups
+            Implement the fact that a Cartesian product of additive semigroups
             is an additive semigroup.
 
             EXAMPLES::

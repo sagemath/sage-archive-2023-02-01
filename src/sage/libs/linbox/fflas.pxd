@@ -1,3 +1,8 @@
+# distutils: extra_compile_args = FFLASFFPACK_CFLAGS
+# distutils: libraries = FFLASFFPACK_LIBRARIES
+# distutils: library_dirs = FFLASFFPACK_LIBDIR
+# distutils: language = c++ 
+
 from modular cimport ModDoubleField, ModFloatField, ModDoubleFieldElement, ModFloatFieldElement
 
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "std":

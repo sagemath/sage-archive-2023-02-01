@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # coding=utf-8
 r"""
 Word morphisms/substitutions
@@ -84,7 +85,12 @@ Many other functionalities...::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+from six.moves import range
 import itertools
+from six.moves import filterfalse
+
 from sage.misc.callable_dict import CallableDict
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -563,14 +569,14 @@ class WordMorphism(SageObject):
 
         EXAMPLES::
 
-            sage: print WordMorphism('a->ab,b->ba')
+            sage: print(WordMorphism('a->ab,b->ba'))
             a->ab, b->ba
-            sage: print WordMorphism({0:[0,1],1:[1,0]})
+            sage: print(WordMorphism({0:[0,1],1:[1,0]}))
             0->01, 1->10
 
         The output is sorted to make it unique::
 
-            sage: print WordMorphism('b->ba,a->ab')
+            sage: print(WordMorphism('b->ba,a->ab'))
             a->ab, b->ba
 
         The str method is used for string formatting::
@@ -1874,16 +1880,16 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: f = WordMorphism('a->ab,b->ba')
-            sage: for w in f.fixed_points(): print w
+            sage: for w in f.fixed_points(): print(w)
             abbabaabbaababbabaababbaabbabaabbaababba...
             baababbaabbabaababbabaabbaababbaabbabaab...
 
             sage: f = WordMorphism('a->ab,b->c,c->a')
-            sage: for w in f.fixed_points(): print w
+            sage: for w in f.fixed_points(): print(w)
             abcaababcabcaabcaababcaababcabcaababcabc...
 
             sage: f = WordMorphism('a->ab,b->cab,c->bcc')
-            sage: for w in f.fixed_points(): print w
+            sage: for w in f.fixed_points(): print(w)
             abcabbccabcabcabbccbccabcabbccabcabbccab...
 
         This shows that ticket :trac:`13668` has been resolved::
@@ -1956,13 +1962,13 @@ class WordMorphism(SageObject):
 
             sage: f = WordMorphism('a->aba,b->baa')
             sage: for p in f.periodic_points():
-            ...      print len(p), ',', p[0]
+            ....:     print("{} , {}".format(len(p), p[0]))
             1 , ababaaababaaabaabaababaaababaaabaabaabab...
             1 , baaabaabaababaaabaababaaabaababaaababaaa...
 
             sage: f = WordMorphism('a->bab,b->aa')
             sage: for p in f.periodic_points():
-            ...       print len(p), ',', p[0]
+            ....:     print("{} , {}".format(len(p), p[0]))
             2 , aababaaaababaababbabaababaababbabaababaa...
             sage: f.fixed_points()
             []
@@ -2048,7 +2054,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->abbab,b->abb,c->').has_left_conjugate()
             True
         """
-        I = itertools.ifilterfalse(FiniteWord_class.is_empty, self.images())
+        I = filterfalse(FiniteWord_class.is_empty, self.images())
 
         try:
             letter = next(I)[0]
@@ -2096,7 +2102,7 @@ class WordMorphism(SageObject):
         noted `\varphi\triangleleft\varphi'`, if there exists
         `u \in \Sigma^*` such that
 
-        .. math::
+        .. MATH::
 
             \varphi(\alpha)u = u\varphi'(\alpha),
 
@@ -2523,7 +2529,7 @@ class WordMorphism(SageObject):
         # Compute orbit points to plot
         S = 0
         orbit_points = dict([(a,[]) for a in alphabet])
-        for _ in xrange(n):
+        for _ in range(n):
             a = next(u)
             S += canonical_basis_proj[a]
             orbit_points[a].append(S)
@@ -2534,7 +2540,7 @@ class WordMorphism(SageObject):
         if translate is not None:
 
             if isinstance(translate, dict):
-                for a in translate.keys():
+                for a in translate:
                     translate[a] = [vector(RealField_prec, v) for v in translate[a]]
 
             else:
@@ -2781,7 +2787,7 @@ class WordMorphism(SageObject):
         elif isinstance(colormap, str):
             from matplotlib import cm
 
-            if not colormap in cm.datad.keys():
+            if not colormap in cm.datad:
                 raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % colormap)
 
             colormap = cm.__dict__[colormap]
@@ -2814,9 +2820,9 @@ class WordMorphism(SageObject):
         # 1D plots
         if dim_fractal == 1:
             from sage.all import plot
-            for a in col_dict.keys():
+            for a in col_dict:
                 # We plot only the points with a color in col_dict and with positive opacity
-                if (a in col_dict.keys()) and (opacity[a] > 0):
+                if (a in col_dict) and (opacity[a] > 0):
                     G += plot([x[0] for x in orbit_points[a]], color=col_dict[a], alpha=opacity[a], thickness=point_size)
             if plot_basis:
                 from matplotlib import cm
@@ -2833,9 +2839,9 @@ class WordMorphism(SageObject):
             elif point_size is None and dim_fractal == 3:
                 point_size = 8
 
-            for a in col_dict.keys():
+            for a in col_dict:
                 # We plot only the points with a color in col_dict and with positive opacity
-                if (a in col_dict.keys()) and (opacity[a] > 0):
+                if (a in col_dict) and (opacity[a] > 0):
                     G += points(orbit_points[a], color=col_dict[a], alpha=opacity[a], size=point_size)
 
             if plot_basis:

@@ -47,7 +47,7 @@ Recall an example from abelian groups::
 
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
-from sage.rings.arith import LCM, GCD
+from sage.arith.all import LCM, GCD
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
 
 def is_AbelianGroupElement(x):

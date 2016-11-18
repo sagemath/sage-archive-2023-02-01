@@ -5,17 +5,22 @@ Cython helper methods to compute integral points in polyhedra.
 #*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
+include "cysignals/signals.pxi"
 import copy
 import itertools
 
 from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
-from sage.rings.all import QQ, RR, ZZ, gcd, lcm
+from sage.rings.all import QQ, RR, ZZ
 from sage.rings.integer cimport Integer
+from sage.arith.all import gcd, lcm
 from sage.combinat.permutation import Permutation
 from sage.misc.all import prod, uniq
 
@@ -28,7 +33,7 @@ from sage.misc.all import prod, uniq
 # you.
 #
 ## def parallelotope_points(spanning_points, lattice):
-##     # compute points in the open parallelotope, see [BrunsKoch]
+##     # compute points in the open parallelotope, see [BK2001]
 ##     R = matrix(spanning_points).transpose()
 ##     D,U,V = R.smith_form()
 ##     e = D.diagonal()          # the elementary divisors
@@ -85,7 +90,7 @@ def parallelotope_points(spanning_points, lattice):
     The tuple of all lattice points in the half-open parallelotope
     spanned by the rays `r_i`,
 
-    .. math::
+    .. MATH::
 
         \mathop{par}(\{r_i\}) =
         \sum_{0\leq a_i < 1} a_i r_i
@@ -98,13 +103,13 @@ def parallelotope_points(spanning_points, lattice):
     Note how the points on the outward-facing factes are omitted::
 
         sage: from sage.geometry.integral_points import parallelotope_points
-        sage: rays = map(vector, [(2,0), (0,2)])
+        sage: rays = list(map(vector, [(2,0), (0,2)]))
         sage: parallelotope_points(rays, ZZ^2)
         ((0, 0), (1, 0), (0, 1), (1, 1))
 
     The rays can also be toric lattice points::
 
-        sage: rays = map(ToricLattice(2), [(2,0), (0,2)])
+        sage: rays = list(map(ToricLattice(2), [(2,0), (0,2)]))
         sage: parallelotope_points(rays, ToricLattice(2))
         (N(0, 0), N(1, 0), N(0, 1), N(1, 1))
 
@@ -117,7 +122,7 @@ def parallelotope_points(spanning_points, lattice):
     A ``ValueError`` is raised if the ``spanning_points`` are not
     linearly independent::
 
-        sage: rays = map(ToricLattice(2), [(1,1)]*2)
+        sage: rays = list(map(ToricLattice(2), [(1,1)]*2))
         sage: parallelotope_points(rays, ToricLattice(2))
         Traceback (most recent call last):
         ...
@@ -125,7 +130,7 @@ def parallelotope_points(spanning_points, lattice):
 
     TESTS::
 
-        sage: rays = map(vector,[(-3, -2, -3, -2), (-2, -1, -8, 5), (1, 9, -7, -4), (-3, -1, -2, 2)])
+        sage: rays = list(map(vector,[(-3, -2, -3, -2), (-2, -1, -8, 5), (1, 9, -7, -4), (-3, -1, -2, 2)]))
         sage: len(parallelotope_points(rays, ZZ^4))
         967
     """
@@ -285,7 +290,7 @@ def simplex_points(vertices):
         sage: len(simplex_points(P4mirror.Vrepresentation()))
         126
 
-        sage: vertices = map(vector, [(1,2,3), (2,3,7), (-2,-3,-11)])
+        sage: vertices = list(map(vector, [(1,2,3), (2,3,7), (-2,-3,-11)]))
         sage: for v in vertices: v.set_immutable()
         sage: simplex_points(vertices)
         ((-2, -3, -11), (0, 0, -2), (1, 2, 3), (2, 3, 7))
@@ -309,13 +314,6 @@ def simplex_points(vertices):
         RtR = Rt * R
         b = abs(RtR.det())
         A = RtR.solve_left(vector([b]*len(rays))) * Rt
-
-    # e, d, VDinv = ray_matrix_normal_form(R)
-    #    print origin
-    #    print rays
-    #    print parallelotope_points(rays, origin.parent())
-    #    print 'A = ', A
-    #    print 'b = ', b
 
     e, d, VDinv = ray_matrix_normal_form(R)
     lattice = origin.parent()
@@ -401,7 +399,7 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
 
       * Unwind inner loop (and next-to-inner loop):
 
-        .. math::
+        .. MATH::
 
             Ax\leq b
             \quad \Leftrightarrow \quad
@@ -461,8 +459,8 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
         True
 
         sage: set(map(tuple,pts)) == \
-        ...   set([(-4,-3,-2,-1),(3,1,1,1),(1,2,1,1),(1,1,3,0),(1,3,2,4),
-        ...        (0,1,1,1),(1,2,2,2),(-1,0,0,1),(1,1,1,1),(2,1,1,1)])   # computed with PALP
+        ....: set([(-4,-3,-2,-1),(3,1,1,1),(1,2,1,1),(1,1,3,0),(1,3,2,4),
+        ....:      (0,1,1,1),(1,2,2,2),(-1,0,0,1),(1,1,1,1),(2,1,1,1)])   # computed with PALP
         True
 
     Long ints and non-integral polyhedra are explictly allowed::
@@ -511,6 +509,27 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
          ((1, 0, 1), frozenset({0, 2})),
          ((1, 1, 0), frozenset({1, 2})),
          ((1, 1, 1), frozenset({0, 1, 2})))
+
+    TESTS:
+
+    Check that this can be interrupted, see :trac:`20781`::
+
+        sage: ieqs = [(-1, -1, -1, -1, -1, -1, -1, -1, -1),
+        ....:         (0, -1, 0, 0, 0, 0, 0, 0, 0),
+        ....:         (0, -1, 0, 2, -1, 0, 0, 0, 0),
+        ....:         (0, 0, -1, -1, 2, -1, 0, 0, 0),
+        ....:         (0, 2, 0, -1, 0, 0, 0, 0, 0),
+        ....:         (0, 0, 0, 0, 0, 0, 0, -1, 2),
+        ....:         (1, 0, 2, 0, -1, 0, 0, 0, 0),
+        ....:         (0, 0, 0, 0, -1, 2, -1, 0, 0),
+        ....:         (0, 0, 0, 0, 0, 0, 0, 0, -1),
+        ....:         (0, 0, 0, 0, 0, -1, 2, -1, 0),
+        ....:         (0, 0, 0, 0, 0, 0, -1, 2, -1)]
+        sage: P = Polyhedron(ieqs=ieqs)
+        sage: alarm(0.5); P.integral_points()
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
     """
     assert len(box_min)==len(box_max)
     assert not (count_only and return_saturated)
@@ -580,6 +599,7 @@ cdef loop_over_rectangular_box_points(box_min, box_max, inequalities, int d, bin
     p = copy.copy(box_min)
     inequalities.prepare_next_to_inner_loop(p)
     while True:
+        sig_check()
         inequalities.prepare_inner_loop(p)
         i_min = box_min[0]
         i_max = box_max[0]
@@ -1037,7 +1057,7 @@ cdef class InequalityCollection:
         """
         The Cython constructor
 
-        See the class documentation for the desrciption of the arguments.
+        See the class documentation for the description of the arguments.
 
         EXAMPLES::
 
@@ -1125,13 +1145,22 @@ cdef class InequalityCollection:
             The collection of inequalities
             integer: (3, 7) x + 2 >= 0
             integer: (-3, -7) x + -2 >= 0
+
+        TESTS:
+
+        Check that :trac:`21037` is fixed::
+
+            sage: P = Polyhedron(vertices=((0, 0), (17,3)))
+            sage: P += 1/1000*polytopes.regular_polygon(5)
+            sage: P.integral_points()
+            ((0, 0), (17, 3))
         """
         for Hrep_obj in polyhedron.inequality_generator():
             A, b = self._make_A_b(Hrep_obj, permutation)
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
-            except (OverflowError, ValueError):
+            except (OverflowError, ValueError, TypeError):
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
         for Hrep_obj in polyhedron.equation_generator():
@@ -1140,7 +1169,7 @@ cdef class InequalityCollection:
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
-            except (OverflowError, ValueError):
+            except (OverflowError, ValueError, TypeError):
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
             # add sign-reversed inequality
@@ -1149,7 +1178,7 @@ cdef class InequalityCollection:
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, Hrep_obj.index())
                 self.ineqs_int.append(H)
-            except (OverflowError, ValueError):
+            except (OverflowError, ValueError, TypeError):
                 H = Inequality_generic(A, b, Hrep_obj.index())
                 self.ineqs_generic.append(H)
 
@@ -1161,7 +1190,7 @@ cdef class InequalityCollection:
         we have to repeatedly evaluate `A x-A_0 x_0+b`. To speed up
         computation, we pre-evaluate
 
-        .. math::
+        .. MATH::
 
             c = b + \sum_{i=2} A_i x_i
 
@@ -1198,7 +1227,7 @@ cdef class InequalityCollection:
         In the inner loop of :func:`rectangular_box_points`, we have
         to repeatedly evaluate `A x+b\geq 0`. To speed up computation, we pre-evaluate
 
-        .. math::
+        .. MATH::
 
             c = A x - A_0 x_0 +b = b + \sum_{i=1} A_i x_i
 
@@ -1289,12 +1318,14 @@ cdef class InequalityCollection:
         """
         cdef int i
         for i in range(0,len(self.ineqs_int)):
+            sig_check()
             ineq = self.ineqs_int[i]
             if (<Inequality_int>ineq).is_not_satisfied(inner_loop_variable):
                 if i>0:
                     self.swap_ineq_to_front(i)
                 return False
         for i in range(0,len(self.ineqs_generic)):
+            sig_check()
             ineq = self.ineqs_generic[i]
             if (<Inequality_generic>ineq).is_not_satisfied(inner_loop_variable):
                 return False
@@ -1333,10 +1364,12 @@ cdef class InequalityCollection:
         cdef int i
         result = []
         for i in range(0,len(self.ineqs_int)):
+            sig_check()
             ineq = self.ineqs_int[i]
             if (<Inequality_int>ineq).is_equality(inner_loop_variable):
                 result.append( (<Inequality_int>ineq).index )
         for i in range(0,len(self.ineqs_generic)):
+            sig_check()
             ineq = self.ineqs_generic[i]
             if (<Inequality_generic>ineq).is_equality(inner_loop_variable):
                 result.append( (<Inequality_generic>ineq).index )
@@ -1363,10 +1396,8 @@ cpdef print_cache(InequalityCollection inequality_collection):
         Cached next-to-inner loop: 3 * x_0 + 7 * x_1 + 2 >= 0
     """
     cdef Inequality_int ieq = <Inequality_int>(inequality_collection.ineqs_int[0])
-    print 'Cached inner loop: ' + \
-        str(ieq.coeff) + ' * x_0 + ' + str(ieq.cache) + ' >= 0'
-    print 'Cached next-to-inner loop: ' + \
-        str(ieq.coeff) + ' * x_0 + ' + \
-        str(ieq.coeff_next) + ' * x_1 + ' + str(ieq.cache_next) + ' >= 0'
-
-
+    print('Cached inner loop: ' +
+          str(ieq.coeff) + ' * x_0 + ' + str(ieq.cache) + ' >= 0')
+    print('Cached next-to-inner loop: ' +
+          str(ieq.coeff) + ' * x_0 + ' +
+          str(ieq.coeff_next) + ' * x_1 + ' + str(ieq.cache_next) + ' >= 0')

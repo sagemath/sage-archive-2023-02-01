@@ -1,23 +1,26 @@
 r"""
 Fully packed loops
 """
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+# python3
+from __future__ import division, print_function
+
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.six_vertex_model import SquareIceModel, \
-SixVertexConfiguration, SixVertexModel
+from sage.combinat.six_vertex_model import (SquareIceModel,
+                                            SixVertexConfiguration,
+                                            SixVertexModel)
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
 from sage.plot.graphics import Graphics
 from sage.matrix.constructor import matrix
 from sage.plot.line import line
-from sage.combinat.perfect_matching import PerfectMatching
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.misc.lazy_attribute import lazy_attribute
+
 
 class FullyPackedLoop(Element):
     r"""
@@ -490,7 +493,7 @@ class FullyPackedLoop(Element):
             self._six_vertex_model = generator
 
         self.configuration = matrix(list(self._six_vertex_model))
-        self._n = len(self._end_point_dictionary)/2
+        self._n = len(self._end_point_dictionary) // 2
         Element.__init__(self, parent)
 
     def _repr_(self):
@@ -682,7 +685,7 @@ class FullyPackedLoop(Element):
 
             sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
             sage: fpl = FullyPackedLoop(A)
-            sage: print fpl.plot().description()
+            sage: print(fpl.plot().description())
             Line defined by 2 points:       [(-1.0, 1.0), (0.0, 1.0)]
             Line defined by 2 points:       [(0.0, 0.0), (0.0, -1.0)]
             Line defined by 2 points:       [(0.0, 0.0), (1.0, 0.0)]
@@ -791,7 +794,7 @@ class FullyPackedLoop(Element):
             sage: A = AlternatingSignMatrix([[0, 1, 0, 0], [1, -1, 0, 1], \
             [0, 1, 0, 0],[0, 0, 1, 0]])
             sage: fpl = FullyPackedLoop(A)
-            sage: print fpl.plot().description()
+            sage: print(fpl.plot().description())
             Line defined by 2 points:       [(-1.0, 0.0), (0.0, 0.0)]
             Line defined by 2 points:       [(-1.0, 2.0), (0.0, 2.0)]
             Line defined by 2 points:       [(0.0, 1.0), (0.0, 0.0)]
@@ -885,7 +888,7 @@ class FullyPackedLoop(Element):
 
         REFERENCES:
 
-        .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of
+        .. [Wieland00] \B. Wieland. *A large dihedral symmetry of the set of
            alternating sign matrices*. Electron. J. Combin. 7 (2000).
 
         EXAMPLES::
@@ -1018,7 +1021,7 @@ class FullyPackedLoop(Element):
         vertices_d = self._vertex_dictionary.copy()
 
         while len(boundary_d) > 2:
-            startpoint = boundary_d.keys()[0]
+            startpoint = list(boundary_d)[0]
             position = boundary_d[startpoint]
 
             boundary_d.pop(startpoint)
@@ -1039,7 +1042,7 @@ class FullyPackedLoop(Element):
             link_pattern.append((startpoint, endpoint))
             boundary_d.pop(endpoint)
 
-        link_pattern.append(tuple(boundary_d.keys()))
+        link_pattern.append(tuple(boundary_d))
 
         return link_pattern
 
@@ -1117,7 +1120,7 @@ class FullyPackedLoop(Element):
     def _get_coordinates(self, current_pos):
         """
         Return a list of 2 coordinates that refer to the moves that could
-        potentialy be made.
+        potentially be made.
 
         TESTS::
 
@@ -1204,30 +1207,30 @@ class FullyPackedLoop(Element):
         for k in range(n):
             if k % 2 == 0:
                 # top row
-                end_points[1 + k/2] = (0, k)
+                end_points[1 + k // 2] = (0, k)
 
                 # bottom row
-                end_points[n + 1 + k/2] = (n-1, n-1-k)
+                end_points[n + 1 + k // 2] = (n-1, n-1-k)
 
         # sides for even case
         if n % 2 == 0:
             for k in range(n):
                 if k % 2 == 0:
                     # left side
-                    end_points[((3*n + 2 + k)/2)] = (n-1-k, 0)
+                    end_points[((3*n + 2 + k) // 2)] = (n-1-k, 0)
 
                     # right side
-                    end_points[(n + 2 + k)/2] = (k, n-1)
+                    end_points[(n + 2 + k) // 2] = (k, n-1)
 
         # side for odd case
         if n % 2 == 1:
             for k in range(n):
                 if k % 2 == 1:
                     # left side
-                    end_points[(3*n + 2 + k)/2] = (n-1-k, 0)
+                    end_points[(3*n + 2 + k) // 2] = (n-1-k, 0)
 
                     # right side
-                    end_points[(n + 2 + k)/2] = (k, n-1)
+                    end_points[(n + 2 + k) // 2] = (k, n-1)
 
         return end_points
 
@@ -1385,11 +1388,10 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
                 SVM = AlternatingSignMatrix(generator).to_six_vertex_model()
             except (TypeError, ValueError):
                 SVM = SixVertexModel(self._n, boundary_conditions='ice')(generator)
-                M = SVM.to_alternating_sign_matrix()
-
+                SVM.to_alternating_sign_matrix()
         if len(SVM) != self._n:
             raise ValueError("invalid size")
-        return self.element_class(self,SVM)
+        return self.element_class(self, SVM)
 
     Element = FullyPackedLoop
 

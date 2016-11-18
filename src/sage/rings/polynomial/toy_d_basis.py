@@ -117,7 +117,7 @@ AUTHOR:
 """
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import xgcd, lcm, gcd
+from sage.arith.all import xgcd, lcm, gcd
 from sage.rings.polynomial.toy_buchberger import inter_reduction
 from sage.structure.sequence import Sequence
 
@@ -278,7 +278,7 @@ def select(P):
         sage: fx = f.derivative(x)
         sage: fy = f.derivative(y)
         sage: G = [f, fx, fy]
-        sage: B = set(filter(lambda (x,y): x!=y, [(f1,f2) for f1 in G for f2 in G]))
+        sage: B = set((f1, f2) for f1 in G for f2 in G if f1 != f2)
         sage: select(B)
         (-2*y - 1, 3*x^2 + 7)
     """

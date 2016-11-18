@@ -27,6 +27,9 @@ Representations of the Symmetric Group
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six.moves import range
+
 from sage.symbolic.ring import SR
 from sage.functions.all import sqrt
 from sage.combinat.combinat import CombinatorialClass
@@ -376,8 +379,8 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         """
         n = self._partition.size()
         transpositions = []
-        for i in range(1,n):
-            si = Permutation(range(1,i) + [i+1,i] + range(i+2,n+1))
+        for i in range(1, n):
+            si = Permutation(list(range(1,i)) + [i+1,i] + list(range(i+2,n+1)))
             transpositions.append(si)
         repn_matrices = [self.representation_matrix(_) for _ in transpositions]
         for (i,si) in enumerate(repn_matrices):
@@ -484,7 +487,7 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         EXAMPLES::
 
             sage: orth = SymmetricGroupRepresentations(3, "orthogonal")
-            sage: for x in orth: print x
+            sage: for x in orth: print(x)
             Orthogonal representation of the symmetric group corresponding to [3]
             Orthogonal representation of the symmetric group corresponding to [2, 1]
             Orthogonal representation of the symmetric group corresponding to [1, 1, 1]

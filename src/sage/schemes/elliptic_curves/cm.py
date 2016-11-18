@@ -40,6 +40,9 @@ from sage.rings.all import (Integer,
                             is_fundamental_discriminant,
                             PolynomialRing)
 
+from sage.misc.all import cached_function
+
+@cached_function
 def hilbert_class_polynomial(D, algorithm=None):
     r"""
     Returns the Hilbert class polynomial for discriminant `D`.
@@ -48,7 +51,7 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     - ``D`` (int) -- a negative integer congruent to 0 or 1 modulo 4.
 
-    - ``algorithm`` (string, default None) -- if "sage" then use the Sage implementation; if "magma" then call Magma (if available).
+    - ``algorithm`` (string, default None).
 
     OUTPUT:
 
@@ -57,9 +60,11 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     ALGORITHM:
 
+    - If ``algorithm`` = "arb" (default): Use Arb's implementation which uses complex interval arithmetic.
+
     - If ``algorithm`` = "sage": Use complex approximations to the roots.
 
-    - If ``algorithm`` = "magma": Call the appropriate Magma function.
+    - If ``algorithm`` = "magma": Call the appropriate Magma function (if available).
 
     AUTHORS:
 
@@ -84,18 +89,31 @@ def hilbert_class_polynomial(D, algorithm=None):
         x^2 - 39660183801072000*x - 7898242515936467904000000
         sage: hilbert_class_polynomial(-163)
         x + 262537412640768000
+        sage: hilbert_class_polynomial(-163, algorithm="sage")
+        x + 262537412640768000
         sage: hilbert_class_polynomial(-163, algorithm="magma") # optional - magma
         x + 262537412640768000
 
+    TESTS::
+
+        sage: all([hilbert_class_polynomial(d, algorithm="arb") == \
+        ....:      hilbert_class_polynomial(d, algorithm="sage") \
+        ....:        for d in range(-1,-100,-1) if d%4 in [0,1]])
+        True
+
     """
     if algorithm is None:
-        algorithm = "sage"
+        algorithm = "arb"
 
     D = Integer(D)
     if D >= 0:
         raise ValueError("D (=%s) must be negative"%D)
     if not (D%4 in [0,1]):
          raise ValueError("D (=%s) must be a discriminant"%D)
+
+    if algorithm == "arb":
+        import sage.libs.arb.arith
+        return sage.libs.arb.arith.hilbert_class_polynomial(D)
 
     if algorithm == "magma":
         magma.eval("R<x> := PolynomialRing(IntegerRing())")
@@ -153,6 +171,7 @@ def hilbert_class_polynomial(D, algorithm=None):
     return IntegerRing()['x'](coeffs)
 
 
+@cached_function
 def cm_j_invariants(K, proof=None):
     r"""
     Return a list of all CM `j`-invariants in the field `K`.
@@ -192,6 +211,7 @@ def cm_j_invariants(K, proof=None):
     """
     return list(sorted([j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)]))
 
+@cached_function
 def cm_j_invariants_and_orders(K, proof=None):
     r"""
     Return a list of all CM `j`-invariants in the field `K`, together with the associated orders.
@@ -240,6 +260,7 @@ def cm_j_invariants_and_orders(K, proof=None):
              for j in hilbert_class_polynomial(D*f*f).roots(K, multiplicities=False)]
 
 
+@cached_function
 def cm_orders(h, proof=None):
     """
     Return a list of all pairs `(D,f)` where there is a CM order of
@@ -363,6 +384,7 @@ def largest_fundamental_disc_with_class_number(h):
         # nobody knows, since I guess Watkins's is state of the art.
         raise NotImplementedError("largest discriminant not known for class number %s"%h)
 
+@cached_function
 def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     """
     Return dictionary with keys class numbers `h\le hmax` and values the
@@ -392,7 +414,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     EXAMPLES::
 
         sage: v = sage.schemes.elliptic_curves.cm.discriminants_with_bounded_class_number(3)
-        sage: v.keys()
+        sage: list(v)
         [1, 2, 3]
         sage: v[1]
         [(-3, 3), (-3, 2), (-3, 1), (-4, 2), (-4, 1), (-7, 2), (-7, 1), (-8, 1), (-11, 1), (-19, 1), (-43, 1), (-67, 1), (-163, 1)]
@@ -401,7 +423,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
         sage: v[3]
         [(-3, 9), (-3, 6), (-11, 2), (-19, 2), (-23, 2), (-23, 1), (-31, 2), (-31, 1), (-43, 2), (-59, 1), (-67, 2), (-83, 1), (-107, 1), (-139, 1), (-163, 2), (-211, 1), (-283, 1), (-307, 1), (-331, 1), (-379, 1), (-499, 1), (-547, 1), (-643, 1), (-883, 1), (-907, 1)]
         sage: v = sage.schemes.elliptic_curves.cm.discriminants_with_bounded_class_number(8, proof=False)
-        sage: [len(v[h]) for h in v.keys()]
+        sage: [len(v[h]) for h in v]
         [13, 29, 25, 84, 29, 101, 38, 208]
 
     Find all class numbers for discriminant up to 50::
@@ -453,7 +475,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
         D = Integer(D)
         if is_fundamental_discriminant(D):
             h_D = D.class_number(proof)
-            # For each fundamental discrimant D, loop through the f's such
+            # For each fundamental discriminant D, loop through the f's such
             # that h(D*f^2) could possibly be <= hmax.  As explained to me by Cremona,
             # we have h(D*f^2) >= (1/c)*h(D)*phi_D(f) >= (1/c)*h(D)*euler_phi(f), where
             # phi_D(f) is like euler_phi(f) but the factor (1-1/p) is replaced
@@ -506,19 +528,20 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
                         T[h] = [z]
                 f += 1
 
-    for h in T.keys():
+    for h in T:
         T[h] = list(reversed(T[h]))
 
     if fund_count is not None:
         # Double check that we found the right number of fundamental
         # discriminants; we might as well, since Watkins provides this
         # data.
-        for h in T.keys():
+        for h in T:
             if len([D for D,f in T[h] if f==1]) != fund_count[h]:
                 raise RuntimeError("number of discriminants inconsistent with Watkins's table")
 
     return T
 
+@cached_function
 def is_cm_j_invariant(j):
     """
     Returns whether or not this is a CM `j`-invariant.
@@ -572,11 +595,11 @@ def is_cm_j_invariant(j):
         raise NotImplementedError("is_cm_j_invariant() is only implemented for number field elements")
     if not j.is_integral():
         return False, None
-    h = 1 if j in QQ else j.absolute_minpoly().degree()
+    jpol = PolynomialRing(QQ,'x')([-j,1]) if j in QQ else j.absolute_minpoly()
+    h = jpol.degree()
     if h>100:
         raise NotImplementedError("CM data only available for class numbers up to 100")
     for d,f in cm_orders(h):
-        pol = hilbert_class_polynomial(d*f**2)
-        if pol(j)==0:
+        if jpol == hilbert_class_polynomial(d*f**2):
             return True, (d,f)
     return False, None

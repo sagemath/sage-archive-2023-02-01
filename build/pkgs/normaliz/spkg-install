@@ -8,10 +8,9 @@ die () {
 [ -n "$SAGE_LOCAL" ] || die 'Error: $SAGE_LOCAL not set. Source sage-env or run this script from `sage -sh`.'
 
 cd src
-patch -p1 < ../patches/cstddef_include.patch || die "Error: Couldn't apply patch."
 patch -p1 < ../patches/no_static_stuff.patch || die "Error: Couldn't apply patch."
 
-export CXXFLAGS="-I$SAGE_LOCAL/include $CXXFLAGS"
+export CXXFLAGS="-I$SAGE_LOCAL/include $CXXFLAGS $LDFLAGS"
 cd source
 $MAKE || die "Error building Normaliz."
 

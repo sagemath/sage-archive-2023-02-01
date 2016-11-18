@@ -91,7 +91,7 @@ of all point collections to be such a matrix.
 
 If you want to do something with each ray of a cone, you can write ::
 
-    sage: for ray in positive_xy: print ray
+    sage: for ray in positive_xy: print(ray)
     N(1, 0, 0)
     N(0, 1, 0)
 
@@ -145,7 +145,7 @@ You can work with subcones that form faces of other cones::
 If you need to know inclusion relations between faces, you can use ::
 
     sage: L = four_rays.face_lattice()
-    sage: map(len, L.level_sets())
+    sage: list(map(len, L.level_sets()))
     [1, 4, 4, 1]
     sage: face = L.level_sets()[2][0]
     sage: face.rays()
@@ -176,9 +176,7 @@ added to cones!
 
 REFERENCES:
 
-..  [Fulton]
-    Wiliam Fulton, "Introduction to Toric Varieties", Princeton
-    University Press
+- [Fu1993]_
 """
 
 #*****************************************************************************
@@ -191,7 +189,7 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import collections
 import copy
@@ -211,7 +209,8 @@ from sage.matrix.all import matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
 from sage.misc.superseded import deprecation
 from sage.modules.all import span, vector, VectorSpace
-from sage.rings.all import QQ, RR, ZZ, gcd
+from sage.rings.all import QQ, RR, ZZ
+from sage.arith.all import gcd
 from sage.structure.all import SageObject, parent
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
     Linear_Expression, ray as PPL_ray, point as PPL_point, \
@@ -639,7 +638,7 @@ class IntegralRayCollection(SageObject,
         TESTS::
 
             sage: from sage.geometry.cone import (
-            ...             IntegralRayCollection)
+            ....:           IntegralRayCollection)
             sage: v = vector([1,0])
             sage: v.set_immutable()
             sage: c = IntegralRayCollection([v], ZZ^2)
@@ -726,7 +725,7 @@ class IntegralRayCollection(SageObject,
         TESTS::
 
             sage: c = Cone([(1,0), (0,1)])
-            sage: for ray in c: print ray
+            sage: for ray in c: print(ray)
             N(1, 0)
             N(0, 1)
         """
@@ -1354,7 +1353,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         TESTS::
 
             sage: from sage.geometry.cone import (
-            ...         ConvexRationalPolyhedralCone)
+            ....:       ConvexRationalPolyhedralCone)
             sage: v1 = vector([1,0])
             sage: v2 = vector([0,1])
             sage: v1.set_immutable()
@@ -1373,7 +1372,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
             sage: TestSuite(ac).run()
             sage: sc = ConvexRationalPolyhedralCone(ambient=ac,
-            ...                         ambient_ray_indices=[1])
+            ....:                       ambient_ray_indices=[1])
             sage: sc.rays()
             (0, 1)
             in Ambient free module of rank 2
@@ -1804,8 +1803,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: octant = Cone(identity_matrix(3).columns())
             sage: # indirect doctest
             sage: for i, face in enumerate(octant.faces(1)):
-            ...       if face.ray(0) != octant.ray(i):
-            ...           print "Wrong order!"
+            ....:     if face.ray(0) != octant.ray(i):
+            ....:         print("Wrong order!")
         """
         faces = tuple(faces)
         if len(faces) > 1: # Otherwise there is nothing to sort
@@ -1861,7 +1860,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         First, we create a fan from two cones in the plane::
 
             sage: fan = Fan(cones=[(0,1), (1,2)],
-            ...             rays=[(1,0), (0,1), (-1,0)])
+            ....:           rays=[(1,0), (0,1), (-1,0)])
             sage: cone = fan.generating_cone(0)
             sage: len(cone.adjacent())
             1
@@ -1870,7 +1869,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         same fan, but embedded into the 3-dimensional space::
 
             sage: fan = Fan(cones=[(0,1), (1,2)],
-            ...             rays=[(1,0,0), (0,1,0), (-1,0,0)])
+            ....:           rays=[(1,0,0), (0,1,0), (-1,0,0)])
             sage: cone = fan.generating_cone(0)
             sage: len(cone.adjacent())
             1
@@ -1883,7 +1882,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         Now we add another cone to make the fan 3-dimensional::
 
             sage: fan = Fan(cones=[(0,1), (1,2), (3,)],
-            ...             rays=[(1,0,0), (0,1,0), (-1,0,0), (0,0,1)])
+            ....:           rays=[(1,0,0), (0,1,0), (-1,0,0), (0,0,1)])
             sage: cone = fan.generating_cone(0)
             sage: len(cone.adjacent())
             0
@@ -2206,7 +2205,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         To see all faces arranged by dimension, you can do this::
 
-            sage: for level in L.level_sets(): print level
+            sage: for level in L.level_sets(): print(level)
             [0-d face of 2-d cone in 2-d lattice N]
             [1-d face of 2-d cone in 2-d lattice N,
              1-d face of 2-d cone in 2-d lattice N]
@@ -2265,7 +2264,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         lattice of ``cone`` consists of (appropriate) faces of ``supercone``::
 
             sage: supercone = Cone([(1,2,3,4), (5,6,7,8),
-            ...                     (1,2,4,8), (1,3,9,7)])
+            ....:                   (1,2,4,8), (1,3,9,7)])
             sage: supercone.face_lattice()
             Finite poset containing 16 elements with distinguished linear extension
             sage: supercone.face_lattice().top()
@@ -2293,7 +2292,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         C1 and C2 are equal, but not identical. We currently want them
         to have non identical face lattices, even if the faces
-        themselves are equal (see #10998)::
+        themselves are equal (see :trac:`10998`)::
 
             sage: C1.face_lattice() is C2.face_lattice()
             False
@@ -2449,7 +2448,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             N(1, 0)
             in 2-d lattice N
 
-        ... or you can see indices of the rays of the orginal cone that
+        ... or you can see indices of the rays of the original cone that
         correspond to the above ray::
 
             sage: face.ambient_ray_indices()
@@ -2501,14 +2500,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: cone = toric_varieties.dP8().fan().generating_cone(0)
             sage: cone
             2-d cone of Rational polyhedral fan in 2-d lattice N
-            sage: for f in cone.facets(): print f.rays()
+            sage: for f in cone.facets(): print(f.rays())
             N(1, 1)
             in 2-d lattice N
             N(0, 1)
             in 2-d lattice N
             sage: len(cone.faces())
             3
-            sage: for f in cone.facets(): print f.rays()
+            sage: for f in cone.facets(): print(f.rays())
             N(1, 1)
             in 2-d lattice N
             N(0, 1)
@@ -3158,6 +3157,17 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [1 0]
+
+        TESTS:
+
+        The linear subspace of any closed convex cone can be identified
+        with the orthogonal complement of the span of its dual::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: expected = K.dual().span().vector_space().complement()
+            sage: K.linear_subspace() == expected
+            True
         """
         if self.is_strictly_convex():
             return span([vector(QQ, self.lattice_dim())], QQ)
@@ -3547,7 +3557,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The sublattice spanned by the cone.
 
         Let `\sigma` be the given cone and `N=` ``self.lattice()`` the
-        ambient lattice. Then, in the notation of [Fulton]_, this
+        ambient lattice. Then, in the notation of [Fu1993]_, this
         method returns the sublattice
 
         .. MATH::
@@ -3666,7 +3676,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         `\ZZ`-basis for the ambient :meth:`lattice()
         <sage.geometry.cone.IntegralRayCollection.lattice>`.
 
-        In the notation of [Fulton]_, let `\sigma` be the given cone
+        In the notation of [Fu1993]_, let `\sigma` be the given cone
         and `N=` ``self.lattice()`` the ambient lattice. Then this
         method returns
 
@@ -3725,7 +3735,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         Let `M=` ``self.dual_lattice()`` be the lattice dual to the
         ambient lattice of the given cone `\sigma`. Then, in the
-        notation of [Fulton]_, this method returns the sublattice
+        notation of [Fu1993]_, this method returns the sublattice
 
         .. MATH::
 
@@ -3772,7 +3782,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The quotient of the spanned lattice by the lattice spanned by
         a subcone.
 
-        In the notation of [Fulton]_, let `N` be the ambient lattice
+        In the notation of [Fu1993]_, let `N` be the ambient lattice
         and `N_\sigma` the sublattice spanned by the given cone
         `\sigma`. If `\rho < \sigma` is a subcone, then `N_\rho` =
         ``rho.sublattice()`` is a saturated sublattice of `N_\sigma` =
@@ -3825,7 +3835,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (N[0, 1, 1],)
             sage: N = rho.lattice()
             sage: N_sigma == N.span(N_rho.gens() + tuple(q.lift()
-            ...              for q in sigma.relative_quotient(rho).gens()))
+            ....:            for q in sigma.relative_quotient(rho).gens()))
             True
 
         Sign choice in the codimension one case::
@@ -3872,7 +3882,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The quotient of the dual spanned lattice by the dual of the
         supercone's spanned lattice.
 
-        In the notation of [Fulton]_, if ``supercone`` = `\rho >
+        In the notation of [Fu1993]_, if ``supercone`` = `\rho >
         \sigma` = ``self`` is a cone that contains `\sigma` as a face,
         then `M(\rho)` = ``supercone.orthogonal_sublattice()`` is a
         saturated sublattice of `M(\sigma)` =
@@ -4056,7 +4066,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         simplicial cone (of dimension `d`), the integral points of the
         open parallelotope
 
-        .. math::
+        .. MATH::
 
             par \langle x_1, \dots, x_d \rangle =
             \ZZ^n \cap
@@ -4066,17 +4076,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             0 \leq q_i < 1
             \right\}
 
-        are then computed [BrunsKoch]_.
+        are then computed [BK2001]_.
 
         Finally, the the union of the generators of all simplicial
         subcones is returned.
-
-        REFERENCES:
-
-        ..  [BrunsKoch]
-            W. Bruns and R. Koch,
-            Computing the integral closure of an affine semigroup.
-            Uni. Iaggelonicae Acta Math. 39, (2001), 59-70
         """
         # if the cone is not simplicial, triangulate and run
         # recursively
@@ -4208,13 +4211,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         ALGORITHM:
 
         The primal Normaliz algorithm, see [Normaliz]_.
-
-        REFERENCES:
-
-        ..  [Normaliz]
-            Winfried Bruns, Bogdan Ichim, and Christof Soeger:
-            Normaliz.
-            http://www.mathematik.uni-osnabrueck.de/normaliz/
         """
         if self.is_strictly_convex():
             def not_in_linear_subspace(x): return True
@@ -4357,6 +4353,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant.is_solid()
             False
 
+        TESTS:
+
+        A closed convex cone is solid if and only if its dual is
+        strictly convex::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K.is_solid() == K.dual().is_strictly_convex()
+            True
         """
         return (self.dim() == self.lattice_dim())
 
@@ -4461,8 +4466,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Rockafellar] R.T. Rockafellar. Convex Analysis. Princeton
-           University Press, Princeton, 1970.
+        - [Roc1970]_
 
         EXAMPLES:
 
@@ -4543,8 +4547,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Orlitzky] M. Orlitzky. The Lyapunov rank of an improper cone.
-           http://www.optimization-online.org/DB_HTML/2015/10/5135.html
+        - [Or2016]_
 
         EXAMPLES:
 
@@ -4631,12 +4634,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        M. Orlitzky. The Lyapunov rank of an improper cone.
-        http://www.optimization-online.org/DB_HTML/2015/10/5135.html
+        - [Or2016]_
 
-        .. [Rudolf] G. Rudolf, N. Noyan, D. Papp, and F. Alizadeh.
-           Bilinear optimality constraints for the cone of positive
-           polynomials. Mathematical Programming, Series B, 129 (2011) 5-31.
+        - [RNPA2011]_
 
         EXAMPLES:
 
@@ -4688,7 +4688,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             ]
 
         Only the identity matrix is Lyapunov-like on the pyramids
-        defined by the one- and infinity-norms [Rudolf]_::
+        defined by the one- and infinity-norms [RNPA2011]_::
 
             sage: l31 = Cone([(1,0,1), (0,-1,1), (-1,0,1), (0,1,1)])
             sage: l31.lyapunov_like_basis()
@@ -4788,12 +4788,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         space is `n > 0`, then the resulting Lyapunov rank will be
         between `1` and `n^2` inclusive. If this cone :meth:`is_proper`,
         then that upper bound reduces from `n^2` to `n`. A Lyapunov rank
-        of `n-1` is not possible (by Lemma 5 [Orlitzky]_) in either case.
+        of `n-1` is not possible (by Lemma 5 [Or2016]_) in either case.
 
         ALGORITHM:
 
-        Algorithm 3 [Orlitzky]_ is used. Every closed convex cone is
-        isomorphic to a cartesian product of a proper cone, a subspace,
+        Algorithm 3 [Or2016]_ is used. Every closed convex cone is
+        isomorphic to a Cartesian product of a proper cone, a subspace,
         and a trivial cone. The Lyapunov ranks of the subspace and
         trivial cone are easy to compute. Essentially, we "peel off"
         those easy parts of the cone and compute their Lyapunov ranks
@@ -4803,21 +4803,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Gowda-Tao] M.S. Gowda and J. Tao. On the bilinearity rank of
-           a proper cone and Lyapunov-like transformations. Mathematical
-           Programming, 147 (2014) 155-170.
+        - [GT2014]_
 
-        M. Orlitzky. The Lyapunov rank of an improper cone.
-        http://www.optimization-online.org/DB_HTML/2015/10/5135.html
+        - [Or2016]_
 
-        G. Rudolf, N. Noyan, D. Papp, and F. Alizadeh, Bilinear
-        optimality constraints for the cone of positive polynomials,
-        Mathematical Programming, Series B, 129 (2011) 5-31.
+        - [RNPA2011]_
 
         EXAMPLES:
 
         The Lyapunov rank of the nonnegative orthant is the same as the
-        dimension of the ambient space [Rudolf]_::
+        dimension of the ambient space [RNPA2011]_::
 
             sage: positives = Cone([(1,)])
             sage: positives.lyapunov_rank()
@@ -4830,7 +4825,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             3
 
         A vector space of dimension `n` has Lyapunov rank `n^{2}`
-        [Orlitzky]_::
+        [Or2016]_::
 
             sage: Q5 = VectorSpace(QQ, 5)
             sage: gs = Q5.basis() + [ -r for r in Q5.basis() ]
@@ -4838,7 +4833,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.lyapunov_rank()
             25
 
-        A pyramid in three dimensions has Lyapunov rank one [Rudolf]_::
+        A pyramid in three dimensions has Lyapunov rank one [RNPA2011]_::
 
             sage: l31 = Cone([(1,0,1), (0,-1,1), (-1,0,1), (0,1,1)])
             sage: l31.lyapunov_rank()
@@ -4848,7 +4843,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             1
 
         A ray in `n` dimensions has Lyapunov rank `n^{2} - n + 1`
-        [Orlitzky]_::
+        [Or2016]_::
 
             sage: K = Cone([(1,0,0,0,0)])
             sage: K.lyapunov_rank()
@@ -4857,7 +4852,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             21
 
         A subspace of dimension `m` in an `n`-dimensional ambient space
-        has Lyapunov rank `n^{2} - m(n - m)` [Orlitzky]_::
+        has Lyapunov rank `n^{2} - m(n - m)` [Or2016]_::
 
             sage: e1 = vector(QQ, [1,0,0,0,0])
             sage: e2 = vector(QQ, [0,1,0,0,0])
@@ -4868,7 +4863,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.lattice_dim()**2 - K.dim()*K.codim()
             19
 
-        Lyapunov rank is additive on a product of proper cones [Rudolf]_::
+        Lyapunov rank is additive on a product of proper cones [RNPA2011]_::
 
             sage: l31 = Cone([(1,0,1), (0,-1,1), (-1,0,1), (0,1,1)])
             sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
@@ -4879,14 +4874,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             4
 
         Two linearly-isomorphic cones have the same Lyapunov rank
-        [Rudolf]_. A cone linearly-isomorphic to the nonnegative octant
+        [RNPA2011]_. A cone linearly-isomorphic to the nonnegative octant
         will have Lyapunov rank ``3``::
 
             sage: K = Cone([(1,2,3), (-1,1,0), (1,0,6)])
             sage: K.lyapunov_rank()
             3
 
-        Lyapunov rank is invariant under :meth:`dual` [Rudolf]_::
+        Lyapunov rank is invariant under :meth:`dual` [RNPA2011]_::
 
             sage: K = Cone([(2,2,4), (-1,9,0), (2,0,6)])
             sage: K.lyapunov_rank() == K.dual().lyapunov_rank()
@@ -4895,7 +4890,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         TESTS:
 
         Lyapunov rank should be additive on a product of proper cones
-        [Rudolf]_::
+        [RNPA2011]_::
 
             sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=6,
@@ -4909,7 +4904,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         Lyapunov rank should be invariant under a linear isomorphism
-        [Orlitzky]_::
+        [Or2016]_::
 
             sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=8)
@@ -4919,7 +4914,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K1.lyapunov_rank() == K2.lyapunov_rank()
             True
 
-        Lyapunov rank should be invariant under :meth:`dual` [Rudolf]_::
+        Lyapunov rank should be invariant under :meth:`dual` [RNPA2011]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
@@ -4928,7 +4923,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         The Lyapunov rank of a proper polyhedral cone in a non-trivial
         `n`-dimensional space can be any number between `1` and `n`
-        inclusive, excluding `n-1` [Gowda-Tao]_::
+        inclusive, excluding `n-1` [GT2014]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8,
@@ -4943,7 +4938,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             False
 
         No polyhedral closed convex cone in `n` dimensions has Lyapunov
-        rank `n-1` [Orlitzky]_::
+        rank `n-1` [Or2016]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
@@ -4951,7 +4946,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             False
 
         The calculation of the Lyapunov rank of an improper cone can
-        be reduced to that of a proper cone [Orlitzky]_::
+        be reduced to that of a proper cone [Or2016]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
@@ -4973,7 +4968,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         A "perfect" cone has Lyapunov rank `n` or more in `n`
         dimensions. We can make any cone perfect by adding a slack
-        variable [Orlitzky]_::
+        variable [Or2016]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
@@ -5000,6 +4995,159 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         # cf. Theorem 2
         return len(K_SP.lyapunov_like_basis()) + l*m + (n - m)*n
+
+    def random_element(self, ring=ZZ):
+        r"""
+        Return a random element of this cone.
+
+        All elements of a convex cone can be represented as a
+        nonnegative linear combination of its generators. A random
+        element is thus constructed by assigning random nonnegative
+        weights to the generators of this cone.  By default, these
+        weights are integral and the resulting random element will live
+        in the same lattice as the cone.
+
+        The random nonnegative weights are chosen from ``ring`` which
+        defaults to ``ZZ``. When ``ring`` is not ``ZZ``, the random
+        element returned will be a vector. Only the rings ``ZZ`` and
+        ``QQ`` are currently supported.
+
+        INPUT:
+
+          - ``ring`` -- (default: ``ZZ``) the ring from which the random
+            generator weights are chosen; either ``ZZ`` or ``QQ``.
+
+        OUTPUT:
+
+        Either a lattice element or vector contained in both this cone
+        and its ambient vector space. If ``ring`` is ``ZZ``, a lattice
+        element is returned; otherwise a vector is returned. If ``ring``
+        is neither ``ZZ`` nor ``QQ``, then a ``NotImplementedError`` is
+        raised.
+
+        EXAMPLES:
+
+        The trivial element ``()`` is always returned in a trivial space::
+
+            sage: set_random_seed()
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.random_element()
+            N()
+            sage: K.random_element(ring=QQ)
+            ()
+
+        A random element of the trivial cone in a nontrivial space is zero::
+
+            sage: set_random_seed()
+            sage: K = Cone([(0,0,0)])
+            sage: K.random_element()
+            N(0, 0, 0)
+            sage: K.random_element(ring=QQ)
+            (0, 0, 0)
+
+        A random element of the nonnegative orthant should have all
+        components nonnegative::
+
+            sage: set_random_seed()
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: all([ x >= 0 for x in K.random_element() ])
+            True
+            sage: all([ x >= 0 for x in K.random_element(ring=QQ) ])
+            True
+
+        If ``ring`` is not ``ZZ`` or ``QQ``, an error is raised::
+
+            sage: set_random_seed()
+            sage: K = Cone([(1,0),(0,1)])
+            sage: K.random_element(ring=RR)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ring must be either ZZ or QQ.
+
+        TESTS:
+
+        Any cone should contain a random element of itself::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.contains(K.random_element())
+            True
+            sage: K.contains(K.random_element(ring=QQ))
+            True
+
+        The ambient vector space of the cone should contain a random
+        element of the cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.random_element() in K.lattice().vector_space()
+            True
+            sage: K.random_element(ring=QQ) in K.lattice().vector_space()
+            True
+
+        By default, the random element should live in this cone's lattice::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.random_element() in K.lattice()
+            True
+
+        A strictly convex cone contains no lines, and thus no negative
+        multiples of any of its elements besides zero::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8, strictly_convex=True)
+            sage: x = K.random_element()
+            sage: x.is_zero() or not K.contains(-x)
+            True
+
+        The sum of random elements of a cone lies in the cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K.contains(sum([K.random_element() for i in range(10)]))
+            True
+            sage: K.contains(sum([K.random_element(QQ) for i in range(10)]))
+            True
+
+        The sum of random elements of a cone belongs to its ambient
+        vector space::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: V = K.lattice().vector_space()
+            sage: sum([K.random_element() for i in range(10)]) in V
+            True
+            sage: sum([K.random_element(ring=QQ) for i in range(10)]) in V
+            True
+
+        By default, the sum of random elements of the cone should live
+        in the cone's lattice::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: sum([K.random_element() for i in range(10)]) in K.lattice()
+            True
+        """
+        if not ring in [ZZ, QQ]:
+            # This cone theoretically lives in a real vector space,
+            # but in Sage, we work over the rationals to avoid
+            # numerical issues. Thus ``ring`` must consist of
+            # rationals so that the ambient vector space will contain
+            # the resulting random element.
+            raise NotImplementedError('ring must be either ZZ or QQ.')
+
+        # The lattice or vector space in which the return value will live.
+        L = self.lattice()
+        if ring is not ZZ:
+            L = L.vector_space()
+
+        # Scale each generator by a random nonnegative factor.
+        terms = [ ring.random_element().abs()*L(g) for g in self ]
+
+        # Make sure we return a lattice element or vector. Without the
+        # explicit conversion, we return ``0`` when we have no rays.
+        return L(sum(terms))
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
@@ -5066,7 +5214,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
       cone, ``False`` for a non-strictly-convex cone, or ``None`` if you
       don't care.
 
-    * ``solid`` (defalt: random) -- Whether or not to make the returned
+    * ``solid`` (default: random) -- Whether or not to make the returned
       cone solid. Specify ``True`` for a solid cone, ``False`` for a
       non-solid cone, or ``None`` if you don't care.
 
@@ -5558,7 +5706,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
             ])
 
     # Now we actually compute the thing. To avoid recursion (and the
-    # associated "maximum recustion depth exceeded" error), we loop
+    # associated "maximum recursion depth exceeded" error), we loop
     # until we have a valid cone and occasionally throw everything out
     # and start over from scratch.
     while True:

@@ -2,15 +2,15 @@
 #
 # SAGE support utilities to read into the GAP session.
 #
-$SAGE := rec();
+\$SAGE := rec();
 
-$SAGE.OldPager := Pager;
+\$SAGE.OldPager := Pager;
 
 
-$SAGE.NewPager :=
+\$SAGE.NewPager :=
           function( data )
     local   str,  lines,  line, fn, start;
-    str := OutputTextFile($SAGE.tempfile,false);
+    str := OutputTextFile(\$SAGE.tempfile,false);
     start := 1;
     if IsRecord(data) then
         lines := data.lines;
@@ -30,38 +30,38 @@ $SAGE.NewPager :=
     Print("Page from ",start,"\n");
 end;
 
-$SAGE.StartInteract := function()
+\$SAGE.StartInteract := function()
     MakeReadWriteGlobal("Pager");
-    Pager := $SAGE.OldPager;
-    HELP_VIEWER_INFO.screen.show := $SAGE.OldPager;
+    Pager := \$SAGE.OldPager;
+    HELP_VIEWER_INFO.screen.show := \$SAGE.OldPager;
     MakeReadOnlyGlobal("Pager");
 end;
 
 
-$SAGE.StopInteract := function()
+\$SAGE.StopInteract := function()
     MakeReadWriteGlobal("Pager");
-    Pager := $SAGE.NewPager;
-    HELP_VIEWER_INFO.screen.show := $SAGE.NewPager;
+    Pager := \$SAGE.NewPager;
+    HELP_VIEWER_INFO.screen.show := \$SAGE.NewPager;
     MakeReadOnlyGlobal("Pager");
 end;
 
 
-$SAGE.StopInteract();
+\$SAGE.StopInteract();
 
-#$SAGE.ErrorHandler := function(m,a,m2,mode)
+#\$SAGE.ErrorHandler := function(m,a,m2,mode)
 #    PrintTo("*errout*", m);
 #    if a <> fail then
 #        PrintTo("*errout*",a);
 #    fi;
-#    SetErrorHandler($SAGE.ErrorHandler);
+#    SetErrorHandler(\$SAGE.ErrorHandler);
 #    return true;
 #end;
 
-#SetErrorHandler($SAGE.ErrorHandler);
+#SetErrorHandler(\$SAGE.ErrorHandler);
 
 SetAllInfoLevels(0);
 
-$SAGE.OperationsAdmittingFirstArgument := function(obj)
+\$SAGE.OperationsAdmittingFirstArgument := function(obj)
     local   hits,  myflags,  i,  flagss,  flags;
     hits := [];
     myflags := FlagsType(TypeObj(obj));
@@ -78,7 +78,7 @@ $SAGE.OperationsAdmittingFirstArgument := function(obj)
 end;
 
 
-$SAGE.CleanOperationName := function(name)
+\$SAGE.CleanOperationName := function(name)
     local   lt,  ls;
     lt := Length("Tester(");
     if Length(name) > lt and name{[1..lt]} = "Tester(" then
@@ -91,7 +91,7 @@ $SAGE.CleanOperationName := function(name)
     return name;
 end;
 
-$SAGE.HasAtLeastOneMethodAsFirstArgument := function(op,obj)
+\$SAGE.HasAtLeastOneMethodAsFirstArgument := function(op,obj)
     local   t,  f,  n,  meths,  i;
     t := TypeObj(obj);
     f := FlagsType(t);
@@ -107,11 +107,11 @@ $SAGE.HasAtLeastOneMethodAsFirstArgument := function(op,obj)
 end;
 
 
-$SAGE.PlausibleTabCompletionsForSage := function(o)
+\$SAGE.PlausibleTabCompletionsForSage := function(o)
     local   ops,  opnames;
-    ops := Filtered($SAGE.OperationsAdmittingFirstArgument(o), op ->
-                   $SAGE.HasAtLeastOneMethodAsFirstArgument(op,o));
-    opnames := List(ops, op -> $SAGE.CleanOperationName(NameFunction(op)));
+    ops := Filtered(\$SAGE.OperationsAdmittingFirstArgument(o), op ->
+                   \$SAGE.HasAtLeastOneMethodAsFirstArgument(op,o));
+    opnames := List(ops, op -> \$SAGE.CleanOperationName(NameFunction(op)));
     return Concatenation(opnames, GLOBAL_FUNCTION_NAMES);
 end;
 

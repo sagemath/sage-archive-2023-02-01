@@ -41,7 +41,6 @@ Projective Schemes
    sage/schemes/projective/projective_space
    sage/schemes/projective/projective_point
    sage/schemes/projective/projective_morphism
-   sage/schemes/projective/projective_morphism_helper
    sage/schemes/projective/projective_rational_point
    sage/schemes/projective/projective_homset
    sage/schemes/projective/endPN_automorphism_group
@@ -79,5 +78,7 @@ Toric Varieties
    sage/schemes/toric/homset
    sage/schemes/toric/points
 
+   sage/schemes/toric/sheaf/constructor
+   sage/schemes/toric/sheaf/klyachko
 
 .. include:: ../footer.txt

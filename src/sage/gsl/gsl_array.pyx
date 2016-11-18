@@ -1,13 +1,16 @@
-#include 'gsl.pxi'
+"""
+GSL arrays
+"""
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 cdef class GSLDoubleArray:
     r"""
     EXAMPLES::
+
         sage: a = WaveletTransform(128,'daubechies',4)
         sage: for i in range(1, 11):
-        ...    a[i] = 1
+        ....:     a[i] = 1
         sage: a[:6:2]
         [0.0, 1.0, 1.0]
     """
@@ -16,7 +19,7 @@ cdef class GSLDoubleArray:
 
         self.n = n
         self.stride = stride
-        self.data = <double *> sage_malloc(sizeof(double)*n)
+        self.data = <double *> sig_malloc(sizeof(double)*n)
         if data is not None:
             for i from 0 <= i < n:
                 self.data[i] = data[i]
@@ -25,7 +28,7 @@ cdef class GSLDoubleArray:
                 self.data[i] = 0
 
     def  __dealloc__(self):
-        sage_free(self.data)
+        sig_free(self.data)
 
     def __len__(self):
         return self.n

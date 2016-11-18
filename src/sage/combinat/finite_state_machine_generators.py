@@ -86,6 +86,7 @@ Functions and methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import collections
 import operator
@@ -642,7 +643,7 @@ class TransducerGenerators(object):
         `\mathrm{operator}(i_1, \dots, i_n)`. Here, `n` equals
         ``number_of_operands``.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -721,7 +722,7 @@ class TransducerGenerators(object):
         `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
         `(i_{01} \land \cdots \land i_{0d})\ldots (i_{k1} \land \cdots \land i_{kd})`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -773,7 +774,7 @@ class TransducerGenerators(object):
         `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
         `(i_{01} \lor \cdots \lor i_{0d})\ldots (i_{k1} \lor \cdots \lor i_{kd})`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -825,7 +826,7 @@ class TransducerGenerators(object):
         `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
         `(i_{01} + \cdots + i_{0d})\ldots (i_{k1} + \cdots + i_{kd})`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -876,7 +877,7 @@ class TransducerGenerators(object):
         A transducer mapping an input word `(i_0, i'_0)\ldots (i_k, i'_k)`
         to the word `(i_0 - i'_0)\ldots (i_k - i'_k)`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of two copies of ``input_alphabet``.
 
         EXAMPLE:
@@ -1025,7 +1026,7 @@ class TransducerGenerators(object):
             sage: G
             Transducer with 3 states
             sage: for v in srange(0, 10):
-            ....:     print v, G(v.digits(base=2))
+            ....:     print("{} {}".format(v, G(v.digits(base=2))))
             0 []
             1 [1]
             2 [1, 1]
@@ -1284,7 +1285,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_left = base_ring[var](left_side.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial "
                              "in %s." % (left_side.operands()[0], var))
         if polynomial_left in base_ring and is_scalar(right_side):
@@ -1336,7 +1337,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_right = base_ring[var](next_function.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial in %s."
                              % (next_function.operands()[0], var))
         if polynomial_right.degree() != 1:
@@ -1564,7 +1565,7 @@ class TransducerGenerators(object):
                  Transition from (1, 0) to (1, 1): 0|-,
                  Transition from (1, 0) to (1, 0): 1|0]
                 sage: for s in T.iter_states():
-                ....:     print s, s.final_word_out
+                ....:     print("{} {}".format(s, s.final_word_out))
                 (0, 0) []
                 (1, 1) [1, 0]
                 (1, 0) [1, 0]
@@ -1654,7 +1655,7 @@ class TransducerGenerators(object):
                  Transition from (2, 1) to (1, 1): 0|1,
                  Transition from (2, 1) to (2, 1): 1|-]
                 sage: for s in T.iter_states():
-                ....:     print s, s.final_word_out
+                ....:     print("{} {}".format(s, s.final_word_out))
                 (0, 0) []
                 (0, 1) []
                 (1, 1) [2]
@@ -1682,7 +1683,7 @@ class TransducerGenerators(object):
                 ....:     f(0) == 2],
                 ....:     2, f, n)
                 sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
+                ....:     print([x.parent() for x in t.word_out])
                 []
                 [Integer Ring]
                 sage: [x.parent() for x in T.states()[0].final_word_out]
@@ -1697,7 +1698,7 @@ class TransducerGenerators(object):
                 ....:     f(0) == 2],
                 ....:     2, f, n, output_rings=[])
                 sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
+                ....:     print([x.parent() for x in t.word_out])
                 []
                 [Symbolic Ring]
                 sage: [x.parent() for x in T.states()[0].final_word_out]
@@ -1711,7 +1712,7 @@ class TransducerGenerators(object):
                 ....:     f(0) == 0],
                 ....:     2, f, n, output_rings=[GF(5)])
                 sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
+                ....:     print([x.parent() for x in t.word_out])
                 []
                 [Finite Field of size 5]
 
@@ -1790,7 +1791,7 @@ class TransducerGenerators(object):
                 ValueError: Conflicting recursion for [0].
         """
         from sage.graphs.digraph import DiGraph
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
 
         if is_zero is None:
             is_zero = lambda x: not x
@@ -1976,7 +1977,7 @@ class TransducerGenerators(object):
              if carry >= 0},
             multiedges=False)
 
-        initial_values_set = set(initial_values.iterkeys())
+        initial_values_set = set(initial_values)
 
         missing_initial_values = required_initial_values.difference(
             initial_values_set)

@@ -7,19 +7,13 @@ This module stores a database of two-weight codes.
 
 REFERENCE:
 
-.. [BS03] I. Bouyukliev and J. Simonis,
-   Some new results on optimal codes over `F_5`,
-   Designs, Codes and Cryptography 30, no. 1 (2003): 97-111,
-   http://www.moi.math.bas.bg/moiuser/~iliya/pdf_site/gf5srev.pdf,
+- [BS2003]_
 
-.. [ChenDB] Eric Chen,
-   Online database of two-weight codes,
-   http://moodle.tec.hkr.se/~chen/research/2-weight-codes/search.php
+- [ChenDB]_
 
-.. [Kohnert07] A. Kohnert,
-   Constructing two-weight codes with prescribed groups of automorphisms,
-   Discrete applied mathematics 155, no. 11 (2007): 1451-1457.
-   http://linearcodes.uni-bayreuth.de/twoweight/
+- [Koh2007]_
+
+- [Di2000]_
 
 TESTS:
 
@@ -33,9 +27,8 @@ Check the data's consistency::
     ....:     w1,w2 = [w for w,f in enumerate(LinearCode(M).weight_distribution()) if w and f]
     ....:     assert (code['w1'], code['w2']) == (w1, w2)
 
-
 """
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.matrix.constructor import Matrix
 from sage.coding.linear_code import LinearCode
 
@@ -73,7 +66,7 @@ data = [
                "11010221121101111102210221220221000111011101121102012101101012012022222000211200202012211100111201200001122001211011120102110212212102121001",
                "20201121211111111012202022201210001220122121211010121011010020110121220201212002010222011001111012100011010212110021202021102112221012110011",
                "02022222111111110112020112011200022102212222110102210110100101102211201211220020002120110011110221100110002121100222120211021112010112220101"),
-        'source': "Found by Axel Kohnert [Kohnert07]_ and shared by Alfred Wassermann.",
+        'source': "Found by Axel Kohnert [Koh2007]_ and shared by Alfred Wassermann.",
     },
     {
         'n' : 98,
@@ -151,7 +144,7 @@ data = [
                "111111222222333333444444000000111111000",
                "223300133440112240112240133440123400110",
                "402340414201142301132013234230044330401"),
-        'source': "From Bouyukliev and Simonis ([BS03]_, Theorem 4.1)",
+        'source': "From Bouyukliev and Simonis ([BS2003]_, Theorem 4.1)",
     },
     {
         'n' : 55,
@@ -286,7 +279,7 @@ data = [
                "1110100010000111000111011011100110111000010000000001000111001010101101",
                "1101000110001110001110110101001101110000100010000010001110010101001011",
                "1010001110011100001101101010011011110001000100000100001100101010010111"),
-        'source': "Found by Axel Kohnert [Kohnert07]_ and shared by Alfred Wassermann.",
+        'source': "Found by Axel Kohnert [Koh2007]_ and shared by Alfred Wassermann.",
     },
     {
         'n' : 85,
@@ -327,6 +320,65 @@ data = [
                [0,0,1,0,  1,  0,   0,  'x','x',  1,'x^2',  1,  1,'x^2',    1,'x','x',  'x','x^2',    1,  0,  'x',  'x',    0,    1,'x^2',  'x','x',1,0,  0,    0,    1,  'x'],
                [0,0,0,1,'x','x','x^2',   1,  0,'x',  'x',  0,  1,'x^2',  'x','x',  1,'x^2','x^2',  'x','x','x^2','x^2','x^2',    1,'x^2',  'x',  1,0,1,'x','x^2',    1,'x^2']],
         'source': "Shared by Eric Chen [ChenDB]_.",
+    },
+    {
+        'n' : 121,
+        'k' : 5,
+        'w1': 88,
+        'w2': 96,
+        'K' : GF(4,name='x'),
+        'M' : [map({'0':0,'1':1,'a':'x','b':'x**2'}.get,x) for x in
+               ["11b1aab0a0101010b1b0a0bab0a0a0b011a0a1b1aab0b1a0b1bab0b0a0b1b011a011a011a011b0b1b0b0b0b0aab1a1b0aab0b010aab1a010b0a1a1aab",
+                "01100110011aa0011aabb0011bb11aabb00bb00aabb11bb11aa0011aabb00aabb00aabb0011bb0011aa00aabb0011aa11aabb00aabb0011aabb00aabb",
+                "000111100000011111111aaaaaabbbbbb0000111111aaaabbbb00000000111111aaaaaabbbbbb000000111111aaaaaa000000111111aaaaaaaabbbbbb",
+                "00000001111111111111111111111111100000000000000000011111111111111111111111111aaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "0000000000000000000000000000000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+               ]],
+        'source' : "From [Di2000]_",
+    },
+    {
+        'n' : 132,
+        'k' : 5,
+        'w1': 96,
+        'w2': 104,
+        'K' : GF(4,name='x'),
+        'M' : [map({'0':0,'1':1,'a':'x','b':'x**2'}.get,x) for x in
+               ["aab1a1ab0b11b1a10b0b101ab00ab1b01ab01abbabab10a1b0a0101a1a1a01ab1b0101ab01ba00bb1bb111b11b1011b1ab0abb1b01abab00abab0aab01001ab0a11b",
+                "10011b0011abb001aaaab00001ab011aaaabbbb1aabb011aabb001aabb01a00abb001111bbb01aab001ab001bb011aa011aaab001111aab00abb0011aab000011abb",
+                "011111000000011111aaabbbbbbb0000000000011111aaaaaaabbbbbbb00011111aaaaaaaaabbbbb0000011111aaaaabbbbbbb00000000011111aaaaaaabbbbbbbbb",
+                "00000011111111111111111111110000000000000000000000000000001111111111111111111111aaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+               ]],
+        'source' : "From [Di2000]_",
+    },
+    {
+        'n' : 143,
+        'k' : 5,
+        'w1': 104,
+        'w2': 112,
+        'K' : GF(4,name='x'),
+        'M' : [map({'0':0,'1':1,'a':'x','b':'x**2'}.get,x) for x in
+               ["1a01a01ab0aaab0bab0a1ab0bab0ab0a01a0a011aab00a01a1a011b00101b1a1bb0a0abab00a1a01a1b11a010b01ab1ab0a011a01ab00a10b0a01babab1a1ba011ab0a1ab0a0b01",
+                "0011abbbb001aabb00aabbb0011aaabb00011bb0011abb000aabb001aa00b11aab00111aa0110011abb0aabb001111aaabb0011aaaab001bb00111aa0011aab11aaabb00011aabb",
+                "11111111100000001111111aaaaaaaaabbbbbbb00000001111111aaaaabbb000001111111aaabbbbbbb0000011111111111aaaaaaaaabbbbb00000001111111aaaaaaabbbbbbbbb",
+                "00000000011111111111111111111111111111100000000000000000000001111111111111111111111aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "00000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+               ]],
+        'source' : "From [Di2000]_",
+    },
+    {
+        'n' : 168,
+        'k' : 6,
+        'w1': 108,
+        'w2': 117,
+        'K' : GF(3),
+        'M' : ["101212212122202012010102120101112012121001201012120220122112001121201201201201010020012201001201201201202120121122012021201221021110200212121011211002012220000122201201",
+               "011100122001200111220011220020011222001200022000220012220122011220011101122012012001222010122200012011120112220112000120120012002012201122001220012122000201212001211211",
+               "000011111000011111112000001112000000111122222000001111112222000001111122222000111222222001111122222000001111112222000001112222000111122222000001111222000011122000011122",
+               "000000000111111111111000000000111111111111111222222222222222000000000000000111111111111222222222222000000000000000111111111111222222222222000000000000111111111222222222",
+               "000000000000000000000111111111111111111111111111111111111111000000000000000000000000000000000000000111111111111111111111111111111111111111222222222222222222222222222222",
+               "000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"],
+        'source' : "From [Di2000]_",
     },
 ]
 

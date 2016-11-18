@@ -13,7 +13,6 @@ Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
 from .decl cimport *
 
 initConstants()
@@ -302,7 +301,7 @@ cdef class CoxGroup(SageObject):
             sage: W._ordering_from_cartan_type(CartanType(['A',5]))                     # optional - coxeter3
             [1, 2, 3, 4, 5]
         """
-        from sage.misc.all import srange
+        from sage.arith.srange import srange
         t = cartan_type.type()
         r = cartan_type.rank()
         is_affine = cartan_type.is_affine()
@@ -635,7 +634,7 @@ cdef class CoxGroup(SageObject):
         """
         Return the Coxeter graph for this Coxeter group.
 
-        OUTPUT:: a Sage graph
+        OUTPUT: a Sage graph
 
         .. NOTE::
 
@@ -724,7 +723,7 @@ cdef class CoxGroupElement:
             sage: w._coxnumber()                                                                    # optional - coxeter3
             7
         """
-        return self.group.extendContext(self.word)
+        return int(self.group.extendContext(self.word))
 
     def __reduce__(self):
         """
@@ -799,7 +798,7 @@ cdef class CoxGroupElement:
         if i < 0:
             i += len(self)
         if i >= len(self):
-            raise IndexError, "The index (%d) is out of range."%i
+            raise IndexError("The index (%d) is out of range." % i)
 
         return self._parent_group.out_ordering[self.word.get_index(i)]
 
@@ -1172,7 +1171,7 @@ class CoxGroupIterator(object):
         """
         A class used to iterate over all of the elements of a Coxeter group.
 
-        .. note::
+        .. NOTE::
 
            This will construct all of the elements of the group within
            Coxeter3.  For some groups, this may be too large to fit
@@ -1205,7 +1204,7 @@ class CoxGroupIterator(object):
         """
         return self
 
-    def next(self):
+    def __next__(self):
         """
         Return the next element in the associated Coxeter group.
 
@@ -1224,6 +1223,9 @@ class CoxGroupIterator(object):
         (<CoxGroup>self.group).x.prod_nbr(w.word, self.n)
         self.n += 1
         return w
+
+    next = __next__
+
 
 CoxGroup_cache = {}
 def get_CoxGroup(cartan_type):

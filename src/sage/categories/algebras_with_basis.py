@@ -1,6 +1,7 @@
 r"""
 Algebras With Basis
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -15,7 +16,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from unital_algebras import UnitalAlgebras
+from .unital_algebras import UnitalAlgebras
 
 class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -72,6 +73,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -81,6 +83,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -196,6 +199,28 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         #    tester.assert_(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
+        def hochschild_complex(self, M):
+            """
+            Return the Hochschild complex of ``self`` with coefficients
+            in ``M``.
+
+            .. SEEALSO::
+
+                :class:`~sage.homology.hochschild_complex.HochschildComplex`
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: A = algebras.DifferentialWeyl(R)
+                sage: H = A.hochschild_complex(A)
+
+                sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+                sage: T = SGA.trivial_representation()
+                sage: H = SGA.hochschild_complex(T)
+            """
+            from sage.homology.hochschild_complex import HochschildComplex
+            return HochschildComplex(self, M)
+
     class ElementMethods:
 
         def __invert__(self):
@@ -242,7 +267,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras with basis, constructed as cartesian
+        The category of algebras with basis, constructed as Cartesian
         products of algebras with basis.
 
         Note: this construction give the direct products of algebras with basis.
@@ -252,7 +277,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def extra_super_categories(self):
             """
-            A cartesian product of algebras with basis is endowed with
+            A Cartesian product of algebras with basis is endowed with
             a natural algebra with basis structure.
 
             EXAMPLES::
@@ -270,9 +295,9 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             @cached_method
             def one_from_cartesian_product_of_one_basis(self):
                 """
-                Returns the one of this cartesian product of algebras, as per ``Monoids.ParentMethods.one``
+                Returns the one of this Cartesian product of algebras, as per ``Monoids.ParentMethods.one``
 
-                It is constructed as the cartesian product of the ones of the
+                It is constructed as the Cartesian product of the ones of the
                 summands, using their :meth:`~AlgebrasWithBasis.ParentMethods.one_basis` methods.
 
                 This implementation does not require multiplication by

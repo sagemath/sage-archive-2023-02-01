@@ -65,12 +65,13 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from six.moves import range
 import itertools
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.integer import Integer
 
 from sage.structure.parent import Parent
@@ -145,7 +146,7 @@ def _draw_tree(tree_node, node_label=True, style_point=None, style_node='fill=wh
     lines_str = ''
 
     # Getting children string
-    for i in xrange(nb_children):
+    for i in range(nb_children):
         if i == half and nb_children % 2 == 0:
             pos[0] = start[0]
             start[0] += hspace
@@ -324,7 +325,6 @@ class KleberTreeNode(Element):
             return Integer(1)
 
         mult = Integer(1)
-        CM = self.parent()._classical_ct.cartan_matrix()
         I = self.parent()._classical_ct.index_set()
         for a,m in self.up_root:
             p = self.weight[a]
@@ -848,7 +848,7 @@ class KleberTree(UniqueRepresentation, Parent):
         L = [range(val + 1) for val in node.up_root.to_vector()]
 
         it = itertools.product(*L)
-        it.next() # First element is the zero element
+        next(it)  # First element is the zero element
         for root in it:
             # Convert the list to an honest root in the root space
             converted_root = RS.sum_of_terms([[I[i], val] for i, val in enumerate(root)])
@@ -989,7 +989,6 @@ class KleberTree(UniqueRepresentation, Parent):
 
         if have_dot2tex():
             G.set_latex_options(format="dot2tex", edge_labels=True)
-                                # edge_options = lambda (u,v,label): ({"backward":label ==0}))
         return G
 
     def plot(self, **options):

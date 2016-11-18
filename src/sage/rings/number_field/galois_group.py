@@ -210,7 +210,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             <class 'sage.rings.number_field.galois_group.GaloisGroupElement'>
 
         We test that a method inherited from PermutationGroup_generic returns
-        the right type of element (see trac #133)::
+        the right type of element (see :trac:`133`)::
 
             sage: phi = G.random_element()
             sage: type(phi)
@@ -331,6 +331,42 @@ class GaloisGroup_v2(PermutationGroup_generic):
             [(), (1,2,3), (1,3,2)]
         """
         return self._elts
+
+    def unrank(self, i):
+        r"""
+        Return the ``i``-th element of ``self``.
+
+        INPUT:
+
+        - ``i`` -- integer between ``0`` and ``n-1`` where
+          ``n`` is the cardinality of this set
+
+        EXAMPLES::
+
+            sage: G = NumberField(x^3 - 3*x + 1,'a').galois_group()
+            sage: [G.unrank(i) for i in range(G.cardinality())]
+            [(), (1,2,3), (1,3,2)]
+
+        TESTS::
+
+            sage: G = NumberField(x^3 - 3*x + 1,'a').galois_group()
+            sage: L = [G.unrank(i) for i in range(G.cardinality())]
+            sage: L == G.list()
+            True
+        """
+        return self._elts[i]
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: G = NumberField(x^3 - 3*x + 1,'a').galois_group()
+            sage: list(G) == G.list()
+            True
+        """
+        return iter(self._elts)
 
     def subgroup(self, elts):
         r"""

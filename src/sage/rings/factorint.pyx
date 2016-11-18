@@ -82,7 +82,7 @@ cpdef aurifeuillian(n, m, F=None, bint check=True):
        Mathematics of Computation. **61** (1993). No. 203. pp 131-149.
        :arXiv:`1004.5466v1`. http://www.jstor.org/stable/2152941
     """
-    from sage.rings.arith import euler_phi
+    from sage.arith.all import euler_phi
     from sage.rings.real_mpfi import RealIntervalField
     if check:
         if not n.is_squarefree():

@@ -23,6 +23,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.matrix.constructor import Matrix
 from sage.rings.all import ZZ, QQ, FiniteField, GF
@@ -87,7 +88,7 @@ def setprint(X):
         sage: setprint(G)
         Petersen graph: Graph on 10 vertices
     """
-    print setprint_s(X, toplevel=True)
+    print(setprint_s(X, toplevel=True))
 
 
 def setprint_s(X, toplevel=False):
@@ -416,7 +417,7 @@ def spanning_stars(M):
     EXAMPLES::
 
         sage: edges = sage.matroids.utilities.spanning_stars(matrix([[1,1,1],[1,1,1],[1,1,1]]))
-        sage: Graph(map(lambda (x,y): (x+3,y), edges)).is_connected()
+        sage: Graph([(x+3, y) for x,y in edges]).is_connected()
         True
     """
 
@@ -502,7 +503,7 @@ def lift_cross_ratios(A, lift_map = None):
 
     This method will create a unique candidate representation ``Z``, but will not verify
     if ``Z`` is indeed a representation of ``M``. However, this is guaranteed if the
-    conditions of the lift theorem (see [PvZ]_) hold for the lift map in combination with
+    conditions of the lift theorem (see [PvZ2010]_) hold for the lift map in combination with
     the matrix ``A``.
 
     For a lift map `f` and a matrix `A` these conditions are as follows. First of all
@@ -688,15 +689,15 @@ def lift_map(target):
         sage: lm = lift_map('gm')
         sage: for x in lm:
         ....:     if (x == 1) is not (lm[x] == 1):
-        ....:         print 'not a proper lift map'
+        ....:         print('not a proper lift map')
         ....:     for y in lm:
         ....:         if (x+y == 0) and not (lm[x]+lm[y] == 0):
-        ....:             print 'not a proper lift map'
+        ....:             print('not a proper lift map')
         ....:         if (x+y == 1) and not (lm[x]+lm[y] == 1):
-        ....:             print 'not a proper lift map'
+        ....:             print('not a proper lift map')
         ....:         for z in lm:
         ....:             if (x*y==z) and not (lm[x]*lm[y]==lm[z]):
-        ....:                 print 'not a proper lift map'
+        ....:                 print('not a proper lift map')
 
     """
     if target == "reg":

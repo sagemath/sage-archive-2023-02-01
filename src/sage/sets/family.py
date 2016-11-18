@@ -33,7 +33,7 @@ Check :trac:`12482` (shall be run in a fresh session)::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
@@ -235,8 +235,8 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     called::
 
         sage: def compute_value(i):
-        ...       print('computing 2*'+str(i))
-        ...       return 2*i
+        ....:     print('computing 2*'+str(i))
+        ....:     return 2*i
         sage: f = Family([3,4,7], compute_value, hidden_keys=[2])
         computing 2*3
         computing 2*4
@@ -1069,7 +1069,7 @@ class LazyFamily(AbstractFamily):
         """
         f = self.function
         # This should be done once for all by registering
-        # sage.misc.fpickle.pickle_function to copy_reg
+        # sage.misc.fpickle.pickle_function to copyreg
         if isinstance(f, type(Family)): # TODO: where is the python `function` type?
             from sage.misc.fpickle import pickle_function
             f = pickle_function(f)
@@ -1168,7 +1168,7 @@ class TrivialFamily(AbstractFamily):
             sage: f.keys()
             [0, 1, 2]
         """
-        return range(len(self._enumeration))
+        return list(range(len(self._enumeration)))
 
     def cardinality(self):
         """
@@ -1267,9 +1267,9 @@ class EnumeratedFamily(LazyFamily):
             sage: TestSuite(f).run()
         """
         if enumset.cardinality() == Infinity:
-            baseset=NonNegativeIntegers()
+            baseset = NonNegativeIntegers()
         else:
-            baseset=xrange(enumset.cardinality())
+            baseset = range(enumset.cardinality())
         LazyFamily.__init__(self, baseset, enumset.unrank)
         self.enumset = enumset
 

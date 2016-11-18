@@ -359,7 +359,7 @@ in :trac:`3779` is actually fixed::
 
     sage: f = function('F')(x)
     sage: diff(f*SR(1),x)
-    D[0](F)(x)
+    diff(F(x), x)
 
 Doubly ensure that :trac:`7479` is working::
 
@@ -379,25 +379,35 @@ Check that the problem with Taylor expansions of the gamma function
     + 4*euler_gamma*(sqrt(3)*pi + 9*log(3)) + 27*log(3)^2 + 12*psi(1,
     1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + sqrt(3)*pi +
     9*log(3))*x*gamma(1/3) + gamma(1/3)
-    sage: map(lambda f:f[0].n(), _.coefficients())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
+    sage: [f[0].n() for f in _.coefficients()]  # numerical coefficients to make comparison easier; Maple 12 gives same answer
     [2.6789385347..., -8.3905259853..., 26.662447494..., -80.683148377...]
 
-Ensure that ticket #8582 is fixed::
+Ensure that :trac:`8582` is fixed::
 
     sage: k = var("k")
     sage: sum(1/(1+k^2), k, -oo, oo)
     -1/2*I*psi(I + 1) + 1/2*I*psi(-I + 1) - 1/2*I*psi(I) + 1/2*I*psi(-I)
 
-Ensure that ticket #8624 is fixed::
+Ensure that :trac:`8624` is fixed::
 
     sage: integrate(abs(cos(x)) * sin(x), x, pi/2, pi)
     1/2
     sage: integrate(sqrt(cos(x)^2 + sin(x)^2), x, 0, 2*pi)
     2*pi
+
+Check if maxima has redundant variables defined after initialization,
+see :trac:`9538`::
+
+    sage: maxima = sage.interfaces.maxima.maxima
+    sage: maxima('f1')
+    f1
+    sage: sage.calculus.calculus.maxima('f1')
+    f1
 """
 
 import re
-from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement, algdep
+from sage.arith.all import algdep
+from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement
 from sage.rings.real_mpfr import create_RealNumber
 
 from sage.misc.latex import latex
@@ -407,30 +417,16 @@ from sage.symbolic.ring import var, SR, is_SymbolicVariable
 from sage.symbolic.expression import Expression
 from sage.symbolic.function import Function
 from sage.symbolic.function_factory import function_factory
-from sage.symbolic.integration.integral import indefinite_integral, \
-        definite_integral
-import sage.symbolic.pynac
+from sage.symbolic.integration.integral import (indefinite_integral,
+        definite_integral)
+from sage.libs.pynac.pynac import symbol_table
 
-"""
-Check if maxima has redundant variables defined after initialization #9538::
-
-    sage: maxima = sage.interfaces.maxima.maxima
-    sage: maxima('f1')
-    f1
-    sage: sage.calculus.calculus.maxima('f1')
-    f1
-"""
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.interfaces.maxima_lib','maxima')
-# This is not the same instance of Maxima as the general purpose one
-#from sage.interfaces.maxima import Maxima
-#maxima = Maxima(init_code = ['display2d : false', 'domain : complex',
-#                             'keepfloat : true', 'load(to_poly_solver)',
-#                             'load(simplify_sum)'],
-#                script_subdirectory=None)
+
 
 ########################################################
-def symbolic_sum(expression, v, a, b, algorithm='maxima'):
+def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     r"""
     Returns the symbolic sum `\sum_{v = a}^b expression` with respect
     to the variable `v` with endpoints `a` and `b`.
@@ -454,6 +450,8 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
       - ``'mathematica'`` - (optional) use Mathematica
 
       - ``'giac'`` - (optional) use Giac
+
+    - ``hold`` - (default: ``False``) if ``True`` don't evaluate
 
     EXAMPLES::
 
@@ -561,6 +559,19 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         sage: symbolic_sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional - maple
         (x + 1)^n
 
+    If you don't want to evaluate immediately give the ``hold`` keyword::
+
+        sage: s = sum(n, n, 1, k, hold=True); s
+        sum(n, n, 1, k)
+        sage: s.unhold()
+        1/2*k^2 + 1/2*k
+        sage: s.subs(k == 10)
+        sum(n, n, 1, 10)
+        sage: s.subs(k == 10).unhold()
+        55
+        sage: s.subs(k == 10).n()
+        55.0000000000000
+
     TESTS:
 
     :trac:`10564` is fixed::
@@ -583,6 +594,10 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
     if v in SR(a).variables() or v in SR(b).variables():
         raise ValueError("summation limits must not depend on the summation variable")
+
+    if hold == True:
+        from sage.functions.other import symbolic_sum as ssum
+        return ssum(expression, v, a, b)
 
     if algorithm == 'maxima':
         return maxima.sr_sum(expression,v,a,b)
@@ -727,7 +742,7 @@ def nintegral(ex, x, a, b,
     Now numerically integrating, we see why the answer is wrong::
 
         sage: f.nintegrate(x,0,1)
-        (-480.0000000000001, 5.329070518200754e-12, 21, 0)
+        (-480.0000000000001, 5.32907051820075e-12, 21, 0)
 
     It is just because every floating point evaluation of return -480.0
     in floating point.
@@ -991,7 +1006,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     ::
 
        expr.limit(x = a)
-       expr.limit(x = a, dir='above')
+       expr.limit(x = a, dir='+')
 
     INPUT:
 
@@ -1252,7 +1267,7 @@ def laplace(ex, t, s):
     defined for all real numbers `t \geq 0`, is the function
     `F(s)` defined by
 
-    .. math::
+    .. MATH::
 
                       F(s) = \int_{0}^{\infty} e^{-st} f(t) dt.
 
@@ -1273,7 +1288,7 @@ def laplace(ex, t, s):
 
         sage: f = function('f')(x)
         sage: g = f.diff(x); g
-        D[0](f)(x)
+        diff(f(x), x)
         sage: g.laplace(x, s)
         s*laplace(f(x), x, s) - f(0)
 
@@ -1282,7 +1297,7 @@ def laplace(ex, t, s):
     A BATTLE BETWEEN the X-women and the Y-men (by David
     Joyner): Solve
 
-    .. math::
+    .. MATH::
 
                    x' = -16y, x(0)=270,  y' = -x + 1, y(0) = 90.
 
@@ -1353,7 +1368,7 @@ def inverse_laplace(ex, t, s):
     DEFINITION: The inverse Laplace transform of a function
     `F(s)`, is the function `f(t)` defined by
 
-    .. math::
+    .. MATH::
 
                       F(s) = \frac{1}{2\pi i} \int_{\gamma-i\infty}^{\gamma + i\infty} e^{st} F(s) dt,
 
@@ -1418,7 +1433,7 @@ def at(ex, *args, **kwds):
         sage: diff(u(x+h), x)
         D[0](u)(h + x)
         sage: taylor(u(x+h),h,0,4)
-        1/24*h^4*D[0, 0, 0, 0](u)(x) + 1/6*h^3*D[0, 0, 0](u)(x) + 1/2*h^2*D[0, 0](u)(x) + h*D[0](u)(x) + u(x)
+        1/24*h^4*diff(u(x), x, x, x, x) + 1/6*h^3*diff(u(x), x, x, x) + 1/2*h^2*diff(u(x), x, x) + h*diff(u(x), x) + u(x)
 
     We compute a Laplace transform::
 
@@ -1426,7 +1441,7 @@ def at(ex, *args, **kwds):
         (s, t)
         sage: f=function('f')(t)
         sage: f.diff(t,2)
-        D[0, 0](f)(t)
+        diff(f(t), t, t)
         sage: f.diff(t,2).laplace(t,s)
         s^2*laplace(f(t), t, s) - s*f(0) - D[0](f)(0)
 
@@ -1523,7 +1538,7 @@ def dummy_diff(*args):
         sage: a = var('a')
         sage: f = function('cr')(a)
         sage: g = f.diff(a); g
-        D[0](cr)(a)
+        diff(cr(a), a)
     """
     f = args[0]
     args = list(args[1:])
@@ -1797,7 +1812,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms('%inf')
         +Infinity
     """
-    syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
+    syms = symbol_table.get('maxima', {}).copy()
 
     if len(x) == 0:
         raise RuntimeError("invalid symbolic expression -- ''")
@@ -1890,7 +1905,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
         global _syms
-        _syms = sage.symbolic.pynac.symbol_table['functions'].copy()
+        _syms = symbol_table['functions'].copy()
         try:
             global _augmented_syms
             _augmented_syms = syms
@@ -1951,7 +1966,6 @@ def maxima_options(**kwds):
 # The dictionary _syms is used as a lookup table for the system function
 # registry by _find_func() below. It gets updated by
 # symbolic_expression_from_string() before calling the parser.
-from sage.symbolic.pynac import symbol_table
 _syms = syms_cur = symbol_table.get('functions', {})
 syms_default = dict(syms_cur)
 
@@ -1991,6 +2005,7 @@ def _find_var(name):
 
     # try to find the name in the global namespace
     # needed for identifiers like 'e', etc.
+    import sage.all
     try:
         return SR(sage.all.__dict__[name])
     except (KeyError, TypeError):
@@ -2023,6 +2038,7 @@ def _find_func(name, create_when_missing = True):
             return func
     except KeyError:
         pass
+    import sage.all
     try:
         func = SR(sage.all.__dict__[name])
         if not isinstance(func, Expression):
@@ -2062,7 +2078,7 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
         [0, 3*y + e^pi]
     """
     global _syms
-    _syms = sage.symbolic.pynac.symbol_table['functions'].copy()
+    _syms = symbol_table['functions'].copy()
     parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression
     if syms is None:
         return parse_func(s)
@@ -2095,6 +2111,7 @@ def _find_Mvar(name):
 
     # try to find the name in the global namespace
     # needed for identifiers like 'e', etc.
+    import sage.all
     try:
         return SR(sage.all.__dict__[name])
     except (KeyError, TypeError):

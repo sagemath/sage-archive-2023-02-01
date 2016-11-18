@@ -50,7 +50,7 @@ class CommutativeRings(CategoryWithAxiom):
 
     class Finite(CategoryWithAxiom):
         r"""
-        Check that Sage knows that cartesian products of finite commutative
+        Check that Sage knows that Cartesian products of finite commutative
         rings is a finite commutative ring.
 
         EXAMPLES::
@@ -74,7 +74,7 @@ class CommutativeRings(CategoryWithAxiom):
                 primitive element `z` of `GF(q^k)`. The minimal polynomial of
                 `z^s` over `GF(q)` is given by
 
-                .. math::
+                .. MATH::
 
                          M_s(x) = \prod_{i \in C_s} (x - z^i),
 
@@ -200,7 +200,7 @@ class CommutativeRings(CategoryWithAxiom):
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             r"""
-            Let Sage knows that cartesian products of commutative rings is a
+            Let Sage knows that Cartesian products of commutative rings is a
             commutative ring.
 
             EXAMPLES::

@@ -26,8 +26,10 @@ Functions, Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
+from six.moves import range
 
-import sage
+import sage   # WHAT !!!
 
 
 def repr_short_to_parent(s):
@@ -107,15 +109,15 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(ZZ['x'])
         'ZZ[x]'
         sage: parent_to_repr_short(QQ['d, k'])
-        '(QQ[d, k])'
+        'QQ[d, k]'
         sage: parent_to_repr_short(QQ['e'])
         'QQ[e]'
         sage: parent_to_repr_short(SR[['a, r']])
-        '(SR[[a, r]])'
+        'SR[[a, r]]'
         sage: parent_to_repr_short(Zmod(3))
-        '(Ring of integers modulo 3)'
+        'Ring of integers modulo 3'
         sage: parent_to_repr_short(Zmod(3)['g'])
-        '(Univariate Polynomial Ring in g over Ring of integers modulo 3)'
+        'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
     def abbreviate(P):
         if P is sage.rings.integer_ring.ZZ:
@@ -147,8 +149,6 @@ def parent_to_repr_short(P):
         except ValueError:
             s = str(P)
 
-    if ' ' in s:
-        s = '(' + s + ')'
     return s
 
 
@@ -212,7 +212,23 @@ def split_str_by_op(string, op, strip_parentheses=True):
         ('(t)s',)
         sage: split_str_by_op(' ( t  ) s', op=None)
         ('t', 's')
+
+    ::
+
+        sage: split_str_by_op('(e^(n*log(n)))^SR.subring(no_variables=True)', '*')
+        ('(e^(n*log(n)))^SR.subring(no_variables=True)',)
     """
+    def is_balanced(s):
+        open = 0
+        for l in s:
+            if l == '(':
+                open += 1
+            elif l == ')':
+                open -= 1
+            if open < 0:
+                return False
+        return bool(open == 0)
+
     factors = list()
     balanced = True
     if string and op is not None and string.startswith(op):
@@ -228,7 +244,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
                              (string, op, op))
         if not balanced:
             s = factors.pop() + (op if op else '') + s
-        balanced = s.count('(') == s.count(')')
+        balanced = is_balanced(s)
         factors.append(s)
 
     if not balanced:
@@ -239,13 +255,15 @@ def split_str_by_op(string, op, strip_parentheses=True):
         if not s:
             return s
         if strip_parentheses and s[0] == '(' and s[-1] == ')':
-            s = s[1:-1]
+            t = s[1:-1]
+            if is_balanced(t):
+                s = t
         return s.strip()
 
     return tuple(strip(f) for f in factors)
 
 
-def repr_op(left, op, right=None):
+def repr_op(left, op, right=None, latex=False):
     r"""
     Create a string ``left op right`` with
     taking care of parentheses in its operands.
@@ -257,6 +275,9 @@ def repr_op(left, op, right=None):
     - ``op`` -- a string.
 
     - ``right`` -- an alement.
+
+    - ``latex`` -- (default: ``False``) a boolean. If set, then
+      LaTeX-output is returned.
 
     OUTPUT:
 
@@ -274,6 +295,11 @@ def repr_op(left, op, right=None):
         '(a-b)^c'
         sage: repr_op('a+b', '^', 'c')
         '(a+b)^c'
+
+    ::
+
+        sage: print(repr_op(r'\frac{1}{2}', '^', 'c', latex=True))
+        \left(\frac{1}{2}\right)^c
     """
     left = str(left)
     right = str(right) if right is not None else ''
@@ -283,13 +309,15 @@ def repr_op(left, op, right=None):
             signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s
-        if any(sig in s for sig in signals):
-            return '(%s)' % (s,)
+        if any(sig in s for sig in signals) or latex and s.startswith(r'\frac'):
+            if latex:
+                return r'\left({}\right)'.format(s)
+            else:
+                return '({})'.format(s)
         else:
             return s
 
-    return add_parentheses(left, op) + op +\
-        add_parentheses(right, op)
+    return add_parentheses(left, op) + op + add_parentheses(right, op)
 
 
 def combine_exceptions(e, *f):
@@ -492,7 +520,7 @@ def merge_overlapping(A, B, key=None):
     def find_overlapping_index(A, B):
         if len(B) > len(A) - 2:
             raise StopIteration
-        matches = iter(i for i in xrange(1, len(A) - len(B))
+        matches = iter(i for i in range(1, len(A) - len(B))
                        if A[i:i+len(B)] == B)
         return next(matches)
 
@@ -504,7 +532,7 @@ def merge_overlapping(A, B, key=None):
 
         Adapted from http://stackoverflow.com/a/30056066/1052778.
         """
-        matches = iter(i for i in xrange(min(len(A), len(B)), 0, -1)
+        matches = iter(i for i in range(min(len(A), len(B)), 0, -1)
                        if A[-i:] == B[:i])
         return next(matches, 0)
 
@@ -558,6 +586,52 @@ def log_string(element, base=None):
     """
     basestr = ', base=' + str(base) if base else ''
     return 'log(%s%s)' % (element, basestr)
+
+
+class NotImplementedOZero(NotImplementedError):
+    r"""
+    A special :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`
+    which is raised when the result is O(0) which means 0
+    for sufficiently large values of the variable.
+    """
+    def __init__(self, data=None, var=None):
+        r"""
+        INPUT:
+
+        - ``data`` -- (default: ``None``) an :class:`AsymptoticRing` or a string.
+
+        - ``var`` -- (default: ``None``) a string.
+
+        TESTS::
+
+            sage: A = AsymptoticRing('n^ZZ', ZZ)
+            doctest:...: FutureWarning: ...
+            sage: from sage.rings.asymptotic.misc import NotImplementedOZero
+            sage: raise NotImplementedOZero(A)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large n.
+            sage: raise NotImplementedOZero('something')
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: something
+            sage: raise NotImplementedOZero(var='m')
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: The error term in the result is O(0)
+            which means 0 for sufficiently large m.
+        """
+        from .asymptotic_ring import AsymptoticRing
+        if isinstance(data, AsymptoticRing) or var is not None:
+            if var is None:
+                var = ', '.join(str(g) for g in data.gens())
+            message = ('The error term in the result is O(0) '
+                       'which means 0 for sufficiently '
+                       'large {}.'.format(var))
+        else:
+            message = data
+        super(NotImplementedOZero, self).__init__(message)
 
 
 def transform_category(category,

@@ -59,7 +59,7 @@ SageTeXの動作を体験するために，まずSageTeXのインストール手
 
     \end{document}
 
-この ``st_example.tex`` をいつも通りにLaTexで処理する．
+この ``st_example.tex`` をいつも通りにLaTeXで処理する．
 するとLaTeXは以下のような文句をつけてくるだろう:
 
 

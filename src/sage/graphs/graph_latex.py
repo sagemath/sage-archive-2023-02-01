@@ -52,13 +52,13 @@ Here is a minimal session demonstrating how to use these features. The following
 
     sage: H = graphs.HeawoodGraph()
     sage: H.set_latex_options(
-    ...   graphic_size=(5,5),
-    ...   vertex_size=0.2,
-    ...   edge_thickness=0.04,
-    ...   edge_color='green',
-    ...   vertex_color='green',
-    ...   vertex_label_color='red'
-    ...   )
+    ....: graphic_size=(5,5),
+    ....: vertex_size=0.2,
+    ....: edge_thickness=0.04,
+    ....: edge_color='green',
+    ....: vertex_color='green',
+    ....: vertex_label_color='red'
+    ....: )
 
 At this point, ``view(H)`` should call ``pdflatex`` to process the string created by ``latex(H)`` and then display the resulting graphic.
 
@@ -219,7 +219,7 @@ Among other things, this supports the flexible ``edge_options`` option
 here we color in red all edges touching the vertex ``0``::
 
     sage: g = graphs.PetersenGraph()
-    sage: g.set_latex_options(format="dot2tex", edge_options = lambda (u,v,label): {"color": "red"} if u==0 else {})
+    sage: g.set_latex_options(format="dot2tex", edge_options=lambda u_v_label: {"color": "red"} if u_v_label[0] == 0 else {})
     sage: latex(g)  # optional - dot2tex graphviz
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
@@ -238,45 +238,45 @@ choices. ::
     (x, y, u, w)
     sage: G = Graph(loops=True)
     sage: for i in range(5):
-    ...      for j in range(i+1, 5):
-    ...           G.add_edge((i, j), label=(x^i*y^j).expand())
+    ....:    for j in range(i+1, 5):
+    ....:         G.add_edge((i, j), label=(x^i*y^j).expand())
     sage: G.add_edge((0,0), label=sin(u))
     sage: G.add_edge((4,4), label=w^5)
     sage: G.set_pos(G.layout_circular())
     sage: G.set_latex_options(
-    ...   units='in',
-    ...   graphic_size=(8,8),
-    ...   margins=(1,2,2,1),
-    ...   scale=0.5,
-    ...   vertex_color='0.8',
-    ...   vertex_colors={1:'aqua', 3:'y', 4:'#0000FF'},
-    ...   vertex_fill_color='blue',
-    ...   vertex_fill_colors={1:'green', 3:'b', 4:'#FF00FF'},
-    ...   vertex_label_color='brown',
-    ...   vertex_label_colors={0:'g',1:'purple',2:'#007F00'},
-    ...   vertex_shape='diamond',
-    ...   vertex_shapes={1:'rectangle', 2:'sphere', 3:'sphere', 4:'circle'},
-    ...   vertex_size=0.3,
-    ...   vertex_sizes={0:1.0, 2:0.3, 4:1.0},
-    ...   vertex_label_placements = {2:(0.6, 180), 4:(0,45)},
-    ...   edge_color='purple',
-    ...   edge_colors={(0,2):'g',(3,4):'red'},
-    ...   edge_fills=True,
-    ...   edge_fill_color='green',
-    ...   edge_label_colors={(2,3):'y',(0,4):'blue'},
-    ...   edge_thickness=0.05,
-    ...   edge_thicknesses={(3,4):0.2, (0,4):0.02},
-    ...   edge_labels=True,
-    ...   edge_label_sloped=True,
-    ...   edge_label_slopes={(0,3):False, (2,4):False},
-    ...   edge_label_placement=0.50,
-    ...   edge_label_placements={(0,4):'above', (2,3):'left', (0,0):'above', (4,4):'below'},
-    ...   loop_placement=(2.0, 'NO'),
-    ...   loop_placements={4:(8.0, 'EA')}
-    ...   )
+    ....: units='in',
+    ....: graphic_size=(8,8),
+    ....: margins=(1,2,2,1),
+    ....: scale=0.5,
+    ....: vertex_color='0.8',
+    ....: vertex_colors={1:'aqua', 3:'y', 4:'#0000FF'},
+    ....: vertex_fill_color='blue',
+    ....: vertex_fill_colors={1:'green', 3:'b', 4:'#FF00FF'},
+    ....: vertex_label_color='brown',
+    ....: vertex_label_colors={0:'g',1:'purple',2:'#007F00'},
+    ....: vertex_shape='diamond',
+    ....: vertex_shapes={1:'rectangle', 2:'sphere', 3:'sphere', 4:'circle'},
+    ....: vertex_size=0.3,
+    ....: vertex_sizes={0:1.0, 2:0.3, 4:1.0},
+    ....: vertex_label_placements = {2:(0.6, 180), 4:(0,45)},
+    ....: edge_color='purple',
+    ....: edge_colors={(0,2):'g',(3,4):'red'},
+    ....: edge_fills=True,
+    ....: edge_fill_color='green',
+    ....: edge_label_colors={(2,3):'y',(0,4):'blue'},
+    ....: edge_thickness=0.05,
+    ....: edge_thicknesses={(3,4):0.2, (0,4):0.02},
+    ....: edge_labels=True,
+    ....: edge_label_sloped=True,
+    ....: edge_label_slopes={(0,3):False, (2,4):False},
+    ....: edge_label_placement=0.50,
+    ....: edge_label_placements={(0,4):'above', (2,3):'left', (0,0):'above', (4,4):'below'},
+    ....: loop_placement=(2.0, 'NO'),
+    ....: loop_placements={4:(8.0, 'EA')}
+    ....: )
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
-    sage: print latex(G)
+    sage: print(latex(G))
     \begin{tikzpicture}
     %
     \useasboundingbox (0,0) rectangle (4.0in,4.0in);
@@ -366,6 +366,7 @@ GraphLatex class and functions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_function
@@ -581,7 +582,7 @@ class GraphLatex(SageObject):
             sage: opts = g.latex_options()
             sage: opts.set_option('tkz_style', 'Classic')
             sage: opts.set_option('vertex_size', 3.6)
-            sage: print opts._repr_()
+            sage: print(opts._repr_())
             LaTeX options for Petersen graph: {'tkz_style': 'Classic', 'vertex_size': 3.60000000000000}
         """
         return "LaTeX options for %s: %s"%(self._graph, self._options)
@@ -1279,7 +1280,7 @@ class GraphLatex(SageObject):
             sage: check_tkz_graph()  # random - depends on TeX installation
             sage: g = graphs.CompleteGraph(2)
             sage: opts = g.latex_options()
-            sage: print opts.latex()
+            sage: print(opts.latex())
             \begin{tikzpicture}
             %
             \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
@@ -1315,7 +1316,7 @@ class GraphLatex(SageObject):
             sage: g = digraphs.ButterflyGraph(1)
             sage: from sage.graphs.graph_latex import check_tkz_graph
             sage: check_tkz_graph()  # random - depends on TeX installation
-            sage: print g.latex_options().dot2tex_picture()  # optional - dot2tex graphviz
+            sage: print(g.latex_options().dot2tex_picture())  # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
               \node (node_3) at (...bp,...bp) [draw,draw=none] {$\left(1, 1\right)$};
@@ -1334,7 +1335,7 @@ class GraphLatex(SageObject):
             sage: G = DiGraph() 
             sage: G.add_edge(3333, 88, 'my_label') 
             sage: G.set_latex_options(edge_labels=True) 
-            sage: print G.latex_options().dot2tex_picture() # optional - dot2tex graphviz 
+            sage: print(G.latex_options().dot2tex_picture()) # optional - dot2tex graphviz 
             \begin{tikzpicture}[>=latex,line join=bevel,] 
             %% 
             \node (node_1) at (...bp,...bp) [draw,draw=none] {$3333$};
@@ -1398,7 +1399,7 @@ class GraphLatex(SageObject):
             sage: g = graphs.CompleteGraph(3)
             sage: opts = g.latex_options()
             sage: g.set_latex_options(tkz_style='Art')
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             %
             \GraphInit[vstyle=Art]
@@ -1423,7 +1424,7 @@ class GraphLatex(SageObject):
             sage: g = graphs.CompleteGraph(3)
             sage: opts = g.latex_options()
             sage: g.set_latex_options(tkz_style='Custom')
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             %
             \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
@@ -1464,7 +1465,7 @@ class GraphLatex(SageObject):
             sage: check_tkz_graph()  # random - depends on TeX installation
             sage: g = graphs.PathGraph(3)
             sage: opts = g.latex_options()
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
@@ -1476,7 +1477,7 @@ class GraphLatex(SageObject):
             sage: check_tkz_graph()  # random - depends on TeX installation
             sage: g = graphs.CompleteGraph(1)
             sage: opts = g.latex_options()
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             ...
             \end{tikzpicture}

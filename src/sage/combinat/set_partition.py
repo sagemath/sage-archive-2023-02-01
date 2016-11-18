@@ -24,6 +24,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.sets.set import Set, is_Set
 
@@ -517,21 +518,28 @@ class SetPartition(ClonableArray):
 
     @combinatorial_map(name='to permutation')
     def to_permutation(self):
-        """
-        Convert ``self`` to a permutation by considering the partitions as
-        cycles.
+        r"""
+        Convert a set partition of `\{1,...,n\}` to a permutation by considering
+        the blocks of the partition as cycles.
+
+        The cycles are such that the number of excedences is maximised, that is,
+        each cycle is of the form `(a_1,a_2, ...,a_k)` with `a_1<a_2<...<a_k`.
 
         EXAMPLES::
 
             sage: s = SetPartition([[1,3],[2,4]])
             sage: s.to_permutation()
             [3, 4, 1, 2]
+
         """
         return Permutation(tuple( map(tuple, self.standard_form()) ))
 
     def standard_form(self):
         r"""
         Return ``self`` as a list of lists.
+
+        When the ground set is totally ordered, the elements of each
+        block are listed in increasing order.
 
         This is not related to standard set partitions (which simply
         means set partitions of `[n] = \{ 1, 2, \ldots , n \}` for some
@@ -541,8 +549,13 @@ class SetPartition(ClonableArray):
 
             sage: [x.standard_form() for x in SetPartitions(4, [2,2])]
             [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
+
+        TESTS::
+
+            sage: SetPartition([(1, 9, 8), (2, 3, 4, 5, 6, 7)]).standard_form()
+            [[1, 8, 9], [2, 3, 4, 5, 6, 7]]
         """
-        return [list(_) for _ in self]
+        return [sorted(_) for _ in self]
 
     def apply_permutation(self, p):
         r"""
@@ -800,7 +813,7 @@ class SetPartition(ClonableArray):
 
         REFERENCES:
 
-        .. [LM2011] A. Lauve, M. Mastnak. *The primitives and antipode in
+        .. [LM2011] \A. Lauve, M. Mastnak. *The primitives and antipode in
            the Hopf algebra of symmetric functions in noncommuting variables*.
            Advances in Applied Mathematics. **47** (2011). 536-544.
            :arxiv:`1006.0367v3` :doi:`10.1016/j.aam.2011.01.002`.
@@ -1030,7 +1043,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
             sage: S = SetPartitions(4, [2,2])
             sage: SA = SetPartitions()
-            sage: all([sp in SA for sp in S])
+            sage: all(sp in SA for sp in S)
             True
             sage: Set([Set([1,2]),Set([3,7])]) in SA
             True
@@ -1105,7 +1118,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             True
         """
         nonzero = []
-        expo = [0]+part.to_exp()
+        expo = [0] + part.to_exp()
 
         for i in range(len(expo)):
             if expo[i] != 0:
@@ -1117,8 +1130,8 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         for b in blocs:
             lb = [IterableFunctionCall(_listbloc, nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero))]
-            for x in itertools.imap(lambda x: _union(x), itertools.product( *lb )):
-                yield x
+            for x in itertools.product(*lb):
+                yield _union(x)
 
     def is_less_than(self, s, t):
         r"""
@@ -1158,8 +1171,13 @@ class SetPartitions(UniqueRepresentation, Parent):
             return False
 
         for p in s:
-            if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
-                return False
+            x = p[0]
+            for t_ in t:
+                if x in t_:
+                    break
+            for p_ in p:
+                if p_ not in t_:
+                    return False
         return True
 
     lt = is_less_than
@@ -1306,7 +1324,7 @@ class SetPartitions_set(SetPartitions):
         TESTS::
 
             sage: S = SetPartitions(4, [2,2])
-            sage: all([sp in S for sp in S])
+            sage: all(sp in S for sp in S)
             True
             sage: SetPartition([[1,3],[2,4]]) in SetPartitions(3)
             False
@@ -1402,7 +1420,7 @@ class SetPartitions_setparts(SetPartitions_set):
             True
         """
         if isinstance(s, (int, Integer)):
-            s = xrange(1, s+1)
+            s = list(range(1, s + 1))
         return super(SetPartitions_setparts, cls).__classcall__(cls, frozenset(s), Partition(parts))
 
     def __init__(self, s, parts):
@@ -1601,7 +1619,7 @@ def _listbloc(n, nbrepets, listint=None):
         True
     """
     if isinstance(listint, (int, Integer)) or listint is None:
-        listint = Set(range(1,n+1))
+        listint = Set(list(range(1,n+1)))
 
     if nbrepets == 1:
         yield Set([listint])

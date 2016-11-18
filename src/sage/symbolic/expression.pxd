@@ -1,5 +1,4 @@
-from ginac cimport *
-
+from sage.libs.pynac.pynac cimport GEx
 from sage.structure.element cimport CommutativeRingElement
 
 cdef class Expression(CommutativeRingElement):

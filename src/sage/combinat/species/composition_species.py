@@ -1,6 +1,7 @@
 """
 Composition species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,9 +16,9 @@ Composition species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
-from structure import GenericSpeciesStructure
-from partition_species import PartitionSpecies
+from .species import GenericCombinatorialSpecies
+from .structure import GenericSpeciesStructure
+from .partition_species import PartitionSpecies
 from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -63,11 +64,22 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
         f, gs = self._list
         pi = self._partition.transport(perm)
         f = f.change_labels(pi._list)
-        g = [g.change_labels(part) for g,part in zip(gs, pi.labels())]
+        g = [g.change_labels(part) for g,part in zip(gs, pi)]
         return self.__class__(self, self._labels, pi, f, gs)
 
     def change_labels(self, labels):
         """
+        Return a relabelled structure.
+
+        INPUT:
+
+        - ``labels``, a list of labels.
+
+        OUTPUT:
+
+        A structure with the i-th label of self replaced with the i-th
+        label of the list.
+
         EXAMPLES::
 
             sage: p = PermutationGroupElement((2,3))
@@ -81,8 +93,8 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
         """
         f, gs = self._list
         pi = self._partition.change_labels(labels)
-        f = f.change_labels(pi._list)
-        g = [g.change_labels(part) for g,part in zip(gs, pi.labels())]
+        f = f.change_labels(list(pi))
+        g = [g.change_labels(part) for g,part in zip(gs, pi)]
         return self.__class__(self, labels, pi, f, g)
 
 
@@ -155,11 +167,11 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         from itertools import product
         P = PartitionSpecies()
         for pi in P.structures(labels):
-            #The labels of the G-structures will be just be the things
-            #in labels
-            gs = product(*[self._G.structures(part.labels()) for part in pi])
+            # The labels of the G-structures will be just be the things
+            # in labels
+            gs = product(*[self._G.structures(part.label_subset()) for part in pi])
 
-            #The labels of the F-structure will be set objects
+            # The labels of the F-structure will be set objects
             fs = self._F.structures(list(pi))
             for f, gg in product(fs, gs):
                 yield structure_class(self, labels, pi, f, gg)

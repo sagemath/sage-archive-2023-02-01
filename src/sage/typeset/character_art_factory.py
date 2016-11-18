@@ -69,7 +69,7 @@ class CharacterArtFactory(SageObject):
 
     def build(self, obj):
         r"""
-        Construct a character art reprensentation
+        Construct a character art representation
 
         INPUT:
 
@@ -248,7 +248,7 @@ class CharacterArtFactory(SageObject):
 
     def build_dict(self, d):
         r"""
-        Return an character art output of a dictionnary.
+        Return an character art output of a dictionary.
 
         TESTS::
 

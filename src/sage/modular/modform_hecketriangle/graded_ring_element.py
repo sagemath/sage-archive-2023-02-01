@@ -6,6 +6,7 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -18,7 +19,8 @@ AUTHORS:
 
 from sage.rings.all import ZZ, infinity, LaurentSeries, O
 from sage.functions.all import exp
-from sage.symbolic.all import pi, i
+from sage.rings.number_field.number_field import QuadraticField
+from sage.symbolic.all import pi
 from sage.structure.parent_gens import localvars
 from sage.modules.free_module_element import vector
 from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
@@ -28,8 +30,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
-from constructor import rational_type, FormsSpace, FormsRing
-from series_constructor import MFSeriesConstructor
+from .constructor import rational_type, FormsSpace, FormsRing
+from .series_constructor import MFSeriesConstructor
 
 
 # Warning: We choose CommutativeAlgebraElement because we want the
@@ -42,7 +44,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
 
-    from analytic_type import AnalyticType
+    from .analytic_type import AnalyticType
     AT = AnalyticType()
 
     @staticmethod
@@ -781,6 +783,30 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         #reduce at the end? See example "sage: ((E4+E6)-E6).parent()"
         return self.parent()(self._rat-other._rat)
 
+    def _neg_(self):
+        r"""
+        Return the negation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
+            sage: MR = QuasiMeromorphicModularFormsRing(n=8)
+            sage: Delta = MR.Delta().full_reduce()
+
+            sage: -Delta
+            -q - 41/(128*d)*q^2 - 10887/(262144*d^2)*q^3 - 131447/(50331648*d^3)*q^4 + O(q^5)
+            sage: parent(-Delta)
+            CuspForms(n=8, k=12, ep=1) over Integer Ring
+
+        Negation should be exactly the same as multiplication by -1::
+
+            sage: (-Delta) == (-1) * Delta
+            True
+            sage: parent(-Delta) is parent((-1) * Delta)
+            True
+        """
+        return self.parent()(-self._rat)
+
     def _mul_(self,other):
         r"""
         Return the product of ``self`` and ``other``.
@@ -1317,6 +1343,8 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             +Infinity
         """
 
+        i = QuadraticField(-1, 'I').gen()
+
         # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
         if (tau in HyperbolicPlane()):
             tau = tau.to_model('UHP').coordinates()
@@ -1524,7 +1552,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         if (fix_prec == False):
             #if (prec <1):
-            #    print "Warning: non-positiv precision!"
+            #    print "Warning: non-positive precision!"
             if ((not self.is_zero()) and prec <= self.order_at(infinity)):
                 from warnings import warn
                 warn("precision too low to determine any coefficient!")
@@ -1919,6 +1947,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_inf(infinity)
             0
 
+            sage: i = I = QuadraticField(-1, 'I').gen()
             sage: z = -1/(-1/(2*i+30)-1)
             sage: z
             2/965*I + 934/965
@@ -2120,6 +2149,8 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             True
         """
 
+        i = QuadraticField(-1, 'I').gen()
+
         # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
         if (tau in HyperbolicPlane()):
            tau = tau.to_model('UHP').coordinates()
@@ -2130,12 +2161,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             num_prec = self.parent().default_num_prec()
 
         # In case the order is known
-        if (check or\
-          tau == infinity or\
-          tau == i or\
-          tau == self.group().rho() or\
-          tau == -self.group().rho().conjugate()):
-            try:
+        try:
+            if (check or\
+                    tau == infinity or\
+                    tau == i or\
+                    tau == self.group().rho() or\
+                    tau == -self.group().rho().conjugate()):
                 order_tau = self.order_at(tau)
 
                 if (order_tau > 0):
@@ -2144,8 +2175,8 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                     return infinity
                 elif (tau == infinity):
                     return self.q_expansion(prec=1)[0]
-            except NotImplementedError:
-                pass
+        except (TypeError, NotImplementedError):
+            pass
 
         # The general case
         num_prec = max(\

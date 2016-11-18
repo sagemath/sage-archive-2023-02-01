@@ -33,14 +33,14 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import itertools
 from copy import copy
 
 from sage.misc.all import powerset, prod
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.parallel.decorate import parallel
 
@@ -332,7 +332,7 @@ class NaiveFinitePointEnumerator(object):
 
             sage: ne = toric_varieties.dP6(base_ring=GF(11)).point_set()._naive_enumerator()
             sage: for cone in ne.cone_iter(): 
-            ....:     print cone.ambient_ray_indices()
+            ....:     print(cone.ambient_ray_indices())
             (0, 1)
             (1, 2)
             (2, 3)
@@ -405,7 +405,7 @@ class NaiveFinitePointEnumerator(object):
 
         Iterator over points.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: ni = toric_varieties.P2(base_ring=GF(2)).point_set()._naive_enumerator()
             sage: list(ni)
@@ -707,7 +707,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
 
         Iterator over points.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: point_set = toric_varieties.P2(base_ring=GF(2)).point_set()
             sage: ffe = point_set._finite_field_enumerator()
@@ -869,7 +869,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         OUTPUT:
 
         All solutions (as tuple of log inhomogeneous coordinates) in
-        the cartesian product of the ranges.
+        the Cartesian product of the ranges.
 
         EXAMPLES::
 
@@ -916,7 +916,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             for log_t in self.solutions_serial(inhomogeneous_equations, log_range):
                 yield log_t
             raise StopIteration
-        # Parallelize the outermost loop of the cartesian product
+        # Parallelize the outermost loop of the Cartesian product
         work = [([[r]] + log_range[1:],) for r in log_range[0]]
         from sage.parallel.decorate import Parallel
         parallel = Parallel()

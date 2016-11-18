@@ -22,11 +22,11 @@
 #    2006-01: initial version (based on code by William Stein)
 #
 ##############################################################################
-
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from ntl_GF2E cimport ntl_GF2E
 from ntl_GF2EContext import ntl_GF2EContext
 from ntl_GF2EContext cimport ntl_GF2EContext_class
@@ -78,7 +78,7 @@ cdef class ntl_mat_GF2E(object):
             ]
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus when creating a GF2E."
+            raise ValueError("You must specify a modulus when creating a GF2E.")
 
         cdef unsigned long _nrows, _ncols
         cdef unsigned long i, j
@@ -207,7 +207,7 @@ cdef class ntl_mat_GF2E(object):
         if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
-            raise ValueError, "You can not perform arithmetic with matrices over different fields."
+            raise ValueError("You can not perform arithmetic with matrices over different fields.")
         sig_on()
         mat_GF2E_mul(r.x, self.x, (<ntl_mat_GF2E>other).x)
         sig_off()
@@ -233,7 +233,7 @@ cdef class ntl_mat_GF2E(object):
         if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
-            raise ValueError, "You can not perform arithmetic with matrices over different fields."
+            raise ValueError("You can not perform arithmetic with matrices over different fields.")
         sig_on()
         mat_GF2E_sub(r.x, self.x, (<ntl_mat_GF2E>other).x)
         sig_off()
@@ -258,7 +258,7 @@ cdef class ntl_mat_GF2E(object):
         if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
-            raise ValueError, "You can not perform arithmetic with matrices over different fields."
+            raise ValueError("You can not perform arithmetic with matrices over different fields.")
         sig_on()
         mat_GF2E_add(r.x, self.x, (<ntl_mat_GF2E>other).x)
         sig_off()
@@ -373,13 +373,13 @@ cdef class ntl_mat_GF2E(object):
             i = 0
             j = ij
         else:
-            raise TypeError, 'ij is not a matrix index'
+            raise TypeError('ij is not a matrix index')
 
         if i < 0 or i >= self.x.NumRows() or j < 0 or j >= self.x.NumCols():
-            raise IndexError, "array index out of range"
+            raise IndexError("array index out of range")
 
         if not (<ntl_GF2E>x).c is self.c:
-            raise ValueError, "You can not assign elements from different fields."
+            raise ValueError("You can not assign elements from different fields.")
 
         self.c.restore_c()
 
@@ -407,10 +407,10 @@ cdef class ntl_mat_GF2E(object):
             i = 0
             j = ij
         else:
-            raise TypeError, 'ij is not a matrix index'
+            raise TypeError('ij is not a matrix index')
 
         if i < 0 or i >= self.x.NumRows() or j < 0 or j >= self.x.NumCols():
-            raise IndexError, "array index out of range"
+            raise IndexError("array index out of range")
 
         cdef ntl_GF2E e = self._new_element()
         e.x = self.x.get( i+1, j+1 )
@@ -468,7 +468,7 @@ cdef class ntl_mat_GF2E(object):
         EXAMPLES::
 
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
-            sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in xrange(2*2)])
+            sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in range(2*2)])
             sage: ntl.GF2XHexOutput(0)
             sage: m.list()
             [[1 1 0 0 1 0 1 1], [1 1 1 0 1 1 1], [0 1 1 1 1 0 0 1], [0 1 0 1 1 1]]
@@ -521,7 +521,7 @@ cdef class ntl_mat_GF2E(object):
             [a^2 + 1 a^2 + a]
         """
         if k is None:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             f = self.c.m._sage_()
             e = GF2E_degree()
             k = FiniteField(2**e, name='a', modulus=f)

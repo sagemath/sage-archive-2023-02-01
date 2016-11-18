@@ -40,7 +40,7 @@ from copy import copy
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.qqbar import AA, QQbar
-from sage.rings.arith import sort_complex_numbers_for_display
+from sage.arith.all import sort_complex_numbers_for_display
 from sage.rings.polynomial.refine_root import refine_root
 
 
@@ -218,11 +218,11 @@ def complex_roots(p, skip_squarefree=False, retval='interval', min_prec=0):
     ::
 
         sage: def tiny(x):
-        ...       return x.contains_zero() and x.absolute_diameter() <  1e-14
+        ....:     return x.contains_zero() and x.absolute_diameter() <  1e-14
         sage: def smash(x):
-        ...       x = CIF(x[0]) # discard multiplicity
-        ...       if tiny(x.imag()): return x.real()
-        ...       if tiny(x.real()): return CIF(0, x.imag())
+        ....:     x = CIF(x[0]) # discard multiplicity
+        ....:     if tiny(x.imag()): return x.real()
+        ....:     if tiny(x.real()): return CIF(0, x.imag())
         sage: rts = complex_roots(p); type(rts[0][0]), sorted(map(smash, rts))
         (<type 'sage.rings.complex_interval.ComplexIntervalFieldElement'>, [-1.618033988749895?, -0.618033988749895?*I, 1.618033988749895?*I, 0.618033988749895?])
         sage: rts = complex_roots(p, retval='algebraic'); type(rts[0][0]), sorted(map(smash, rts))

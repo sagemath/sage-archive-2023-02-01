@@ -37,6 +37,9 @@ cdef extern from "flint/fmpz.h":
     ctypedef slong fmpz
     ctypedef fmpz fmpz_t[1]
 
+    bint COEFF_IS_MPZ(fmpz)
+    mpz_ptr COEFF_TO_PTR(fmpz)
+
     ctypedef struct fmpz_preinvn_struct:
         mp_ptr dinv
         long n

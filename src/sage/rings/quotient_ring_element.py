@@ -189,7 +189,7 @@ class QuotientRingElement(RingElement):
             sage: a-2*a*b     # indirect doctest
             -2*a*b + a
 
-        In trac ticket #11068, the case of quotient rings without
+        In :trac:`11068`, the case of quotient rings without
         assigned names has been covered as well::
 
             sage: S = SteenrodAlgebra(2)
@@ -703,7 +703,7 @@ class QuotientRingElement(RingElement):
 
     def lc(self):
         """
-        Return the leading coefficent of this quotient ring element.
+        Return the leading coefficient of this quotient ring element.
 
         EXAMPLE::
 
@@ -785,6 +785,7 @@ class QuotientRingElement(RingElement):
             sage: I = sage.rings.ideal.FieldIdeal(P)
             sage: Q = P.quo(I)
             sage: Q._singular_()
+            polynomial ring, over a field, global ordering
             //   characteristic : 2
             //   number of vars : 2
             //        block   1 : ordering dp

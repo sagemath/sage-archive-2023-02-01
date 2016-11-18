@@ -15,6 +15,8 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 # This method appends a list of methods to the doc as a 3xN table.
 
@@ -127,6 +129,9 @@ __append_to_doc(
      "HoffmanSingletonGraph",
      "HoltGraph",
      "HortonGraph",
+     "IoninKharaghani765Graph",
+     "JankoKharaghaniGraph",
+     "JankoKharaghaniTonchevGraph",
      "KittellGraph",
      "KrackhardtKiteGraph",
      "Klein3RegularGraph",
@@ -230,6 +235,7 @@ __append_to_doc(
      "strongly_regular_graph",
      "trees",
      "triangulations",
+     "TuranGraph",
      "WheelGraph"])
 
 
@@ -252,6 +258,7 @@ __append_to_doc(
      "TaylorTwographSRG",
      "T2starGeneralizedQuadrangleGraph",
      "HaemersGraph",
+     "CossidentePenttilaGraph",
      "UnitaryDualPolarGraph",
      "UnitaryPolarGraph"])
 
@@ -378,6 +385,8 @@ AUTHORS:
 - Birk Eisermann (2013-07-29): new section 'intersection graphs',
   added (random, bounded) tolerance graphs
 
+- Marco Cognetta (2016-03-03): added TuranGraph
+
 
 Functions and methods
 ---------------------
@@ -396,7 +405,7 @@ Functions and methods
 # import from Python standard library
 
 # import from Sage library
-import graph
+from . import graph
 import sage.graphs.strongly_regular_db
 
 class GraphGenerators():
@@ -426,7 +435,7 @@ class GraphGenerators():
     representatives. Iterates over distinct, exhaustive
     representatives.
 
-    Also: see the use of the optional nauty package for generating graphs
+    Also: see the use of the nauty package for generating graphs
     at the :meth:`nauty_geng` method.
 
     INPUT:
@@ -496,7 +505,7 @@ class GraphGenerators():
     Print graphs on 3 or less vertices::
 
         sage: for G in graphs(3, augment='vertices'):
-        ...    print G
+        ....:     print(G)
         Graph on 0 vertices
         Graph on 1 vertex
         Graph on 2 vertices
@@ -509,7 +518,7 @@ class GraphGenerators():
     Note that we can also get graphs with underlying Cython implementation::
 
         sage: for G in graphs(3, augment='vertices', implementation='c_graph'):
-        ...    print G
+        ....:     print(G)
         Graph on 0 vertices
         Graph on 1 vertex
         Graph on 2 vertices
@@ -524,7 +533,7 @@ class GraphGenerators():
     ::
 
         sage: for G in graphs(3):
-        ...    print G
+        ....:    print(G)
         Graph on 3 vertices
         Graph on 3 vertices
         Graph on 3 vertices
@@ -604,8 +613,8 @@ class GraphGenerators():
 
     ::
 
-        sage: for i in range(0, 7):
-        ...    print len(list(graphs(i)))
+        sage: for i in range(7):
+        ....:     print(len(list(graphs(i))))
         1
         1
         2
@@ -619,38 +628,39 @@ class GraphGenerators():
     ::
 
         sage: L = list(graphs(5,augment='vertices',loops=True))               # long time
-        sage: for i in [0..5]: print i, len([g for g in L if g.order() == i]) # long time
-        0 1
-        1 2
-        2 6
-        3 20
-        4 90
-        5 544
+        sage: for i in [0..5]:  # long time
+        ....:     print((i, len([g for g in L if g.order() == i]))) # long time
+        (0, 1)
+        (1, 2)
+        (2, 6)
+        (3, 20)
+        (4, 90)
+        (5, 544)
 
     Generate all graphs with a specified degree sequence (see :oeis:`A002851`)::
 
         sage: for i in [4,6,8]:  # long time (4s on sage.math, 2012)
-        ...       print i, len([g for g in graphs(i, degree_sequence=[3]*i) if g.is_connected()])
-        4 1
-        6 2
-        8 5
+        ....:     print((i, len([g for g in graphs(i, degree_sequence=[3]*i) if g.is_connected()])))
+        (4, 1)
+        (6, 2)
+        (8, 5)
         sage: for i in [4,6,8]:  # long time (7s on sage.math, 2012)
-        ...       print i, len([g for g in graphs(i, augment='vertices', degree_sequence=[3]*i) if g.is_connected()])
-        4 1
-        6 2
-        8 5
+        ....:     print((i, len([g for g in graphs(i, augment='vertices', degree_sequence=[3]*i) if g.is_connected()])))
+        (4, 1)
+        (6, 2)
+        (8, 5)
 
     ::
 
-        sage: print 10, len([g for g in graphs(10,degree_sequence=[3]*10) if g.is_connected()]) # not tested
-        10 19
+        sage: print((10, len([g for g in graphs(10,degree_sequence=[3]*10) if g.is_connected()]))) # not tested
+        (10, 19)
 
     Make sure that the graphs are really independent and the generator
     survives repeated vertex removal (:trac:`8458`)::
 
         sage: for G in graphs(3):
-        ...       G.delete_vertex(0)
-        ...       print(G.order())
+        ....:     G.delete_vertex(0)
+        ....:     print(G.order())
         2
         2
         2
@@ -679,7 +689,7 @@ class GraphGenerators():
         Print graphs on 3 or less vertices::
 
             sage: for G in graphs(3, augment='vertices'):
-            ...    print G
+            ....:    print(G)
             Graph on 0 vertices
             Graph on 1 vertex
             Graph on 2 vertices
@@ -692,8 +702,8 @@ class GraphGenerators():
         ::
 
             sage: for g in graphs():
-            ...    if g.num_verts() > 3: break
-            ...    print g
+            ....:    if g.num_verts() > 3: break
+            ....:    print(g)
             Graph on 0 vertices
             Graph on 1 vertex
             Graph on 2 vertices
@@ -752,9 +762,9 @@ class GraphGenerators():
             g = Graph(vertices, loops=loops, implementation=implementation, sparse=sparse)
             gens = []
             for i in range(vertices-1):
-                gen = range(i)
+                gen = list(range(i))
                 gen.append(i+1); gen.append(i)
-                gen += range(i+2, vertices)
+                gen += list(range(i + 2, vertices))
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property, loops=loops, implementation=implementation, sparse=sparse):
                 if extra_property(gg):
@@ -766,13 +776,6 @@ class GraphGenerators():
     def nauty_geng(self, options="", debug=False):
         r"""
         Returns a generator which creates graphs from nauty's geng program.
-
-        .. note::
-
-            Due to license restrictions, the nauty package is distributed
-            as a Sage optional package.  At a system command line, execute
-            ``sage -i nauty`` to see the nauty license and install the
-            package.
 
         INPUT:
 
@@ -835,12 +838,12 @@ class GraphGenerators():
         create an entire list all at once if there is sufficient memory
         to contain it.  ::
 
-            sage: gen = graphs.nauty_geng("2") # optional nauty
-            sage: next(gen) # optional nauty
+            sage: gen = graphs.nauty_geng("2")
+            sage: next(gen)
             Graph on 2 vertices
-            sage: next(gen) # optional nauty
+            sage: next(gen)
             Graph on 2 vertices
-            sage: next(gen) # optional nauty
+            sage: next(gen)
             Traceback (most recent call last):
             ...
             StopIteration: Exhausted list of graphs from nauty geng
@@ -848,15 +851,15 @@ class GraphGenerators():
         A list of all graphs on 7 vertices.  This agrees with
         :oeis:`A000088`.  ::
 
-            sage: gen = graphs.nauty_geng("7") # optional nauty
-            sage: len(list(gen))  # optional nauty
+            sage: gen = graphs.nauty_geng("7")
+            sage: len(list(gen))
             1044
 
         A list of just the connected graphs on 7 vertices.  This agrees with
         :oeis:`A001349`.  ::
 
-            sage: gen = graphs.nauty_geng("7 -c") # optional nauty
-            sage: len(list(gen))  # optional nauty
+            sage: gen = graphs.nauty_geng("7 -c")
+            sage: len(list(gen))
             853
 
         The ``debug`` switch can be used to examine geng's reaction
@@ -865,14 +868,11 @@ class GraphGenerators():
         "-q" switch to geng will supress the indicator of a
         successful initiation.  ::
 
-            sage: gen = graphs.nauty_geng("4", debug=True) # optional nauty
-            sage: print next(gen) # optional nauty
+            sage: gen = graphs.nauty_geng("4", debug=True)
+            sage: print(next(gen))
             >A geng -d0D3 n=4 e=0-6
         """
         import subprocess
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("nauty"):
-            raise TypeError("the optional nauty package is not installed")
         sp = subprocess.Popen("geng {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
@@ -971,10 +971,10 @@ class GraphGenerators():
         Laplacian) on five vertices::
 
             sage: def DinverseA(g):
-            ...     A=g.adjacency_matrix().change_ring(QQ)
-            ...     for i in range(g.order()):
-            ...         A.rescale_row(i, 1/len(A.nonzero_positions_in_row(i)))
-            ...     return A
+            ....:   A=g.adjacency_matrix().change_ring(QQ)
+            ....:   for i in range(g.order()):
+            ....:       A.rescale_row(i, 1/len(A.nonzero_positions_in_row(i)))
+            ....:   return A
             sage: g=graphs.cospectral_graphs(5, matrix_function=DinverseA, graphs=lambda g: min(g.degree())>0)
             sage: sorted(sorted(g.graph6_string() for g in glist) for glist in g)
             [['Dlg', 'Ds_']]
@@ -1037,10 +1037,10 @@ class GraphGenerators():
         EXAMPLES:
 
         The following example creates a small planar code file in memory and
-        reads it using the ``_read_planar_code`` method:  ::
+        reads it using the ``_read_planar_code`` method::
 
-            sage: import StringIO
-            sage: code_input = StringIO.StringIO('>>planar_code<<')
+            sage: from six import StringIO
+            sage: code_input = StringIO('>>planar_code<<')
             sage: code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
             ....:     code_input.write('{:c}'.format(c))
@@ -1143,14 +1143,14 @@ class GraphGenerators():
         EXAMPLES:
 
         There are 1812 isomers of `\textrm{C}_{60}`, i.e., 1812 fullerene graphs
-        on 60 vertices:  ::
+        on 60 vertices::
 
             sage: gen = graphs.fullerenes(60)  # optional buckygen
             sage: len(list(gen))  # optional buckygen
             1812
 
         However, there is only one IPR fullerene graph on 60 vertices: the famous
-        Buckminster Fullerene:  ::
+        Buckminster Fullerene::
 
             sage: gen = graphs.fullerenes(60, ipr=True)  # optional buckygen
             sage: next(gen)  # optional buckygen
@@ -1193,7 +1193,7 @@ class GraphGenerators():
 
         REFERENCE:
 
-        .. [buckygen] G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
+        .. [buckygen] \G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
           Journal of Chemical Information and Modeling, 52(11):2910-2918, 2012.
         """
         from sage.misc.package import is_package_installed
@@ -1252,7 +1252,7 @@ class GraphGenerators():
 
         EXAMPLES:
 
-        There is a unique fusene with 2 hexagons:  ::
+        There is a unique fusene with 2 hexagons::
 
             sage: gen = graphs.fusenes(2)  # optional benzene
             sage: len(list(gen))  # optional benzene
@@ -1260,7 +1260,7 @@ class GraphGenerators():
 
         This fusene is naphtalene (`\textrm{C}_{10}\textrm{H}_{8}`).
         In the fusene graph the H-atoms are not stored, so this is
-        a graph on just 10 vertices:  ::
+        a graph on just 10 vertices::
 
             sage: gen = graphs.fusenes(2)  # optional benzene
             sage: next(gen)  # optional benzene
@@ -1270,7 +1270,7 @@ class GraphGenerators():
             ...
             StopIteration
 
-        There are 6505 benzenoids with 9 hexagons:  ::
+        There are 6505 benzenoids with 9 hexagons::
 
             sage: gen = graphs.fusenes(9, benzenoids=True)  # optional benzene
             sage: len(list(gen))  # optional benzene
@@ -1278,7 +1278,7 @@ class GraphGenerators():
 
         REFERENCE:
 
-        .. [benzene] G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
+        .. [benzene] \G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
           Journal of Algorithms, 45:155-166, 2002.
         """
         from sage.misc.package import is_package_installed
@@ -1431,7 +1431,7 @@ class GraphGenerators():
 
         REFERENCE:
 
-        .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
+        .. [plantri] \G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
            MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
         """
         from sage.misc.package import is_package_installed
@@ -1545,7 +1545,7 @@ class GraphGenerators():
           This option cannot be used with ``minimum_connectivity=3``, or if
           the minimum connectivity is not explicitely set.
 
-        - ``only_eulerian`` - default: ``False`` - if ``True`` only eulerian
+        - ``only_eulerian`` - default: ``False`` - if ``True`` only Eulerian
           triangulations will be generated. This option cannot be used if the
           minimum degree is explicitely set to anything else than 4.
 
@@ -1576,13 +1576,13 @@ class GraphGenerators():
             sage: [g.get_embedding() for g in gen]  # optional plantri
             [{1: [2, 3, 4], 2: [1, 4, 3], 3: [1, 2, 4], 4: [1, 3, 2]}]
 
-        but, of course, this graph is not eulerian::
+        but, of course, this graph is not Eulerian::
 
             sage: gen = graphs.triangulations(4, only_eulerian=True)  # optional plantri
             sage: len(list(gen))                                      # optional plantri
             0
 
-        The unique eulerian triangulation on 6 vertices is isomorphic to the octahedral
+        The unique Eulerian triangulation on 6 vertices is isomorphic to the octahedral
         graph. ::
 
             sage: gen = graphs.triangulations(6, only_eulerian=True)  # optional plantri
@@ -1656,7 +1656,7 @@ class GraphGenerators():
         if minimum_degree is  not None and not (3 <= minimum_degree <= 5):
             raise ValueError("Minimum degree should be None or a number between 3 and 5.")
 
-        # for eulerian triangulations the minimum degree is set to 4 (unless it was already specifically set)
+        # for Eulerian triangulations the minimum degree is set to 4 (unless it was already specifically set)
         if only_eulerian and minimum_degree is None:
             minimum_degree = 4
 
@@ -1921,6 +1921,9 @@ class GraphGenerators():
     HoffmanSingletonGraph    = staticmethod(sage.graphs.generators.smallgraphs.HoffmanSingletonGraph)
     HoltGraph                = staticmethod(sage.graphs.generators.smallgraphs.HoltGraph)
     HortonGraph              = staticmethod(sage.graphs.generators.smallgraphs.HortonGraph)
+    IoninKharaghani765Graph  = staticmethod(sage.graphs.generators.smallgraphs.IoninKharaghani765Graph)
+    JankoKharaghaniGraph     = staticmethod(sage.graphs.generators.smallgraphs.JankoKharaghaniGraph)
+    JankoKharaghaniTonchevGraph  = staticmethod(sage.graphs.generators.smallgraphs.JankoKharaghaniTonchevGraph)
     KittellGraph             = staticmethod(sage.graphs.generators.smallgraphs.KittellGraph)
     KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.smallgraphs.KrackhardtKiteGraph)
     Klein3RegularGraph       = staticmethod(sage.graphs.generators.smallgraphs.Klein3RegularGraph)
@@ -2010,6 +2013,7 @@ class GraphGenerators():
     SwitchedSquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SwitchedSquaredSkewHadamardMatrixGraph)
     strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
+    TuranGraph             = staticmethod(sage.graphs.generators.families.TuranGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
 
 ###########################################################################
@@ -2029,6 +2033,7 @@ class GraphGenerators():
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
     T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
     HaemersGraph      = staticmethod(sage.graphs.generators.classical_geometries.HaemersGraph)
+    CossidentePenttilaGraph = staticmethod(sage.graphs.generators.classical_geometries.CossidentePenttilaGraph)
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
     UnitaryPolarGraph      = staticmethod(sage.graphs.generators.classical_geometries.UnitaryPolarGraph)
 
@@ -2125,8 +2130,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
     ::
 
         sage: for G in graphs(3, augment='vertices'):
-        ...    print G
-        ...
+        ....:    print(G)
         Graph on 0 vertices
         Graph on 1 vertex
         Graph on 2 vertices
@@ -2141,8 +2145,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
     ::
 
         sage: for D in digraphs(2, augment='vertices'):
-        ...    print D
-        ...
+        ....:     print(D)
         Digraph on 0 vertices
         Digraph on 1 vertex
         Digraph on 2 vertices
@@ -2171,9 +2174,9 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
 
         # union-find C(g) under Aut(g)
         for gen in aut_gens:
-            for i in xrange(len(children)):
+            for i in range(len(children)):
                 k = 0
-                for j in xrange(possibilities):
+                for j in range(possibilities):
                     if (1 << j)&i:
                         if dig and j >= n:
                             k += (1 << (gen[j-n]+n))
@@ -2229,7 +2232,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
                 if property(z):
                     z_s.append(z)
             for z in z_s:
-                z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=(dig or loops))
+                z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certificate=True, dig=(dig or loops))
                 cut_vert = 0
                 while canonical_relabeling[cut_vert] != n:
                     cut_vert += 1
@@ -2255,26 +2258,26 @@ def check_aut(aut_gens, cut_vert, n):
     an element of the auto- morphism group that sends cut_vert to n,
     and check_aut generates these for the canaug_traverse function.
 
-    EXAMPLE: Note that the last two entries indicate that none of the
+    EXAMPLE:
+
+    Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
     identity [0, 1, 2, 3] and so far that is all we have seen. We
-    return automorphisms mapping 2 to 3.
-
-    ::
+    return automorphisms mapping 2 to 3::
 
         sage: from sage.graphs.graph_generators import check_aut
         sage: list( check_aut( [ [0, 3, 2, 1], [1, 0, 3, 2], [2, 1, 0, 3] ], 2, 3))
         [[1, 0, 3, 2], [1, 2, 3, 0]]
     """
     from copy import copy
-    perm = range(n+1)
+    perm = list(range(n + 1))
     seen_perms = [perm]
     unchecked_perms = [perm]
     while len(unchecked_perms) != 0:
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)
-            for i in xrange(len(perm)):
+            for i in range(len(perm)):
                 new_perm[i] = gen[perm[i]]
             if new_perm not in seen_perms:
                 seen_perms.append(new_perm)
@@ -2314,8 +2317,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
     ::
 
         sage: for G in graphs(3):
-        ...    print G
-        ...
+        ....:     print(G)
         Graph on 3 vertices
         Graph on 3 vertices
         Graph on 3 vertices
@@ -2326,8 +2328,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
     ::
 
         sage: for G in digraphs(3):
-        ...    print G
-        ...
+        ....:     print(G)
         Digraph on 3 vertices
         Digraph on 3 vertices
         ...
@@ -2349,22 +2350,22 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
         # build a list representing C(g) - the edge to be added
         # is one of max_size choices
         if dig:
-            children = [[(j,i) for i in xrange(n)] for j in xrange(n)]
+            children = [[(j,i) for i in range(n)] for j in range(n)]
         else:
-            children = [[(j,i) for i in xrange(j)] for j in xrange(n)]
+            children = [[(j,i) for i in range(j)] for j in range(n)]
         # union-find C(g) under Aut(g)
-        orbits = range(n)
+        orbits = list(range(n))
         for gen in aut_gens:
-            for iii in xrange(n):
+            for iii in range(n):
                 if orbits[gen[iii]] != orbits[iii]:
                     temp = orbits[gen[iii]]
-                    for jjj in xrange(n):
+                    for jjj in range(n):
                         if orbits[jjj] == temp:
                             orbits[jjj] = orbits[iii]
                 if dig:
-                    jjj_range = range(iii) + range(iii+1, n)
+                    jjj_range = list(range(iii)) + list(range(iii + 1, n))
                 else:
-                    jjj_range = xrange(iii) # iii > jjj
+                    jjj_range = list(range(iii))  # iii > jjj
                 for jjj in jjj_range:
                     i, j = iii, jjj
                     if dig:
@@ -2406,15 +2407,15 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
         roots = []
         for i in range(n):
             if dig:
-                j_range = range(i) + range(i+1, n)
+                j_range = list(range(i)) + list(range(i + 1, n))
             else:
-                j_range = range(i)
+                j_range = list(range(i))
             for j in j_range:
                 if children[i][j] == (i, j):
                     roots.append((i,j))
         if loops:
             seen = []
-            for i in xrange(n):
+            for i in range(n):
                 if orbits[i] not in seen:
                     roots.append((i,i))
                     seen.append(orbits[i])
@@ -2426,9 +2427,9 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
             z.add_edge(i, j)
             if not property(z):
                 continue
-            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=(dig or loops))
+            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certificate=True, dig=(dig or loops))
             relabel_inverse = [0]*n
-            for ii in xrange(n):
+            for ii in range(n):
                 relabel_inverse[canonical_relabeling[ii]] = ii
             z_can = z.relabel(canonical_relabeling, inplace=False)
             cut_edge_can = z_can.edges(labels=False, sort=True)[-1]
@@ -2461,26 +2462,26 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     j}, and check_aut generates these for the canaug_traverse
     function.
 
-    EXAMPLE: Note that the last two entries indicate that none of the
+    EXAMPLE:
+
+    Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
     identity [0, 1, 2, 3] and so far that is all we have seen. We
-    return automorphisms mapping 2 to 3.
-
-    ::
+    return automorphisms mapping 2 to 3::
 
         sage: from sage.graphs.graph_generators import check_aut
         sage: list( check_aut( [ [0, 3, 2, 1], [1, 0, 3, 2], [2, 1, 0, 3] ], 2, 3))
         [[1, 0, 3, 2], [1, 2, 3, 0]]
     """
     from copy import copy
-    perm = range(n)
+    perm = list(range(n))
     seen_perms = [perm]
     unchecked_perms = [perm]
     while len(unchecked_perms) != 0:
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)
-            for ii in xrange(n):
+            for ii in range(n):
                 new_perm[ii] = gen[perm[ii]]
             if new_perm not in seen_perms:
                 seen_perms.append(new_perm)

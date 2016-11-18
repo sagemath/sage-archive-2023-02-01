@@ -31,15 +31,15 @@ Pickling test::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
-
-from sage.rings.arith import (GCD,
-                              hilbert_conductor_inverse, hilbert_conductor,
-                              factor, gcd, lcm, kronecker_symbol, valuation)
+from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
+        factor, gcd, lcm, kronecker_symbol, valuation)
 from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
-from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 from sage.rings.ring import Algebra
 from sage.rings.ideal import Ideal_fractional
@@ -58,8 +58,8 @@ from sage.modules.free_module_element import vector
 
 from operator import itemgetter
 
-import quaternion_algebra_element
-import quaternion_algebra_cython
+from . import quaternion_algebra_element
+from . import quaternion_algebra_cython
 
 from sage.modular.modsym.p1list import P1List
 
@@ -701,15 +701,6 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             Traceback (most recent call last):
             ...
             NotImplementedError: maximal order only implemented for rational quaternion algebras
-
-
-        REFERENCES:
-
-        .. [Piz1980] A. Pizer. An Algorithm for Computing Modular Forms
-           on `\Gamma_0(N)`, J. Algebra 64 (1980), 340-390.
-
-        .. [Voi2012] J. Voight. Identifying the matrix ring: algorithms
-           for quaternion algebras and quadratic forms, to appear.
         """
         try: return self.__maximal_order
         except AttributeError: pass
@@ -922,7 +913,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             'Quaternion Algebra (-5, -2) with base ring Rational Field'
             sage: Q
             Quaternion Algebra (-5, -2) with base ring Rational Field
-            sage: print Q
+            sage: print(Q)
             Quaternion Algebra (-5, -2) with base ring Rational Field
             sage: str(Q)
             'Quaternion Algebra (-5, -2) with base ring Rational Field'
@@ -1470,7 +1461,7 @@ class QuaternionOrder(Algebra):
         The args and kwds are passed to the random_element method of
         the integer ring, and we return an element of the form
 
-        .. math::
+        .. MATH::
 
             ae_1 + be_2 + ce_3 + de_4
 
@@ -1904,9 +1895,12 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
            R = \{\alpha \in Q : \alpha b_n \in I, n=1,2,3,4\}.
         """
-        if side == 'left': action = 'right'
-        elif side == 'right': action = 'left'
-        else: ValueError, "side must be 'left' or 'right'"
+        if side == 'left':
+            action = 'right'
+        elif side == 'right':
+            action = 'left'
+        else:
+            raise ValueError("side must be 'left' or 'right'")
         Q = self.quaternion_algebra()
         if Q.base_ring() != QQ:
             raise NotImplementedError("computation of left and right orders only implemented over QQ")
@@ -1934,7 +1928,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         We do a consistency check::
 
             sage: B = BrandtModule(11,19); R = B.right_ideals()
-            sage: print [r.left_order().discriminant() for r in R]
+            sage: [r.left_order().discriminant() for r in R]
             [209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209, 209]
         """
         if self.__left_order is None:

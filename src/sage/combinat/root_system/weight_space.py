@@ -1,6 +1,7 @@
 """
 Weight lattices and weight spaces
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -11,7 +12,7 @@ Weight lattices and weight spaces
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from weight_lattice_realizations import WeightLatticeRealizations
+from .weight_lattice_realizations import WeightLatticeRealizations
 import functools
 
 class WeightSpace(CombinatorialFreeModule):
@@ -29,7 +30,7 @@ class WeightSpace(CombinatorialFreeModule):
 
     This class is also used for coweight spaces (or lattices).
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`RootSystem`
         - :meth:`RootSystem.weight_lattice` and :meth:`RootSystem.weight_space`
@@ -143,7 +144,7 @@ class WeightSpace(CombinatorialFreeModule):
         """
         Guarantees Unique representation
 
-        .. seealso:: :class:`UniqueRepresentation`
+        .. SEEALSO:: :class:`UniqueRepresentation`
 
         TESTS::
 
@@ -197,7 +198,7 @@ class WeightSpace(CombinatorialFreeModule):
         """
         Returns whether this is an extended weight lattice
 
-        .. seealso: :meth:`~sage.combinat.root_sytem.weight_lattice_realization.ParentMethods.is_extended`
+        .. seealso: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.is_extended`
 
         EXAMPLES::
 
@@ -248,7 +249,7 @@ class WeightSpace(CombinatorialFreeModule):
         also accepts ``"delta"`` as input, and returns the image of
         `\delta` of the extended weight lattice in this realization.
 
-        .. seealso: :meth:`~sage.combinat.root_sytem.weight_lattice_realization.ParentMethods.fundamental_weight`
+        .. seealso: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.fundamental_weight`
 
         EXAMPLES::
 

@@ -10457,34 +10457,34 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         .. RUBRIC:: rings and coefficients
 
-            Inexact rings are not supported. Only rings having a
-            fraction field can be used as coefficients.
+        Inexact rings are not supported. Only rings having a
+        fraction field can be used as coefficients.
 
-            The base rings for the matrices are promoted to a common
-            field for the similarity check using rational form over this field.
+        The base rings for the matrices are promoted to a common
+        field for the similarity check using rational form over this field.
 
-            If the fraction fields of both matrices are the same, this
-            field is used. Otherwise, if the fraction fields are only
-            related by a canonical coercion, the common coercion field
-            is used.
+        If the fraction fields of both matrices are the same, this
+        field is used. Otherwise, if the fraction fields are only
+        related by a canonical coercion, the common coercion field
+        is used.
 
-            In all cases, the result is about similarity over a common field.
+        In all cases, the result is about similarity over a common field.
 
         .. RUBRIC:: similarity transformation
 
-            For computation of the similarity transformation, the
-            matrices are first checked to be similar over their common
-            field.
+        For computation of the similarity transformation, the
+        matrices are first checked to be similar over their common
+        field.
 
-            In this case, a similarity transformation is then
-            searched for over the common field. If this fails, the
-            matrices are promoted to the algebraic closure of their
-            common field (whenever it is available) and a similarity
-            transformation is looked for over the algebraic closure.
+        In this case, a similarity transformation is then
+        searched for over the common field. If this fails, the
+        matrices are promoted to the algebraic closure of their
+        common field (whenever it is available) and a similarity
+        transformation is looked for over the algebraic closure.
 
-            For example, matrices over the rationals
-            may be promoted to the field of algebraic numbers (``QQbar``)
-            for computation of the similarity transformation.
+        For example, matrices over the rationals
+        may be promoted to the field of algebraic numbers (``QQbar``)
+        for computation of the similarity transformation.
 
         .. WARNING::
 

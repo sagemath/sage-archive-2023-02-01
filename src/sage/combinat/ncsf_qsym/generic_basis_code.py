@@ -1075,7 +1075,7 @@ class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a
             -Phi[3, 1, 2]
             sage: f.__class__
             <class 'sage.combinat.ncsf_qsym.generic_basis_code.AlgebraMorphism_with_category'>
-            sage: TestSuite(f).run(skip=['_test_nonzero_equal'])
+            sage: TestSuite(f).run()
         """
         assert position == 0
         assert codomain is not None

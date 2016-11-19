@@ -73,12 +73,12 @@ else
 fi
 
 echo "*************************************************"
-echo " Using --with-blas=$LINBOX_BLAS $LINBOX_BLAS_CFLAGS"
+echo "Using --with-blas-libs='$LINBOX_BLAS' '$LINBOX_BLAS_CFLAGS'"
 echo "*************************************************"
 
 # If SAGE_FAT_BINARY is set, disable all processor-specific optimizations
 if [ "$SAGE_FAT_BINARY" = yes ]; then
-    FFLAS_FFPACK_CONFIGURE="--disable-sse --disable-avx $FFLAS_FFPACK_CONFIGURE"
+    FFLAS_FFPACK_CONFIGURE="--disable-simd $FFLAS_FFPACK_CONFIGURE"
 fi
 
 # We disable openmp because of build failures, see

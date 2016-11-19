@@ -5292,7 +5292,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         ::
 
-            sage: A = matrix(ZZ, 2, 3, xrange(6))
+            sage: A = matrix(ZZ, 2, 3, range(6))
             sage: type(A)
             <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: B = A.transpose()

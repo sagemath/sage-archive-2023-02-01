@@ -262,15 +262,29 @@ cdef class pAdicCappedRelativeElement(CRElement):
             sage: a = R(8)
             sage: a.residue(1)
             1
-            sage: a.residue(2)
+
+        This is different from applying ``% p^n`` which returns an element in
+        the same ring::
+
+            sage: b = a.residue(2); b
             8
+            sage: b.parent()
+            Ring of integers modulo 49
+            sage: c = a % 7^2; c
+            1 + 7 + O(7^4)
+            sage: c.parent()
+            7-adic Ring with capped relative precision 4
+
+        For elements in a field, application of ``% p^n`` always returns
+        zero, the remainder of the division by ``p^n``::
 
             sage: K = Qp(7,4)
             sage: a = K(8)
-            sage: a.residue(1)
-            1
             sage: a.residue(2)
             8
+            sage: a % 7^2
+            0
+
             sage: b = K(1/7)
             sage: b.residue()
             Traceback (most recent call last):
@@ -291,6 +305,10 @@ cdef class pAdicCappedRelativeElement(CRElement):
             Traceback (most recent call last):
             ...
             PrecisionError: not enough precision known in order to compute residue.
+
+        .. SEEALSO::
+
+            :meth:`_mod_`
 
         """
         cdef Integer selfvalue, modulus

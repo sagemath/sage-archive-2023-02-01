@@ -934,7 +934,7 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4)
             sage: b11n42 = B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2])
             sage: b11n34 = B([1, 1, 2, -3, 2, -3, 1, -2, -2, -3, -3])
-            sage: b11n42.jones_polynomial() == b11n34.jones_polynomial()
+            sage: bool(b11n42.jones_polynomial() == b11n34.jones_polynomial())
             True
         """
         if skein_normalization:
@@ -1672,11 +1672,11 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B._permutation_braid_Tietze(P)
             (1, 2, 1, 3, 2, 4)
         """
-        if p.length() == 0:
+        if not p.length():
             return ()
         pl = p
         l = []
-        while pl.length()>0:
+        while pl.length() > 0:
             i = 1
             while i<max(pl):
                 if pl(i)>pl(i+1):

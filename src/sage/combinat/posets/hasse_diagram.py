@@ -1005,6 +1005,60 @@ class HasseDiagram(DiGraph):
         """
         return bool(self._leq_matrix[i,j])
 
+    def prime_elements(self):
+        r"""
+        Return the join-prime and meet-prime elements of the bounded poset.
+
+        An element `x` of a poset `P` is join-prime if the subposet
+        induced by `\{y \in P \mid y \not\ge x\}` has a top element.
+        Meet-prime is defined dually.
+
+        .. NOTE::
+
+            The poset is expected to be bounded, and this is *not* checked.
+
+        OUTPUT:
+
+        A pair `(j, m)` where `j` is a list of join-prime elements
+        and `m` is a list of meet-prime elements.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
+            sage: H.prime_elements()
+            ([1, 2], [2, 3])
+        """
+        n = self.order()
+        join_primes = []
+        meet_primes = []
+
+        def add_elements(e):
+            upset = frozenset(self.depth_first_search(e))
+            # The complement of the upper set of a join-prime must have
+            # a top element. Maximal elements of the complement are those
+            # covered by only elements in the upper set. If there is only
+            # one maximal element, it is a meet-prime and 'e' is a
+            # join-prime.
+            meet_prime = None
+            for u in upset:
+                for m in self.neighbor_in_iterator(u):
+                    if (m not in upset and
+                        all(u_ in upset for u_ in
+                            self.neighbor_out_iterator(m))):
+                        if meet_prime is not None:
+                            return
+                        meet_prime = m
+            join_primes.append(e)
+            meet_primes.append(meet_prime)
+
+        for e in range(n):
+            # Join-primes are join-irreducibles, only check those.
+            if self.in_degree(e) == 1:
+                add_elements(e)
+
+        return join_primes, meet_primes
+
     @lazy_attribute
     def _meet(self):
         r"""

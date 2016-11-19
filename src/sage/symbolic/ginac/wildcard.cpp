@@ -112,7 +112,7 @@ long wildcard::calchash() const
 	// this is where the schoolbook method
 	// (golden_ratio_hash(tinfo()) ^ label)
 	// is not good enough yet...
-	hashvalue = golden_ratio_hash(golden_ratio_hash((p_int)tinfo()) ^ label);
+	hashvalue = golden_ratio_hash(golden_ratio_hash((intptr_t)tinfo()) ^ label);
 	setflag(status_flags::hash_calculated);
 	return hashvalue;
 }

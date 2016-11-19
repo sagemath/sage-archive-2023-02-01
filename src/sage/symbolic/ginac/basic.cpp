@@ -775,7 +775,7 @@ tinfo_t basic::return_type_tinfo() const
  *  would all end up with the same hashvalue. */
 long basic::calchash() const
 {
-	long v = golden_ratio_hash((p_int)tinfo());
+	long v = golden_ratio_hash((intptr_t)tinfo());
 	for (size_t i=0; i<nops(); i++) {
 		v = rotate_left(v);
 		v ^= this->op(i).gethash();

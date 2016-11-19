@@ -352,7 +352,7 @@ long idx::calchash() const
 	// hash keys. That is, the hash values must not depend on the index
 	// dimensions or other attributes (variance etc.).
 	// The compare_same_type() methods will take care of the rest.
-	long v = golden_ratio_hash((p_int)tinfo());
+	long v = golden_ratio_hash((intptr_t)tinfo());
 	v = rotate_left(v);
 	v ^= value.gethash();
 

@@ -315,7 +315,7 @@ tinfo_t relational::return_type_tinfo() const
 
 long relational::calchash() const
 {
-	long v = golden_ratio_hash((p_int)tinfo());
+	long v = golden_ratio_hash((intptr_t)tinfo());
 	long lhash = lh.gethash();
 	long rhash = rh.gethash();
 

@@ -800,15 +800,15 @@ ex dirac_slash(const ex & e, const ex & dim, unsigned char rl)
  *  is that of a clifford object (with an arbitrary representation label). */
 bool is_clifford_tinfo(tinfo_t ti)
 {
-	p_int start_loc=(p_int)&clifford::return_type_tinfo_static;
-	return (p_int)ti>=start_loc && (p_int)ti<start_loc+256;
+	intptr_t start_loc=(intptr_t)&clifford::return_type_tinfo_static;
+	return (intptr_t)ti>=start_loc && (intptr_t)ti<start_loc+256;
 }
 
 /** Extract representation label from tinfo key (as returned by
  *  return_type_tinfo()). */
 static unsigned char get_representation_label(tinfo_t ti)
 {
-	return (unsigned char)((p_int)ti-(p_int)&clifford::return_type_tinfo_static);
+	return (unsigned char)((intptr_t)ti-(intptr_t)&clifford::return_type_tinfo_static);
 }
 
 /** Take trace of a string of an even number of Dirac gammas given a vector

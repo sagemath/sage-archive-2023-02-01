@@ -951,7 +951,7 @@ ex function::evalf(int level, PyObject* kwds) const
 
 long function::calchash() const
 {
-	long v = golden_ratio_hash(golden_ratio_hash((p_int)tinfo()) ^ serial);
+	long v = golden_ratio_hash(golden_ratio_hash((intptr_t)tinfo()) ^ serial);
 	for (size_t i=0; i<nops(); i++) {
 		v = rotate_left(v);
 		v ^= this->op(i).gethash();

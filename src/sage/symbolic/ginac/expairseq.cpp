@@ -644,7 +644,7 @@ unsigned expairseq::return_type() const
 
 long expairseq::calchash() const
 {
-	long v = golden_ratio_hash((p_int)this->tinfo());
+	long v = golden_ratio_hash((intptr_t)tinfo());
         for (const auto & elem : seq) {
 		v ^= elem.rest.gethash();
 #if !EXPAIRSEQ_USE_HASHTAB

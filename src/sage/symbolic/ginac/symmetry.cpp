@@ -185,7 +185,7 @@ int symmetry::compare_same_type(const basic & other) const
 
 long symmetry::calchash() const
 {
-	long v = golden_ratio_hash((p_int)tinfo());
+	long v = golden_ratio_hash((intptr_t)tinfo());
 
 	if (type == none) {
 		v = rotate_left(v);

@@ -26,6 +26,7 @@
 
 #include "pynac-config.h"
 
+#include <cstdint>
 #include <string>
 #include <functional>
 
@@ -58,18 +59,8 @@ inline int compare_pointers(const T * a, const T * b)
 	return 0;
 }
 
-#if PYNAC_SIZEOF_VOID_P == PYNAC_SIZEOF_INT
-typedef unsigned int p_int;
-#elif PYNAC_SIZEOF_VOID_P == PYNAC_SIZEOF_LONG
-typedef unsigned long p_int;
-#elif PYNAC_SIZEOF_VOID_P == PYNAC_SIZEOF_LONG_LONG
-typedef unsigned long long p_int;
-#else
-typedef unsigned long p_int;
-#endif
-
 /** Truncated multiplication with golden ratio, for computing hash values. */
-inline unsigned golden_ratio_hash(p_int n)
+inline unsigned golden_ratio_hash(intptr_t n)
 {
 	// This function works much better when fast arithmetic with at
 	// least 64 significant bits is available.

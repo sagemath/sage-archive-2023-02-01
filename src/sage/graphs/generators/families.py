@@ -713,6 +713,10 @@ def GoethalsSeidelGraph(k,r):
 
     - ``k,r`` -- integers
 
+    .. SEEALSO::
+
+        - :func:`~sage.graphs.strongly_regular_db.is_goethals_seidel`
+
     EXAMPLE::
 
         sage: graphs.GoethalsSeidelGraph(3,3)
@@ -1610,6 +1614,10 @@ def PasechnikGraph(n):
     constructed from a skew Hadamard matrix of order `4n` following
     [Pa92]_.
 
+    .. SEEALSO::
+
+        - :func:`~sage.graphs.strongly_regular_db.is_orthogonal_array_block_graph`
+
     EXAMPLES::
 
         sage: graphs.PasechnikGraph(4).is_strongly_regular(parameters=True)
@@ -1636,6 +1644,10 @@ def SquaredSkewHadamardMatrixGraph(n):
     <sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph>`, also
     known as pseudo Latin squares graph `L_{2n}(4n-1)`, constructed from a
     skew Hadamard matrix of order `4n`, due to Goethals and Seidel, see [BvL84]_.
+
+    .. SEEALSO::
+
+        - :func:`~sage.graphs.strongly_regular_db.is_orthogonal_array_block_graph`
 
     EXAMPLES::
 
@@ -1669,6 +1681,10 @@ def SwitchedSquaredSkewHadamardMatrixGraph(n):
     In this case, the other possible parameter set of a strongly regular graph in the
     Seidel switching class of the latter graph (see [BH12]_) coincides with the set
     of parameters of the complement of the graph returned by this function.
+
+    .. SEEALSO::
+
+        - :func:`~sage.graphs.strongly_regular_db.is_switch_skewhad`
 
     EXAMPLES::
 
@@ -2442,6 +2458,10 @@ def MathonPseudocyclicMergingGraph(M, t):
 
     - ``t`` (integer) -- the number of the graph, from 0 to 2.
 
+    .. SEEALSO::
+
+        - :func:`~sage.graphs.strongly_regular_db.is_muzychuk_S6`
+
     TESTS::
 
         sage: from sage.graphs.generators.families import MathonPseudocyclicMergingGraph as mer
@@ -2504,6 +2524,10 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
       otherwise use the user-supplied one. Here non-isomorphic Latin squares
       -- one constructed from `Z/9Z`, and the other from `(Z/3Z)^2` --
       lead to non-isomorphic graphs.
+
+    .. SEEALSO::
+
+        - :func:`~sage.graphs.strongly_regular_db.is_mathon_PC_srg`
 
     EXAMPLES:
 
@@ -2720,6 +2744,10 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
 
     - ``verbose`` (Boolean)-- default is False. If True, print progress information
 
+    .. SEEALSO::
+
+        - :func:`~sage.graphs.strongly_regular_db.is_muzychuk_S6`
+
     .. TODO::
 
         Implement the possibility to explicitly supply the parameter `\Sigma`
@@ -2781,20 +2809,19 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     from sage.rings.rational_field import QQ
     from sage.rings.integer_ring import ZZ
     from time import time
+    import itertools
     from __builtin__ import range # we cannot use xrange here
 
+    assert d > 1,              'd must be at least 2'
     assert is_even(n * (d-1)), 'n must be even or d must be odd'
     assert is_prime_power(n),  'n must be a prime power'
-    assert d > 1,              'd must be at least 2'
     t = time()
 
-    #build L, L_i and the design
+    # build L, L_i and the design
     m = int((n**d-1)/(n-1) + 1) #from m = p + 1, p = (n^d-1) / (n-1)
     L = CompleteGraph(m)
     L.delete_edges([(2*x, 2*x + 1) for x in range(m/2)])
-    L_i = [0]*m
-    for x in range(m):
-        L_i[x] = L.edges_incident(x, labels=False)
+    L_i = [L.edges_incident(x, labels=False) for x in range(m)]
     Design = ProjectiveGeometryDesign(d, d-1, GF(n, 'a'), point_coordinates=False)
     projBlocks = Design.blocks()
     atInf = projBlocks[-1]
@@ -2803,7 +2830,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
         print('finished preamble at %f (+%f)' % (time() - t, time() - t))
     t1 = time()
 
-    #sort the hyperplanes into parallel classes
+    # sort the hyperplanes into parallel classes
     ParClasses = [Blocks]
     while ParClasses[0]:
         nextHyp = ParClasses[0].pop()
@@ -2822,24 +2849,24 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
         print('finished ParClasses at %f (+%f)' % (time() - t, time() - t1))
     t1 = time()
 
-    #build E^C_j
+    # build E^C_j
     E = {}
     v = ZZ(n**d)
     k = ZZ(n**(d-1))
     ones = ones_matrix(v)
+    ones_v = ones/v
     for C in ParClasses:
         EC = matrix(QQ, v)
         for line in C:
-            for i in line:
-                for j in line:
-                    EC[i, j] = 1/k
-        EC -= ones/v
+            for i,j in itertools.combinations(line, 2):
+                EC[i,j] = EC[j,i] = 1/k
+        EC -= ones_v
         E[tuple(C[0])] = EC
     if verbose:
         print('finished E at %f (+%f)' % (time() - t, time() - t1))
     t1 = time()
 
-    #handle Phi
+    # handle Phi
     if Phi == 'random':
         Phi = {}
         for x in range(m):
@@ -2848,12 +2875,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
                 rand = randrange(0, len(temp))
                 Phi[(x, line)] = temp.pop(rand)
     elif Phi == 'fixed':
-        Phi = {}
-        for x in range(m):
-            val = 0
-            for line in L_i[x]:
-                Phi[(x, line)] = val
-                val+=1
+        Phi = {(x,line):val for x in range(m) for val,line in enumerate(L_i[x])}
     else:
         assert isinstance(Phi, dict), \
             "Phi must be a dictionary or 'random' or 'fixed'"
@@ -2867,15 +2889,12 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
         for val in Phi.values():
             assert val in range(m-1), \
             'codomain should be {0,..., (n^d - 1)/(n - 1) - 1}'
-    phi = {}
-    for x in range(m):
-        for line in L_i[x]:
-            phi[(x, line)] = ParClasses[Phi[(x, line)]]
+    phi = {(x, line):ParClasses[Phi[(x, line)]] for x in range(m) for line in L_i[x]}
     if verbose:
         print('finished phi at %f (+%f)' % (time() - t, time() - t1))
     t1 = time()
 
-    #handle sigma
+    # handle sigma
     sigma = {}
     if Sigma == 'random':
         for x in range(m):
@@ -2902,7 +2921,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
         print('finished sigma at %f (+%f)' % (time() - t, time() - t1))
     t1 = time()
 
-    #build V
+    # build V
     edges = [] ###how many? *m^2*n^2
     for (i, j) in L.edges(labels=False):
         for hyp in phi[(i, (i, j))]:
@@ -2918,22 +2937,20 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
         print('finished V at %f (+%f)' % (time() - t, time() - t1))
     t1 = time()
 
-    #build D_i, F_i and A_i
+    # build D_i, F_i and A_i
     D_i = [0]*m
     for x in range(m):
         D_i[x] = sum([E[tuple(phi[x, line][0])] for line in L_i[x]])
-    F_i = [1 - D_i[x] - ones/v for x in range(m)]
-    #as the sum of (1/v)*J_\Omega_i, D_i, F_i is identity
-    A_i = [0]*m
-    for x in range(m):
-        A_i[x] = ((v-k)/v)*ones - k*F_i[x]
-        #we know A_i = k''*(1/v)*J_\Omega_i + r''*D_i + s''*F_i,
-        #and (k'', s'', r'') = (v - k, 0, -k)
+    F_i = [1 - D_i[x] - ones_v for x in range(m)]
+    # as the sum of (1/v)*J_\Omega_i, D_i, F_i is identity
+    A_i = [(v-k)*ones_v - k*F_i[x] for x in range(m)]
+        # we know A_i = k''*(1/v)*J_\Omega_i + r''*D_i + s''*F_i,
+        # and (k'', s'', r'') = (v - k, 0, -k)
     if verbose:
         print('finished D, F and A at %f (+%f)' % (time() - t, time() - t1))
     t1 = time()
 
-    #add the edges of the graph of B to V
+    # add the edges of the graph of B to V
     for i in range(m):
         V.add_edges([((i, x), (i, y)) for x in range(v)
                      for y in range(v) if not A_i[i][(x, y)]])

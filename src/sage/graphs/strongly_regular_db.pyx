@@ -142,6 +142,9 @@ def is_muzychuk_S6(int v, int k, int l, int mu):
     r"""
     Test whether some Muzychuk S6 graph is (v, k, l, mu)-strongly regular.
 
+    Tests whether a :func:`~sage.graphs.graph_generators.GraphGenerators.MuzychukS6Graph`
+    has parameters (v, k, l, mu).
+
     INPUT:
 
     - ``v, k, l, mu`` (integers)

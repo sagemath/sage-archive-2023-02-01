@@ -174,8 +174,8 @@ static ex zeta1_series(const ex& m, const relational& rel, int order, unsigned o
 	ex ser = 1/(m-1);
 	numeric fac = 1;
 	for (int n = 0; n <= order; ++n) {
-	  fac = fac.mul(n+1);
 	  ser += pow(-1, n) * stieltjes(n) * pow(m-1, n) * fac.inverse();
+	  fac = fac.mul(n+1);
 	}
 	return ser.series(rel, order, options);
 }

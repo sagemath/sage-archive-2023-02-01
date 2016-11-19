@@ -169,11 +169,15 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: x = Gamma0(18)([19,1,18,1])
+            sage: x == 3
+            False
             sage: x == x
             True
 
             sage: x = Gamma0(5)([1,1,0,1])
             sage: y = Gamma0(5)([1,4,0,1])
+            sage: x == 0
+            False
             sage: x == y
             False
             sage: x != y

@@ -10234,7 +10234,7 @@ cdef class Expression(CommutativeRingElement):
             sage: v = g._factor_list(); v
             [(x^2 + x + 1, 1), (x - 1, 1)]
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
         """
         op = self.operator()
         if op is mul_vararg:

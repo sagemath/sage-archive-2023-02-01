@@ -642,7 +642,7 @@ cdef class ClonableArray(ClonableElement):
             sage: IncreasingArrays()([1,2,3])[:]
             [1, 2, 3]
             sage: type(IncreasingArrays()([1,2,3])[:])
-            <type 'list'>
+            <... 'list'>
         """
         if isinstance(key, slice):
             self._list[key.start:key.stop:key.step]
@@ -1414,7 +1414,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: el[1:3]
             [2, 3]
             sage: type(el[:])
-            <type 'list'>
+            <... 'list'>
             sage: list(el)
             [1, 2, 3]
             sage: it = iter(el); next(it), next(it)

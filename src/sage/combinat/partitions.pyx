@@ -151,7 +151,7 @@ def ZS1_iterator(int n):
         sage: next(it)
         [4]
         sage: type(_)
-        <type 'list'>
+        <... 'list'>
     """
     # Easy cases.
     if n < 0:
@@ -211,7 +211,7 @@ def ZS1_iterator_nk(int n, int k):
         sage: next(it)
         [4]
         sage: type(_)
-        <type 'list'>
+        <... 'list'>
     """
     # Easy cases.
     if n <= 0:

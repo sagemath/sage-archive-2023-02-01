@@ -2343,7 +2343,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         method returns a new list::
 
             sage: type(l)
-            <type 'list'>
+            <... 'list'>
             sage: l[0] = 5
             sage: a.list()
             [t^2 + 1, 0, t + 1, 0, 1]

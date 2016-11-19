@@ -1685,10 +1685,10 @@ cdef class SkewPolynomial(AlgebraElement):
             sage: sigma = R.hom([t+1])
             sage: S.<x> = R['x',sigma]
             sage: a = x + 1
-            sage: a.__nonzero__()
+            sage: bool(a)
             True
             sage: b = S.zero()
-            sage: b.__nonzero__()
+            sage: bool(b)
             False
         """
         return not self.is_zero()

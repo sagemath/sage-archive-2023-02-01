@@ -403,7 +403,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
 
-        .. note::
+        .. NOTE::
 
             In practice 4 would be a really bad number to choose, but
             it makes the hashing deterministic.
@@ -735,7 +735,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Univariate Polynomial Ring in x over Rational Field
             Univariate Polynomial Ring in x over Rational Field
 
-        .. note::
+        .. NOTE::
 
            This function is accurate only in so far as analyse is kept
            in sync with the :meth:`bin_op` and
@@ -976,7 +976,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         - ``op`` - a python function taking 2 arguments
 
-          .. note::
+          .. NOTE::
 
              op is often an arithmetic operation, but need not be so.
 

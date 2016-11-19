@@ -42,7 +42,7 @@ cdef class AttributeErrorMessage:
     """
     Tries to emulate the standard Python ``AttributeError`` message.
 
-    .. note::
+    .. NOTE::
 
         The typical fate of an attribute error is being caught. Hence,
         under normal circumstances, nobody will ever see the error

@@ -394,13 +394,13 @@ cdef class Lfunction_I(Lfunction):
     with integer Dirichlet Coefficients. We assume that L-functions
     satisfy the following functional equation.
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = \omega Q^s \overline{\Lambda(1-\bar s)}
 
     where
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
@@ -532,13 +532,13 @@ cdef class Lfunction_D(Lfunction):
     with real Dirichlet coefficients. We assume that L-functions
     satisfy the following functional equation.
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = \omega Q^s \overline{\Lambda(1-\bar s)}
 
     where
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
@@ -671,13 +671,13 @@ cdef class Lfunction_C:
     with complex Dirichlet Coefficients. We assume that L-functions
     satisfy the following functional equation.
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = \omega Q^s \overline{\Lambda(1-\bar s)}
 
     where
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 

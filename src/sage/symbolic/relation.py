@@ -743,7 +743,7 @@ def solve(f, *args, **kwds):
         TypeError:  The first argument must be a symbolic expression or a list of symbolic expressions.
 
     Test if the empty list is returned, too, when (a list of)
-    dictionaries (is) are requested (#8553)::
+    dictionaries (is) are requested (:trac:`8553`)::
 
         sage: solve([SR(0)==1],x)
         []
@@ -756,7 +756,7 @@ def solve(f, *args, **kwds):
         sage: solve((x==1,x==-1),x,solution_dict=0)
         []
 
-    Relaxed form, suggested by Mike Hansen (#8553)::
+    Relaxed form, suggested by Mike Hansen (:trac:`8553`)::
 
         sage: solve([x^2-1],x,solution_dict=-1)
         [{x: -1}, {x: 1}]

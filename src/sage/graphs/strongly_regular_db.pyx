@@ -2577,7 +2577,7 @@ def SRG_630_85_20_10():
     from sage.graphs.generators.intersection import IntersectionGraph
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     hs = HoffmanSingletonGraph()
-    P = range(5)+range(30,35)          # a Petersen in hs
+    P = list(range(5)) + list(range(30, 35))          # a Petersen in hs
     mc = [0, 1, 5, 6, 12, 13, 16, 17, 22, 23, 29, 33, 39, 42, 47]
     assert(hs.subgraph(mc).is_regular(k=0)) # a maximum coclique
     assert(hs.subgraph(P).is_regular(k=3))

@@ -67,7 +67,7 @@ import operator
 
 from sage.misc.randstate cimport randstate, current_randstate
 
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.paridecl cimport *
 include "cysignals/signals.pxi"
 
 from sage.libs.gsl.complex cimport *
@@ -85,8 +85,8 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
+from sage.libs.cypari2.gen cimport gen as pari_gen
+from sage.libs.cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
 
 import complex_number
 

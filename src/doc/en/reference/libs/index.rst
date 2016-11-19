@@ -48,11 +48,6 @@ to be aware of the modules described in this chapter.
    sage/libs/ntl/all
    sage/libs/libecm
    sage/libs/lrcalc/lrcalc
-   sage/libs/pari/gen
-   sage/libs/pari/pari_instance
-   sage/libs/pari/closure
-   sage/libs/pari/convert
-   sage/libs/pari/handle_error
    sage/rings/pari_ring
    sage/libs/readline
    sage/libs/gap/context_managers

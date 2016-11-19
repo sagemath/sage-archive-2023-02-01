@@ -48,9 +48,9 @@ EXAMPLES::
 Arithmetic operations cause all arguments to be converted to PARI::
 
     sage: type(pari(1) + 1)
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'sage.libs.cypari2.gen.gen'>
     sage: type(1 + pari(1))
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'sage.libs.cypari2.gen.gen'>
 
 Guide to real precision in the PARI interface
 =============================================
@@ -293,7 +293,7 @@ def prec_bits_to_dec(long prec_in_bits):
 
     EXAMPLES::
 
-        sage: from sage.libs.pari.pari_instance import prec_bits_to_dec
+        sage: from sage.libs.cypari2.pari_instance import prec_bits_to_dec
         sage: prec_bits_to_dec(53)
         15
         sage: [(32*n, prec_bits_to_dec(32*n)) for n in range(1, 9)]
@@ -315,7 +315,7 @@ def prec_dec_to_bits(long prec_in_dec):
 
     EXAMPLES::
 
-        sage: from sage.libs.pari.pari_instance import prec_dec_to_bits
+        sage: from sage.libs.cypari2.pari_instance import prec_dec_to_bits
         sage: prec_dec_to_bits(15)
         50
         sage: [(n, prec_dec_to_bits(n)) for n in range(10, 100, 10)]
@@ -341,7 +341,7 @@ cpdef long prec_bits_to_words(unsigned long prec_in_bits):
 
     EXAMPLES::
 
-        sage: from sage.libs.pari.pari_instance import prec_bits_to_words
+        sage: from sage.libs.cypari2.pari_instance import prec_bits_to_words
         sage: prec_bits_to_words(70)
         5   # 32-bit
         4   # 64-bit
@@ -367,7 +367,7 @@ cpdef long prec_words_to_bits(long prec_in_words):
 
     EXAMPLES::
 
-        sage: from sage.libs.pari.pari_instance import prec_words_to_bits
+        sage: from sage.libs.cypari2.pari_instance import prec_words_to_bits
         sage: prec_words_to_bits(10)
         256   # 32-bit
         512   # 64-bit
@@ -384,7 +384,7 @@ cpdef long default_bitprec():
 
     EXAMPLES::
 
-        sage: from sage.libs.pari.pari_instance import default_bitprec
+        sage: from sage.libs.cypari2.pari_instance import default_bitprec
         sage: default_bitprec()
         64
     """
@@ -398,7 +398,7 @@ def prec_dec_to_words(long prec_in_dec):
 
     EXAMPLES::
 
-        sage: from sage.libs.pari.pari_instance import prec_dec_to_words
+        sage: from sage.libs.cypari2.pari_instance import prec_dec_to_words
         sage: prec_dec_to_words(38)
         6   # 32-bit
         4   # 64-bit
@@ -416,7 +416,7 @@ def prec_words_to_dec(long prec_in_words):
 
     EXAMPLES::
 
-        sage: from sage.libs.pari.pari_instance import prec_words_to_dec
+        sage: from sage.libs.cypari2.pari_instance import prec_words_to_dec
         sage: prec_words_to_dec(5)
         28   # 32-bit
         57   # 64-bit
@@ -469,9 +469,9 @@ cdef class PariInstance(PariInstance_auto):
            precomputed prime number table (default: 500000)
 
         For more information about how precision works in the PARI
-        interface, see :mod:`sage.libs.pari.pari_instance`.
+        interface, see :mod:`sage.libs.cypari2.pari_instance`.
 
-        .. note::
+        .. NOTE::
 
            In Sage, the PARI stack is different than in GP or the
            PARI C library. In Sage, instead of the PARI stack
@@ -486,7 +486,7 @@ cdef class PariInstance(PariInstance_auto):
            over the way PARI works, but it scales much better and is
            far more robust for large projects.
 
-        .. note::
+        .. NOTE::
 
            If you do not want prime numbers, put ``maxprime=2``, but be
            careful because many PARI functions require this table. If

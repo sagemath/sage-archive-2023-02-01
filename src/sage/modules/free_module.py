@@ -1399,7 +1399,7 @@ done from the right side.""")
         Returns a list `c` such that if `B` is the basis
         for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -4557,7 +4557,7 @@ class FreeModule_ambient(FreeModule_generic):
 
         Returns a vector `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -4870,7 +4870,7 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
         Returns a vector `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -5542,7 +5542,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Returns a list `c` such that if `B` is the basis
         for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -5983,7 +5983,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         Returns a vector `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -6041,7 +6041,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Returns a list `c` such that if `B` is the echelonized basis
         for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -6192,7 +6192,7 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
         Returns a list `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -6589,7 +6589,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         Returns a list `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -6652,7 +6652,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         Returns a list `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 

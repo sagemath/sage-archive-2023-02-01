@@ -599,7 +599,7 @@ class Polyhedron_ZZ(Polyhedron_base):
               A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 6 vertices))
 
            sage: [ len(square.dilation(i).Minkowski_decompositions())
-           ...     for i in range(6) ]
+           ....:   for i in range(6) ]
            [1, 2, 5, 8, 13, 18]
            sage: [ ceil((i^2+2*i-1)/2)+1 for i in range(10) ]
            [1, 2, 5, 8, 13, 18, 25, 32, 41, 50]

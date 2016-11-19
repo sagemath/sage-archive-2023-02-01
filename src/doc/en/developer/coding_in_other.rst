@@ -43,7 +43,7 @@ polynomial or matrix, will have our new method. So you can do
 ``PariError`` in this case.
 
 The ``gen`` class is defined in
-:file:`SAGE_ROOT/src/sage/libs/pari/gen.pyx`, and this is where we
+:file:`SAGE_ROOT/src/sage/libs/cypari2/gen.pyx`, and this is where we
 add the method ``matfrobenius``::
 
     def matfrobenius(self, flag=0):

@@ -1147,7 +1147,7 @@ class PiecewiseFunction(BuiltinFunction):
             r"""
             Returns the partial sum
 
-            .. math::
+            .. MATH::
 
                f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
 

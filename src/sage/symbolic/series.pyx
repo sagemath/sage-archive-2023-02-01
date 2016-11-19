@@ -89,6 +89,13 @@ Check that :trac:`20088` is fixed::
 
     sage: ((1+x).series(x)^pi).series(x,3)
     1 + (pi)*x + (-1/2*pi + 1/2*pi^2)*x^2 + Order(x^3)
+
+Check that :trac:`14878` is fixed, this should take only microseconds::
+
+    sage: sin(x*sin(x*sin(x*sin(x)))).series(x,8)
+    1*x^4 + (-1/6)*x^6 + Order(x^8)
+    sage: sin(x*sin(x*sin(x*sin(x)))).series(x,12)
+    1*x^4 + (-1/6)*x^6 + (-19/120)*x^8 + (-421/5040)*x^10 + Order(x^12)
 """
 
 #*****************************************************************************

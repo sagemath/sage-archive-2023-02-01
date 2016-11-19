@@ -19,7 +19,7 @@ with
 
 is defined by
 
-.. math::
+.. MATH::
 
     (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
     (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
@@ -187,7 +187,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         
         is defined by:
         
-        .. math::
+        .. MATH::
 
             (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
             (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)

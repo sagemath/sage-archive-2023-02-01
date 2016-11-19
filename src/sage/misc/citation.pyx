@@ -7,7 +7,7 @@ from sage.misc.all import tmp_filename
 from sage.env import SAGE_ROOT
 
 systems = {}
-systems['PARI'] = ['sage.libs.pari', 'sage.interfaces.gp']
+systems['PARI'] = ['sage.libs.cypari2', 'sage.interfaces.gp']
 systems['Singular'] = ['sage.interfaces.singular', '_libsingular',
                        'sage.libs.singular']
 systems['Maxima'] = ['sage.interfaces.maxima']

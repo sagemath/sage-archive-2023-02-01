@@ -408,7 +408,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sage: A*B == A._multiply_classical(B)
             True
 
-        .. note::
+        .. NOTE::
 
             This function is very slow. Use ``*`` operator instead.
         """

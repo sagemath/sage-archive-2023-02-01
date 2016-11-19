@@ -13,7 +13,7 @@ coordinates.
 If `L` is a lattice polytope, the dual polytope of
 `L` is
 
-.. math::
+.. MATH::
 
        \{y \in \ZZ^n :   x\cdot y \geq -1 \text{ all } x \in L\}
 
@@ -253,7 +253,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
 
 
         sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,0),
-        ...         (-1,0,0), (0,-1,0), (0,0,0), (0,0,0)])
+        ....:       (-1,0,0), (0,-1,0), (0,0,0), (0,0,0)])
         sage: p
         2-d lattice polytope in 3-d lattice M
         sage: p.vertices()
@@ -760,7 +760,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Check that :trac:`8934` is fixed::
 
             sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,0),
-            ...         (-1,0,0), (0,-1,0), (0,0,0), (0,0,0)])
+            ....:       (-1,0,0), (0,-1,0), (0,0,0), (0,0,0)])
             sage: p._compute_faces()
             sage: p.facets()
             doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
@@ -2113,7 +2113,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         lattice of ``p`` consists of (appropriate) faces of ``superp``::
 
             sage: superp = LatticePolytope([(1,2,3,4), (5,6,7,8),
-            ...                             (1,2,4,8), (1,3,9,7)])
+            ....:                           (1,2,4,8), (1,3,9,7)])
             sage: superp.face_lattice()
             Finite poset containing 16 elements with distinguished linear extension
             sage: superp.face_lattice().top()
@@ -2432,8 +2432,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         (since our normals are inner)::
 
             sage: matrix([[fns[i] * p.vertex(j) + fcs[i]
-            ...            for j in range(p.nvertices())]
-            ...           for i in range(p.nfacets())])
+            ....:          for j in range(p.nvertices())]
+            ....:         for i in range(p.nfacets())])
             [22  0  0]
             [ 0 22  0]
             [ 0  0 11]
@@ -2468,7 +2468,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         space with 3 facets containing the origin::
 
             sage: p = LatticePolytope([(0,0,0,0), (1,1,1,3),
-            ...                        (1,-1,1,3), (-1,-1,1,3)])
+            ....:                      (1,-1,1,3), (-1,-1,1,3)])
             sage: p.vertices()
             M( 0,  0, 0, 0),
             M( 1,  1, 1, 3),
@@ -2546,7 +2546,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         space::
 
             sage: p = LatticePolytope([(0,0,0,0), (1,1,1,3),
-            ...                        (1,-1,1,3), (-1,-1,1,3)])
+            ....:                      (1,-1,1,3), (-1,-1,1,3)])
             sage: p.vertices()
             M( 0,  0, 0, 0),
             M( 1,  1, 1, 3),
@@ -2565,9 +2565,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         a single positive number (since our normals are inner)::
 
             sage: matrix([[p.facet_normal(i) * p.vertex(j)
-            ...            + p.facet_constant(i)
-            ...            for j in range(p.nvertices())]
-            ...           for i in range(p.nfacets())])
+            ....:          + p.facet_constant(i)
+            ....:          for j in range(p.nvertices())]
+            ....:         for i in range(p.nfacets())])
             [ 0  0  0 20]
             [ 0  0 20  0]
             [ 0 20  0  0]
@@ -2612,7 +2612,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         space::
 
             sage: p = LatticePolytope([(0,0,0,0), (1,1,1,3),
-            ...                        (1,-1,1,3), (-1,-1,1,3)])
+            ....:                      (1,-1,1,3), (-1,-1,1,3)])
             sage: p.vertices()
             M( 0,  0, 0, 0),
             M( 1,  1, 1, 3),
@@ -3037,7 +3037,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Nef-partitions can be computed only for reflexive polytopes::
 
             sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,2),
-            ...                        (-1,0,0), (0,-1,0), (0,0,-1)])
+            ....:                      (-1,0,0), (0,-1,0), (0,0,-1)])
             sage: p.nef_partitions()
             Traceback (most recent call last):
             ...
@@ -4061,7 +4061,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Only reflexive polytopes have polars::
 
             sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,2),
-            ...                        (-1,0,0), (0,-1,0), (0,0,-1)])
+            ....:                      (-1,0,0), (0,-1,0), (0,0,-1)])
             sage: p.polar()
             Traceback (most recent call last):
             ...
@@ -5154,7 +5154,7 @@ class NefPartition(SageObject,
         explicitly to avoid loading the whole database)::
 
             sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,1), (0,1,-1),
-            ...           (0,-1,1), (-1,1,0), (0,-1,-1), (-1,-1,0), (-1,-1,2)])
+            ....:         (0,-1,1), (-1,1,0), (0,-1,-1), (-1,-1,0), (-1,-1,2)])
             sage: np = p.nef_partitions()[0]
             sage: np
             Nef-partition {1, 2, 5, 7, 8} U {0, 3, 4, 6}
@@ -5176,10 +5176,10 @@ class NefPartition(SageObject,
         But the remaining 5 are partitioned by ``np``::
 
             sage: [n for n in range(p.npoints())
-            ...      if p.origin() != n and np.part_of_point(n) == 0]
+            ....:    if p.origin() != n and np.part_of_point(n) == 0]
             [1, 2, 5, 7, 8, 9, 11, 13]
             sage: [n for n in range(p.npoints())
-            ...      if p.origin() != n and np.part_of_point(n) == 1]
+            ....:    if p.origin() != n and np.part_of_point(n) == 1]
             [0, 3, 4, 6, 10, 12]
         """
         try:
@@ -5975,7 +5975,7 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
     You cannot use this function for non-reflexive polytopes::
 
         sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,2),
-        ...                        (-1,0,0), (0,-1,0), (0,0,-1)])
+        ....:                      (-1,0,0), (0,-1,0), (0,0,-1)])
         sage: lattice_polytope.all_nef_partitions([o, p])
         Traceback (most recent call last):
         ...

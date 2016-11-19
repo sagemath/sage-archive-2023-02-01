@@ -1520,7 +1520,7 @@ class NumberFieldIdeal(Ideal_generic):
         r"""
         The m-th power residue symbol for an element e and the proper ideal.
 
-        .. math:: \left(\frac{\alpha}{\mathbf{P}}\right) \equiv \alpha^{\frac{N(\mathbf{P})-1}{m}} \operatorname{mod} \mathbf{P}
+        .. MATH:: \left(\frac{\alpha}{\mathbf{P}}\right) \equiv \alpha^{\frac{N(\mathbf{P})-1}{m}} \operatorname{mod} \mathbf{P}
 
         .. note:: accepts m=1, in which case returns 1
 

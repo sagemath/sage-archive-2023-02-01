@@ -1126,7 +1126,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         ALGORITHM: Only even cycles contribute to the sign, thus
 
-        .. math::
+        .. MATH::
 
             sign(sigma) = (-1)^{\sum_c len(c)-1}
 

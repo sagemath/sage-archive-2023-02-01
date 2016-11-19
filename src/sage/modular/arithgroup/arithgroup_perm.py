@@ -297,7 +297,7 @@ def ArithmeticSubgroup_Permutation(
     at least two standard generators on the its cosets. The generators
     considered are the following matrices:
 
-    .. math::
+    .. MATH::
 
         s_2 = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix},\quad
         s_3 = \begin{pmatrix} 0 & 1 \\ -1 & 1 \end{pmatrix},\quad
@@ -1325,7 +1325,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         - if `N` is odd, `G` is congruence if and only if the relation
 
-          .. math::
+          .. MATH::
 
             (L R^{-1} L)^2 = (R^2 L^{1/2})^3
 
@@ -1335,7 +1335,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         - if `N` is a power of 2, then `G` is congruence if and only
           if the relations
 
-          .. math::
+          .. MATH::
 
             \begin{array}{cc}
              (L R^{-1} L)^{-1} S (L R^{-1} L) S = 1 & (A1)\\

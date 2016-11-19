@@ -4,8 +4,7 @@ Declarations for non-inline functions from PARI.
 
 This file contains all declarations from headers/paridecl.h from
 the PARI distribution, except the inline functions which are in
-sage/libs/pari/declinl.pxi (that file is automatically included by
-this file).
+declinl.pxi (that file is automatically included by this file).
 
 
 AUTHORS:
@@ -13,13 +12,13 @@ AUTHORS:
  - (unknown authors before 2010)
 
  - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
-   Upgrade to PARI 2.4.3 (#9343)
+   Upgrade to PARI 2.4.3 (:trac:`9343`)
 
- - Jeroen Demeyer (2010-08-15): big clean up (#9898)
+ - Jeroen Demeyer (2010-08-15): big clean up (:trac:`9898`)
 
- - Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+ - Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (:trac:`15767`)
 
- - Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (#16997)
+ - Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (:trac:`16997`)
 
 """
 from __future__ import print_function
@@ -30,7 +29,7 @@ from libc.stdio cimport FILE
 cdef extern from '<stdarg.h>':
     ctypedef void* va_list
 
-cdef extern from "sage/libs/pari/parisage.h":
+cdef extern from "sage/libs/cypari2/cypari.h":
     char* PARIVERSION
 
     # parierr.h
@@ -4494,7 +4493,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     long   vali(GEN x)
     int    varncmp(long x, long y)
 
-cdef extern from "sage/libs/pari/parisage.h":
+cdef extern from "sage/libs/cypari2/cypari.h":
     GEN set_gel(GEN x, long n, GEN z)              # gel(x, n) = z
     GEN set_gmael(GEN x, long i, long j, GEN z)    # gmael(x, i, j) = z
     GEN set_gcoeff(GEN x, long i, long j, GEN z)   # gcoeff(x, i, j) = z

@@ -82,7 +82,7 @@ combinatorial functions:
 
 -  gaussian_binomial the gaussian binomial
 
-.. math::
+.. MATH::
 
              \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}                              {(1-q)(1-q^2)\cdots (1-q^r)}.
 

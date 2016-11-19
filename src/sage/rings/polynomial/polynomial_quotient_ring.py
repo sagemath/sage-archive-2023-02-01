@@ -105,7 +105,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
 
     We create the "iterated" polynomial ring quotient
 
-    .. math::
+    .. MATH::
 
                     R = (\GF{2}[y]/(y^{2}+y+1))[x]/(x^3 - 5).
 

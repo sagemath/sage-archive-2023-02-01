@@ -962,7 +962,7 @@ cdef class PathAlgebraElement(RingElement):
             self._hash = hash(frozenset(self.monomial_coefficients().items()))
         return self._hash
 
-    cpdef bint _richcmp_(left, right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Helper for comparison of path algebra elements.
 
@@ -1008,9 +1008,9 @@ cdef class PathAlgebraElement(RingElement):
             if v1 != v2:
                 return richcmp_not_equal(v1, v2, op)
 
-            v1 = H1.poly
-            v2 = H2.poly
-            if v1 != v2:
+            w1 = H1.poly
+            w2 = H2.poly
+            if w1 != w2:
                 return poly_richcmp(H1.poly, H2.poly, self.cmp_terms, op)
 
             H1 = H1.nxt

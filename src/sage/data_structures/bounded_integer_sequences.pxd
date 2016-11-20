@@ -40,7 +40,7 @@ cdef tuple biseq_pickle(biseq_t S)
 cdef bint biseq_unpickle(biseq_t R, tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length) except -1
 cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1
 cdef Py_hash_t biseq_hash(biseq_t S)
-cdef int biseq_cmp(biseq_t S1, biseq_t S2)
+cdef bint biseq_richcmp(biseq_t S1, biseq_t S2, int op)
 cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1
 cdef bint biseq_startswith(biseq_t S1, biseq_t S2) except -1
 cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2

@@ -59,8 +59,8 @@ import sage.rings.rational_field
 cimport integer
 from integer cimport Integer
 
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.gen cimport gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
 
 from integer_ring import ZZ
@@ -3512,7 +3512,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m = n._pari_(); m
             9390823/17
             sage: type(m)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: m.type()
             't_FRAC'
         """

@@ -362,7 +362,7 @@ def airy_ai(alpha, x=None, hold_derivative=True, **kwds):
     solutions to the Airy differential equation `f''(x) - x f(x) = 0`. It is
     defined by the initial conditions:
 
-    .. math::
+    .. MATH::
 
         \operatorname{Ai}(0)=\frac{1}{2^{2/3} \Gamma\left(\frac{2}{3}\right)},
 
@@ -370,7 +370,7 @@ def airy_ai(alpha, x=None, hold_derivative=True, **kwds):
 
     Another way to define the Airy Ai function is:
 
-    .. math::
+    .. MATH::
 
         \operatorname{Ai}(x)=\frac{1}{\pi}\int_0^\infty
         \cos\left(\frac{1}{3}t^3+xt\right) dt.
@@ -383,7 +383,7 @@ def airy_ai(alpha, x=None, hold_derivative=True, **kwds):
       `\operatorname{Ai}^{(n)}(z)`, and for `\alpha = -n = -1,-2,-3,\ldots`
       this gives the `n`-fold iterated integral.
 
-    .. math::
+    .. MATH::
 
         f_0(z) = \operatorname{Ai}(z)
 
@@ -499,7 +499,7 @@ class FunctionAiryBiGeneral(BuiltinFunction):
           `\operatorname{Bi}^{(n)}(z)`, and for `\alpha = -n = -1,-2,-3,\ldots`
           this gives the `n`-fold iterated integral.
 
-        .. math::
+        .. MATH::
 
             f_0(z) = \operatorname{Bi}(z)
 
@@ -793,7 +793,7 @@ def airy_bi(alpha, x=None, hold_derivative=True, **kwds):
     solutions to the Airy differential equation `f''(x) - x f(x) = 0`. It is
     defined by the initial conditions:
 
-    .. math::
+    .. MATH::
 
         \operatorname{Bi}(0)=\frac{1}{3^{1/6} \Gamma\left(\frac{2}{3}\right)},
 
@@ -801,7 +801,7 @@ def airy_bi(alpha, x=None, hold_derivative=True, **kwds):
 
     Another way to define the Airy Bi function is:
 
-    .. math::
+    .. MATH::
 
         \operatorname{Bi}(x)=\frac{1}{\pi}\int_0^\infty
         \left[ \exp\left( xt -\frac{t^3}{3} \right)

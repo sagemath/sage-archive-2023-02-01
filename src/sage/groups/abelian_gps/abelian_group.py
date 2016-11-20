@@ -3,7 +3,7 @@ Multiplicative Abelian Groups
 
 This module lets you compute with finitely generated Abelian groups of the form
 
-.. math::
+.. MATH::
 
     G = \ZZ^r \oplus \ZZ_{k_1} \oplus \cdots \oplus \ZZ_{k_t}
 
@@ -11,7 +11,7 @@ It is customary to denote the infinite cyclic group `\ZZ` as having
 order `0`, so the data defining the Abelian group can be written as an
 integer vector
 
-.. math::
+.. MATH::
 
     \vec{k} = (0, \dots, 0, k_1, \dots, k_t)
 
@@ -64,7 +64,7 @@ for some positive integers
 `k,\ell` with `k\leq \ell`. For example, a finite abelian group has a
 decomposition
 
-.. math::
+.. MATH::
 
     A = \langle a_1\rangle \times \dots \times  \langle a_\ell\rangle ,
 
@@ -86,7 +86,7 @@ The kernel of the map `\phi_B:  \ZZ^m \rightarrow B` defined by
 `\phi_B(y_1,...,y_m) = b_1^{y_1}...b_m^{y_m}`,
 for `(y_1,...,y_m)\in \ZZ^m`, is the kernel of the matrix
 
-.. math::
+.. MATH::
 
     F=
     \left(
@@ -107,7 +107,7 @@ SNF `S = diag[s_1,s_2,s_3, ... s_r,0,0,...0]`,
 are called *determinantal divisors* of `F`.
 where `r` is the rank. The {\it invariant factors} of  A  are:
 
-.. math::
+.. MATH::
 
     s_1, s_2/s_1, s_3/s_2, ... s_r/s_{r-1}.
 

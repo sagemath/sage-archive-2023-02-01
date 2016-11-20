@@ -56,7 +56,7 @@ cpdef inline parent(x):
         sage: d = int(42)  # Python int
         sage: parent(d)
         <type 'int'>
-        sage: L = range(10)
+        sage: L = list(range(10))
         sage: parent(L)
         <type 'list'>
     """

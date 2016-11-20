@@ -1038,7 +1038,7 @@ cdef class LibraryCallHandler(BaseCallHandler):
 
     This class implements calling a library function.
 
-    .. note::
+    .. NOTE::
 
         Do not construct this class directly, use
         :func:`singular_function` instead.
@@ -1079,7 +1079,7 @@ cdef class KernelCallHandler(BaseCallHandler):
 
     This class implements calling a kernel function.
 
-    .. note::
+    .. NOTE::
 
         Do not construct this class directly, use
         :func:`singular_function` instead.

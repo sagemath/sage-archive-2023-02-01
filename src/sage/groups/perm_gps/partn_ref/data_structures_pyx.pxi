@@ -28,10 +28,12 @@ REFERENCES:
 
 from libc.math cimport log, ceil
 from libc.string cimport memcpy, memset
+from libc.stdlib cimport rand
 
 include 'sage/data_structures/bitset.pxi'
 
 from sage.libs.gmp.mpz cimport *
+from sage.libs.flint.ulong_extras cimport n_is_prime
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.rings.integer cimport Integer
 from sage.groups.perm_gps.partn_ref2.refinement_generic cimport PartitionRefinement_generic

@@ -27,7 +27,7 @@ binary code. If `F` has `q` elements then `C` is called a `q`-ary code. The
 elements of a code `C` are called codewords. The information rate of `C` is
 
 
-.. math::
+.. MATH::
 
      R={\frac{\log_q\vert C\vert}{n}},
 
@@ -37,7 +37,7 @@ v}=(v_1,v_2,...,v_n)`, `{\bf w}=(w_1,w_2,...,w_n)` are vectors in `V=F^n` then
 we define
 
 
-.. math::
+.. MATH::
 
      d({\bf v},{\bf w}) =\vert\{i\ \vert\ 1\leq i\leq n,\ v_i\not= w_i\}\vert
 
@@ -49,7 +49,7 @@ a linear code is the smallest non-zero weight of a codeword in `C`.  The
 relatively minimum distance is denoted
 
 
-.. math::
+.. MATH::
 
      \delta = d/n.
 
@@ -395,7 +395,7 @@ def hamming_upper_bound(n,q,d):
     contain more than the whole vector space.
 
 
-    .. math::
+    .. MATH::
 
          M \leq {q^n \over V(n,e)},
 
@@ -424,7 +424,7 @@ def singleton_upper_bound(n,q,d):
     results, with `M \leq q^n-d+1`. Thus
 
 
-    .. math::
+    .. MATH::
 
          M \leq q^{n-d+1}.
 

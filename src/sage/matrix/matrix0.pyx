@@ -1,7 +1,7 @@
 """
 Base class for matrices, part 0
 
-.. note::
+.. NOTE::
 
    For design documentation see matrix/docs.py.
 
@@ -4684,14 +4684,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         element. If rows is True, return a matrix whose rows are the
         entries of the following vectors:
 
-        .. math::
+        .. MATH::
 
                        v, v A, v A^2, \ldots, v A^{n-1}.
 
         If rows is False, return a matrix whose columns are the entries of
         the following vectors:
 
-        .. math::
+        .. MATH::
 
                        v, Av, A^2 v, \ldots, A^{n-1} v.
 

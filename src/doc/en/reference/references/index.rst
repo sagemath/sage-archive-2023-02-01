@@ -212,6 +212,9 @@ REFERENCES:
              Conference, AMS/IP Studies in Advanced Mathematics 35
              (2003). :arxiv:`math/0204057v1`
 
+.. [Bir1975] \J. Birman. *Braids, Links, and Mapping Class Groups*,
+             Princeton University Press, 1975
+
 .. [BK1992] \U. Brehm and W. Kuhnel, "15-vertex triangulations of an
             8-manifold", Math. Annalen 294 (1992), no. 1, 167-193.
 
@@ -1331,6 +1334,11 @@ REFERENCES:
 .. [SLB2008] Shoham, Yoav, and Kevin Leyton-Brown. *Multiagent
              systems: Algorithmic, game-theoretic, and logical
              foundations.* Cambridge University Press, 2008.
+
+.. [Spa1966] Edwin H. Spanier, *Algebraic Topology*,
+             Springer-Verlag New York, 1966.
+             :doi:`10.1007/978-1-4684-9322-1`,
+             ISBN 978-1-4684-9322-1.
 
 .. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi

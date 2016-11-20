@@ -89,7 +89,7 @@ class Cube(SageObject):
     endpoints, each of which is either a unit interval or a degenerate
     (length 0) interval; for example,
 
-    .. math::
+    .. MATH::
 
        [0,1] \times [3,4] \times [2,2] \times [1,2]
 
@@ -431,7 +431,7 @@ class Cube(SageObject):
         In the example below, this method is called with arguments
         ``C1`` and ``C2``, where
 
-        .. math::
+        .. MATH::
 
             C1 = [0,1] \times [3] \times [4] \times [6,7] \\
             C2 = [2] \times [7,8] \times [9] \times [1,2] \times [0] \times [5]
@@ -508,7 +508,7 @@ class Cube(SageObject):
 
         If the cube is given by
 
-        .. math::
+        .. MATH::
 
            C = [i_1, j_1] \times [i_2, j_2] \times ... \times [i_k, j_k]
 
@@ -1681,7 +1681,7 @@ class CubicalComplex(GenericCellComplex):
         ordering of the vertices of the cubical complex.  Then for
         each maximal face
 
-        .. math::
+        .. MATH::
 
            C = [i_1, j_1] \times [i_2, j_2] \times ... \times [i_k, j_k]
 

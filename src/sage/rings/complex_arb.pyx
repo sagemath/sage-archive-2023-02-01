@@ -2579,7 +2579,7 @@ cdef class ComplexBall(RingElement):
 
         The generalized hypergeometric function defined by
 
-        .. math::
+        .. MATH::
 
             {}_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;z)
             = \sum_{k=0}^\infty \frac{(a_1)_k\dots(a_p)_k}{(b_1)_k\dots(b_q)_k} \frac {z^k} {k!}
@@ -2589,7 +2589,7 @@ cdef class ComplexBall(RingElement):
 
         The regularized generalized hypergeometric function
 
-        .. math::
+        .. MATH::
 
             {}_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;z)
             = \sum_{k=0}^\infty \frac{(a_1)_k\dots(a_p)_k}{\Gamma(b_1+k)\dots\Gamma(b_q+k)} \frac {z^k} {k!}

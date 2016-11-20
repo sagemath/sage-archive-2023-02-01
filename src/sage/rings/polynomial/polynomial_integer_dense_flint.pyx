@@ -175,7 +175,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: type(pari(f))
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: type(R(pari(f)))
             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: R(pari(f))
@@ -1324,7 +1324,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Write ``A = self``.  This function computes polynomials `Q` and `R`
         and an integer `d` such that
 
-        .. math::
+        .. MATH::
 
              \mathop{\mathrm{lead}}(B)^d A = B Q + R
 
@@ -1342,7 +1342,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         EXAMPLES::
 
             sage: R.<x> = ZZ['x']
-            sage: A = R(range(10)); B = 3*R([-1, 0, 1])
+            sage: A = R(range(10))
+            sage: B = 3*R([-1, 0, 1])
             sage: Q, R, d = A.pseudo_divrem(B)
             sage: Q, R, d
             (9*x^7 + 8*x^6 + 16*x^5 + 14*x^4 + 21*x^3 + 18*x^2 + 24*x + 20, 75*x + 60, 1)
@@ -1358,7 +1359,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         r"""
         Return the discriminant of self, which is by definition
 
-        .. math::
+        .. MATH::
 
             (-1)^{m(m-1)/2} \mathop{\mathrm{resultant}}(a, a')/\mathop{\mathrm{lc}}(a),
 

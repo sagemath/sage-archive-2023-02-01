@@ -2350,7 +2350,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         r"""
         Return a new Weierstrass model of self under the standard transformation `(u,r,s,t)`
 
-        .. math::
+        .. MATH::
 
              (x,y) \mapsto (x',y') = (u^2x + r , u^3y + su^2x + t).
 
@@ -2861,7 +2861,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         Returns a pair of polynomials `g(x)`, `h(x)` such that this elliptic
         curve can be defined by the standard hyperelliptic equation
 
-        .. math::
+        .. MATH::
 
             y^2 + h(x)y = g(x).
 
@@ -2889,7 +2889,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E = EllipticCurve([RR(0), RR(0), RR(1), RR(-1), RR(0)])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: e.type()
             't_VEC'
             sage: e.disc()

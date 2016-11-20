@@ -87,7 +87,7 @@ def compute_G(p, F):
     Given a power series `F \in R[[q]]^\times`, for some ring `R`, and an
     integer `p`, compute the quotient
 
-    .. math::
+    .. MATH::
 
         \frac{F(q)}{F(q^p)}.
 
@@ -785,7 +785,7 @@ def compute_Wi(k,p,h,hj,E4,E6):
     integers with `4a + 6b = k` and `a` minimal among such pairs. Then this
     space has a basis given by
 
-    .. math::
+    .. MATH::
 
         \{ \Delta^j E_6^{b - 2j} E_4^a : 0 \le j < d\}
 

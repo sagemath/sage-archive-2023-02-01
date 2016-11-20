@@ -796,7 +796,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: MPolynomial.is_homogeneous(x^2*y + y^2*x)
             True
 
-        .. note::
+        .. NOTE::
 
             This is a generic implementation which is likely overridden by
             subclasses.
@@ -1034,7 +1034,7 @@ cdef class MPolynomial(CommutativeRingElement):
         returning tuples of the form ``(coeff, mon)`` for each
         non-zero monomial.
 
-        .. note::
+        .. NOTE::
 
             This function creates the entire list upfront because Cython
             doesn't (yet) support iterators.

@@ -225,7 +225,7 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         r"""
         The cycle index series for the species of permutations is given by
 
-        .. math::
+        .. MATH::
 
              \prod{n=1}^\infty \frac{1}{1-x_n}.
 

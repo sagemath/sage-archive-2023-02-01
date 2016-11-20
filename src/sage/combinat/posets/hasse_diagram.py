@@ -2067,6 +2067,57 @@ class HasseDiagram(DiGraph):
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
 
+    def kappa_dual(self, a):
+        r"""
+        Return the minimum element smaller than the element covering
+        ``a`` but not smaller than ``a``.
+
+        Define `\kappa^*(a)` as the minimum element of
+        `(\downarrow a_*) \setminus (\downarrow a)`, where `a_*` is the element
+        covering `a`. It is always a join-irreducible element, if it exists.
+
+        .. NOTE::
+
+            Element ``a`` is expected to be meet-irreducible, and
+            this is *not* checked.
+
+        INPUT:
+
+        - ``a`` -- a join-irreducible element of the lattice
+
+        OUTPUT:
+
+        The element `\kappa^*(a)` or ``None`` if there
+        is not a unique smallest element with given constraints.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3, 4], 2: [4, 5], 3: [6], 4: [6], 5: [6]})
+            sage: H.kappa_dual(3)
+            2
+            sage: H.kappa_dual(4) is None
+            True
+
+        TESTS::
+
+            sage: H = HasseDiagram({0: [1]})
+            sage: H.kappa_dual(0)
+            1
+        """
+        uc = next(self.neighbor_out_iterator(a))
+        if self.in_degree(uc) == 1:
+            return uc
+        lt_a = set(self.depth_first_search(a, neighbors=self.neighbors_in))
+        tmp = list(self.depth_first_search(uc, neighbors=lambda v: [v_ for v_ in self.neighbors_in(v) if v_ not in lt_a]))
+        result = None
+        for e in tmp:
+            if all(x not in tmp for x in self.neighbors_in(e)):
+                if result:
+                    return None
+                result = e
+        return result
+
     def skeleton(self):
         """
         Return the skeleton of the lattice.

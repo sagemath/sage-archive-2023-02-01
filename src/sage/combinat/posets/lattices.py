@@ -917,8 +917,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         EXAMPLES:
 
-        Tamari lattices are typical examples of semidistributive but not distributive
-        (and hence not modular) lattices::
+        Tamari lattices are typical examples of semidistributive but not
+        distributive (and hence not modular) lattices::
 
             sage: T4 = Posets.TamariLattice(4)
             sage: T4.is_semidistributive(), T4.is_distributive()
@@ -954,13 +954,17 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is meet-semidistributive, and ``False``
         otherwise.
 
-        A lattice is meet-semidistributive if `e \wedge x = e \wedge y`
-        implicates `e \wedge x = e \wedge (x \vee y)` for all elements
-        `e, x, y` in the lattice.
+        A lattice is meet-semidistributive if for all elements
+        `e, x, y` in the lattice we have
+
+        .. MATH::
+
+            e \wedge x = e \wedge y \implies
+            e \wedge x = e \wedge (x \vee y)
 
         .. SEEALSO::
 
-            :meth:`is_join_semidistributive`
+            :meth:`is_join_semidistributive`, :meth:`is_semidistributive`
 
         EXAMPLES::
 
@@ -993,24 +997,28 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         n = self.cardinality()
         if n == 0:
             return True
-        if self._hasse_diagram.size()*2 > n*_log_2(n):
+        H = self._hasse_diagram
+        if H.size()*2 > n*_log_2(n):
             return False
 
-        return (self._hasse_diagram.find_nonsemidistributive_elements('meet')
-                is None)
+        return all(H.kappa(v) is not None for v in H if H.in_degree(v) == 1)
 
     def is_join_semidistributive(self):
         r"""
         Return ``True`` if the lattice is join-semidistributive, and ``False``
         otherwise.
 
-        A lattice is join-semidistributive if `e \vee x = e \vee y` implicates
-        `e \vee x = e \vee (x \wedge y)` for all elements `e, x, y` in the
-        lattice.
+        A lattice is join-semidistributive if for all elements `e, x, y` in
+        the lattice we have
+
+        .. MATH::
+
+            e \vee x = e \vee y \implies
+            e \vee x = e \vee (x \wedge y)
 
         .. SEEALSO::
 
-            :meth:`is_meet_semidistributive`
+            :meth:`is_meet_semidistributive`, :meth:`is_semidistributive`
 
         EXAMPLES::
 
@@ -1043,11 +1051,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         n = self.cardinality()
         if n == 0:
             return True
-        if self._hasse_diagram.size()*2 > n*_log_2(n):
+        H = self._hasse_diagram
+        if H.size()*2 > n*_log_2(n):
             return False
 
-        return (self._hasse_diagram.find_nonsemidistributive_elements('join')
-                is None)
+        return all(H.kappa_dual(v) is not None
+                   for v in H if H.out_degree(v) == 1)
 
     def is_complemented(self, certificate=False):
         r"""

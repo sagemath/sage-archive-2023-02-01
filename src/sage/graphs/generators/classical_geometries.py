@@ -1342,7 +1342,8 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
     `C` contains `q(q-1)^2/2` words without 0 entries. The subgraph of the strongly
     regular graph of `C` induced on the latter words is also strongly regular,
     assuming `q>4`. This is a construction due to A.E.Brouwer [AB16]_, and leads
-    to graphs with parameters also given by a constrution in [HHL09]_.
+    to graphs with parameters also given by a construction in [HHL09]_. According
+    to [AB16]_, these two constructions are likely to produce isomorphic graphs.
 
     INPUT:
 
@@ -1361,6 +1362,10 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
 
     - ``check_hyperoval`` -- (default: ``True``) if ``True``,
       check ``hyperoval`` for correctness.
+
+    .. SEEALSO::
+
+        - :func:`~sage.graphs.strongly_regular_db.is_nowhere0_twoweight`
 
 
     EXAMPLES:

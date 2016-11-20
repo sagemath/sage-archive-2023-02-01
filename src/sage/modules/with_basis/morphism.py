@@ -713,10 +713,10 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: perm = [0, 2, 1, 3]
             sage: our_cmp = lambda a, b: cmp(perm[a], perm[b])
             sage: phi = X.module_morphism(ut, triangular="upper", codomain=X, cmp=our_cmp)
-			doctest:warning
+            doctest:warning
             ...
-			DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-			See http://trac.sagemath.org/21043 for details.
+            DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
+            See http://trac.sagemath.org/21043 for details.
             sage: def ut2(i): return (x[1] + 7*x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
             sage: phi2 = X.module_morphism(ut2, triangular="upper", codomain=X, cmp=our_cmp)
             sage: def lt(i): return (x[1] + x[2] + x[3] if i == 2 else x[i])

@@ -33,7 +33,7 @@ include 'data_structures_pyx.pxi' # includes bitsets
 from sage.misc.misc import uniq
 from sage.matrix.constructor import Matrix
 from .refinement_binary cimport NonlinearBinaryCodeStruct, refine_by_bip_degree
-from .double_coset cimport double_coset
+from .double_coset cimport double_coset, int_cmp
 
 
 cdef class MatrixStruct:
@@ -292,7 +292,7 @@ cdef int compare_matrices(int *gamma_1, int *gamma_2, void *S1, void *S2, int de
     for i from 0 <= i < degree:
         MM1.set_column(i, M1.column(gamma_1[i]))
         MM2.set_column(i, M2.column(gamma_2[i]))
-    return cmp(sorted(MM1.rows()), sorted(MM2.rows()))
+    return int_cmp(sorted(MM1.rows()), sorted(MM2.rows()))
 
 cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, void *S):
     return 0

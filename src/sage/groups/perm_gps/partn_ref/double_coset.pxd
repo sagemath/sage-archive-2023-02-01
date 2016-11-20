@@ -9,6 +9,8 @@ include 'data_structures_pxd.pxi' # includes bitsets
 
 from sage.rings.integer cimport Integer
 
+cdef int int_cmp(int, int)
+
 cdef struct dc_work_space:
     int degree
     # for nontrivial input groups

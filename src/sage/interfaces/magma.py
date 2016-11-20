@@ -1958,7 +1958,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: z = m.sage(); z                      # optional - magma
             [1, 2, 2, 2, 3, 4, 4]
             sage: type(z)                              # optional - magma
-            <type 'list'>
+            <... 'list'>
 
         Tuples get converted to tuples::
 
@@ -1974,7 +1974,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: z = m.sage(); z               # optional - magma
             [(1,), (2,)]
             sage: type(z)                       # optional - magma
-            <type 'list'>
+            <... 'list'>
 
         Matrices::
 

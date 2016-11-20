@@ -345,7 +345,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         list, so the following also works::
 
             sage: v = reversed(range(4)); type(v)
-            <type 'listreverseiterator'>
+            <... 'listreverseiterator'>
             sage: A(v)
             [3 2]
             [1 0]

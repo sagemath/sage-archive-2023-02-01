@@ -5185,7 +5185,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         method returns a new list::
 
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
             sage: v[0] = 5
             sage: f.list()
             [-1/3, 2, 0, -2/5]

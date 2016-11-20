@@ -458,6 +458,13 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         0
         sage: Omega(mu, 2, [])
         2
+
+    ::
+
+        sage: Omega(mu, Factorization([(1/mu, 1), (1 - x*mu, -1),
+        ....:                          (1 - y/mu, -2)], unit=2))
+        2*x * (-x + 1)^-1 * (-x*y + 1)^-2
+
     """
     from sage.arith.misc import factor
     from sage.structure.factorization import Factorization

@@ -493,6 +493,10 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         ....:                          (1 - y/mu, -2)], unit=2))
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
 
+    ::
+
+        sage: Omega(mu, 1, [1 - x*mu, 1 - z, 1 - y/mu])
+        1 * ((-z + 1))^-1 * (-x + 1)^-1 * (-x*y + 1)^-1
     """
     from sage.arith.misc import factor
     from sage.structure.factorization import Factorization
@@ -543,12 +547,15 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         L0 = LaurentPolynomialRing(
             R.base_ring(), tuple(v for v in R.variable_names() if v != var))
         L = LaurentPolynomialRing(L0, var)
+    var = L.gen()
 
     numerator = L(numerator)
     if numerator == 0:
         return Factorization([], unit=numerator)
     factors_denominator = tuple(L(factor) for factor in factors_denominator)
 
+    other_factors, factors_denominator = partition(
+        factors_denominator, lambda factor: var in factor.variables())
     def decode_factor(factor):
         D = factor.dict()
         if len(D) != 2 or D.get(0, 0) != 1:
@@ -570,6 +577,7 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         result_numerator += c * n
 
     return Factorization([(result_numerator, 1)] +
+                         list((f, -1) for f in other_factors) +
                          list((f, -1) for f in result_factors_denominator),
                          sort=False)
 

@@ -1599,8 +1599,8 @@ class PointwiseInverseFunction(SageObject):
         self._pointwise_inverse = f
 
     def __eq__(self, other):
-        """
-        Check equality.
+        r"""
+        Return whether this function is equal to ``other``.
 
         TESTS::
 

@@ -317,11 +317,11 @@ class ModuleMorphismByLinearity(ModuleMorphism):
                                 category=category,
                                 affine=(zero != codomain.zero()))
 
-    def __eq__(self, other):
-        """
-        Check equality.
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
@@ -332,12 +332,18 @@ class ModuleMorphismByLinearity(ModuleMorphism):
             sage: h3 = X.module_morphism(on_basis=Y.monomial * abs, category=Modules(ZZ))
             sage: f == g, f == h1, f == h2, f == h3, f == 1, 1 == f
             (True, False, False, False, False, False)
+
         """
-        return (self.__class__ is other.__class__ and parent(self) == parent(other)
-                and self._zero == other._zero and self._on_basis == other._on_basis
-                and self._position == other._position
-                and self._is_module_with_basis_over_same_base_ring
-                    == other._is_module_with_basis_over_same_base_ring)
+        if op == 2: # ==
+            return (self.__class__ is other.__class__
+                    and parent(self) == parent(other)
+                    and self._zero == other._zero
+                    and self._on_basis == other._on_basis
+                    and self._position == other._position
+                    and self._is_module_with_basis_over_same_base_ring == other._is_module_with_basis_over_same_base_ring)
+        if op == 3: # !=
+            return not (self == other)
+        raise NotImplementedError("Operator not implemented")
 
     def on_basis(self):
         """

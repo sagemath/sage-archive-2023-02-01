@@ -506,9 +506,6 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         D.pop(0)
         exponent, coefficient = next(iteritems(D))
         return -coefficient, exponent
-    # Below we sort to make the caching more efficient. Doing this here
-    # (in contrast to directly in Omega_higher) results in much cleaner
-    # code and prevents an additional substitution or passing of a permutation.
     decoded_factors = tuple(decode_factor(factor)
                             for factor in factors_denominator)
 

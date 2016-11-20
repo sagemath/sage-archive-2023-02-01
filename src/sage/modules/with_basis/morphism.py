@@ -1587,8 +1587,24 @@ class PointwiseInverseFunction(SageObject):
             False
             sage: f == g
             True
+
         """
         return self.__class__ is other.__class__ and self._pointwise_inverse == other._pointwise_inverse
+
+    def __ne__(self, other):
+        r"""
+        Return whether this function is not equal to ``other``.
+
+        TESTS::
+
+            sage: from sage.modules.with_basis.morphism import PointwiseInverseFunction
+            sage: f = PointwiseInverseFunction(factorial)
+            sage: g = PointwiseInverseFunction(factorial)
+            sage: f != g
+            False
+
+        """
+        return not self == other
 
     def __call__(self, *args):
         """

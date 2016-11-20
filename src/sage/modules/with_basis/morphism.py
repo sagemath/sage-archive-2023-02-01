@@ -1562,6 +1562,17 @@ class PointwiseInverseFunction(SageObject):
         sage: f(0), f(1), f(2), f(3)
         (1, 1, 1/2, 1/6)
     """
+    def __init__(self, f):
+        """
+        TESTS::
+
+            sage: from sage.modules.with_basis.morphism import PointwiseInverseFunction
+            sage: f = PointwiseInverseFunction(factorial)
+            sage: f(0), f(1), f(2), f(3)
+            (1, 1, 1/2, 1/6)
+            sage: TestSuite(f).run()
+        """
+        self._pointwise_inverse = f
 
     def __eq__(self, other):
         """
@@ -1577,19 +1588,7 @@ class PointwiseInverseFunction(SageObject):
             sage: f == g
             True
         """
-        return self.__class__ is other.__class__ and self.__dict__ == other.__dict__
-
-    def __init__(self, f):
-        """
-        TESTS::
-
-            sage: from sage.modules.with_basis.morphism import PointwiseInverseFunction
-            sage: f = PointwiseInverseFunction(factorial)
-            sage: f(0), f(1), f(2), f(3)
-            (1, 1, 1/2, 1/6)
-            sage: TestSuite(f).run()
-        """
-        self._pointwise_inverse = f
+        return self.__class__ is other.__class__ and self._pointwise_inverse == other._pointwise_inverse
 
     def __call__(self, *args):
         """

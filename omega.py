@@ -459,17 +459,24 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         sage: Omega(mu, 2, [])
         2
     """
+    from sage.arith.misc import factor
+    from sage.structure.factorization import Factorization
+
     if op != operator.ge:
         raise NotImplementedError('At the moment, only Omega_ge is implemented.')
 
     if denominator is None:
-        numerator = expression.numerator()
-        denominator = expression.denominator()
+        if isinstance(expression, Factorization):
+            numerator = expression.unit() * \
+                        prod(f**e for f, e in expression if e > 0)
+            denominator = tuple(f for f, e in expression if e < 0
+                                for _ in range(-e))
+        else:
+            numerator = expression.numerator()
+            denominator = expression.denominator()
     else:
         numerator = expression
 
-    from sage.arith.misc import factor
-    from sage.structure.factorization import Factorization
 
     if isinstance(denominator, (list, tuple)):
         factors_denominator = denominator

@@ -1201,11 +1201,11 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularM
                                            domain=domain, codomain=codomain, category=category)
         TriangularModuleMorphism.__init__(self, **keywords)
 
-    def __eq__(self, other):
-        """
-        Check equality.
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: X = CombinatorialFreeModule(QQ, ZZ)
             sage: from sage.modules.with_basis.morphism import TriangularModuleMorphismByLinearity
@@ -1214,9 +1214,14 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularM
             ....:           X, on_basis=on_basis, codomain=X)
             sage: phi == phi
             True
+
         """
-        return (ModuleMorphismByLinearity.__eq__(self, other)
-                and TriangularModuleMorphism.__eq__(self, other))
+        if op == 2: # ==
+            return (ModuleMorphismByLinearity._richcmp_(self, other, op)
+                    and TriangularModuleMorphism._richcmp_(self, other, op))
+        if op == 3: # !=
+            return not (self == other)
+        raise NotImplementedError("Operator not implemented")
 
 class TriangularModuleMorphismFromFunction(ModuleMorphismFromFunction, TriangularModuleMorphism):
     r"""

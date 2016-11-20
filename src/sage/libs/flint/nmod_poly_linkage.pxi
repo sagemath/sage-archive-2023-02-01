@@ -240,11 +240,11 @@ cdef inline int celement_cmp(nmod_poly_t l, nmod_poly_t r, unsigned long n) exce
         while i >= 0:
             rcoeff = nmod_poly_get_coeff_ui(r, i)
             lcoeff = nmod_poly_get_coeff_ui(l, i)
-	    if lcoeff < rcoeff:
-	       return -1
-	    if lcoeff > rcoeff:
-	       return 1
-	    i -= 1
+            if lcoeff < rcoeff:
+                return -1
+            if lcoeff > rcoeff:
+                return 1
+            i -= 1
         return 0
 
 cdef long celement_len(nmod_poly_t a, unsigned long n) except -2:

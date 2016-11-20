@@ -1478,11 +1478,11 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
             self, domain=domain, codomain=codomain, category=category)
         self._diagonal=diagonal
 
-    def __eq__(self, other):
-        """
-        Check equality.
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X")
             sage: phi = X.module_morphism(diagonal=factorial, codomain=X)
@@ -1491,9 +1491,15 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
             True
             sage: phi is psi
             False
+
         """
-        return (ModuleMorphismByLinearity.__eq__(self, other)
-                and self._diagonal == other._diagonal)
+        if op == 2: # ==
+            return (self.__class__ is other.__class__
+                    and parent(self) == parent(other)
+                    and self._diagonal == other._diagonal)
+        if op == 3: # !=
+            return not (self == other)
+        raise NotImplementedError("Operator not implemented")
 
     def _on_basis(self, i):
         """

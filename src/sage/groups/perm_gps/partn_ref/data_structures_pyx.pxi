@@ -605,7 +605,7 @@ cdef list PS_singletons(PartitionStack * part):
 cdef inline bint stacks_are_equivalent(PartitionStack *PS1, PartitionStack *PS2):
     cdef int i, j, depth = min(PS1.depth, PS2.depth)
     for i from 0 <= i < PS1.degree:
-        if PS1.levels[i] == PS2.levels[i]):
+        if PS1.levels[i] == PS2.levels[i]:
             continue
         elif ((PS1.levels[i] <= depth < PS2.levels[i])
             or (PS2.levels[i] <= depth < PS1.levels[i])):

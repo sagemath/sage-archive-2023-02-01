@@ -15,8 +15,6 @@ from six import iteritems, itervalues
 
 import operator
 from sage.misc.cachefunc import cached_function
-from sage.misc.misc_c import prod
-from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
 
 
 def partition(items, predicate=bool):
@@ -63,12 +61,17 @@ def HomogenousSymmetricFunction(j, x):
         X0*X1*X2 + X1^2*X2 + X0*X2^2 + X1*X2^2 + X2^3
     """
     from sage.combinat.integer_vector import IntegerVectors
+    from sage.misc.misc_c import prod
+
     return sum(prod(xx**pp for xx, pp in zip(x, p))
                for p in IntegerVectors(j, length=len(x)))
 
 
 def _laurent_polynomial_ring_(n, m):
     from itertools import chain
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+
     if n + m == 0:
         return ZZ, tuple()
     L = LaurentPolynomialRing(ZZ, ', '.join(chain(
@@ -155,6 +158,10 @@ def Omega_numerator(a, n, m):
         sage: Omega_numerator(-2, 0, 1)
         0
     """
+    from sage.misc.misc_c import prod
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+
     if m == 0:
         Y = ZZ
         y = tuple()
@@ -322,6 +329,11 @@ def Omega_higher(a, exponents):
         (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1,
          (-z0 + 1, -z1 + 1, -z0*z2^2 + 1, -z1*z2 + 1))
     """
+    from sage.misc.misc_c import prod
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+    from sage.rings.rational_field import QQ
+
     if not exponents or any(e == 0 for e in exponents):
         raise NotImplementedError
 
@@ -499,6 +511,8 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         1 * ((-z + 1))^-1 * (-x + 1)^-1 * (-x*y + 1)^-1
     """
     from sage.arith.misc import factor
+    from sage.misc.misc_c import prod
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.structure.factorization import Factorization
 
     if op != operator.ge:

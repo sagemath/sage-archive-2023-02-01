@@ -11,10 +11,12 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from six import iteritems, itervalues
 
 import operator
+from sage.misc.cachefunc import cached_function
+from sage.misc.misc_c import prod
 from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
-from six import iteritems, itervalues
 
 
 def HomogenousSymmetricFunction(j, x):

@@ -702,41 +702,43 @@ class TriangularModuleMorphism(ModuleMorphism):
             invertible = True
         self._invertible=invertible
 
-    def __eq__(self, other):
-        """
-        Check equality.
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
             sage: def ut(i): return (x[1] + x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
             sage: perm = [0, 2, 1, 3]
             sage: our_cmp = lambda a, b: cmp(perm[a], perm[b])
-            sage: phi = X.module_morphism(ut, triangular="upper", codomain=X,
-            ....:                         cmp=our_cmp)
+            sage: phi = X.module_morphism(ut, triangular="upper", codomain=X, cmp=our_cmp)
+			doctest:warning
+            ...
+			DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
+			See http://trac.sagemath.org/21043 for details.
             sage: def ut2(i): return (x[1] + 7*x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
-            sage: phi2 = X.module_morphism(ut2, triangular="upper", codomain=X,
-            ....:                          cmp=our_cmp)
+            sage: phi2 = X.module_morphism(ut2, triangular="upper", codomain=X, cmp=our_cmp)
             sage: def lt(i): return (x[1] + x[2] + x[3] if i == 2 else x[i])
-            sage: psi = X.module_morphism(lt, triangular="lower", codomain=X,
-            ....:                         cmp=our_cmp)
+            sage: psi = X.module_morphism(lt, triangular="lower", codomain=X, cmp=our_cmp)
             sage: phi == phi
             True
             sage: phi == phi2
             False
-            sage: from sage.modules.with_basis.morphism import TriangularModuleMorphism
-            sage: TriangularModuleMorphism.__eq__(phi, phi2) # I don't like this :/
-            True
             sage: phi == psi
             False
+
         """
-        return (self.__class__ is other.__class__ and self.parent() == other.parent()
-                and self._triangular == other._triangular
-                and self._unitriangular == other._unitriangular
-                and self._inverse_on_support == other._inverse_on_support
-                and self._invertible == other._invertible
-                and self._dominant_item == other._dominant_item
-                and self._cmp == other._cmp)
+        if op == 2: # ==
+            return (self.__class__ is other.__class__ and self.parent() == other.parent()
+                    and self._triangular == other._triangular
+                    and self._unitriangular == other._unitriangular
+                    and self._inverse_on_support == other._inverse_on_support
+                    and self._invertible == other._invertible
+                    and self._dominant_item == other._dominant_item)
+        if op == 3: # !=
+            return not (self == other)
+        raise NotImplementedError("Operator not implemented")
 
     def _test_triangular(self, **options):
         """

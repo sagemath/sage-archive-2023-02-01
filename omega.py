@@ -19,6 +19,34 @@ from sage.misc.misc_c import prod
 from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
 
 
+def partition(items, predicate=bool):
+    r"""
+    Split ``items`` into two parts by the given ``predicate``.
+
+    INPUT:
+
+    - ``item`` -- an iterator.
+
+    OUTPUT:
+
+    A pair of iterators; the first contains the elements not satisfying
+    the ``predicate``, the second the elements satisfying the ``predicate``.
+
+    Source of the code:
+    `http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html`_
+
+    EXAMPLES:
+
+        sage: E, O = partition(srange(10), is_odd)
+        sage: tuple(E), tuple(O)
+        ((0, 2, 4, 6, 8), (1, 3, 5, 7, 9))
+    """
+    from itertools import tee
+    a, b = tee((predicate(item), item) for item in items)
+    return ((item for pred, item in a if not pred),
+            (item for pred, item in b if pred))
+
+
 def HomogenousSymmetricFunction(j, x):
     r"""
     EXAMPLES::

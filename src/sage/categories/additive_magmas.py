@@ -785,8 +785,6 @@ class AdditiveMagmas(Category_singleton):
                     True
                  """
 
-            __bool__ = __nonzero__
-
             def _test_nonzero_equal(self, **options):
                 r"""
                 Test that ``.__bool__()`` behave consistently

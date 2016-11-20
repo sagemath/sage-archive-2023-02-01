@@ -1268,7 +1268,7 @@ REFERENCES:
             Pre-calculated Wigner 3j, 6j and Gaunt Coefficients',
             SIAM J. Sci. Comput. Volume 25, Issue 4,
             pp. 1416-1428 (2003)
-	    
+
 .. [Rio1958] \J. Riordan, "An Introduction to Combinatorial Analysis",
              Dover Publ. (1958)
 

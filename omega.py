@@ -498,11 +498,17 @@ def Omega(var, expression, denominator=None, op=operator.ge):
             return Factorization([(numerator, 1)])
         else:
             return Factorization([(numerator.subs({var: 1}), 1)])
-    R = factors_denominator[0].parent()
-    var = repr(var)
-    L0 = LaurentPolynomialRing(
-        R.base_ring(), tuple(v for v in R.variable_names() if v != var))
-    L = LaurentPolynomialRing(L0, var)
+
+    if not isinstance(var, str) and \
+       len(var.parent().gens()) == 1 and var.parent().gen() == var:
+        L = var.parent()
+    else:
+        R = factors_denominator[0].parent()
+        var = repr(var)
+        L0 = LaurentPolynomialRing(
+            R.base_ring(), tuple(v for v in R.variable_names() if v != var))
+        L = LaurentPolynomialRing(L0, var)
+
     numerator = L(numerator)
     if numerator == 0:
         return Factorization([], unit=numerator)

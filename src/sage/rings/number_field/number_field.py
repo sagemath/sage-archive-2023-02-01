@@ -3114,7 +3114,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         INPUT:
 
-        - ``B`` -- a positive integer; upper bound on the norms of the
+        - ``B`` -- a positive integer or real; upper bound on the norms of the
           primes generated.
 
         OUTPUT:
@@ -3152,6 +3152,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: [p.norm() for p in P]
             [2, 3, 5, 11, 17, 23, 25, 29]
         """
+        try:
+            B = ZZ(B)
+        except (TypeError, AttributeError):
+            try:
+                B = ZZ(B.ceil())
+            except (TypeError, AttributeError):
+                raise TypeError("%s is not valid bound on prime ideals" % B)
         if B<2:
             return []
 
@@ -3169,7 +3176,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         INPUT:
 
-        - ``B`` -- a positive integer; upper bound on the norms of the
+        - ``B`` -- a positive integer or real; upper bound on the norms of the
           primes generated.
 
         OUTPUT:
@@ -3195,9 +3202,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             []
         """
         try:
-            B = ZZ(B.ceil())
+            B = ZZ(B)
         except (TypeError, AttributeError):
-            raise TypeError("%s is not valid bound on prime ideals" % B)
+            try:
+                B = ZZ(B.ceil())
+            except (TypeError, AttributeError):
+                raise TypeError("%s is not valid bound on prime ideals" % B)
 
         if B<2:
             raise StopIteration

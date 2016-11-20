@@ -70,8 +70,8 @@ def HomogenousSymmetricFunction(j, x):
 def _laurent_polynomial_ring_(n, m):
     from itertools import chain
     if n + m == 0:
-        return QQ, tuple()
-    L = LaurentPolynomialRing(QQ, ', '.join(chain(
+        return ZZ, tuple()
+    L = LaurentPolynomialRing(ZZ, ', '.join(chain(
         iter('x{}'.format(nn) for nn in range(n)),
         iter('y{}'.format(mm) for mm in range(m)))))
     return L, L.gens()
@@ -105,7 +105,7 @@ def Omega_numerator(a, n, m):
 
     EXAMPLES::
 
-        sage: L.<x0, x1, x2, y0, y1, y2> = LaurentPolynomialRing(QQ)
+        sage: L.<x0, x1, x2, y0, y1, y2> = LaurentPolynomialRing(ZZ)
         sage: Omega_numerator(0, 1, 1)
         1
         sage: Omega_numerator(0, 2, 1)
@@ -156,11 +156,11 @@ def Omega_numerator(a, n, m):
         0
     """
     if m == 0:
-        Y = QQ
+        Y = ZZ
         y = tuple()
     else:
         Y = LaurentPolynomialRing(
-            QQ, ', '.join('y{}'.format(mm) for mm in range(m)))
+            ZZ, ', '.join('y{}'.format(mm) for mm in range(m)))
         y = Y.gens()
 
     def P(n):
@@ -356,7 +356,7 @@ def Omega_higher(a, exponents):
             return result
         return result.subs({var: value})
 
-    Z = L.change_ring(QQ)
+    Z = L.change_ring(ZZ)
 
     def de_power(expression):
         for e, var in zip(exponents, L.gens()):
@@ -420,7 +420,7 @@ def Omega(var, expression, denominator=None, op=operator.ge):
 
     EXAMPLES::
 
-        sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(QQ)
+        sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(ZZ)
 
         sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1

@@ -1379,11 +1379,11 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
                                            domain=domain, codomain=codomain,
                                            category=category)
 
-    def __eq__(self, other):
-        """
-        Check equality.
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.modules.with_basis.morphism import ModuleMorphismFromMatrix
             sage: X = CombinatorialFreeModule(ZZ, [1,2]); X.rename("X"); x = X.basis()
@@ -1399,14 +1399,19 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             sage: phi2 = ModuleMorphismFromMatrix(matrix=m2, domain=X, codomain=Y, side="right")
             sage: phi == phi2
             False
+
         """
-        # We skip the on_basis check since the matrix defines the morphism
-        return (self.__class__ is other.__class__ and parent(self) == parent(other)
-                and self._zero == other._zero
-                and self._position == other._position
-                and self._is_module_with_basis_over_same_base_ring
-                    == other._is_module_with_basis_over_same_base_ring
-                and self._matrix == other._matrix)
+        if op == 2: # ==
+            # We skip the on_basis check since the matrix defines the morphism
+            return (self.__class__ is other.__class__
+                    and parent(self) == parent(other)
+                    and self._zero == other._zero
+                    and self._position == other._position
+                    and self._is_module_with_basis_over_same_base_ring == other._is_module_with_basis_over_same_base_ring
+                    and self._matrix == other._matrix)
+        if op == 3: # !=
+            return not (self == other)
+        raise NotImplementedError("Operator not implemented")
 
 class DiagonalModuleMorphism(ModuleMorphismByLinearity):
     r"""

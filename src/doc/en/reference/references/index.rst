@@ -1264,6 +1264,9 @@ REFERENCES:
              Math. Soc. Monogr. (N.S.). Oxford University
              Press. (1993).
 
+.. [Rho69] John Rhodes, *Characters and complexity of finite semigroups*
+           \J. Combinatorial Theory, vol 6, 1969
+
 .. [RH2003] \J. Rasch and A. C. H. Yu, 'Efficient Storage Scheme for
             Pre-calculated Wigner 3j, 6j and Gaunt Coefficients',
             SIAM J. Sci. Comput. Volume 25, Issue 4,

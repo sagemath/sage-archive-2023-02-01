@@ -158,6 +158,7 @@ def Omega_numerator(a, n, m):
         sage: Omega_numerator(-2, 0, 1)
         0
     """
+    from sage.arith.srange import srange
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing

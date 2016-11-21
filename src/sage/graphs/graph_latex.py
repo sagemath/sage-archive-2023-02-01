@@ -524,7 +524,8 @@ class GraphLatex(SageObject):
             'loop_placement': (3.0, 'NO'),
             'loop_placements': {},
             'color_by_label' : False,
-            'rankdir': 'down'
+            'rankdir': 'down',
+            'subgraph_clusters': []
             }
 
     def __init__(self, graph, **options):
@@ -587,7 +588,7 @@ class GraphLatex(SageObject):
         """
         return "LaTeX options for %s: %s"%(self._graph, self._options)
 
-    def set_option(self, option_name, option_value = None):
+    def set_option(self, option_name, option_value=None):
         r"""
         Sets, modifies, clears a LaTeX
         option for controlling the rendering of a graph.
@@ -855,6 +856,11 @@ class GraphLatex(SageObject):
         - ``color_by_label`` - a boolean (default: False). Colors the
           edges according to their labels
 
+        - ``subgraph_clusters`` -- (default: []) a list of lists of vertices,
+          if supported by the layout engine, nodes belonging to the same
+          cluster subgraph are drawn together, with the entire drawing
+          of the cluster contained within a bounding rectangle.
+
         OUTPUT:
 
         There are none.  Success happens silently.
@@ -893,13 +899,12 @@ class GraphLatex(SageObject):
            - clean out remaining pgf files from older version
            - run texhash
 
-
         TESTS:
 
         These test all of the options and one example of each allowable
         proper input.  They should all execute silently. ::
 
-            sage: G=Graph()
+            sage: G = Graph()
             sage: G.add_edge((0,1))
             sage: opts = G.latex_options()
             sage: opts.set_option('tkz_style', 'Custom')
@@ -946,6 +951,7 @@ class GraphLatex(SageObject):
             sage: opts.set_option('edge_label_placements', {(0,1):0.75})
             sage: opts.set_option('loop_placement', (3.0, 'NO'))
             sage: opts.set_option('loop_placements', {0:(5.7,'WE')})
+            sage: opts.set_option('subgraph_clusters', [[0,1]])
 
         These test some of the logic of possible failures.  Some tests,
         such as inputs of colors, are handled by somewhat general sections

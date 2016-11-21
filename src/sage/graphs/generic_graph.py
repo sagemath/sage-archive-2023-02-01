@@ -18815,6 +18815,7 @@ class GenericGraph(GenericGraph_pyx):
             edge_options = (),
             color_by_label=False,
             rankdir='down',
+            subgraph_clusters=[],
     )
     def graphviz_string(self, **options):
         r"""
@@ -18858,6 +18859,14 @@ class GenericGraph(GenericGraph_pyx):
           (default: 'down', for consistency with `graphviz`):
           the preferred ranking direction for acyclic layouts;
           see the `rankdir` option of `graphviz`.
+
+        - ``subgraph_clusters`` -- (default: []) a list of lists of vertices,
+          From [dotspec]_: "If supported, the layout engine will do the layout
+          so that the nodes belonging to the cluster are drawn together, with
+          the entire drawing of the cluster contained within a bounding
+          rectangle. Note that, for good and bad, cluster subgraphs are not
+          part of the DOT language, but solely a syntactic convention adhered to
+          by certain of the layout engines."
 
         EXAMPLES::
 
@@ -19138,6 +19147,42 @@ class GenericGraph(GenericGraph_pyx):
               node_0 -> node_1;
             }
 
+        Using cluster subgraphs::
+
+            sage: d = {i:[i+1] for i in range(5)}
+            sage: G = Graph(d)
+            sage: print(G.graphviz_string(subgraph_clusters=[[0,2,4],[1,3,5]]))
+            graph {
+              node_0  [label="0"];
+              node_1  [label="1"];
+              node_2  [label="2"];
+              node_3  [label="3"];
+              node_4  [label="4"];
+              node_5  [label="5"];
+            <BLANKLINE>
+            subgraph cluster_0{style=filled;
+            color=black;
+            fillcolor=azure;
+              node_0;
+              node_2;
+              node_4;
+            }
+            <BLANKLINE>
+            subgraph cluster_1{style=filled;
+            color=black;
+            fillcolor=azure;
+              node_1;
+              node_3;
+              node_5;
+            }
+            <BLANKLINE>
+              node_0 -- node_1;
+              node_1 -- node_2;
+              node_2 -- node_3;
+              node_3 -- node_4;
+              node_4 -- node_5;
+            }
+
         REFERENCES:
 
         .. [dotspec] http://www.graphviz.org/doc/info/lang.html
@@ -19205,6 +19250,8 @@ class GenericGraph(GenericGraph_pyx):
             options['labels'] == "latex"): # not a perfect option name
             # TODO: why do we set this only for latex labels?
             s += '  node [shape="plaintext"];\n'
+
+        # vertices for loop
         for v in self.vertex_iterator():
             if not options['vertex_labels']:
                 node_options = ""
@@ -19214,11 +19261,22 @@ class GenericGraph(GenericGraph_pyx):
                 node_options = " [label=\"%s\"]" %quoted_str(v)
 
             s += '  %s %s;\n'%(key(v),node_options)
-
         s += "\n"
+
+        # subgraphs clusters for loop
+        subgraph_clusters = options['subgraph_clusters']
+        for i,cluster in enumerate(subgraph_clusters):
+            s += 'subgraph cluster_%s{style=filled;\n' % i
+            s += 'color=black;\n'
+            s += 'fillcolor=azure;\n'
+            for v in cluster:
+                s += '  %s;\n' % key(v)
+            s += '}\n\n'
+
         if default_color is not None:
             s += 'edge [color="%s"];\n'%default_color
 
+        # edges for loop
         for (u,v,label) in self.edge_iterator():
             edge_options = {
                 'backward': False,

@@ -357,7 +357,7 @@ cdef class Graphics3d(SageObject):
         - ``axes_labels`` -- (default: ['x','y','z']) list or tuple of three strings;
           set to False to remove all labels
 
-        - ``decimals`` -- (default: 0) integer determining decimals displayed in labels
+        - ``decimals`` -- (default: 2) integer determining decimals displayed in labels
 
         - ``frame`` -- (default: True) Boolean determining whether frame is drawn
 
@@ -379,7 +379,7 @@ cdef class Graphics3d(SageObject):
         options['aspect_ratio'] = [float(i) for i in kwds.get('aspect_ratio', [1,1,1])]
         options['axes'] = kwds.get('axes', False)
         options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
-        options['decimals'] = int(kwds.get('decimals', 0))
+        options['decimals'] = int(kwds.get('decimals', 2))
         options['frame'] = kwds.get('frame', True)
 
         if not options['frame']:

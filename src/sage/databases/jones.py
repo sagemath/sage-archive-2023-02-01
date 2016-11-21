@@ -44,8 +44,8 @@ List all fields in the database ramified at 101::
     sage: J.ramified_at(101)                                             # optional - database_jones_numfield
     [Number Field in a with defining polynomial x^2 - 101,
      Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
-     Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
      Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
+     Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
      Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
 """
 
@@ -77,6 +77,7 @@ from sage.structure.sage_object import load, save
 
 JONESDATA = os.path.join(SAGE_SHARE, 'jones')
 
+
 class JonesDatabase:
     def __init__(self):
         self.root = None
@@ -89,12 +90,12 @@ class JonesDatabase:
         i = 0
         while filename[i].isalpha():
             i += 1
-        j = len(filename)-1
+        j = len(filename) - 1
         while filename[j].isalpha() or filename[j] in [".", "_"]:
             j -= 1
-        S = sorted([eval(z) for z in filename[i:j+1].split("-")])
+        S = sorted([eval(z) for z in filename[i:j + 1].split("-")])
         data = open(path + "/" + filename).read()
-        data = data.replace("^","**")
+        data = data.replace("^", "**")
         x = PolynomialRing(RationalField(), 'x').gen()
         v = eval(data)
         s = tuple(S)
@@ -131,11 +132,11 @@ class JonesDatabase:
         """
         from sage.misc.misc import sage_makedirs
         n = 0
-        x = PolynomialRing(RationalField(),'x').gen()
+        x = PolynomialRing(RationalField(), 'x').gen()
         self.root = {}
-        self.root[tuple([])] = [x-1]
+        self.root[tuple([])] = [x - 1]
         if not os.path.exists(path):
-            raise IOError("Path %s does not exist."%path)
+            raise IOError("Path %s does not exist." % path)
         for X in os.listdir(path):
             if X[-4:] == "solo":
                 Z = path + "/" + X
@@ -144,7 +145,7 @@ class JonesDatabase:
                     if Y[-3:] == ".gp":
                         self._load(Z, Y)
         sage_makedirs(JONESDATA)
-        save(self.root, JONESDATA+ "/jones.sobj")
+        save(self.root, JONESDATA + "/jones.sobj")
 
     def unramified_outside(self, S, d=None, var='a'):
         """
@@ -153,7 +154,6 @@ class JonesDatabase:
         The fields are ordered by degree and discriminant.
 
         INPUT:
-
 
         -  ``S`` - list or set of primes, or a single prime
 
@@ -172,8 +172,8 @@ class JonesDatabase:
              Number Field in a with defining polynomial x^3 - x^2 - 36*x + 4,
              Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
              Number Field in a with defining polynomial x^4 - x^3 + 14*x^2 + 34*x + 393,
-             Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
              Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
+             Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
              Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
         """
         try:
@@ -213,8 +213,8 @@ class JonesDatabase:
             ValueError: S must be a list of primes
         """
         if self.root is None:
-            if os.path.exists(JONESDATA+ "/jones.sobj"):
-                self.root = load(JONESDATA+ "/jones.sobj")
+            if os.path.exists(JONESDATA + "/jones.sobj"):
+                self.root = load(JONESDATA + "/jones.sobj")
             else:
                 raise RuntimeError("You must install the Jones database optional package.")
         try:
@@ -255,8 +255,8 @@ class JonesDatabase:
             sage: J.ramified_at(101)               # optional - database_jones_numfield
             [Number Field in a with defining polynomial x^2 - 101,
              Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
-             Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
              Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
+             Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
              Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
             sage: J.ramified_at((2, 5, 29), 3, 'c') # optional - database_jones_numfield
             [Number Field in c with defining polynomial x^3 - x^2 - 8*x - 28,

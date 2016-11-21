@@ -35,8 +35,6 @@ We verify Lagrange's four squares identity::
     sage: (a0^2 + a1^2 + a2^2 + a3^2)*(b0^2 + b1^2 + b2^2 + b3^2) == (a0*b0 - a1*b1 - a2*b2 - a3*b3)^2 + (a0*b1 + a1*b0 + a2*b3 - a3*b2)^2 + (a0*b2 - a1*b3 + a2*b0 + a3*b1)^2 + (a0*b3 + a1*b2 - a2*b1 + a3*b0)^2
     True
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #
 #   Sage: System for Algebra and Geometry Experimentation
@@ -54,7 +52,8 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six.moves import range
 
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
 from sage.misc.all import prod
@@ -181,7 +180,7 @@ class MPolynomial_element(MPolynomial):
         """
         try:
             return self.__element.compare(right.__element,
-                             self.parent().term_order().compare_tuples)
+                                          self.parent().term_order().sortkey)
         except AttributeError:
             return self.__element.compare(right.__element)
 
@@ -391,12 +390,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             '-x^2 + (-I)*y'
         """
         try:
-            cmpfn = self.parent().term_order().compare_tuples
+            key = self.parent().term_order().sortkey
         except AttributeError:
-            cmpfn = None
+            key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self.element().poly_repr(self.parent().variable_names(),
-                                        atomic_coefficients=atomic, cmpfn=cmpfn )
+                                        atomic_coefficients=atomic,
+                                        sortkey=key)
 
     def _latex_(self):
         r"""
@@ -411,12 +411,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             \left(\sqrt{-1}\right) x^{2} + \left(-\sqrt{-1}\right) y
         """
         try:
-            cmpfn = self.parent().term_order().compare_tuples
+            key = self.parent().term_order().sortkey
         except AttributeError:
-            cmpfn = None
+            key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self.element().latex(self.parent().latex_variable_names(),
-                                    atomic_coefficients=atomic, cmpfn=cmpfn)
+                                    atomic_coefficients=atomic, sortkey=key)
 
     def _repr_with_changed_varnames(self, varnames):
         """
@@ -428,12 +428,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             '-jack^2 - jill + 1'
         """
         try:
-            cmpfn = self.parent().term_order().compare_tuples
+            key = self.parent().term_order().sortkey
         except AttributeError:
-            cmpfn = None
+            key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self.element().poly_repr(varnames,
-                                        atomic_coefficients=atomic, cmpfn=cmpfn)
+                                        atomic_coefficients=atomic, sortkey=key)
 
     def degrees(self):
         r"""
@@ -629,7 +629,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         OUTPUT: coefficient in base ring
 
-        .. seealso::
+        .. SEEALSO::
 
            For coefficients in a base ring of fewer variables, look
            at :meth:`coefficient`.
@@ -776,7 +776,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         OUTPUT: element of the parent of self
 
-        .. seealso::
+        .. SEEALSO::
 
            For coefficients of specific monomials, look at
            :meth:`monomial_coefficient`.
@@ -875,7 +875,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         except AttributeError:
             self.__exponents = self.element().dict().keys()
             try:
-                self.__exponents.sort(cmp=self.parent().term_order().compare_tuples, reverse=True)
+                self.__exponents.sort(key=self.parent().term_order().sortkey,
+                                      reverse=True)
             except AttributeError:
                 pass
             if as_ETuples:
@@ -1780,12 +1781,34 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f.quo_rem(x)
             (x*y + 1.00000000000000, 1.00000000000000)
 
+            sage: R = QQ['a','b']['x','y','z']
+            sage: p1 = R('a + (1+2*b)*x*y + (3-a^2)*z')
+            sage: p2 = R('x-1')
+            sage: p1.quo_rem(p2)
+            ((2*b + 1)*y, (2*b + 1)*y + (-a^2 + 3)*z + a)
+
+            sage: R.<x,y> = Qp(5)[]
+            sage: x.quo_rem(y)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this ring to a Singular ring defined
+
         ALGORITHM: Use Singular.
         """
         R = self.parent()
-        R._singular_().set_ring()
-        X = self._singular_().division(right._singular_())
-        return R(X[1][1,1]), R(X[2][1])
+        try:
+            R._singular_().set_ring()
+        except TypeError:
+            f = self.parent().flattening_morphism()
+            if f.domain() != f.codomain():
+                g = f.section()
+                q,r = f(self).quo_rem(f(right))
+                return g(q), g(r)
+            else:
+                raise
+        else:
+            X = self._singular_().division(right._singular_())
+            return R(X[1][1,1]), R(X[2][1])
 
     def resultant(self, other, variable=None):
         """
@@ -1911,11 +1934,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         lI = len(I)
         I = list(I)
-        r = P(0)
+        r = P.zero()
         p = self
 
         while p != 0:
-            for i in xrange(lI):
+            for i in range(lI):
                 gi = I[i]
                 plm = p.lm()
                 gilm = gi.lm()

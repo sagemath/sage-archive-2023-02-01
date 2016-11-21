@@ -274,7 +274,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(-pari(self)) == r)
         return r
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -295,18 +295,8 @@ cdef class Polynomial_template(Polynomial):
             2*y^2 + 2*y + 2
             sage: (-2^81)*u
             3*y^2 + 3*y + 3
-        """
-        cdef type T = type(self)
-        cdef Polynomial_template r = <Polynomial_template>T.__new__(T)
-        celement_construct(&r.x, (<Polynomial_template>self)._cparent)
-        r._parent = (<Polynomial_template>self)._parent
-        r._cparent = (<Polynomial_template>self)._cparent
-        celement_mul_scalar(&r.x, &(<Polynomial_template>self).x, left, (<Polynomial_template>self)._cparent)
-        return r
 
-    cpdef _lmul_(self, RingElement right):
-        """
-        EXAMPLES::
+        ::
 
             sage: P.<x> = GF(2)[]
             sage: t = x^2 + x + 1
@@ -322,8 +312,13 @@ cdef class Polynomial_template(Polynomial):
             sage: u*5
             0
         """
-        # all currently implemented rings are commutative
-        return self._rmul_(right)
+        cdef type T = type(self)
+        cdef Polynomial_template r = <Polynomial_template>T.__new__(T)
+        celement_construct(&r.x, (<Polynomial_template>self)._cparent)
+        r._parent = (<Polynomial_template>self)._parent
+        r._cparent = (<Polynomial_template>self)._cparent
+        celement_mul_scalar(&r.x, &(<Polynomial_template>self).x, left, (<Polynomial_template>self)._cparent)
+        return r
 
     cpdef _mul_(self, right):
         """

@@ -18,9 +18,12 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-import os, sys, platform, __builtin__
+import os
+import sys
+import platform
+from six.moves import builtins
 
-from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
+from sage.env import SAGE_LOCAL, SAGE_SRC
 from .misc import SPYX_TMP
 from .temporary_file import tmp_filename
 import pkgconfig
@@ -301,17 +304,16 @@ def cython(filename, verbose=False, compile_message=False,
 
     TESTS:
 
-    Before :trac:`12975`, it would have beeen needed to write ``#clang c++``,
+    Before :trac:`12975`, it would have been needed to write ``#clang c++``,
     but upper case ``C++`` has resulted in an error::
 
         sage: code = [
-        ... "#clang C++",
-        ... "#cinclude %s/include/singular %s/include/factory"%(SAGE_LOCAL, SAGE_LOCAL),
-        ... "#clib m readline singular givaro ntl gmpxx gmp",
-        ... "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
-        ... "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
-        ... "def test(MPolynomial_libsingular p):",
-        ... "    singular_polynomial_pow(&p._poly, p._poly, 2, p._parent_ring)"]
+        ....: "#clang C++",
+        ....: "#clib m readline Singular givaro ntl gmpxx gmp",
+        ....: "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
+        ....: "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
+        ....: "def test(MPolynomial_libsingular p):",
+        ....: "    singular_polynomial_pow(&p._poly, p._poly, 2, p._parent_ring)"]
         sage: cython(os.linesep.join(code))
 
     The function ``test`` now manipulates internal C data of polynomials,
@@ -639,7 +641,7 @@ def cython_create_local_so(filename):
         sage: curdir = os.path.abspath(os.curdir)
         sage: dir = tmp_dir(); os.chdir(dir)
         sage: f = open('hello.spyx', 'w')
-        sage: s = "def hello():\n  print 'hello'\n"
+        sage: s = "def hello():\n    print('hello')\n"
         sage: f.write(s)
         sage: f.close()
         sage: cython_create_local_so('hello.spyx')
@@ -684,7 +686,7 @@ def cython_import(filename, verbose=False, compile_message=False,
                              create_local_c_file=create_local_c_file,
                              **kwds)
     sys.path.append(build_dir)
-    return __builtin__.__import__(name)
+    return builtins.__import__(name)
 
 
 def cython_import_all(filename, globals, verbose=False, compile_message=False,
@@ -764,7 +766,6 @@ def compile_and_load(code):
 TESTS = {
 'trac11680':"""
 #cargs -O3 -ggdb
-#cinclude $SAGE_SRC/sage/libs/flint $SAGE_LOCAL/include/flint
 #clib flint
 
 from sage.rings.rational cimport Rational

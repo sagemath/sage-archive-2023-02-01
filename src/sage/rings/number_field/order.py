@@ -1109,9 +1109,9 @@ class AbsoluteOrder(Order):
         r"""
         Used in pickling.
 
-        We test that #6462 is fixed. This used to fail because pickling the
-        order also pickled the cached results of the ``basis`` call, which
-        were elements of the order.
+        We test that :trac:`6462` is fixed. This used to fail because
+        pickling the order also pickled the cached results of the
+        ``basis`` call, which were elements of the order.
 
         ::
 
@@ -1466,7 +1466,7 @@ class RelativeOrder(Order):
             sage: S.<y> = OK[]; S
             Univariate Polynomial Ring in y over Maximal Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field
 
-        We test that trac #4193 is also fixed::
+        We test that :trac:`4193` is also fixed::
 
             sage: K1.<a> = NumberField(x^3 - 2)
             sage: R.<y> = PolynomialRing(K1)

@@ -1167,13 +1167,7 @@ cdef class PowerSeries_poly(PowerSeries):
         poly = self.polynomial()
         pex = SR(poly)
         var = SR.var(self.variable())
-        if not isinstance(self.prec(), PlusInfinity):
-            # GiNaC does not allow manual addition of bigoh,
-            # so we use a trick.
-            pex += var**(self.prec()+1)
-            return pex.series(var, self.prec())
-        else:
-            return pex.series(var, max(poly.exponents())+1)
+        return pex.series(var, self.prec())
 
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):

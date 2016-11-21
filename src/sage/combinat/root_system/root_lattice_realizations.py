@@ -307,7 +307,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             - scalar products between simple roots and simple coroots
             - ...
 
-            .. seealso:: :class:`TestSuite`
+            .. SEEALSO:: :class:`TestSuite`
 
             EXAMPLES::
 
@@ -1169,7 +1169,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             These are the positive roots together with the simple negative roots.
 
-            .. seealso:: :meth:`almost_positive_root_decomposition`, :meth:`tau_plus_minus`
+            .. SEEALSO:: :meth:`almost_positive_root_decomposition`, :meth:`tau_plus_minus`
 
             EXAMPLES::
 
@@ -1647,7 +1647,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             roots which fixes the negative simple roots `\alpha_i` for `i`
             not in `J`, and acts otherwise by:
 
-            .. math::
+            .. MATH::
 
                 \tau_+( \beta ) = (\prod_{i \in J} s_i) (\beta)
 
@@ -1707,7 +1707,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 tau((0, 0, -1)                               ) = (0, 0, 1)
                 tau((0, 0, 1)                                ) = (0, 0, -1)
 
-            .. seealso:: :meth:`tau_plus_minus`
+            .. SEEALSO:: :meth:`tau_plus_minus`
 
             REFERENCES:
 
@@ -1734,7 +1734,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             positive roots. Namely, `\tau_+` fixes the negative simple
             roots `\alpha_i` for `i` in `R`, and acts otherwise by:
 
-            .. math::
+            .. MATH::
 
                 \tau_+( \beta ) = (\prod_{i \in L} s_i) (\beta)
 
@@ -1744,7 +1744,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             polytopal realization of the cluster complex (see
             :class:`Associahedron`).
 
-            .. seealso:: :meth:`tau_epsilon_operator_on_almost_positive_roots`
+            .. SEEALSO:: :meth:`tau_epsilon_operator_on_almost_positive_roots`
 
             EXAMPLES:
 
@@ -3903,8 +3903,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     ...
                     ValueError: -2*alpha[1] - 2*alpha[2] - 2*alpha[3] is not a positive root
 
-                For an infinite root systems, this method may run into
-                an infinite reccursion if the input is not a positive
+                For an infinite root system, this method may run into
+                an infinite recursion if the input is not a positive
                 root.
             """
             F = self.parent().simple_roots().inverse_family()

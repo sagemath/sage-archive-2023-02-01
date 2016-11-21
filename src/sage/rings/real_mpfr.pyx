@@ -134,10 +134,9 @@ import sage.misc.weak_dict
 
 import operator
 
-import sage.libs.pari.pari_instance
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.gen cimport gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
@@ -157,6 +156,7 @@ import sage.rings.rational_field
 import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
+from sage.arith.numerical_approx cimport digits_to_bits
 
 #*****************************************************************************
 #
@@ -1353,7 +1353,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(2, rnd="RNDN")(w).str(2)
             '10.'
 
-        .. note::
+        .. NOTE::
 
            A real number is an arbitrary precision mantissa with a
            limited precision exponent. A real number can have three
@@ -1466,15 +1466,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: rt2
             1.41421356237310
             sage: rt2.python()
-            1.414213562373095048801688724              # 32-bit
-            1.4142135623730950488016887242096980786    # 64-bit
+            1.41421356237309505
             sage: rt2.python().prec()
-            96                                         # 32-bit
-            128                                        # 64-bit
+            64
             sage: pari(rt2.python()) == rt2
             True
-            sage: for i in xrange(1, 1000):
-            ...       assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
+            sage: for i in range(100, 200):
+            ....:     assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
             sage: (-3.1415)._pari_().python()
             -3.14150000000000000
         """
@@ -1592,13 +1590,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: for prec in (2, 53, 200):
-            ...       for rnd_dir in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
-            ...           fld = RealField(prec, rnd=rnd_dir)
-            ...           var = polygen(fld)
-            ...           for v in [NaN, -infinity, -20, -e, 0, 1, 2^500, -2^4000, -2^-500, 2^-4000] + [fld.random_element() for _ in range(5)]:
-            ...               for preparse in (True, False, None):
-            ...                   _ = sage_input(fld(v), verify=True, preparse=preparse)
-            ...                   _ = sage_input(fld(v) * var, verify=True, preparse=preparse)
+            ....:     for rnd_dir in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
+            ....:         fld = RealField(prec, rnd=rnd_dir)
+            ....:         var = polygen(fld)
+            ....:         for v in [NaN, -infinity, -20, -e, 0, 1, 2^500, -2^4000, -2^-500, 2^-4000] + [fld.random_element() for _ in range(5)]:
+            ....:             for preparse in (True, False, None):
+            ....:                 _ = sage_input(fld(v), verify=True, preparse=preparse)
+            ....:                 _ = sage_input(fld(v) * var, verify=True, preparse=preparse)
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sib_np = SageInputBuilder(preparse=False)
@@ -2161,7 +2159,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: [x.fp_rank_delta(x.nextabove()) for x in
-            ...      (RR(-infinity), -1.0, 0.0, 1.0, RR(pi), RR(infinity))]
+            ....:    (RR(-infinity), -1.0, 0.0, 1.0, RR(pi), RR(infinity))]
             [1, 1, 1, 1, 1, 0]
 
         In the 2-bit floating-point field, one subsegment of the
@@ -3031,7 +3029,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: axiom(R(pi))  # optional - axiom # indirect doctest
             3.1415926535 8979323846 26433833
             sage: fricas(R(pi)) # optional - fricas
-            3.1415926535 8979323846 26433833
+            3.1415926535_8979323846_26433833
 
         """
         prec = self.parent().prec()
@@ -3073,8 +3071,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(70)(pi)._pari_().python().prec()
             96                                         # 32-bit
             128                                        # 64-bit
-            sage: for i in xrange(1, 1000):
-            ...       assert(RR(i).sqrt() == RR(i).sqrt()._pari_().python())
+            sage: for i in range(100, 200):
+            ....:     assert(RR(i).sqrt() == RR(i).sqrt()._pari_().python())
 
         TESTS:
 
@@ -3136,8 +3134,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
             mpz_clear(mantissa)
 
-        cdef PariInstance P = sage.libs.pari.pari_instance.pari
-        return P.new_gen(pari_float)
+        return new_gen(pari_float)
 
     def _mpmath_(self, prec=None, rounding=None):
         """
@@ -5043,7 +5040,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ::
 
             sage: type(z)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: R(z)
             1.64493406684823
         """
@@ -5150,18 +5147,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
         all cases::
 
             sage: def check(x, n):
-            ...       answers = []
-            ...       for sign in (1, -1):
-            ...           if is_even(n) and sign == -1:
-            ...               continue
-            ...           for rounding in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
-            ...               fld = RealField(x.prec(), rnd=rounding)
-            ...               fx = fld(sign * x)
-            ...               alg_mpfr = fx.nth_root(n, algorithm=1)
-            ...               alg_mpfi = fx.nth_root(n, algorithm=2)
-            ...               assert(alg_mpfr == alg_mpfi)
-            ...               if sign == 1: answers.append(alg_mpfr)
-            ...       return answers
+            ....:     answers = []
+            ....:     for sign in (1, -1):
+            ....:         if is_even(n) and sign == -1:
+            ....:             continue
+            ....:         for rounding in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
+            ....:             fld = RealField(x.prec(), rnd=rounding)
+            ....:             fx = fld(sign * x)
+            ....:             alg_mpfr = fx.nth_root(n, algorithm=1)
+            ....:             alg_mpfi = fx.nth_root(n, algorithm=2)
+            ....:             assert(alg_mpfr == alg_mpfi)
+            ....:             if sign == 1: answers.append(alg_mpfr)
+            ....:     return answers
 
         Check some perfect powers (and nearby numbers)::
 
@@ -5390,24 +5387,30 @@ cdef class RealLiteral(RealNumber):
         else:
             return RealLiteral(self._parent, '-'+self.literal, self.base)
 
-    def _numerical_approx(self, prec=53, algorithm=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
-        Convert ``self`` to a ``RealField`` with ``prec`` bits of
-        precision.
+        Change the precision of ``self`` to ``prec`` bits
+        or ``digits`` decimal digits.
 
         INPUT:
 
-        - ``prec`` -- (default: 53) a precision in bits
+        - ``prec`` -- precision in bits
 
-        - ``algorithm`` -- ignored
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
+
+        - ``algorithm`` -- ignored for real numbers
+
+        If neither ``prec`` nor ``digits`` is given, the default
+        precision is 53 bits (roughly 16 digits).
 
         OUTPUT:
 
-        A ``RealNumber`` with ``prec`` bits of precision.
+        A ``RealNumber`` with the given precision.
 
         EXAMPLES::
 
-            sage: (1.3)._numerical_approx()
+            sage: (1.3).numerical_approx()
             1.30000000000000
             sage: n(1.3, 120)
             1.3000000000000000000000000000000000
@@ -5428,6 +5431,8 @@ cdef class RealLiteral(RealNumber):
             sage: type(n(1.3))
             <type 'sage.rings.real_mpfr.RealNumber'>
         """
+        if prec is None:
+            prec = digits_to_bits(digits)
         return RealField(prec)(self.literal)
 
 

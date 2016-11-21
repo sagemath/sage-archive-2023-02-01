@@ -794,18 +794,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         sig_off()
         return M
 
-
-    cpdef _lmul_(self, RingElement right):
-        """
-        EXAMPLES::
-
-            sage: A = random_matrix(Integers(60), 400, 500)
-            sage: 3*A + 9*A == 12*A
-            True
-        """
-        return self._rmul_(right)
-
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -821,6 +810,12 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             [  0  50 100]
             [ 49  99  48]
             [ 98  47  97]
+
+        ::
+
+            sage: A = random_matrix(Integers(60), 400, 500)
+            sage: 3*A + 9*A == 12*A
+            True
         """
         cdef Py_ssize_t i,j
         cdef Matrix_modn_dense_template M

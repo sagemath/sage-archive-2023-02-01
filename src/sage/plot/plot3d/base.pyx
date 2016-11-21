@@ -28,7 +28,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.list cimport *
 from cpython.object cimport PyObject
@@ -37,7 +37,7 @@ import os
 from functools import reduce
 from random import randint
 import zipfile
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 
 from sage.misc.misc import sage_makedirs
 from sage.env import SAGE_LOCAL
@@ -49,8 +49,8 @@ from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
 from sage.misc.temporary_file import tmp_filename
-from texture import Texture, is_Texture
-from transform cimport Transformation, point_c, face_c
+from .texture import Texture, is_Texture
+from .transform cimport Transformation, point_c, face_c
 include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
@@ -1196,7 +1196,7 @@ end_scene""" % (render_params.antialiasing,
         T = [xyz_min[i] - a_min[i] for i in range(3)]
         X = X.translate(T)
         if frame:
-            from shapes2 import frame3d, frame_labels
+            from .shapes2 import frame3d, frame_labels
             F = frame3d(xyz_min, xyz_max, opacity=0.5, color=(0,0,0), thickness=thickness)
             if labels:
                 F += frame_labels(xyz_min, xyz_max, a_min_orig, a_max_orig)
@@ -1205,7 +1205,7 @@ end_scene""" % (render_params.antialiasing,
 
         if axes:
             # draw axes
-            from shapes import arrow3d
+            from .shapes import arrow3d
             A = (arrow3d((min(0,a_min[0]),0, 0), (max(0,a_max[0]), 0,0),
                              thickness, color="blue"),
                  arrow3d((0,min(0,a_min[1]), 0), (0, max(0,a_max[1]), 0),
@@ -1232,7 +1232,7 @@ end_scene""" % (render_params.antialiasing,
 
         # Remove all of the keys that are viewing options, since the remaining
         # kwds might be passed on.
-        for key_to_remove in SHOW_DEFAULTS.keys():
+        for key_to_remove in SHOW_DEFAULTS:
             kwds.pop(key_to_remove, None)
 
         # deal with any aspect_ratio instances passed from the default options to plot
@@ -1456,7 +1456,7 @@ end_scene""" % (render_params.antialiasing,
         filename. This can be either:
 
         - an image file (of type: PNG, BMP, GIF, PPM, or TIFF) rendered
-          using Tachyon,
+          using Jmol (default) or Tachyon,
 
         - a Sage object file (of type ``.sobj``) that you can load back later
           (a pickle),
@@ -1471,12 +1471,12 @@ end_scene""" % (render_params.antialiasing,
 
         - ``filename`` -- string. Where to save the image or object.
 
-        - ``**kwds`` -- When specifying an image file to be rendered by Tachyon,
-          any of the viewing options accepted by show() are valid as keyword
-          arguments to this function and they will behave in the same way.
-          Accepted keywords include: ``viewer``, ``verbosity``, ``figsize``,
-          ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``, ``frame``, and
-          ``axes``. Default values are provided.
+        - ``**kwds`` -- When specifying an image file to be rendered by Tachyon
+          or Jmol, any of the viewing options accepted by show() are valid as
+          keyword arguments to this function and they will behave in the same
+          way. Accepted keywords include: ``viewer``, ``verbosity``,
+          ``figsize``, ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``,
+          ``frame``, and ``axes``. Default values are provided.
 
         EXAMPLES::
 
@@ -1489,15 +1489,15 @@ end_scene""" % (render_params.antialiasing,
 
             sage: G.save(f, zoom=2, figsize=[5, 10])
 
-        But some extra parameters don't make sense (like ``viewer``, since
-        rendering is done using Tachyon only). They will be ignored::
+        Using Tachyon instead of the default viewer (Jmol) to create the
+        image::
 
-            sage: G.save(f, viewer='jmol') # Looks the same
+            sage: G.save(f, viewer='tachyon')
 
         Since Tachyon only outputs PNG images, PIL will be used to convert to
         alternate formats::
 
-            sage: cube().save(tmp_filename(ext='.gif'))
+            sage: cube().save(tmp_filename(ext='.gif'), viewer='tachyon')
 
         Here is how to save in one of the data formats::
 
@@ -1512,27 +1512,23 @@ end_scene""" % (render_params.antialiasing,
             SageObject.save(self, filename)
         elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif',
                      '.jpg', '.jpeg']:
-            self.save_image(filename)
+            self.save_image(filename, **kwds)
         elif filename.endswith('.spt.zip'):
             scene = self._rich_repr_jmol(**kwds)
             scene.jmol.save(filename)
         elif ext == '.x3d':
-            outfile = file(filename, 'w')
-            outfile.write(self.x3d())
-            outfile.close()
+            with open(filename, 'w') as outfile:
+                outfile.write(self.x3d())
         elif ext == '.stl':
-            outfile = file(filename, 'w')
-            outfile.write(self.stl_ascii_string())
-            outfile.close()
+            with open(filename, 'w') as outfile:
+                outfile.write(self.stl_ascii_string())
         elif ext == '.amf':
             # todo : zip the output file ?
-            outfile = file(filename, 'w')
-            outfile.write(self.amf_ascii_string())
-            outfile.close()
+            with open(filename, 'w') as outfile:
+                outfile.write(self.amf_ascii_string())
         elif ext == '.ply':
-            outfile = file(filename, 'w')
-            outfile.write(self.ply_ascii_string())
-            outfile.close()
+            with open(filename, 'w') as outfile:
+                outfile.write(self.ply_ascii_string())
         else:
             raise ValueError('filetype {} not supported by save()'.format(ext))
 

@@ -107,6 +107,7 @@ This base class provides a lot more methods than a general parent::
     ['__fraction_field',
      '__ideal_monoid',
      '__iter__',
+     '__len__',
      '__pow__',
      '__rpow__',
      '__rtruediv__',
@@ -164,7 +165,6 @@ This base class provides a lot more methods than a general parent::
      'is_ring',
      'is_subring',
      'krull_dimension',
-     'list',
      'ngens',
      'one',
      'order',
@@ -217,9 +217,9 @@ This basic implementation is formed by the following steps:
 
   .. end of output
 
-  We are implementing a seperate method returning the base ring.
+  We are implementing a separate method returning the base ring.
 
-- Python uses double\--underscore methods for arithemetic methods and string
+- Python uses double\--underscore methods for arithmetic methods and string
   representations. Sage's base classes often have a default implementation,
   and it is requested to **implement SINGLE underscore methods _repr_, and
   similarly _add_, _mul_ etc.**
@@ -1594,6 +1594,7 @@ Let us see what tests are actually performed::
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
+      running ._test_new() . . . pass
       running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
@@ -1605,6 +1606,7 @@ Let us see what tests are actually performed::
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -1764,6 +1766,7 @@ interesting.
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
       running ._test_factorisation() . . . pass
+      running ._test_new() . . . pass
       running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
@@ -1775,6 +1778,7 @@ interesting.
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass

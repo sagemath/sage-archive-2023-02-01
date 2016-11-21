@@ -20,7 +20,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
 from sage.structure.indexed_generators import IndexedGenerators
-from sage.structure.sage_object import op_EQ, op_NE, py_rich_to_bool
+from sage.structure.sage_object import op_EQ, op_NE, richcmp, rich_to_bool
 from sage.combinat.dict_addition import dict_addition
 
 from sage.categories.monoids import Monoids
@@ -31,6 +31,7 @@ from sage.rings.infinity import infinity
 from sage.rings.all import ZZ
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.family import Family
+from six import iteritems
 
 class IndexedMonoidElement(MonoidElement):
     """
@@ -259,11 +260,13 @@ class IndexedMonoidElement(MonoidElement):
             sage: a*b*c^3*b*d != a*d*(b^2*c^2)*c
             False
         """
-        if op == op_EQ:
-            return self._monomial == other._monomial
-        elif op == op_NE:
-            return self._monomial != other._monomial
-        return py_rich_to_bool(op, cmp(self.to_word_list(), other.to_word_list()))
+        if self._monomial == other._monomial:
+            # Equal
+            return rich_to_bool(op, 0)
+        if op == op_EQ or op == op_NE:
+            # Not equal
+            return rich_to_bool(op, 1)
+        return richcmp(self.to_word_list(), other.to_word_list(), op)
 
     def support(self):
         """
@@ -552,7 +555,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             return self
         if n == 0:
             return self.parent().one()
-        return self.__class__(self.parent(), {k:v*n for k,v in self._monomial.iteritems()})
+        return self.__class__(self.parent(), {k:v*n for k,v in iteritems(self._monomial)})
 
     def __floordiv__(self, elt):
         """
@@ -576,7 +579,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             ValueError: invalid cancellation
         """
         d = copy(self._monomial)
-        for k,v in elt._monomial.iteritems():
+        for k,v in iteritems(elt._monomial):
             d[k] -= v
         for k,v in d.items():
             if v < 0:
@@ -869,12 +872,22 @@ class IndexedFreeMonoid(IndexedMonoid):
             F[0]
             sage: F.gen(2)
             F[2]
+
+        TESTS::
+
+            sage: F = FreeMonoid(index_set=[1,2])
+            sage: F.gen(2)
+            F[2]
+            sage: F.gen(0)
+            Traceback (most recent call last):
+            ...
+            IndexError: 0 is not in the index set
         """
         if x not in self._indices:
             raise IndexError("{} is not in the index set".format(x))
         try:
             return self.element_class(self, ((self._indices(x),1),))
-        except TypeError: # Backup (if it is a string)
+        except (TypeError, NotImplementedError): # Backup (e.g., if it is a string)
             return self.element_class(self, ((x,1),))
 
 class IndexedFreeAbelianMonoid(IndexedMonoid):
@@ -926,9 +939,27 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             F[-2]^12*F[1]^3
             sage: F({1:3, -2: 12})
             F[-2]^12*F[1]^3
+
+        TESTS::
+
+            sage: F([(1, 3), (1, 2)])
+            F[1]^5
+
+            sage: F([(42, 0)])
+            1
+            sage: F({42: 0})
+            1
         """
         if isinstance(x, (list, tuple)):
-            x = dict(x)
+            d = dict()
+            for k, v in x:
+                if k in d:
+                    d[k] += v
+                else:
+                    d[k] = v
+            x = d
+        if isinstance(x, dict):
+            x = {k: v for k, v in iteritems(x) if v != 0}
         return IndexedMonoid._element_constructor_(self, x)
 
     Element = IndexedFreeAbelianMonoidElement
@@ -957,11 +988,21 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             F[0]
             sage: F.gen(2)
             F[2]
+
+        TESTS::
+
+            sage: F = FreeAbelianMonoid(index_set=[1,2])
+            sage: F.gen(2)
+            F[2]
+            sage: F.gen(0)
+            Traceback (most recent call last):
+            ...
+            IndexError: 0 is not in the index set
         """
         if x not in self._indices:
             raise IndexError("{} is not in the index set".format(x))
         try:
             return self.element_class(self, {self._indices(x):1})
-        except TypeError: # Backup (if it is a string)
+        except (TypeError, NotImplementedError): # Backup (e.g., if it is a string)
             return self.element_class(self, {x:1})
 

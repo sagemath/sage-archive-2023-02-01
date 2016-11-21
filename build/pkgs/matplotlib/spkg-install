@@ -27,24 +27,16 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-# Now build
-python setup.py build
-if [ $? -ne 0 ]; then
-    echo "Error building matplotlib package."
-    exit 1
-fi
-
-rm -rf "$SAGE_LOCAL"/lib/python/site-packages/matplotlib
-
 # Finally install
-python setup.py install
+$PIP_INSTALL .
+
 if [ $? -ne 0 ]; then
     echo "Error installing matplotlib package."
     exit 1
 fi
 
 # Print value of MPLCONFIGDIR
-VERSION=`python -c 'import pkg_resources; print pkg_resources.get_distribution("matplotlib").version'`
+VERSION=`python -c 'import pkg_resources; print(pkg_resources.get_distribution("matplotlib").version)'`
 echo
 echo "When Sage runs, MPLCONFIGDIR will be set to '\$DOT_SAGE/matplotlib-$VERSION'."
 echo

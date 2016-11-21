@@ -422,3 +422,45 @@ class Curve_generic(AlgebraicScheme_subscheme):
             return X.rational_points(F=F)
         else:
             raise NotImplementedError("the intersection must have dimension zero or (=%s) must be a finite field"%F)
+
+    def change_ring(self, R):
+        r"""
+        Return a new curve which is this curve coerced to ``R``.
+
+        INPUT:
+
+        - ``R`` -- ring or embedding.
+
+        OUTPUT:
+
+        - a new curve which is this curve coerced to ``R``.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: C = Curve([x^2 - y^2, z*y - 4/5*w^2], P)
+            sage: C.change_ring(QuadraticField(-1))
+            Projective Curve over Number Field in a with defining polynomial x^2 + 1
+            defined by x^2 - y^2, y*z - 4/5*w^2
+
+        ::
+
+            sage: R.<a> = QQ[]
+            sage: K.<b> = NumberField(a^3 + a^2 - 1)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: C = Curve([K.0*x^2 - x + y^3 - 11], A)
+            sage: L = K.embeddings(QQbar)
+            sage: C.change_ring(L[0])
+            Affine Plane Curve over Algebraic Field defined by y^3 +
+            (-0.8774388331233464? - 0.744861766619745?*I)*x^2 - x - 11
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = P.curve([y*x - 18*x^2 + 17*z^2])
+            sage: C.change_ring(GF(17))
+            Projective Plane Curve over Finite Field of size 17 defined by -x^2 + x*y
+        """
+        new_AS = self.ambient_space().change_ring(R)
+        I = [f.change_ring(R) for f in self.defining_polynomials()]
+        return(new_AS.curve(I))

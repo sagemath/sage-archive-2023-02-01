@@ -958,7 +958,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         Comparison of two elements of this crystal:
 
         - different length: incomparable
-        - otherwise lexicographicaly, considering ``self[i]`` and ``other[i]``
+        - otherwise lexicographically, considering ``self[i]`` and ``other[i]``
           as incomparable if ``self[i] < other[i]`` returns NotImplemented
         """
         if parent(self) is not parent(other):
@@ -1471,7 +1471,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K,K)
             sage: hw = sorted([x for x in T if x.is_highest_weight([1,2])])
             sage: for b in hw:
-            ....:     print "{} {}".format(b, b.energy_function())
+            ....:     print("{} {}".format(b, b.energy_function()))
             [[[1]], [[1]], [[1]]] 0
             [[[1]], [[2]], [[1]]] 2
             [[[2]], [[1]], [[1]]] 1
@@ -1481,7 +1481,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K)
             sage: hw = [x for x in T if x.is_highest_weight([1,2])]
             sage: for b in hw:
-            ....:     print "{} {}".format(b, b.energy_function())
+            ....:     print("{} {}".format(b, b.energy_function()))
             [[], []] 4
             [[], [[1, 1]]] 1
             [[[1, 1]], []] 3
@@ -2131,7 +2131,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             }
         """
         from sage.combinat.output import tex_from_array
-        # Modified version of to_tableau() to have the entrys be letters
+        # Modified version of to_tableau() to have the entries be letters
         #   rather than their values
         if self._list == []:
             return "{\\emptyset}"

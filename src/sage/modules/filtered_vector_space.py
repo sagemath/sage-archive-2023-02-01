@@ -4,7 +4,7 @@ r"""
 This module implements filtered vector spaces, that is, a descending
 sequence of vector spaces
 
-.. math::
+.. MATH::
 
     \cdots \supset F_d \supset F_{d+1} \supset F_{d+2} \supset \cdots
 
@@ -598,7 +598,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
 
         A tuple of integers (and plus infinity) in ascending
         order. The last entry is plus infinity if and only if the
-        flitration is not separating (see :meth:`is_separating`).
+        filtration is not separating (see :meth:`is_separating`).
 
         EXAMPLES::
 

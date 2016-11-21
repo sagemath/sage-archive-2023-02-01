@@ -783,6 +783,30 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         #reduce at the end? See example "sage: ((E4+E6)-E6).parent()"
         return self.parent()(self._rat-other._rat)
 
+    def _neg_(self):
+        r"""
+        Return the negation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
+            sage: MR = QuasiMeromorphicModularFormsRing(n=8)
+            sage: Delta = MR.Delta().full_reduce()
+
+            sage: -Delta
+            -q - 41/(128*d)*q^2 - 10887/(262144*d^2)*q^3 - 131447/(50331648*d^3)*q^4 + O(q^5)
+            sage: parent(-Delta)
+            CuspForms(n=8, k=12, ep=1) over Integer Ring
+
+        Negation should be exactly the same as multiplication by -1::
+
+            sage: (-Delta) == (-1) * Delta
+            True
+            sage: parent(-Delta) is parent((-1) * Delta)
+            True
+        """
+        return self.parent()(-self._rat)
+
     def _mul_(self,other):
         r"""
         Return the product of ``self`` and ``other``.

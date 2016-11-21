@@ -137,6 +137,7 @@ class Sets(Category_singleton):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -145,6 +146,7 @@ class Sets(Category_singleton):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -755,6 +757,30 @@ class Sets(Category_singleton):
             """
             return self._with_axiom('Infinite')
 
+        @cached_method
+        def Enumerated(self):
+            """
+            Return the full subcategory of the enumerated objects of ``self``.
+
+            An enumerated object can be iterated to get its elements.
+
+            EXAMPLES::
+
+                sage: Sets().Enumerated()
+                Category of enumerated sets
+                sage: Rings().Finite().Enumerated()
+                Category of finite enumerated rings
+                sage: Rings().Infinite().Enumerated()
+                Category of infinite enumerated rings
+
+            TESTS::
+
+                sage: TestSuite(Sets().Enumerated()).run()
+                sage: Rings().Enumerated.__module__
+                'sage.categories.sets_cat'
+            """
+            return self._with_axiom('Enumerated')
+
         def Facade(self):
             r"""
             Return the full subcategory of the facade objects of ``self``.
@@ -1097,6 +1123,7 @@ class Sets(Category_singleton):
                   Running the test suite of self.an_element()
                   running ._test_category() . . . pass
                   running ._test_eq() . . . pass
+                  running ._test_new() . . . pass
                   running ._test_nonzero_equal() . . . pass
                   running ._test_not_implemented_methods() . . . pass
                   running ._test_pickling() . . . pass
@@ -1707,7 +1734,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 raising ``NotImplementedError`` could be provided instead.
             """
 
-
+    Enumerated = LazyImport('sage.categories.enumerated_sets', 'EnumeratedSets', at_startup=True)
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
     Topological = LazyImport('sage.categories.topological_spaces',
@@ -1733,7 +1760,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 TESTS::
 
-                    sage: C.is_finite.im_func is sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite.im_func
+                    sage: from six import get_method_function as gmf
+                    sage: gmf(C.is_finite) is gmf(sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite)
                     True
                 """
                 return False
@@ -2069,7 +2097,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     [('a', 1, 'a'), ('a', 1, 'b'), ('a', 2, 'a'), ('a', 2, 'b'), ('a', 3, 'a'), ('a', 3, 'b'),
                      ('b', 1, 'a'), ('b', 1, 'b'), ('b', 2, 'a'), ('b', 2, 'b'), ('b', 3, 'a'), ('b', 3, 'b')]
                     sage: C.__iter__.__module__
-                    'sage.categories.enumerated_sets'
+                    'sage.categories.sets_cat'
 
                     sage: F22 = GF(2).cartesian_product(GF(2))
                     sage: list(F22)

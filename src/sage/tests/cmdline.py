@@ -49,7 +49,7 @@ test.spyx
 
 AUTHORS:
 
-- Jeroen Demeyer (2010-11-20): initial version (#10300)
+- Jeroen Demeyer (2010-11-20): initial version (:trac:`10300`)
 
 """
 from subprocess import *
@@ -385,7 +385,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         **********************************************************************
         Previously executed commands:
             s...: assert True == False
-        debug:
+        In [1]:
         <BLANKLINE>
         Returning to doctests...
         **********************************************************************

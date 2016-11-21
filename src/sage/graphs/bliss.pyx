@@ -27,12 +27,12 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from cpython cimport PyObject
 from libc.limits cimport LONG_MAX
 
+from sage.misc.decorators import rename_keyword
 
-cdef extern from "graph.hh" namespace "bliss":
+cdef extern from "bliss/graph.hh" namespace "bliss":
 
     cdef cppclass Stats:
         pass
@@ -133,7 +133,7 @@ cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
        g.add_edge(vert2int[x],vert2int[y])
 
     if partition:
-        for i in xrange(1,len(partition)):
+        for i in xrange(1, len(partition)):
             for v in partition[i]:
                 g.change_color(vert2int[v], i)
     return g
@@ -166,7 +166,7 @@ cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
         g.add_edge(vert2int[x],vert2int[y])
 
     if partition:
-        for i in xrange(1,len(partition)):
+        for i in xrange(1, len(partition)):
             for v in partition[i]:
                 g.change_color(vert2int[v], i)
     return g
@@ -223,7 +223,8 @@ def automorphism_group(G, partition=None):
 cdef void empty_hook(void *user_param , unsigned int n, const unsigned int *aut):
     return
 
-def canonical_form(G, partition=None, return_graph=False, certify=False):
+@rename_keyword(deprecation=21111, certify='certificate')
+def canonical_form(G, partition=None, return_graph=False, certificate=False):
     """
     Return a canonical label of ``G``
 
@@ -241,7 +242,7 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
     - ``return_graph`` -- If set to ``True``, ``canonical_form`` returns the
         canonical graph of G. Otherwise, it returns its set of edges.
 
-    - ``certify`` -- If set to ``True`` returns the labeling of G into a
+    - ``certificate`` -- If set to ``True`` returns the labeling of G into a
       canonical graph.
 
     TESTS::
@@ -269,6 +270,13 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
         sage: g1 = canonical_form(g1,return_graph=True)                     # optional - bliss
         sage: g2 = canonical_form(g2,return_graph=True)                     # optional - bliss
         sage: g2 == g2                                                      # optional - bliss
+        True
+
+        sage: g = Graph({1: [2]})
+        sage: g_ = canonical_form(g, return_graph=True, certify=True)    # optional - bliss
+        doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+        See http://trac.sagemath.org/21111 for details.
+        sage: 0 in g_[0]                                                 # optional - bliss
         True
     """
     # We need this to convert the numbers from <unsigned int> to
@@ -312,9 +320,9 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
             G = Graph(edges,loops=G.allows_loops(),multiedges=G.allows_multiple_edges())
 
         G.add_vertices(vert2int.values())
-        return (G, relabel) if certify else G
+        return (G, relabel) if certificate else G
 
-    if certify:
+    if certificate:
         return sorted(edges),relabel
 
     return sorted(edges)

@@ -26,6 +26,7 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import richcmp
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.graphs.all import DiGraph
@@ -40,6 +41,7 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from copy import copy
 from sage.misc.latex import latex
+
 
 class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
     r"""
@@ -956,8 +958,8 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             signs['infinity'] = sign_Beta # tail sign tells something about last step
                                           # in g_alpha
 
-        if finite_cartan_type and i==0:
-            signs = { x : -signs[x] for x in signs.keys() }
+        if finite_cartan_type and i == 0:
+            signs = {x: -signs[x] for x in signs}
 
         return signs
 
@@ -1069,10 +1071,10 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             ([(alpha[2], 0), (alpha[1] + alpha[2], 1)], [1, 3, 5])
         """
         signs = self._folding_data(i)
-        positions = sorted( [ x for x in signs.keys() if x != 'infinity' ] )
+        positions = sorted(x for x in signs if x != 'infinity')
 
-        if len(positions)==0 :
-            return ( positions, [ signs['infinity'] ] )
+        if not positions:
+            return (positions, [signs['infinity']])
 
         gi = [ signs[ positions[0] ] ]
         for j in range(1,len(positions)):
@@ -1121,8 +1123,8 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             M = Integer(m)/2 - Integer(1)/2
 
 
-        # boolian determining when to move a folding in KR case
-        KR_test = finite_cartan_type and i==0
+        # boolean determining when to move a folding in KR case
+        KR_test = finite_cartan_type and i == 0
         KR_test = KR_test and M > 1
 
         # In the KR case, we return a value other than None when
@@ -1527,7 +1529,7 @@ class RootsWithHeightElement(Element):
         except (NameError, AttributeError):
             return False
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Define a total order on :class:`RootsWithHeightElement`. This defines
         the initial `\lambda`-chain.
@@ -1551,7 +1553,7 @@ class RootsWithHeightElement(Element):
         # code should still work.
         #todo: check if self and other have the same parent ?
         #assert self.parent() is other.parent(), "elements have different parents"
-        return cmp(self._cmp_v, other._cmp_v)
+        return richcmp(self._cmp_v, other._cmp_v, op)
 
 RootsWithHeight.Element = RootsWithHeightElement
 

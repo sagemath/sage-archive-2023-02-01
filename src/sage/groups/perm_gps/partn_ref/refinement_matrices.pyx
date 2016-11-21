@@ -293,7 +293,7 @@ cdef int compare_matrices(int *gamma_1, int *gamma_2, void *S1, void *S2, int de
     for i from 0 <= i < degree:
         MM1.set_column(i, M1.column(gamma_1[i]))
         MM2.set_column(i, M2.column(gamma_2[i]))
-    return richcmp(sorted(MM1.rows()), sorted(MM2.rows()), 0)
+    return richcmp(sorted(MM1.rows()), sorted(MM2.rows()), 3)  # 3 means !=
 
 cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, void *S):
     return 0

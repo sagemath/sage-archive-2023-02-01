@@ -581,9 +581,9 @@ class CombinatorialFreeModuleElement(Element):
             s[2, 1] - s[5, 4]
         """
         F = self.parent()
-        return F._from_dict(blas.axpy(other._monomial_coefficients,
-                                      self._monomial_coefficients,
-                                      -1),
+        return F._from_dict(blas.axpy(-1,
+                                      other._monomial_coefficients,
+                                      self._monomial_coefficients),
                             remove_zeros=False)
 
     def _coefficient_fast(self, m):

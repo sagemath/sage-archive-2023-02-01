@@ -34,6 +34,7 @@ from sage.misc.misc import uniq
 from sage.matrix.constructor import Matrix
 from .refinement_binary cimport NonlinearBinaryCodeStruct, refine_by_bip_degree
 from .double_coset cimport double_coset, int_cmp
+from sage.structure.sage_object cimport richcmp
 
 
 cdef class MatrixStruct:
@@ -292,7 +293,7 @@ cdef int compare_matrices(int *gamma_1, int *gamma_2, void *S1, void *S2, int de
     for i from 0 <= i < degree:
         MM1.set_column(i, M1.column(gamma_1[i]))
         MM2.set_column(i, M2.column(gamma_2[i]))
-    return int_cmp(sorted(MM1.rows()), sorted(MM2.rows()))
+    return richcmp(sorted(MM1.rows()), sorted(MM2.rows()), 0)
 
 cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, void *S):
     return 0

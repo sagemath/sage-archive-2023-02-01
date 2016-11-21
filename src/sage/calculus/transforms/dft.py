@@ -606,7 +606,7 @@ class IndexedSequence(SageObject):
     def fft(self):
         """
         Wraps the gsl ``FastFourierTransform.forward()`` in
-        :mod:`~sage.gsl.fft`.
+        :mod:`~sage.calculus.transforms.fft`.
 
         If the length is a power of 2 then this automatically uses the
         radix2 method. If the number of sample points in the input is
@@ -639,7 +639,7 @@ class IndexedSequence(SageObject):
     def ifft(self):
         """
         Implements the gsl ``FastFourierTransform.inverse`` in
-        :mod:`~sage.gsl.fft`.
+        :mod:`~sage.calculus.transforms.fft`.
 
         If the number of sample points in the input is a power of 2
         then the wrapper for the GSL function
@@ -675,7 +675,7 @@ class IndexedSequence(SageObject):
 
     def dwt(self,other="haar",wavelet_k=2):
         """
-        Wraps the gsl ``WaveletTransform.forward`` in :mod:`~sage.gsl.dwt`
+        Wraps the gsl ``WaveletTransform.forward`` in :mod:`~sage.calculus.transforms.dwt`
         (written by Joshua Kantor). Assumes the length of the sample is a
         power of 2. Uses the GSL function ``gsl_wavelet_transform_forward()``.
 
@@ -739,7 +739,7 @@ class IndexedSequence(SageObject):
     def idwt(self, other="haar", wavelet_k=2):
         """
         Implements the gsl ``WaveletTransform.backward()`` in
-        :mod:`~sage.gsl.dwt`.
+        :mod:`~sage.calculus.transforms.dwt`.
 
         Assumes the length of the sample is a power of 2. Uses the
         GSL function ``gsl_wavelet_transform_backward()``.

@@ -1046,6 +1046,12 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             sage: B.<b> = LaurentPolynomialRing(A)
             sage: B(a)
             a
+            sage: C.<c> = LaurentPolynomialRing(B)
+            sage: B(C(b))
+            b
+            sage: D.<d, e> = LaurentPolynomialRing(B)
+            sage: B(D(b))
+            b
         """
         from sage.symbolic.expression import Expression
         if isinstance(x, Expression):
@@ -1062,6 +1068,8 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
                 x = {k[0]: v for k, v in iteritems(x)}
             elif self.base_ring().has_coerce_map_from(P):
                 x = {0: self.base_ring()(x)}
+            elif x.is_constant() and self.has_coerce_map_from(x.parent().base_ring()):
+                return self(x.constant_coefficient())
             elif len(self.variable_names()) == len(P.variable_names()):
                 x = x.dict()
 
@@ -1170,6 +1178,10 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             sage: C = LaurentPolynomialRing(QQ, 'a, b')
             sage: C(B({1: a}))
             a*b
+            sage: D.<d, e> = LaurentPolynomialRing(B)
+            sage: F.<f, g> = LaurentPolynomialRing(D)
+            sage: D(F(d*e))
+            d*e
         """
         from sage.symbolic.expression import Expression
         if isinstance(x, Expression):
@@ -1186,6 +1198,8 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             elif self.base_ring().has_coerce_map_from(P):
                 from sage.rings.polynomial.polydict import ETuple
                 x = {ETuple({}, int(self.ngens())): self.base_ring()(x)}
+            elif x.is_constant() and self.has_coerce_map_from(x.parent().base_ring()):
+                return self(x.constant_coefficient())
             elif len(self.variable_names()) == len(P.variable_names()):
                 x = x.dict()
 

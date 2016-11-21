@@ -177,4 +177,61 @@ class HypergraphGenerators():
         from itertools import combinations
         return IncidenceStructure(list(combinations(range(n),k)))
 
+    def UniformRandomUniform(self, n, k, m):
+        r"""
+        Retrun a uniformly sampled `k`-uniform hypergraph on `n` points with
+        `m` hyperedges.
+
+        - ``n`` -- number of nodes of the graph
+
+        - ``k`` -- uniformity
+
+        - ``m`` -- number of edges
+
+        TESTS::
+
+            sage: H = hypergraphs.UniformRandomUniform(52, 3, 17)
+            sage: H
+            Incidence structure with 52 points and 17 blocks
+            sage: H.is_connected()
+            False
+        """
+        from sage.combinat.subset import Subsets
+        from sage.misc.prandom import sample
+        vertices = list(range(n))
+        all_edges = Subsets(vertices, k)
+        try:
+            edges = sample(all_edges, m)
+        except OverflowError:
+            raise OverflowError("binomial({},{}) too large to be treated".format(n,k))
+        except ValueError:
+            raise ValueError("number of edges m must between 0 and binomial({},{})".format(n,k))
+
+        from sage.combinat.designs.incidence_structures import IncidenceStructure
+        return IncidenceStructure(vertices, edges)
+
+    def BinomialRandomUniform(self, n, k, p):
+        r"""
+        Return a random `k`-uniform hypergraph on `n` points, in which each
+        edge is inserted independently with probability `p`.
+
+        - ``n`` -- number of nodes of the graph
+
+        - ``k`` -- uniformity
+
+        - ``p`` -- probability of an edge
+
+        TESTS::
+
+            sage: hypergraphs.BinomialRandomUniform(50, 3, 1).num_blocks()
+            19600
+            sage: hypergraphs.BinomialRandomUniform(50, 3, 0).num_blocks()
+            0
+        """
+        import numpy.random as nrn
+        from sage.functions.other import binomial
+        m = nrn.binomial(binomial(n, k), p)
+        return hypergraphs.UniformRandomUniform(n, k, m)
+
+
 hypergraphs = HypergraphGenerators()

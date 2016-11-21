@@ -2489,8 +2489,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: (1/b).is_constant()
             False
         """
-        D = self.dict()
-        return not D or len(D) == 1 and all(i == 0 for i in next(iterkeys(D)))
+        return self._mon == ETuple({}, int(self.parent().ngens())) and \
+            self._poly.is_constant()
 
     def _symbolic_(self, R):
         """

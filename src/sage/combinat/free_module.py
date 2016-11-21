@@ -19,15 +19,13 @@ from sage.misc.misc import repr_lincomb
 from sage.modules.module import Module
 from sage.rings.all import Integer
 import sage.structure.element
-from sage.combinat.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.combinat.cartesian_product import CartesianProduct_iters
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.all import Category, Sets, ModulesWithBasis
-from sage.combinat.dict_addition import (dict_addition, dict_add, dict_negate,
-                                         dict_linear_combination)
+import sage.combinat.dict_addition as blas
 from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
@@ -480,7 +478,7 @@ class CombinatorialFreeModuleElement(Element):
             1
         """
         F = self.parent()
-        return F._from_dict(dict_add(self._monomial_coefficients,
+        return F._from_dict(blas.add(self._monomial_coefficients,
                                      other._monomial_coefficients),
                             remove_zeros=False)
 
@@ -501,7 +499,7 @@ class CombinatorialFreeModuleElement(Element):
             -s[2, 1]
         """
         F = self.parent()
-        return F._from_dict(dict_negate(self._monomial_coefficients),
+        return F._from_dict(blas.negate(self._monomial_coefficients),
                             remove_zeros=False)
 
     def _sub_(self, other):
@@ -520,9 +518,9 @@ class CombinatorialFreeModuleElement(Element):
             s[2, 1] - s[5, 4]
         """
         F = self.parent()
-        return F._from_dict(dict_add(self._monomial_coefficients,
-                                     other._monomial_coefficients,
-                                     negative=True),
+        return F._from_dict(blas.axpy(other._monomial_coefficients,
+                                      self._monomial_coefficients,
+                                      -1),
                             remove_zeros=False)
 
     def _coefficient_fast(self, m):
@@ -703,12 +701,8 @@ class CombinatorialFreeModuleElement(Element):
 
         F = self.parent()
         D = self._monomial_coefficients
-        if self_on_left:
-            D = dict_linear_combination( [ ( D, scalar ) ], factor_on_left = False )
-        else:
-            D = dict_linear_combination( [ ( D, scalar ) ] )
-
-        return F._from_dict( D, remove_zeros=False )
+        return F._from_dict(blas.scal(scalar, D, factor_on_left=not self_on_left),
+                            remove_zeros=False)
 
     # For backward compatibility
     _lmul_ = _acted_upon_
@@ -740,9 +734,8 @@ class CombinatorialFreeModuleElement(Element):
         x = self.base_ring()( x )
         x_inv = x**-1
         D = self._monomial_coefficients
-        D = dict_linear_combination( [ ( D, x_inv ) ] )
-
-        return F._from_dict( D, remove_zeros=False )
+        return F._from_dict(blas.scal(x_inv, D),
+                            remove_zeros=False)
 
     __div__ = __truediv__
 
@@ -1554,7 +1547,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F.sum( f for _ in range(5) )
             10*B[1] + 10*B[2]
         """
-        D = dict_addition(element._monomial_coefficients for element in iter_of_elements)
+        D = blas.sum(element._monomial_coefficients for element in iter_of_elements)
         return self._from_dict(D, remove_zeros=False)
 
     def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
@@ -1581,7 +1574,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F.linear_combination( (f,i) for i in range(5) )
             20*B[1] + 20*B[2]
         """
-        return self._from_dict(dict_linear_combination( ((element._monomial_coefficients, coeff)
+        return self._from_dict(blas.linear_combination( ((element._monomial_coefficients, coeff)
                                                         for element, coeff in iter_of_elements_coeff),
                                                         factor_on_left=factor_on_left ),
                                remove_zeros=False)

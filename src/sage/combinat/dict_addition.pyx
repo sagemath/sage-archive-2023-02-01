@@ -1,21 +1,234 @@
 r"""
-Linear arithmetic on dictionaries
+Basic Linear Algebra Subroutines on dictionaries
 
-Provides low-level functions for linear arithmetic of dictionaries
-with values in a common ring. Specifically this is used by
-:class:`CombinatorialFreeModule`.
+This module provides functions for "level 1 basic linear algebra
+subroutines" on sparse vectors represented as dictionaries. The API is
+inspired from the standard BLAS API
+:wikipedia:`Basic_Linear_Algebra_Subprograms`, but does not try to
+follow it exactly.
+
+For a,b,... hashable objects, the dictionary ``{a: 2, b:3, ...}``
+represents the formal linear combination `2.a + 3.b + \cdots`.  The
+values of the dictionary should all lie in the same parent `K`. For
+simplicity, we call this formal linear combination a vector, as the
+typical use case is `K` being a field. However the routines here can
+be used with a ring `K` to represent free module elements, or a
+semiring like `\NN` to represent elements of a commutative monoid, or
+even just an additive semigroup. Of course not all operations are
+meaningful in those cases.
+
+Unless stated overwise, all values `v` in the dictionaries should be
+non zero (as tested with `bool(v)`).
+
+This is mostly used by :class:`CombinatorialFreeModule`.
 """
-
 #*****************************************************************************
-#       Copyright (C) 2010 Christian Stump christian.stump@univie.ac.at
+#       Copyright (C) 2010 Christian Stump <christian.stump@univie.ac.at>
+#                     2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#                     2016 Nicolas M. Thiéry <nthiery at users.sf.net>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecated_function_alias
 from cpython cimport PyDict_Copy
 
-cpdef dict dict_addition(dict_iter):
+cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True):
+    r"""
+    Mutate `Y` to represent `a X + Y`.
+
+    INPUT:
+
+    - ``a`` -- element of a parent `K` or `±1`
+    - ``X,Y`` -- dictionaries representing a vector `X` over `K`
+    - ``remove_zeros`` -- boolean (default: ``True``): whether to
+      remove the zeros after the addition has been performed
+    - ``factor_on_left`` -- boolean (default: ``False``):
+      whether to compute `a X + Y` or `X a + Y`
+
+    OUTPUT:
+
+    None: ``Y`` has been mutated to represent the vector `a*X+Y`.
+    If ``remove_zeroes=False``, ``Y`` may contain zero values.
+
+    The parent `K` should support addition unless `a=-1`, negation if
+    `a=-1`, and multiplication if `a\ne ±1`.
+
+    See :mod:`sage.combinat.dict_addition` for an overview.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.dict_addition as blas
+        sage: X = {0: -1, 1: 1}
+        sage: Y = {0: 1, 1: 1}
+
+    Computing `X+Y`::
+
+        sage: blas.iaxpy(1, X, Y)
+        sage: Y
+        {1: 2}
+
+    Reseting `Y` and computing `-X+Y`::
+
+        sage: Y = {0: 1, 1: 1}
+        sage: blas.iaxpy(-1, X, Y)
+        sage: Y
+        {0: 2}
+
+    Reseting `Y` and computing `2X+Y`::
+
+        sage: Y = {0: 1, 1: 1}
+        sage: blas.iaxpy(2, X, Y)
+        sage: Y
+        {0: -1, 1: 3}
+
+    Reseting `Y` and computing `-X+Y` without removing zeros::
+
+        sage: Y = {0: 1, 1: 1}
+        sage: blas.iaxpy(-1, X, Y, remove_zeros=False)
+        sage: Y
+        {0: 2, 1: 0}
+    """
+    cdef int flag = 0
+    if a == 1:
+        flag = 1
+    elif a == -1:
+        flag = -1
+    elif not a:
+        return
+    for (key, value) in X.iteritems():
+        if key in Y:
+            if flag == 1:
+                Y[key] += value
+            elif flag == -1:
+                Y[key] -= value
+            else:
+                # We may want to assume that `a` is in the base ring
+                # and use a._mul_(value)
+                if factor_on_left:
+                    Y[key] += a*value
+                else:
+                    Y[key] += value*a
+        elif value:
+            if flag == 1:
+                Y[key]  = value
+                continue
+            elif flag == -1:
+                Y[key]  = -value
+                continue
+            else:
+                if factor_on_left:
+                    Y[key] = a*value
+                else:
+                    Y[key] = value*a
+        else:
+            continue
+        if remove_zeros and not Y[key]:
+            del Y[key]
+
+cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
+    """
+    Return `a X + Y`.
+
+    All input dictionaries are supposed to have values in the same
+    base ring `K` and have no nonzero values.
+
+    INPUT:
+
+    - ``a`` -- an element of `K` or `±1`
+    - ``X``, ``Y`` -- dictionaries representing respectively vectors `X` and `Y`
+    - ``factor_on_left`` -- boolean (default: ``False``):
+      whether to compute `a X + Y` or `X a + Y`
+
+    EXAMPLES::
+
+        sage: import sage.combinat.dict_addition as blas
+        sage: Y = {0: 1, 1: 1}
+        sage: X = {0: -1, 1: 1}
+
+    Computing `X+Y`::
+
+        sage: blas.axpy(1, X, Y)
+        {1: 2}
+
+    Computing `-X+Y`::
+
+        sage: blas.axpy(-1, X, Y)
+        {0: 2}
+
+    Computing `2X+Y`::
+
+        sage: blas.axpy(2, X, Y)
+        {0: -1, 1: 3}
+    """
+    if Y:
+        Y = PyDict_Copy(Y)
+    iaxpy(a, X, Y, True, factor_on_left)
+    return Y
+
+cpdef dict negate(dict D):
+    r"""
+    Return a dictionary representing the vector `-X`.
+
+    INPUT:
+
+    - ``X`` -- a dictionary representing a vector `X`
+
+    EXAMPLES::
+
+        sage: import sage.combinat.dict_addition as blas
+        sage: D1 = {0: 1, 1: 1}
+        sage: blas.negate(D1)
+        {0: -1, 1: -1}
+    """
+    return {key:-value for key,value in D.iteritems()}
+
+cpdef dict scal(a, dict D, bint factor_on_left=True):
+    r"""
+    Return a dictionary representing the vector `a*X`.
+
+    INPUT:
+
+    - ``a`` -- an element of the base ring `K`
+    - ``X`` -- a dictionary representing a vector `X`
+
+
+    """
+    # We could use a dict comprehensions like for negate, but care
+    # needs to be taken to remove products that cancel out.
+    # So for now we just delegate to axpy.
+    return axpy(a, D, {}, factor_on_left=factor_on_left)
+
+cpdef dict add(dict D, dict D2):
+    r"""
+    Return the pointwise addition of dictionaries ``D`` and ``D2``.
+
+    INPUT:
+
+    - ``D``, ``D2`` -- dictionaries whose values are in a common ring
+      and all values are non-zero
+    - ``negative`` -- boolean (default: ``False``); add the negative of ``D2``
+
+    EXAMPLES::
+
+        sage: import sage.combinat.dict_addition as blas
+        sage: D1 = {0: 1, 1: 1}
+        sage: D2 = {0: -1, 1: 1}
+        sage: blas.add(D1, D2)
+        {1: 2}
+        sage: D1
+        {0: 1, 1: 1}
+    """
+    # Optimization: swap the two dicts to ensure D is the largest
+    if len(D) < len(D2):
+        D, D2 = D2, D
+    return axpy(1, D2, D)
+
+cpdef dict sum(dict_iter):
     r"""
     Return the pointwise addition of dictionaries with coefficients.
 
@@ -32,127 +245,35 @@ cpdef dict dict_addition(dict_iter):
 
     EXAMPLES::
 
-        sage: from sage.combinat.dict_addition import dict_addition
+        sage: import sage.combinat.dict_addition as blas
         sage: D = {0: 1, 1: 1}; D
         {0: 1, 1: 1}
-        sage: dict_addition(D for x in range(5))
+        sage: blas.sum(D for x in range(5))
         {0: 5, 1: 5}
 
         sage: D1 = {0: 1, 1: 1}; D2 = {0: -1, 1: 1}
-        sage: dict_addition([D1, D2])
+        sage: blas.sum([D1, D2])
+        {1: 2}
+
+        sage: blas.sum([{}, {}, D1, D2, {}])
         {1: 2}
     """
-    cdef dict D, D_tmp
+    cdef dict result = {}
+    cdef D
     cdef list for_removal
 
-    D = {}
-    for D_tmp in dict_iter:
-        if D:
-            dict_iadd(D, D_tmp, remove_zeros=False)
-        else:
-            D = PyDict_Copy(D_tmp)
+    for D in dict_iter:
+        if result:
+            iaxpy(1, D, result, remove_zeros=False)
+        elif D:
+            result = PyDict_Copy(D)
 
-    for_removal = [key for key in D if not D[key]]
+    for_removal = [key for key in result if not result[key]]
     for key in for_removal:
-        del D[key]
-    return D
+        del result[key]
+    return result
 
-cpdef dict_iadd(dict D, dict D2, bint remove_zeros=True, bint negative=False):
-    r"""
-    Return the inplace pointwise addition of dictionaries ``D`` and ``D2``.
-
-    INPUT:
-
-    - ``D`` -- dictionary that gets mutated whose values are all non-zero
-    - ``D2`` -- dictionary whose values are in the same ring as ``D`` and
-      are all non-zero
-    - ``remove_zeros`` -- boolean; remove the zeros after the addition
-      has been performed
-    - ``negative`` -- boolean (default: ``False``); add the negative of ``D2``
-
-    OUTPUT:
-
-    None; ``D`` has been mutated.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.dict_addition import dict_iadd
-        sage: D1 = {0: 1, 1: 1}
-        sage: D2 = {0: -1, 1: 1}
-        sage: dict_iadd(D1, D2)
-        sage: D1
-        {1: 2}
-
-    ::
-
-        sage: D1 = {0: 1, 1: 1}
-        sage: D2 = {0: -1, 1: 1}
-        sage: dict_iadd(D1, D2, negative=True)
-        sage: D1 = {1: 1}
-
-    ::
-
-        sage: D1 = {0: 1, 1: 1}
-        sage: D2 = {0: -1, 1: 1}
-        sage: dict_iadd(D1, D2, remove_zeros=False, negative=True)
-        sage: D1 = {0: 0, 1: 1}
-    """
-    for key in D2:
-        value = D2[key]
-        if key in D:
-            if negative:
-                D[key] -= value
-            else:
-                D[key] += value
-            if remove_zeros and not D[key]:
-                del D[key]
-        elif value:
-            if negative:
-                D[key]  = -value
-            else:
-                D[key]  = value
-
-cpdef dict dict_add(dict D, dict D2, bint negative=False):
-    r"""
-    Return the pointwise addition of dictionaries ``D`` and ``D2``.
-
-    INPUT:
-
-    - ``D``, ``D2`` -- dictionaries whose values are in a common ring
-      and all values are non-zero
-    - ``negative`` -- boolean (default: ``False``); add the negative of ``D2``
-
-    EXAMPLES::
-
-        sage: from sage.combinat.dict_addition import dict_add
-        sage: D1 = {0: 1, 1: 1}
-        sage: D2 = {0: -1, 1: 1}
-        sage: dict_add(D1, D2)
-        {1: 2}
-        sage: D1
-        {0: 1, 1: 1}
-    """
-    # Copy the larger dict and check over the smaller one if adding
-    if not negative and len(D) < len(D2):
-        D, D2 = D2, D
-    cdef dict ret = PyDict_Copy(D)
-    dict_iadd(ret, D2, negative=negative)
-    return ret
-
-cpdef dict dict_negate(dict D):
-    r"""
-    Return the negation of the dictionary ``D``.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.dict_addition import dict_negate
-        sage: D1 = {0: 1, 1: 1}
-        sage: dict_negate(D1)
-        {0: -1, 1: -1}
-    """
-    return {key: -D[key] for key in D}
-
-cpdef dict dict_linear_combination(dict_factor_iter, bint factor_on_left=True):
+cpdef dict linear_combination(dict_factor_iter, bint factor_on_left=True):
     r"""
     Return the pointwise addition of dictionaries with coefficients.
 
@@ -176,46 +297,31 @@ cpdef dict dict_linear_combination(dict_factor_iter, bint factor_on_left=True):
 
     EXAMPLES::
 
-        sage: from sage.combinat.dict_addition import dict_linear_combination
+        sage: import sage.combinat.dict_addition as blas
         sage: D = { 0:1, 1:1 }; D
         {0: 1, 1: 1}
-        sage: dict_linear_combination( (D,i) for i in range(5) )
+        sage: blas.linear_combination( (D,i) for i in range(5) )
         {0: 10, 1: 10}
-        sage: dict_linear_combination( [(D,1), (D,-1)] )
+        sage: blas.linear_combination( [(D,1), (D,-1)] )
         {}
     """
-    cdef dict D = {}
-    cdef dict D_tmp
+    cdef dict result = {}
+    cdef dict D
     cdef list for_removal
 
-    for D_tmp, fac_tmp in dict_factor_iter:
-        if not fac_tmp: # We multiply by 0, so nothing to do
+    for D, a in dict_factor_iter:
+        if not a: # We multiply by 0, so nothing to do
             continue
-        if not D and fac_tmp == 1:
-            D = PyDict_Copy(D_tmp)
-        elif fac_tmp == 1:
-            dict_iadd(D, D_tmp, remove_zeros=False)
-        elif fac_tmp == -1:
-            dict_iadd(D, D_tmp, remove_zeros=False, negative=True)
+        if not result and a == 1:
+            result = PyDict_Copy(D)
         else:
-            if factor_on_left:
-                for key in D_tmp:
-                    value = D_tmp[key]
-                    if key in D:
-                        D[key] += fac_tmp * value
-                    else:
-                        D[key]  = fac_tmp * value
-            else:
-                for key in D_tmp:
-                    value = D_tmp[key]
-                    if key in D:
-                        D[key] += value * fac_tmp
-                    else:
-                        D[key]  = value * fac_tmp
+            iaxpy(a, D, result, remove_zeros=False)
 
-    for_removal = [key for key in D if not D[key]]
+    for_removal = [key for key in result if not result[key]]
     for key in for_removal:
-        del D[key]
+        del result[key]
 
-    return D
+    return result
 
+dict_addition = deprecated_function_alias(20680, sum)
+dict_linear_combination = deprecated_function_alias(20680, linear_combination)

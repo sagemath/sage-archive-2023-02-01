@@ -140,7 +140,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = cartesian_product([range(5), range(5)])
+            sage: C = cartesian_product([list(range(5)), list(range(5))])
             sage: (1, 1) in C
             True
             sage: (1, 6) in C

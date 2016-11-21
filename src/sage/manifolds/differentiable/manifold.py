@@ -234,6 +234,15 @@ Vector fields act on scalar fields::
     sage: w(f) == f.differential()(w)
     True
 
+The value of the vector field at point `p` is a vector tangent to the sphere::
+
+    sage: w.at(p)
+    Tangent vector w at Point p on the 2-dimensional differentiable manifold S^2
+    sage: w.at(p).display()
+    w = d/dx + 2 d/dy
+    sage: w.at(p).parent()
+    Tangent space at Point p on the 2-dimensional differentiable manifold S^2
+
 A 1-form on the sphere::
 
     sage: df = f.differential() ; df
@@ -247,6 +256,18 @@ A 1-form on the sphere::
     sage: df.parent().category()
     Category of modules over Algebra of differentiable scalar fields on the
      2-dimensional differentiable manifold S^2
+
+The value of the 1-form at point `p` is a linear form on the tangent space
+at `p`::
+
+    sage: df.at(p)
+    Linear form df on the Tangent space at Point p on the 2-dimensional
+     differentiable manifold S^2
+    sage: df.at(p).display()
+    df = 1/13 dx + 2/13 dy
+    sage: df.at(p).parent()
+    Dual of the Tangent space at Point p on the 2-dimensional differentiable
+     manifold S^2
 
 
 .. RUBRIC:: Example 2: the Riemann sphere as a differentiable manifold of
@@ -379,6 +400,16 @@ Since `f` is constant, `v(f)` is vanishing::
     on U: z |--> 0
     on V: w |--> 0
 
+The value of the vector field `v` at the point `\infty` is a vector tangent to
+the Riemann sphere::
+
+    sage: v.at(inf)
+    Tangent vector v at Point inf on the 1-dimensional complex manifold C*
+    sage: v.at(inf).display()
+    v = -d/dw
+    sage: v.at(inf).parent()
+    Tangent space at Point inf on the 1-dimensional complex manifold C*
+
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
@@ -410,7 +441,7 @@ from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
-from sage.rings.infinity import infinity
+from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopologicalManifold
@@ -2392,4 +2423,149 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         return bool(self._covering_frames)
+
+    def tangent_space(self, point):
+        r"""
+        Tangent space to ``self`` at a given point.
+
+        INPUT:
+
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` on the manifold
+
+        OUTPUT:
+
+        - :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`
+          representing the tangent vector space `T_{p} M`, where `M` is the
+          current manifold
+
+        EXAMPLES:
+
+        A tangent space to a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M.point((2, -3), name='p')
+            sage: Tp = M.tangent_space(p); Tp
+            Tangent space at Point p on the 2-dimensional differentiable
+             manifold M
+            sage: Tp.category()
+            Category of finite dimensional vector spaces over Symbolic Ring
+            sage: dim(Tp)
+            2
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`
+            for more examples.
+
+        """
+        from sage.manifolds.point import ManifoldPoint
+        from sage.manifolds.differentiable.tangent_space import TangentSpace
+        if not isinstance(point, ManifoldPoint):
+            raise TypeError("{} is not a manifold point".format(point))
+        if point not in self:
+            raise ValueError("{} is not a point on the {}".format(point, self))
+        return TangentSpace(point)
+
+    def curve(self, coord_expression, param, chart=None,
+              name=None, latex_name=None):
+        r"""
+        Define a differentiable curve in the manifold.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+            for details.
+
+        INPUT:
+
+        - ``coord_expression`` -- either
+
+          - (i) a dictionary whose keys are charts on the manifold and values
+            the coordinate expressions (as lists or tuples) of the curve in
+            the given chart
+          - (ii) a single coordinate expression in a given chart on the
+            manifold, the latter being provided by the argument ``chart``
+
+          in both cases, if the dimension of the manifold is 1, a single
+          coordinate expression can be passed instead of a tuple with
+          a single element
+        - ``param`` -- a tuple of the type ``(t, t_min, t_max)``, where
+
+          * ``t`` is the curve parameter used in ``coord_expression``;
+          * ``t_min`` is its minimal value;
+          * ``t_max`` its maximal value;
+
+          if ``t_min=-Infinity`` and ``t_max=+Infinity``, they can be
+          omitted and ``t`` can be passed for ``param`` instead of the
+          tuple ``(t, t_min, t_max)``
+        - ``chart`` -- (default: ``None``) chart on the manifold used for
+          case (ii) above; if ``None`` the default chart of the manifold is
+          assumed
+        - ``name`` -- (default: ``None``) string; symbol given to the curve
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+          the curve; if none is provided, ``name`` will be used
+
+        OUTPUT:
+
+        - :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+
+        EXAMPLES:
+
+        The lemniscate of Gerono in the 2-dimensional Euclidean plane::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: R.<t> = RealLine()
+            sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c') ; c
+            Curve c in the 2-dimensional differentiable manifold M
+
+        The same definition with the coordinate expression passed as a
+        dictionary::
+
+            sage: c = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi), name='c') ; c
+            Curve c in the 2-dimensional differentiable manifold M
+
+        An example of definition with ``t_min`` and ``t_max`` omitted: a helix
+        in `\RR^3`::
+
+            sage: R3 = Manifold(3, 'R^3')
+            sage: X.<x,y,z> = R3.chart()
+            sage: c = R3.curve([cos(t), sin(t), t], t, name='c') ; c
+            Curve c in the 3-dimensional differentiable manifold R^3
+            sage: c.domain() # check that t is unbounded
+            Real number line R
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+            for more examples, including plots.
+
+        """
+        from sage.manifolds.differentiable.real_line import RealLine
+        if not isinstance(param, (tuple, list)):
+            param = (param, minus_infinity, infinity)
+        elif len(param) != 3:
+            raise ValueError("the argument 'param' must be of the form " +
+                             "(t, t_min, t_max)")
+        t = param[0]
+        t_min = param[1]
+        t_max = param[2]
+        real_field = RealLine(names=(repr(t),))
+        interval = real_field.open_interval(t_min, t_max)
+        curve_set = Hom(interval, self)
+        if not isinstance(coord_expression, dict):
+            # Turn coord_expression into a dictionary:
+            if chart is None:
+                chart = self._def_chart
+            elif chart not in self._atlas:
+                raise ValueError("the {} has not been ".format(chart) +
+                                 "defined on the {}".format(self))
+            if isinstance(coord_expression, (tuple, list)):
+                coord_expression = {chart: coord_expression}
+            else:
+                # case self.dim()=1
+                coord_expression = {chart: (coord_expression,)}
+        return curve_set(coord_expression, name=name, latex_name=latex_name)
 

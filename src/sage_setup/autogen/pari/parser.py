@@ -33,9 +33,9 @@ def sage_src_pari():
 
         sage: from sage_setup.autogen.pari.parser import sage_src_pari
         sage: sage_src_pari()
-        'sage/libs/pari'
+        'sage/libs/cypari2'
     """
-    return os.path.join('sage', 'libs', 'pari')
+    return os.path.join('sage', 'libs', 'cypari2')
 
 def pari_share():
     r"""

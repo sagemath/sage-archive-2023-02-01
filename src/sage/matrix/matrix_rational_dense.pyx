@@ -51,7 +51,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
@@ -85,11 +84,11 @@ from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
 # PARI C library
-from sage.libs.pari.gen cimport gen
+from sage.libs.cypari2.gen cimport gen
 from sage.libs.pari.convert_gmp cimport (INTFRAC_to_mpq,
            _new_GEN_from_mpq_t_matrix, rational_matrix)
-from sage.libs.pari.stack cimport clear_stack
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.stack cimport clear_stack
+from sage.libs.cypari2.paridecl cimport *
 #########################################################
 
 cdef class Matrix_rational_dense(Matrix_dense):
@@ -172,7 +171,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Rational z
 
         if entries is None: return
-        if isinstance(entries, range):
+        if isinstance(entries, xrange):
             entries = list(entries)
         if isinstance(entries, (list, tuple)):
             if len(entries) != self._nrows * self._ncols:
@@ -647,7 +646,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         OUTPUT: the inverse of self
 
-        .. note::
+        .. NOTE::
 
            - The n x n cases for n <= 2 are handcoded for speed.
 
@@ -763,7 +762,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
              "integer" -- clear denominators and call det on integer matrix
 
-        .. note::
+        .. NOTE::
 
            It would be *VERY VERY* hard for det to fail even with
            proof=False.
@@ -1825,7 +1824,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
            proof=True.
 
 
-        .. note::
+        .. NOTE::
 
            IMPORTANT: If you expect that the subspaces in the answer
            are spanned by vectors with small height coordinates, use
@@ -1885,7 +1884,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         -  ``**kwds`` - passed on to echelon function.
 
-        .. note::
+        .. NOTE::
 
            IMPORTANT: If you expect that the subspaces in the answer are
            spanned by vectors with small height coordinates, use

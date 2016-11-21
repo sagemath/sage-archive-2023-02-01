@@ -7,6 +7,7 @@ Enumerated Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
@@ -138,9 +139,15 @@ class EnumeratedSets(CategoryWithAxiom):
             {1, 2, 3}
             sage: S.category()
             Category of facade finite enumerated sets
+
+        Also Python3 range are now accepted::
+
+            sage: from six.moves import range
+            sage: S = EnumeratedSets()(range(4)); S
+            {0, 1, 2, 3}
         """
         import sage.sets.set
-        if isinstance(X, (tuple, list, set, sage.sets.set.Set_object_enumerated)):
+        if isinstance(X, (tuple, list, set, range, sage.sets.set.Set_object_enumerated)):
             return sage.sets.all.FiniteEnumeratedSet(X)
         raise NotImplementedError
 

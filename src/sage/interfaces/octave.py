@@ -568,7 +568,7 @@ class Octave(Expect):
         same graph (the `t`-axis is the horizontal axis) of the
         system of ODEs
 
-        .. math::
+        .. MATH::
 
                        x' = x+y, x(0) = 1;\qquad y' = x-y, y(0) = -1,                     \quad\text{for}\quad 0 < t < 2.
         """

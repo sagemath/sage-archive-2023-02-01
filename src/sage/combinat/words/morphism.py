@@ -2102,7 +2102,7 @@ class WordMorphism(SageObject):
         noted `\varphi\triangleleft\varphi'`, if there exists
         `u \in \Sigma^*` such that
 
-        .. math::
+        .. MATH::
 
             \varphi(\alpha)u = u\varphi'(\alpha),
 

@@ -226,11 +226,11 @@ def lattice_paths(t1, t2, length=None):
          [('a', 0), ('a', 3), ('b', 3), ('c', 3), ('c', 5)],
          [('a', 0), ('b', 0), ('b', 3), ('c', 3), ('c', 5)],
          [('a', 0), ('b', 0), ('c', 0), ('c', 3), ('c', 5)]]
-        sage: lattice_paths(range(3), range(3), length=2)
+        sage: lattice_paths(list(range(3)), list(range(3)), length=2)
         []
-        sage: lattice_paths(range(3), range(3), length=3)
+        sage: lattice_paths(list(range(3)), list(range(3)), length=3)
         [[(0, 0), (1, 1), (2, 2)]]
-        sage: lattice_paths(range(3), range(3), length=4)
+        sage: lattice_paths(list(range(3)), list(range(3)), length=4)
         [[(0, 0), (1, 1), (1, 2), (2, 2)],
          [(0, 0), (0, 1), (1, 2), (2, 2)],
          [(0, 0), (1, 1), (2, 1), (2, 2)],
@@ -1692,7 +1692,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         - for every two facets `S` and `T`, there is a sequence of
           facets
 
-          .. math::
+          .. MATH::
 
             S = f_0, f_1, ..., f_n = T
 

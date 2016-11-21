@@ -1647,7 +1647,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             roots which fixes the negative simple roots `\alpha_i` for `i`
             not in `J`, and acts otherwise by:
 
-            .. math::
+            .. MATH::
 
                 \tau_+( \beta ) = (\prod_{i \in J} s_i) (\beta)
 
@@ -1734,7 +1734,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             positive roots. Namely, `\tau_+` fixes the negative simple
             roots `\alpha_i` for `i` in `R`, and acts otherwise by:
 
-            .. math::
+            .. MATH::
 
                 \tau_+( \beta ) = (\prod_{i \in L} s_i) (\beta)
 

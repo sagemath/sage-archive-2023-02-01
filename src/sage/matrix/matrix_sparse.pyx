@@ -10,7 +10,6 @@ Base class for sparse matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 cimport cython
 cimport matrix
@@ -812,12 +811,12 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jason Grout: sparse matrix optimizations
         """
-        if isinstance(rows, range):
+        if isinstance(rows, xrange):
             rows = list(rows)
         elif not isinstance(rows, list):
             raise TypeError("rows must be a list of integers")
 
-        if isinstance(columns, range):
+        if isinstance(columns, xrange):
             columns = list(columns)
         elif not isinstance(columns, list):
             raise TypeError("columns must be a list of integers")

@@ -2243,7 +2243,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         +Infinity
 
     Actually, since ``'smooth'`` is the default value of the parameter
-    ``structure``, the creation of a real smooth manifold can be shorten to::
+    ``structure``, the creation of a real smooth manifold can be shortened to::
 
         sage: M = Manifold(3, 'M'); M
         3-dimensional differentiable manifold M

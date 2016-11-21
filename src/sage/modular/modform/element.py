@@ -533,7 +533,7 @@ class ModularForm_abstract(ModuleElement):
         is defined by the following integral over the complex upper
         half-plane, for any `\alpha` in `\Bold{P}^1(\QQ)`:
 
-        .. math::
+        .. MATH::
 
             P_f(M) = 2 \pi i \int_\alpha^{M(\alpha)} f(z) dz.
 
@@ -976,7 +976,7 @@ class ModularForm_abstract(ModuleElement):
         r"""
         Compute the Petersson scalar product of f with itself:
 
-        .. math::
+        .. MATH::
 
             \langle f, f \rangle = \int_{\Gamma_0(N) \backslash \mathbb{H}} |f(x + iy)|^2 y^k\, \mathrm{d}x\, \mathrm{d}y.
 
@@ -984,7 +984,7 @@ class ModularForm_abstract(ModuleElement):
         coefficients. The norm is computed as a special value of the symmetric
         square L-function, using the identity
 
-        .. math::
+        .. MATH::
 
             \langle f, f \rangle = \frac{(k-1)! L(\mathrm{Sym}^2 f, k)}{2^{2k-1} \pi^{k+1}}
 
@@ -1375,14 +1375,14 @@ class Newform(ModularForm_abstract):
         If ``self`` is a newform `f` with character `\epsilon` and
         `q`-expansion
 
-        .. math::
+        .. MATH::
 
             f(q) = \sum_{n=1}^\infty a_n q^n,
 
         then the twist by `\chi` is the unique newform `f\otimes\chi`
         with character `\epsilon\chi^2` and `q`-expansion
 
-        .. math::
+        .. MATH::
 
             (f\otimes\chi)(q) = \sum_{n=1}^\infty b_n q^n
 
@@ -1690,14 +1690,14 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         If ``self`` is a modular form `f` with character `\epsilon`
         and `q`-expansion
 
-        .. math::
+        .. MATH::
 
             f(q) = \sum_{n=0}^\infty a_n q^n,
 
         then the twist by `\chi` is a modular form `f_\chi` with
         character `\epsilon\chi^2` and `q`-expansion
 
-        .. math::
+        .. MATH::
 
             f_\chi(q) = \sum_{n=0}^\infty \chi(n) a_n q^n.
 
@@ -2043,7 +2043,7 @@ class EisensteinSeries(ModularFormElement):
         `\psi` is a primitive character of conductor `M` We have
         `MLt \mid N`, and
 
-        .. math::
+        .. MATH::
 
           E_k(chi,psi,t) =
            c_0 + sum_{m \geq 1}[sum_{n|m} psi(n) * chi(m/n) * n^(k-1)] q^{mt},

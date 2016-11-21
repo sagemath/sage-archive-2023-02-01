@@ -230,7 +230,7 @@ cdef class ClonableElement(Element):
         ....:      def set_x(self, v): self._require_mutable(); self._x = v
         ....:      def set_y(self, v): self._require_mutable(); self._y = v
 
-    .. note:: we don't need to define ``__copy__`` since it is properly
+    .. NOTE:: we don't need to define ``__copy__`` since it is properly
        inherited from :class:`Element<sage.structure.element.Element>`.
 
     We now demonstrate the behavior. Let's create an ``IntPair``::
@@ -453,7 +453,7 @@ cdef class ClonableElement(Element):
         """
         Implement the self guarding clone protocol.
 
-        .. note:: The input argument are required by the ``with`` protocol but
+        .. NOTE:: The input argument are required by the ``with`` protocol but
            are ignored.
 
         TESTS::

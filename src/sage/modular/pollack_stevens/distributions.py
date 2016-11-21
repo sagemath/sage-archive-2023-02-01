@@ -12,7 +12,7 @@ EXAMPLES::
     sage: from sage.modular.pollack_stevens.distributions import Symk
     sage: S = Symk(6); S
     Sym^6 Q^2
-    sage: v = S(range(7)); v
+    sage: v = S(list(range(7))); v
     (0, 1, 2, 3, 4, 5, 6)
     sage: v.act_right([1,2,3,4])
     (18432, 27136, 39936, 58752, 86400, 127008, 186624)

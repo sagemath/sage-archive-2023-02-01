@@ -1185,7 +1185,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
          -- (matrix) The matrix of the operator
 
-        .. math::
+        .. MATH::
 
                             x \mapsto \sum_{g in R} g.x,
 
@@ -2089,7 +2089,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
         (modular symbol) The so-called 'twisted winding element':
 
-        .. math::
+        .. MATH::
 
                 \sum_{a \in (\ZZ/m\ZZ)^\times} \varepsilon(a) * [ i, 0, a/m ].
 
@@ -3552,7 +3552,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         OUTPUT: a matrix, which represents the operator
 
-        .. math::
+        .. MATH::
 
                             x \mapsto \sum_{g in R} g.x
 

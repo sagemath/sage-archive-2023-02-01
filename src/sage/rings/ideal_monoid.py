@@ -1,12 +1,11 @@
 """
 Monoid of ideals in a commutative ring
 """
+from __future__ import absolute_import
 
-from commutative_ring import is_CommutativeRing
-#from sage.structure.parent_base import ParentWithBase
 from sage.structure.parent import Parent
 import sage.rings.integer_ring
-import ideal
+from . import ideal
 from sage.categories.monoids import Monoids
 
 def IdealMonoid(R):

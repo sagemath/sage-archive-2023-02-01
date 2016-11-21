@@ -11,6 +11,7 @@ Using Andries Brouwer's `database of strongly regular graphs
 non-existence results. Note that some constructions are missing, and that some
 strongly regular graphs that exist in the database cannot be automatically built
 by Sage. Help us if you know any.
+An outline of the implementation can be found in [CP16]_.
 
 .. NOTE::
 
@@ -20,7 +21,7 @@ by Sage. Help us if you know any.
 
 REFERENCES:
 
-.. [BvL84] A. Brouwer, J van Lint,
+.. [BvL84] \A. Brouwer, J. van Lint,
    Strongly regular graphs and partial geometries,
    Enumeration and design,
    (Waterloo, Ont., 1982) (1984): 85-122.
@@ -29,6 +30,8 @@ REFERENCES:
 Functions
 ---------
 """
+from __future__ import print_function
+
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.arith.all import is_square, is_prime_power, divisors
@@ -38,7 +41,7 @@ from sage.combinat.designs.bibd import balanced_incomplete_block_design
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt, floor
 from sage.matrix.constructor import Matrix
-from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
 from sage.rings.sum_of_squares cimport two_squares_c
 from libc.stdint cimport uint_fast32_t
@@ -97,7 +100,7 @@ def is_mathon_PC_srg(int v,int k,int l,int mu):
         The current implementation only gives a subset of all possible graphs that can be
         obtained using this construction. A  full implementation should rely on a database
         of conference matrices (or, equivalently, on a database of s.r.g.'s with parameters
-        `(4t+1,2t,t-1,t)`. Currently we make an extra assumtion that `4t+1` is a prime power.
+        `(4t+1,2t,t-1,t)`. Currently we make an extra assumption that `4t+1` is a prime power.
         The first case where we miss a construction is `t=11`, where we could (recursively)
         use the graph for `t=1` to construct a graph on 83205 vertices.
 
@@ -184,7 +187,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
 
     REFERENCE:
 
-    .. [Pa92] D. V. Pasechnik,
+    .. [Pa92] \D. V. Pasechnik,
       Skew-symmetric association schemes with two classes and strongly
       regular graphs of type `L_{2n-1}(4n- 1)`,
       Acta Applicandaie Math. 29(1992), 129-138
@@ -194,7 +197,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
     try:
         m, n = latin_squares_graph_parameters(v,k,l,mu)
-    except:
+    except Exception:
         return
     if orthogonal_array(m,n,existence=True):
         from sage.graphs.generators.intersection import OrthogonalArrayBlockGraph
@@ -460,7 +463,7 @@ def is_goethals_seidel(int v,int k,int l,int mu):
         ....:           (144, 77, 40, 42), (256, 135, 70, 72), (400, 209, 108, 110),
         ....:           (496, 255, 126, 136), (540, 275, 130, 150), (576, 299, 154, 156),
         ....:           (780, 399, 198, 210), (784, 405, 208, 210), (976, 495, 238, 264)]:
-        ....:     print is_goethals_seidel(*p)
+        ....:     print(is_goethals_seidel(*p))
         [<function GoethalsSeidelGraph at ...>, 2, 3]
         [<function GoethalsSeidelGraph at ...>, 3, 3]
         [<function GoethalsSeidelGraph at ...>, 2, 7]
@@ -966,7 +969,7 @@ def is_polhill(int v,int k,int l,int mu):
 
     REFERENCE:
 
-    .. [Polhill09] J. Polhill,
+    .. [Polhill09] \J. Polhill,
        Negative Latin square type partial difference sets and
        amorphic association schemes with Galois rings,
        Journal of Combinatorial Designs 17, no. 3 (2009): 266-282.
@@ -1135,7 +1138,9 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
       guys), you may want to disable it whenever you want speed. Set to ``True``
       by default.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    some graphs ::
 
         sage: from sage.graphs.strongly_regular_db import SRG_from_RSHCD
         sage: SRG_from_RSHCD(784, 0, 14, 38, existence=True)
@@ -1144,6 +1149,16 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
         True
         sage: SRG_from_RSHCD(144, 65, 28, 30)
         Graph on 144 vertices
+
+    an example with vertex-transitive automorphism group, found during the
+    implementation of the case `v=324` ::
+
+        sage: G=SRG_from_RSHCD(324,152,70,72)  # long time
+        sage: a=G.automorphism_group()         # long time
+        sage: a.order()                        # long time
+        2592
+        sage: len(a.orbits())                  # long time
+        1
 
     TESTS::
 
@@ -1443,8 +1458,9 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
                 def la(vv):
                     from sage.combinat.designs.twographs import twograph_descendant
                     g = strongly_regular_graph(vv, k, l - 2*mu + k)
-                    return twograph_descendant(g, g.vertex_iterator().next(), name=True)
-                return(la, v+1)
+                    return twograph_descendant(g, next(g.vertex_iterator()),
+                                               name=True)
+                return(la, v + 1)
     return
 
 @cached_function
@@ -1595,9 +1611,10 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         return None
 
     def switch_OA_srg(c,n):
-        from itertools import izip
+        from builtins import zip
         OA = map(tuple,orthogonal_array(c+1,n,resolvable=True))
-        g = Graph([OA,lambda x,y: any(xx==yy for xx,yy in izip(x,y))],loops=False)
+        g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
+                  loops=False)
         g.add_vertex(0)
         g.seidel_switching(OA[:c*n])
         return g
@@ -1773,9 +1790,9 @@ def _H_3_cayley_graph(L):
     G = FinitelyPresentedGroup(G,rels)
     x,y,z = G.gens()
     H = G.as_permutation_group()
-    L = map(lambda x:map(int,x),L)
-    x,y,z=(H.gen(0),H.gen(1),H.gen(2))
-    L = [H(x**xx*y**yy*z**zz) for xx,yy,zz in L]
+    L = [[int(u) for u in x] for x in L]
+    x, y, z = (H.gen(0), H.gen(1), H.gen(2))
+    L = [H(x**xx*y**yy*z**zz) for xx, yy, zz in L]
     return Graph(H.cayley_graph(generators=L, simple=True))
 
 def SRG_100_44_18_20():
@@ -1794,7 +1811,7 @@ def SRG_100_44_18_20():
 
     REFERENCES:
 
-    .. [JK03] L. K. Jørgensen, M. Klin, M.,
+    .. [JK03] \L. K. Jørgensen, M. Klin, M.,
       Switching of edges in strongly regular graphs.
       I. A family of partial difference sets on 100 vertices,
       Electronic Journal of Combinatorics 10(1), 2003.
@@ -1845,12 +1862,12 @@ def SRG_105_32_4_12():
 
     REFERENCES:
 
-    .. [GS70] J.-M. Goethals and J. J. Seidel,
+    .. [GS70] \J.-M. Goethals and J. J. Seidel,
        Strongly regular graphs derived from combinatorial designs,
        Can. J. Math. 22 (1970) 597-614.
        http://dx.doi.org/10.4153/CJM-1970-067-9
 
-    .. [Co06] K. Coolsaet,
+    .. [Co06] \K. Coolsaet,
        The uniqueness of the strongly regular graph srg(105,32,4,12),
        Bull. Belg. Math. Soc. 12(2006), 707-718.
        http://projecteuclid.org/euclid.bbms/1136902608
@@ -1936,7 +1953,7 @@ def SRG_176_49_12_14():
 
     REFERENCE:
 
-    .. [BrouwerPolarities82] A. Brouwer,
+    .. [BrouwerPolarities82] \A. Brouwer,
        Polarities of G. Higman's symmetric design and a strongly regular graph on 176 vertices,
        Aequationes mathematicae 25, no. 1 (1982): 77-82.
     """
@@ -2001,12 +2018,12 @@ def SRG_210_99_48_45():
 
     REFERENCES:
 
-    .. [KPRWZ10] M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
+    .. [KPRWZ10] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
        Examples of computer experimentation in algebraic combinatorics,
        ARS MATHEMATICA CONTEMPORANEA 3 (2010) 237–258
        http://amc-journal.eu/index.php/amc/article/viewFile/119/118
 
-    .. [COCO] I. A. Faradjev and M. H. Klin,
+    .. [COCO] \I. A. Faradjev and M. H. Klin,
        Computer package for computations with coherent configurations,
        Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219–223;
        code, by I.A.Faradjev (with contributions by A.E.Brouwer, D.V.Pasechnik)
@@ -2057,7 +2074,7 @@ def SRG_243_110_37_60():
 
     REFERENCE:
 
-    .. [GS75] J.M. Goethals, and J. J. Seidel,
+    .. [GS75] \J.M. Goethals, and J. J. Seidel,
        The regular two-graph on 276 vertices,
        Discrete Mathematics 12, no. 2 (1975): 143-158.
        http://dx.doi.org/10.1016/0012-365X(75)90029-1
@@ -2104,7 +2121,7 @@ def SRG_196_91_42_42():
 
     REFERENCE:
 
-    .. [IS06] Y.J. Ionin, S. Shrikhande,
+    .. [IS06] \Y.J. Ionin, S. Shrikhande,
       Combinatorics of symmetric designs.
       Cambridge University Press, 2006.
     """
@@ -2167,7 +2184,7 @@ def SRG_276_140_58_84():
 
     REFERENCE:
 
-    .. [HT96] W. H. Haemers and V. D. Tonchev,
+    .. [HT96] \W. H. Haemers and V. D. Tonchev,
       Spreads in strongly regular graphs,
       Designs, Codes and Cryptography 8 (1996) 145-157.
     """
@@ -2237,7 +2254,7 @@ def SRG_280_117_44_52():
 
     REFERENCE:
 
-    .. [MR85] R. Mathon and A. Rosa,
+    .. [MR85] \R. Mathon and A. Rosa,
        A new strongly regular graph,
        Journal of Combinatorial Theory, Series A 38, no. 1 (1985): 84-86.
        http://dx.doi.org/10.1016/0097-3165(85)90025-1
@@ -2287,7 +2304,7 @@ def strongly_regular_from_two_weight_code(L):
 
     REFERENCES:
 
-    .. [vLintSchrijver81] J. H. van Lint, and A. Schrijver (1981),
+    .. [vLintSchrijver81] \J. H. van Lint, and A. Schrijver (1981),
       Construction of strongly regular graphs, two-weight codes and
       partial geometries by finite fields,
       Combinatorica, 1(1), 63-73.
@@ -2397,12 +2414,12 @@ def strongly_regular_from_two_intersection_set(M):
 
     REFERENCES:
 
-    .. [CDB13] I. Cardinali and B. De Bruyn,
+    .. [CDB13] \I. Cardinali and B. De Bruyn,
       Spin-embeddings, two-intersection sets and two-weight codes,
       Ars Comb. 109 (2013): 309-319.
       https://biblio.ugent.be/publication/4241842/file/4241845.pdf
     """
-    from itertools import product, izip
+    from itertools import product
     K = M.base_ring()
     k = M.ncols()
     g = Graph()
@@ -2524,7 +2541,7 @@ def SRG_630_85_20_10():
     from sage.graphs.generators.intersection import IntersectionGraph
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     hs = HoffmanSingletonGraph()
-    P = range(5)+range(30,35)          # a Petersen in hs
+    P = list(range(5)) + list(range(30, 35))          # a Petersen in hs
     mc = [0, 1, 5, 6, 12, 13, 16, 17, 22, 23, 29, 33, 39, 42, 47]
     assert(hs.subgraph(mc).is_regular(k=0)) # a maximum coclique
     assert(hs.subgraph(P).is_regular(k=3))
@@ -2578,7 +2595,7 @@ def SRG_1288_792_476_504():
 
     REFERENCE:
 
-    .. [BvE92] A. Brouwer and C. Van Eijl,
+    .. [BvE92] \A. Brouwer and C. Van Eijl,
       On the p-Rank of the Adjacency Matrices of Strongly Regular Graphs
       Journal of Algebraic Combinatorics (1992), vol.1, n.4, pp329-346,
       http://dx.doi.org/10.1023/A%3A1022438616684
@@ -2775,7 +2792,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         ....:     if graphs.strongly_regular_graph(*p,existence=True): # not tested
         ....:         try:                                             # not tested
         ....:             _ = graphs.strongly_regular_graph(*p)        # not tested
-        ....:             print p,"built successfully"                 # not tested
+        ....:             print(p, "built successfully")               # not tested
         ....:         except RuntimeError as e:                        # not tested
         ....:             if 'Brouwer' not in str(e):                  # not tested
         ....:                 raise                                    # not tested
@@ -3008,7 +3025,7 @@ def _build_small_srg_database():
 
     REFERENCES:
 
-    .. [CK86] R. Calderbank, W.M. Kantor,
+    .. [CK86] \R. Calderbank, W.M. Kantor,
       The geometry of two-weight codes,
       Bull. London Math. Soc. 18(1986) 97-122
     """
@@ -3020,6 +3037,7 @@ def _build_small_srg_database():
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     from sage.graphs.generators.smallgraphs import SchlaefliGraph
     from sage.graphs.generators.smallgraphs import HigmanSimsGraph
+    from sage.graphs.generators.smallgraphs import IoninKharaghani765Graph
     from sage.graphs.generators.smallgraphs import JankoKharaghaniGraph
     from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
     from sage.graphs.generators.smallgraphs import SuzukiGraph
@@ -3059,6 +3077,7 @@ def _build_small_srg_database():
         (416, 100,  36, 20): [SRG_416_100_36_20],
         (560, 208,  72, 80): [SRG_560_208_72_80],
         (630,  85,  20, 10): [SRG_630_85_20_10],
+        (765, 192,  48, 48): [IoninKharaghani765Graph],
         (784, 243,  82, 72): [MathonStronglyRegularGraph, 0],
         (784, 270, 98, 90):  [MathonStronglyRegularGraph, 1],
         (784, 297, 116, 110):[MathonStronglyRegularGraph, 2],
@@ -3119,12 +3138,12 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (196  60   14   20  ) that exists. Comment from Brouwer's database: pg(6,9,2)?
+        Sage cannot build a (196  60   14   20  ) that exists. Comment ...
         ...
         In Andries Brouwer's database:
-        - 452 impossible entries
-        - 2936 undecided entries
-        - 1150 realizable entries (Sage misses ... of them)
+        - 462 impossible entries
+        - 2916 undecided entries
+        - 1160 realizable entries (Sage misses ... of them)
 
     """
     global _brouwer_database
@@ -3153,11 +3172,11 @@ def _check_database():
         sage_answer = strongly_regular_graph(*params,existence=True)
         if dic['status'] == 'open':
             if sage_answer:
-                print "Sage can build a {}, Brouwer's database cannot".format(params)
+                print("Sage can build a {}, Brouwer's database cannot".format(params))
             assert sage_answer is not False
         elif dic['status'] == 'exists':
             if sage_answer is not True:
-                print (("Sage cannot build a ({:<4} {:<4} {:<4} {:<4}) that exists. "+
+                print(("Sage cannot build a ({:<4} {:<4} {:<4} {:<4}) that exists. "+
                        "Comment from Brouwer's database: ").format(*params)
                        +dic['comments'].encode('ascii','ignore'))
                 missed += 1
@@ -3168,10 +3187,10 @@ def _check_database():
             assert False # must not happen
 
     status = [x['status'] for x in saved_database.values()]
-    print "\nIn Andries Brouwer's database:"
-    print "- {} impossible entries".format(status.count('impossible'))
-    print "- {} undecided entries".format(status.count('open'))
-    print "- {} realizable entries (Sage misses {} of them)".format(status.count('exists'),missed)
+    print("\nIn Andries Brouwer's database:")
+    print("- {} impossible entries".format(status.count('impossible')))
+    print("- {} undecided entries".format(status.count('open')))
+    print("- {} realizable entries (Sage misses {} of them)".format(status.count('exists'), missed))
 
     # Reassign its value to the global database
     _brouwer_database = saved_database

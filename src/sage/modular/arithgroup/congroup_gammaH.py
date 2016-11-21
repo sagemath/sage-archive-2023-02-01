@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Congruence Subgroup `\Gamma_H(N)`
 
@@ -6,6 +7,7 @@ AUTHORS:
 - Jordi Quer
 - David Loeffler
 """
+from __future__ import absolute_import
 
 ################################################################################
 #
@@ -18,10 +20,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ################################################################################
+from six.moves import range
 
 from sage.arith.all import euler_phi, lcm, gcd, divisors, get_inverse_mod, get_gcd, factor
 from sage.modular.modsym.p1list import lift_to_sl2z
-from congroup_generic import CongruenceSubgroup
+from .congroup_generic import CongruenceSubgroup
 from sage.modular.cusps import Cusp
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
@@ -63,7 +66,7 @@ def GammaH_constructor(level, H):
         ...
         ArithmeticError: The generators [10] must be units modulo 14
     """
-    from all import Gamma0, Gamma1, SL2Z
+    from .all import Gamma0, Gamma1, SL2Z
     if level == 1:
         return SL2Z
     elif H == 0:
@@ -471,7 +474,7 @@ class GammaH_class(CongruenceSubgroup):
             return self.farey_symbol().generators()
         elif algorithm=="todd-coxeter":
             from sage.modular.modsym.ghlist import GHlist
-            from congroup import generators_helper
+            from .congroup import generators_helper
             level = self.level()
             gen_list = generators_helper(GHlist(self), level)
             return [self(g, check=False) for g in gen_list]
@@ -675,7 +678,7 @@ class GammaH_class(CongruenceSubgroup):
             sage: len(v)
             361
 
-        This demonstrates the problem underlying trac \#1220::
+        This demonstrates the problem underlying :trac:`1220`::
 
             sage: G = GammaH(99, [67])
             sage: G._reduce_coset(11,-3)
@@ -714,13 +717,13 @@ class GammaH_class(CongruenceSubgroup):
         Two cusps `u_1/v_1` and `u_2/v_2` are equivalent modulo `\Gamma_H(N)`
         if and only if
 
-        .. math::
+        .. MATH::
 
             v_1 =  h v_2 \bmod N\quad \text{and}\quad u_1 =  h^{-1} u_2 \bmod {\rm gcd}(v_1,N)
 
         or
 
-        .. math::
+        .. MATH::
 
             v_1 = -h v_2 \bmod N\quad \text{and}\quad u_1 = -h^{-1} u_2 \bmod {\rm gcd}(v_1,N)
 
@@ -905,10 +908,10 @@ class GammaH_class(CongruenceSubgroup):
         hashes = []
         N = self.level()
 
-        for d in xrange(1, 1+N):
+        for d in range(1, 1+N):
             w = N.gcd(d)
             M = int(w) if w > 1 else 2
-            for a in xrange(1,M):
+            for a in range(1,M):
                 if gcd(a, w) != 1:
                     continue
                 while gcd(a, d) != 1:
@@ -961,7 +964,7 @@ class GammaH_class(CongruenceSubgroup):
             [108 145], [108 149], [108 151], [108 155], [108 157], [108 161]
             ]
         """
-        from all import SL2Z
+        from .all import SL2Z
         N = self.level()
         return [SL2Z(lift_to_sl2z(0, d.lift(), N)) for d in _GammaH_coset_helper(N, self._list_of_elements_in_H())]
 
@@ -979,7 +982,7 @@ class GammaH_class(CongruenceSubgroup):
             sage: len(list(Gamma1(31).coset_reps())) == 31**2 - 1
             True
         """
-        from all import Gamma0, SL2Z
+        from .all import Gamma0, SL2Z
         reps1 = Gamma0(self.level()).coset_reps()
         for r in reps1:
             reps2 = self.gamma0_coset_reps()
@@ -1008,7 +1011,7 @@ class GammaH_class(CongruenceSubgroup):
             True
         """
 
-        from all import is_Gamma0, is_Gamma1
+        from .all import is_Gamma0, is_Gamma1
         if not isinstance(other, GammaH_class):
             raise NotImplementedError
 
@@ -1041,7 +1044,7 @@ class GammaH_class(CongruenceSubgroup):
             sage: [G.index() for G in Gamma0(40).gamma_h_subgroups()]
             [72, 144, 144, 144, 144, 288, 288, 288, 288, 144, 288, 288, 576, 576, 144, 288, 288, 576, 576, 144, 288, 288, 576, 576, 288, 576, 1152]
         """
-        from all import Gamma1
+        from .all import Gamma1
         return Gamma1(self.level()).index() / len(self._list_of_elements_in_H())
 
     def nu2(self):
@@ -1279,7 +1282,7 @@ def _GammaH_coset_helper(N, H):
     HH = [Zmod(N)(h) for h in H]
     k = euler_phi(N)
 
-    for i in xrange(1, N):
+    for i in range(1, N):
         if gcd(i, N) != 1: continue
         if not i in W:
             t.append(t[0]*i)
@@ -1293,7 +1296,7 @@ def mumu(N):
     `(-2)^v` where `v` is the number of primes that
     exactly divide `N`.
 
-    This is similar to the Moebius function.
+    This is similar to the Möbius function.
 
     INPUT:
 

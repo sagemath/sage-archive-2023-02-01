@@ -294,7 +294,7 @@ class MSymbol(SageObject):
         INPUT:
 
         - ``n`` -- integer (0 or 1, since the list defined by an M-symbol has
-        length 2)
+          length 2)
 
         EXAMPLES::
 

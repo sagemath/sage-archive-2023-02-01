@@ -44,14 +44,15 @@ REFERENCES:
     .. [CM] Benoit Collins, Sho Matsumoto, On some properties of
        orthogonal Weingarten functions, :arxiv:`0903.5143`.
 """
-
 #*****************************************************************************
 #       Copyright (C) 2010 Valentin Feray <feray@labri.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+# python3
+from __future__ import division, print_function
+from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -172,11 +173,11 @@ class PerfectMatching(ElementWrapper):
         # matching and the list of pairs.
         # First case: p is a list (resp tuple) of lists (resp tuple).
         if (isinstance(p, list) or isinstance(p, tuple)) and (
-                all([isinstance(x, list) or isinstance(x, tuple) for x in p])):
+                all(isinstance(x, list) or isinstance(x, tuple) for x in p)):
             objects = Set(flatten(p))
             data = [tuple(_) for _ in p]
             #check if the data are correct
-            if not all([len(t) == 2 for t in data]):
+            if not all(len(t) == 2 for t in data):
                 raise ValueError("%s is not a valid perfect matching:\n"
                                  "all elements of the list must be pairs" % p)
             if len(objects) < 2*len(data):
@@ -192,7 +193,7 @@ class PerfectMatching(ElementWrapper):
             if not(p.cycle_type() == [2 for i in range(n//2)]):
                 raise ValueError("The permutation p (= %s) is not a "
                                  "fixed point free involution" % p)
-            objects = Set(range(1, n+1))
+            objects = Set(list(range(1, n + 1)))
             data = p.to_cycles()
         # Third case: p is already a perfect matching, we return p directly
         elif isinstance(p, PerfectMatching):
@@ -254,7 +255,7 @@ class PerfectMatching(ElementWrapper):
         Above we added ``random`` since warnings might be displayed
         once. The second time, there should be no warnings::
 
-            sage: print P._latex_()  # optional - dot2tex
+            sage: print(P._latex_())  # optional - dot2tex
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
@@ -834,7 +835,8 @@ class PerfectMatching(ElementWrapper):
             raise ValueError("matching must be non-crossing")
         else:
             perm = self.to_permutation()
-            perm2 = Permutation([(perm[2*i])/2 for i in range(len(perm)/2)])
+            perm2 = Permutation([perm[2 * i] // 2
+                                 for i in range(len(perm) // 2)])
         return SetPartition(perm2.cycle_tuples())
 
 
@@ -859,8 +861,8 @@ class PerfectMatchings(UniqueRepresentation, Parent):
         sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
         sage: M.an_element()
         [('a', 'b'), ('f', 'e'), ('c', 'd')]
-        sage: all([PerfectMatchings(i).an_element() in PerfectMatchings(i)
-        ...        for i in range(2,11,2)])
+        sage: all(PerfectMatchings(i).an_element() in PerfectMatchings(i)
+        ....:      for i in range(2,11,2))
         True
 
     TESTS::
@@ -887,10 +889,10 @@ class PerfectMatchings(UniqueRepresentation, Parent):
         """
         # if the argument is a python int n, we replace it by the list [1 .. n]
         if isinstance(objects, int):
-            objects = range(1, objects+1)
+            objects = list(range(1, objects + 1))
         # same thing if the argument is a sage integer.
         elif isinstance(objects, Integer):
-            objects = range(1, objects+1)
+            objects = list(range(1, objects + 1))
         # Finally, if it is iterable, we return the corresponding set.
         # Note that it is important to return a hashable object here (in
         # particular, NOT A LIST), see comment below.
@@ -982,7 +984,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             True
             sage: m in PerfectMatchings((0, 1, 2, 3))
             False
-            sage: all([m in PerfectMatchings(6) for m in PerfectMatchings(6)])
+            sage: all(m in PerfectMatchings(6) for m in PerfectMatchings(6))
             True
 
         Note that the class of ``x`` does not need to be ``PerfectMatching``:
@@ -1030,8 +1032,8 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
             sage: M.an_element()
             [('a', 'b'), ('f', 'e'), ('c', 'd')]
-            sage: all([PerfectMatchings(2*i).an_element() in PerfectMatchings(2*i)
-            ...        for i in range(2,11,2)])
+            sage: all(PerfectMatchings(2*i).an_element() in PerfectMatchings(2*i)
+            ....:      for i in range(2,11,2))
             True
 
         TESTS::

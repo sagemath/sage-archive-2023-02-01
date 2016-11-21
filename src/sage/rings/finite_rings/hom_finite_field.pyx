@@ -109,7 +109,7 @@ from sage.structure.element cimport Element
 
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.morphism cimport RingHomomorphism, RingHomomorphism_im_gens, FrobeniusEndomorphism_generic
-from sage.rings.finite_rings.constructor import FiniteField
+from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 from sage.categories.map cimport Section
 from sage.categories.morphism cimport Morphism

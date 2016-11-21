@@ -14,7 +14,7 @@
 # If optional argument -d is given and bootstrapping failed, instead
 # extract the files from a local configure tarball, downloading it if
 # needed. If -D is given, don't try to bootstrap and always extract or
-# donwload.
+# download.
 ########################################################################
 
 # Either run this script from SAGE_ROOT or make sure that SAGE_ROOT
@@ -26,6 +26,8 @@ MAKE="${MAKE:-make}"
 CONFVERSION=`cat $PKG/package-version.txt`
 
 bootstrap () {
+    # Get autotools from our own package into PATH (Trac #21214)
+    source src/bin/sage-env
     aclocal -I m4 && \
     automake --add-missing --copy build/make/Makefile-auto && \
     autoconf

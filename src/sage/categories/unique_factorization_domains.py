@@ -139,7 +139,7 @@ class UniqueFactorizationDomains(Category_singleton):
 
             ALGORITHM:
 
-            Algorithm 3.3.1 in [GTM138]_, based on pseudo-division.
+            Algorithm 3.3.1 in [Coh1993]_, based on pseudo-division.
 
             EXAMPLES::
 
@@ -152,11 +152,6 @@ class UniqueFactorizationDomains(Category_singleton):
                  (-113*x^6 - 106*x^5 - 133*x^4 - 101*x^3 - 42*x^2 - 41*x)*T - 34*x^6 + 13*x^5 + 54*x^4 + 126*x^3 + 134*x^2 - 5*x - 50)
                 sage: (-x^2 - 4*x - 5)^(3-2+1) * p == quo*q + rem
                 True
-
-            REFERENCES:
-
-            .. [GTM138] Henri Cohen. A Course in Computational Number Theory.
-               Graduate Texts in Mathematics, vol. 138. Springer, 1993.
             """
             if f.degree() < g.degree():
                 A,B = g, f
@@ -176,11 +171,9 @@ class UniqueFactorizationDomains(Category_singleton):
                 if b.is_one():
                     break
 
-            parent = f.parent()
-
             d = a.gcd(b)
-            A = parent(A/a)
-            B = parent(B/b)
+            A = A // a
+            B = B // b
             g = h = 1
 
             delta = A.degree()-B.degree()
@@ -188,9 +181,9 @@ class UniqueFactorizationDomains(Category_singleton):
 
             while R.degree() > 0:
                 A = B
-                B = parent(R/(g*h**delta))
+                B = R // (g*h**delta)
                 g = A.leading_coefficient()
-                h = self(h*g**delta/h**delta)
+                h = h*g**delta // h**delta
                 delta = A.degree() - B.degree()
                 _, R = A.pseudo_quo_rem(B)
 
@@ -201,7 +194,7 @@ class UniqueFactorizationDomains(Category_singleton):
                     if b.is_one():
                         break
 
-                return parent(d*B/b)
+                return d*B // b
 
             return d
 

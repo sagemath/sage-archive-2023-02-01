@@ -2,6 +2,7 @@
 """
 Eisenstein Series
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
@@ -18,9 +19,9 @@ import sage.modular.dirichlet as dirichlet
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
 from sage.rings.all import Integer, CyclotomicField, ZZ, QQ, Integer
 from sage.arith.all import bernoulli, divisors, is_squarefree, lcm
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.power_series_ring import PowerSeriesRing
-from eis_series_cython import eisenstein_series_poly, Ek_ZZ
+from .eis_series_cython import eisenstein_series_poly, Ek_ZZ
 
 def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q', normalization='linear'):
     r"""

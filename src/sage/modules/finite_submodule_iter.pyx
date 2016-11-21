@@ -64,6 +64,7 @@ will result in improved running times::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 
 cdef class FiniteZZsubmodule_iterator:
@@ -201,8 +202,8 @@ cdef class FiniteZZsubmodule_iterator:
             sage: iter = FiniteZZsubmodule_iterator([x,y], [3,3])
             sage: next(iter) #indirect doctest
             0
-            sage: print next(iter), next(iter), next(iter) #indirect doctest
-            x 2*x y
+            sage: next(iter), next(iter), next(iter) #indirect doctest
+            (x, 2*x, y)
         """
         if self._basis_length == 1:
             if self._count < self._order:

@@ -77,7 +77,7 @@ REFERENCES:
    Advances in Mathematics 63 (1987), pp. 42-99.
    http://www.sciencedirect.com/science/article/pii/0001870887900636
 
-.. [BKSTY06] A. Buch, A. Kresch, M. Shimozono, H. Tamvakis, and A. Yong.
+.. [BKSTY06] \A. Buch, A. Kresch, M. Shimozono, H. Tamvakis, and A. Yong.
    *Stable Grothendieck polynomials and* `K`-*theoretic factor sequences*.
    Math. Ann. **340** Issue 2, (2008), pp. 359--382.
    :arxiv:`math/0601514v1`.
@@ -97,9 +97,11 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from builtins import zip
+
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all import matrix
-from itertools import izip
+
 
 def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     r"""
@@ -338,21 +340,21 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
                         if mult > 0:
                             t.extend([i+1]*mult)
                             b.extend([j+1]*mult)
-                itr = izip(t, b)
+                itr = zip(t, b)
             except TypeError:
-                itr = izip(range(1, len(obj1)+1), obj1)
+                itr = zip(range(1, len(obj1)+1), obj1)
     else:
         if len(obj1) != len(obj2):
             raise ValueError("the two arrays must be the same length")
         # Check it is a generalized permutation
         lt = 0
         lb = 0
-        for t,b in izip(obj1, obj2):
+        for t,b in zip(obj1, obj2):
             if t < lt or (lt == t and b < lb):
                 raise ValueError("invalid generalized permutation")
             lt = t
             lb = b
-        itr = izip(obj1, obj2)
+        itr = zip(obj1, obj2)
 
     from bisect import bisect_right
     p = []       #the "insertion" tableau
@@ -364,7 +366,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     lt = 0
     lb = 0
     for i, x in itr:
-        for r, qr in izip(p,q):
+        for r, qr in zip(p,q):
             if r[-1] > x:
                 #Figure out where to insert x into the row r.  The
                 #bisect command returns the position of the least
@@ -555,6 +557,16 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
+
+    Check that :trac:`20430` is fixed::
+
+        sage: RSK([1,1,1,1,1,1,1,2,2,2,3], [1,1,1,1,1,1,3,2,2,2,1])
+        [[[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]],
+         [[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]]]
+        sage: t = SemistandardTableau([[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]])
+        sage: RSK_inverse(t, t, 'array')
+        [[1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3],
+         [1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 1]]
     """
     if insertion == 'hecke':
         return hecke_insertion_reverse(p, q, output)
@@ -577,7 +589,8 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
 
         use_EG = (insertion == 'EG')
 
-        for i in reversed(d.values()): # Delete last entry from i-th row of p_copy
+        for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
+            i = d[key]
             x = p_copy[i].pop() # Always the right-most entry
             for row in reversed(p_copy[:i]):
                 y_pos = bisect_left(row,x) - 1
@@ -626,8 +639,9 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
     #d is now a double family such that for every integers k and j,
     #the value d[k][j] is the row i such that the (i, j)-th cell of
     #q is filled with k.
-    for value, row_dict in reversed(d.items()):
-        for i in reversed(row_dict.values()):
+    for value, row_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
+        for key in sorted(row_dict, reverse=True):
+            i = row_dict[key]
             x = p_copy[i].pop() # Always the right-most entry
             for row in reversed(p_copy[:i]):
                 y = bisect_left(row,x) - 1
@@ -708,14 +722,14 @@ def hecke_insertion(obj1, obj2=None):
     """
     if obj2 is None:
         obj2 = obj1
-        obj1 = range(1,len(obj2)+1)
+        obj1 = list(range(1, len(obj2) + 1))
 
     from sage.combinat.tableau import SemistandardTableau, Tableau
     from bisect import bisect_right
     p = []       #the "insertion" tableau
     q = []       #the "recording" tableau
 
-    for i, x in izip(obj1, obj2):
+    for i, x in zip(obj1, obj2):
         for j,r in enumerate(p):
             if r[-1] > x:
                 #Figure out where to insert x into the row r.  The
@@ -822,7 +836,7 @@ def hecke_insertion_reverse(p, q, output='array'):
 
     if output == 'array':
         return [list(reversed(upper_row)), list(reversed(lower_row))]
-    is_standard = (upper_row == range(len(upper_row), 0, -1))
+    is_standard = (upper_row == list(range(len(upper_row), 0, -1)))
     if output == 'word':
         if not is_standard:
             raise TypeError("q must be standard to have a %s as valid output"%output)

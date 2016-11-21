@@ -1,4 +1,8 @@
-from matroid cimport Matroid
+from __future__ import absolute_import
+
+from .matroid cimport Matroid
+
+
 cdef class MatroidUnion(Matroid):
     r"""
     Matroid Union.
@@ -94,7 +98,7 @@ cdef class MatroidUnion(Matroid):
                 d[x]=set()
             d[x].add(i)
         part_matroid = PartitionMatroid([[(i,x) for i in d[x]] for x in d])
-        return len(sum_matroid.intersection(part_matroid))
+        return len(sum_matroid._intersection_unweighted(part_matroid))
 
     def _repr_(self):
         """

@@ -25,9 +25,7 @@ from sage.structure.parent import Parent
 from sage.misc.all import cached_method
 from sage.rings.all import (IntegerRing,
                             ZZ, GF, PowerSeriesRing,
-                            Rationals)
-
-from sage.rings.commutative_ring import is_CommutativeRing
+                            Rationals, CommutativeRing)
 from sage.rings.ideal import is_Ideal
 from sage.rings.morphism import is_RingHomomorphism
 from sage.structure.unique_representation import UniqueRepresentation
@@ -71,7 +69,7 @@ class Scheme(Parent):
       of the ring will be used as base.
 
     - ``category`` -- the category (optional). Will be automatically
-      construted by default.
+      constructed by default.
 
     EXAMPLES::
 
@@ -114,7 +112,7 @@ class Scheme(Parent):
             self._base_scheme = X
         elif is_SchemeMorphism(X):
             self._base_morphism = X
-        elif is_CommutativeRing(X):
+        elif isinstance(X, CommutativeRing):
             self._base_ring = X
         elif is_RingHomomorphism(X):
             self._base_ring = X.codomain()
@@ -257,7 +255,7 @@ class Scheme(Parent):
         if len(args) == 1:
             from sage.schemes.generic.morphism import SchemeMorphism_point
             S = args[0]
-            if is_CommutativeRing(S):
+            if isinstance(S, CommutativeRing):
                 return self.point_homset(S)
             elif is_Scheme(S):
                 return S.Hom(self)
@@ -1169,7 +1167,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             sage: A1.hom([2,r],A1_emb)
             Scheme morphism:
               From: Affine Space of dimension 1 over Rational Field
-              To:   Affine Curve over Rational Field defined by p - 2
+              To:   Affine Plane Curve over Rational Field defined by p - 2
               Defn: Defined on coordinates by sending (r) to
                     (2, r)
         """

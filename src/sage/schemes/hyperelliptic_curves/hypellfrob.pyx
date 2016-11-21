@@ -29,7 +29,7 @@ from sage.rings.all import Qp, O as big_oh
 from sage.arith.all import is_prime
 
 include "sage/libs/ntl/decl.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 
 cdef extern from "hypellfrob.h":

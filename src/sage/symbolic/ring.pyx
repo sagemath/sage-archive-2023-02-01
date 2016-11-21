@@ -13,14 +13,13 @@ The symbolic ring
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ginac cimport *
+from sage.libs.pynac.pynac cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
-from sage.libs.pari.pari_instance import PariInstance
 from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
@@ -96,6 +95,8 @@ cdef class SymbolicRing(CommutativeRing):
             2
             sage: SR.coerce(-infinity)
             -Infinity
+            sage: SR.coerce(unsigned_infinity)
+            Infinity
             sage: SR.has_coerce_map_from(ZZ['t'])
             True
             sage: SR.has_coerce_map_from(ZZ['t,u,v'])
@@ -110,8 +111,17 @@ cdef class SymbolicRing(CommutativeRing):
             True
             sage: SR.has_coerce_map_from(GF(9, 'a'))
             True
+            sage: SR.has_coerce_map_from(RealBallField())
+            True
+            sage: SR.has_coerce_map_from(ComplexBallField())
+            True
+            sage: SR.has_coerce_map_from(UnsignedInfinityRing)
+            True
 
-        TESTS:
+        TESTS::
+
+            sage: SR.has_coerce_map_from(pari)
+            False
 
         Check if arithmetic with bools works (see :trac:`9560`)::
 
@@ -125,6 +135,20 @@ cdef class SymbolicRing(CommutativeRing):
             6
             sage: SR(5)-True
             4
+
+        TESTS::
+
+            sage: SR.has_coerce_map_from(SR.subring(accepting_variables=('a',)))
+            True
+            sage: SR.has_coerce_map_from(SR.subring(rejecting_variables=('r',)))
+            True
+            sage: SR.has_coerce_map_from(SR.subring(no_variables=True))
+            True
+
+            sage: SR.has_coerce_map_from(AA)
+            True
+            sage: SR.has_coerce_map_from(QQbar)
+            True
         """
         if isinstance(R, type):
             if R in [int, float, long, complex, bool]:
@@ -152,33 +176,35 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             from sage.rings.real_mpfi import is_RealIntervalField
             from sage.rings.complex_interval_field import is_ComplexIntervalField
+            from sage.rings.real_arb import RealBallField
+            from sage.rings.complex_arb import ComplexBallField
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+            from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing)
+                                        RLF, CLF, AA, QQbar, InfinityRing,
+                                        UnsignedInfinityRing)
             from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
             from sage.interfaces.maxima import Maxima
 
-            if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
-                # Anything with a coercion into any precision of CC
+            from subring import GenericSymbolicSubring
 
-                # In order to have coercion from SR to AA or QQbar,
-                # we disable coercion in the reverse direction.
-                # This makes the following work:
-                # sage: QQbar(sqrt(2)) + sqrt(3)
-                # 3.146264369941973?
-                return R not in (RLF, CLF, AA, QQbar)
-            elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
+            if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
+                # Almost anything with a coercion into any precision of CC
+                return R not in (RLF, CLF)
+            elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R) or is_LaurentPolynomialRing(R):
                 base = R.base_ring()
                 return base is not self and self.has_coerce_map_from(base)
-            elif (R is InfinityRing
+            elif (R is InfinityRing or R is UnsignedInfinityRing
                   or is_RealIntervalField(R) or is_ComplexIntervalField(R)
+                  or isinstance(R, RealBallField)
+                  or isinstance(R, ComplexBallField)
                   or is_IntegerModRing(R) or is_FiniteField(R)):
                 return True
-            elif isinstance(R, (Maxima, PariInstance)):
-                return False
+            elif isinstance(R, GenericSymbolicSubring):
+                return True
 
     def _element_constructor_(self, x):
         """
@@ -273,9 +299,27 @@ cdef class SymbolicRing(CommutativeRing):
             3*x^5*log(y)
             sage: t.operator(), t.operands()
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
+
+        Check that :trac:`20162` is fixed::
+
+            sage: k.<a> = GF(9)
+            sage: SR(a).is_real()
+            False
+            sage: SR(a).is_positive()
+            False
+
+        We get a sensible error message if conversion fails::
+
+            sage: SR(int)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert <type 'int'> to a symbolic expression
+            sage: r^(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert R Interpreter to a symbolic expression
         """
         cdef GEx exp
-
         if is_Expression(x):
             if (<Expression>x)._parent is self:
                 return x
@@ -311,7 +355,7 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.misc.all import prod
             return prod([SR(p)**e for p,e in x], SR(x.unit()))
         else:
-            raise TypeError
+            raise TypeError(f"unable to convert {x!r} to a symbolic expression")
 
         return new_Expression_from_GEx(self, exp)
 
@@ -432,6 +476,11 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: latex(SR.wild(0))
             \$0
+
+        Check that :trac:`21455` is fixed::
+
+            sage: coth(SR.wild(0))
+            coth($0)
         """
         return new_Expression_from_GEx(self, g_wild(n))
 
@@ -840,6 +889,100 @@ cdef class SymbolicRing(CommutativeRing):
                     raise ValueError("the number of arguments must be less than or equal to %s"%len(vars))
 
         return _the_element.subs(d, **kwds)
+
+    def subring(self, *args, **kwds):
+        r"""
+        Create a subring of this symbolic ring.
+
+        INPUT:
+
+        Choose one of the following keywords to create a subring.
+
+        - ``accepting_variables`` (default: ``None``) -- a tuple or other
+          iterable of variables. If specified, then a symbolic subring of
+          expressions in only these variables is created.
+
+        - ``rejecting_variables`` (default: ``None``) -- a tuple or other
+          iterable of variables. If specified, then a symbolic subring of
+          expressions in variables distinct to these variables is
+          created.
+
+        - ``no_variables`` (default: ``False``) -- a boolean. If set,
+          then a symbolic subring of constant expressions (i.e.,
+          expressions without a variable) is created.
+
+        OUTPUT:
+
+        A ring.
+
+        EXAMPLES:
+
+        Let us create a couple of symbolic variables first::
+
+            sage: V = var('a, b, r, s, x, y')
+
+        Now we create a symbolic subring only accepting expressions in
+        the variables `a` and `b`::
+
+            sage: A = SR.subring(accepting_variables=(a, b)); A
+            Symbolic Subring accepting the variables a, b
+
+        An element is
+        ::
+
+            sage: A.an_element()
+            a
+
+        From our variables in `V` the following are valid in `A`::
+
+            sage: tuple(v for v in V if v in A)
+            (a, b)
+
+        Next, we create a symbolic subring rejecting expressions with
+        given variables::
+
+            sage: R = SR.subring(rejecting_variables=(r, s)); R
+            Symbolic Subring rejecting the variables r, s
+
+        An element is
+        ::
+
+            sage: R.an_element()
+            some_variable
+
+        From our variables in `V` the following are valid in `R`::
+
+            sage: tuple(v for v in V if v in R)
+            (a, b, x, y)
+
+        We have a third kind of subring, namely the subring of
+        symbolic constants::
+
+            sage: C = SR.subring(no_variables=True); C
+            Symbolic Constants Subring
+
+        Note that this subring can be considered as a special accepting
+        subring; one without any variables.
+
+        An element is
+        ::
+
+            sage: C.an_element()
+            I*pi*e
+
+        None of our variables in `V` is valid in `C`::
+
+            sage: tuple(v for v in V if v in C)
+            ()
+
+        .. SEEALSO::
+
+            :doc:`subring`
+        """
+        if self is not SR:
+            raise NotImplementedError('Cannot create subring of %s.' % (self,))
+        from subring import SymbolicSubring
+        return SymbolicSubring(*args, **kwds)
 
 SR = SymbolicRing()
 

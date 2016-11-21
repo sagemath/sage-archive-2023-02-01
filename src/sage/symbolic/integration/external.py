@@ -76,7 +76,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
         raise ValueError("Unable to parse: %s" % mexpr)
 
 
-def fricas_integrator(expression, v, a=None, b=None):
+def fricas_integrator(expression, v, a=None, b=None, noPole=True):
     """
     Integration using FriCAS
 
@@ -88,9 +88,9 @@ def fricas_integrator(expression, v, a=None, b=None):
         sage: fricas_integrator(cos(x), x)                                      # optional - fricas
         sin(x)
         sage: fricas_integrator(1/(x^2-2), x, 0, 1)                             # optional - fricas
-        1/4*(log(3*sqrt(2) - 4) - log(sqrt(2)))*sqrt(2)
+        1/4*sqrt(2)*(log(3*sqrt(2) - 4) - log(sqrt(2)))
         sage: fricas_integrator(1/(x^2+6), x, -oo, oo)                          # optional - fricas
-        1/6*pi*sqrt(6)
+        1/6*sqrt(6)*pi
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)
@@ -107,14 +107,14 @@ def fricas_integrator(expression, v, a=None, b=None):
         elif b == sage.rings.infinity.MinusInfinity():
             b = "%minusInfinity"
 
-        result = expression._fricas_().integrate("{}={}..{}".format(v, a, b))
+        if noPole:
+            result = expression._fricas_().integrate("{}={}..{}".format(v, a, b), '"noPole"')
+        else:
+            result = expression._fricas_().integrate("{}={}..{}".format(v, a, b))
+
     locals = {str(v): v for v in expression.variables()}
     if str(result) == "potentialPole":
         raise ValueError("The integrand has a potential pole"
                          " in the integration interval")
-    parsed_result = result.unparsed_input_form()
-    import sage.misc.sage_eval
-    try:
-        return sage.misc.sage_eval.sage_eval(parsed_result, locals=locals)
-    except:
-        raise ValueError("Unable to parse: {}".format(parsed_result))
+
+    return result.sage()

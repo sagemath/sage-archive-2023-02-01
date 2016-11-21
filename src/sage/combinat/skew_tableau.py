@@ -23,8 +23,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
 
-import copy
+from builtins import zip
+
+from six.moves import range
+
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -36,11 +40,10 @@ from sage.rings.all import Integer, QQ, ZZ
 from sage.arith.all import factorial
 from sage.rings.infinity import PlusInfinity
 from sage.matrix.all import zero_matrix
-import itertools
 
 from sage.structure.list_clone import ClonableList
 from sage.combinat.partition import Partition
-from sage.combinat.tableau import (Tableau, TableauOptions,
+from sage.combinat.tableau import (Tableau, Tableaux,
                                    StandardTableau, SemistandardTableau)
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.integer_vector import IntegerVectors
@@ -51,7 +54,7 @@ class SkewTableau(ClonableList):
     A skew tableau.
 
     Note that Sage by default uses the English convention for partitions and
-    tableaux. To change this, see :class:`TableauOptions`.
+    tableaux. To change this, see :meth:`Tableaux.options`.
 
     EXAMPLES::
 
@@ -209,14 +212,14 @@ class SkewTableau(ClonableList):
         Return a string representation of ``self``.
 
         For more on the display options, see
-        :obj:`SkewTableaux.global_options`.
+        :obj:`SkewTableaux.options`.
 
         EXAMPLES::
 
             sage: SkewTableau([[None,2,3],[None,4],[5]])
             [[None, 2, 3], [None, 4], [5]]
         """
-        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def _repr_list(self):
         """
@@ -224,7 +227,7 @@ class SkewTableau(ClonableList):
 
         EXAMPLES::
 
-            sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_list()
+            sage: print(SkewTableau([[None,2,3],[None,4],[5]])._repr_list())
             [[None, 2, 3], [None, 4], [5]]
         """
         return repr(self.to_list())
@@ -240,13 +243,13 @@ class SkewTableau(ClonableList):
 
         EXAMPLES::
 
-            sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_diagram()
+            sage: print(SkewTableau([[None,2,3],[None,4],[5]])._repr_diagram())
               .  2  3
               .  4
               5
         """
         none_str = lambda x: "  ." if x is None else "%3s"%str(x)
-        if self.parent().global_options('convention') == "French":
+        if self.parent().options('convention') == "French":
             new_rows = ["".join(map(none_str, row)) for row in reversed(self)]
         else:
             new_rows = ["".join(map(none_str, row)) for row in self]
@@ -279,7 +282,7 @@ class SkewTableau(ClonableList):
               .  4
               5
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def _ascii_art_(self):
         """
@@ -530,8 +533,8 @@ class SkewTableau(ClonableList):
             sage: t = SkewTableau([[None,None,4,7,15],[6,2,16],[2,3,19],[4,5],[7]])
             sage: def by_word(T):
             ....:     ed = T.to_word().evaluation_dict()
-            ....:     m = max(ed.keys()) + 1
-            ....:     return [ed.get(k,0) for k in range(1,m)]
+            ....:     m = max(ed) + 1
+            ....:     return [ed.get(k, 0) for k in range(1, m)]
             sage: by_word(t) == t.weight()
             True
             sage: SST = SemistandardTableaux(shape=[3,1,1])
@@ -570,7 +573,7 @@ class SkewTableau(ClonableList):
         """
         #Check to make sure that it is filled with 1...size
         w = [i for row in self for i in row if i is not None]
-        if sorted(w) != range(1, len(w)+1):
+        if sorted(w) != list(range(1, len(w) + 1)):
             return False
         else:
             return self.is_semistandard()
@@ -606,12 +609,12 @@ class SkewTableau(ClonableList):
 
         # Is it weakly increasing along the rows?
         for row in self:
-            if any(row[c] is not None and row[c] > row[c+1] for c in xrange(len(row)-1)):
+            if any(row[c] is not None and row[c] > row[c+1] for c in range(len(row)-1)):
                 return False
 
         # Is it strictly increasing down columns?
-        for row, next in itertools.izip(self, self[1:]):
-            if any(row[c] is not None and row[c] >= next[c] for c in xrange(len(next))):
+        for row, next in zip(self, self[1:]):
+            if any(row[c] is not None and row[c] >= next[c] for c in range(len(next))):
                 return False
 
         return True
@@ -1233,7 +1236,7 @@ class SkewTableau(ClonableList):
         # nonnegative integers. We also subtract 1 from these integers
         # because the i-th row of a tableau T is T[i - 1].
         if rows is None:
-            rows = range(l)
+            rows = list(range(l))
         elif rows in ZZ:
             rows = [rows - 1]
         else:
@@ -1630,7 +1633,7 @@ class SkewTableaux(UniqueRepresentation, Parent):
         return self.element_class(self, st)
 
     Element = SkewTableau
-    global_options = TableauOptions
+    options = Tableaux.options
 
     def __contains__(self, x):
         """
@@ -2036,7 +2039,7 @@ class SemistandardSkewTableaux(SkewTableaux):
          [[None, 3], [3]]]
 
         sage: for n in range(5):
-        ....:     print n, len(SemistandardSkewTableaux([[2,2,1],[1]], max_entry = n))
+        ....:     print("{} {}".format(n, len(SemistandardSkewTableaux([[2,2,1],[1]], max_entry = n))))
         0 0
         1 0
         2 1
@@ -2478,7 +2481,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
             sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).list()
             [[[1, 1], [2]]]
         """
-        from ribbon_tableau import RibbonTableaux_shape_weight_length
+        from .ribbon_tableau import RibbonTableaux_shape_weight_length
         for x in RibbonTableaux_shape_weight_length(self.p, self.mu, 1):
             yield self.element_class(self, x)
 
@@ -2511,3 +2514,6 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTablea
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
 register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+SkewTableaux.global_options=deprecated_function_alias(18555, SkewTableaux.options)

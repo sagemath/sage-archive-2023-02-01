@@ -49,7 +49,7 @@ cdef class NumberField(Field):
 
             sage: K.<a> = NumberField(x^2 + 1)
             sage: K.ring_of_integers()
-            Maximal Order in Number Field in a with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in a with defining polynomial x^2 + 1
         """
         return self.maximal_order(*args, **kwds)
 
@@ -150,7 +150,7 @@ cdef class NumberField(Field):
         modulo principal fractional ideals to an integral ideal of
         norm at most B.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`~bach_bound`
 
@@ -224,7 +224,7 @@ cdef class NumberField(Field):
         that every integral ideal is equivalent modulo principal
         fractional ideals to an integral ideal of norm at most B.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`~minkowski_bound`
 

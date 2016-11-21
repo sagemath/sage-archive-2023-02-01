@@ -25,6 +25,8 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from functools import (partial, update_wrapper, WRAPPER_ASSIGNMENTS,
                        WRAPPER_UPDATES)
 from copy import copy
@@ -54,14 +56,14 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     decorated function::
 
         sage: def square(f):
-        ...     @sage_wraps(f)
-        ...     def new_f(x):
-        ...         return f(x)*f(x)
-        ...     return new_f
+        ....:   @sage_wraps(f)
+        ....:   def new_f(x):
+        ....:       return f(x)*f(x)
+        ....:   return new_f
         sage: @square
         ... def g(x):
-        ...     "My little function"
-        ...     return x
+        ....:   "My little function"
+        ....:   return x
         sage: g(2)
         4
         sage: g(x)
@@ -77,13 +79,13 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     unchanged) (see :trac:`9976`)::
 
         sage: def diff_arg_dec(f):
-        ...     @sage_wraps(f)
-        ...     def new_f(y, some_def_arg=2):
-        ...         return f(y+some_def_arg)
-        ...     return new_f
+        ....:   @sage_wraps(f)
+        ....:   def new_f(y, some_def_arg=2):
+        ....:       return f(y+some_def_arg)
+        ....:   return new_f
         sage: @diff_arg_dec
         ... def g(x):
-        ...     return x
+        ....:   return x
         sage: g(1)
         3
         sage: g(1, some_def_arg=4)
@@ -111,15 +113,15 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     (:trac:`9919`)::
 
         sage: def square_for_met(f):
-        ...     @sage_wraps(f)
-        ...     def new_f(self, x):
-        ...         return f(self,x)*f(self,x)
-        ...     return new_f
+        ....:   @sage_wraps(f)
+        ....:   def new_f(self, x):
+        ....:       return f(self,x)*f(self,x)
+        ....:   return new_f
         sage: class T:
-        ...     @square_for_met
-        ...     def g(self, x):
-        ...         "My little method"
-        ...         return x
+        ....:   @square_for_met
+        ....:   def g(self, x):
+        ....:       "My little method"
+        ....:       return x
         sage: t = T()
         sage: t.g(2)
         4
@@ -129,10 +131,10 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     The bug described in :trac:`11734` is fixed::
 
         sage: def square(f):
-        ...     @sage_wraps(f)
-        ...     def new_f(x):
-        ...         return f(x)*f(x)
-        ...     return new_f
+        ....:   @sage_wraps(f)
+        ....:   def new_f(x):
+        ....:       return f(x)*f(x)
+        ....:   return new_f
         sage: f = lambda x:x^2
         sage: g = square(f)
         sage: g(3) # this line used to fail for some people if these command were manually entered on the sage prompt
@@ -178,7 +180,7 @@ class infix_operator(object):
     An infix element-wise addition operator::
 
         sage: def eadd(a,b):
-        ...     return a.parent([i+j for i,j in zip(a,b)])
+        ....:   return a.parent([i+j for i,j in zip(a,b)])
         sage: eadd=infix_operator('add')(eadd)
         sage: u=vector([1,2,3])
         sage: v=vector([5,4,3])
@@ -213,7 +215,7 @@ class infix_operator(object):
 
             sage: from sage.misc.decorators import infix_operator
             sage: def eadd(a,b):
-            ...     return a.parent([i+j for i,j in zip(a,b)])
+            ....:   return a.parent([i+j for i,j in zip(a,b)])
             sage: eadd=infix_operator('add')(eadd)
             sage: u=vector([1,2,3])
             sage: v=vector([5,4,3])
@@ -250,7 +252,7 @@ class infix_operator(object):
             22
 
             sage: def eadd(a,b):
-            ...     return a.parent([i+j for i,j in zip(a,b)])
+            ....:   return a.parent([i+j for i,j in zip(a,b)])
             sage: eadd=infix_operator('add')(eadd)
             sage: u=vector([1,2,3])
             sage: v=vector([5,4,3])
@@ -377,20 +379,20 @@ def decorator_defaults(func):
         sage: from sage.misc.decorators import decorator_defaults
         sage: @decorator_defaults
         ... def my_decorator(f,*args,**kwds):
-        ...     print kwds
-        ...     print args
-        ...     print f.__name__
+        ....:   print(kwds)
+        ....:   print(args)
+        ....:   print(f.__name__)
         ...
         sage: @my_decorator
         ... def my_fun(a,b):
-        ...     return a,b
+        ....:   return a,b
         ...
         {}
         ()
         my_fun
         sage: @my_decorator(3,4,c=1,d=2)
         ... def my_fun(a,b):
-        ...     return a,b
+        ....:   return a,b
         ...
         {'c': 1, 'd': 2}
         (3, 4)
@@ -436,7 +438,7 @@ class suboptions(object):
         EXAMPLES::
 
             sage: from sage.misc.decorators import suboptions
-            sage: def f(*args, **kwds): print list(sorted(kwds.items()))
+            sage: def f(*args, **kwds): print(list(sorted(kwds.items())))
             sage: f = suboptions('arrow', size=2)(f)
             sage: f(size=2)
             [('arrow_options', {'size': 2}), ('size', 2)]
@@ -514,7 +516,8 @@ class options(object):
 
             sage: from sage.misc.decorators import options
             sage: o = options(rgbcolor=(0,0,1))
-            sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
+            sage: def f(*args, **kwds):
+            ....:     print("{} {}".format(args, list(sorted(kwds.items()))))
             sage: f1 = o(f)
             sage: from sage.misc.sageinspect import sage_getargspec
             sage: sage_getargspec(f1)
@@ -529,7 +532,8 @@ class options(object):
 
             sage: from sage.misc.decorators import options
             sage: o = options(rgbcolor=(0,0,1))
-            sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
+            sage: def f(*args, **kwds):
+            ....:     print("{} {}".format(args, list(sorted(kwds.items()))))
             sage: f1 = o(f)
             sage: f1()
             () [('rgbcolor', (0, 0, 1))]
@@ -568,7 +572,8 @@ class options(object):
 
                 sage: from sage.misc.decorators import options
                 sage: o = options(rgbcolor=(0,0,1))
-                sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
+                sage: def f(*args, **kwds):
+                ....:     print("{} {}".format(args, list(sorted(kwds.items()))))
                 sage: f = o(f)
                 sage: f.options['rgbcolor']=(1,1,1)
                 sage: f.defaults()
@@ -584,7 +589,8 @@ class options(object):
 
                 sage: from sage.misc.decorators import options
                 sage: o = options(rgbcolor=(0,0,1))
-                sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
+                sage: def f(*args, **kwds):
+                ....:     print("{} {}".format(args, list(sorted(kwds.items()))))
                 sage: f = o(f)
                 sage: f.options
                 {'rgbcolor': (0, 0, 1)}
@@ -654,7 +660,6 @@ class rename_keyword(object):
         """
         assert deprecated is None, 'Use @rename_keyword(deprecation=<trac_number>, ...)'
         self.renames = renames
-        self.renames = renames
         self.deprecation = deprecation
 
     def __call__(self, func):
@@ -665,7 +670,8 @@ class rename_keyword(object):
 
             sage: from sage.misc.decorators import rename_keyword
             sage: r = rename_keyword(color='rgbcolor')
-            sage: def f(*args, **kwds): print args, kwds
+            sage: def f(*args, **kwds):
+            ....:     print("{} {}".format(args, kwds))
             sage: f = r(f)
             sage: f()
             () {}
@@ -679,7 +685,8 @@ class rename_keyword(object):
         We can also deprecate the renamed keyword::
 
             sage: r = rename_keyword(deprecation=13109, deprecated_option='new_option')
-            sage: def f(*args, **kwds): print args, kwds
+            sage: def f(*args, **kwds):
+            ....:     print("{} {}".format(args, kwds))
             sage: f = r(f)
             sage: f()
             () {}
@@ -730,8 +737,8 @@ class specialize:
         sage: f(5)
         10
         sage: @specialize("Bon Voyage")
-        ... def greet(greeting, name):
-        ...    print "{0}, {1}!".format(greeting, name)
+        ....: def greet(greeting, name):
+        ....:     print("{0}, {1}!".format(greeting, name))
         sage: greet("Monsieur Jean Valjean")
         Bon Voyage, Monsieur Jean Valjean!
         sage: greet(name = 'Javert')

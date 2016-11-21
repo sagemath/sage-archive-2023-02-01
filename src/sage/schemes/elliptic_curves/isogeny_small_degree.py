@@ -22,8 +22,8 @@ AUTHORS:
 
 REFERENCES:
 
-.. [CW2005] J. E. Cremona and M. Watkins. Computing isogenies of elliptic curves. preprint, 2005.
-.. [KT2013] K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
+.. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic curves. preprint, 2005.
+.. [KT2013] \K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
    PhD thesis, University of Warwick, 2013.
 
 
@@ -838,6 +838,16 @@ def isogenies_5_1728(E):
         sage: isogenies_5_1728(E)
         [Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in a with defining polynomial x^4 + 20*x^2 - 80 to Elliptic Curve defined by y^2 = x^3 + (-753/4*a^2-4399)*x + (2779*a^3+65072*a) over Number Field in a with defining polynomial x^4 + 20*x^2 - 80,
         Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in a with defining polynomial x^4 + 20*x^2 - 80 to Elliptic Curve defined by y^2 = x^3 + (-753/4*a^2-4399)*x + (-2779*a^3-65072*a) over Number Field in a with defining polynomial x^4 + 20*x^2 - 80]
+
+    See :trac:`19840`::
+
+        sage: K.<a> = NumberField(x^4 - 5*x^2 + 5)
+        sage: E = EllipticCurve([a^2 + a + 1, a^3 + a^2 + a + 1, a^2 + a, 17*a^3 + 34*a^2 - 16*a - 37, 54*a^3 + 105*a^2 - 66*a - 135])
+        sage: len(E.isogenies_prime_degree(5))
+        2
+        sage: from sage.schemes.elliptic_curves.isogeny_small_degree import isogenies_5_1728
+        sage: [phi.codomain().j_invariant() for phi in isogenies_5_1728(E)]
+        [19691491018752*a^2 - 27212977933632, 19691491018752*a^2 - 27212977933632]
     """
     F = E.base_field()
     if E.j_invariant() != 1728:
@@ -865,7 +875,7 @@ def isogenies_5_1728(E):
     # Type 2: if 5 is a square we have up to 4 (non-endomorphism) isogenies
     if square5:
         betas = sorted((x**4+20*a*x**2-80*a**2).roots(multiplicities=False))
-        gammas = [a*(beta**2-2)/6 for beta in betas]
+        gammas = [(beta**2-2*a)/6 for beta in betas]
         isogs += [Ew.isogeny(x**2+beta*x+gamma, model=model) for beta,gamma in zip(betas,gammas)]
     [isog.set_pre_isomorphism(iso) for isog in isogs]
     return isogs
@@ -1445,23 +1455,30 @@ def Psi2(l):
 
     The generic `l`-kernel polynomial.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.isogeny_small_degree import Psi2
         sage: Psi2(11)
         x^5 - 55*x^4*u + 994*x^3*u^2 - 8774*x^2*u^3 + 41453*x*u^4 - 928945/11*u^5 + 33*x^4 + 276*x^3*u - 7794*x^2*u^2 + 4452*x*u^3 + 1319331/11*u^4 + 216*x^3*v - 4536*x^2*u*v + 31752*x*u^2*v - 842616/11*u^3*v + 162*x^3 + 38718*x^2*u - 610578*x*u^2 + 33434694/11*u^3 - 4536*x^2*v + 73872*x*u*v - 2745576/11*u^2*v - 16470*x^2 + 580068*x*u - 67821354/11*u^2 - 185976*x*v + 14143896/11*u*v + 7533*x - 20437029/11*u - 12389112/11*v + 19964151/11
+        sage: Psi2(71)  # long time (1 second)
+        -2209380711722505179506258739515288584116147237393815266468076436521/71*u^210 + ... - 14790739586438315394567393301990769678157425619440464678252277649/71
 
+    TESTS::
+
+        sage: Psi2(13)
+        Traceback (most recent call last):
+        ...
+        ValueError: 13 must be one of [11, 17, 19, 23, 29, 31, 41, 47, 59, 71].
     """
-    if not l in hyperelliptic_primes:
-        raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
-
     data = _hyperelliptic_isogeny_data(l)
-    R = PolynomialRing(QQ,['x','u'])
-    x, u = R.gens()
-    L = PolynomialRing(R,'y')
-    y = L.gen()
-    K = R.extension(y**2-R(data['hyper_poly']),name = 'v')
+
+    R = PolynomialRing(QQ, 'u')
+    u = R.gen()
+    L = PolynomialRing(R, 'v')
+    v = L.gen()
+    K = R.extension(v*v - R(data['hyper_poly']), 'v')
     v = K.gen()
+
     from sage.categories.homset import Hom
     h = Hom(K,K)(-v)
 
@@ -1472,20 +1489,21 @@ def Psi2(l):
     s1 = K(data['A2'])
 
     d = (l-1)//2
-    s = [1]
-    t = [d,s1,((1-10*d)*A - Abar)*(1/QQ(30))]
-    t += [((1-28*d)*B - 42*t[1]*A - Bbar)*(1/QQ(70))]
-    c = [0,6*t[2] + 2*A*t[0],10*t[3] + 6*A*t[1] + 4*B*t[0]]
+    s = [K(1)]
+    t = [d, s1, ((1-10*d)*A - Abar) * QQ((1,30))]
+    t.append(((1-28*d)*B - 42*t[1]*A - Bbar) * QQ((1,70)))
+    c = [0, 6*t[2] + 2*A*t[0], 10*t[3] + 6*A*t[1] + 4*B*t[0]]
     for n in range(2,d):
         k = sum(c[i]*c[n-i] for i in range(1,n))
-        c += [(3*k-(2*n-1)*(n-1)*A*c[n-1]-(2*n-2)*(n-2)*B*c[n-2])*(1/QQ((n-1)*(2*n+5)))]
+        c.append((3*k-(2*n-1)*(n-1)*A*c[n-1]-(2*n-2)*(n-2)*B*c[n-2]) * QQ((1,(2*n+5)*(n-1))))
     for n in range(3,d):
-        t += [(c[n]-(4*n-2)*A*t[n-1]-(4*n-4)*B*t[n-2])*(1/QQ(4*n+2))]
+        t.append((c[n]-(4*n-2)*A*t[n-1]-(4*n-4)*B*t[n-2]) * QQ((1,4*n+2)))
     for n in range(1,d+1):
-        s += [(-1/QQ(n))*sum((-1)**i*t[i]*s[n-i] for i in range(1,n+1))]
-    psi = sum((-1)**i*s[i]*x**(d-i) for i in range(0,d+1))
-    R = PolynomialRing(QQ,['x','u','v'])
-    return R(psi)
+        s.append(QQ((-1,n)) * sum((-1)**i*t[i]*s[n-i] for i in range(1,n+1)))
+
+    R = PolynomialRing(QQ, ('x', 'u', 'v'))
+    x = R.gen(0)
+    return sum((-1)**i * x**(d-i) * R(s[i].lift()) for i in range(0,d+1))
 
 
 def isogenies_prime_degree_genus_plus_0(E, l=None):

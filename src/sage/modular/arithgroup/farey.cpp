@@ -709,7 +709,7 @@ vector<mpq_class> FareySymbol::init_cusps() const {
       }
     }
   }
-  // in earlier version: shift negative cusps to positve ones
+  // in earlier version: shift negative cusps to positive ones
   sort(c.begin(), c.end());
   return c;
 }
@@ -870,7 +870,7 @@ FareySymbol::LLT_algorithm(const SL2Z& M, vector<int>& p, SL2Z& beta) const {
       } else {
         //Based on Lemma 4 of the article by Kurth/Long, 
         //this case can not occure.
-        throw string("Mathematical compilcations in ") + 
+        throw string("Mathematical complications in ") + 
               __FUNCTION__;
 	return;
       }

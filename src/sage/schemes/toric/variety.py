@@ -235,7 +235,7 @@ cohomology ring `H^*(X,\QQ)` and the rational Chow ring `A^*(X,\QQ) =
 A_{d-*}(X)\otimes \QQ` are isomorphic except for a doubling in
 degree. More precisely, the Chow group has the same rank
 
-  .. math::
+  .. MATH::
 
        A_{d-k}(X) \otimes \QQ \simeq H^{2k}(X,\QQ)
 
@@ -322,6 +322,7 @@ implementing them on your own as a patch for inclusion!
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sys
 
@@ -339,7 +340,6 @@ from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.toric.homset import SchemeHomset_points_toric_field
 from sage.structure.category_object import certify_names
 from sage.categories.fields import Fields
-from sage.misc.cachefunc import ClearCacheOnPickle
 _Fields = Fields()
 
 
@@ -530,7 +530,7 @@ def AffineToricVariety(cone, *args, **kwds):
     return ToricVariety(fan, *args, **kwds)
 
 
-class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
+class ToricVariety_field(AmbientSpace):
     r"""
     Construct a toric variety associated to a rational polyhedral fan.
 
@@ -752,13 +752,13 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         TESTS::
 
             sage: P1xA1 = toric_varieties.P1xA1()
-            sage: print P1xA1._latex_()
+            sage: print(P1xA1._latex_())
             \mathbb{X}_{\Sigma^{2}}
         """
         return r"\mathbb{X}_{%s}" % latex(self.fan())
 
     def _latex_generic_point(self, coordinates=None):
-        """
+        r"""
         Return a LaTeX representation of a point of ``self``.
 
         INPUT:
@@ -768,14 +768,14 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
         OUTPUT:
 
-        - string.
+        string.
 
         EXAMPLES::
 
             sage: P1xA1 = toric_varieties.P1xA1()
-            sage: print P1xA1._latex_generic_point()
+            sage: print(P1xA1._latex_generic_point())
             \left[s : t : z\right]
-            sage: print P1xA1._latex_generic_point([1,2,3])
+            sage: print(P1xA1._latex_generic_point([1,2,3]))
             \left[1 : 2 : 3\right]
         """
         if coordinates is None:
@@ -843,7 +843,8 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
                     [s : s : x : y]
 
             sage: hom_set = P1.Hom(P1)
-            sage: hom_set([s,s,x,y])
+            sage: sbar, tbar, xbar, ybar = P1.coordinate_ring().gens()
+            sage: hom_set([sbar,sbar,xbar,ybar])
             Scheme endomorphism of Closed subscheme of 2-d CPR-Fano toric
             variety covered by 4 affine patches defined by:
               s - t
@@ -864,7 +865,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         TESTS::
 
             sage: P1xA1 = toric_varieties.P1xA1()
-            sage: print P1xA1._repr_()
+            sage: print(P1xA1._repr_())
             2-d toric variety covered by 2 affine patches
         """
         result = "%d-d" % self.dimension_relative()
@@ -891,9 +892,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         EXAMPLES::
 
             sage: P1xP1 = toric_varieties.P1xP1()
-            sage: print P1xP1._repr_generic_point()
+            sage: print(P1xP1._repr_generic_point())
             [s : t : x : y]
-            sage: print P1xP1._repr_generic_point([1,2,3,4])
+            sage: print(P1xP1._repr_generic_point([1,2,3,4]))
             [1 : 2 : 3 : 4]
         """
         if coordinates is None:
@@ -1183,7 +1184,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: P1xP1.inject_coefficients()
             Defining a, b
 
-        We check that we can use names ``a`` and ``b``, Trac #10498 is fixed::
+        We check that we can use names ``a`` and ``b``, :trac:`10498` is fixed::
 
             sage: a + b
             a + b
@@ -1228,7 +1229,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: toric_varieties.P2().dimension_singularities()
             -1
         """
-        for codim in range(0,self.dimension()+1):
+        for codim in range(self.dimension()+1):
             if any(not cone.is_smooth() for cone in self.fan(codim)):
                 return self.dimension() - codim
         return -1
@@ -1503,7 +1504,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             * The ``i``-th entry in each Mori vector is the intersection
               number of the curve corresponding to the generator of the
               ``i``-th ray of the fan with the corresponding divisor class.
-              The very last entry is associated to the orgin of the fan
+              The very last entry is associated to the origin of the fan
               lattice.
 
             * The Mori vectors are also known as the gauged linear sigma model
@@ -1915,7 +1916,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
         OUTPUT:
 
-        - If the toric variety is is over `\CC` and has at most finite
+        - If the toric variety is over `\CC` and has at most finite
           orbifold singularities: `H^\bullet(X,\QQ)` as a polynomial
           quotient ring.
 
@@ -2145,6 +2146,25 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         if top_form.is_zero(): return 0
         return top_form.lc() / self.volume_class().lc()
 
+    @property
+    def sheaves(self):
+        r"""
+        Return the factory object for sheaves on the toric variety.
+
+        See :class:`sage.schemes.toric.sheaf.constructor.SheafLibrary`
+        for details.
+
+        EXAMPLES::
+        
+            sage: dP6 = toric_varieties.dP6()
+            sage: dP6.sheaves
+            Sheaf constructor on 2-d CPR-Fano toric variety covered by 6 affine patches
+            sage: dP6.sheaves.trivial_bundle()
+            Rank 1 bundle on 2-d CPR-Fano toric variety covered by 6 affine patches.
+        """
+        from sage.schemes.toric.sheaf.constructor import SheafLibrary
+        return SheafLibrary(self)
+
     @cached_method
     def Chern_class(self, deg=None):
         """
@@ -2183,7 +2203,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             True
         """
         assert self.is_orbifold(), "Requires the toric variety to be an orbifold."
-        c = prod([ 1+self.cohomology_ring().gen(i) for i in range(0,self._fan.nrays()) ])
+        c = prod([ 1+self.cohomology_ring().gen(i) for i in range(self._fan.nrays()) ])
         if deg is None:
             return c
         else:
@@ -2226,7 +2246,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         assert self.is_orbifold(), "Requires the toric variety to be an orbifold."
         n_rels = self._fan.nrays() - self.dimension()
         ch = sum([ self.cohomology_ring().gen(i).exp()
-                   for i in range(0,self._fan.nrays()) ]) - n_rels
+                   for i in range(self._fan.nrays()) ]) - n_rels
         if deg is None:
             return ch
         else:
@@ -2316,7 +2336,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             else:
                 chi=0
                 H = self.cohomology_basis()
-                for d in range(0, self.dimension()+1):
+                for d in range(self.dimension()+1):
                     chi += (-1)**d * len(H[d])
             self._chi = chi
         return self._chi
@@ -2362,7 +2382,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: dP6.coordinate_ring()
             Multivariate Polynomial Ring in x, u, y, v, z, w
             over Rational Field
-            sage: dP6.divisor(range(6))
+            sage: dP6.divisor(list(range(6)))
             V(u) + 2*V(y) + 3*V(v) + 4*V(z) + 5*V(w)
             sage: dP6.inject_variables()
             Defining x, u, y, v, z, w
@@ -2373,10 +2393,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
             sage: dP6.divisor(0)
             V(x)
-            sage: for i in range(0,dP6.fan().nrays()):
-            ...       print dP6.divisor(i),
-            ...       print ': generated by ray',
-            ...       dP6.fan().ray(i)
+            sage: for i in range(dP6.fan().nrays()):
+            ....:     print('{} : generated by ray {}'.format(dP6.divisor(i),
+            ....:           dP6.fan().ray(i)))
             V(x) : generated by ray N(0, 1)
             V(u) : generated by ray N(-1, 0)
             V(y) : generated by ray N(-1, -1)
@@ -2781,9 +2800,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         REFERENCES:
 
         ..  [Demazure]
-            M. Demazure
+            \M. Demazure
             Sous-groupes algébriques de rang maximum du groupe de Cremona.
-            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507–588.
+            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507--588.
 
         ..  [Bazhov]
             Ivan Bazhov:
@@ -2933,7 +2952,7 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
     Now suppose that you want to enumerate your variables starting with one
     instead of zero::
 
-        sage: normalize_names("x+", 4, indices=range(1,5))
+        sage: normalize_names("x+", 4, indices=list(range(1,5)))
         ['x1', 'x2', 'x3', 'x4']
 
     You may actually have an arbitrary enumeration scheme::
@@ -2968,7 +2987,7 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
     Let's now use all parameters at once::
 
         sage: normalize_names("x, y, s+", 4, prefix="t",
-        ....:     indices=range(1,5), return_prefix=True)
+        ....:     indices=list(range(1,5)), return_prefix=True)
         ['x', 'y', 's3', 's4', 's']
 
     Note that you still need to give indices for all names, even if some of
@@ -3152,7 +3171,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
         EXAMPLES::
 
             sage: cohomology_ring = toric_varieties.P2().cohomology_ring()
-            sage: print cohomology_ring._latex_()
+            sage: print(cohomology_ring._latex_())
             H^\ast\left(\mathbb{P}_{\Delta^{2}_{15}},\QQ\right)
         """
         return 'H^\\ast\\left('+self._variety._latex_()+',\QQ\\right)'
@@ -3276,7 +3295,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             ([z], [z], [z])
         """
         if "_gens" not in self.__dict__:
-            self._gens = tuple( self.gen(i) for i in range(0,self._variety.fan().nrays()) )
+            self._gens = tuple( self.gen(i) for i in range(self._variety.fan().nrays()) )
         return self._gens
 
     def gen(self, i):
@@ -3480,7 +3499,7 @@ class CohomologyClass(QuotientRingElement):
             cohomology class without constant term can be
             exponentiated.
 
-        OUTPUT
+        OUTPUT:
 
         The cohomology class `\exp(` ``self`` `)` if the constant part
         vanishes, otherwise a ``ValueError`` is raised.
@@ -3500,4 +3519,3 @@ class CohomologyClass(QuotientRingElement):
         for d in range(1,self.parent()._variety.dimension()+1):
             exp_x += self**d / factorial(d)
         return exp_x
-

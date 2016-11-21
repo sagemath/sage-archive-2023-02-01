@@ -144,6 +144,16 @@ class SageDisplayFormatter(DisplayFormatter):
             ({u'image/png': '\x89PNG...',
               u'text/plain': u'<IPython.core.display.Image object>'},
             {})
+
+        Test that ``__repr__`` is only called once when generating text output::
+
+            sage: class Repper(object):
+            ....:    def __repr__(self):
+            ....:        print('__repr__ called')
+            ....:        return 'I am repper'
+            sage: Repper()
+            __repr__ called
+            I am repper
         """
         # First, use Sage rich output if there is any
         PLAIN_TEXT = u'text/plain'
@@ -157,6 +167,8 @@ class SageDisplayFormatter(DisplayFormatter):
         # Finally, try IPython rich representation (obj._repr_foo_ methods)
         if exclude is not None:
             exclude = list(exclude) + [PLAIN_TEXT]
+        else:
+            exclude = [PLAIN_TEXT]
         ipy_format, ipy_metadata = super(SageDisplayFormatter, self).format(
             obj, include=include, exclude=exclude)
         ipy_format.update(sage_format)
@@ -227,8 +239,8 @@ class SagePlainTextFormatter(PlainTextFormatter):
         if DOCTEST_MODE:
             # Just to show that this is never executed in any other doctests in the Sage library
             print('---- calling ipython formatter ----')
-        import StringIO
-        stream = StringIO.StringIO()
+        from six import StringIO
+        stream = StringIO()
         printer = SagePrettyPrinter(
             stream, self.max_width, unicode_to_str(self.newline))
         printer.pretty(obj)

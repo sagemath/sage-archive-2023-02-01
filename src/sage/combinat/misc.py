@@ -15,6 +15,9 @@ Miscellaneous
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+from six.moves import range
 from sage.misc.all import prod
 
 class DoublyLinkedList():
@@ -50,13 +53,13 @@ class DoublyLinkedList():
         self.next_value = {}
         self.next_value['begin'] = l[0]
         self.next_value[l[n-1]] = 'end'
-        for i in xrange(n-1):
+        for i in range(n-1):
             self.next_value[l[i]] = l[i+1]
 
         self.prev_value = {}
         self.prev_value['end'] = l[-1]
         self.prev_value[l[0]] = 'begin'
-        for i in xrange(1,n):
+        for i in range(1,n):
             self.prev_value[l[i]] = l[i-1]
 
     def __cmp__(self, x):
@@ -237,7 +240,7 @@ class IterableFunctionCall:
 
     This does not work::
 
-        sage: for z in f: print z
+        sage: for z in f: print(z)
         Traceback (most recent call last):
         ...
         TypeError: 'function' object is not iterable
@@ -247,7 +250,7 @@ class IterableFunctionCall:
 
         sage: from sage.combinat.misc import IterableFunctionCall
         sage: g = IterableFunctionCall(f)
-        sage: for z in g: print z
+        sage: for z in g: print(z)
         a
         b
 
@@ -257,7 +260,7 @@ class IterableFunctionCall:
 
         sage: def f(n, m): yield 'a' * n; yield 'b' * m; yield 'foo'
         sage: g = IterableFunctionCall(f, 2, 3)
-        sage: for z in g: print z
+        sage: for z in g: print(z)
         aa
         bbb
         foo

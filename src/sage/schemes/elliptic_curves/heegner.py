@@ -91,7 +91,8 @@ The above is consistent with the following analytic computation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.misc.all import verbose, prod
 from sage.misc.cachefunc import cached_method
@@ -3168,8 +3169,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             8.4...e-31 + 6.0...e-31*I
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
-            sage: P.numerical_approx()
-            (-6.6...e-16 + 1.41421356237310*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
+            sage: P.numerical_approx()  # abs tol 1e-15
+            (-3.15940603400359e-16 + 1.41421356237309*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
 
         A rank 2 curve, where all Heegner points of conductor 1 are 0::
 
@@ -3206,10 +3207,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         tau = ComplexField(prec)(self.tau())
         E = self.curve()
         return E.modular_parametrization()(tau)
-
-    #This line is added to resolve ticket 9032, because both top-level function
-    #and method call _numerical_approx instead of numerical_approx
-    _numerical_approx=numerical_approx
 
     def tau(self):
         r"""
@@ -3463,7 +3460,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E = EllipticCurve('77a')
             sage: y = E.heegner_point(-52,5); y
             Heegner point of discriminant -52 and conductor 5 on elliptic curve of conductor 77
-            sage: print [z.quadratic_form() for z in y.conjugates_over_K()]
+            sage: print([z.quadratic_form() for z in y.conjugates_over_K()])
             [77*x^2 + 52*x*y + 13*y^2, 154*x^2 + 206*x*y + 71*y^2, 539*x^2 + 822*x*y + 314*y^2, 847*x^2 + 1284*x*y + 487*y^2, 1001*x^2 + 52*x*y + y^2, 1078*x^2 + 822*x*y + 157*y^2, 1309*x^2 + 360*x*y + 25*y^2, 1309*x^2 + 2054*x*y + 806*y^2, 1463*x^2 + 976*x*y + 163*y^2, 2233*x^2 + 2824*x*y + 893*y^2, 2387*x^2 + 2054*x*y + 442*y^2, 3619*x^2 + 3286*x*y + 746*y^2]
             sage: y.quadratic_form()
             77*x^2 + 52*x*y + 13*y^2
@@ -4142,15 +4139,14 @@ class KolyvaginPoint(HeegnerPoint):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a1'); P = E.kolyvagin_point(-67)
-            sage: PP = P.numerical_approx(); PP
-            (6.00000000000000 ... : -15.0000000000000 ... : 1.00000000000000)
+            sage: PP = P.numerical_approx()
             sage: [c.real() for c in PP]
             [6.00000000000000, -15.0000000000000, 1.00000000000000]
             sage: all([c.imag().abs() < 1e-14 for c in PP])
             True
             sage: P.trace_to_real_numerical()
             (1.61355529131986 : -2.18446840788880 : 1.00000000000000)
-            sage: P.trace_to_real_numerical(prec=80)
+            sage: P.trace_to_real_numerical(prec=80)  # abs tol 1e-21
             (1.6135552913198573127230 : -2.1844684078888023289187 : 1.0000000000000000000000)
 
         """
@@ -5570,7 +5566,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
         sage: kolyvagin_reduction_data(EllipticCurve('2350g1'),5, first_only=False)
         (19, 239, -311, 19, 6480, 85680)
     """
-    from ell_generic import is_EllipticCurve
+    from .ell_generic import is_EllipticCurve
     if not is_EllipticCurve(E):
         raise TypeError("E must be an elliptic curve")
 
@@ -6252,8 +6248,8 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         sage: E = EllipticCurve('37a1')
         sage: P = E.kolyvagin_point(-67); P
         Kolyvagin point of discriminant -67 on elliptic curve of conductor 37
-        sage: P.numerical_approx() # imaginary parts approx. 0
-        (6.00000000000000 ... : -15.0000000000000 ... : 1.00000000000000)
+        sage: P.numerical_approx()
+        (6.00000000000000 : -15.0000000000000 : 1.00000000000000)
         sage: P.index()
         6
         sage: g = E((0,-1,1)) # a generator
@@ -6285,7 +6281,9 @@ def ell_heegner_discriminants(self, bound):
         sage: E.heegner_discriminants(30)                     # indirect doctest
         [-7, -8, -19, -24]
     """
-    return [-D for D in xrange(1,bound) if self.satisfies_heegner_hypothesis(-D)]
+    return [-D for D in range(1, bound)
+            if self.satisfies_heegner_hypothesis(-D)]
+
 
 def ell_heegner_discriminants_list(self, n):
     """
@@ -6545,7 +6543,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     c = h/(min_p**2) + B
     verbose("Search would have to be up to height = %s"%c)
 
-    from ell_rational_field import _MAX_HEIGHT
+    from .ell_rational_field import _MAX_HEIGHT
 
     IR = rings.RealIntervalField(20)  # todo: 20?
 
@@ -6666,7 +6664,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
         sage: E.heegner_index_bound()
         ([2], -7, 2)
     """
-    from ell_rational_field import _MAX_HEIGHT
+    from .ell_rational_field import _MAX_HEIGHT
     if max_height is None:
         max_height = _MAX_HEIGHT
     else:
@@ -6977,7 +6975,7 @@ def heegner_sha_an(self, D, prec=53):
     omega = 2 * abs(E.period_lattice().basis_matrix().det())
 
     #  - The regulator.
-    #    First we compute the regualtor of the subgroup E(QQ) + E^D(QQ)
+    #    First we compute the regulator of the subgroup E(QQ) + E^D(QQ)
     #    of E(K).   The factor of 2 in the regulator
     #    accounts for the fact that the height over K is twice the
     #    height over QQ, i.e., for P in E(QQ) we have h_K(P,P) =

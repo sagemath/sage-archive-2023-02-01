@@ -13,19 +13,14 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 
 import sage.plot.all
 import sage.libs.pari.all
@@ -111,7 +106,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         """
         self.n = n
         self.stride = stride
-        self.data = <double*> sage_malloc(sizeof(double)*(2*n))
+        self.data = <double*> sig_malloc(sizeof(double)*(2*n))
         cdef int i
         for i from 0 <= i < 2*n:
             self.data[i] = 0
@@ -126,7 +121,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: del a
 
         """
-        sage_free(self.data)
+        sig_free(self.data)
 
     def __len__(self):
         """
@@ -167,8 +162,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: a[1] = I
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert 1.0*I to float; use abs() or real_part() as desired
-
+            TypeError: unable to convert 1.0*I to float; use abs() or real_part() as desired
         """
         # just set real for now
         if i < 0 or i >= self.n:
@@ -351,7 +345,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         elif style == 'polar':
             return self._plot_polar(xmin, xmax, **args)
         else:
-            raise ValueError, "unknown style '%s'"%style
+            raise ValueError("unknown style '%s'" % style)
 
     def forward_transform(self):
         """
@@ -495,5 +489,3 @@ cdef class FourierTransform_complex:
 
 cdef class FourierTransform_real:
     pass
-
-

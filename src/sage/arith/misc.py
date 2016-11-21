@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Miscellaneous arithmetic functions
 """
@@ -12,7 +13,8 @@ Miscellaneous arithmetic functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+from six.moves import range
 
 import math
 
@@ -134,7 +136,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         sage: algdep(pi.n(), 5, height_bound=10, proof=True) is None
         True
 
-    For stronger results, we need more precicion::
+    For stronger results, we need more precision::
 
         sage: algdep(pi.n(), 5, height_bound=100, proof=True) is None
         Traceback (most recent call last):
@@ -207,7 +209,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         r = ZZ.one() << prec
         M[0, 0] = 1
         M[0, -1] = r
-        for k in range(1, degree+1):
+        for k in range(1, degree + 1):
             M[k, k] = 1
             r *= z
             if is_complex:
@@ -259,6 +261,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
       - ``'default'`` -- use 'flint' for n <= 300000, and 'bernmm'
         otherwise (this is just a heuristic, and not guaranteed to be
         optimal on all hardware)
+      - ``'arb'`` -- use the arb library
       - ``'flint'`` -- use the FLINT library
       - ``'pari'`` -- use the PARI C library
       - ``'gap'`` -- use GAP
@@ -278,6 +281,8 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     We demonstrate each of the alternative algorithms::
 
+        sage: bernoulli(12, algorithm='arb')
+        -691/2730
         sage: bernoulli(12, algorithm='flint')
         -691/2730
         sage: bernoulli(12, algorithm='gap')
@@ -295,7 +300,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     TESTS::
 
-        sage: algs = ['gap','gp','pari','bernmm','flint']
+        sage: algs = ['arb','gap','gp','pari','bernmm','flint']
         sage: test_list = [ZZ.random_element(2, 2255) for _ in range(500)]
         sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list]  # long time (up to 21s on sage.math, 2011)
         sage: union([len(union(x))==1 for x in vals])  # long time (depends on previous line)
@@ -315,7 +320,10 @@ def bernoulli(n, algorithm='default', num_threads=1):
     if algorithm == 'default':
         algorithm = 'flint' if n <= 300000 else 'bernmm'
 
-    if algorithm == 'flint':
+    if algorithm == 'arb':
+        import sage.libs.arb.arith as arb_arith
+        return arb_arith.bernoulli(n)
+    elif algorithm == 'flint':
         return flint_arith.bernoulli_number(n)
     elif algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library
@@ -871,7 +879,7 @@ def eratosthenes(n):
     elif n == 2:
         return [ZZ(2)]
 
-    s = range(3, n+3, 2)
+    s = list(range(3, n + 3, 2))
     mroot = int(n ** 0.5)
     half = (n+1) // 2
     i = 0
@@ -896,7 +904,7 @@ def primes(start, stop=None, proof=None):
     argument proof controls whether the numbers returned are
     guaranteed to be prime or not.
 
-    This command is like the xrange command, except it only iterates
+    This command is like the Python 2 ``xrange`` command, except it only iterates
     over primes. In some cases it is better to use primes than
     ``prime_range``, because primes does not build a list of all primes in
     the range in memory all at once. However, it is potentially much
@@ -924,7 +932,7 @@ def primes(start, stop=None, proof=None):
     EXAMPLES::
 
         sage: for p in primes(5,10):
-        ....:     print p
+        ....:     print(p)
         5
         7
         sage: list(primes(13))
@@ -941,12 +949,12 @@ def primes(start, stop=None, proof=None):
 
         sage: for a in range(-10, 50):
         ....:     for b in range(-10, 50):
-        ....:         assert list(primes(a,b)) == list(filter(is_prime, xrange(a,b)))
+        ....:         assert list(primes(a,b)) == list(filter(is_prime, range(a,b)))
         sage: sum(primes(-10, 9973, proof=False)) == sum(filter(is_prime, range(-10, 9973)))
         True
         sage: for p in primes(10, infinity):
         ....:     if p > 20: break
-        ....:     print p
+        ....:     print(p)
         11
         13
         17
@@ -2799,7 +2807,7 @@ class Euler_Phi:
             return ZZ(0)
         if n<=2:
             return ZZ(1)
-        return ZZ(pari(n).phi())
+        return ZZ(pari(n).eulerphi())
 
     def plot(self, xmin=1, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
              **kwds):
@@ -2828,7 +2836,7 @@ class Euler_Phi:
             sage: p.ymax()
             46.0
         """
-        v = [(n,euler_phi(n)) for n in range(xmin,xmax + 1)]
+        v = [(n, euler_phi(n)) for n in range(xmin, xmax + 1)]
         from sage.plot.all import list_plot
         P = list_plot(v, pointsize=pointsize, rgbcolor=rgbcolor, **kwds)
         if join:
@@ -3023,7 +3031,7 @@ def CRT_list(v, moduli):
         return moduli[0].parent()(v[0])
     x = v[0]
     m = moduli[0]
-    for i in range(1,len(v)):
+    for i in range(1, len(v)):
         x = CRT(x,v[i],m,moduli[i])
         m = lcm(m,moduli[i])
     return x%m
@@ -3110,7 +3118,7 @@ def binomial(x, m, **kwds):
     r"""
     Return the binomial coefficient
 
-    .. math::
+    .. MATH::
 
         \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
@@ -3118,7 +3126,7 @@ def binomial(x, m, **kwds):
     `x`. We extend this definition to include cases when
     `x-m` is an integer but `m` is not by
 
-    .. math::
+    .. MATH::
 
         \binom{x}{m} = \binom{x}{x-m}
 
@@ -3238,7 +3246,7 @@ def binomial(x, m, **kwds):
 
         sage: K.<x,y> = Integers(7)[]
         sage: binomial(y,3)
-        -y^3 + 3*y^2 - 2*y
+        6*y^3 + 3*y^2 + 5*y
         sage: binomial(y,3).parent()
         Multivariate Polynomial Ring in x, y over Ring of integers modulo 7
 
@@ -3337,7 +3345,7 @@ def binomial(x, m, **kwds):
     # case 4: naive method
     if m < ZZ.zero():
         return P(0)
-    return P(prod(x-i for i in xrange(m))) / m.factorial()
+    return P(prod(x - i for i in range(m))) / m.factorial()
 
 def multinomial(*ks):
     r"""
@@ -3352,7 +3360,7 @@ def multinomial(*ks):
 
     Returns the integer:
 
-    .. math::
+    .. MATH::
 
            \binom{k_1 + \cdots + k_n}{k_1, \cdots, k_n}
            =\frac{\left(\sum_{i=1}^n k_i\right)!}{\prod_{i=1}^n k_i!}
@@ -3417,7 +3425,7 @@ def binomial_coefficients(n):
     """
     d = {(0, n):1, (n, 0):1}
     a = 1
-    for k in xrange(1, n//2+1):
+    for k in range(1, n // 2 + 1):
         a = (a * (n-k+1))//k
         d[k, n-k] = d[n-k, k] = a
     return d
@@ -3513,7 +3521,7 @@ def multinomial_coefficients(m, n):
             t[j] += 1
         # compute the value
         # NB: the initialization of v was done above
-        for k in xrange(start, m):
+        for k in range(start, m):
             if t[k]:
                 t[k] -= 1
                 v += r[tuple(t)]
@@ -3680,7 +3688,7 @@ def primitive_root(n, check=True):
         5
         sage: primitive_root(25)
         2
-        sage: print [primitive_root(p) for p in primes(100)]
+        sage: print([primitive_root(p) for p in primes(100)])
         [1, 2, 2, 3, 2, 2, 3, 2, 5, 2, 3, 2, 6, 3, 5, 2, 2, 2, 2, 7, 5, 3, 2, 3, 5]
         sage: primitive_root(8)
         Traceback (most recent call last):
@@ -3777,6 +3785,8 @@ def nth_prime(n):
         5
         sage: nth_prime(10)
         29
+        sage: nth_prime(10^7)
+        179424673
 
     ::
 
@@ -3789,9 +3799,10 @@ def nth_prime(n):
 
         sage: all(prime_pi(nth_prime(j)) == j for j in range(1, 1000, 10))
         True
-
     """
-    return ZZ(pari.nth_prime(n))
+    if n <= 0:
+        raise ValueError("nth prime meaningless for non-positive n (=%s)" % n)
+    return ZZ(pari.prime(n))
 
 def quadratic_residues(n):
     r"""
@@ -3814,12 +3825,12 @@ def quadratic_residues(n):
         159
     """
     n = abs(int(n))
-    X = sorted(set(ZZ((a*a)%n) for a in range(n//2+1)))
+    X = sorted(set(ZZ((a*a)%n) for a in range(n // 2 + 1)))
     return X
 
 class Moebius:
     r"""
-    Returns the value of the Moebius function of abs(n), where n is an
+    Returns the value of the Möbius function of abs(n), where n is an
     integer.
 
     DEFINITION: `\mu(n)` is 0 if `n` is not square
@@ -3907,7 +3918,7 @@ class Moebius:
     def plot(self, xmin=0, xmax=50, pointsize=30, rgbcolor=(0,0,1), join=True,
              **kwds):
         """
-        Plot the Moebius function.
+        Plot the Möbius function.
 
         INPUT:
 
@@ -3941,9 +3952,9 @@ class Moebius:
 
     def range(self, start, stop=None, step=None):
         """
-        Return the Moebius function evaluated at the given range of values,
+        Return the Möbius function evaluated at the given range of values,
         i.e., the image of the list range(start, stop, step) under the
-        Mobius function.
+        Möbius function.
 
         This is much faster than directly computing all these values with a
         list comprehension.
@@ -4029,7 +4040,7 @@ def continuant(v, n=None):
 
     We verify the identity
 
-    .. math::
+    .. MATH::
 
         K_n(z,z,\cdots,z) = \sum_{k=0}^n \binom{n-k}{k} z^{n-2k}
 
@@ -4229,6 +4240,7 @@ def hilbert_conductor(a, b):
 def hilbert_conductor_inverse(d):
     """
     Finds a pair of integers `(a,b)` such that ``hilbert_conductor(a,b) == d``.
+
     The quaternion algebra `(a,b)` over `\QQ` will then have (reduced)
     discriminant `d`.
 
@@ -4263,10 +4275,10 @@ def hilbert_conductor_inverse(d):
 
     TESTS::
 
-        sage: for i in xrange(100):
+        sage: for i in range(100):
         ....:     d = ZZ.random_element(2**32).squarefree_part()
         ....:     if hilbert_conductor(*hilbert_conductor_inverse(d)) != d:
-        ....:         print "hilbert_conductor_inverse failed for d =", d
+        ....:         print("hilbert_conductor_inverse failed for d = {}".format(d))
     """
     Z = ZZ
     d = Z(d)
@@ -4387,12 +4399,17 @@ def falling_factorial(x, a):
         sage: type(falling_factorial(d, 0))
         <type 'sage.symbolic.expression.Expression'>
 
+    Check that :trac:`20075` is fixed::
+
+        sage: bool(falling_factorial(int(4), int(2)) == falling_factorial(4,2))
+        True
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
     from sage.symbolic.expression import Expression
-
+    x = py_scalar_to_element(x)
     if (isinstance(a, (Integer, int, long)) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
@@ -4477,12 +4494,17 @@ def rising_factorial(x, a):
         sage: type(rising_factorial(d, 0))
         <type 'sage.symbolic.expression.Expression'>
 
+    Check that :trac:`20075` is fixed::
+
+        sage: bool(rising_factorial(int(4), int(2)) == rising_factorial(4,2))
+        True
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
     from sage.symbolic.expression import Expression
-
+    x = py_scalar_to_element(x)
     if (isinstance(a, (Integer, int, long)) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
@@ -4587,7 +4609,7 @@ def two_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     a = ZZ.random_element(2**16, 2**20)
         ....:     b = ZZ.random_element(2**16, 2**20)
         ....:     n = a**2 + b**2
@@ -4701,7 +4723,7 @@ def three_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     a = ZZ.random_element(2**16, 2**20)
         ....:     b = ZZ.random_element(2**16, 2**20)
         ....:     c = ZZ.random_element(2**16, 2**20)
@@ -4826,7 +4848,7 @@ def four_squares(n):
 
     TESTS::
 
-        sage: for _ in xrange(100):
+        sage: for _ in range(100):
         ....:     n = ZZ.random_element(2**32,2**34)
         ....:     aa,bb,cc,dd = four_squares(n)
         ....:     assert aa**2 + bb**2 + cc**2 + dd**2 == n
@@ -5044,64 +5066,45 @@ def differences(lis, n=1):
         return lis
     return differences(lis, n - 1)
 
-def _cmp_complex_for_display(a, b):
-    r"""
-    Compare two complex numbers in a "pretty" (but mathematically
-    meaningless) fashion, for display only.
+
+def _key_complex_for_display(a):
+    """
+    Key function to sort complex numbers for display only.
 
     Real numbers (with a zero imaginary part) come before complex numbers,
-    and are sorted.  Complex numbers are sorted by their real part
+    and are sorted. Complex numbers are sorted by their real part
     unless their real parts are quite close, in which case they are
     sorted by their imaginary part.
 
     EXAMPLES::
 
         sage: import sage.arith.misc
-        sage: cmp_c = sage.arith.misc._cmp_complex_for_display
-        sage: teeny = 3e-11
-        sage: cmp_c(CC(5), CC(3, 3))
-        -1
-        sage: cmp_c(CC(3), CC(5, 5))
-        -1
-        sage: cmp_c(CC(5), CC(3))
-        1
-        sage: cmp_c(CC(teeny, -1), CC(-teeny, 1))
-        -1
-        sage: cmp_c(CC(teeny, 1), CC(-teeny, -1))
-        1
-        sage: cmp_c(CC(0, 1), CC(1, 0.5))
-        -1
-        sage: cmp_c(CC(3+teeny, -1), CC(3-teeny, 1))
-        -1
+        sage: key_c = sage.arith.misc._key_complex_for_display
+
+        sage: key_c(CC(5))
+        (0, 5.00000000000000)
+        sage: key_c(CC(5, 5))
+        (1, 5.00000000, 5.00000000000000)
+
         sage: CIF200 = ComplexIntervalField(200)
-        sage: cmp_c(CIF200(teeny, -1), CIF200(-teeny, 1))
-        -1
-        sage: cmp_c(CIF200(teeny, 1), CIF200(-teeny, -1))
-        1
-        sage: cmp_c(CIF200(0, 1), CIF200(1, 0.5))
-        -1
-        sage: cmp_c(CIF200(3+teeny, -1), CIF200(3-teeny, 1))
-        -1
+        sage: key_c(CIF200(5))
+        (0, 5)
+        sage: key_c(CIF200(5, 5))
+        (1, 5.00000000, 5)
     """
-    ar = a.real(); br = b.real()
-    ai = a.imag(); bi = b.imag()
-    epsilon = ar.parent()(1e-10)
-    if ai:
-        if bi:
-            if abs(br) < epsilon:
-                if abs(ar) < epsilon:
-                    return cmp(ai, bi)
-                return cmp(ar, 0)
-            if abs((ar - br) / br) < epsilon:
-                return cmp(ai, bi)
-            return cmp(ar, br)
-        else:
-            return 1
+    ar = a.real()
+    ai = a.imag()
+    if not ai:
+        return (0, ar)
+    epsilon = 1e-10
+    if ar.abs() < epsilon:
+        ar_truncated = 0
+    elif ar.prec() < 34:
+        ar_truncated = ar
     else:
-        if bi:
-            return -1
-        else:
-            return cmp(ar, br)
+        ar_truncated = ar.n(digits=9)
+    return (1, ar_truncated, ai)
+
 
 def sort_complex_numbers_for_display(nums):
     r"""
@@ -5109,12 +5112,12 @@ def sort_complex_numbers_for_display(nums):
     first element of each tuple is a complex number), we sort the list
     in a "pretty" order.  First come the real numbers (with zero
     imaginary part), then the complex numbers sorted according to
-    their real part.  If two complex numbers have a real part which is
-    sufficiently close, then they are sorted according to their
+    their real part.  If two complex numbers have the same real part,
+    then they are sorted according to their
     imaginary part.
 
     This is not a useful function mathematically (not least because
-    there's no principled way to determine whether the real components
+    there is no principled way to determine whether the real components
     should be treated as equal or not).  It is called by various
     polynomial root-finders; its purpose is to make doctest printing
     more reproducible.
@@ -5136,13 +5139,14 @@ def sort_complex_numbers_for_display(nums):
         sage: sort_c(nums)
         [0.0, 1.0, 2.0, -2.862406201002009e-11 - 0.7088740263015161*I, 2.2108362706985576e-11 - 0.43681052967509904*I, 1.0000000000138833 - 0.7587654737635712*I, 0.9999999999760288 - 0.7238965893336062*I, 1.9999999999874383 - 0.4560801012073723*I, 1.9999999999869107 + 0.6090836283134269*I]
     """
-    if len(nums) == 0:
+    if not nums:
         return nums
 
     if isinstance(nums[0], tuple):
-        return sorted(nums, cmp=_cmp_complex_for_display, key=lambda t: t[0])
+        return sorted(nums, key=lambda t: _key_complex_for_display(t[0]))
     else:
-        return sorted(nums, cmp=_cmp_complex_for_display)
+        return sorted(nums, key=_key_complex_for_display)
+
 
 def fundamental_discriminant(D):
     r"""
@@ -5249,7 +5253,7 @@ def dedekind_sum(p, q, algorithm='default'):
 
     Several small values::
 
-        sage: for q in range(10): print [dedekind_sum(p,q) for p in range(q+1)]
+        sage: for q in range(10): print([dedekind_sum(p,q) for p in range(q+1)])
         [0]
         [0, 0]
         [0, 0, 0]
@@ -5296,8 +5300,7 @@ def dedekind_sum(p, q, algorithm='default'):
 
     REFERENCES:
 
-    .. [Apostol] T. Apostol, Modular functions and Dirichlet series
-       in number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
+    - [Ap1997]_
 
     - :wikipedia:`Dedekind\_sum`
     """

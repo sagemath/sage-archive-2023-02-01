@@ -27,7 +27,7 @@ and recompile the modified parts.
 
 `Download the Sage source code <http://www.sagemath.org/download-source.html>`_
 or `check it out with git <https://github.com/sagemath/sage>`_ (see also.
-`the developers guide <http://www.sagemath.org/doc/developer/manual_git.html#section-git-checkout>`_).
+`the developers guide <http://doc.sagemath.org/html/en/developer/manual_git.html#section-git-checkout>`_).
 If you changed your mind, you can also download a
 `binary distribution <http://www.sagemath.org/download.html>`_
 for some operating systems.
@@ -429,6 +429,7 @@ If
 
 does not raise an ``ImportError``, then it worked.
 
+.. _build-from-source-step-by-step:
 
 Step-by-step installation procedure
 -----------------------------------
@@ -445,7 +446,7 @@ several of Sage's components will not build if there are spaces in the path.
 Running Sage from a directory with spaces in its name will also fail.
 
 #. Go to http://www.sagemath.org/download-source.html, select a mirror,
-   and download the file :file:`sage-x.y.z.tar`.
+   and download the file :file:`sage-x.y.tar`.
 
    This tarfile contains the source code for Sage and the source for all
    programs on which Sage depends.
@@ -463,13 +464,13 @@ Running Sage from a directory with spaces in its name will also fail.
 
 #. Extract the tarfile::
 
-       tar xvf sage-x.y.z.tar
+       tar xvf sage-x.y.tar
 
-   This creates a directory :file:`sage-x.y.z`.
+   This creates a directory :file:`sage-x.y`.
 
 #. Change into that directory::
 
-       cd sage-x.y.z
+       cd sage-x.y
 
    This is Sage's home directory.
    It is also referred to as :envvar:`SAGE_ROOT` or the top level Sage
@@ -494,17 +495,23 @@ Running Sage from a directory with spaces in its name will also fail.
 
        make
 
-   or if your system is multithreaded and you want to use several threads to
-   build Sage::
+   or if your system supports multiprocessing and you want to use several
+   processes to build Sage::
 
        MAKE='make -jNUM' make
 
    to tell the ``make`` program to run ``NUM`` jobs in parallel when building
-   Sage.
-   This compiles Sage and all its dependencies.
+   Sage. This compiles Sage and all its dependencies.
+
+   .. NOTE::
+
+      Mac OS X allows changing directories without using exact capitalization.
+      Beware of this convenience when compiling for OS X. Ignoring exact
+      capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
+      errors for dependencies requiring exact capitalization in path names.
 
    Note that you do not need to be logged in as root, since no files are
-   changed outside of the :file:`sage-x.y.z` directory.
+   changed outside of the :file:`sage-x.y` directory.
    In fact, **it is inadvisable to build Sage as root**, as the root account
    should only be used when absolutely necessary and mistyped commands can have
    serious consequences if you are logged in as root.
@@ -618,7 +625,7 @@ Running Sage from a directory with spaces in its name will also fail.
    - Make a symbolic link from :file:`/usr/local/bin/sage` (or another
      directory in your :envvar:`PATH`) to :file:`$SAGE_ROOT/sage`::
 
-         ln -s /path/to/sage-x.y.z/sage /usr/local/bin/sage
+         ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
 
      Now simply typing ``sage`` from any directory should be sufficient to run
      Sage.
@@ -794,8 +801,8 @@ how it is built:
   primarily intended for use when producing certain binary
   distributions of Sage, to lower the size of the distribution. As of
   this writing (December 2014, Sage 6.5), there are only a few such
-  plots, adding about 4M to the :file:`src/doc/output/` directory. In
-  the future, this may grow, of course. Note: after using this, if you
+  plots, adding about 4M to the :file:`local/share/doc/sage/` directory.
+  In the future, this may grow, of course. Note: after using this, if you
   want to build the documentation and include the pictures, you should
   run ``make doc-clean``, because the presence, or lack, of pictures
   is cached in the documentation output.
@@ -1055,37 +1062,25 @@ Here are some of the more commonly used variables affecting the build process:
       So you can set this variable to ``yes`` instead of using the ``-s`` flag
       for ``sage -i`` and ``sage -f``.
 
-- :envvar:`SAGE_FAT_BINARY` - to prepare a binary distribution that will run
-  on the widest range of target machines, set this variable to ``yes`` before
-  building Sage::
+- :envvar:`SAGE_FAT_BINARY` - to build binaries that will run on the
+  widest range of target CPUs set this variable to ``yes`` before
+  building Sage. This does not make the binaries relocatable, it only
+  avoids newer CPU instruction set extensions. For relocatable (=can
+  be moved to a different directory) binaries, you must use
+  https://github.com/sagemath/binary-pkg
 
-      export SAGE_FAT_BINARY="yes"
-      make
-      ./sage --bdist x.y.z-fat
+- :envvar:`SAGE_SUDO` - set this to ``sudo -E`` or to any other
+  command prefix that is necessary to write into a installation
+  hierarchy (:envvar:`SAGE_LOCAL`) owned by root or another user.
+  Note that this command needs to preserve environment variable
+  settings (plain ``sudo`` does not).
 
-The following :envvar:`SAGE_APP_*` -variables are specific to building a binary distribution on OSX:
+  Not all Sage packages currently support :envvar:`SAGE_SUDO`.
 
-- :envvar:`SAGE_APP_BUNDLE` - OSX-specific; defaults to ``no``. Set to ``yes`` if you
-  want to build a Sage OSX application rather than a terminal version of Sage.
-
-- :envvar:`SAGE_APP_TARGET_ARCH` - OSX-specific; defaults to ``uname -m``. Meaningful
-  values, on Intel, are ``i386`` and ``x86_64``.
-  To prepare a 64-bit binary distribution on an older 64-bit OSX machine that boots
-  into a 32-bit system, one would do::
-
-      export SAGE_APP_TARGET_ARCH=x86_64
-      make
-      ./sage --bdist
-
-- :envvar:`SAGE_APP_DMG` - OSX-specific; defaults to ``yes``, can be set to ``no``
-  to create a tar file instead instead of a ``dmg`` image.
-
-- :envvar:`SAGE_APP_GZ` - OSX-specific; defaults to ``yes``, used for debugging of
-  ``sage -bdist`` to save time on the compression step. E.g.::
-
-      export SAGE_APP_GZ=no
-      export SAGE_APP_DMG=no
-      ./sage --bdist
+  Therefore this environment variable is most useful when a system
+  administrator wishes to install an additional Sage package that
+  supports :envvar:`SAGE_SUDO`, into a root-owned installation
+  hierarchy (:envvar:`SAGE_LOCAL`).
 
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
@@ -1109,28 +1104,12 @@ an unsupported machine or an unusual compiler:
   directions: set :envvar:`SAGE_PORT` to something non-empty (and expect to
   run into problems).
 
-- :envvar:`SAGE_USE_OLD_GCC` - the Sage build process requires GCC with a
-  version number of at least 4.0.1.
-  If the most recent version of GCC on your system is the older 3.4.x series
-  and you want to build with ``SAGE_INSTALL_GCC=no``, then set
-  :envvar:`SAGE_USE_OLD_GCC` to something non-empty.
-  Expect the build to fail in this case.
-
 Environment variables dealing with specific Sage packages:
 
 - :envvar:`SAGE_MP_LIBRARY` - to use an alternative library in place of ``MPIR``
   for multiprecision integer arithmetic. Supported values are
 
     ``MPIR`` (default choice), ``GMP``.
-
-  The value used at installation time is stored in
-
-    :file:`$SAGE_LOCAL/share/mp_config`.
-
-  You should only set this environment variable before the installation process
-  starts.
-  Indeed, the only supported way to switch the library used is to restart the
-  installation process from start.
 
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
@@ -1195,22 +1174,6 @@ Environment variables dealing with specific Sage packages:
 - :envvar:`SAGE_MATPLOTLIB_GUI` - if set to anything non-empty except ``no``,
   then Sage will attempt to build the graphical backend when it builds the
   matplotlib package.
-
-- :envvar:`INCLUDE_MPFR_PATCH` - this is used to add a patch to MPFR to bypass
-  a bug in the memset function affecting sun4v machines with versions of
-  Solaris earlier than Solaris 10 update 8 (10/09).
-  Earlier versions of Solaris 10 can be patched by applying Sun patch
-  142542-01.
-  Recognized values are:
-
-  - ``INCLUDE_MPFR_PATCH=0`` - never include the patch - useful if you know all
-    sun4v machines Sage will be used are running Solaris 10 update 8 or later,
-    or have been patched with Sun patch 142542-01.
-
-  - ``INCLUDE_MPFR_PATCH=1`` - always include the patch, so the binary will
-    work on a sun4v machine, even if created on an older sun4u machine.
-
-  - If this variable is unset, include the patch on sun4v machines only.
 
 - :envvar:`PARI_CONFIGURE` - use this to pass extra parameters to
   PARI's ``Configure`` script, for example to specify graphics
@@ -1280,20 +1243,6 @@ Sage uses the following environment variables when it runs:
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 
-- :envvar:`SAGE_ORIG_LD_LIBRARY_PATH_SET` - set this to something non-empty to
-  force Sage to set the :envvar:`LD_LIBRARY_PATH` variable before executing
-  system commands.
-
-- :envvar:`SAGE_ORIG_DYLD_LIBRARY_PATH_SET` - similar, but only used on OS X to
-  set the :envvar:`DYLD_LIBRARY_PATH` variable.
-
-- :envvar:`SAGE_CBLAS` - used in the file
-  :file:`SAGE_ROOT/src/sage/misc/cython.py`.
-  Set this to the base name of the BLAS library file on your system if you want
-  to override the default setting.
-  That is, if the relevant file is called :file:`libcblas_new.so` or
-  :file:`libcblas_new.dylib`, then set this to ``cblas_new``.
-
 Sage overrides the user's settings of the following variables:
 
 - :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
@@ -1320,9 +1269,9 @@ Variables dealing with doctesting:
   :func:`unpickle_all` in
   :file:`$SAGE_ROOT/src/sage/structure/sage_object.pyx`, online
   `here (picklejar)
-  <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
+  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
   and `here (unpickle_all)
-  <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
+  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
 
 - :envvar:`SAGE_TEST_GLOBAL_ITER`, :envvar:`SAGE_TEST_ITER`: these can
   be used instead of passing the flags ``--global-iterations`` and
@@ -1374,20 +1323,30 @@ a single copy of Sage in a multi-user computer network.
 System-wide install
 ~~~~~~~~~~~~~~~~~~~
 
-#. After building Sage, you may optionally copy or move the entire build tree
-   to :file:`/usr/local` or another location.
-   If you do this, then you must run ``./sage`` once so that various hardcoded
-   locations get updated.
-   For this reason, it might be easier to simply build Sage in its final
-   location.
+In the instructions below, we assume that ``/path/to/sage-x.y`` is
+the directory where you want to install Sage.
+
+#. First of all, extract the Sage source tarball in ``/path/to``
+   (this will create the directory ``/path/to/sage-x.y``).
+   After extracting, you can change the directory name if you do not
+   like ``sage-x.y``.
+
+#. Change the ownership of the ``/path/to/sage-x.y`` directory tree
+   to your normal user account (as opposed to ``root``). This is because
+   Sage will refuse to compile as ``root``. ::
+
+       chown -R user:group /path/to/sage-x.y
+
+#. Using your normal user account, build Sage.
+   See the :ref:`build-from-source-step-by-step` above.
 
 #. Make a symbolic link to the ``sage`` script in :file:`/usr/local/bin`::
 
-       ln -s /path/to/sage-x.y.z/sage /usr/local/bin/sage
+       ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
 
    Alternatively, copy the Sage script::
 
-       cp /path/to/sage-x.y.z/sage /usr/local/bin/sage
+       cp /path/to/sage-x.y/sage /usr/local/bin/sage
 
    If you do this, make sure you edit the line::
 
@@ -1401,11 +1360,6 @@ System-wide install
    (note that you have to change ``<SAGE_ROOT>`` above!).
    It is recommended not to edit the original ``sage`` script, only the copy at
    :file:`/usr/local/bin/sage`.
-
-#. Make sure that all files in the Sage tree are readable by all
-   (note that you have to change ``<SAGE_ROOT>`` below!)::
-
-       chmod a+rX -R <SAGE_ROOT>
 
 #. Optionally, you can test Sage by running::
 
@@ -1459,4 +1413,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in December 2014 (Sage 6.5).**
+**This page was last updated in July 2016 (Sage 7.3).**

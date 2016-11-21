@@ -108,7 +108,8 @@ import rational_field, integer_ring
 from integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias, deprecation
+from warnings import warn
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -312,7 +313,7 @@ cdef class PowerSeries(AlgebraElement):
         S = self._parent.change_ring(R)
         return S(self)
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         r"""
         Comparison of self and ``right``.
 
@@ -400,7 +401,6 @@ cdef class PowerSeries(AlgebraElement):
             NotImplementedError        
         """
         raise NotImplementedError
-
 
     def coefficients(self):
         """
@@ -543,7 +543,7 @@ cdef class PowerSeries(AlgebraElement):
             else:
                 n = self._prec
         if n < 0:
-            raise ValueError, "n must be at least 0"
+            raise ValueError("n must be at least 0")
         v = self.list()
         if len(v) < n:
             z = self._parent.base_ring()(0)
@@ -837,7 +837,7 @@ cdef class PowerSeries(AlgebraElement):
             if self._prec > n:
                 return self.base_ring()(0)
             else:
-                raise IndexError, "coefficient not known"
+                raise IndexError("coefficient not known")
         return c[n]
 
     def common_prec(self, f):
@@ -969,7 +969,7 @@ cdef class PowerSeries(AlgebraElement):
         `a_0` nonzero. Then this function returns
         `a_0 + a_1 q + \cdots` .
 
-        .. note::
+        .. NOTE::
 
            This valuation zero part need not be a unit if, e.g.,
            `a_0` is not invertible in the base ring.
@@ -991,7 +991,7 @@ cdef class PowerSeries(AlgebraElement):
             0
         """
         if self.is_zero():
-            raise ValueError, "power series has no valuation 0 part"
+            raise ValueError("power series has no valuation 0 part")
         n = self.valuation()
         if n == 0:
             return self
@@ -1005,7 +1005,7 @@ cdef class PowerSeries(AlgebraElement):
                     v[k-n] = x
         return self._parent(v, self.prec()-n)
 
-    cpdef RingElement _div_(self, RingElement denom_r):
+    cpdef _div_(self, denom_r):
         """
         EXAMPLES::
 
@@ -1019,7 +1019,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         denom = <PowerSeries>denom_r
         if denom.is_zero():
-            raise ZeroDivisionError, "Can't divide by something indistinguishable from 0"
+            raise ZeroDivisionError("Can't divide by something indistinguishable from 0")
         u = denom.valuation_zero_part()
         inv = ~u  # inverse
 
@@ -1039,6 +1039,32 @@ cdef class PowerSeries(AlgebraElement):
             num = self
         return num*inv
 
+    cpdef _floordiv_(self, denom):
+        """
+        Euclidean division (over fields) or ordinary division (over
+        other rings; deprecated).
+
+        EXAMPLES::
+
+            sage: A.<q> = GF(7)[[]]
+            sage: (q^2 - 1) // (q + 1)
+            doctest:...: UserWarning: the operator // now returns the Euclidean quotient for power series over fields, use / for the true quotient
+            6 + q + O(q^20)
+
+            sage: R.<t> = ZZ[[]]
+            sage: (t**10 - 1) // (1 + t + t^7)
+            doctest:...: DeprecationWarning: the operator // is deprecated for power series over non-fields, use / instead
+            See http://trac.sagemath.org/20062 for details.
+            -1 + t - t^2 + t^3 - t^4 + t^5 - t^6 + 2*t^7 - 3*t^8 + 4*t^9 - 4*t^10 + 5*t^11 - 6*t^12 + 7*t^13 - 9*t^14 + 12*t^15 - 16*t^16 + 20*t^17 - 25*t^18 + 31*t^19 + O(t^20)
+        """
+        try:
+            q, r = self.quo_rem(denom)
+            warn("the operator // now returns the Euclidean quotient for power series over fields, use / for the true quotient")
+            return q
+        except (AttributeError, NotImplementedError):
+            deprecation(20062, "the operator // is deprecated for power series over non-fields, use / instead")
+            return self._div_(denom)
+
     def __mod__(self, other):
         """
         EXAMPLES::
@@ -1050,7 +1076,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         if isinstance(other,(int,Integer,long)):
             return power_series_ring.PowerSeriesRing(IntegerModRing(other), self.variable())(self)
-        raise NotImplementedError, "Mod on power series ring elements not defined except modulo an integer."
+        raise NotImplementedError("Mod on power series ring elements not defined except modulo an integer.")
 
     def shift(self, n):
         r"""
@@ -1058,7 +1084,7 @@ cdef class PowerSeries(AlgebraElement):
         `n` is negative, terms below `t^n` will be
         discarded. Does not change this power series.
 
-        .. note::
+        .. NOTE::
 
            Despite the fact that higher order terms are printed to the
            right in a power series, right shifting decreases the
@@ -1185,7 +1211,7 @@ cdef class PowerSeries(AlgebraElement):
 
         ALGORITHM: Newton's method
 
-        .. math::
+        .. MATH::
 
            x_{i+1} = \frac{1}{2}( x_i + \mathrm{self}/x_i )
 
@@ -1258,7 +1284,7 @@ cdef class PowerSeries(AlgebraElement):
                 return ans
 
         if all and not self.base_ring().is_integral_domain():
-            raise NotImplementedError, 'all roots not implemented over a non-integral domain'
+            raise NotImplementedError('all roots not implemented over a non-integral domain')
 
         formal_sqrt = False
         u = self.valuation_zero_part()
@@ -1283,20 +1309,20 @@ cdef class PowerSeries(AlgebraElement):
         if formal_sqrt or val % 2 == 1:
             if extend:
                 if name is None:
-                    raise ValueError, "the square root generates an extension, so you must specify the name of the square root"
+                    raise ValueError("the square root generates an extension, so you must specify the name of the square root")
                 R = self._parent['x']
                 S = R.quotient(R([-self,0,1]), names=name)
                 a = S.gen()
                 if all:
                     if not self.base_ring().is_integral_domain():
-                        raise NotImplementedError, 'all roots not implemented over a non-integral domain'
+                        raise NotImplementedError('all roots not implemented over a non-integral domain')
                     return [a, -a]
                 else:
                     return a
             elif formal_sqrt:
-                raise ValueError, "unable to take the square root of %s"%u[0]
+                raise ValueError("unable to take the square root of %s" % u[0])
             else:
-                raise ValueError, "power series does not have a square root since it has odd valuation."
+                raise ValueError("power series does not have a square root since it has odd valuation.")
 
 
         pr = self.prec()
@@ -1373,16 +1399,187 @@ cdef class PowerSeries(AlgebraElement):
         """
         val = self.valuation()
         if val is not infinity and val % 2 == 1:
-            raise ValueError, "Square root not defined for power series of odd valuation."
+            raise ValueError("Square root not defined for power series of odd valuation.")
         elif not self[val].is_square():
-            raise ValueError, "Square root does not live in this ring."
+            raise ValueError("Square root does not live in this ring.")
         elif self.base_ring() in _Fields:
             return self.sqrt()
         else:
             try:
                 return self.parent()(self.sqrt())
             except TypeError:
-                raise ValueError, "Square root does not live in this ring."
+                raise ValueError("Square root does not live in this ring.")
+
+    def cos(self, prec=infinity):
+        r"""
+        Apply cos to the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        A new power series.
+
+        EXAMPLES:
+
+        For one variable::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: f = (t + t**2).O(4)
+            sage: cos(f)
+            1 - 1/2*t^2 - t^3 + O(t^4)
+
+        For several variables::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: cos(f)
+            1 - 1/2*a^2 - a*b - 1/2*b^2 + O(a, b)^3
+            sage: f.cos()
+            1 - 1/2*a^2 - a*b - 1/2*b^2 + O(a, b)^3
+            sage: f.cos(prec=2)
+            1 + O(a, b)^2
+
+        If the power series has a non-zero constant coefficient `c`,
+        one raises an error::
+
+            sage: g = 2+f
+            sage: cos(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: Can only apply cos to formal power series with zero constant term.
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: cos(a)
+            1 - 1/2*a^2 + 1/24*a^4 - 1/720*a^6 + 1/40320*a^8 - 1/3628800*a^10 + O(a, b)^12
+            sage: a.cos(prec=5)
+            1 - 1/2*a^2 + 1/24*a^4 + O(a, b)^5
+            sage: cos(a + T.O(5))
+            1 - 1/2*a^2 + 1/24*a^4 + O(a, b)^5
+
+        TESTS::
+
+            sage: cos(a^2 + T.O(5))
+            1 - 1/2*a^4 + O(a, b)^5
+        """
+        R = self.parent()
+
+        c = self[0]
+        if not c.is_zero():
+            raise ValueError('Can only apply cos to formal power '
+                             'series with zero constant term.')
+        x = self
+        val = x.valuation()
+        assert(val >= 1)
+
+        prec = min(prec, self.prec())
+        if is_Infinite(prec):
+            prec = R.default_prec()
+        n_inv_factorial = R.base_ring().one()
+        x_pow_n = R.one()
+        x2 = x ** 2
+        cos_x = R.one().add_bigoh(prec)
+        for n in range(2, prec // val + 1, 2):
+            x_pow_n = (x_pow_n * x2).add_bigoh(prec)
+            n_inv_factorial /= - n * (n - 1)
+            cos_x += x_pow_n * n_inv_factorial
+        result_bg = cos_x
+
+        if result_bg.base_ring() is not self.base_ring():
+            R = R.change_ring(self.base_ring().fraction_field())
+        return R(result_bg, prec=prec)
+
+    def sin(self, prec=infinity):
+        r"""
+        Apply sin to the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        A new power series.
+
+        EXAMPLES:
+
+        For one variable::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: f = (t + t**2).O(4)
+            sage: sin(f)
+            t + t^2 - 1/6*t^3 + O(t^4)
+
+        For several variables::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: sin(f)
+            a + b + a*b + O(a, b)^3
+            sage: f.sin()
+            a + b + a*b + O(a, b)^3
+            sage: f.sin(prec=2)
+            a + b + O(a, b)^2
+
+        If the power series has a non-zero constant coefficient `c`,
+        one raises an error::
+
+            sage: g = 2+f
+            sage: sin(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: Can only apply sin to formal power series with zero constant term.
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: sin(a)
+            a - 1/6*a^3 + 1/120*a^5 - 1/5040*a^7 + 1/362880*a^9 - 1/39916800*a^11 + O(a, b)^12
+            sage: a.sin(prec=5)
+            a - 1/6*a^3 + O(a, b)^5
+            sage: sin(a + T.O(5))
+            a - 1/6*a^3 + O(a, b)^5
+
+        TESTS::
+
+            sage: sin(a^2 + T.O(5))
+            a^2 + O(a, b)^5
+        """
+        R = self.parent()
+
+        c = self[0]
+        if not c.is_zero():
+            raise ValueError('Can only apply sin to formal power '
+                             'series with zero constant term.')
+        val = self.valuation()
+        assert(val >= 1)
+
+        x = self
+        
+        prec = min(prec, self.prec())
+        if is_Infinite(prec):
+            prec = R.default_prec()
+        n_inv_factorial = R.base_ring().one()
+        x_pow_n = x
+        x2 = x ** 2
+        sin_x = x.add_bigoh(prec)
+        for n in range(3, prec // val + 1, 2):
+            x_pow_n = (x_pow_n * x2).add_bigoh(prec)
+            n_inv_factorial /= - n * (n - 1)
+            sin_x += x_pow_n * n_inv_factorial
+        result_bg = sin_x
+
+        if result_bg.base_ring() is not self.base_ring():
+            R = R.change_ring(self.base_ring().fraction_field())
+        return R(result_bg, prec=prec)
 
     def O(self, prec):
         r"""
@@ -1401,7 +1598,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: p.O(-5)
             Traceback (most recent call last):
             ...
-            ValueError: n must be at least 0
+            ValueError: prec (= -5) must be non-negative
         """
         if prec is infinity or prec >= self.prec():
             return self
@@ -1414,7 +1611,7 @@ cdef class PowerSeries(AlgebraElement):
         Obtain a power series solution to an inhomogeneous linear
         differential equation of the form:
 
-        .. math::
+        .. MATH::
 
               f'(t) = a(t) f(t) + b(t).
 
@@ -1444,7 +1641,7 @@ cdef class PowerSeries(AlgebraElement):
         over something like `\QQ`, running time analysis can be a
         little complicated because the coefficients tend to explode.)
 
-        .. note::
+        .. NOTE::
 
            - If the coefficient ring is a field of characteristic
              zero, then the solution will exist and is unique.
@@ -1503,14 +1700,12 @@ cdef class PowerSeries(AlgebraElement):
         # reduce precision to whatever is available from a and b
         prec = min(prec, self.prec() + 1, b.prec() + 1)
         if prec is infinity:
-            raise ValueError, \
-                 "cannot solve differential equation to infinite precision"
+            raise ValueError("cannot solve differential equation to infinite precision")
         prec = int(prec)
         if prec == 0:
             return self._parent(0, 0)
         if prec < 0:
-            raise ValueError, \
-                  "prec (=%s) must be a non-negative integer" % prec
+            raise ValueError("prec (=%s) must be a non-negative integer" % prec)
 
         base_ring = self._parent.base_ring()
         R = PolynomialRing(base_ring, self._parent.variable_name())
@@ -1536,7 +1731,7 @@ cdef class PowerSeries(AlgebraElement):
 
         ALGORITHM: See :meth:`.solve_linear_de`.
 
-        .. note::
+        .. NOTE::
 
            - Screwy things can happen if the coefficient ring is not a
              field of characteristic zero. See :meth:`.solve_linear_de`.
@@ -1780,7 +1975,7 @@ cdef class PowerSeries(AlgebraElement):
         documentation for the global derivative() function for more
         details.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`_derivative`
 
@@ -1813,7 +2008,7 @@ cdef class PowerSeries(AlgebraElement):
             ...
             IndexError: power series are immutable
         """
-        raise IndexError, "power series are immutable"
+        raise IndexError("power series are immutable")
 
     def laurent_series(self):
         """
@@ -1899,7 +2094,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         n = self.prec()
         if n is infinity:
-            raise ValueError, "series precision must be finite for conversion to pari object."
+            raise ValueError("series precision must be finite for conversion to pari object.")
         s = self.truncate()._pari_()  # PARI polynomial
         s += pari('O(%s^%d)' % (s.variable(), n))  # PARI series
         return s
@@ -1932,7 +2127,7 @@ def _solve_linear_de(R, N, L, a, b, f0):
     `L`), where `f` is a solution to the linear
     inhomogeneous differential equation:
 
-    .. math::
+    .. MATH::
 
          (t^N f)'  =  a t^N f  +  t^{N-1} b  +  O(t^{N+L-1}).
 
@@ -1962,7 +2157,7 @@ def _solve_linear_de(R, N, L, a, b, f0):
     ceiling of `(L/2)`. First recursively find `g`
     modulo `t^{L'}` such that
 
-    .. math::
+    .. MATH::
 
          (t^N g)'  =  a t^N g  +  t^{N-1} b  +  O(t^{N+L'-1}).
 
@@ -1973,14 +2168,14 @@ def _solve_linear_de(R, N, L, a, b, f0):
     equation. We can find a suitable `h` by recursively solving
     another differential equation of the same form, namely
 
-    .. math::
+    .. MATH::
 
          (t^{N+L'} h)'  =  a t^{N+L'} h  +  c t^{N+L'-1} + O(t^{N+L'-1}),
 
 
     where `c` is determined by
 
-    .. math::
+    .. MATH::
 
          (t^N g)' - a t^N g - t^{N-1} b  =  -c t^{N+L'-1} + O(t^{N+L-1}).
 

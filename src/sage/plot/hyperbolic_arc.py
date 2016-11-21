@@ -21,6 +21,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.plot.bezier_path import BezierPath
 from sage.plot.colors import to_mpl_color
 from sage.plot.misc import options, rename_keyword
@@ -42,7 +44,7 @@ class HyperbolicArc(BezierPath):
 
          sage: from sage.plot.hyperbolic_arc import HyperbolicArc
 
-         sage: print HyperbolicArc(0, 1/2+I*sqrt(3)/2, {})
+         sage: print(HyperbolicArc(0, 1/2+I*sqrt(3)/2, {}))
          Hyperbolic arc (0.000000000000000, 0.500000000000000 + 0.866025403784439*I)
     """
 

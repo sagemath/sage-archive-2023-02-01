@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(SAGE_MP_LIBRARY)
+$(PYTHON) $(MP_LIBRARY) flint
 
 ----------
 All lines of this file are ignored except the first.

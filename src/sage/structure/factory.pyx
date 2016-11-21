@@ -53,10 +53,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import types, copy_reg
+import types
 
-from sage_object cimport SageObject
+from .sage_object cimport SageObject
 
 cdef sage_version
 from sage.version import version as sage_version
@@ -151,7 +152,7 @@ cdef class UniqueFactory(SageObject):
 
     The below examples are rather artificial and illustrate particular
     aspects. For a "real-life" usage case of ``UniqueFactory``, see
-    the finite field factory in :mod:`sage.rings.finite_rings.constructor`.
+    the finite field factory in :mod:`sage.rings.finite_rings.finite_field_constructor`.
 
     In many cases, a factory class is implemented by providing the two
     methods :meth:`create_key` and :meth:`create_object`. In our example,
@@ -718,7 +719,7 @@ def generic_factory_reduce(self, proto):
         True
     """
     if self._factory_data is None:
-        raise NotImplementedError, "__reduce__ not implemented for %s" % type(self)
+        raise NotImplementedError("__reduce__ not implemented for %s" % type(self))
     else:
         return self._factory_data[0].reduce_data(self)
 

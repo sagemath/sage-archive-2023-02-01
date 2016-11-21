@@ -67,7 +67,7 @@ axioms [St2003]_.
 
 REFERENCES:
 
-.. [St2003] J. Stembridge, *A local characterization of simply-laced crystals*,
+.. [St2003] \J. Stembridge, *A local characterization of simply-laced crystals*,
    Trans. Amer. Math. Soc. 355 (2003), no. 12, 4807-4823.
 
 EXAMPLES:

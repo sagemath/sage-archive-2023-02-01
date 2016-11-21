@@ -198,7 +198,7 @@ cpdef dict scal(a, dict D, bint factor_on_left=True):
 
 
     """
-    # We could use a dict comprehensions like for negate, but care
+    # We could use a dict comprehension like for negate, but care
     # needs to be taken to remove products that cancel out.
     # So for now we just delegate to axpy.
     return axpy(a, D, {}, factor_on_left=factor_on_left)

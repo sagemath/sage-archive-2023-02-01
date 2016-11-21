@@ -154,6 +154,11 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             Univariate Laurent Polynomial Ring in s over Finite Field of size 5
             sage: parent(S(t)[1])
             Finite Field of size 5
+
+        ::
+
+            sage: R({})
+            0
         """
         CommutativeAlgebraElement.__init__(self, parent)
 
@@ -165,7 +170,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                 f = parent.polynomial_ring()((<LaurentPolynomial_univariate>f).__u)
         elif (not isinstance(f, Polynomial)) or (parent is not f.parent()):
             if isinstance(f, dict):
-                v = min(f)
+                v = min(f) if f else 0
                 f = dict((i-v,c) for i,c in f.items())
                 n += v
             f = parent.polynomial_ring()(f)

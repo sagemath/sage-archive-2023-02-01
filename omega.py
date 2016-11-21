@@ -504,11 +504,14 @@ def Omega(var, expression, denominator=None, op=operator.ge):
         sage: Omega(mu, Factorization([(1/mu, 1), (1 - x*mu, -1),
         ....:                          (1 - y/mu, -2)], unit=2))
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
+        sage: Omega(mu, Factorization([(mu, -1), (1 - x*mu, -1),
+        ....:                          (1 - y/mu, -2)], unit=2))
+        2*x * (-x + 1)^-1 * (-x*y + 1)^-2
 
     ::
 
         sage: Omega(mu, 1, [1 - x*mu, 1 - z, 1 - y/mu])
-        1 * ((-z + 1))^-1 * (-x + 1)^-1 * (-x*y + 1)^-1
+        1 * (-z + 1)^-1 * (-x + 1)^-1 * (-x*y + 1)^-1
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod
@@ -555,6 +558,7 @@ def Omega(var, expression, denominator=None, op=operator.ge):
     if not isinstance(var, str) and \
        len(var.parent().gens()) == 1 and var.parent().gen() == var:
         L = var.parent()
+        L0 = L.base_ring()
     else:
         R = factors_denominator[0].parent()
         var = repr(var)
@@ -567,9 +571,16 @@ def Omega(var, expression, denominator=None, op=operator.ge):
     if numerator == 0:
         return Factorization([], unit=numerator)
     factors_denominator = tuple(L(factor) for factor in factors_denominator)
+    factors_denominator, to_numerator = partition(
+        factors_denominator,
+        lambda factor: factor.variables() == (var,) and len(factor.dict()) == 1)
+    numerator /= prod(to_numerator)
 
-    other_factors, factors_denominator = partition(
-        factors_denominator, lambda factor: var in factor.variables())
+    factors_denominator, other_factors = partition(
+        factors_denominator,
+        lambda factor: var not in factor.variables())
+    other_factors = tuple(other_factors)
+    other_factors = tuple(L0(f) for f in other_factors)
     def decode_factor(factor):
         D = factor.dict()
         if len(D) != 2 or D.get(0, 0) != 1:

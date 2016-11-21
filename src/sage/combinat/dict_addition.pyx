@@ -185,7 +185,7 @@ cpdef dict negate(dict D):
         sage: blas.negate(D1)
         {0: -1, 1: -1}
     """
-    return {key:-value for key,value in D.iteritems()}
+    return { key: -value for key,value in D.iteritems() }
 
 cpdef dict scal(a, dict D, bint factor_on_left=True):
     r"""
@@ -196,7 +196,13 @@ cpdef dict scal(a, dict D, bint factor_on_left=True):
     - ``a`` -- an element of the base ring `K`
     - ``X`` -- a dictionary representing a vector `X`
 
+    EXAMPLES::
 
+        sage: import sage.combinat.dict_addition as blas
+        sage: R = IntegerModRing(12)              # a ring with zero divisors
+        sage: D = {0: R(1), 1: R(2), 2: R(4)}
+        sage: blas.scal(R(3), D)
+        {0: 3, 1: 6}
     """
     # We could use a dict comprehension like for negate, but care
     # needs to be taken to remove products that cancel out.
@@ -211,17 +217,19 @@ cpdef dict add(dict D, dict D2):
 
     - ``D``, ``D2`` -- dictionaries whose values are in a common ring
       and all values are non-zero
-    - ``negative`` -- boolean (default: ``False``); add the negative of ``D2``
 
     EXAMPLES::
 
         sage: import sage.combinat.dict_addition as blas
-        sage: D1 = {0: 1, 1: 1}
+        sage: D = {0: 1, 1: 1}
         sage: D2 = {0: -1, 1: 1}
-        sage: blas.add(D1, D2)
+        sage: blas.add(D, D2)
         {1: 2}
-        sage: D1
-        {0: 1, 1: 1}
+
+    `D` and `D2` are left unchanged::
+
+        sage: D1, D2
+        ({0: 1, 1: 1}, {0: -1, 1: 1})
     """
     # Optimization: swap the two dicts to ensure D is the largest
     if len(D) < len(D2):

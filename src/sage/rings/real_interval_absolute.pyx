@@ -130,7 +130,7 @@ cdef class RealIntervalAbsoluteField_class(Field):
             ValueError: Absolute precision must be positive.
         """
         if absprec < 0:
-            raise ValueError, "Absolute precision must be positive."
+            raise ValueError("Absolute precision must be positive.")
         self._absprec = absprec
 
     def __reduce__(self):
@@ -634,7 +634,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         else:
             return self._new_c(zero, max(-self._mantissa, self._mantissa + self._diameter))
 
-    cpdef ModuleElement _add_(self, ModuleElement _other):
+    cpdef _add_(self, _other):
         """
         TESTS::
 
@@ -652,7 +652,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         cdef RealIntervalAbsoluteElement other = <RealIntervalAbsoluteElement>_other
         return self._new_c(self._mantissa + other._mantissa, self._diameter + other._diameter)
 
-    cpdef ModuleElement _sub_(self, ModuleElement _other):
+    cpdef _sub_(self, _other):
         """
         TESTS::
 
@@ -672,7 +672,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         cdef RealIntervalAbsoluteElement other = <RealIntervalAbsoluteElement>_other
         return self._new_c(self._mantissa - other._mantissa - other._diameter, self._diameter + other._diameter)
 
-    cpdef RingElement _mul_(self, RingElement _other):
+    cpdef _mul_(self, _other):
         """
         TESTS::
 
@@ -799,7 +799,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             0.?e-60
         """
         if self.contains_zero():
-            raise ZeroDivisionError, "Inversion of an interval containing zero."
+            raise ZeroDivisionError("Inversion of an interval containing zero.")
         cdef long absprec = (<RealIntervalAbsoluteField_class>self._parent)._absprec
         cdef bint negate
         if self.is_negative():
@@ -832,7 +832,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             res = -res
         return res
 
-    cpdef RingElement _div_(self, RingElement _other):
+    cpdef _div_(self, _other):
         """
         TESTS::
 
@@ -851,7 +851,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         """
         cdef RealIntervalAbsoluteElement other = <RealIntervalAbsoluteElement>_other
         if other.contains_zero():
-            raise ZeroDivisionError, "Division by an interval containing zero."
+            raise ZeroDivisionError("Division by an interval containing zero.")
 
         cdef Integer mantissa = <Integer>PY_NEW(Integer)
         cdef Integer diameter = <Integer>PY_NEW(Integer)
@@ -989,7 +989,7 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
         if name[0] != '_' and hasattr(RealIntervalFieldElement, name):
             return MpfrOp(self, name)
         else:
-            raise AttributeError, name
+            raise AttributeError(name)
 
     def sqrt(self):
         """

@@ -15,7 +15,7 @@ Sage example in ./mpoly.tex, line 40::
 Sage example in ./mpoly.tex, line 44::
 
   sage: x = R.gens()
-  sage: sum(x[i] for i in xrange(5))
+  sage: sum(x[i] for i in range(5))
   x0 + x1 + x2 + x3 + x4
 
 Sage example in ./mpoly.tex, line 52::
@@ -69,8 +69,8 @@ Sage example in ./mpoly.tex, line 202::
 
 Sage example in ./mpoly.tex, line 209::
 
-  sage: print "total={d}    (en x)={dx}    partiels={ds}"\
-  ...     .format(d=p.degree(), dx=p.degree(x), ds=p.degrees())
+  sage: print("total={d}    (en x)={dx}    partiels={ds}"
+  ....:       .format(d=p.degree(), dx=p.degree(x), ds=p.degrees()))
   total=4    (en x)=3    partiels=(3, 2, 1)
 
 Sage example in ./mpoly.tex, line 255::
@@ -163,7 +163,7 @@ Sage example in ./mpoly.tex, line 432::
   [Ideal (z^17 - 1, y - 2*z^10, x - 3*z^3) of Multivariate
   Polynomial Ring in x, y, z over Rational Field]
   sage: J.transformed_basis()
-  [z^17 - 1, -2*z^10 + y, -3*z^3 + x]
+  [z^17 - 1, -2*z^10 + y, -3/4*y^2 + x]
 
 Sage example in ./mpoly.tex, line 534::
 

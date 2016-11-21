@@ -57,17 +57,19 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 # Standard python imports
-import cPickle, os, types
+from six.moves import cPickle
+import os
+import types
 
 # We want the caller's locals, but locals() is emulated in Cython
-import __builtin__
-cdef caller_locals = __builtin__.locals
+from six.moves import builtins
+cdef caller_locals = builtins.locals
 
 # Sage imports
-from misc import embedded
+from .misc import embedded
 from sage.structure.sage_object import load, save
 
 # This module-scope variables is used to save the
@@ -297,7 +299,7 @@ def save_session(name='sage_session', verbose=False):
     for k in show_identifiers(hidden = True):
         try:
             x = state[k]
-            if isinstance(x, (types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType, types.TypeType, types.ClassType)):
+            if isinstance(x, (types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType, type)):
                 raise TypeError('{} is a function, method, class or type'.format(k))
 
             # We attempt to pickle *and* unpickle every variable to

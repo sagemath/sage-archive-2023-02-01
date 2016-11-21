@@ -19,19 +19,19 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
-from __builtin__ import list as builtinlist
+from six.moves.builtins import list as builtinlist
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.combinat.words.word import Word
-from permutation import Permutation
+from .permutation import Permutation
 
 def WeightedIntegerVectors(n = None, weight = None):
     """
@@ -123,7 +123,7 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: C.__class__
             <class 'sage.combinat.integer_vector_weighted.WeightedIntegerVectors_all_with_category'>
             sage: C.category()
-            Join of Category of sets with grading and Category of infinite enumerated sets
+            Category of infinite enumerated sets with grading
             sage: TestSuite(C).run()
         """
         self._weights = weights
@@ -261,13 +261,13 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
 
             sage: ivw = [ WeightedIntegerVectors(k, [1,1,1]) for k in range(11) ]
             sage: iv  = [ IntegerVectors(k, 3) for k in range(11) ]
-            sage: all( [ sorted(iv[k].list()) == sorted(ivw[k].list()) for k in range(11) ] )
+            sage: all(sorted(iv[k].list()) == sorted(ivw[k].list()) for k in range(11))
             True
 
         ::
 
             sage: ivw = [ WeightedIntegerVectors(k, [2,3,7]) for k in range(11) ]
-            sage: all( [ i.cardinality() == len(i.list()) for i in ivw] )
+            sage: all(i.cardinality() == len(i.list()) for i in ivw)
             True
         """
         if not self._weights:

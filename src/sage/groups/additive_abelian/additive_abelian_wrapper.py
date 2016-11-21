@@ -46,8 +46,9 @@ TODO:
   implementation -- some fiddly adjustments will be needed in order to be able
   to pass extra arguments to the subquotient's init method.
 """
+from __future__ import absolute_import
 
-import additive_abelian_group as addgp
+from . import additive_abelian_group as addgp
 from sage.rings.all import ZZ
 from sage.misc.misc import verbose
 from sage.categories.morphism import Morphism
@@ -220,10 +221,11 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: v.parent() is QQbar
             True
         """
+        from six.moves import range
         v = self.V()(v)
         verbose("Calling discrete exp on %s" % v)
         # DUMB IMPLEMENTATION!
-        return sum([self._gen_elements[i] * ZZ(v[i]) for i in xrange(len(v))], self.universe()(0))
+        return sum([self._gen_elements[i] * ZZ(v[i]) for i in range(len(v))], self.universe()(0))
 
     def _discrete_log(self,x):
         r"""

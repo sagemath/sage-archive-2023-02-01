@@ -55,18 +55,14 @@ from __future__ import print_function
 
 import operator
 
-from infinity import infinity
+from .infinity import infinity
 
-import laurent_series_ring
-import power_series_ring_element
-import power_series_ring
 import sage.rings.polynomial.polynomial_element as polynomial
 import sage.misc.latex
 from sage.rings.integer import Integer
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_univariate
-
+from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement, AlgebraElement
-
 from sage.misc.derivative import multi_derivative
 
 
@@ -527,7 +523,7 @@ cdef class LaurentSeries(AlgebraElement):
             ...
             IndexError: Laurent series are immutable
         """
-        raise IndexError, "Laurent series are immutable"
+        raise IndexError("Laurent series are immutable")
 
     def _unsafe_mutate(self, i, value):
         """
@@ -549,7 +545,7 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = self.__u._parent(coeffs)
         self.__normalize()
 
-    cpdef ModuleElement _add_(self, ModuleElement right_m):
+    cpdef _add_(self, right_m):
         """
         Add two power series with the same parent.
 
@@ -599,7 +595,7 @@ cdef class LaurentSeries(AlgebraElement):
         # 3. Add
         return LaurentSeries(self._parent, f1 + f2, m)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right_m):
+    cpdef _sub_(self, right_m):
         """
         Subtract two power series with the same parent.
 
@@ -684,7 +680,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return LaurentSeries(self._parent, -self.__u, self.__n)
 
-    cpdef RingElement _mul_(self, RingElement right_r):
+    cpdef _mul_(self, right_r):
         """
         EXAMPLES::
 
@@ -699,10 +695,10 @@ cdef class LaurentSeries(AlgebraElement):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         return LaurentSeries(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         return LaurentSeries(self._parent, self.__u._lmul_(c), self.__n)
 
     def __pow__(_self, r, dummy):
@@ -720,7 +716,7 @@ cdef class LaurentSeries(AlgebraElement):
         cdef LaurentSeries self = _self
         right=int(r)
         if right != r:
-            raise ValueError, "exponent must be an integer"
+            raise ValueError("exponent must be an integer")
         return LaurentSeries(self._parent, self.__u**right, self.__n*right)
 
     def shift(self, k):
@@ -809,7 +805,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return LaurentSeries(self._parent, self.__u >> (n - self.__n), n)
 
-    cpdef RingElement _div_(self, RingElement right_r):
+    cpdef _div_(self, right_r):
         """
         EXAMPLES::
 
@@ -830,7 +826,7 @@ cdef class LaurentSeries(AlgebraElement):
                              self.__n - right.__n)
         except TypeError as msg:
             # todo: this could also make something in the formal fraction field.
-            raise ArithmeticError, "division not defined"
+            raise ArithmeticError("division not defined")
 
     def common_prec(self, other):
         r"""
@@ -930,7 +926,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return min(self.valuation(), other.valuation())
 
-    cpdef int _cmp_(self, Element right_r) except -2:
+    cpdef int _cmp_(self, right_r) except -2:
         r"""
         Comparison of self and right.
 
@@ -1132,7 +1128,7 @@ cdef class LaurentSeries(AlgebraElement):
         documentation for the global derivative() function for more
         details.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`_derivative`
 
@@ -1168,7 +1164,7 @@ cdef class LaurentSeries(AlgebraElement):
         derivative as expected. Otherwise, _derivative(var) gets called
         recursively on each coefficient.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`derivative`
 
@@ -1253,8 +1249,7 @@ cdef class LaurentSeries(AlgebraElement):
         cdef long i, n = self.__n
         a = self.__u.list()
         if self[-1] != 0:
-            raise ArithmeticError, \
-                  "The integral of is not a Laurent series, since t^-1 has nonzero coefficient."
+            raise ArithmeticError("The integral of is not a Laurent series, since t^-1 has nonzero coefficient.")
 
         if n < 0:
             v = [a[i]/(n+i+1) for i in range(min(-1-n,len(a)))] + [0]
@@ -1264,7 +1259,7 @@ cdef class LaurentSeries(AlgebraElement):
         try:
             u = self._parent.power_series_ring()(v, self.__u.prec())
         except TypeError:
-            raise ArithmeticError, "Coefficients of integral cannot be coerced into the base ring"
+            raise ArithmeticError("Coefficients of integral cannot be coerced into the base ring")
         return LaurentSeries(self._parent, u, n+1)
 
 
@@ -1356,7 +1351,7 @@ cdef class LaurentSeries(AlgebraElement):
             name = self.parent().variable_name()
             if name in kwds: # a keyword specifies the Laurent series generator
                 if len(x) > 0:
-                    raise ValueError, "must not specify %s keyword and positional argument" % name
+                    raise ValueError("must not specify %s keyword and positional argument" % name)
                 a = self(kwds[name])
                 del kwds[name]
                 try:

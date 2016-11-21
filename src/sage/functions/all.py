@@ -22,23 +22,22 @@ reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, '
 
 from .other import ( ceil, floor, gamma, psi, factorial, beta, binomial,
                     abs_symbolic, erf, sqrt, log_gamma,
-                    gamma_inc, incomplete_gamma,
-                    arg, real_part, real,
+                    gamma_inc, incomplete_gamma, gamma_inc_lower,
+                    arg, real_part, real, frac,
                     imag_part, imag, imaginary, conjugate)
 
-from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w)
+from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w, harmonic_number)
 
 
 from .transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
                             dickman_rho, stieltjes)
 
-from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
-                                   Bessel, struve_H, struve_L)
+from .bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
+                    Bessel, struve_H, struve_L, hankel1, hankel2,
+                                   spherical_bessel_J, spherical_bessel_Y,
+                                   spherical_hankel1, spherical_hankel2)
 
-from .special import (hypergeometric_U,
-                     spherical_bessel_J, spherical_bessel_Y,
-                     spherical_hankel1, spherical_hankel2,
-                     spherical_harmonic,
+from .special import (spherical_harmonic,
                      error_fcn, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,
                      elliptic_kc, elliptic_pi, elliptic_j)
@@ -82,6 +81,6 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
                           log_integral_offset,
                           sin_integral, cos_integral, Si, Ci,
                           sinh_integral, cosh_integral, Shi, Chi,
-                          exponential_integral_1, Ei)
+                          exponential_integral_1, Ei, exp_integral_ei)
 
-from .hypergeometric import hypergeometric
+from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U

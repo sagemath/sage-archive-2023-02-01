@@ -38,6 +38,7 @@ from sage.finance.time_series cimport TimeSeries
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all import matrix
 from sage.misc.randstate cimport current_randstate, randstate
+from cpython.object cimport PyObject_RichCompare
 
 from util cimport HMM_Util
 
@@ -336,11 +337,11 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         if not is_Matrix(B):
             B = matrix(B)
         if B.nrows() != self.N:
-            raise ValueError, "number of rows of B must equal number of states"
+            raise ValueError("number of rows of B must equal number of states")
         self.B = TimeSeries(B.list())
         self.n_out = B.ncols()
         if emission_symbols is not None and len(emission_symbols) != self.n_out:
-            raise ValueError, "number of emission symbols must equal number of output states"
+            raise ValueError("number of emission symbols must equal number of output states")
         cdef Py_ssize_t i
         if normalize:
             for i in range(self.N):
@@ -359,7 +360,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         return unpickle_discrete_hmm_v1, \
                (self.A, self.B, self.pi, self.n_out, self._emission_symbols, self._emission_symbols_dict)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -375,9 +376,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             False
         """
         if not isinstance(other, DiscreteHiddenMarkovModel):
-            raise ValueError
-        return cmp(self.__reduce__()[1], other.__reduce__()[1])
-
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def emission_matrix(self):
         """
@@ -549,7 +550,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             -inf
         """
         if obs.max() > self.N or obs.min() < 0:
-            raise ValueError, "invalid observation sequence, since it includes unknown states"
+            raise ValueError("invalid observation sequence, since it includes unknown states")
 
         cdef Py_ssize_t i, j, t, T = len(obs)
 
@@ -707,7 +708,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             (['up', 'up', 'down', 'down', 'down'], [0, 0, 1, 1, 1])
         """
         if length < 0:
-            raise ValueError, "length must be nonnegative"
+            raise ValueError("length must be nonnegative")
 
         # Create Integer lists for states and observations
         cdef IntList states = IntList(length)
@@ -747,7 +748,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         else:
             q = starting_state
             if q < 0 or q >= self.N:
-                raise ValueError, "starting state must be between 0 and %s"%(self.N-1)
+                raise ValueError("starting state must be between 0 and %s"%(self.N-1))
 
         states._values[0] = q
         # Generate a symbol from state q

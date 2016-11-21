@@ -1,6 +1,7 @@
 """
 The PPL (Parma Polyhedra Library) backend for polyhedral computations
 """
+from __future__ import absolute_import
 
 from sage.rings.all import ZZ, QQ
 from sage.rings.integer import LCM_list
@@ -11,9 +12,9 @@ from sage.libs.ppl import (
     Variable, Linear_Expression,
     line, ray, point )
 
-from base import Polyhedron_base
-from base_QQ import Polyhedron_QQ
-from base_ZZ import Polyhedron_ZZ
+from .base import Polyhedron_base
+from .base_QQ import Polyhedron_QQ
+from .base_ZZ import Polyhedron_ZZ
 
 
 #########################################################################
@@ -144,7 +145,7 @@ class Polyhedron_ppl(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],
-            ...                  backend='ppl')  # indirect doctest
+            ....:                backend='ppl')  # indirect doctest
             sage: p.Hrepresentation()
             (An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,
@@ -181,7 +182,7 @@ class Polyhedron_ppl(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],
-            ...                  backend='ppl')  # indirect doctest
+            ....:                backend='ppl')  # indirect doctest
             sage: p.Hrepresentation()
             (An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,
@@ -239,7 +240,7 @@ class Polyhedron_QQ_ppl(Polyhedron_ppl, Polyhedron_QQ):
     EXAMPLES::
 
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[],
-        ...                  backend='ppl', base_ring=QQ)
+        ....:                backend='ppl', base_ring=QQ)
         sage: TestSuite(p).run(skip='_test_pickling')
     """
     pass
@@ -259,7 +260,7 @@ class Polyhedron_ZZ_ppl(Polyhedron_ppl, Polyhedron_ZZ):
     EXAMPLES::
 
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[])
-        ...                  backend='ppl', base_ring=ZZ)
+        ....:                backend='ppl', base_ring=ZZ)
         sage: TestSuite(p).run(skip='_test_pickling')
     """
     pass

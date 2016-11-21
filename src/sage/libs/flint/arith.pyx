@@ -17,6 +17,7 @@ include "cysignals/signals.pxi"
 from .fmpz cimport *
 from .fmpq cimport *
 
+
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
@@ -77,6 +78,32 @@ def bernoulli_number(unsigned long n):
     sig_off()
     fmpq_get_mpq(ans.value, ans_fmpq)
     fmpq_clear(ans_fmpq)
+
+    return ans
+
+
+def euler_number(unsigned long n):
+    """
+    Return the Euler number of index `n`.
+
+    EXAMPLES::
+
+        sage: from sage.libs.flint.arith import euler_number
+        sage: [euler_number(i) for i in range(8)]
+        [1, 0, -1, 0, 5, 0, -61, 0]
+    """
+    cdef fmpz_t ans_fmpz
+    cdef Integer ans = Integer(0)
+
+    fmpz_init(ans_fmpz)
+
+    if n > 1000:
+        sig_on()
+    arith_euler_number(ans_fmpz, n)
+    fmpz_get_mpz(ans.value, ans_fmpz)
+    fmpz_clear(ans_fmpz)
+    if n > 1000:
+        sig_off()
 
     return ans
 
@@ -177,6 +204,32 @@ def dedekind_sum(p, q):
 
     fmpz_clear(p_fmpz)
     fmpz_clear(q_fmpz)
+    fmpq_clear(s_fmpq)
+
+    return s
+
+def harmonic_number(unsigned long n):
+    """
+    Returns the harmonic number ``H_n``.
+
+    EXAMPLES::
+
+        sage: from sage.libs.flint.arith import harmonic_number
+        sage: n = 500 + randint(0,500)
+        sage: bool( sum(1/k for k in range(1,n+1)) == harmonic_number(n) )
+        True
+    """
+    s = Rational(0)
+    cdef fmpq_t s_fmpq
+
+    fmpq_init(s_fmpq)
+
+    sig_on()
+    arith_harmonic_number(s_fmpq, n)
+
+    fmpq_get_mpq((<Rational>s).value, s_fmpq)
+    sig_off()
+
     fmpq_clear(s_fmpq)
 
     return s

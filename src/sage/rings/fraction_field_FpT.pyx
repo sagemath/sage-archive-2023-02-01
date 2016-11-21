@@ -342,7 +342,7 @@ cdef class FpTElement(RingElement):
         else:
             return "\\frac{%s}{%s}" % (self.numer()._latex_(), self.denom()._latex_())
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         Compares this with another element.  The ordering is arbitrary,
         but it is an ordering, and it is consistent between runs.  It has
@@ -443,7 +443,7 @@ cdef class FpTElement(RingElement):
         nmod_poly_swap(x._numer, x._denom)
         return x
 
-    cpdef ModuleElement _add_(self, ModuleElement _other):
+    cpdef _add_(self, _other):
         """
         Returns the sum of this fraction field element and another.
 
@@ -471,7 +471,7 @@ cdef class FpTElement(RingElement):
         normalize(x._numer, x._denom, self.p)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement _other):
+    cpdef _sub_(self, _other):
         """
         Returns the difference of this fraction field element and another.
 
@@ -493,7 +493,7 @@ cdef class FpTElement(RingElement):
         normalize(x._numer, x._denom, self.p)
         return x
 
-    cpdef RingElement _mul_(self, RingElement _other):
+    cpdef _mul_(self, _other):
         """
         Returns the product of this fraction field element and another.
 
@@ -513,7 +513,7 @@ cdef class FpTElement(RingElement):
         normalize(x._numer, x._denom, self.p)
         return x
 
-    cpdef RingElement _div_(self, RingElement _other):
+    cpdef _div_(self, _other):
         """
         Returns the quotient of this fraction field element and another.
 
@@ -645,7 +645,9 @@ cdef class FpTElement(RingElement):
 
     cpdef _sqrt_or_None(self):
         """
-        Returns the squre root of self, or None. Differs from sqrt() by not raising an exception.
+        Return the square root of ``self``, or ``None``.
+
+        Differs from sqrt() by not raising an exception.
 
         TESTS::
 
@@ -755,9 +757,9 @@ cdef class FpTElement(RingElement):
         s = self._sqrt_or_None()
         if s is None:
             if extend:
-                raise NotImplementedError, "function fields not yet implemented"
+                raise NotImplementedError("function fields not yet implemented")
             else:
-                raise ValueError, "not a perfect square"
+                raise ValueError("not a perfect square")
         else:
             if all:
                 if not s:
@@ -1278,7 +1280,7 @@ cdef class FpT_Polyring_section(Section):
         if nmod_poly_degree(x._denom) != 0:
             normalize(x._numer, x._denom, self.p)
             if nmod_poly_degree(x._denom) != 0:
-                raise ValueError, "not integral"
+                raise ValueError("not integral")
         ans = Polynomial_zmod_flint.__new__(Polynomial_zmod_flint)
         if nmod_poly_get_coeff_ui(x._denom, 0) != 1:
             normalize(x._numer, x._denom, self.p)
@@ -1421,7 +1423,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
-            raise ValueError, "FpT only supports two positional arguments"
+            raise ValueError("FpT only supports two positional arguments")
         if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
         ans.initalized = True
@@ -1574,9 +1576,9 @@ cdef class FpT_Fp_section(Section):
         if nmod_poly_degree(x._denom) != 0 or nmod_poly_degree(x._numer) > 0:
             normalize(x._numer, x._denom, self.p)
             if nmod_poly_degree(x._denom) != 0:
-                raise ValueError, "not integral"
+                raise ValueError("not integral")
             if nmod_poly_degree(x._numer) > 0:
-                raise ValueError, "not constant"
+                raise ValueError("not constant")
         ans = IntegerMod_int.__new__(IntegerMod_int)
         ans._parent = self.codomain()
         ans.__modulus = ans._parent._pyx_order
@@ -1724,7 +1726,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
-            raise ValueError, "FpT only supports two positional arguments"
+            raise ValueError("FpT only supports two positional arguments")
         if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
         ans.initalized = True

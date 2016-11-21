@@ -23,6 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import re, sys
 import doctest
@@ -30,7 +31,7 @@ import collections
 from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
-from external import available_software
+from .external import available_software
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')

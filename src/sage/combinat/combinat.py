@@ -82,7 +82,7 @@ combinatorial functions:
 
 -  gaussian_binomial the gaussian binomial
 
-.. math::
+.. MATH::
 
              \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}                              {(1-q)(1-q^2)\cdots (1-q^r)}.
 
@@ -142,7 +142,9 @@ Functions and classes
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
+from six.moves import range
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -154,7 +156,7 @@ from sage.misc.all import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
-from combinat_cython import _stirling_number2
+from .combinat_cython import _stirling_number2
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -333,11 +335,11 @@ def bell_number(n, algorithm='flint', **options):
 
     TESTS::
 
-        sage: all([bell_number(n) == bell_number(n,'dobinski') for n in range(200)])
+        sage: all(bell_number(n) == bell_number(n,'dobinski') for n in range(200))
         True
-        sage: all([bell_number(n) == bell_number(n,'gap') for n in range(200)])
+        sage: all(bell_number(n) == bell_number(n,'gap') for n in range(200))
         True
-        sage: all([bell_number(n) == bell_number(n,'mpmath', prec=500) for n in range(200, 220)])
+        sage: all(bell_number(n) == bell_number(n,'mpmath', prec=500) for n in range(200, 220))
         True
 
     AUTHORS:
@@ -417,7 +419,7 @@ def catalan_number(n):
 
     .. MATH::
 
-        C_n = \frac{1}{n+1}{2n\choose n} = \frac{(2n)!}{(n+1)!\,n!}
+        C_n = \frac{1}{n+1}\binom{2n}{n} = \frac{(2n)!}{(n+1)!\,n!}
         \qquad\mbox{ for }\quad n\ge 0.
 
 
@@ -465,11 +467,19 @@ def catalan_number(n):
     n = ZZ(n)
     return binomial(2*n,n).divide_knowing_divisible_by(n+1)
 
-def euler_number(n):
+def euler_number(n, algorithm='flint'):
     """
     Return the `n`-th Euler number.
 
-    IMPLEMENTATION: Wraps Maxima's euler.
+    INPUT:
+
+    - ``n`` -- a positive integer
+
+    - ``algorithm`` -- (Default: ``'flint'``) any one of the following:
+
+      - ``'maxima'`` -- Wraps Maxima's ``euler``.
+
+      - ``'flint'`` -- Wrap FLINT's ``arith_euler_number``
 
     EXAMPLES::
 
@@ -490,8 +500,15 @@ def euler_number(n):
     """
     n = ZZ(n)
     if n < 0:
-        raise ValueError("n (=%s) must be a nonnegative integer"%n)
-    return ZZ(maxima.eval("euler(%s)"%n))
+        raise ValueError("n (=%s) must be a nonnegative integer" % n)
+    if algorithm == 'maxima':
+        return ZZ(maxima.eval("euler(%s)" % n))
+    elif algorithm == 'flint':
+        import sage.libs.flint.arith
+        return sage.libs.flint.arith.euler_number(n)
+    else:
+        raise ValueError("algorithm must be 'flint' or 'maxima'")
+
 
 def fibonacci(n, algorithm="pari"):
     """
@@ -917,7 +934,7 @@ class CombinatorialObject(SageObject):
             sage: class Foo(CombinatorialObject, Element): pass
             sage: L = [Foo([4-i]) for i in range(4)]; L
             [[4], [3], [2], [1]]
-            sage: sorted(L, cmp)
+            sage: sorted(L)
             [[1], [2], [3], [4]]
             sage: f = Foo([4])
             sage: f is None
@@ -928,7 +945,7 @@ class CombinatorialObject(SageObject):
         .. WARNING::
 
             :class:`CombinatorialObject` must come **before** :class:`Element`
-            for this to work becuase :class:`Element` is ahead of
+            for this to work because :class:`Element` is ahead of
             :class:`CombinatorialObject` in the MRO (method resolution
             order)::
 
@@ -937,7 +954,7 @@ class CombinatorialObject(SageObject):
                 ....:     def __init__(self, l):
                 ....:         CombinatorialObject.__init__(self, l)
                 sage: L = [Bar([4-i]) for i in range(4)]
-                sage: sorted(L, cmp)
+                sage: sorted(L)
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: comparison not implemented for <class '__main__.Bar'>
@@ -1125,7 +1142,7 @@ class CombinatorialObject(SageObject):
         .. WARNING::
 
             :class:`CombinatorialObject` must come **before** :class:`Element`
-            for this to work becuase :class:`Element` is ahead of
+            for this to work because :class:`Element` is ahead of
             :class:`CombinatorialObject` in the MRO (method resolution
             order)::
 
@@ -2606,7 +2623,7 @@ def unshuffle_iterator(a, one=1):
     n = len(a)
     for I in powerset(range(n)):
         sorted_I = tuple(sorted(I))
-        nonI = range(n)
+        nonI = list(range(n))
         for j in reversed(sorted_I): # probably optimizable
             nonI.pop(j)
         sorted_nonI = tuple(nonI)
@@ -2733,10 +2750,10 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         stop = ZZ(stop)
 
     if algorithm:
-        for n in xrange(start, stop):
+        for n in range(start, stop):
             yield fibonacci(n, algorithm=algorithm)
     else:
-        for n in xrange(start, stop):
+        for n in range(start, stop):
             yield fibonacci(n)
 
 def fibonacci_xrange(start, stop=None, algorithm='pari'):

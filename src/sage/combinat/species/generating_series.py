@@ -66,6 +66,7 @@ REFERENCES:
 .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
    "Introduction to the Theory of Species of Structures", March 14, 2008.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
@@ -77,8 +78,8 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from series import LazyPowerSeriesRing, LazyPowerSeries
-from stream import Stream, _integers_from
+from .series import LazyPowerSeriesRing, LazyPowerSeries
+from .stream import Stream, _integers_from
 from sage.rings.all import Integer, RationalField
 from sage.arith.all import moebius, gcd, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
@@ -92,7 +93,7 @@ def OrdinaryGeneratingSeriesRing(R):
     """
     Return the ring of ordinary generating series over ``R``.
 
-    Note that is is just a
+    Note that it is just a
     :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
@@ -167,7 +168,7 @@ def ExponentialGeneratingSeriesRing(R):
     """
     Return the ring of exponential generating series over ``R``.
 
-    Note that is is just a
+    Note that it is just a
     :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
@@ -244,7 +245,7 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
         `g = \sum_{n=0}^{\infty} g_n \frac{x^n}{n!}`, then
         functorial composition `f \Box g` is defined as
 
-        .. math::
+        .. MATH::
 
              f \Box g = \sum_{n=0}^{\infty} f_{g_n} \frac{x^n}{n!}
 
@@ -337,7 +338,7 @@ def CycleIndexSeriesRing(R):
     difficult to implement in Sage, as it would be an element
     of a power series ring in infinitely many variables.
 
-    Note that is is just a :class:`LazyPowerSeriesRing` (whose base
+    Note that it is just a :class:`LazyPowerSeriesRing` (whose base
     ring is `\Lambda`) whose elements have some extra methods.
 
     EXAMPLES::
@@ -437,13 +438,13 @@ class CycleIndexSeries(LazyPowerSeries):
 
         If
 
-        .. math::
+        .. MATH::
 
            f = \sum_{n=0}^{\infty} f_n(p_1, p_2, p_3, \ldots ),
 
         then the stretch `g` of `f` by `k` is
 
-        .. math::
+        .. MATH::
 
            g = \sum_{n=0}^{\infty} f_n(p_k, p_{2k}, p_{3k}, \ldots ).
 
@@ -644,7 +645,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         It can be shown (as in section 2.2 of [BLL]_) that there is a corresponding operation on cycle indices:
 
-        .. math::
+        .. MATH::
 
             Z_{F} \Box Z_{G} = \sum_{n \geq 0} \frac{1}{n!} \sum_{\sigma \in \mathfrak{S}_{n}} \operatorname{fix} F[ (G[\sigma])_{1}, (G[\sigma])_{2}, \dots ] \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \dots.
 
@@ -1276,7 +1277,7 @@ def ExponentialCycleIndexSeries(R = RationalField()):
 
     This cycle index satisfies
 
-    .. math::
+    .. MATH::
 
         Z_{E} = \\sum_{n \\geq 0} \\sum_{\\lambda \\vdash n} \\frac{p_{\\lambda}}{z_{\\lambda}}.
 

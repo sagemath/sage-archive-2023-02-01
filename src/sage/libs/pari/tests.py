@@ -1,6 +1,11 @@
 r"""
 Tests for the Sage <-> PARI interface
 
+The default precision is 64 bits, see :trac:`21425`::
+
+    sage: pari("bitprecision(Pi)")
+    64
+
 Deprecation checks::
 
     sage: pari.poltchebi(10)
@@ -1167,13 +1172,13 @@ Elliptic curves::
     [0, 1, [1, 0, 0, 0], 1]
     sage: e = pari(EllipticCurve('27a3').a_invariants()).ellinit()
     sage: e.elllocalred(3)
-    [3, 2, [1, -1, 0, 1], 1]
+    [3, 2, [1, 0, 0, 0], 1]
     sage: e = pari(EllipticCurve('24a4').a_invariants()).ellinit()
     sage: e.elllocalred(2)
-    [3, 3, [1, 1, 0, 1], 2]
+    [3, 3, [1, 0, 0, 0], 2]
     sage: e = pari(EllipticCurve('20a2').a_invariants()).ellinit()
     sage: e.elllocalred(2)
-    [2, 4, [1, 1, 0, 1], 3]
+    [2, 4, [1, 0, 0, 0], 3]
     sage: e = pari(EllipticCurve('11a2').a_invariants()).ellinit()
     sage: e.elllocalred(11)
     [1, 5, [1, 0, 0, 0], 1]
@@ -1185,30 +1190,30 @@ Elliptic curves::
     [1, 10, [1, 0, 0, 0], 2]
     sage: e = pari(EllipticCurve('32a3').a_invariants()).ellinit()
     sage: e.elllocalred(2)
-    [5, -1, [1, 1, 1, 0], 1]
+    [5, -1, [1, 0, 0, 0], 1]
     sage: e = pari(EllipticCurve('24a5').a_invariants()).ellinit()
     sage: e.elllocalred(2)
-    [3, -2, [1, 2, 1, 4], 1]
+    [3, -2, [1, 0, 0, 0], 1]
     sage: e = pari(EllipticCurve('24a2').a_invariants()).ellinit()
     sage: e.elllocalred(2)
-    [3, -3, [1, 2, 1, 4], 2]
+    [3, -3, [1, 0, 0, 0], 2]
     sage: e = pari(EllipticCurve('20a1').a_invariants()).ellinit()
     sage: e.elllocalred(2)
-    [2, -4, [1, 0, 1, 2], 3]
+    [2, -4, [1, 0, 0, 0], 3]
     sage: e = pari(EllipticCurve('24a1').a_invariants()).ellinit()
     sage: e.elllocalred(2)
-    [3, -5, [1, 0, 1, 2], 4]
+    [3, -5, [1, 0, 0, 0], 4]
     sage: e = pari(EllipticCurve('90c2').a_invariants()).ellinit()
     sage: e.elllocalred(3)
-    [2, -10, [1, 96, 1, 316], 4]
+    [2, -10, [1, 0, 0, 0], 4]
 
     sage: e = pari([0,1,1,-2,0]).ellinit()
     sage: e.elllseries(2.1)
     0.402838047956645
     sage: e.elllseries(1, precision=128)
-    6.21952537507477 E-39
+    3.19632265064095 E-40
     sage: e.elllseries(1, precision=256)
-    2.95993347819786 E-77
+    8.68747983667209 E-79
     sage: e.elllseries(-2)
     0
     sage: e.elllseries(2.1, A=1.1)

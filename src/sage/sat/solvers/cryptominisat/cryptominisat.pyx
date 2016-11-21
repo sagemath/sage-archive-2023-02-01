@@ -9,7 +9,7 @@ distributed solver. There are solvers that are good at one or the
 other, e.g. ManySat (parallel) or PSolver (distributed), but we wish
 to excel at all." -- http://www.msoos.org/cryptominisat2/
 
-.. note::
+.. NOTE::
 
     Our SAT solver interfaces are 1-based, i.e., literals start at
     1. This is consistent with the popular DIMACS format for SAT
@@ -26,6 +26,7 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
@@ -39,7 +40,7 @@ from solverconf cimport SolverConf
 from sage.misc.misc import get_verbose
 
 cdef extern from "cryptominisat_helper.h":
-     # Cython doesn't handle cdef vec[Lit] foo = solver.get_unitary_learnts() propertly. It will
+     # Cython doesn't handle cdef vec[Lit] foo = solver.get_unitary_learnts() properly. It will
      # declare foo first and then assign the answer of get_unitary_learnts() to foo. This requires
      # that operator= is available which isn't necessarily the case.
      cdef uint32_t*  get_unitary_learnts_helper(Solver* solver, uint32_t* num)
@@ -57,7 +58,7 @@ cdef class CryptoMiniSat(SatSolver):
         sage: cms()                                      # optional - cryptominisat
         (None, True, True, False)
 
-    .. note::
+    .. NOTE::
 
         Do not import 'sage.sat.solvers.cryptominisat.cryptominisat'
         directly, but use 'sage.sat.solvers.cryptominisat' which
@@ -183,7 +184,7 @@ cdef class CryptoMiniSat(SatSolver):
 
         - ``lits`` - a tuple of integers != 0
 
-        .. note::
+        .. NOTE::
 
             If any element ``e`` in ``lits`` has ``abs(e)`` greater
             than the number of variables generated so far, then new
@@ -221,7 +222,7 @@ cdef class CryptoMiniSat(SatSolver):
         - ``lits`` - a tuple of integers != 0
         - ``isfalse`` - set to ``True`` if the XOR chain should evaluate to ``False``
 
-        .. note::
+        .. NOTE::
 
             If any element ``e`` in ``lits`` has ``abs(e)`` greater
             than the number of variables generated so far, then new
@@ -481,7 +482,7 @@ cdef class CryptoMiniSat(SatSolver):
             sage: cms.add_clause((1,2))                      # optional - cryptominisat
             sage: fn = tmp_filename()                        # optional - cryptominisat
             sage: cms.clauses(fn)                            # optional - cryptominisat
-            sage: print open(fn).read()                      # optional - cryptominisat
+            sage: print(open(fn).read())                     # optional - cryptominisat
             p cnf 2 4
             x2 1 0
             -1 -2 0

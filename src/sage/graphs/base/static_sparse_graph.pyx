@@ -554,14 +554,11 @@ cdef int tarjan_strongly_connected_components_C(short_digraph g, int *scc):
 
 def tarjan_strongly_connected_components(G):
     r"""
-    The Tarjan algorithm to compute strongly connected components (SCCs).
+    Return the lists of vertices in each strongly connected components (SCCs).
 
-    This routine returns a pair ``[nscc, scc]``, where ``nscc`` is the number of
-    SCCs and ``scc`` is a dictionary associating to each vertex ``v`` an
-    integer between ``0`` and ``nscc-1``, corresponding to the SCC containing
-    ``v``. SCCs
-    are numbered in reverse topological order, that is, if ``(v,w)`` is an edge
-    in the graph, ``scc[v] <= scc[w]``.
+    This method implements the Tarjan algorithm to compute the strongly
+    connected components of the digraph. It returns a list of lists of vertices,
+    each list of vertices representing a strongly connected component.
 
     The basic idea of the algorithm is this: a depth-first search (DFS) begins
     from an arbitrary start node (and subsequent DFSes are
@@ -924,7 +921,7 @@ def spectral_radius(G, prec=1e-10):
     A much larger example::
 
         sage: G = DiGraph(100000)
-        sage: r = range(100000)
+        sage: r = list(range(100000))
         sage: while not G.is_strongly_connected():
         ....:     shuffle(r)
         ....:     G.add_edges(enumerate(r))
@@ -967,7 +964,7 @@ def spectral_radius(G, prec=1e-10):
 
     # make a copy of G if needed to obtain a static sparse graph
     # NOTE: the following potentially copies the labels of the graph which is
-    # comptely useless for the computation!
+    # completely useless for the computation!
     cdef short_digraph g
     G = G.copy(immutable=True)
     g[0] = (<StaticSparseCGraph> (<StaticSparseBackend> G._backend)._cg).g[0]

@@ -47,11 +47,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.homology.simplicial_complex import Simplex
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.subword_complex import SubwordComplex, SubwordComplexFacet
 from sage.rings.semirings.non_negative_integer_semiring import NN
+
 
 class ClusterComplexFacet(SubwordComplexFacet):
     r"""
@@ -273,7 +273,7 @@ class ClusterComplex(SubwordComplex):
         """
         name = self.__custom_name
         name += ( ' of type %s with %s vertices and %s facets'
-                  % (self.cartan_type(), self.vertices().dimension() + 1,
+                  % (self.cartan_type(), len(self.vertices()),
                      len(self._facets)) )
         return name
 

@@ -307,14 +307,11 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Lee11] \J.M. Lee : *Introduction to Topological Manifolds*,
-   2nd ed., Springer (New York) (2011).
-.. [Lee13] \J.M. Lee : *Introduction to Smooth Manifolds*,
-   2nd ed., Springer (New York) (2013)
-.. [KN63] \S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
-   vol. 1, Interscience Publishers (New York) (1963).
-.. [Huybrechts05] \D. Huybrechts : *Complex Geometry*,
-   Springer (Berlin) (2005).
+- [Lee2011]_
+- [Lee2013]_
+- [KN1963]_
+- [Huy2005]_
+
 """
 
 #*****************************************************************************
@@ -328,6 +325,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
@@ -340,68 +338,13 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.structure.global_options import GlobalOptions
 from sage.manifolds.subset import ManifoldSubset
-from sage.manifolds.structure import (TopologicalStructure,
-                                      RealTopologicalStructure)
+from sage.manifolds.structure import(
+                            TopologicalStructure, RealTopologicalStructure,
+                            DifferentialStructure, RealDifferentialStructure)
+
 
 #############################################################################
 ## Global options
-
-ManifoldOptions=GlobalOptions(name='manifolds',
-    doc=r"""
-    Sets and displays the global options for manifolds. If no parameters
-    are set, then the function returns a copy of the options dictionary.
-
-    The ``options`` to manifolds can be accessed as the method
-    :obj:`Manifold.global_options`.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: M = Manifold(2, 'M', structure='topological')
-        sage: X.<x,y> = M.chart()
-        sage: g = function('g')(x, y)
-
-    For coordinate functions, the display is more "textbook" like::
-
-        sage: f = X.function(diff(g, x) + diff(g, y))
-        sage: f
-        d(g)/dx + d(g)/dy
-
-        sage: latex(f)
-        \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
-
-    One can switch to Pynac notation by changing ``textbook_output``
-    to ``False``::
-
-        sage: Manifold.global_options(textbook_output=False)
-        sage: f
-        D[0](g)(x, y) + D[1](g)(x, y)
-        sage: latex(f)
-        D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
-        sage: Manifold.global_options.reset()
-
-    If there is a clear understanding that `u` and `v` are functions of
-    `(x,y)`, the explicit mention of the latter can be cumbersome in lengthy
-    tensor expressions::
-
-        sage: f = X.function(function('u')(x, y) * function('v')(x, y))
-        sage: f
-        u(x, y)*v(x, y)
-
-    We can switch it off by::
-
-        sage: M.global_options(omit_function_arguments=True)
-        sage: f
-        u*v
-        sage: M.global_options.reset()
-    """,
-    textbook_output=dict(default=True,
-                         description='textbook-like output instead of the Pynac output for derivatives',
-                         checker=lambda x: isinstance(x, bool)),
-    omit_function_arguments=dict(default=False,
-                                 description='Determine if the arguments of symbolic functions are printed',
-                                 checker=lambda x: isinstance(x, bool)),
-)
 
 #############################################################################
 ## Class
@@ -681,13 +624,20 @@ class TopologicalManifold(ManifoldSubset):
                                                           self._structure.name,
                                                           self._name)
             elif self._field_type == 'complex':
-                return "Complex {}-dimensional {} manifold {}".format(self._dim,
-                                                           self._structure.name,
-                                                           self._name)
-            return "{}-dimensional {} manifold {} over the {}".format(self._dim,
-                                                           self._structure.name,
-                                                           self._name,
-                                                           self._field)
+                if isinstance(self._structure, DifferentialStructure):
+                    return "{}-dimensional complex manifold {}".format(
+                                                                    self._dim,
+                                                                    self._name)
+                else:
+                    return "Complex {}-dimensional {} manifold {}".format(
+                                                          self._dim,
+                                                          self._structure.name,
+                                                          self._name)
+            return "{}-dimensional {} manifold {} over the {}".format(
+                                                          self._dim,
+                                                          self._structure.name,
+                                                          self._name,
+                                                          self._field)
         else:
             return "Open subset {} of the {}".format(self._name, self._manifold)
 
@@ -923,7 +873,7 @@ class TopologicalManifold(ManifoldSubset):
             sd._subsets.add(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
-        for chart, restrictions in coord_def.iteritems():
+        for chart, restrictions in coord_def.items():
             if chart not in self._atlas:
                 raise ValueError("the {} does not belong to ".format(chart) +
                                  "the atlas of {}".format(self))
@@ -1325,7 +1275,7 @@ class TopologicalManifold(ManifoldSubset):
             Chart (M, (u, v))
 
         """
-        from chart import Chart
+        from .chart import Chart
         if not isinstance(chart, Chart):
             raise TypeError("{} is not a chart".format(chart))
         if chart._domain is not self:
@@ -1618,8 +1568,9 @@ class TopologicalManifold(ManifoldSubset):
         r"""
         Define a scalar field on the manifold.
 
-        See :class:`~sage.manifolds.scalarfield.ScalarField` for a complete
-        documentation.
+        See :class:`~sage.manifolds.scalarfield.ScalarField` (or
+        :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+        if the manifold is differentiable) for a complete documentation.
 
         INPUT:
 
@@ -1653,7 +1604,10 @@ class TopologicalManifold(ManifoldSubset):
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          representing the defined scalar field
+          (or of the subclass
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          if the manifold is differentiable) representing the defined scalar
+          field
 
         EXAMPLES:
 
@@ -1817,7 +1771,62 @@ class TopologicalManifold(ManifoldSubset):
         """
         return self._one_scalar_field
 
-    global_options = ManifoldOptions
+    options = GlobalOptions(name='manifolds',
+        module = 'sage.manifolds', option_class = 'TopologicalManifold',
+        doc=r"""
+        Sets and displays the options for manifolds. If no parameters
+        are set, then the function returns a copy of the options dictionary.
+
+        The ``options`` to manifolds can be accessed as the method
+        :obj:`Manifold.options`.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: g = function('g')(x, y)
+
+        For coordinate functions, the display is more "textbook" like::
+
+            sage: f = X.function(diff(g, x) + diff(g, y))
+            sage: f
+            d(g)/dx + d(g)/dy
+            sage: latex(f)
+            \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
+
+        One can switch to Pynac notation by changing ``textbook_output``
+        to ``False``::
+
+            sage: Manifold.options.textbook_output=False
+            sage: f
+            D[0](g)(x, y) + D[1](g)(x, y)
+            sage: latex(f)
+            D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
+            sage: Manifold.options._reset()
+
+        If there is a clear understanding that `u` and `v` are functions of
+        `(x,y)`, the explicit mention of the latter can be cumbersome in lengthy
+        tensor expressions::
+
+            sage: f = X.function(function('u')(x, y) * function('v')(x, y))
+            sage: f
+            u(x, y)*v(x, y)
+
+        We can switch it off by::
+
+            sage: M.options.omit_function_arguments=True
+            sage: f
+            u*v
+            sage: M.options._reset()
+        """,
+        textbook_output=dict(default=True,
+                             description='textbook-like output instead of the Pynac output for derivatives',
+                             checker=lambda x: isinstance(x, bool)),
+        omit_function_arguments=dict(default=False,
+                                     description='Determine if the arguments of symbolic functions are printed',
+                                     checker=lambda x: isinstance(x, bool)),
+    )
 
     def _Hom_(self, other, category=None):
         r"""
@@ -2121,6 +2130,7 @@ class TopologicalManifold(ManifoldSubset):
         """
         return Hom(self, self).one()
 
+
 ##############################################################################
 ## Constructor function
 
@@ -2175,7 +2185,10 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
 
     OUTPUT:
 
-    - a manifold of the specified type
+    - a manifold of the specified type, as an instance of
+      :class:`~sage.manifolds.manifold.TopologicalManifold` or one of its
+      subclasses, e.g.
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
 
     EXAMPLES:
 
@@ -2200,9 +2213,54 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: M = Manifold(3, 'M', structure='topological', field=QQ); M
         3-dimensional topological manifold M over the Rational Field
 
-    See the documentation of class
-    :class:`~sage.manifolds.manifold.TopologicalManifold` for more
-    detailed examples.
+    A 3-dimensional real differentiable manifold of class `C^4`::
+
+        sage: M = Manifold(3, 'M', field='real', structure='differentiable',
+        ....:              diff_degree=4); M
+        3-dimensional differentiable manifold M
+
+    Since the default value of the parameter ``field`` is ``'real'``, the above
+    is equivalent to::
+
+        sage: M = Manifold(3, 'M', structure='differentiable', diff_degree=4)
+        sage: M
+        3-dimensional differentiable manifold M
+        sage: M.base_field_type()
+        'real'
+
+    A 3-dimensional real smooth manifold::
+
+        sage: M = Manifold(3, 'M', structure='differentiable', diff_degree=+oo)
+        sage: M
+        3-dimensional differentiable manifold M
+
+    Instead of ``structure='differentiable', diff_degree=+oo``, it suffices to
+    use ``structure='smooth'`` to get the same result::
+
+        sage: M = Manifold(3, 'M', structure='smooth'); M
+        3-dimensional differentiable manifold M
+        sage: M.diff_degree()
+        +Infinity
+
+    Actually, since ``'smooth'`` is the default value of the parameter
+    ``structure``, the creation of a real smooth manifold can be shortened to::
+
+        sage: M = Manifold(3, 'M'); M
+        3-dimensional differentiable manifold M
+        sage: M.diff_degree()
+        +Infinity
+
+    For a complex smooth manifold, we have to set the parameter ``field``::
+
+        sage: M = Manifold(3, 'M', field='complex'); M
+        3-dimensional complex manifold M
+        sage: M.diff_degree()
+        +Infinity
+
+    See the documentation of classes
+    :class:`~sage.manifolds.manifold.TopologicalManifold` and
+    :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+    for more detailed examples.
 
     .. RUBRIC:: Uniqueness of manifold objects
 
@@ -2272,6 +2330,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         True
     """
     from time import time
+    from sage.rings.infinity import infinity
+    from sage.manifolds.differentiable.manifold import DifferentiableManifold
     # Some sanity checks
     if not isinstance(dim, (int, Integer)):
         raise TypeError("the manifold dimension must be an integer")
@@ -2283,12 +2343,34 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             structure = RealTopologicalStructure()
         else:
             structure = TopologicalStructure()
-    else:
-        raise NotImplementedError("manifolds of type {} are not ".format(structure) +
-                                  "implemented")
-    return TopologicalManifold(dim, name, field, structure,
-                               latex_name=latex_name, start_index=start_index,
-                               unique_tag=getrandbits(128)*time())
+        return TopologicalManifold(dim, name, field, structure,
+                                   latex_name=latex_name,
+                                   start_index=start_index,
+                                   unique_tag=getrandbits(128)*time())
+    elif structure in ['differentiable', 'diff', 'smooth']:
+        if structure == 'smooth':
+            diff_degree = infinity
+        elif 'diff_degree' in extra_kwds:
+            diff_degree = extra_kwds['diff_degree']
+        else:
+            diff_degree = None
+        if field == 'real' or isinstance(field, RealField_class):
+            structure = RealDifferentialStructure()
+        else:
+            structure = DifferentialStructure()
+        return DifferentiableManifold(dim, name, field, structure,
+                                      diff_degree=diff_degree,
+                                      latex_name=latex_name,
+                                      start_index=start_index,
+                                      unique_tag=getrandbits(128)*time())
 
-Manifold.global_options = ManifoldOptions
+    raise NotImplementedError("manifolds of type {} are ".format(structure) +
+                              "not implemented")
 
+Manifold.options = TopologicalManifold.options
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+Manifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)
+ManifoldOptions = deprecated_function_alias(18555, TopologicalManifold.options)
+TopologicalManifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)

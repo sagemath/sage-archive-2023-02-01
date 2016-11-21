@@ -34,11 +34,13 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
+from six.moves import range
 
 import six
 import sage.rings.number_field.all
-import polynomial_element
+from . import polynomial_element
 import sage.rings.rational_field
 import sage.rings.complex_field
 
@@ -103,7 +105,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
 
     We create the "iterated" polynomial ring quotient
 
-    .. math::
+    .. MATH::
 
                     R = (\GF{2}[y]/(y^{2}+y+1))[x]/(x^3 - 5).
 
@@ -159,7 +161,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         sage: R.quotient(f)
         Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
 
-    This shows that the issue at trac 5482 is solved::
+    This shows that the issue at :trac:`5482` is solved::
 
         sage: R.<x> = PolynomialRing(QQ)
         sage: f = x^2-1
@@ -598,6 +600,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: P.<x> = QQ[]
             sage: Q = P.quo([(x^2+1)])
             sage: singular(Q)        # indirect doctest
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 1
             //        block   1 : ordering lp
@@ -1109,7 +1112,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         clgp_gens = []
         clgp_gens_orders = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 
@@ -1279,7 +1282,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         units = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 
@@ -1406,7 +1409,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         gens = []
         moduli = [D.relative_polynomial() for D in fields]
-        for i in xrange(n):
+        for i in range(n):
             phi = isos[i][0]
             back_to_rel = phi.codomain().structure()[0]
 

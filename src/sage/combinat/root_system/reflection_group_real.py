@@ -49,6 +49,9 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -325,7 +328,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             (1,5)(2,6)(3,7)(4,8)
         """
         from sage.combinat.root_system.reflection_group_c import Iterator
-        return iter(Iterator(self, N=self._number_of_reflections,
+        return iter(Iterator(self, N=self.number_of_reflections(),
                              algorithm=algorithm, tracking_words=tracking_words))
 
     def __iter__(self):
@@ -426,7 +429,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W.positive_roots()                                    # optional - gap3
             [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 1, 1)]
         """
-        return self.roots()[:self._number_of_reflections]
+        return self.roots()[:self.number_of_reflections()]
 
     def almost_positive_roots(self):
         r"""
@@ -497,7 +500,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         EXAMPLES::
 
             sage: W = ReflectionGroup(['A',2])                          # optional - gap3
-            sage: for r in W.reflections(): print W.reflection_to_positive_root(r)  # optional - gap3
+            sage: for r in W.reflections(): print(W.reflection_to_positive_root(r))  # optional - gap3
             (1, 0)
             (0, 1)
             (1, 1)
@@ -538,7 +541,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: N = W.fundamental_weights()                           # optional - gap3
             sage: for i in W.index_set():                               # optional - gap3
             ....:     for j in W.index_set():                           # optional - gap3
-            ....:         print i, j, N[i], N[i]*S[j].to_matrix()       # optional - gap3
+            ....:         print("{} {} {} {}".format(i, j, N[i], N[i]*S[j].to_matrix()))
             1 1 (3/4, 1/2, 1/4) (-1/4, 1/2, 1/4)
             1 2 (3/4, 1/2, 1/4) (3/4, 1/2, 1/4)
             1 3 (3/4, 1/2, 1/4) (3/4, 1/2, 1/4)
@@ -787,7 +790,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 False
             """
             W = self.parent()
-            return self(W._index_set_inverse[i]+1) > W._number_of_reflections
+            return self(W._index_set_inverse[i]+1) > W.number_of_reflections()
 
         def has_descent(self, i, side="left", positive=False):
             r"""
@@ -967,10 +970,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
             else:
                 raise ValueError('side must be "left" or "right"')
             if on_space == "primal":
-                return sum(vec[j] * Phi[w(j+1) - 1] for j in xrange(n))
+                return sum(vec[j] * Phi[w(j+1) - 1] for j in range(n))
             elif on_space == "dual":
                 w = ~w
-                return sum(Phi[w(j+1) - 1]*vec[j] for j in xrange(n))
+                return sum(Phi[w(j+1) - 1]*vec[j] for j in range(n))
             else:
                 raise ValueError('on_space must be "primal" or "dual"')
 

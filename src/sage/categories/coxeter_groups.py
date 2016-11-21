@@ -10,6 +10,7 @@ Coxeter Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_import import LazyImport
@@ -608,7 +609,7 @@ class CoxeterGroups(Category_singleton):
             """
             from sage.misc.prandom import randint
             x = self.one()
-            for i in xrange(1, n + 1):
+            for i in range(1, n + 1):
                 antiD = x.descents(positive=True)
                 rnd = randint(0, len(antiD) - 1)
                 x = x.apply_simple_reflection_right(antiD[rnd])
@@ -1997,8 +1998,7 @@ class CoxeterGroups(Category_singleton):
 
             REFERENCES:
 
-                .. [Deodhar] \V. Deodhar,  A splitting criterion for the Bruhat orderings on Coxeter groups. Comm. Algebra, 15:1889-1894, 1987.
-
+                - [Deo1987a]_
             """
 
             if self != self.coset_representative(index_set):

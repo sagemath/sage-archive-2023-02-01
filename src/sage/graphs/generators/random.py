@@ -13,7 +13,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-
+from six.moves import range
 # import from Sage library
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
@@ -210,7 +210,7 @@ def RandomBipartite(n1, n2, p):
         ...
         ValueError: Parameter p is a probability, and so should be a real value between 0 and 1
 
-    Trac ticket #12155::
+    :trac:`12155`::
 
         sage: graphs.RandomBipartite(5,6,.2).complement()
         complement(Random bipartite graph of size 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
@@ -569,14 +569,14 @@ def RandomTree(n):
     g = Graph()
 
     # create random Prufer code
-    code = [ randint(0,n-1) for i in xrange(n-2) ]
+    code = [ randint(0,n-1) for i in range(n-2) ]
 
     # We count the number of symbols of each type.
     # count[k] is the no. of times k appears in code
     #
     # (count[k] is set to -1 when the corresponding vertex is not
     # available anymore)
-    count = [ 0 for i in xrange(n) ]
+    count = [0] * n
     for k in code:
         count[k] += 1
 

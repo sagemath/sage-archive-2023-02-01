@@ -313,7 +313,7 @@ cdef class PowerSeries(AlgebraElement):
         S = self._parent.change_ring(R)
         return S(self)
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
         r"""
         Comparison of self and ``right``.
 
@@ -401,7 +401,6 @@ cdef class PowerSeries(AlgebraElement):
             NotImplementedError        
         """
         raise NotImplementedError
-
 
     def coefficients(self):
         """
@@ -544,7 +543,7 @@ cdef class PowerSeries(AlgebraElement):
             else:
                 n = self._prec
         if n < 0:
-            raise ValueError, "n must be at least 0"
+            raise ValueError("n must be at least 0")
         v = self.list()
         if len(v) < n:
             z = self._parent.base_ring()(0)
@@ -838,7 +837,7 @@ cdef class PowerSeries(AlgebraElement):
             if self._prec > n:
                 return self.base_ring()(0)
             else:
-                raise IndexError, "coefficient not known"
+                raise IndexError("coefficient not known")
         return c[n]
 
     def common_prec(self, f):
@@ -970,7 +969,7 @@ cdef class PowerSeries(AlgebraElement):
         `a_0` nonzero. Then this function returns
         `a_0 + a_1 q + \cdots` .
 
-        .. note::
+        .. NOTE::
 
            This valuation zero part need not be a unit if, e.g.,
            `a_0` is not invertible in the base ring.
@@ -992,7 +991,7 @@ cdef class PowerSeries(AlgebraElement):
             0
         """
         if self.is_zero():
-            raise ValueError, "power series has no valuation 0 part"
+            raise ValueError("power series has no valuation 0 part")
         n = self.valuation()
         if n == 0:
             return self
@@ -1006,7 +1005,7 @@ cdef class PowerSeries(AlgebraElement):
                     v[k-n] = x
         return self._parent(v, self.prec()-n)
 
-    cpdef RingElement _div_(self, RingElement denom_r):
+    cpdef _div_(self, denom_r):
         """
         EXAMPLES::
 
@@ -1020,7 +1019,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         denom = <PowerSeries>denom_r
         if denom.is_zero():
-            raise ZeroDivisionError, "Can't divide by something indistinguishable from 0"
+            raise ZeroDivisionError("Can't divide by something indistinguishable from 0")
         u = denom.valuation_zero_part()
         inv = ~u  # inverse
 
@@ -1040,7 +1039,7 @@ cdef class PowerSeries(AlgebraElement):
             num = self
         return num*inv
 
-    cpdef RingElement _floordiv_(self, RingElement denom):
+    cpdef _floordiv_(self, denom):
         """
         Euclidean division (over fields) or ordinary division (over
         other rings; deprecated).
@@ -1077,7 +1076,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         if isinstance(other,(int,Integer,long)):
             return power_series_ring.PowerSeriesRing(IntegerModRing(other), self.variable())(self)
-        raise NotImplementedError, "Mod on power series ring elements not defined except modulo an integer."
+        raise NotImplementedError("Mod on power series ring elements not defined except modulo an integer.")
 
     def shift(self, n):
         r"""
@@ -1085,7 +1084,7 @@ cdef class PowerSeries(AlgebraElement):
         `n` is negative, terms below `t^n` will be
         discarded. Does not change this power series.
 
-        .. note::
+        .. NOTE::
 
            Despite the fact that higher order terms are printed to the
            right in a power series, right shifting decreases the
@@ -1212,7 +1211,7 @@ cdef class PowerSeries(AlgebraElement):
 
         ALGORITHM: Newton's method
 
-        .. math::
+        .. MATH::
 
            x_{i+1} = \frac{1}{2}( x_i + \mathrm{self}/x_i )
 
@@ -1285,7 +1284,7 @@ cdef class PowerSeries(AlgebraElement):
                 return ans
 
         if all and not self.base_ring().is_integral_domain():
-            raise NotImplementedError, 'all roots not implemented over a non-integral domain'
+            raise NotImplementedError('all roots not implemented over a non-integral domain')
 
         formal_sqrt = False
         u = self.valuation_zero_part()
@@ -1310,20 +1309,20 @@ cdef class PowerSeries(AlgebraElement):
         if formal_sqrt or val % 2 == 1:
             if extend:
                 if name is None:
-                    raise ValueError, "the square root generates an extension, so you must specify the name of the square root"
+                    raise ValueError("the square root generates an extension, so you must specify the name of the square root")
                 R = self._parent['x']
                 S = R.quotient(R([-self,0,1]), names=name)
                 a = S.gen()
                 if all:
                     if not self.base_ring().is_integral_domain():
-                        raise NotImplementedError, 'all roots not implemented over a non-integral domain'
+                        raise NotImplementedError('all roots not implemented over a non-integral domain')
                     return [a, -a]
                 else:
                     return a
             elif formal_sqrt:
-                raise ValueError, "unable to take the square root of %s"%u[0]
+                raise ValueError("unable to take the square root of %s" % u[0])
             else:
-                raise ValueError, "power series does not have a square root since it has odd valuation."
+                raise ValueError("power series does not have a square root since it has odd valuation.")
 
 
         pr = self.prec()
@@ -1400,16 +1399,16 @@ cdef class PowerSeries(AlgebraElement):
         """
         val = self.valuation()
         if val is not infinity and val % 2 == 1:
-            raise ValueError, "Square root not defined for power series of odd valuation."
+            raise ValueError("Square root not defined for power series of odd valuation.")
         elif not self[val].is_square():
-            raise ValueError, "Square root does not live in this ring."
+            raise ValueError("Square root does not live in this ring.")
         elif self.base_ring() in _Fields:
             return self.sqrt()
         else:
             try:
                 return self.parent()(self.sqrt())
             except TypeError:
-                raise ValueError, "Square root does not live in this ring."
+                raise ValueError("Square root does not live in this ring.")
 
     def cos(self, prec=infinity):
         r"""
@@ -1612,7 +1611,7 @@ cdef class PowerSeries(AlgebraElement):
         Obtain a power series solution to an inhomogeneous linear
         differential equation of the form:
 
-        .. math::
+        .. MATH::
 
               f'(t) = a(t) f(t) + b(t).
 
@@ -1642,7 +1641,7 @@ cdef class PowerSeries(AlgebraElement):
         over something like `\QQ`, running time analysis can be a
         little complicated because the coefficients tend to explode.)
 
-        .. note::
+        .. NOTE::
 
            - If the coefficient ring is a field of characteristic
              zero, then the solution will exist and is unique.
@@ -1701,14 +1700,12 @@ cdef class PowerSeries(AlgebraElement):
         # reduce precision to whatever is available from a and b
         prec = min(prec, self.prec() + 1, b.prec() + 1)
         if prec is infinity:
-            raise ValueError, \
-                 "cannot solve differential equation to infinite precision"
+            raise ValueError("cannot solve differential equation to infinite precision")
         prec = int(prec)
         if prec == 0:
             return self._parent(0, 0)
         if prec < 0:
-            raise ValueError, \
-                  "prec (=%s) must be a non-negative integer" % prec
+            raise ValueError("prec (=%s) must be a non-negative integer" % prec)
 
         base_ring = self._parent.base_ring()
         R = PolynomialRing(base_ring, self._parent.variable_name())
@@ -1734,7 +1731,7 @@ cdef class PowerSeries(AlgebraElement):
 
         ALGORITHM: See :meth:`.solve_linear_de`.
 
-        .. note::
+        .. NOTE::
 
            - Screwy things can happen if the coefficient ring is not a
              field of characteristic zero. See :meth:`.solve_linear_de`.
@@ -1978,7 +1975,7 @@ cdef class PowerSeries(AlgebraElement):
         documentation for the global derivative() function for more
         details.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`_derivative`
 
@@ -2011,7 +2008,7 @@ cdef class PowerSeries(AlgebraElement):
             ...
             IndexError: power series are immutable
         """
-        raise IndexError, "power series are immutable"
+        raise IndexError("power series are immutable")
 
     def laurent_series(self):
         """
@@ -2097,7 +2094,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         n = self.prec()
         if n is infinity:
-            raise ValueError, "series precision must be finite for conversion to pari object."
+            raise ValueError("series precision must be finite for conversion to pari object.")
         s = self.truncate()._pari_()  # PARI polynomial
         s += pari('O(%s^%d)' % (s.variable(), n))  # PARI series
         return s
@@ -2130,7 +2127,7 @@ def _solve_linear_de(R, N, L, a, b, f0):
     `L`), where `f` is a solution to the linear
     inhomogeneous differential equation:
 
-    .. math::
+    .. MATH::
 
          (t^N f)'  =  a t^N f  +  t^{N-1} b  +  O(t^{N+L-1}).
 
@@ -2160,7 +2157,7 @@ def _solve_linear_de(R, N, L, a, b, f0):
     ceiling of `(L/2)`. First recursively find `g`
     modulo `t^{L'}` such that
 
-    .. math::
+    .. MATH::
 
          (t^N g)'  =  a t^N g  +  t^{N-1} b  +  O(t^{N+L'-1}).
 
@@ -2171,14 +2168,14 @@ def _solve_linear_de(R, N, L, a, b, f0):
     equation. We can find a suitable `h` by recursively solving
     another differential equation of the same form, namely
 
-    .. math::
+    .. MATH::
 
          (t^{N+L'} h)'  =  a t^{N+L'} h  +  c t^{N+L'-1} + O(t^{N+L'-1}),
 
 
     where `c` is determined by
 
-    .. math::
+    .. MATH::
 
          (t^N g)' - a t^N g - t^{N-1} b  =  -c t^{N+L'-1} + O(t^{N+L-1}).
 

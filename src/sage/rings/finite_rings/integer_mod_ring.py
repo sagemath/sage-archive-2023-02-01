@@ -58,13 +58,14 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 import sage.misc.prandom as random
 
 from sage.arith.all import factor, primitive_root, CRT_basis
 import sage.rings.ring as ring
-import integer_mod
+from . import integer_mod
 import sage.rings.integer as integer
 import sage.rings.integer_ring as integer_ring
 import sage.rings.quotient_ring as quotient_ring
@@ -143,7 +144,7 @@ class IntegerModFactory(UniqueFactory):
         sage: R in Fields()
         True
         sage: R.category()
-        Join of Category of finite fields
+        Join of Category of finite enumerated fields
             and Category of subquotients of monoids
             and Category of quotients of semigroups
         sage: S = IntegerModRing(5, is_field=True)
@@ -176,7 +177,7 @@ class IntegerModFactory(UniqueFactory):
         The order 33 is not prime, but this ring has been put
         into the category of fields. This may already have consequences
         in other parts of Sage. Either it was a mistake of the user,
-        or a probabilitstic primality test has failed.
+        or a probabilistic primality test has failed.
         In the latter case, please inform the developers.
 
     However, the mistaken assignment is not automatically corrected::
@@ -288,7 +289,7 @@ def _unit_gens_primepowercase(p, r):
 
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
-    The ring of integers modulo `N`, with `N` composite.
+    The ring of integers modulo `N`.
 
     INPUT:
 
@@ -714,7 +715,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R.is_field()
             True
             sage: R.category()
-            Join of Category of finite fields
+            Join of Category of finite enumerated fields
                 and Category of subquotients of monoids
                 and Category of quotients of semigroups
 
@@ -734,7 +735,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             The order 21 is not prime, but this ring has been put
             into the category of fields. This may already have consequences
             in other parts of Sage. Either it was a mistake of the user,
-            or a probabilitstic primality test has failed.
+            or a probabilistic primality test has failed.
             In the latter case, please inform the developers.
 
         """
@@ -752,7 +753,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 The order {} is not prime, but this ring has been put
 into the category of fields. This may already have consequences
 in other parts of Sage. Either it was a mistake of the user,
-or a probabilitstic primality test has failed.
+or a probabilistic primality test has failed.
 In the latter case, please inform the developers.""".format(self.order()))
         return is_prime
 
@@ -780,7 +781,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         except AttributeError:
             if not self.is_field():
                 raise ValueError("self must be a field")
-            import finite_field_constructor
+            from . import finite_field_constructor
             k = finite_field_constructor.FiniteField(self.order())
             self.__field = k
             return k
@@ -1135,10 +1136,10 @@ In the latter case, please inform the developers.""".format(self.order()))
         The following test refers to :trac:`6468`::
 
             sage: class foo_parent(Parent):
-            ...       pass
+            ....:     pass
             sage: class foo(RingElement):
-            ...       def lift(self):
-            ...           raise PariError
+            ....:     def lift(self):
+            ....:         raise PariError
             sage: P = foo_parent()
             sage: F = foo(P)
             sage: GF(2)(F)

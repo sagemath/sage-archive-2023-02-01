@@ -12,13 +12,14 @@ Base class for polyhedra over `\ZZ`
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
 from sage.arith.all import gcd
-from constructor import Polyhedron
-from base import Polyhedron_base
+from .constructor import Polyhedron
+from .base import Polyhedron_base
 
 
 #########################################################################
@@ -396,12 +397,7 @@ class Polyhedron_ZZ(Polyhedron_base):
 
         REFERENCES:
 
-        ..  [PALP]
-            Maximilian Kreuzer, Harald Skarke:
-            "PALP: A Package for Analyzing Lattice Polytopes
-            with Applications to Toric Geometry"
-            Comput.Phys.Commun. 157 (2004) 87-106
-            :arxiv:`math/0204356`
+        - [PALP]_
         """
         return self.is_compact() and self.interior_contains(self.ambient_space().zero())
 
@@ -603,7 +599,7 @@ class Polyhedron_ZZ(Polyhedron_base):
               A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 6 vertices))
 
            sage: [ len(square.dilation(i).Minkowski_decompositions())
-           ...     for i in range(6) ]
+           ....:   for i in range(6) ]
            [1, 2, 5, 8, 13, 18]
            sage: [ ceil((i^2+2*i-1)/2)+1 for i in range(10) ]
            [1, 2, 5, 8, 13, 18, 25, 32, 41, 50]

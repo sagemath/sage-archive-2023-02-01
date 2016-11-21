@@ -919,7 +919,7 @@ class RealBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: [RBF.fibonacci(n) for n in xrange(7)]
+            sage: [RBF.fibonacci(n) for n in range(7)]
             [0,
             1.000000000000000,
             1.000000000000000,
@@ -951,7 +951,7 @@ class RealBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: [RBF.bell_number(n) for n in xrange(7)]
+            sage: [RBF.bell_number(n) for n in range(7)]
             [1.000000000000000,
              1.000000000000000,
              2.000000000000000,
@@ -1242,7 +1242,6 @@ cdef class RealBall(RingElement):
             ...
             TypeError: no canonical coercion...
         """
-        import sage.symbolic.constants
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
         cdef arf_t  tmpr
@@ -1287,38 +1286,6 @@ cdef class RealBall(RingElement):
                 elif mid_as_qe._parent._embedding is None:
                     raise ValueError("need an embedding")
             real_part_of_quadratic_element_to_arb(self.value, mid_as_qe, prec(self))
-        elif isinstance(mid, sage.rings.infinity.AnInfinity):
-            if isinstance(mid, sage.rings.infinity.PlusInfinity):
-                arb_pos_inf(self.value)
-            elif isinstance(mid, sage.rings.infinity.MinusInfinity):
-                arb_neg_inf(self.value)
-            else:
-                arb_zero_pm_inf(self.value)
-        elif isinstance(mid, sage.symbolic.constants.Constant):
-            if _do_sig(prec(self)): sig_on()
-            try:
-                if isinstance(mid, sage.symbolic.constants.NotANumber):
-                    arb_indeterminate(self.value)
-                elif isinstance(mid, sage.symbolic.constants.Pi):
-                    arb_const_pi(self.value, prec(self))
-                elif isinstance(mid, sage.symbolic.constants.Log2):
-                    arb_const_log2(self.value, prec(self))
-                elif isinstance(mid, sage.symbolic.constants.Catalan):
-                    arb_const_catalan(self.value, prec(self))
-                elif isinstance(mid, sage.symbolic.constants.Khinchin):
-                    arb_const_khinchin(self.value, prec(self))
-                elif isinstance(mid, sage.symbolic.constants.Glaisher):
-                    arb_const_glaisher(self.value, prec(self))
-                elif isinstance(mid, sage.symbolic.constants.EulerGamma):
-                    arb_const_euler(self.value, prec(self))
-                else:
-                    raise TypeError("unsupported constant")
-            finally:
-                if _do_sig(prec(self)): sig_off()
-        elif isinstance(mid, sage.symbolic.constants_c.E):
-            if _do_sig(prec(self)): sig_on()
-            arb_const_e(self.value, prec(self))
-            if _do_sig(prec(self)): sig_off()
         elif isinstance(mid, RealIntervalFieldElement):
             mpfi_to_arb(self.value,
                 (<RealIntervalFieldElement> mid).value,
@@ -1327,7 +1294,42 @@ cdef class RealBall(RingElement):
             if arb_set_str(self.value, mid, prec(self)) != 0:
                 raise ValueError("unsupported string format")
         else:
-            raise TypeError("unsupported midpoint type")
+            # the initializers that trigger imports
+            import sage.symbolic.constants
+            if isinstance(mid, sage.rings.infinity.AnInfinity):
+                if isinstance(mid, sage.rings.infinity.PlusInfinity):
+                    arb_pos_inf(self.value)
+                elif isinstance(mid, sage.rings.infinity.MinusInfinity):
+                    arb_neg_inf(self.value)
+                else:
+                    arb_zero_pm_inf(self.value)
+            elif isinstance(mid, sage.symbolic.constants.Constant):
+                if _do_sig(prec(self)): sig_on()
+                try:
+                    if isinstance(mid, sage.symbolic.constants.NotANumber):
+                        arb_indeterminate(self.value)
+                    elif isinstance(mid, sage.symbolic.constants.Pi):
+                        arb_const_pi(self.value, prec(self))
+                    elif isinstance(mid, sage.symbolic.constants.Log2):
+                        arb_const_log2(self.value, prec(self))
+                    elif isinstance(mid, sage.symbolic.constants.Catalan):
+                        arb_const_catalan(self.value, prec(self))
+                    elif isinstance(mid, sage.symbolic.constants.Khinchin):
+                        arb_const_khinchin(self.value, prec(self))
+                    elif isinstance(mid, sage.symbolic.constants.Glaisher):
+                        arb_const_glaisher(self.value, prec(self))
+                    elif isinstance(mid, sage.symbolic.constants.EulerGamma):
+                        arb_const_euler(self.value, prec(self))
+                    else:
+                        raise TypeError("unsupported constant")
+                finally:
+                    if _do_sig(prec(self)): sig_off()
+            elif isinstance(mid, sage.symbolic.constants_c.E):
+                if _do_sig(prec(self)): sig_on()
+                arb_const_e(self.value, prec(self))
+                if _do_sig(prec(self)): sig_off()
+            else:
+                raise TypeError("unsupported midpoint type")
 
         if rad is not None:
             mag_init(tmpm)
@@ -2043,7 +2045,7 @@ cdef class RealBall(RingElement):
         """
         return arb_is_exact(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -2610,7 +2612,7 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef ModuleElement _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Return the sum of two balls, rounded to the ambient field's precision.
 
@@ -2628,7 +2630,7 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef ModuleElement _sub_(self, ModuleElement other):
+    cpdef _sub_(self, other):
         """
         Return the difference of two balls, rounded to the ambient field's
         precision.
@@ -2647,7 +2649,7 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef RingElement _mul_(self, RingElement other):
+    cpdef _mul_(self, other):
         """
         Return the product of two balls, rounded to the ambient field's
         precision.
@@ -2666,7 +2668,7 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         """
         Return the quotient of two balls, rounded to the ambient field's
         precision.

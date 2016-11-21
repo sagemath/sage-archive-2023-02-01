@@ -175,8 +175,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
+from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
@@ -1285,8 +1286,9 @@ class Gap(Gap_generic):
 
         TESTS:
 
-        We make sure that #9938 (GAP does not start if the path to the GAP
-        workspace file contains more than 82 characters) is fixed::
+        We make sure that :trac:`9938` (GAP does not start if the path
+        to the GAP workspace file contains more than 82 characters) is
+        fixed::
 
             sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
             sage: sage.interfaces.gap.WORKSPACE = os.path.join(SAGE_TMP, "gap" + "0"*(80-len(SAGE_TMP)))

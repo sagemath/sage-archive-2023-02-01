@@ -175,9 +175,9 @@ cdef class Functor(SageObject):
 
         """
         if not category.is_Category(domain):
-            raise TypeError, "domain (=%s) must be a category"%domain
+            raise TypeError("domain (=%s) must be a category" % domain)
         if not category.is_Category(codomain):
-            raise TypeError, "codomain (=%s) must be a category"%codomain
+            raise TypeError("codomain (=%s) must be a category" % codomain)
         self.__domain = domain
         self.__codomain = codomain
 
@@ -265,7 +265,7 @@ cdef class Functor(SageObject):
         try:
             return self(f.domain()).hom(f, self(f.codomain()))
         except Exception:
-            raise TypeError, 'unable to transform %s into a morphism in %s'%(f,self.codomain())
+            raise TypeError('unable to transform %s into a morphism in %s' % (f,self.codomain()))
 
     def _coerce_into_domain(self, x):
         """
@@ -293,7 +293,7 @@ cdef class Functor(SageObject):
 
         """
         if not (x in  self.__domain):
-            raise TypeError, "x (=%s) is not in %s"%(x, self.__domain)
+            raise TypeError("x (=%s) is not in %s" % (x, self.__domain))
         return x
 
     def _repr_(self):
@@ -344,7 +344,7 @@ cdef class Functor(SageObject):
             sage: F1(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: x (=Integer Ring) is not in Category of finite fields
+            TypeError: x (=Integer Ring) is not in Category of finite enumerated fields
             sage: F2 = IdentityFunctor(Fields())
             sage: F2(RR) is RR #indirect doctest
             True
@@ -381,7 +381,7 @@ cdef class Functor(SageObject):
             return self._apply_functor_to_morphism(x)
         y = self._apply_functor(self._coerce_into_domain(x))
         if not ((y in self.__codomain) or (y in self.__codomain.hom_category())):
-            raise TypeError, "%s is ill-defined, since it sends x (=%s) to something that is not in %s."%(repr(self), x, self.__codomain)
+            raise TypeError("%s is ill-defined, since it sends x (=%s) to something that is not in %s." % (repr(self), x, self.__codomain))
         return y
 
     def domain(self):
@@ -392,7 +392,7 @@ cdef class Functor(SageObject):
 
             sage: F = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F.domain()
-            Category of finite fields
+            Category of finite enumerated fields
 
         """
         return self.__domain
@@ -458,7 +458,7 @@ class ForgetfulFunctor_generic(Functor):
 
         sage: F = ForgetfulFunctor(FiniteFields(),Fields()) #indirect doctest
         sage: F
-        The forgetful functor from Category of finite fields to Category of fields
+        The forgetful functor from Category of finite enumerated fields to Category of fields
         sage: F(GF(3))
         Finite Field of size 3
 
@@ -479,7 +479,7 @@ class ForgetfulFunctor_generic(Functor):
 
             sage: F = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F #indirect doctest
-            The forgetful functor from Category of finite fields to Category of fields
+            The forgetful functor from Category of finite enumerated fields to Category of fields
 
         """
         return "The forgetful functor from %s to %s"%(
@@ -673,6 +673,6 @@ def ForgetfulFunctor(domain, codomain):
     if domain == codomain:
         return IdentityFunctor(domain)
     if not domain.is_subcategory(codomain):
-        raise ValueError, "Forgetful functor not supported for domain %s"%domain
+        raise ValueError("Forgetful functor not supported for domain %s" % domain)
     return ForgetfulFunctor_generic(domain, codomain)
 

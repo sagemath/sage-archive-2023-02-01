@@ -77,20 +77,20 @@ class InducedHomologyMorphism(Morphism):
         sage: T = simplicial_complexes.Torus()
         sage: y = T.homology_with_basis(QQ).basis()[(1,1)]
         sage: y.to_cycle()
-        (0, 3) - (0, 6) + (3, 6)
+        (0, 2) - (0, 5) + (2, 5)
 
-    Since `(0,3) - (0,6) + (3,6)` is a cycle representing a homology
+    Since `(0,2) - (0,5) + (2,5)` is a cycle representing a homology
     class in the torus, we can define a map `S^1 \to T` inducing an
     inclusion on `H_1`::
 
-        sage: Hom(S1, T)({0:0, 1:3, 2:6})
+        sage: Hom(S1, T)({0:0, 1:2, 2:5})
         Simplicial complex morphism:
           From: Minimal triangulation of the 1-sphere
           To: Minimal triangulation of the torus
           Defn: 0 |--> 0
-                1 |--> 3
-                2 |--> 6
-        sage: g = Hom(S1, T)({0:0, 1:3, 2: 6})
+                1 |--> 2
+                2 |--> 5
+        sage: g = Hom(S1, T)({0:0, 1:2, 2: 5})
         sage: g_star = g.induced_homology_morphism(QQ)
         sage: g_star.to_matrix(0)
         [1]
@@ -119,7 +119,7 @@ class InducedHomologyMorphism(Morphism):
         sage: diag_c(b)
         h^{1,0}
         sage: diag_c(c)
-        h^{1,0}
+        0
     """
     def __init__(self, map, base_ring=None, cohomology=False):
         """

@@ -1,7 +1,7 @@
 """
 Base class for matrices, part 0
 
-.. note::
+.. NOTE::
 
    For design documentation see matrix/docs.py.
 
@@ -1731,11 +1731,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             '[ I  0]\n[II  *]'
 
             sage: def print_entry(x):
-            ...     if x>0:
-            ...         return '+'
-            ...     elif x<0:
-            ...         return '-'
-            ...     else: return '.'
+            ....:   if x>0:
+            ....:       return '+'
+            ....:   elif x<0:
+            ....:       return '-'
+            ....:   else: return '.'
             ...
             sage: M.str(print_entry)
             '[+ .]\n[+ -]'
@@ -3702,8 +3702,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         EXAMPLES::
 
             sage: A = matrix(QQbar, [[ 1 + I,  1 - 6*I, -1 - I],
-            ...                      [-3 - I,     -4*I,     -2],
-            ...                      [-1 + I, -2 - 8*I,  2 + I]])
+            ....:                    [-3 - I,     -4*I,     -2],
+            ....:                    [-1 + I, -2 - 8*I,  2 + I]])
             sage: A.is_hermitian()
             False
             sage: B = A*A.conjugate_transpose()
@@ -3715,8 +3715,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: F.<b> = QuadraticField(-7)
             sage: C = matrix(F, [[-2*b - 3,  7*b - 6, -b + 3],
-            ...                  [-2*b - 3, -3*b + 2,   -2*b],
-            ...                  [   b + 1,        0,     -2]])
+            ....:                [-2*b - 3, -3*b + 2,   -2*b],
+            ....:                [   b + 1,        0,     -2]])
             sage: C.is_hermitian()
             False
             sage: C = C*C.conjugate_transpose()
@@ -3727,8 +3727,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         diagonal entry. ::
 
             sage: A = matrix(QQbar, [[    2,   2-I, 1+4*I],
-            ...                      [  2+I,   3+I, 2-6*I],
-            ...                      [1-4*I, 2+6*I,     5]])
+            ....:                    [  2+I,   3+I, 2-6*I],
+            ....:                    [1-4*I, 2+6*I,     5]])
             sage: A.is_hermitian()
             False
             sage: A[1,1] = 132
@@ -3904,7 +3904,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
         """
         if self._ncols != self._nrows:
-            raise ValueError, "The matrix is not a square matrix"
+            raise ValueError("The matrix is not a square matrix")
         return self._check_symmetrizability(return_diag=return_diag, skew=False, positive=positive)
 
     def is_skew_symmetrizable(self, return_diag=False, positive=True):
@@ -3955,7 +3955,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
         """
         if self._ncols != self._nrows:
-            raise ValueError, "The matrix is not a square matrix"
+            raise ValueError("The matrix is not a square matrix")
         return self._check_symmetrizability(return_diag=return_diag, skew=True, positive=positive)
 
     def is_dense(self):
@@ -4132,7 +4132,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         OUTPUT:
 
         A matrix over an ordered ring is in weak Popov form if all
-        leading positions are different [MulSto]_. A leading position
+        leading positions are different [MS2003]_. A leading position
         is the position `i` in a row with the highest order (for
         polynomials this is the degree), for multiple entries with
         equal but highest order the maximal `i` is chosen (which is
@@ -4200,12 +4200,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         .. SEEALSO::
 
             - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
-
-        REFERENCES:
-
-        .. [MulSto] \T. Mulders, A. Storjohann, "On lattice reduction
-          for polynomial matrices", J. Symbolic Comput. 35 (2003),
-          no. 4, 377--401
 
         AUTHOR:
 
@@ -4280,11 +4274,11 @@ cdef class Matrix(sage.structure.element.Matrix):
         TESTS:
 
         We should be able to compute the rank of a matrix whose
-        entries are polynomials over a finite field (trac:`5014`)::
+        entries are polynomials over a finite field (:trac:`5014`)::
 
             sage: P.<x> = PolynomialRing(GF(17))
             sage: m = matrix(P, [ [ 6*x^2 + 8*x + 12, 10*x^2 + 4*x + 11],
-            ...                   [8*x^2 + 12*x + 15,  8*x^2 + 9*x + 16] ])
+            ....:                 [8*x^2 + 12*x + 15,  8*x^2 + 9*x + 16] ])
             sage: m.rank()
             2
 
@@ -4592,7 +4586,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     # Arithmetic
     ###################################################
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 
@@ -4650,7 +4644,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         return sum([v[i] * self.row(i, from_list=True)
                     for i in xrange(self._nrows)], M(0))
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         EXAMPLES::
 
@@ -4690,14 +4684,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         element. If rows is True, return a matrix whose rows are the
         entries of the following vectors:
 
-        .. math::
+        .. MATH::
 
                        v, v A, v A^2, \ldots, v A^{n-1}.
 
         If rows is False, return a matrix whose columns are the entries of
         the following vectors:
 
-        .. math::
+        .. MATH::
 
                        v, Av, A^2 v, \ldots, A^{n-1} v.
 
@@ -4760,7 +4754,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             MS = self.matrix_space(n, m)
             return MS(X).transpose()
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Add two matrices with the same parent.
 
@@ -4783,7 +4777,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 A.set_unsafe(i,j,self.get_unsafe(i,j)._add_(right.get_unsafe(i,j)))
         return A
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         Subtract two matrices with the same parent.
 
@@ -4849,7 +4843,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         return self.change_ring(self._base_ring.quotient_ring(p))
 
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -4886,7 +4880,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 ans.set_unsafe(r, c, x * self.get_unsafe(r, c))
         return ans
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         EXAMPLES:
 
@@ -5355,7 +5349,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef long _hash(self) except -1:
         raise NotImplementedError
 
-    cpdef int _cmp_(left,Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two matrices.
 

@@ -760,10 +760,6 @@ class MPowerSeries(PowerSeries):
         f = left._bg_value * right._bg_value
         return MPowerSeries(left.parent(), f, prec=f.prec())
 
-#    def _rmul_(self, c):
-#        # multivariate power series rings are assumed to be commutative
-#        return self._lmul_(c)
-
     def _lmul_(self, c):
         """
         Multiply ``self`` with ``c`` on the left.
@@ -1694,9 +1690,9 @@ class MPowerSeries(PowerSeries):
             sage: aa.is_gen()
             False
             sage: aa.integral(aa)
-            -2*a^2
+            3*a^2
             sage: aa.integral(a)
-            -2*a^2
+            3*a^2
         """
         P = self.parent()
         R = P.base_ring()

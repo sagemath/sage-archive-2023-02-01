@@ -17,7 +17,7 @@ en tant que composante irréductible de la réunion.
     sage: C3 = Curve(x^3 + y^3 - 1)
     sage: D = C2 + C3
     sage: D
-    Affine Curve over Rational Field defined by
+    Affine Plane Curve over Rational Field defined by
        x^5 + x^3*y^2 + x^2*y^3 + y^5 - x^3 - y^3 - x^2 - y^2 + 1
     sage: D.irreducible_components()
     [

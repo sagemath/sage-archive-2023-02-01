@@ -256,22 +256,22 @@ Sage example in ./programmation.tex, line 1243::
 
 Sage example in ./programmation.tex, line 1257::
 
-  sage: print 2^2, 3^3, 4^4 ; print 5^5, 6^6
+  sage: print 2^2, 3^3, 4^4 ; print 5^5, 6^6  # not tested - python2
   4 27 256
   3125 46656
 
 Sage example in ./programmation.tex, line 1265::
 
-  sage: for k in [1..10]: print '+', k,
+  sage: for k in [1..10]: print '+', k,  # not tested - python2
   + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10
 
 Sage example in ./programmation.tex, line 1273::
 
-  sage: print 10, 0.5 ; print(10+0.5) ; print 10.0, 5
+  sage: print 10, 0.5 ; print(10+0.5) ; print 10.0, 5  # not tested - python2
   10 0.500000000000000
   10.5000000000000
   10.0000000000000 5
-  sage: print 10+0, 5 ; print(str(10)+str(0.5))
+  sage: print 10+0, 5 ; print(str(10)+str(0.5))  # not tested - python2
   10 5
   100.500000000000000
 
@@ -508,7 +508,7 @@ Sage example in ./programmation.tex, line 1835::
 
   sage: L = [[2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3],\
   ....: [1, 1, 2], [1, 2, 7]]
-  sage: L.sort (cmp = alpha) ; L
+  sage: L.sort (cmp = alpha) ; L    # optional - python2
   [[1, 1, 2], [1, 2, 7], [2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3]]
 
 Sage example in ./programmation.tex, line 1856::
@@ -633,7 +633,7 @@ Sage example in ./programmation.tex, line 2214::
 Sage example in ./programmation.tex, line 2221::
 
   sage: L1 = [0..4]; L2 = [5..9]
-  sage: zip(L1, L2)
+  sage: list(zip(L1, L2))
   [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]
   sage: map(lambda x, y:(x, y), L1, L2)
   [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]
@@ -695,7 +695,7 @@ Sage example in ./programmation.tex, line 2354::
 
   sage: D = {'a0':'b0', 'a1':'b1', 'a2':'b2', 'a3':'b0',\
   ....: 'a4':'b3', 'a5':'b3'}
-  sage: E  = Set(D.keys()) ; Imf = Set(D.values())
+  sage: E  = Set(D) ; Imf = Set(D.values())
   sage: Imf == Set(map (lambda t:D[t], E))     # est équivalent
   True
 

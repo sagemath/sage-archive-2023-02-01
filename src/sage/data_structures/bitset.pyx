@@ -93,7 +93,7 @@ cdef class FrozenBitset:
     `\{0, 1, 2, \dots, k\}` and the membership in ``FB`` of each `i` is
     determined by the binary value `b_i`.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :class:`Bitset`
 
@@ -145,9 +145,9 @@ cdef class FrozenBitset:
 
         sage: def bitcmp(a, b, c):  # custom function for comparing bitsets
         ....:     print(a == b == c)
-        ....:     print(a <= b, b <= c, a <= c)
-        ....:     print(a >= b, b >= c, a >= c)
-        ....:     print(a != b, b != c, a != c)
+        ....:     print((a <= b, b <= c, a <= c))
+        ....:     print((a >= b, b >= c, a >= c))
+        ....:     print((a != b, b != c, a != c))
         sage: a = Bitset("1010110"); b = FrozenBitset(a); c = FrozenBitset(b)
         sage: a; b; c
         1010110
@@ -1257,7 +1257,7 @@ cdef class Bitset(FrozenBitset):
         for a Python set type, the Python ``set`` data type may be
         faster.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :class:`FrozenBitset`
         - Python's `set types <http://docs.python.org/library/stdtypes.html#set-types-set-frozenset>`_

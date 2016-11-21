@@ -12,6 +12,7 @@ Root lattice realizations
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
@@ -181,7 +182,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 The embeddings are systematically tested in
                 :meth:`_test_root_lattice_realization`.
             """
-            from root_space import RootSpace
+            from .root_space import RootSpace
             K = self.base_ring()
             # If self is the root lattice or the root space, we don't want
             # to register its trivial embedding into itself. This builds
@@ -306,7 +307,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             - scalar products between simple roots and simple coroots
             - ...
 
-            .. seealso:: :class:`TestSuite`
+            .. SEEALSO:: :class:`TestSuite`
 
             EXAMPLES::
 
@@ -1168,7 +1169,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             These are the positive roots together with the simple negative roots.
 
-            .. seealso:: :meth:`almost_positive_root_decomposition`, :meth:`tau_plus_minus`
+            .. SEEALSO:: :meth:`almost_positive_root_decomposition`, :meth:`tau_plus_minus`
 
             EXAMPLES::
 
@@ -1646,7 +1647,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             roots which fixes the negative simple roots `\alpha_i` for `i`
             not in `J`, and acts otherwise by:
 
-            .. math::
+            .. MATH::
 
                 \tau_+( \beta ) = (\prod_{i \in J} s_i) (\beta)
 
@@ -1706,7 +1707,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 tau((0, 0, -1)                               ) = (0, 0, 1)
                 tau((0, 0, 1)                                ) = (0, 0, -1)
 
-            .. seealso:: :meth:`tau_plus_minus`
+            .. SEEALSO:: :meth:`tau_plus_minus`
 
             REFERENCES:
 
@@ -1733,7 +1734,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             positive roots. Namely, `\tau_+` fixes the negative simple
             roots `\alpha_i` for `i` in `R`, and acts otherwise by:
 
-            .. math::
+            .. MATH::
 
                 \tau_+( \beta ) = (\prod_{i \in L} s_i) (\beta)
 
@@ -1743,7 +1744,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             polytopal realization of the cluster complex (see
             :class:`Associahedron`).
 
-            .. seealso:: :meth:`tau_epsilon_operator_on_almost_positive_roots`
+            .. SEEALSO:: :meth:`tau_epsilon_operator_on_almost_positive_roots`
 
             EXAMPLES:
 
@@ -1849,8 +1850,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: RootSystem(["A",4,1]).ambient_space().classical()
                 Ambient space of the Root system of type ['A', 4]
             """
-            from root_space import RootSpace
-            from weight_space import WeightSpace
+            from .root_space import RootSpace
+            from .weight_space import WeightSpace
             R = self.cartan_type().classical().root_system()
             if isinstance(self, RootSpace):
                 return R.root_space(self.base_ring())
@@ -3162,8 +3163,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Weight lattice of the Root system of type ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
 
             """
-            from root_space import RootSpace
-            from weight_space import WeightSpace
+            from .root_space import RootSpace
+            from .weight_space import WeightSpace
 
             if isinstance(self, RootSpace):
                 if self.root_system.dual_side:
@@ -3902,8 +3903,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     ...
                     ValueError: -2*alpha[1] - 2*alpha[2] - 2*alpha[3] is not a positive root
 
-                For an infinite root systems, this method may run into
-                an infinite reccursion if the input is not a positive
+                For an infinite root system, this method may run into
+                an infinite recursion if the input is not a positive
                 root.
             """
             F = self.parent().simple_roots().inverse_family()

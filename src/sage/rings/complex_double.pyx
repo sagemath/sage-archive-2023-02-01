@@ -67,7 +67,7 @@ import operator
 
 from sage.misc.randstate cimport randstate, current_randstate
 
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.paridecl cimport *
 include "cysignals/signals.pxi"
 
 from sage.libs.gsl.complex cimport *
@@ -85,11 +85,8 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance
-
-import sage.libs.pari.pari_instance
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+from sage.libs.cypari2.gen cimport gen as pari_gen
+from sage.libs.cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
 
 import complex_number
 
@@ -494,7 +491,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             1.0*I
         """
         if n != 0:
-            raise ValueError, "only 1 generator"
+            raise ValueError("only 1 generator")
         return I
 
     def ngens(self):
@@ -602,10 +599,10 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         try:
            n = Integer(n)
         except TypeError:
-           raise ValueError, "n must be a positive integer"
+           raise ValueError("n must be a positive integer")
 
         if n<1:
-           raise ValueError, "n must be a positive integer"
+           raise ValueError("n must be a positive integer")
 
         if n == 1:
             x = self(1)
@@ -795,7 +792,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return hash(complex(self))
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         We order the complex numbers in dictionary order by real parts then
         imaginary parts.
@@ -867,7 +864,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         if n >= 0 and n <= 1:
             return self._complex.dat[n]
-        raise IndexError, "index n must be 0 or 1"
+        raise IndexError("index n must be 0 or 1")
 
     def _magma_init_(self, magma):
         r"""
@@ -915,7 +912,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: int(abs(CDF(1,1)))
             1
         """
-        raise TypeError, "can't convert complex to int; use int(abs(z))"
+        raise TypeError("can't convert complex to int; use int(abs(z))")
 
     def __long__(self):
         """
@@ -930,7 +927,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: long(abs(CDF(1,1)))
             1L
         """
-        raise TypeError, "can't convert complex to long; use long(abs(z))"
+        raise TypeError("can't convert complex to long; use long(abs(z))")
 
     def __float__(self):
         """
@@ -1118,21 +1115,6 @@ cdef class ComplexDoubleElement(FieldElement):
         s = str(self).replace('*I', 'i')
         return re.sub(r"e\+?(-?\d+)", r" \\times 10^{\1}", s)
 
-    cdef GEN _gen(self):
-        cdef GEN y
-        if self._complex.dat[1] == 0:
-            # Return t_REAL
-            y = pari.double_to_GEN(self._complex.dat[0])
-        else:
-            # Return t_COMPLEX
-            y = cgetg(3, t_COMPLEX)
-            if self._complex.dat[0] == 0:
-                set_gel(y, 1, gen_0)
-            else:
-                set_gel(y, 1, pari.double_to_GEN(self._complex.dat[0]))
-            set_gel(y, 2, pari.double_to_GEN(self._complex.dat[1]))
-        return y
-
     def _pari_(self):
         """
         Return PARI version of ``self``, as ``t_COMPLEX`` or ``t_REAL``.
@@ -1148,14 +1130,16 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: pari(CDF(I))
             1.00000000000000*I
         """
-        sig_on()
-        return pari.new_gen(self._gen())
+        if self._complex.dat[1] == 0:
+            return new_gen_from_double(self._complex.dat[0])
+        else:
+            return new_t_COMPLEX_from_double(self._complex.dat[0], self._complex.dat[1])
 
     #######################################################################
     # Arithmetic
     #######################################################################
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add ``self`` and ``right``.
 
@@ -1167,7 +1151,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self._new_c(gsl_complex_add(self._complex,
                                            (<ComplexDoubleElement>right)._complex))
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract ``self`` and ``right``.
 
@@ -1179,7 +1163,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self._new_c(gsl_complex_sub(self._complex,
                                 (<ComplexDoubleElement>right)._complex))
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply ``self`` and ``right``.
 
@@ -1191,7 +1175,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self._new_c(gsl_complex_mul(self._complex,
                        (<ComplexDoubleElement>right)._complex))
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1225,7 +1209,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return self._new_c(gsl_complex_inverse(self._complex))
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         This function returns the negative of the complex number `z`:
 
@@ -2188,7 +2172,7 @@ cdef class ComplexDoubleElement(FieldElement):
         cdef GEN a, b, c, y, t
 
         if self._complex.dat[1] <= 0:
-            raise ValueError, "value must be in the upper half plane"
+            raise ValueError("value must be in the upper half plane")
 
         if self._complex.dat[1] > 100000 and not omit_frac:
             # To the precision of doubles for such large imaginary
@@ -2292,7 +2276,7 @@ cdef class ComplexDoubleElement(FieldElement):
                 a, b = a1, b1
 
         else:
-            raise ValueError, "agm algorithm must be one of 'pari', 'optimal', 'principal'"
+            raise ValueError("agm algorithm must be one of 'pari', 'optimal', 'principal'")
 
     def dilog(self):
         r"""
@@ -2402,12 +2386,10 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,5).algdep(2)
             x^2 - 2*x + 26
         """
-        sig_on()
-        f = pari.new_gen(algdep0(self._gen(), n, 0))
         from polynomial.polynomial_ring_constructor import PolynomialRing
         from integer_ring import ZZ
         R = PolynomialRing(ZZ ,'x')
-        return R(list(reversed(eval(str(f.Vec())))))
+        return R(self._pari_().algdep(n))
 
 
 cdef class FloatToCDF(Morphism):
@@ -2535,32 +2517,6 @@ cdef class ComplexToCDF(Morphism):
             'Native'
         """
         return "Native"
-
-#####################################################
-# Create new ComplexDoubleElement from a
-# gsl_complex C struct.
-#####################################################
-
-cdef GEN complex_gen(x):
-    """
-    Complex generator.
-
-    INPUT:
-
-    -  A Python object ``x``
-
-    OUTPUT:
-
-    -  A GEN of type t_COMPLEX, or raise a ``TypeError``.
-    """
-    cdef ComplexDoubleElement z
-    global _CDF
-    try:
-        z = x
-    except TypeError:
-        z = _CDF(x)
-    return z._gen()
-
 
 
 

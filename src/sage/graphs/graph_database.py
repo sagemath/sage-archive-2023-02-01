@@ -46,16 +46,17 @@ REFERENCES:
 #                         http://www.gnu.org/licenses/
 ################################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
-import graph
+from . import graph
 import os
 import re
 from sage.rings.integer import Integer
 from sqlite3 import dbapi2 as sqlite # if anyone would like to explain why dbapi2...
 from sage.databases.sql_db import SQLDatabase, SQLQuery
-from sage.env import SAGE_SHARE
+from sage.env import GRAPHS_DATA_DIR
 from sage.graphs.graph import Graph
-dblocation = os.path.join(SAGE_SHARE,'graphs','graphs.db')
+dblocation = os.path.join(GRAPHS_DATA_DIR,'graphs.db')
 
 def degseq_to_data(degree_sequence):
     """

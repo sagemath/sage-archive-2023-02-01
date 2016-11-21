@@ -290,7 +290,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         r"""
         Return the matrix exponential of this matrix $X$, which is the matrix
 
-        .. math::
+        .. MATH::
 
            e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
 
@@ -364,7 +364,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
 
         """
         if not self.is_square():
-            raise ValueError, "exp only defined on square matrices"
+            raise ValueError("exp only defined on square matrices")
         if self.nrows() == 0:
             return self
         # Maxima's matrixexp function chokes on floating point numbers
@@ -700,6 +700,28 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         M = self.parent()
         return M([expr.simplify_full() for expr in self])
 
+    def canonicalize_radical(self):
+        r"""
+        Choose a canonical branch of each entrie of ``self`` by calling
+        :meth:`Expression.canonicalize_radical()` componentwise.
+
+        EXAMPLES::
+
+            sage: var('x','y')
+            (x, y)
+            sage: l1 = [sqrt(2)*sqrt(3)*sqrt(6) , log(x*y)]
+            sage: l2 = [sin(x/(x^2 + x)) , 1]
+            sage: m = matrix([l1, l2])
+            sage: m
+            [sqrt(6)*sqrt(3)*sqrt(2)                log(x*y)]
+            [       sin(x/(x^2 + x))                       1]
+            sage: m.canonicalize_radical()
+            [              6 log(x) + log(y)]
+            [ sin(1/(x + 1))               1]
+        """
+        M = self.parent()
+        return M([expr.canonicalize_radical() for expr in self])
+        
     def factor(self):
         """
         Operates point-wise on each element.
@@ -860,7 +882,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             ValueError: the number of arguments must be less than or equal to 3
         """
         if kwargs and args:
-            raise ValueError, "args and kwargs cannot both be specified"
+            raise ValueError("args and kwargs cannot both be specified")
 
         if len(args) == 1 and isinstance(args[0], dict):
             kwargs = dict([(repr(x[0]), x[1]) for x in args[0].iteritems()])
@@ -883,7 +905,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             variables = list( self.arguments() )
 
             if len(args) > self.number_of_arguments():
-                raise ValueError, "the number of arguments must be less than or equal to %s"%self.number_of_arguments()
+                raise ValueError("the number of arguments must be less than or equal to %s" % self.number_of_arguments())
 
             new_entries = []
             for entry in self.list():

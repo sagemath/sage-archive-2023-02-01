@@ -21,6 +21,7 @@ from __future__ import print_function
 
 from sage.data_structures.bounded_integer_sequences cimport *
 from cpython.slice cimport PySlice_GetIndicesEx
+from sage.structure.sage_object cimport rich_to_bool
 
 include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
@@ -261,11 +262,11 @@ cdef class QuiverPath(MonoidElement):
         """
         return self._path.length != 0
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Comparison for :class:`QuiverPaths`.
 
-        The following data (listed in order of preferance) is used for
+        The following data (listed in order of preference) is used for
         comparison:
 
         - **Negative** length of the paths
@@ -332,20 +333,20 @@ cdef class QuiverPath(MonoidElement):
         other = right
         # we want *negative* degree reverse lexicographical order
         if other._path.length < cself._path.length:
-            return -1
+            return rich_to_bool(op, -1)
         if other._path.length > cself._path.length:
-            return 1
+            return rich_to_bool(op, 1)
         if cself._start < other._start:
-            return -1
+            return rich_to_bool(op, -1)
         if cself._start > other._start:
-            return 1
+            return rich_to_bool(op, 1)
         if cself._end < other._end:
-            return -1
+            return rich_to_bool(op, -1)
         if cself._end > other._end:
-            return 1
-        if cself._path.length==0:
-            return 0
-        return biseq_cmp(cself._path, other._path)
+            return rich_to_bool(op, 1)
+        if cself._path.length == 0:
+            return rich_to_bool(op, 0)
+        return biseq_richcmp(cself._path, other._path, op)
 
     def __getitem__(self, index):
         """
@@ -427,7 +428,7 @@ cdef class QuiverPath(MonoidElement):
         for i in range(0,self._path.length):
             yield E[biseq_getitem(self._path, i)]
 
-    cpdef MonoidElement _mul_(self, MonoidElement other):
+    cpdef _mul_(self, other):
         """
         Compose two paths.
 
@@ -465,7 +466,7 @@ cdef class QuiverPath(MonoidElement):
         biseq_init_concat(OUT._path, self._path,right._path)
         return OUT
 
-    def __mod__(self, other):
+    cpdef _mod_(self, other):
         """
         Return what remains of this path after removing the initial segment ``other``.
 
@@ -491,19 +492,18 @@ cdef class QuiverPath(MonoidElement):
             None
 
         """
-        cdef QuiverPath right = other
-        cdef QuiverPath cself = self
+        cdef QuiverPath right = <QuiverPath>other
         # Handle trivial case
-        if right is None or cself._start!=right._start:
+        if self._start != right._start:
             return None
         if right._path.length==0:
             return self
 
         # If other is the beginning, return the rest
         cdef QuiverPath OUT
-        if (cself._start == right._start) and biseq_startswith(cself._path, right._path):
-            OUT = cself._new_(right._end, cself._end)
-            biseq_init_slice(OUT._path, cself._path, right._path.length, cself._path.length, 1)
+        if (self._start == right._start) and biseq_startswith(self._path, right._path):
+            OUT = self._new_(right._end, self._end)
+            biseq_init_slice(OUT._path, self._path, right._path.length, self._path.length, 1)
             return OUT
         else:
             return None

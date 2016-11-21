@@ -34,9 +34,11 @@ include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
+from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
 from sage.misc.long cimport pyobject_to_long
 
+from sage.libs.flint.fmpz_poly cimport *
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.structure.element import coerce_binop
@@ -173,7 +175,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: type(pari(f))
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: type(R(pari(f)))
             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: R(pari(f))
@@ -230,7 +232,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 # mpoly dict style has tuple keys
                 i = ii[0] if type(ii) is tuple else ii
                 if i < 0:
-                    raise ValueError, "Negative monomial degrees not allowed: %s" % i
+                    raise ValueError("Negative monomial degrees not allowed: %s" % i)
                 elif i > degree:
                     degree = i
             try:
@@ -238,7 +240,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 fmpz_poly_realloc(self.__poly, degree + 1)
                 sig_off()
             except RuntimeError:
-                raise OverflowError, "Cannot allocate memory!"
+                raise OverflowError("Cannot allocate memory!")
             # now fill them in
             for ii, a in x:
                 i = ii[0] if type(ii) is tuple else ii
@@ -377,6 +379,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
             sage: f(2)          # indirect doctest
             3
+
+        TESTS:
+
+            sage: t(-sys.maxint-1r) == t(-sys.maxint-1)
+            True
         """
         cdef Polynomial_integer_dense_flint f
         cdef Integer a, z
@@ -394,7 +401,19 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     (<Polynomial_integer_dense_flint> x0).__poly)
                 sig_off()
                 return f
-            if isinstance(x0, (int, long)):
+            if isinstance(x0, int):
+                z = PY_NEW(Integer)
+                sig_on()
+                fmpz_init(a_fmpz)
+                fmpz_init(z_fmpz)
+                fmpz_set_si(a_fmpz, PyInt_AS_LONG(x0))
+                fmpz_poly_evaluate_fmpz(z_fmpz, self.__poly, a_fmpz)
+                fmpz_get_mpz(z.value, z_fmpz)
+                fmpz_clear(a_fmpz)
+                fmpz_clear(z_fmpz)
+                sig_off()
+                return z
+            if isinstance(x0, long):
                 x0 = Integer(x0)
             if isinstance(x0, Integer):
                 a = <Integer> x0
@@ -587,7 +606,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             name = self.parent().latex_variable_names()[0]
         return self._repr(name=name, latex=True)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         r"""
         Returns self plus right.
 
@@ -607,7 +626,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Return self minus right.
 
@@ -627,7 +646,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Returns negative of self.
 
@@ -701,7 +720,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             (x + 2, 2*x + 1)
         """
         if right.is_zero():
-            raise ZeroDivisionError, "division by zero polynomial"
+            raise ZeroDivisionError("division by zero polynomial")
 
         if self.is_zero():
             return self, self
@@ -879,7 +898,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             return self._parent(rr), ss, tt
 
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         r"""
         Returns self multiplied by right.
 
@@ -927,7 +946,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -946,7 +965,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
 
-    cpdef ModuleElement _rmul_(self, RingElement right):
+    cpdef _rmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -998,8 +1017,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (x)^(1/2) does not lie in Univariate
-            Polynomial Ring in x over Integer Ring
+            ValueError: not a 2nd power
+
             sage: x^(2^100)
             Traceback (most recent call last):
             ...
@@ -1020,8 +1039,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: (R^2 + 3)^(1/2)
             Traceback (most recent call last):
             ...
-            ValueError: (R^2 + 3)^(1/2) does not lie in Univariate
-            Polynomial Ring in R over Integer Ring
+            ValueError: 3 is not a 2nd power
 
             Ring in R over Integer Ring
             sage: P(2)^P(2)
@@ -1087,6 +1105,32 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     sig_off()
                 return res
 
+    cpdef Polynomial _power_trunc(self, unsigned long n, long prec):
+        r"""
+        Truncated power
+
+        TESTS::
+
+            sage: R.<x> = ZZ[]
+            sage: (x**2 - x + 1).power_trunc(100, 5)
+            4411275*x^4 - 171600*x^3 + 5050*x^2 - 100*x + 1
+            sage: R.zero().power_trunc(0, 1)
+            1
+
+            sage: x._power_trunc(2, -1)
+            0
+            sage: parent(_) is R
+            True
+        """
+        if prec <= 0:
+            # NOTE: flint crashes for prec < 0
+            return self._parent.zero()
+
+        cdef Polynomial_integer_dense_flint res
+        res = self._new()
+        fmpz_poly_pow_trunc(res.__poly, self.__poly, n, prec)
+        return res
+
     def __floordiv__(Polynomial_integer_dense_flint self, right):
         """
         EXAMPLES::
@@ -1118,7 +1162,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         cdef Polynomial
         cdef long t
         if right == 0:
-            raise ZeroDivisionError, "division by zero"
+            raise ZeroDivisionError("division by zero")
         if not isinstance(right, Polynomial_integer_dense_flint):
             if right in ZZ:
                 sig_on()
@@ -1210,7 +1254,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             2*x^2 + 7*x + 3
         """
         if n < 0:
-            raise IndexError, "n must be >= 0"
+            raise IndexError("n must be >= 0")
         if isinstance(value, int):
             sig_on()
             fmpz_poly_set_coeff_si(self.__poly, n, value)
@@ -1280,7 +1324,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Write ``A = self``.  This function computes polynomials `Q` and `R`
         and an integer `d` such that
 
-        .. math::
+        .. MATH::
 
              \mathop{\mathrm{lead}}(B)^d A = B Q + R
 
@@ -1298,7 +1342,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         EXAMPLES::
 
             sage: R.<x> = ZZ['x']
-            sage: A = R(range(10)); B = 3*R([-1, 0, 1])
+            sage: A = R(range(10))
+            sage: B = 3*R([-1, 0, 1])
             sage: Q, R, d = A.pseudo_divrem(B)
             sage: Q, R, d
             (9*x^7 + 8*x^6 + 16*x^5 + 14*x^4 + 21*x^3 + 18*x^2 + 24*x + 20, 75*x + 60, 1)
@@ -1314,7 +1359,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         r"""
         Return the discriminant of self, which is by definition
 
-        .. math::
+        .. MATH::
 
             (-1)^{m(m-1)/2} \mathop{\mathrm{resultant}}(a, a')/\mathop{\mathrm{lc}}(a),
 
@@ -1562,9 +1607,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         from sage.rings.finite_rings.finite_field_constructor import FiniteField
         p = Integer(p)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
-            raise ValueError, "factorization of 0 not defined"
+            raise ValueError("factorization of 0 not defined")
         f = self._pari_()
         G = f.factormod(p)
         k = FiniteField(p)
@@ -1709,7 +1754,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if degree:
             d = degree
             if d != degree:
-                raise ValueError, "degree argument must be a non-negative integer, got %s"%(degree)
+                raise ValueError("degree argument must be a non-negative integer, got %s" % degree)
             # FLINT expects length
             fmpz_poly_reverse(res.__poly, self.__poly, d+1)
         else:

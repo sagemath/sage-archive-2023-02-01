@@ -169,7 +169,7 @@ cdef class interval_bernstein_polynomial:
     The Bernstein basis of degree n over the region [a .. b] is the
     set of polynomials
 
-    .. math::
+    .. MATH::
 
       \binom{n}{k} (x-a)^k (b-x)^{n-k} / (b-a)^n
 
@@ -1260,13 +1260,13 @@ def intvec_to_doublevec(Vector_integer_dense b, long err):
     B = [b1, ..., bn], lower and upper error bounds F1 and F2, and
     a scaling factor d, such that
 
-    .. math::
+    .. MATH::
 
        (bk + F1) * 2^d \le ak
 
     and
 
-    .. math::
+    .. MATH::
 
         ak + E \le (bk + F2) * 2^d
 
@@ -3977,15 +3977,15 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
         elif base is AA:
             ar_input = True
         else:
-            raise ValueError, "Don't know how to isolate roots for " + str(p.parent())
+            raise ValueError("Don't know how to isolate roots for " + str(p.parent()))
 
     if ar_input and bounds is not None:
-        raise NotImplementedError, "Cannot set your own bounds with algebraic real input"
+        raise NotImplementedError("Cannot set your own bounds with algebraic real input")
 
     if ar_input: strategy = 'warp'
 
     if bounds is not None and strategy=='warp':
-        raise NotImplementedError, "Cannot set your own bounds with strategy=warp"
+        raise NotImplementedError("Cannot set your own bounds with strategy=warp")
 
     if seed is None: seed = 1
 
@@ -4155,7 +4155,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     if retval=='algebraic_real':
         return [(AA.polynomial_root(r[1], r[0]), r[2]) for r in intv_roots]
 
-    raise ValueError, "Illegal retval parameter " + retval
+    raise ValueError("Illegal retval parameter " + retval)
 
 
 def scale_intvec_var(Vector_integer_dense c, k):
@@ -4365,7 +4365,7 @@ def to_bernstein(p, low=0, high=1, degree=None):
     if degree is None:
         degree = p.degree()
     elif degree < p.degree():
-        raise ValueError, 'Bernstein degree must be at least polynomial degree'
+        raise ValueError('Bernstein degree must be at least polynomial degree')
     vs = ZZ ** (degree + 1)
     c = vs(0)
     for i in range(0, p.degree() + 1):

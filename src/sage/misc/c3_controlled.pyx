@@ -344,7 +344,7 @@ doctest::
      Category of fields,
      Category of finite dimensional algebras with basis over Rational Field,
      Category of finite dimensional hopf algebras with basis over Rational Field,
-     Category of finite permutation groups,
+     Category of finite enumerated permutation groups,
      Category of finite weyl groups,
      Category of graded hopf algebras with basis over Rational Field]
 
@@ -652,7 +652,7 @@ def C3_merge(list lists):
                 break
         if not next_item_found:
             # No head is available
-            raise ValueError, "Can not merge the items %s."%', '.join([repr(head) for head in heads])
+            raise ValueError("Can not merge the items %s."%', '.join([repr(head) for head in heads]))
     return out
 
 cpdef identity(x):
@@ -831,9 +831,9 @@ cpdef tuple C3_sorted_merge(list lists, key=identity):
     cdef dict holder = {}
 
     # def print_state():
-    #     print "-- %s -- %s ------"%(out,suggestion)
+    #     print("-- %s -- %s ------"%(out,suggestion))
     #     for i in range(nbheads):
-    #         print [heads[i]] + list(reversed(tails[i]))
+    #         print([heads[i]] + list(reversed(tails[i])))
 
     # def check_state():
     #     for i in range(nbheads):

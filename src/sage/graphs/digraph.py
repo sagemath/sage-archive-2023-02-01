@@ -109,6 +109,7 @@ Methods
 -------
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -491,7 +492,7 @@ class DiGraph(GenericGraph):
             sage: DiGraph({1:{2:0}})
             Digraph on 2 vertices
 
-        An empty list or dictionary defines a simple graph (trac #10441 and #12910)::
+        An empty list or dictionary defines a simple graph (:trac:`10441` and :trac:`12910`)::
 
             sage: DiGraph([])
             Digraph on 0 vertices
@@ -669,15 +670,15 @@ class DiGraph(GenericGraph):
             if weighted   is None: self._weighted   = False
             self.allow_loops(True if loops else False,check=False)
             self.allow_multiple_edges(True if multiedges else False,check=False)
-            from graph_input import from_dig6
+            from .graph_input import from_dig6
             from_dig6(self, data)
 
         elif format == 'adjacency_matrix':
-            from graph_input import from_adjacency_matrix
+            from .graph_input import from_adjacency_matrix
             from_adjacency_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'incidence_matrix':
-            from graph_input import from_oriented_incidence_matrix
+            from .graph_input import from_oriented_incidence_matrix
             from_oriented_incidence_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'DiGraph':
@@ -714,12 +715,12 @@ class DiGraph(GenericGraph):
             self.add_edges(data[1])
 
         elif format == 'dict_of_dicts':
-            from graph_input import from_dict_of_dicts
+            from .graph_input import from_dict_of_dicts
             from_dict_of_dicts(self, data, loops=loops, multiedges=multiedges, weighted=weighted,
                                convert_empty_dict_labels_to_None = False if convert_empty_dict_labels_to_None is None else convert_empty_dict_labels_to_None)
 
         elif format == 'dict_of_lists':
-            from graph_input import from_dict_of_lists
+            from .graph_input import from_dict_of_lists
             from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'NX':
@@ -813,18 +814,33 @@ class DiGraph(GenericGraph):
     ### Formats
     def dig6_string(self):
         """
-        Returns the dig6 representation of the digraph as an ASCII string.
-        Valid for single (no multiple edges) digraphs on 0 to 262143
-        vertices.
+        Return the dig6 representation of the digraph as an ASCII string.
+
+        This is only valid for single (no multiple edges) digraphs
+        on at most `2^{18}-1=262143` vertices.
+
+        .. NOTE::
+
+            As the dig6 format only handles graphs with vertex set
+            `\{0,...,n-1\}`, a :meth:`relabelled copy
+            <sage.graphs.generic_graph.GenericGraph.relabel>` will
+            be encoded, if necessary.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.graph.Graph.graph6_string` --
+              a similar string format for undirected graphs
 
         EXAMPLES::
 
-            sage: D = DiGraph()
+            sage: D = DiGraph({0: [1, 2], 1: [2], 2: [3], 3: [0]})
             sage: D.dig6_string()
+            'CW`_'
+
+        TESTS::
+
+            sage: DiGraph().dig6_string()
             '?'
-            sage: D.add_edge(0,1)
-            sage: D.dig6_string()
-            'AO'
         """
         n = self.order()
         if n > 262143:
@@ -911,13 +927,13 @@ class DiGraph(GenericGraph):
         Checking acyclic graphs are indeed acyclic ::
 
             sage: def random_acyclic(n, p):
-            ...    g = graphs.RandomGNP(n, p)
-            ...    h = DiGraph()
-            ...    h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
-            ...    return h
+            ....:  g = graphs.RandomGNP(n, p)
+            ....:  h = DiGraph()
+            ....:  h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
+            ....:  return h
             ...
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
-            ...        for i in range(50))                              # long time
+            ....:      for i in range(50))                              # long time
             True
 
         TESTS:
@@ -1856,8 +1872,8 @@ class DiGraph(GenericGraph):
 
             sage: D = DiGraph ([(0,1,'A'),(1,0,'B'),(1,2,'C')])
             sage: re = D.reverse_edges( [ (0,1), (1,2) ],
-            ...                         inplace = False,
-            ...                         multiedges = True)
+            ....:                       inplace = False,
+            ....:                       multiedges = True)
             sage: re.edges()
             [(1, 0, 'A'), (1, 0, 'B'), (2, 1, 'C')]
             sage: D.edges()
@@ -2713,7 +2729,7 @@ class DiGraph(GenericGraph):
         EXAMPLES::
 
             sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7],
-            ...     5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+            ....:   5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
             sage: D.plot(layout='circular').show()
             sage: D.topological_sort()
             [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
@@ -2751,7 +2767,7 @@ class DiGraph(GenericGraph):
 
               sage: import networkx
               sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7],
-              ...     5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+              ....:   5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
               sage: N = D.networkx_graph()
               sage: networkx.topological_sort(N)
               [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
@@ -3086,7 +3102,7 @@ class DiGraph(GenericGraph):
         The following digraph has three strongly connected components,
         and the digraph of those is a chain::
 
-            sage: g = DiGraph({0:{1:"01", 2: "02", 3: 03}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
+            sage: g = DiGraph({0:{1:"01", 2: "02", 3: "03"}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
             sage: scc_digraph = g.strongly_connected_components_digraph()
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]

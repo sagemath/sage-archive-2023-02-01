@@ -11,7 +11,6 @@ Integer vectors modulo the action of a permutation group
 #*****************************************************************************
 from __future__ import print_function
 
-from itertools import imap
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.semirings.all import NN
 
@@ -37,7 +36,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     is maximal in its orbit under the action of `G`. `v` is
     canonical if and only if
 
-    .. math::
+    .. MATH::
 
         v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 
@@ -45,7 +44,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     simple transposition `s_1 = (1, 2)` swaps the first and the second entries
     of any integer vector `v = [a_1, a_2, a_3, \dots , a_n]`
 
-    .. math::
+    .. MATH::
 
         s_1 \cdot v = [a_2, a_1, a_3, \dots , a_n]
 
@@ -83,13 +82,13 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
 
         sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
         sage: I.category()
-        Join of Category of infinite enumerated sets and Category of quotients of sets
+        Category of infinite enumerated quotients of sets
         sage: I.cardinality()
         +Infinity
         sage: I.list()
         Traceback (most recent call last):
         ...
-        NotImplementedError: infinite list
+        NotImplementedError: cannot list an infinite set
         sage: p = iter(I)
         sage: for i in range(10): next(p)
         [0, 0, 0]
@@ -274,7 +273,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: I
             Integer vectors of length 4 enumerated up to the action of Permutation Group with generators [(1,2,3,4)]
             sage: I.category()
-            Join of Category of infinite enumerated sets and Category of quotients of sets
+            Category of infinite enumerated quotients of sets
             sage: TestSuite(I).run()
         """
         SearchForest.__init__(self, algorithm = 'breadth', category = InfiniteEnumeratedSets().Quotients())
@@ -418,7 +417,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         define ``self``.  Such integer vectors are said to be
         canonical. A vector `v` is canonical if and only if
 
-        .. math::
+        .. MATH::
 
             v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 
@@ -773,7 +772,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         define ``self``.  Such integer vectors are said to be
         canonical. A vector `v` is canonical if and only if
 
-        .. math::
+        .. MATH::
 
             v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 

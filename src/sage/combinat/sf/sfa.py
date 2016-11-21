@@ -195,6 +195,7 @@ AUTHORS:
 - Darij Grinberg (2013) Sym over rings that are not characteristic 0
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Anne Schilling <anne at math.ucdavis.edu>
@@ -2527,7 +2528,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: p([2,1]).scalar(q([1,1,1]))
             0
         """
-        import dual
+        from . import dual
         if scalar is None:
             if basis_name is None and prefix is None:
                 return self._dual_basis_default()
@@ -2603,11 +2604,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s.set_print_style('lex')
         """
         if ps == 'lex':
-            self.print_options(generator_cmp = lambda x,y: cmp(x,y))
+            self.print_options(sorting_key=lambda x: x)
         elif ps == 'length':
-            self.print_options(generator_cmp = lambda x,y: cmp(len(x), len(y)))
+            self.print_options(sorting_key=lambda x: len(x))
         elif ps == 'maximal_part':
-            self.print_options(generator_cmp = lambda x,y: cmp(_lmax(x), _lmax(y)))
+            self.print_options(sorting_key=lambda x: _lmax(x))
         else:
             raise ValueError("the print style must be one of lex, length, or maximal_part ")
         self._print_style = ps
@@ -2759,10 +2760,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def plethysm(self, x, include=None, exclude=None):
         r"""
-        Return the outer plethysm of ``self`` with ``x``. This is
-        implemented only over base rings which are `\QQ`-algebras.
-        (To compute outer plethysms over general binomial rings, change
-        bases to the fraction field.)
+        Return the outer plethysm of ``self`` with ``x``.
+
+        This is implemented only over base rings which are
+        `\QQ`-algebras.  (To compute outer plethysms over general
+        binomial rings, change bases to the fraction field.)
 
         The outer plethysm of `f` with `g` is commonly denoted by
         `f \left[ g \right]` or by `f \circ g`. It is an algebra map
@@ -2817,9 +2819,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         .. SEEALSO::
 
             :meth:`frobenius`
+
+        TESTS::
+
+            sage: (1+p[2]).plethysm(p[2])
+            p[] + p[4]
         """
         if not is_SymmetricFunction(x):
-            raise TypeError("only know how to compute plethysms between symmetric functions")
+            raise TypeError("only know how to compute plethysms "
+                            "between symmetric functions")
         parent = self.parent()
         p = parent.realization_of().power()
         R = parent.base_ring()
@@ -2827,7 +2835,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         if self == parent.zero():
             return self
 
-        #Handle degree one elements
+        # Handle degree one elements
         if include is not None and exclude is not None:
             raise RuntimeError("include and exclude cannot both be specified")
 
@@ -2844,24 +2852,32 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         if exclude:
             degree_one = [g for g in degree_one if g not in exclude]
 
+        degree_one = [g for g in degree_one if g != R.one()]
+            
+        # Takes in n, and returns a function which takes in a partition and
+        # scales all of the parts of that partition by n
+        
+        def scale_part(n):
+            return lambda m: m.__class__(m.parent(), [i * n for i in m])
 
-        #Takes in n, and returns a function which takes in a partition and
-        #scales all of the parts of that partition by n
-        scale_part = lambda n: lambda m: m.__class__(m.parent(), [i*n for i in m])
+        def raise_c(n):
+            return lambda c: c.subs(**{str(g): g ** n for g in degree_one})
 
-        raise_c = lambda n: lambda c: c.subs(**dict((str(g),g**n) for g in degree_one if g != 1))
+        # Takes n an symmetric function f, and an n and returns the
+        # symmetric function with all of its basis partitions scaled
+        # by n
 
-        #Takes n an symmetric function f, and an n and returns the
-        #symmetric function with all of its basis partitions scaled
-        #by n
-        pn_pleth = lambda f, n: f.map_support(scale_part(n))
+        def pn_pleth(f, n):
+            return f.map_support(scale_part(n))
 
-        #Takes in a partition and applies
-        f = lambda part: prod( pn_pleth(p_x.map_coefficients(raise_c(i)), i) for i in part )
-        return parent(p._apply_module_morphism(p(self),f))
+        # Takes in a partition and applies
+
+        def f(part):
+            return p.prod(pn_pleth(p_x.map_coefficients(raise_c(i)), i)
+                          for i in part)
+        return parent(p._apply_module_morphism(p(self), f, codomain=p))
 
     __call__ = plethysm
-
 
     def inner_plethysm(self, x):
         r"""
@@ -4935,7 +4951,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             conditions like ``lambda part: max(part) < 3`` which
             would require extra work to handle the empty partition.
         """
-        import classical
+        from . import classical
         parent = self.parent()
         resPR = PolynomialRing(parent.base_ring(), n, alphabet)
         if self == parent.zero():
@@ -5410,7 +5426,7 @@ def _nonnegative_coefficients(x):
         False
     """
     if is_Polynomial(x) or is_MPolynomial(x):
-        return all([ c >= 0 for c in x.coefficients(sparse=False) ])
+        return all(c >= 0 for c in x.coefficients(sparse=False))
     else:
         return x >= 0
 

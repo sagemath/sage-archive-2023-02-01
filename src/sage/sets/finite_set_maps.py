@@ -118,7 +118,7 @@ class FiniteSetMaps(UniqueRepresentation, Parent):
     This makes `M` into a monoid::
 
         sage: M.category()
-        Join of Category of finite monoids and Category of finite enumerated sets
+        Category of finite enumerated monoids
         sage: M.one()
         map: 1 -> 1, 2 -> 2, 3 -> 3
 
@@ -499,7 +499,7 @@ class FiniteSetEndoMaps_N(FiniteSetMaps_MN):
 
             sage: M = FiniteSetMaps(3)
             sage: M.category()
-            Join of Category of finite monoids and Category of finite enumerated sets
+            Category of finite enumerated monoids
             sage: M.__class__
             <class 'sage.sets.finite_set_maps.FiniteSetEndoMaps_N_with_category'>
             sage: TestSuite(M).run()
@@ -563,7 +563,7 @@ class FiniteSetEndoMaps_Set(FiniteSetMaps_Set, FiniteSetEndoMaps_N):
 
             sage: M = FiniteSetMaps(["a", "b", "c"])
             sage: M.category()
-            Join of Category of finite monoids and Category of finite enumerated sets
+            Category of finite enumerated monoids
             sage: M.__class__
             <class 'sage.sets.finite_set_maps.FiniteSetEndoMaps_Set_with_category'>
             sage: TestSuite(M).run()

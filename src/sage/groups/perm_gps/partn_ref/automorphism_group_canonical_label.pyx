@@ -108,6 +108,7 @@ REFERENCE:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from libc.string cimport memcmp, memcpy
 include 'data_structures_pyx.pxi' # includes bitsets
@@ -159,7 +160,7 @@ def test_get_aut_gp_and_can_lab_trivially(int n=6,
     cdef object empty_list = []
     output = get_aut_gp_and_can_lab(<void *> empty_list, part, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_structures_trivial, canonical_label, NULL, NULL, NULL)
     SC_order(output.group, 0, I.value)
-    print I
+    print(I)
     PS_dealloc(part)
     deallocate_agcl_output(output)
 
@@ -199,7 +200,7 @@ def test_intersect_parabolic_with_alternating(int n=9, list partition=[[0,1,2],[
     cdef object empty_list = []
     output = get_aut_gp_and_can_lab(<void *> empty_list, part, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_structures_trivial, 0, group, NULL, NULL)
     SC_order(output.group, 0, I.value)
-    print I
+    print(I)
     PS_dealloc(part)
     SC_dealloc(group)
     deallocate_agcl_output(output)
@@ -228,28 +229,28 @@ def coset_rep(list perm=[0,1,2,3,4,5], list gens=[[1,2,3,4,5,0]]):
         sage: gens = [[1,2,3,0]]
         sage: reps = []
         sage: for p in SymmetricGroup(4):
-        ...     p = [p(i)-1 for i in range(1,5)]
-        ...     r = coset_rep(p, gens)
-        ...     if r not in reps:
-        ...         reps.append(r)
+        ....:   p = [p(i)-1 for i in range(1,5)]
+        ....:   r = coset_rep(p, gens)
+        ....:   if r not in reps:
+        ....:       reps.append(r)
         sage: len(reps)
         6
         sage: gens = [[1,0,2,3],[0,1,3,2]]
         sage: reps = []
         sage: for p in SymmetricGroup(4):
-        ...     p = [p(i)-1 for i in range(1,5)]
-        ...     r = coset_rep(p, gens)
-        ...     if r not in reps:
-        ...         reps.append(r)
+        ....:   p = [p(i)-1 for i in range(1,5)]
+        ....:   r = coset_rep(p, gens)
+        ....:   if r not in reps:
+        ....:       reps.append(r)
         sage: len(reps)
         6
         sage: gens = [[1,2,0,3]]
         sage: reps = []
         sage: for p in SymmetricGroup(4):
-        ...     p = [p(i)-1 for i in range(1,5)]
-        ...     r = coset_rep(p, gens)
-        ...     if r not in reps:
-        ...         reps.append(r)
+        ....:   p = [p(i)-1 for i in range(1,5)]
+        ....:   r = coset_rep(p, gens)
+        ....:   if r not in reps:
+        ....:       reps.append(r)
         sage: len(reps)
         8
 

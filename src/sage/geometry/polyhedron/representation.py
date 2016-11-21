@@ -435,7 +435,7 @@ class Hrepresentation(PolyhedronRepresentation):
         EXAMPLES::
 
             sage: p = Polyhedron(ieqs = [[0,0,0,1],[0,0,1,0,],[0,1,0,0],
-            ...                          [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
+            ....:                        [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
             sage: pH = p.Hrepresentation(0)
             sage: a = list(pH.neighbors())
             sage: a[0]
@@ -455,7 +455,7 @@ class Hrepresentation(PolyhedronRepresentation):
         TESTS::
 
             sage: p = Polyhedron(ieqs = [[0,0,0,2],[0,0,1,0,],[0,10,0,0],
-            ...       [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
+            ....:     [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
             sage: pH = p.Hrepresentation(0)
             sage: a = list(pH.neighbors())
             sage: b = list(pH.adjacent())
@@ -471,7 +471,7 @@ class Hrepresentation(PolyhedronRepresentation):
         EXAMPLES::
 
             sage: p = Polyhedron(ieqs = [[0,0,0,1],[0,0,1,0,],[0,1,0,0],
-            ...       [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
+            ....:     [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
             sage: pH = p.Hrepresentation(0)
             sage: pH.is_incident(p.Vrepresentation(1))
             True
@@ -487,7 +487,7 @@ class Hrepresentation(PolyhedronRepresentation):
         EXAMPLES::
 
             sage: p = Polyhedron(ieqs = [[0,0,0,1],[0,0,1,0,],[0,1,0,0],
-            ...        [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
+            ....:      [1,-1,0,0],[1,0,-1,0,],[1,0,0,-1]])
             sage: pH = p.Hrepresentation(0)
             sage: pH*p.Vrepresentation(5)
             1
@@ -620,6 +620,16 @@ class Inequality(Hrepresentation):
             (An equation -1 == 0,)
             sage: Polyhedron(eqns=[(-1,0)]).Hrepresentation()
             (An equation -1 == 0,)
+
+        TESTS:
+
+        Test that :trac:`21105` has been fixed::
+
+            sage: K.<cbrt2> = NumberField(x^3 - 2, 'a', embedding=1.26)
+            sage: P = Polyhedron(vertices=[(1,1,cbrt2),(cbrt2,1,1)])
+            sage: P.inequalities()
+            (An inequality (-cbrt2^2 - cbrt2 - 1, 0, 0) x + cbrt2^2 + cbrt2 + 2 >= 0,
+             An inequality (cbrt2^2 + cbrt2 + 1, 0, 0) x - cbrt2^2 + cbrt2 + 1 >= 0)
         """
         s = 'An inequality '
         have_A = not self.A().is_zero()

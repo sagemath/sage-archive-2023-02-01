@@ -275,7 +275,7 @@ cdef class PowerSeries_poly(PowerSeries):
             name = P.variable_name()
             if name in kwds: # a keyword specifies the power series generator
                 if len(x) > 0:
-                    raise ValueError, "must not specify %s keyword and positional argument" % name
+                    raise ValueError("must not specify %s keyword and positional argument" % name)
                 a = self(kwds[name])
                 del kwds[name]
                 try:
@@ -321,7 +321,7 @@ cdef class PowerSeries_poly(PowerSeries):
             return self[0]
 
         if t <= 0:
-            raise ValueError, "Can only substitute elements of positive valuation"
+            raise ValueError("Can only substitute elements of positive valuation")
 
         if not Q.has_coerce_map_from(P.base_ring()):
             from sage.structure.element import canonical_coercion
@@ -329,7 +329,7 @@ cdef class PowerSeries_poly(PowerSeries):
                 R = canonical_coercion(P.base_ring()(0), Q.base_ring()(0))[0].parent()
                 self = self.change_ring(R)
             except TypeError:
-                raise ValueError, "Cannot substitute this value"
+                raise ValueError("Cannot substitute this value")
 
         r = (self - self[0]).valuation()
         if r == s:                 # self is constant + O(x^s)
@@ -467,7 +467,7 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, -self.__f,
                                          self._prec, check=False)
 
-    cpdef ModuleElement _add_(self, ModuleElement right_m):
+    cpdef _add_(self, right_m):
         """
         EXAMPLES::
 
@@ -498,7 +498,7 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f + right.__f, \
                                          self.common_prec_c(right), check=True)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right_m):
+    cpdef _sub_(self, right_m):
         """
         Return the difference of two power series.
 
@@ -513,7 +513,7 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f - right.__f, \
                                          self.common_prec_c(right), check=True)
 
-    cpdef RingElement _mul_(self, RingElement right_r):
+    cpdef _mul_(self, right_r):
         """
         Return the product of two power series.
 
@@ -529,7 +529,7 @@ cdef class PowerSeries_poly(PowerSeries):
                                 prec = prec,
                                 check = True)  # check, since truncation may be needed
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
+    cpdef _rmul_(self, RingElement c):
         """
         Multiply self on the right by a scalar.
 
@@ -542,7 +542,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return PowerSeries_poly(self._parent, self.__f * c, self._prec, check=False)
 
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         """
         Multiply self on the left by a scalar.
 
@@ -1167,13 +1167,7 @@ cdef class PowerSeries_poly(PowerSeries):
         poly = self.polynomial()
         pex = SR(poly)
         var = SR.var(self.variable())
-        if not isinstance(self.prec(), PlusInfinity):
-            # GiNaC does not allow manual addition of bigoh,
-            # so we use a trick.
-            pex += var**(self.prec()+1)
-            return pex.series(var, self.prec())
-        else:
-            return pex.series(var, max(poly.exponents())+1)
+        return pex.series(var, self.prec())
 
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):

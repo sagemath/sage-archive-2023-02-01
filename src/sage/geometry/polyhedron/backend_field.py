@@ -20,6 +20,7 @@ EXAMPLES::
      An inequality (1, -0.5773502691896258?) x + 0 >= 0,
      An inequality (0, 1.154700538379252?) x + 0 >= 0)
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
@@ -31,7 +32,7 @@ EXAMPLES::
 #*****************************************************************************
 
 
-from base import Polyhedron_base
+from .base import Polyhedron_base
 
 
 class Polyhedron_field(Polyhedron_base):
@@ -203,7 +204,7 @@ class Polyhedron_field(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/sqrt(2)),(sqrt(2),0),(4,sqrt(5)/6)],
-            ...                  base_ring=AA, backend='field')  # indirect doctest
+            ....:                base_ring=AA, backend='field')  # indirect doctest
             sage: p.Hrepresentation()
             (An inequality (-0.1582178750233332?, 1.097777812326429?) x + 0.2237538646678492? >= 0,
              An inequality (-0.1419794359520263?, -1.698172434277148?) x + 1.200789243901438? >= 0,

@@ -217,11 +217,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.rings.all import QQ, ZZ, RDF, RR
 from sage.misc.decorators import rename_keyword
 
-from misc import _make_listlist, _common_length_of
+from .misc import _make_listlist, _common_length_of
 
 
 #########################################################################
@@ -340,10 +341,10 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     ::
 
         sage: positive_coords = Polyhedron(ieqs=[
-        ...       [0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0],
-        ...       [0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1]])
+        ....:     [0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0],
+        ....:     [0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1]])
         sage: P = Polyhedron(ieqs=positive_coords.inequalities() + (
-        ...       [0,0,1,-1,-1,1,0], [0,0,-1,1,-1,1,0]), eqns=[[-31,1,1,1,1,1,1]])
+        ....:     [0,0,1,-1,-1,1,0], [0,0,-1,1,-1,1,0]), eqns=[[-31,1,1,1,1,1,1]])
         sage: P
         A 5-dimensional polyhedron in QQ^6 defined as the convex hull of 7 vertices
         sage: P.dim()

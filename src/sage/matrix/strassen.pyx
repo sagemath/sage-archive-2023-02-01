@@ -13,9 +13,9 @@ multiplication algorithms.
 #
 #                  http://www.gnu.org/licenses/
 ################################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-from matrix_window cimport MatrixWindow
+from .matrix_window cimport MatrixWindow
 
 include "cysignals/signals.pxi"
 
@@ -307,7 +307,7 @@ def strassen_echelon(MatrixWindow A, cutoff):
     - Robert Bradshaw
     """
     if cutoff < 1:
-        raise ValueError, "cutoff must be at least 1"
+        raise ValueError("cutoff must be at least 1")
     sig_on()
     strassen_echelon_c(A, cutoff, A._matrix._strassen_default_cutoff(A._matrix))
     sig_off()

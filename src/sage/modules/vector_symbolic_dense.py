@@ -22,7 +22,7 @@ EXAMPLES::
 TESTS:
 
 Check that the outcome of arithmetic with symbolic vectors is again
-a symbolic vector (#11549)::
+a symbolic vector (:trac:`11549`)::
 
     sage: v = vector(SR, [1, 2])
     sage: w = vector(SR, [sin(x), 0])
@@ -44,6 +44,7 @@ Test pickling/unpickling::
     True
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2011 Joris Vankerschaver (jv@caltech.edu)
@@ -54,7 +55,7 @@ Test pickling/unpickling::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import free_module_element
+from . import free_module_element
 from sage.symbolic.all import Expression
 
 

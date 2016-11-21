@@ -1,74 +1,23 @@
 #!/usr/bin/env python
 
-# USAGE:
+# usage: sage-uncompress-spkg [-h] [-d DIR] PKG [FILE]
 #
-#   sage-uncompress-spkg PKG [FILE]
+# positional arguments:
+#   PKG         the archive to extract
+#   FILE        (deprecated) print the contents of the given archive member to
+#               stdout
 #
-# With a single argument, unpack the file PKG to the current directory.
-#
-# If FILE is specified, extract FILE from PKG and send it to
-# stdout. (This option is present only for backwards compatibility:
-# printing the SPKG.txt file from an old-style spkg.)
-
-import copy
-import os
-import sys
-import tarfile
-import zipfile
+# optional arguments:
+#   -h, --help  show this help message and exit
+#   -d DIR      directory to extract archive contents into
 
 
-class UmaskExtractTarFile(tarfile.TarFile):
-    """
-    Sage as tarfile.TarFile, but applies the user's current umask to the
-    permissions of al extracted files and directories.
+try:
+    import sage_bootstrap
+except ImportError:
+    import os, sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+    import sage_bootstrap
 
-    This mimics the default behavior of the ``tar`` utility.
-
-    See http://trac.sagemath.org/ticket/20218#comment:16 for more background.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(UmaskExtractTarFile, self).__init__(*args, **kwargs)
-
-        # Unfortunately the only way to get the current umask is to set it
-        # and then restore it
-        self.umask = os.umask(0777)
-        os.umask(self.umask)
-
-    def chmod(self, tarinfo, target):
-        tarinfo = copy.copy(tarinfo)
-        tarinfo.mode &= ~self.umask
-        return super(UmaskExtractTarFile, self).chmod(tarinfo, target)
-
-
-if __name__ == '__main__':
-    filename = sys.argv[1]
-    if tarfile.is_tarfile(filename):
-        # tar file, possibly compressed:
-        archive = UmaskExtractTarFile.open(filename, 'r:*')
-        if len(sys.argv) == 2:
-            archive.extractall()
-        else:
-            member = sys.argv[2]
-            if member in archive.getnames():
-                SPKG_TXT = archive.extractfile(member)
-                sys.stdout.write(SPKG_TXT.read())
-                exit(1)
-        archive.close()
-        exit(0)
-    if zipfile.is_zipfile(filename):
-        # zip file:
-        archive = zipfile.ZipFile(filename, 'r')
-        if len(sys.argv) == 2:
-            archive.extractall()
-        else:
-            member = sys.argv[2]
-            if member in archive.namelist():
-                sys.stdout.write(archive.read(member))
-            else:
-                exit(1)
-        archive.close()
-        exit(0)
-    else:
-        print ('Error: Unknown file type: {}'.format(filename))
-        exit(1)
+from sage_bootstrap.uncompress.cmdline import run
+run()

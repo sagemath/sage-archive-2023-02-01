@@ -16,19 +16,21 @@ Ribbon Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.rings.all import QQ, ZZ
+from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
-from sage.combinat.tableau import TableauOptions
+from sage.combinat.tableau import Tableaux
 from sage.combinat.partition import Partition, _Partitions
-import permutation
+from sage.misc.superseded import deprecated_function_alias
+from . import permutation
 import functools
 
 
@@ -193,7 +195,7 @@ class RibbonTableaux(UniqueRepresentation, Parent):
           2  0  0
         <BLANKLINE>
 
-    REFRENCES:
+    REFERENCES:
 
     .. [vanLeeuwen91] Marc. A. A. van Leeuwen, *Edge sequences, ribbon tableaux,
        and an action of affine permutations*. Europe J. Combinatorics. **20**
@@ -267,7 +269,8 @@ class RibbonTableaux(UniqueRepresentation, Parent):
         return self.element_class(self, SkewTableaux().from_expr(l))
 
     Element = RibbonTableau
-    global_options = TableauOptions
+    options = Tableaux.options
+    global_options = deprecated_function_alias(18555, options)
 
 class RibbonTableaux_shape_weight_length(RibbonTableaux):
     """
@@ -404,7 +407,7 @@ class RibbonTableaux_shape_weight_length(RibbonTableaux):
         """
         # Strip zeros for graph_implementation_rec
         wt = [i for i in self._weight if i != 0]
-        return graph_implementation_rec(self._shape, wt, self._length, count_rec)[0]
+        return Integer(graph_implementation_rec(self._shape, wt, self._length, count_rec)[0])
 
 def insertion_tableau(skp, perm, evaluation, tableau, length):
     """
@@ -708,9 +711,9 @@ def cospin_polynomial(part, weight, length):
     R = ZZ['t']
     t = R.gen()
 
-    #The power in the spin polynomial are all half integers
-    #or all integers.  Manipulation of expressions need to
-    #seperate cases
+    # The power in the spin polynomial are all half integers
+    # or all integers.  Manipulation of expressions need to
+    # separate cases
     sp = spin_polynomial_square(part, weight, length)
     if sp == 0:
         return R(0)

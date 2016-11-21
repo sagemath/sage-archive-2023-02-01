@@ -12,7 +12,6 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
@@ -243,9 +242,9 @@ cdef class ntl_mat_ZZ(object):
             ValueError: cannot take negative powers of matrices.
         """
         if self.__nrows != self.__ncols:
-            raise TypeError, "cannot take powers of non-square matrices."
+            raise TypeError("cannot take powers of non-square matrices.")
         if e < 0:
-            raise ValueError, "cannot take negative powers of matrices."
+            raise ValueError("cannot take negative powers of matrices.")
         cdef ntl_mat_ZZ r = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
         sig_on()
         mat_ZZ_power(r.x, (<ntl_mat_ZZ>self).x, e)
@@ -290,10 +289,10 @@ cdef class ntl_mat_ZZ(object):
         else:
             y = x
         if not isinstance(ij, tuple) or len(ij) != 2:
-            raise TypeError, 'ij must be a 2-tuple'
+            raise TypeError('ij must be a 2-tuple')
         i, j = int(ij[0]),int(ij[1])
         if i < 0 or i >= self.__nrows or j < 0 or j >= self.__ncols:
-            raise IndexError, "array index out of range"
+            raise IndexError("array index out of range")
         sig_on()
         mat_ZZ_setitem(&self.x, i, j, &y.x)
         sig_off()
@@ -312,10 +311,10 @@ cdef class ntl_mat_ZZ(object):
         """
         cdef int i, j
         if not isinstance(ij, tuple) or len(ij) != 2:
-            raise TypeError, 'ij must be a 2-tuple'
+            raise TypeError('ij must be a 2-tuple')
         i, j = ij
         if i < 0 or i >= self.__nrows or j < 0 or j >= self.__ncols:
-            raise IndexError, "array index out of range"
+            raise IndexError("array index out of range")
         sig_on()
         return make_ZZ_sig_off(mat_ZZ_getitem(&self.x, i+1, j+1))
 
@@ -356,7 +355,7 @@ cdef class ntl_mat_ZZ(object):
             678
         """
         if self.__nrows != self.__ncols:
-            raise TypeError, "cannot take determinant of non-square matrix."
+            raise TypeError("cannot take determinant of non-square matrix.")
         sig_on()
         return make_ZZ_sig_off(mat_ZZ_determinant(&self.x, deterministic))
 
@@ -378,14 +377,14 @@ cdef class ntl_mat_ZZ(object):
         1987].
 
         TIMINGS:
-        NTL isn't very good compared to MAGMA, unfortunately:
+
+        NTL is not very good compared to MAGMA, unfortunately::
 
             sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
             sage: A = ntl.mat_ZZ(200,200)
-            sage: for i in xrange(a.nrows()):
-            ...     for j in xrange(a.ncols()):
-            ...         A[i,j] = a[i,j]
-            ...
+            sage: for i in range(a.nrows()):
+            ....:     for j in range(a.ncols()):
+            ....:         A[i,j] = a[i,j]
             sage: t = cputime(); d = A.determinant()
             sage: cputime(t)          # random
             0.33201999999999998
@@ -405,7 +404,8 @@ cdef class ntl_mat_ZZ(object):
         Also, PARI is also faster than NTL if one uses the flag 1 to
         the mathnf routine.  The above takes 16 seconds in PARI.
 
-        TESTS:
+        TESTS::
+
             sage: ntl.mat_ZZ(2,2,[1..4]).HNF()
             [
             [1 0]
@@ -507,7 +507,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def BKZ_QP(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
         r"""
@@ -576,7 +576,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def BKZ_QP1(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
         r"""
@@ -645,7 +645,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def BKZ_XD(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
         r"""
@@ -714,7 +714,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def BKZ_RR(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
         r"""
@@ -783,7 +783,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def G_BKZ_FP(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
         r"""
@@ -852,7 +852,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def G_BKZ_QP(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
         r"""
@@ -921,7 +921,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def G_BKZ_QP1(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
         r"""
@@ -990,7 +990,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def G_BKZ_XD(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
         r"""
@@ -1059,7 +1059,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def G_BKZ_RR(self, U=None, delta=0.99, BlockSize=10, prune=0, verbose=False):
         r"""
@@ -1128,7 +1128,7 @@ cdef class ntl_mat_ZZ(object):
             sig_off()
             return rank
         else:
-            raise TypeError, "parameter U has wrong type."
+            raise TypeError("parameter U has wrong type.")
 
     def LLL(self, a=3, b=4, return_U=False, verbose=False):
         r"""

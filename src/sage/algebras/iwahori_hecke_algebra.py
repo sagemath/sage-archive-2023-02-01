@@ -18,6 +18,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from functools import cmp_to_key
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
@@ -76,9 +77,10 @@ def normalized_laurent_polynomial(R, p):
         u + v^-1 + u^-1
     """
     try:
-        return R({k:R._base(c) for k,c in p.dict().iteritems()})
-    except (AttributeError,TypeError):
+        return R({k: R._base(c) for k, c in p.dict().iteritems()})
+    except (AttributeError, TypeError):
         return R(p)
+
 
 def index_cmp(x, y):
     """
@@ -100,7 +102,13 @@ def index_cmp(x, y):
         return 1
     if y.bruhat_le(x) or x.length() > y.length():
         return -1
-    return cmp(x, y) # Fallback total ordering
+    # fallback case, in order to define a total order
+    if x < y:
+        return -1
+    if x > y:
+        return 1
+    return 0
+
 
 class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
     r"""
@@ -118,7 +126,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
     - ``base_ring`` -- (default ``q1.parent()``) a ring containing ``q1``
       and ``q2``
 
-    The Iwahori-Hecke algebra [I64]_ is a deformation of the group algebra of
+    The Iwahori-Hecke algebra [Iwa1964]_ is a deformation of the group algebra of
     a Weyl group or, more generally, a Coxeter group. These algebras are
     defined by generators and relations and they depend on a deformation
     parameter `q`. Taking `q = 1`, as in the following example, gives a ring
@@ -143,7 +151,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
     Iwahori-Hecke algebras are fundamental in many areas of mathematics,
     ranging from the representation theory of Lie groups and quantum groups,
     to knot theory and statistical mechanics. For more information see,
-    for example, [KL79]_, [HKP]_, [J87]_ and
+    for example, [KL79]_, [HKP2010]_, [Jon1987]_ and
     :wikipedia:`Iwahori-Hecke_algebra`.
 
     .. RUBRIC:: Bases
@@ -197,6 +205,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: T(C[1])
         (u^-1*v^-1)*T[1] + (-u*v^-1)
         sage: Cp(C[1])
+        doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
+        See http://trac.sagemath.org/21043 for details.
         Cp[1] + (-u*v^-1-u^-1*v)
         sage: elt = Cp[2]*Cp[3]+C[1]; elt
         Cp[2,3] + Cp[1] + (-u*v^-1-u^-1*v)
@@ -278,20 +288,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: T(Cp[1,0,2])
         (v^-3)*T[1,0,2] + (v^-3)*T[1,0] + (v^-3)*T[0,2] + (v^-3)*T[1,2]
          + (v^-3)*T[0] + (v^-3)*T[2] + (v^-3)*T[1] + (v^-3)
-
-    REFERENCES:
-
-    .. [I64] \N. Iwahori, On the structure of a Hecke ring of a
-       Chevalley group over a finite field,  J. Fac. Sci. Univ. Tokyo Sect.
-       I, 10 (1964), 215--236 (1964). :mathscinet:`MR0165016`
-
-    .. [HKP] \T. J. Haines, R. E. Kottwitz, A. Prasad,
-       Iwahori-Hecke Algebras, J. Ramanujan Math. Soc., 25 (2010), 113--145.
-       :arxiv:`0309168v3` :mathscinet:`MR2642451`
-
-    .. [J87] \V. Jones, Hecke algebra representations of braid groups and
-       link polynomials.  Ann. of Math. (2) 126 (1987), no. 2, 335--388.
-       :doi:`10.2307/1971403` :mathscinet:`MR0908150`
 
     EXAMPLES:
 
@@ -1055,7 +1051,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 here is that `q_1 q_2 T_s^{-1} = -T_s + q_1 + q_2`, for
                 each simple reflection `s`.
 
-                This map is defined in [I64]_. The *alternating Hecke algebra*
+                This map is defined in [Iwa1964]_. The *alternating Hecke algebra*
                 is the fixed-point subalgebra the Iwahori-Hecke algebra under
                 this involution.
 
@@ -1076,6 +1072,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: elt.goldman_involution().goldman_involution() == elt
                     True
                     sage: H.A()(elt).goldman_involution()==elt.goldman_involution()
+                    doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
+                    See http://trac.sagemath.org/21043 for details.
                     True
 
                 With different parameters::
@@ -1204,7 +1202,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                                              algebra.base_ring(),
                                              algebra._W,
                                              category=algebra._BasesCategory(),
-                                             monomial_cmp=index_cmp,
+                                             sorting_key=cmp_to_key(index_cmp),
                                              prefix=self._prefix)
 
         # This **must** match the name of the class in order for
@@ -1292,7 +1290,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         With the default value `q_2 = -1` and with `q_1 = q` the
         generating relation may be written
-        `T_i^2 = (q-1) \cdot T_i + q \cdot 1` as in [I64]_.
+        `T_i^2 = (q-1) \cdot T_i + q \cdot 1` as in [Iwa1964]_.
 
         EXAMPLES::
 
@@ -1603,7 +1601,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             where `w` is an element of the corresponding Coxeter group.
 
-            This map is defined in [I64]_ and it is used to define the
+            This map is defined in [Iwa1964]_ and it is used to define the
             alternating subalgebra of the Iwahori-Hecke algebra, which is the
             fixed-point subalgebra of the Goldman involution.
 

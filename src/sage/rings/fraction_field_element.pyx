@@ -136,7 +136,7 @@ cdef class FractionFieldElement(FieldElement):
             except ArithmeticError:
                 pass
         if self.__denominator.is_zero():
-            raise ZeroDivisionError, "fraction field element division by zero"
+            raise ZeroDivisionError("fraction field element division by zero")
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -197,9 +197,9 @@ cdef class FractionFieldElement(FieldElement):
             self.__numerator   = num
             self.__denominator = den
         except AttributeError:
-            raise ArithmeticError, "unable to reduce because lack of gcd or quo_rem algorithm"
+            raise ArithmeticError("unable to reduce because lack of gcd or quo_rem algorithm")
         except TypeError:
-            raise ArithmeticError, "unable to reduce because gcd algorithm doesn't work on input"
+            raise ArithmeticError("unable to reduce because gcd algorithm doesn't work on input")
         except NotImplementedError:
             raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
 
@@ -484,7 +484,7 @@ cdef class FractionFieldElement(FieldElement):
 
         return s
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Computes the sum of ``self`` and ``right``.
 
@@ -507,6 +507,12 @@ cdef class FractionFieldElement(FieldElement):
             (y + 1)/(x*y)
             sage: Frac(CDF['x']).gen() + 3
             x + 3.0
+
+        Subtraction is implemented by adding the negative::
+
+            sage: K.<t> = Frac(GF(7)['t'])
+            sage: t - 1/t # indirect doctest
+            (t^2 + 6)/t
         """
         rnum = self.__numerator
         rden = self.__denominator
@@ -563,27 +569,7 @@ cdef class FractionFieldElement(FieldElement):
         return self.__class__(self._parent, rnum*sden + rden*snum, rden*sden,
             coerce=False, reduce=False)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
-        """
-        Computes the difference of ``self`` and ``right``.
-
-        INPUT:
-
-        - ``right`` - ``ModuleElement`` to subtract from ``self``
-
-        OUTPUT:
-
-        - Difference of ``self`` and ``right``
-
-        EXAMPLES::
-
-            sage: K.<t> = Frac(GF(7)['t'])
-            sage: t - 1/t # indirect doctest
-            (t^2 + 6)/t
-        """
-        return self._add_(-right)
-
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Computes the product of ``self`` and ``right``.
 
@@ -648,7 +634,7 @@ cdef class FractionFieldElement(FieldElement):
         return self.__class__(self._parent, rnum * snum, rden * sden,
             coerce=False, reduce=False)
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Computes the quotient of ``self`` and ``right``.
 
@@ -672,7 +658,7 @@ cdef class FractionFieldElement(FieldElement):
         sden = (<FractionFieldElement> right).__denominator
 
         if snum.is_zero():
-            raise ZeroDivisionError, "fraction field element division by zero"
+            raise ZeroDivisionError("fraction field element division by zero")
 
         rightinv = self.__class__(self._parent, sden, snum,
             coerce=True, reduce=False)
@@ -699,7 +685,7 @@ cdef class FractionFieldElement(FieldElement):
         if self.__denominator == 1:
             return int(self.__numerator)
         else:
-            raise TypeError, "denominator must equal 1"
+            raise TypeError("denominator must equal 1")
 
     def _integer_(self, Z=ZZ):
         """
@@ -716,7 +702,7 @@ cdef class FractionFieldElement(FieldElement):
             self.reduce()
         if self.__denominator == 1:
             return Z(self.__numerator)
-        raise TypeError, "no way to coerce to an integer."
+        raise TypeError("no way to coerce to an integer.")
 
     def _rational_(self, Q=QQ):
         """
@@ -827,7 +813,7 @@ cdef class FractionFieldElement(FieldElement):
             (t + 6)/(t^2 + 5)
         """
         if self.is_zero():
-            raise ZeroDivisionError, "Cannot invert 0"
+            raise ZeroDivisionError("Cannot invert 0")
         return self.__class__(self._parent,
             self.__denominator, self.__numerator, coerce=False, reduce=False)
 
@@ -841,7 +827,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return float(self.__numerator) / float(self.__denominator)
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef int _cmp_(self, other) except -2:
         """
         EXAMPLES::
 

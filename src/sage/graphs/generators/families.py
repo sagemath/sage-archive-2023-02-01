@@ -2713,11 +2713,18 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     Return a strongly regular graph of S6 type from [Mu07]_ on `n^d((n^d-1)/(n-1)+1)` vertices
 
     The construction depends upon a number of parameters, two of then, `n` and `d`, mandatory,
-    and `\Phi` and `\Sigma` are mappings defined in [Mu07]_.
-    Let `m=\frac{n^d-1}{n-1}+1`. Then these graphs have parameters
-    `(mn^d, n^{d-1}(m-1) - 1,\mu - 2,\mu)`, with `\mu=\frac{n^{d-1}-1}{n-1}n^{d-1}`.
+    and `\Phi` and `\Sigma` mappings defined in [Mu07]_. These graphs have parameters
+    `(mn^d, n^{d-1}(m-1) - 1,\mu - 2,\mu)`, where `\mu=\frac{n^{d-1}-1}{n-1}n^{d-1}`
+    and `m:=\frac{n^d-1}{n-1}+1`.
+
+    Some details on `\Phi` and `\Sigma` are as follows.
     Let `L` be the complete graph on `M:=\{0,..., m-1\}` with the matching
-    `\{(2i,2i+1) | i=0,...,m/2\}` removed.
+    `\{(2i,2i+1) | i=0,...,m/2\}` removed. Then one arbitrarily chooses injections `\Phi_i`
+    from the edges of `L` on `i \in M` into sets of parallel classes of affine
+    `d`-dimensional designs; our implementation uses the designs of hyperplanes
+    in `d`-dimensional affine geometries over `GF(n)`. Finally, for each edge `ij` of `L` one
+    arbitrarily chooses bijections `\Sigma_{ij}` between `\Phi_i` and `\Phi_j`. More
+    details, in particular how these choices lead to non-isomorphic graphs, are in [Mu07]_.
 
 
     INPUT:

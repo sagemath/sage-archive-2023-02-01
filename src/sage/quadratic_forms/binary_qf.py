@@ -52,7 +52,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pari.all import pari
+from sage.libs.pari.all import pari_gen
 from sage.rings.all import ZZ, is_fundamental_discriminant
 from sage.arith.all import divisors, gcd, integer_ceil, integer_floor
 from sage.structure.sage_object import SageObject
@@ -140,6 +140,9 @@ class BinaryQF(SageObject):
                   and a.degree() == 2 and a.parent().ngens() == 2):
                 x, y = a.parent().gens()
                 a, b, c = [a.monomial_coefficient(mon) for mon in [x**2, x*y, y**2]]
+            elif isinstance(a, pari_gen) and a.type() in ('t_QFI', 't_QFR'):
+                # a has 3 or 4 components
+                a, b, c = a[0], a[1], a[2]
         try:
             self._a = ZZ(a)
             self._b = ZZ(b)
@@ -204,13 +207,7 @@ class BinaryQF(SageObject):
         # Either a "right" action by
         # ...or Gaussian composition
         if isinstance(right, BinaryQF):
-            # There could be more elegant ways, but qfbcompraw isn't
-            # wrapped yet in the PARI C library.  We may as well settle
-            # for the below, until somebody simply implements composition
-            # from scratch in Cython.
-            v = list(pari('qfbcompraw(%s,%s)'%(self._pari_init_(),
-                                            right._pari_init_())))
-            return BinaryQF(v)
+            return BinaryQF(self._pari_().qfbcompraw(right))
         # ...or a 2x2 matrix...
         if (isinstance(right.parent(), MatrixSpace)
             and right.nrows() == right.ncols() == 2):
@@ -711,8 +708,7 @@ class BinaryQF(SageObject):
         elif implementation == 'pari':
             if matrix:
                 raise NotImplementedError('matrix=True is not supported using PARI')
-            v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self._a,self._b,self._c)))
-            return BinaryQF(v[0], v[1], v[2])
+            return BinaryQF(self._pari_().qfbred())
         else:
             raise ValueError('unknown implementation for binary quadratic form reduction: %s' % implementation)
 

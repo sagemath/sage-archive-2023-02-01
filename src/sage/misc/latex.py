@@ -2054,7 +2054,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     -  ``viewer`` -- string or ``None`` (default: ``None``): specify a viewer
        to use; currently the only options are ``None`` and ``'pdf'``.
 
-    -  ``tightpage`` -- bool (default: ``False``): use the LaTeX package
+    -  ``tightpage`` -- bool (default: ``True``): use the LaTeX package
        'preview' with the 'tightpage' option.
 
     - ``mode`` -- string (default: ``'inline'``): ``'display'`` for

@@ -92,11 +92,6 @@ REFERENCE:
 
 include 'data_structures_pyx.pxi' # includes bitsets
 
-cdef inline int int_cmp(int a, int b):
-    if a < b: return -1
-    elif a == b: return 0
-    else: return 1
-
 # Functions
 
 cdef bint all_children_are_equivalent_trivial(PartitionStack *PS, void *S):

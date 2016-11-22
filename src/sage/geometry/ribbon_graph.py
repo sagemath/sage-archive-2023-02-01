@@ -57,7 +57,10 @@ def _find(l, k):
         [2, 1]
         sage: _find(A,5)
         [1, 1]
-
+        sage: _find(A,-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: element -1 not found
     """
     for i,lst in enumerate(l):
         if k in lst:

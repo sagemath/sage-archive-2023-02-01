@@ -77,7 +77,8 @@ The options avalaible are :
  - latex : Same as display. The default is 'drawing'.
 """
 ParallelogramPolyominoesOptions = GlobalOptions(
-    name='Parallelogram Polyominoes',
+    'ParallelogramPolyominoes_size',
+    module='sage.combinat.parallelogram_polyomino',
     doc=r"""
     """,
     end_doc=r"""
@@ -224,13 +225,43 @@ class _drawing_tool:
             [-1.0, 1.0]
         """
         def translate(pos, v):
+            """
+                Translate a position with a vector.
+
+                INPUT:
+                - `pos` -- The position to translate.
+                - `v` -- The translation vector.
+
+                OUTPUT:
+                    The translated position.
+            """
             return [pos[0]+v[0], pos[1]+v[1]]
 
         def rotate(pos, angle):
+            """
+                Rotate by ̀ angle` a position around the origin.
+
+                INPUT:
+                - `pos` -- The position to rotate.
+                - `angle` -- The angle of rotation.
+
+                OUTPUT:
+                    The rotated position.
+            """
             [x, y] = pos
             return [x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle)]
 
         def mirror(pos,  axe):
+            """
+                Return the mirror of a position according to a given axe.
+
+                INPUT:
+                - `pos` -- The position to mirror.
+                - `axe` -- The axe vector.
+
+                OUTPUT:
+                    The mirrored position.
+            """
             if axe is None:
                 return pos
             if not isinstance(axe, (list, tuple)):
@@ -970,7 +1001,11 @@ class ParallelogramPolyomino(ClonableList):
 
             sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.get_options()
-            options for Parallelogram Polyominoes
+            Current options for ParallelogramPolyominoes_size
+              - display:            list
+              - drawing_components: {'diagram': True}
+              - latex:              drawing
+              - tikz_options:       {'color_bounce_1': 'blue', 'color_bounce_0': 'red', 'point_size': 3.5, 'line_size': 1, 'color_line': 'black', 'color_point': 'black', 'scale': 1, 'mirror': None, 'rotation': 0, 'translation': [0, 0]}
         """
         if self._options is None:
             return self.parent().get_options()
@@ -1436,6 +1471,20 @@ class ParallelogramPolyomino(ClonableList):
         widths = self.widths()
 
         def val(w, h):
+            """
+            That technical function determine, if a cell at a given position
+            is inside the parallelogram polyomino.
+
+            INPUT:
+
+            - ``w`` -- The x coordinate of the box position.
+            - ``h`` -- The y coordinate of the box position.
+
+            OUTPUT:
+
+            Returns 0 or 1. Returns 0 if there is no cell at the given position,
+            returns 1 if there is a cell.
+            """
             if w >= len(widths) or w < 0:
                 return 0
             if lower_widths[w] <= h and h < lower_widths[w]+widths[w]:
@@ -1444,11 +1493,54 @@ class ParallelogramPolyomino(ClonableList):
         return [[val(h, w) for w in range(width)] for h in range(height)]
 
     class _polyomino_row:
+        """
+        That technical class implement the row of a parallelogram
+        polyomino.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [
+            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+            ....:     ]
+            ....: )
+            sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+        """
         def __init__(self, polyomino, row):
+            """
+            The constructor of the class
+
+            EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [
+            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+            ....:     ]
+            ....: )
+            sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+            """
             self.polyomino = polyomino
             self.row = row
 
         def __getitem__(self, column):
+            """
+            Return 0 or 1 if theis is a cell inside the specific colum inside the
+            row.
+
+            EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [
+            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+            ....:     ]
+            ....: )
+            sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+            sage: [row[-1], row[0], row[1], row[2], row[3]]
+            [0, 0, 1, 1, 0]
+            """
             if(
                 self.is_inside()
                 and 0 <= column and column < self.polyomino.width()
@@ -1457,6 +1549,30 @@ class ParallelogramPolyomino(ClonableList):
             return 0
 
         def is_inside(self):
+            """
+            Return true if the 0 or 1 if theis is a cell inside the specific colum inside the
+            row.
+
+            EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [
+            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+            ....:     ]
+            ....: )
+            sage: matrix(pp.get_array())
+            [1 0 0]
+            [1 0 0]
+            [1 0 0]
+            [1 1 1]
+            [0 1 1]
+            [0 0 1]
+
+            sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+            sage: [row[-1], row[0], row[1], row[2], row[3]]
+            [0, 0, 1, 1, 0]
+            """
             return 0 <= self.row and self.row < self.polyomino.height()
 
         def is_outside(self):
@@ -1699,7 +1815,7 @@ class ParallelogramPolyomino(ClonableList):
             [1 1 0]
             [0 1 1]
         """
-        return self.get_options().dispatch(self, '_repr_', 'display')
+        return self.get_options()._dispatch(self, '_repr_', 'display')
 
     def _repr_list(self):
         r"""
@@ -2244,9 +2360,9 @@ class ParallelogramPolyomino(ClonableList):
             \end{tikzpicture}
 
         For more on the latex options, see
-        :meth:`ParallelogramPolyominoes.global_options`.
+        :meth:`ParallelogramPolyominoes.options`.
         """
-        return self.get_options().dispatch(self, '_latex_', 'latex')
+        return self.get_options()._dispatch(self, '_latex_', 'latex')
 
     def _latex_drawing(self):
         r"""
@@ -2478,9 +2594,11 @@ class ParallelogramPolyominoes_size(
 
             sage: pps = ParallelogramPolyominoes(5)
             sage: pps.get_options()
-            options for Parallelogram Polyominoes
+            Current options for ParallelogramPolyominoes_size
+              - display:            list
+            ...
         """
-        return self.global_options
+        return self.options
 
     def size(self):
         r"""
@@ -2515,12 +2633,12 @@ class ParallelogramPolyominoes_size(
             sage: pp = PPS[0]
             sage: view(pp) # not tested
         """
-        self.global_options(*get_value, **set_value)
+        self.options(*get_value, **set_value)
 
     r"""
     TODO
     """
-    global_options = ParallelogramPolyominoesOptions
+    options = ParallelogramPolyominoesOptions
 
 
 class ParallelogramPolyominoes_all(
@@ -2600,13 +2718,11 @@ class ParallelogramPolyominoes_all(
             sage: PPS = ParallelogramPolyominoes()
             sage: options = PPS.get_options()
             sage: options
-            options for Parallelogram Polyominoes
-            sage: options()
-            Current options for Parallelogram Polyominoes
+            Current options for ParallelogramPolyominoes_size
               - display:            list
             ...
         """
-        return self.global_options
+        return self.options
 
     def set_options(self, *get_value, **set_value):
         r"""
@@ -2625,9 +2741,9 @@ class ParallelogramPolyominoes_all(
             sage: pp = next(iter(PPS))
             sage: view(pp) # not tested
         """
-        self.global_options(*get_value, **set_value)
+        self.options(*get_value, **set_value)
 
     r"""
     TODO
     """
-    global_options = ParallelogramPolyominoesOptions
+    options = ParallelogramPolyominoesOptions

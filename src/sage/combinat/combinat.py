@@ -1112,7 +1112,7 @@ class CombinatorialObject(SageObject):
             self._hash = hash(str(self._list))
         return self._hash
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is non-zero.
 
@@ -1157,6 +1157,8 @@ class CombinatorialObject(SageObject):
                 AttributeError: 'NoneType' object has no attribute 'zero'
         """
         return bool(self._list)
+
+    __nonzero__ = __bool__
 
     def __len__(self):
         """

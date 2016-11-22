@@ -40,7 +40,7 @@ list changes the object.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+from sage.structure.sage_object import richcmp
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
 
@@ -93,7 +93,19 @@ class FreeAbelianMonoidElement(MonoidElement):
         else:
             raise TypeError("Argument x (= %s) is of wrong type."%x)
 
-    def __repr__(self):
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FreeAbelianMonoid(5, 'abcde')
+            sage: F(1)
+            1
+            sage: a, b, c, d, e = F.gens()
+            sage: a^2 * b^3 * a^2 * b^4
+            a^4*b^7
+        """
         s = ""
         A = self.parent()
         n = A.ngens()
@@ -108,8 +120,35 @@ class FreeAbelianMonoidElement(MonoidElement):
             else:
                 if len(s) > 0: s += "*"
                 s += "%s^%s"%(x[i],v[i])
-        if len(s) == 0: s = "1"
+        if not s:
+            s = "1"
         return s
+
+    def _richcmp_(self, other, op):
+        """
+        Rich comparison.
+
+        EXAMPLES::
+
+            sage: F = FreeAbelianMonoid(5, 'abcde')
+            sage: F(1)
+            1
+            sage: a, b, c, d, e = F.gens()
+            sage: x = a^2 * b^3
+            sage: F(1) < x
+            True
+            sage: x > b
+            True
+            sage: x <= a^4
+            True
+            sage: x != a*b
+            True
+            sage: a*b == b*a
+            True
+            sage: x > a^3*b^2
+            False
+        """
+        return richcmp(self.__element_vector, other.__element_vector, op)
 
     def __mul__(self, y):
         if not isinstance(y, FreeAbelianMonoidElement):

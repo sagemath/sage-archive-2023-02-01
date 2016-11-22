@@ -4948,7 +4948,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         new_vertices = [self._element_to_vertex(element) for element in linear_extension]
         vertex_relabeling = dict(zip(new_vertices, linear_extension))
         # Hack to get the actual class, not the categorified class
-        constructor = self.__class__.__mro__[1]
+        constructor = self.__class__.__base__
         return constructor(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
                            elements=linear_extension,
                            category=self.category(),

@@ -2,7 +2,7 @@ r"""
 Cluster algebras
 
 This file constructs cluster algebras using the Parent-Element framework.
-The implementation mainly utilizes structural theorems from [FZ07]_.
+The implementation mainly utilizes structural theorems from [FZ2007]_.
 
 The key points being used here are these:
 
@@ -24,55 +24,50 @@ Accordingly this file provides three classes:
 
 :class:`ClusterAlgebra`, constructed as a subobject of
 :class:`sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomialRing_generic`,
-is the frontend of this implementation. It provides all the algebraic features
-(like ring morphisms), it computes cluster variables, it is responsible for
-controlling the exploration of the exchange graph and serves as the repository for
-all the data recursively computed so far.
-In particular, all g-vectors and all F-polynomials of known cluster variables as
-well as a mutation path by which they can be obtained are recorded. In the optic
-of efficiency, this implementation does not store directly the exchange graph
-nor the exchange relations. Both of these could be added to
-:class:`ClusterAlgebra` with minimal effort.
+is the frontend of this implementation. It provides all the algebraic
+features (like ring morphisms), it computes cluster variables, it is
+responsible for controlling the exploration of the exchange graph and
+serves as the repository for all the data recursively computed so far.
+In particular, all g-vectors and all F-polynomials of known cluster
+variables as well as a mutation path by which they can be obtained
+are recorded. In the optic of efficiency, this implementation does not
+store directly the exchange graph nor the exchange relations. Both of
+these could be added to :class:`ClusterAlgebra` with minimal effort.
 
-:class:`ClusterAlgebraSeed` provides the combinatorial backbone for :class:`ClusterAlgebra`.
-It is an auxiliary class and therefore its instances should **not** be directly
-created by the user.  Rather it should be accessed via
-:meth:`ClusterAlgebra.current_seed` and :meth:`ClusterAlgebra.initial_seed`.
-The task of performing current seed mutations is delegated to this class.
-Seeds are considered equal if they have the same parent cluster
-algebra and they can be obtained from each other by a permutation of their
-data (i.e. if they coincide as unlabelled seeds).  Cluster algebras whose
-initial seeds are equal in the above sense are not considered equal but are
-endowed with coercion maps to each other.  More generally, a cluster algebra is
-endowed with coercion maps from any cluster algebra which is obtained by
-freezing a collection of initial cluster variables and/or permuting both
-cluster variables and coefficients.
+:class:`ClusterAlgebraSeed` provides the combinatorial backbone
+for :class:`ClusterAlgebra`. It is an auxiliary class and therefore its
+instances should **not** be directly created by the user. Rather it
+should be accessed via :meth:`ClusterAlgebra.current_seed`
+and :meth:`ClusterAlgebra.initial_seed`. The task of performing current
+seed mutations is delegated to this class. Seeds are considered equal if
+they have the same parent cluster algebra and they can be obtained from
+each other by a permutation of their data (i.e. if they coincide as
+unlabelled seeds).  Cluster algebras whose initial seeds are equal in the
+above sense are not considered equal but are endowed with coercion maps
+to each other.  More generally, a cluster algebra is endowed with coercion
+maps from any cluster algebra which is obtained by freezing a collection
+of initial cluster variables and/or permuting both cluster variables
+and coefficients.
 
 :class:`ClusterAlgebraElement` is a thin wrapper around
 :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_generic`
 providing all the functions specific to cluster variables.
 
-One more remark about this implementation.  Instances of
+One more remark about this implementation. Instances of
 :class:`ClusterAlgebra` are built by identifying the initial cluster variables
 with the generators of :meth:`ClusterAlgebra.ambient`. In particular, this
-forces a specific embedding into the ambient field of rational expressions.  In
+forces a specific embedding into the ambient field of rational expressions. In
 view of this, although cluster algebras themselves are independent of the
 choice of initial seed, :meth:`ClusterAlgebra.mutate_initial` is forced to
-return a different instance of :class:`ClusterAlgebra`. At the moment there is
-no coercion implemented among the two instances but this could in principle be
-added to :meth:`ClusterAlgebra.mutate_initial`.
+return a different instance of :class:`ClusterAlgebra`. At the moment there
+is no coercion implemented among the two instances but this could in
+principle be added to :meth:`ClusterAlgebra.mutate_initial`.
 
 REFERENCES:
 
-.. [FZ07] \S. Fomin and \A. Zelevinsky, "Cluster algebras IV.  Coefficients",
-   Compos. Math. 143 (2007), no. 1, 112-164.
-
-.. [LLZ14] \K. Lee, \L. Li, and \A. Zelevinsky, "Greedy elements in rank 2
-   cluster algebras", Selecta Math. 20 (2014), 57-82.
-
-.. [NZ12] \T. Nakanishi and \A. Zelevinsky, "On tropical dualities in cluster
-   algebras', Algebraic groups and quantum groups, Contemp.  Math., vol. 565,
-   Amer. Math. Soc., Providence, RI, 2012, pp.  217-226.
+- [FZ2007]_
+- [LLZ2014]_
+- [NZ2012]_
 
 AUTHORS:
 
@@ -82,8 +77,8 @@ AUTHORS:
 
 EXAMPLES:
 
-We begin by creating a simple cluster algebra and printing its initial exchange
-matrix::
+We begin by creating a simple cluster algebra and printing its
+initial exchange matrix::
 
     sage: A = ClusterAlgebra(['A', 2]); A
     A Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
@@ -141,14 +136,15 @@ We can compute denominator vectors of any element of ``A``::
 Since we are in rank 2 and we do not have coefficients we can compute the
 greedy element associated to any denominator vector::
 
-    sage: A.rank() == 2 and A.coefficients() == []
+    sage: A.rank() == 2 and A.coefficients() == ()
     True
     sage: A.greedy_element((1, 1))
     (x0 + x1 + 1)/(x0*x1)
     sage: _ == t*s
     False
 
-not surprising since there is no cluster in ``A`` containing both ``t`` and ``s``::
+not surprising since there is no cluster in ``A`` containing
+both ``t`` and ``s``::
 
     sage: seeds = A.seeds(mutating_F=false)
     sage: [ S for S in seeds if (0, -1) in S and (-1, 1) in S ]
@@ -160,8 +156,8 @@ indeed::
     True
 
 Disabling F-polynomials in the computation just done was redundant because we
-already explored the whole exchange graph before. Though in different circumstances it
-could have saved us considerable time.
+already explored the whole exchange graph before. Though in different
+circumstances it could have saved us considerable time.
 
 g-vectors and F-polynomials can be computed from elements of ``A`` only if
 ``A`` has principal coefficients at the initial seed::
@@ -187,14 +183,15 @@ g-vectors and F-polynomials can be computed from elements of ``A`` only if
     sage: (t+s).homogeneous_components()
     {(-1, 1): (x1 + y0)/x0, (0, -1): (x0*y1 + 1)/x1}
 
-Each cluster algebra is endowed with a reference to a current seed; it could be
-useful to assign a name to it::
+Each cluster algebra is endowed with a reference to a current seed;
+it could be useful to assign a name to it::
 
     sage: A = ClusterAlgebra(['F', 4])
     sage: len(A.g_vectors_so_far())
     4
     sage: A.current_seed()
-    The initial seed of a Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring
+    The initial seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
+     and no coefficients over Integer Ring
     sage: A.current_seed() == A.initial_seed()
     True
     sage: S = A.current_seed()
@@ -214,7 +211,9 @@ useful to assign a name to it::
 and use ``S`` to walk around the exchange graph of ``A``::
 
     sage: S.mutate(0); S
-    The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring obtained from the initial by mutating in direction 0
+    The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
+     and no coefficients over Integer Ring obtained from the initial
+     by mutating in direction 0
     sage: S.b_matrix()
     [ 0 -1  0  0]
     [ 1  0 -1  0]
@@ -228,9 +227,13 @@ and use ``S`` to walk around the exchange graph of ``A``::
     sage: S.cluster_variables()
     [(x1 + 1)/x0, x1, x2, x3]
     sage: S.mutate('sinks'); S
-    The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [0, 2]
+    The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
+     and no coefficients over Integer Ring obtained from the initial
+     by mutating along the sequence [0, 2]
     sage: S.mutate([2, 3, 2, 1, 0]); S
-    The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [0, 3, 2, 1, 0]
+    The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
+     and no coefficients over Integer Ring obtained from the initial
+     by mutating along the sequence [0, 3, 2, 1, 0]
     sage: S.g_vectors()
     [(0, 1, -2, 0), (-1, 2, -2, 0), (0, 1, -1, 0), (0, 0, 0, -1)]
     sage: S.cluster_variable(3)
@@ -266,7 +269,8 @@ variable::
 This also performs mutations of F-polynomials::
 
     sage: A.F_polynomial((-1, 1, -1, 1, -1, 1, 0, 0, 1))
-    u0*u1*u2*u3*u4 + u0*u1*u2*u4 + u0*u2*u3*u4 + u0*u1*u2 + u0*u2*u4 + u2*u3*u4 + u0*u2 + u0*u4 + u2*u4 + u0 + u2 + u4 + 1
+    u0*u1*u2*u3*u4 + u0*u1*u2*u4 + u0*u2*u3*u4 + u0*u1*u2 + u0*u2*u4
+     + u2*u3*u4 + u0*u2 + u0*u4 + u2*u4 + u0 + u2 + u4 + 1
 
 which might not be a good idea in algebras that are too big. One workaround is
 to first disable F-polynomials and then recompute only the desired mutations::
@@ -280,29 +284,32 @@ to first disable F-polynomials and then recompute only the desired mutations::
     ...
     2*u2 + u4 + u6 + 1
 
-We can manually freeze cluster variables and get coercions in between the two
-algebras::
+We can manually freeze cluster variables and get coercions in between
+the two algebras::
 
     sage: A = ClusterAlgebra(['F', 4]); A
-    A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring
+    A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients
+     over Integer Ring
     sage: B = ClusterAlgebra(A.b_matrix().matrix_from_columns([0, 1, 2]), coefficient_prefix='x'); B
-    A Cluster Algebra with cluster variables x0, x1, x2 and coefficient x3 over Integer Ring
+    A Cluster Algebra with cluster variables x0, x1, x2 and coefficient x3
+     over Integer Ring
     sage: A.has_coerce_map_from(B)
     True
 
-and we also have an immersion of ``A.base()`` into ``A`` and of ``A`` into
-``A.ambient()``::
+and we also have an immersion of ``A.base()`` into ``A`` and of ``A``
+into ``A.ambient()``::
 
     sage: A.has_coerce_map_from(A.base())
     True
     sage: A.ambient().has_coerce_map_from(A)
     True
 
-but there is currently no coercion in between algebras obtained by mutating at
-the initial seed::
+but there is currently no coercion in between algebras obtained by
+mutating at the initial seed::
 
     sage: B = A.mutate_initial(0); B
-    A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring
+    A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients
+     over Integer Ring
     sage: A.b_matrix() == B.b_matrix()
     False
     sage: map(lambda (X, Y): X.has_coerce_map_from(Y), [(A, B), (B, A)])
@@ -318,6 +325,8 @@ the initial seed::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from __future__ import absolute_import
 
 from copy import copy
 from functools import wraps
@@ -340,8 +349,8 @@ from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.rings.polynomial.laurent_polynomial_ring import (LaurentPolynomialRing_generic,
+                                                           LaurentPolynomialRing)
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
@@ -359,13 +368,16 @@ def _mutation_parse(mutate):
     Preparse input for mutation functions.
 
     This wrapper provides:
+
     - inplace (only for seeds)
     - mutate along sequence
     - mutate at all sinks/sources
 
     Possible things to implement later include:
+
     - mutate at a cluster variable
-    - mutate at a g-vector (it is hard to distinguish this case from a generic sequence)
+    - mutate at a g-vector (it is hard to distinguish this case from
+      a generic sequence)
     - urban renewals
     - other?
 
@@ -374,25 +386,32 @@ def _mutation_parse(mutate):
         sage: A = ClusterAlgebra(['E', 6])
         sage: S = A.current_seed()
         sage: S.mutate(1, inplace=False) # indirect doctest
-        The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3, x4, x5 and no coefficients over Integer Ring obtained from the initial by mutating in direction 1
+        The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3, x4, x5
+         and no coefficients over Integer Ring obtained from the initial
+         by mutating in direction 1
         sage: S.mutate([1, 2, 3], inplace=False)   # indirect doctest
-        The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3, x4, x5 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [1, 2, 3]
+        The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3, x4, x5
+         and no coefficients over Integer Ring obtained from the initial
+         by mutating along the sequence [1, 2, 3]
         sage: S.mutate('sinks', inplace=False)   # indirect doctest
-        The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3, x4, x5 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [0, 2, 4]
+        The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3, x4, x5
+         and no coefficients over Integer Ring obtained from the initial
+         by mutating along the sequence [0, 2, 4]
     """
     doc = mutate.__doc__.split("INPUT:")
     doc[0] += "INPUT:"
     if mutate.__name__ == "mutate":
         doc[0] += r"""
 
-        - ``inplace`` -- bool (default ``True``): whether to mutate in place or to return a new object.
+        - ``inplace`` -- bool (default ``True``); whether to mutate in place or to return a new object
     """
     doc[0] += r"""
 
         - ``direction`` -- in which direction(s) to mutate, it can be:
-            - an integer in ``range(self.rank())`` to mutate in one direction only;
-            - an iterable of such integers to mutate along a sequence;
-            - a string "sinks" or "sources" to mutate at all sinks or sources simultaneously.
+
+          * an integer in ``range(self.rank())`` to mutate in one direction only
+          * an iterable of such integers to mutate along a sequence
+          * a string "sinks" or "sources" to mutate at all sinks or sources simultaneously
     """
     mutate.__doc__ = doc[0] + doc[1]
 
@@ -430,16 +449,17 @@ def _mutation_parse(mutate):
 
 
 class ClusterAlgebraElement(ElementWrapper):
-
+    """
+    An element of a cluster algebra.
+    """
     def __init__(self, parent, value):
         r"""
-        An element of a Cluster Algebra.
+        Initialize ``self``.
 
         INPUT:
 
-        - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the element belongs.
-
-        - ``value`` -- the value of the element.
+        - ``parent`` -- :class:`ClusterAlgebra`; the parent algebra
+        - ``value`` -- the value of the element
 
         EXAMPLES::
 
@@ -464,7 +484,7 @@ class ClusterAlgebraElement(ElementWrapper):
 
         INPUT:
 
-        - ``other`` - an element of ``self.parent()``.
+        - ``other`` -- an element of ``self.parent()``
 
         EXAMPLES::
 
@@ -493,8 +513,8 @@ class ClusterAlgebraElement(ElementWrapper):
         .. WARNING::
 
             The result of a division is not guaranteed to be inside
-            meth:`parent` therefore this method does not return an instance of
-            class:`ClusterAlgebraElement`.
+            meth:`parent` therefore this method does not return an
+            instance of class:`ClusterAlgebraElement`.
 
         EXAMPLES::
 
@@ -503,11 +523,13 @@ class ClusterAlgebraElement(ElementWrapper):
             sage: x/x
             1
             sage: _.parent()
-            Multivariate Laurent Polynomial Ring in x0, x1, x2, x3 over Integer Ring
+            Multivariate Laurent Polynomial Ring in x0, x1, x2, x3
+             over Integer Ring
             sage: A.retract(x/x)
             1
             sage: _.parent()
-            A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring
+            A Cluster Algebra with cluster variables x0, x1, x2, x3
+             and no coefficients over Integer Ring
         """
         return self.lift() / other.lift()
 
@@ -558,13 +580,12 @@ def g_vector(self):
         sage: sum(A.initial_cluster_variables()).g_vector()
         Traceback (most recent call last):
         ...
-        ValueError: This element is not homogeneous
+        ValueError: this element is not homogeneous
     """
     components = self.homogeneous_components()
-    if len(components) == 1:
-        return components.keys()[0]
-    else:
-        raise ValueError("This element is not homogeneous")
+    if len(components) != 1:
+        raise ValueError("this element is not homogeneous")
+    return components.keys()[0]
 
 
 def F_polynomial(self):
@@ -580,18 +601,17 @@ def F_polynomial(self):
         sage: sum(A.initial_cluster_variables()).F_polynomial()
         Traceback (most recent call last):
         ...
-        ValueError: This element is not homogeneous
+        ValueError: this element is not homogeneous
     """
-    if self.is_homogeneous():
-        subs_dict = dict()
-        A = self.parent()
-        for x in A.initial_cluster_variables():
-            subs_dict[x.lift()] = A._U(1)
-        for i in range(A.rank()):
-            subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
-        return self.lift().substitute(subs_dict)
-    else:
-        raise ValueError("This element is not homogeneous")
+    if not self.is_homogeneous():
+        raise ValueError("this element is not homogeneous")
+    subs_dict = dict()
+    A = self.parent()
+    for x in A.initial_cluster_variables():
+        subs_dict[x.lift()] = A._U(1)
+    for i in range(A.rank()):
+        subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
+    return self.lift().substitute(subs_dict)
 
 
 def is_homogeneous(self):
@@ -626,7 +646,8 @@ def homogeneous_components(self):
         sage: x.homogeneous_components()
         {(0, 1): x1, (1, 0): x0}
     """
-    deg_matrix = block_matrix([[identity_matrix(self.parent().rank()), -self.parent().b_matrix()]])
+    deg_matrix = block_matrix([[identity_matrix(self.parent().rank()),
+                                -self.parent().b_matrix()]])
     components = dict()
     x = self.lift()
     monomials = x.monomials()
@@ -644,40 +665,40 @@ def homogeneous_components(self):
 ##############################################################################
 
 class ClusterAlgebraSeed(SageObject):
+    """
+    A seed in a Cluster Algebra.
 
+    INPUT:
+
+    - ``B`` -- a skew-symmetrizable integer matrix
+    - ``C`` -- the matrix of c-vectors of ``self``
+    - ``G`` -- the matrix of g-vectors of ``self``
+    - ``parent`` -- :class:`ClusterAlgebra`; the algebra to which the
+      seed belongs
+    - ``path`` -- list (default ``[]``); the mutation sequence from the
+      initial seed of ``parent`` to ``self``
+
+    .. WARNING::
+
+        Seeds should **not** be created manually: no test is performed to
+        assert that they are built from consistent data nor that they
+        really are seeds of ``parent``. If you create seeds with
+        inconsistent data all sort of things can go wrong, even
+        :meth:`__eq__` is no longer guaranteed to give correct answers.
+        Use at your own risk.
+    """
     def __init__(self, B, C, G, parent, **kwargs):
         r"""
-        A seed in a Cluster Algebra.
-
-        INPUT:
-
-        - ``B`` -- a skew-symmetrizable integer matrix.
-
-        - ``C`` -- the matrix of c-vectors of ``self``.
-
-        - ``G`` -- the matrix of g-vectors of ``self``.
-
-        - ``parent`` -- a :class:`ClusterAlgebra`: the algebra to which the
-          seed belongs.
-
-        - ``path`` -- a list (default ``[]``): the mutation sequence from the initial
-          seed of ``parent`` to ``self``.
-
-        .. WARNING::
-
-            Seeds should **not** be created manually: no test is performed to
-            assert that they are built from consistent data nor that they
-            really are seeds of ``parent``. If you create seeds with
-            inconsistent data all sort of things can go wrong, even
-            :meth:`__eq__` is no longer guaranteed to give correct answers.
-            Use at your own risk.
+        Initialize ``self``.
 
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['F', 4])
             sage: from sage.algebras.cluster_algebra import ClusterAlgebraSeed
             sage: ClusterAlgebraSeed(A.b_matrix(), identity_matrix(4), identity_matrix(4), A, path=[1, 2, 3])
-            The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [1, 2, 3]
+            The seed of a Cluster Algebra with cluster variables x0, x1, x2, x3
+             and no coefficients over Integer Ring obtained from the initial
+             by mutating along the sequence [1, 2, 3]
         """
         self._B = copy(B)
         self._C = copy(C)
@@ -712,7 +733,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``other`` -- a :class:`ClusterAlgebraSeed`.
+        - ``other`` -- a :class:`ClusterAlgebraSeed`
 
         ALGORITHM:
 
@@ -737,7 +758,9 @@ class ClusterAlgebraSeed(SageObject):
             sage: S == B.current_seed()
             True
         """
-        return isinstance(other, ClusterAlgebraSeed) and self.parent() == other.parent() and frozenset(self.g_vectors()) == frozenset(other.g_vectors())
+        return (isinstance(other, ClusterAlgebraSeed)
+                and self.parent() == other.parent()
+                and frozenset(self.g_vectors()) == frozenset(other.g_vectors()))
 
     def __contains__(self, element):
         r"""
@@ -745,7 +768,7 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``element`` -- either a g-vector or an element of :meth:`parent`.
+        - ``element`` -- either a g-vector or an element of :meth:`parent`
 
         EXAMPLES::
 
@@ -793,11 +816,16 @@ class ClusterAlgebraSeed(SageObject):
 
             sage: A = ClusterAlgebra(['A', 3])
             sage: S = A.current_seed(); S
-            The initial seed of a Cluster Algebra with cluster variables x0, x1, x2 and no coefficients over Integer Ring
+            The initial seed of a Cluster Algebra with cluster variables x0, x1, x2
+             and no coefficients over Integer Ring
             sage: S.mutate(0); S
-            The seed of a Cluster Algebra with cluster variables x0, x1, x2 and no coefficients over Integer Ring obtained from the initial by mutating in direction 0
+            The seed of a Cluster Algebra with cluster variables x0, x1, x2
+             and no coefficients over Integer Ring obtained from the initial
+             by mutating in direction 0
             sage: S.mutate(1); S
-            The seed of a Cluster Algebra with cluster variables x0, x1, x2 and no coefficients over Integer Ring obtained from the initial by mutating along the sequence [0, 1]
+            The seed of a Cluster Algebra with cluster variables x0, x1, x2
+             and no coefficients over Integer Ring obtained from the initial
+             by mutating along the sequence [0, 1]
         """
         if self._path == []:
             return "The initial seed of a %s" % str(self.parent())[2:]
@@ -820,13 +848,14 @@ class ClusterAlgebraSeed(SageObject):
 
     def depth(self):
         r"""
-        Return the length of a mutation sequence from the initial seed of :meth:`parent` to ``self``.
+        Return the length of a mutation sequence from the initial seed
+         of :meth:`parent` to ``self``.
 
         .. WARNING::
 
             This is the length of the mutation sequence returned by
-            :meth:`path_from_initial_seed` which need not be the shortest
-            possible.
+            :meth:`path_from_initial_seed`, which need not be the
+            shortest possible.
 
         EXAMPLES::
 
@@ -846,12 +875,13 @@ class ClusterAlgebraSeed(SageObject):
 
     def path_from_initial_seed(self):
         r"""
-        Return a mutation sequence from the initial seed of :meth:`parent` to ``self``.
+        Return a mutation sequence from the initial seed of :meth:`parent`
+        to ``self``.
 
         .. WARNING::
 
-            This is the path used to compute ``self`` and it does not have to
-            be the shortest possible.
+            This is the path used to compute ``self`` and it does not
+            have to be the shortest possible.
 
         EXAMPLES::
 
@@ -905,7 +935,8 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the c-vector to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``;
+          the index of the c-vector to return
 
         EXAMPLES::
 
@@ -955,7 +986,8 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the g-vector to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``;
+          the index of the g-vector to return
 
         EXAMPLES::
 
@@ -985,7 +1017,8 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the F-polynomial to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``;
+          the index of the F-polynomial to return
 
         EXAMPLES::
 
@@ -1015,7 +1048,8 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the cluster variable to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``;
+          the index of the cluster variable to return
 
         EXAMPLES::
 
@@ -1049,28 +1083,34 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``mutating_F`` -- bool (default ``True``): whether to compute F-polynomials
-          also. While knowing F-polynomials is essential to computing
-          cluster variables, the process of mutating them is quite slow. If you
-          care only about combinatorial data like g-vectors and c-vectors,
-          setting ``mutating_F=False`` yields significant benefits in terms of
-          speed.
+        - ``mutating_F`` -- bool (default ``True``); whether to compute
+          F-polynomials while mutating
+
+        .. NOTE::
+
+            While knowing F-polynomials is essential to computing
+            cluster variables, the process of mutating them is quite slow.
+            If you care only about combinatorial data like g-vectors and
+            c-vectors, setting ``mutating_F=False`` yields significant
+            benefits in terms of speed.
 
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2])
             sage: S = A.initial_seed()
             sage: S.mutate(0); S
-            The seed of a Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring obtained from the initial by mutating in direction 0
+            The seed of a Cluster Algebra with cluster variables x0, x1
+             and no coefficients over Integer Ring obtained from the initial
+             by mutating in direction 0
             sage: S.mutate(5)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot mutate in direction 5
+            ValueError: cannot mutate in direction 5
         """
         n = self.parent().rank()
 
-        if k not in range(n):
-            raise ValueError('Cannot mutate in direction ' + str(k))
+        if k < 0 or k >= n:
+            raise ValueError('cannot mutate in direction ' + str(k))
 
         # store new mutation path
         if self._path != [] and self._path[-1] == k:
@@ -1119,18 +1159,18 @@ class ClusterAlgebraSeed(SageObject):
 
         INPUT:
 
-        - ``k`` --  an integer in ``range(self.parent().rank())``: the direction
-          in which we are mutating.
+        - ``k`` --  an integer in ``range(self.parent().rank())``;
+          the direction in which we are mutating
 
-        - ``old_g_vector`` -- tuple: the k-th g-vector of ``self`` before
-          mutating.
+        - ``old_g_vector`` -- tuple; the k-th g-vector of ``self``
+          before mutating
 
-        NOTE:
+        .. NOTE::
 
-        This function is the bottleneck of :meth:`mutate`. The problem is
-        that operations on polynomials are slow. One can get a significant
-        speed boost by disabling this method calling :meth:`mutate` with
-        ``mutating_F=False``.
+            This function is the bottleneck of :meth:`mutate`. The problem is
+            that operations on polynomials are slow. One can get a significant
+            speed boost by disabling this method calling :meth:`mutate` with
+            ``mutating_F=False``.
 
         EXAMPLES::
 
@@ -1160,65 +1200,86 @@ class ClusterAlgebraSeed(SageObject):
 
 
 class ClusterAlgebra(Parent):
+    r"""
+    A Cluster Algebra.
+
+    INPUT:
+
+    - ``data`` -- some data defining a cluster algebra; it can be anything
+      that can be parsed by :class:`ClusterQuiver`
+
+    - ``scalars`` -- a ring (default `\ZZ`); the scalars over
+      which the cluster algebra is defined
+
+    - ``cluster_variable_prefix`` -- string (default ``'x'``); it needs to be
+      a valid variable name
+
+    - ``cluster_variable_names`` -- a list of strings; each element needs
+      to be a valid variable name;  supersedes ``cluster_variable_prefix``
+
+    - ``coefficient_prefix`` -- string (default ``'y'``); it needs to be
+      a valid variable name.
+
+    - ``coefficient_names`` -- a list of strings; each element needs
+      to be a valid variable name; supersedes ``cluster_variable_prefix``
+
+    - ``principal_coefficients`` -- bool (default ``False``); supersedes any
+      coefficient defined by ``data``
+
+    ALGORITHM:
+
+    The implementation is mainly based on [FZ2007]_ and [NZ2012]_.
+
+    EXAMPLES::
+
+        sage: B = matrix([(0, 1, 0, 0), (-1, 0, -1, 0), (0, 1, 0, 1), (0, 0, -2, 0), (-1, 0, 0, 0), (0, -1, 0, 0)])
+        sage: A = ClusterAlgebra(B); A
+        A Cluster Algebra with cluster variables x0, x1, x2, x3
+         and coefficients y0, y1 over Integer Ring
+        sage: A.gens()
+        (x0, x1, x2, x3, y0, y1)
+        sage: A = ClusterAlgebra(['A', 2]); A
+        A Cluster Algebra with cluster variables x0, x1 and no coefficients
+         over Integer Ring
+        sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A.gens()
+        (x0, x1, y0, y1)
+        sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True, coefficient_prefix='x'); A.gens()
+        (x0, x1, x2, x3)
+        sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, cluster_variable_names=['a', 'b', 'c']); A.gens()
+        (a, b, c, y0, y1, y2)
+        sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, cluster_variable_names=['a', 'b'])
+        Traceback (most recent call last):
+        ...
+        ValueError: cluster_variable_names should be a list of 3 valid variable names
+        sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, coefficient_names=['a', 'b', 'c']); A.gens()
+        (x0, x1, x2, a, b, c)
+        sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, coefficient_names=['a', 'b'])
+        Traceback (most recent call last):
+        ...
+        ValueError: coefficient_names should be a list of 3 valid variable names
+    """
 
     Element = ClusterAlgebraElement
 
     def __init__(self, data, **kwargs):
-        r"""
-        A Cluster Algebra.
+        """
+        Initialize ``self``.
 
-        INPUT:
-
-        - ``data`` -- some data defining a cluster algebra: it can be anything
-          that can be parsed by :class:`ClusterQuiver`.
-
-        - ``scalars`` -- a ring (default `\ZZ`): the scalars over
-          which the cluster algebra is defined.
-
-        - ``cluster_variable_prefix`` -- string (default ``'x'``): it needs to be
-          a valid variable name.
-
-        - ``cluster_variable_names`` -- a list of strings: each element needs
-          to be a valid variable name;  supersedes ``cluster_variable_prefix``.
-
-        - ``coefficient_prefix`` -- string (default ``'y'``): it needs to be
-          a valid variable name.
-
-        - ``coefficient_names`` -- a list of strings: each element needs
-          to be a valid variable name; supersedes ``cluster_variable_prefix``.
-
-        - ``principal_coefficients`` -- bool (default ``False``): supersedes any
-          coefficient defined by ``data``.
-
-        ALGORITHM:
-
-        The implementation is mainly based on [FZ07]_ and [NZ12]_.
-
-        EXAMPLES::
+        TESTS::
 
             sage: B = matrix([(0, 1, 0, 0), (-1, 0, -1, 0), (0, 1, 0, 1), (0, 0, -2, 0), (-1, 0, 0, 0), (0, -1, 0, 0)])
-            sage: A = ClusterAlgebra(B); A
-            A Cluster Algebra with cluster variables x0, x1, x2, x3 and coefficients y0, y1 over Integer Ring
-            sage: A.gens()
-            [x0, x1, x2, x3, y0, y1]
-            sage: A = ClusterAlgebra(['A', 2]); A
-            A Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A.gens()
-            [x0, x1, y0, y1]
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True, coefficient_prefix='x'); A.gens()
-            [x0, x1, x2, x3]
-            sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, cluster_variable_names=['a', 'b', 'c']); A.gens()
-            [a, b, c, y0, y1, y2]
-            sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, cluster_variable_names=['a', 'b'])
-            Traceback (most recent call last):
-            ...
-            ValueError: cluster_variable_names should be a list of 3 valid variable names
-            sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, coefficient_names=['a', 'b', 'c']); A.gens()
-            [x0, x1, x2, a, b, c]
-            sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, coefficient_names=['a', 'b'])
-            Traceback (most recent call last):
-            ...
-            ValueError: coefficient_names should be a list of 3 valid variable names
+            sage: A = ClusterAlgebra(B)
+            sage: TestSuite(A).run()
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: TestSuite(A).run()
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: TestSuite(A).run()
+            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True, coefficient_prefix='x')
+            sage: TestSuite(A).run()
+            sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, cluster_variable_names=['a','b','c'])
+            sage: TestSuite(A).run()
+            sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, coefficient_names=['a','b','c'])
+            sage: TestSuite(A).run()
         """
         # Temporary variables
         Q = ClusterQuiver(data)
@@ -1267,11 +1328,15 @@ class ClusterAlgebra(Parent):
 
         # setup Parent and ambient
         self._ambient = LaurentPolynomialRing(scalars, variables + coefficients)
-        Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables + coefficients)
+        Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(),
+                        names=variables + coefficients)
 
         # Data to compute cluster variables using separation of additions
-        self._y = dict((self._U.gen(j), prod(self._base.gen(i) ** M0[i, j] for i in range(m))) for j in range(n))
-        self._yhat = dict((self._U.gen(j), prod(self._ambient.gen(i) ** B0[i, j] for i in range(n + m))) for j in range(n))
+        self._y = {self._U.gen(j): prod(self._base.gen(i) ** M0[i, j] for i in range(m))
+                   for j in range(n)}
+        self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** B0[i, j]
+                                           for i in range(n + m))
+                      for j in range(n)}
 
         # Have we got principal coefficients?
         self._is_principal = (M0 == I)
@@ -1332,7 +1397,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``other`` -- a :class:`ClusterAlgebra`.
+        - ``other`` -- a :class:`ClusterAlgebra`
 
         ALGORITHM:
 
@@ -1358,7 +1423,8 @@ class ClusterAlgebra(Parent):
             sage: A1 == B
             False
         """
-        return isinstance(other, ClusterAlgebra) and self._B0 == other._B0 and self.ambient() == other.ambient()
+        return (isinstance(other, ClusterAlgebra) and self._B0 == other._B0
+                and self.ambient() == other.ambient())
 
     def _repr_(self):
         r"""
@@ -1367,9 +1433,11 @@ class ClusterAlgebra(Parent):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(matrix(1), principal_coefficients=True); A
-            A Cluster Algebra with cluster variable x0 and coefficient y0 over Integer Ring
+            A Cluster Algebra with cluster variable x0
+             and coefficient y0 over Integer Ring
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A
-            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+            A Cluster Algebra with cluster variables x0, x1
+             and coefficients y0, y1 over Integer Ring
         """
         var_names = self.initial_cluster_variable_names()
         var_names = (" " if len(var_names) == 1 else "s ") + ", ".join(var_names)
@@ -1466,12 +1534,14 @@ class ClusterAlgebra(Parent):
 
     def rank(self):
         r"""
-        Return the rank of ``self``, i.e. the number of cluster variables in any seed.
+        Return the rank of ``self``, i.e. the number of cluster variables
+        in any seed.
 
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True); A
-            A Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+            A Cluster Algebra with cluster variables x0, x1
+             and coefficients y0, y1 over Integer Ring
             sage: A.rank()
             2
         """
@@ -1485,17 +1555,19 @@ class ClusterAlgebra(Parent):
 
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.current_seed()
-            The initial seed of a Cluster Algebra with cluster variables x0, x1 and no coefficients over Integer Ring
+            The initial seed of a Cluster Algebra with cluster variables x0, x1
+             and no coefficients over Integer Ring
         """
         return self._seed
 
     def set_current_seed(self, seed):
         r"""
-        Set the value reported by :meth:`current_seed` to ``seed``, if it makes sense.
+        Set the value reported by :meth:`current_seed` to ``seed``,
+        if it makes sense.
 
         INPUT:
 
-        - ``seed`` -- an instance of :class:`ClusterAlgebraSeed`.
+        - ``seed`` -- a :class:`ClusterAlgebraSeed`
 
         EXAMPLES::
 
@@ -1520,7 +1592,8 @@ class ClusterAlgebra(Parent):
 
     def reset_current_seed(self):
         r"""
-        Reset the value reported by :meth:`current_seed` to :meth:`initial_seed`.
+        Reset the value reported by :meth:`current_seed`
+        to :meth:`initial_seed`.
 
         EXAMPLES::
 
@@ -1540,7 +1613,7 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``seed`` -- an instance of :class:`ClusterAlgebraSeed`.
+        - ``seed`` -- a :class:`ClusterAlgebraSeed`
 
         EXAMPLES::
 
@@ -1588,15 +1661,15 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``mutating_F`` -- bool (default ``True``): whether to compute F-polynomials also;
-          for speed considerations you may want to disable this.
+        - ``mutating_F`` -- bool (default ``True``); whether to compute
+          F-polynomials; disable this for speed considerations
 
         ALGORITHM:
 
-        This method does not use the caching framework provided by ``self`` but
-        recomputes all the g-vectors from scratch. On the other hand it stores
-        the results so that other methods like :meth:`g_vectors_so_far` can
-        access them afterwards.
+        This method does not use the caching framework provided by ``self``,
+        but recomputes all the g-vectors from scratch. On the other hand it
+        stores the results so that other methods like :meth:`g_vectors_so_far`
+        can access them afterwards.
 
         EXAMPLES::
 
@@ -1622,10 +1695,10 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-        This method does not use the caching framework provided by ``self`` but
-        recomputes all the cluster variables from scratch. On the other hand it
-        stores the results so that other methods like :meth:`cluster_variables_so_far`
-        can access them afterwards.
+        This method does not use the caching framework provided by ``self``,
+        but recomputes all the cluster variables from scratch. On the other
+        hand it stores the results so that other methods like
+        :meth:`cluster_variables_so_far` can access them afterwards.
 
         EXAMPLES::
 
@@ -1641,10 +1714,10 @@ class ClusterAlgebra(Parent):
 
         ALGORITHM:
 
-        This method does not use the caching framework provided by ``self`` but
-        recomputes all the F_polynomials from scratch. On the other hand it
-        stores the results so that other methods like :meth:`F_polynomials_so_far`
-        can access them afterwards.
+        This method does not use the caching framework provided by ``self``, 
+        but recomputes all the F-polynomials from scratch. On the other hand
+        it stores the results so that other methods like
+        :meth:`F_polynomials_so_far` can access them afterwards.
 
         EXAMPLES::
 
@@ -1696,19 +1769,20 @@ class ClusterAlgebra(Parent):
     @cached_method(key=lambda a, b: tuple(b))
     def cluster_variable(self, g_vector):
         r"""
-        Return the cluster variable with g-vector ``g_vector`` if it has been found.
+        Return the cluster variable with g-vector ``g_vector`` if it has
+        been found.
 
         INPUT:
 
-        - ``g_vector`` -- a tuple: the g-vector of the cluster variable to return.
+        - ``g_vector`` -- tuple; the g-vector of the cluster variable to return
 
         ALGORITHM:
 
         This function computes cluster variables from their g-vectors and
-        F-polynomials using the "separation of additions" formula of Theorem
-        3.7 in [FZ07]_.
+        F-polynomials using the "separation of additions" formula of
+        Theorem 3.7 in [FZ2007]_.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.initial_seed().mutate(0)
@@ -1724,11 +1798,12 @@ class ClusterAlgebra(Parent):
 
     def F_polynomial(self, g_vector):
         r"""
-        Return the F-polynomial with g-vector ``g_vector`` if it has been found.
+        Return the F-polynomial with g-vector ``g_vector`` if it has
+        been found.
 
         INPUT:
 
-        - ``g_vector`` -- a tuple: the g-vector of the F-polynomial to return.
+        - ``g_vector`` -- tuple; the g-vector of the F-polynomial to return
 
         EXAMPLES::
 
@@ -1736,13 +1811,13 @@ class ClusterAlgebra(Parent):
             sage: A.F_polynomial((-1, 1))
             Traceback (most recent call last):
             ...
-            KeyError: 'The g-vector (-1, 1) has not been found yet'
+            KeyError: 'the g-vector (-1, 1) has not been found yet'
             sage: A.initial_seed().mutate(0, mutating_F=False)
             sage: A.F_polynomial((-1, 1))
             Traceback (most recent call last):
             ...
-            KeyError: 'The F-polynomial with g-vector (-1, 1) has not been computed yet;
-            you can compute it by mutating from the initial seed along the sequence [0]'
+            KeyError: 'the F-polynomial with g-vector (-1, 1) has not been computed yet;
+             you can compute it by mutating from the initial seed along the sequence [0]'
             sage: A.initial_seed().mutate(0)
             sage: A.F_polynomial((-1, 1))
             u0 + 1
@@ -1752,12 +1827,12 @@ class ClusterAlgebra(Parent):
             return self._F_poly_dict[g_vector]
         except KeyError:
             if g_vector in self._path_dict:
-                msg = "The F-polynomial with g-vector %s has not been computed yet; " % str(g_vector)
+                msg = "the F-polynomial with g-vector {} has not been computed yet; ".format(g_vector)
                 msg += "you can compute it by mutating from the initial seed along the sequence "
                 msg += str(self._path_dict[g_vector])
                 raise KeyError(msg)
             else:
-                raise KeyError("The g-vector %s has not been found yet" % str(g_vector))
+                raise KeyError("the g-vector %s has not been found yet" % str(g_vector))
 
     def find_g_vector(self, g_vector, depth=infinity):
         r"""
@@ -1765,9 +1840,9 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``g_vector`` -- a tuple: the g-vector to find.
-
-        - ``depth`` -- a positive integer or infinity (default ``infinity``): the maximum distance from ``self.current_seed`` to reach.
+        - ``g_vector`` -- a tuple: the g-vector to find
+        - ``depth`` -- a positive integer or infinity (default ``infinity``);
+          the maximum distance from ``self.current_seed`` to reach
 
         OUTPUT:
 
@@ -1787,7 +1862,9 @@ class ClusterAlgebra(Parent):
             sage: A.find_g_vector((1, 1), depth=4)
             Traceback (most recent call last):
             ...
-            ValueError: (1, 1) is not the g-vector of any cluster variable of a Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1 over Integer Ring
+            ValueError: (1, 1) is not the g-vector of any cluster variable of a
+             Cluster Algebra with cluster variables x0, x1 and coefficients y0, y1
+             over Integer Ring
         """
         g_vector = tuple(g_vector)
         while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
@@ -1857,6 +1934,7 @@ class ClusterAlgebra(Parent):
         """
         return self(x)
 
+    @cached_method
     def gens(self):
         r"""
         Return the list of initial cluster variables and coefficients of ``self``.
@@ -1865,12 +1943,12 @@ class ClusterAlgebra(Parent):
 
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
             sage: A.gens()
-            [x0, x1, y0, y1]
+            (x0, x1, y0, y1)
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True, coefficient_prefix='x')
             sage: A.gens()
-            [x0, x1, x2, x3]
+            (x0, x1, x2, x3)
         """
-        return list(map(self.retract, self.ambient().gens()))
+        return tuple(map(self.retract, self.ambient().gens()))
 
     def coefficient(self, j):
         r"""
@@ -1878,7 +1956,8 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the coefficient to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``;
+          the index of the coefficient to return
 
         EXAMPLES::
 
@@ -1886,11 +1965,11 @@ class ClusterAlgebra(Parent):
             sage: A.coefficient(0)
             y0
         """
-        if isinstance(self.base(), LaurentPolynomialRing_generic):
-            return self.retract(self.base().gen(j))
-        else:
-            raise ValueError("Generator not defined")
+        if not isinstance(self.base(), LaurentPolynomialRing_generic):
+            raise ValueError("generator not defined")
+        return self.retract(self.base().gen(j))
 
+    @cached_method
     def coefficients(self):
         r"""
         Return the list of coefficients of ``self``.
@@ -1899,15 +1978,15 @@ class ClusterAlgebra(Parent):
 
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
             sage: A.coefficients()
-            [y0, y1]
+            (y0, y1)
             sage: B = ClusterAlgebra(['B', 2])
             sage: B.coefficients()
-            []
+            ()
         """
         if isinstance(self.base(), LaurentPolynomialRing_generic):
-            return list(map(self.retract, self.base().gens()))
+            return tuple(map(self.retract, self.base().gens()))
         else:
-            return []
+            return ()
 
     def coefficient_names(self):
         r"""
@@ -1933,7 +2012,8 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``j`` -- an integer in ``range(self.parent().rank())``: the index of the cluster variable to return.
+        - ``j`` -- an integer in ``range(self.parent().rank())``;
+          the index of the cluster variable to return
 
         EXAMPLES::
 
@@ -1943,6 +2023,7 @@ class ClusterAlgebra(Parent):
         """
         return self.retract(self.ambient().gen(j))
 
+    @cached_method
     def initial_cluster_variables(self):
         r"""
         Return the list of initial cluster variables of ``self``.
@@ -1951,9 +2032,9 @@ class ClusterAlgebra(Parent):
 
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
             sage: A.initial_cluster_variables()
-            [x0, x1]
+            (x0, x1)
         """
-        return list(map(self.retract, self.ambient().gens()[:self.rank()]))
+        return tuple(map(self.retract, self.ambient().gens()[:self.rank()]))
 
     def initial_cluster_variable_names(self):
         r"""
@@ -1976,22 +2057,22 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``from_current_seed`` -- bool (default ``False``): whether to start the
-          iterator from :meth:`current_seed` or :meth:`initial_seed`.
+        - ``from_current_seed`` -- bool (default ``False``); whether to start
+          the iterator from :meth:`current_seed` or :meth:`initial_seed`
 
-        - ``mutating_F`` -- bool (default ``True``): whether to compute F-polynomials also;
-          for speed considerations you may want to disable this.
+        - ``mutating_F`` -- bool (default ``True``); whether to compute
+          F-polynomials also; disable this for speed considerations
 
-        - ``allowed_directions`` -- a tuple of integers (default ``range(self.rank())``): the
-          directions in which to mutate.
+        - ``allowed_directions`` -- iterable of integers
+          (default ``range(self.rank())``); the directions in which to mutate
 
-        - ``depth`` -- a positive integer or infinity (default ``infinity``):
-          the maximum depth at which to stop searching.
+        - ``depth`` -- a positive integer or infinity (default ``infinity``);
+          the maximum depth at which to stop searching
 
-        - ``catch_KeyboardInterrupt`` -- bool (default ``False``):  whether to
+        - ``catch_KeyboardInterrupt`` -- bool (default ``False``); whether to
           catch ``KeyboardInterrupt`` and return it rather then raising an
-          exception. This allows the iterator returned by this method to be
-          resumed after being interrupted.
+          exception -- this allows the iterator returned by this method to be
+          resumed after being interrupted
 
         ALGORITHM:
 
@@ -2065,7 +2146,7 @@ class ClusterAlgebra(Parent):
                             yield new_sd
                     except KeyboardInterrupt as e:
                         if kwargs.get('catch_KeyboardInterrupt', False):
-                            print("Caught a KeyboardInterrupt; cleaning up before returning.")
+                            print("caught a KeyboardInterrupt; cleaning up before returning")
                             # mutation in direction i was not completed; put it back in for next round
                             directions.append(i)
                             yield e
@@ -2081,8 +2162,8 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``mutating_F`` -- bool (default ``True``): whether to also compute
-          F-polynomials; for speed considerations you may want to disable this.
+        - ``mutating_F`` -- bool (default ``True``); whether to also compute
+          F-polynomials; disable this for speed considerations
 
         EXAMPLES::
 
@@ -2099,11 +2180,13 @@ class ClusterAlgebra(Parent):
 
     def explore_to_depth(self, depth):
         r"""
-        Explore the exchange graph of ``self`` up to distance ``depth`` from the initial seed.
+        Explore the exchange graph of ``self`` up to distance ``depth``
+        from the initial seed.
 
         INPUT:
 
-        - ``depth`` -- a positive integer or infinity: the maximum depth at which to stop searching.
+        - ``depth`` -- a positive integer or infinity; the maximum depth
+          at which to stop searching
 
         EXAMPLES::
 
@@ -2129,7 +2212,8 @@ class ClusterAlgebra(Parent):
 
         INPUT:
 
-        - ``depth`` -- a positive integer or infinity (default ``infinity``): the maximum depth at which to compute.
+        - ``depth`` -- a positive integer or infinity (default ``infinity``);
+          the maximum depth at which to compute
 
         EXAMPLES::
 
@@ -2144,17 +2228,18 @@ class ClusterAlgebra(Parent):
     @_mutation_parse
     def mutate_initial(self, k):
         r"""
-        Return the cluster algebra obtained by mutating ``self`` at the initial seed.
+        Return the cluster algebra obtained by mutating ``self`` at
+        the initial seed.
 
         INPUT:
 
         ALGORITHM:
 
-        This function computes data for the new algebra from known data for the
-        old algebra using [NZ12]_ equation (4.2) for g-vectors, and [FZ07]_
-        equation (6.21) for F-polynomials. The exponent ``h`` in the formula
-        for F-polynomials is ``-min(0, old_g_vect[k])`` due to [NZ12]_
-        Proposition 4.2.
+        This function computes data for the new algebra from known data for
+        the old algebra using Equation (4.2) from [NZ2012]_ for g-vectors, and
+        Equation (6.21) from [FZ2007]_ for F-polynomials. The exponent `h`
+        in the formula for F-polynomials is ``-min(0, old_g_vect[k])``
+        due to [NZ2012]_ Proposition 4.2.
 
         EXAMPLES::
 
@@ -2170,7 +2255,7 @@ class ClusterAlgebra(Parent):
         """
         n = self.rank()
         if k not in range(n):
-            raise ValueError('Cannot mutate in direction ' + str(k))
+            raise ValueError('cannot mutate in direction ' + str(k))
 
         # save computed data
         old_F_poly_dict = copy(self._F_poly_dict)
@@ -2237,9 +2322,9 @@ class ClusterAlgebra(Parent):
             sage: A.upper_cluster_algebra()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Not implemented yet
+            NotImplementedError: not implemented yet
         """
-        raise NotImplementedError("Not implemented yet")
+        raise NotImplementedError("not implemented yet")
 
     def upper_bound(self):
         r"""
@@ -2251,9 +2336,9 @@ class ClusterAlgebra(Parent):
             sage: A.upper_bound()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Not implemented yet
+            NotImplementedError: not implemented yet
         """
-        raise NotImplementedError("Not implemented yet")
+        raise NotImplementedError("not implemented yet")
 
     def lower_bound(self):
         r"""
@@ -2265,9 +2350,9 @@ class ClusterAlgebra(Parent):
             sage: A.lower_bound()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Not implemented yet
+            NotImplementedError: not implemented yet
         """
-        raise NotImplementedError("Not implemented yet")
+        raise NotImplementedError("not implemented yet")
 
     def theta_basis_element(self, g_vector):
         r"""
@@ -2279,9 +2364,9 @@ class ClusterAlgebra(Parent):
             sage: A.theta_basis_element((1, 0, 0, 0))
             Traceback (most recent call last):
             ...
-            NotImplementedError: Not implemented yet
+            NotImplementedError: not implemented yet
         """
-        raise NotImplementedError("Not implemented yet")
+        raise NotImplementedError("not implemented yet")
 
 ####
 # Methods only defined for special cases
@@ -2294,11 +2379,13 @@ def greedy_element(self, d_vector):
 
     INPUT:
 
-    - ``d_vector`` -- tuple of 2 integers: the denominator vector of the element to compute.
+    - ``d_vector`` -- tuple of 2 integers; the denominator vector of
+      the element to compute
 
     ALGORITHM:
 
-    This implements greedy elements of a rank 2 cluster algebra from [LLZ14]_ equation (1.5).
+    This implements greedy elements of a rank 2 cluster algebra using
+    Equation (1.5) from [LLZ2014]_.
 
     EXAMPLES::
 
@@ -2309,7 +2396,8 @@ def greedy_element(self, d_vector):
     b = abs(self.b_matrix()[0, 1])
     c = abs(self.b_matrix()[1, 0])
     a1, a2 = d_vector
-    # here we use the generators of self.ambient() because cluster variables do not have an inverse.
+    # Here we use the generators of self.ambient() because cluster variables
+    #   do not have an inverse.
     x1, x2 = self.ambient().gens()
     if a1 < 0:
         if a2 < 0:
@@ -2327,7 +2415,8 @@ def greedy_element(self, d_vector):
 
 def _greedy_coefficient(self, d_vector, p, q):
     r"""
-    Return the coefficient of the monomial ``x1 ** (b * p) * x2 ** (c * q)`` in the numerator of the greedy element with denominator vector ``d_vector``.
+    Return the coefficient of the monomial ``x1 ** (b * p) * x2 ** (c * q)``
+    in the numerator of the greedy element with denominator vector ``d_vector``.
 
     EXAMPLES::
 
@@ -2359,3 +2448,4 @@ def _greedy_coefficient(self, d_vector, p, q):
             bino = binomial(a1 - b * p + l - 1, l)
         sum2 += (-1) ** (l - 1) * self._greedy_coefficient(d_vector, p, q - l) * bino
     return Integer(max(sum1, sum2))
+

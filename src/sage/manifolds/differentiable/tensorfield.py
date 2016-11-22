@@ -173,21 +173,21 @@ class TensorField(ModuleElement):
         sage: eV = c_uv.frame()
         sage: eVW = eV.restrict(W)
         sage: c_uvW = c_uv.restrict(W)
-        sage: t[eV,0,0] = t[eVW,0,0,c_uvW].expr()
-        sage: t[eV,0,1] = t[eVW,0,1,c_uvW].expr()
-        sage: t[eV,1,0] = t[eVW,1,0,c_uvW].expr()
-        sage: t[eV,1,1] = t[eVW,1,1,c_uvW].expr()
+        sage: t[eV,0,0] = t[eVW,0,0,c_uvW].expr()  # long time
+        sage: t[eV,0,1] = t[eVW,0,1,c_uvW].expr()  # long time
+        sage: t[eV,1,0] = t[eVW,1,0,c_uvW].expr()  # long time
+        sage: t[eV,1,1] = t[eVW,1,1,c_uvW].expr()  # long time
 
     Actually, the above operation can by performed in a single line by means
     of the method
     :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.add_comp_by_continuation`::
 
-        sage: t.add_comp_by_continuation(eV, W, chart=c_uv)
+        sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
 
     At this stage, `t` is fully defined, having components in frames eU and eV
     and the union of the domains of eU and eV being whole manifold::
 
-        sage: t.display(eV)
+        sage: t.display(eV)  # long time
         t = (u^4 - 4*u^3*v + 10*u^2*v^2 + 4*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du*du
          - 4*(u^3*v + 2*u^2*v^2 - u*v^3)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du*dv
          + 2*(u^4 - 2*u^3*v - 2*u^2*v^2 + 2*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv*du
@@ -212,7 +212,7 @@ class TensorField(ModuleElement):
 
         sage: f = t(a,b); f
         Scalar field t(a,b) on the 2-dimensional differentiable manifold S^2
-        sage: f.display()
+        sage: f.display()  # long time
         t(a,b): S^2 --> R
         on U: (x, y) |--> -2*x*y - y^2 - 3*x
         on V: (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
@@ -220,17 +220,17 @@ class TensorField(ModuleElement):
     The vectors can be defined only on subsets of `S^2`, the domain of the
     result is then the common subset::
 
-        sage: s = t(a.restrict(U), b) ; s
+        sage: s = t(a.restrict(U), b) ; s  # long time
         Scalar field t(a,b) on the Open subset U of the 2-dimensional
          differentiable manifold S^2
-        sage: s.display()
+        sage: s.display()  # long time
         t(a,b): U --> R
            (x, y) |--> -2*x*y - y^2 - 3*x
         on W: (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
-        sage: s = t(a.restrict(U), b.restrict(W)) ; s
+        sage: s = t(a.restrict(U), b.restrict(W)) ; s  # long time
         Scalar field t(a,b) on the Open subset W of the 2-dimensional
          differentiable manifold S^2
-        sage: s.display()
+        sage: s.display()  # long time
         t(a,b): W --> R
            (x, y) |--> -2*x*y - y^2 - 3*x
            (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
@@ -238,10 +238,10 @@ class TensorField(ModuleElement):
     The tensor itself can be defined only on some open subset of `S^2`,
     yielding a result whose domain is this subset::
 
-        sage: s = t.restrict(V)(a,b); s
+        sage: s = t.restrict(V)(a,b); s  # long time
         Scalar field t(a,b) on the Open subset V of the 2-dimensional
          differentiable manifold S^2
-        sage: s.display()
+        sage: s.display()  # long time
         t(a,b): V --> R
            (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
         on W: (x, y) |--> -2*x*y - y^2 - 3*x
@@ -252,12 +252,12 @@ class TensorField(ModuleElement):
         ....:                     c_uv: (u^2 + v^2)/(u^2 + v^2 + 1)}, name='f')
         sage: t.parent().base_ring() is f.parent()
         True
-        sage: s = f*t; s
+        sage: s = f*t; s  # long time
         Tensor field of type (0,2) on the 2-dimensional differentiable
          manifold S^2
-        sage: s[[0,0]] == f*t[[0,0]]
+        sage: s[[0,0]] == f*t[[0,0]]  # long time
         True
-        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
+        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
         True
         sage: s = f*t.restrict(U); s
         Tensor field of type (0,2) on the Open subset U of the 2-dimensional
@@ -2350,34 +2350,34 @@ class TensorField(ModuleElement):
             Tensor field b of type (1,2) on the 2-dimensional differentiable
              manifold M
             sage: b[e_xy,:] = [[[0,x+y], [y,0]], [[0,2], [3*x,-2]]]
-            sage: b.add_comp_by_continuation(e_uv, W, chart=c_uv)
+            sage: b.add_comp_by_continuation(e_uv, W, chart=c_uv)  # long time
             sage: s = b.trace(0,1) ; s # contraction on first and second slots
             1-form on the 2-dimensional differentiable manifold M
             sage: s.display(e_xy)
             3*x dx + (x + y - 2) dy
-            sage: s.display(e_uv)
+            sage: s.display(e_uv)  # long time
             (5/4*u + 3/4*v - 1) du + (1/4*u + 3/4*v + 1) dv
 
         Use of the index notation::
 
             sage: b['^k_ki']
             1-form on the 2-dimensional differentiable manifold M
-            sage: b['^k_ki'] == s
+            sage: b['^k_ki'] == s  # long time
             True
 
         Indices not involved in the contraction may be replaced by dots::
 
-            sage: b['^k_k.'] == s
+            sage: b['^k_k.'] == s  # long time
             True
 
         The symbol ``^`` may be omitted::
 
-            sage: b['k_k.'] == s
+            sage: b['k_k.'] == s  # long time
             True
 
         LaTeX notations are allowed::
 
-            sage: b['^{k}_{ki}'] == s
+            sage: b['^{k}_{ki}'] == s  # long time
             True
 
         Contraction on first and third slots::
@@ -2386,12 +2386,12 @@ class TensorField(ModuleElement):
             1-form on the 2-dimensional differentiable manifold M
             sage: s.display(e_xy)
             2 dx + (y - 2) dy
-            sage: s.display(e_uv)
+            sage: s.display(e_uv)  # long time
             (1/4*u - 1/4*v) du + (-1/4*u + 1/4*v + 2) dv
 
         Use of index notation::
 
-            sage: b['^k_.k'] == s
+            sage: b['^k_.k'] == s  # long time
             True
 
         """
@@ -2548,10 +2548,10 @@ class TensorField(ModuleElement):
             sage: c = a*a ; c
             Tensor field of type (2,2) on the 2-dimensional differentiable
              manifold M
-            sage: s = c.contract(2,3, b, 0,1) ; s
+            sage: s = c.contract(2,3, b, 0,1) ; s  # long time
             Tensor field of type (2,0) on the 2-dimensional differentiable
              manifold M
-            sage: s == c['^.._kl']*b['^kl']  # the same double contraction in index notation
+            sage: s == c['^.._kl']*b['^kl']  # the same double contraction in index notation; long time
             True
 
         The symmetries are either conserved or destroyed by the contraction::

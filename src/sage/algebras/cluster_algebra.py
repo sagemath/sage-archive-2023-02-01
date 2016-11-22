@@ -452,31 +452,6 @@ class ClusterAlgebraElement(ElementWrapper):
     """
     An element of a cluster algebra.
     """
-    def __init__(self, parent, value):
-        r"""
-        Initialize ``self``.
-
-        INPUT:
-
-        - ``parent`` -- :class:`ClusterAlgebra`; the parent algebra
-        - ``value`` -- the value of the element
-
-        EXAMPLES::
-
-            sage: A = ClusterAlgebra(['F', 4])
-            sage: from sage.algebras.cluster_algebra import ClusterAlgebraElement
-            sage: ClusterAlgebraElement(A, 1)
-            1
-        """
-        ElementWrapper.__init__(self, parent=parent, value=value)
-
-        # setup methods defined only in special cases
-        if parent._is_principal:
-            self.g_vector = MethodType(g_vector, self, self.__class__)
-            self.F_polynomial = MethodType(F_polynomial, self, self.__class__)
-            self.is_homogeneous = MethodType(is_homogeneous, self, self.__class__)
-            self.homogeneous_components = MethodType(homogeneous_components, self, self.__class__)
-
     # AdditiveMagmas.Subobjects currently does not implements _add_
     def _add_(self, other):
         r"""
@@ -567,97 +542,99 @@ class ClusterAlgebraElement(ElementWrapper):
 # Methods not always defined
 ####
 
-
-def g_vector(self):
-    r"""
-    Return the g-vector of ``self``.
-
-    EXAMPLES::
-
-        sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
-        sage: A.cluster_variable((1, 0)).g_vector() == (1, 0)
-        True
-        sage: sum(A.initial_cluster_variables()).g_vector()
-        Traceback (most recent call last):
-        ...
-        ValueError: this element is not homogeneous
+class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
     """
-    components = self.homogeneous_components()
-    if len(components) != 1:
-        raise ValueError("this element is not homogeneous")
-    return components.keys()[0]
-
-
-def F_polynomial(self):
-    r"""
-    Return the F-polynomial of ``self``.
-
-    EXAMPLES::
-        sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
-        sage: S = A.initial_seed()
-        sage: S.mutate([0, 1, 0])
-        sage: S.cluster_variable(0).F_polynomial() == S.F_polynomial(0)
-        True
-        sage: sum(A.initial_cluster_variables()).F_polynomial()
-        Traceback (most recent call last):
-        ...
-        ValueError: this element is not homogeneous
+    An element in a cluster algebra with principle coefficients.
     """
-    if not self.is_homogeneous():
-        raise ValueError("this element is not homogeneous")
-    subs_dict = dict()
-    A = self.parent()
-    for x in A.initial_cluster_variables():
-        subs_dict[x.lift()] = A._U(1)
-    for i in range(A.rank()):
-        subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
-    return self.lift().substitute(subs_dict)
+    def g_vector(self):
+        r"""
+        Return the g-vector of ``self``.
 
+        EXAMPLES::
 
-def is_homogeneous(self):
-    r"""
-    Return ``True`` if ``self`` is a homogeneous element of ``self.parent()``.
+            sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
+            sage: A.cluster_variable((1, 0)).g_vector() == (1, 0)
+            True
+            sage: sum(A.initial_cluster_variables()).g_vector()
+            Traceback (most recent call last):
+            ...
+            ValueError: this element is not homogeneous
+        """
+        components = self.homogeneous_components()
+        if len(components) != 1:
+            raise ValueError("this element is not homogeneous")
+        return components.keys()[0]
 
-    EXAMPLES::
+    def F_polynomial(self):
+        r"""
+        Return the F-polynomial of ``self``.
 
-        sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
-        sage: A.cluster_variable((1, 0)).is_homogeneous()
-        True
-        sage: x = A.cluster_variable((1, 0)) + A.cluster_variable((0, 1))
-        sage: x.is_homogeneous()
-        False
-    """
-    return len(self.homogeneous_components()) == 1
+        EXAMPLES::
 
+            sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
+            sage: S = A.initial_seed()
+            sage: S.mutate([0, 1, 0])
+            sage: S.cluster_variable(0).F_polynomial() == S.F_polynomial(0)
+            True
+            sage: sum(A.initial_cluster_variables()).F_polynomial()
+            Traceback (most recent call last):
+            ...
+            ValueError: this element is not homogeneous
+        """
+        if not self.is_homogeneous():
+            raise ValueError("this element is not homogeneous")
+        subs_dict = dict()
+        A = self.parent()
+        for x in A.initial_cluster_variables():
+            subs_dict[x.lift()] = A._U(1)
+        for i in range(A.rank()):
+            subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
+        return self.lift().substitute(subs_dict)
 
-def homogeneous_components(self):
-    r"""
-    Return a dictionary of the homogeneous components of ``self``.
+    def is_homogeneous(self):
+        r"""
+        Return ``True`` if ``self`` is a homogeneous element
+        of ``self.parent()``.
 
-    OUTPUT:
+        EXAMPLES::
 
-    A dictionary whose keys are homogeneous degrees and whose values are the
-    summands of ``self`` of the given degree.
+            sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
+            sage: A.cluster_variable((1, 0)).is_homogeneous()
+            True
+            sage: x = A.cluster_variable((1, 0)) + A.cluster_variable((0, 1))
+            sage: x.is_homogeneous()
+            False
+        """
+        return len(self.homogeneous_components()) == 1
 
-    EXAMPLES::
+    def homogeneous_components(self):
+        r"""
+        Return a dictionary of the homogeneous components of ``self``.
 
-        sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
-        sage: x = A.cluster_variable((1, 0)) + A.cluster_variable((0, 1))
-        sage: x.homogeneous_components()
-        {(0, 1): x1, (1, 0): x0}
-    """
-    deg_matrix = block_matrix([[identity_matrix(self.parent().rank()),
-                                -self.parent().b_matrix()]])
-    components = dict()
-    x = self.lift()
-    monomials = x.monomials()
-    for m in monomials:
-        g_vect = tuple(deg_matrix * vector(m.exponents()[0]))
-        if g_vect in components:
-            components[g_vect] += self.parent().retract(x.monomial_coefficient(m) * m)
-        else:
-            components[g_vect] = self.parent().retract(x.monomial_coefficient(m) * m)
-    return components
+        OUTPUT:
+
+        A dictionary whose keys are homogeneous degrees and whose values
+        are the summands of ``self`` of the given degree.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
+            sage: x = A.cluster_variable((1, 0)) + A.cluster_variable((0, 1))
+            sage: x.homogeneous_components()
+            {(0, 1): x1, (1, 0): x0}
+        """
+        deg_matrix = block_matrix([[identity_matrix(self.parent().rank()),
+                                    -self.parent().b_matrix()]])
+        components = dict()
+        x = self.lift()
+        monomials = x.monomials()
+        for m in monomials:
+            g_vect = tuple(deg_matrix * vector(m.exponents()[0]))
+            if g_vect in components:
+                components[g_vect] += self.parent().retract(x.monomial_coefficient(m) * m)
+            else:
+                components[g_vect] = self.parent().retract(x.monomial_coefficient(m) * m)
+        return components
 
 
 ##############################################################################
@@ -1198,7 +1175,6 @@ class ClusterAlgebraSeed(SageObject):
 # Cluster algebras
 ##############################################################################
 
-
 class ClusterAlgebra(Parent):
     r"""
     A Cluster Algebra.
@@ -1258,9 +1234,6 @@ class ClusterAlgebra(Parent):
         ...
         ValueError: coefficient_names should be a list of 3 valid variable names
     """
-
-    Element = ClusterAlgebraElement
-
     def __init__(self, data, **kwargs):
         """
         Initialize ``self``.
@@ -1326,6 +1299,13 @@ class ClusterAlgebra(Parent):
             base = scalars
             coefficients = []
 
+        # Have we got principal coefficients?
+        self._is_principal = (M0 == I)
+        if self._is_principal:
+            self.Element = PrincipalClusterAlgebraElement
+        else:
+            self.Element = ClusterAlgebraElement
+
         # setup Parent and ambient
         self._ambient = LaurentPolynomialRing(scalars, variables + coefficients)
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(),
@@ -1337,9 +1317,6 @@ class ClusterAlgebra(Parent):
         self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** B0[i, j]
                                            for i in range(n + m))
                       for j in range(n)}
-
-        # Have we got principal coefficients?
-        self._is_principal = (M0 == I)
 
         # Store initial data
         # NOTE: storing both _B0 as rectangular matrix and _yhat is redundant.

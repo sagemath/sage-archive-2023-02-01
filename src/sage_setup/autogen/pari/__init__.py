@@ -8,9 +8,8 @@ from sage_setup.autogen.pari.parser import pari_share, sage_src_pari
 
 def rebuild(force=False):
     pari_module_path = sage_src_pari()
-    src_files = [join(pari_share(), 'pari.desc'),
-                 join(pari_module_path, 'decl.pxi')] + \
-                glob.glob(join('sage_setup', 'autogen', 'pari', '*.py'))
+    src_files = [join(pari_share(), 'pari.desc')] + \
+                 glob.glob(join('sage_setup', 'autogen', 'pari', '*.py'))
     gen_files = [join(pari_module_path, 'auto_gen.pxi')]
 
     if all(exists(f) for f in gen_files):

@@ -1770,7 +1770,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
             x = objects[i]
             L = latex(x)
             if '\\begin{pgfpicture}' in L:
-                # Resize the pgf figure to the text width if larger. 
+                # Resize the pgf figure to the text width if larger.
                 s += r'\begingroup\makeatletter\@ifundefined{pgffigure}{\newsavebox{\pgffigure}}{}\makeatother\endgroup'
                 s += r'\begin{lrbox}{\pgffigure}' + '\n'
                 s += '%s'%L
@@ -2012,7 +2012,7 @@ class MathJax:
         return MathJaxExpr(html.format(latex_string))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
-        pdflatex=None, engine=None, viewer = None, tightpage = None,
+        pdflatex=None, engine=None, viewer = None, tightpage = True,
         mode='inline', combine_all=False, **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,

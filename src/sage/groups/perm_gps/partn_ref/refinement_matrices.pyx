@@ -33,7 +33,7 @@ include 'data_structures_pyx.pxi' # includes bitsets
 from sage.misc.misc import uniq
 from sage.matrix.constructor import Matrix
 from .refinement_binary cimport NonlinearBinaryCodeStruct, refine_by_bip_degree
-from .double_coset cimport double_coset, int_cmp
+from .double_coset cimport double_coset
 from sage.structure.sage_object cimport richcmp_not_equal
 from cpython.object cimport Py_LT
 

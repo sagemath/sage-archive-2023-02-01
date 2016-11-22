@@ -182,7 +182,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
         .. MATH::
 
-                     \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
+                     \text{cov}(X,Y) = E((X-E(X)\cdot (Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         """
         Omega = self.probability_space()
         if Omega != other.probability_space():
@@ -205,7 +205,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
         .. MATH::
 
-                     \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
+                     \text{cov}(X,Y) = E((X-E(X)\cdot (Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         """
         Omega = self.probability_space()
         if Omega != other.probability_space():
@@ -228,7 +228,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
         .. MATH::
 
-                     \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))**2}
+                     \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))^2}
         """
         return sqrt(self.variance())
 
@@ -245,7 +245,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
         .. MATH::
 
-                     \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))**2}
+                     \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))^2}
         """
         return sqrt(self.translation_variance(map))
 

@@ -48,9 +48,9 @@ class FiniteSetMaps(UniqueRepresentation, Parent):
        :class:`~sage.sets.finite_enumerated_set.FiniteEnumeratedSet`
        is constructed from the iterable.
 
-    3. an integer ``n`` designing the set `\{1, 2, \dots, n\}`. In this case
-       an object of the class :class:`~sage.sets.integer_range.IntegerRange`
-       is constructed.
+    3. an integer ``n`` designing the set `\{0, 1, \dots, n-1\}`. In this case
+       an object of the class :class:`~sage.sets.integer_range.IntegerRange` is
+       constructed.
 
     INPUT:
 

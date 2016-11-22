@@ -1973,6 +1973,47 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return x
         return x+1
 
+    def round(self):
+        r"""
+        Returns the round (nearest integer).
+
+        EXAMPLES::
+
+            sage: K.<sqrt7> = QuadraticField(7, name='sqrt7')
+            sage: sqrt7.round()
+            3
+            sage: (-sqrt7).round()
+            -3
+            sage: (12/313*sqrt7 - 1745917/2902921).round()
+            0
+            sage: (12/313*sqrt7 - 1745918/2902921).round()
+            -1
+
+        TESTS::
+
+            sage: K2.<sqrt2> = QuadraticField(2)
+            sage: K3.<sqrt3> = QuadraticField(3)
+            sage: K5.<sqrt5> = QuadraticField(5)
+            sage: for _ in range(100):
+            ....:    a = QQ.random_element(1000,20)
+            ....:    b = QQ.random_element(1000,20)
+            ....:    assert round(a) == round(K2(a)), a
+            ....:    assert round(a) == round(K3(a)), a
+            ....:    assert round(a) == round(K5(a)), a
+            ....:    assert round(a+b*sqrt(2.)) == round(a+b*sqrt2), (a, b)
+            ....:    assert round(a+b*sqrt(3.)) == round(a+b*sqrt3), (a, b)
+            ....:    assert round(a+b*sqrt(5.)) == round(a+b*sqrt5), (a, b)
+        """
+        n = self.floor()
+        test = 2 * (self - n).abs()
+        if test < 1:
+            return n
+        elif test > 1:
+            return n + 1
+        elif self > 0:
+            return n + 1
+        else:
+            return n
 
 cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
     """

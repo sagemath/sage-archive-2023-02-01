@@ -2320,7 +2320,7 @@ class ClusterSeed(SageObject):
                     if isinstance(j, Integer):
                         sequence = sequence+"_"+j.str()
                     elif isinstance(j, int):
-                        sequence = sequence+"_"+`j`
+                        sequence = sequence+"_"+repr(j)
                     else:
                         sequence = sequence+"_"+j
 

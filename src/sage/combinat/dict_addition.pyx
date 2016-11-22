@@ -155,6 +155,11 @@ cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
         sage: blas.axpy(1, X, Y)
         {1: 2}
 
+    `X` and `Y` are not mutated:
+
+        sage: X, Y
+        ({0: -1, 1: 1}, {0: 1, 1: 1})
+
     Computing `-X+Y`::
 
         sage: blas.axpy(-1, X, Y)
@@ -164,10 +169,25 @@ cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
 
         sage: blas.axpy(2, X, Y)
         {0: -1, 1: 3}
+
+    Testing the special cases of empty dictionaries::
+
+        sage: Y = {}
+        sage: Z = blas.axpy(2, X, Y)
+        sage: Z is Y
+        False
+        sage: X, Y
+        ({0: -1, 1: 1}, {})
+
+        sage: Z = blas.axpy(2, Y, X)
+        sage: Z is X
+        True
+        sage: X, Y
+        ({0: -1, 1: 1}, {})
     """
-    if Y:
+    if X:
         Y = PyDict_Copy(Y)
-    iaxpy(a, X, Y, True, factor_on_left)
+        iaxpy(a, X, Y, True, factor_on_left)
     return Y
 
 cpdef dict negate(dict D):
@@ -228,7 +248,7 @@ cpdef dict add(dict D, dict D2):
 
     `D` and `D2` are left unchanged::
 
-        sage: D1, D2
+        sage: D, D2
         ({0: 1, 1: 1}, {0: -1, 1: 1})
     """
     # Optimization: swap the two dicts to ensure D is the largest

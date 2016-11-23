@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Basic Linear Algebra Subroutines on dictionaries
 
@@ -21,6 +22,11 @@ Unless stated overwise, all values `v` in the dictionaries should be
 non zero (as tested with `bool(v)`).
 
 This is mostly used by :class:`CombinatorialFreeModule`.
+
+.. TODO::
+
+    Upon migrating to Python 3, change .iteritems below to .items. We
+    don't want to do it now as this is a speed-critical location.
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Christian Stump <christian.stump@univie.ac.at>

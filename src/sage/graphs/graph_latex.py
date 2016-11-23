@@ -1353,7 +1353,7 @@ class GraphLatex(SageObject):
                 autosize = True,
                 crop = True,
                 figonly = 'True',
-                prog=self.get_option('prog'))
+                prog=self.get_option('prog')).strip()
         # usepdflatex = True, debug = True)
 
     def tkz_picture(self):

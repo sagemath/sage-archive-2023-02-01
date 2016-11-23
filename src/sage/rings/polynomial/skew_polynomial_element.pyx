@@ -2795,7 +2795,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
                 c = parent.twist_map(-db)(inv*a[i+db])
                 for j from 0 <= j < db:
                     a[i+j] -= b[j] * parent.twist_map(j)(c)
-            except:
+            except Exception:
                 raise NotImplementedError("inversion of the twist map %s" % parent.twist_map())
             q.append(c)
         q.reverse()

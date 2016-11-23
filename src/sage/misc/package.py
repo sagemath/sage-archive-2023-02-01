@@ -43,7 +43,7 @@ Functions
 #*****************************************************************************
 from __future__ import print_function
 
-from sage.env import SAGE_ROOT
+from sage.env import SAGE_ROOT, SAGE_PKGS
 
 import json
 import os
@@ -59,7 +59,6 @@ except ImportError:
 
 DEFAULT_PYPI = 'https://pypi.python.org/pypi'
 PIP_VERSION = re.compile("^([^\s]+) \(([^\s]+)\)$", re.MULTILINE)
-SAGE_PKGS = os.path.join(SAGE_ROOT, "build", "pkgs")
 
 def pkgname_split(name):
     r"""
@@ -145,7 +144,7 @@ def pip_installed_packages():
         sage: d['beautifulsoup']   # optional - beautifulsoup
         '...'
     """
-    proc = subprocess.Popen(["pip", "list"], stdout=subprocess.PIPE)
+    proc = subprocess.Popen(["pip", "list", "--no-index"], stdout=subprocess.PIPE)
     stdout = str(proc.communicate()[0])
     return dict((name.lower(), version) for name,version in PIP_VERSION.findall(stdout))
 
@@ -303,7 +302,7 @@ def installed_packages(exclude_pip=True):
         sage: installed_packages()
         {...'arb': ...'pynac': ...}
 
-    .. seealso::
+    .. SEEALSO::
 
         :func:`list_packages`
     """

@@ -894,7 +894,7 @@ class PermutationIET(Permutation):
 
         This `d*d` antisymmetric matrix is given by the rule :
 
-        .. math::
+        .. MATH::
 
             m_{ij} = \begin{cases}
                 1 & \text{$i < j$ and $\pi(i) > \pi(j)$} \\
@@ -1646,7 +1646,7 @@ class PermutationLI(Permutation):
         A quadratic (or generalized) permutation is *reducible* if there exists
         a decomposition
 
-        .. math::
+        .. MATH::
 
            A1 u B1 | ... | B1 u A2
 
@@ -1654,7 +1654,7 @@ class PermutationLI(Permutation):
 
         where no corners is empty, or exactly one corner is empty
         and it is on the left, or two and they are both on the
-        right or on the left. The definition is due to [BL08]_ where they prove
+        right or on the left. The definition is due to [BL2008]_ where they prove
         that the property of being irreducible is stable under Rauzy induction.
 
         INPUT:

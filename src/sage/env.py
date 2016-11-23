@@ -106,7 +106,11 @@ _add_variable_or_fallback('SITE_PACKAGES',   sitepackages_dirs)
 
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
 
-_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_SRC', 'build', 'cythonized'))
+_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_ROOT', 'src', 'build', 'cythonized'))
+
+# Used by sage/misc/package.py.  Should be SAGE_SRC_ROOT in VPATH.
+_add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_ROOT', 'build', 'pkgs'))
+
 
 _add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
 _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
@@ -127,6 +131,24 @@ _add_variable_or_fallback('SAGE_VERSION',            version.version)
 _add_variable_or_fallback('SAGE_DATE',               version.date)
 _add_variable_or_fallback('SAGE_BANNER',             '')
 _add_variable_or_fallback('SAGE_IMPORTALL',          'yes')
+
+# additional packages locations
+_add_variable_or_fallback('CONWAY_POLYNOMIALS_DATA_DIR',  opj('$SAGE_SHARE','conway_polynomials'))
+_add_variable_or_fallback('GRAPHS_DATA_DIR',  opj('$SAGE_SHARE','graphs'))
+_add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
+_add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
+_add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_LOCAL','gap','latest'))
+
+# locate singular shared object
+if UNAME[:6] == "CYGWIN":
+    extension = "dll"
+elif UNAME == "Darwin":
+    extension = "dylib"
+else:
+    extension = "so"
+# library name changed from libsingular to libSingular btw 3.x and 4.x
+SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
+_add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
 
 # post process
 if ' ' in DOT_SAGE:

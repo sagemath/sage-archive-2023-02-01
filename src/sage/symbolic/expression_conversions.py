@@ -18,8 +18,7 @@ from __future__ import print_function
 
 import operator as _operator
 from sage.rings.rational_field import QQ
-from sage.symbolic.ring import SR
-from sage.symbolic.pynac import I
+from sage.symbolic.all import I, SR
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
 from sage.functions.piecewise import piecewise
@@ -1894,9 +1893,7 @@ class HoldRemover(ExpressionTreeWalker):
             arctan2(0, 0) + 1
             sage: h = HoldRemover(ex, [hypergeometric])
             sage: h()
-            Traceback (most recent call last):
-            ...
-            RuntimeError: arctan2_eval(): arctan2(0,0) encountered
+            NaN + hypergeometric((1, 2), (3, 4), 0)
         """
         self.ex = ex
         if exclude is None:
@@ -1914,8 +1911,12 @@ class HoldRemover(ExpressionTreeWalker):
             sage: h()
             0
         """
+        from sage.functions.other import Function_sum
+        from sage.calculus.calculus import symbolic_sum
         if not operator:
             return self
+        if isinstance(operator, Function_sum):
+            return symbolic_sum(*map(self, ex.operands()))
         if operator in self._exclude:
             return operator(*map(self, ex.operands()), hold=True)
         else:

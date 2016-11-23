@@ -31,7 +31,7 @@ AUTHORS:
 - Simon Spicer (2013-03): Added code for modular degrees and congruence
   numbers of higher level
 
-- Simon Spicer (2014-08): Added new analytic rank computatation functionality
+- Simon Spicer (2014-08): Added new analytic rank computation functionality
 
 """
 
@@ -584,7 +584,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: e.type()
             't_VEC'
             sage: e.ellan(10)
@@ -6535,7 +6535,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             `q` in `S`. (Such points are not covered by the main part
             of the code).  We know
 
-            .. math::
+            .. MATH::
 
                x=\frac{\xi}{\p_1^{\alpha_1} \cdot \dots \cdot \p_s^{\alpha_s}},\ (gcd(\xi,\p_i)=1),\ p_i \in S
 

@@ -169,8 +169,8 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
     r"""
     The Blum-Blum-Shub (BBS) pseudorandom bit generator.
 
-    See the original paper by Blum, Blum and Shub [BlumBlumShub1986]_. The
-    BBS algorithm is also discussed in section 5.5.2 of [MenezesEtAl1996]_.
+    See the original paper by Blum, Blum and Shub [BBS1986]_. The
+    BBS algorithm is also discussed in section 5.5.2 of [MvOV1996]_.
 
     INPUT:
 
@@ -244,7 +244,7 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
     ALGORITHM:
 
     The BBS algorithm as described below is adapted from the presentation
-    in Algorithm 5.40, page 186 of [MenezesEtAl1996]_.
+    in Algorithm 5.40, page 186 of [MvOV1996]_.
 
     #. Let `L` be the desired number of bits in the output bit sequence.
        That is, `L` is the desired length of the bit string.
@@ -281,7 +281,7 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
         sage: blum_blum_shub(length=6, lbound=10**4, ubound=10**5)  # random
         110111
 
-    Under some reasonable hypotheses, Blum-Blum-Shub [BlumBlumShub1982]_
+    Under some reasonable hypotheses, Blum-Blum-Shub [BBS1982]_
     sketch a proof that the period of the BBS stream cipher is equal to
     `\lambda(\lambda(n))`, where `\lambda(n)` is the Carmichael function of
     `n`. This is verified below in a few examples by using the function
@@ -344,17 +344,6 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
         Traceback (most recent call last):
         ...
         ValueError: The lower bound must be less than the upper bound.
-
-    REFERENCES:
-
-    .. [BlumBlumShub1982] \L. Blum, M. Blum, and M. Shub.
-      Comparison of Two Pseudo-Random Number Generators.
-      *Advances in Cryptology: Proceedings of Crypto '82*,
-      pp.61--78, 1982.
-
-    .. [BlumBlumShub1986] \L. Blum, M. Blum, and M. Shub.
-      A Simple Unpredictable Pseudo-Random Number Generator.
-      *SIAM Journal on Computing*, 15(2):364--383, 1986.
     """
     # sanity checks
     if length < 0:

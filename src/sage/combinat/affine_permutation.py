@@ -344,7 +344,7 @@ class AffinePermutation(ClonableArray):
         Return Grassmannian quotient.
 
         Factors ``self`` into a unique product of a Grassmannian and a finite-type
-        element.  Returns a tuple containing the Grassmannain and finite
+        element.  Returns a tuple containing the Grassmannian and finite
         elements, in order according to side.
 
         INPUT:
@@ -1059,7 +1059,7 @@ class AffinePermutationTypeC(AffinePermutation):
 
             sage: C=AffinePermutationGroup(['C',4,1])
             sage: x=C.one()
-            sage: [x.value(i) for i in range(-10,10)]==range(-10,10)
+            sage: [x.value(i) for i in range(-10,10)] == list(range(-10,10))
             True
         """
         N=(2*self.k+1)
@@ -1077,9 +1077,9 @@ class AffinePermutationTypeC(AffinePermutation):
 
         EXAMPLES::
 
-            sage: C=AffinePermutationGroup(['C',4,1])
-            sage: x=C.one()
-            sage: [x.position(i) for i in range(-10,10)]==range(-10,10)
+            sage: C = AffinePermutationGroup(['C',4,1])
+            sage: x = C.one()
+            sage: [x.position(i) for i in range(-10,10)] == list(range(-10,10))
             True
         """
         N=(2*self.k+1)
@@ -1770,7 +1770,7 @@ def AffinePermutationGroup(cartan_type):
     """
     Wrapper function for specific affine permutation groups.
 
-    These are combinatorial implmentations of the affine Weyl groups of
+    These are combinatorial implementations of the affine Weyl groups of
     types `A`, `B`, `C`, `D`, and `G` as permutations of the set of all integers.
     the basic algorithms are derived from [BjBr]_ and [Erik]_.
 

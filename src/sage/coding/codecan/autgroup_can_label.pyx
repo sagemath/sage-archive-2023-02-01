@@ -38,12 +38,6 @@ AUTHORS:
 
 - Thomas Feulner (2012-11-15): initial version
 
-REFERENCES:
-
-.. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
-  Canonical Representatives of Their Semilinear Isometry Classes.
-  Advances in Mathematics of Communications 3 (4), pp. 363-383, Nov 2009
-
 EXAMPLES::
 
     sage: from sage.coding.codecan.autgroup_can_label import LinearCodeAutGroupCanLabel
@@ -73,7 +67,7 @@ coordinates. This is just a list of lists, telling the algorithm which
 columns do share the same coloring::
 
     sage: C = codes.HammingCode(GF(4, 'a'), 3).dual_code()
-    sage: P = LinearCodeAutGroupCanLabel(C, P=[ [0], [1], range(2, C.length()) ])
+    sage: P = LinearCodeAutGroupCanLabel(C, P=[ [0], [1], list(range(2, C.length())) ])
     sage: P.get_autom_order()
     864
     sage: A = [a.get_perm() for a in P.get_autom_gens()]
@@ -101,6 +95,7 @@ and to the action of the symmetric group only::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.coding.codecan.codecan import PartitionRefinementLinearCode
 from sage.combinat.permutation import Permutation
@@ -122,11 +117,11 @@ def _cyclic_shift(n, p):
 
     We prove that the action is as expected::
 
-        sage: t = range(10)
+        sage: t = list(range(10))
         sage: p.action(t)
         [0, 2, 7, 3, 1, 5, 6, 4, 8, 9]
     """
-    x = range(1, n + 1)
+    x = list(range(1, n + 1))
     for i in range(1, len(p)):
         x[p[i - 1]] = p[i] + 1
     x[p[len(p) - 1]] = p[0] + 1
@@ -231,7 +226,7 @@ class LinearCodeAutGroupCanLabel:
         S = SemimonomialTransformationGroup(F, mat.ncols())
 
         if P is None:
-            P = [range(mat.ncols())]
+            P = [list(range(mat.ncols()))]
 
         pos2P = [-1] * mat.ncols()
         for i in range(len(P)):
@@ -511,7 +506,7 @@ class LinearCodeAutGroupCanLabel:
         n = S.degree()
         A = []
         for g in gens:
-            perm = range(1, n + 1)
+            perm = list(range(1, n + 1))
             mult = [S.base_ring().one()] * n
             short_perm = g.get_perm()
             short_mult = g.get_v()

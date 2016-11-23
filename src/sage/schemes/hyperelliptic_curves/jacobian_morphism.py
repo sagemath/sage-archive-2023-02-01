@@ -76,7 +76,7 @@ respectively::
 
 Frobenius satisfies
 
-.. math::
+.. MATH::
 
     x^4 + 12*x^3 + 78*x^2 + 444*x + 1369
 

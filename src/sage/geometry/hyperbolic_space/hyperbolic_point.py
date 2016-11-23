@@ -60,7 +60,7 @@ Some more examples::
 #***********************************************************************
 
 from sage.structure.element import Element
-from sage.symbolic.pynac import I
+from sage.symbolic.all import I
 from sage.misc.latex import latex
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.constructor import matrix

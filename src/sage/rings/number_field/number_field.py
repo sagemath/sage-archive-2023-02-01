@@ -92,6 +92,7 @@ We do some arithmetic in a tower of relative number fields::
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
+from six.moves import range
 
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
@@ -1669,7 +1670,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if len(x) != self.relative_degree():
                 raise ValueError("Length must be equal to the degree of this number field")
             result = x[0]
-            for i in xrange(1,self.relative_degree()):
+            for i in range(1, self.relative_degree()):
                 result += x[i]*self.gen(0)**i
             return result
         return self._coerce_non_number_field_element_in(x)
@@ -2906,7 +2907,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         hnf_ideals = self.pari_nf().ideallist(bound)
         d = {}
-        for i in xrange(bound):
+        for i in range(bound):
             d[i+1] = [self.ideal(hnf) for hnf in hnf_ideals[i]]
         return d
 
@@ -3452,7 +3453,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         OUTPUT:
 
         The PARI number field obtained by calling the PARI function
-        ``nfinit()`` with ``self.pari_polynomial('y')`` as argument.
+        :pari:`nfinit` with ``self.pari_polynomial('y')`` as argument.
 
         .. NOTE::
 
@@ -4024,7 +4025,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         units modulo `m`-th powers and the `m`-torsion in the
         `S`-class group:
 
-        .. math::
+        .. MATH::
 
             1                                    \longrightarrow
             O_{K,S}^\times / (O_{K,S}^\times)^m  \longrightarrow
@@ -4677,7 +4678,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: b = [1, 2*a, 3*a^2]
             sage: T = K.trace_dual_basis(b); T
             [4/31*a^2 - 6/31*a + 13/31, -9/62*a^2 - 1/31*a - 3/31, 2/31*a^2 - 3/31*a + 4/93]
-            sage: [(b[i]*T[j]).trace() for i in xrange(3) for j in xrange(3)]
+            sage: [(b[i]*T[j]).trace() for i in range(3) for j in range(3)]
             [1, 0, 0, 0, 1, 0, 0, 0, 1]
         """
         if not len(b) == self.degree():
@@ -4685,7 +4686,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         M = self.trace_pairing(b)
         if not M.is_invertible():
             raise ValueError('Not a basis of the number field.')
-        return [sum([v[i]*b[i] for i in xrange(len(b))]) for v in M.inverse()]
+        return [sum([v[i]*b[i] for i in range(len(b))]) for v in M.inverse()]
 
     def elements_of_norm(self, n, proof=None):
         """
@@ -5581,7 +5582,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         Return the defining polynomial of this number field.
 
         This is exactly the same as
-        ``self.defining_polynomal()``.
+        ``self.defining_polynomial()``.
 
         EXAMPLES::
 
@@ -5594,7 +5595,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return the defining polynomial of this number field.
 
-        This is exactly the same as ``self.polynomal()``.
+        This is exactly the same as ``self.polynomial()``.
 
         EXAMPLES::
 
@@ -6299,7 +6300,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         ALGORITHM:
 
-        We use the PARI function ``nfrootsof1`` in all cases. This is
+        We use the PARI function :pari:`nfrootsof1` in all cases. This is
         required (even for cyclotomic fields) in order to be consistent
         with the full unit group, which is also computed by PARI.
 
@@ -7856,7 +7857,7 @@ class NumberField_absolute(NumberField_generic):
         real part). Here `(r,s)` is the signature of self. Then the
         Minkowski embedding is given by
 
-        .. math::
+        .. MATH::
 
             x \mapsto ( \sigma_1(x), \dots,
                      \sigma_r(x), \sqrt{2}\Re(\sigma_{r+1}(x)),
@@ -7932,7 +7933,7 @@ class NumberField_absolute(NumberField_generic):
         into RealField(prec) and ComplexField(prec) (or RDF, CDF if
         prec=53). One can also use ``prec=infinity``, which returns embeddings
         into the field `\overline{\QQ}` of algebraic numbers (or its subfield
-        `\mathbb{A}` of algebraic reals); this permits exact computatation, but
+        `\mathbb{A}` of algebraic reals); this permits exact computation, but
         can be extremely slow.
 
         There is an optional flag all_complex, which defaults to False. If
@@ -9556,7 +9557,7 @@ class NumberField_cyclotomic(NumberField_absolute):
                 #    3. Return self.__zeta to the power r.
                 y = K(self.zeta(m))
                 z = y
-                for r in xrange(y.multiplicative_order()):
+                for r in range(y.multiplicative_order()):
                     if z == x:
                         return self.zeta(m)**(r+1)
                     z *= y
@@ -9933,7 +9934,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             z = pari(self.gen())
             a = pari(1)
             B = []
-            for n in xrange(self.degree()):
+            for n in range(self.degree()):
                 B.append(a.lift())
                 a *= z
             self._integral_basis_dict[tuple()] = pari(B)

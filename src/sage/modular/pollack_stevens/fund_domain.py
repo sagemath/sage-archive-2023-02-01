@@ -8,13 +8,6 @@ terms of generators and relations is found. The method used is geometric,
 constructing a nice fundamental domain for `\Gamma_0(N)` and reading the
 relevant Manin relations off of that picture. The algorithm follows [PS2011]_.
 
-REFERENCES:
-
-.. [PS2011] R. Pollack, and G. Stevens.
-   *Overconvergent modular symbols and p-adic L-functions.*
-   Annales scientifiques de l'Ecole normale superieure.
-   Vol. 44. No. 1. Elsevier, 2011.
-
 AUTHORS:
 
 - Robert Pollack, Jonathan Hanke (2012): initial version

@@ -1120,7 +1120,7 @@ class FullyPackedLoop(Element):
     def _get_coordinates(self, current_pos):
         """
         Return a list of 2 coordinates that refer to the moves that could
-        potentialy be made.
+        potentially be made.
 
         TESTS::
 

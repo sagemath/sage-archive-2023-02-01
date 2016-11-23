@@ -122,7 +122,7 @@ class HasseDiagram(DiGraph):
         """
         return self.topological_sort_generator()
 
-    def is_linear_extension(self,lin_ext=None):
+    def is_linear_extension(self, lin_ext=None):
         r"""
         Test if an ordering is a linear extension.
 
@@ -130,18 +130,18 @@ class HasseDiagram(DiGraph):
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
-            sage: H.is_linear_extension(range(4))
+            sage: H.is_linear_extension(list(range(4)))
             True
             sage: H.is_linear_extension([3,2,1,0])
             False
         """
         if lin_ext is None or lin_ext == list(range(len(self))):
-            for x,y in self.cover_relations_iterator():
+            for x, y in self.cover_relations_iterator():
                 if not x < y:
                     return False
             return True
         else:
-            for x,y in self.cover_relations_iterator():
+            for x, y in self.cover_relations_iterator():
                 if not lin_ext.index(x) < lin_ext.index(y):
                     return False
             return True
@@ -654,18 +654,6 @@ class HasseDiagram(DiGraph):
             False
         """
         return bool(self.rank_function())
-
-    def is_graded(self):
-        r"""
-        Deprecated, has conflicting definition of "graded" vs. "ranked"
-        with posets.
-
-        Return ``True`` if the Hasse diagram is ranked. For definition
-        of ranked see :meth:`~rank_function`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16998, "Use is_ranked(). Definition conflict with posets.")
-        return self.is_ranked()
 
     def covers(self,x,y):
         """
@@ -1204,26 +1192,22 @@ class HasseDiagram(DiGraph):
             return matrix(0)
         if not self.has_top():
             raise ValueError("not a join-semilattice: no top element")
-        join = [[0 for x in range(n)] for x in range(n)]
-        le = self.lequal_matrix()
-        uc = [sorted([n-1-y for y in self.neighbors_out(x)]) for
-                x in reversed(range(n))]
+        join = [[n for x in range(n)] for x in range(n)]
+        uc = [self.neighbors_out(x) for x in range(n)]  # uc = upper covers
 
-        for x in range(n): # x=x_k
+        for x in range(n-1, -1, -1):
             join[x][x] = x
-
-            for y in range(x):
+            for y in range(n-1, x, -1):
                 T = [join[y][z] for z in uc[x]]
 
-                q = max(T)
+                q = min(T)
                 for z in T:
-                    if not le[n-1-q, n-1-z]:
-                        raise LatticeError('join', n-1-x, n-1-y)
+                    if join[z][q] != z:
+                        raise LatticeError('join', x, y)
                 join[x][y] = q
                 join[y][x] = q
 
-        return matrix(ZZ, [[n-1-join[n-1-x][n-1-y] for y in range(n)]
-                           for x in range(n)])
+        return matrix(ZZ, join)
 
     def join_matrix(self):
         r"""
@@ -1455,23 +1439,6 @@ class HasseDiagram(DiGraph):
                 return i
 
         return None
-
-    def complements(self):
-        r"""
-        Deprecated.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17138, "This function is broken. Do not use.")
-        jn = self.join_matrix()
-        mt = self.meet_matrix()
-        n = self.cardinality()
-        c = [None for x in range(n)]
-        for x in range(n):
-            for y in range(x,n):
-                if jn[x][y]==n-1 and mt[x][y]==0:
-                    c[x]=y
-                    c[y]=x
-        return c
 
     def pseudocomplement(self, element):
         """
@@ -1922,7 +1889,7 @@ class HasseDiagram(DiGraph):
             sage: list(P._hasse_diagram.chains(element_class=tuple, exclude=[0]))
             [(), (1,), (1, 2), (2,), (3,)]
 
-        .. seealso:: :meth:`antichains`
+        .. SEEALSO:: :meth:`antichains`
         """
         from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
         if not(exclude is None):
@@ -2100,6 +2067,55 @@ class HasseDiagram(DiGraph):
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
 
+    def skeleton(self):
+        """
+        Return the skeleton of the lattice.
+
+        The lattice is expected to be pseudocomplemented and non-empty.
+
+        The skeleton of the lattice is the subposet induced by
+        those elements that are the pseudocomplement to at least one
+        element.
+
+        OUTPUT:
+
+        List of elements such that the subposet induced by them is
+        the skeleton of the lattice.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3, 4], 2: [4],
+            ....:                   3: [5], 4: [5]})
+            sage: H.skeleton()
+            [5, 2, 0, 3]
+        """
+        p_atoms = []
+        for atom in self.neighbor_out_iterator(0):
+            p_atom = self.pseudocomplement(atom)
+            if p_atom is None:
+                raise ValueError("lattice is not pseudocomplemented")
+            p_atoms.append(p_atom)
+        n = len(p_atoms)
+        mt = self._meet
+        pos = [0] * n
+        meets = [self.order()-1] * n
+        result = [self.order()-1]
+        i = 0
+
+        while i >= 0:
+            new_meet = mt[meets[i-1], p_atoms[pos[i]]]
+            result.append(new_meet)
+            if pos[i] == n-1:
+                i -= 1
+                pos[i] = pos[i]+1
+            else:
+                meets[i] = new_meet
+                pos[i+1] = pos[i]+1
+                i += 1
+
+        return result
+
     def is_convex_subset(self, S):
         r"""
         Return ``True`` if `S` is a convex subset of the poset,
@@ -2148,6 +2164,57 @@ class HasseDiagram(DiGraph):
                     ok.add(c)  # Do not re-check this for being our b.
 
         return True
+
+    def kappa(self, a):
+        r"""
+        Return the maximum element greater than the element covered
+        by ``a`` but not greater than ``a``.
+
+        Define `\kappa(a)` as the maximum element of
+        `(\uparrow a_*) \setminus (\uparrow a)`, where `a_*` is the element
+        covered by `a`. It is always a meet-irreducible element, if it exists.
+
+        .. NOTE::
+
+            Element ``a`` is expected to be join-irreducible, and
+            this is *not* checked.
+
+        INPUT:
+
+        - ``a`` -- a join-irreducible element of the lattice
+
+        OUTPUT:
+
+        The element `\kappa(a)` or ``None`` if there
+        is not a unique greatest element with given constraints.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4, 5], 3: [5], 4: [6], 5: [6]})
+            sage: H.kappa(1)
+            5
+            sage: H.kappa(2) is None
+            True
+
+        TESTS::
+
+            sage: H = HasseDiagram({0: [1]})
+            sage: H.kappa(1)
+            0
+        """
+        lc = next(self.neighbor_in_iterator(a))
+        if self.out_degree(lc) == 1:
+            return lc
+        gt_a = set(self.depth_first_search(a))
+        tmp = list(self.depth_first_search(lc, neighbors=lambda v: [v_ for v_ in self.neighbors_out(v) if v_ not in gt_a]))
+        result = None
+        for e in tmp:
+            if all(x not in tmp for x in self.neighbors_out(e)):
+                if result:
+                    return None
+                result = e
+        return result
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

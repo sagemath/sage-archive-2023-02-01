@@ -9470,7 +9470,7 @@ class A000110(ExponentialNumbers):
         Let `S(n, k)` denote the Stirling number of the second
         kind. Then
 
-        .. math::
+        .. MATH::
 
             B_n = \sum{k=0}^{n} S(n, k) .
 
@@ -9530,7 +9530,7 @@ class A000587(ExponentialNumbers):
         Let `S(n, k)` denote the Stirling number of the second
         kind. Then
 
-        .. math::
+        .. MATH::
 
             C_n = \sum{k=0}^{n} (-1)^k S(n, k) .
 

@@ -725,7 +725,7 @@ class WordGenerator(object):
         satisfying `s_{\alpha,0} = ac_\alpha` and `s'_{\alpha,0} = bc_\alpha`,
         where `s_{\alpha,0}` and `s'_{\alpha,0}` are respectively the lower
         and upper mechanical words with slope `\alpha` and intercept `0`.
-        Equivalently, for irrationnal `\alpha`,
+        Equivalently, for irrational `\alpha`,
         `c_\alpha = s_{\alpha,\alpha} = s'_{\alpha,\alpha}`.
 
         Let `\alpha = [0, d_1 + 1, d_2, d_3, \ldots]` be the continued

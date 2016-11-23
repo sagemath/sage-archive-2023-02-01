@@ -543,6 +543,91 @@ class FiniteWord_class(Word_class):
             self._len = Integer(sum(1 for _ in self))
         return self._len
 
+    def content(self, n=None):
+        r"""
+        Return content of ``self``.
+
+        INPUT:
+
+        - ``n`` -- (optional) an integer specifying the maximal
+          letter in the alphabet
+
+        OUTPUT:
+
+        - a list where the `i`-th entry indiciates the multiplicity
+          of the `i`-th letter in the alphabet in ``self``
+
+        EXAMPLES::
+
+            sage: w = Word([1,2,4,3,2,2,2])
+            sage: w.content()
+            [1, 4, 1, 1]
+            sage: w = Word([3,1])
+            sage: w.content()
+            [1, 1]
+            sage: w.content(n=3)
+            [1, 0, 1]
+            sage: w = Word([2,4],alphabet=[1,2,3,4])
+            sage: w.content(n=3)
+            [0, 1, 0]
+            sage: w.content()
+            [0, 1, 0, 1]
+        """
+        if n is not None:
+            alphabet = range(1,n+1)
+        elif not self.parent().alphabet().cardinality() == +Infinity:
+            alphabet = self.parent().alphabet()
+        else:
+            alphabet = sorted(self.letters())
+        return [self.count(i) for i in alphabet]
+
+    def is_yamanouchi(self, n=None):
+        r"""
+        Return whether ``self`` is Yamanouchi.
+
+        A word `w` is Yamanouchi if, when read from right to left, it
+        always has weakly more `i`'s than `i+1`'s for all `i` that
+        appear in `w`.
+
+        INPUT:
+
+        - ``n`` -- (optional) an integer specifying the maximal
+          letter in the alphabet
+
+        EXAMPLES::
+
+            sage: w = Word([1,2,4,3,2,2,2])
+            sage: w.is_yamanouchi()
+            False
+            sage: w = Word([2,3,4,3,1,2,1,1,2,1])
+            sage: w.is_yamanouchi()
+            True
+            sage: w = Word([3,1])
+            sage: w.is_yamanouchi(n=3)
+            False
+            sage: w.is_yamanouchi()
+            True
+            sage: w = Word([3,1],alphabet=[1,2,3])
+            sage: w.is_yamanouchi()
+            False
+            sage: w = Word([2,1,1,2])
+            sage: w.is_yamanouchi()
+            False
+        """
+        from sage.combinat.words.word import Word
+        if n is not None:
+            w = Word(self, alphabet=list(range(1,n+1)))
+        elif not self.parent().alphabet().cardinality() == +Infinity:
+            w = self
+        else:
+            w = Word(self, alphabet=sorted(self.letters()))
+        l = w.length()
+        for a in range(l-1,-1,-1):
+            mu = w.parent()(self[a:]).content()
+            if not all(mu[i] >= mu[i+1] for i in range(len(mu)-1)):
+                return False
+        return True
+
     def schuetzenberger_involution(self, n = None):
         """
         Return the Schützenberger involution of the word ``self``, which is obtained
@@ -1381,7 +1466,6 @@ class FiniteWord_class(Word_class):
         from sage.functions.all import log
         return log(pn, base=d)/n
 
-    @cached_method
     def rauzy_graph(self, n):
         r"""
         Return the Rauzy graph of the factors of length ``n`` of ``self``.
@@ -1618,10 +1702,12 @@ class FiniteWord_class(Word_class):
                 for w in self.left_special_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            in_d = g.in_degree
-            for v in g:
-                if in_d(v) > 1:
+            left_extensions = defaultdict(set)
+            for w in self.factor_iterator(n+1):
+                v = w[1:]
+                left_extensions[v].add(w[0])
+            for v in left_extensions:
+                if len(left_extensions[v]) > 1:
                     yield v
 
     def left_special_factors(self, n=None):
@@ -1684,10 +1770,12 @@ class FiniteWord_class(Word_class):
                 for w in self.right_special_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            out_d = g.out_degree
-            for v in g:
-                if out_d(v) > 1:
+            right_extensions = defaultdict(set)
+            for w in self.factor_iterator(n+1):
+                v = w[:-1]
+                right_extensions[v].add(w[-1])
+            for v in right_extensions:
+                if len(right_extensions[v]) > 1:
                     yield v
 
     def right_special_factors(self, n=None):
@@ -1773,11 +1861,15 @@ class FiniteWord_class(Word_class):
                 for w in self.bispecial_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            in_d = g.in_degree
-            out_d = g.out_degree
-            for v in g:
-                if out_d(v) > 1 and in_d(v) > 1:
+            left_extensions = defaultdict(set)
+            right_extensions = defaultdict(set)
+            for w in self.factor_iterator(n+2):
+                v = w[1:-1]
+                left_extensions[v].add(w[0])
+                right_extensions[v].add(w[-1])
+            for v in left_extensions:
+                if (len(left_extensions[v]) > 1 and
+                    len(right_extensions[v]) > 1):
                     yield v
 
     def bispecial_factors(self, n=None):
@@ -1848,8 +1940,8 @@ class FiniteWord_class(Word_class):
             sage: [w.number_of_left_special_factors(i) for i in range(10)]
             [1, 2, 2, 4, 2, 4, 4, 2, 2, 4]
         """
-        L = self.rauzy_graph(n).in_degree()
-        return sum(1 for i in L if i>1)
+        it = self.left_special_factors_iterator(n)
+        return sum(1 for _ in it)
 
     def number_of_right_special_factors(self, n):
         r"""
@@ -1879,8 +1971,8 @@ class FiniteWord_class(Word_class):
             sage: [w.number_of_right_special_factors(i) for i in range(10)]
             [1, 2, 2, 4, 2, 4, 4, 2, 2, 4]
         """
-        L = self.rauzy_graph(n).out_degree()
-        return sum(1 for i in L if i>1)
+        it = self.right_special_factors_iterator(n)
+        return sum(1 for _ in it)
 
     def commutes_with(self, other):
         r"""
@@ -4724,7 +4816,7 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: W = Words(list('abc')+range(6))
+            sage: W = Words(list('abc') + list(range(6)))
             sage: u = W('abc')
             sage: v = W(range(5))
             sage: u.overlap_partition(v)

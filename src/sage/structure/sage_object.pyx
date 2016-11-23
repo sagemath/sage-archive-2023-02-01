@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# cython: old_style_globals=True
 r"""
 Abstract base class for Sage objects
 """
@@ -47,6 +48,23 @@ cdef class SageObject:
     .. automethod:: _ascii_art_
     .. automethod:: _cache_key
     """
+    def _test_new(self, **options):
+        """
+        Check that ``cls.__new__(cls)`` does not crash Python,
+        where ``cls = type(self)``.
+
+        It is perfectly legal for ``__new__`` to raise ordinary
+        exceptions.
+
+        EXAMPLES::
+
+            sage: SageObject()._test_new()
+        """
+        cdef type cls = type(self)
+        try:
+            cls.__new__(cls)
+        except Exception:
+            pass
 
     #######################################################################
     # Textual representation code
@@ -1078,7 +1096,7 @@ def dumps(obj, compress=True):
     """
     Dump obj to a string s.  To recover obj, use ``loads(s)``.
 
-    .. seealso:: :func:`dumps`
+    .. SEEALSO:: :func:`dumps`
 
     EXAMPLES::
 
@@ -1328,7 +1346,7 @@ def loads(s, compress=True):
     Recover an object x that has been dumped to a string s
     using ``s = dumps(x)``.
 
-    .. seealso:: :func:`dumps`
+    .. SEEALSO:: :func:`dumps`
 
     EXAMPLES::
 

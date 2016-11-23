@@ -4258,8 +4258,13 @@ class Polyhedron_base(Element):
                 err = ":\n" + err
             raise RuntimeError("LattE integrale failed (exit code {}) to execute {}".format(ret_code, ' '.join(args)) + err.strip())
 
-        with open(SAGE_TMP+'/numOfLatticePoints', 'r') as f:
-            return Integer(f.read())
+        try:
+            return Integer(ans.splitlines()[-1])
+        except IndexError:
+            # opening a file is slow (30e-6s), so we read the file
+            # numOfLatticePoints only in case of a IndexError above
+            with open(SAGE_TMP+'/numOfLatticePoints', 'r') as f:
+                return Integer(f.read())
 
     def integral_points(self, threshold=100000):
         r"""

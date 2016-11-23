@@ -1486,6 +1486,7 @@ class ParallelogramPolyomino(ClonableList):
     def set_options(self, *get_value, **set_value):
         r"""
         Set new options to the object.
+        See :class:`LocalOptions` for more info.
 
         EXAMPLES::
 
@@ -2335,6 +2336,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]
             ....: )
+            sage: pp._repr_() == pp._repr_list()
             sage: pp._repr_list()
             '[[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]'
         """
@@ -2349,6 +2351,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]
             ....: )
+            sage: pp._repr_() == pp._repr_drawing()
             sage: pp._repr_drawing()
             '[1 1 0]\n[1 1 0]\n[0 1 1]'
         """
@@ -2358,6 +2361,9 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return all the tikz options permitting to draw the parallelogram
         polyomino.
+
+        See :class:`LocalOption` to have more informations about the
+        modification of those options.
 
         EXAMPLES::
 
@@ -2385,6 +2391,8 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
             ....: )
+            sage: pp.to_tikz() == pp._to_tikz_diagram()
+            True
             sage: print pp.to_tikz()
             <BLANKLINE>
               \draw[color=black, line width=1] (0.000000, 5.000000) -- (0.000000, 3.000000);
@@ -2398,10 +2406,6 @@ class ParallelogramPolyomino(ClonableList):
               \draw[color=black, line width=1] (1.000000, 2.000000) -- (3.000000, 2.000000);
               \draw[color=black, line width=1] (1.000000, 1.000000) -- (3.000000, 1.000000);
 
-            sage: pp = ParallelogramPolyomino([[1],[1]])
-            sage: print pp.to_tikz()
-            <BLANKLINE>
-              \draw[color=black, line width=1] (0.000000, 0.000000) -- (1.000000, 0.000000);
         """
         tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
@@ -2472,7 +2476,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 0, 1, 1, 0, 1, 1], [1, 0, 1, 1, 0, 1, 0, 0]]
             ....: )
+            sage: pp.to_tikz() == pp._to_tikz_bounce()
+            False
             sage: pp.set_options(drawing_components=dict(diagram= True, bounce_0=True))
+            sage: pp.to_tikz() == pp._to_tikz_bounce()
+            True
             sage: print pp.to_tikz() # indirect doctest
             <BLANKLINE>
               \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
@@ -2490,45 +2498,16 @@ class ParallelogramPolyomino(ClonableList):
               \draw[color=red, line width=2] (4.000000, 1.000000) -- (4.000000, 0.000000);
 
             sage: pp.set_options(drawing_components=dict(diagram= True, bounce_1=True))
+            sage: pp.to_tikz() == pp._to_tikz_bounce()
+            True
             sage: print pp.to_tikz() # indirect doctest
             <BLANKLINE>
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
-              \draw[color=black, line width=1] (4.000000, 2.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (1.000000, 4.000000);
-              \draw[color=black, line width=1] (2.000000, 0.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (1.000000, 4.000000) -- (1.000000, 1.000000);
-              \draw[color=black, line width=1] (2.000000, 3.000000) -- (2.000000, 0.000000);
-              \draw[color=black, line width=1] (3.000000, 3.000000) -- (3.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
-              \draw[color=black, line width=1] (0.000000, 2.000000) -- (4.000000, 2.000000);
-              \draw[color=black, line width=1] (0.000000, 1.000000) -- (4.000000, 1.000000);
-              \draw[color=blue, line width=3] (0.000000, 3.000000) -- (1.000000, 3.000000);
-              \draw[color=blue, line width=3] (1.000000, 3.000000) -- (1.000000, 1.000000);
-              \draw[color=blue, line width=3] (1.000000, 1.000000) -- (4.000000, 1.000000);
-              \draw[color=blue, line width=3] (4.000000, 1.000000) -- (4.000000, 0.000000);
-
+            ...
 
             sage: pp.set_options(drawing_components=dict(diagram= True, bounce_0=True, bounce_1=True))
             sage: print pp.to_tikz() # indirect doctest
             <BLANKLINE>
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
-              \draw[color=black, line width=1] (4.000000, 2.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 4.000000) -- (1.000000, 4.000000);
-              \draw[color=black, line width=1] (2.000000, 0.000000) -- (4.000000, 0.000000);
-              \draw[color=black, line width=1] (1.000000, 4.000000) -- (1.000000, 1.000000);
-              \draw[color=black, line width=1] (2.000000, 3.000000) -- (2.000000, 0.000000);
-              \draw[color=black, line width=1] (3.000000, 3.000000) -- (3.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
-              \draw[color=black, line width=1] (0.000000, 2.000000) -- (4.000000, 2.000000);
-              \draw[color=black, line width=1] (0.000000, 1.000000) -- (4.000000, 1.000000);
-              \draw[color=blue, line width=3] (0.000000, 3.000000) -- (1.000000, 3.000000);
-              \draw[color=blue, line width=3] (1.000000, 3.000000) -- (1.000000, 1.000000);
-              \draw[color=blue, line width=3] (1.000000, 1.000000) -- (4.000000, 1.000000);
-              \draw[color=blue, line width=3] (4.000000, 1.000000) -- (4.000000, 0.000000);
-              \draw[color=red, line width=2] (1.000000, 4.000000) -- (1.000000, 1.000000);
-              \draw[color=red, line width=2] (1.000000, 1.000000) -- (4.000000, 1.000000);
-              \draw[color=red, line width=2] (4.000000, 1.000000) -- (4.000000, 0.000000);
-
+            ...
         """
         res = ""
         tikz_options = self.get_tikz_options()
@@ -2587,7 +2566,11 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 0, 1, 1, 0, 1, 1], [1, 0, 1, 1, 0, 1, 0, 0]]
             ....: )
+            sage: pp.to_tikz() == pp._to_tikz_tree()
+            False
             sage: pp.set_options(drawing_components=dict(diagram= True, tree=True))
+            sage: pp.to_tikz() == pp._to_tikz_tree()
+            True
             sage: print pp.to_tikz() # indirect doctest
             <BLANKLINE>
               \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
@@ -3031,6 +3014,9 @@ class ParallelogramPolyomino(ClonableList):
         Return the tikz code of the parallelogram polyomino.
 
         This code is the code present inside a tikz latex environment.
+
+        We can modify the output with the options `
+
 
         EXAMPLES::
 

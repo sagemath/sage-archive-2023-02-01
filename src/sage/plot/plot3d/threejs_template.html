@@ -223,10 +223,11 @@
             }
         }
         geometry.computeVertexNormals();
+        var depthWrite = json.opacity < 1 ? false : true;
         var material = new THREE.MeshPhongMaterial( {
                                      color: json.color , side: THREE.DoubleSide,
                                      transparent: true, opacity: json.opacity,
-                                     shininess: 20 } );
+                                     shininess: 20, depthWrite: depthWrite } );
         scene.add( new THREE.Mesh( geometry, material ) );
     }
 

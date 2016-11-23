@@ -1541,11 +1541,15 @@ class ChainComplex_class(Parent):
         complex); that is, shifting by 1 always shifts in the opposite
         direction of the differential. In symbols, if `C` is a chain
         complex and `C[n]` is its `n`-th shift, then `C[n]_j =
-        C_{n+j}`. The differential in the shift `C[n]` is obtained by
-        multiplying each differential in `C` by `(-1)^n`. See 1.2.8 in
-        [Wei1994]_ or
-        https://ncatlab.org/nlab/show/suspension+of+a+chain+complex,
-        for example.
+        C_{j-n}`. The differential in the shift `C[n]` is obtained by
+        multiplying each differential in `C` by `(-1)^n`.
+
+        Caveat: different sources use different conventions for
+        shifting: what we call `C[n]` might be called `C[-n]` in some
+        places. See for example.
+        https://ncatlab.org/nlab/show/suspension+of+a+chain+complex
+        (which uses `C[n]` as we do but acknowledges `C[-n]`) or 1.2.8
+        in [Wei1994]_ (which uses `C[-n]`).
 
         This is obtained in Sage by tensoring (on the left, to get the
         appropriate sign) with a rank one free module in degree `-nd`,

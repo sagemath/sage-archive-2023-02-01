@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 r"""
 Crystal Of Mirković-Vilonen (MV) Polytopes
+
+AUTHORS:
+
+- Dinakar Muthiah, Travis Scrimshaw (2015-05-11): initial version
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Dinakar Muthiah <your email>
+#       Copyright (C) 2015 Dinakar Muthiah <muthiah at ualberta.ca>
+#                     2015 Travis Scrimshaw <tscrimsh at umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

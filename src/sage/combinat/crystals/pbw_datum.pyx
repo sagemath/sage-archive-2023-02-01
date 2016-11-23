@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 PBW Data
 
@@ -7,10 +8,12 @@ in finite type.
 AUTHORS:
 
 - Dinakar Muthiah (2015-05): initial version
+- Travis Scrimshaw (2016-06): simplfied code and converted to Cython
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Dinakar Muthiah <your email>
+#       Copyright (C) 2015 Dinakar Muthiah <muthiah at ualberta.ca>
+#                          Travis Scrimshaw <tscrimsh at umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -84,7 +87,7 @@ class PBWDatum(object):
     def is_equivalent_to(self, other_pbw_datum):
         r"""
         Return whether ``self`` is equivalent to ``other_pbw_datum``.
-        modulo the tropical Plucker relations.
+        modulo the tropical Plücker relations.
 
         EXAMPLES::
 
@@ -276,7 +279,7 @@ class PBWData(object): # UniqueRepresentation?
 #enhanced_braid_chain is an ugly data structure.
 cpdef tuple compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datum):
     """
-    Return the lusztig datum obtained by applying Tropical Plucker
+    Return the lusztig datum obtained by applying tropical Plücker
     relations along ``enhanced_braid_chain`` starting with
     ``initial_lusztig_datum``.
 
@@ -319,7 +322,7 @@ cpdef tuple compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datu
 # The tropical plucker relations
 cpdef tuple tropical_plucker_relation(tuple a, lusztig_datum):
     r"""
-    Apply the tropical Plucker relation of type ``a`` to ``lusztig_datum``.
+    Apply the tropical Plücker relation of type ``a`` to ``lusztig_datum``.
 
     The relations are obtained by tropicalizing the relations in
     Proposition 7.1 of [BZ01]_.

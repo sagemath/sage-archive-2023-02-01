@@ -1,13 +1,19 @@
+# -*- coding: utf-8 -*-
 r"""
 `\mathcal{B}(\infty)` Crystal Of PBW Monomials.
 
 AUTHORS:
 
 - Dinakar Muthiah (2015-05-11): initial version
+
+.. SEEALSO::
+
+    For infromation on PBW datum, see
+    :ref:`sage.combinat.crystals.pbw_datum`.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Dinakar Muthiah <your email>
+#       Copyright (C) 2015 Dinakar Muthiah <muthiah at ualberta.ca>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -340,7 +346,7 @@ class PBWCrystal(Parent, UniqueRepresentation):
     Crystal of `\mathcal{B}(\infty)` given by PBW monomials.
 
     A model of the crystal `\mathcal{B}(\infty)` whose elements are
-    PBW datum up to equivalence by the tropical Plucker relations.
+    PBW datum up to equivalence by the tropical Plücker relations.
 
     EXAMPLES::
 

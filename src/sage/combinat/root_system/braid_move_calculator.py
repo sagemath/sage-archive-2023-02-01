@@ -7,7 +7,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2014 Dinakar Muthiah <your email>
+#       Copyright (C) 2014 Dinakar Muthiah <muthiah at ualberta.ca>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

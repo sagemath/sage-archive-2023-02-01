@@ -101,32 +101,31 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
     elif not a:
         return
     for (key, value) in X.iteritems():
-        if key in Y:
-            if flag == 1:
-                Y[key] += value
-            elif flag == -1:
-                Y[key] -= value
+        if flag == -1:
+            if key in Y:
+                Y[key]  -= value
             else:
-                # We may want to assume that `a` is in the base ring
-                # and use a._mul_(value)
-                if factor_on_left:
-                    Y[key] += a*value
-                else:
-                    Y[key] += value*a
-        elif value:
-            if flag == 1:
-                Y[key]  = value
-                continue
-            elif flag == -1:
                 Y[key]  = -value
-                continue
-            else:
-                if factor_on_left:
-                    Y[key] = a*value
-                else:
-                    Y[key] = value*a
+                continue # no need to check for zero
         else:
-            continue
+            if flag != 1:
+                # If we had the guarantee that `a` is in the base
+                # ring, we could use a._mul_(value), as suggested in
+                # the documentation of sage.structure.element. However
+                # we want to support elements that can act on values
+                # in the base ring as well
+                if factor_on_left:
+                    value = a*value
+                else:
+                    value = value*a
+                if not value:
+                    continue # a is a zero divizor
+            # assert value
+            if key in Y:
+                Y[key] += value
+            else:
+                Y[key]  = value
+                continue # no need to check for zero
         if remove_zeros and not Y[key]:
             del Y[key]
 

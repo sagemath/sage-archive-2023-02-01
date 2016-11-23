@@ -2459,6 +2459,13 @@ class ParallelogramPolyomino(ClonableList):
 #               res += drawing_tool.draw_point(
 #                   [node[1], node[0]], tikz_options['color_bounce_0']
 #               )
+#       self.get_options()["tikz_options"]["point_size"]=1.5
+#       tikz_options = self.get_tikz_options()
+#       drawing_tool = _drawing_tool(
+#           tikz_options,
+#           XY=lambda v: [v[0] + .5, grid_height-1-v[1] - .5]
+#       )
+#       self.get_options()["tikz_options"]["point_size"]=3.5
 #       if 1 in directions:
 #           for node in self.get_left_nodes():
 #               res += drawing_tool.draw_point(
@@ -3098,7 +3105,7 @@ class ParallelogramPolyomino(ClonableList):
         if 'tree' in drawing_components and drawing_components["tree"]:
             res += self._to_tikz_tree()
 #           if len(directions) != 0:
-#               res += self._to_tikz_tree_with_bounce(directions)
+#              res += self._to_tikz_tree_with_bounce(directions)
         return res
 
     def geometry(self):

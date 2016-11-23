@@ -8,25 +8,21 @@ inspired from the standard BLAS API
 :wikipedia:`Basic_Linear_Algebra_Subprograms`, but does not try to
 follow it exactly.
 
-For a,b,... hashable objects, the dictionary ``{a: 2, b:3, ...}``
-represents the formal linear combination `2.a + 3.b + \cdots`.  The
-values of the dictionary should all lie in the same parent `K`. For
+For ``a, b, ...`` hashable objects, the dictionary ``{a: 2, b:3, ...}``
+represents the formal linear combination `2 \cdot a + 3 \cdot b + \cdots`.
+The values of the dictionary should all lie in the same parent `K`. For
 simplicity, we call this formal linear combination a vector, as the
 typical use case is `K` being a field. However the routines here can
 be used with a ring `K` to represent free module elements, or a
 semiring like `\NN` to represent elements of a commutative monoid, or
 even just an additive semigroup. Of course not all operations are
-meaningful in those cases.
+meaningful in those cases. We are also assuming that ``-1 * x = -x``
+and ``bool(x) == bool(-x)`` for all ``x`` in `K`.
 
 Unless stated overwise, all values `v` in the dictionaries should be
 non zero (as tested with `bool(v)`).
 
 This is mostly used by :class:`CombinatorialFreeModule`.
-
-.. TODO::
-
-    Upon migrating to Python 3, change .iteritems below to .items. We
-    don't want to do it now as this is a speed-critical location.
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Christian Stump <christian.stump@univie.ac.at>
@@ -40,8 +36,6 @@ This is mostly used by :class:`CombinatorialFreeModule`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cpython cimport PyDict_Copy
-
 cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True):
     r"""
     Mutate `Y` to represent `a X + Y`.
@@ -50,9 +44,10 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
 
     - ``a`` -- element of a parent `K` or `±1`
     - ``X,Y`` -- dictionaries representing a vector `X` over `K`
-    - ``remove_zeros`` -- boolean (default: ``True``): whether to
-      remove the zeros after the addition has been performed
-    - ``factor_on_left`` -- boolean (default: ``False``):
+    - ``remove_zeros`` -- boolean (default: ``True``); whether to
+      remove the keys whose values are zero after the addition has
+      been performed
+    - ``factor_on_left`` -- boolean (default: ``False``);
       whether to compute `a X + Y` or `X a + Y`
 
     OUTPUT:
@@ -60,8 +55,9 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
     None: ``Y`` has been mutated to represent the vector `a*X+Y`.
     If ``remove_zeroes=False``, ``Y`` may contain zero values.
 
-    The parent `K` should support addition unless `a=-1`, negation if
-    `a=-1`, and multiplication if `a\ne ±1`.
+    The parent `K` should support addition unless `a = -1`, negation if
+    `a = -1`, and multiplication if `a \neq \pm 1`. We are also assuming
+    that ``-1 * x = -x`` and ``bool(x) == bool(-x)`` in `K`.
 
     See :mod:`sage.data_structures.blas_dict` for an overview.
 
@@ -143,9 +139,9 @@ cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
 
     INPUT:
 
-    - ``a`` -- an element of `K` or `±1`
+    - ``a`` -- an element of `K` or `\pm 1`
     - ``X``, ``Y`` -- dictionaries representing respectively vectors `X` and `Y`
-    - ``factor_on_left`` -- boolean (default: ``False``):
+    - ``factor_on_left`` -- boolean (default: ``False``);
       whether to compute `a X + Y` or `X a + Y`
 
     EXAMPLES::
@@ -154,7 +150,7 @@ cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
         sage: Y = {0: 1, 1: 1}
         sage: X = {0: -1, 1: 1}
 
-    Computing `X+Y`::
+    Computing `X + Y`::
 
         sage: blas.axpy(1, X, Y)
         {1: 2}
@@ -164,12 +160,12 @@ cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
         sage: X, Y
         ({0: -1, 1: 1}, {0: 1, 1: 1})
 
-    Computing `-X+Y`::
+    Computing `-X + Y`::
 
         sage: blas.axpy(-1, X, Y)
         {0: 2}
 
-    Computing `2X+Y`::
+    Computing `2X + Y`::
 
         sage: blas.axpy(2, X, Y)
         {0: -1, 1: 3}
@@ -190,7 +186,7 @@ cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
         ({0: -1, 1: 1}, {})
     """
     if X:
-        Y = PyDict_Copy(Y)
+        Y = Y.copy()
         iaxpy(a, X, Y, True, factor_on_left)
     return Y
 
@@ -209,7 +205,7 @@ cpdef dict negate(dict D):
         sage: blas.negate(D1)
         {0: -1, 1: -1}
     """
-    return { key: -value for key,value in D.iteritems() }
+    return { key: -value for key, value in D.iteritems() }
 
 cpdef dict scal(a, dict D, bint factor_on_left=True):
     r"""
@@ -298,7 +294,7 @@ cpdef dict sum(dict_iter):
         if result:
             iaxpy(1, D, result, remove_zeros=False)
         elif D:
-            result = PyDict_Copy(D)
+            result = D.copy()
 
     for_removal = [key for key in result if not result[key]]
     for key in for_removal:
@@ -345,7 +341,7 @@ cpdef dict linear_combination(dict_factor_iter, bint factor_on_left=True):
         if not a: # We multiply by 0, so nothing to do
             continue
         if not result and a == 1:
-            result = PyDict_Copy(D)
+            result = D.copy()
         else:
             iaxpy(a, D, result, remove_zeros=False)
 
@@ -354,3 +350,4 @@ cpdef dict linear_combination(dict_factor_iter, bint factor_on_left=True):
         del result[key]
 
     return result
+

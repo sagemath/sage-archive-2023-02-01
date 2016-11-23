@@ -1548,7 +1548,8 @@ class ChainComplex_class(Parent):
         for example.
 
         This is obtained in Sage by tensoring (on the left, to get the
-        appropriate sign) with a rank one free module in degree `n`.
+        appropriate sign) with a rank one free module in degree `-nd`,
+        where `d` is the degree of the differential.
 
         EXAMPLES::
 

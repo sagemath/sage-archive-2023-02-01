@@ -1760,8 +1760,8 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     else:
         size=''
 
-    s = '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
-        extra_preamble, title, size)
+    formatted_title = "\\begin{center}{\\Large\\bf %s}\\end{center}\n"%str(title) if title else ""
+    s = '%s\n\\begin{document}%s\n%s'%(extra_preamble, formatted_title, size)
 
     #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
     s += '\\vspace{40mm}'
@@ -2119,7 +2119,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     to the LaTeX preamble, and replaces the ``\\[`` and ``\\]`` around
     each object by ``\\begin{page}$`` and ``$\\end{page}``.
     Setting ``tightpage`` to ``False`` turns off this behavior and provides
-    the latex output as a full page.
+    the latex output as a full page. If ``tightpage`` is set to ``True``,
+    the ``Title`` is ignored.
 
     If in notebook mode with ``viewer`` equal to ``None``, this
     usually uses MathJax -- see the next paragraph for the exception --
@@ -2170,6 +2171,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     if tightpage == True:
         latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}\\setlength\\PreviewBorder{%fmm}'%border,
                          'math_left':'\\begin{page}$', 'math_right':'$\\end{page}'}
+        title = False
     else:
         latex_options = {}
     s = _latex_file_(objects, title=title, sep=sep, tiny=tiny, debug=debug, **latex_options)

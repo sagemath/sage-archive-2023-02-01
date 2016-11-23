@@ -237,7 +237,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     REFERENCES:
 
     - [deGraaf2000]_ Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
-    - [Kac1990]_ Victor Kac, *Infinite dimensional Lie algebras*.
+    - [Ka1990]_ Victor Kac, *Infinite dimensional Lie algebras*.
     - :wikipedia:`Lie_algebra`
     """
     # This works because it is an abstract base class and this

@@ -27,7 +27,7 @@ from sage.monoids.indexed_free_monoid import (IndexedMonoid,
         IndexedMonoidElement, IndexedFreeMonoidElement,
         IndexedFreeAbelianMonoidElement)
 from sage.misc.cachefunc import cached_method
-import sage.combinat.dict_addition as blas
+import sage.data_structures.blas_dict as blas
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.sets.family import Family

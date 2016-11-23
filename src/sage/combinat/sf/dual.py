@@ -21,7 +21,7 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.matrix.all import matrix
 import sage.combinat.partition
-import sage.combinat.dict_addition as blas
+import sage.data_structures.blas_dict as blas
 from . import classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):

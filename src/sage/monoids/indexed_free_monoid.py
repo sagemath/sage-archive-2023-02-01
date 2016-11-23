@@ -21,7 +21,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.structure.sage_object import op_EQ, op_NE, richcmp, rich_to_bool
-import sage.combinat.dict_addition as blas
+import sage.data_structures.blas_dict as blas
 
 from sage.categories.monoids import Monoids
 from sage.categories.poor_man_map import PoorManMap

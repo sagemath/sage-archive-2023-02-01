@@ -58,11 +58,11 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
     The parent `K` should support addition unless `a=-1`, negation if
     `a=-1`, and multiplication if `a\ne ±1`.
 
-    See :mod:`sage.combinat.dict_addition` for an overview.
+    See :mod:`sage.data_structures.blas_dict` for an overview.
 
     EXAMPLES::
 
-        sage: import sage.combinat.dict_addition as blas
+        sage: import sage.data_structures.blas_dict as blas
         sage: X = {0: -1, 1: 1}
         sage: Y = {0: 1, 1: 1}
 
@@ -145,7 +145,7 @@ cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
 
     EXAMPLES::
 
-        sage: import sage.combinat.dict_addition as blas
+        sage: import sage.data_structures.blas_dict as blas
         sage: Y = {0: 1, 1: 1}
         sage: X = {0: -1, 1: 1}
 
@@ -199,7 +199,7 @@ cpdef dict negate(dict D):
 
     EXAMPLES::
 
-        sage: import sage.combinat.dict_addition as blas
+        sage: import sage.data_structures.blas_dict as blas
         sage: D1 = {0: 1, 1: 1}
         sage: blas.negate(D1)
         {0: -1, 1: -1}
@@ -217,7 +217,7 @@ cpdef dict scal(a, dict D, bint factor_on_left=True):
 
     EXAMPLES::
 
-        sage: import sage.combinat.dict_addition as blas
+        sage: import sage.data_structures.blas_dict as blas
         sage: R = IntegerModRing(12)              # a ring with zero divisors
         sage: D = {0: R(1), 1: R(2), 2: R(4)}
         sage: blas.scal(R(3), D)
@@ -239,7 +239,7 @@ cpdef dict add(dict D, dict D2):
 
     EXAMPLES::
 
-        sage: import sage.combinat.dict_addition as blas
+        sage: import sage.data_structures.blas_dict as blas
         sage: D = {0: 1, 1: 1}
         sage: D2 = {0: -1, 1: 1}
         sage: blas.add(D, D2)
@@ -272,7 +272,7 @@ cpdef dict sum(dict_iter):
 
     EXAMPLES::
 
-        sage: import sage.combinat.dict_addition as blas
+        sage: import sage.data_structures.blas_dict as blas
         sage: D = {0: 1, 1: 1}; D
         {0: 1, 1: 1}
         sage: blas.sum(D for x in range(5))
@@ -324,7 +324,7 @@ cpdef dict linear_combination(dict_factor_iter, bint factor_on_left=True):
 
     EXAMPLES::
 
-        sage: import sage.combinat.dict_addition as blas
+        sage: import sage.data_structures.blas_dict as blas
         sage: D = { 0:1, 1:1 }; D
         {0: 1, 1: 1}
         sage: blas.linear_combination( (D,i) for i in range(5) )

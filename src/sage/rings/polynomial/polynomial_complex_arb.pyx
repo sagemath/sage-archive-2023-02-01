@@ -130,6 +130,10 @@ cdef class Polynomial_complex_arb(Polynomial):
             [3.141592653589793 +/- 5.61e-16]
         """
         cdef ComplexBall ball
+        cdef Polynomial pol
+        cdef list lst
+        cdef tuple tpl
+        cdef dict dct
         cdef long length, i
 
         Polynomial.__init__(self, parent, is_gen=is_gen)
@@ -144,26 +148,36 @@ cdef class Polynomial_complex_arb(Polynomial):
             acb_poly_set_coeff_acb(self.__poly, 0, (<ComplexBall> x).value)
         else:
             Coeff = parent.base_ring()
-            if isinstance(x, (list, tuple)):
-                length = len(x)
+            if isinstance(x, list):
+                lst = <list> x
+                length = len(lst)
                 sig_on(); acb_poly_fit_length(self.__poly, length); sig_off()
                 for i in range(length):
-                    ball = Coeff(x[i])
+                    ball = Coeff(lst[i])
+                    acb_poly_set_coeff_acb(self.__poly, i, ball.value)
+            elif isinstance(x, tuple):
+                tpl = <tuple> x
+                length = len(tpl)
+                sig_on(); acb_poly_fit_length(self.__poly, length); sig_off()
+                for i in range(length):
+                    ball = Coeff(tpl[i])
                     acb_poly_set_coeff_acb(self.__poly, i, ball.value)
             elif isinstance(x, Polynomial):
-                length = x.degree() + 1
+                pol = <Polynomial> x
+                length = pol.degree() + 1
                 sig_on(); acb_poly_fit_length(self.__poly, length); sig_off()
                 for i in range(length):
-                    ball = Coeff((<Polynomial> x).get_unsafe(i))
+                    ball = Coeff(pol.get_unsafe(i))
                     acb_poly_set_coeff_acb(self.__poly, i, ball.value)
             elif isinstance(x, dict):
-                if len(x) == 0:
+                dct = <dict> x
+                if len(dct) == 0:
                     acb_poly_zero(self.__poly)
                 else:
-                    length = max(int(i) for i in x) + 1
+                    length = max(int(i) for i in dct) + 1
                     sig_on(); acb_poly_fit_length(self.__poly, length); sig_off()
-                    for i, c in x.iteritems():
-                        ball = Coeff(x[i])
+                    for i, c in dct.iteritems():
+                        ball = Coeff(c)
                         acb_poly_set_coeff_acb(self.__poly, i, ball.value)
             else:
                 ball = Coeff(x)

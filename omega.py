@@ -574,7 +574,7 @@ def Omega(var, expression, denominator=None, op=operator.ge):
     factors_denominator = tuple(L(factor) for factor in factors_denominator)
     factors_denominator, to_numerator = partition(
         factors_denominator,
-        lambda factor: factor.variables() == (var,) and len(factor.dict()) == 1)
+        lambda factor: factor.variables() == (var,) and factor.number_of_terms() == 1)
     numerator /= prod(to_numerator)
 
     factors_denominator, other_factors = partition(

@@ -424,42 +424,18 @@ class LocalOptions:
         f=getattr(obj, dispatch_to+"_"+str(self._options[option]))
         return f(*get_values, **set_values)
 
+default_tikz_options = dict(
+    scale=1, line_size=1, point_size=3.5, color_line='black', 
+    color_point='black', color_bounce_0='red', color_bounce_1='blue',
+    translation=[0, 0], rotation=0, mirror=None
+)
 r"""
 This is the default TIKZ options.
+
 This option is used to configurate element of a drawing to allow
 TIKZ code generation.
 """
-default_tikz_options = dict(scale=1, line_size=1, point_size=3.5,
-                            color_line='black', color_point='black',
-                            color_bounce_0='red', color_bounce_1='blue',
-                            translation=[0, 0], rotation=0,
-                            mirror=None)
 
-r"""
-This global option contains all the data needed by the Parallelogram classes
-to draw, display in ASCII, compile in latex a parallelogram polyomino.
-
-The options avalaible are :
-
- - tikz_options : this option configurate all the information usefull to
-   generate TIKZ code. For example, color, line size, etc ...
-
- - drawing_components : this option is used to explain to the system
-   which compoent of the drawing you want to draw. For example,
-   you can ask to draw some elements of the following list :
-      - the diagram,
-      - the tree inside the parallelogram polyomino,
-      - the bounce paths inside the parallelogram polyomino.
-
- - display : this option is used to configurate the ASCII display.
-   the option avalaible are :
-      - list : the default value is 'list' and is used to represent PP as a
-        list containinge the upper and lower path.
-      - drawing : this value is used to eplain we want to dispaly an array
-        with th PP drawn inside (with connectec 1).
-
- - latex : Same as display. The default is 'drawing'.
-"""
 ParallelogramPolyominoesOptions = LocalOptions(
     'ParallelogramPolyominoes_size',
 #    module='sage.combinat.parallelogram_polyomino',
@@ -502,6 +478,30 @@ ParallelogramPolyominoesOptions = LocalOptions(
         )
     )
 )
+r"""
+This global option contains all the data needed by the Parallelogram classes
+to draw, display in ASCII, compile in latex a parallelogram polyomino.
+
+The options avalaible are :
+
+- tikz_options : this option configurate all the information usefull to
+  generate TIKZ code. For example, color, line size, etc ...
+
+- drawing_components : this option is used to explain to the system
+  which compoent of the drawing you want to draw. For example,
+  you can ask to draw some elements of the following list :
+  - the diagram,
+  - the tree inside the parallelogram polyomino,
+  - the bounce paths inside the parallelogram polyomino.
+
+- display : this option is used to configurate the ASCII display.
+  the option avalaible are :
+  - list : (this is the default value) is used to represent PP as a list containinge the upper and lower path.
+  - drawing : this value is used to explain we want to display an array with the PP drawn inside (with connected 1).
+
+- latex : Same as display. The default is "drawing".
+
+"""
 
 
 class _drawing_tool:
@@ -623,7 +623,7 @@ class _drawing_tool:
 
         def rotate(pos, angle):
             """
-                Rotate by ̀ angle` a position around the origin.
+                Rotate by `angle` a position around the origin.
 
                 INPUT:
                 - `pos` -- The position to rotate.

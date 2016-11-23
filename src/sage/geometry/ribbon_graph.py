@@ -989,6 +989,69 @@ class RibbonGraph(SageObject, UniqueRepresentation):
 
         return basis
 
+    def normalize(self):
+        r"""
+        Return an equivalent graph such that the enumeration of its darts
+        exhausts all numbers from 1 to the number of darts.
+
+        OUTPUT:
+
+        - a ribbon graph equivalent to ``self`` such that the enumeration
+        of its darts exhausts all numbers from 1 to the number of darts.
+
+        EXAMPLES::
+
+            sage: s0 = PermutationGroupElement('(1,22,3,4,5,6,7,15)(8,16,9,10,11,12,13,14)')
+            sage: r0 = PermutationGroupElement('(1,8)(22,9)(3,10)(4,11)(5,12)(6,13)(7,14)(15,16)')
+            sage: R0 = RibbonGraph(s0,r0); R0
+            Ribbon graph of genus 3 and 2 boundary components
+            sage: RN0 = R0.normalize(); RN0; RN0.sigma(); RN0.rho()
+            Ribbon graph of genus 3 and 2 boundary components
+            (1,16,2,3,4,5,6,14)(7,15,8,9,10,11,12,13)
+            (1,7)(2,9)(3,10)(4,11)(5,12)(6,13)(8,16)(14,15)
+
+            sage: s1 = PermutationGroupElement('(5,10,12)(30,34,78)')
+            sage: r1 = PermutationGroupElement('(5,30)(10,34)(12,78)')
+            sage: R1 = RibbonGraph(s1,r1); R1
+            Ribbon graph of genus 1 and 1 boundary components
+            sage: RN1 = R1.normalize(); RN1; RN1.sigma(); RN1.rho()
+            Ribbon graph of genus 1 and 1 boundary components
+            (1,2,3)(4,5,6)
+            (1,4)(2,5)(3,6)
+        """
+        #First we compute the vertices of valency 1 and store them in val_one.
+        aux_sigma = [list(x) for x in self._sigma.cycle_tuples()]
+        aux_rho = [list(x) for x in self._rho.cycle_tuples()]
+        darts_rho = flatten(aux_rho)
+        darts_sigma = flatten(aux_sigma)
+        val_one = [x for x in darts_rho if x not in darts_sigma]
+ 
+        #We add them to aux_sigma
+        for i in range(len(val_one)):
+            aux_sigma += [[val_one[i]]]
+        #Now we proceed to normalize the numbers enumerating the darts.
+        #We do this by checking if every number from 1 to len(darts_rho)
+        #is actually in darts_rho.
+        for i in range(len(darts_rho)):
+            found = i+1 in darts_rho
+            #if a value is not in darts_rho, we take the next number that appears
+            #and change it to the new value.
+            if found == False:
+                aux_val = min(x for x in darts_rho if x > i+1)
+                pos_darts = darts_rho.index(aux_val)
+                pos_rho = _find(aux_rho,aux_val)
+                pos_sigma = _find(aux_sigma,aux_val)
+
+                #Now we set the found positions to the new normalized value
+                darts_rho[pos_darts]=i+1
+                aux_sigma[pos_sigma[0]][pos_sigma[1]]=i+1
+                aux_rho[pos_rho[0]][pos_rho[1]]=i+1
+
+        return RibbonGraph(
+                        PermutationGroupElement([tuple(x) for x in aux_sigma]), 
+                        PermutationGroupElement([tuple(x) for x in aux_rho])
+                        )
+
 def make_ribbon(g, r):
     r"""
     Return a ribbon graph whose thickening has genus ``g`` and ``r``
@@ -1043,7 +1106,7 @@ def make_ribbon(g, r):
     repr_sigma = [[1],[2*g+2]]
     repr_rho = [[1,2*g+2]]
 
-    #We first generate the surface of genus g and boundary component.
+    #We first generate the surface of genus g and 1 boundary component.
     #This is done by considering the usual planar representation of
     #a surface as a poligon of 4*g+2 edges with identifications. (see
     #any topology  book on the classification of surfaces)
@@ -1062,3 +1125,78 @@ def make_ribbon(g, r):
     return RibbonGraph(PermutationGroupElement([tuple(x) for x in repr_sigma]), 
                        PermutationGroupElement([tuple(x) for x in repr_rho]))
 
+
+
+def bipartite_rib(p,q):
+    r"""
+    Return the bipartite graph modeling the corresponding
+    Brieskorn-Pham singularity.
+    
+    INPUT:
+    
+    - ``p`` -- a positive integer.
+    
+    - ``q`` -- a positive integer.
+    
+    OUTPUT:
+    
+    - the ribbon graph resulting from the following construction: take two
+      parallel lines in the plane. Consider ``p`` points in one of them and ``q``
+      points in the other. Join with a line each point from the first set with
+      every point with the second set. The resulting is a planar projection of 
+      the complete bipartite graph of type `(p,q)`. If you consider the cyclic
+      ordering at each vertex induced by the positive orientation of the plane,
+      the result is a ribbon graph whose associated orientable surface with
+      boundary is homeomorphic to the Milnor fiber of the Brieskorn-Pham
+      singularity `x^p + y^q`. It satisfies that it has gcd(p,q) number of 
+      boundary components and genus `(pq -p - q - gcd(p,q) -2)/2`.
+
+    EXAMPLES::
+
+        sage: B23 = bipartite_rib(2,3); B23; B23.sigma(); B23.rho()
+        Ribbon graph of genus 1 and 1 boundary components
+        (1,2,3)(4,5,6)(7,8)(9,10)(11,12)
+        (1,8)(2,10)(3,12)(4,7)(5,9)(6,11)
+ 
+        sage: B32 = bipartite_rib(3,2); B32; B32.sigma(); B32.rho()
+        Ribbon graph of genus 1 and 1 boundary components
+        (1,2)(3,4)(5,6)(7,8,9)(10,11,12)
+        (1,9)(2,12)(3,8)(4,11)(5,7)(6,10)
+
+        sage: B33 = bipartite_rib(3,3); B33; B33.sigma(); B33.rho()
+        Ribbon graph of genus 1 and 3 boundary components
+        (1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)
+        (1,12)(2,15)(3,18)(4,11)(5,14)(6,17)(7,10)(8,13)(9,16)
+
+        sage: B24 = bipartite_rib(2,4); B24; B24.sigma(); B24.rho()
+        Ribbon graph of genus 1 and 2 boundary components
+        (1,2,3,4)(5,6,7,8)(9,10)(11,12)(13,14)(15,16)
+        (1,10)(2,12)(3,14)(4,16)(5,9)(6,11)(7,13)(8,15)
+
+        sage: B47 = bipartite_rib(4,7); B47; B47.sigma(); B47.rho()
+        Ribbon graph of genus 9 and 1 boundary components
+        (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)(15,16,17,18,19,20,21)(22,23,24,25,26,27,28)(29,30,31,32)(33,34,35,36)(37,38,39,40)(41,42,43,44)(45,46,47,48)(49,50,51,52)(53,54,55,56)
+        (1,32)(2,36)(3,40)(4,44)(5,48)(6,52)(7,56)(8,31)(9,35)(10,39)(11,43)(12,47)(13,51)(14,55)(15,30)(16,34)(17,38)(18,42)(19,46)(20,50)(21,54)(22,29)(23,33)(24,37)(25,41)(26,45)(27,49)(28,53)
+    """
+    sigma = []
+    rho = []
+    for i in range(p):
+        aux_tuple = [i*q + j + 1  for j in range(q)]
+        sigma += [aux_tuple]
+    for i in range(q):
+        aux_tuple = [p*q + i*p + j +1  for j in range(p)]
+        sigma += [aux_tuple]
+    for i in range(p*q):
+        if (i+1) % q == 0:
+            k = q
+        elif (i+1) % q != 0:
+            k = (i+1) % q
+        t = 0
+        if (i+1) %  q != 0:
+            t = 1
+        aux_edge = [i+1, p*q + k*p - ((i+1 + t*q)/q).floor() +1]
+        rho += [aux_edge]
+    return RibbonGraph(
+                       PermutationGroupElement([tuple(x) for x in sigma]), 
+                       PermutationGroupElement([tuple(x) for x in rho])
+                       )

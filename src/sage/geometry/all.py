@@ -26,5 +26,6 @@ from . import toric_plotter
 from .hyperbolic_space.all import *
 
 lazy_import('sage.geometry.ribbon_graph', 'RibbonGraph')
+lazy_import('sage.geometry.ribbon_graph', 'bipartite_rib')
 lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArrangements')
 lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')

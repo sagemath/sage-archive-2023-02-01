@@ -234,7 +234,11 @@ class LocalOptions:
         """
         assert(key in self._available_options)
         if value=="?":
-            print "Current value : "+self._options[key]+"\n"+str(self._available_options[key])
+            res="Current value : "+str(self._options[key])
+            option_key=self._available_options[key]
+            if "values" in option_key:
+                res+="\n"+str(self._available_options[key])
+            print res
         else:
             available_options = self._available_options
             if "values" in available_options:
@@ -457,7 +461,7 @@ ParallelogramPolyominoesOptions = LocalOptions(
         )
     ),
     drawing_components=dict(
-        default=dict(diagram=True),
+        default=dict(diagram=True, tree=False, bounce_0=False, bounce_1=False),
         description='Different tree-like tableaux components to draw',
         checker=lambda x: Set(x.keys()).issubset(
             Set(['diagram', 'tree', 'bounce_0', 'bounce_1', ])
@@ -1913,31 +1917,7 @@ class ParallelogramPolyomino(ClonableList):
 
         def __getitem__(self, column):
             r"""
-            Return 0 or 1 if theis is a cell inside the specific colum inside the
-            row.
-
-            EXAMPLES::
-
-            sage: pp = ParallelogramPolyomino(
-            ....:     [
-            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
-            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
-            ....:     ]
-            ....: )
-            sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
-            sage: [row[-1], row[0], row[1], row[2], row[3]]
-            [0, 0, 1, 1, 0]
-            """
-            if(
-                self.is_inside()
-                and 0 <= column and column < self.polyomino.width()
-            ):
-                return self.polyomino.get_array()[self.row][column]
-            return 0
-
-        def is_inside(self):
-            r"""
-            Return true if the 0 or 1 if theis is a cell inside the specific colum inside the
+            Return 0 or 1 if the is a cell inside the specific colum inside the
             row.
 
             EXAMPLES::
@@ -1960,17 +1940,70 @@ class ParallelogramPolyomino(ClonableList):
             sage: [row[-1], row[0], row[1], row[2], row[3]]
             [0, 0, 1, 1, 0]
             """
+            if(
+                self.is_inside()
+                and 0 <= column and column < self.polyomino.width()
+            ):
+                return self.polyomino.get_array()[self.row][column]
+            return 0
+
+        def is_inside(self):
+            r"""
+            Return ``True`` if the row is inside the parallelogram polyomino, return ``False`` otherwise. 
+
+            EXAMPLES::
+
+            sage: PP=ParallelogramPolyomino
+            sage: pp = PP(
+            ....:     [
+            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+            ....:     ]
+            ....: )
+            sage: matrix(pp.get_array())
+            [1 0 0]
+            [1 0 0]
+            [1 0 0]
+            [1 1 1]
+            [0 1 1]
+            [0 0 1]
+
+            sage: [PP._polyomino_row(pp, i).is_inside() for i in [-1,0,3,5,6]]
+            [False, True, True, True, False]
+
+            """
             return 0 <= self.row and self.row < self.polyomino.height()
 
         def is_outside(self):
             r"""
-            TODO
+            Return ``True`` if the row is outside the parallelogram polyomino, return ``False`` otherwise.
+
+            EXAMPLES::
+
+            sage: PP=ParallelogramPolyomino
+            sage: pp = PP(
+            ....:     [
+            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+            ....:     ]
+            ....: )
+            sage: matrix(pp.get_array())
+            [1 0 0]
+            [1 0 0]
+            [1 0 0]
+            [1 1 1]
+            [0 1 1]
+            [0 0 1]
+
+            sage: [PP._polyomino_row(pp, i).is_outside() for i in [-1,0,3,5,6]]
+            [True, False, False, False, True]
+
             """
             return not self.is_inside()
 
         def __repr__(self):
             r"""
-            TODO
+            Return a string representation of ``self``.
             """
             if self.is_outside():
                 return "The (outside) row %s of the parallelogram" % (self.row)
@@ -2200,10 +2233,10 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]
             ....: )
-            sage: pp
+            sage: pp # indirect doctest
             [[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]
             sage: pp.set_options(display='drawing')
-            sage: pp
+            sage: pp # indirect doctest
             [1 1 0]
             [1 1 0]
             [0 1 1]
@@ -2262,7 +2295,30 @@ class ParallelogramPolyomino(ClonableList):
 
     def _to_tikz_diagram(self):
         r"""
-        TODO
+        Return the tikz code of the diagramme representing ``self``.
+
+        TEST::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: print pp.to_tikz()
+            <BLANKLINE>
+              \draw[color=black, line width=1] (0.000000, 5.000000) -- (0.000000, 3.000000);
+              \draw[color=black, line width=1] (3.000000, 4.000000) -- (3.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 5.000000) -- (1.000000, 5.000000);
+              \draw[color=black, line width=1] (1.000000, 0.000000) -- (3.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 5.000000) -- (1.000000, 0.000000);
+              \draw[color=black, line width=1] (2.000000, 4.000000) -- (2.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (3.000000, 4.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
+              \draw[color=black, line width=1] (1.000000, 2.000000) -- (3.000000, 2.000000);
+              \draw[color=black, line width=1] (1.000000, 1.000000) -- (3.000000, 1.000000);
+
+            sage: pp = ParallelogramPolyomino([[1],[1]])
+            sage: print pp.to_tikz()
+            <BLANKLINE>
+              \draw[color=black, line width=1] (0.000000, 0.000000) -- (1.000000, 0.000000);
         """
         tikz_options = self.get_tikz_options()
         grid_width = self.width() + 1
@@ -2295,36 +2351,101 @@ class ParallelogramPolyomino(ClonableList):
             res += drawing_tool.draw_line([w1, h], [w2, h])
         return res
 
-    def _to_tikz_tree_with_bounce(self, directions=[0, 1]):
-        r"""
-        TODO
-        """
-        res = ""
-        tikz_options = self.get_tikz_options()
-        if self.size() == 1:
-            return res
-        grid_width = self.width() + 1
-        grid_height = self.height() + 1
-        drawing_tool = _drawing_tool(
-            tikz_options,
-            XY=lambda v: [v[0] + .5, grid_height-1-v[1] - .5]
-        )
-        if 0 in directions:
-            for node in self.get_right_nodes():
-                res += drawing_tool.draw_point(
-                    [node[1], node[0]], tikz_options['color_bounce_0']
-                )
-        if 1 in directions:
-            for node in self.get_left_nodes():
-                res += drawing_tool.draw_point(
-                    [node[1], node[0]], tikz_options['color_bounce_1']
-                )
-        res += drawing_tool.draw_point([0, 0])
-        return res
+#   def _to_tikz_tree_with_bounce(self, directions=[0, 1]):
+#       r"""
+#       TODO
+#       """
+#       res = ""
+#       tikz_options = self.get_tikz_options()
+#       if self.size() == 1:
+#           return res
+#       grid_width = self.width() + 1
+#       grid_height = self.height() + 1
+#       drawing_tool = _drawing_tool(
+#           tikz_options,
+#           XY=lambda v: [v[0] + .5, grid_height-1-v[1] - .5]
+#       )
+#       if 0 in directions:
+#           for node in self.get_right_nodes():
+#               res += drawing_tool.draw_point(
+#                   [node[1], node[0]], tikz_options['color_bounce_0']
+#               )
+#       if 1 in directions:
+#           for node in self.get_left_nodes():
+#               res += drawing_tool.draw_point(
+#                   [node[1], node[0]], tikz_options['color_bounce_1']
+#               )
+#       res += drawing_tool.draw_point([0, 0])
+#       return res
 
     def _to_tikz_bounce(self, directions=[0, 1]):
         r"""
-        TODO
+        Return the tikz code to display one or both bounces of ``self``.
+
+        See :meth:`ParallelogramPolyomino.bounce_path` for more information about the bounce.
+
+        TEST::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 0, 1, 1, 0, 1, 1], [1, 0, 1, 1, 0, 1, 0, 0]]
+            ....: )
+            sage: pp.set_options(drawing_components=dict(diagram= True, bounce_0=True))
+            sage: print pp.to_tikz() # indirect doctest
+            <BLANKLINE>
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
+              \draw[color=black, line width=1] (4.000000, 2.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (1.000000, 4.000000);
+              \draw[color=black, line width=1] (2.000000, 0.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 4.000000) -- (1.000000, 1.000000);
+              \draw[color=black, line width=1] (2.000000, 3.000000) -- (2.000000, 0.000000);
+              \draw[color=black, line width=1] (3.000000, 3.000000) -- (3.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
+              \draw[color=black, line width=1] (0.000000, 2.000000) -- (4.000000, 2.000000);
+              \draw[color=black, line width=1] (0.000000, 1.000000) -- (4.000000, 1.000000);
+              \draw[color=red, line width=2] (1.000000, 4.000000) -- (1.000000, 1.000000);
+              \draw[color=red, line width=2] (1.000000, 1.000000) -- (4.000000, 1.000000);
+              \draw[color=red, line width=2] (4.000000, 1.000000) -- (4.000000, 0.000000);
+
+            sage: pp.set_options(drawing_components=dict(diagram= True, bounce_1=True))
+            sage: print pp.to_tikz() # indirect doctest
+            <BLANKLINE>
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
+              \draw[color=black, line width=1] (4.000000, 2.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (1.000000, 4.000000);
+              \draw[color=black, line width=1] (2.000000, 0.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 4.000000) -- (1.000000, 1.000000);
+              \draw[color=black, line width=1] (2.000000, 3.000000) -- (2.000000, 0.000000);
+              \draw[color=black, line width=1] (3.000000, 3.000000) -- (3.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
+              \draw[color=black, line width=1] (0.000000, 2.000000) -- (4.000000, 2.000000);
+              \draw[color=black, line width=1] (0.000000, 1.000000) -- (4.000000, 1.000000);
+              \draw[color=blue, line width=3] (0.000000, 3.000000) -- (1.000000, 3.000000);
+              \draw[color=blue, line width=3] (1.000000, 3.000000) -- (1.000000, 1.000000);
+              \draw[color=blue, line width=3] (1.000000, 1.000000) -- (4.000000, 1.000000);
+              \draw[color=blue, line width=3] (4.000000, 1.000000) -- (4.000000, 0.000000);
+
+
+            sage: pp.set_options(drawing_components=dict(diagram= True, bounce_0=True, bounce_1=True))
+            sage: print pp.to_tikz() # indirect doctest
+            <BLANKLINE>
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
+              \draw[color=black, line width=1] (4.000000, 2.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (1.000000, 4.000000);
+              \draw[color=black, line width=1] (2.000000, 0.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 4.000000) -- (1.000000, 1.000000);
+              \draw[color=black, line width=1] (2.000000, 3.000000) -- (2.000000, 0.000000);
+              \draw[color=black, line width=1] (3.000000, 3.000000) -- (3.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
+              \draw[color=black, line width=1] (0.000000, 2.000000) -- (4.000000, 2.000000);
+              \draw[color=black, line width=1] (0.000000, 1.000000) -- (4.000000, 1.000000);
+              \draw[color=blue, line width=3] (0.000000, 3.000000) -- (1.000000, 3.000000);
+              \draw[color=blue, line width=3] (1.000000, 3.000000) -- (1.000000, 1.000000);
+              \draw[color=blue, line width=3] (1.000000, 1.000000) -- (4.000000, 1.000000);
+              \draw[color=blue, line width=3] (4.000000, 1.000000) -- (4.000000, 0.000000);
+              \draw[color=red, line width=2] (1.000000, 4.000000) -- (1.000000, 1.000000);
+              \draw[color=red, line width=2] (1.000000, 1.000000) -- (4.000000, 1.000000);
+              \draw[color=red, line width=2] (4.000000, 1.000000) -- (4.000000, 0.000000);
+
         """
         res = ""
         tikz_options = self.get_tikz_options()
@@ -2375,7 +2496,34 @@ class ParallelogramPolyomino(ClonableList):
 
     def _to_tikz_tree(self):
         r"""
-        TODO
+        Return the tikz code to display a node inside the boxes which are nodes.
+        See :meth:`ParallelogramPolyomino.box_is_node` for more information.
+
+        TESTS::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 0, 1, 1, 0, 1, 1], [1, 0, 1, 1, 0, 1, 0, 0]]
+            ....: )
+            sage: pp.set_options(drawing_components=dict(diagram= True, tree=True))
+            sage: print pp.to_tikz() # indirect doctest
+            <BLANKLINE>
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
+              \draw[color=black, line width=1] (4.000000, 2.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (1.000000, 4.000000);
+              \draw[color=black, line width=1] (2.000000, 0.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 4.000000) -- (1.000000, 1.000000);
+              \draw[color=black, line width=1] (2.000000, 3.000000) -- (2.000000, 0.000000);
+              \draw[color=black, line width=1] (3.000000, 3.000000) -- (3.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) -- (3.000000, 3.000000);
+              \draw[color=black, line width=1] (0.000000, 2.000000) -- (4.000000, 2.000000);
+              \draw[color=black, line width=1] (0.000000, 1.000000) -- (4.000000, 1.000000);
+              \filldraw[color=black] (0.500000, 2.500000) circle (3.5pt);
+              \filldraw[color=black] (0.500000, 1.500000) circle (3.5pt);
+              \filldraw[color=black] (2.500000, 0.500000) circle (3.5pt);
+              \filldraw[color=black] (1.500000, 2.500000) circle (3.5pt);
+              \filldraw[color=black] (2.500000, 2.500000) circle (3.5pt);
+              \filldraw[color=black] (3.500000, 1.500000) circle (3.5pt);
+              \filldraw[color=black] (0.500000, 3.500000) circle (3.5pt);
         """
         res = ""
         tikz_options = self.get_tikz_options()
@@ -2669,31 +2817,85 @@ class ParallelogramPolyomino(ClonableList):
 
         EXAMPLES::
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [[0, 1], [1, 0]]
+            sage: pp=ParallelogramPolyomino(
+            ....:     [[0,0,0,1,1,0,1,0,0,1,1,1],[1,1,1,0,0,1,1,0,0,1,0,0]]
             ....: )
-            sage: print( pp.to_tikz() )
+            sage: print pp.to_tikz()
             <BLANKLINE>
-              \draw[color=black, line width=1] (0.000000, 1.000000) -- (0.000000, 0.000000);
-              \draw[color=black, line width=1] (1.000000, 1.000000) -- (1.000000, 0.000000);
-              \draw[color=black, line width=1] (0.000000, 1.000000) -- (1.000000, 1.000000);
-              \draw[color=black, line width=1] (0.000000, 0.000000) -- (1.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 6.000000) -- (0.000000, 3.000000);
+              \draw[color=black, line width=1] (6.000000, 2.000000) -- (6.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 6.000000) -- (3.000000, 6.000000);
+              \draw[color=black, line width=1] (3.000000, 0.000000) -- (6.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 6.000000) -- (1.000000, 3.000000);
+              \draw[color=black, line width=1] (2.000000, 6.000000) -- (2.000000, 2.000000);
+              \draw[color=black, line width=1] (3.000000, 6.000000) -- (3.000000, 0.000000);
+              \draw[color=black, line width=1] (4.000000, 4.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (5.000000, 4.000000) -- (5.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 5.000000) -- (3.000000, 5.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (5.000000, 4.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) -- (5.000000, 3.000000);
+              \draw[color=black, line width=1] (2.000000, 2.000000) -- (6.000000, 2.000000);
+              \draw[color=black, line width=1] (3.000000, 1.000000) -- (6.000000, 1.000000);
+            sage: pp.set_options(
+            ....:     drawing_components=dict(
+            ....:         diagram=True,
+            ....:         tree=True,
+            ....:         bounce_0=True,
+            ....:         bounce_1=True
+            ....:     )
+            ....: )
+            sage: print pp.to_tikz()
+            <BLANKLINE>
+              \draw[color=black, line width=1] (0.000000, 6.000000) -- (0.000000, 3.000000);
+              \draw[color=black, line width=1] (6.000000, 2.000000) -- (6.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 6.000000) -- (3.000000, 6.000000);
+              \draw[color=black, line width=1] (3.000000, 0.000000) -- (6.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 6.000000) -- (1.000000, 3.000000);
+              \draw[color=black, line width=1] (2.000000, 6.000000) -- (2.000000, 2.000000);
+              \draw[color=black, line width=1] (3.000000, 6.000000) -- (3.000000, 0.000000);
+              \draw[color=black, line width=1] (4.000000, 4.000000) -- (4.000000, 0.000000);
+              \draw[color=black, line width=1] (5.000000, 4.000000) -- (5.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 5.000000) -- (3.000000, 5.000000);
+              \draw[color=black, line width=1] (0.000000, 4.000000) -- (5.000000, 4.000000);
+              \draw[color=black, line width=1] (0.000000, 3.000000) -- (5.000000, 3.000000);
+              \draw[color=black, line width=1] (2.000000, 2.000000) -- (6.000000, 2.000000);
+              \draw[color=black, line width=1] (3.000000, 1.000000) -- (6.000000, 1.000000);
+              \draw[color=blue, line width=3] (0.000000, 5.000000) -- (3.000000, 5.000000);
+              \draw[color=blue, line width=3] (3.000000, 5.000000) -- (3.000000, 2.000000);
+              \draw[color=blue, line width=3] (3.000000, 2.000000) -- (5.000000, 2.000000);
+              \draw[color=blue, line width=3] (5.000000, 2.000000) -- (5.000000, 0.000000);
+              \draw[color=blue, line width=3] (5.000000, 0.000000) -- (6.000000, 0.000000);
+              \draw[color=red, line width=2] (1.000000, 6.000000) -- (1.000000, 3.000000);
+              \draw[color=red, line width=2] (1.000000, 3.000000) -- (5.000000, 3.000000);
+              \draw[color=red, line width=2] (5.000000, 3.000000) -- (5.000000, 0.000000);
+              \draw[color=red, line width=2] (5.000000, 0.000000) -- (6.000000, 0.000000);
+              \filldraw[color=black] (0.500000, 4.500000) circle (3.5pt);
+              \filldraw[color=black] (0.500000, 3.500000) circle (3.5pt);
+              \filldraw[color=black] (2.500000, 2.500000) circle (3.5pt);
+              \filldraw[color=black] (3.500000, 1.500000) circle (3.5pt);
+              \filldraw[color=black] (3.500000, 0.500000) circle (3.5pt);
+              \filldraw[color=black] (1.500000, 5.500000) circle (3.5pt);
+              \filldraw[color=black] (2.500000, 5.500000) circle (3.5pt);
+              \filldraw[color=black] (3.500000, 3.500000) circle (3.5pt);
+              \filldraw[color=black] (4.500000, 3.500000) circle (3.5pt);
+              \filldraw[color=black] (5.500000, 1.500000) circle (3.5pt);
+              \filldraw[color=black] (0.500000, 5.500000) circle (3.5pt);
         """
         res = ""
         drawing_components = self.get_options()['drawing_components']
-        if 'diagram' in drawing_components:
+        if 'diagram' in drawing_components and drawing_components["diagram"]:
             res += self._to_tikz_diagram()
         directions = []
-        if 'bounce_0' in drawing_components:
+        if 'bounce_0' in drawing_components and drawing_components["bounce_0"]:
             directions.append(0)
-        if 'bounce_1' in drawing_components:
+        if 'bounce_1' in drawing_components and drawing_components["bounce_1"]:
             directions.append(1)
         if len(directions) != 0:
             res += self._to_tikz_bounce(directions)
-        if 'tree' in drawing_components:
+        if 'tree' in drawing_components and drawing_components["tree"]:
             res += self._to_tikz_tree()
-            if len(directions) != 0:
-                res += self._to_tikz_tree_with_bounce(directions)
+#           if len(directions) != 0:
+#               res += self._to_tikz_tree_with_bounce(directions)
         return res
 
     def geometry(self):

@@ -363,6 +363,10 @@ cdef class Graphics3d(SageObject):
 
         - ``opacity`` -- (default: 1) numeric value for transparency of surfaces
 
+        - ``radius`` -- (default: None) numeric value for radius of lines; use to render
+          lines thicker than available using ``thickness`` or on Windows platforms where
+          ``thickness`` is ignored
+
         - ``thickness`` -- (default: 1) numeric value for thickness of lines
 
         OUTPUT:

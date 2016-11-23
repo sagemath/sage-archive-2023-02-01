@@ -24,12 +24,7 @@ AUTHORS:
 
 from copy import copy
 
-#from sage.misc.abstract_method import abstract_method
-#from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.misc import repr_lincomb
-#from functools import total_ordering
-#from sage.structure.element import ModuleElement, RingElement, coerce_binop
-#from sage.structure.sage_object import SageObject
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element cimport have_same_parent, coercion_model
 from sage.structure.element_wrapper cimport ElementWrapper

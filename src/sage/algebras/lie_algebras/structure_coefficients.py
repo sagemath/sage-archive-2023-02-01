@@ -21,33 +21,20 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#from copy import copy
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.indexed_generators import (IndexedGenerators,
                                                standardize_names_index_set)
-#from sage.structure.parent import Parent
-#from sage.structure.unique_representation import UniqueRepresentation
 
-#from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
 
-#from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import StructureCoefficientsElement
-from sage.algebras.lie_algebras.lie_algebra import LieAlgebra, FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
 #from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
 #from sage.algebras.lie_algebras.ideal import LieAlgebraIdeal
 #from sage.algebras.lie_algebras.quotient import QuotientLieAlgebra
-#from sage.rings.all import ZZ
-#from sage.rings.ring import Ring
-#from sage.rings.integer import Integer
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-#from sage.rings.infinity import infinity
-#from sage.matrix.matrix_space import MatrixSpace
-#from sage.matrix.constructor import matrix
-#from sage.modules.free_module_element import vector
-from sage.modules.free_module import FreeModule #, span
-from sage.sets.family import Family #, AbstractFamily
+from sage.modules.free_module import FreeModule
+from sage.sets.family import Family
 
 class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""

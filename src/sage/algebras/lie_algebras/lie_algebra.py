@@ -23,8 +23,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.structure.indexed_generators import (IndexedGenerators,
-                                               standardize_names_index_set)
+from sage.structure.indexed_generators import standardize_names_index_set
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -35,11 +34,10 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 
 from sage.algebras.free_algebra import FreeAlgebra
-from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElement,
-                            LieAlgebraElementWrapper, LieAlgebraMatrixWrapper)
+from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElementWrapper,
+                                                            LieAlgebraMatrixWrapper)
 from sage.rings.all import ZZ
 from sage.rings.ring import Ring
-from sage.rings.infinity import infinity
 from sage.matrix.matrix_space import MatrixSpace
 from sage.sets.family import Family, AbstractFamily
 

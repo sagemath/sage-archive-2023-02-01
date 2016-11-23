@@ -1337,7 +1337,72 @@ class ParallelogramPolyomino(ClonableList):
 
         def make_tree(b_tree, d):
             r"""
-            TODO
+            This is a technical function that convert binary tree to ordered
+            tree with the following construction.
+
+            Add a virtual root v such that the root become :
+
+            - the left son of v if ``d`` is equal to 0;
+
+            - the right son of v if ``d`` is equal to 1;
+
+            Then now the vertices of the ordered tree are the vertices of
+            the binary tree and the virtual root.
+            The edges are defined as follow : 
+            - if v1 is a left (resp. right) son of v2 and v2 is a right 
+              (resp. left) son of v3, then, in the ordered tree, v2 is the 
+              father of v1;
+            - if v1 is a left (resp. right) son of v2 and v2 is a left (resp.
+              right) son of v3, then, in the ordered tree, v2 and v3 are 
+              brother and v2 are on the left of v3.
+
+            For example, if d is equal to 1
+
+            ::
+
+                      1
+                     / \
+                    2   3
+                   /
+                  7
+                 / \
+                8   4
+                     \
+                      5
+                       \
+                        6
+            becomes
+
+            ::
+
+                    _____v_____
+                   |           |
+                ___1___ ____   3
+                |      |    |
+                2   ___7__  8
+                    |  |  |
+                    4  5  6
+
+            and if d = 0, it becomes
+
+            ::
+
+                _________v________
+                |  |      |      |
+                1  2  ____7___   8
+                |     |   |   |
+                3     4   5   6
+
+            INPUT:
+
+            - ``b_tree`` -- A binary tree
+
+            - ``d`` -- 0 or 1
+
+            OUTPUT:
+
+            An ordered tree.
+
             """
             if b_tree == BinaryTree():
                 return OrderedTree([])
@@ -2810,7 +2875,7 @@ class ParallelogramPolyomino(ClonableList):
         pos = self.get_node_position_at_row(line)
         return self.get_path_in_pair_of_tree_from_box(pos, 0)
 
-    def get_path_in_pair_of_tree_from_line(self, line):
+    def get_path_in_pair_of_tree_from_column(self, line):
         r"""
         TODO
         """
@@ -2902,7 +2967,7 @@ class ParallelogramPolyomino(ClonableList):
             if len(path2) % 2 == 1:
                 result.append(self.get_node_position_at_row(h))
         for w in range(1, self.width()):
-            path2 = self.get_path_in_pair_of_tree_from_line(w)
+            path2 = self.get_path_in_pair_of_tree_from_column(w)
             if len(path2) % 2 == 0:
                 result.append(self.get_node_position_at_column(w))
         return result
@@ -2956,7 +3021,7 @@ class ParallelogramPolyomino(ClonableList):
             if len(path2) % 2 == 0:
                 result.append(self.get_node_position_at_row(h))
         for w in range(1, self.width()):
-            path2 = self.get_path_in_pair_of_tree_from_line(w)
+            path2 = self.get_path_in_pair_of_tree_from_column(w)
             if len(path2) % 2 == 1:
                 result.append(self.get_node_position_at_column(w))
         return result

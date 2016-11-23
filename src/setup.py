@@ -770,13 +770,7 @@ class sage_build_ext(build_ext):
 
 
 class sage_build(build):
-    sub_commands = build.sub_commands[:]
-
-    # Insert the cythonize command before build_ext
-    for idx, sc in enumerate(sub_commands):
-        if sc[0] == 'build_ext':
-            sub_commands.insert(idx, ('build_cython', lambda *args: True))
-            break
+    sub_commands = [('build_cython', lambda *args: True)] + build.sub_commands
 
     def run_autogen(self):
         """

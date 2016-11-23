@@ -357,6 +357,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 from six.moves import range as range
+from sage.structure.unique_representation import UniqueRepresentation
 
 ##############################################################################
 # Helper functions
@@ -1175,7 +1176,7 @@ class ClusterAlgebraSeed(SageObject):
 # Cluster algebras
 ##############################################################################
 
-class ClusterAlgebra(Parent):
+class ClusterAlgebra(Parent, UniqueRepresentation):
     r"""
     A Cluster Algebra.
 
@@ -1234,7 +1235,16 @@ class ClusterAlgebra(Parent):
         ...
         ValueError: coefficient_names should be a list of 3 valid variable names
     """
-    def __init__(self, data, **kwargs):
+
+    @staticmethod
+    def __classcall__(self, data, **kwargs):
+        Q = ClusterQuiver(data)
+        for key in kwargs:
+            if isinstance(kwargs[key],list):
+                kwargs[key] = tuple(kwargs[key])
+        return super(ClusterAlgebra, self).__classcall__(self, Q, **kwargs)
+
+    def __init__(self, Q, **kwargs):
         """
         Initialize ``self``.
 
@@ -1245,7 +1255,7 @@ class ClusterAlgebra(Parent):
             sage: TestSuite(A).run()
             sage: A = ClusterAlgebra(['A', 2])
             sage: TestSuite(A).run()
-            sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
+            sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True)
             sage: TestSuite(A).run()
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True, coefficient_prefix='x')
             sage: TestSuite(A).run()
@@ -1255,7 +1265,6 @@ class ClusterAlgebra(Parent):
             sage: TestSuite(A).run()
         """
         # Temporary variables
-        Q = ClusterQuiver(data)
         n = Q.n()
         I = identity_matrix(n)
         if kwargs.get('principal_coefficients', False):
@@ -1433,7 +1442,7 @@ class ClusterAlgebra(Parent):
             sage: A.an_element()
             x0
         """
-        return self.current_seed().cluster_variable(0)
+        return self.initial_cluster_variable(0)
 
     def _coerce_map_from_(self, other):
         r"""
@@ -1575,6 +1584,7 @@ class ClusterAlgebra(Parent):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2])
+            sage: A.reset_current_seed()
             sage: A.current_seed().mutate([1, 0])
             sage: A.current_seed() == A.initial_seed()
             False
@@ -1784,7 +1794,7 @@ class ClusterAlgebra(Parent):
 
         EXAMPLES::
 
-            sage: A = ClusterAlgebra(['A', 2])
+            sage: A = ClusterAlgebra(['C', 2])
             sage: A.F_polynomial((-1, 1))
             Traceback (most recent call last):
             ...
@@ -2144,11 +2154,11 @@ class ClusterAlgebra(Parent):
 
         EXAMPLES::
 
-            sage: A = ClusterAlgebra(['A', 4])
+            sage: A = ClusterAlgebra(['C', 4])
             sage: A.reset_exploring_iterator(mutating_F=False)
             sage: A.explore_to_depth(infinity)
             sage: len(A.g_vectors_so_far())
-            14
+            20
             sage: len(A.F_polynomials_so_far())
             4
         """
@@ -2252,7 +2262,7 @@ class ClusterAlgebra(Parent):
         cv_names = self.initial_cluster_variable_names()
         coeff_names = self.coefficient_names()
         scalars = self.scalars()
-        self.__init__(B0, cluster_variable_names=cv_names,
+        self.__init__(ClusterQuiver(B0), cluster_variable_names=cv_names,
                       coefficient_names=coeff_names, scalars=scalars)
 
         # substitution data to compute new F-polynomials

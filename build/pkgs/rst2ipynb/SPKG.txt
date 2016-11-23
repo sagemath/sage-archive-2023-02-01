@@ -1,14 +1,13 @@
-= rst-to-ipynb =
+= rst2ipynb =
 
 == Description ==
 
-The rst-to-ipynb program converts a standalone reStructuredText file to a
+The rst2pynb program converts a standalone reStructuredText file to a
 Jupyter notebook file.
 
-This is currently achieved by converting to markdown with pandoc and then
-to Jupyter notebook using notedown, plus some configuration and tweaks.
-
-We use a fork that is adapted for Sage.
+This is currently achieved by converting to markdown with pandoc and
+then to Jupyter notebook using notedown, plus some configuration and
+tweaks.
 
 == License ==
 
@@ -16,9 +15,8 @@ BSD 3-Clause License
 
 == Upstream Contact ==
 
-Authors: Scott Sievert
-Home page: https://github.com/stsievert/rst-to-ipynb
-Home page of the fork used: https://github.com/nthiery/rst-to-ipynb
+Authors: Scott Sievert and Nicolas M. Thiéry
+Home page: https://github.com/nthiery/rst-to-ipynb
 
 == Dependencies ==
 
@@ -27,9 +25,10 @@ Home page of the fork used: https://github.com/nthiery/rst-to-ipynb
 
 == Special Update/Build Instructions ==
 
-There are no release numbers, hence find the latest commit, download
-https://github.com/nthiery/rst-to-ipynb/archive/${COMMIT}.zip and rename
-it rst_to_ipynb-${COMMIT:0:8}.zip
+Fetch tarball from https://pypi.python.org/pypi/rst2ipynb/
 
 As it is written in Haskell, pandoc must be installed from the distro.
 
+The main rationale for having a notedown package in Sage (rather than
+just let pip fetch it) is that the version on pipy (1.5.0, 2015-10-07)
+is outdated and lacks important features / fixes for us.

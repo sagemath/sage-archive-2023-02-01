@@ -605,7 +605,7 @@ def Omega(var, expression, denominator=None, op=operator.ge):
     return Factorization([(result_numerator, 1)] +
                          list((f, -1) for f in other_factors) +
                          list((f, -1) for f in result_factors_denominator),
-                         sort=False)
+                         sort=False, simplify=False)
 
 
 def _Omega_(a, decoded_factors):

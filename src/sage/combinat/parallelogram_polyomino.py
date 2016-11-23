@@ -6,7 +6,8 @@ The goal of this module is to give some tools to manipulate the
 parallelogram polyominoes.
 """
 #******************************************************************************
-#  Copyright (C) 2014 Adrien Boussicault (boussica@labri.fr),
+#  Copyright (C) 2014,2015 Adrien Boussicault (boussica@labri.fr),
+#  Copyright (C) 2016 Patxi Laborde-Zubieta (plaborde@labri.fr),
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -21,7 +22,6 @@ from sage.structure.set_factories import (
 )
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.structure.global_options import GlobalOptions
 from sage.sets.set import Set
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.misc.lazy_attribute import lazy_attribute
@@ -39,6 +39,390 @@ from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.functions.trig import cos, sin
 from sage.functions.other import sqrt
+
+class LocalOptions:
+    r"""
+    This class allow to add local options to an object.
+    LocalOptions is like a dictionnary, it has keys and values that represent
+    options and the values associated to the option. This is usefull to
+    decorate an object with some optionnal informations.
+
+    :class:`LocalOptions` should be used as follow.
+
+    INPUT:
+
+    - ``name`` -- The name of the LocalOptions
+
+    - ``<options>=dict(...)`` -- dictionary specifying an option
+
+    The options are specified by keyword arguments with their values
+    being a dictionary which describes the option. The
+    allowed/expected keys in the dictionary are:
+
+    - ``checker`` -- a function for checking whether a particular value for
+      the option is valid
+    - ``default`` -- the default value of the option
+    - ``values`` -- a dictionary of the legal values for this option (this
+      automatically defines the corresponding ``checker``); this dictionary
+      gives the possible options, as keys, together with a brief description
+      of them
+
+    ::
+
+        sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+        sage: o = LocalOptions(
+        ....:     'Name Example',
+        ....:     delim=dict(
+        ....:         default='b',
+        ....:         values={'b':'the option b', 'p':'the option p'}
+        ....:     )
+        ....: )
+        sage: class Ex:
+        ....:     options=o
+        ....:     def _repr_b(self): return "b"
+        ....:     def _repr_p(self): return "p"
+        ....:     def __repr__(self): return self.options._dispatch(self, '_repr_','delim')
+        sage: e = Ex(); e
+        b
+        sage: e.options(delim='p'); e
+        p
+
+
+    This class is temporary, in the future, this class should be integrated in
+    sage.structure.global_options.py. We should split global_option in two
+    classes LocalOptions and GlobalOptions.
+    """
+    def __init__(self, name='', **options):
+        r"""
+        Construct a new LocalOptions.
+
+        INPUT:
+
+        - ``name`` -- The name of the LocalOptions
+
+        - ``<options>=dict(...)`` -- dictionary specifying an option
+
+        The options are specified by keyword arguments with their values
+        being a dictionary which describes the option. The
+        allowed/expected keys in the dictionary are:
+
+        - ``checker`` -- a function for checking whether a particular value for
+          the option is valid
+        - ``default`` -- the default value of the option
+        - ``values`` -- a dictionary of the legal values for this option (this
+          automatically defines the corresponding ``checker``); this dictionary
+          gives the possible options, as keys, together with a brief description
+          of them
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: o = LocalOptions(
+            ....:     "Name Example",
+            ....:     tikz_options=dict(
+            ....:         default="toto",
+            ....:         values=dict(
+            ....:             toto="name",
+            ....:             x="3"
+            ....:         )
+            ....:     ),
+            ....:     display=dict(
+            ....:         default="list",
+            ....:         values=dict(
+            ....:             list="representation en liste",
+            ....:             diagramme="representation en diagramme"
+            ....:         )
+            ....:     )
+            ....: )
+        """
+        self._name=name
+        self._available_options = options
+        self._options=dict()
+        for key in self._available_options:
+            self._options[key]=self._available_options[key]["default"]
+
+    def __repr__(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: o = LocalOptions(
+            ....:     "Name Example",
+            ....:     tikz_options=dict(
+            ....:         default="toto",
+            ....:         values=dict(
+            ....:             toto="name",
+            ....:             x="3"
+            ....:         )
+            ....:     ),
+            ....:     display=dict(
+            ....:         default="list",
+            ....:         values=dict(
+            ....:             list="representation en liste",
+            ....:             diagramme="representation en diagramme"
+            ....:         )
+            ....:     )
+            ....: )
+            sage: o
+            Current options for Name Example
+              - display:      list
+              - tikz_options: toto
+        """
+        options = list(self._options)
+        if options == []:
+            return  'Current options for {}'.format(self._name)
+
+        options.sort()
+        width = 1 + max(len(key) for key in options)
+        return  'Current options for {}\n{}'.format(self._name,
+                    '\n'.join('  - {:{}} {}'.format(key+':',width,self[key]) for key in options)
+                )
+
+    def __setitem__(self, key, value):
+        r"""
+        The ``__setitem__`` method is used to change the current values of the
+        options. It also checks that the supplied options are valid and changes
+        any alias to its generic value.
+
+        INPUT:
+
+        - ``key`` -- An option.
+
+        - ``value`` -- The value.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: o = LocalOptions(
+            ....:     "Name Example",
+            ....:     tikz_options=dict(
+            ....:         default="toto",
+            ....:         values=dict(
+            ....:             toto="name",
+            ....:             x="3"
+            ....:         )
+            ....:     ),
+            ....:     display=dict(
+            ....:         default="list",
+            ....:         values=dict(
+            ....:             list="representation en liste",
+            ....:             diagramme="representation en diagramme"
+            ....:         )
+            ....:     ),
+            ....:     size=dict(
+            ....:         default=1,
+            ....:         checker=lambda x : x in NN
+            ....:     )
+            ....: )
+            sage: o("display")
+            'list'
+            sage: o["display"]="diagramme"
+            sage: o("display")
+            'diagramme'
+            sage: o["display"]="?"
+            Current value : diagramme
+            {'default': 'list', 'values': {'diagramme': 'representation en diagramme', 'list': 'representation en liste'}}
+            sage: o("size")
+            1
+            sage: o["size"]=3
+            sage: o("size")
+            3
+            sage: o["size"]=-6
+
+        """
+        assert(key in self._available_options)
+        if value=="?":
+            print "Current value : "+self._options[key]+"\n"+str(self._available_options[key])
+        else:
+            available_options = self._available_options
+            if "values" in available_options:
+                assert(value in self._available_options[key]["values"])
+            if "checker" in available_options:
+                assert(available_options["checker"](value))
+            self._options[key]=value
+
+    def __call__(self, *get_values, **options):
+        r"""
+        Get or set value of the option ``option``.
+
+        INPUT:
+
+            - ``get_values`` -- The options to be printed.
+
+            - ``<options>=dict(...)`` -- dictionary specifying an option see
+              :class:`LocalOptions` for more details.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: o = LocalOptions(
+            ....:     "Name Example",
+            ....:     tikz_options=dict(
+            ....:         default="toto",
+            ....:         values=dict(
+            ....:             toto="name",
+            ....:             x="3"
+            ....:         )
+            ....:     ),
+            ....:     display=dict(
+            ....:         default="list",
+            ....:         values=dict(
+            ....:             list="representation en liste",
+            ....:             diagramme="representation en diagramme"
+            ....:         )
+            ....:     )
+            ....: )
+            sage: o("display")
+            'list'
+            sage: o(display="diagramme")
+            sage: o("display")
+            'diagramme'
+            sage: o(display="?")
+            Current value : diagramme
+            {'default': 'list', 'values': {'diagramme': 'representation en diagramme', 'list': 'representation en liste'}}
+
+        """
+        for key in options:
+            value=options[key]
+            self.__setitem__(key,value)
+        for key in get_values:
+            return self.__getitem__(key)
+
+    def __getitem__(self, key):
+        r"""
+        Return the current value of the option ``key``.
+
+        INPUT:
+
+            - ``key`` -- An option.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: o = LocalOptions(
+            ....:     "Name Example",
+            ....:     tikz_options=dict(
+            ....:         default="toto",
+            ....:         values=dict(
+            ....:             toto="name",
+            ....:             x="3"
+            ....:         )
+            ....:     ),
+            ....:     display=dict(
+            ....:         default="list",
+            ....:         values=dict(
+            ....:             list="representation en liste",
+            ....:             diagramme="representation en diagramme"
+            ....:         )
+            ....:     )
+            ....: )
+            sage: o["display"]
+            'list'
+        """
+        return self._options[key]
+
+    def __iter__(self):
+        r"""
+        A generator for the options in ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: o = LocalOptions(
+            ....:     "Name Example",
+            ....:     tikz_options=dict(
+            ....:         default="toto",
+            ....:         values=dict(
+            ....:             toto="name",
+            ....:             x="3"
+            ....:         )
+            ....:     ),
+            ....:     display=dict(
+            ....:         default="list",
+            ....:         values=dict(
+            ....:             list="representation en liste",
+            ....:             diagramme="representation en diagramme"
+            ....:         )
+            ....:     )
+            ....: )
+            sage: all([key in ['tikz_options','display'] for key in o])
+            True
+        """
+        return self._available_options.__iter__()
+
+    def keys(self):
+        r"""
+        Return the list of the options in ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: o = LocalOptions(
+            ....:     "Name Example",
+            ....:     tikz_options=dict(
+            ....:         default="toto",
+            ....:         values=dict(
+            ....:             toto="name",
+            ....:             x="3"
+            ....:         )
+            ....:     ),
+            ....:     display=dict(
+            ....:         default="list",
+            ....:         values=dict(
+            ....:             list="representation en liste",
+            ....:             diagramme="representation en diagramme"
+            ....:         )
+            ....:     )
+            ....: )
+            sage: keys=o.keys()
+            sage: keys.sort()
+            sage: keys
+            ['display', 'tikz_options']
+        """
+        return list(self)
+
+    def _dispatch(self, obj, dispatch_to, option, *get_values, **set_values):
+        r"""
+        
+
+        The *dispatchable* options are options which dispatch related methods of
+        the corresponding class. The format for specifying a dispatchable option
+        is to include ``dispatch_to = <option name>`` in the specifications for
+        the options and then to add the options to the class.
+
+        The _dispatch method will then call:
+            obj.``<option name> + '_' + <current value of option>``(*get_values,**set_values)
+
+        Note that the argument ``self`` is necessary here because the
+        dispatcher is a method of the options class and not of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: o = LocalOptions(
+            ....:     'Name Example',
+            ....:     delim=dict(
+            ....:         default='b',
+            ....:         values={'b':'the option b', 'p':'the option p'}
+            ....:     )
+            ....: )
+            sage: class Ex:
+            ....:     options=o
+            ....:     def _repr_b(self): return "b"
+            ....:     def _repr_p(self): return "p"
+            ....:     def __repr__(self): return self.options._dispatch(self, '_repr_','delim')
+            sage: e = Ex(); e
+            b
+            sage: e.options(delim='p'); e
+            p
+        """
+        assert(option in self._available_options)
+        if dispatch_to[-1]=="_":
+            dispatch_to=dispatch_to[:-1]
+        f=getattr(obj, dispatch_to+"_"+str(self._options[option]))
+        return f(*get_values, **set_values)
 
 r"""
 This is the default TIKZ options.
@@ -76,13 +460,13 @@ The options avalaible are :
 
  - latex : Same as display. The default is 'drawing'.
 """
-ParallelogramPolyominoesOptions = GlobalOptions(
+ParallelogramPolyominoesOptions = LocalOptions(
     'ParallelogramPolyominoes_size',
-    module='sage.combinat.parallelogram_polyomino',
-    doc=r"""
-    """,
-    end_doc=r"""
-    """,
+#    module='sage.combinat.parallelogram_polyomino',
+#    doc=r"""
+#    """,
+#    end_doc=r"""
+#    """,
     tikz_options=dict(
         default=default_tikz_options,
         description='the tikz options',

@@ -633,3 +633,68 @@ def _Omega_(a, decoded_factors):
     n, fd = Omega_higher(a, exponents)
     rules = dict(zip(n.parent().gens(), values))
     return n.subs(rules), tuple(f.subs(rules) for f in fd)
+
+
+def preparation_generating_function_of_polyhedron(polyhedron, indices=None):
+
+    from sage.geometry.polyhedron.representation import Hrepresentation
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+    from sage.structure.factorization import Factorization
+
+    def inequalities_coeffs(inequalities):
+        for entry in inequalities:
+            if isinstance(entry, (tuple, list)):
+                yield tuple(entry)
+            elif isinstance(entry, Hrepresentation):
+                if entry.is_inequality():
+                    yield tuple(entry.vector())
+                elif entry.is_equation():
+                    e = tuple(entry.vector())
+                    yield e
+                    yield tuple(-ee for ee in e)
+                else:
+                    raise ValueError(
+                        'Cannot handle Hrepresentation {}.'.format(entry))
+            else:
+                raise ValueError('Cannot handle {}.'.format(entry))
+
+    try:
+        inequalities = polyhedron.Hrepresentation()
+    except AttributeError:
+        inequalities = polyhedron
+    inequalities = tuple(inequalities_coeffs(inequalities))
+    if not inequalities:
+        raise ValueError('no inequality given')
+
+    if indices is None:
+        indices = range(len(inequalities[0]) - 1)
+    B = LaurentPolynomialRing(
+        ZZ,
+        ', '.join('y{}'.format(k) for k in indices),
+        sparse=True)
+
+    n = len(B.gens()) + 1
+    if any(len(ineq) != n for ineq in inequalities):
+        raise ValueError('Not all coefficient vectors of the inequalities '
+                         'have the same length.')
+
+    factors = []
+    terms = B.gens()
+    L = B
+    for i, coeffs in enumerate(inequalities):
+        L = LaurentPolynomialRing(L, 'lambda{}'.format(i), sparse=True)
+        l = L.gen()
+        it_coeffs = iter(coeffs)
+        factors.append((l, next(it_coeffs)))
+        terms = tuple(l**c * t for c, t in zip(it_coeffs, terms))
+
+    return Factorization(factors + list((1-t, -1) for t in terms),
+                         sort=False, simplify=False)
+
+
+def generating_function_of_polyhedron(polyhedron, indices=None):
+    GF = preparation_generating_function_of_polyhedron(polyhedron, indices)
+    while repr(GF.universe().gen()).startswith('lambda'):
+        GF = Omega(GF.universe().gen(), GF)
+    return GF

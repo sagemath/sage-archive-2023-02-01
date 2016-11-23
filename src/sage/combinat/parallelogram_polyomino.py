@@ -49,7 +49,7 @@ class LocalOptions:
 
     :class:`LocalOptions` should be used as follow.
 
-    INPUT:
+    INPUTS:
 
     - ``name`` -- The name of the LocalOptions
 
@@ -96,7 +96,7 @@ class LocalOptions:
         r"""
         Construct a new LocalOptions.
 
-        INPUT:
+        INPUTS:
 
         - ``name`` -- The name of the LocalOptions
 
@@ -186,7 +186,7 @@ class LocalOptions:
         options. It also checks that the supplied options are valid and changes
         any alias to its generic value.
 
-        INPUT:
+        INPUTS:
 
         - ``key`` -- An option.
 
@@ -247,12 +247,12 @@ class LocalOptions:
         r"""
         Get or set value of the option ``option``.
 
-        INPUT:
+        INPUTS:
 
-            - ``get_values`` -- The options to be printed.
+        - ``get_values`` -- The options to be printed.
 
-            - ``<options>=dict(...)`` -- dictionary specifying an option see
-              :class:`LocalOptions` for more details.
+        - ``<options>=dict(...)`` -- dictionary specifying an option see
+          :class:`LocalOptions` for more details.
 
         EXAMPLES::
 
@@ -296,7 +296,7 @@ class LocalOptions:
 
         INPUT:
 
-            - ``key`` -- An option.
+        - ``key`` -- An option.
 
         EXAMPLES::
 
@@ -543,8 +543,9 @@ class _drawing_tool:
 
         INPUTS:
 
-        - `options` -- drawing options
-        - `XY` -- A user function to convert vector in other vector.
+        - ``options`` -- drawing options
+
+        - ``XY`` -- A user function to convert vector in other vector.
                   (default : identity function)
 
         EXAMPLES::
@@ -580,7 +581,7 @@ class _drawing_tool:
 
         INPUT:
 
-        - `v` -- The vector to transform.
+        - ``v`` -- The vector to transform.
 
         OUTPUT:
 
@@ -610,41 +611,47 @@ class _drawing_tool:
         """
         def translate(pos, v):
             r"""
-                Translate a position with a vector.
+            Translate a position with a vector.
 
-                INPUT:
-                - `pos` -- The position to translate.
-                - `v` -- The translation vector.
+            INPUTS:
 
-                OUTPUT:
-                    The translated position.
+            - ``pos`` -- The position to translate.
+
+            - ``v`` -- The translation vector.
+
+            OUTPUT:
+                The translated position.
             """
             return [pos[0]+v[0], pos[1]+v[1]]
 
         def rotate(pos, angle):
             r"""
-                Rotate by `angle` a position around the origin.
+            Rotate by `angle` a position around the origin.
 
-                INPUT:
-                - `pos` -- The position to rotate.
-                - `angle` -- The angle of rotation.
+            INPUT:
 
-                OUTPUT:
-                    The rotated position.
+            - ``pos`` -- The position to rotate.
+
+            - ``angle`` -- The angle of rotation.
+
+            OUTPUT:
+                The rotated position.
             """
             [x, y] = pos
             return [x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle)]
 
         def mirror(pos,  axe):
             r"""
-                Return the mirror of a position according to a given axe.
+            Return the mirror of a position according to a given axe.
 
-                INPUT:
-                - `pos` -- The position to mirror.
-                - `axe` -- The axe vector.
+            INPUTS:
 
-                OUTPUT:
-                    The mirrored position.
+            - ``pos`` -- The position to mirror.
+
+            - ``axe`` -- The axe vector.
+
+            OUTPUT:
+                The mirrored position.
             """
             if axe is None:
                 return pos
@@ -674,12 +681,15 @@ class _drawing_tool:
         Return the TIKZ code for a line according the drawing option given
         to ``_drawing_tool``.
 
-        INPUT:
+        INPUTS:
 
-        - `v1` -- The first point of the line.
-        - `v2` -- The second point of the line.
-        - `color` -- The color of the line.
-        - `size` -- The size of the line.
+        - ``v1`` -- The first point of the line.
+
+        - ``v2`` -- The second point of the line.
+
+        - ``color`` -- The color of the line.
+
+        - ``size`` -- The size of the line.
 
         OUTPUT:
 
@@ -711,11 +721,13 @@ class _drawing_tool:
         Return the TIKZ code for a polyline according the drawing option given
         to ``_drawing_tool``.
 
-        INPUT:
+        INPUTS:
 
-        - `list_of_vertices` -- A list of points
-        - `color` -- The color of the line.
-        - `size` -- The size of the line.
+        - ``list_of_vertices`` -- A list of points
+
+        - ``color`` -- The color of the line.
+
+        - ``size`` -- The size of the line.
 
         OUTPUT:
 
@@ -743,11 +755,13 @@ class _drawing_tool:
         Return the TIKZ code for a point according the drawing option given
         to ``_drawing_tool``.
 
-        INPUT:
+        INPUTS:
 
-        - `p1` -- A point
-        - `color` -- The color of the line.
-        - `size` -- The size of the point.
+        - ``p1`` -- A point
+
+        - ``color`` -- The color of the line.
+
+        - ``size`` -- The size of the point.
 
         OUTPUT:
 
@@ -1051,7 +1065,7 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - `bijection` -- The name of the bijection (default:'Delest-Viennot')
+        - ``bijection`` -- The name of the bijection (default:'Delest-Viennot')
 
         OUTPUT:
 
@@ -1083,7 +1097,7 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - `dyck` -- a dyck word
+        - ``dyck`` -- a dyck word
 
         OUTPUT:
 
@@ -1111,10 +1125,11 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Convert dyck word to parallelogram polyomino.
 
-        INPUT:
+        INPUTS:
 
-        - `dyck` -- a dyck word
-        - `bijection` -- (default: 'Delest-Viennot') the bijection to use.
+        - ``dyck`` -- a dyck word
+
+        - ``bijection`` -- (default: 'Delest-Viennot') the bijection to use.
           Expected values : 'Delest-Viennot'.
 
         OUTPUT:
@@ -1150,10 +1165,11 @@ class ParallelogramPolyomino(ClonableList):
             "Combinatorics of non-ambiguous trees",
             :arxiv:`1305.3716`
 
-        INPUT:
+        INPUTS:
 
         - ``bijection`` -- ``None`` (default) The name of bijection to use for
           the convertion. The possible value are, 'Aval-Boussicault'.
+
         - ``position`` -- the celle position wher t this is a recursvive parameter. It should not be used.
 
         EXAMPLES::
@@ -1474,9 +1490,10 @@ class ParallelogramPolyomino(ClonableList):
         2) remove all the ``up`` letters and retrun the resulting list of
            integers.
 
-        INPUT:
+        INPUTS:
 
         - ``word`` -- A word of 0 and 1.
+
         - ``up`` -- 0 or 1 (a letter of the word)
 
         OUTPUT:
@@ -1862,9 +1879,10 @@ class ParallelogramPolyomino(ClonableList):
             That technical function determine, if a cell at a given position
             is inside the parallelogram polyomino.
 
-            INPUT:
+            INPUTS:
 
             - ``w`` -- The x coordinate of the box position.
+
             - ``h`` -- The y coordinate of the box position.
 
             OUTPUT:
@@ -2394,7 +2412,44 @@ class ParallelogramPolyomino(ClonableList):
 
     def get_node_position_at_row(self, row):
         r"""
-        TODO
+        Returns the position of the leftmost cell in the row indexed by ``row``
+        of the array obtained with ``get_array``.
+
+        INPUT:
+
+        - ``row`` -- the index of the row
+
+        OUTPUT:
+
+        A [row,colum] position of the cell.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [
+            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+            ....:     ]
+            ....: )
+            sage: matrix(pp.get_array())
+            [1 0 0]
+            [1 0 0]
+            [1 0 0]
+            [1 1 1]
+            [0 1 1]
+            [0 0 1]
+            sage: pp.get_node_position_at_row(0)
+            [0, 0]
+            sage: pp.get_node_position_at_row(1)
+            [1, 0]
+            sage: pp.get_node_position_at_row(2)
+            [2, 0]
+            sage: pp.get_node_position_at_row(3)
+            [3, 0]
+            sage: pp.get_node_position_at_row(4)
+            [4, 1]
+            sage: pp.get_node_position_at_row(5)
+            [5, 2]
         """
         h = row
         for w in range(self.width()):
@@ -2402,11 +2457,38 @@ class ParallelogramPolyomino(ClonableList):
                 return [h, w]
         return None
 
-    def get_node_position_at_line(self, line):
+    def get_node_position_at_column(self, column):
         r"""
-        TODO
+        Returns the position of the topmost cell in the column indexed by 
+        ``column`` of the array obtained with ``get_array``.
+
+        INPUT:
+
+        - ``column`` -- the index of the column
+
+        OUTPUT:
+
+        A [row,colum] position of the cell.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: matrix(pp.get_array())
+            [1 0 0]
+            [1 1 1]
+            [0 1 1]
+            [0 1 1]
+            [0 1 1]
+            sage: pp.get_node_position_at_column(0)
+            [0, 0]
+            sage: pp.get_node_position_at_column(1)
+            [1, 1]
+            sage: pp.get_node_position_at_column(2)
+            [1, 2]
         """
-        w = line
+        w = column
         for h in range(self.height()):
             if self[h][w] == 1:
                 return [h, w]
@@ -2416,7 +2498,75 @@ class ParallelogramPolyomino(ClonableList):
         self, box_position, direction, nb_crossed_nodes=[0]
     ):
         r"""
-        TODO
+        This function starts from a cell inside a parallelogram polyomino and 
+        a direction.
+
+        If ``direction`` is equal to 0, the function selects the column 
+        associated with the y-coordinate of ``box_position`` and then returns 
+        the topmost cell of the column that is on the top of ``box_position`` 
+        (the cell of ``box_position`` is included).
+
+        If ``direction`` is equal to 1, the function selects the row 
+        associated with the x-coordinate of ``box_position`` and then returns 
+        the leftmost cell of the row that is on the left of ``box_position``.
+        (the cell of ``box_position`` is included).
+
+        This function updates the entry of ``nb_crossed_nodes``. The function 
+        increases the entry of ``nb_crossed_nodes`` by the number of boxes that 
+        is a node (see ``box_is_node``) located on the top if ``direction`` 
+        is 0 (resp. on the left if ``direction`` is 1) of ``box_position`` 
+        (cell at ``box_position`` is excluded).
+
+        INPUTS:
+
+        - ``box_position`` -- the position of the statring cell.
+
+        - ``direction`` -- the direction (0 or 1).
+
+        - ``nb_crossed_nodes`` -- a list containg just one integer.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: matrix(pp.get_array())
+            [1 0 0]
+            [1 1 1]
+            [0 1 1]
+            [0 1 1]
+            [0 1 1]
+            sage: l = [0]
+            sage: pp.get_node_position_from_box([3, 2], 0, l)
+            [1, 2]
+            sage: l
+            [1]
+            sage: l = [0]
+            sage: pp.get_node_position_from_box([3, 2], 1, l)
+            [3, 1]
+            sage: l
+            [1]
+            sage: l = [0]
+            sage: pp.get_node_position_from_box([1, 2], 0, l)
+            [1, 2]
+            sage: l
+            [0]
+            sage: l = [0]
+            sage: pp.get_node_position_from_box([1, 2], 1, l)
+            [1, 0]
+            sage: l
+            [2]
+            sage: l = [0]
+            sage: pp.get_node_position_from_box([3, 1], 0, l)
+            [1, 1]
+            sage: l
+            [2]
+            sage: l = [0]
+            sage: pp.get_node_position_from_box([3, 1], 1, l)
+            [3, 1]
+            sage: l
+            [0]
+
         """
         pos = list(box_position)
         if self[pos[0]][pos[1]] == 0:
@@ -2433,10 +2583,12 @@ class ParallelogramPolyomino(ClonableList):
         Return True if the box contains a node in the context of the
         Aval-Boussicault bijection between parallelogram polyomino and binary
         tree.
+        A box is a node if there is no cell on the top of the box in the 
+        same column or on the left of the box.in the same row.
 
         INPUT:
 
-        - ``pos`` -- the x,y coordinate of the box.
+        - ``pos`` -- the [x,y] coordinate of the box.
 
         OUTPUT:
 
@@ -2476,7 +2628,7 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - `box` -- the x,y coordinate of the cell.
+        - ``box`` -- the x,y coordinate of the cell.
 
         EXAMPLES:
 
@@ -2514,7 +2666,7 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         TODO
         """
-        pos = self.get_node_position_at_line(line)
+        pos = self.get_node_position_at_column(line)
         return self.get_path_in_pair_of_tree_from_box(pos, 1)
 
     def get_nodes(self):
@@ -2550,7 +2702,7 @@ class ParallelogramPolyomino(ClonableList):
         for h in range(1, self.height()):
             result.append(self.get_node_position_at_row(h))
         for w in range(1, self.width()):
-            result.append(self.get_node_position_at_line(w))
+            result.append(self.get_node_position_at_column(w))
         return result
 
     def get_right_nodes(self):
@@ -2604,7 +2756,7 @@ class ParallelogramPolyomino(ClonableList):
         for w in range(1, self.width()):
             path2 = self.get_path_in_pair_of_tree_from_line(w)
             if len(path2) % 2 == 0:
-                result.append(self.get_node_position_at_line(w))
+                result.append(self.get_node_position_at_column(w))
         return result
 
     def get_left_nodes(self):
@@ -2658,7 +2810,7 @@ class ParallelogramPolyomino(ClonableList):
         for w in range(1, self.width()):
             path2 = self.get_path_in_pair_of_tree_from_line(w)
             if len(path2) % 2 == 1:
-                result.append(self.get_node_position_at_line(w))
+                result.append(self.get_node_position_at_column(w))
         return result
 
     def to_tikz(self):
@@ -3040,10 +3192,10 @@ class ParallelogramPolyominoes_size(
         """
         self.options(*get_value, **set_value)
 
-    r"""
-    TODO
-    """
     options = ParallelogramPolyominoesOptions
+    r"""
+    The options for ParallelogramPolyominoes.
+    """
 
 
 class ParallelogramPolyominoes_all(
@@ -3148,7 +3300,7 @@ class ParallelogramPolyominoes_all(
         """
         self.options(*get_value, **set_value)
 
-    r"""
-    TODO
-    """
     options = ParallelogramPolyominoesOptions
+    r"""
+    The options for ParallelogramPolyominoes.
+    """

@@ -2012,7 +2012,7 @@ class MathJax:
         return MathJaxExpr(html.format(latex_string))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
-        pdflatex=None, engine=None, viewer = None, tightpage = True,
+        pdflatex=None, engine=None, viewer = None, tightpage = True, border= 5,
         mode='inline', combine_all=False, **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,
@@ -2056,6 +2056,10 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
 
     -  ``tightpage`` -- bool (default: ``True``): use the LaTeX package
        'preview' with the 'tightpage' option.
+
+    -  ``border`` -- a number (default 5) which can be converted to a float:
+        it controls the boundary of the output and is interpretet as mm.
+        Has no affect if the option ``tightpage`` is ``False``.
 
     - ``mode`` -- string (default: ``'inline'``): ``'display'`` for
       displaymath or ``'inline'`` for inline math
@@ -2162,8 +2166,9 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         ValueError: Unsupported LaTeX engine.
 
     """
+
     if tightpage == True:
-        latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}',
+        latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}\\setlength\\PreviewBorder{%fmm}'%border,
                          'math_left':'\\begin{page}$', 'math_right':'$\\end{page}'}
     else:
         latex_options = {}

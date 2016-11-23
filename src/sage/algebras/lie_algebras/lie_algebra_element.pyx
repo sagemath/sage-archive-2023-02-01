@@ -1,13 +1,14 @@
+# -*- coding: utf-8 -*-
 """
 Lie Algebra Elements
 
 AUTHORS:
 
-- Travis Scrimshaw (2005-05-04): Initial implementation
+- Travis Scrimshaw (2013-05-04): Initial implementation
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
+#  Copyright (C) 2013 Travis Scrimshaw <tscrimsh at umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -21,10 +22,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy import copy
+
 #from sage.misc.abstract_method import abstract_method
 #from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.misc import repr_lincomb
-from copy import copy
 #from functools import total_ordering
 #from sage.structure.element import ModuleElement, RingElement, coerce_binop
 #from sage.structure.sage_object import SageObject
@@ -106,127 +108,68 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         s = UEA.zero()
         if not self:
             return s
-        for t, c in self._monomial_coefficients.iteritems():
+        for t, c in self.monomial_coefficients(copy=False).iteritems():
             s += c * gen_dict[t]
         return s
-
-    def is_constant(self):
-        """
-        Check if ``self`` is a constant (i.e. zero).
-
-        EXAMPLES::
-
-            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
-            sage: a = x + y
-            sage: a.is_constant()
-            False
-            sage: L.zero().is_constant()
-            True
-        """
-        return not self._monomial_coefficients
-
-    def dict(self):
-        """
-        Return ``self`` as a dictionary mapping monomials to coefficients.
-
-        EXAMPLES::
-
-            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
-            sage: a = 3*x - 1/2*z
-            sage: a.dict()
-            {'x': 3, 'z': -1/2}
-        """
-        return copy(self._monomial_coefficients)
-
-    def list(self):
-        """
-        Return ``self`` as a list of pairs ``(m, c)`` where ``m`` is a
-        monomial and ``c`` is the coefficient.
-
-        EXAMPLES::
-
-            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
-            sage: a = 3*x - 1/2*z
-            sage: a.list()
-            [('x', 3), ('z', -1/2)]
-        """
-        return sorted(self._monomial_coefficients.items())
 
 cdef class LieAlgebraElementWrapper(ElementWrapper):
     """
     Wrap an element as a Lie algebra element.
+
+    TESTS:
+
+    We check comparisons::
+
+        sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
+        sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
+        True
+
+    The next doctests show similar behavior, although on elements of
+    other classes::
+
+        sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
+        sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
+        True
+
+        sage: L = lie_algebras.three_dimensional_by_rank(QQ, 1)
+        sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
+        True
+
+    Check inequality::
+
+        sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
+        sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
+        False
+        sage: L.zero() == 0
+        True
+        sage: L.zero() != 0
+        False
+
+    The next doctests show similar behavior, although on elements of
+    other classes::
+
+        sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
+        sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
+        False
+        sage: L.an_element()
+        X + Y + Z
+        sage: L.an_element() == 0
+        False
+        sage: L.an_element() != 0
+        True
+
+        sage: L = lie_algebras.three_dimensional_by_rank(QQ, 1)
+        sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
+        False
+        sage: L.zero() == 0
+        True
+        sage: L.zero() != 0
+        False
+        sage: L.zero() >= 0
+        True
+        sage: L.zero() < 0
+        False
     """
-    def __richcmp__(self, right, int op):
-        """
-        Perform a rich comparison.
-
-        EXAMPLES::
-
-            sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
-            sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
-            True
-
-        The next doctests show similar behavior, although on elements of
-        other classes::
-
-            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
-            sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
-            True
-
-            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 1)
-            sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
-            True
-
-        Check inequality::
-
-            sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
-            sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
-            False
-            sage: L.zero() == 0
-            True
-            sage: L.zero() != 0
-            False
-
-        The next doctests show similar behavior, although on elements of
-        other classes::
-
-            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
-            sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
-            False
-            sage: L.an_element()
-            sage: L.an_element() == 0
-            False
-            sage: L.an_element() != 0
-            True
-
-            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 1)
-            sage: L.bracket(L.gen(0), L.gen(1)) != -L.bracket(L.gen(1), L.gen(0))
-            False
-            sage: L.zero() == 0
-            True
-            sage: L.zero() != 0
-            False
-            sage: L.zero() >= 0
-            True
-            sage: L.zero() < 0
-            False
-        """
-        if right == self.parent().base_ring().zero():
-            if op == 3: # !=
-                return self.__nonzero__()
-            if op in [1,2,5]: # <=, ==, >=
-                return not self.__nonzero__()
-            return False # <, >
-        if not have_same_parent(self, right):
-            try:
-                self, right = coercion_model.canonical_coercion(self, right)
-            except (TypeError, ValueError):
-                return op == 3
-        if op == 3: # !=
-            return self.value != right.value
-        if op in [1,2,5]: # <=, ==, >=
-            return self.value == right.value
-        return False # <, >
 
     def _repr_(self):
         """
@@ -258,6 +201,19 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
     def _ascii_art_(self):
         """
         Return an ascii art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LieAlgebra(associative=s)
+            sage: P = Partition([4,2,2,1])
+            sage: x = L.basis()[P]
+            sage: ascii_art(x)
+            s
+             ****
+             **
+             **
+             *
         """
         from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.value)
@@ -265,6 +221,20 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
     def _unicode_art_(self):
         """
         Return a unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LieAlgebra(associative=s)
+            sage: P = Partition([4,2,2,1])
+            sage: x = L.basis()[P]
+            sage: unicode_art(x)
+            s
+             ┌┬┬┬┐
+             ├┼┼┴┘
+             ├┼┤
+             ├┼┘
+             └┘
         """
         from sage.typeset.unicode_art import unicode_art
         return unicode_art(self.value)
@@ -272,6 +242,15 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
     def __nonzero__(self):
         """
         Return if ``self`` is non-zero.
+
+        EXAMPLES::
+
+            sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
+            sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
+            sage: bool(L.zero())
+            False
+            sage: bool(x + y)
+            True
         """
         return bool(self.value)
 
@@ -346,9 +325,9 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
 
             sage: L = lie_algebras.Heisenberg(QQ, 3)
             sage: x = L.an_element(); x
-            p1 + p2 + p3 + q1 + q2 + q3 + z
+            p1
             sage: x / 2
-            1/2*p1 + 1/2*p2 + 1/2*p3 + 1/2*q1 + 1/2*q2 + 1/2*q3 + 1/2*z
+            1/2*p1
         """
         return self * (~x)
 
@@ -441,6 +420,10 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
     def _repr_(self):
         """
         EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x':1}})
+            sage: x - 3/2 * y
+            x - 3/2*y
         """
         return repr_lincomb(self._sorted_items_for_printing(),
                             scalar_mult=self.parent()._print_options['scalar_mult'],
@@ -448,8 +431,13 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
                             strip_one=True)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x':1}})
+            sage: elt = x - 3/2 * y
+            sage: latex(elt)
+            x - \frac{3}{2}y
         """
         return repr_lincomb(self._sorted_items_for_printing(),
                             scalar_mult=self.parent()._print_options['scalar_mult'],
@@ -513,6 +501,13 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
     def __iter__(self):
         """
         Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x':1}})
+            sage: elt = x - 3/2 * y
+            sage: list(elt)
+            [('x', 1), ('y', -3/2)]
         """
         zero = self.base_ring().zero()
         I = self.parent()._indices
@@ -539,6 +534,14 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
         Return the lift of ``self`` to the universal enveloping algebra.
 
         EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x':1}})
+            sage: elt = x - 3/2 * y
+            sage: l = elt.lift(); l
+            x - 3/2*y
+            sage: l.parent()
+            Noncommutative Multivariate Polynomial Ring in x, y
+             over Rational Field, nc-relations: {y*x: x*y - x}
         """
         UEA = self.parent().universal_enveloping_algebra()
         gens = UEA.gens()
@@ -546,26 +549,31 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
 
     cpdef dict monomial_coefficients(self, bint copy=True):
         """
-        Return the monomial coefficients of ``self``.
+        Return the monomial coefficients of ``self`` as a dictionary.
 
         EXAMPLES::
 
             sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
             sage: a = 2*x - 3/2*y + z
-            sage: list(a)
-            [('x', 2), ('y', -3/2), ('z', 1)]
+            sage: a.monomial_coefficients()
+            {'x': 2, 'y': -3/2, 'z': 1}
             sage: a = 2*x - 3/2*z
-            sage: list(a)
-            [('x', 2), ('z', -3/2)]
+            sage: a.monomial_coefficients()
+            {'x': 2, 'z': -3/2}
         """
         I = self.parent()._indices
-        return {I[i]: v for i,v in self.value.monomial_coefficients()}
+        return {I[i]: v for i,v in self.value.monomial_coefficients(copy=False).items()}
 
     def __getitem__(self, i):
         """
         Return the coefficient of the basis element indexed by ``i``.
 
         EXAMPLES::
+
+            sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x':1}})
+            sage: elt = x - 3/2 * y
+            sage: elt['y']
+            -3/2
         """
         return self.value[self.parent()._indices.index(i)]
 

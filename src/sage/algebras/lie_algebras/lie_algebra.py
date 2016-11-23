@@ -36,7 +36,7 @@ from sage.categories.homset import Hom
 
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElement,
-    LieAlgebraElementWrapper, LieAlgebraMatrixWrapper)
+                            LieAlgebraElementWrapper, LieAlgebraMatrixWrapper)
 from sage.rings.all import ZZ
 from sage.rings.ring import Ring
 from sage.rings.infinity import infinity
@@ -238,11 +238,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
     REFERENCES:
 
-    .. [deGraaf] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
-       North-Holland Mathemtaical Library. (2000). Elsevier Science B.V.
-
-    - [Kac]_ Victor Kac, *Infinite dimensional Lie algebras*.
-
+    - [deGraaf2000]_ Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
+    - [Kac1990]_ Victor Kac, *Infinite dimensional Lie algebras*.
     - :wikipedia:`Lie_algebra`
     """
     # This works because it is an abstract base class and this
@@ -342,7 +339,9 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             #   subclass with specialized methods for the free Lie algebra
             return LieAlgebraFromAssociative(F, F.gens(), names=names, index_set=index_set)
 
-        raise NotImplementedError("the free Lie algebra has only been implemented using polynomials in the free algebra, see trac ticket #16823")
+        raise NotImplementedError("the free Lie algebra has only been"
+                                  " implemented using polynomials in the"
+                                  " free algebra, see trac ticket #16823")
 
     def __init__(self, R, names=None, category=None):
         """
@@ -667,7 +666,7 @@ class FinitelyGeneratedLieAlgebra(LieAlgebraWithGenerators):
         """
         if self.__ngens == 1:
             return "Lie algebra on the generator {0} over {1}".format(
-                    self.gens()[0], self.base_ring())
+                    self.gen(0), self.base_ring())
         return "Lie algebra on {0} generators {1} over {2}".format(
                 self.__ngens, self.gens(), self.base_ring())
 

@@ -313,18 +313,36 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
     def zero(self):
         """
         Return the element `0` in ``self``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+            sage: L.zero()
+            0
         """
         return self.element_class(self, self._M.zero())
 
     def monomial(self, k):
         """
         Return the monomial indexed by ``k``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+            sage: L.monomial('x')
+            x
         """
         return self.element_class(self, self._M.basis()[self._index_to_pos[k]])
 
     def from_vector(self, v):
         """
         Return an element of ``self`` from the vector ``v``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+            sage: L.from_vector([1, 2, -2])
+            x + 2*y - 2*z
         """
         return self.element_class(self, self._M(v))
 
@@ -350,6 +368,20 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                 The internal representation order is fixed, whereas this
                 depends on ``"sorting_key"`` print option as it is used
                 only for printing.
+
+            EXAMPLES::
+
+                sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+                sage: elt = x + y/2 - z; elt
+                x + 1/2*y - z
+                sage: elt._sorted_items_for_printing()
+                [('x', 1), ('y', 1/2), ('z', -1)]
+                sage: key = {'x': 2, 'y': 1, 'z': 0}
+                sage: L.print_options(sorting_key=key.__getitem__)
+                sage: elt._sorted_items_for_printing()
+                [('z', -1), ('y', 1/2), ('x', 1)]
+                sage: elt
+                -z + 1/2*y + x
             """
             print_options = self.parent().print_options()
             pos_to_index = dict(enumerate(self.parent()._indices))

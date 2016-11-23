@@ -240,10 +240,26 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 Finite family {}
                 sage: L.structure_coefficients(True)
                 Finite family {(0, 1): (0, 0, 0), (1, 2): (0, 0, 0), (0, 2): (0, 0, 0)}
+
+            ::
+
+                sage: G = SymmetricGroup(3)
+                sage: S = GroupAlgebra(G, QQ)
+                sage: L = LieAlgebra(associative=S)
+                sage: L.structure_coefficients()
+                Finite family {((1,3,2), (1,3)): (2,3) - (1,2),
+                               ((1,2), (1,2,3)): -(2,3) + (1,3),
+                               ((1,2,3), (1,3)): -(2,3) + (1,2),
+                               ((2,3), (1,3,2)): -(1,2) + (1,3),
+                               ((2,3), (1,3)): -(1,2,3) + (1,3,2),
+                               ((2,3), (1,2)): (1,2,3) - (1,3,2),
+                               ((2,3), (1,2,3)): (1,2) - (1,3),
+                               ((1,2), (1,3,2)): (2,3) - (1,3),
+                               ((1,2), (1,3)): (1,2,3) - (1,3,2)}
             """
             d = {}
             B = self.basis()
-            K = B.keys()
+            K = list(B.keys())
             zero = self.zero()
             for i, x in enumerate(K):
                 for y in K[i + 1:]:
@@ -513,7 +529,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'): {'x':1}})
                 sage: L.is_abelian()
                 False
             """

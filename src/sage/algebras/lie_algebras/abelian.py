@@ -116,7 +116,7 @@ class AbelianLieAlgebra(LieAlgebraWithStructureCoefficients):
 
     def is_abelian(self):
         """
-        Return ``True`` since this is an abelian Lie algebra.
+        Return ``True`` since ``self`` is an abelian Lie algebra.
 
         EXAMPLES::
 
@@ -174,7 +174,38 @@ class InfiniteDimensionalAbelianLieAlgebra(InfinitelyGeneratedLieAlgebra, Indexe
         """
         return infinity
 
+    def is_abelian(self):
+        """
+        Return ``True`` since ``self`` is an abelian Lie algebra.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.abelian(QQ, index_set=ZZ)
+            sage: L.is_abelian()
+            True
+        """
+        return True
+
+    # abelian => nilpotent => solvable
+    is_nilpotent = is_solvable = is_abelian
+
+    # For compatibility with CombinatorialFreeModuleElement
+    _repr_term = IndexedGenerators._repr_generator
+    _latex_term = IndexedGenerators._latex_generator
+
     class Element(LieAlgebraElement):
         def _bracket_(self, other):
+            """
+            Return the Lie bracket ``[self, y]``.
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.abelian(QQ, index_set=ZZ)
+                sage: B = L.basis()
+                sage: l1 = B[1]
+                sage: l5 = B[5]
+                sage: l1.bracket(l5)
+                0
+            """
             return self.parent().zero()
 

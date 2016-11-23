@@ -5513,7 +5513,7 @@ class Graph(GenericGraph):
             for v in G:
 
                 # The flow balance depends on whether the vertex v is
-                # a representant of h1 or h2 in G, or a reprensentant
+                # a representant of h1 or h2 in G, or a representant
                 # of none
 
                 p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v] )

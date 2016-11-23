@@ -794,7 +794,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __pow__(self, right, modulus):
         r"""
-        Raise ``self`` to the ``right`` expontent.
+        Raise ``self`` to the ``right`` exponent.
 
         This takes `a^b` and compues `\exp(b \log(a))`.
 

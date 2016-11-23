@@ -2192,7 +2192,7 @@ class Polyhedron_base(Element):
         A :class:`hyperplane arrangement
         <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
         consisting of the hyperplanes defined by the
-        :meth:`~sage.geometric.hyperplane_arragement.arrangement.HyperplaneArrangementElement.Hrepresentation`.
+        :meth:`~sage.geometric.hyperplane_arrangement.arrangement.HyperplaneArrangementElement.Hrepresentation`.
         If the polytope is full-dimensional, this is the hyperplane
         arrangement spanned by the facets of the polyhedron.
 

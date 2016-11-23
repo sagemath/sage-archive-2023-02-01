@@ -350,44 +350,44 @@ class ContinuedFraction_base(SageObject):
         EXAMPLES::
 
             sage: print(continued_fraction(pi).str())
-                                         1                          
+                                         1
             3 + ----------------------------------------------------
-                                            1                       
+                                            1
                  7 + -----------------------------------------------
-                                               1                    
+                                               1
                       15 + -----------------------------------------
-                                                 1                  
+                                                 1
                             1 + ------------------------------------
-                                                     1              
+                                                     1
                                  292 + -----------------------------
-                                                       1            
+                                                       1
                                         1 + ------------------------
-                                                          1         
+                                                          1
                                              1 + -------------------
-                                                            1       
+                                                            1
                                                   1 + --------------
-                                                               1    
+                                                               1
                                                        2 + ---------
-                                                            1 + ... 
+                                                            1 + ...
             sage: print(continued_fraction(pi).str(nterms=1))
             3 + ...
             sage: print(continued_fraction(pi).str(nterms=2))
-                    1    
+                    1
             3 + ---------
-                 7 + ... 
+                 7 + ...
 
             sage: print(continued_fraction(243/354).str())
-                       1           
+                       1
             -----------------------
-                         1         
+                         1
              1 + ------------------
-                            1      
+                            1
                   2 + -------------
-                              1    
+                              1
                        5 + --------
-                                 1 
+                                 1
                             3 + ---
-                                 2 
+                                 2
             sage: continued_fraction(243/354).str(join=False)
             ['           1           ',
              '-----------------------',
@@ -402,17 +402,17 @@ class ContinuedFraction_base(SageObject):
              '                     2 ']
 
             sage: print(continued_fraction(243/354).str(unicode=True))
-                       1           
+                       1
             ───────────────────────
-                         1         
+                         1
              1 + ──────────────────
-                            1      
+                            1
                   2 + ─────────────
-                              1    
+                              1
                        5 + ────────
-                                 1 
+                                 1
                             3 + ───
-                                 2 
+                                 2
         """
         nterms = int(nterms)
         if nterms < 0:
@@ -462,13 +462,13 @@ class ContinuedFraction_base(SageObject):
         EXAMPLES::
 
             sage: ascii_art(continued_fraction(43/30))
-                      1      
+                      1
             1 + -------------
-                        1    
+                        1
                  2 + --------
-                           1 
+                           1
                       3 + ---
-                           4 
+                           4
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self.str(unicode=False, join=False))
@@ -478,16 +478,35 @@ class ContinuedFraction_base(SageObject):
         EXAMPLES::
 
             sage: unicode_art(continued_fraction(43/30))
-                      1      
+                      1
             1 + ─────────────
-                        1    
+                        1
                  2 + ────────
-                           1 
+                           1
                       3 + ───
-                           4 
+                           4
         """
         from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(self.str(unicode=True, join=False))
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: cf_pi = continued_fraction(pi)
+            sage: latex(cf_pi)
+            3+ \frac{\displaystyle 1}{\displaystyle 7+ \frac{\displaystyle 1}{\displaystyle 15+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 292+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle \dots}}}}}}}}
+        """
+        nterms=10
+        v=self[:nterms]
+        if len(v) == 0:
+            return '0'
+        s = str(v[0])
+        for i in range(1,min(len(v),nterms)-1):
+            s += '+ \\frac{\\displaystyle 1}{\\displaystyle %s' % v[i]
+        s += '+ \\frac{\\displaystyle 1}{\\displaystyle \dots'
+        s += '}'*(len(v)-1)
+        return s
 
     def __abs__(self):
         """

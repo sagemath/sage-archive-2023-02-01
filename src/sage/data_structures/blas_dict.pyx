@@ -34,7 +34,6 @@ This is mostly used by :class:`CombinatorialFreeModule`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.superseded import deprecated_function_alias
 from cpython cimport PyDict_Copy
 
 cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True):
@@ -349,6 +348,3 @@ cpdef dict linear_combination(dict_factor_iter, bint factor_on_left=True):
         del result[key]
 
     return result
-
-dict_addition = deprecated_function_alias(20680, sum)
-dict_linear_combination = deprecated_function_alias(20680, linear_combination)

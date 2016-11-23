@@ -18811,7 +18811,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_vertex("a")
             sage: s = g.graphviz_string()
         """
-        import hashlib
         label = dict()
         for i, v in enumerate(self.vertices()):
             label[v] = 'node_{0}'.format(i)

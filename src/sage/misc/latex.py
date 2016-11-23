@@ -1760,11 +1760,11 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     else:
         size=''
 
-    formatted_title = "\\begin{center}{\\Large\\bf %s}\\end{center}\n"%str(title) if title else ""
-    s = '%s\n\\begin{document}%s\n%s'%(extra_preamble, formatted_title, size)
+    formatted_title = "\n\\begin{center}{\\Large\\bf %s}\\end{center}\n"%str(title) if title else ""
+    s = '%s\n\\begin{document}%s%s'%(extra_preamble, formatted_title, size)
 
-    #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
-    s += '\\vspace{40mm}'
+    if title:
+        s += '\\vspace{40mm}'
     if process:
         for i in range(len(objects)):
             x = objects[i]
@@ -2012,7 +2012,7 @@ class MathJax:
         return MathJaxExpr(html.format(latex_string))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
-        pdflatex=None, engine=None, viewer = None, tightpage = True, border= 5,
+        pdflatex=None, engine=None, viewer = None, tightpage = True, margin = 0,
         mode='inline', combine_all=False, **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,
@@ -2057,7 +2057,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     -  ``tightpage`` -- bool (default: ``True``): use the LaTeX package
        'preview' with the 'tightpage' option.
 
-    -  ``border`` -- a number (default 5) which can be converted to a float:
+    -  ``margin`` -- a number (default 0) which can be converted to a float:
         it controls the boundary of the output and is interpretet as mm.
         Has no affect if the option ``tightpage`` is ``False``.
 
@@ -2169,7 +2169,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     """
 
     if tightpage == True:
-        latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}\\setlength\\PreviewBorder{%fmm}'%border,
+        latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}\\setlength\\PreviewBorder{%fmm}'%margin,
                          'math_left':'\\begin{page}$', 'math_right':'$\\end{page}'}
         title = False
     else:

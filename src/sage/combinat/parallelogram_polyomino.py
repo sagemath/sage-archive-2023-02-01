@@ -2337,6 +2337,7 @@ class ParallelogramPolyomino(ClonableList):
             ....:     [[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]
             ....: )
             sage: pp._repr_() == pp._repr_list()
+            True
             sage: pp._repr_list()
             '[[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]'
         """
@@ -2352,6 +2353,7 @@ class ParallelogramPolyomino(ClonableList):
             ....:     [[0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 0]]
             ....: )
             sage: pp._repr_() == pp._repr_drawing()
+            False
             sage: pp._repr_drawing()
             '[1 1 0]\n[1 1 0]\n[0 1 1]'
         """
@@ -2478,9 +2480,18 @@ class ParallelogramPolyomino(ClonableList):
             ....: )
             sage: pp.to_tikz() == pp._to_tikz_bounce()
             False
-            sage: pp.set_options(drawing_components=dict(diagram= True, bounce_0=True))
+            sage: pp.set_options(drawing_components=dict(diagram= False, bounce_0=True))
+            sage: pp.to_tikz() == pp._to_tikz_bounce([0])
+            True
+            sage: pp.set_options(drawing_components=dict(diagram=False, bounce_1=True))
+            sage: pp.to_tikz() == pp._to_tikz_bounce([1])
+            True
+            sage: pp.set_options(drawing_components=dict(diagram=False, bounce_0= True, bounce_1=True))
+            sage: pp.to_tikz() == pp._to_tikz_bounce([0,1])
+            True
             sage: pp.to_tikz() == pp._to_tikz_bounce()
             True
+            sage: pp.set_options(drawing_components=dict(diagram=True, bounce_0=True))
             sage: print pp.to_tikz() # indirect doctest
             <BLANKLINE>
               \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);
@@ -2496,18 +2507,6 @@ class ParallelogramPolyomino(ClonableList):
               \draw[color=red, line width=2] (1.000000, 4.000000) -- (1.000000, 1.000000);
               \draw[color=red, line width=2] (1.000000, 1.000000) -- (4.000000, 1.000000);
               \draw[color=red, line width=2] (4.000000, 1.000000) -- (4.000000, 0.000000);
-
-            sage: pp.set_options(drawing_components=dict(diagram= True, bounce_1=True))
-            sage: pp.to_tikz() == pp._to_tikz_bounce()
-            True
-            sage: print pp.to_tikz() # indirect doctest
-            <BLANKLINE>
-            ...
-
-            sage: pp.set_options(drawing_components=dict(diagram= True, bounce_0=True, bounce_1=True))
-            sage: print pp.to_tikz() # indirect doctest
-            <BLANKLINE>
-            ...
         """
         res = ""
         tikz_options = self.get_tikz_options()
@@ -2568,9 +2567,10 @@ class ParallelogramPolyomino(ClonableList):
             ....: )
             sage: pp.to_tikz() == pp._to_tikz_tree()
             False
-            sage: pp.set_options(drawing_components=dict(diagram= True, tree=True))
+            sage: pp.set_options(drawing_components=dict(diagram= False, tree=True))
             sage: pp.to_tikz() == pp._to_tikz_tree()
             True
+            sage: pp.set_options(drawing_components=dict(diagram= True, tree=True))
             sage: print pp.to_tikz() # indirect doctest
             <BLANKLINE>
               \draw[color=black, line width=1] (0.000000, 4.000000) -- (0.000000, 1.000000);

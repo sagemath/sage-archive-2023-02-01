@@ -2098,9 +2098,9 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     Setting ``viewer`` to ``'pdf'`` forces the use of a separate
     viewer, even in notebook mode. This also sets the latex engine to be
     ``pdflatex`` if the current engine is latex.
-    
+
     Setting the option ``tightpage`` to ``True`` (this is the default setting)
-    tells LaTeX to use  the package 'preview' with the 'tightpage' option. 
+    tells LaTeX to use  the package 'preview' with the 'tightpage' option.
     Then, each object is typeset in its own page, and that page is cropped to
     exactly the size of the object. This is typically useful for very
     large pictures (like graphs) generated with tikz. This only works
@@ -2115,7 +2115,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     to the LaTeX preamble, and replaces the ``\\[`` and ``\\]`` around
     each object by ``\\begin{page}$`` and ``$\\end{page}``.
     Setting ``tightpage`` to ``False`` turns off this behavior and provides
-    the latex output as a full page. 
+    the latex output as a full page.
 
     If in notebook mode with ``viewer`` equal to ``None``, this
     usually uses MathJax -- see the next paragraph for the exception --

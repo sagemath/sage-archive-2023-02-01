@@ -1410,7 +1410,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.get_options()
             Current options for ParallelogramPolyominoes_size
               - display:            list
-              - drawing_components: {'diagram': True}
+              - drawing_components: {'diagram': True, 'bounce_1': False, 'tree': False, 'bounce_0': False}
               - latex:              drawing
               - tikz_options:       {'color_bounce_1': 'blue', 'color_bounce_0': 'red', 'point_size': 3.5, 'line_size': 1, 'color_line': 'black', 'color_point': 'black', 'scale': 1, 'mirror': None, 'rotation': 0, 'translation': [0, 0]}
         """

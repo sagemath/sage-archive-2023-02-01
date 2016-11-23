@@ -568,7 +568,7 @@ class _drawing_tool:
         self._color_point = options['color_point']
 
     def XY(self, v):
-        """
+        r"""
         This function give the image of v by some transformation given by the
         drawingoption of ``_drawing_tool``.
 
@@ -609,7 +609,7 @@ class _drawing_tool:
             [-1.0, 1.0]
         """
         def translate(pos, v):
-            """
+            r"""
                 Translate a position with a vector.
 
                 INPUT:
@@ -622,7 +622,7 @@ class _drawing_tool:
             return [pos[0]+v[0], pos[1]+v[1]]
 
         def rotate(pos, angle):
-            """
+            r"""
                 Rotate by `angle` a position around the origin.
 
                 INPUT:
@@ -636,7 +636,7 @@ class _drawing_tool:
             return [x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle)]
 
         def mirror(pos,  axe):
-            """
+            r"""
                 Return the mirror of a position according to a given axe.
 
                 INPUT:
@@ -670,7 +670,7 @@ class _drawing_tool:
         )
 
     def draw_line(self, v1, v2, color=None, size=None):
-        """
+        r"""
         Return the TIKZ code for a line according the drawing option given
         to ``_drawing_tool``.
 
@@ -707,7 +707,7 @@ class _drawing_tool:
         )
 
     def draw_polyline(self, list_of_vertices, color=None, size=None):
-        """
+        r"""
         Return the TIKZ code for a polyline according the drawing option given
         to ``_drawing_tool``.
 
@@ -739,7 +739,7 @@ class _drawing_tool:
         return res
 
     def draw_point(self, p1, color=None, size=None):
-        """
+        r"""
         Return the TIKZ code for a point according the drawing option given
         to ``_drawing_tool``.
 
@@ -1316,6 +1316,9 @@ class ParallelogramPolyomino(ClonableList):
         from sage.combinat.binary_tree import BinaryTree
 
         def make_tree(b_tree, d):
+            r"""
+            TODO
+            """
             if b_tree == BinaryTree():
                 return OrderedTree([])
             res = []
@@ -1855,7 +1858,7 @@ class ParallelogramPolyomino(ClonableList):
         widths = self.widths()
 
         def val(w, h):
-            """
+            r"""
             That technical function determine, if a cell at a given position
             is inside the parallelogram polyomino.
 
@@ -1877,7 +1880,7 @@ class ParallelogramPolyomino(ClonableList):
         return [[val(h, w) for w in range(width)] for h in range(height)]
 
     class _polyomino_row:
-        """
+        r"""
         That technical class implement the row of a parallelogram
         polyomino.
 
@@ -1892,7 +1895,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
         """
         def __init__(self, polyomino, row):
-            """
+            r"""
             The constructor of the class
 
             EXAMPLES::
@@ -1909,7 +1912,7 @@ class ParallelogramPolyomino(ClonableList):
             self.row = row
 
         def __getitem__(self, column):
-            """
+            r"""
             Return 0 or 1 if theis is a cell inside the specific colum inside the
             row.
 
@@ -1933,7 +1936,7 @@ class ParallelogramPolyomino(ClonableList):
             return 0
 
         def is_inside(self):
-            """
+            r"""
             Return true if the 0 or 1 if theis is a cell inside the specific colum inside the
             row.
 
@@ -1960,9 +1963,15 @@ class ParallelogramPolyomino(ClonableList):
             return 0 <= self.row and self.row < self.polyomino.height()
 
         def is_outside(self):
+            r"""
+            TODO
+            """
             return not self.is_inside()
 
         def __repr__(self):
+            r"""
+            TODO
+            """
             if self.is_outside():
                 return "The (outside) row %s of the parallelogram" % (self.row)
             else:
@@ -2327,6 +2336,9 @@ class ParallelogramPolyomino(ClonableList):
         )
 
         def draw_bounce(direction, color):
+            r"""
+            TODO
+            """
             if(
                 len(self.bounce_path(direction))
                 > len(self.bounce_path(1-direction))
@@ -2381,6 +2393,9 @@ class ParallelogramPolyomino(ClonableList):
         return res
 
     def get_node_position_at_row(self, row):
+        r"""
+        TODO
+        """
         h = row
         for w in range(self.width()):
             if self[h][w] == 1:
@@ -2388,6 +2403,9 @@ class ParallelogramPolyomino(ClonableList):
         return None
 
     def get_node_position_at_line(self, line):
+        r"""
+        TODO
+        """
         w = line
         for h in range(self.height()):
             if self[h][w] == 1:
@@ -2397,6 +2415,9 @@ class ParallelogramPolyomino(ClonableList):
     def get_node_position_from_box(
         self, box_position, direction, nb_crossed_nodes=[0]
     ):
+        r"""
+        TODO
+        """
         pos = list(box_position)
         if self[pos[0]][pos[1]] == 0:
             return None

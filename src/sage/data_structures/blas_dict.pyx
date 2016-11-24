@@ -36,7 +36,7 @@ This is mostly used by :class:`CombinatorialFreeModule`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True):
+cpdef int iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True) except -1:
     r"""
     Mutate `Y` to represent `a X + Y`.
 
@@ -52,7 +52,10 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
 
     OUTPUT:
 
-    None: ``Y`` has been mutated to represent the vector `a*X+Y`.
+    ``0`` when successful and ``-1`` on error. This is done because
+    returning an ``int`` is faster than a (Python) ``None``.
+
+    ``Y`` has been mutated to represent the vector `a \cdot X + Y`.
     If ``remove_zeros=True`` (and the input have no zero values
     themselves), then the output is guaranteed to have no zero
     values. Otherwise some zero values may be left in the output.
@@ -60,9 +63,9 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
     where you want to postpone clearing until the end of a long
     series of operations.
 
-    The parent `K` should support addition unless `a = -1`, negation if
-    `a = -1`, and multiplication if `a \neq \pm 1`. We are also assuming
-    that ``-1 * x = -x`` and ``bool(x) == bool(-x)`` in `K`.
+    The parent `K` should support addition unless `a = -1`, negation
+    if `a = -1`, and multiplication if `a \neq ±1`. We are also
+    assuming that ``-1 * x = -x`` and ``bool(x) == bool(-x)`` in `K`.
 
     See :mod:`sage.data_structures.blas_dict` for an overview.
 
@@ -75,6 +78,7 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
     Computing `X+Y`::
 
         sage: blas.iaxpy(1, X, Y)
+        0
         sage: Y
         {1: 2}
 
@@ -82,6 +86,7 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
 
         sage: Y = {0: 1, 1: 1}
         sage: blas.iaxpy(-1, X, Y)
+        0
         sage: Y
         {0: 2}
 
@@ -89,6 +94,7 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
 
         sage: Y = {0: 1, 1: 1}
         sage: blas.iaxpy(2, X, Y)
+        0
         sage: Y
         {0: -1, 1: 3}
 
@@ -96,6 +102,7 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
 
         sage: Y = {0: 1, 1: 1}
         sage: blas.iaxpy(-1, X, Y, remove_zeros=False)
+        0
         sage: Y
         {0: 2, 1: 0}
     """
@@ -105,7 +112,7 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
     elif a == -1:
         flag = -1
     elif not a:
-        return
+        return 0
     for (key, value) in X.iteritems():
         if flag == -1:
             if key in Y:
@@ -134,6 +141,7 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
                 continue # no need to check for zero
         if remove_zeros and not Y[key]:
             del Y[key]
+    return 0
 
 cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
     """
@@ -144,7 +152,7 @@ cpdef dict axpy(a, dict X, dict Y, bint factor_on_left=True):
 
     INPUT:
 
-    - ``a`` -- an element of `K` or `\pm 1`
+    - ``a`` -- an element of `K` or `±1`
     - ``X``, ``Y`` -- dictionaries representing respectively vectors `X` and `Y`
     - ``factor_on_left`` -- boolean (default: ``False``);
       whether to compute `a X + Y` or `X a + Y`

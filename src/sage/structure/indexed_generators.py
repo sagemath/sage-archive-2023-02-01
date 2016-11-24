@@ -503,11 +503,15 @@ def standardize_names_index_set(names=None, index_set=None, ngens=None):
 
     OUTPUT:
 
-    A pair ``(names', index_set')``, where ``names'`` is either ``None``
-    or a tuple of strings, and where ``index_set'`` is a finite
-    enumerated set. (The purpose of ``index_set'`` is to index the
-    generators of some object (e.g., the basis of a module); the strings
-    in ``names'``, when they exist, are used for printing these indices.)
+    A pair ``(names_std, index_set_std)``, where ``names_std`` is either
+    ``None`` or a tuple of strings, and where ``index_set_std`` is a finite
+    enumerated set.
+    The purpose of ``index_set_std`` is to index the generators of some object
+    (e.g., the basis of a module); the strings in ``names_std``, when they
+    exist, are used for printing these indices. The ``ngens``
+
+    If ``names`` contains exactly one name ``X`` and ``ngens`` is greater than
+    1, then ``names_std`` are ``Xi`` for ``i`` in ``range(ngens)``.
 
     TESTS::
 
@@ -528,7 +532,7 @@ def standardize_names_index_set(names=None, index_set=None, ngens=None):
         sage: standardize_names_index_set()
         Traceback (most recent call last):
         ...
-        ValueError: either the names of the generators or the index set must be specified
+        ValueError: the index_set, names, or number of generators must be specified
         sage: standardize_names_index_set(['x'], ['a', 'b'])
         Traceback (most recent call last):
         ...

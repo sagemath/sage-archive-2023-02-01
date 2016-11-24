@@ -53,7 +53,12 @@ cpdef iaxpy(a, dict X, dict Y, bint remove_zeros=True, bint factor_on_left=True)
     OUTPUT:
 
     None: ``Y`` has been mutated to represent the vector `a*X+Y`.
-    If ``remove_zeroes=False``, ``Y`` may contain zero values.
+    If ``remove_zeros=True`` (and the input have no zero values
+    themselves), then the output is guaranteed to have no zero
+    values. Otherwise some zero values may be left in the output.
+    Which ones is voluntarily left undefined. Use this in cases
+    where you want to postpone clearing until the end of a long
+    series of operations.
 
     The parent `K` should support addition unless `a = -1`, negation if
     `a = -1`, and multiplication if `a \neq \pm 1`. We are also assuming

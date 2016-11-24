@@ -393,7 +393,8 @@ def Omega_higher(a, exponents):
     return numerator, factors_denominator
 
 
-def Omega(var, expression, denominator=None, op=operator.ge):
+def Omega(var, expression, denominator=None, op=operator.ge,
+          Factorization_sort=False, Factorization_simplify=True):
     r"""
     Return `\Omega_{\mathrm{op}}` of ``expression`` with respect to ``var``.
 
@@ -606,7 +607,8 @@ def Omega(var, expression, denominator=None, op=operator.ge):
     return Factorization([(result_numerator, 1)] +
                          list((f, -1) for f in other_factors) +
                          list((f, -1) for f in result_factors_denominator),
-                         sort=False, simplify=False)
+                         sort=Factorization_sort,
+                         simplify=Factorization_simplify)
 
 
 def _Omega_(a, decoded_factors):
@@ -697,5 +699,7 @@ def preparation_generating_function_of_polyhedron(polyhedron, indices=None):
 def generating_function_of_polyhedron(polyhedron, indices=None):
     GF = preparation_generating_function_of_polyhedron(polyhedron, indices)
     while repr(GF.universe().gen()).startswith('lambda'):
-        GF = Omega(GF.universe().gen(), GF)
+        GF = Omega(GF.universe().gen(), GF,
+                   Factorization_sort=False,
+                   Factorization_simplify=False)
     return GF

@@ -711,7 +711,7 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
             sage: def ut(i): return (x[1] + x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
             sage: perm = [0, 2, 1, 3]
-            sage: our_cmp = lambda a, b: cmp(perm[a], perm[b])
+            sage: our_cmp = lambda a, b: (perm[a] > perm[b]) - (perm[a] < perm[b])
             sage: phi = X.module_morphism(ut, triangular="upper", codomain=X, cmp=our_cmp)
             doctest:warning
             ...

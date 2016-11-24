@@ -330,6 +330,7 @@ def Omega_higher(a, exponents):
         (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1,
          (-z0 + 1, -z1 + 1, -z0*z2^2 + 1, -z1*z2 + 1))
     """
+    from sage.misc.functional import cyclotomic_polynomial
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing

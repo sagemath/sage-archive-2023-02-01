@@ -258,6 +258,23 @@ update ``A.current_seed()``::
     sage: S1 == A.current_seed()
     False
 
+Since :class:`ClusterAlgebra` inherits from :class:`UniqueRepresentation`,
+computed data is shared across instances::
+
+    sage: A1 = ClusterAlgebra(['F', 4])
+    sage: A1 is A
+    True
+    sage: len(A1.g_vectors_so_far())
+    11
+
+It can be useful, at times to forget all computed data. Because of
+:class:`UniqueRepresentation` this cannot be achieved by simply creating a
+new instance; instead it has to be manually triggered by::
+
+    sage: A.clear_computed_data()
+    sage: len(A.g_vectors_so_far())
+    4
+
 Given a cluster algebra ``A`` we may be looking for a specific cluster
 variable::
 
@@ -722,6 +739,7 @@ class ClusterAlgebraSeed(SageObject):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 3])
+            sage: A.clear_computed_data()
             sage: S = copy(A.current_seed())
             sage: S.mutate([0, 2, 0])
             sage: S == A.current_seed()
@@ -730,10 +748,10 @@ class ClusterAlgebraSeed(SageObject):
             sage: S == A.current_seed()
             True
 
-            sage: B = ClusterAlgebra(['B', 2], principal_coefficients=True)
-            sage: S = B.current_seed()
+            sage: A = ClusterAlgebra(['B', 2], principal_coefficients=True)
+            sage: S = A.current_seed()
             sage: S.mutate(0)
-            sage: S == B.current_seed()
+            sage: S == A.current_seed()
             True
         """
         return (isinstance(other, ClusterAlgebraSeed)
@@ -793,6 +811,7 @@ class ClusterAlgebraSeed(SageObject):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 3])
+            sage: A.clear_computed_data()
             sage: S = A.current_seed(); S
             The initial seed of a Cluster Algebra with cluster variables x0, x1, x2
              and no coefficients over Integer Ring
@@ -1252,52 +1271,57 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: B = matrix([(0, 1, 0, 0), (-1, 0, -1, 0), (0, 1, 0, 1), (0, 0, -2, 0), (-1, 0, 0, 0), (0, -1, 0, 0)])
             sage: A = ClusterAlgebra(B)
+            sage: A.clear_computed_data()
             sage: TestSuite(A).run()
             sage: A = ClusterAlgebra(['A', 2])
+            sage: A.clear_computed_data()
             sage: TestSuite(A).run()
             sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True)
+            sage: A.clear_computed_data()
             sage: TestSuite(A).run()
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True, coefficient_prefix='x')
+            sage: A.clear_computed_data()
             sage: TestSuite(A).run()
             sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, cluster_variable_names=['a','b','c'])
+            sage: A.clear_computed_data()
             sage: TestSuite(A).run()
             sage: A = ClusterAlgebra(['A', 3], principal_coefficients=True, coefficient_names=['a','b','c'])
+            sage: A.clear_computed_data()
             sage: TestSuite(A).run()
         """
-        # Temporary variables
-        n = Q.n()
-        I = identity_matrix(n)
+        # Parse input
+        self._n = Q.n()
+        I = identity_matrix(self._n)
         if kwargs.get('principal_coefficients', False):
             M0 = I
         else:
-            M0 = Q.b_matrix()[n:, :]
-        B0 = block_matrix([[Q.b_matrix()[:n, :]], [M0]])
+            M0 = Q.b_matrix()[self._n:, :]
+        self._B0 = block_matrix([[Q.b_matrix()[:self._n, :]], [M0]])
         m = M0.nrows()
 
         # Ambient space for F-polynomials
         # NOTE: for speed purposes we need to have QQ here instead of the more
         # natural ZZ. The reason is that _mutated_F is faster if we do not cast
         # the result to polynomials but then we get "rational" coefficients
-        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(n)])
+        self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)])
 
-        # Storage for computed data
-        self._path_dict = dict((v, []) for v in map(tuple, I.columns()))
-        self._F_poly_dict = dict((v, self._U(1)) for v in self._path_dict)
+        # Setup infrastruture to store computed data
+        self.clear_computed_data()
 
         # Determine the names of the initial cluster variables
         variables_prefix = kwargs.get('cluster_variable_prefix', 'x')
-        variables = list(kwargs.get('cluster_variable_names', [variables_prefix + str(i) for i in range(n)]))
-        if len(variables) != n:
-            raise ValueError("cluster_variable_names should be a list of %d valid variable names" % n)
+        variables = list(kwargs.get('cluster_variable_names', [variables_prefix + str(i) for i in range(self._n)]))
+        if len(variables) != self._n:
+            raise ValueError("cluster_variable_names should be a list of %d valid variable names" % self._n)
 
         # Determine scalars
         scalars = kwargs.get('scalars', ZZ)
 
-        # Determine coefficients and setup self._base
+        # Determine coefficients and base
         if m > 0:
             coefficient_prefix = kwargs.get('coefficient_prefix', 'y')
             if coefficient_prefix == variables_prefix:
-                offset = n
+                offset = self._n
             else:
                 offset = 0
             coefficients = list(kwargs.get('coefficient_names', [coefficient_prefix + str(i) for i in range(offset, m + offset)]))
@@ -1309,36 +1333,27 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             coefficients = []
 
         # Have we got principal coefficients?
-        self._is_principal = (M0 == I)
-        if self._is_principal:
+        if M0 == I:
             self.Element = PrincipalClusterAlgebraElement
         else:
             self.Element = ClusterAlgebraElement
 
-        # setup Parent and ambient
+        # Setup Parent and ambient
         self._ambient = LaurentPolynomialRing(scalars, variables + coefficients)
         Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(),
                         names=variables + coefficients)
 
         # Data to compute cluster variables using separation of additions
-        self._y = {self._U.gen(j): prod(self._base.gen(i) ** M0[i, j] for i in range(m))
-                   for j in range(n)}
-        self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** B0[i, j]
-                                           for i in range(n + m))
-                      for j in range(n)}
-
-        # Store initial data
         # NOTE: storing both _B0 as rectangular matrix and _yhat is redundant.
         # We keep both around for speed purposes.
-        self._B0 = copy(B0)
-        self._n = n
-        self.reset_current_seed()
-
-        # Internal data for exploring the exchange graph
-        self.reset_exploring_iterator()
+        self._y = {self._U.gen(j): prod(self._base.gen(i) ** M0[i, j] for i in range(m))
+                   for j in range(self._n)}
+        self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** self._B0[i, j]
+                                           for i in range(self._n + m))
+                      for j in range(self._n)}
 
         # Add methods that are defined only for special cases
-        if n == 2 and m == 0:
+        if self._n == 2 and m == 0:
             self.greedy_element = MethodType(greedy_element, self, self.__class__)
             self._greedy_coefficient = MethodType(_greedy_coefficient, self, self.__class__)
 
@@ -1388,7 +1403,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         ALGORITHM:
 
         ``self`` and ``other`` are deemed to be equal if they have the same
-        initial exchange matrix and their ambients coincide. In particular we 
+        initial exchange matrix and their ambients coincide. In particular we
         do not keep track of how much each Cluster Algebra has been explored.
 
         EXAMPLES::
@@ -1451,8 +1466,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         ALGORITHM:
 
         If ``other`` is an instance of :class:`ClusterAlgebra` then allow
-        coercion if ``other.ambient()`` can be coerced into ``self.ambient()`` 
-        and ``other`` can be obtained from ``self`` by permuting variables 
+        coercion if ``other.ambient()`` can be coerced into ``self.ambient()``
+        and ``other`` can be obtained from ``self`` by permuting variables
         and coefficients and/or freezing some initial cluster variables.
 
         Otherwise allow anything that coerces into ``self.base()`` to coerce
@@ -1540,6 +1555,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2])
+            sage: A.clear_computed_data()
             sage: A.current_seed()
             The initial seed of a Cluster Algebra with cluster variables x0, x1
              and no coefficients over Integer Ring
@@ -1558,6 +1574,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2])
+            sage: A.clear_computed_data()
             sage: S = copy(A.current_seed())
             sage: S.mutate([0, 1, 0])
             sage: A.current_seed() == S
@@ -1565,8 +1582,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.set_current_seed(S)
             sage: A.current_seed() == S
             True
-            sage: B = ClusterAlgebra(['B', 2])
-            sage: A.set_current_seed(B.initial_seed())
+            sage: A1 = ClusterAlgebra(['B', 2])
+            sage: A.set_current_seed(A1.initial_seed())
             Traceback (most recent call last):
             ...
             ValueError: This is not a seed in this cluster algebra
@@ -1584,7 +1601,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2])
-            sage: A.reset_current_seed()
+            sage: A.clear_computed_data()
             sage: A.current_seed().mutate([1, 0])
             sage: A.current_seed() == A.initial_seed()
             False
@@ -1593,6 +1610,29 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             True
         """
         self._seed = self.initial_seed()
+
+    def clear_computed_data(self):
+        r"""
+        Clear the cache of computed g-vectors and F-polynomials
+        and reset both the current seed and the exploring iterator.
+
+        EXAMPLES::
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.clear_computed_data()
+            sage: A.g_vectors_so_far()
+            [(0, 1), (1, 0)]
+            sage: A.current_seed().mutate([1, 0])
+            sage: A.g_vectors_so_far()
+            [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            sage: A.clear_computed_data()
+            sage: A.g_vectors_so_far()
+            [(0, 1), (1, 0)]
+        """
+        I = identity_matrix(self._n)
+        self._path_dict = dict((v, []) for v in map(tuple, I.columns()))
+        self._F_poly_dict = dict((v, self._U(1)) for v in self._path_dict)
+        self.reset_current_seed()
+        self.reset_exploring_iterator()
 
     def contains_seed(self, seed):
         r"""
@@ -1701,7 +1741,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         ALGORITHM:
 
-        This method does not use the caching framework provided by ``self``, 
+        This method does not use the caching framework provided by ``self``,
         but recomputes all the F-polynomials from scratch. On the other hand
         it stores the results so that other methods like
         :meth:`F_polynomials_so_far` can access them afterwards.
@@ -1721,6 +1761,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2])
+            sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
             sage: A.g_vectors_so_far()
             [(0, 1), (1, 0), (-1, 1)]
@@ -1734,6 +1775,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2])
+            sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
             sage: A.cluster_variables_so_far()
             [x1, x0, (x1 + 1)/x0]
@@ -1747,6 +1789,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 2])
+            sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
             sage: A.F_polynomials_so_far()
             [1, 1, u0 + 1]
@@ -1794,7 +1837,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: A = ClusterAlgebra(['C', 2])
+            sage: A = ClusterAlgebra(['A', 2])
+            sage: A.clear_computed_data()
             sage: A.F_polynomial((-1, 1))
             Traceback (most recent call last):
             ...
@@ -1842,6 +1886,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['G', 2], principal_coefficients=True)
+            sage: A.clear_computed_data()
             sage: A.find_g_vector((-2, 3), depth=2)
             sage: A.find_g_vector((-2, 3), depth=3)
             [0, 1, 0]
@@ -1966,8 +2011,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
             sage: A.coefficients()
             (y0, y1)
-            sage: B = ClusterAlgebra(['B', 2])
-            sage: B.coefficients()
+            sage: A1 = ClusterAlgebra(['B', 2])
+            sage: A1.coefficients()
             ()
         """
         if isinstance(self.base(), LaurentPolynomialRing_generic):
@@ -1984,11 +2029,11 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 3])
             sage: A.coefficient_names()
             ()
-            sage: B = ClusterAlgebra(['B', 2], principal_coefficients=True)
-            sage: B.coefficient_names()
+            sage: A1 = ClusterAlgebra(['B', 2], principal_coefficients=True)
+            sage: A1.coefficient_names()
             ('y0', 'y1')
-            sage: C = ClusterAlgebra(['C', 3], principal_coefficients=True, coefficient_prefix='x')
-            sage: C.coefficient_names()
+            sage: A2 = ClusterAlgebra(['C', 3], principal_coefficients=True, coefficient_prefix='x')
+            sage: A2.coefficient_names()
             ('x3', 'x4', 'x5')
         """
         return self.variable_names()[self.rank():]
@@ -2032,8 +2077,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2], principal_coefficients=True)
             sage: A.initial_cluster_variable_names()
             ('x0', 'x1')
-            sage: B = ClusterAlgebra(['B', 2], cluster_variable_prefix='a')
-            sage: B.initial_cluster_variable_names()
+            sage: A1 = ClusterAlgebra(['B', 2], cluster_variable_prefix='a')
+            sage: A1.initial_cluster_variable_names()
             ('a0', 'a1')
         """
         return self.variable_names()[:self.rank()]
@@ -2068,6 +2113,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = ClusterAlgebra(['A', 4])
+            sage: A.clear_computed_data()
             sage: seeds = A.seeds(allowed_directions=[3, 0, 1])
             sage: _ = list(seeds)
             sage: A.g_vectors_so_far()
@@ -2154,11 +2200,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: A = ClusterAlgebra(['C', 4])
+            sage: A = ClusterAlgebra(['A', 4])
+            sage: A.clear_computed_data()
             sage: A.reset_exploring_iterator(mutating_F=False)
             sage: A.explore_to_depth(infinity)
             sage: len(A.g_vectors_so_far())
-            20
+            14
             sage: len(A.F_polynomials_so_far())
             4
         """

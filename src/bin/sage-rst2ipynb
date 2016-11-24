@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+fail () {
+    echo "ERROR: ${1}" 1>&2
+    exit 1
+}
+
+# tests if dependencies are available
+pandoc -v > /dev/null 2>&1 || fail 'You should install pandoc on your system.'
+[ $(sage-list-packages installed | grep '^rst2ipynb\.\.\.') ] || fail \
+    'You should install the rst2ipynb optional package.'
+
+case  "${#}" in
+    (1)
+        rst2ipynb --kernel='sagemath' ${1} ;;
+    (2)
+        rst2ipynb --kernel='sagemath' ${1} -o ${2} ;;
+    (*)
+        fail 'You should provide one or two file names.' ;;
+esac
+
+exit 0
+

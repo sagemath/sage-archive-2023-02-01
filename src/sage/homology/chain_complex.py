@@ -1551,10 +1551,6 @@ class ChainComplex_class(Parent):
         (which uses `C[n]` as we do but acknowledges `C[-n]`) or 1.2.8
         in [Wei1994]_ (which uses `C[-n]`).
 
-        This is obtained in Sage by tensoring (on the left, to get the
-        appropriate sign) with a rank one free module in degree `-nd`,
-        where `d` is the degree of the differential.
-
         EXAMPLES::
 
             sage: S1 = simplicial_complexes.Sphere(1).chain_complex()
@@ -1577,12 +1573,20 @@ class ChainComplex_class(Parent):
             1
             sage: co_T.shift(2).homology()
             {-4: Z, -3: Z x Z, -2: Z}
+
+        You can achieve the same result by tensoring (on the left, to
+        get the signs right) with a rank one free module in degree
+        ``-n * deg``, if ``deg`` is the degree of the differential::
+
+            sage: C = ChainComplex({-2: matrix(ZZ, 0, 1)})
+            sage: C.tensor(co_T).homology()
+            {-4: Z, -3: Z x Z, -2: Z}
         """
-        R = self.base_ring()
         deg = self.degree_of_differential()
-        C = ChainComplex({(-1)*n*deg: matrix(R, 0, 1)},
-                         degree_of_differential=deg)
-        return C.tensor(self)
+        shift = n * deg
+        sgn = (-1)**n
+        return ChainComplex({k-shift: sgn * self._diff[k] for k in self._diff},
+                            degree_of_differential=deg)
 
     def _chomp_repr_(self):
         r"""

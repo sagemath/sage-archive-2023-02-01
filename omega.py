@@ -518,6 +518,7 @@ def Omega(var, expression, denominator=None, op=operator.ge,
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod
+    from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.structure.factorization import Factorization
 
@@ -556,7 +557,7 @@ def Omega(var, expression, denominator=None, op=operator.ge,
         except (TypeError, ValueError):
             return Factorization([(numerator, 1)])
         else:
-            return Factorization([(numerator.subs({var: 1}), 1)])
+            return Factorization([(numerator.subs({var: ZZ(1)}), 1)])
 
     if not isinstance(var, str) and \
        len(var.parent().gens()) == 1 and var.parent().gen() == var:

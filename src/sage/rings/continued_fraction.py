@@ -495,7 +495,7 @@ class ContinuedFraction_base(SageObject):
 
             sage: cf_pi = continued_fraction(pi)
             sage: latex(cf_pi)
-            3+ \frac{\displaystyle 1}{\displaystyle 7+ \frac{\displaystyle 1}{\displaystyle 15+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 292+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle \dots}}}}}}}}
+            3+ \frac{\displaystyle 1}{\displaystyle 7+ \frac{\displaystyle 1}{\displaystyle 15+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 292+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 2+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle \dots}}}}}}}}}}
         """
         nterms=10
         v=self[:nterms+1]
@@ -1489,6 +1489,11 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             sage: a = continued_fraction(-17/389)
             sage: latex(a)
             -1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 21+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 7+ \frac{\displaystyle 1}{\displaystyle 2}}}}}
+            sage: K.<a> = QuadraticField(1234)
+            sage: cf=continued_fraction(a); cf
+            [35; (7, 1, 3, 1, 4, 4, 2, 9, 1, 1, 2, 3, 1, 1, 34, 1, 1, 3, 2, 1, 1, 9, 2, 4, 4, 1, 3, 1, 7, 70)*]
+            sage: latex(cf)
+            35+ \frac{\displaystyle 1}{\displaystyle 7+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 3+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 4+ \frac{\displaystyle 1}{\displaystyle 4+ \frac{\displaystyle 1}{\displaystyle 2+ \frac{\displaystyle 1}{\displaystyle 9+ \frac{\displaystyle 1}{\displaystyle \dots}}}}}}}}}
         """
         if self._x2[0] is not Infinity:
             return super(ContinuedFraction_periodic,self)._latex_()

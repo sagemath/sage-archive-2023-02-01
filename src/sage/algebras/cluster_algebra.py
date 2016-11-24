@@ -52,6 +52,8 @@ and coefficients.
 :class:`ClusterAlgebraElement` is a thin wrapper around
 :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_generic`
 providing all the functions specific to cluster variables.
+Elemets of a cluster algebra with principal coefficients have special methods
+and these are grouped in the subclass :class:`PrincipalClusterAlgebraElement`.
 
 One more remark about this implementation. Instances of
 :class:`ClusterAlgebra` are built by identifying the initial cluster variables
@@ -307,10 +309,10 @@ the two algebras::
     sage: A = ClusterAlgebra(['F', 4]); A
     A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients
      over Integer Ring
-    sage: B = ClusterAlgebra(A.b_matrix().matrix_from_columns([0, 1, 2]), coefficient_prefix='x'); B
+    sage: A1 = ClusterAlgebra(A.b_matrix().matrix_from_columns([0, 1, 2]), coefficient_prefix='x'); A1
     A Cluster Algebra with cluster variables x0, x1, x2 and coefficient x3
      over Integer Ring
-    sage: A.has_coerce_map_from(B)
+    sage: A.has_coerce_map_from(A1)
     True
 
 and we also have an immersion of ``A.base()`` into ``A`` and of ``A``
@@ -344,11 +346,9 @@ mutating at the initial seed::
 #*****************************************************************************
 
 from __future__ import absolute_import
-
 from copy import copy
 from functools import wraps
 from future_builtins import map
-from types import MethodType
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.categories.rings import Rings
@@ -373,13 +373,12 @@ from sage.rings.rational_field import QQ
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
-from six.moves import range as range
 from sage.structure.unique_representation import UniqueRepresentation
+from six.moves import range as range
 
 ##############################################################################
 # Elements of a cluster algebra
 ##############################################################################
-
 
 class ClusterAlgebraElement(ElementWrapper):
     """
@@ -470,10 +469,6 @@ class ClusterAlgebraElement(ElementWrapper):
         """
         numer, denom = self.lift()._fraction_pair()
         return repr(numer / denom)
-
-####
-# Methods not always defined
-####
 
 class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
     """
@@ -1302,11 +1297,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** self._B0[i, j]
                                            for i in range(self._n + m))
                       for j in range(self._n)}
-
-        # Add methods that are defined only for special cases
-        if self._n == 2 and m == 0:
-            self.greedy_element = MethodType(greedy_element, self, self.__class__)
-            self._greedy_coefficient = MethodType(_greedy_coefficient, self, self.__class__)
 
         # Register embedding into self.ambient()
         embedding = SetMorphism(Hom(self, self.ambient()), lambda x: x.lift())
@@ -2265,6 +2255,87 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         return A
 
+    def greedy_element(self, d_vector):
+        r"""
+        Return the greedy element with denominator vector ``d_vector``.
+
+        INPUT:
+
+        - ``d_vector`` -- tuple of 2 integers; the denominator vector of
+          the element to compute
+
+        ALGORITHM:
+
+        This implements greedy elements of a rank 2 cluster algebra using
+        Equation (1.5) from [LLZ2014]_.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', [1, 1], 1])
+            sage: A.greedy_element((1, 1))
+            (x0^2 + x1^2 + 1)/(x0*x1)
+        """
+        if self.rank() != 2:
+            raise ValueError('greedy elements are only defined in rank 2')
+
+        if len(self.coefficients()) != 0:
+            raise NotImplementedError('can only compute greedy elements in the coefficient-free case')
+
+        b = abs(self.b_matrix()[0, 1])
+        c = abs(self.b_matrix()[1, 0])
+        a1, a2 = d_vector
+        # Here we use the generators of self.ambient() because cluster variables
+        #   do not have an inverse.
+        x1, x2 = self.ambient().gens()
+        if a1 < 0:
+            if a2 < 0:
+                return self.retract(x1 ** (-a1) * x2 ** (-a2))
+            else:
+                return self.retract(x1 ** (-a1) * ((1 + x2 ** c) / x1) ** a2)
+        elif a2 < 0:
+            return self.retract(((1 + x1 ** b) / x2) ** a1 * x2 ** (-a2))
+        output = 0
+        for p in range(0, a2 + 1):
+            for q in range(0, a1 + 1):
+                output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b * p) * x2 ** (c * q)
+        return self.retract(x1 ** (-a1) * x2 ** (-a2) * output)
+
+    def _greedy_coefficient(self, d_vector, p, q):
+        r"""
+        Return the coefficient of the monomial ``x1 ** (b * p) * x2 ** (c * q)``
+        in the numerator of the greedy element with denominator vector ``d_vector``.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['A', [1, 1], 1])
+            sage: A.greedy_element((1, 1))
+            (x0^2 + x1^2 + 1)/(x0*x1)
+            sage: A._greedy_coefficient((1, 1), 0, 0)
+            1
+            sage: A._greedy_coefficient((1, 1), 1, 0)
+            1
+        """
+        b = abs(self.b_matrix()[0, 1])
+        c = abs(self.b_matrix()[1, 0])
+        a1, a2 = d_vector
+        p = Integer(p)
+        q = Integer(q)
+        if p == 0 and q == 0:
+            return Integer(1)
+        sum1 = 0
+        for k in range(1, p + 1):
+            bino = 0
+            if a2 - c * q + k - 1 >= k:
+                bino = binomial(a2 - c * q + k - 1, k)
+            sum1 += (-1) ** (k - 1) * self._greedy_coefficient(d_vector, p - k, q) * bino
+        sum2 = 0
+        for l in range(1, q + 1):
+            bino = 0
+            if a1 - b * p + l - 1 >= l:
+                bino = binomial(a1 - b * p + l - 1, l)
+            sum2 += (-1) ** (l - 1) * self._greedy_coefficient(d_vector, p, q - l) * bino
+        return Integer(max(sum1, sum2))
+
     # DESIDERATA
     # Some of these are probably unrealistic
     def upper_cluster_algebra(self):
@@ -2322,85 +2393,3 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             NotImplementedError: not implemented yet
         """
         raise NotImplementedError("not implemented yet")
-
-####
-# Methods only defined for special cases
-####
-
-
-def greedy_element(self, d_vector):
-    r"""
-    Return the greedy element with denominator vector ``d_vector``.
-
-    INPUT:
-
-    - ``d_vector`` -- tuple of 2 integers; the denominator vector of
-      the element to compute
-
-    ALGORITHM:
-
-    This implements greedy elements of a rank 2 cluster algebra using
-    Equation (1.5) from [LLZ2014]_.
-
-    EXAMPLES::
-
-        sage: A = ClusterAlgebra(['A', [1, 1], 1])
-        sage: A.greedy_element((1, 1))
-        (x0^2 + x1^2 + 1)/(x0*x1)
-    """
-    b = abs(self.b_matrix()[0, 1])
-    c = abs(self.b_matrix()[1, 0])
-    a1, a2 = d_vector
-    # Here we use the generators of self.ambient() because cluster variables
-    #   do not have an inverse.
-    x1, x2 = self.ambient().gens()
-    if a1 < 0:
-        if a2 < 0:
-            return self.retract(x1 ** (-a1) * x2 ** (-a2))
-        else:
-            return self.retract(x1 ** (-a1) * ((1 + x2 ** c) / x1) ** a2)
-    elif a2 < 0:
-        return self.retract(((1 + x1 ** b) / x2) ** a1 * x2 ** (-a2))
-    output = 0
-    for p in range(0, a2 + 1):
-        for q in range(0, a1 + 1):
-            output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b * p) * x2 ** (c * q)
-    return self.retract(x1 ** (-a1) * x2 ** (-a2) * output)
-
-
-def _greedy_coefficient(self, d_vector, p, q):
-    r"""
-    Return the coefficient of the monomial ``x1 ** (b * p) * x2 ** (c * q)``
-    in the numerator of the greedy element with denominator vector ``d_vector``.
-
-    EXAMPLES::
-
-        sage: A = ClusterAlgebra(['A', [1, 1], 1])
-        sage: A.greedy_element((1, 1))
-        (x0^2 + x1^2 + 1)/(x0*x1)
-        sage: A._greedy_coefficient((1, 1), 0, 0)
-        1
-        sage: A._greedy_coefficient((1, 1), 1, 0)
-        1
-    """
-    b = abs(self.b_matrix()[0, 1])
-    c = abs(self.b_matrix()[1, 0])
-    a1, a2 = d_vector
-    p = Integer(p)
-    q = Integer(q)
-    if p == 0 and q == 0:
-        return Integer(1)
-    sum1 = 0
-    for k in range(1, p + 1):
-        bino = 0
-        if a2 - c * q + k - 1 >= k:
-            bino = binomial(a2 - c * q + k - 1, k)
-        sum1 += (-1) ** (k - 1) * self._greedy_coefficient(d_vector, p - k, q) * bino
-    sum2 = 0
-    for l in range(1, q + 1):
-        bino = 0
-        if a1 - b * p + l - 1 >= l:
-            bino = binomial(a1 - b * p + l - 1, l)
-        sum2 += (-1) ** (l - 1) * self._greedy_coefficient(d_vector, p, q - l) * bino
-    return Integer(max(sum1, sum2))
-

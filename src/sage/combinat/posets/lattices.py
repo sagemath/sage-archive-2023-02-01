@@ -2398,7 +2398,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 self.subposet([self[e] for e in range(elms[i], elms[i+1]+1)])))
         return result
 
-    def is_vertically_decomposable(self):
+    def is_vertically_decomposable(self, certificate=False):
         r"""
         Return ``True`` if the lattice is vertically decomposable, and
         ``False`` otherwise.
@@ -2411,27 +2411,47 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         can be seen as two lattices "glued" by unifying the top
         element of first lattice to the bottom element of second one.
 
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(False, None)`` or
+          ``(True, e)``, where `e` is an element that is comparable to all
+          other elements and is neither the bottom nor the top element.
+          If ``certificate=False`` return ``True`` or ``False``.
+
         .. SEEALSO::
 
             :meth:`vertical_decomposition`
 
         EXAMPLES::
 
+            sage: Posets.TamariLattice(4).is_vertically_decomposable()
+            False
             sage: L = LatticePoset( ([1, 2, 3, 6, 12, 18, 36],
             ....:     attrcall("divides")) )
             sage: L.is_vertically_decomposable()
             True
-            sage: Posets.TamariLattice(4).is_vertically_decomposable()
-            False
+            sage: L.is_vertically_decomposable(certificate=True)
+            (True, 6)
 
         TESTS::
 
             sage: [Posets.ChainPoset(i).is_vertically_decomposable() for i in
-            ....:     range(5)]
+            ....:  range(5)]
             [False, False, False, True, True]
         """
-        # TODO: Make better example when compose_vertically() is done.
-        return self._hasse_diagram.vertical_decomposition()
+        e = self._hasse_diagram.vertical_decomposition()
+        if e is None:
+            if certificate:
+                return (False, None)
+            return False
+        if certificate:
+            return (True, self._vertex_to_element(e))
+        return True
 
     def sublattice(self, elms):
         r"""

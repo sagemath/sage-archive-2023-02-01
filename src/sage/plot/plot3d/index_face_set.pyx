@@ -31,7 +31,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import itervalues
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
@@ -1083,14 +1082,15 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef Py_ssize_t i, j, ix, ff
         cdef IndexFaceSet dual = IndexFaceSet([], **kwds)
         cdef int incoming, outgoing
+        cdef dict dd
 
         dual.realloc(self.fcount, self.vcount, self.icount)
 
-        sig_on()
         # is using dicts overly-heavy?
         dual_faces = [{} for i from 0 <= i < self.vcount]
 
         for i from 0 <= i < self.fcount:
+            sig_check()
             # Let the vertex be centered on the face according to a simple average
             face = &self._faces[i]
             dual.vs[i] = self.vs[face.vertices[0]]
@@ -1114,12 +1114,13 @@ cdef class IndexFaceSet(PrimitiveObject):
         i = 0
         ix = 0
         for dd in dual_faces:
+            sig_check()
             face = &dual._faces[i]
             face.n = len(dd)
             if face.n == 0: # skip unused vertices
                 continue
             face.vertices = &dual.face_indices[ix]
-            ff, next_ = next(itervalues(dd))
+            ff, next_ = next(dd.itervalues())
             face.vertices[0] = ff
             for j from 1 <= j < face.n:
                 ff, next_ = dd[next_]
@@ -1130,7 +1131,6 @@ cdef class IndexFaceSet(PrimitiveObject):
         dual.vcount = self.fcount
         dual.fcount = i
         dual.icount = ix
-        sig_off()
 
         return dual
 

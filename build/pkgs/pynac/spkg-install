@@ -13,9 +13,11 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
+CXXFLAGS="-O2 -g"
+
 if [ "$SAGE64" = "yes" ]; then
     echo "Building a 64-bit version of pynac"
-    CXXFLAGS="-m64 -O2 -g"; export CXXFLAGS
+    CXXFLAGS="-m64 $CXXFLAGS"; export CXXFLAGS
     LDFLAGS="-m64 $LDFLAGS"; export LDFLAGS
     CC="$CC -m64" ; export CC
     CXX="$CXX -m64" ; export CXX
@@ -33,7 +35,7 @@ build_pynac()
 {
     cd ${PYNACDIR}
     PKG_CONFIG_PATH=${SAGE_LOCAL}/lib/pkgconfig; export PKG_CONFIG_PATH
-    ./configure --disable-static --prefix=${SAGE_LOCAL} --with-giac=no --libdir="$SAGE_LOCAL/lib"
+    ./configure --disable-static --prefix=${SAGE_LOCAL} --libdir="$SAGE_LOCAL/lib"
     $MAKE
     if [ $? -ne 0 ]; then
         echo "Error building pynac."

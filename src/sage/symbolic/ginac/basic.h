@@ -39,6 +39,8 @@
 #include "assertion.h"
 #include "registrar.h"
 
+#include <factory/factory.h>
+
 #ifdef PYNAC_HAVE_LIBGIAC
 namespace giac
 {
@@ -50,7 +52,6 @@ namespace GiNaC
 {
 struct ex_is_less;
 }
-using ex_int_map = std::map<GiNaC::ex, int, GiNaC::ex_is_less>;
 #endif
 
 namespace GiNaC {
@@ -67,6 +68,7 @@ class flint_series_t;
 typedef std::vector<ex> exvector;
 typedef std::set<ex, ex_is_less> exset;
 typedef std::map<ex, ex, ex_is_less> exmap;
+using ex_int_map = std::map<GiNaC::ex, int, GiNaC::ex_is_less>;
 
 // Define this to enable some statistical output for comparisons and hashing
 #undef GINAC_COMPARE_STATISTICS
@@ -322,6 +324,7 @@ protected:
 #ifdef PYNAC_HAVE_LIBGIAC
         const giac::polynome to_polynome(ex_int_map& map, exvector& revmap);
 #endif
+        const CanonicalForm to_canonical(ex_int_map& map, exvector& revmap);
 
 	// member variables
 protected:

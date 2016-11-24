@@ -2076,6 +2076,23 @@ giac::gen* numeric::to_giacgen(giac::context* cptr) const
 }
 #endif
 
+CanonicalForm numeric::to_canonical() const
+{
+        if (t == MPZ) {
+                if (mpz_fits_sint_p(v._bigint))
+                        return CanonicalForm(to_int());
+                return make_cf(mpz_ptr(v._bigint));
+        }
+        if (t == MPQ) {
+                mpz_t num, den;
+                mpz_init_set(num, mpz_ptr(mpq_numref(v._bigrat)));
+                mpz_init_set(den, mpz_ptr(mpq_denref(v._bigrat)));
+                return make_cf(num, den, false);
+        }
+
+        throw (std::runtime_error("can't happen in numeric::to_canonical"));
+}
+
 /* Return the underlying Python object corresponding to this
    numeric.  If this numeric isn't implemented using a Python
    object, the corresponding Python object is constructed on

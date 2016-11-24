@@ -213,6 +213,7 @@ public:
 #ifdef PYNAC_HAVE_LIBGIAC
         const giac::polynome to_polynome(ex_int_map& map, exvector& revmap) const;
 #endif
+        const CanonicalForm to_canonical(ex_int_map& map, exvector& revmap) const;
 	ex numer() const;
 	ex denom() const;
 	ex numer_denom() const;

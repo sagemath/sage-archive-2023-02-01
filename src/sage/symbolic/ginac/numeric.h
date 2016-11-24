@@ -50,6 +50,7 @@
 #include "constant.h"
 #include "ex.h"
 #include "py_funcs.h"
+#include <factory/factory.h>
 
 #include <gmp.h>
 #include <stdexcept>
@@ -227,6 +228,7 @@ public:
 #ifdef PYNAC_HAVE_LIBGIAC
         giac::gen* to_giacgen(giac::context*) const;
 #endif
+        CanonicalForm to_canonical() const;
 
 	const numeric real() const;
 	const numeric imag() const;

@@ -6,9 +6,9 @@ fail () {
 }
 
 # tests if dependencies are available
-pandoc -v > /dev/null 2>&1 || fail 'Please install pandoc on your system.'
+pandoc -v > /dev/null 2>&1 || fail 'rst2ipnb requires pandoc; please install it on your system.'
 [ $(sage-list-packages installed | grep '^rst2ipynb\.\.\.') ] || fail \
-    'Please install the rst2ipynb optional package with `sage -i rst2ipynb`.'
+    'The rst2ipynb optional package is required; please install it with `sage -i rst2ipynb`.'
 
 case  "${#}" in
     (1)

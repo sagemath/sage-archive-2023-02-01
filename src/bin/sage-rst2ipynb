@@ -6,9 +6,9 @@ fail () {
 }
 
 # tests if dependencies are available
-pandoc -v > /dev/null 2>&1 || fail 'You should install pandoc on your system.'
+pandoc -v > /dev/null 2>&1 || fail 'Please install pandoc on your system.'
 [ $(sage-list-packages installed | grep '^rst2ipynb\.\.\.') ] || fail \
-    'You should install the rst2ipynb optional package.'
+    'Please install the rst2ipynb optional package with `sage -i rst2ipynb`.'
 
 case  "${#}" in
     (1)
@@ -16,8 +16,7 @@ case  "${#}" in
     (2)
         rst2ipynb --kernel='sagemath' ${1} -o ${2} ;;
     (*)
-        fail 'You should provide one or two file names.' ;;
+        fail 'Usage: sage -rst2ipynb input.rst [output.ipynb].' ;;
 esac
 
 exit 0
-

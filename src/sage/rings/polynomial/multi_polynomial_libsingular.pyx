@@ -1338,7 +1338,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R = ZZ['x,y']
             sage: singular(R)
             polynomial ring, over a domain, global ordering
-            //   coeff. ring is : integer
+            //   coeff. ring is : ZZ
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y

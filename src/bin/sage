@@ -210,7 +210,7 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "File conversion:"
-    echo "  -rst2ipynb [...]    -- Generates IPython notebook worksheet from standalone"
+    echo "  -rst2ipynb [...]    -- Generates Jupyter notebook (.ipynb) from standalone"
     echo "                         reStructuredText source."
     echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."

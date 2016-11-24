@@ -435,7 +435,7 @@ def _mutation_parse(mutate):
 
     @wraps(mutate)
     def mutate_wrapper(self, direction, **kwargs):
-        inplace = kwargs.pop('inplace', True) and mutate.__name__ != "mutate_initial"
+        inplace = kwargs.pop('inplace', True) and mutate.__name__ != "mutate_initial_1"
         if inplace:
             to_mutate = self
         else:
@@ -2193,8 +2193,128 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         cones = [Cone(S.g_vectors()) for S in seeds]
         return Fan(cones)
 
+    def mutate_initial(self, direction):
+        r"""
+        Return the cluster algebra obtained by mutating ``self`` at
+        the initial seed.
+
+        INPUT:
+
+        - ``direction`` -- in which direction(s) to mutate, it can be:
+
+          * an integer in ``range(self.rank())`` to mutate in one direction only
+          * an iterable of such integers to mutate along a sequence
+          * a string "sinks" or "sources" to mutate at all sinks or sources simultaneously
+
+        ALGORITHM:
+
+        This function computes data for the new algebra from known data for
+        the old algebra using Equation (4.2) from [NZ2012]_ for g-vectors, and
+        Equation (6.21) from [FZ2007]_ for F-polynomials. The exponent `h`
+        in the formula for F-polynomials is ``-min(0, old_g_vect[k])``
+        due to [NZ2012]_ Proposition 4.2.
+
+        EXAMPLES::
+
+            sage: A = ClusterAlgebra(['F', 4])
+            sage: A.explore_to_depth(infinity)
+            sage: B = A.b_matrix()
+            sage: B.mutate(0)
+            sage: A1 = ClusterAlgebra(B)
+            sage: A1.explore_to_depth(infinity)
+            sage: A2 = A1.mutate_initial(0)
+            sage: A2._F_poly_dict == A._F_poly_dict
+            True
+
+        Check that we did not mess up the original algebra because of :class:`UniqueRepresentation`::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.mutate_initial(0) is A
+            False
+        """
+        n = self.rank()
+
+        # construct mutation sequence
+        if direction == "sinks":
+            B = self.b_matrix()
+            seq = [i for i in range(n) if all(x <= 0 for x in B.column(i))]
+        elif direction == "sources":
+            B = self.b_matrix()
+            seq = [i for i in range(n) if all(x >= 0 for x in B.column(i))]
+        else:
+            try:
+                seq = iter(direction)
+            except TypeError:
+                seq = iter((direction, ))
+
+        # setup
+        Ugen = self._U.gens()
+        F_poly_dict = copy(self._F_poly_dict)
+        path_dict = copy(self._path_dict)
+        path_to_current = copy(self.current_seed().path_from_initial_seed())
+        B0 = copy(self._B0)
+
+        # go
+        for k in seq:
+            if k not in range(n):
+                raise ValueError('cannot mutate in direction ' + str(k))
+
+            # clear storage
+            tmp_path_dict = {}
+            tmp_F_poly_dict = {}
+
+            # mutate B-matrix
+            B0.mutate(k)
+
+            # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
+            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(B0[k, j], 0) * (1 + Ugen[k]) ** (-B0[k, j]) for j in range(n)]
+
+            for old_g_vect in path_dict:
+                # compute new g-vector
+                J = identity_matrix(n)
+                eps = sign(old_g_vect[k])
+                for j in range(n):
+                    # here we have -eps*B0 rather than eps*B0 because we want the k-th column of the old B0
+                    J[j, k] += max(0, -eps * B0[j, k])
+                J[k, k] = -1
+                new_g_vect = tuple(J * vector(old_g_vect))
+
+                # compute new path
+                new_path = path_dict[old_g_vect]
+                new_path = ([k] + new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
+                tmp_path_dict[new_g_vect] = new_path
+
+                # compute new F-polynomial
+                if old_g_vect in F_poly_dict:
+                    h = -min(0, old_g_vect[k])
+                    new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * (Ugen[k] + 1) ** old_g_vect[k]
+                    tmp_F_poly_dict[new_g_vect] = new_F_poly
+
+            # update storage
+            path_dict = tmp_path_dict
+            F_poly_dict = tmp_F_poly_dict
+            path_to_current = ([k] + path_to_current[:1] if path_to_current[:1] != [k] else []) + path_to_current[1:]
+
+        # create new algebra
+        cv_names = self.initial_cluster_variable_names()
+        coeff_names = self.coefficient_names()
+        scalars = self.scalars()
+        A = ClusterAlgebra(B0, cluster_variable_names=cv_names,
+                           coefficient_names=coeff_names, scalars=scalars)
+
+        # store computed data
+        A._F_poly_dict.update(F_poly_dict)
+        A._path_dict.update(path_dict)
+
+        # reset self.current_seed() to the previous location
+        S = A.initial_seed()
+        S.mutate(path_to_current, mutating_F=False)
+        A.set_current_seed(S)
+
+        return A
+
     @_mutation_parse
-    def mutate_initial(self, k):
+    def mutate_initial_1(self, k):
         r"""
         Return the cluster algebra obtained by mutating ``self`` at
         the initial seed.
@@ -2217,14 +2337,14 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: B.mutate(0)
             sage: A1 = ClusterAlgebra(B)
             sage: A1.explore_to_depth(infinity)
-            sage: A2 = A1.mutate_initial(0)
+            sage: A2 = A1.mutate_initial_1(0)
             sage: A2._F_poly_dict == A._F_poly_dict
             True
 
         Fail with :class:`UniqueRepresentation`::
 
             sage: A = ClusterAlgebra(['A',2])
-            sage: A.mutate_initial(0) is A
+            sage: A.mutate_initial_1(0) is A
             False
         """
         n = self.rank()

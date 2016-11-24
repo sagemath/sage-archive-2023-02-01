@@ -13,6 +13,7 @@ Utilities for subprocess management.
 #*****************************************************************************
 
 import errno
+import signal
 import sys
 import time
 
@@ -173,25 +174,38 @@ cdef class ContainChildren(object):
 
 
 @contextmanager
-def terminate(sp):
-    """
+def terminate(sp, retries=3, interval=1,
+              signals=[signal.SIGTERM, signal.SIGKILL]):
+    r"""
     Context manager that terminates or kills the given `subprocess.Popen`
     when it is no longer needed, in case the process does not end on its
     own.
 
+    Although this can be used to send other signals besides SIGTERM and SIGKILL
+    it should be used mainly for process termination, as it also closes all
+    standard I/O pipes.
+
     INPUT:
 
     - ``sp`` -- a `subprocess.Popen` instance
+    - ``retries`` -- (integer, default 3) number of times to retry a signal
+      before moving on to the next signal (e.g. try sending SIGTERM up to 3
+      times before trying SIGKILL if the process isn't terminated)
+    - ``interval`` -- (float, default 1) interval in seconds between retries
+    - ``signals`` -- (list, default [signal.SIGTERM, signal.SIGKILL]) the
+      signals to send the process in order to terminate it
 
     EXAMPLES:
 
     A still-running process will be terminated upon exiting the terminate
     context::
 
-        sage: import signal
+        sage: import signal, sys
         sage: from subprocess import Popen, PIPE
         sage: from sage.interfaces.process import terminate
-        sage: cmd = ['python', '-c', 'while True: print("y")']
+        sage: cmd = [sys.executable, '-c', 'import sys; print("y")\n'
+        ....:                              'sys.stdout.flush()\n'
+        ....:                              'while True: pass']
         sage: sp = Popen(cmd, stdout=PIPE)
         sage: with terminate(sp):
         ....:     print(sp.stdout.readline())
@@ -204,10 +218,12 @@ def terminate(sp):
     is attempted::
 
         sage: cmd[2] = 'from signal import signal, SIGTERM, SIG_IGN\n' \
+        ....:          'import sys\n' \
         ....:          'signal(SIGTERM, SIG_IGN)\n' \
-        ....:          'while True: print("y")'
+        ....:          'print("y"); sys.stdout.flush()\n' \
+        ....:          'while True: pass'
         sage: sp = Popen(cmd, stdout=PIPE)
-        sage: with terminate(sp):
+        sage: with terminate(sp, retries=1):
         ....:     print(sp.stdout.readline())
         y
         <BLANKLINE>
@@ -223,23 +239,29 @@ def terminate(sp):
             if stream:
                 stream.close()
 
-        for idx, method in enumerate([sp.terminate, sp.kill]):
-            if idx:
-                # Give the previous shutdown method a moment to work
-                # before trying the next one
-                time.sleep(0.1)
+        for signal in signals:
+            terminated = False
+            for _ in range(retries):
+                if sp.poll() is None:
+                    # There is a possible race here--between here and the
+                    # poll() call the process may have ended, so that calling
+                    # send_signal may result in a 'No such process' error (on
+                    # some platforms)
+                    try:
+                        # Try to force the process to end
+                        sp.send_signal(signal)
+                    except OSError as exc:
+                        if exc.errno == errno.ESRCH:
+                            terminated = True
+                            break
 
-            if sp.poll() is None:
-                # There is a possible race here--between here and the poll()
-                # call the process may have ended, so that calling
-                # terminate/kill may result in a 'No such process' error
-                try:
-                    # Try to force the process to end
-                    method()
-                except OSError as exc:
-                    if exc.errno == errno.ESRCH:
-                        break
+                        raise
+                else:
+                    terminated = True
+                    break
 
-                    raise
-            else:
+                # Wait a bit before retrying
+                time.sleep(interval)
+
+            if terminated:
                 break

@@ -324,12 +324,12 @@ into ``A.ambient()``::
 but there is currently no coercion in between algebras obtained by
 mutating at the initial seed::
 
-    sage: B = A.mutate_initial(0); B
+    sage: A1 = A.mutate_initial(0); A1
     A Cluster Algebra with cluster variables x0, x1, x2, x3 and no coefficients
      over Integer Ring
-    sage: A.b_matrix() == B.b_matrix()
+    sage: A.b_matrix() == A1.b_matrix()
     False
-    sage: map(lambda (X, Y): X.has_coerce_map_from(Y), [(A, B), (B, A)])
+    sage: map(lambda (X, Y): X.has_coerce_map_from(Y), [(A, A1), (A1, A)])
     [False, False]
 """
 
@@ -1361,72 +1361,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         embedding = SetMorphism(Hom(self, self.ambient()), lambda x: x.lift())
         self._populate_coercion_lists_(embedding=embedding)
 
-    def __copy__(self):
-        r"""
-        Return a copy of ``self``.
-
-        EXAMPLES::
-
-            sage: A1 = ClusterAlgebra(['A', 3])
-            sage: A2 = copy(A1)
-            sage: A2 == A1
-            True
-            sage: A2 is not A1
-            True
-            sage: S1 = A1.current_seed()
-            sage: S2 = A2.current_seed()
-            sage: S1 == S2
-            True
-            sage: S1.mutate(0)
-            sage: S1 == S2
-            False
-        """
-        cv_names = self.initial_cluster_variable_names()
-        coeff_names = self.coefficient_names()
-        other = ClusterAlgebra(self._B0, cluster_variable_names=cv_names,
-                               coefficient_names=coeff_names, scalars=self.scalars())
-        other._F_poly_dict = copy(self._F_poly_dict)
-        other._path_dict = copy(self._path_dict)
-        S = copy(self.current_seed())
-        S._parent = other
-        other.set_current_seed(S)
-        return other
-
-    def __eq__(self, other):
-        r"""
-        Test equality of two Cluster Algebras.
-
-        INPUT:
-
-        - ``other`` -- a :class:`ClusterAlgebra`
-
-        ALGORITHM:
-
-        ``self`` and ``other`` are deemed to be equal if they have the same
-        initial exchange matrix and their ambients coincide. In particular we
-        do not keep track of how much each Cluster Algebra has been explored.
-
-        EXAMPLES::
-
-            sage: A1 = ClusterAlgebra(['A', 3])
-            sage: A2 = copy(A1)
-            sage: A1 is not A2
-            True
-            sage: A1 == A2
-            True
-            sage: A1.current_seed().mutate([0, 1, 2])
-            sage: A1 == A2
-            True
-            sage: A3 = ClusterAlgebra(['A', 3], principal_coefficients=True)
-            sage: A1 == A3
-            False
-            sage: B = ClusterAlgebra(['B', 3])
-            sage: A1 == B
-            False
-        """
-        return (isinstance(other, ClusterAlgebra) and self._B0 == other._B0
-                and self.ambient() == other.ambient())
-
     def _repr_(self):
         r"""
         Return the string representation of ``self``.
@@ -2286,6 +2220,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A2 = A1.mutate_initial(0)
             sage: A2._F_poly_dict == A._F_poly_dict
             True
+
+        Fail with :class:`UniqueRepresentation`::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: A.mutate_initial(0) is A
+            False
         """
         n = self.rank()
         if k not in range(n):

@@ -2012,7 +2012,7 @@ class MathJax:
         return MathJaxExpr(html.format(latex_string))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
-        pdflatex=None, engine=None, viewer = None, tightpage = True, margin = 0,
+        pdflatex=None, engine=None, viewer = None, tightpage = True, margin = None,
         mode='inline', combine_all=False, **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,
@@ -2057,9 +2057,9 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     -  ``tightpage`` -- bool (default: ``True``): use the LaTeX package
        'preview' with the 'tightpage' option.
 
-    -  ``margin`` -- a number (default 0) which can be converted to a float:
-        it controls the boundary of the output and is interpretet as mm.
-        Has no affect if the option ``tightpage`` is ``False``.
+    -  ``margin`` -- float or ``None`` (default: ``None``): adds a margin
+       of ``margin`` mm; has no affect if the option ``tightpage`` is
+       ``False``.
 
     - ``mode`` -- string (default: ``'inline'``): ``'display'`` for
       displaymath or ``'inline'`` for inline math
@@ -2154,6 +2154,26 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         sage: _run_latex_(file, engine="pdflatex") # optional - latex
         'pdf'
 
+        sage: view(4, margin=5, debug=True)
+        \documentclass{article}
+        ...
+        \usepackage[tightpage,active]{preview}
+        \PreviewEnvironment{page}
+        \setlength\PreviewBorder{5.000000mm}
+        \begin{document}\begin{page}$4$\end{page}
+        \end{document}
+        ...
+
+        sage: view(4, debug=True)
+        \documentclass{article}
+        ...
+        \usepackage[tightpage,active]{preview}
+        \PreviewEnvironment{page}
+        \begin{document}\begin{page}$4$\end{page}
+        \end{document}
+        ...
+
+
         sage: latex.extra_preamble('') # reset the preamble
 
         sage: view(4, engine="garbage")
@@ -2168,12 +2188,20 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
 
     """
 
-    if tightpage == True:
-        latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}\\setlength\\PreviewBorder{%fmm}'%margin,
-                         'math_left':'\\begin{page}$', 'math_right':'$\\end{page}'}
-        title = False
+    if tightpage:
+        if margin is None:
+            margin_str = ""
+        else:
+            margin_str = '\n\\setlength\\PreviewBorder{%fmm}' % margin
+        latex_options = {'extra_preamble':
+                         '\\usepackage[tightpage,active]{preview}\n' +
+                         '\\PreviewEnvironment{page}%s' % margin_str,
+                         'math_left': '\\begin{page}$',
+                         'math_right': '$\\end{page}'}
+        title = None
     else:
         latex_options = {}
+
     s = _latex_file_(objects, title=title, sep=sep, tiny=tiny, debug=debug, **latex_options)
     if engine is None:
         engine = _Latex_prefs._option["engine"]

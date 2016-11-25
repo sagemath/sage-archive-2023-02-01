@@ -393,10 +393,10 @@ cdef class Graphics3d(SageObject):
 
         b = self.bounding_box()
         bounds = "[{{x:{}, y:{}, z:{}}}, {{x:{}, y:{}, z:{}}}]".format(
-                 b[0][0],b[0][1],b[0][2],b[1][0],b[1][1],b[1][2])
+                 b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
 
         import json
-        points, lines = [], []
+        points, lines, texts = [], [], []
         if not hasattr(self, 'all'):
             self += Graphics3d()
         for p in self.flatten().all:
@@ -411,12 +411,14 @@ cdef class Graphics3d(SageObject):
                 thickness = p._extra_kwds.get('thickness', 1)
                 lines.append("{{points:{}, color:'{}', opacity:{}, linewidth:{}}}".format(
                              json.dumps(p.points), color, opacity, thickness))
+            if hasattr(p, '_trans'):
+                if hasattr(p.all[0], 'string'):
+                    m = p.get_transformation().get_matrix()
+                    texts.append("{{text:'{}', x:{}, y:{}, z:{}}}".format(
+                                  p.all[0].string, m[0,3], m[1,3], m[2,3]))
 
         surfaces = self.json_repr(self.default_render_params())
         surfaces = flatten_list(surfaces)
-
-        if len(points) == 0 and len(lines) == 0 and len(surfaces) == 0:
-            raise ValueError('no data for this plot')
 
         from sage.env import SAGE_SRC
         filename = os.path.join(SAGE_SRC, 'sage',
@@ -428,6 +430,7 @@ cdef class Graphics3d(SageObject):
         html = html.replace('SAGE_OPTIONS', json.dumps(options))
         html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_BOUNDS', bounds)
+        html = html.replace('SAGE_TEXTS', str(texts))
         html = html.replace('SAGE_POINTS', str(points))
         html = html.replace('SAGE_LINES', str(lines))
         html = html.replace('SAGE_SURFACES', str(surfaces))

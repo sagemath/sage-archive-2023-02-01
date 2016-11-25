@@ -117,6 +117,12 @@
       addLabel( ( b[1].z ).toFixed(d), a[0]*b[1].x, a[1]*b[0].y-offset, a[2]*b[1].z );
     }
 
+    var texts = SAGE_TEXTS;
+    for ( var i=0 ; i < texts.length ; i++ ) {
+        eval( 'var json = ' + texts[i] );
+        addLabel( json.text, json.x, json.y, json.z );
+    }
+
     function addLabel( text, x, y, z ) {
         var fontsize = 14;
 

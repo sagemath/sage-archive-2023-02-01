@@ -641,12 +641,18 @@ def _Omega_(A, decoded_factors):
     return numerator, tuple(f.subs(rules) for f in factors_denominator)
 
 
-def preparation_generating_function_of_polyhedron(polyhedron, indices=None):
+def generating_function_of_polyhedron(polyhedron, indices=None):
 
     from sage.geometry.polyhedron.representation import Hrepresentation
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.structure.factorization import Factorization
+
+    try:
+        if polyhedron.is_empty():
+            return Factorization([], unit=0)
+    except AttributeError:
+        pass
 
     def inequalities_coeffs(inequalities):
         for entry in inequalities:
@@ -685,24 +691,46 @@ def preparation_generating_function_of_polyhedron(polyhedron, indices=None):
         raise ValueError('Not all coefficient vectors of the inequalities '
                          'have the same length.')
 
-    factors = []
+    def is_unit_vector(it):
+        found = 0
+        for e in it:
+            if e != 0:
+                if e != 1:
+                    return False
+                else:
+                    found += 1
+                    if found >= 2:
+                        return False
+        return True
+
+    numerator = B(1)
     terms = B.gens()
     L = B
     for i, coeffs in enumerate(inequalities):
+        if is_unit_vector(coeffs):
+            continue
         L = LaurentPolynomialRing(L, 'lambda{}'.format(i), sparse=True)
         l = L.gen()
         it_coeffs = iter(coeffs)
-        factors.append((l, next(it_coeffs)))
+        numerator *= l**next(it_coeffs)
+        assert numerator.parent() == L
         terms = tuple(l**c * t for c, t in zip(it_coeffs, terms))
 
-    return Factorization(factors + list((1-t, -1) for t in terms),
+    def decode_factor(factor):
+        D = factor.dict()
+        assert len(D) == 1
+        exponent, coefficient = next(iteritems(D))
+        return coefficient, exponent
+
+    while repr(numerator.parent().gen()).startswith('lambda'):
+        decoded_factors, other_factors = \
+            partition((decode_factor(factor) for factor in terms),
+                      lambda factor: factor[1] == 0)
+        other_factors = tuple(factor[0] for factor in other_factors)
+        numerator, factors_denominator = \
+            _Omega_(numerator.dict(), tuple(decoded_factors))
+        terms = other_factors + factors_denominator
+
+    return Factorization([(numerator, 1)] +
+                         list((1-t, -1) for t in terms),
                          sort=False, simplify=False)
-
-
-def generating_function_of_polyhedron(polyhedron, indices=None):
-    GF = preparation_generating_function_of_polyhedron(polyhedron, indices)
-    while repr(GF.universe().gen()).startswith('lambda'):
-        GF = Omega(GF.universe().gen(), GF,
-                   Factorization_sort=False,
-                   Factorization_simplify=False)
-    return GF

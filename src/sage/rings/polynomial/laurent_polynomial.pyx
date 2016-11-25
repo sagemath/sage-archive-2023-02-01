@@ -1325,6 +1325,18 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         Currently, one can only create LaurentPolynomials out of dictionaries
         and elements of the base ring.
 
+        INPUT:
+
+        - ``parent`` -- a SageMath parent.
+
+        - ``x`` -- an element or dictionary or anything the underlying
+          polynomial ring accepts
+
+        - ``mon`` -- (default: ``None``) a tuple specifying the shift
+          in the exponents.
+
+        - ``reduce`` -- (default: ``True``) a boolean.
+
         EXAMPLES::
 
             sage: L.<w,z> = LaurentPolynomialRing(QQ)

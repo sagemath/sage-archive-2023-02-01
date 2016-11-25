@@ -330,7 +330,10 @@ bool power::info(unsigned inf) const
 			return (basis.info(info_flags::positive) && exponent.info(info_flags::real)) ||
 			       (basis.info(info_flags::real) && exponent.info(info_flags::integer) && exponent.info(info_flags::even));
 		case info_flags::real:
-			return basis.info(inf) && exponent.info(info_flags::integer);
+			return ((basis.info(inf) and
+                                 exponent.info(info_flags::integer)) or
+                                (basis.info(info_flags::positive) and
+                                 exponent.info(info_flags::positive)));
 		case info_flags::has_indices: {
 			if ((flags & status_flags::has_indices) != 0u)
 				return true;

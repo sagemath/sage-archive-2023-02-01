@@ -642,7 +642,62 @@ def _Omega_(A, decoded_factors):
 
 
 def generating_function_of_polyhedron(polyhedron, indices=None):
+    r"""
+    Return the generating function of the integer points of
+    the polyhedron's orthant with only nonnegative coordinates.
 
+    EXAMPLES::
+
+        sage: P2 = (
+        ....:   Polyhedron(ieqs=[(0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, -1)]),
+        ....:   Polyhedron(ieqs=[(0, -1, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0)]))
+        sage: generating_function_of_polyhedron(P2[0])
+        1 * (-y1 + 1)^-1 * (-y0 + 1)^-1 * (-y0*y2 + 1)^-1
+        sage: generating_function_of_polyhedron(P2[1])
+        1 * (-y1 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y2 + 1)^-1
+        sage: generating_function_of_polyhedron(P2[0] & P2[1])
+        1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
+
+    ::
+
+        sage: P3 = (
+        ....:   Polyhedron(
+        ....:     ieqs=[(0, 0, 0, 0, 1), (0, 0, 0, 1, 0),
+        ....:           (0, 0, 1, 0, -1), (-1, 1, 0, -1, -1)]),
+        ....:   Polyhedron(
+        ....:     ieqs=[(0, 0, -1, 0, 1), (0, 1, 0, 0, -1),
+        ....:           (0, 0, 0, 1, 0), (0, 0, 1, 0, 0), (-1, 1, -1, -1, 0)]),
+        ....:   Polyhedron(
+        ....:     ieqs=[(1, -1, 0, 1, 1), (1, -1, 1, 1, 0),
+        ....:           (0, 0, 0, 0, 1), (0, 0, 0, 1, 0), (0, 0, 1, 0, 0),
+        ....:           (1, 0, 1, 1, -1), (0, 1, 0, 0, 0), (1, 1, 1, 0, -1)]),
+        ....:   Polyhedron(
+        ....:     ieqs=[(0, 1, 0, -1, 0), (0, -1, 0, 0, 1),
+        ....:           (-1, 0, -1, -1, 1), (0, 0, 1, 0, 0), (0, 0, 0, 1, 0)]),
+        ....:   Polyhedron(
+        ....:     ieqs=[(0, 1, 0, 0, 0), (0, 0, 1, 0, 0),
+        ....:           (-1, -1, -1, 0, 1), (0, -1, 0, 1, 0)]))
+        sage: def intersect(I):
+        ....:     I = iter(I)
+        ....:     result = next(I)
+        ....:     for i in I:
+        ....:         result &= i
+        ....:     return result
+        sage: for J in subsets(range(len(P3))):  # TODO: check more results
+        ....:     if not J:
+        ....:         continue
+        ....:     P = intersect([P3[j] for j in J])
+        ....:     print('{}: {}'.format(J, P.inequalities()))
+        ....:     print(generating_function_of_polyhedron(P))
+        [0]: (An inequality (0, 0, 0, 1) x + 0 >= 0,
+              An inequality (0, 0, 1, 0) x + 0 >= 0,
+              An inequality (0, 1, 0, -1) x + 0 >= 0,
+              An inequality (1, 0, -1, -1) x - 1 >= 0)
+        y0 * (-y0 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y1*y3 + 1)^-1
+        ...
+        [0, 1, 2, 3, 4]: ()
+        0
+    """
     from sage.geometry.polyhedron.representation import Hrepresentation
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing

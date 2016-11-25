@@ -193,15 +193,15 @@ def Omega_numerator(a, n, m):
             assert r == 0
             return q
 
-    XY, xy_vars = _laurent_polynomial_ring_(n, m)
+    XY, xy = _laurent_polynomial_ring_(n, m)
 
     if m == 0:
         return XY(1 - (prod(prod(f) for f in Omega_factors_denominator(n, m)) *
-                       sum(HomogenousSymmetricFunction(j, xy_vars)
+                       sum(HomogenousSymmetricFunction(j, xy)
                            for j in srange(-a))
                        if a < 0 else 0))
     elif n == 0:
-        return XY(sum(HomogenousSymmetricFunction(j, xy_vars)
+        return XY(sum(HomogenousSymmetricFunction(j, xy)
                       for j in srange(a+1)))
     else:
         return XY(P(n))

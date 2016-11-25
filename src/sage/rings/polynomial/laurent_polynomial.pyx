@@ -1320,7 +1320,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
     """
     Multivariate Laurent polynomials.
     """
-    def __init__(self, parent, x, reduce=True):
+    def __init__(self, parent, x, mon=None, reduce=True):
         """
         Currently, one can only create LaurentPolynomials out of dictionaries
         and elements of the base ring.
@@ -1348,6 +1348,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x0^2 + x2
             sage: _.parent()
             Multivariate Laurent Polynomial Ring in x0, x1, x2 over Rational Field
+
+        ::
+
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair
+            sage: LaurentPolynomial_mpair(L, {(1,2): 1/42}, mon=(-3, -3))
+            1/42*w^-2*z^-1
         """
         if isinstance(x, LaurentPolynomial_mpair):
             # check if parent contains all the generators of x.parent() for coercions
@@ -1365,25 +1371,28 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 x = x.dict()
         elif isinstance(x, PolyDict):
             x = x.dict()
-        if isinstance(x, dict):
-            self._mon = ETuple({},int(parent.ngens()))
-            for k in x: # ETuple-ize keys, set _mon
-                if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
-                    self._mon = ETuple({}, int(parent.ngens()))
-                    break
-                if isinstance(k, tuple):
-                    a = x[k]
-                    del x[k]
-                    k = ETuple(k)
-                    x[k] = a
-                self._mon = self._mon.emin(k) # point-wise min of _mon and k
-            if len(self._mon.nonzero_positions()) != 0: # factor out _mon
-                D = {}
-                for k in x:
-                    D[k.esub(self._mon)] = x[k]
-                x = D
-        else: # since x should coerce into parent, _mon should be (0,...,0)
-            self._mon = ETuple({}, int(parent.ngens()))
+        if mon is not None:
+            self._mon = ETuple(mon)
+        else:
+            if isinstance(x, dict):
+                self._mon = ETuple({},int(parent.ngens()))
+                for k in x: # ETuple-ize keys, set _mon
+                    if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
+                        self._mon = ETuple({}, int(parent.ngens()))
+                        break
+                    if isinstance(k, tuple):
+                        a = x[k]
+                        del x[k]
+                        k = ETuple(k)
+                        x[k] = a
+                    self._mon = self._mon.emin(k) # point-wise min of _mon and k
+                if len(self._mon.nonzero_positions()) != 0: # factor out _mon
+                    D = {}
+                    for k in x:
+                        D[k.esub(self._mon)] = x[k]
+                    x = D
+            else: # since x should coerce into parent, _mon should be (0,...,0)
+                self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)
         CommutativeAlgebraElement.__init__(self, parent)
 

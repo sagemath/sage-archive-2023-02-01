@@ -191,7 +191,7 @@ cdef object paramset_to_PyTuple(const_paramset_ref s):
     """
     cdef GParamSetIter itr = s.begin()
     res = []
-    while itr.is_not_equal(s.end()):
+    while itr != s.end():
         res.append(itr.obj())
         itr.inc()
     return res

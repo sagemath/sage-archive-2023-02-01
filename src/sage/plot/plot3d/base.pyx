@@ -1395,9 +1395,11 @@ end_scene""" % (render_params.antialiasing,
 
            * 'tachyon': Ray tracer generates a static PNG image
 
-           * 'canvas3d': Web-based 3D viewer using JavaScript (notebook only)
+           * 'canvas3d': Web-based 3D viewer using JavaScript
+             and a canvas renderer (Sage notebook only)
 
            * 'threejs': Web-based 3D viewer using JavaScript
+             and a WebGL renderer
 
         -  ``verbosity`` -- display information about rendering
            the figure

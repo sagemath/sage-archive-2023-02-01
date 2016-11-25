@@ -1606,7 +1606,7 @@ static ex asec_eval(const ex & x)
 	if (is_exactly_a<numeric>(x)) {
                 numeric num = ex_to<numeric>(x);
                 if (num.is_zero())
-                        throw (pole_error("asec_eval(): asec(0) encountered",0));
+                        return NaN;
                 if (num.is_equal(*_num1_p))
                         return _ex0;
                 if (num.is_equal(*_num_1_p))
@@ -1670,7 +1670,7 @@ static ex acsc_eval(const ex & x)
 	if (is_exactly_a<numeric>(x)) {
                 numeric num = ex_to<numeric>(x);
                 if (num.is_zero())
-                        throw (pole_error("acsc_eval(): asec(0) encountered",0));
+                        return NaN;
                 if (num.is_equal(*_num1_p))
                         return Pi/_ex2;
                 if (num.is_equal(*_num_1_p))

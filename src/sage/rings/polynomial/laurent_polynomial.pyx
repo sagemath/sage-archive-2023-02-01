@@ -2184,6 +2184,38 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly // (<LaurentPolynomial_mpair>right)._poly
         return ans
 
+    @coerce_binop
+    def quo_rem(self, right):
+        """
+        Divide this laurent polynomial by ``right`` and return a quotient and
+        a remainder.
+
+        INPUT:
+
+        - ``right`` -- a laurent polynomial
+
+        OUTPUT:
+
+        A pair of laurent polynomials.
+
+        EXAMPLES::
+
+            sage: R.<s, t> = LaurentPolynomialRing(QQ)
+            sage: (s^2-t^2).quo_rem(s-t)
+            (s + t, 0)
+            sage: (s^-2-t^2).quo_rem(s-t)
+            (s + t, -s^4 + 1)
+            sage: (s^-2-t^2).quo_rem(s^-1-t)
+            (t + s^-1, 0)
+        """
+        cdef LaurentPolynomial_mpair rightl = <LaurentPolynomial_mpair>right
+        q, r = self._poly.quo_rem(rightl._poly)
+        ql = LaurentPolynomial_mpair(self._parent, q,
+                                     mon=self._mon.esub(rightl._mon))
+        rl = LaurentPolynomial_mpair(self._parent, r,
+                                     mon=ETuple({}, int(self._parent.ngens())))
+        return (ql, rl)
+
     cpdef int _cmp_(self, right) except -2:
         """
         EXAMPLES::

@@ -506,6 +506,8 @@ def Omega(var, expression, denominator=None, op=operator.ge,
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
         sage: Omega(mu, Factorization([(mu, -1), (1 - x, -1)]))
         0
+        sage: Omega(mu, Factorization([(2, -1)]))
+        1 * 2^-1
 
     ::
 
@@ -562,29 +564,29 @@ def Omega(var, expression, denominator=None, op=operator.ge,
     else:
         raise ValueError('{} is not a variable.'.format(var))
 
-    numerator = L(numerator)
-    if numerator == 0:
-        return Factorization([], unit=numerator)
-    factors_denominator = tuple(L(factor) for factor in factors_denominator)
-    factors_denominator, to_numerator = partition(
-        factors_denominator,
-        lambda factor: factor.variables() == (var,) and factor.number_of_terms() == 1)
-    numerator /= prod(to_numerator)
-
-    factors_denominator, other_factors = partition(
-        factors_denominator,
-        lambda factor: var not in factor.variables())
-    other_factors = tuple(other_factors)
-    other_factors = tuple(L0(f) for f in other_factors)
-    def decode_factor(factor):
+    other_factors = []
+    to_numerator = []
+    decoded_factors = []
+    for factor in factors_denominator:
+        factor = L(factor)
         D = factor.dict()
-        if len(D) != 2 or D.get(0, 0) != 1:
-            raise NotImplementedError('Cannot handle factor {}'.format(factor))
-        D.pop(0)
-        exponent, coefficient = next(iteritems(D))
-        return -coefficient, exponent
-    decoded_factors = tuple(decode_factor(factor)
-                            for factor in factors_denominator)
+        if not D:
+            raise ZeroDivisionError('Denominator contains a factor 0.')
+        elif len(D) == 1:
+            exponent, coefficient = next(iteritems(D))
+            if exponent == 0:
+                other_factors.append(L0(factor))
+            else:
+                to_numerator.append(factor)
+        elif len(D) == 2:
+            if D.get(0, 0) != 1:
+                raise NotImplementedError('Factor {} is not normalized.'.format(factor))
+            D.pop(0)
+            exponent, coefficient = next(iteritems(D))
+            decoded_factors.append((-coefficient, exponent))
+        else:
+            raise NotImplementedError('Cannot handle factor {}.'.format(factor))
+    numerator = L(numerator) / prod(to_numerator)
 
     result_numerator, result_factors_denominator = \
         _Omega_(numerator.dict(), decoded_factors)
@@ -651,6 +653,8 @@ def _Omega_(A, decoded_factors):
             rules = dict(zip(n.parent().gens(), values))
         numerator += c * n.subs(rules)
 
+    if numerator == 0:
+        factors_denominator = tuple()
     return numerator, tuple(f.subs(rules) for f in factors_denominator)
 
 

@@ -493,6 +493,8 @@ def Omega(var, expression, denominator=None, op=operator.ge,
         2
         sage: Omega(mu, 2*mu, [])
         2
+        sage: Omega(mu, 2/mu, [])
+        0
 
     ::
 
@@ -514,6 +516,7 @@ def Omega(var, expression, denominator=None, op=operator.ge,
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_univariate
     from sage.structure.factorization import Factorization
 
     if op != operator.ge:
@@ -530,7 +533,7 @@ def Omega(var, expression, denominator=None, op=operator.ge,
             denominator = expression.denominator()
     else:
         numerator = expression
-
+    # at this point we have numerator/denominator
 
     if isinstance(denominator, (list, tuple)):
         factors_denominator = denominator
@@ -544,26 +547,20 @@ def Omega(var, expression, denominator=None, op=operator.ge,
         factors_denominator = tuple(factor
                                     for factor, exponent in denominator
                                     for _ in range(exponent))
+    # at this point we have numerator/factors_denominator
 
-    if not factors_denominator:
-        try:
-            var = numerator.parent()(var)
-        except (TypeError, ValueError):
-            return Factorization([(numerator, 1)])
-        else:
-            return Factorization([(numerator.subs({var: ZZ(1)}), 1)])
-
-    if not isinstance(var, str) and \
-       len(var.parent().gens()) == 1 and var.parent().gen() == var:
-        L = var.parent()
+    P = var.parent()
+    if isinstance(P, LaurentPolynomialRing_univariate) and P.gen() == var:
+        L = P
         L0 = L.base_ring()
-    else:
-        R = factors_denominator[0].parent()
+    elif var in P.gens():
         var = repr(var)
         L0 = LaurentPolynomialRing(
-            R.base_ring(), tuple(v for v in R.variable_names() if v != var))
+            P.base_ring(), tuple(v for v in P.variable_names() if v != var))
         L = LaurentPolynomialRing(L0, var)
-    var = L.gen()
+        var = L.gen()
+    else:
+        raise ValueError('{} is not a variable.'.format(var))
 
     numerator = L(numerator)
     if numerator == 0:

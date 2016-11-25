@@ -823,7 +823,7 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
             sage: len(L) == G.cardinality()
             True
             sage: type(L[0])
-            <type 'list'>
+            <... 'list'>
         """
         # Setup the first row
         iters = [None]*n

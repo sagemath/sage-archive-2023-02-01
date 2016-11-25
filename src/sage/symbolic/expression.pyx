@@ -1713,6 +1713,30 @@ cdef class Expression(CommutativeRingElement):
             raise TypeError
         return new_Expression_from_GEx(l._parent, e)
 
+    def _test_nonzero_equal(self, **options):
+        r"""
+        Do not perform tests for the operators ``==`` and ``!=``.
+
+        EXAMPLES:
+
+        The operator ``==`` has a special meaning for a symbolic expression::
+
+            sage: x == 0
+            x == 0
+
+        In particular, it does not return a bool, so the following check does
+        not hold anymore::
+        
+            sage: (not x) == (x != 0)
+            False
+
+        TESTS::
+
+            sage: x._test_nonzero_equal()
+
+        """
+        pass
+
     def assume(self):
         r"""
         Assume that this equation holds. This is relevant for symbolic
@@ -10234,7 +10258,7 @@ cdef class Expression(CommutativeRingElement):
             sage: v = g._factor_list(); v
             [(x^2 + x + 1, 1), (x - 1, 1)]
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
         """
         op = self.operator()
         if op is mul_vararg:

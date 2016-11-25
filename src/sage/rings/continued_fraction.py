@@ -986,7 +986,7 @@ class ContinuedFraction_base(SageObject):
             return self.quotient(0)
         return self.quotient(0)+1
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return False if self is zero.
 
@@ -1002,6 +1002,8 @@ class ContinuedFraction_base(SageObject):
             False
         """
         return bool(self.quotient(0)) or self.quotient(1) is not Infinity
+
+    __nonzero__ = __bool__
 
     def is_zero(self):
         r"""

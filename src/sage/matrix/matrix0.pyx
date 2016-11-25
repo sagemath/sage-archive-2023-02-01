@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Base class for matrices, part 0
 
@@ -1629,7 +1630,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     # Representation -- string, latex, etc.
     ###########################################################
     def __repr__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: A = matrix([[1,2], [3,4], [5,6]])
@@ -1671,7 +1672,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None,
             *, unicode=False, shape=None):
-        ur"""
+        r"""
         Return a nice string representation of the matrix.
 
         INPUT:

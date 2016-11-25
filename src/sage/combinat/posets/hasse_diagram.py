@@ -1005,6 +1005,60 @@ class HasseDiagram(DiGraph):
         """
         return bool(self._leq_matrix[i,j])
 
+    def prime_elements(self):
+        r"""
+        Return the join-prime and meet-prime elements of the bounded poset.
+
+        An element `x` of a poset `P` is join-prime if the subposet
+        induced by `\{y \in P \mid y \not\ge x\}` has a top element.
+        Meet-prime is defined dually.
+
+        .. NOTE::
+
+            The poset is expected to be bounded, and this is *not* checked.
+
+        OUTPUT:
+
+        A pair `(j, m)` where `j` is a list of join-prime elements
+        and `m` is a list of meet-prime elements.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
+            sage: H.prime_elements()
+            ([1, 2], [2, 3])
+        """
+        n = self.order()
+        join_primes = []
+        meet_primes = []
+
+        def add_elements(e):
+            upset = frozenset(self.depth_first_search(e))
+            # The complement of the upper set of a join-prime must have
+            # a top element. Maximal elements of the complement are those
+            # covered by only elements in the upper set. If there is only
+            # one maximal element, it is a meet-prime and 'e' is a
+            # join-prime.
+            meet_prime = None
+            for u in upset:
+                for m in self.neighbor_in_iterator(u):
+                    if (m not in upset and
+                        all(u_ in upset for u_ in
+                            self.neighbor_out_iterator(m))):
+                        if meet_prime is not None:
+                            return
+                        meet_prime = m
+            join_primes.append(e)
+            meet_primes.append(meet_prime)
+
+        for e in range(n):
+            # Join-primes are join-irreducibles, only check those.
+            if self.in_degree(e) == 1:
+                add_elements(e)
+
+        return join_primes, meet_primes
+
     @lazy_attribute
     def _meet(self):
         r"""
@@ -2066,6 +2120,57 @@ class HasseDiagram(DiGraph):
         max_sublats = self.maximal_sublattices()
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
+
+    def kappa_dual(self, a):
+        r"""
+        Return the minimum element smaller than the element covering
+        ``a`` but not smaller than ``a``.
+
+        Define `\kappa^*(a)` as the minimum element of
+        `(\downarrow a_*) \setminus (\downarrow a)`, where `a_*` is the element
+        covering `a`. It is always a join-irreducible element, if it exists.
+
+        .. NOTE::
+
+            Element ``a`` is expected to be meet-irreducible, and
+            this is *not* checked.
+
+        INPUT:
+
+        - ``a`` -- a join-irreducible element of the lattice
+
+        OUTPUT:
+
+        The element `\kappa^*(a)` or ``None`` if there
+        is not a unique smallest element with given constraints.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3, 4], 2: [4, 5], 3: [6], 4: [6], 5: [6]})
+            sage: H.kappa_dual(3)
+            2
+            sage: H.kappa_dual(4) is None
+            True
+
+        TESTS::
+
+            sage: H = HasseDiagram({0: [1]})
+            sage: H.kappa_dual(0)
+            1
+        """
+        uc = next(self.neighbor_out_iterator(a))
+        if self.in_degree(uc) == 1:
+            return uc
+        lt_a = set(self.depth_first_search(a, neighbors=self.neighbors_in))
+        tmp = list(self.depth_first_search(uc, neighbors=lambda v: [v_ for v_ in self.neighbors_in(v) if v_ not in lt_a]))
+        result = None
+        for e in tmp:
+            if all(x not in tmp for x in self.neighbors_in(e)):
+                if result:
+                    return None
+                result = e
+        return result
 
     def skeleton(self):
         """

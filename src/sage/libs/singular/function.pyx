@@ -1462,7 +1462,7 @@ The Singular documentation for '%s' is given below.
         """
         try:
             return richcmp(self._name, (<SingularFunction>other)._name, op)
-        except AttributError:
+        except AttributeError:
             return NotImplemented
 
 cdef inline call_function(SingularFunction self, tuple args, object R, bint signal_handler=True, attributes=None):

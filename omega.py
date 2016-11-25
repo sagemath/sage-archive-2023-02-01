@@ -491,6 +491,8 @@ def Omega(var, expression, denominator=None, op=operator.ge,
         0
         sage: Omega(mu, 2, [])
         2
+        sage: Omega(mu, 2*mu, [])
+        2
 
     ::
 
@@ -501,7 +503,7 @@ def Omega(var, expression, denominator=None, op=operator.ge,
         ....:                          (1 - y/mu, -2)], unit=2))
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
         sage: Omega(mu, Factorization([(mu, -1), (1 - x, -1)]))
-        1 * (-x + 1)^-1
+        0
 
     ::
 
@@ -586,14 +588,11 @@ def Omega(var, expression, denominator=None, op=operator.ge,
         return -coefficient, exponent
     decoded_factors = tuple(decode_factor(factor)
                             for factor in factors_denominator)
-    if not decoded_factors:
-        return Factorization([(numerator.subs({var: ZZ(1)}), 1)] +
-                             list((f, -1) for f in other_factors),
-                             sort=Factorization_sort,
-                             simplify=Factorization_simplify)
 
     result_numerator, result_factors_denominator = \
         _Omega_(numerator.dict(), decoded_factors)
+    if result_numerator == 0:
+        return Factorization([], unit=result_numerator)
 
     return Factorization([(result_numerator, 1)] +
                          list((f, -1) for f in other_factors) +

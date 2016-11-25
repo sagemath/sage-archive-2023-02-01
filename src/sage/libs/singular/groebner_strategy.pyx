@@ -21,6 +21,7 @@ cdef extern from *: # hack to get at cython macro
     int unlikely(int)
     int likely(int)
 
+from sage.structure.sage_object cimport richcmp
 from sage.libs.singular.decl cimport ideal, ring, poly, currRing
 from sage.libs.singular.decl cimport rChangeCurrRing
 from sage.libs.singular.decl cimport new_skStrategy, delete_skStrategy, id_RankFreeModule
@@ -216,7 +217,7 @@ cdef class GroebnerStrategy(SageObject):
         """
         return self._parent
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLE::
 
@@ -230,10 +231,11 @@ cdef class GroebnerStrategy(SageObject):
             sage: strat == GroebnerStrategy(I)
             False
         """
-        if not isinstance(other, GroebnerStrategy):
-            return cmp(type(self),other(type))
-        else:
-            return cmp(self._ideal.gens(),(<GroebnerStrategy>other)._ideal.gens())
+        try:
+            return richcmp(self._ideal.gens(),
+                           (<GroebnerStrategy>other)._ideal.gens(), op)
+        except AttributeError:
+            return NotImplemented
 
     def __reduce__(self):
         """
@@ -450,7 +452,7 @@ cdef class NCGroebnerStrategy(SageObject):
         """
         return self._parent
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLE::
 
@@ -465,12 +467,12 @@ cdef class NCGroebnerStrategy(SageObject):
             sage: strat == NCGroebnerStrategy(I)
             False
         """
-        if not isinstance(other, NCGroebnerStrategy):
-            return cmp(type(self),other(type))
-        else:
-            return cmp((self._ideal.gens(),self._ideal.side()),
-                       ((<NCGroebnerStrategy>other)._ideal.gens(),
-                        (<NCGroebnerStrategy>other)._ideal.side()))
+        try:
+            return richcmp((self._ideal.gens(), self._ideal.side()),
+                           ((<NCGroebnerStrategy>other)._ideal.gens(),
+                            (<NCGroebnerStrategy>other)._ideal.side()), op)
+        except AttributeError:
+            return NotImplemented
 
     def __reduce__(self):
         """

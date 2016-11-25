@@ -294,7 +294,8 @@ def Omega_higher(a, exponents):
 
     A pair representing a quotient as follows: Its first component is the
     numerator as a laurent polynomial, its second component a factorization
-    of the denominator as a tuple of laurent polynomials.
+    of the denominator as a tuple of laurent polynomials, where each
+    laurent polynomial `z` represents a factor `1 - z`.
 
     EXAMPLES::
 
@@ -612,13 +613,14 @@ def _Omega_(A, decoded_factors):
       `c\lambda^a` of the numerator.
 
     - ``decoded_factors`` -- a tuple or list of pairs `(z, e)` representing
-      a factor `1 - \lambda^e z`.
+      a factor `1 - z \lambda^e`.
 
     OUTPUT:
 
     A pair representing a quotient as follows: Its first component is the
     numerator as a laurent polynomial, its second component a factorization
-    of the denominator as a tuple of laurent polynomials.
+    of the denominator as a tuple of laurent polynomials, where each
+    laurent polynomial `z` represents a factor `1 - z`.
     """
     # Below we sort to make the caching more efficient. Doing this here
     # (in contrast to directly in Omega_higher) results in much cleaner

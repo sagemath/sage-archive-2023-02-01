@@ -15,8 +15,6 @@ Classes for symbolic functions
 #*****************************************************************************
 from __future__ import division
 
-from six import itervalues
-
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
@@ -1156,7 +1154,7 @@ cdef class SymbolicFunction(Function):
         # see if there is already an SFunction with the same state
         cdef Function sfunc
         cdef long myhash = self._hash_()
-        for sfunc in itervalues(sfunction_serial_dict):
+        for sfunc in sfunction_serial_dict.itervalues():
             if isinstance(sfunc, SymbolicFunction) and \
                     myhash == (<SymbolicFunction>sfunc)._hash_():
                 # found one, set self._serial to be a copy

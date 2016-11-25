@@ -907,7 +907,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
             sage: G.json_repr(G.default_render_params())
-            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}],faces:[[0,1,2]],color:'#0000ff',opacity:1}"]
+            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}], faces:[[0,1,2]], color:'#0000ff', opacity:1}"]
 
         A simple colored one::
 
@@ -919,7 +919,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.json_repr(S.default_render_params())
-            ["{vertices:[{x:2,y:0,z:0},...,face_colors:['#ff0000','#ff9900','#cbff00','#33ff00'],opacity:1}"]
+            ["{vertices:[{x:2,y:0,z:0},..., face_colors:['#ff0000','#ff9900','#cbff00','#33ff00'], opacity:1}"]
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res
@@ -943,7 +943,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         if self.global_texture:
             color_str = "'#{}'".format(self.texture.hex_rgb())
-            return ["{{vertices:{},faces:{},color:{},opacity:{}}}".format(
+            return ["{{vertices:{}, faces:{}, color:{}, opacity:{}}}".format(
                     vertices_str, faces_str, color_str, opacity)]
         else:
             color_str = "[{}]".format(",".join(["'{}'".format(
@@ -951,7 +951,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                           self._faces[i].color.g,
                           self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
-            return ["{{vertices:{},faces:{},face_colors:{},opacity:{}}}".format(
+            return ["{{vertices:{}, faces:{}, face_colors:{}, opacity:{}}}".format(
                     vertices_str, faces_str, color_str, opacity)]
 
     def obj_repr(self, render_params):

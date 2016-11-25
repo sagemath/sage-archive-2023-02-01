@@ -327,7 +327,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            "[{vertices:[{x:0,y:0,z:-1},...,color:'#6666ff',opacity:1}]"
+            "[{vertices:[{x:0,y:0,z:-1},..., color:'#6666ff', opacity:1}]"
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
@@ -389,10 +389,10 @@ cdef class Graphics3d(SageObject):
         if not options['frame']:
             options['axes_labels'] = False
 
-        lights = "[{x:0,y:0,z:10},{x:0,y:0,z:-10}]"
+        lights = "[{x:0, y:0, z:10}, {x:0, y:0, z:-10}]"
 
         b = self.bounding_box()
-        bounds = "[{{x:{},y:{},z:{}}},{{x:{},y:{},z:{}}}]".format(
+        bounds = "[{{x:{}, y:{}, z:{}}}, {{x:{}, y:{}, z:{}}}]".format(
                  b[0][0],b[0][1],b[0][2],b[1][0],b[1][1],b[1][2])
 
         import json

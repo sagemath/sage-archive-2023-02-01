@@ -163,18 +163,13 @@ def Omega_numerator(a, n, m):
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
-    if m == 0:
-        Y = ZZ
-        y = tuple()
-    else:
-        Y = LaurentPolynomialRing(
-            ZZ, ', '.join('y{}'.format(mm) for mm in range(m)))
-        y = Y.gens()
+    XY, xy = _laurent_polynomial_ring_(n, m)
+    x = xy[:n]
+    y = xy[n:]
 
     def P(n):
         if n == 1:
-            L = LaurentPolynomialRing(Y, 'x0')
-            x0 = L.gen()
+            x0 = x[0]
             return x0**(-a) + \
                 (prod(1 - x0*yy for yy in y) *
                  sum(HomogenousSymmetricFunction(j, y) * (1-x0**(j-a))
@@ -182,18 +177,14 @@ def Omega_numerator(a, n, m):
                  if a > 0 else 0)
         else:
             Pprev = P(n-1)
-            L = LaurentPolynomialRing(Pprev.parent(), 'x{}'.format(n-1))
-            x1 = L.gen()
-            x2 = Pprev.parent().gen()
-            p1 = L(Pprev.subs({x2: x1}))
-            p2 = L(Pprev)
-            x2 = L({0: x2})
+            x1 = x[n-1]
+            x2 = x[n-2]
+            p1 = Pprev.subs({x2: x1})
+            p2 = Pprev
             q, r = (x1 * (1-x2) * prod(1 - x2*yy for yy in y) * p1 - \
                     x2 * (1-x1) * prod(1 - x1*yy for yy in y) * p2).quo_rem(x1 - x2)
             assert r == 0
             return q
-
-    XY, xy = _laurent_polynomial_ring_(n, m)
 
     if m == 0:
         return XY(1 - (prod(prod(f) for f in Omega_factors_denominator(n, m)) *

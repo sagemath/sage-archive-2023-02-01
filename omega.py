@@ -299,27 +299,25 @@ def Omega_higher(a, exponents):
     EXAMPLES::
 
         sage: Omega_higher(0, (1, -2))
-        (1, (-z0 + 1, -z0^2*z1 + 1))
+        (1, (z0, z0^2*z1))
         sage: Omega_higher(0, (1, -3))
-        (1, (-z0 + 1, -z0^3*z1 + 1))
+        (1, (z0, z0^3*z1))
         sage: Omega_higher(0, (1, -4))
-        (1, (-z0 + 1, -z0^4*z1 + 1))
+        (1, (z0, z0^4*z1))
 
         sage: Omega_higher(0, (2, -1))
-        (z0*z1 + 1, (-z0 + 1, -z0*z1^2 + 1))
+        (z0*z1 + 1, (z0, z0*z1^2))
         sage: Omega_higher(0, (3, -1))
-        (z0*z1^2 + z0*z1 + 1, (-z0 + 1, -z0*z1^3 + 1))
+        (z0*z1^2 + z0*z1 + 1, (z0, z0*z1^3))
         sage: Omega_higher(0, (4, -1))
-        (z0*z1^3 + z0*z1^2 + z0*z1 + 1, (-z0 + 1, -z0*z1^4 + 1))
+        (z0*z1^3 + z0*z1^2 + z0*z1 + 1, (z0, z0*z1^4))
 
         sage: Omega_higher(0, (1, 1, -2))
-        (-z0^2*z1*z2 - z0*z1^2*z2 + z0*z1*z2 + 1,
-         (-z0 + 1, -z1 + 1, -z0^2*z2 + 1, -z1^2*z2 + 1))
+        (-z0^2*z1*z2 - z0*z1^2*z2 + z0*z1*z2 + 1, (z0, z1, z0^2*z2, z1^2*z2))
         sage: Omega_higher(0, (2, -1, -1))
-        (z0*z1*z2 + z0*z1 + z0*z2 + 1, (-z0 + 1, -z0*z1^2 + 1, -z0*z2^2 + 1))
+        (z0*z1*z2 + z0*z1 + z0*z2 + 1, (z0, z0*z1^2, z0*z2^2))
         sage: Omega_higher(0, (2, 1, -1))
-        (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1,
-         (-z0 + 1, -z1 + 1, -z0*z2^2 + 1, -z1*z2 + 1))
+        (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1, (z0, z1, z0*z2^2, z1*z2))
     """
     from sage.misc.functional import cyclotomic_polynomial
     from sage.misc.misc_c import prod
@@ -376,7 +374,7 @@ def Omega_higher(a, exponents):
     rules = {next(x_vars) if e > 0 else next(y_vars):
              powers[abs(e)]**j * var
              for e, var in zip(exponents, L.gens()) for j in range(abs(e))}
-    factors_denominator = tuple(de_power(prod(f.subs(rules) for f in factors))
+    factors_denominator = tuple(1-de_power(prod(f.subs(rules) for f in factors))
                                 for factors in Omega_factors_denominator(x, y))
 
     numerator = de_power(Omega_numerator(a, n, m).subs(rules))
@@ -593,31 +591,25 @@ def Omega(var, expression, denominator=None, op=operator.ge,
                              sort=Factorization_sort,
                              simplify=Factorization_simplify)
 
-    result_numerator = 0
-    result_factors_denominator = None
-    for a, c in iteritems(numerator.dict()):
-        n, fd = _Omega_(a, decoded_factors)
-        if result_factors_denominator is None:
-            result_factors_denominator = fd
-        else:
-            assert result_factors_denominator == fd
-        result_numerator += c * n
+    result_numerator, result_factors_denominator = \
+        _Omega_(numerator.dict(), decoded_factors)
 
     return Factorization([(result_numerator, 1)] +
                          list((f, -1) for f in other_factors) +
-                         list((f, -1) for f in result_factors_denominator),
+                         list((1-f, -1) for f in result_factors_denominator),
                          sort=Factorization_sort,
                          simplify=Factorization_simplify)
 
 
-def _Omega_(a, decoded_factors):
+def _Omega_(A, decoded_factors):
     r"""
     Helper function for :func:`Omega` which accesses the low level functions
     and does the substituting.
 
     INPUT:
 
-    - ``a`` -- an integer.
+    - ``A`` -- a dictionary mapping `a` to `c` representing a summand
+      `c\lambda^a` of the numerator.
 
     - ``decoded_factors`` -- a tuple or list of pairs `(z, e)` representing
       a factor `1 - \lambda^e z`.
@@ -632,9 +624,21 @@ def _Omega_(a, decoded_factors):
     # (in contrast to directly in Omega_higher) results in much cleaner
     # code and prevents an additional substitution or passing of a permutation.
     values, exponents = zip(*sorted(decoded_factors, key=lambda k: -k[1]))
-    n, fd = Omega_higher(a, exponents)
-    rules = dict(zip(n.parent().gens(), values))
-    return n.subs(rules), tuple(f.subs(rules) for f in fd)
+
+    numerator = 0
+    factors_denominator = None
+    rules = None
+    for a, c in iteritems(A):
+        n, fd = Omega_higher(a, exponents)
+        if factors_denominator is None:
+            factors_denominator = fd
+        else:
+            assert factors_denominator == fd
+        if rules is None:
+            rules = dict(zip(n.parent().gens(), values))
+        numerator += c * n.subs(rules)
+
+    return numerator, tuple(f.subs(rules) for f in factors_denominator)
 
 
 def preparation_generating_function_of_polyhedron(polyhedron, indices=None):

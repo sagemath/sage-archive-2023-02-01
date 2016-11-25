@@ -71,6 +71,8 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.atoms` | Return the list of elements covering the bottom element.
     :meth:`~FiniteLatticePoset.coatoms` | Return the list of elements covered by the top element.
     :meth:`~FiniteLatticePoset.double_irreducibles` | Return the list of double irreducible elements.
+    :meth:`~FiniteLatticePoset.join_primes` | Return the join prime elements.
+    :meth:`~FiniteLatticePoset.meet_primes` | Return the meet prime elements.
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
     :meth:`~FiniteMeetSemilattice.pseudocomplement` | Return the pseudocomplement of an element.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
@@ -712,6 +714,80 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return [self._vertex_to_element(e) for e in H
                 if H.in_degree(e) == 1 and H.out_degree(e) == 1]
 
+    def join_primes(self):
+        r"""
+        Return the join-prime elements of the lattice.
+
+        An element `x` of a lattice `L` is *join-prime* if `x \le a \vee b`
+        implies `x \le a` or `x \le b` for every `a, b \in L`.
+
+        These are also called *coprime* in some books. Every join-prime
+        is join-irreducible; converse holds if and only if the lattise
+        is distributive.
+
+        .. SEEALSO::
+
+            :meth:`meet_primes`,
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.join_irreducibles`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [5],
+            ....:                   4: [6], 5: [7], 6: [7]})
+            sage: L.join_primes()
+            [3, 4]
+
+            sage: D12 = Posets.DivisorLattice(12)  # Distributive lattice
+            sage: D12.join_irreducibles() == D12.join_primes()
+            True
+
+        TESTS::
+
+            sage: LatticePoset().join_primes()
+            []
+            sage: Posets.DiamondPoset(5).join_primes()
+            []
+        """
+        return [self._vertex_to_element(v) for
+                v in self._hasse_diagram.prime_elements()[0]]
+
+    def meet_primes(self):
+        r"""
+        Return the meet-prime elements of the lattice.
+
+        An element `x` of a lattice `L` is *meet-prime* if `x \ge a \wedge b`
+        implies `x \ge a` or `x \ge b` for every `a, b \in L`.
+
+        These are also called just *prime* in some books. Every meet-prime
+        is meet-irreducible; converse holds if and only if the lattise
+        is distributive.
+
+        .. SEEALSO::
+
+            :meth:`join_primes`,
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.meet_irreducibles`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [5],
+            ....:                   4: [6], 5: [7], 6: [7]})
+            sage: L.meet_primes()
+            [6, 5]
+
+            sage: D12 = Posets.DivisorLattice(12)
+            sage: sorted(D12.meet_primes())
+            [3, 4, 6]
+
+        TESTS::
+
+            sage: LatticePoset().meet_primes()
+            []
+            sage: Posets.DiamondPoset(5).meet_primes()
+            []
+        """
+        return [self._vertex_to_element(v) for
+                v in self._hasse_diagram.prime_elements()[1]]
+
     def is_join_distributive(self, certificate=False):
         """
         Return ``True`` if the lattice is join-distributive and ``False``
@@ -917,8 +993,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         EXAMPLES:
 
-        Tamari lattices are typical examples of semidistributive but not distributive
-        (and hence not modular) lattices::
+        Tamari lattices are typical examples of semidistributive but not
+        distributive (and hence not modular) lattices::
 
             sage: T4 = Posets.TamariLattice(4)
             sage: T4.is_semidistributive(), T4.is_distributive()
@@ -954,13 +1030,17 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is meet-semidistributive, and ``False``
         otherwise.
 
-        A lattice is meet-semidistributive if `e \wedge x = e \wedge y`
-        implicates `e \wedge x = e \wedge (x \vee y)` for all elements
-        `e, x, y` in the lattice.
+        A lattice is meet-semidistributive if for all elements
+        `e, x, y` in the lattice we have
+
+        .. MATH::
+
+            e \wedge x = e \wedge y \implies
+            e \wedge x = e \wedge (x \vee y)
 
         .. SEEALSO::
 
-            :meth:`is_join_semidistributive`
+            :meth:`is_join_semidistributive`, :meth:`is_semidistributive`
 
         EXAMPLES::
 
@@ -993,24 +1073,28 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         n = self.cardinality()
         if n == 0:
             return True
-        if self._hasse_diagram.size()*2 > n*_log_2(n):
+        H = self._hasse_diagram
+        if H.size()*2 > n*_log_2(n):
             return False
 
-        return (self._hasse_diagram.find_nonsemidistributive_elements('meet')
-                is None)
+        return all(H.kappa(v) is not None for v in H if H.in_degree(v) == 1)
 
     def is_join_semidistributive(self):
         r"""
         Return ``True`` if the lattice is join-semidistributive, and ``False``
         otherwise.
 
-        A lattice is join-semidistributive if `e \vee x = e \vee y` implicates
-        `e \vee x = e \vee (x \wedge y)` for all elements `e, x, y` in the
-        lattice.
+        A lattice is join-semidistributive if for all elements `e, x, y` in
+        the lattice we have
+
+        .. MATH::
+
+            e \vee x = e \vee y \implies
+            e \vee x = e \vee (x \wedge y)
 
         .. SEEALSO::
 
-            :meth:`is_meet_semidistributive`
+            :meth:`is_meet_semidistributive`, :meth:`is_semidistributive`
 
         EXAMPLES::
 
@@ -1043,11 +1127,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         n = self.cardinality()
         if n == 0:
             return True
-        if self._hasse_diagram.size()*2 > n*_log_2(n):
+        H = self._hasse_diagram
+        if H.size()*2 > n*_log_2(n):
             return False
 
-        return (self._hasse_diagram.find_nonsemidistributive_elements('join')
-                is None)
+        return all(H.kappa_dual(v) is not None
+                   for v in H if H.out_degree(v) == 1)
 
     def is_complemented(self, certificate=False):
         r"""

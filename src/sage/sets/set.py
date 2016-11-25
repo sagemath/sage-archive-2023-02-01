@@ -798,7 +798,7 @@ class Set_object_enumerated(Set_object):
             sage: X.list()
             [0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1]
             sage: type(X.list())
-            <type 'list'>
+            <... 'list'>
 
         .. TODO::
 

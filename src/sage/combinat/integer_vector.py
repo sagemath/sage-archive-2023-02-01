@@ -880,7 +880,7 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
             sage: v = IntegerVectors(2,3,min_slope=0).first(); v
             [0, 1, 1]
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
 
         TESTS::
 

@@ -4057,7 +4057,7 @@ class Partition(CombinatorialElement):
             sage: p = Partition([2,1]).to_list(); p
             [2, 1]
             sage: type(p)
-            <type 'list'>
+            <... 'list'>
 
         TESTS::
 
@@ -6569,7 +6569,7 @@ class Partitions_parts_in(Partitions):
             sage: next(it)
             [4]
             sage: type(_)
-            <type 'list'>
+            <... 'list'>
         """
         if n == 0:
             yield []

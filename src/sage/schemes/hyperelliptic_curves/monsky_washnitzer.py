@@ -388,7 +388,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             column.extend([base_ring(0)] * (degree - len(column)))
         return coeffs
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -403,6 +403,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             True
         """
         return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
+
+    __nonzero__ = __bool__
 
     def __cmp__(self, other):
         """
@@ -2270,7 +2272,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         else:
             raise ZeroDivisionError("Element not invertible")
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True iff ``self`` is not zero.
 
@@ -2279,10 +2281,12 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             sage: R.<x> = QQ['x']
             sage: E = HyperellipticCurve(x^5-3*x+1)
             sage: x,y = E.monsky_washnitzer_gens()
-            sage: x.__nonzero__()
+            sage: bool(x)
             True
         """
         return not not self._f
+
+    __nonzero__ = __bool__
 
     def __eq__(self, other):
         """
@@ -3062,7 +3066,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         """
         return self._coeff
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -3078,6 +3082,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
             False
         """
         return not not self._coeff
+
+    __nonzero__ = __bool__
 
     def _repr_(self):
         """

@@ -1486,10 +1486,9 @@ cdef object py_step(object n) except +:
     """
     Return step function of n.
     """
-    cdef int c = cmp(n, 0)
-    if c < 0:
+    if n < 0:
         return ZERO
-    elif c > 0:
+    elif n > 0:
         return ONE
     return ONE_HALF
 
@@ -1795,17 +1794,17 @@ cdef object py_atan2(object x, object y) except +:
     if parent is ZZ:
         parent = RR
     pi_n = parent(pi)
-    cdef int sgn_y = cmp(y, 0)
-    cdef int sgn_x = cmp(x, 0)
-    if sgn_y:
-        if sgn_x > 0:
+    cdef int sgn_y
+    if y != 0:
+        sgn_y = -1 if y < 0 else 1
+        if x > 0:
             return py_atan(abs(y/x)) * sgn_y
-        elif sgn_x == 0:
+        elif x == 0:
             return pi_n/2 * sgn_y
         else:
             return (pi_n - py_atan(abs(y/x))) * sgn_y
     else:
-        if sgn_x > 0:
+        if x > 0:
             return 0
         elif x == 0:
             raise ValueError("arctan2(0,0) undefined")

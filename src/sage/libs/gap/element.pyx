@@ -2215,7 +2215,7 @@ cdef class GapElement_List(GapElement):
         sage: list(lst)
         [(), (1,3), (1,2,3), (2,3), (1,3,2), (1,2)]
         sage: type(_)
-        <type 'list'>
+        <... 'list'>
 
     Range checking is performed::
 

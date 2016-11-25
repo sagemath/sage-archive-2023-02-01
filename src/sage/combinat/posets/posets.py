@@ -1557,7 +1557,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: L = P.linear_extensions(facade=True)
             sage: l = L.an_element()
             sage: type(l)
-            <type 'list'>
+            <... 'list'>
 
         .. WARNING::
 
@@ -1571,7 +1571,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                  [1, 3, 2, 4, 6, 12],
                  [1, 3, 2, 6, 4, 12]]
                 sage: type(L[0])
-                <type 'list'>
+                <... 'list'>
 
         TESTS::
 

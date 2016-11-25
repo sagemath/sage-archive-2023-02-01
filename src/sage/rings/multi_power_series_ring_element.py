@@ -220,7 +220,7 @@ class MPowerSeries(PowerSeries):
     #
     # _mul_prec : works just fine
     #
-    # __nonzero__ : works just fine
+    # __bool__ : works just fine
     #
     """
     Multivariate power series; these are the elements of Multivariate Power

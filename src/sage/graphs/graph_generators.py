@@ -218,6 +218,7 @@ __append_to_doc(
      "line_graph_forbidden_subgraphs",
      "MathonPseudocyclicMergingGraph",
      "MathonPseudocyclicStronglyRegularGraph",
+     "MuzychukS6Graph",
      "MycielskiGraph",
      "MycielskiStep",
      "NKStarGraph",
@@ -1999,6 +2000,7 @@ class GraphGenerators():
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
     MathonPseudocyclicMergingGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicMergingGraph)
     MathonPseudocyclicStronglyRegularGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicStronglyRegularGraph)
+    MuzychukS6Graph        = staticmethod(sage.graphs.generators.families.MuzychukS6Graph)
     MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
     MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)

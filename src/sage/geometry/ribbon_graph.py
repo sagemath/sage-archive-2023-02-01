@@ -425,6 +425,10 @@ class RibbonGraph(SageObject, UniqueRepresentation):
             Ribbon graph of genus 1 and 3 boundary components
             sage: R2.sigma()
             (1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18,19)
+            sage: R2c = R2.contract_edge(9); R2; R2c.sigma(); R2c.rho()
+            Ribbon graph of genus 1 and 3 boundary components
+            (1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)
+            (1,16)(2,13)(3,10)(4,17)(5,14)(6,11)(7,18)(8,15)(9,12)
         """
         #the following two lines convert the list of tuples to list of lists
         aux_sigma = [list(x) for x in self._sigma.cycle_tuples(singletons=True)]

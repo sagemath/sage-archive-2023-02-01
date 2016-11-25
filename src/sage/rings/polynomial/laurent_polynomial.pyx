@@ -379,6 +379,32 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
 
         return self.__u[i - self.__n]
 
+    cpdef long number_of_terms(self):
+        """
+        Return the number of non-zero coefficients of self. Also called weight,
+        hamming weight or sparsity.
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: f = x^3 - 1
+            sage: f.number_of_terms()
+            2
+            sage: R(0).number_of_terms()
+            0
+            sage: f = (x+1)^100
+            sage: f.number_of_terms()
+            101
+
+        The method :meth:`hamming_weight` is an alias::
+
+            sage: f.hamming_weight()
+            101
+        """
+        return self.__u.number_of_terms()
+
+    hamming_weight = number_of_terms
+
     def __iter__(self):
         """
         Iterate through the coefficients from the first nonzero one to the
@@ -1586,6 +1612,32 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
         return self._prod.latex(self.parent().latex_variable_names(),
                                 atomic_coefficients=atomic, sortkey=key)
+
+    cpdef long number_of_terms(self):
+        """
+        Return the number of non-zero coefficients of self. Also called weight,
+        hamming weight or sparsity.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = LaurentPolynomialRing(ZZ)
+            sage: f = x^3 - y
+            sage: f.number_of_terms()
+            2
+            sage: R(0).number_of_terms()
+            0
+            sage: f = (x+1/y)^100
+            sage: f.number_of_terms()
+            101
+
+        The method :meth:`hamming_weight` is an alias::
+
+            sage: f.hamming_weight()
+            101
+        """
+        return self._poly.number_of_terms()
+
+    hamming_weight = number_of_terms
 
     def __invert__(LaurentPolynomial_mpair self):
         """

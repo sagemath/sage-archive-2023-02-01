@@ -2390,19 +2390,22 @@ class HasseDiagram(DiGraph):
             return self.interval(m, j)
 
         cong = start if start else DisjointSet(n)
+        t = -1
 
-        for part in parts:
-            if part:  # Skip empty parts
-                c = part[0]
-                for e in fill_to_interval(part):
-                    cong.union(e, c)
+        while t != cong.number_of_subsets():
+            for part in parts:
+                if part:  # Skip empty parts
+                    c = part[0]
+                    for e in fill_to_interval(part):
+                        cong.union(e, c)
+            t = cong.number_of_subsets()
 
-        # Following is needed for cases like
-        # Posets.BooleanLattice(3).congruence([(0,1), (0,2), (0,4)])
-        for c in list(cong):
-            r = c[0]
-            for v in fill_to_interval(c):
-                cong.union(r, v)
+            # Following is needed for cases like
+            # Posets.BooleanLattice(3).congruence([(0,1), (0,2), (0,4)])
+            for c in list(cong):
+                r = c[0]
+                for v in fill_to_interval(c):
+                    cong.union(r, v)
 
         todo = set(cong.find(e) for part in parts for e in part)
 

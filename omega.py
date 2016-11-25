@@ -621,7 +621,22 @@ def _Omega_(A, decoded_factors):
     numerator as a laurent polynomial, its second component a factorization
     of the denominator as a tuple of laurent polynomials, where each
     laurent polynomial `z` represents a factor `1 - z`.
+
+    TESTS:
+
+    Extensive testing of this function is done in :func:`Omega`.
+
+    ::
+
+        sage: _Omega_({0: 2, 1: 40, -1: -3}, [])
+        (42, ())
+        sage: _Omega_({-1: 42}, [])
+        (0, ())
+
     """
+    if not decoded_factors:
+        return sum(c for a, c in iteritems(A) if a >= 0), tuple()
+
     # Below we sort to make the caching more efficient. Doing this here
     # (in contrast to directly in Omega_higher) results in much cleaner
     # code and prevents an additional substitution or passing of a permutation.

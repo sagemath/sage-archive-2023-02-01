@@ -1605,13 +1605,13 @@ class pAdicAutomorphicFormElement(ModuleElement):
                 return c
         return 0
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Tell whether the form is zero or not.
 
         OUTPUT:
 
-        Boolean. True if self is zero, False otherwise.
+        Boolean. ``True`` if self is zero, ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1619,13 +1619,15 @@ class pAdicAutomorphicFormElement(ModuleElement):
             sage: H = X.harmonic_cocycles(4,prec = 20)
             sage: A = X.padic_automorphic_forms(4,prec = 20)
             sage: v1 = A(H.basis()[1])
-            sage: v1.__nonzero__()
+            sage: bool(v1)
             True
             sage: v2 = v1-v1
-            sage: v2.__nonzero__()
+            sage: bool(v2)
             False
         """
-        return any([not o.is_zero() for o in self._value])
+        return any(not o.is_zero() for o in self._value)
+
+    __nonzero__ = __bool__
 
     def __getitem__(self, e1):
         r"""

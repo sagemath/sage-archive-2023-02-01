@@ -410,16 +410,18 @@ class ModularForm_abstract(ModuleElement):
                 vals.append(df[i] / self[i])
             return G(vals)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True if self is nonzero, and False if not.
+        Return ``True`` if ``self`` is nonzero, and ``False`` if not.
 
         EXAMPLES::
 
-            sage: ModularForms(25,6).6.__nonzero__()
+            sage: bool(ModularForms(25,6).6)
             True
         """
         return not self.element().is_zero()
+
+    __nonzero__ = __bool__
 
     def prec(self):
         """
@@ -1324,16 +1326,18 @@ class Newform(ModularForm_abstract):
         """
         return self._defining_modular_symbols().ambient().cuspidal_subspace().new_subspace().decomposition().index(self._defining_modular_symbols())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True, as newforms are never zero.
+        Return ``True``, as newforms are never zero.
 
         EXAMPLES::
 
-            sage: Newforms(14,2)[0].__nonzero__()
+            sage: bool(Newforms(14,2)[0])
             True
         """
         return True
+
+    __nonzero__ = __bool__
 
     def character(self):
         r"""

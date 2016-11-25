@@ -1936,6 +1936,17 @@ class ChainComplex_class(Parent):
                                                 [y]
                              [ x -y]            [x]
              0 <-- C_(8, 3) <-------- C_(6, 2) <---- C_(4, 1) <-- 0
+
+        Check that :trac:`21760` is fixed::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 0, 2)}, degree=-1)
+            sage: ascii_art(C)
+             0 <-- C_0 <-- 0
+            sage: T = C.tensor(C)
+            sage: ascii_art(T)
+             0 <-- C_0 <-- 0
+            sage: T.free_module_rank(0)
+            4
         """
         if not factors:
             return self
@@ -1961,9 +1972,9 @@ class ChainComplex_class(Parent):
             # Setup
             d = ret.differential()
             dD = D.differential()
-            deg = sorted((k, ret.free_module_rank(k)) for k in d.keys()
+            deg = sorted((k, ret.free_module_rank(k)) for k in d
                          if ret.free_module_rank(k) > 0)
-            degD = sorted((k, D.free_module_rank(k)) for k in dD.keys()
+            degD = sorted((k, D.free_module_rank(k)) for k in dD
                           if D.free_module_rank(k) > 0)
             diff = {}
 
@@ -1978,26 +1989,22 @@ class ChainComplex_class(Parent):
                         diff[a+b] = {}
                     mor = diff[a+b]
                     cur = {}
-                    if rp != 0:
-                        cur[(a+deg_diff,b)] = []
-                    if sp != 0:
-                        cur[(a,b+deg_diff)] = []
+                    cur[(a+deg_diff,b)] = []
+                    cur[(a,b+deg_diff)] = []
 
                     for i in range(r):
                         for j in range(s):
                             # \partial x_i \otimes y_j
-                            if rp != 0:
-                                vec = [zero]*(rp*s)
-                                for k,val in enumerate(d[a].column(i)):
-                                    vec[s*k+j] += val
-                                cur[(a+deg_diff,b)].append(vec)
+                            vec = [zero]*(rp*s)
+                            for k,val in enumerate(d[a].column(i)):
+                                vec[s*k+j] += val
+                            cur[(a+deg_diff,b)].append(vec)
 
                             # (-1)^a x_i \otimes \partial y_j
-                            if sp != 0:
-                                vec = [zero]*(r*sp)
-                                for k,val in enumerate(dD[b].column(j)):
-                                    vec[sp*i+k] += scalar(a) * val
-                                cur[(a,b+deg_diff)].append(vec)
+                            vec = [zero]*(r*sp)
+                            for k,val in enumerate(dD[b].column(j)):
+                                vec[sp*i+k] += scalar(a) * val
+                            cur[(a,b+deg_diff)].append(vec)
 
                     mor[a,b] = cur
 

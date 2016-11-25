@@ -182,7 +182,7 @@ cdef class gen(gen_auto):
             sage: L
             [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
             sage: type(L)
-            <type 'list'>
+            <... 'list'>
             sage: type(L[0])
             <type 'sage.libs.cypari2.gen.gen'>
 
@@ -570,7 +570,7 @@ cdef class gen(gen_auto):
             sage: s = K.pari_nf().nf_get_sign(); s
             [4, 0]
             sage: type(s); type(s[0])
-            <type 'list'>
+            <... 'list'>
             <type 'int'>
             sage: CyclotomicField(15).pari_nf().nf_get_sign()
             [0, 4]
@@ -1583,7 +1583,7 @@ cdef class gen(gen_auto):
             sage: b = a.python(); b
             [1, 2, 3, 4]
             sage: type(b)
-            <type 'list'>
+            <... 'list'>
 
             sage: a = pari('[1,2;3,4]')
             sage: a.type()
@@ -3133,7 +3133,7 @@ cdef class gen(gen_auto):
             sage: v = e.ellan(10, python_ints=True); v
             [1, -2, -1, 2, 1, 2, -2, 0, -2, -2]
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
             sage: type(v[0])
             <type 'int'>
         """
@@ -3184,7 +3184,7 @@ cdef class gen(gen_auto):
             sage: v = e.ellaplist(10, python_ints=True); v
             [-2, -1, 1, -2]
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
             sage: type(v[0])
             <type 'int'>
 
@@ -3195,7 +3195,7 @@ cdef class gen(gen_auto):
             ([], <type 'sage.libs.cypari2.gen.gen'>)
             sage: v = e.ellaplist(1, python_ints=True)
             sage: v, type(v)
-            ([], <type 'list'>)
+            ([], <... 'list'>)
         """
         if python_ints:
             return [int(x) for x in self.ellaplist(n)]

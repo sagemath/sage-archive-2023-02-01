@@ -345,7 +345,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         list, so the following also works::
 
             sage: v = reversed(range(4)); type(v)
-            <type 'listreverseiterator'>
+            <... 'listreverseiterator'>
             sage: A(v)
             [3 2]
             [1 0]
@@ -1084,19 +1084,19 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
     cpdef int _cmp_(self, right) except -2:
         r"""
-        Compares self with right, examining entries in lexicographic (row
-        major) ordering.
+        Compare ``self`` with ``right``, examining entries in
+        lexicographic (row major) ordering.
 
         EXAMPLES::
 
-            sage: Matrix(ZZ, [[0, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 10], [20, 30]]))
-            0
-            sage: Matrix(ZZ, [[0, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 15], [20, 30]]))
-            -1
-            sage: Matrix(ZZ, [[5, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 15], [20, 30]]))
-            1
-            sage: Matrix(ZZ, [[5, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 10], [25, 30]]))
-            1
+            sage: Matrix(ZZ, [[0, 10], [20, 30]]) == (Matrix(ZZ, [[0, 10], [20, 30]]))
+            True
+            sage: Matrix(ZZ, [[0, 10], [20, 30]]) < (Matrix(ZZ, [[0, 15], [20, 30]]))
+            True
+            sage: Matrix(ZZ, [[5, 10], [20, 30]]) > (Matrix(ZZ, [[0, 15], [20, 30]]))
+            True
+            sage: Matrix(ZZ, [[5, 10], [20, 30]]) <= (Matrix(ZZ, [[0, 10], [25, 30]]))
+            False
         """
         cdef Py_ssize_t i, j
         cdef int k

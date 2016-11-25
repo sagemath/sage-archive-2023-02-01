@@ -275,7 +275,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         self._obj = obj
         FieldElement.__init__(self, parent)
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         TESTS::
 
@@ -284,6 +284,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
             [False, True, True, True]
         """
         return bool(self._obj)
+
+    __nonzero__ = __bool__
 
     def __reduce__(self):
         r"""

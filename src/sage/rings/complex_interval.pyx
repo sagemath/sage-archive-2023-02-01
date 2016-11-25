@@ -1395,20 +1395,18 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: CIF(RIF(0, 0), RIF(0, 0)).__nonzero__()
-            False
             sage: bool(CIF(RIF(0, 0), RIF(0, 0)))
             False
-            sage: CIF(RIF(1), RIF(0)).__nonzero__()
+            sage: bool(CIF(RIF(1), RIF(0)))
             True
-            sage: CIF(RIF(0), RIF(1)).__nonzero__()
+            sage: bool(CIF(RIF(0), RIF(1)))
             True
-            sage: CIF(RIF(1, 2), RIF(0)).__nonzero__()
+            sage: bool(CIF(RIF(1, 2), RIF(0)))
             True
-            sage: CIF(RIF(-1, 1), RIF(-1, 1)).__nonzero__()
+            sage: bool(CIF(RIF(-1, 1), RIF(-1, 1)))
             True
         """
-        return self.real().__nonzero__() or self.imag().__nonzero__()
+        return bool(self.real()) or bool(self.imag())
 
     cpdef _richcmp_(left, right, int op):
         r"""

@@ -1981,6 +1981,9 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: (t0*t1).is_real()
             True
+            sage: t2 = SR.symbol("t1", domain='positive')
+            sage: (t1**t2).is_real()
+            True
             sage: (t0*x).is_real()
             False
 

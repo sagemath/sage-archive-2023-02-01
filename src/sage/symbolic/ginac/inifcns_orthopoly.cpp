@@ -26,6 +26,10 @@ namespace GiNaC {
 
 static ex hermite_evalf(const ex& n, const ex& x, PyObject* parent)
 {
+	if (not is_exactly_a<numeric>(x)
+             or not is_exactly_a<numeric>(n))
+                return hermite(n,x).hold();
+
         // see http://dlmf.nist.gov/18.5.E13
         numeric numn = ex_to<numeric>(n);
         numeric numx = ex_to<numeric>(x);
@@ -93,6 +97,11 @@ REGISTER_FUNCTION(hermite, eval_func(hermite_eval).
 
 static ex gegenb_evalf(const ex& n, const ex &a, const ex& x, PyObject* parent)
 {
+	if (not is_exactly_a<numeric>(x)
+             or not is_exactly_a<numeric>(a)
+             or not is_exactly_a<numeric>(n))
+                return gegenbauer(n,a,x).hold();
+
         // see http://dlmf.nist.gov/18.5.E9
         numeric numn = ex_to<numeric>(n);
         numeric numx = ex_to<numeric>(x);

@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from sage.rings.all import ZZ, QQ
 from sage.rings.integer import LCM_list
 from sage.misc.functional import denominator
-from sage.matrix.constructor import matrix
+from sage.matrix.constructor import matrix, vector
 
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
@@ -273,6 +273,112 @@ class Polyhedron_normaliz(Polyhedron_base):
         # error: Some error in the normaliz input data detected: All input matrices empty!
         self._normaliz_cone = None
 
+    def integral_points(self, threshold=None):
+        r"""
+        Return the integral points in the polyhedron.
+
+        Uses either the naive algorithm (iterate over a rectangular
+        bounding box) or triangulation + Smith form.
+
+        INPUT:
+
+        - ``threshold`` -- integer (ignored).
+
+        OUTPUT:
+
+        The list of integral points in the polyhedron. If the
+        polyhedron is not compact, a ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)], backend='normaliz').integral_points()
+            ((-1, -1), (0, 0), (0, 1), (1, 0), (1, 1))
+
+            sage: simplex = Polyhedron([(1,2,3), (2,3,7), (-2,-3,-11)], backend='normaliz')
+            sage: simplex.integral_points()
+            ((-2, -3, -11), (0, 0, -2), (1, 2, 3), (2, 3, 7))
+
+        The polyhedron need not be full-dimensional::
+
+            sage: simplex = Polyhedron([(1,2,3,5), (2,3,7,5), (-2,-3,-11,5)], backend='normaliz')
+            sage: simplex.integral_points()
+            ((-2, -3, -11, 5), (0, 0, -2, 5), (1, 2, 3, 5), (2, 3, 7, 5))
+
+            sage: point = Polyhedron([(2,3,7)], backend='normaliz')
+            sage: point.integral_points()
+            ((2, 3, 7),)
+
+            sage: empty = Polyhedron()
+            sage: empty.integral_points()
+            ()
+
+        Here is a simplex where the naive algorithm of running over
+        all points in a rectangular bounding box no longer works fast
+        enough::
+
+            sage: v = [(1,0,7,-1), (-2,-2,4,-3), (-1,-1,-1,4), (2,9,0,-5), (-2,-1,5,1)]
+            sage: simplex = Polyhedron(v, backend='normaliz'); simplex
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
+            sage: len(simplex.integral_points())
+            49
+
+        Finally, the 3-d reflexive polytope number 4078::
+
+            sage: v = [(1,0,0), (0,1,0), (0,0,1), (0,0,-1), (0,-2,1),
+            ....:      (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
+            sage: P = Polyhedron(v, backend='normaliz')
+            sage: pts1 = P.integral_points()
+            sage: all(P.contains(p) for p in pts1)
+            True
+            sage: pts2 = LatticePolytope(v).points()          # PALP
+            sage: for p in pts1: p.set_immutable()
+            sage: set(pts1) == set(pts2)
+            True
+
+            sage: timeit('Polyhedron(v, backend='normaliz').integral_points()')   # not tested - random
+            625 loops, best of 3: 1.41 ms per loop
+            sage: timeit('LatticePolytope(v).points()')       # not tested - random
+            25 loops, best of 3: 17.2 ms per loop
+
+        TESTS:
+
+        Test some trivial cases (see :trac:`17937`)::
+
+            sage: P = Polyhedron(ambient_dim=1, backend='normaliz')  # empty polyhedron in 1 dimension
+            sage: P.integral_points()
+            ()
+            sage: P = Polyhedron(ambient_dim=0, backend='normaliz')  # empty polyhedron in 0 dimensions
+            sage: P.integral_points()
+            ()
+            sage: P = Polyhedron([[3]], backend='normaliz')  # single point in 1 dimension
+            sage: P.integral_points()
+            ((3),)
+            sage: P = Polyhedron([[1/2]], backend='normaliz')  # single non-integral point in 1 dimension
+            sage: P.integral_points()
+            ()
+            sage: P = Polyhedron([[]], backend='normaliz')  # single point in 0 dimensions
+            sage: P.integral_points()
+            ((),)
+        """
+        import PyNormaliz
+        if not self.is_compact():
+            raise ValueError('Can only enumerate points in a compact polyhedron.')
+        # Trivial cases: polyhedron with 0 or 1 vertices
+        if self.n_vertices() == 0:
+            return ()
+        if self.n_vertices() == 1:
+            v = self.vertices_list()[0]
+            try:
+                return (vector(ZZ, v),)
+            except TypeError:  # vertex not integral
+                return ()
+        points = []
+        cone = self._normaliz_cone
+        assert cone
+        for g in PyNormaliz.NmzResult(cone, "ModuleGenerators"):
+            assert g[-1] == 1
+            points.append(vector(ZZ, g[:-1]))
+        return tuple(points)
 
 #########################################################################
 class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):

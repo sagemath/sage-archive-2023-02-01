@@ -24,7 +24,8 @@ include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 from sage.libs.cypari2.paridecl cimport *
 
-from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport (SageObject, richcmp,
+                                         richcmp_not_equal, rich_to_bool)
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 from sage.structure.parent cimport Parent
@@ -804,7 +805,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             from sage.groups.generic import power
             return power(self,exp)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Comparison of finite field elements.
 
@@ -847,14 +848,15 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         (<Cache_ntl_gf2e>left._parent._cache).F.restore()
         cdef int c = (<FiniteField_ntl_gf2eElement>left).x == (<FiniteField_ntl_gf2eElement>right).x
         if c == 1:
-            return 0
+            return rich_to_bool(op, 0)
         else:
-            r = cmp(GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>left).x)), GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>right).x)))
-            if r:
-                return r
+            lx = GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>left).x))
+            rx = GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>right).x))
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
             li = left.integer_representation()
             ri = right.integer_representation()
-            return cmp(li,ri)
+            return richcmp(li, ri, op)
 
     def _integer_(FiniteField_ntl_gf2eElement self, Integer):
         """

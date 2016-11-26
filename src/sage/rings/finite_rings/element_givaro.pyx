@@ -60,7 +60,7 @@ from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
 from element_ext_pari import FiniteField_ext_pariElement
 from element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
-from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport SageObject, richcmp
 from sage.structure.element cimport Element, ModuleElement, RingElement
 import operator
 import sage.arith.all
@@ -1302,7 +1302,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         return make_FiniteField_givaroElement(cache, r)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Comparison of finite field elements is correct or equality
         tests and somewhat random for ``<`` and ``>`` type of
@@ -1331,7 +1331,8 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         cdef Cache_givaro cache = (<FiniteField_givaroElement>left)._cache
 
-        return cmp(cache.log_to_int(left.element), cache.log_to_int((<FiniteField_givaroElement>right).element) )
+        return richcmp(cache.log_to_int(left.element),
+                       cache.log_to_int((<FiniteField_givaroElement>right).element), op)
 
     def __int__(FiniteField_givaroElement self):
         """

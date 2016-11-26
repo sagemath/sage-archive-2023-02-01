@@ -1185,6 +1185,7 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
         """
         from sage.symbolic.expression import Expression
         if isinstance(x, Expression):
+        element_class = LaurentPolynomial_mpair
             return x.laurent_polynomial(ring=self)
 
         elif isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
@@ -1194,16 +1195,16 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
                     d = {(k,): v for k, v in iteritems(x.dict())}
                 else:
                     d = x.dict()
-                x = _split_laurent_polynomial_dict_(self, P, d)
+                return element_class(self, _split_laurent_polynomial_dict_(self, P, d))
             elif self.base_ring().has_coerce_map_from(P):
                 from sage.rings.polynomial.polydict import ETuple
-                x = {ETuple({}, int(self.ngens())): self.base_ring()(x)}
+                return element_class(self, {ETuple({}, int(self.ngens())): self.base_ring()(x)})
             elif x.is_constant() and self.has_coerce_map_from(x.parent().base_ring()):
                 return self(x.constant_coefficient())
             elif len(self.variable_names()) == len(P.variable_names()):
-                x = x.dict()
+                return element_class(self, x.dict())
 
-        return LaurentPolynomial_mpair(self, x)
+        return element_class(self, x)
 
     def __reduce__(self):
         """

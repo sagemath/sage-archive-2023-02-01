@@ -391,7 +391,7 @@ def Omega_higher(a, exponents):
              powers[abs(e)]**j * var
              for e, var in zip(exponents, L.gens()) for j in range(abs(e))}
     logger.debug('Omega_higher: preparing denominator')
-    factors_denominator = tuple(1-de_power(prod(f.subs(rules) for f in factors))
+    factors_denominator = tuple(de_power(1 - prod(f.subs(rules) for f in factors))
                                 for factors in Omega_factors_denominator(x, y))
 
     logger.debug('Omega_higher: preparing numerator')

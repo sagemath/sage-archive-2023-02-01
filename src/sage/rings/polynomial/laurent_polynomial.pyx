@@ -1501,11 +1501,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: loads(dumps(x1)) == x1 # indirect doctest
             True
             sage: z = x1/x2
-            sage: loads(dumps(z)) == z   # not tested (bug)
+            sage: loads(dumps(z)) == z
             True
         """
-        # one should also record the monomial self._mon
-        return self._parent, (self._poly,)  # THIS IS WRONG !
+        return self._parent, (self._poly, self._mon)
 
     def __hash__(self):
         r"""

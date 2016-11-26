@@ -1189,10 +1189,14 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
 
         if mon is not None:
             return element_class(self, x, mon)
+
+        try:
+            P = x.parent()
+        except AttributeError:
+            return element_class(self, x)
             return x.laurent_polynomial(ring=self)
 
         elif isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
-            P = x.parent()
             if set(self.variable_names()) & set(P.variable_names()):
                 if isinstance(x, LaurentPolynomial_univariate):
                     d = {(k,): v for k, v in iteritems(x.dict())}

@@ -1105,7 +1105,7 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             raise ValueError("base ring must be an integral domain")
         LaurentPolynomialRing_generic.__init__(self, R, prepend_string, names)
 
-    def _element_constructor_(self, x):
+    def _element_constructor_(self, x, mon=None):
         """
         EXAMPLES::
 
@@ -1186,6 +1186,9 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
         from sage.symbolic.expression import Expression
         if isinstance(x, Expression):
         element_class = LaurentPolynomial_mpair
+
+        if mon is not None:
+            return element_class(self, x, mon)
             return x.laurent_polynomial(ring=self)
 
         elif isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):

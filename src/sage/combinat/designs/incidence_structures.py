@@ -990,7 +990,7 @@ class IncidenceStructure(object):
             sage: IncidenceStructure([]).is_uniform()
             Traceback (most recent call last):
             ...
-            ValueError: This incidence structure has no points.
+            ValueError: This incidence structure has no blocks.
         """
         if self.num_blocks() == 0:
             raise ValueError("This incidence structure has no blocks.")

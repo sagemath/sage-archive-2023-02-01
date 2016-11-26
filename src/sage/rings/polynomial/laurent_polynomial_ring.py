@@ -1184,7 +1184,6 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             d*e
         """
         from sage.symbolic.expression import Expression
-        if isinstance(x, Expression):
         element_class = LaurentPolynomial_mpair
 
         if mon is not None:
@@ -1194,10 +1193,25 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             P = x.parent()
         except AttributeError:
             return element_class(self, x)
+
+        if P is self:
+            return x
+
+        elif P == self:
+            return element_class(self, x)
+
+        elif P is self.polynomial_ring():
+            from sage.rings.polynomial.polydict import ETuple
+            return element_class(
+                self, x, mon=ETuple({}, int(self.ngens())))
+
+        elif isinstance(x, Expression):
             return x.laurent_polynomial(ring=self)
 
         elif isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
-            if set(self.variable_names()) & set(P.variable_names()):
+            if self.variable_names() == P.variable_names():
+                return element_class(self, x)
+            elif set(self.variable_names()) & set(P.variable_names()):
                 if isinstance(x, LaurentPolynomial_univariate):
                     d = {(k,): v for k, v in iteritems(x.dict())}
                 else:

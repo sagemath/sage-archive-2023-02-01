@@ -1487,6 +1487,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     for k in x:
                         D[k.esub(self._mon)] = x[k]
                     x = D
+            elif isinstance(x, LaurentPolynomial_mpair) and \
+                 parent.variable_names() == x.parent().variable_names():
+                self._mon = (<LaurentPolynomial_mpair>x)._mon
+                x = (<LaurentPolynomial_mpair>x)._poly
             else: # since x should coerce into parent, _mon should be (0,...,0)
                 self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)

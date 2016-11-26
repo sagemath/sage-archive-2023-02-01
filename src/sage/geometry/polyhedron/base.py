@@ -4217,7 +4217,7 @@ class Polyhedron_base(Element):
             ...
             RuntimeError: LattE integrale failed (exit code 1) to execute count --cdd /dev/stdin, see error message above
 
-        TESTS::
+        TESTS:
 
         We check that :trac:`21491` is fixed::
 

@@ -2376,37 +2376,13 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x + 2*y + 3*z
 
         """
-        if in_dict is not None and kwds:
-            raise ValueError("you cannot specify both a dictionary and keyword arguments")
-
-        g = self.parent().gens()
-        repr_g = [repr(i) for i in g]
-        vars = []
-
-        if in_dict is None:
-            for i in range(len(g)):
-                if repr_g[i] in kwds:
-                    vars.append(i)
-        else:
-            kwds = {}
-            for i in range(len(g)):
-                if g[i] in in_dict:
-                    kwds[ repr(g[i]) ] = in_dict[ g[i] ]
-                    vars.append(i)
-
-        d = self._dict()
-        out = 0
-        for mon in d:
-            term = d[mon]
-            for i in range(len(mon)):
-                if i in vars:
-                    term *= kwds[repr_g[i]]**mon[i]
-                else:
-                    term *= g[i]**mon[i]
-
-            out += term
-
-        return out
+        variables = list(self.parent().gens())
+        for i in range(0,len(variables)):
+            if str(variables[i]) in kwds:
+                variables[i]=kwds[str(variables[i])]
+            elif in_dict and variables[i] in in_dict:
+                variables[i] = in_dict[variables[i]]
+        return self(tuple(variables))
 
     def _symbolic_(self, R):
         """

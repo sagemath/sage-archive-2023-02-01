@@ -158,6 +158,10 @@ def Omega_numerator(a, n, m):
         sage: Omega_numerator(-2, 0, 1)
         0
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info('Omega_numerator: a=%s, n=%s, m=%s', a, n, m)
+
     from sage.arith.srange import srange
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
@@ -170,7 +174,7 @@ def Omega_numerator(a, n, m):
     def P(n):
         if n == 1:
             x0 = x[0]
-            return x0**(-a) + \
+            result = x0**(-a) + \
                 (prod(1 - x0*yy for yy in y) *
                  sum(HomogenousSymmetricFunction(j, y) * (1-x0**(j-a))
                      for j in srange(a))
@@ -179,12 +183,18 @@ def Omega_numerator(a, n, m):
             Pprev = P(n-1)
             x1 = x[n-1]
             x2 = x[n-2]
+            logger.debug('Omega_numerator: P(%s): substituting...', n)
             p1 = Pprev.subs({x2: x1})
             p2 = Pprev
-            q, r = (x1 * (1-x2) * prod(1 - x2*yy for yy in y) * p1 - \
-                    x2 * (1-x1) * prod(1 - x1*yy for yy in y) * p2).quo_rem(x1 - x2)
+            logger.debug('Omega_numerator: P(%s): preparing...', n)
+            dividend = x1 * (1-x2) * prod(1 - x2*yy for yy in y) * p1 - \
+                    x2 * (1-x1) * prod(1 - x1*yy for yy in y) * p2
+            logger.debug('Omega_numerator: P(%s): dividing...', n)
+            q, r = dividend.quo_rem(x1 - x2)
             assert r == 0
-            return q
+            result = q
+        logger.debug('Omega_numerator: P(%s) has %s terms', n, result.number_of_terms())
+        return result
 
     if m == 0:
         return XY(1 - (prod(prod(f) for f in Omega_factors_denominator(n, m)) *
@@ -320,6 +330,10 @@ def Omega_higher(a, exponents):
         sage: Omega_higher(0, (2, 1, -1))
         (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1, (z0, z1, z0*z2^2, z1*z2))
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info('Omega_higher: a=%s, exponents=%s', a, exponents)
+
     from sage.misc.functional import cyclotomic_polynomial
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
@@ -375,11 +389,14 @@ def Omega_higher(a, exponents):
     rules = {next(x_vars) if e > 0 else next(y_vars):
              powers[abs(e)]**j * var
              for e, var in zip(exponents, L.gens()) for j in range(abs(e))}
+    logger.debug('Omega_higher: preparing denominator')
     factors_denominator = tuple(1-de_power(prod(f.subs(rules) for f in factors))
                                 for factors in Omega_factors_denominator(x, y))
 
+    logger.debug('Omega_higher: preparing numerator')
     numerator = de_power(Omega_numerator(a, n, m).subs(rules))
 
+    logger.info('Omega_higher: completed')
     return numerator, factors_denominator
 
 

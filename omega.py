@@ -377,11 +377,12 @@ def Omega_higher(a, exponents):
     Z = L.change_ring(ZZ)
 
     def de_power(expression):
+        expression = Z(expression)
         for e, var in zip(exponents, L.gens()):
             if abs(e) == 1:
                 continue
             expression = subs_power(expression, var, abs(e))
-        return Z(expression)
+        return expression
 
     xy_vars = _laurent_polynomial_ring_(n, m)[1]
     x_vars = iter(xy_vars[:n])

@@ -27,7 +27,7 @@ from padic_valuation import pAdicValuation
 import gauss_valuation
 from gauss_valuation import GaussValuation
 import value_group
-from value_group import DiscreteValuationCodomain, DiscreteValueGroup
+from value_group import DiscreteValuationCodomain, DiscreteValueGroup, DiscreteValueSemigroup
 import function_field_valuation
 from function_field_valuation import FunctionFieldValuation
 import augmented_valuation

@@ -325,7 +325,7 @@ class InductiveValuation(DevelopingValuation):
             
         """
 
-    def _test_element_with_valuation(self, **options):
+    def _test_element_with_valuation_inductive_valuation(self, **options):
         r"""
         Test the correctness of :meth:`element_with_valuation`.
 
@@ -334,7 +334,7 @@ class InductiveValuation(DevelopingValuation):
             sage: from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
-            sage: v._test_element_with_valuation()
+            sage: v._test_element_with_valuation_inductive_valuation()
 
         """
         tester = self._tester(**options)

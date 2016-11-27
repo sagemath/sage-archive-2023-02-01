@@ -1,1 +1,2 @@
 * Check every methods about limitations in the ring case (and correction of the docstring)
+* Remove shift(). It is not very useful and not consistent with p-adic shifts.

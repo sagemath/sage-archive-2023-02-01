@@ -124,6 +124,24 @@ sage.geometry.newton_polygon.NewtonPolygon_element.principal_part = lambda self:
 sage.geometry.newton_polygon.NewtonPolygon_element.sides = lambda self: zip(self.vertices(), self.vertices()[1:])
 
 # implement coercion of function fields that comes from coercion of their base fields
+
+# Frac(K[x]) injects into K(x)
+class DefaultConvertMap_unique_patched2(sage.structure.coerce_maps.DefaultConvertMap_unique):
+    def is_injective(self):
+        r"""
+        TESTS::
+
+            sage: R.<x> = QQ[]
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.is_subring(K) # indirect doctest
+            True
+
+        """
+        from sage.categories.fields import Fields
+        if self.domain() in Fields():
+            return True
+        raise NotImplementedError
+
 def _coerce_map_from_(target, source):
     r"""
     TESTS::

@@ -65,6 +65,7 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.structure.sage_object cimport rich_to_bool
 
 
 def is_RealDoubleField(x):
@@ -220,7 +221,7 @@ cdef class RealDoubleField_class(Field):
             return True
         return super(RealDoubleField_class, self)._repr_option(key)
 
-    def __cmp__(self, x):
+    def _richcmp_(self, x, op):
         """
         Compare ``self`` to ``x``.
 
@@ -232,8 +233,8 @@ cdef class RealDoubleField_class(Field):
             True
         """
         if isinstance(x, RealDoubleField_class):
-            return 0
-        return cmp(type(self), type(x))
+            return rich_to_bool(op, 0)
+        return NotImplemented
 
     def construction(self):
         r"""

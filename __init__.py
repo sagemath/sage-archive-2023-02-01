@@ -233,8 +233,19 @@ class PolynomialRingHomomorphism_from_base_patched(sage.rings.polynomial.polynom
 
             sage: QQ['x'].coerce_map_from(ZZ['x']).is_injective() # indirect doctest
             True
+    
+        This should be fixed in
+        `sage.rings.padics.qadic_flint_CA.pAdicCoercion_CA_frac_field`
+        instead::
+
+            sage: R.<a> = ZqCA(9)
+            sage: R['x'].is_subring(R.fraction_field()['x'])
+            True
 
         """
+        if self.underlying_map().codomain() is self.underlying_map().domain().fraction_field():
+            # fix this in pAdicCoercion_CA_frac_field and similar
+            return True
         return self.underlying_map().is_injective()         
 sage.rings.polynomial.polynomial_ring.PolynomialRing_general._coerce_map_from_ = patch_is_injective(sage.rings.polynomial.polynomial_ring.PolynomialRing_general._coerce_map_from_, {sage.rings.polynomial.polynomial_ring_homomorphism.PolynomialRingHomomorphism_from_base: (lambda morphism: PolynomialRingHomomorphism_from_base_patched(morphism.parent(), morphism.underlying_map()))})
 

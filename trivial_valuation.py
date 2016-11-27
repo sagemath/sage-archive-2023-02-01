@@ -121,7 +121,7 @@ class TrivialDiscretePseudoValuation_base(DiscretePseudoValuation):
 
     TESTS::
 
-        sage: TestSuite(v).run()
+        sage: TestSuite(v).run() # long time
 
     """
     def uniformizer(self):

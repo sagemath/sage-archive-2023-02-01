@@ -346,7 +346,7 @@ class CallableConvertMap_patched(sage.rings.fraction_field.CallableConvertMap):
         TESTS::
         
             sage: R.<x> = QQ[]
-            sage: R.is_subring(R.fraction_field())
+            sage: R.is_subring(R.fraction_field()) # indirect doctest
             True
 
         """

@@ -51,7 +51,7 @@ class DiscreteValuationCodomain(UniqueRepresentation, Parent):
 
     TESTS::
 
-        sage: TestSuite(C).run()
+        sage: TestSuite(C).run() # long time
         
     """
     def __init__(self):
@@ -140,9 +140,9 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
 
     TESTS::
 
-        sage: TestSuite(D1).run()
-        sage: TestSuite(D2).run()
-        sage: TestSuite(D3).run()
+        sage: TestSuite(D1).run() # long time
+        sage: TestSuite(D2).run() # long time
+        sage: TestSuite(D3).run() # long time
 
     """
     @staticmethod

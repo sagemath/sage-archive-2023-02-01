@@ -7060,7 +7060,7 @@ def _heegner_forms_list(self, D, beta=None, expected_count=None):
 
 def _heegner_best_tau(self, D, prec=None):
     r"""
-    Given a discrimanent `D`, find the Heegner point `\tau` in the
+    Given a discriminant `D`, find the Heegner point `\tau` in the
     upper half plane with largest imaginary part (which is optimal
     for evaluating the modular parametrization). If the optional
     parameter ``prec`` is given, return `\tau` to ``prec`` bits of

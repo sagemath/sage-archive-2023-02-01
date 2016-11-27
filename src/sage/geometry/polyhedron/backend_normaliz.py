@@ -3,6 +3,8 @@ The Normaliz backend for polyhedral computations
 """
 from __future__ import absolute_import
 
+from sage.misc.all import prod
+
 from sage.rings.all import ZZ, QQ
 from sage.rings.integer import LCM_list
 from sage.misc.functional import denominator
@@ -273,7 +275,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         # error: Some error in the normaliz input data detected: All input matrices empty!
         self._normaliz_cone = None
 
-    def integral_points(self, threshold=None):
+    def integral_points(self, threshold=10000):
         r"""
         Return the integral points in the polyhedron.
 
@@ -282,7 +284,8 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         INPUT:
 
-        - ``threshold`` -- integer (ignored).
+        - ``threshold`` -- integer -- integer (default: 10000). Use the naive
+        algorithm as long as the bounding box is smaller than this.
 
         OUTPUT:
 
@@ -321,6 +324,15 @@ class Polyhedron_normaliz(Polyhedron_base):
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
             sage: len(simplex.integral_points())
             49
+
+        A rather thin polytope for which the bounding box method would
+        be a very bad idea (note this is a rational (non-lattice)
+        polytope, so the other backends use the bounding box method)::
+
+            sage: P = Polyhedron(vertices=((0, 0), (1789345,37121))) + 1/1000*polytopes.hypercube(2)
+            sage: P = Polyhedron(vertices=P.vertices_list(), backend='normaliz')
+            sage: len(P.integral_points())
+            3654
 
         Finally, the 3-d reflexive polytope number 4078::
 
@@ -372,6 +384,14 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return (vector(ZZ, v),)
             except TypeError:  # vertex not integral
                 return ()
+        # for small bounding boxes, it is faster to naively iterate over the points of the box
+        if threshold > 1:
+            box_min, box_max = self.bounding_box(integral=True)
+            box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
+            if  box_points<threshold:
+                from sage.geometry.integral_points import rectangular_box_points
+                return rectangular_box_points(box_min, box_max, self)
+        # Compute with normaliz
         points = []
         cone = self._normaliz_cone
         assert cone

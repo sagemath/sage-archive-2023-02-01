@@ -464,6 +464,20 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 ...
                 ValueError: can not shift 2 down by 2 in Integer Ring with respect to 2-adic valuation
 
+            Note how this is different from shifting `p`-adic elements where
+            shifting down removes coefficients of small powers of `p` in the
+            expansion of an element::
+
+                sage: R = ZpCA(2)
+                sage: x = R(7); x
+                1 + 2 + 2^2 + O(2^20)
+                sage: x >> 1
+                1 + 2 + O(2^19)
+                sage: x >> 2
+                1 + O(2^18)
+                sage: x >> 3
+                O(2^17)
+
             The element is the same after several shifts that produce an
             element of the original valuation::
 

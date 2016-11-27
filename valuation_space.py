@@ -536,7 +536,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         def residue_ring(self):
             r"""
             Return the residue ring of this valuation, i.e., the elements of
-            non-negative valuation module the elements of positive valuation.
+            non-negative valuation modulo the elements of positive valuation.
 
             This is identical to :meth:`residue_field` when a residue field
             exists.
@@ -566,7 +566,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             r"""
             Return the residue field of this valuation, i.e., the field of
             fractions of the :meth:`residue_ring`, the elements of non-negative
-            valuation module the elements of positive valuation.
+            valuation modulo the elements of positive valuation.
 
             EXAMPLES::
 

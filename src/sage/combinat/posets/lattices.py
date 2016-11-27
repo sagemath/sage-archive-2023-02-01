@@ -3109,7 +3109,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         OUTPUT:
 
-        Congruence of the lattice as a list of lists.
+        Congruence of the lattice as a
+        :class:`sage.combinat.set_partition.SetPartition`.
 
         EXAMPLES::
 
@@ -3118,31 +3119,31 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: sorted(sorted(c) for c in cong)
             [[1, 3], [2, 6], [4, 12]]
             sage: L.congruence([[1, 2], [6, 12]])
-            [[1, 2, 4], [3, 6, 12]]
+            {{1, 2, 4}, {3, 6, 12}}
 
             sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [4], 4: [5]})
             sage: L.congruence([[1, 2]])
-            [[1, 2], [3, 4], [5]]
+            {{1, 2}, {3, 4}, {5}}
 
             sage: L = LatticePoset({1: [2, 3], 2: [4, 5, 6], 4: [5], 5: [7, 8],
             ....:                   6: [8], 3: [9], 7: [10], 8: [10], 9:[10]})
             sage: cong = L.congruence([[1, 2]])
-            sage: sorted(cong[0])
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            sage: cong[0]
+            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
         TESTS::
 
             sage: P = Posets.PentagonPoset()
-            sage: sorted(P.congruence([]))
-            [[0], [1], [2], [3], [4]]
-            sage: sorted(P.congruence([[2]]))
-            [[0], [1], [2], [3], [4]]
-            sage: sorted(P.congruence([[2, 2]]))
-            [[0], [1], [2], [3], [4]]
-            sage: sorted(P.congruence([[0, 4]]))
-            [[0, 1, 2, 3, 4]]
+            sage: P.congruence([])
+            {{0}, {1}, {2}, {3}, {4}}
+            sage: P.congruence([[2]])
+            {{0}, {1}, {2}, {3}, {4}}
+            sage: P.congruence([[2, 2]])
+            {{0}, {1}, {2}, {3}, {4}}
+            sage: P.congruence([[0, 4]])
+            {{0, 1, 2, 3, 4}}
             sage: LatticePoset().congruence([])
-            []
+            {}
 
         "Double zigzag" to ensure that up-down propagation
         works::
@@ -3155,11 +3156,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: L = LatticePoset(DiGraph('GPb_@?OC@?O?'))
             sage: L.congruence([[1,2]])
-            [[0, 1, 2, 3, 4, 5, 6, 7]]
+            {{0, 1, 2, 3, 4, 5, 6, 7}}
         """
+        from sage.combinat.set_partition import SetPartition
         S = [[self._element_to_vertex(e) for e in s] for s in S]
         cong = self._hasse_diagram.congruence(S)
-        return [[self._vertex_to_element(v) for v in s] for s in cong]
+        return SetPartition([[self._vertex_to_element(v) for v in s]
+                            for s in cong])
 
 def _log_2(n):
     """

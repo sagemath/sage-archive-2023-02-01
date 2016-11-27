@@ -232,10 +232,12 @@ cdef class GroebnerStrategy(SageObject):
             False
         """
         try:
-            return richcmp(self._ideal.gens(),
-                           (<GroebnerStrategy>other)._ideal.gens(), op)
-        except AttributeError:
+            lx = <GroebnerStrategy>self
+            rx = <GroebnerStrategy>other
+        except TypeError:
             return NotImplemented
+        return richcmp(lx._ideal.gens(),
+                       rx._ideal.gens(), op)
 
     def __reduce__(self):
         """
@@ -468,11 +470,12 @@ cdef class NCGroebnerStrategy(SageObject):
             False
         """
         try:
-            return richcmp((self._ideal.gens(), self._ideal.side()),
-                           ((<NCGroebnerStrategy>other)._ideal.gens(),
-                            (<NCGroebnerStrategy>other)._ideal.side()), op)
-        except AttributeError:
+            lx = <NCGroebnerStrategy>self
+            rx = <NCGroebnerStrategy>other
+        except TypeError:
             return NotImplemented
+        return richcmp((lx._ideal.gens(), lx._ideal.side()),
+                       (rx._ideal.gens(), rx._ideal.side()), op)
 
     def __reduce__(self):
         """

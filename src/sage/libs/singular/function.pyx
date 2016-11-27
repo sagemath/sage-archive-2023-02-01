@@ -1461,9 +1461,12 @@ The Singular documentation for '%s' is given below.
             False
         """
         try:
-            return richcmp(self._name, (<SingularFunction>other)._name, op)
-        except AttributeError:
+            lx = <SingularFunction>self
+            rx = <SingularFunction>other
+        except TypeError:
             return NotImplemented
+        return richcmp(lx._name, rx._name, op)
+
 
 cdef inline call_function(SingularFunction self, tuple args, object R, bint signal_handler=True, attributes=None):
     global currRingHdl

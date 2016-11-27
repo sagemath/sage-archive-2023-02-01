@@ -523,6 +523,28 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         InductiveValuation.__init__(self, parent, phi)
         DiscreteValuation.__init__(self, parent)
 
+    def extensions(self, other):
+        r"""
+        Return the extensions of this valuation to ``other``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: K.<x> = FunctionField(QQ)
+            sage: v.extensions(K)
+            [Trivial valuation on Rational Field]
+
+        """
+        from sage.categories.function_fields import FunctionFields
+        if other in FunctionFields() and other.ngens() == 1:
+            # extend to K[x] and from there to K(x)
+            v = self.extension(self.domain().change_ring(self.domain().base().fraction_field()))
+            from function_field_valuation import FunctionFieldValuation
+            return [FunctionFieldValuation(other, self)]
+        return super(FiniteInductiveValuation, self).extensions(other)
+
 
 class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     r"""

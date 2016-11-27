@@ -208,8 +208,12 @@ class PadicValuationFactory(UniqueFactory):
         """
         # We do not care much about the value of prime since there is only one
         # reasonable p-adic valuation here
-        if prime is not None and R(prime).valuation() <= 0:
-            raise ValueError("prime must be an element of positive valuation")
+        if prime is not None:
+            if prime in R:
+                if R(prime).valuation() <= 0:
+                    raise ValueError("prime must be an element of positive valuation")
+            elif prime(R.prime()) <= 0:
+                raise ValueError("prime must be an element of positive valuation")
 
         return (R,)
 

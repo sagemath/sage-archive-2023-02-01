@@ -133,7 +133,7 @@ class DefaultConvertMap_unique_patched2(sage.structure.coerce_maps.DefaultConver
 
             sage: R.<x> = QQ[]
             sage: K.<x> = FunctionField(QQ)
-            sage: R.is_subring(K) # indirect doctest
+            sage: R.fraction_field().is_subring(K) # indirect doctest
             True
 
         """
@@ -202,6 +202,10 @@ def _coerce_map_from_(target, source):
                         # canonical, we require the names of the roots to match
                         if source.variable_name() == repr(root):
                             return source.hom([root], base_morphism=base_coercion)
+    if source is target._ring:
+        return DefaultConvertMap_unique_patched2(source, target)
+    if source is target._ring.fraction_field():
+        return DefaultConvertMap_unique_patched2(source, target)
 
 sage.rings.function_field.function_field.FunctionField._coerce_map_from_ = _coerce_map_from_
 del(_coerce_map_from_)
@@ -334,6 +338,33 @@ def _coerce_map_from_patched(self, domain):
 
 sage.rings.number_field.order.Order._coerce_map_from_ = _coerce_map_from_patched
 del(_coerce_map_from_patched)
+
+# a ring embeds into its field of fractions
+class CallableConvertMap_patched(sage.rings.fraction_field.CallableConvertMap):
+    def is_injective(self):
+        r"""
+        TESTS::
+        
+            sage: R.<x> = QQ[]
+            sage: R.is_subring(R.fraction_field())
+            True
+
+        """
+        return True
+
+    def is_surjective(self):
+        r"""
+        TESTS::
+        
+            sage: R.<x> = QQ[]
+            sage: R.fraction_field().coerce_map_from(R).is_surjective()
+            False
+
+        """
+        return False
+
+sage.rings.fraction_field.CallableConvertMap = CallableConvertMap_patched
+
 
 # factorization in polynomial quotient fields
 def _factor_univariate_polynomial(self, f):

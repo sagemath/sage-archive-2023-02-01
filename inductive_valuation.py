@@ -530,8 +530,8 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: R.<x> = ZZ[]
+            sage: v = GaussValuation(R, TrivialValuation(ZZ))
             sage: K.<x> = FunctionField(QQ)
             sage: v.extensions(K)
             [Trivial valuation on Rational Field]
@@ -542,7 +542,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             # extend to K[x] and from there to K(x)
             v = self.extension(self.domain().change_ring(self.domain().base().fraction_field()))
             from function_field_valuation import FunctionFieldValuation
-            return [FunctionFieldValuation(other, self)]
+            return [FunctionFieldValuation(other, v)]
         return super(FiniteInductiveValuation, self).extensions(other)
 
 

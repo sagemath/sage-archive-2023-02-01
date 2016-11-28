@@ -242,61 +242,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         return self.domain()(self._base_valuation.uniformizer())
 
-    def shift(self, f, s):
-        """
-        Multiply ``f`` by a power of the uniformizer which has valuation ``s``.
-
-        INPUT:
-
-        - ``f`` -- a polynomial in the domain of this valuation
-
-        - ``s`` -- an element of the :meth:`value_group`
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: S.<x> = QQ[]
-            sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
-            sage: v.shift(x, -2)
-            1/25*x
-
-        It is an error to perform a shift if the result is not in the domain of
-        the valuation anymore::
-
-            sage: S.<x> = Zp(2,5)[]
-            sage: v = GaussValuation(S)
-            sage: f = v.shift(x, 2); f
-            (2^2 + O(2^7))*x
-            sage: f.parent() is S
-            True
-            sage: f = v.shift(x, -2)
-            Traceback (most recent call last):
-            ...
-            ValueError: since 2-adic Ring with capped relative precision 5 is not a field, -s must not exceed the valuation of f but 2 does exceed 0
-
-        Of course, the above example works over a field::
-
-            sage: S.<x> = Qp(2,5)[]
-            sage: v = GaussValuation(S)
-            sage: f = v.shift(x, -2); f
-            (2^-2 + O(2^3))*x
-
-        """
-        f = self.domain().coerce(f)
-        s = self.value_group()(s)
-
-        if s == 0:
-            return f
-
-        from sage.categories.fields import Fields
-        if -s > self(f) and self.domain().base_ring() not in Fields():
-            raise ValueError("since %r is not a field, -s must not exceed the valuation of f but %r does exceed %r"%(self.domain().base_ring(), -s, self(f)))
-
-        if f == 0:
-            raise ValueError("can not shift zero")
-
-        return f.map_coefficients(lambda c:self._base_valuation.shift(c, s))
-
     def valuations(self, f):
         """
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum f_i\phi^i`.
@@ -478,8 +423,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             (3^-2 + O(3^3))
 
         """
-        one = self._base_valuation.domain().one()
-        ret = self._base_valuation.shift(one, s)
+        ret = self._base_valuation.element_with_valuation(s)
         return self.domain()(ret)
 
     def element_with_valuation(self, s):

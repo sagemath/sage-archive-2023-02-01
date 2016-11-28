@@ -416,28 +416,6 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         F = self.residue_ring().coerce(F)
         return self._initial_approximation.lift(F)
 
-    def shift(self, x, s):
-        r"""
-        Return a modified version of ``x`` whose valuation is increased by ``s``.
-
-        The element returned is such that repeated shifts which go back to
-        the original valuation produce the same element in reduction.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: K.<x> = FunctionField(QQ)
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - (x - 1))
-
-            sage: v = FunctionFieldValuation(K, 0)
-            sage: w = v.extension(L)
-            sage: w.shift(y, 1)
-            x*y
-
-        """
-        return self._initial_approximation.shift(x, s)
-
     def uniformizer(self):
         r"""
         Return a uniformizing element for this valuation.

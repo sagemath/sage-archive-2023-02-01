@@ -399,7 +399,7 @@ class AugmentedValuation_base(InductiveValuation):
             sage: w.equivalence_unit(3/2)
             Traceback (most recent call last):
             ...
-            ValueError: 3/2 is not in the value group of 2-adic valuation
+            ValueError: 3/2 is not in the value semigroup of 2-adic valuation
             sage: w.equivalence_unit(1)
             2 + O(2^6)
 
@@ -461,69 +461,6 @@ class AugmentedValuation_base(InductiveValuation):
             ret *= self._phi
             s -= self._mu
         return ret * self._base_valuation.element_with_valuation(s)
-
-    def shift(self, x, s):
-        r"""
-        Return a modified version of ``x`` whose valuation is increased by ``s``.
-
-        The element returned is such that repeated shifts which go back to
-        the original valuation produce the same element in reduction.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
-            sage: w = v.augmentation(x, 1)
-            sage: w.shift(1, 1)
-            2
-
-        Whenever there is ramification, a shift with such consistency is not
-        possible::
-
-            sage: w = v.augmentation(x, 1/2)
-
-            sage: w.shift(1, -1/2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Shifts with consistent reduction not implemented for this augmented valuation
-
-        Multiplication by an :meth:`element_with_valuation` might sometimes
-        produce useful results in such cases::
-
-            sage: 1 * w.element_with_valuation(-1/2)
-            1/2*x
-
-        However, this does not preserve the element in reduction::
-
-            sage: 1 * w.element_with_valuation(-1/2) * w.element_with_valuation(1/2)
-            1/2*x^2
-
-        In general this is only possible by using an
-        :meth:`equivalence_unit` and its :meth:`equialence_reciprocal`.
-        These do, however, not exist for all values of ``s``.
-
-        """
-        from sage.categories.fields import Fields
-        if not self.domain().base_ring() in Fields():
-            raise NotImplementedError("only implemented for polynomial rings over fields")
-
-        if s not in self.value_group():
-            raise ValueError("s must be in the value group of the valuation")
-
-        if self.value_group() == self._base_valuation.value_group():
-            return self._base_valuation.shift(x, s)
-
-        if self._base_valuation.value_group().is_trivial():
-            # We could implement a consistent shift in this case by multplying
-            # and dividing by powers of the key polynomial. Since an element of
-            # positive valuation has to be a power of the key polynomial, there
-            # can be no ambiguity here
-            raise NotImplementedError("Shifts with consistent reduction not implemented for augmented valuations over trivial valuations")
-
-        # Except for very few special cases, it is not possible to implement a
-        # consistent shift for augmented valuations
-        raise NotImplementedError("Shifts with consistent reduction not implemented for this augmented valuation")
 
     def _repr_(self):
         """

@@ -441,96 +441,16 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 1024
 
             """
-            s = self.value_semigroup()(s)
-            return self.shift(1, s)
-
-        def shift(self, x, s):
-            r"""
-            Return a modified version of ``x`` whose valuation is increased by ``s``.
-
-            The element returned is such that repeated shifts which go back to
-            the original valuation produce the same element in reduction.
-
-            EXAMPLES:
-
-            Negative shifts are not always possible::
-
-                sage: from mac_lane import * # optional: standalone
-                sage: v = pAdicValuation(ZZ, 2)
-                sage: v.shift(2, -1)
-                1
-                sage: v.shift(2, -2)
-                Traceback (most recent call last):
-                ...
-                ValueError: can not shift 2 down by 2 in Integer Ring with respect to 2-adic valuation
-
-            Note how this is different from shifting `p`-adic elements where
-            shifting down removes coefficients of small powers of `p` in the
-            expansion of an element::
-
-                sage: R = ZpCA(2)
-                sage: x = R(7); x
-                1 + 2 + 2^2 + O(2^20)
-                sage: x >> 1
-                1 + 2 + O(2^19)
-                sage: x >> 2
-                1 + O(2^18)
-                sage: x >> 3
-                O(2^17)
-
-            The element is the same after several shifts that produce an
-            element of the original valuation::
-
-                sage: v.shift(v.shift(1, 10), -10)
-                1
-
-            However, this is not always possible unless we are over a field::
-
-                sage: R.<x> = QQ[]
-                sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
-                sage: w = v.augmentation(x, 1/2)
-
-                sage: w.shift(1, -1/2)
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: Shifts with consistent reduction not implemented for this augmented valuation
-
-            Of course, we could return ``x/2`` here, but what would
-            ``v.shift(1, -1)`` return? ``x^2/4`` or rather ``1/2``?
-            There is no way to make this consistent in general unless we go to
-            the fraction field of ``R``.
-
-            Multiplication by an :meth:`element_with_valuation` might sometimes
-            produce useful results in such cases::
-
-                sage: 1 * w.element_with_valuation(-1/2)
-                1/2*x
-
-            However, this does not preserve the element in reduction::
-
-                sage: 1 * w.element_with_valuation(-1/2) * w.element_with_valuation(1/2)
-                1/2*x^2
-
-            In general this is only possible by using an
-            :meth:`equivalence_unit` and its :meth:`equialence_reciprocal`.
-            These do, however, not exist for all values of ``s``.
-
-            """
-            x = self.domain().coerce(x)
             from sage.rings.all import QQ, ZZ, infinity
             s = QQ.coerce(s)
+            if s not in self.value_semigroup():
+                raise ValueError("s must be in the value semigroup of this valuation but %r is not in %r"%(s, self.value_semigroup()))
             if s == 0:
-                return x
-            if x == 0:
-                raise ValueError("can not shift zero")
-            if s not in self.value_group():
-                raise ValueError("s must be in the value group of this valuation")
-            if s < 0 and ~self.uniformizer() not in self.domain():
-                from sage.categories.fields import Fields
-                assert(self.domain() not in Fields())
-                if -s > self(x):
-                    raise ValueError("can not shift %r down by %r in %r with respect to %r"%(x, -s, self.domain(), self))
-            return self.domain()(x * (self.domain().fraction_field()(self.uniformizer()) ** ZZ(s/self.value_group().gen())))
+                return self.domain().one()
+            exp = s/self.value_group().gen()
+            if exp not in ZZ:
+                raise NotImplementedError("s must be a multiple of %r but %r is not"%(self.value_group().gen(), s))
+            return self.domain()(self.uniformizer() ** ZZ(exp))
 
         @abstract_method
         def residue_ring(self):
@@ -1127,52 +1047,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             for s in tester.some_elements(self.value_semigroup().some_elements()):
                 tester.assertEqual(self(self.element_with_valuation(s)), s)
-
-        def _test_shift(self, **options):
-            r"""
-            Check correctness of shifts.
-
-            TESTS::
-
-                sage: from mac_lane import * # optional: standalone
-                sage: v = pAdicValuation(QQ, 5)
-                sage: v._test_shift() # long time
-
-            """
-            tester = self._tester(**options)
-
-            if self.is_trivial():
-                # trivial valuations can not perform non-trivial shifts
-                return
-
-            S = self.domain().some_elements()
-            V = self.value_group().some_elements()
-            from itertools import product
-            for x, n in tester.some_elements(product(S,V)):
-                if x == 0 and n != 0:
-                    with tester.assertRaises((ValueError, NotImplementedError)):
-                        self.shift(x, n)
-                    continue
-
-                v = self(x)
-                try:
-                    y = self.shift(x, n)
-                except NotImplementedError:
-                    # not all valuations can implement consistent shifts
-                    continue
-                except ValueError:
-                    from sage.categories.fields import Fields
-                    if -n > v and self.domain() not in Fields():
-                        continue
-                    raise
-
-                tester.assertIs(y.parent(), self.domain())
-                tester.assertEqual(self(y), v + n)
-                # shifts preserve reductions
-                z = self.shift(y, -n)
-                tester.assertEqual(self(z), v)
-                if v >= 0:
-                    tester.assertEqual(self.reduce(z), self.reduce(x))
 
         def _test_residue_ring(self, **options):
             r"""

@@ -148,15 +148,15 @@ class Polygon(GraphicPrimitive_xydata):
             sage: P[0]._allowed_options()['alpha']
             'How transparent the figure is.'
         """
-        return {'alpha':'How transparent the figure is.',
+        return {'alpha': 'How transparent the figure is.',
                 'thickness': 'How thick the border line is.',
-                'edgecolor':'The color for the border of filled polygons.',
-                'fill':'Whether or not to fill the polygon.',
-                'legend_label':'The label for this item in the legend.',
-                'legend_color':'The color of the legend text.',
-                'rgbcolor':'The color as an RGB tuple.',
-                'hue':'The color given as a hue.',
-                'zorder':'The layer level in which to draw'}
+                'edgecolor': 'The color for the border of filled polygons.',
+                'fill': 'Whether or not to fill the polygon.',
+                'legend_label': 'The label for this item in the legend.',
+                'legend_color': 'The color of the legend text.',
+                'rgbcolor': 'The color as an RGB tuple.',
+                'hue': 'The color given as a hue.',
+                'zorder': 'The layer level in which to draw'}
 
     def _plot3d_options(self, options=None):
         """
@@ -229,12 +229,12 @@ class Polygon(GraphicPrimitive_xydata):
         from sage.plot.plot3d.index_face_set import IndexFaceSet
         options = self._plot3d_options()
         options.update(kwds)
-        zdata=[]
+        zdata = []
         if isinstance(z, list):
-            zdata=z
+            zdata = z
         else:
-            zdata=[z]*len(self.xdata)
-        if len(zdata)==len(self.xdata):
+            zdata = [z]*len(self.xdata)
+        if len(zdata) == len(self.xdata):
             return IndexFaceSet([[(x, y, z) for x, y, z in zip(self.xdata, self.ydata, zdata)]], **options)
         else:
             raise ValueError('Incorrect number of heights given')
@@ -247,7 +247,7 @@ class Polygon(GraphicPrimitive_xydata):
         """
         import matplotlib.patches as patches
         options = self.options()
-        p = patches.Polygon([(self.xdata[i],self.ydata[i])
+        p = patches.Polygon([(self.xdata[i], self.ydata[i])
                              for i in range(len(self.xdata))])
         p.set_linewidth(float(options['thickness']))
         a = float(options['alpha'])

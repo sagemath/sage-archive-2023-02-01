@@ -423,7 +423,7 @@ def have_tkz_graph():
 
 @cached_function
 def setup_latex_preamble():
-    """
+    r"""
     Adds appropriate ``\usepackage{...}``, and other instructions to
     the latex preamble for the packages that are needed for processing
     graphs(``tikz``, ``tkz-graph``, ``tkz-berge``), if available

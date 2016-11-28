@@ -497,8 +497,22 @@ class DiscreteValueSemigroup(UniqueRepresentation, Parent):
             else:
                 return None
 
+        if len(self._generators) == 1:
+            from sage.rings.all import NN
+            exp = target / self._generators[0]
+            if exp not in NN:
+                return None
+            return {0 : exp}
+
+        if len(self._generators) == 2 and self._generators[0] == - self._generators[1]:
+            from sage.rings.all import ZZ
+            exp = target / self._generators[0]
+            if exp not in ZZ:
+                return None
+            return {0: exp, 1: 0}
+
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-        P = MixedIntegerLinearProgram(maximization=False, solver = "ppl")
+        P = MixedIntegerLinearProgram(maximization=False, solver="ppl")
         x = P.new_variable(integer=True, nonnegative=True)
         constraint = sum([g*x[i] for i,g in enumerate(self._generators)]) == target
         P.add_constraint(constraint)

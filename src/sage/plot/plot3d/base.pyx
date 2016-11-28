@@ -347,27 +347,7 @@ cdef class Graphics3d(SageObject):
 
         INPUT:
 
-        Optional keyword arguments. Currently supported:
-
-        - ``aspect_ratio`` -- (default: [1,1,1]) list or tuple of three numeric
-          values; `z`-aspect is automatically reduced when large but can be overridden
-
-        - ``axes`` -- (default: False) Boolean determining whether coordinate axes are drawn
-
-        - ``axes_labels`` -- (default: ['x','y','z']) list or tuple of three strings;
-          set to False to remove all labels
-
-        - ``decimals`` -- (default: 2) integer determining decimals displayed in labels
-
-        - ``frame`` -- (default: True) Boolean determining whether frame is drawn
-
-        - ``opacity`` -- (default: 1) numeric value for transparency of surfaces
-
-        - ``radius`` -- (default: None) numeric value for radius of lines; use to render
-          lines thicker than available using ``thickness`` or on Windows platforms where
-          ``thickness`` is ignored
-
-        - ``thickness`` -- (default: 1) numeric value for thickness of lines
+        Optional keyword arguments.
 
         OUTPUT:
 

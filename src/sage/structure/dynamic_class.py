@@ -370,6 +370,15 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
         sage: sage_getsourcelines(Foo3().bla)
         (['    def bla():...'], ...)
 
+    We check that :trac:`21895` has been resolved::
+
+        sage: C1 = sage.structure.dynamic_class.dynamic_class_internal("C1", (Morphism, UniqueRepresentation))
+        sage: type(C1)
+        <class 'sage.structure.dynamic_class.DynamicInheritComparisonClasscallMetaclass'>
+        sage: C2 = sage.structure.dynamic_class.dynamic_class_internal("C2", (UniqueRepresentation, Morphism))
+        sage: type(C2)
+        <class 'sage.structure.dynamic_class.DynamicInheritComparisonClasscallMetaclass'>
+
     """
     if reduction is None:
         reduction = (dynamic_class, (name, bases, cls, reduction, doccls))

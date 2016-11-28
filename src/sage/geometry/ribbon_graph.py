@@ -90,7 +90,7 @@ def _clean(l):
 
 class RibbonGraph(SageObject, UniqueRepresentation):
     r"""
-    A ribbon graph codified as two elements of a certaing permutation 
+    A ribbon graph codified as two elements of a certain permutation.
     group.
 
     A comprenhensive introduction on the topic can be found in the beginning
@@ -1131,7 +1131,7 @@ def make_ribbon(g, r):
 
 
 
-def bipartite_rib(p,q):
+def bipartite_ribbon_graph(p,q):
     r"""
     Return the bipartite graph modeling the corresponding
     Brieskorn-Pham singularity.
@@ -1157,27 +1157,27 @@ def bipartite_rib(p,q):
 
     EXAMPLES::
 
-        sage: B23 = bipartite_rib(2,3); B23; B23.sigma(); B23.rho()
+        sage: B23 = bipartite_ribbon_graph(2,3); B23; B23.sigma(); B23.rho()
         Ribbon graph of genus 1 and 1 boundary components
         (1,2,3)(4,5,6)(7,8)(9,10)(11,12)
         (1,8)(2,10)(3,12)(4,7)(5,9)(6,11)
  
-        sage: B32 = bipartite_rib(3,2); B32; B32.sigma(); B32.rho()
+        sage: B32 = bipartite_ribbon_graph(3,2); B32; B32.sigma(); B32.rho()
         Ribbon graph of genus 1 and 1 boundary components
         (1,2)(3,4)(5,6)(7,8,9)(10,11,12)
         (1,9)(2,12)(3,8)(4,11)(5,7)(6,10)
 
-        sage: B33 = bipartite_rib(3,3); B33; B33.sigma(); B33.rho()
+        sage: B33 = bipartite_ribbon_graph(3,3); B33; B33.sigma(); B33.rho()
         Ribbon graph of genus 1 and 3 boundary components
         (1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)
         (1,12)(2,15)(3,18)(4,11)(5,14)(6,17)(7,10)(8,13)(9,16)
 
-        sage: B24 = bipartite_rib(2,4); B24; B24.sigma(); B24.rho()
+        sage: B24 = bipartite_ribbon_graph(2,4); B24; B24.sigma(); B24.rho()
         Ribbon graph of genus 1 and 2 boundary components
         (1,2,3,4)(5,6,7,8)(9,10)(11,12)(13,14)(15,16)
         (1,10)(2,12)(3,14)(4,16)(5,9)(6,11)(7,13)(8,15)
 
-        sage: B47 = bipartite_rib(4,7); B47; B47.sigma(); B47.rho()
+        sage: B47 = bipartite_ribbon_graph(4,7); B47; B47.sigma(); B47.rho()
         Ribbon graph of genus 9 and 1 boundary components
         (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)(15,16,17,18,19,20,21)(22,23,24,25,26,27,28)(29,30,31,32)(33,34,35,36)(37,38,39,40)(41,42,43,44)(45,46,47,48)(49,50,51,52)(53,54,55,56)
         (1,32)(2,36)(3,40)(4,44)(5,48)(6,52)(7,56)(8,31)(9,35)(10,39)(11,43)(12,47)(13,51)(14,55)(15,30)(16,34)(17,38)(18,42)(19,46)(20,50)(21,54)(22,29)(23,33)(24,37)(25,41)(26,45)(27,49)(28,53)

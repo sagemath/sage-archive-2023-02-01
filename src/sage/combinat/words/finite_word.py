@@ -2438,7 +2438,6 @@ class FiniteWord_class(Word_class):
             sage: for i in range(1, v.length()+1):
             ....:   pal = v[:i].lps(l=pal.length())
             ....:   pal
-            ...
             word: a
             word: b
             word: bb
@@ -2453,7 +2452,6 @@ class FiniteWord_class(Word_class):
             sage: for i in range(1, v.length()+1):
             ....:   pal = v[:i].lps(f=f, l=pal.length())
             ....:   pal
-            ...
             word:
             word: ab
             word:

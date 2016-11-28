@@ -443,7 +443,6 @@ class LazyPowerSeriesRing(Algebra):
             ....:         for i in range(n-1):
             ....:             yield 0
             ....:         yield 1
-            ...
             sage: def s(n):
             ....:     q = 1/n
             ....:     yield 0
@@ -451,7 +450,6 @@ class LazyPowerSeriesRing(Algebra):
             ....:         for i in range(n-1):
             ....:             yield 0
             ....:         yield q
-            ...
 
         ::
 
@@ -460,7 +458,6 @@ class LazyPowerSeriesRing(Algebra):
             ....:     while True:
             ....:         yield L(m(n))
             ....:         n += 1
-            ...
 
         ::
 
@@ -469,7 +466,6 @@ class LazyPowerSeriesRing(Algebra):
             ....:     while True:
             ....:         yield L(s(n))
             ....:         n += 1
-            ...
             sage: lhs = L.product_generator(lhs_gen())
             sage: rhs = L.sum_generator(rhs_gen()).exponential()
             sage: lhs.coefficients(10)

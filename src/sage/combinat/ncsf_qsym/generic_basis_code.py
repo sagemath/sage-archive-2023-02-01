@@ -39,7 +39,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.realizations import RealizationsCategory
-from sage.structure.unique_representation import UniqueRepresentation
 
 class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
@@ -989,42 +988,10 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             return self.maximal_degree()
 
 
-class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a better name
+class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
     """
     A class for algebra morphism defined on a free algebra from the image of the generators
     """
-
-    # set a metaclass that inherits from the metaclass of UniqueRepresentation and ModuleMorphismByLinearity
-    from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
-    @staticmethod
-    def __classcall__(cls, domain, on_generators, position = 0, codomain = None, category = None, anti = False):
-        r"""
-        Normalize the arguments to create this morphism.
-
-        TESTS::
-
-            sage: from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
-            sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
-            sage: Psi = NCSF.Psi()
-            sage: f = AlgebraMorphism(Psi, attrcall('conjugate'), codomain=Psi)
-            sage: g = AlgebraMorphism(Psi, attrcall('conjugate'), codomain=Psi, category = AlgebrasWithBasis(Psi.base_ring()))
-            sage: f is g
-            True
-
-        """
-        if position != 0:
-            raise ValueError("position must be 0")
-        if codomain is None:
-            raise ValueError("codomain must not be None")
-        if category is None:
-            if anti:
-                category = ModulesWithBasis (domain.base_ring())
-            else:
-                category = AlgebrasWithBasis(domain.base_ring())
-        return super(AlgebraMorphism, cls).__classcall__(cls, domain, on_generators, position, codomain, category, anti)
-
     def __init__(self, domain, on_generators, position = 0, codomain = None, category = None, anti = False):
         """
         Given a map on the multiplicative basis of a free algebra, this method
@@ -1046,7 +1013,7 @@ class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a
 
         EXAMPLES:
 
-        We construct explicitly an algebra morphism::
+        We construct explicitly an algbera morphism::
 
             sage: from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
@@ -1102,18 +1069,18 @@ class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a
             -Phi[3, 1, 2]
             sage: f.__class__
             <class 'sage.combinat.ncsf_qsym.generic_basis_code.AlgebraMorphism_with_category'>
-            sage: TestSuite(f).run()
-
-        Verify that :trac:`21895` has been resolved::
-
-            sage: f is Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
-            True
-
+            sage: TestSuite(f).run(skip=['_test_nonzero_equal'])
         """
+        assert position == 0
+        assert codomain is not None
+        if category is None:
+            if anti:
+                category = ModulesWithBasis (domain.base_ring())
+            else:
+                category = AlgebrasWithBasis(domain.base_ring())
         self._anti = anti
         self._on_generators = on_generators
         ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, position = position, category = category)
-        UniqueRepresentation.__init__(self)
 
     def _on_basis(self, c):
         r"""
@@ -1142,7 +1109,6 @@ class AlgebraMorphism(UniqueRepresentation, ModuleMorphismByLinearity): # Find a
         if self._anti:
             c = reversed(c)
         return self.codomain().prod(self._on_generators(i) for i in c)
-
 
 class GradedModulesWithInternalProduct(Category_over_base_ring):
     r"""

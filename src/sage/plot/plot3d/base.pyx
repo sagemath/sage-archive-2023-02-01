@@ -417,8 +417,13 @@ cdef class Graphics3d(SageObject):
                     texts.append("{{text:'{}', x:{}, y:{}, z:{}}}".format(
                                   p.all[0].string, m[0,3], m[1,3], m[2,3]))
 
+        points = '[' + ','.join(points) + ']'
+        lines = '[' + ','.join(lines) + ']'
+        texts = '[' + ','.join(texts) + ']'
+
         surfaces = self.json_repr(self.default_render_params())
         surfaces = flatten_list(surfaces)
+        surfaces = '[' + ','.join(surfaces) + ']'
 
         from sage.env import SAGE_SRC
         filename = os.path.join(SAGE_SRC, 'sage',

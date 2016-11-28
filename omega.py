@@ -80,6 +80,36 @@ def _laurent_polynomial_ring_(n, m):
     return L, L.gens()
 
 
+def Omega_numerator_P(a, x, y):
+    import logging
+    logger = logging.getLogger(__name__)
+
+    n = len(x)
+    if n == 1:
+        x0 = x[0]
+        result = x0**(-a) + \
+            (prod(1 - x0*yy for yy in y) *
+             sum(HomogenousSymmetricFunction(j, y) * (1-x0**(j-a))
+                 for j in srange(a))
+             if a > 0 else 0)
+    else:
+        Pprev = Omega_numerator_P(a, x[:n-1], y)
+        x1 = x[n-1]
+        x2 = x[n-2]
+        logger.debug('Omega_numerator: P(%s): substituting...', n)
+        p1 = Pprev.subs({x2: x1})
+        p2 = Pprev
+        logger.debug('Omega_numerator: P(%s): preparing...', n)
+        dividend = x1 * (1-x2) * prod(1 - x2*yy for yy in y) * p1 - \
+                x2 * (1-x1) * prod(1 - x1*yy for yy in y) * p2
+        logger.debug('Omega_numerator: P(%s): dividing...', n)
+        q, r = dividend.quo_rem(x1 - x2)
+        assert r == 0
+        result = q
+    logger.debug('Omega_numerator: P(%s) has %s terms', n, result.number_of_terms())
+    return result
+
+
 @cached_function
 def Omega_numerator(a, n, m):
     r"""
@@ -171,31 +201,6 @@ def Omega_numerator(a, n, m):
     x = xy[:n]
     y = xy[n:]
 
-    def P(n):
-        if n == 1:
-            x0 = x[0]
-            result = x0**(-a) + \
-                (prod(1 - x0*yy for yy in y) *
-                 sum(HomogenousSymmetricFunction(j, y) * (1-x0**(j-a))
-                     for j in srange(a))
-                 if a > 0 else 0)
-        else:
-            Pprev = P(n-1)
-            x1 = x[n-1]
-            x2 = x[n-2]
-            logger.debug('Omega_numerator: P(%s): substituting...', n)
-            p1 = Pprev.subs({x2: x1})
-            p2 = Pprev
-            logger.debug('Omega_numerator: P(%s): preparing...', n)
-            dividend = x1 * (1-x2) * prod(1 - x2*yy for yy in y) * p1 - \
-                    x2 * (1-x1) * prod(1 - x1*yy for yy in y) * p2
-            logger.debug('Omega_numerator: P(%s): dividing...', n)
-            q, r = dividend.quo_rem(x1 - x2)
-            assert r == 0
-            result = q
-        logger.debug('Omega_numerator: P(%s) has %s terms', n, result.number_of_terms())
-        return result
-
     if m == 0:
         return XY(1 - (prod(prod(f) for f in Omega_factors_denominator(n, m)) *
                        sum(HomogenousSymmetricFunction(j, xy)
@@ -205,7 +210,7 @@ def Omega_numerator(a, n, m):
         return XY(sum(HomogenousSymmetricFunction(j, xy)
                       for j in srange(a+1)))
     else:
-        return XY(P(n))
+        return XY(Omega_numerator_P(a, x, y))
 
 
 @cached_function

@@ -412,17 +412,17 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     for base in bases:
         if isinstance(base, ClasscallMetaclass):
             if not issubclass(metaclass, ClasscallMetaclass):
-                if metaclass == DynamicMetaclass:
+                if metaclass is DynamicMetaclass:
                     metaclass = DynamicClasscallMetaclass
-                elif metaclass == DynamicInheritComparisonMetaclass:
+                elif metaclass is DynamicInheritComparisonMetaclass:
                     metaclass = DynamicInheritComparisonClasscallMetaclass
                 else:
                     raise NotImplementedError("No subclass of %r known that inherits from ClasscallMetaclass"%(metaclass,))
         if isinstance(base, InheritComparisonMetaclass):
             if not issubclass(metaclass, InheritComparisonMetaclass):
-                if metaclass == DynamicMetaclass:
+                if metaclass is DynamicMetaclass:
                     metaclass = DynamicInheritComparisonMetaclass
-                elif metaclass == DynamicClasscallMetaclass:
+                elif metaclass is DynamicClasscallMetaclass:
                     metaclass = DynamicInheritComparisonClasscallMetaclass
                 else:
                     raise NotImplementedError("No subclass of %r known that inherits from InheritComparisonMetaclass"%(metaclass,))

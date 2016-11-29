@@ -725,6 +725,7 @@ class pAdicValuation_base(DiscreteValuation):
         else:
             return DiscreteValueSemigroup([v])
 
+
 class pAdicValuation_padic(pAdicValuation_base):
     """
     The `p`-adic valuation of a complete `p`-adic ring.
@@ -880,6 +881,35 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         """
         return self.domain().residue_field()
+
+    def shift(self, x, s):
+        r"""
+        Shift ``x`` in its expansion with respect to :meth:`uniformizer` by
+        ``s`` "digits".
+
+        For non-negative ``s``, this just returns ``x`` multiplied by a
+        power of the uniformizer `\pi`.
+
+        For negative ``s``, it does the same but when not over a field, it
+        drops coefficients in the `\pi`-adic expension which have negative
+        valuation.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R = ZpCA(2)
+            sage: v = pAdicValuation(R)
+            sage: v.shift(R.one(), 1)
+            2 + O(2^20)
+            sage: v.shift(R.one(), -1)
+            O(2^19)
+
+        """
+        from sage.rings.all import ZZ
+        x = self.domain().coerce(x)
+        s = self.value_group()(s)
+        v = ZZ(s / self.domain().ramification_index())
+        return x << v
 
 class pAdicValuation_int(pAdicValuation_base):
     r"""

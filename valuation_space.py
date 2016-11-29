@@ -897,6 +897,92 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 unscaled = scaled / s
                 tester.assertEqual(self, unscaled)
 
+        def shift(self, x, s):
+            r"""
+            Shift ``x`` in its expansion with respect to :meth:`uniformizer` by
+            ``s`` "digits".
+
+            For non-negative ``s``, this just returns ``x`` multiplied by a
+            power of the uniformizer `\pi`.
+
+            For negative ``s``, it does the same but when not over a field, it
+            drops coefficients in the `\pi`-adic expension which have negative
+            valuation.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 2)
+                sage: v.shift(1, 10)
+                1024
+                sage: v.shift(11, -1)
+                5
+
+            For some rings, there is no clear `\pi`-adic expansion. In this
+            case, this method performs negative shifts by iterated division by
+            the uniformizer and substraction of a lift of the reduction::
+
+                sage: R.<x> = ZZ[]
+                sage: v = pAdicValuation(ZZ, 2)
+                sage: w = GaussValuation(R, v)
+                sage: w.shift(x, 1)
+                2*x
+                sage: w.shift(2*x, -1)
+                x
+                sage: w.shift(x + 2*x^2, -1)
+                x^2
+
+            """
+            from sage.rings.all import ZZ
+            x = self.domain().coerce(x)
+            s = self.value_group()(s)
+            if s == 0:
+                return x
+
+            s = ZZ(s / self.value_group().gen())
+            if s > 0:
+                return x * self.uniformizer()**s
+            else: # s < 0
+                if ~self.uniformizer() in self.domain():
+                    return x / self.uniformizer()**(-s)
+                else:
+                    for i in range(-s):
+                        if self(x) < 0:
+                            raise NotImplementedError("can not compute general shifts over non-fields which do contain elements of negative valuation")
+                        x -= self.lift(self.reduce(x))
+                        x //= self.uniformizer()
+                    return x
+
+        def _test_shift(self, **options):
+            r"""
+            Check that :meth:`shift` works correctly.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 3)
+                sage: v._test_shift()
+
+            """
+            if self.is_trivial() and not self.is_discrete_valuation():
+                return
+
+            try:
+                self.residue_ring()
+            except:
+                # it is not clear what a shift should be in this case
+                return
+
+            tester = self._tester(**options)
+            X = self.domain().some_elements()
+            S = self.value_group().some_elements()
+            from itertools import product
+            for x,s in tester.some_elements(product(X, S)):
+                if self(x) < 0 and ~self.uniformizer() not in self.domain():
+                    # it is not clear what a shift should be in this case
+                    continue
+                self.shift(x, s)
+
         def _test_add(self, **options):
             r"""
             Check that the (strict) triangle equality is satisfied for the

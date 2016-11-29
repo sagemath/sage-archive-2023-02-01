@@ -63,6 +63,7 @@ Three spheres of different color and opacity::
 A parametric helix::
 
     sage: parametric_plot3d([cos(x),sin(x),x/10], (x,0,4*pi), color='red', viewer='threejs')
+    Graphics3d Object
 
 .. RAW:: html
     :file: threejs_examples/helix.html

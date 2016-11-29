@@ -129,6 +129,7 @@ cdef class Graphics3d(SageObject):
         can_view_jmol = (types.OutputSceneJmol in display_manager.supported_output())
         can_view_canvas3d  = (types.OutputSceneCanvas3d in display_manager.supported_output())
         can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
+        can_view_threejs = (types.OutputSceneThreejs in display_manager.supported_output())
         opts = self._process_viewing_options(kwds)
         viewer = opts.get('viewer', None)
         # make sure viewer is one of the supported options
@@ -142,6 +143,7 @@ cdef class Graphics3d(SageObject):
         # fall back to 2d image if necessary
         if viewer == 'canvas3d' and not can_view_canvas3d:   viewer = 'jmol'
         if viewer == 'wavefront' and not can_view_wavefront: viewer = 'jmol'
+        if viewer == 'threejs' and not can_view_threejs:     viewer = 'jmol'
         if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
         ### Second, return the corresponding graphics file
         if viewer == 'jmol':

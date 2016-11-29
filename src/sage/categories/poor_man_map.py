@@ -102,8 +102,11 @@ class PoorManMap(sage.structure.sage_object.SageObject):
                         and self._domain == other._domain
                         and self._codomain == other._codomain
                         and self._name == other._name)
+            else:
+                return False
         if op == 3: # !=
             return not (self == other)
+
         raise NotImplementedError
 
     def __hash__(self):

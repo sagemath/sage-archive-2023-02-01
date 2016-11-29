@@ -5578,6 +5578,113 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         mpz_clear(tmp)
         return B
 
+    def p_minimal_polynomials(self, p, s_max=None):
+        r"""
+        Compute `(p^t)`-minimal polynomials `\nu_t` of this matrix.
+
+        INPUT:
+
+        - ``p`` -- a prime in `\mathbb{Z}`
+
+        - ``s_max`` -- a positive integer (Default: ``None``). If set, only
+          `(p^t)`-minimal polynomials for ``t <= s_max`` are computed.
+
+        OUTPUT:
+
+        A dictionary. Keys are a finite subset `\mathcal{S}` of the positive
+        integers, the values are the associated `(p^s)`-minimal polynomials
+        `\nu_s`, `s\in\mathcal{S}`.
+
+        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is given by
+        `\nu_s` where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.  For
+        `t>\max\mathcal{S}`, the minimal polynomial of this matrix is also a
+        `(p^t)`-minimal polynomial.
+
+        If ``s_max`` is set, only those `\nu_s` with ``s <= s_max``
+        are returned where ``s_max`` is always included even if it is
+        not included in the full set `\mathcal{S}` except when the
+        minimal polynomial of this matrix is also a ``(p^s_max)``-minimal
+        polynomial.
+
+        EXAMPLES::
+
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: B.p_minimal_polynomials(2)
+            {2: x^2 + 3*x + 2}
+
+        .. SEEALSO::
+
+            :mod:`~sage.matrix.compute_J_ideal`,
+            :meth:`~sage.matrix.compute_J_ideal.ComputeMinimalPolynomials.p_minimal_polynomials`
+        """
+        from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
+        return ComputeMinimalPolynomials(self).p_minimal_polynomials(p, s_max)
+
+    def null_ideal(self, b=0):
+        r"""
+        Return the `(b)`-ideal `N_{(b)}(B)=\{f\in \mathbb{Z}[X] \mid f(B)\in M_n(b\mathbb{Z})\}` where `B`
+        is this matrix.
+
+        INPUT:
+
+        - ``b`` -- an element of `\mathbb{Z}` (Default:  0)
+
+        OUTPUT:
+
+        An ideal in `\mathbb{Z}[X]`.
+
+        EXAMPLES::
+
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: B.null_ideal()
+            Principal ideal (x^3 + x^2 - 12*x - 20)
+            of Univariate Polynomial Ring in x over Integer Ring
+            sage: B.null_ideal(8)
+            Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4)
+            of Univariate Polynomial Ring in x over Integer Ring
+            sage: B.null_ideal(6)
+            Ideal (6, 2*x^3 + 2*x^2 - 24*x - 40, 3*x^2 + 3*x)
+            of Univariate Polynomial Ring in x over Integer Ring
+
+        .. SEEALSO::
+
+            :mod:`~sage.matrix.compute_J_ideal`,
+            :meth:`~sage.matrix.compute_J_ideal.ComputeMinimalPolynomials.null_ideal`
+        """
+        from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
+        return ComputeMinimalPolynomials(self).null_ideal(b)
+
+    def integer_valued_polynomials(self):
+        r"""
+        Determine the generators of the ring of integer valued polynomials on this
+        matrix.
+
+        OUTPUT:
+
+        A pair ``(mu_B, P)`` where ``P`` is a list of polynomials in `\mathbb{Q}[X]`
+        such that
+
+        .. MATH::
+
+           \{f \in \mathbb{Q}[X] \mid f(B) \in M_n(\mathbb{Z})\} = \mu_B \mathbb{Q}[X] + \sum_{g\in P} g \mathbb{Z}[X]
+
+        where `B` is this matrix.
+
+        EXAMPLES::
+
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: B.integer_valued_polynomials()
+            (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
+
+        .. SEEALSO::
+
+            :mod:`~sage.matrix.compute_J_ideal`,
+            :meth:`~sage.matrix.compute_J_ideal.ComputeMinimalPolynomials.integer_valued_polynomials`
+        """
+        from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
+        return ComputeMinimalPolynomials(self).integer_valued_polynomials()
+
+
 cdef inline GEN pari_GEN(Matrix_integer_dense B):
     r"""
     Create the PARI GEN object on the stack defined by the integer

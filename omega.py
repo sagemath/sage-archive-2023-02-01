@@ -900,6 +900,9 @@ def generating_function_of_polyhedron(polyhedron, indices=None):
         [0, 1, 2, 3, 4]: ()
         0
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     from sage.geometry.polyhedron.representation import Hrepresentation
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -948,6 +951,9 @@ def generating_function_of_polyhedron(polyhedron, indices=None):
         raise ValueError('Not all coefficient vectors of the inequalities '
                          'have the same length.')
 
+    logger.info('generating_function_of_polyhedron: '
+                '%s inequalities', len(inequalities))
+
     def is_unit_vector(it):
         found = 0
         for e in it:
@@ -965,9 +971,13 @@ def generating_function_of_polyhedron(polyhedron, indices=None):
     L = B
     for i, coeffs in enumerate(inequalities):
         if is_unit_vector(coeffs):
+            logger.debug('generating_function_of_polyhedron: '
+                         'skipping %s', pretty_inequality(coeffs))
             continue
         L = LaurentPolynomialRing(L, 'lambda{}'.format(i), sparse=True)
         l = L.gen()
+        logger.debug('generating_function_of_polyhedron: '
+                     '%s --> %s', l, pretty_inequality(coeffs))
         it_coeffs = iter(coeffs)
         numerator *= l**next(it_coeffs)
         assert numerator.parent() == L
@@ -980,6 +990,9 @@ def generating_function_of_polyhedron(polyhedron, indices=None):
         return coefficient, exponent
 
     while repr(numerator.parent().gen()).startswith('lambda'):
+        logger.info('generating_function_of_polyhedron: '
+                    'applying Omega[%s]...', numerator.parent().gen())
+
         decoded_factors, other_factors = \
             partition((decode_factor(factor) for factor in terms),
                       lambda factor: factor[1] == 0)

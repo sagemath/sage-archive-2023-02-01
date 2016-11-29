@@ -165,7 +165,6 @@ class GroupMorphismWithGensImages(SetMorphism):
         sage: HS = G.Hom(H)
         sage: from sage.groups.finitely_presented import GroupMorphismWithGensImages
         sage: GroupMorphismWithGensImages(HS, lambda a: H.one())
-
         Generic morphism:
         From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
         To:   Alternating group of order 3!/2 as a permutation group
@@ -1448,28 +1447,27 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: G = F / [F([1, 2, 3, 1, 2, 3]), F([1, 1, 1])]
             sage: H = AlternatingGroup(3)
             sage: G.epimorphisms(H)
-
             [Generic morphism:
             From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
             To:   Alternating group of order 3!/2 as a permutation group
             Defn: x0 |--> ()
-                    x1 |--> (1,2,3)
-                    x2 |--> (1,3,2), Generic morphism:
+                  x1 |--> (1,2,3)
+                  x2 |--> (1,3,2), Generic morphism:
             From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
             To:   Alternating group of order 3!/2 as a permutation group
             Defn: x0 |--> (1,2,3)
-                    x1 |--> ()
-                    x2 |--> (1,3,2), Generic morphism:
+                  x1 |--> ()
+                  x2 |--> (1,3,2), Generic morphism:
             From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
             To:   Alternating group of order 3!/2 as a permutation group
             Defn: x0 |--> (1,2,3)
-                    x1 |--> (1,2,3)
-                    x2 |--> (1,2,3), Generic morphism:
+                  x1 |--> (1,2,3)
+                  x2 |--> (1,2,3), Generic morphism:
             From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
             To:   Alternating group of order 3!/2 as a permutation group
             Defn: x0 |--> (1,2,3)
-                    x1 |--> (1,3,2)
-                    x2 |--> ()]
+                  x1 |--> (1,3,2)
+                  x2 |--> ()]
         
         ALGORITHM:
         

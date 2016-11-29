@@ -520,11 +520,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K1 = QuadraticField(2)
             sage: RIF(K1.gen())
             1.414213562373095?
+            sage: RIF(K1(1/5))
+            0.2000000000000000?
             sage: RIF(3/5*K1.gen() + 1/5)
             1.048528137423857?
+
             sage: K2 = QuadraticField(2, embedding=-RLF(2).sqrt())
             sage: RIF(K2.gen())
             -1.414213562373095?
+
+            sage: K3 = QuadraticField(-1)
+            sage: RIF(K3.gen())
+            Traceback (most recent call last):
+            ...
+            ValueError: can not convert complex algebraic number to real interval
+            sage: RIF(K3(2))
+            2
 
         Check that :trac:`21979` is fixed::
 
@@ -536,12 +547,21 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             False
         """
         cdef RealIntervalFieldElement ans = R._new()
-        mpfi_set_z(ans.value, self.D.value)
-        mpfi_sqrt(ans.value, ans.value)
-        if not self.standard_embedding:
-            mpfi_neg(ans.value, ans.value)
-        mpfi_mul_z(ans.value, ans.value, self.b)
-        mpfi_add_z(ans.value, ans.value, self.a)
+
+        if mpz_cmp_ui(self.b, 0):
+            if mpz_cmp_ui(self.D.value, 0) < 0:
+                raise ValueError("can not convert complex algebraic number to real interval")
+            mpfi_set_z(ans.value, self.D.value)
+            mpfi_sqrt(ans.value, ans.value)
+            if not self.standard_embedding:
+                mpfi_neg(ans.value, ans.value)
+            mpfi_mul_z(ans.value, ans.value, self.b)
+
+            mpfi_add_z(ans.value, ans.value, self.a)
+
+        else:
+            mpfi_set_z(ans.value, self.a)
+
         mpfi_div_z(ans.value, ans.value, self.denom)
         return ans
 

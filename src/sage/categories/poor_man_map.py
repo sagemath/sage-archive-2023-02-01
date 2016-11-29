@@ -76,8 +76,11 @@ class PoorManMap(sage.structure.sage_object.SageObject):
         """
         return self._codomain
 
-    def __eq__(self, other):
-        """
+    def _richcmp_(self, other, op):
+        r"""
+        Return the result of comparing this map to ``other`` with respect to
+        ``op``.
+
         EXAMPLES::
 
             sage: from sage.categories.poor_man_map import PoorManMap
@@ -89,8 +92,34 @@ class PoorManMap(sage.structure.sage_object.SageObject):
             sage: h4 = PoorManMap(lambda x: x, domain = [1,2,3], codomain = [1,2,6])
             sage: f == g, f == h1, f == h2, f == h3, f == h4, f == 1, 1 == f
             (True, False, False, False, False, False, False)
+
+            sage: f != g, f != h1, f != h2, f != h3, f != h4, f != 1, 1 != f
+            (False, True, True, True, True, True, True)
         """
-        return self.__class__ is other.__class__ and self.__dict__ == other.__dict__
+        if op == 2: # ==
+            if isinstance(other, PoorManMap):
+                return (self._function == other._function
+                        and self._domain == other._domain
+                        and self._codomain == other._codomain
+                        and self._name == other._name)
+        if op == 3: # !=
+            return not (self == other)
+        raise NotImplementedError
+
+    def __hash__(self):
+        r"""
+        Return a hash value for this map.
+
+        TESTS::
+
+            sage: from sage.categories.poor_man_map import PoorManMap
+            sage: f = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6])
+            sage: g = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6])
+            sage: hash(f) == hash(g)
+            True
+
+        """
+        return hash((self._function, self._domain, self._codomain, self._name))
 
     def __mul__(self, other):
         """

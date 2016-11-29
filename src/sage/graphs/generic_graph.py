@@ -9459,7 +9459,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: can't get a random vertex from the empty graph
         """
-        if self.size() == 0:
+        if self.order() == 0:
             raise ValueError("can't get a random vertex from the empty graph")
         from sage.misc.prandom import randint
         it = self.vertex_iterator(**kwds)
@@ -9538,10 +9538,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.EmptyGraph().random_edge()
             Traceback (most recent call last):
             ...
-            ValueError: can't get a random edge from the empty graph
+            ValueError: can't get a random edge from a graph without edges
         """
         if self.size() == 0:
-            raise ValueError("can't get a random edge from the empty graph")
+            raise ValueError("can't get a random edge from a graph without edges")
 
         from sage.misc.prandom import randint
         it = self.edge_iterator(**kwds)

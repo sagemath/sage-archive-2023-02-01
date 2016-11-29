@@ -47,7 +47,7 @@ are cached. It provides the following methods:
 
 EXAMPLES::
 
-    sage: from calculate_nu import ComputeMinimalPolynomials # not tested
+    sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
     sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
     sage: C = ComputeMinimalPolynomials(B)
     sage: C.prime_candidates()
@@ -152,6 +152,7 @@ def lifting(p, t, A, G):
 
     EXAMPLES::
 
+        sage: from sage.matrix.compute_J_ideal import lifting
         sage: X = polygen(ZZ, 'X')
         sage: A = matrix([[1, X], [2*X, X^2]])
         sage: G0 = lifting(5, 0, A, None)
@@ -250,6 +251,7 @@ def p_part(f, p):
 
     EXAMPLES::
 
+        sage: from sage.matrix.compute_J_ideal import p_part
         sage: X = polygen(ZZ, 'X')
         sage: f = X^3 + 5*X + 25
         sage: g = p_part(f, 5); g
@@ -288,7 +290,7 @@ class ComputeMinimalPolynomials(SageObject):
 
     EXAMPLES::
 
-        sage: from calculate_nu import ComputeMinimalPolynomials # not tested
+        sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
         sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
         sage: C = ComputeMinimalPolynomials(B)
         sage: C.prime_candidates()
@@ -318,6 +320,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         TESTS::
 
+            sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
             sage: ComputeMinimalPolynomials(matrix([[1, 2]]))
             Traceback (most recent call last):
             ...
@@ -363,6 +366,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: x = polygen(ZZ, 'x')
@@ -439,6 +443,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: x = polygen(ZZ, 'x')
@@ -519,6 +524,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
+           sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
            sage: C = ComputeMinimalPolynomials(B)
            sage: x = polygen(ZZ, 'x')
@@ -586,6 +592,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: C.p_minimal_polynomials(2)
@@ -593,15 +600,15 @@ class ComputeMinimalPolynomials(SageObject):
             sage: set_verbose(1)
             sage: C = ComputeMinimalPolynomials(B)
             sage: C.p_minimal_polynomials(2)
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             ------------------------------------------
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             p = 2, t = 1:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             Result of lifting:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             F =
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             [x^2 + x]
             [      x]
             [      0]
@@ -612,19 +619,19 @@ class ComputeMinimalPolynomials(SageObject):
             [      0]
             [      0]
             [  x + 1]
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             ------------------------------------------
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             (x^2 + x)
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             Generators with (p^t)-generating property:
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             [x^2 + x]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             nu = x^2 + x
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             corresponding columns for G
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             [x^2 + x]
             [  x + 2]
             [      0]
@@ -635,15 +642,15 @@ class ComputeMinimalPolynomials(SageObject):
             [     10]
             [      0]
             [  x + 1]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             ------------------------------------------
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             p = 2, t = 2:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             Result of lifting:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             F =
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             [  2*x^2 + 2*x x^2 + 3*x + 2]
             [          2*x         x + 4]
             [            0             0]
@@ -654,19 +661,19 @@ class ComputeMinimalPolynomials(SageObject):
             [            0            10]
             [            0             0]
             [      2*x + 2         x + 3]
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             ------------------------------------------
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             (2*x^2 + 2*x, x^2 + 3*x + 2)
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             Generators with (p^t)-generating property:
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             [x^2 + 3*x + 2]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             nu = x^2 + 3*x + 2
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             corresponding columns for G
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             [x^2 + 3*x + 2]
             [        x + 4]
             [            0]
@@ -677,15 +684,15 @@ class ComputeMinimalPolynomials(SageObject):
             [           10]
             [            0]
             [        x + 3]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             ------------------------------------------
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             p = 2, t = 3:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             Result of lifting:
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             F =
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             [x^3 + 7*x^2 + 6*x x^3 + 3*x^2 + 2*x]
             [        x^2 + 8*x         x^2 + 4*x]
             [                0                 0]
@@ -696,17 +703,17 @@ class ComputeMinimalPolynomials(SageObject):
             [             10*x              10*x]
             [                0                 0]
             [        x^2 + 7*x     x^2 + 3*x + 4]
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             ------------------------------------------
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             (x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x)
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             Generators with (p^t)-generating property:
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
-            verbose 1 (...: calculate_nu.py, current_nu)
+            verbose 1 (...: compute_J_ideal.py, current_nu)
             [x^3 + 3*x^2 + 2*x]
-            verbose 1 (...: calculate_nu.py, p_minimal_polynomials)
+            verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)
             nu = x^3 + 3*x^2 + 2*x
             {2: x^2 + 3*x + 2}
             sage: set_verbose(0)
@@ -797,7 +804,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
-            sage: from calculate_nu import compute_nu # not tested
+            sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: C.null_ideal()
@@ -857,7 +864,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
-             sage: from calculate_nu import compute_nu # not tested
+             sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
              sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
              sage: C = ComputeMinimalPolynomials(B)
              sage: C.prime_candidates()
@@ -893,7 +900,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
-             sage: from calculate_nu import compute_nu # not tested
+             sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
              sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
              sage: C = ComputeMinimalPolynomials(B)
              sage: C.integer_valued_polynomials()

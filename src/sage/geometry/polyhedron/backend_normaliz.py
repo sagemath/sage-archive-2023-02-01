@@ -60,6 +60,16 @@ class Polyhedron_normaliz(Polyhedron_base):
         sage: P.equations()
         (An equation (1, 0) x - 1 == 0,)
 
+    The empty polyhedron::
+
+        sage: P=Polyhedron(ieqs=[[-2, 1, 1], [-3, -1, -1], [-4, 1, -2]], backend='normaliz')
+        sage: P
+        The empty polyhedron in QQ^2
+        sage: P.Vrepresentation()
+        ()
+        sage: P.Hrepresentation()
+        (An equation -1 == 0,)
+
     TESTS:
 
     Tests copied from various methods in base.py::
@@ -103,11 +113,24 @@ class Polyhedron_normaliz(Polyhedron_base):
             if Hrep is not None or Vrep is not None:
                 raise ValueError("Only one of Vrep, Hrep, or normaliz_cone can be different from None")
             Element.__init__(self, parent=parent)
+            self._init_from_normaliz_cone(normaliz_cone)
+        else:
+            Polyhedron_base.__init__(self, parent, Vrep, Hrep, **kwds)
+
+    def _init_from_normaliz_cone(self, normaliz_cone):
+        """
+        Construct polyhedron from a PyNormaliz wrapper of a normaliz cone.
+        """
+        import PyNormaliz
+        if normaliz_cone and PyNormaliz.NmzResult(normaliz_cone, "AffineDim") < 0:
+            # Empty polyhedron. Special case because Normaliz defines the
+            # recession cone of an empty polyhedron given by an
+            # H-representation as the cone defined by the homogenized system.
+            self._init_empty_polyhedron()
+        else:
             self._normaliz_cone = normaliz_cone
             self._init_Vrepresentation_from_normaliz()
             self._init_Hrepresentation_from_normaliz()
-        else:
-            Polyhedron_base.__init__(self, parent, Vrep, Hrep, **kwds)
 
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         """
@@ -167,11 +190,10 @@ class Polyhedron_normaliz(Polyhedron_base):
                     "cone", nmz_rays,
                     "subspace", nmz_lines]
             if verbose:
-                print("PyNormaliz.NmzCone({})".format(data))
-            self._normaliz_cone = PyNormaliz.NmzCone(data)
-            assert self._normaliz_cone, "NmzCone({}) did not return a cone".format(data)
-            self._init_Vrepresentation_from_normaliz()
-            self._init_Hrepresentation_from_normaliz()
+                print("# Calling PyNormaliz.NmzCone({})".format(data))
+            cone = PyNormaliz.NmzCone(data)
+            assert cone, "NmzCone({}) did not return a cone".format(data)
+            self._init_from_normaliz_cone(cone)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         """
@@ -224,10 +246,10 @@ class Polyhedron_normaliz(Polyhedron_base):
                 "inhom_inequalities", nmz_ieqs]
         self._normaliz_cone = PyNormaliz.NmzCone(data)
         if verbose:
-            print("PyNormaliz.NmzCone({})".format(data))
-        assert self._normaliz_cone, "NmzCone({}) did not return a cone".format(data)
-        self._init_Vrepresentation_from_normaliz()
-        self._init_Hrepresentation_from_normaliz()
+            print("# Calling PyNormaliz.NmzCone({})".format(data))
+        cone = PyNormaliz.NmzCone(data)
+        assert cone, "NmzCone({}) did not return a cone".format(data)
+        self._init_from_normaliz_cone(cone)
 
     def _init_Vrepresentation_from_normaliz(self):
         """

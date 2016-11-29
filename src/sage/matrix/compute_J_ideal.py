@@ -521,16 +521,16 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
-           sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
-           sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-           sage: C = ComputeMinimalPolynomials(B)
-           sage: x = polygen(ZZ, 'x')
-           sage: nu_4 = x^2 + 3*x + 2
-           sage: g = C.mccoy_column(2, 2, nu_4)
-           sage: b = matrix(9, 1, (x-B).adjoint().list())
-           sage: M = matrix.block([[b , -B.charpoly(x)*matrix.identity(9)]])
-           sage: (M*g % 4).is_zero()
-           True
+            sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: C = ComputeMinimalPolynomials(B)
+            sage: x = polygen(ZZ, 'x')
+            sage: nu_4 = x^2 + 3*x + 2
+            sage: g = C.mccoy_column(2, 2, nu_4)
+            sage: b = matrix(9, 1, (x-B).adjoint().list())
+            sage: M = matrix.block([[b , -B.charpoly(x)*matrix.identity(9)]])
+            sage: (M*g % 4).is_zero()
+            True
 
         ALGORITHM:
 
@@ -538,11 +538,11 @@ class ComputeMinimalPolynomials(SageObject):
 
         TESTS::
 
-           sage: nu_2 = x^2 + x
-           sage: C.mccoy_column(2, 2, nu_2)
-           Traceback (most recent call last):
-           ...
-           ValueError: x^2 + x not in (2^2)-ideal
+            sage: nu_2 = x^2 + x
+            sage: C.mccoy_column(2, 2, nu_2)
+            Traceback (most recent call last):
+            ...
+            ValueError: x^2 + x not in (2^2)-ideal
 
         """
         if not (nu(self._B) % p**t).is_zero():
@@ -861,17 +861,17 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
-             sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
-             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-             sage: C = ComputeMinimalPolynomials(B)
-             sage: C.prime_candidates()
-             [2, 3, 5]
-             sage: C.p_minimal_polynomials(2)
-             {2: x^2 + 3*x + 2}
-             sage: C.p_minimal_polynomials(3)
-             {}
-             sage: C.p_minimal_polynomials(5)
-             {}
+            sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: C = ComputeMinimalPolynomials(B)
+            sage: C.prime_candidates()
+            [2, 3, 5]
+            sage: C.p_minimal_polynomials(2)
+            {2: x^2 + 3*x + 2}
+            sage: C.p_minimal_polynomials(3)
+            {}
+            sage: C.p_minimal_polynomials(5)
+            {}
 
         This means that `3` and `5` were candidates, but actually, `\mu_B` turns
         out to be a `(3)`-minimal polynomial and a `(5)`-minimal polynomial.
@@ -897,11 +897,11 @@ class ComputeMinimalPolynomials(SageObject):
 
         EXAMPLES::
 
-             sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
-             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-             sage: C = ComputeMinimalPolynomials(B)
-             sage: C.integer_valued_polynomials()
-             (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
+            sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: C = ComputeMinimalPolynomials(B)
+            sage: C.integer_valued_polynomials()
+            (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
         """
         return (self.mu_B, [self._DX(1)] +
                 [nu/p**s

@@ -1760,11 +1760,11 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     else:
         size=''
 
-    s = '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
-        extra_preamble, title, size)
+    formatted_title = "\n\\begin{center}{\\Large\\bf %s}\\end{center}\n"%str(title) if title else ""
+    s = '%s\n\\begin{document}%s%s'%(extra_preamble, formatted_title, size)
 
-    #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
-    s += '\\vspace{40mm}'
+    if title:
+        s += '\\vspace{40mm}'
     if process:
         for i in range(len(objects)):
             x = objects[i]
@@ -2012,7 +2012,7 @@ class MathJax:
         return MathJaxExpr(html.format(latex_string))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
-        pdflatex=None, engine=None, viewer = None, tightpage = True,
+        pdflatex=None, engine=None, viewer=None, tightpage=True, margin=None,
         mode='inline', combine_all=False, **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,
@@ -2056,6 +2056,10 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
 
     -  ``tightpage`` -- bool (default: ``True``): use the LaTeX package
        'preview' with the 'tightpage' option.
+
+    -  ``margin`` -- float or ``None`` (default: ``None``): adds a margin
+       of ``margin`` mm; has no affect if the option ``tightpage`` is
+       ``False``.
 
     - ``mode`` -- string (default: ``'inline'``): ``'display'`` for
       displaymath or ``'inline'`` for inline math
@@ -2115,7 +2119,8 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     to the LaTeX preamble, and replaces the ``\\[`` and ``\\]`` around
     each object by ``\\begin{page}$`` and ``$\\end{page}``.
     Setting ``tightpage`` to ``False`` turns off this behavior and provides
-    the latex output as a full page.
+    the latex output as a full page. If ``tightpage`` is set to ``True``,
+    the ``Title`` is ignored.
 
     If in notebook mode with ``viewer`` equal to ``None``, this
     usually uses MathJax -- see the next paragraph for the exception --
@@ -2149,6 +2154,26 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         sage: _run_latex_(file, engine="pdflatex") # optional - latex
         'pdf'
 
+        sage: view(4, margin=5, debug=True)
+        \documentclass{article}
+        ...
+        \usepackage[tightpage,active]{preview}
+        \PreviewEnvironment{page}
+        \setlength\PreviewBorder{5.000000mm}
+        \begin{document}\begin{page}$4$\end{page}
+        \end{document}
+        ...
+
+        sage: view(4, debug=True)
+        \documentclass{article}
+        ...
+        \usepackage[tightpage,active]{preview}
+        \PreviewEnvironment{page}
+        \begin{document}\begin{page}$4$\end{page}
+        \end{document}
+        ...
+
+
         sage: latex.extra_preamble('') # reset the preamble
 
         sage: view(4, engine="garbage")
@@ -2162,11 +2187,21 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         ValueError: Unsupported LaTeX engine.
 
     """
-    if tightpage == True:
-        latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}',
-                         'math_left':'\\begin{page}$', 'math_right':'$\\end{page}'}
+
+    if tightpage:
+        if margin is None:
+            margin_str = ""
+        else:
+            margin_str = '\n\\setlength\\PreviewBorder{%fmm}' % margin
+        latex_options = {'extra_preamble':
+                         '\\usepackage[tightpage,active]{preview}\n' +
+                         '\\PreviewEnvironment{page}%s' % margin_str,
+                         'math_left': '\\begin{page}$',
+                         'math_right': '$\\end{page}'}
+        title = None
     else:
         latex_options = {}
+
     s = _latex_file_(objects, title=title, sep=sep, tiny=tiny, debug=debug, **latex_options)
     if engine is None:
         engine = _Latex_prefs._option["engine"]

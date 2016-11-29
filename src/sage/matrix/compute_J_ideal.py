@@ -1,8 +1,5 @@
 r"""
-Minimal `J`-ideals of matrices
-
-Minimal `J`-ideals of matrices
-==============================
+`J`-ideals of matrices
 
 Let `B` be an `n\times n`-matrix over a principal ideal domain `D`.
 

@@ -1,8 +1,9 @@
 """
 The Normaliz backend for polyhedral computations
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
+from sage.structure.element import Element
 from sage.misc.all import prod
 
 from sage.rings.all import ZZ, QQ
@@ -22,9 +23,21 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     INPUT:
 
-    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``.
+    - ``parent`` -- the parent, an instance of
+      :class:`~sage.geometry.polyhedron.parent.Polyhedra`.
 
-    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``.
+    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``. The
+      V-representation of the polyhedron. If ``None``, the polyhedron
+      is determined by the H-representation.
+
+    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``. The
+      H-representation of the polyhedron. If ``None``, the polyhedron
+      is determined by the V-representation.
+
+    - ``normaliz_cone`` -- a PyNormaliz wrapper of a normaliz cone.
+
+    Only one of ``Vrep``, ``Hrep``, or ``normaliz_cone`` can be different
+    from ``None``.
 
     EXAMPLES::
 
@@ -74,6 +87,27 @@ class Polyhedron_normaliz(Polyhedron_base):
         1
 
     """
+
+    def __init__(self, parent, Vrep, Hrep, normaliz_cone=None, **kwds):
+        """
+        Initializes the polyhedron.
+
+        See :class:`Polyhedron_normaliz` for a description of the input
+        data.
+
+        TESTS::
+
+            sage: p = Polyhedron(backend='normaliz')    # indirect doctests
+        """
+        if normaliz_cone:
+            if Hrep is not None or Vrep is not None:
+                raise ValueError("Only one of Vrep, Hrep, or normaliz_cone can be different from None")
+            Element.__init__(self, parent=parent)
+            self._normaliz_cone = normaliz_cone
+            self._init_Vrepresentation_from_normaliz()
+            self._init_Hrepresentation_from_normaliz()
+        else:
+            Polyhedron_base.__init__(self, parent, Vrep, Hrep, **kwds)
 
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         """
@@ -132,10 +166,12 @@ class Polyhedron_normaliz(Polyhedron_base):
             data = ["vertices", nmz_vertices,
                     "cone", nmz_rays,
                     "subspace", nmz_lines]
+            if verbose:
+                print("PyNormaliz.NmzCone({})".format(data))
             self._normaliz_cone = PyNormaliz.NmzCone(data)
             assert self._normaliz_cone, "NmzCone({}) did not return a cone".format(data)
-            self._init_Vrepresentation_from_normaliz(minimize)
-            self._init_Hrepresentation_from_normaliz(minimize)
+            self._init_Vrepresentation_from_normaliz()
+            self._init_Hrepresentation_from_normaliz()
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         """
@@ -150,6 +186,8 @@ class Polyhedron_normaliz(Polyhedron_base):
         - ``eqns`` -- list of equalities. Each line can be specified
           as any iterable container of
           :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+
+        - ``minimize`` -- boolean (default: ``True``). Ignored.
 
         - ``verbose`` -- boolean (default: ``False``). Whether to print
           verbose output for debugging purposes.
@@ -185,11 +223,13 @@ class Polyhedron_normaliz(Polyhedron_base):
         data = ["inhom_equations", nmz_eqns,
                 "inhom_inequalities", nmz_ieqs]
         self._normaliz_cone = PyNormaliz.NmzCone(data)
+        if verbose:
+            print("PyNormaliz.NmzCone({})".format(data))
         assert self._normaliz_cone, "NmzCone({}) did not return a cone".format(data)
-        self._init_Vrepresentation_from_normaliz(minimize)
-        self._init_Hrepresentation_from_normaliz(minimize)
+        self._init_Vrepresentation_from_normaliz()
+        self._init_Hrepresentation_from_normaliz()
 
-    def _init_Vrepresentation_from_normaliz(self, minimize):
+    def _init_Vrepresentation_from_normaliz(self):
         """
         Create the Vrepresentation objects from the normaliz polyhedron.
 
@@ -222,7 +262,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             parent._make_Line(self, g[:-1])
         self._Vrepresentation = tuple(self._Vrepresentation)
 
-    def _init_Hrepresentation_from_normaliz(self, minimize):
+    def _init_Hrepresentation_from_normaliz(self):
         """
         Create the Hrepresentation objects from the normaliz polyhedron.
 
@@ -274,6 +314,55 @@ class Polyhedron_normaliz(Polyhedron_base):
         # For example, PyNormaliz.NmzCone(['vertices', []]) gives
         # error: Some error in the normaliz input data detected: All input matrices empty!
         self._normaliz_cone = None
+
+    @classmethod
+    def _from_normaliz_cone(cls, parent, normaliz_cone):
+        r"""
+        Initializes a polyhedron from a PyNormaliz wrapper of a normaliz cone.
+        """
+        return cls(parent, None, None, normaliz_cone=normaliz_cone)
+
+    def integral_hull(self):
+        r"""
+        Return the integral hull in the polyhedron.
+
+        This is a new polyhedron that is the convex hull of all integral
+        points.
+
+        EXAMPLES:
+
+        Unbounded example from Normaliz manual, "a dull polyhedron"::
+
+            sage: P=Polyhedron(ieqs=[[1, 0, 2], [3, 0, -2], [3, 2, -2]],
+            ....:              backend='normaliz')
+            sage: PI=P.integral_hull()
+            sage: P.plot(color='yellow') + PI.plot(color='green') # not tested
+            sage: set(PI.Vrepresentation())
+            {A vertex at (-1, 0), A vertex at (0, 1), A ray in the direction (1, 0)}
+
+        Nonpointed case::
+
+            sage: P=Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]],
+            ....:              lines=[[-1, 1]], backend='normaliz')
+            sage: PI=P.integral_hull()
+            sage: set(PI.Vrepresentation())
+            {A vertex at (1, 0),
+             A ray in the direction (1, 0),
+             A line in the direction (1, -1)}
+
+        Empty polyhedron::
+
+            sage: P = Polyhedron(backend='normaliz')
+            sage: PI=P.integral_hull()
+            sage: PI.Vrepresentation()
+            ()
+        """
+        import PyNormaliz
+        if self.is_empty():
+            return self
+        cone = PyNormaliz.NmzResult(self._normaliz_cone, "IntegerHull")
+        return self.parent().element_class._from_normaliz_cone(parent=self.parent(),
+                                                               normaliz_cone=cone)
 
     def integral_points(self, threshold=10000):
         r"""

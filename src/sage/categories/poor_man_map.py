@@ -171,14 +171,12 @@ class PoorManComposeMap(PoorManMap):
             [1, 4, 9]
             sage: TestSuite(h).run()
         """
-        self.f = f
-        self.g = g
         try:
-            self._domain = g.domain()
+            domain = g.domain()
         except AttributeError:
-            self._domain = None
-        self._codomain = f.codomain()
-        self._name = None
+            domain = None
+
+        PoorManMap.__init__((f,g), domain, f.codomain())
 
     def __call__(self, *args):
         """
@@ -191,4 +189,4 @@ class PoorManComposeMap(PoorManMap):
             -1
 
         """
-        return self.f(self.g(*args))
+        return self._function[0](self._function[1](*args))

@@ -681,6 +681,20 @@ def _Omega_(A, decoded_factors):
     return numerator, tuple(f.subs(rules) for f in factors_denominator)
 
 
+def pretty_inequality(ineq, indices=None):
+    from sage.symbolic.ring import SR
+    from sage.modules.free_module_element import vector
+
+    if indices is None:
+        indices = range(len(ineq)-1)
+    vars = vector([1] + list(SR("b{}".format(i)) for i in indices))
+    v = vector(ineq)
+    positive_part = vector([max(c, 0) for c in v])
+    negative_part = - (v - positive_part)
+    assert v == positive_part - negative_part
+    return '{} >= {}'.format(positive_part*vars, negative_part*vars)
+
+
 def generating_function_of_polyhedron(polyhedron, indices=None):
     r"""
     Return the generating function of the integer points of

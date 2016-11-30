@@ -813,7 +813,11 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: S.is_field()
             True
         """
-        return self.base_ring().is_field(proof) and self.modulus().is_irreducible()
+        ret = self.base_ring().is_field(proof) and self.modulus().is_irreducible()
+        if ret:
+            from sage.categories.all import Fields
+            self._refine_category_(Fields())
+        return ret
 
     def krull_dimension(self):
         return self.base_ring().krull_dimension()

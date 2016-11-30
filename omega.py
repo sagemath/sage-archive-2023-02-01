@@ -68,15 +68,14 @@ def HomogenousSymmetricFunction(j, x):
 
 
 def _laurent_polynomial_ring_(n, m):
-    from itertools import chain
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
     if n + m == 0:
         return ZZ, tuple()
-    L = LaurentPolynomialRing(ZZ, ', '.join(chain(
-        iter('x{}'.format(nn) for nn in range(n)),
-        iter('y{}'.format(mm) for mm in range(m)))))
+    L = LaurentPolynomialRing(ZZ,
+                              tuple('x{}'.format(nn) for nn in range(n)) +
+                              tuple('y{}'.format(mm) for mm in range(m)))
     return L, L.gens()
 
 
@@ -380,8 +379,8 @@ def Omega_higher(a, exponents):
     B = QQ.extension(
         list(cyclotomic_polynomial(r) for r in xy),
         tuple('rho{}'.format(i) for i in range(len(xy))))
-    L = LaurentPolynomialRing(B, ', '.join('z{}'.format(nn)
-                                           for nn in range(len(exponents))))
+    L = LaurentPolynomialRing(B, tuple('z{}'.format(nn)
+                                       for nn in range(len(exponents))))
     powers = dict(zip(xy, iter(L(g) for g in B.gens())))
     powers[2] = L(-1)
     powers[1] = L(1)
@@ -966,7 +965,7 @@ def generating_function_of_polyhedron(polyhedron, indices=None):
         indices = range(len(inequalities[0]) - 1)
     B = LaurentPolynomialRing(
         ZZ,
-        ', '.join('y{}'.format(k) for k in indices),
+        tuple('y{}'.format(k) for k in indices),
         sparse=True)
 
     n = len(B.gens()) + 1

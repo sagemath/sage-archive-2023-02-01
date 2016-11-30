@@ -1605,10 +1605,20 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         from sage.categories.all import NumberFields
         if self.base_ring() in NumberFields():
-            isomorphic_ring = self.base_ring().extension(self.modulus(), names=self.variable_names())
-            from_isomorphic_ring = isomorphic_ring.hom([self.gen()])
-            to_isomorphic_ring = self.hom([isomorphic_ring.gen()])
-            return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
+            try:
+                isomorphic_ring = self.base_ring().extension(self.modulus(), names=self.variable_names())
+            except ValueError:
+                pass # modulus is not irreducible
+            else:
+                if not isomorphic_ring in NumberFields():
+                    raise NotImplementedError("can not handle extensions of number fields that do not produce number fields")
+                # refine the category of self
+                if not self.is_field():
+                    assert False, "self is isomorphic to a field"
+
+                from_isomorphic_ring = isomorphic_ring.hom([self.gen()])
+                to_isomorphic_ring = self.hom([isomorphic_ring.gen()])
+                return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
 
         raise NotImplementedError("can not rewrite %r as an isomorphic ring"%(self,))
 

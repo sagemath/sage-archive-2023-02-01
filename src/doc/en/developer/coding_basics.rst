@@ -256,7 +256,7 @@ information. You can use the existing functions of Sage as templates.
 
        INPUT:
 
-       - ``p`` -- (default: 2) a positive prime integer.
+       - ``p`` -- (default: 2) a positive prime integer
 
        OUTPUT:
 

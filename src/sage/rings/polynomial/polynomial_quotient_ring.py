@@ -1519,15 +1519,25 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             isomorphic_base_to_base, base_to_isomorphic_base, isomorphic_base = self.base_ring()._isomorphic_ring()
             modulus = self.modulus().map_coefficients(base_to_isomorphic_base)
             isomorphic_quotient = modulus.parent().quo(modulus)
-            # and construct the isomorphism
-            from_isomorphic_quotient = SetMorphism(Hom(isomorphic_quotient, self),
-                lambda f: f.lift().map_coefficients(isomorphic_base_to_base)(self.gen()))
-            to_isomorphic_quotient = SetMorphism(Hom(self, isomorphic_quotient),
-                lambda f: f.lift().map_coefficients(base_to_isomorphic_base)(isomorphic_quotient.gen()))
+            # we do not construct the isomorphisms yet because we want to know
+            # the category that our final result lives in
 
             # recursively try to rewrite the isomorphic_quotient
             isomorphic_ring_to_isomorphic_quotient, isomorphic_quotient_to_isomorphic_ring, isomorphic_ring = isomorphic_quotient._isomorphic_ring()
             
+            # the process has likely refined the category of
+            # isomorphic_quotient (to Fields e.g.) so we use the same category
+            # for self
+            self._refine_category_(isomorphic_quotient.category())
+            category = isomorphic_quotient.category() | self.category()
+            # we need to pass in the category explicitly because Hom is cached
+            # and someone might have called Hom before we found out about the
+            # new category of self
+            from_isomorphic_quotient = SetMorphism(Hom(isomorphic_quotient, self, category),
+                lambda f: f.lift().map_coefficients(isomorphic_base_to_base)(self.gen()))
+            to_isomorphic_quotient = SetMorphism(Hom(self, isomorphic_quotient, category),
+                lambda f: f.lift().map_coefficients(base_to_isomorphic_base)(isomorphic_quotient.gen()))
+
             return (from_isomorphic_quotient * isomorphic_ring_to_isomorphic_quotient,
                 isomorphic_quotient_to_isomorphic_ring *  to_isomorphic_quotient,
                 isomorphic_ring)
@@ -1536,8 +1546,23 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             # this quotient is a trivial extension of the base ring, we can just
             # return the base ring
             isomorphic_ring = self.base_ring()
+
+            # With this knowledge we can refine the category of self (and of the resulting morphisms.)
+            # However, we can not just refine self to
+            # isomorphic_ring.category() because that category might expect an
+            # interface which we can not provide (e.g. NumberFields).
+            # So we just check some important special cases here (note that
+            # integral domains is already handled elsewhere.)
+            from sage.categories.all import Fields
+            if isomorphic_ring in Fields():
+                self._refine_category_(Fields())
+
             from_isomorphic_ring = isomorphic_ring.hom(self)
-            to_isomorphic_ring = SetMorphism(Hom(self, isomorphic_ring), lambda f: f.lift())
+            # we need to pass in the category explicitly because Hom is cached
+            # and otherwise we get just the homspace in the "Category of homsets
+            # of unital magmas and additive unital additive magmas"
+            category = isomorphic_ring.category() | self.category()
+            to_isomorphic_ring = SetMorphism(Hom(self, isomorphic_ring, category), lambda f: isomorphic_ring(f.lift()))
             return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
 
         if self.is_finite() and self.is_field():
@@ -1552,7 +1577,11 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             base_to_isomorphic_ring = self.base_ring().hom([isomorphic_ring(base_gen)])
             modulus = self.modulus().map_coefficients(base_to_isomorphic_ring)
             gen = modulus.any_root(assume_squarefree=True, degree=-1)
-            to_isomorphic_ring = SetMorphism(Hom(self, isomorphic_ring),
+            # we need to pass in the category explicitly because Hom is cached
+            # and otherwise we get just the homspace in the "Category of homsets
+            # of unital magmas and additive unital additive magmas"
+            category = isomorphic_ring.category() | self.category()
+            to_isomorphic_ring = SetMorphism(Hom(self, isomorphic_ring, category),
                 lambda f: f.lift().map_coefficients(base_to_isomorphic_ring)(gen))
 
             # For the map from GF(N) we need to figure out where the primitive
@@ -1606,6 +1635,16 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             return
 
         tester.assertNotIsInstance(ring, PolynomialQuotientRing_generic)
+
+        from sage.categories.all import Fields, IntegralDomains
+        if ring.category().is_subcategory(IntegralDomains()):
+            category = IntegralDomains()
+            if ring.category().is_subcategory(Fields()):
+                category = Fields()
+            tester.assertTrue(self.category().is_subcategory(category))
+            tester.assertTrue(from_isomorphic_ring.category_for().is_subcategory(category))
+            tester.assertTrue(to_isomorphic_ring.category_for().is_subcategory(category))
+
         for x in tester.some_elements():
             y = to_isomorphic_ring(x)
             tester.assertIn(y, ring)

@@ -374,7 +374,7 @@ class PadicValuationFactory(UniqueFactory):
             _ = key[2] # ignored
             approximants = extra_args['approximants']
             parent = DiscretePseudoValuationSpace(R)
-            return parent.__make_element_class__(pAdicFromLimitValuation)(parent, v, K.relative_polynomial().change_ring(R.base()), approximants)
+            return parent.__make_element_class__(pAdicFromLimitValuation)(parent, v, K.relative_polynomial().change_ring(R.base_ring()), approximants)
 
 pAdicValuation = PadicValuationFactory("pAdicValuation")
 
@@ -671,6 +671,15 @@ class pAdicValuation_base(DiscreteValuation):
             sage: v.extensions(GaussianIntegers())
             [2-adic valuation]
 
+        TESTS::
+
+            sage: R.<a> = QQ[]
+            sage: L.<a> = QQ.extension(x^3 - 2)
+            sage: R.<b> = L[]
+            sage: M.<b> = L.extension(b^2 + 2*b + a)
+            sage: pAdicValuation(M, 2)
+            2-adic valuation
+
         """
         if self.domain() is ring:
             return [self]
@@ -680,14 +689,14 @@ class pAdicValuation_base(DiscreteValuation):
         if self.domain().is_subring(ring):
             from sage.rings.number_field.number_field import is_NumberField
             if is_NumberField(ring.fraction_field()):
-                if ring.base().fraction_field() is self.domain().fraction_field():
+                if ring.base_ring().fraction_field() is self.domain().fraction_field():
                     from valuation_space import DiscretePseudoValuationSpace
                     parent = DiscretePseudoValuationSpace(ring)
                     approximants = self.mac_lane_approximants(ring.fraction_field().relative_polynomial().change_ring(self.domain()))
                     return [pAdicValuation(ring, approximant) for approximant in approximants]
-                if ring.base() is not ring and self.domain().is_subring(ring.base()):
-                    return sum([w.extensions(ring) for w in self.extensions(ring.base())], [])
-        raise NotImplementedError("can not compute extensions of %r from %r to %r"%(self, self.domain(), ring))
+                if ring.base_ring() is not ring and self.domain().is_subring(ring.base_ring()):
+                    return sum([w.extensions(ring) for w in self.extensions(ring.base_ring())], [])
+        return super(pAdicValuation_base, self).extensions(ring)
 
     def restriction(self, ring):
         r"""

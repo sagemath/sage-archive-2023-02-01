@@ -1491,6 +1491,12 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: from_N, to_N, N = M._isomorphic_ring(); N
             Finite Field in z8 of size 2^8
 
+            sage: R.<x> = QQ[]
+            sage: K = R.quo(x^2 + 1)
+            sage: from_L, to_L, L = K._isomorphic_ring()
+            sage: L
+            Number Field in xbar with defining polynomial x^2 + 1
+
         TESTS:
 
         Verify that this works for trivial extensions::
@@ -1562,6 +1568,13 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             primitive_element = sum(c*b for c,b in zip(x.list(), basis))
             from_isomorphic_ring = isomorphic_ring.hom([primitive_element], check=False)
             
+            return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
+
+        from sage.categories.all import NumberFields
+        if self.base_ring() in NumberFields():
+            isomorphic_ring = self.base_ring().extension(self.modulus(), names=self.variable_names())
+            from_isomorphic_ring = isomorphic_ring.hom([self.gen()])
+            to_isomorphic_ring = self.hom([isomorphic_ring.gen()])
             return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
 
         raise NotImplementedError("can not rewrite %r as an isomorphic ring"%(self,))

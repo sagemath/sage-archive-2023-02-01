@@ -194,10 +194,42 @@ class PoorManMap(sage.structure.sage_object.SageObject):
             sage: from sage.categories.poor_man_map import PoorManMap
             sage: f = PoorManMap(lambda x: x+1, domain = (1,2,3), codomain = (2,3,4))
             sage: g = PoorManMap(lambda x: -x,  domain = (2,3,4), codomain = (-2,-3,-4))
+            sage: g*f
+            A map from (1, 2, 3) to (-2, -3, -4)
+
+        Note that the compatibility of the domains and codomains is for performance
+        reasons only checked for proper parents. For example, the incompatibility
+        is not detected here::
+    
             sage: f*g
             A map from (2, 3, 4) to (2, 3, 4)
-
+    
+        But it is detected here::
+    
+            sage: g = PoorManMap(factorial, domain = ZZ, codomain = ZZ)
+            sage: h = PoorManMap(sqrt, domain = RR, codomain = CC)
+            sage: g*h
+            Traceback (most recent call last):
+            ...
+            ValueError: the codomain Complex Field with 53 bits of precision does not coerce into the domain Integer Ring
+            sage: h*g
+            A map from Integer Ring to Complex Field with 53 bits of precision
+    
         """
+        self_domain = self.domain()
+
+        try:
+            other_codomain = other.codomain()
+        except AttributeError:
+            other_codomain = None
+
+        if self_domain is not None and other_codomain is not None:
+            from sage.structure.parent import is_Parent
+            if is_Parent(self_domain) and is_Parent(other_codomain):
+                if not self_domain.has_coerce_map_from(other_codomain):
+                    raise ValueError("the codomain %r does not coerce into the domain %r"%(other_codomain, self_domain))
+
+        codomain = self.codomain()
         try:
             domain = other.domain()
         except AttributeError:
@@ -208,7 +240,7 @@ class PoorManMap(sage.structure.sage_object.SageObject):
         else:
             other = (other,)
 
-        return PoorManMap(self._functions + other, domain=domain, codomain=self.codomain())
+        return PoorManMap(self._functions + other, domain=domain, codomain=codomain)
 
     def __call__(self, *args):
         """

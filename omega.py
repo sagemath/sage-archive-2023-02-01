@@ -141,7 +141,6 @@ def Omega_numerator(a, n, m):
 
     EXAMPLES::
 
-        sage: L.<x0, x1, x2, y0, y1, y2> = LaurentPolynomialRing(ZZ)
         sage: Omega_numerator(0, 1, 1)
         1
         sage: Omega_numerator(0, 2, 1)

@@ -84,6 +84,9 @@ def Omega_numerator_P(a, x, y):
     import logging
     logger = logging.getLogger(__name__)
 
+    from sage.arith.srange import srange
+    from sage.misc.misc_c import prod
+
     n = len(x)
     if n == 1:
         x0 = x[0]
@@ -194,8 +197,6 @@ def Omega_numerator(a, n, m):
 
     from sage.arith.srange import srange
     from sage.misc.misc_c import prod
-    from sage.rings.integer_ring import ZZ
-    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
     XY, xy = _laurent_polynomial_ring_(n, m)
     x = xy[:n]
@@ -982,6 +983,9 @@ def generating_function_of_polyhedron(polyhedron, indices=None):
         numerator *= l**next(it_coeffs)
         assert numerator.parent() == L
         terms = tuple(l**c * t for c, t in zip(it_coeffs, terms))
+
+    logger.info('generating_function_of_polyhedron: '
+                'terms denominator %s', terms)
 
     def decode_factor(factor):
         D = factor.dict()

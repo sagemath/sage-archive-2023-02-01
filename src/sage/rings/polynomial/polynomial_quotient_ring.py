@@ -1529,14 +1529,12 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             # isomorphic_quotient (to Fields e.g.) so we use the same category
             # for self
             self._refine_category_(isomorphic_quotient.category())
-            category = isomorphic_quotient.category() | self.category()
-            # we need to pass in the category explicitly because Hom is cached
-            # and someone might have called Hom before we found out about the
-            # new category of self
-            homspace = Hom(isomorphic_quotient, self, category)
+
+            homspace = Hom(isomorphic_quotient, self)
             from_isomorphic_quotient = homspace.__make_element_class__(SetMorphism)(homspace,
                 lambda f: f.lift().map_coefficients(isomorphic_base_to_base)(self.gen()))
-            homspace = Hom(self, isomorphic_quotient, category)
+
+            homspace = Hom(self, isomorphic_quotient)
             to_isomorphic_quotient = homspace.__make_element_class__(SetMorphism)(homspace,
                 lambda f: f.lift().map_coefficients(base_to_isomorphic_base)(isomorphic_quotient.gen()))
 
@@ -1560,11 +1558,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                 self._refine_category_(Fields())
 
             from_isomorphic_ring = isomorphic_ring.hom(self)
-            # we need to pass in the category explicitly because Hom is cached
-            # and otherwise we get just the homspace in the "Category of homsets
-            # of unital magmas and additive unital additive magmas"
-            category = isomorphic_ring.category() | self.category()
-            homspace = Hom(self, isomorphic_ring, category)
+
+            homspace = Hom(self, isomorphic_ring)
             to_isomorphic_ring = homspace.__make_element_class__(SetMorphism)(homspace, lambda f: isomorphic_ring(f.lift()))
             return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
 
@@ -1580,11 +1575,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             base_to_isomorphic_ring = self.base_ring().hom([isomorphic_ring(base_gen)])
             modulus = self.modulus().map_coefficients(base_to_isomorphic_ring)
             gen = modulus.any_root(assume_squarefree=True, degree=-1)
-            # we need to pass in the category explicitly because Hom is cached
-            # and otherwise we get just the homspace in the "Category of homsets
-            # of unital magmas and additive unital additive magmas"
-            category = isomorphic_ring.category() | self.category()
-            homspace = Hom(self, isomorphic_ring, category)
+
+            homspace = Hom(self, isomorphic_ring)
             to_isomorphic_ring = homspace.__make_element_class__(SetMorphism)(homspace,
                 lambda f: f.lift().map_coefficients(base_to_isomorphic_ring)(gen))
 

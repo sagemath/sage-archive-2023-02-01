@@ -951,12 +951,6 @@ ext_modules = [
 
     Extension('*', ['sage/misc/*.pyx']),
 
-    # Only include darwin_utilities on OS_X >= 10.5
-    OptionalExtension('sage.misc.darwin_utilities',
-        sources = ['sage/misc/darwin_memory_usage.c',
-                   'sage/misc/darwin_utilities.pyx'],
-        condition = (UNAME[0] == "Darwin" and not UNAME[2].startswith('8.'))),
-
     ################################
     ##
     ## sage.modular

@@ -70,9 +70,13 @@ def virtual_memory_limit():
         sage: virtual_memory_limit() <= sys.maxsize
         True
     """
-    import psutil
-    vmax = psutil.Process().rlimit(psutil.RLIMIT_AS)[0]
-    if vmax < 0:
+    import resource
+    try:
+        vmax = resource.getrlimit(resource.RLIMIT_AS)[0]
+    except resource.error:
+        vmax = resource.RLIM_INFINITY
+    if vmax == resource.RLIM_INFINITY:
+        import psutil
         vmax = psutil.virtual_memory().total + psutil.swap_memory().total
     return min(vmax, sys.maxsize)
 

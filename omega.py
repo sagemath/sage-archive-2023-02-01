@@ -257,6 +257,16 @@ def Omega_factors_denominator(n, m):
         ((-x0 + 1,), (-x1 + 1,), (-x0*y0 + 1,),
          (-x0*y1 + 1,), (-x1*y0 + 1,), (-x1*y1 + 1,))
 
+    ::
+
+        sage: Omega_factors_denominator((2,), (2,))
+        ((-x0 + 1, -x1 + 1),
+         (-x0*y0 + 1, -x1*y0 + 1), (-x0*y1 + 1, -x1*y1 + 1))
+        sage: Omega_factors_denominator((2,), (3,))
+        ((-x0 + 1, -x1 + 1),
+         (-x0*y0 + 1, -x0*y1 + 1, -x0*y2 + 1,
+          -x1*y0 + 1, -x1*y1 + 1, -x1*y2 + 1))
+
     TESTS::
 
         sage: Omega_factors_denominator(0, 0)
@@ -282,8 +292,10 @@ def Omega_factors_denominator(n, m):
     y = tuple(tuple(next(ixy) for _ in range(my)) for my in y)
 
     return tuple(tuple(1 - xx for xx in gx) for gx in x) + \
-           tuple(tuple(1 - xx*yy for xx in gx for yy in gy)
-                 for gx in x for gy in y)
+           sum(((tuple(1 - xx*yy for xx in gx for yy in gy),)
+                if len(gx) != len(gy)
+                else tuple(tuple(1 - xx*yy for xx in gx) for yy in gy)
+                for gx in x for gy in y), tuple())
 
 
 @cached_function
@@ -335,6 +347,17 @@ def Omega_higher(a, exponents):
         (z0*z1*z2 + z0*z1 + z0*z2 + 1, (z0, z0*z1^2, z0*z2^2))
         sage: Omega_higher(0, (2, 1, -1))
         (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1, (z0, z1, z0*z2^2, z1*z2))
+
+    ::
+
+        sage: Omega_higher(0, (2, -2))
+        (-z0*z1 + 1, (z0, z0*z1, z0*z1))
+        sage: Omega_higher(0, (2, -3))
+        (z0^2*z1 + 1, (z0, z0^3*z1^2))
+        sage: Omega_higher(0, (3, 1, -3))
+        (-z0^3*z1^3*z2^3 + 2*z0^2*z1^3*z2^2 - z0*z1^3*z2
+         + z0^2*z2^2 - 2*z0*z2 + 1,
+         (z0, z1, z0*z2, z0*z2, z0*z2, z1^3*z2))
     """
     import logging
     logger = logging.getLogger(__name__)

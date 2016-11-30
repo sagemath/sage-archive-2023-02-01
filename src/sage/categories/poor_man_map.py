@@ -14,21 +14,60 @@ class PoorManMap(sage.structure.sage_object.SageObject):
     A class for maps between sets which are not (yet) modeled by parents
 
     Could possibly disappear when all combinatorial classes / enumerated sets will be parents
+
+    INPUT:
+
+    - ``function`` -- a callable or an iterable of callables. This represents
+      the underlying function used to implement this map. If it is an iterable,
+      then the callables will be composed to implement this map.
+
+    - ``domain`` -- the domain of this map or ``None`` if the domain is not
+      known or should remain unspecified.
+
+    - ``codomain`` -- the codomain of this map or ``None`` if the codomain is
+      not known or should remain unspecified.
+
+    - ``name`` -- a name for this map or ``None`` if this map has no particular
+      name.
+
+    EXAMPLES::
+
+        sage: from sage.categories.poor_man_map import PoorManMap
+        sage: f = PoorManMap(factorial, domain = (1, 2, 3), codomain = (1, 2, 6))
+        sage: f
+        A map from (1, 2, 3) to (1, 2, 6)
+        sage: f(3)
+        6
+
+    The composition of several functions can be created by passing in a tuple
+    of functions::
+
+        sage: i = PoorManMap((factorial, sqrt), domain= (1, 4, 9), codomain = (1, 2, 6))
+
+    However, the same effect can also be achieved by just composing maps::
+
+        sage: g = PoorManMap(factorial, domain = (1, 2, 3), codomain = (1, 2, 6))
+        sage: h = PoorManMap(sqrt,  domain = (1, 4, 9), codomain = (1, 2, 3))
+        sage: i == g*h
+        True
+
     """
     def __init__(self, function, domain = None, codomain = None, name = None):
         """
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.categories.poor_man_map import PoorManMap
-            sage: f = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6])
-            sage: f
-            A map from [1, 2, 3] to [1, 2, 6]
-            sage: f(3)
-            6
+            sage: f = PoorManMap(factorial, domain = (1, 2, 3), codomain = (1, 2, 6))
+            sage: g = PoorManMap(sqrt, domain = (1, 4, 9), codomain = (1, 2, 6))
+
             sage: TestSuite(f).run()
+            sage: TestSuite(f*g).run()
 
         """
-        self._function = function
+        from collections import Iterable
+        if not isinstance(function, Iterable):
+            function = (function,)
+        self._functions = tuple(function)
         self._domain = domain
         self._codomain = codomain
         self._name = name
@@ -40,12 +79,12 @@ class PoorManMap(sage.structure.sage_object.SageObject):
             sage: from sage.categories.poor_man_map import PoorManMap
             sage: PoorManMap(lambda x: x+2)  # indirect doctest
             A map
-            sage: PoorManMap(lambda x: x+2, domain = [1,2,3])
-            A map from [1, 2, 3]
             sage: PoorManMap(lambda x: x+2, domain = (1,2,3))
             A map from (1, 2, 3)
-            sage: PoorManMap(lambda x: x+2, codomain = [3,4,5])
-            A map to [3, 4, 5]
+            sage: PoorManMap(lambda x: x+2, domain = (1,2,3))
+            A map from (1, 2, 3)
+            sage: PoorManMap(lambda x: x+2, codomain = (3,4,5))
+            A map to (3, 4, 5)
 
         """
         return ((self._name if self._name is not None else "A map") +
@@ -59,8 +98,8 @@ class PoorManMap(sage.structure.sage_object.SageObject):
         EXAMPLES::
 
             sage: from sage.categories.poor_man_map import PoorManMap
-            sage: PoorManMap(lambda x: x+1, domain = [1,2,3], codomain = [2,3,4]).domain()
-            [1, 2, 3]
+            sage: PoorManMap(lambda x: x+1, domain = (1,2,3), codomain = (2,3,4)).domain()
+            (1, 2, 3)
         """
         return self._domain
 
@@ -71,43 +110,54 @@ class PoorManMap(sage.structure.sage_object.SageObject):
         EXAMPLES::
 
             sage: from sage.categories.poor_man_map import PoorManMap
-            sage: PoorManMap(lambda x: x+1, domain = [1,2,3], codomain = [2,3,4]).codomain()
-            [2, 3, 4]
+            sage: PoorManMap(lambda x: x+1, domain = (1,2,3), codomain = (2,3,4)).codomain()
+            (2, 3, 4)
         """
         return self._codomain
 
-    def _richcmp_(self, other, op):
+    def __eq__(self, other):
         r"""
-        Return the result of comparing this map to ``other`` with respect to
-        ``op``.
+        Return whether this map is equal to ``other``.
 
         EXAMPLES::
 
             sage: from sage.categories.poor_man_map import PoorManMap
-            sage: f = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6])
-            sage: g = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6])
-            sage: h1 = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6,8])
-            sage: h2 = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6,8])
-            sage: h3 = PoorManMap(factorial, domain = [1,2,3,4], codomain = [1,2,6])
-            sage: h4 = PoorManMap(lambda x: x, domain = [1,2,3], codomain = [1,2,6])
+            sage: f = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6))
+            sage: g = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6))
+            sage: h1 = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6,8))
+            sage: h2 = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6,8))
+            sage: h3 = PoorManMap(factorial, domain = (1,2,3,4), codomain = (1,2,6))
+            sage: h4 = PoorManMap(lambda x: x, domain = (1,2,3), codomain = (1,2,6))
             sage: f == g, f == h1, f == h2, f == h3, f == h4, f == 1, 1 == f
             (True, False, False, False, False, False, False)
 
+        """
+        if isinstance(other, PoorManMap):
+            return (self._functions == other._functions
+                    and self._domain == other._domain
+                    and self._codomain == other._codomain
+                    and self._name == other._name)
+        else:
+            return False
+
+    def __ne__(self, other):
+        r"""
+        Return whether this map is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.categories.poor_man_map import PoorManMap
+            sage: f = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6))
+            sage: g = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6))
+            sage: h1 = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6,8))
+            sage: h2 = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6,8))
+            sage: h3 = PoorManMap(factorial, domain = (1,2,3,4), codomain = (1,2,6))
+            sage: h4 = PoorManMap(lambda x: x, domain = (1,2,3), codomain = (1,2,6))
             sage: f != g, f != h1, f != h2, f != h3, f != h4, f != 1, 1 != f
             (False, True, True, True, True, True, True)
-        """
-        if op == 2: # ==
-            if isinstance(other, PoorManMap):
-                return (self._function == other._function
-                        and self._domain == other._domain
-                        and self._codomain == other._codomain
-                        and self._name == other._name)
-            else:
-                return False
-        if op == 3: # !=
-            return not (self == other)
 
-        raise NotImplementedError
+        """
+        return not (self == other)
 
     def __hash__(self):
         r"""
@@ -116,13 +166,13 @@ class PoorManMap(sage.structure.sage_object.SageObject):
         TESTS::
 
             sage: from sage.categories.poor_man_map import PoorManMap
-            sage: f = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6])
-            sage: g = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6])
+            sage: f = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6))
+            sage: g = PoorManMap(factorial, domain = (1,2,3), codomain = (1,2,6))
             sage: hash(f) == hash(g)
             True
 
         """
-        return hash((self._function, self._domain, self._codomain, self._name))
+        return hash((self._functions, self._domain, self._codomain, self._name))
 
     def __mul__(self, other):
         """
@@ -137,56 +187,38 @@ class PoorManMap(sage.structure.sage_object.SageObject):
         EXAMPLES::
 
             sage: from sage.categories.poor_man_map import PoorManMap
-            sage: f = PoorManMap(lambda x: x+1, domain = [1,2,3], codomain = [2,3,4])
-            sage: g = PoorManMap(lambda x: -x,  domain = [2,3,4], codomain = [-2,-3,-4])
+            sage: f = PoorManMap(lambda x: x+1, domain = (1,2,3), codomain = (2,3,4))
+            sage: g = PoorManMap(lambda x: -x,  domain = (2,3,4), codomain = (-2,-3,-4))
             sage: f*g
-            A map from [2, 3, 4] to [2, 3, 4]
+            A map from (2, 3, 4) to (2, 3, 4)
 
-        """
-        return PoorManComposeMap(self, other)
-
-    def __call__(self, *args):
-        """
-        EXAMPLES::
-
-            sage: from sage.categories.poor_man_map import PoorManMap
-            sage: f = PoorManMap(lambda x: x+1, domain = [1,2,3], codomain = [2,3,4])
-            sage: f(2)
-            3
-        """
-        return self._function(*args)
-
-class PoorManComposeMap(PoorManMap):
-    def __init__(self, f, g):
-        """
-        EXAMPLES::
-
-            sage: from sage.categories.poor_man_map import PoorManMap
-            sage: f = PoorManMap(factorial, domain = [1,2,3], codomain = [1,2,6])
-            sage: g = PoorManMap(sqrt,  domain = [1,4,9], codomain = [1,2,3])
-            sage: h = f*g
-            sage: h.codomain()
-            [1, 2, 6]
-            sage: h.domain()
-            [1, 4, 9]
-            sage: TestSuite(h).run()
         """
         try:
-            domain = g.domain()
+            domain = other.domain()
         except AttributeError:
             domain = None
 
-        PoorManMap.__init__((f,g), domain, f.codomain())
+        if isinstance(other, PoorManMap):
+            other = other._functions
+        else:
+            other = (other,)
+
+        return PoorManMap(self._functions + other, domain=domain, codomain=self.codomain())
 
     def __call__(self, *args):
         """
         EXAMPLES::
 
             sage: from sage.categories.poor_man_map import PoorManMap
-            sage: f = PoorManMap(lambda x: x+1, domain = [1,2,3], codomain = [2,3,4])
-            sage: g = PoorManMap(lambda x: -x,  domain = [2,3,4], codomain = [-2,-3,-4])
+            sage: f = PoorManMap(lambda x: x+1, domain = (1,2,3), codomain = (2,3,4))
+            sage: f(2)
+            3
+
+            sage: g = PoorManMap(lambda x: -x,  domain = (2,3,4), codomain = (-2,-3,-4))
             sage: (f*g)(2)
             -1
 
         """
-        return self._function[0](self._function[1](*args))
+        for function in reversed(self._functions):
+            args = [function(*args)]
+        return args[0]

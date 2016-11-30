@@ -1437,7 +1437,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             y
             sage: (T^2 + T + x).factor() # indirect doctest
             (T + y) * (T + y + 1)
-            sage: (y * T^2 + T + x).factor() # indirect doctest
+            sage: (y*T^2 + y*T + y*x).factor() # indirect doctest
+            (y) * (T + y) * (T + y + 1)
 
         """
         from sage.structure.factorization import Factorization
@@ -1479,15 +1480,15 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             sage: K.<a> = GF(4)
             sage: R.<b> = K[]
-            sage: L.<b> = K.extension(b^2+b+a); l
+            sage: L.<b> = K.extension(b^2+b+a); L
             Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^2 with modulus b^2 + b + a
-            sage: from_M, to_M, M = L.absolute_extension(); M
+            sage: from_M, to_M, M = L._isomorphic_ring(); M
             Finite Field in z4 of size 2^4
 
             sage: R.<c> = L[]
             sage: M.<c> = L.extension(c^2+b*c+b); M
             Univariate Quotient Polynomial Ring in c over Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^2 with modulus b^2 + b + a with modulus c^2 + b*c + b
-            sage: from_N, to_N, N = M.absolute_extension(); N
+            sage: from_N, to_N, N = M._isomorphic_ring(); N
             Finite Field in z8 of size 2^8
 
         TESTS:
@@ -1496,7 +1497,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             sage: K.<a> = GF(4)
             sage: R.<b> = K[]
-            sage: R.quo(b)._isomorphic_ring()
+            sage: from_L, to_L, L = R.quo(b)._isomorphic_ring(); L
             Finite Field in a of size 2^2
 
         """
@@ -1582,7 +1583,11 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         tester = self._tester(**options)
 
-        from_isomorphic_ring, to_isomorphic_ring, ring = self._isomorphic_ring()
+        try:
+            from_isomorphic_ring, to_isomorphic_ring, ring = self._isomorphic_ring()
+        except NotImplementedError:
+            return
+
         tester.assertNotIsInstance(ring, PolynomialQuotientRing_generic)
         for x in tester.some_elements():
             y = to_isomorphic_ring(x)

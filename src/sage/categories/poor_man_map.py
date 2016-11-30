@@ -27,13 +27,13 @@ class PoorManMap(sage.structure.sage_object.SageObject):
       then the callables will be composed to implement this map.
 
     - ``domain`` -- the domain of this map or ``None`` if the domain is not
-      known or should remain unspecified.
+      known or should remain unspecified
 
     - ``codomain`` -- the codomain of this map or ``None`` if the codomain is
-      not known or should remain unspecified.
+      not known or should remain unspecified
 
     - ``name`` -- a name for this map or ``None`` if this map has no particular
-      name.
+      name
 
     EXAMPLES::
 

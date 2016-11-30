@@ -27,6 +27,7 @@ TESTS::
 
 #*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
+#                     2016 Julian Rüth <julian.rueth@fsfe.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -65,8 +66,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     INPUT:
 
 
-    -  ``ring`` - a univariate polynomial ring in one
-       variable.
+    -  ``ring`` - a univariate polynomial ring
 
     -  ``polynomial`` - element with unit leading coefficient
 
@@ -1420,6 +1420,175 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                 gens.append(poly_gen)
 
         return gens
+
+    def _factor_univariate_polynomial(self, f):
+        r"""
+        Return the factorization of ``f`` over this ring.
+
+        TESTS::
+
+            sage: K = GF(2)
+            sage: R.<x> = K[]
+            sage: L.<x> = K.extension(x^2 + x + 1)
+            sage: R.<y> = L[]
+            sage: M.<y> = L.extension(y^2 + y + x)
+            sage: R.<T> = M[]
+            sage: R(y).factor() # indirect doctest
+            y
+            sage: (T^2 + T + x).factor() # indirect doctest
+            (T + y) * (T + y + 1)
+            sage: (y * T^2 + T + x).factor() # indirect doctest
+
+        """
+        from sage.structure.factorization import Factorization
+
+        if f.is_zero():
+            raise ValueError("factorization of 0 not defined")
+
+        unit = f.leading_coefficient()
+        if not unit.is_unit():
+            raise NotImplementedError("factorization of polynomials with non-unit leading coefficient")
+        unit = f.parent()(unit)
+
+        f = f.monic()
+        if f.degree() == 0:
+            return Factorization(unit=unit)
+        elif f.degree() == 1:
+            return Factorization([(f,1)], unit=unit)
+        else:
+            from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring = self._isomorphic_ring()
+            g = f.map_coefficients(to_isomorphic_ring)
+            F = g.factor()
+            unit *= g.parent()(F.unit()).map_coefficients(from_isomorphic_ring)
+            return Factorization([(factor.map_coefficients(from_isomorphic_ring), e) for factor,e in F], unit=unit)
+
+    @cached_method
+    def _isomorphic_ring(self):
+        """
+        Return a ring isomorphic to this ring which is not a
+        :class:`PolynomialQuotientRing` but of a type which offers more
+        functionality.
+
+        OUTPUT:
+
+        a triple ``from, to, ring`` consisting of an isomorphism from the
+        isomorphic ring to this ring, the inverse of that isomorphism, and the
+        isomorphic ring
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(4)
+            sage: R.<b> = K[]
+            sage: L.<b> = K.extension(b^2+b+a); l
+            Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^2 with modulus b^2 + b + a
+            sage: from_M, to_M, M = L.absolute_extension(); M
+            Finite Field in z4 of size 2^4
+
+            sage: R.<c> = L[]
+            sage: M.<c> = L.extension(c^2+b*c+b); M
+            Univariate Quotient Polynomial Ring in c over Univariate Quotient Polynomial Ring in b over Finite Field in a of size 2^2 with modulus b^2 + b + a with modulus c^2 + b*c + b
+            sage: from_N, to_N, N = M.absolute_extension(); N
+            Finite Field in z8 of size 2^8
+
+        TESTS:
+
+        Verify that this works for trivial extensions::
+
+            sage: K.<a> = GF(4)
+            sage: R.<b> = K[]
+            sage: R.quo(b)._isomorphic_ring()
+            Finite Field in a of size 2^2
+
+        """
+        from sage.categories.homset import Hom
+        from sage.categories.morphism import SetMorphism
+
+        if isinstance(self.base_ring(), PolynomialQuotientRing_generic):
+            # rewrite this ring over the isomorphic version of the base ring
+            isomorphic_base_to_base, base_to_isomorphic_base, isomorphic_base = self.base_ring()._isomorphic_ring()
+            modulus = self.modulus().map_coefficients(base_to_isomorphic_base)
+            isomorphic_quotient = modulus.parent().quo(modulus)
+            # and construct the isomorphism
+            from_isomorphic_quotient = SetMorphism(Hom(isomorphic_quotient, self),
+                lambda f: f.lift().map_coefficients(isomorphic_base_to_base)(self.gen()))
+            to_isomorphic_quotient = SetMorphism(Hom(self, isomorphic_quotient),
+                lambda f: f.lift().map_coefficients(base_to_isomorphic_base)(isomorphic_quotient.gen()))
+
+            # recursively try to rewrite the isomorphic_quotient
+            isomorphic_ring_to_isomorphic_quotient, isomorphic_quotient_to_isomorphic_ring, isomorphic_ring = isomorphic_quotient._isomorphic_ring()
+            
+            return (from_isomorphic_quotient * isomorphic_ring_to_isomorphic_quotient,
+                isomorphic_quotient_to_isomorphic_ring *  to_isomorphic_quotient,
+                isomorphic_ring)
+
+        if self.modulus().degree() == 1:
+            # this quotient is a trivial extension of the base ring, we can just
+            # return the base ring
+            isomorphic_ring = self.base_ring()
+            from_isomorphic_ring = isomorphic_ring.hom(self)
+            to_isomorphic_ring = SetMorphism(Hom(self, isomorphic_ring), lambda f: f.lift())
+            return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
+
+        if self.is_finite() and self.is_field():
+            # for a finite field, we return the isomorphic simple extensions of
+            # the underlying prime field
+            N = self.cardinality()
+            from sage.rings.all import GF
+            isomorphic_ring = GF(N)
+
+            # the map to GF(N) maps our generator to a root of our modulus in the isomorphic_ring
+            base_gen = isomorphic_ring.subfields(degree=self.base_ring().degree())[0][0].gen()
+            base_to_isomorphic_ring = self.base_ring().hom([isomorphic_ring(base_gen)])
+            modulus = self.modulus().map_coefficients(base_to_isomorphic_ring)
+            gen = modulus.any_root(assume_squarefree=True, degree=-1)
+            to_isomorphic_ring = SetMorphism(Hom(self, isomorphic_ring),
+                lambda f: f.lift().map_coefficients(base_to_isomorphic_ring)(gen))
+
+            # For the map from GF(N) we need to figure out where the primitive
+            # element of GF(N) goes. We write down a basis of self over GF(p),
+            # send it to isomorphic_ring, and solve the linear equation which
+            # writes the primitive element of GF(N) as a linear combination of
+            # that basis.
+            basis = [self.gen()**i*self.base_ring().gen()**j
+                for i in range(self.degree())
+                for j in range(self.base_ring().degree())]
+            assert(len(basis) == isomorphic_ring.degree())
+            from sage.matrix.constructor import matrix
+            A = matrix([to_isomorphic_ring(b)._vector_() for b in basis])
+            assert(A.is_square())
+            # solve x*A = (0,1,0,…,0)
+            x = A.solve_left(A.column_space().basis()[1])
+            primitive_element = sum(c*b for c,b in zip(x.list(), basis))
+            from_isomorphic_ring = isomorphic_ring.hom([primitive_element], check=False)
+            
+            return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
+
+        raise NotImplementedError("can not rewrite %r as an isomorphic ring"%(self,))
+
+    def _test_isomorphic_ring(self, **options):
+        r"""
+        Check that :meth:`_isomorphic_ring` works correctly.
+
+        TESTS::
+
+            sage: K.<a> = GF(4)
+            sage: R.<b> = K[]
+            sage: L.<b> = K.extension(b^2+b+a)
+            sage: L._test_isomorphic_ring()
+            sage: R.<c> = L[]
+            sage: M.<c> = L.extension(c^2+b*c+b)
+            sage: M._test_isomorphic_ring()
+
+        """
+        tester = self._tester(**options)
+
+        from_isomorphic_ring, to_isomorphic_ring, ring = self._isomorphic_ring()
+        tester.assertNotIsInstance(ring, PolynomialQuotientRing_generic)
+        for x in tester.some_elements():
+            y = to_isomorphic_ring(x)
+            tester.assertIn(y, ring)
+            tester.assertEqual(from_isomorphic_ring(y), x)
+
 
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDomain):
     """

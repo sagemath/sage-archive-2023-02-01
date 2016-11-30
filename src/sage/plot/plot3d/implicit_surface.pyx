@@ -1,5 +1,5 @@
 r"""
-Graphics 3D object for representing and triangulating isosurfaces.
+Graphics 3D Object for Representing and Triangulating Isosurfaces.
 
 AUTHORS:
 
@@ -959,6 +959,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: G = ImplicitSurface(x^2 + y^2 + z^2, (x,-2, 2), (y,-2, 2), (z,-2, 2), contour=4, color=(t,cm))
             sage: G.show(viewer='tachyon')
         """
+        self._extra_kwds = kwds
         color_data = None
         if 'color' in kwds:
             try:

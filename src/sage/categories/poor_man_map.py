@@ -52,7 +52,7 @@ class PoorManMap(sage.structure.sage_object.SageObject):
     However, the same effect can also be achieved by just composing maps::
 
         sage: g = PoorManMap(factorial, domain = (1, 2, 3), codomain = (1, 2, 6))
-        sage: h = PoorManMap(sqrt,  domain = (1, 4, 9), codomain = (1, 2, 3))
+        sage: h = PoorManMap(sqrt, domain = (1, 4, 9), codomain = (1, 2, 3))
         sage: i == g*h
         True
 

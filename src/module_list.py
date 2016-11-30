@@ -1363,7 +1363,7 @@ ext_modules = [
 
     Extension('sage.rings.number_field.number_field_element_quadratic',
               sources = ['sage/rings/number_field/number_field_element_quadratic.pyx'],
-              libraries=['ntl'],
+              libraries=['ntl', 'mpfi'],
               language = 'c++'),
 
     Extension('sage.rings.number_field.number_field_morphisms',

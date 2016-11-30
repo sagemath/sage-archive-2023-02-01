@@ -611,7 +611,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.reverse(I)
             Traceback (most recent call last):
             ...
-            ValueError: cannot convert I + 1 to int
+            ValueError: can not convert complex algebraic number to real interval
 
         We check that this specialized implementation is compatible with the
         generic one::

@@ -123,9 +123,9 @@ def Omega_numerator(a, n, m):
 
     .. MATH::
 
-        \Omega_{\ge} \frac{\lambda^a}{
-        (1 - x_1 \lambda) \dots (1 - x_n \lambda)
-        (1 - y_1 / \lambda) \dots (1 - y_m / \lambda)
+        \Omega_{\ge} \frac{\mu^a}{
+        (1 - x_1 \mu) \dots (1 - x_n \mu)
+        (1 - y_1 / \mu) \dots (1 - y_m / \mu)
 
     and returns its numerator.
 
@@ -225,8 +225,8 @@ def Omega_factors_denominator(n, m):
     .. MATH::
 
         \Omega_{\ge} \frac{1}{
-        (1 - x_1 \lambda) \dots (1 - x_n \lambda)
-        (1 - y_1 / \lambda) \dots (1 - y_m / \lambda)
+        (1 - x_1 \mu) \dots (1 - x_n \mu)
+        (1 - y_1 / \mu) \dots (1 - y_m / \mu)
 
     and returns a factorization of its denominator.
 
@@ -295,8 +295,8 @@ def Omega_higher(a, exponents):
 
     .. MATH::
 
-        \Omega_{\ge} \frac{\lambda^a}{
-        (1 - z_1 \lambda^{e_1}) \dots (1 - z_n \lambda^{e_n})
+        \Omega_{\ge} \frac{\mu^a}{
+        (1 - z_1 \mu^{e_1}) \dots (1 - z_n \mu^{e_n})
 
     and returns its numerator and a factorization of its denominator.
 
@@ -632,10 +632,10 @@ def _Omega_(A, decoded_factors):
     INPUT:
 
     - ``A`` -- a dictionary mapping `a` to `c` representing a summand
-      `c\lambda^a` of the numerator.
+      `c\mu^a` of the numerator.
 
     - ``decoded_factors`` -- a tuple or list of pairs `(z, e)` representing
-      a factor `1 - z \lambda^e`.
+      a factor `1 - z \mu^e`.
 
     OUTPUT:
 
@@ -975,7 +975,7 @@ def generating_function_of_polyhedron(polyhedron, indices=None):
             logger.debug('generating_function_of_polyhedron: '
                          'skipping %s', pretty_inequality(coeffs))
             continue
-        L = LaurentPolynomialRing(L, 'lambda{}'.format(i), sparse=True)
+        L = LaurentPolynomialRing(L, 'mu{}'.format(i), sparse=True)
         l = L.gen()
         logger.debug('generating_function_of_polyhedron: '
                      '%s --> %s', l, pretty_inequality(coeffs))
@@ -993,7 +993,7 @@ def generating_function_of_polyhedron(polyhedron, indices=None):
         exponent, coefficient = next(iteritems(D))
         return coefficient, exponent
 
-    while repr(numerator.parent().gen()).startswith('lambda'):
+    while repr(numerator.parent().gen()).startswith('mu'):
         logger.info('generating_function_of_polyhedron: '
                     'applying Omega[%s]...', numerator.parent().gen())
 

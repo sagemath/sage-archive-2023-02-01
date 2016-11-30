@@ -2239,10 +2239,12 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: B(T[1,2])
                 B[1,2] - (1/2-1/2*v^2)*B[1] - (1/2-1/2*v^2)*B[2] + (1/2-v^2+1/2*v^4)
             """
-            T=self.realization_of().T()
-            Bw=T(self.realization_of().A()[w])
-            odd=[v for v in Bw.support() if v<>w and (v.length()-w.length())%2==0]
-            return Bw-T.sum(Bw.coefficient(v)*self.to_T_basis(v) for v in odd)
+            T = self.realization_of().T()
+            Bw = T(self.realization_of().A()[w])
+            odd = [v for v in Bw.support()
+                   if v != w and not (v.length() - w.length()) % 2]
+            return Bw - T.sum(Bw.coefficient(v) * self.to_T_basis(v)
+                              for v in odd)
 
         def goldman_involution_on_basis(self, w):
             r"""

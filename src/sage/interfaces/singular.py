@@ -1442,19 +1442,21 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         else:
             P.eval('%s[%s] = %s'%(self.name(), n, value.name()))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Returns True if this Singular element is not zero.
+        Returns ``True`` if this Singular element is not zero.
 
         EXAMPLES::
 
-            sage: singular(0).__nonzero__()
+            sage: bool(singular(0))
             False
-            sage: singular(1).__nonzero__()
+            sage: bool(singular(1))
             True
         """
         P = self.parent()
-        return P.eval('%s == 0'%self.name()) == '0'
+        return P.eval('%s == 0' % self.name()) == '0'
+
+    __nonzero__ = __bool__
 
     def sage_polystring(self):
         r"""

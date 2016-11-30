@@ -736,7 +736,7 @@ class GraphClasses(UniqueRepresentation):
 
             sage: t = graph_classes.inclusions()
             sage: type(t)
-            <type 'list'>
+            <... 'list'>
             sage: t[0]
             {'sub': 'gc_1', 'super': 'gc_2'}
         """

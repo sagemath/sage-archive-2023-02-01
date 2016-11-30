@@ -322,7 +322,7 @@ class FreeModuleTensor(ModuleElement):
 
     ####### Required methods for ModuleElement (beside arithmetic) #######
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
@@ -336,28 +336,29 @@ class FreeModuleTensor(ModuleElement):
             sage: t.add_comp(e)
             3-indices components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
-            sage: t.__nonzero__()  # unitialized components are zero
+            sage: bool(t)  # unitialized components are zero
             False
             sage: t == 0
             True
             sage: t[e,1,0,2] = 4  # setting a non-zero component in basis e
             sage: t.display()
             4 e_1*e_0*e^2
-            sage: t.__nonzero__()
+            sage: bool(t)
             True
             sage: t == 0
             False
             sage: t[e,1,0,2] = 0
             sage: t.display()
             0
-            sage: t.__nonzero__()
+            sage: bool(t)
             False
             sage: t == 0
             True
-
         """
         basis = self.pick_a_basis()
         return not self._components[basis].is_zero()
+
+    __nonzero__ = __bool__
 
     ##### End of required methods for ModuleElement (beside arithmetic) #####
 

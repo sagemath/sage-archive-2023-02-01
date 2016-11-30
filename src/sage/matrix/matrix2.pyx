@@ -7541,7 +7541,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         ncols = self.ncols()
         nrows = self.nrows()
-        if N.ncols() <> ncols or N.nrows() <> nrows:
+        if N.ncols() != ncols or N.nrows() != nrows:
             if check:
                 return (False, None)
             else:

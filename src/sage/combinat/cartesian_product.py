@@ -137,7 +137,7 @@ class CartesianProduct_iters(CombinatorialClass):
         sage: c = cartesian_product([F1, F2, F3])
 
         sage: type(C.an_element())
-        <type 'list'>
+        <... 'list'>
         sage: type(c.an_element())
         <class 'sage.sets.cartesian_product.CartesianProduct_with_category.element_class'>
 

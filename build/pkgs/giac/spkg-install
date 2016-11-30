@@ -54,8 +54,9 @@ echo "Configuring giac..."
 
 
 #    --disable-ao     (avoid libao deps)
+#    --disable-lapack (avoid lapack and blas deps because they could be from the base system)
 
-./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-ao
+./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-ao --disable-lapack
 
 if [ $? -ne 0 ]; then
     exit 1

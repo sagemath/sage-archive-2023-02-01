@@ -9695,7 +9695,7 @@ class Sloane(SageObject):
         EXAMPLES::
 
             sage: type(sloane.trait_names())
-            <type 'list'>
+            <... 'list'>
         """
         try:
             return self.__trait_names

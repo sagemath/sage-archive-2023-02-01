@@ -147,11 +147,11 @@ cdef class PowerSeries_poly(PowerSeries):
         EXAMPLES::
 
             sage: R.<t> = GF(11)[[]]
-            sage: (1 + t + O(t^18)).__nonzero__()
+            sage: bool(1 + t + O(t^18))
             True
-            sage: R(0).__nonzero__()
+            sage: bool(R(0))
             False
-            sage: O(t^18).__nonzero__()
+            sage: bool(O(t^18))
             False
         """
         return not not self.__f

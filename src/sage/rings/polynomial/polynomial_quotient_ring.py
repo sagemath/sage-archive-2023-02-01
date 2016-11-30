@@ -1533,9 +1533,11 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             # we need to pass in the category explicitly because Hom is cached
             # and someone might have called Hom before we found out about the
             # new category of self
-            from_isomorphic_quotient = SetMorphism(Hom(isomorphic_quotient, self, category),
+            homspace = Hom(isomorphic_quotient, self, category)
+            from_isomorphic_quotient = homspace.__make_element_class__(SetMorphism)(homspace,
                 lambda f: f.lift().map_coefficients(isomorphic_base_to_base)(self.gen()))
-            to_isomorphic_quotient = SetMorphism(Hom(self, isomorphic_quotient, category),
+            homspace = Hom(self, isomorphic_quotient, category)
+            to_isomorphic_quotient = homspace.__make_element_class__(SetMorphism)(homspace,
                 lambda f: f.lift().map_coefficients(base_to_isomorphic_base)(isomorphic_quotient.gen()))
 
             return (from_isomorphic_quotient * isomorphic_ring_to_isomorphic_quotient,
@@ -1562,7 +1564,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             # and otherwise we get just the homspace in the "Category of homsets
             # of unital magmas and additive unital additive magmas"
             category = isomorphic_ring.category() | self.category()
-            to_isomorphic_ring = SetMorphism(Hom(self, isomorphic_ring, category), lambda f: isomorphic_ring(f.lift()))
+            homspace = Hom(self, isomorphic_ring, category)
+            to_isomorphic_ring = homspace.__make_element_class__(SetMorphism)(homspace, lambda f: isomorphic_ring(f.lift()))
             return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
 
         if self.is_finite() and self.is_field():
@@ -1581,7 +1584,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             # and otherwise we get just the homspace in the "Category of homsets
             # of unital magmas and additive unital additive magmas"
             category = isomorphic_ring.category() | self.category()
-            to_isomorphic_ring = SetMorphism(Hom(self, isomorphic_ring, category),
+            homspace = Hom(self, isomorphic_ring, category)
+            to_isomorphic_ring = homspace.__make_element_class__(SetMorphism)(homspace,
                 lambda f: f.lift().map_coefficients(base_to_isomorphic_ring)(gen))
 
             # For the map from GF(N) we need to figure out where the primitive

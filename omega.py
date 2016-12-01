@@ -375,6 +375,7 @@ def Omega_higher(a, exponents):
     logger.info('Omega_higher: a=%s, exponents=%s', a, exponents)
 
     from sage.arith.misc import lcm
+    from sage.arith.srange import srange
     from sage.misc.functional import cyclotomic_polynomial
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
@@ -384,20 +385,22 @@ def Omega_higher(a, exponents):
     if not exponents or any(e == 0 for e in exponents):
         raise NotImplementedError
 
-    x = tuple(e for e in exponents if e > 0)
-    y = tuple(-e for e in exponents if e < 0)
-    n = sum(x)
-    m = sum(y)
-
-    rou = sorted(set(x + y) - set([1]))
+    rou = sorted(set(abs(e) for e in exponents) - set([1]))
     ellcm = lcm(rou)
     B = QQ.extension(cyclotomic_polynomial(ellcm), 'zeta')
     zeta = B.gen()
-    L = LaurentPolynomialRing(B, tuple('z{}'.format(nn)
-                                       for nn in range(len(exponents))))
+    z_names = tuple('z{}'.format(i) for i in range(len(exponents)))
+    L = LaurentPolynomialRing(B, ('t',) + z_names)
+    t = L.gens()[0]
+    Z = LaurentPolynomialRing(ZZ, z_names)
     powers = {i: L(zeta**(ellcm//i)) for i in rou}
     powers[2] = L(-1)
     powers[1] = L(1)
+    exponents_and_values = tuple(
+        (e, tuple(powers[abs(e)]**j * z for j in srange(abs(e))))
+        for z, e in zip(L.gens()[1:], exponents))
+    x = tuple(v for e, v in exponents_and_values if e > 0)
+    y = tuple(v for e, v in exponents_and_values if e < 0)
 
     def subs_power(expression, var, exponent, value=None):
         r"""
@@ -415,28 +418,20 @@ def Omega_higher(a, exponents):
             return result
         return result.subs({var: value})
 
-    Z = L.change_ring(ZZ)
-
     def de_power(expression):
         expression = Z(expression)
-        for e, var in zip(exponents, L.gens()):
+        for e, var in zip(exponents, Z.gens()):
             if abs(e) == 1:
                 continue
             expression = subs_power(expression, var, abs(e))
         return expression
 
-    xy_vars = _laurent_polynomial_ring_(n, m)[1]
-    x_vars = iter(xy_vars[:n])
-    y_vars = iter(xy_vars[n:])
-    rules = {next(x_vars) if e > 0 else next(y_vars):
-             powers[abs(e)]**j * var
-             for e, var in zip(exponents, L.gens()) for j in range(abs(e))}
     logger.debug('Omega_higher: preparing denominator')
-    factors_denominator = tuple(de_power(1 - prod(f.subs(rules) for f in factors))
-                                for factors in Omega_factors_denominator(x, y))
+    factors_denominator = tuple(de_power(1 - factor)
+                                for factor in Omega_factors_denominator(x, y))
 
     logger.debug('Omega_higher: preparing numerator')
-    numerator = de_power(Omega_numerator(a, n, m).subs(rules))
+    numerator = de_power(Omega_numerator(a, x, y, t))
 
     logger.info('Omega_higher: completed')
     return numerator, factors_denominator

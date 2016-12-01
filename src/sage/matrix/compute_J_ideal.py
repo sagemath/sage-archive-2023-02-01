@@ -81,7 +81,7 @@ REFERENCES:
    principal ideal domains. Linear Algebra Appl., 494:44--69, 2016.
 
 .. [HR2016] Clemens Heuberger and Roswitha Rissner, Computing `J`-Ideals of a
-   Matrix Over a Principal Ideal Domain, Preprint, 2016.
+   Matrix Over a Principal Ideal Domain, :arxiv:`1611.10308`, 2016.
 
 AUTHORS:
 

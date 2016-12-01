@@ -34,8 +34,6 @@ from sage.misc.misc import uniq
 from sage.matrix.constructor import Matrix
 from .refinement_binary cimport NonlinearBinaryCodeStruct, refine_by_bip_degree
 from .double_coset cimport double_coset
-from sage.structure.sage_object cimport richcmp_not_equal
-from cpython.object cimport Py_LT
 
 
 cdef class MatrixStruct:
@@ -298,7 +296,7 @@ cdef int compare_matrices(int *gamma_1, int *gamma_2, void *S1, void *S2, int de
     rows2 = sorted(MM2.rows())
     if rows1 == rows2:
         return 0
-    return -1 if richcmp_not_equal(rows1, rows2, Py_LT) else 1
+    return -1 if rows1 < rows2 else 1
 
 cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, void *S):
     return 0

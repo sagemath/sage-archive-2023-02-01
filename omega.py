@@ -78,8 +78,7 @@ def _laurent_polynomial_ring_(n, m):
                               tuple('y{}'.format(mm) for mm in range(m)))
     return L, L.gens()
 
-
-def Omega_numerator_P(a, x, y):
+def Omega_numerator_P(a, x, y, t):
     import logging
     logger = logging.getLogger(__name__)
 
@@ -88,19 +87,19 @@ def Omega_numerator_P(a, x, y):
 
     n = len(x)
     if n == 1:
-        x0 = x[0]
+        x0 = t
         result = x0**(-a) + \
             (prod(1 - x0*yy for yy in y) *
              sum(HomogenousSymmetricFunction(j, y) * (1-x0**(j-a))
                  for j in srange(a))
              if a > 0 else 0)
     else:
-        Pprev = Omega_numerator_P(a, x[:n-1], y)
-        x1 = x[n-1]
+        Pprev = Omega_numerator_P(a, x[:n-1], y, t)
         x2 = x[n-2]
         logger.debug('Omega_numerator: P(%s): substituting...', n)
-        p1 = Pprev.subs({x2: x1})
-        p2 = Pprev
+        x1 = t
+        p1 = Pprev
+        p2 = Pprev.subs({t: x2})
         logger.debug('Omega_numerator: P(%s): preparing...', n)
         dividend = x1 * (1-x2) * prod(1 - x2*yy for yy in y) * p1 - \
                 x2 * (1-x1) * prod(1 - x1*yy for yy in y) * p2

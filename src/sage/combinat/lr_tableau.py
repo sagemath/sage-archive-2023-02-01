@@ -281,7 +281,7 @@ def is_littlewood_richardson(t, heights):
         w = sum(reversed(t), [])
     for i in range(len(heights)):
         subword = Word([j for j in w if partial[i]+1 <= j <= partial[i+1]],
-                       alphabet=range(partial[i]+1,partial[i+1]+1))
+                       alphabet=list(range(partial[i]+1,partial[i+1]+1)))
         if not subword.is_yamanouchi():
             return False
     return True

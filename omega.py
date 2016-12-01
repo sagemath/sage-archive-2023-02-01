@@ -111,8 +111,7 @@ def Omega_numerator_P(a, x, y, t):
     return result
 
 
-@cached_function
-def Omega_numerator(a, n, m):
+def Omega_numerator(a, x, y, t):
     r"""
     Return the numerator of `\Omega_{\ge}` of the expression
     specified by the input.
@@ -131,7 +130,9 @@ def Omega_numerator(a, n, m):
 
     - ``a`` -- an integer.
 
-    - ``n`` and ``m`` -- nonnegative integers.
+    - ``x`` and ``y`` -- list/tuple of laurent polynomials.
+
+    - ``t`` -- a temporary laurent polynomial variable used for substituting.
 
     OUTPUT:
 
@@ -139,68 +140,81 @@ def Omega_numerator(a, n, m):
 
     EXAMPLES::
 
-        sage: Omega_numerator(0, 1, 1)
+        sage: L.<x0, x1, x2, x3, y0, y1, t> = LaurentPolynomialRing(ZZ)
+        sage: Omega_numerator(0, ((x0,),), ((y0,),), t)
         1
-        sage: Omega_numerator(0, 2, 1)
+        sage: Omega_numerator(0, ((x0,), (x1,)), ((y0,),), t)
         -x0*x1*y0 + 1
-        sage: Omega_numerator(0, 1, 2)
+        sage: Omega_numerator(0, ((x0,),), ((y0,), (y1,)), t)
         1
-        sage: Omega_numerator(0, 3, 1)
+        sage: Omega_numerator(0, ((x0,), (x1,), (x2,)), ((y0,),), t)
         x0*x1*x2*y0^2 + x0*x1*x2*y0 - x0*x1*y0 - x0*x2*y0 - x1*x2*y0 + 1
-        sage: Omega_numerator(0, 2, 2)
+        sage: Omega_numerator(0, ((x0,), (x1,)), ((y0,), (y1,)), t)
         x0^2*x1*y0*y1 + x0*x1^2*y0*y1 - x0*x1*y0*y1 - x0*x1*y0 - x0*x1*y1 + 1
 
-        sage: Omega_numerator(-2, 1, 1)
+        sage: Omega_numerator(-2, ((x0,),), ((y0,),), t)
         x0^2
-        sage: Omega_numerator(-1, 1, 1)
+        sage: Omega_numerator(-1, ((x0,),), ((y0,),), t)
         x0
-        sage: Omega_numerator(1, 1, 1)
+        sage: Omega_numerator(1, ((x0,),), ((y0,),), t)
         -x0*y0 + y0 + 1
-        sage: Omega_numerator(2, 1, 1)
+        sage: Omega_numerator(2, ((x0,),), ((y0,),), t)
         -x0*y0^2 - x0*y0 + y0^2 + y0 + 1
 
     TESTS::
 
-        sage: Omega_factors_denominator(0, 0)
+        sage: Omega_factors_denominator((), ())
         ()
-        sage: Omega_numerator(0, 0, 0)
+        sage: Omega_numerator(0, (), (), t)
         1
-        sage: Omega_numerator(+2, 0, 0)
+        sage: Omega_numerator(+2, (), (), t)
         1
-        sage: Omega_numerator(-2, 0, 0)
+        sage: Omega_numerator(-2, (), (), t)
         0
 
-        sage: Omega_factors_denominator(1, 0)
-        ((1 - x0,),)
-        sage: Omega_numerator(0, 1, 0)
+        sage: Omega_factors_denominator(((x0,),), ())
+        (-x0 + 1,)
+        sage: Omega_numerator(0, ((x0,),), (), t)
         1
-        sage: Omega_numerator(+2, 1, 0)
+        sage: Omega_numerator(+2, ((x0,),), (), t)
         1
-        sage: Omega_numerator(-2, 1, 0)
+        sage: Omega_numerator(-2, ((x0,),), (), t)
         x0^2
 
-        sage: Omega_factors_denominator(0, 1)
+        sage: Omega_factors_denominator((), ((y0,),))
         ()
-        sage: Omega_numerator(0, 0, 1)
+        sage: Omega_numerator(0, (), ((y0,),), t)
         1
-        sage: Omega_numerator(+2, 0, 1)
-        1 + y0 + y0^2
-        sage: Omega_numerator(-2, 0, 1)
+        sage: Omega_numerator(+2, (), ((y0,),), t)
+        y0^2 + y0 + 1
+        sage: Omega_numerator(-2, (), ((y0,),), t)
         0
+
+    ::
+
+        sage: L.<X, Y, t> = LaurentPolynomialRing(ZZ)
+        sage: Omega_numerator(2, ((X,),), ((Y,),), t)
+        -X*Y^2 - X*Y + Y^2 + Y + 1
     """
+    from sage.arith.srange import srange
+    from sage.misc.misc_c import prod
+
+    x_flat = sum(x, tuple())
+    y_flat = sum(y, tuple())
+    n = len(x_flat)
+    m = len(y_flat)
+    xy = x_flat + y_flat
+    if xy:
+        XY = xy[0].parent()
+    else:
+        XY = ZZ
+
     import logging
     logger = logging.getLogger(__name__)
     logger.info('Omega_numerator: a=%s, n=%s, m=%s', a, n, m)
 
-    from sage.arith.srange import srange
-    from sage.misc.misc_c import prod
-
-    XY, xy = _laurent_polynomial_ring_(n, m)
-    x = xy[:n]
-    y = xy[n:]
-
     if m == 0:
-        result = 1 - (prod(prod(f) for f in Omega_factors_denominator(n, m)) *
+        result = 1 - (prod(Omega_factors_denominator(x, y)) *
                       sum(HomogenousSymmetricFunction(j, xy)
                           for j in srange(-a))
                       if a < 0 else 0)
@@ -208,7 +222,8 @@ def Omega_numerator(a, n, m):
         result = sum(HomogenousSymmetricFunction(j, xy)
                       for j in srange(a+1))
     else:
-        result = Omega_numerator_P(a, x, y)
+        result = Omega_numerator_P(a, x_flat, y_flat, t).subs({t: x_flat[-1]})
+
     result = XY(result)
     try:
         nt = result.number_of_terms()

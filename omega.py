@@ -218,8 +218,9 @@ def Omega_numerator(a, n, m):
     logger.info('Omega_numerator: %s terms', nt)
     return result
 
+
 @cached_function
-def Omega_factors_denominator(n, m):
+def Omega_factors_denominator(x, y):
     r"""
     Return the denominator of `\Omega_{\ge}` of the expression
     specified by the input.
@@ -248,64 +249,53 @@ def Omega_factors_denominator(n, m):
 
     EXAMPLES::
 
-        sage: Omega_factors_denominator(1, 1)
-        ((-x0 + 1,), (-x0*y0 + 1,))
-        sage: Omega_factors_denominator(1, 2)
-        ((-x0 + 1,), (-x0*y0 + 1,), (-x0*y1 + 1,))
-        sage: Omega_factors_denominator(2, 1)
-        ((-x0 + 1,), (-x1 + 1,), (-x0*y0 + 1,), (-x1*y0 + 1,))
-        sage: Omega_factors_denominator(3, 1)
-        ((-x0 + 1,), (-x1 + 1,), (-x2 + 1,),
-         (-x0*y0 + 1,), (-x1*y0 + 1,), (-x2*y0 + 1,))
-        sage: Omega_factors_denominator(2, 2)
-        ((-x0 + 1,), (-x1 + 1,), (-x0*y0 + 1,),
-         (-x0*y1 + 1,), (-x1*y0 + 1,), (-x1*y1 + 1,))
+        sage: L.<x0, x1, x2, x3, y0, y1> = LaurentPolynomialRing(ZZ)
+        sage: Omega_factors_denominator(((x0,),), ((y0,),))
+        (-x0 + 1, -x0*y0 + 1)
+        sage: Omega_factors_denominator(((x0,),), ((y0,), (y1,)))
+        (-x0 + 1, -x0*y0 + 1, -x0*y1 + 1)
+        sage: Omega_factors_denominator(((x0,), (x1,)), ((y0,),))
+        (-x0 + 1, -x1 + 1, -x0*y0 + 1, -x1*y0 + 1)
+        sage: Omega_factors_denominator(((x0,), (x1,), (x2,)), ((y0,),))
+        (-x0 + 1, -x1 + 1, -x2 + 1, -x0*y0 + 1, -x1*y0 + 1, -x2*y0 + 1)
+        sage: Omega_factors_denominator(((x0,), (x1,)), ((y0,), (y1,)))
+        (-x0 + 1, -x1 + 1, -x0*y0 + 1, -x0*y1 + 1, -x1*y0 + 1, -x1*y1 + 1)
 
     ::
 
-        sage: Omega_factors_denominator((2,), (2,))
-        ((-x0 + 1, -x1 + 1),
-         (-x0*y0 + 1, -x1*y0 + 1), (-x0*y1 + 1, -x1*y1 + 1))
-        sage: Omega_factors_denominator((2,), (3,))
-        ((-x0 + 1, -x1 + 1),
-         (-x0*y0 + 1, -x0*y1 + 1, -x0*y2 + 1,
-          -x1*y0 + 1, -x1*y1 + 1, -x1*y2 + 1))
+        sage: B.<zeta> = ZZ.extension(cyclotomic_polynomial(3))
+        sage: L.<x, y> = LaurentPolynomialRing(B)
+        sage: Omega_factors_denominator(((x, -x),), ((y,),))
+        (-x^2 + 1, -x^2*y^2 + 1)
+        sage: Omega_factors_denominator(((x, -x),), ((y, zeta*y, zeta^2*y),))
+        (-x^2 + 1, -x^6*y^6 + 1)
+        sage: Omega_factors_denominator(((x, -x),), ((y, -y),))
+        (-x^2 + 1, -x^2*y^2 + 1, -x^2*y^2 + 1)
 
     TESTS::
 
-        sage: Omega_factors_denominator(0, 0)
+        sage: L.<x0, y0> = LaurentPolynomialRing(ZZ)
+        sage: Omega_factors_denominator((), ())
         ()
-        sage: Omega_factors_denominator(1, 0)
-        ((1 - x0,),)
-        sage: Omega_factors_denominator(0, 1)
+        sage: Omega_factors_denominator(((x0,),), ())
+        (-x0 + 1,)
+        sage: Omega_factors_denominator((), ((y0,),))
         ()
     """
     import logging
     logger = logging.getLogger(__name__)
 
-    if isinstance(n, tuple):
-        x = n
-        n = sum(x)
-    else:
-        x = tuple(1 for _ in range(n))
-    if isinstance(m, tuple):
-        y = m
-        m = sum(y)
-    else:
-        y = tuple(1 for _ in range(m))
+    from sage.misc.misc_c import prod
 
-    ixy = iter(_laurent_polynomial_ring_(n, m)[1])
-    x = tuple(tuple(next(ixy) for _ in range(nx)) for nx in x)
-    y = tuple(tuple(next(ixy) for _ in range(my)) for my in y)
+    result = tuple(prod(1 - xx for xx in gx) for gx in x) + \
+             sum(((prod(1 - xx*yy for xx in gx for yy in gy),)
+                  if len(gx) != len(gy)
+                  else tuple(prod(1 - xx*yy for xx in gx) for yy in gy)
+                  for gx in x for gy in y),
+                 tuple())
 
-    nf = sum(len(gx) for gx in x) * (1 + sum(len(gy) for gy in y))
-    logger.info('Omega_denominator: %s factors', nf)
-
-    return tuple(tuple(1 - xx for xx in gx) for gx in x) + \
-           sum(((tuple(1 - xx*yy for xx in gx for yy in gy),)
-                if len(gx) != len(gy)
-                else tuple(tuple(1 - xx*yy for xx in gx) for yy in gy)
-                for gx in x for gy in y), tuple())
+    logger.info('Omega_denominator: %s factors', len(result))
+    return result
 
 
 @cached_function

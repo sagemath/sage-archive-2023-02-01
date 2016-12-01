@@ -356,11 +356,20 @@ def Omega_higher(a, exponents):
         (-z0^3*z1^3*z2^3 + 2*z0^2*z1^3*z2^2 - z0*z1^3*z2
          + z0^2*z2^2 - 2*z0*z2 + 1,
          (z0, z1, z0*z2, z0*z2, z0*z2, z1^3*z2))
+
+    ::
+
+        sage: Omega_higher(0, (3, 6, -1))
+        (-z0*z1*z2^8 - z0*z1*z2^7 - z0*z1*z2^6 - z0*z1*z2^5 - z0*z1*z2^4 +
+         z1*z2^5 - z0*z1*z2^3 + z1*z2^4 - z0*z1*z2^2 + z1*z2^3 -
+         z0*z1*z2 + z0*z2^2 + z1*z2^2 + z0*z2 + z1*z2 + 1,
+         (z0, z1, z0*z2^3, z1*z2^6))
     """
     import logging
     logger = logging.getLogger(__name__)
     logger.info('Omega_higher: a=%s, exponents=%s', a, exponents)
 
+    from sage.arith.misc import lcm
     from sage.misc.functional import cyclotomic_polynomial
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
@@ -375,13 +384,13 @@ def Omega_higher(a, exponents):
     n = sum(x)
     m = sum(y)
 
-    xy = sorted(set(x + y) - set([1]))
-    B = QQ.extension(
-        list(cyclotomic_polynomial(r) for r in xy),
-        tuple('rho{}'.format(i) for i in range(len(xy))))
+    rou = sorted(set(x + y) - set([1]))
+    ellcm = lcm(rou)
+    B = QQ.extension(cyclotomic_polynomial(ellcm), 'zeta')
+    zeta = B.gen()
     L = LaurentPolynomialRing(B, tuple('z{}'.format(nn)
                                        for nn in range(len(exponents))))
-    powers = dict(zip(xy, iter(L(g) for g in B.gens())))
+    powers = {i: L(zeta**(ellcm//i)) for i in rou}
     powers[2] = L(-1)
     powers[1] = L(1)
 

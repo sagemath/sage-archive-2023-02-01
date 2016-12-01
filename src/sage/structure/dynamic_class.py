@@ -91,7 +91,7 @@ tedious. Furthermore, this would require a cumbersome mechanism to
 lookup the appropriate class depending on the desired combination.
 
 Instead, one may use the ability of Python to create new classes
-dynamicaly::
+dynamically::
 
     type("class name", tuple of base classes, dictionary of methods)
 

@@ -220,7 +220,7 @@ class MPowerSeries(PowerSeries):
     #
     # _mul_prec : works just fine
     #
-    # __nonzero__ : works just fine
+    # __bool__ : works just fine
     #
     """
     Multivariate power series; these are the elements of Multivariate Power
@@ -1690,9 +1690,9 @@ class MPowerSeries(PowerSeries):
             sage: aa.is_gen()
             False
             sage: aa.integral(aa)
-            -2*a^2
+            3*a^2
             sage: aa.integral(a)
-            -2*a^2
+            3*a^2
         """
         P = self.parent()
         R = P.base_ring()

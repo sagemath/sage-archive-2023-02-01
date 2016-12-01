@@ -101,7 +101,6 @@ We also do not support coercion from a subalgebra, or between free
 algebras with different term orderings, yet.
 
 """
-from six.moves import range
 
 from sage.all import PolynomialRing, prod
 from sage.libs.singular.function import lib, singular_function
@@ -251,6 +250,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
               running ._test_eq() . . . pass
+              running ._test_new() . . . pass
               running ._test_nonzero_equal() . . . pass
               running ._test_not_implemented_methods() . . . pass
               running ._test_pickling() . . . pass
@@ -260,6 +260,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
             running ._test_elements_eq_transitive() . . . pass
             running ._test_elements_neq() . . . pass
             running ._test_eq() . . . pass
+            running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -614,7 +615,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         cdef list tmp
         for i from 0<=i<nblocks:
             base = i*ngens
-            tmp = [(j,E[base+j]) for j in range(ngens) if E[base+j]]
+            tmp = [(j,E[base+j]) for j in xrange(ngens) if E[base+j]]
             if not tmp:
                 continue
             var_ind, exp = tmp[0]
@@ -652,7 +653,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         cdef list names = self.latex_variable_names()
         for i from 0<=i<nblocks:
             base = i*ngens
-            tmp = [(j,E[base+j]) for j in range(ngens) if E[base+j]]
+            tmp = [(j,E[base+j]) for j in xrange(ngens) if E[base+j]]
             if not tmp:
                 continue
             var_ind, exp = tmp[0]
@@ -709,7 +710,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         degbound = self._degbound
         cdef list G = [C(x._poly) for x in g]
         for y in G:
-            out.extend([y]+[singular_system("stest",y,n+1,degbound,ngens,ring=C) for n in range(d-y.degree())])
+            out.extend([y]+[singular_system("stest",y,n+1,degbound,ngens,ring=C) for n in xrange(d-y.degree())])
         return C.ideal(out)
 
     ###########################

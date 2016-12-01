@@ -29,11 +29,10 @@ AUTHORS:
 #*****************************************************************************
 # python3
 from __future__ import division
-
+from six.moves import range
 from builtins import zip
 from six import itervalues
 
-import itertools
 import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -1068,9 +1067,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         sage: L
         Finite lattice containing 7 elements
         sage: L.category()
-        Join of Category of finite lattice posets
-         and Category of finite enumerated sets
-         and Category of facade sets
+        Category of facade finite enumerated lattice posets
     """
     def __init__(self, n, use_monotone_triangles=None):
         r"""
@@ -1809,7 +1806,7 @@ class ContreTableaux_n(ContreTableaux):
         if i == 0:
             yield []
         elif i == 1:
-            yield [range(1, self.n+1)]
+            yield [list(range(1, self.n + 1))]
         else:
             for columns in self._iterator_rec(i-1):
                 previous_column = columns[-1]

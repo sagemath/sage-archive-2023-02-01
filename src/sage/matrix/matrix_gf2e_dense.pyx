@@ -51,6 +51,7 @@ AUTHOR:
 TESTS::
 
     sage: TestSuite(sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense).run(verbose=True)
+    running ._test_new() . . . pass
     running ._test_pickling() . . . pass
 
 TODO:
@@ -60,10 +61,8 @@ TODO:
 
 REFERENCES:
 
-.. [BB09] Tomas J. Boothby and Robert W. Bradshaw. *Bitslicing
-   and the Method of Four Russians Over Larger Finite Fields* .
-   arXiv:0901.1413v1, 2009.
-   http://arxiv.org/abs/0901.1413
+- [BB2009]_
+
 """
 
 #*****************************************************************************
@@ -409,7 +408,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sage: A*B == A._multiply_classical(B)
             True
 
-        .. note::
+        .. NOTE::
 
             This function is very slow. Use ``*`` operator instead.
         """
@@ -539,7 +538,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         The idea behind Karatsuba multiplication for matrices over
         `\GF{p^n}` is to treat these matrices as polynomials with
         coefficients of matrices over `\GF{p}`. Then, Karatsuba-style
-        formulas can be used to perform multiplication, cf. [BB09]_.
+        formulas can be used to perform multiplication, cf. [BB2009]_.
 
         INPUT:
 

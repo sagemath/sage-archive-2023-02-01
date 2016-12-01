@@ -1,7 +1,7 @@
 r"""
 Base class for old-style parent objects with generators
 
-.. note::
+.. NOTE::
 
    This class is being deprecated, see
    ``sage.structure.parent.Parent`` and
@@ -216,10 +216,6 @@ cdef class ParentWithGens(ParentWithBase):
         d['_list'] = self._list
         d['_names'] = self._names
         d['_latex_names'] = self._latex_names
-        try:
-            d['_generator_orders'] = self._generator_orders
-        except AttributeError:
-            pass
 
         return d
 
@@ -228,7 +224,6 @@ cdef class ParentWithGens(ParentWithBase):
             return parent.Parent.__setstate__(self, d)
         try:
             self.__dict__.update(d)
-            self._generator_orders = d['_generator_orders']
         except (AttributeError,KeyError):
             pass
         self._base = d['_base']
@@ -262,7 +257,7 @@ cdef class ParentWithGens(ParentWithBase):
 
         - a homomorphism self --> codomain
 
-        .. note::
+        .. NOTE::
 
            As a shortcut, one can also give an object X instead of
            ``im_gens``, in which case return the (if it exists)
@@ -359,7 +354,7 @@ cdef class localvars:
         ....:     print(x^3 + y^3 - x*y)
         z^3 + w^3 - z*w
 
-    .. note::
+    .. NOTE::
 
        I wrote this because it was needed to print elements of the
        quotient of a ring R by an ideal I using the print function for

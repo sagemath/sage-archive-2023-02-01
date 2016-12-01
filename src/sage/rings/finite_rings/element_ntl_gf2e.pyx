@@ -22,7 +22,7 @@ AUTHORS:
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.paridecl cimport *
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -34,7 +34,7 @@ from sage.rings.ring cimport Ring
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 
 from sage.libs.pari.all import pari
-from sage.libs.pari.gen cimport gen
+from sage.libs.cypari2.gen cimport gen
 
 from sage.interfaces.gap import is_GapElement
 

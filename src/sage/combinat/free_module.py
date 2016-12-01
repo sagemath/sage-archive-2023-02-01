@@ -20,7 +20,6 @@ from sage.misc.misc import repr_lincomb
 from sage.modules.module import Module
 from sage.rings.all import Integer
 import sage.structure.element
-from sage.combinat.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.combinat.cartesian_product import CartesianProduct_iters
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -195,7 +194,7 @@ class CombinatorialFreeModuleElement(Element):
             [('c', 2), ('b', 3), ('a', 1)]
             sage: F.print_options(sorting_reverse=False) #reset to original state
 
-        .. seealso:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
+        .. SEEALSO:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self.parent().print_options()
         v = self._monomial_coefficients.items()

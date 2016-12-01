@@ -123,7 +123,7 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: C.__class__
             <class 'sage.combinat.integer_vector_weighted.WeightedIntegerVectors_all_with_category'>
             sage: C.category()
-            Join of Category of sets with grading and Category of infinite enumerated sets
+            Category of infinite enumerated sets with grading
             sage: TestSuite(C).run()
         """
         self._weights = weights
@@ -261,13 +261,13 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
 
             sage: ivw = [ WeightedIntegerVectors(k, [1,1,1]) for k in range(11) ]
             sage: iv  = [ IntegerVectors(k, 3) for k in range(11) ]
-            sage: all( [ sorted(iv[k].list()) == sorted(ivw[k].list()) for k in range(11) ] )
+            sage: all(sorted(iv[k].list()) == sorted(ivw[k].list()) for k in range(11))
             True
 
         ::
 
             sage: ivw = [ WeightedIntegerVectors(k, [2,3,7]) for k in range(11) ]
-            sage: all( [ i.cardinality() == len(i.list()) for i in ivw] )
+            sage: all(i.cardinality() == len(i.list()) for i in ivw)
             True
         """
         if not self._weights:

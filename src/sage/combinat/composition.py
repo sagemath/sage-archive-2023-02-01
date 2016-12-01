@@ -43,7 +43,6 @@ from .integer_lists import IntegerListsLex
 from six.moves import builtins
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
 class Composition(CombinatorialElement):
@@ -1964,7 +1963,7 @@ class Compositions_n(Compositions):
 
         TESTS::
 
-            sage: all([Compositions(10).random_element() in Compositions(10) for i in range(20)])
+            sage: all(Compositions(10).random_element() in Compositions(10) for i in range(20))
             True
         """
         from sage.misc.prandom import choice
@@ -1997,7 +1996,7 @@ def composition_iterator_fast(n):
         sage: L = list(composition_iterator_fast(4)); L
         [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
         sage: type(L[0])
-        <type 'list'>
+        <... 'list'>
     """
     # Special cases
     if n < 0:

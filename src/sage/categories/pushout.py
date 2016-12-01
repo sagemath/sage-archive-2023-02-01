@@ -2340,7 +2340,7 @@ class CompletionFunctor(ConstructionFunctor):
 
         TESTS:
 
-        We check that #12353 has been resolved::
+        We check that :trac:`12353` has been resolved::
 
             sage: RealIntervalField(53)(-1) > RR(1)
             False
@@ -3201,6 +3201,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
         sage: FG(ZZ).parent()
         Gap
         sage: FS(QQ['t'])
+        polynomial ring, over a field, global ordering
         //   characteristic : 0
         //   number of vars : 1
         //        block   1 : ordering lp

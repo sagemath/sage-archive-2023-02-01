@@ -39,8 +39,7 @@ Authors:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -58,8 +57,8 @@ from sage.misc.flatten import flatten
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.tableau import Tableaux
 from sage.combinat.composition import Composition
-from . import cartesian_product
 import copy
+
 
 def WeakTableau(t, k, inner_shape = [], representation = "core"):
     r"""
@@ -194,7 +193,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
         sage: t = WeakTableau([[2,0],[3,2],[1,0]], 3, representation = "bla")
         Traceback (most recent call last):
         ...
-        NotImplementedError: The representation option needs to be 'core', 'bounded', or 'factorized_permuation'
+        NotImplementedError: The representation option needs to be 'core', 'bounded', or 'factorized_permutation'
     """
     if representation == "core":
         return WeakTableau_core(t, k)
@@ -203,7 +202,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableau_factorized_permutation(t, k, inner_shape = inner_shape)
     else:
-        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 def WeakTableaux(k, shape , weight, representation = "core"):
     r"""
@@ -267,7 +266,7 @@ def WeakTableaux(k, shape , weight, representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableaux_factorized_permutation(k, shape, weight)
     else:
-        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 #Abstract class for the elements of weak tableau
 class WeakTableau_abstract(ClonableList):

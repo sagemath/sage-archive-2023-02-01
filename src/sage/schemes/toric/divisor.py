@@ -1135,7 +1135,7 @@ class ToricDivisor_generic(Divisor_generic):
         .. NOTE::
 
             * For a QQ-Cartier divisor, some positive integral
-              multiple is Cartier. We return wheher this associtated
+              multiple is Cartier. We return whether this associated
               divisor is ample, i.e. corresponds to an ample line bundle.
 
             * In the orbifold case, the ample cone is an open
@@ -1220,7 +1220,7 @@ class ToricDivisor_generic(Divisor_generic):
         .. NOTE::
 
             * For a `\QQ`-Cartier divisor, some positive integral multiple is
-              Cartier. We return wheher this associtated divisor is nef.
+              Cartier. We return whether this associated divisor is nef.
 
             * The nef cone is the closure of the ample cone.
 
@@ -1721,7 +1721,7 @@ class ToricDivisor_generic(Divisor_generic):
         cohomology. For toric divisors, the local sections can be
         chosen to be monomials (instead of general homogeneous
         polynomials), this is the reason for the extra grading by
-        `m\in M`. General refrences would be [Fulton]_, [CLS]_. Here
+        `m\in M`. General refrences would be [Fu1993]_, [CLS]_. Here
         are some salient features of our implementation:
 
         * First, a finite set of `M`-lattice points is identified that

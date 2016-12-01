@@ -1086,13 +1086,13 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         from sage.structure.factorization import Factorization
         if self.is_equivalence_unit(f):
-            return Factorization([],unit=f)
+            return Factorization([], unit=f, sort=False)
 
         if not self.domain().base_ring().is_field():
             domain = self.domain().change_ring(self.domain().base_ring().fraction_field())
             v = self.extension(domain)
             ret = v.equivalence_decomposition(v.domain()(f))
-            return Factorization([(g.change_ring(self.domain().base_ring()),e) for g,e in ret], unit=ret.unit().change_ring(self.domain().base_ring()))
+            return Factorization([(g.change_ring(self.domain().base_ring()),e) for g,e in ret], unit=ret.unit().change_ring(self.domain().base_ring()), sort=False)
 
         R, phi_divides, F = self._equivalence_reduction(f)
         F = F.factor()
@@ -1115,7 +1115,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             else:
                 F.append((self.phi(),phi_divides))
 
-        ret = Factorization(F, unit=unit)
+        ret = Factorization(F, unit=unit, sort=False)
 
         assert self.is_equivalent(ret.prod(), f) # this might fail because of leading zeros in inexact rings
         assert self.is_equivalence_unit(ret.unit())
@@ -1192,7 +1192,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         assert self.is_minimal(ret)
 
         from sage.structure.factorization import Factorization
-        ret = Factorization([(ret, 1)], unit=e)
+        ret = Factorization([(ret, 1)], unit=e, sort=False)
 
         assert self.is_equivalent(ret.prod(), f) # this might fail because of leading zeros
         return ret

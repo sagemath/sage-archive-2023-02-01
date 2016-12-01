@@ -105,7 +105,11 @@ def __init__(self, *args, **kwargs):
     self.__old_init__(*args, **kwargs)
     from sage.categories.morphism import SetMorphism
     self._ring.register_conversion(SetMorphism(self.Hom(self._ring), self._to_polynomial))
-    self.constant_base_field().register_conversion(SetMorphism(self.Hom(self.constant_base_field()), self._to_constant))
+    try:
+        self.constant_base_field().register_conversion(SetMorphism(self.Hom(self.constant_base_field()), self._to_constant))
+    except AssertionError:
+        # since #21872 there is already such a conversion
+        pass
 
 sage.rings.function_field.function_field.RationalFunctionField.__init__ = __init__
 del(__init__)

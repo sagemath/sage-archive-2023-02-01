@@ -73,7 +73,7 @@ static CanonicalForm replace_with_symbol(const ex& e, ex_int_map& map, exvector&
 
 const CanonicalForm basic::to_canonical(ex_int_map& map, exvector& revmap)
 {
-        throw std::runtime_error("basic::to_polynome: can't happen");
+        throw std::runtime_error("can't happen in basic::to_canonical");
 }
 
 // Convert to Singulat polynomial over ZZ, filling replacement dicts
@@ -102,11 +102,11 @@ const CanonicalForm ex::to_canonical(ex_int_map& map, exvector& revmap) const
                         numeric re = num.real();
                         numeric im = num.imag();
                         CanonicalForm re_p, im_p;
-                        if (re.is_integer() or re.is_rational())
+                        if (re.is_rational())
                                 re_p = num2canonical(re);
                         else
                                 re_p = replace_with_symbol(re, map, revmap);
-                        if (im.is_integer() or im.is_rational())
+                        if (im.is_rational())
                                 im_p = num2canonical(im);
                         else
                                 im_p = replace_with_symbol(im, map, revmap);
@@ -157,17 +157,16 @@ static ex coeff_to_ex(const CanonicalForm& f, const exvector& revmap)
         if (f.isImm())
                 return numeric(f.intval());
         if (f.inZ())
-                throw std::runtime_error("can't happen #1");
+                throw std::runtime_error("can't happen in coeff_to_ex");
         if (f.inQ()) {
                 CanonicalForm num = f.num();
                 CanonicalForm den = f.den();
                 return can2num(num)/can2num(den);
         }
         ex res = _ex0;
-        for ( CFIterator I = f; I.hasTerms(); I++ ) {
-//std::cerr<<"Lev: "<<f.level()<<", exp: "<<i.exp()<<"\n";
-                res += mul(GiNaC::power(revmap[f.level()-1], I.exp()),
-                                 coeff_to_ex(I.coeff(), revmap));
+        for ( CFIterator it = f; it.hasTerms(); it++ ) {
+                res += mul(GiNaC::power(revmap.at(f.level()-1), it.exp()),
+                                 coeff_to_ex(it.coeff(), revmap));
         }
         return res;
 }
@@ -180,34 +179,36 @@ static ex canonical_to_ex(const CanonicalForm& f, const exvector& revmap)
                 if (f.isImm())
                         return numeric(f.intval());
                 if (f.inZ())
-                        throw std::runtime_error("can't happen #2");
-                        mpz_t bigint;
-                        f.mpzval(bigint);
-                        numeric n(bigint);
-                        mpz_clear(bigint);
-                        return n;
+                        throw std::runtime_error("can't happen in canonical_to_ex #1");
                 if (f.inQ()) {
                         CanonicalForm num = f.num();
                         CanonicalForm den = f.den();
                         mpz_t bigintnum, bigintden;
-                        num.mpzval(bigintnum);
-                        den.mpzval(bigintden);
+                        if (num.isImm()) {
+                                mpz_init(bigintnum);
+                                mpz_set_si (bigintnum, num.intval());
+                        }
+                        else
+                                num.mpzval(bigintnum);
                         numeric n(bigintnum);
+                        if (den.isImm()) {
+                                mpz_init(bigintden);
+                                mpz_set_si (bigintden, den.intval());
+                        }
+                        else
+                                den.mpzval(bigintden);
                         numeric d(bigintden);
-                        mpz_clear(bigintnum);
-                        mpz_clear(bigintden);
                         return n/d;
                 }
                 else {
-                        throw std::runtime_error("can't happen #3");
+                        throw std::runtime_error("can't happen in canonical_to_ex #2");
                 }
         }
 
         ex e = _ex0;
         for ( CFIterator i = f; i.hasTerms(); i++ ) {
-//std::cerr<<"Lev: "<<f.level()<<", exp: "<<i.exp()<<"\n";
                 e += mul(coeff_to_ex(i.coeff(), revmap),
-                                   power(revmap[f.level()-1], i.exp()));
+                                   power(revmap.at(f.level()-1), i.exp()));
         }
         return e;
 }

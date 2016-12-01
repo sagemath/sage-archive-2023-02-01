@@ -1003,10 +1003,7 @@ ex gcd(const ex &a, const ex &b)
 {
         if (is_exactly_a<numeric>(a) && is_exactly_a<numeric>(b))
                 return gcd(ex_to<numeric>(a), ex_to<numeric>(b));
-        exmap repl;
-        ex poly_a = a.to_rational(repl);
-        ex poly_b = b.to_rational(repl);
-        return gcdpoly(poly_a, poly_b).subs(repl, subs_options::no_pattern);
+        return gcdpoly(a, b);
 }
 
 } // namespace GiNaC

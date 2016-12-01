@@ -1081,3 +1081,24 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
         """
         return f(self.domain().fraction_field().gen())
+
+    def extensions(self, ring):
+        r"""
+        Return the extensions of this valuation to ``ring``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(GaussianIntegers(), 3)
+            sage: v.extensions(v.domain().fraction_field())
+            [3-adic valuation]
+
+        """
+        if ring is self.domain().fraction_field():
+            if self.domain() is not self.domain().fraction_field():
+                base_ring = self.domain().base_ring()
+                base_valuation = self.restriction(base_ring).extension(base_ring.fraction_field())
+                G = ring.relative_polynomial()
+                approximant = self._base_valuation.change_domain(G.parent())._initial_approximation
+                return [pAdicValuation(ring, approximant)]
+        return super(pAdicFromLimitValuation, self).extensions(ring)

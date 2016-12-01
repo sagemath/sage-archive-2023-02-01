@@ -7027,20 +7027,16 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = DiGraph(multiedges=True, loops=True)
             sage: G.is_hamiltonian()
-            Traceback (most recent call last):
-            ...
-            ValueError: the traveling salesman problem is not defined for empty or one-element graph
+            False
             sage: G.add_vertex(0)
             sage: G.is_hamiltonian()
-            Traceback (most recent call last):
-            ...
-            ValueError: the traveling salesman problem is not defined for empty or one-element graph
+            False
             sage: G.add_edge(0,0,1)
             sage: G.add_edge(0,0,2)
             sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
             Traceback (most recent call last):
             ...
-            ValueError: the traveling salesman problem is not defined for empty or one-element graph
+            EmptySetError: the given graph is not Hamiltonian
             sage: G.add_vertex(1)
             sage: G.is_hamiltonian()
             False
@@ -7089,7 +7085,7 @@ class GenericGraph(GenericGraph_pyx):
         ########################
 
         if self.order() < 2:
-            raise ValueError("the traveling salesman problem is not defined for empty or one-element graph")
+            raise EmptySetError("the given graph is not Hamiltonian")
 
         #####################
         # 2-vertices graphs #

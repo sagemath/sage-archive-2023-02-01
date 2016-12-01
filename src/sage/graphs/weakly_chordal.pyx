@@ -437,7 +437,7 @@ def is_weakly_chordal(g, certificate = False):
 
     TESTS::
 
-        sage: graphs.EmptyGraph().is_long_hole_free()
+        sage: graphs.EmptyGraph().is_weakly_chordal()
         True
 
     """

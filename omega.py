@@ -201,16 +201,22 @@ def Omega_numerator(a, n, m):
     y = xy[n:]
 
     if m == 0:
-        return XY(1 - (prod(prod(f) for f in Omega_factors_denominator(n, m)) *
-                       sum(HomogenousSymmetricFunction(j, xy)
-                           for j in srange(-a))
-                       if a < 0 else 0))
+        result = 1 - (prod(prod(f) for f in Omega_factors_denominator(n, m)) *
+                      sum(HomogenousSymmetricFunction(j, xy)
+                          for j in srange(-a))
+                      if a < 0 else 0)
     elif n == 0:
-        return XY(sum(HomogenousSymmetricFunction(j, xy)
-                      for j in srange(a+1)))
+        result = sum(HomogenousSymmetricFunction(j, xy)
+                      for j in srange(a+1))
     else:
-        return XY(Omega_numerator_P(a, x, y))
-
+        result = Omega_numerator_P(a, x, y)
+    result = XY(result)
+    try:
+        nt = result.number_of_terms()
+    except AttributeError:
+        nt = 1
+    logger.info('Omega_numerator: %s terms', nt)
+    return result
 
 @cached_function
 def Omega_factors_denominator(n, m):
@@ -274,6 +280,9 @@ def Omega_factors_denominator(n, m):
         sage: Omega_factors_denominator(0, 1)
         ()
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     if isinstance(n, tuple):
         x = n
         n = sum(x)
@@ -288,6 +297,9 @@ def Omega_factors_denominator(n, m):
     ixy = iter(_laurent_polynomial_ring_(n, m)[1])
     x = tuple(tuple(next(ixy) for _ in range(nx)) for nx in x)
     y = tuple(tuple(next(ixy) for _ in range(my)) for my in y)
+
+    nf = sum(len(gx) for gx in x) * (1 + sum(len(gy) for gy in y))
+    logger.info('Omega_denominator: %s factors', nf)
 
     return tuple(tuple(1 - xx for xx in gx) for gx in x) + \
            sum(((tuple(1 - xx*yy for xx in gx for yy in gy),)

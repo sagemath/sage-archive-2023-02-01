@@ -420,6 +420,8 @@ def symbolic_sum(expression, *args, **kwds):
 
       - ``'giac'`` - (optional) use Giac
 
+      - ``'sympy'`` - use SymPy
+
     EXAMPLES::
 
         sage: k, n = var('k,n')

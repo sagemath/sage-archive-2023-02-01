@@ -1775,9 +1775,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.<a> = GF(2**8)
             sage: x = polygen(K)
             sage: (x**2+x+1).any_root() # used to loop
-            Traceback (most recent call last):
-            ...
-            ValueError: no roots A 1
+            a^7 + a^6 + a^4 + a^2 + a + 1
             sage: (x**2+a+1).any_root()
             a^7 + a^2
 

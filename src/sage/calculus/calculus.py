@@ -564,7 +564,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         AttributeError: Unable to convert SymPy result (=Sum(1/(k**2 + 1),
         (k, -oo, oo))) into Sage
 
-    But SymPy can do this one for which Sage is broken (see
+    But SymPy can do this one for which Maxima is broken (see
     :trac:`22005`)::
 
         sage: sum(1/((2*n+1)^2-4)^2, n, 0, Infinity, algorithm='sympy')

@@ -1806,7 +1806,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = K[]
             sage: f = x^2 + x + a^2 + a
             sage: f.any_root()
-            a
+            a + 1
 
         """
         if self.base_ring().is_finite() and self.base_ring().is_field():

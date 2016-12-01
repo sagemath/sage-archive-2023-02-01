@@ -91,7 +91,8 @@ def to_constant(self, x):
 
 sage.rings.function_field.function_field.RationalFunctionField._to_polynomial = to_polynomial
 sage.rings.function_field.function_field.RationalFunctionField._to_constant = to_constant
-sage.rings.function_field.function_field.RationalFunctionField.__old_init__ = sage.rings.function_field.function_field.RationalFunctionField.__init__
+if not hasattr(sage.rings.function_field.function_field.RationalFunctionField, "__old_init__"):
+    sage.rings.function_field.function_field.RationalFunctionField.__old_init__ = sage.rings.function_field.function_field.RationalFunctionField.__init__
 def __init__(self, *args, **kwargs):
     r"""
     TESTS::

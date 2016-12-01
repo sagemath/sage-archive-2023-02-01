@@ -719,7 +719,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-    Test ``sage --rst2txt file.rst file.ipynb`` on a ReST file::
+    Test ``sage --rst2ipynb file.rst file.ipynb`` on a ReST file::
 
         sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
         sage: input = tmp_filename(ext='.rst')

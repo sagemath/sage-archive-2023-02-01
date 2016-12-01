@@ -119,7 +119,9 @@ def Omega_numerator(a, x, y, t):
 
     - ``a`` -- an integer.
 
-    - ``x`` and ``y`` -- list/tuple of laurent polynomials.
+    - ``x`` and ``y`` -- a tuple of tuples of laurent polynomials. The
+      flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
+      `y_1,...,y_m`.
 
     - ``t`` -- a temporary laurent polynomial variable used for substituting.
 
@@ -240,15 +242,14 @@ def Omega_factors_denominator(x, y):
 
     INPUT:
 
-    - ``n`` and ``m`` -- nonnegative integers or
-      tuples of nonnegative integers. The latter specifys how the factors
-      of the result are grouped. An integer (former case) corresponds to
-      a tuple consisting of that many `1`s.
+    - ``x`` and ``y`` -- a tuple of tuples of laurent polynomials. The
+      flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
+      `y_1,...,y_m`.
 
     OUTPUT:
 
     A factorization of the denominator as
-    a tuple of tuples of laurent polynomials.
+    a tuple of laurent polynomials.
 
     EXAMPLES::
 

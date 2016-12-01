@@ -265,24 +265,30 @@ class PadicValuationFactory(UniqueFactory):
             2-adic valuation
 
         """
-        # To make our lives easier, we move prime to the fraction field of R
+        # To make our lives easier, we rewrite v over the fraction field of R
         # which we denote in the following as L = K[x]/(G), do all computations
-        # there and then come back the original ring
+        # there and then come back to the original ring
         L = R.fraction_field()
         K = L.base_ring()
         G = L.relative_polynomial().change_ring(K)
 
-        # Lift v to a pseudo-valuation on K[x]
-        # First, we lift valuations defined on subrings of K to valuations on K[x]
-        if v.domain().fraction_field() is not G.parent().fraction_field():
-            if v.domain().is_subring(K):
-                if v.domain() is not K:
-                    v = pAdicValuation(K, v)
-                from gauss_valuation import GaussValuation
-                v = GaussValuation(G.parent(), v)
-        # Then, we lift valuations defined on polynmial rings which are subrings of K[x] to K[x]
-        if v.domain() != G.parent():
-            v = v.extension(G.parent())
+        if v.domain().is_subring(G.parent()):
+            # v is defined on a subring of K[x]
+            # We try to lift v to a pseudo-valuation on K[x]
+            # First, we lift valuations defined on subrings of K to valuations on K[x]
+            if v.domain().fraction_field() is not G.parent().fraction_field():
+                if v.domain().is_subring(K):
+                    if v.domain() is not K:
+                        v = pAdicValuation(K, v)
+                    from gauss_valuation import GaussValuation
+                    v = GaussValuation(G.parent(), v)
+            if v.domain() != G.parent():
+                # Then, we lift valuations defined on polynmial rings which are
+                # subrings of K[x] to K[x]
+                v = v.extension(G.parent())
+        else:
+            raise NotImplementedError("can not rewrite %r which is defined on %r as a pseudo-valuation on %r"%(v, v.domain(), G.parent()))
+            
         assert(v.domain() is G.parent())
 
         # To obtain uniqueness of p-adic valuations, we need a canonical

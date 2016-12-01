@@ -67,17 +67,6 @@ def HomogenousSymmetricFunction(j, x):
                for p in IntegerVectors(j, length=len(x)))
 
 
-def _laurent_polynomial_ring_(n, m):
-    from sage.rings.integer_ring import ZZ
-    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-
-    if n + m == 0:
-        return ZZ, tuple()
-    L = LaurentPolynomialRing(ZZ,
-                              tuple('x{}'.format(nn) for nn in range(n)) +
-                              tuple('y{}'.format(mm) for mm in range(m)))
-    return L, L.gens()
-
 def Omega_numerator_P(a, x, y, t):
     import logging
     logger = logging.getLogger(__name__)

@@ -207,7 +207,7 @@ def Omega_numerator(a, x, y, t):
                       if a < 0 else 0)
     elif n == 0:
         result = sum(HomogenousSymmetricFunction(j, xy)
-                      for j in srange(a+1))
+                     for j in srange(a+1))
     else:
         result = Omega_numerator_P(a, x_flat, y_flat, t).subs({t: x_flat[-1]})
     L = t.parent()

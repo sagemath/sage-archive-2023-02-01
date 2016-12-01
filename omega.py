@@ -195,10 +195,6 @@ def Omega_numerator(a, x, y, t):
     n = len(x_flat)
     m = len(y_flat)
     xy = x_flat + y_flat
-    if xy:
-        XY = xy[0].parent()
-    else:
-        XY = ZZ
 
     import logging
     logger = logging.getLogger(__name__)
@@ -214,13 +210,10 @@ def Omega_numerator(a, x, y, t):
                       for j in srange(a+1))
     else:
         result = Omega_numerator_P(a, x_flat, y_flat, t).subs({t: x_flat[-1]})
+    L = t.parent()
+    result = L(result)
 
-    result = XY(result)
-    try:
-        nt = result.number_of_terms()
-    except AttributeError:
-        nt = 1
-    logger.info('Omega_numerator: %s terms', nt)
+    logger.info('Omega_numerator: %s terms', result.number_of_terms())
     return result
 
 

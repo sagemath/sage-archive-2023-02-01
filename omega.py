@@ -363,6 +363,11 @@ def Omega_higher(a, exponents):
          z1*z2^5 - z0*z1*z2^3 + z1*z2^4 - z0*z1*z2^2 + z1*z2^3 -
          z0*z1*z2 + z0*z2^2 + z1*z2^2 + z0*z2 + z1*z2 + 1,
          (z0, z1, z0*z2^3, z1*z2^6))
+
+    ::
+
+        sage: Omega_higher(0, (2, 2, 1, 1, 1, 1, 1, -1, -1))[0].number_of_terms()  # long time
+        27837
     """
     import logging
     logger = logging.getLogger(__name__)

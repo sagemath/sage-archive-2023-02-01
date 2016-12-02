@@ -1016,7 +1016,7 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False):
                     found += 1
                     if found >= 2:
                         return False
-        return True
+        return found == 1
 
     numerator = B(1)
     terms = B.gens()

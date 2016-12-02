@@ -1047,6 +1047,8 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False):
     while repr(numerator.parent().gen()).startswith('mu'):
         logger.info('generating_function_of_polyhedron: '
                     'applying Omega[%s]...', numerator.parent().gen())
+        logger.info('...on terms denominator %s', terms)
+        logger.info('...(numerator has %s)', numerator.number_of_terms())
 
         decoded_factors, other_factors = \
             partition((decode_factor(factor) for factor in terms),

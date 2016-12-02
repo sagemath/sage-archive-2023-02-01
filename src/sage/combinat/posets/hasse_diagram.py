@@ -2319,9 +2319,8 @@ class HasseDiagram(DiGraph):
         jn = self._join
 
         def is_neutral(a):
-            comparables = set(list(self.depth_first_search(a)) +
-                              list(self.depth_first_search(a, neighbors=self.neighbors_in)))
-            noncomp = all_elements.difference(comparables)
+            noncomp = all_elements.difference(self.depth_first_search(a))
+            noncomp.difference_update(self.depth_first_search(a, neighbors=self.neighbors_in))
 
             for x in noncomp.intersection(todo):
                 meet_ax = mt[a, x]

@@ -2154,7 +2154,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         sage: _run_latex_(file, engine="pdflatex") # optional - latex
         'pdf'
 
-        sage: view(4, margin=5, debug=True)
+        sage: view(4, margin=5, debug=True)     # not tested
         \documentclass{article}
         ...
         \usepackage[tightpage,active]{preview}
@@ -2164,7 +2164,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         \end{document}
         ...
 
-        sage: view(4, debug=True)
+        sage: view(4, debug=True)               # not tested
         \documentclass{article}
         ...
         \usepackage[tightpage,active]{preview}

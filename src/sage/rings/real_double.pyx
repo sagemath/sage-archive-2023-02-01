@@ -221,7 +221,7 @@ cdef class RealDoubleField_class(Field):
             return True
         return super(RealDoubleField_class, self)._repr_option(key)
 
-    def _richcmp_(self, x, op):
+    def __richcmp__(self, x, op):
         """
         Compare ``self`` to ``x``.
 

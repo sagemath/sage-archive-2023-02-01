@@ -437,7 +437,7 @@ def py_print_function_pystring(id, args, fname_paren=False):
         (x, y, z)
         sage: foo = function('foo', nargs=2)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:   if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -448,7 +448,7 @@ def py_print_function_pystring(id, args, fname_paren=False):
         sage: def my_print(self, *args): return "my args are: " + ', '.join(map(repr, args))
         sage: foo = function('foo', nargs=2, print_func=my_print)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:   if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -499,7 +499,7 @@ def py_latex_function_pystring(id, args, fname_paren=False):
         (x, y, z)
         sage: foo = function('foo', nargs=2)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:   if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -514,7 +514,7 @@ def py_latex_function_pystring(id, args, fname_paren=False):
 
         sage: foo = function('foo', nargs=2, latex_name=r'\mathrm{bar}')
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:   if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -526,7 +526,7 @@ def py_latex_function_pystring(id, args, fname_paren=False):
         sage: def my_print(self, *args): return "my args are: " + ', '.join(map(repr, args))
         sage: foo = function('foo', nargs=2, print_latex_func=my_print)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:   if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -708,7 +708,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: foo = function('foo', nargs=2)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:   if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -719,7 +719,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
 
         sage: foo = function('foo', nargs=2, latex_name=r'\mathrm{bar}')
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:   if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -731,7 +731,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
         sage: def my_print(self, *args): return "func_with_args(" + ', '.join(map(repr, args)) +')'
         sage: foo = function('foo', nargs=2, print_latex_func=my_print)
         sage: for i in range(get_ginac_serial(), get_fn_serial()):
-        ...     if get_sfunction_from_serial(i) == foo: break
+        ....:   if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
         True
@@ -1220,10 +1220,10 @@ cdef object py_numer(object n) except +:
         sage: py_numer(2/3*i)
         2*i
         sage: class no_numer:
-        ...     def denominator(self):
-        ...         return 5
-        ...     def __mul__(left, right):
-        ...         return 42
+        ....:   def denominator(self):
+        ....:       return 5
+        ....:   def __mul__(left, right):
+        ....:       return 42
         ...
         sage: py_numer(no_numer())
         42

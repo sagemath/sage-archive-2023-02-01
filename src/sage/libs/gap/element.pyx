@@ -372,7 +372,7 @@ cdef class GapElement(RingElement):
 
             sage: pre_refcount = libgap.count_GAP_objects()
             sage: def f():
-            ...       local_variable = libgap.eval('"This is a new string"')
+            ....:     local_variable = libgap.eval('"This is a new string"')
             sage: f()
             sage: f()
             sage: f()

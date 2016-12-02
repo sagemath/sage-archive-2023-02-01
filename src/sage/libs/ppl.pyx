@@ -6893,8 +6893,8 @@ cdef class Poly_Con_Relation(object):
         sage: from sage.matrix.constructor import matrix
         sage: m = matrix(5,5)
         sage: for i, rel_i in enumerate(rels):
-        ...       for j, rel_j in enumerate(rels):
-        ...           m[i,j] = rel_i.implies(rel_j)
+        ....:     for j, rel_j in enumerate(rels):
+        ....:         m[i,j] = rel_i.implies(rel_j)
         sage: m
         [1 0 0 0 0]
         [1 1 0 0 0]

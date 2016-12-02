@@ -735,6 +735,9 @@ def prepare_inequalities(inequalities):
         [(1, -2, -1, 1)]
         sage: prepare_inequalities([(2, -1, 1, 0), (2, -1, -1, 1)])
         [(4, -2, -1, 1)]
+
+        sage: prepare_inequalities([(1, 1, -1, 0), (1, -1, 0, 1), (2, -1, -1, 3)])
+        [(-3, 2, 1, 3)]
     """
     from itertools import combinations
     from sage.matrix.constructor import matrix

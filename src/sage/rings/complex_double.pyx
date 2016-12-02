@@ -179,8 +179,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: cmp(CDF, CDF)
-            0
+            sage: CDF == CDF
+            True
         """
         return (<Parent>left)._richcmp(right, op)
 
@@ -272,7 +272,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         if isinstance(x, ComplexDoubleField_class):
             return 0
-        return cmp(type(self), type(x))
+        return -1  # arbitrary
 
     def __call__(self, x, im=None):
         """

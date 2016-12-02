@@ -501,12 +501,16 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             sage: MPComplexField(10,rnd='RNDZN') == MPComplexField(10,rnd='RNDZU')
             True
         """
-        cdef int c = cmp(type(self), type(right))
-        if c:
-            return c
+        if not isinstance(right, MPComplexField_class):
+            return -1  # arbitrary
 
         cdef MPComplexField_class other = <MPComplexField_class>right
-        return cmp(self.__prec, other.__prec)
+        if self.__prec < other.__prec:
+            return -1
+        elif self.__prec > other.__prec:
+            return 1
+        else:
+            return 0
 
     def gen(self, n=0):
         """

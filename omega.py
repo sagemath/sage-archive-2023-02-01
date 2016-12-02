@@ -725,7 +725,8 @@ def pretty_inequality(ineq, indices=None):
     return '{} >= {}'.format(positive_part*vars, negative_part*vars)
 
 
-def generating_function_of_polyhedron(polyhedron, indices=None):
+
+def generating_function_of_polyhedron(polyhedron, indices=None, split=False):
     r"""
     Return the generating function of the integer points of
     the polyhedron's orthant with only nonnegative coordinates.
@@ -943,6 +944,27 @@ def generating_function_of_polyhedron(polyhedron, indices=None):
             return Factorization([], unit=0)
     except AttributeError:
         pass
+
+    if split:
+        from sage.combinat.permutation import Permutations
+        from sage.geometry.polyhedron.constructor import Polyhedron
+
+        d = polyhedron.dim()
+        result = []
+        for pi in Permutations(d):
+            logger.info('generating_function_of_polyhedron: '
+                        'split by %s',
+                        ' <= '.join('b{}'.format(a-1) for a in pi))
+            ph = polyhedron & Polyhedron(ieqs=
+                    [tuple(1 if i==b else (-1 if i==a else 0)
+                           for i in range(d+1))
+                     for a, b in zip(pi[:-1], pi[1:])])
+            logger.info('polyhedron: %s',
+                        ', '.join(h.repr_pretty(prefix='b')
+                                  for h in ph.Hrepresentation()))
+            result.append(generating_function_of_polyhedron(
+                ph, indices=indices, split=False))
+        return result
 
     def inequalities_coeffs(inequalities):
         for entry in inequalities:

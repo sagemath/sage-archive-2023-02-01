@@ -764,13 +764,11 @@ def prepare_inequalities(inequalities):
     for i in range(n):
         D[(i, i)] = 1
     for chain in Poset((sum(chain_links, ()), chain_links)).maximal_chains():
-        for c in combinations(chain, 2):
-            D[c] = 1
+        for cl in combinations(chain, 2):
+            D[cl] = 1
         constant = 0
-        itchain = enumerate(chain)
-        next(itchain)
-        for i, c in itchain:
-            constant += chain_links[(chain[i-1], chain[i])]
+        for cc, c in zip(chain[:-1], chain[1:]):
+            constant += chain_links[(cc, c)]
             D[(0, c)] = -constant
     T = matrix(ZZ, n, n, D)
 

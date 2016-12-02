@@ -759,13 +759,13 @@ def prepare_inequalities(inequalities):
             chain_links[(mones[0], ones[0])] = constant
         else:
             inequalities_filtered.append(coeffs)
-    D = {c: 1
-         for chain in Poset((sum(chain_links, ()), chain_links)).maximal_chains()
-         for c in combinations(chain, 2)}
+
+    D = {}
     for i in range(n):
         D[(i, i)] = 1
     for chain in Poset((sum(chain_links, ()), chain_links)).maximal_chains():
-        first = chain[0]
+        for c in combinations(chain, 2):
+            D[c] = 1
         constant = 0
         itchain = enumerate(chain)
         next(itchain)

@@ -554,6 +554,73 @@ class Hrepresentation(PolyhedronRepresentation):
             if incidence_matrix[V.index(), self.index()] == 1:
                 yield V
 
+    def repr_pretty(self, prefix='x', indices=None, latex=False):
+        r"""
+        Return a pretty representation of this equality/inequality.
+
+        INPUT:
+
+        - ``prefix`` -- a string.
+
+        - ``indices`` -- a tuple or other iterable.
+
+        - ``latex`` -- a boolean.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(ieqs=[(0, 1, 0, 0), (1, 2, 1, 0)],
+            ....:                eqns=[(1, -1, -1, 1)])
+            sage: for h in P.Hrepresentation():
+            ....:     print(h.repr_pretty())
+            x0 + x1 == x2 + 1
+            x0 >= 0
+            2*x0 + x1 + 1 >= 0
+        """
+        from sage.misc.latex import latex as latex_function
+        from sage.modules.free_module_element import vector
+        from sage.symbolic.ring import SR
+
+        coeffs = vector(self.vector())
+        if indices is None:
+            indices = range(len(coeffs)-1)
+        vars = vector([1] + list(SR(prefix + '{}'.format(i)) for i in indices))
+        positive_part = vector([max(c, 0) for c in coeffs])
+        negative_part = - (coeffs - positive_part)
+        assert coeffs == positive_part - negative_part
+        if self.type() == self.EQUATION:
+            rel = '=' if latex else '=='
+        elif self.type() == self.INEQUALITY:
+            rel = r'\geq' if latex else '>='
+        else:
+            raise NotImplementedError(
+                'no pretty printing for {} available.'.format(self))
+        f = latex_function if latex else repr
+        return '{} {} {}'.format(f(positive_part*vars), rel, f(negative_part*vars))
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX-representation of this equality/inequality.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(ieqs=[(0, 1, 0, 0), (1, 2, 1, 0)],
+            ....:                eqns=[(1, -1, -1, 1)])
+            sage: for h in P.Hrepresentation():
+            ....:     print(latex(h))
+            x_{0} + x_{1} = x_{2} + 1
+            x_{0} \geq 0
+            2 \, x_{0} + x_{1} + 1 \geq 0
+        """
+        return self.repr_pretty(latex=True)
+
 
 class Inequality(Hrepresentation):
     """

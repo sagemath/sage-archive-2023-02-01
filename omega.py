@@ -725,6 +725,57 @@ def pretty_inequality(ineq, indices=None):
     return '{} >= {}'.format(positive_part*vars, negative_part*vars)
 
 
+def prepare_inequalities(inequalities):
+    r"""
+    EXAMPLES::
+
+        sage: prepare_inequalities([(0, -1, 1, 0), (2, -1, -1, 1)])
+        [(2, -2, -1, 1)]
+        sage: prepare_inequalities([(-1, -1, 1, 0), (2, -1, -1, 1)])
+        [(1, -2, -1, 1)]
+        sage: prepare_inequalities([(2, -1, 1, 0), (2, -1, -1, 1)])
+        [(4, -2, -1, 1)]
+    """
+    from itertools import combinations
+    from sage.matrix.constructor import matrix
+    from sage.modules.free_module_element import vector
+
+    inequalities_filtered = []
+    chain_links = {}
+    for coeffs in inequalities:
+        n = len(coeffs)
+        constant = coeffs[0]
+        ones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == 1)
+        mones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == -1)
+        absgetwo = tuple(i+1 for i, c in enumerate(coeffs[1:]) if abs(c) >= 2)
+        if len(ones) == 1 and not mones and not absgetwo:
+            if constant >= 0:
+                logger.debug('generating_function_of_polyhedron: '
+                             'skipping %s', pretty_inequality(coeffs))
+            else:
+                # TODO: could be skipped...
+                inequalities_filtered.append(coeffs)
+        elif len(ones) == 1 and len(mones) == 1 and not absgetwo:
+            chain_links[(mones[0], ones[0])] = constant
+        else:
+            inequalities_filtered.append(coeffs)
+    D = {c: 1
+         for chain in Poset((sum(chain_links, ()), chain_links)).maximal_chains()
+         for c in combinations(chain, 2)}
+    for i in range(n):
+        D[(i, i)] = 1
+    for chain in Poset((sum(chain_links, ()), chain_links)).maximal_chains():
+        first = chain[0]
+        constant = 0
+        itchain = enumerate(chain)
+        next(itchain)
+        for i, c in itchain:
+            constant += chain_links[(chain[i-1], chain[i])]
+            D[(0, c)] = -constant
+    T = matrix(ZZ, n, n, D)
+
+    return list(tuple(T*vector(ieq)) for ieq in inequalities_filtered)
+
 
 def generating_function_of_polyhedron(polyhedron, indices=None, split=False):
     r"""
@@ -1017,6 +1068,25 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False):
                     if found >= 2:
                         return False
         return found == 1
+
+    def is_aleb(it):
+        founda = 0
+        foundb = 0
+        for e in it:
+            if e != 0:
+                if abs(e) != 1:
+                    return False
+                elif e == -1:
+                    founda += 1
+                    if founda >= 2:
+                        return False
+                elif e == 1:
+                    foundb += 1
+                    if foundb >= 2:
+                        return False
+        return founda == 1 and foundb == 1
+
+
 
     numerator = B(1)
     terms = B.gens()

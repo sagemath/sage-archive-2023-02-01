@@ -27,7 +27,11 @@ include "sage/data_structures/binary_matrix.pxi"
 from sage.misc.prandom import random
 
 # import from third-party library
-from sage.graphs.base.sparse_graph cimport SparseGraph
+from sage.ext.memory_allocator cimport MemoryAllocator
+from sage.graphs.base.static_sparse_graph cimport short_digraph
+from sage.graphs.base.static_sparse_graph cimport init_short_digraph
+from sage.graphs.base.static_sparse_graph cimport free_short_digraph
+from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
 
 
 cdef class GenericGraph_pyx(SageObject):
@@ -1135,41 +1139,31 @@ cdef tuple find_hamiltonian_C( G, long max_iter=100000, long reset_bound=30000, 
     cdef int m = G.num_edges()
 
     #Initialize the path.
-    cdef int *path = <int *>check_allocarray(n, sizeof(int))
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int *path = <int *>mem.allocarray(n, sizeof(int))
     memset(path, -1, n * sizeof(int))
 
     #Initialize the membership array
-    cdef bint *member = <bint *>check_allocarray(n, sizeof(int))
+    cdef bint *member = <bint *>mem.allocarray(n, sizeof(int))
     memset(member, 0, n * sizeof(int))
 
     # static copy of the graph for more efficient operations
-    cdef SparseGraph g = SparseGraph(n)
-    # copying the adjacency relations in G
-    cdef int i
-    cdef int j
-    i = 0
-    for row in G.adjacency_matrix():
-        j = 0
-        for k in row:
-            if k:
-                g.add_arc(i, j)
-            j += 1
-        i += 1
-    # Cache copy of the vertices
-    cdef list vertices = g.verts()
+    cdef short_digraph sd
+    init_short_digraph(sd, G)
 
     # A list to store the available vertices at each step
     cdef list available_vertices=[]
 
     #We now work towards picking a random edge
-    #  First we pick a random vertex u
-    cdef int x = randint( 0, n-1 )
-    cdef int u = vertices[x]
+    #  First we pick a random vertex u of (out-)degree at least one
+    cdef int u = randint( 0, n-1 )
+    while out_degree(sd, u) == 0:
+        u = randint( 0, n-1 )
     #  Then we pick at random a neighbor of u
-    x = randint( 0, len(g.out_neighbors( u ))-1 )
-    cdef int v = g.out_neighbors( u )[x]
+    cdef int x = randint( 0, out_degree(sd, u)-1 )
+    cdef int v = sd.neighbors[u][x]
     # This will be the first edge in the path
-    cdef int length=2
+    cdef int length = 2
     path[ 0 ] = u
     path[ 1 ] = v
     member[ u ] = True
@@ -1182,14 +1176,13 @@ cdef tuple find_hamiltonian_C( G, long max_iter=100000, long reset_bound=30000, 
     cdef int longest = length
 
     #Initialize a path to contain the longest path
-    cdef int *longest_path = <int *>check_allocarray(n, sizeof(int))
+    cdef int *longest_path = <int *>mem.allocarray(n, sizeof(int))
     memset(longest_path, -1, n * sizeof(int))
-    i = 0
-    for 0 <= i < length:
+    for i in range(length):
         longest_path[ i ] = path[ i ]
 
     #Initialize a temporary path for flipping
-    cdef int *temp_path = <int *>check_allocarray(n, sizeof(int))
+    cdef int *temp_path = <int *>mem.allocarray(n, sizeof(int))
     memset(temp_path, -1, n * sizeof(int))
 
     cdef bint longer = False
@@ -1200,9 +1193,8 @@ cdef tuple find_hamiltonian_C( G, long max_iter=100000, long reset_bound=30000, 
         if counter%10 == 0:
             #Reverse the path
 
-            i=0
-            for 0<= i < length/2:
-                t=path[ i ]
+            for i in range(length/2):
+                t = path[ i ]
                 path[ i ] = path[ length - i - 1]
                 path[ length -i -1 ] = t
 
@@ -1211,118 +1203,105 @@ cdef tuple find_hamiltonian_C( G, long max_iter=100000, long reset_bound=30000, 
             counter = 1
 
             #Time to reset the procedure
-            for 0 <= i < n:
-                member[ i ]=False
-            #  First we pick a random vertex u
-            x = randint( 0, n-1 )
-            u = vertices[x]
+            memset(member, 0, n * sizeof(int))
+
+            #  First we pick a random vertex u of (out-)degree at least one
+            u = randint( 0, n-1 )
+            while out_degree(sd, u) == 0:
+                u = randint( 0, n-1 )
             #  Then we pick at random a neighbor of u
-            degree = len(g.out_neighbors( u ))
-            x = randint( 0, degree-1 )
-            v = g.out_neighbors( u )[x]
+            x = randint( 0, out_degree(sd, u)-1 )
+            v = sd.neighbors[u][x]
             #  This will be the first edge in the path
-            length=2
+            length = 2
             path[ 0 ] = u
             path[ 1 ] = v
             member[ u ] = True
             member[ v ] = True
 
         if counter%backtrack_bound == 0:
-            for 0 <= i < 5:
+            for i in range(5):
                 member[ path[length - i - 1] ] = False
             length = length - 5
         longer = False
 
         available_vertices = []
-        for u in g.out_neighbors( path[ length-1 ] ):
-            if not member[ u ]:
-                available_vertices.append( u )
+        u = path[ length-1 ]
+        for i in range(out_degree(sd, u)):
+            v = sd.neighbors[u][i]
+            if not member[ v ]:
+                available_vertices.append( v )
 
-        n_available=len( available_vertices )
+        n_available = len( available_vertices )
         if  n_available > 0:
             longer = True
-            x=randint( 0, n_available-1 )
+            x = randint( 0, n_available-1 )
             path[ length ] = available_vertices[ x ]
             length = length + 1
-            member [ available_vertices[ x ] ] = True
+            member[ available_vertices[ x ] ] = True
 
         if not longer and length > longest:
 
-            for 0 <= i < length:
+            for i in range(length):
                 longest_path[ i ] = path[ i ]
 
             longest = length
+
         if not longer:
 
             memset(temp_path, -1, n * sizeof(int))
-            degree = len(g.out_neighbors( path[ length-1 ] ))
+            degree = out_degree(sd, path[ length-1 ])
             while True:
                 x = randint( 0, degree-1 )
-                u = g.out_neighbors(path[length - 1])[ x ]
+                u = sd.neighbors[ path[length - 1] ][ x ]
                 if u != path[length - 2]:
                     break
 
             flag = False
-            i=0
             j=0
-            for 0 <= i < length:
+            for i in range(length):
                 if i > length-j-1:
                     break
                 if flag:
-                    t=path[ i ]
+                    t = path[ i ]
                     path[ i ] = path[ length - j - 1]
                     path[ length - j - 1 ] = t
-                    j=j+1
+                    j = j+1
                 if path[ i ] == u:
                     flag = True
         if length == n:
             if find_path:
-                done=True
+                done = True
             else:
-                done = g.has_arc( path[n-1], path[0] )
+                done = has_edge(sd, path[n-1], path[0] ) != NULL
 
         if bigcount*reset_bound > max_iter:
-            verts=G.vertices()
-            output=[ verts[ longest_path[i] ] for i from 0<= i < longest ]
-            sig_free( member )
-            sig_free( path )
-            sig_free( longest_path )
-            sig_free( temp_path )
+            verts = G.vertices()
+            output = [ verts[ longest_path[i] ] for i in range(longest) ]
+            free_short_digraph(sd)
             return (False, output)
     # #
     # # Output test
     # #
 
     # Test adjacencies
-    for 0 <=i < n-1:
+    for i in range(n-1):
         u = path[i]
         v = path[i + 1]
         #Graph is simple, so both arcs are present
-        if not g.has_arc( u, v ):
+        if has_edge(sd, u, v ) == NULL:
             good = False
             break
     if good is False:
         raise RuntimeError('Vertices %d and %d are consecutive in the cycle but are not adjacent.' % (u, v))
-    if not find_path and not g.has_arc( path[0], path[n-1] ):
+    if not find_path and has_edge(sd, path[0], path[n-1] ) == NULL:
         raise RuntimeError('Vertices %d and %d are not adjacent.' % (path[0], path[n-1]))
-    for 0 <= u < n:
-        member[ u ]=False
 
-    for 0 <= u < n:
-        if member[ u ]:
-            good = False
-            break
-        member[ u ] = True
-    if good == False:
-        raise RuntimeError( 'Vertex %d appears twice in the cycle.'%(u) )
-    verts=G.vertices()
-    output=[ verts[path[i]] for i from 0<= i < length ]
-    sig_free( member )
-    sig_free( path )
-    sig_free( longest_path )
-    sig_free( temp_path )
+    verts = G.vertices()
+    output = [ verts[path[i]] for i in range(length)]
+    free_short_digraph(sd)
 
-    return (True,output)
+    return (True, output)
 
 cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
     r"""

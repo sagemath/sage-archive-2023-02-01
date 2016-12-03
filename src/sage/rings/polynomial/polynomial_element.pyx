@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 Univariate Polynomial Base Class
 
@@ -60,6 +61,7 @@ import sage.rings.complex_field
 import sage.rings.fraction_field_element
 import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
+from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
 from sage.misc.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
@@ -762,6 +764,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pol._compiled = CompiledPolynomialFunction(pol.list())
 
         return pol._compiled.eval(a)
+
+    def compose_trunc(self, Polynomial other, long n):
+        r"""
+        Return the composition of ``self`` and ``other``, truncated to `O(x^n)`.
+
+        This method currently works for some specific coefficient rings only.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (1 + x + x^2/2 + x^3/6 + x^4/24 + x^5/120).compose_trunc(1 + x, 2)
+            ([2.708333333333333 +/- 6.64e-16])*x + [2.71666666666667 +/- 4.29e-15]
+
+            sage: Pol.<x> = QQ['y'][]
+            sage: (1 + x + x^2/2 + x^3/6 + x^4/24 + x^5/120).compose_trunc(1 + x, 2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: truncated composition is not implemented for this subclass of polynomials
+        """
+        raise NotImplementedError("truncated composition is not implemented "
+                                  "for this subclass of polynomials")
 
     def _compile(self):
         # For testing
@@ -8638,6 +8661,162 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 elif not r.truncate(i).is_zero():
                     raise ValueError("not a %s power"%m.ordinal_str())
             raise ValueError("not a %s power"%m.ordinal_str())
+
+    def _log_series(self, long n):
+        r"""
+        Return the power series expansion of logarithm of this polynomial,
+        truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: (1 + x)._log_series(3)
+            -0.5000000000000000*x^2 + x
+        """
+        raise NotImplementedError
+
+    def _exp_series(self, long n):
+        r"""
+        Return the power series expansion of exponential of this polynomial,
+        truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+            sage: x._exp_series(3)
+            0.5000000000000000*x^2 + x + 1.000000000000000
+        """
+        raise NotImplementedError
+
+    def _atan_series(self, long n):
+        r"""
+        Return the power series expansion of arctangent of this polynomial,
+        truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._atan_series(4)
+            -1/3*x^3 + x
+        """
+        raise NotImplementedError
+
+    def _atanh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic arctangent of this
+        polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._atanh_series(4)
+            1/3*x^3 + x
+        """
+        raise NotImplementedError
+
+    def _asin_series(self, long n):
+        r"""
+        Return the power series expansion of arcsine of this polynomial,
+        truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._asin_series(4)
+            1/6*x^3 + x
+        """
+        raise NotImplementedError
+
+    def _asinh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic arcsine of this
+        polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._asinh_series(4)
+            -1/6*x^3 + x
+        """
+        raise NotImplementedError
+
+    def _tan_series(self, long n):
+        r"""
+        Return the power series expansion of tangent of this polynomial,
+        truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._tan_series(4)
+            1/3*x^3 + x
+        """
+        raise NotImplementedError
+
+    def _sin_series(self, long n):
+        r"""
+        Return the power series expansion of sine of this polynomial, truncated
+        to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._sin_series(4)
+            -1/6*x^3 + x
+        """
+        raise NotImplementedError
+
+    def _cos_series(self, long n):
+        r"""
+        Return the power series expansion of cosine of this polynomial,
+        truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._cos_series(4)
+            -1/2*x^2 + 1
+        """
+        raise NotImplementedError
+
+    def _sinh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic sine of this
+        polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._sinh_series(4)
+            1/6*x^3 + x
+        """
+        raise NotImplementedError
+
+    def _cosh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic cosine of this
+        polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._cosh_series(4)
+            1/2*x^2 + 1
+        """
+        raise NotImplementedError
+
+    def _tanh_series(self, long n):
+        r"""
+        Return the power series expansion of hyperbolic tangent of this
+        polynomial, truncated to `O(x^n)`.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: x._tanh_series(4)
+            -1/3*x^3 + x
+        """
+        raise NotImplementedError
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

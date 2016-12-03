@@ -164,6 +164,11 @@ class RibbonGraph(SageObject, UniqueRepresentation):
     a ribbon graph with genus ``sigma`` and ``rho`` boundary components.
     See :func:`~sage.geometry.ribbon_graphs.make_ribbon`.
 
+    One can also construct the bipartite graph modeling the
+    corresponding Brieskorn-Pham singularity by passing 2 integers
+    and the keyword ``bipartite=True``.
+    See :func:`~sage.geometry.ribbon_graphs.bipartite_ribbon_graph`.
+
     EXAMPLES:
 
     Consider the ribbon graph consisting of just `1` edge and `2`
@@ -251,9 +256,28 @@ class RibbonGraph(SageObject, UniqueRepresentation):
          [[9, 12], [10, 3], [1, 16], [18, 7]]]
         sage: S.homology_basis()
         [[[5, 14]], [[6, 11]], [[8, 15]], [[9, 12]]]
+
+    We construct a ribbon graph corresponding to a genus 0 surface
+    with 5 boundary components::
+
+        sage: R = RibbonGraph(0, 5); R
+        Ribbon graph of genus 0 and 5 boundary components
+        sage: R.sigma()
+        (1,9,7,5,3)(2,4,6,8,10)
+        sage: R.rho()
+        (1,2)(3,4)(5,6)(7,8)(9,10)
+
+    We construct the Brieskorn-Pham singularity of type `(2,3)`::
+
+        sage: B23 = RibbonGraph(2, 3, bipartite=True); B23
+        Ribbon graph of genus 1 and 1 boundary components
+        sage: B23.sigma()
+        (1,2,3)(4,5,6)(7,8)(9,10)(11,12)
+        sage: B23.rho()
+        (1,8)(2,10)(3,12)(4,7)(5,9)(6,11)
     """
     @staticmethod
-    def __classcall_private__(cls, sigma, rho):
+    def __classcall_private__(cls, sigma, rho, bipartite=False):
         """
         Normalize input.
 
@@ -267,6 +291,8 @@ class RibbonGraph(SageObject, UniqueRepresentation):
             sage: R1 is R2
             True
         """
+        if bipartite:
+            return bipartite_ribbon_graph(sigma, rho)
         if sigma in ZZ and rho in ZZ:
             return make_ribbon(sigma, rho)
         M = sigma.parent()
@@ -1129,55 +1155,51 @@ def make_ribbon(g, r):
     return RibbonGraph(PermutationGroupElement([tuple(x) for x in repr_sigma]), 
                        PermutationGroupElement([tuple(x) for x in repr_rho]))
 
-
-
-def bipartite_ribbon_graph(p,q):
+def bipartite_ribbon_graph(p, q):
     r"""
     Return the bipartite graph modeling the corresponding
     Brieskorn-Pham singularity.
-    
+
+    Take two parallel lines in the plane, and consider `p` points in
+    one of them and `q` points in the other. Join with a line each
+    point from the first set with every point with the second set.
+    The resulting is a planar projection of the complete bipartite
+    graph of type `(p,q)`. If you consider the cyclic ordering at
+    each vertex induced by the positive orientation of the plane,
+    the result is a ribbon graph whose associated orientable surface
+    with boundary is homeomorphic to the Milnor fiber of the
+    Brieskorn-Pham singularity `x^p + y^q`. It satisfies that it has
+    `\gcd(p,q)` number of  boundary components and genus
+    `(pq - p - q - \gcd(p,q) - 2) / 2`.
+
     INPUT:
-    
-    - ``p`` -- a positive integer.
-    
-    - ``q`` -- a positive integer.
-    
-    OUTPUT:
-    
-    - the ribbon graph resulting from the following construction: take two
-      parallel lines in the plane. Consider ``p`` points in one of them and ``q``
-      points in the other. Join with a line each point from the first set with
-      every point with the second set. The resulting is a planar projection of 
-      the complete bipartite graph of type `(p,q)`. If you consider the cyclic
-      ordering at each vertex induced by the positive orientation of the plane,
-      the result is a ribbon graph whose associated orientable surface with
-      boundary is homeomorphic to the Milnor fiber of the Brieskorn-Pham
-      singularity `x^p + y^q`. It satisfies that it has gcd(p,q) number of 
-      boundary components and genus `(pq -p - q - gcd(p,q) -2)/2`.
+
+    - ``p`` -- a positive integer
+    - ``q`` -- a positive integer
 
     EXAMPLES::
 
-        sage: B23 = bipartite_ribbon_graph(2,3); B23; B23.sigma(); B23.rho()
+        sage: B23 = RibbonGraph(2,3,bipartite=True); B23; B23.sigma(); B23.rho()
         Ribbon graph of genus 1 and 1 boundary components
         (1,2,3)(4,5,6)(7,8)(9,10)(11,12)
         (1,8)(2,10)(3,12)(4,7)(5,9)(6,11)
- 
-        sage: B32 = bipartite_ribbon_graph(3,2); B32; B32.sigma(); B32.rho()
+
+        sage: B32 = RibbonGraph(3,2,bipartite=True); B32; B32.sigma(); B32.rho()
         Ribbon graph of genus 1 and 1 boundary components
         (1,2)(3,4)(5,6)(7,8,9)(10,11,12)
         (1,9)(2,12)(3,8)(4,11)(5,7)(6,10)
 
-        sage: B33 = bipartite_ribbon_graph(3,3); B33; B33.sigma(); B33.rho()
+        sage: B33 = RibbonGraph(3,3,bipartite=True); B33; B33.sigma(); B33.rho()
         Ribbon graph of genus 1 and 3 boundary components
         (1,2,3)(4,5,6)(7,8,9)(10,11,12)(13,14,15)(16,17,18)
         (1,12)(2,15)(3,18)(4,11)(5,14)(6,17)(7,10)(8,13)(9,16)
 
-        sage: B24 = bipartite_ribbon_graph(2,4); B24; B24.sigma(); B24.rho()
+        sage: B24 = RibbonGraph(2,4,bipartite=True); B24; B24.sigma(); B24.rho()
         Ribbon graph of genus 1 and 2 boundary components
         (1,2,3,4)(5,6,7,8)(9,10)(11,12)(13,14)(15,16)
         (1,10)(2,12)(3,14)(4,16)(5,9)(6,11)(7,13)(8,15)
 
-        sage: B47 = bipartite_ribbon_graph(4,7); B47; B47.sigma(); B47.rho()
+        sage: B47 = RibbonGraph(4,7, bipartite=True); B47; B47.sigma(); B47.rho()
         Ribbon graph of genus 9 and 1 boundary components
         (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)(15,16,17,18,19,20,21)(22,23,24,25,26,27,28)(29,30,31,32)(33,34,35,36)(37,38,39,40)(41,42,43,44)(45,46,47,48)(49,50,51,52)(53,54,55,56)
         (1,32)(2,36)(3,40)(4,44)(5,48)(6,52)(7,56)(8,31)(9,35)(10,39)(11,43)(12,47)(13,51)(14,55)(15,30)(16,34)(17,38)(18,42)(19,46)(20,50)(21,54)(22,29)(23,33)(24,37)(25,41)(26,45)(27,49)(28,53)
@@ -1204,3 +1226,4 @@ def bipartite_ribbon_graph(p,q):
                        PermutationGroupElement([tuple(x) for x in sigma]), 
                        PermutationGroupElement([tuple(x) for x in rho])
                        )
+

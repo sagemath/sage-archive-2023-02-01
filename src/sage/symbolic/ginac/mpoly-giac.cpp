@@ -198,7 +198,7 @@ static ex polynome_to_ex(const giac::polynome& p, const exvector& revmap)
 // GCD of two exes which are in polynomial form
 ex gcdpoly(const ex &a, const ex &b, ex *ca=nullptr, ex *cb=nullptr, bool check_args=true)
 {
-//        std::cerr << "gcd(" << a << "," << b << ") = ";
+        //std::cerr << "gcd(" << a << "," << b << ") = ";
         if (context_ptr == nullptr) {
                 context_ptr=new giac::context();
                 giac_zero = giac::gen(std::string("0"), context_ptr);
@@ -373,34 +373,39 @@ factored_b:
 		} // p_gcd.is_equal(_ex1)
 	}
 
+        // Conversion necessary to count needed symbols beforehand
+        exmap repl;
+        ex poly_a = a.to_rational(repl);
+        ex poly_b = b.to_rational(repl);
 
-        symbolset s1 = a.symbols();
-        const symbolset& s2 = b.symbols();
+        symbolset s1 = poly_a.symbols();
+        const symbolset& s2 = poly_b.symbols();
         s1.insert(s2.begin(), s2.end());
         the_dimension = s1.size();
 
         ex_int_map map;
         exvector revmap;
-        giac::polynome p = a.to_polynome(map, revmap);
-        giac::polynome q = b.to_polynome(map, revmap);
+
+        giac::polynome p = poly_a.to_polynome(map, revmap);
+        giac::polynome q = poly_b.to_polynome(map, revmap);
         giac::polynome d(the_dimension);
         giac::gcd(p, q, d);
-//        std::cerr << polynome_to_ex(d, revmap) << '\n';
+
         if (ca != nullptr) {
                 giac::polynome quo;
                 if (giac::exactquotient(p, d, quo))
-                        *ca = polynome_to_ex(quo, revmap);
+                        *ca = polynome_to_ex(quo, revmap).subs(repl, subs_options::no_pattern);
                 else
                         throw(std::runtime_error("can't happen in gcdpoly"));
         }
         if (cb != nullptr) {
                 giac::polynome quo;
                 if (giac::exactquotient(q, d, quo))
-                        *cb = polynome_to_ex(quo, revmap);
+                        *cb = polynome_to_ex(quo, revmap).subs(repl, subs_options::no_pattern);
                 else
                         throw(std::runtime_error("can't happen in gcdpoly"));
         }
-        return polynome_to_ex(d, revmap);
+        return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
 }
 
 } // namespace GiNaC

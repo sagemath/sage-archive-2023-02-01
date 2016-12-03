@@ -542,8 +542,8 @@ cdef class Polynomial_complex_arb(Polynomial):
         EXAMPLES::
 
             sage: Pol.<x> = CBF[]
-            sage: (x^2 + 1)._power_trunc(10^10, 3)
-            10000000000.00000*x^2 + 1.000000000000000
+            sage: (x^2 + 1)._power_trunc(10^9, 3)
+            1000000000.000000*x^2 + 1.000000000000000
             sage: (x^2 + 1)._power_trunc(10^20, 0)
             Traceback (most recent call last):
                 ...

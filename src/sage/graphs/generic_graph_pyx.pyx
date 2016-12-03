@@ -1028,19 +1028,19 @@ def _test_vectors_equal_inferior():
         sig_free(u)
         sig_free(v)
 
-cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
+cdef tuple find_hamiltonian_C( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
     r"""
     Randomized backtracking for finding Hamiltonian cycles and paths.
 
     ALGORITHM:
 
     A path ``P`` is maintained during the execution of the algorithm. Initially
-    the path will contain an edge of the graph. Every 10 iterations the path
-    is reversed. Every ``reset_bound`` iterations the path will be cleared
-    and the procedure is restarted. Every ``backtrack_bound`` steps we discard
-    the last five vertices and continue with the procedure. The total number
-    of steps in the algorithm is controlled by ``max_iter``. If a Hamiltonian
-    cycle or Hamiltonian path is found it is returned. If the number of steps reaches
+    the path will contain an edge of the graph. Every 10 iterations the path is
+    reversed. Every ``reset_bound`` iterations the path will be cleared and the
+    procedure is restarted. Every ``backtrack_bound`` steps we discard the last
+    five vertices and continue with the procedure. The total number of steps in
+    the algorithm is controlled by ``max_iter``. If a Hamiltonian cycle or
+    Hamiltonian path is found it is returned. If the number of steps reaches
     ``max_iter`` then a longest path is returned. See OUTPUT for more details.
 
 
@@ -1070,7 +1070,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         * If ``B`` is ``True`` and ``find_path`` is ``True``, ``P``
           represents a Hamiltonian path.
 
-        * If ``B`` is false, then ``P`` represents the longest path
+        * If ``B`` is ``False``, then ``P`` represents the longest path
           found during the execution of the algorithm.
 
     .. WARNING::
@@ -1323,6 +1323,182 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     sig_free( temp_path )
 
     return (True,output)
+
+cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
+    r"""
+    Randomized backtracking for finding Hamiltonian cycles and paths.
+
+    ALGORITHM:
+
+    A path ``P`` is maintained during the execution of the algorithm. Initially
+    the path will contain an edge of the graph. Every 10 iterations the path is
+    reversed. Every ``reset_bound`` iterations the path will be cleared and the
+    procedure is restarted. Every ``backtrack_bound`` steps we discard the last
+    five vertices and continue with the procedure. The total number of steps in
+    the algorithm is controlled by ``max_iter``. If a Hamiltonian cycle or
+    Hamiltonian path is found it is returned. If the number of steps reaches
+    ``max_iter`` then a longest path is returned. See OUTPUT for more details.
+
+
+    INPUT:
+
+    - ``G`` - Graph.
+
+    - ``max_iter`` - Maximum number of iterations.
+
+    - ``reset_bound`` - Number of iterations before restarting the
+       procedure.
+
+    - ``backtrack_bound`` - Number of iterations to elapse before
+       discarding the last 5 vertices of the path.
+
+    - ``find_path`` - If set to ``True``, will search a Hamiltonian
+       path. If ``False``, will search for a Hamiltonian
+       cycle. Default value is ``False``.
+
+    OUTPUT:
+
+    A pair ``(B,P)``, where ``B`` is a Boolean and ``P`` is a list of vertices.
+
+        * If ``B`` is ``True`` and ``find_path`` is ``False``, ``P``
+          represents a Hamiltonian cycle.
+
+        * If ``B`` is ``True`` and ``find_path`` is ``True``, ``P``
+          represents a Hamiltonian path.
+
+        * If ``B`` is ``False``, then ``P`` represents the longest path
+          found during the execution of the algorithm.
+
+    .. WARNING::
+
+        May loop endlessly when run on a graph with vertices of degree
+        1.
+
+    EXAMPLES:
+
+    First we try the algorithm in the Dodecahedral graph, which is
+    Hamiltonian, so we are able to find a Hamiltonian cycle and a
+    Hamiltonian path ::
+
+        sage: from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
+        sage: G=graphs.DodecahedralGraph()
+        sage: fh(G)
+        (True, [9, 10, 0, 19, 3, 2, 1, 8, 7, 6, 5, 4, 17, 18, 11, 12, 16, 15, 14, 13])
+        sage: fh(G,find_path=True)
+        (True, [8, 9, 10, 11, 18, 17, 4, 3, 19, 0, 1, 2, 6, 7, 14, 13, 12, 16, 15, 5])
+
+    Another test, now in the Möbius-Kantor graph which is also
+    Hamiltonian, as in our previous example, we are able to find a
+    Hamiltonian cycle and path ::
+
+        sage: G=graphs.MoebiusKantorGraph()
+        sage: fh(G)
+        (True, [5, 4, 3, 2, 10, 15, 12, 9, 1, 0, 7, 6, 14, 11, 8, 13])
+        sage: fh(G,find_path=True)
+        (True, [4, 5, 6, 7, 15, 12, 9, 1, 0, 8, 13, 10, 2, 3, 11, 14])
+
+    Now, we try the algorithm on a non Hamiltonian graph, the Petersen
+    graph.  This graph is known to be hypohamiltonian, so a
+    Hamiltonian path can be found ::
+
+        sage: G=graphs.PetersenGraph()
+        sage: fh(G)
+        (False, [7, 9, 4, 3, 2, 1, 0, 5, 8, 6])
+        sage: fh(G,find_path=True)
+        (True, [3, 8, 6, 1, 2, 7, 9, 4, 0, 5])
+
+    We now show the algorithm working on another known hypohamiltonian
+    graph, the generalized Petersen graph with parameters 11 and 2 ::
+
+        sage: G=graphs.GeneralizedPetersenGraph(11,2)
+        sage: fh(G)
+        (False, [13, 11, 0, 10, 9, 20, 18, 16, 14, 3, 2, 1, 12, 21, 19, 8, 7, 6, 17, 15, 4, 5])
+        sage: fh(G,find_path=True)
+        (True, [7, 18, 20, 9, 8, 19, 17, 6, 5, 16, 14, 3, 4, 15, 13, 11, 0, 10, 21, 12, 1, 2])
+
+    Finally, an example on a graph which does not have a Hamiltonian
+    path ::
+
+        sage: G=graphs.HyperStarGraph(5,2)
+        sage: fh(G,find_path=False)
+        (False, ['00011', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
+        sage: fh(G,find_path=True)
+        (False, ['00101', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
+
+    TESTS:
+
+    :trac:`10206` hamiltonian cycle in small (di)graphs::
+
+        sage: for n in range(3):
+        ....:     for G in graphs(n):
+        ....:         print('order {} and size {}: {}'.format(G.order(),G.size(),fh(G, find_path=False)))
+        order 0 and size 0: (False, [])
+        order 1 and size 0: (False, [0])
+        order 2 and size 0: (False, [0])
+        order 2 and size 1: (False, [0, 1])
+        sage: for n in range(3):
+        ....:     for G in digraphs(n):
+        ....:         print('order {} and size {}: {}'.format(G.order(),G.size(),fh(G, find_path=False)))
+        order 0 and size 0: (False, [])
+        order 1 and size 0: (False, [0])
+        order 2 and size 0: (False, [0])
+        order 2 and size 1: (False, [0, 1])
+        order 2 and size 2: (False, [0, 1])
+
+    :trac:`10206` -- hamiltonian path in small (di)graphs::
+
+        sage: for n in range(3):
+        ....:     for G in graphs(n):
+        ....:         print('order {} and size {}: {}'.format(G.order(),G.size(),fh(G, find_path=True)))
+        order 0 and size 0: (False, [])
+        order 1 and size 0: (False, [0])
+        order 2 and size 0: (False, [0])
+        order 2 and size 1: (True, [0, 1])
+        sage: for n in range(3):
+        ....:     for G in digraphs(n):
+        ....:         print('order {} and size {}: {}'.format(G.order(),G.size(),fh(G, find_path=True)))
+        order 0 and size 0: (False, [])
+        order 1 and size 0: (False, [0])
+        order 2 and size 0: (False, [0])
+        order 2 and size 1: (True, [0, 1])
+        order 2 and size 2: (True, [0, 1])
+
+    :trac:`10206` -- non connected graphs::
+
+        sage: G = graphs.CompleteGraph(4) + Graph(1)
+        sage: fh(G, find_path=False)
+        (False, [0, 1, 2, 3])
+        sage: fh(G, find_path=True)
+        (False, [0, 1, 2, 3])
+        
+    """
+    cdef int n = G.order()
+    cdef int m = G.num_edges()
+
+    # To clean the output when find_path is None or a number
+    find_path = True if find_path > 0 else False
+
+    if n == 0:
+        return False, []
+    if n == 1:
+        return False, G.vertices()
+    if G.is_clique():
+        # We have an hamiltonian path since n >= 2, but we have an hamiltonian
+        # cycle only if n >= 3
+        return find_path or n >= 3, G.vertices()
+
+    if not G.is_connected():
+        # The (Di)Graph has no hamiltonian path or cycle. We search for the
+        # longest path in its connected components.
+        path = list()
+        for H in G.connected_components_subgraphs():
+            _,p = find_hamiltonian(H, max_iter=max_iter, reset_bound=reset_bound, backtrack_bound=backtrack_bound, find_path=True)
+            if len(p) > len(path):
+                path = p
+        return False, path
+
+    return find_hamiltonian_C(G, max_iter=max_iter, reset_bound=reset_bound, backtrack_bound=backtrack_bound, find_path=find_path)
+
 
 def transitive_reduction_acyclic(G):
     r"""

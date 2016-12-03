@@ -1079,59 +1079,8 @@ cdef tuple find_hamiltonian_C( G, long max_iter=100000, long reset_bound=30000, 
 
     .. WARNING::
 
-        May loop endlessly when run on a graph with vertices of degree
-        1.
+        May loop endlessly when run on a graph with vertices of degree 1.
 
-    EXAMPLES:
-
-    First we try the algorithm in the Dodecahedral graph, which is
-    Hamiltonian, so we are able to find a Hamiltonian cycle and a
-    Hamiltonian path ::
-
-        sage: from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
-        sage: G=graphs.DodecahedralGraph()
-        sage: fh(G)
-        (True, [9, 10, 0, 19, 3, 2, 1, 8, 7, 6, 5, 4, 17, 18, 11, 12, 16, 15, 14, 13])
-        sage: fh(G,find_path=True)
-        (True, [8, 9, 10, 11, 18, 17, 4, 3, 19, 0, 1, 2, 6, 7, 14, 13, 12, 16, 15, 5])
-
-    Another test, now in the Möbius-Kantor graph which is also
-    Hamiltonian, as in our previous example, we are able to find a
-    Hamiltonian cycle and path ::
-
-        sage: G=graphs.MoebiusKantorGraph()
-        sage: fh(G)
-        (True, [5, 4, 3, 2, 10, 15, 12, 9, 1, 0, 7, 6, 14, 11, 8, 13])
-        sage: fh(G,find_path=True)
-        (True, [4, 5, 6, 7, 15, 12, 9, 1, 0, 8, 13, 10, 2, 3, 11, 14])
-
-    Now, we try the algorithm on a non Hamiltonian graph, the Petersen
-    graph.  This graph is known to be hypohamiltonian, so a
-    Hamiltonian path can be found ::
-
-        sage: G=graphs.PetersenGraph()
-        sage: fh(G)
-        (False, [7, 9, 4, 3, 2, 1, 0, 5, 8, 6])
-        sage: fh(G,find_path=True)
-        (True, [3, 8, 6, 1, 2, 7, 9, 4, 0, 5])
-
-    We now show the algorithm working on another known hypohamiltonian
-    graph, the generalized Petersen graph with parameters 11 and 2 ::
-
-        sage: G=graphs.GeneralizedPetersenGraph(11,2)
-        sage: fh(G)
-        (False, [13, 11, 0, 10, 9, 20, 18, 16, 14, 3, 2, 1, 12, 21, 19, 8, 7, 6, 17, 15, 4, 5])
-        sage: fh(G,find_path=True)
-        (True, [7, 18, 20, 9, 8, 19, 17, 6, 5, 16, 14, 3, 4, 15, 13, 11, 0, 10, 21, 12, 1, 2])
-
-    Finally, an example on a graph which does not have a Hamiltonian
-    path ::
-
-        sage: G=graphs.HyperStarGraph(5,2)
-        sage: fh(G,find_path=False)
-        (False, ['00011', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
-        sage: fh(G,find_path=True)
-        (False, ['00101', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
     """
 
     from sage.misc.prandom import randint
@@ -1362,9 +1311,9 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
         sage: G=graphs.DodecahedralGraph()
         sage: fh(G)
-        (True, [9, 10, 0, 19, 3, 2, 1, 8, 7, 6, 5, 4, 17, 18, 11, 12, 16, 15, 14, 13])
+        (True, [12, 11, 10, 9, 13, 14, 15, 5, 4, 3, 2, 6, 7, 8, 1, 0, 19, 18, 17, 16])
         sage: fh(G,find_path=True)
-        (True, [8, 9, 10, 11, 18, 17, 4, 3, 19, 0, 1, 2, 6, 7, 14, 13, 12, 16, 15, 5])
+        (True, [10, 0, 19, 3, 4, 5, 15, 16, 17, 18, 11, 12, 13, 9, 8, 1, 2, 6, 7, 14])
 
     Another test, now in the Möbius-Kantor graph which is also
     Hamiltonian, as in our previous example, we are able to find a
@@ -1372,9 +1321,9 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
         sage: G=graphs.MoebiusKantorGraph()
         sage: fh(G)
-        (True, [5, 4, 3, 2, 10, 15, 12, 9, 1, 0, 7, 6, 14, 11, 8, 13])
+        (True, [15, 10, 2, 3, 4, 5, 13, 8, 11, 14, 6, 7, 0, 1, 9, 12])
         sage: fh(G,find_path=True)
-        (True, [4, 5, 6, 7, 15, 12, 9, 1, 0, 8, 13, 10, 2, 3, 11, 14])
+        (True, [10, 15, 7, 6, 5, 4, 12, 9, 14, 11, 3, 2, 1, 0, 8, 13])
 
     Now, we try the algorithm on a non Hamiltonian graph, the Petersen
     graph.  This graph is known to be hypohamiltonian, so a
@@ -1382,27 +1331,27 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
         sage: G=graphs.PetersenGraph()
         sage: fh(G)
-        (False, [7, 9, 4, 3, 2, 1, 0, 5, 8, 6])
+        (False, [9, 4, 0, 1, 6, 8, 5, 7, 2, 3])
         sage: fh(G,find_path=True)
-        (True, [3, 8, 6, 1, 2, 7, 9, 4, 0, 5])
+        (True, [7, 2, 1, 0, 5, 8, 6, 9, 4, 3])
 
     We now show the algorithm working on another known hypohamiltonian
     graph, the generalized Petersen graph with parameters 11 and 2 ::
 
         sage: G=graphs.GeneralizedPetersenGraph(11,2)
         sage: fh(G)
-        (False, [13, 11, 0, 10, 9, 20, 18, 16, 14, 3, 2, 1, 12, 21, 19, 8, 7, 6, 17, 15, 4, 5])
+        (False, [7, 8, 9, 10, 0, 1, 2, 3, 14, 12, 21, 19, 17, 6, 5, 4, 15, 13, 11, 20, 18, 16])
         sage: fh(G,find_path=True)
-        (True, [7, 18, 20, 9, 8, 19, 17, 6, 5, 16, 14, 3, 4, 15, 13, 11, 0, 10, 21, 12, 1, 2])
+        (True, [2, 1, 12, 21, 10, 0, 11, 13, 15, 17, 19, 8, 7, 6, 5, 4, 3, 14, 16, 18, 20, 9])
 
     Finally, an example on a graph which does not have a Hamiltonian
     path ::
 
         sage: G=graphs.HyperStarGraph(5,2)
         sage: fh(G,find_path=False)
-        (False, ['00011', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
+        (False, ['00110', '10100', '01100', '11000', '01010', '10010', '00011', '10001', '00101'])
         sage: fh(G,find_path=True)
-        (False, ['00101', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
+        (False, ['01001', '10001', '00101', '10100', '00110', '10010', '01010', '11000', '01100'])
 
     TESTS:
 

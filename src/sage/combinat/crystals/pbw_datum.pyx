@@ -64,7 +64,7 @@ class PBWDatum(object):
                      cartan_type=self.parent.cartan_type)
         return_str += "long word {long_word} and Lusztig datum {lusztig_datum}".format(
                       long_word=self.long_word,
-                      lusztig_datum=self.lusztig_datum) 
+                      lusztig_datum=self.lusztig_datum)
         return return_str
 
     def __eq__(self, other_PBWDatum):
@@ -104,7 +104,7 @@ class PBWDatum(object):
         other_lusztig_datum = other_pbw_datum.lusztig_datum
         equiv_pbw_datum = self.convert_to_new_long_word(other_long_word)
         return equiv_pbw_datum.lusztig_datum == other_lusztig_datum
-        
+
     def convert_to_long_word_with_first_letter(self, i):
         r"""
         Return a new PBWDatum equivalent to ``self``
@@ -231,7 +231,7 @@ class PBWData(object): # UniqueRepresentation?
     @cached_method
     def _root_list_from(self, reduced_word):
         """
-        Return the list of positive roots in the order determined by 
+        Return the list of positive roots in the order determined by
         ``reduced_word``.
 
         .. WARNING::
@@ -293,7 +293,7 @@ cpdef tuple compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datu
         sage: B = BraidMoveCalculator(W)
         sage: chain = B.chain_of_reduced_words((1,2,1),(2,1,2))
         sage: enhanced_braid_chain = enhance_braid_move_chain(chain, ct)
-        sage: compute_new_lusztig_datum(enhanced_braid_chain,(1,0,1))    
+        sage: compute_new_lusztig_datum(enhanced_braid_chain,(1,0,1))
         (0, 1, 0)
 
     TESTS::
@@ -432,7 +432,7 @@ cpdef enhance_braid_move_chain(braid_move_chain, cartan_type):
         ....:                (3, 1, 2, 1, 3, 2),
         ....:                (3, 2, 1, 2, 3, 2),
         ....:                (3, 2, 1, 3, 2, 3)]
-        sage: enhanced_chain = enhance_braid_move_chain(braid_chain, CartanType(["A",5])) 
+        sage: enhanced_chain = enhance_braid_move_chain(braid_chain, CartanType(["A",5]))
         sage: enhanced_chain[0]
         (None, None)
         sage: enhanced_chain[7]
@@ -457,9 +457,9 @@ cpdef enhance_braid_move_chain(braid_move_chain, cartan_type):
     return output_list
 
 cdef tuple diff_interval(tuple t1, tuple t2):
-    """
-    Return the smallest contiguous half-open interval [a,b) 
-    that contains the indices where ``list1`` and ``list2`` differ. 
+    r"""
+    Return the smallest contiguous half-open interval `[a,b)`
+    that contains the indices where ``list1`` and ``list2`` differ.
     Return ``None`` if the lists don't differ.
 
     INPUT:

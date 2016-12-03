@@ -61,7 +61,7 @@ class PBWCrystalElement(Element):
             sage: B = crystals.infinity.PBW(['B', 4])
             sage: u = B.highest_weight_vector()
             sage: u.f_string([1,2,3,4,2,3,2,3,4,1,2])
-            PBW monomial with Lusztig datum 
+            PBW monomial with Lusztig datum
             (0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 2)
         """
         pbw_datum = self._pbw_datum.convert_to_new_long_word(self.parent()._default_word)
@@ -229,8 +229,8 @@ class PBWCrystalElement(Element):
             sage: c == b.f_string([1,2,4,1,2,3,3])
             True
         """
-        equiv_PBWDatum = self._pbw_datum.convert_to_long_word_with_first_letter(i) 
-        new_long_word = equiv_PBWDatum.long_word 
+        equiv_PBWDatum = self._pbw_datum.convert_to_long_word_with_first_letter(i)
+        new_long_word = equiv_PBWDatum.long_word
         new_lusztig_datum = list(equiv_PBWDatum.lusztig_datum)
         new_lusztig_datum[0] += 1
         return type(self)(self.parent(), tuple(new_lusztig_datum), new_long_word)
@@ -248,7 +248,7 @@ class PBWCrystalElement(Element):
             sage: s.epsilon(2)
             0
         """
-        equiv_pbw_datum = self._pbw_datum.convert_to_long_word_with_first_letter(i) 
+        equiv_pbw_datum = self._pbw_datum.convert_to_long_word_with_first_letter(i)
         return equiv_pbw_datum.lusztig_datum[0]
 
     def phi(self, i):
@@ -397,7 +397,7 @@ class PBWCrystal(Parent, UniqueRepresentation):
         i = self._cartan_type.index_set()[0]
         self._default_word = self._pbw_datum_parent._long_word_begin_with(i)
         zero_lusztig_datum = [0]*len(self._default_word)
-        self.module_generators = (self.element_class(self, 
+        self.module_generators = (self.element_class(self,
                                                      zero_lusztig_datum,
                                                      self._default_word),)
 

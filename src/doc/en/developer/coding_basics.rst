@@ -125,8 +125,7 @@ of several different types of polynomial rings.
 
    You are encouraged to include miscellaneous notes, emails, design
    discussions, etc., in your package.  Make these plain text files
-   (with extension ``.txt``) in a subdirectory called ``notes``.  For
-   example, see ``SAGE_ROOT/src/sage/ext/notes/``.
+   (with extension ``.txt``) in a subdirectory called ``notes``.
 
 If you want to create a new directory in the Sage library
 ``SAGE_ROOT/src/sage`` (say, ``measure_theory``), that directory
@@ -150,6 +149,18 @@ but it is generally better to use the lazy import framework::
 Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::
 
     from sage.measure_theory.all import *
+
+Non-Python Sage source code and supporting files should be placed in appropriate
+subdirectories of ``SAGE_ROOT/src/ext/``. They will then be automatically
+copied to the corresponding subdirectories of ``SAGE_ROOT/local/share/sage/ext/``
+during the build process and can be accessed at runtime using ``SAGE_EXTCODE``.
+For example, if ``file`` is placed in ``SAGE_ROOT/src/ext/directory/`` it can
+be accessed with ::
+
+    from sage.env import SAGE_EXTCODE
+    file = os.path.join(SAGE_EXTCODE, 'directory', 'file')
+
+``SAGE_EXTCODE`` is used because not all distributions have ``SAGE_ROOT``.
 
 
 Learn by copy/paste

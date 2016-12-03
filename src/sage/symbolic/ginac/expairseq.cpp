@@ -452,11 +452,10 @@ found:		;
 			// Assign all the remaining terms to the global wildcard (unless
 			// it has already been matched before, in which case the matches
 			// must be equal)
-			size_t num = ops.size();
 			std::unique_ptr<epvector> vp(new epvector);
-			vp->reserve(num);
-			for (size_t i=0; i<num; i++)
-				vp->push_back(split_ex_to_pair(ops[i]));
+			vp->reserve(ops.size());
+			for (const auto& term : ops)
+				vp->push_back(split_ex_to_pair(term));
 
                         ex rest = thisexpairseq(std::move(vp), default_overall_coeff());
                         for (const auto & elem : tmp_repl) {

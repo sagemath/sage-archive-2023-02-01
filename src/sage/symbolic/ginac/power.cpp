@@ -739,12 +739,11 @@ ex power::eval(int level) const
 	if (ebasis.info(info_flags::positive)) {
 		if (eexponent.is_equal(1/log(ebasis)))
 			return exp(log(basis)*exponent);
-		else if (is_exactly_a<mul>(eexponent)) {
-			for (size_t i=0; i < eexponent.nops(); i++) {
-				if (eexponent.op(i).is_equal(1/log(ebasis)))
+		else if (is_exactly_a<mul>(eexponent) and
+			 std::any_of(eexponent.begin(), eexponent.end(),
+                                [ebasis](ex e)
+                                { return e.is_equal(1/log(ebasis)); }))
 					return exp(log(basis)*exponent);
-			}
-		}
 	}
 	
 	if (are_ex_trivially_equal(ebasis,basis) &&

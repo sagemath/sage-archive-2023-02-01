@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Pointwise addition of dictionaries
 

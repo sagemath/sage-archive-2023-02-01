@@ -575,6 +575,11 @@ class Function_Bessel_Y(BuiltinFunction):
             -sqrt(2)*sqrt(1/(pi*x))*cos(x)
             sage: bessel_Y(-1/2, x)
             sqrt(2)*sqrt(1/(pi*x))*sin(x)
+
+        TESTS::
+
+            sage: bessel_Y(0, 0)
+            -Infinity
         """
         from sage.rings.infinity import infinity, unsigned_infinity
         if not isinstance(x, Expression) and x == 0:
@@ -974,8 +979,13 @@ class Function_Bessel_K(BuiltinFunction):
             sqrt(1/2)*sqrt(pi)*e^(-x)/sqrt(x)
             sage: bessel_K(n, 0)
             bessel_K(n, 0)
+
+        TESTS::
+
+            sage: bessel_K(0, 0)
+            +Infinity
         """
-        from sage.rings.infinity import unsigned_infinity
+        from sage.rings.infinity import infinity, unsigned_infinity
         if not isinstance(x, Expression) and x == 0:
             if n == 0:
                 return infinity

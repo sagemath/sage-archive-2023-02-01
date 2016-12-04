@@ -1459,10 +1459,12 @@ The Singular documentation for '%s' is given below.
             False
             sage: groebner == 1
             False
+            sage: groebner == None
+            False
         """
         try:
-            lx = <SingularFunction>self
-            rx = <SingularFunction>other
+            lx = <SingularFunction?>self
+            rx = <SingularFunction?>other
         except TypeError:
             return NotImplemented
         return richcmp(lx._name, rx._name, op)

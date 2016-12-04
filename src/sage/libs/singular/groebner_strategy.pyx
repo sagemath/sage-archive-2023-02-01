@@ -232,8 +232,8 @@ cdef class GroebnerStrategy(SageObject):
             False
         """
         try:
-            lx = <GroebnerStrategy>self
-            rx = <GroebnerStrategy>other
+            lx = <GroebnerStrategy?>self
+            rx = <GroebnerStrategy?>other
         except TypeError:
             return NotImplemented
         return richcmp(lx._ideal.gens(),
@@ -470,8 +470,8 @@ cdef class NCGroebnerStrategy(SageObject):
             False
         """
         try:
-            lx = <NCGroebnerStrategy>self
-            rx = <NCGroebnerStrategy>other
+            lx = <NCGroebnerStrategy?>self
+            rx = <NCGroebnerStrategy?>other
         except TypeError:
             return NotImplemented
         return richcmp((lx._ideal.gens(), lx._ideal.side()),

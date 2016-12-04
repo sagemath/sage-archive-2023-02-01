@@ -2525,7 +2525,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         This method assigns the intersection to ``self`` and does not
         return anything.
 
-        Raises a ``ValueError`` if ``self`` and and ``y`` are
+        Raises a ``ValueError`` if ``self`` and ``y`` are
         topology-incompatible or dimension-incompatible.
 
         EXAMPLES::
@@ -2575,7 +2575,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         This method assigns the poly-hull to ``self`` and does not
         return anything.
 
-        Raises a ``ValueError`` if ``self`` and and ``y`` are
+        Raises a ``ValueError`` if ``self`` and ``y`` are
         topology-incompatible or dimension-incompatible.
 
         EXAMPLES::
@@ -2640,7 +2640,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         This method assigns the poly-difference to ``self`` and does
         not return anything.
 
-        Raises a ``ValueError`` if ``self`` and and ``y`` are
+        Raises a ``ValueError`` if ``self`` and ``y`` are
         topology-incompatible or dimension-incompatible.
 
         EXAMPLES::

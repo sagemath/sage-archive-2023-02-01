@@ -1141,7 +1141,7 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
             sage: [[4,3,1], [4,2], [3]] in G
             False
         """
-        # Check if the the top row matches (if applicable)
+        # Check if the top row matches (if applicable)
         if tuple(gt[0]) != self._row:
             return False
         return GelfandTsetlinPatterns.__contains__(self, gt)

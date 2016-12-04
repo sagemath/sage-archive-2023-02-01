@@ -1346,7 +1346,7 @@ REFERENCES:
              :doi:`10.1007/978-1-4684-9322-1`,
              ISBN 978-1-4684-9322-1.
 
-.. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
+.. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 

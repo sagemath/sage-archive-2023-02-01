@@ -1620,7 +1620,7 @@ class GraphLatex(SageObject):
         # or use this type of extra information if they are switched off
         vertex_labels = self.get_option('vertex_labels')
 
-        # We collect options for vertices, default values and and for-some-vertices information
+        # We collect options for vertices, default values and for-some-vertices information
         # These are combined into dictionaries on a per-vertex basis, for all vertices
         # This only applies for a custom style
         #

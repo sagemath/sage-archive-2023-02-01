@@ -3918,7 +3918,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: Q(V.0 + V.1)
             (0)
 
-        We illustrate the the base rings must be the same::
+        We illustrate that the base rings must be the same::
 
             sage: (QQ^2)/(ZZ^2)
             Traceback (most recent call last):

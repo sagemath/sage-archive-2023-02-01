@@ -4653,7 +4653,7 @@ class Graph(GenericGraph):
         r"""
         Returns an independent set of representatives.
 
-        Given a graph `G` and and a family `F=\{F_i:i\in [1,...,k]\}` of
+        Given a graph `G` and a family `F=\{F_i:i\in [1,...,k]\}` of
         subsets of ``g.vertices()``, an Independent Set of Representatives
         (ISR) is an assignation of a vertex `v_i\in F_i` to each set `F_i`
         such that `v_i != v_j` if `i<j` (they are representatives) and the

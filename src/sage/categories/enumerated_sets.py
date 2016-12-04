@@ -867,7 +867,6 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: class broken(UniqueRepresentation, Parent):
                 ....:  def __init__(self):
                 ....:      Parent.__init__(self, category = EnumeratedSets())
-                ...
                 sage: broken().random_element()
                 Traceback (most recent call last):
                 ...

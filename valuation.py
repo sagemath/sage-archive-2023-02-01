@@ -617,35 +617,57 @@ class DiscreteValuation(DiscretePseudoValuation):
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
 
+        from sage.misc.misc import verbose
+        verbose("Approximants of %r towards %r"%(self, G), level=3)
+
         from sage.rings.all import infinity
         from gauss_valuation import GaussValuation
 
-        leaves = [ GaussValuation(R, self)]
+        def is_sufficiently_precise(v, others):
+            if precision_cap is None or v(v.phi()) >= precision_cap:
+                # the precision to which we have determined the approximants is sufficient
+                if not [w for w in others if w <= v or w>=v]:
+                    # the approximants do not approximate each other
+                    return True
+            return False
+
+        leaves = [ (GaussValuation(R, self), None) ]
         while True:
-            ef = [ v.E()*v.F() for v in leaves]
+            ef = [ v.E()*v.F() for v,_ in leaves]
+            verbose("Augmenting with ef=%r"%(ef,), level=5)
             if sum(ef) == G.degree():
                 # the ramification indexes and residual degrees are final
-                if precision_cap is None or all([v(v.phi()) >= precision_cap for v in leaves]):
-                    # the precision to which we have determined the approximants is sufficient
-                    if not [v for v in leaves if [w for w in leaves if w != v and w <= v]]:
-                        # the approximants do not approximate each other
-                        break
+                if all([is_sufficiently_precise(v, [w for w,_ in leaves if w != v]) for v,_ in leaves]):
+                    break
 
             expandables = []
             new_leaves = []
-            for v in leaves:
+            for v,parent in leaves:
                 if v(G) is infinity:
-                    new_leaves.append(v)
+                    new_leaves.append((v,parent))
                 else:
-                    expandables.append(v)
+                    expandables.append((v,parent))
             leaves = new_leaves
 
             assert expandables
 
-            for v in expandables:
-                leaves.extend(v.mac_lane_step(G, assume_squarefree=True))
+            for v,parent in expandables:
+                leaves.extend([(w,(v,parent)) for w in v.mac_lane_step(G, assume_squarefree=True)])
 
-        return leaves
+        # rollback each approximant as much as possible to make the
+        # coefficients of the key polynomials as small as possible
+        ret = []
+        for i in range(len(leaves)):
+            others = [w for w,_ in leaves if w != leaves[i][0]]
+            while leaves[i][1] is not None and leaves[i][0].E() == leaves[i][1][0].E() and leaves[i][0].F() == leaves[i][1][0].F() and is_sufficiently_precise(leaves[i][1][0], others):
+                verbose("Replacing %r with %r which is sufficiently precise"%(leaves[i][0], leaves[i][1][0]), level=9)
+                leaves[i] = leaves[i][1]
+            assert is_sufficiently_precise(leaves[i][0], others)
+
+        for v,parent in leaves:
+            w=v,parent
+
+        return [v for v,_ in leaves]
 
     def mac_lane_approximant(self, G, valuation, approximants = None):
         r"""

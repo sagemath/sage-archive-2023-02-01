@@ -661,7 +661,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             raise ValueError("G must not be constant")
 
         from sage.misc.misc import verbose
-        verbose("Expanding %s towards %s"%(self, G), caller_name = "mac_lane_step")
+        verbose("Augmenting %s towards %s"%(self, G), level=10)
 
         if not G.is_monic():
             raise ValueError("G must be monic")
@@ -710,10 +710,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 else:
                     continue
 
-            verbose("Determining the valuation for %s"%phi, level=2, caller_name="mac_lane_step")
+            verbose("Determining the valuation for %s"%phi, level=11)
             w = self.augmentation(phi, self(phi), check=False)
             NP = w.newton_polygon(G).principal_part()
-            verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=2, caller_name="mac_lane_step")
+            verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=11)
             slopes = NP.slopes(repetition=False)
             if NP.vertices()[0][0] != 0:
                 slopes = [-infinity] + slopes
@@ -743,7 +743,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
             for i in range(len(slopes)):
                 slope = slopes[i]
-                verbose("Slope = %s"%slope, level=3, caller_name="mac_lane_step")
+                verbose("Slope = %s"%slope, level=12)
                 new_mu = self(phi) - slope
                 base = self
                 if phi.degree() == base.phi().degree():
@@ -1097,7 +1097,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         R, phi_divides, F = self._equivalence_reduction(f)
         F = F.factor()
         from sage.misc.misc import verbose
-        verbose("%s factors as %s = %s in reduction"%(f, F.prod(), F), caller_name="equivalence_decomposition")
+        verbose("%s factors as %s = %s in reduction"%(f, F.prod(), F), level=20)
 
         unit = self.lift(self.residue_ring()(F.unit())) * self.equivalence_reciprocal(R)
         F = list(F)

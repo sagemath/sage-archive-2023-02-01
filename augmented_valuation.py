@@ -315,55 +315,6 @@ class AugmentedValuation_base(InductiveValuation):
         self._base_valuation = v
         self._mu = mu
 
-    def _call_(self, f):
-        """
-        Evaluate this valuation at ``f``.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R = Qp(2, 5)
-            sage: S.<x> = R[]
-            sage: v = GaussValuation(S)
-            sage: w = v.augmentation(x^2 + x + 1, 1)
-
-            sage: w(x^2 + 2*x + 3)
-            0
-            sage: w((x^2 + 2*x + 3) * w.phi()^3 )
-            3
-            sage: w(0)
-            +Infinity
-
-        """
-        f = self.domain().coerce(f)
-
-        from sage.rings.all import infinity
-        if f.is_zero():
-            return infinity
-
-        if f.degree() < self.phi().degree():
-            return self._base_valuation(f)
-
-        # We can slightly optimize the approach of DevelopingValuation._call_
-        # We know that self(f) >= self._base_valuation(f)
-        # as soon as we find a coefficient of f with self._base_valuation(c) ==
-        # self._base_valuation(f) we know that this is the valuation of f
-
-        # this optimization does only pay off for polynomials of large degree:
-        if f.degree() // self.phi().degree() <= 3:
-            return super(AugmentedValuation_base, self)._call_(f)
-
-        ret = infinity
-
-        lower_bound = self._base_valuation(f)
-
-        for v in self.valuations(f):
-            ret = min(ret, v)
-            if ret == lower_bound:
-                break
-
-        return ret
-
     def equivalence_unit(self, s):
         """
         Return an equivalence unit of minimal degree and valuation ``s``.

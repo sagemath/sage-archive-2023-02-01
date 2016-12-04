@@ -928,9 +928,10 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         """
         f = self.domain().coerce(f)
 
-        if self(f) < 0:
+        v = self(f)
+        if v < 0:
             raise ValueError("f must have non-negative valuation")
-        elif self(f) > 0:
+        elif v > 0:
             return self.residue_ring().zero()
 
         constant_term = self.coefficients(f).next()
@@ -1174,9 +1175,10 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         """
         f = self.domain().coerce(f)
 
-        if self(f) < 0:
+        v = self(f)
+        if v < 0:
             raise ValueError("f must have non-negative valuation")
-        elif self(f) > 0:
+        elif v > 0:
             return self.residue_ring().zero()
 
         CV = zip(self.coefficients(f), self.valuations(f))

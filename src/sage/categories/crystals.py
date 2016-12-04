@@ -13,7 +13,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
-from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.tensor import TensorProductsCategory
 from sage.categories.morphism import Morphism

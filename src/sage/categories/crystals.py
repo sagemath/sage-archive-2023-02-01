@@ -13,6 +13,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.tensor import TensorProductsCategory
 from sage.categories.morphism import Morphism
@@ -809,6 +810,16 @@ class Crystals(Category_singleton):
                 20
                 sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
+            TESTS:
+
+            We check that infinite crystals raise an error (:trac:`21986`)::
+
+                sage: B = crystals.infinity.Tableaux(['A',2])
+                sage: B.digraph()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite crystal
+
             .. TODO:: Add more tests.
             """
             from sage.graphs.all import DiGraph
@@ -821,6 +832,8 @@ class Crystals(Category_singleton):
 
             # Parse optional arguments
             if subset is None:
+                if self in Crystals().Infinite():
+                    raise NotImplementedError("infinite crystal")
                 subset = self
             if index_set is None:
                 index_set = self.index_set()

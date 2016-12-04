@@ -1324,20 +1324,44 @@ def unpickle_global(module, name):
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')
         <type 'sage.rings.integer.Integer'>
+        
+    A meaningful error message with resolution instructions is displayed for
+    old pickles that accidentally got broken because a class or entire module
+    was moved or renamed::
+    
+        sage: unpickle_global('sage.all', 'some_old_class')
+        Traceback (most recent call last):
+        ...
+        ImportError: cannot import some_old_class from sage.all, call
+        register_unpickle_override('sage.all', 'some_old_class', ...)
+        to fix this
+        
+        sage: unpickle_global('sage.some_old_module', 'some_old_class')
+        Traceback (most recent call last):
+        ...
+        ImportError: cannot import some_old_class from sage.some_old_module, call
+        register_unpickle_override('sage.some_old_module', 'some_old_class', ...)
+        to fix this
     """
     unpickler = unpickle_override.get((module, name))
     if unpickler is not None:
         return unpickler[0]
 
+    def error():
+        raise ImportError("cannot import {1} from {0}, call "
+            "register_unpickle_override({0!r}, {1!r}, ...) to fix this".format(
+                module, name))
+
     mod = sys_modules.get(module)
     if mod is not None:
-        return getattr(mod, name)
+        try:
+            return getattr(mod, name)
+        except AttributeError:
+            error()
     try:
         __import__(module)
     except ImportError:
-        raise ImportError("cannot import {1} from {0}, "
-            "call register_unpickle_override({0!r}, {1!r}, ...) to fix this".format(
-            module, name))
+        error()
     mod = sys_modules[module]
     return getattr(mod, name)
 

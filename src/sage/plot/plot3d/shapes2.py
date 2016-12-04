@@ -146,6 +146,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     if radius is None:
         L = Line(points, thickness=thickness, arrow_head=arrow_head, **kwds)
         L._set_extra_kwds(kwds)
+        L._extra_kwds['thickness'] = thickness  # remove this line if json_repr is defined
         return L
     else:
         v = []

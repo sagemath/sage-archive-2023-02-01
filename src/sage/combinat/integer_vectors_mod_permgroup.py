@@ -158,8 +158,8 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         sage: I = IntegerVectorsModPermutationGroup(SymmetricGroup(5)) # long time
         sage: p = iter(I) # long time
         sage: for i in range(100): # long time
-        ...       v = list(next(p))
-        ...       assert sorted(v, reverse=True) == v
+        ....:     v = list(next(p))
+        ....:     assert sorted(v, reverse=True) == v
 
     We now check that there is as much of canonical vectors under the
     symmetric group `S_n` whose entries sum to `d` than partitions of
@@ -317,7 +317,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: v = S.lift(S([4,3,0,1])); v
             [4, 3, 0, 1]
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
         """
         # TODO: For now, Sage integer vectors are just python list.
         # Once Integer vectors will have an element class, update this

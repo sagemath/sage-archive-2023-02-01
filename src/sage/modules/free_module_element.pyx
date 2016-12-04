@@ -104,7 +104,6 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import itervalues
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -4915,7 +4914,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             d = d.denominator()
         except AttributeError:
             return d
-        for y in itervalues(self._entries):
+        for y in self._entries.itervalues():
             d = d.lcm(y.denominator())
         return d
 

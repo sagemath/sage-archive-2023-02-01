@@ -234,7 +234,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             d = half_term(m[1], False)
             if p == '1': # No polynomial part
                 return d
-            elif d == '1': # No differiental part
+            elif d == '1': # No differential part
                 return p
             else:
                 return p + ' ' + d

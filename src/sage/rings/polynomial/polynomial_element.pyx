@@ -5185,7 +5185,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         method returns a new list::
 
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
             sage: v[0] = 5
             sage: f.list()
             [-1/3, 2, 0, -2/5]
@@ -8986,8 +8986,9 @@ cdef class Polynomial_generic_dense(Polynomial):
         Check that exceptions are propagated correctly (:trac:`18274`)::
 
             sage: class BrokenRational(Rational):
-            ....:     def __nonzero__(self):
+            ....:     def __bool__(self):
             ....:         raise NotImplementedError("cannot check whether number is non-zero")
+            ....:     __nonzero__ = __bool__
             sage: z = BrokenRational()
             sage: R.<x> = QQ[]
             sage: from sage.rings.polynomial.polynomial_element import Polynomial_generic_dense

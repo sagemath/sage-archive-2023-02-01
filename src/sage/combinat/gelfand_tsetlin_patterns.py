@@ -536,8 +536,8 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
         sage: c = 0
         sage: from sage.combinat.crystals.kirillov_reshetikhin import partitions_in_box
         sage: for p in partitions_in_box(3,3):
-        ...      S = SemistandardTableaux(p, max_entry=3)
-        ...      c += S.cardinality()
+        ....:    S = SemistandardTableaux(p, max_entry=3)
+        ....:    c += S.cardinality()
         sage: c == G.cardinality()
         True
 
@@ -718,8 +718,8 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
             sage: c = 0
             sage: from sage.combinat.crystals.kirillov_reshetikhin import partitions_in_box
             sage: for p in partitions_in_box(3,3):
-            ...      S = SemistandardTableaux(p, max_entry=3)
-            ...      c += S.cardinality()
+            ....:    S = SemistandardTableaux(p, max_entry=3)
+            ....:    c += S.cardinality()
             sage: c == len(L)
             True
             sage: G = GelfandTsetlinPatterns(3, 3, strict=True)
@@ -823,7 +823,7 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
             sage: len(L) == G.cardinality()
             True
             sage: type(L[0])
-            <type 'list'>
+            <... 'list'>
         """
         # Setup the first row
         iters = [None]*n

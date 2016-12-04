@@ -1121,7 +1121,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     and is implemented, in graph-theoretic ones, of re-adjusting the edges.
     Namely, `G=T_2^*(q)^*` has a partition
     into `q+2` independent sets `I_k` of size `q^2` each. Each vertex in `I_j` is
-    adajcent to `q` vertices from `I_k`. Each `I_k` is paired to some `I_{k'}`,
+    adjacent to `q` vertices from `I_k`. Each `I_k` is paired to some `I_{k'}`,
     according to ``hyperoval_matching``. One adds edges `(s,t)` for `s,t \in I_k` whenever
     `s` and `t` are adjacent to some `u \in I_{k'}`, and removes all the edges
     between `I_k` and `I_{k'}`.

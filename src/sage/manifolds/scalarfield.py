@@ -628,7 +628,7 @@ class ScalarField(CommutativeAlgebraElement):
         self._domain = domain
         self._manifold = domain.manifold()
         self._is_zero = False # a priori, may be changed below or via
-                              # method __nonzero__()
+                              # method __bool__()
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
@@ -659,7 +659,7 @@ class ScalarField(CommutativeAlgebraElement):
 
     ####### Required methods for an algebra element (beside arithmetic) #######
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
@@ -682,7 +682,6 @@ class ScalarField(CommutativeAlgebraElement):
             True
             sage: M.zero_scalar_field().is_zero()
             True
-
         """
         if self._is_zero:
             return False
@@ -694,6 +693,8 @@ class ScalarField(CommutativeAlgebraElement):
             iszero = iszero and funct.is_zero()
         self._is_zero = iszero
         return not iszero
+
+    __nonzero__ = __bool__
 
     def __eq__(self, other):
         r"""

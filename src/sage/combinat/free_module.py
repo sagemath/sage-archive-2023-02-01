@@ -254,6 +254,8 @@ class CombinatorialFreeModuleElement(Element):
                ***        *             *        ****         ***      **
                *          *           ***        *           **
                *                      *
+            sage: ascii_art(M.zero())
+            0
         """
         from sage.misc.misc import coeff_repr
         terms = self._sorted_items_for_printing()
@@ -296,7 +298,7 @@ class CombinatorialFreeModuleElement(Element):
                 s += AsciiArt([coeff], break_points) + b
                 first = False
         if first:
-            return "0"
+            return AsciiArt(["0"])
         elif s == empty_ascii_art:
             return AsciiArt(["1"])
         else:
@@ -1121,10 +1123,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         turn triggers ``self._repr_()``::
 
             sage: class MyAlgebra(CombinatorialFreeModule):
-            ...       def _repr_(self):
-            ...           return "MyAlgebra on %s"%(self.basis().keys())
-            ...       def product_on_basis(self,i,j):
-            ...           pass
+            ....:     def _repr_(self):
+            ....:         return "MyAlgebra on %s"%(self.basis().keys())
+            ....:     def product_on_basis(self,i,j):
+            ....:         pass
             sage: MyAlgebra(ZZ, ZZ, category = AlgebrasWithBasis(QQ))
             MyAlgebra on Integer Ring
 

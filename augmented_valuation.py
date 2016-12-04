@@ -536,8 +536,8 @@ class AugmentedValuation_base(InductiveValuation):
 
         """
         R = self._base_valuation.equivalence_unit(-self._base_valuation(self._phi))
-        F = self._base_valuation.reduce(self._phi*R)
-        assert(F.is_irreducible())
+        F = self._base_valuation.reduce(self._phi*R).monic()
+        assert F.is_irreducible()
         return F
 
     def E(self):

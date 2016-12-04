@@ -725,23 +725,26 @@ def pretty_inequality(ineq, indices=None):
     return '{} >= {}'.format(positive_part*vars, negative_part*vars)
 
 
-def prepare_inequalities(inequalities):
+def prepare_inequalities(inequalities, B):
     r"""
     EXAMPLES::
 
-        sage: prepare_inequalities([(0, -1, 1, 0), (2, -1, -1, 1)])
-        [(2, -2, -1, 1)]
-        sage: prepare_inequalities([(-1, -1, 1, 0), (2, -1, -1, 1)])
-        [(1, -2, -1, 1)]
-        sage: prepare_inequalities([(2, -1, 1, 0), (2, -1, -1, 1)])
-        [(4, -2, -1, 1)]
+        sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
+        sage: prepare_inequalities([(0, -1, 1, 0), (2, -1, -1, 1)], B)
+        ([(2, -2, -1, 1)], 1, {y2: y2, y1: y1, y0: y0*y1})
+        sage: prepare_inequalities([(-1, -1, 1, 0), (2, -1, -1, 1)], B)
+        ([(1, -2, -1, 1)], y1, {y2: y2, y1: y1, y0: y0*y1})
+        sage: prepare_inequalities([(2, -1, 1, 0), (2, -1, -1, 1)], B)
+        ([(4, -2, -1, 1)], y1^-2, {y2: y2, y1: y1, y0: y0*y1})
 
-        sage: prepare_inequalities([(1, 1, -1, 0), (1, -1, 0, 1), (2, -1, -1, 3)])
-        [(-3, 2, 1, 3)]
+        sage: prepare_inequalities([(1, 1, -1, 0), (1, -1, 0, 1),
+        ....:                       (2, -1, -1, 3)], B)
+        ([(-3, 2, 1, 3)], y0^-1*y2^-2, {y2: y2, y1: y0*y1*y2, y0: y0*y2})
     """
     from itertools import combinations
     from sage.matrix.constructor import matrix
     from sage.modules.free_module_element import vector
+    from sage.rings.integer_ring import ZZ
 
     inequalities_filtered = []
     chain_links = {}
@@ -775,7 +778,14 @@ def prepare_inequalities(inequalities):
             D[(0, c)] = -constant
     T = matrix(ZZ, n, n, D)
 
-    return list(tuple(T*vector(ieq)) for ieq in inequalities_filtered)
+    inequalities = list(tuple(T*vector(ieq)) for ieq in inequalities_filtered)
+
+    rules_pre = iter((y, B({tuple(row[1:]): 1}))
+                     for y, row in zip((1,) + B.gens(), T.rows()))
+    factor = next(rules_pre)[1]
+    rules = dict(rules_pre)
+
+    return inequalities, factor, rules
 
 
 def generating_function_of_polyhedron(polyhedron, indices=None, split=False):

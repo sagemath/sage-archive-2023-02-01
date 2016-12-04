@@ -894,7 +894,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                    list(self.valuations(f))[0] == self(f) and \
                    tau.divides(len(list(self.coefficients(f))) - 1)
 
-    @cached_method
     def _equivalence_reduction(self, f):
         r"""
         Helper method for :meth:`is_equivalence_irreducible` and
@@ -936,7 +935,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         R = self.equivalence_unit(-self(f))
         return R, phi_divides, self.reduce(f*R)
 
-    @cached_method
     def is_equivalence_irreducible(self, f):
         r"""
         Return whether the polynomial ``f`` is equivalence-irreducible, i.e.,

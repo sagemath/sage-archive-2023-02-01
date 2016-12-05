@@ -6344,7 +6344,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Quite obviously, the max cut of a bipartite graph
         is the number of edges, and the two sets of vertices
-        are the the two sides ::
+        are the two sides ::
 
             sage: g = graphs.CompleteBipartiteGraph(5,6)
             sage: [ value, edges, [ setA, setB ]] = g.max_cut(vertices=True)
@@ -19516,7 +19516,7 @@ class GenericGraph(GenericGraph_pyx):
         the vector space that is the eigenspace for that eigenvalue,
         when the eigenvectors are placed on the right of the matrix.
 
-        For some graphs, some of the the eigenspaces are described
+        For some graphs, some of the eigenspaces are described
         exactly by vector spaces over a
         :func:`~sage.rings.number_field.number_field.NumberField`.
         For numerical eigenvectors use :meth:`eigenvectors`.

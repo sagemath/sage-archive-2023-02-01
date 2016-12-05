@@ -396,7 +396,7 @@ class sage_build_ext(build_ext):
                 # different Cython versions or with different options.
                 # To ensure that this inconsistent state will be fixed,
                 # we remove the version_file now to force a
-                # recythonization the the next time we build Sage.
+                # recythonization the next time we build Sage.
                 os.unlink(version_file)
         except IOError:
             # Most likely, the version_file does not exist

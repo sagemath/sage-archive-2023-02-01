@@ -388,7 +388,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         -  2-elements list - Given a list ``[alpha, beta]``,
            where `\alpha` and `\beta` are (coercible to)
            cusps, return the modular symbol `\{\alpha, \beta\}`. When
-           the the weight `k > 2` return
+           the weight `k > 2` return
            `Y^{k-2} \{\alpha, \beta\}`.
 
         -  3-element list - Given a list ``[i, alpha, beta]``,
@@ -1405,7 +1405,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         INPUT:
 
         - ``M`` (int) -- a space of modular symbols whose level is an integer
-          multiple of the the level of self
+          multiple of the level of self
 
         - ``t`` (int) -- a positive integer dividing the quotient of the two
           levels.

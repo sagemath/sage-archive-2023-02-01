@@ -1114,7 +1114,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     the graph of `T_2^*(q)^*`, constructed by
     :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
     by redefining adjacencies in the way specified by an arbitrary ``hyperoval_matching``
-    of the the points (i.e. partitioning into size two parts) of ``hyperoval`` defining
+    of the points (i.e. partitioning into size two parts) of ``hyperoval`` defining
     `T_2^*(q)^*`.
 
     While [BvL84]_ gives the construction in geometric terms, it can be formulated,

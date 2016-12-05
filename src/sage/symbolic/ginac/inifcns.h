@@ -139,9 +139,6 @@ DECLARE_FUNCTION_1P(asech)
 /** Dilogarithm. */
 DECLARE_FUNCTION_1P(Li2)
 
-/** Trilogarithm. */
-DECLARE_FUNCTION_1P(Li3)
-
 /** Derivatives of Riemann's Zeta-function. */
 DECLARE_FUNCTION_2P(zetaderiv)
 

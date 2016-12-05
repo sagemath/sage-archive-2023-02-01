@@ -738,20 +738,6 @@ unsigned Li2_SERIAL::serial = function::register_new(function_options("dilog", 1
                        latex_name("{\\rm Li}_2"));
 
 //////////
-// trilogarithm
-//////////
-
-static ex Li3_eval(const ex & x)
-{
-	if (x.is_zero())
-		return x;
-	return Li3(x).hold();
-}
-
-REGISTER_FUNCTION(Li3, eval_func(Li3_eval).
-                       latex_name("{\\rm Li}_3"));
-
-//////////
 // Order term function (for truncated power series)
 //////////
 

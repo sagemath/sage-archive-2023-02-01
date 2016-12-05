@@ -120,6 +120,24 @@ class FlatteningMorphism(Morphism):
             sage: f = FlatteningMorphism(R)
             sage: f(R('QQbar(sqrt(2))*a*x^2 + b^2 + QQbar(I)*y'))
             1.414213562373095?*x^2*a + b^2 + I*y
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQbar,1)
+            sage: from sage.rings.polynomial.flatten import FlatteningMorphism
+            sage: f = FlatteningMorphism(R)
+            sage: f.domain(), f.codomain()
+            (Multivariate Polynomial Ring in z over Algebraic Field,
+             Multivariate Polynomial Ring in z over Algebraic Field)
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQbar)
+            sage: from sage.rings.polynomial.flatten import FlatteningMorphism
+            sage: f = FlatteningMorphism(R)
+            sage: f.domain(), f.codomain()
+            (Univariate Polynomial Ring in z over Algebraic Field,
+             Univariate Polynomial Ring in z over Algebraic Field)
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
             raise ValueError("domain should be a polynomial ring")
@@ -137,7 +155,10 @@ class FlatteningMorphism(Morphism):
             ring = ring.base_ring()
         self._intermediate_rings = intermediate_rings
         variables.reverse()
-        codomain = PolynomialRing(ring, variables)
+        if is_MPolynomialRing(domain):
+            codomain = PolynomialRing(ring, variables, len(variables))
+        else:
+            codomain = PolynomialRing(ring, variables)
 
         Morphism.__init__(self, domain, codomain)
         self._repr_type_str = 'Flattening'

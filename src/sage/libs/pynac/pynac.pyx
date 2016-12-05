@@ -1787,9 +1787,16 @@ cdef object py_atan2(object x, object y) except +:
         sage: RR100 = RealField(100)
         sage: py_atan2(RR100(0), RR100(1))
         1.5707963267948966192313216916
+
+    Check that :trac:`21428` is fixed::
+
+        sage: plot(real(sqrt(x - 1.*I)), (x,0,1))
+        Graphics object consisting of 1 graphics primitive
     """
     from sage.symbolic.constants import pi
     parent = parent_c(x)
+    if parent is float and parent_c(y) is not float:
+        parent = RR
     assert parent is parent_c(y)
     if parent is ZZ:
         parent = RR

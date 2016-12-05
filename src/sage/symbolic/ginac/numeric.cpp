@@ -2902,8 +2902,8 @@ const numeric atanh(const numeric &x) {
 }
 
 
-const numeric Li2(const numeric &x) {
-        return x.Li2(*_num2_p, nullptr);
+const numeric Li2(const numeric &x, PyObject* parent) {
+        return x.Li2(*_num2_p, parent);
 }
 
 const numeric Li2(const numeric &n, const numeric &x, PyObject* parent) {

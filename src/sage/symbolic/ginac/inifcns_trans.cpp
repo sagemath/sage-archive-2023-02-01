@@ -472,139 +472,6 @@ REGISTER_FUNCTION(logb, eval_func(logb_eval).
                        evalf_func(logb_evalf).
                        latex_name("\\log"));
 
-//////////////////////////////////////
-// classical polylog function (see inifcns_nstdsum.cpp for multiple)
-//////////////////////////////////////
-
-static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(m_) and is_exactly_a<numeric>(x_))
-                return Li2(ex_to<numeric>(m_), ex_to<numeric>(x_), parent);
-
-        return Li(m_,x_).hold();
-}
-
-
-static ex Li_eval(const ex& m_, const ex& x_)
-{
-	// classical polylogs
-	if (x_.is_zero()) {
-		return _ex0;
-	}
-	if (x_.is_integer_one()) {
-		return zeta(m_);
-	}
-	if ((-x_).is_integer_one()) {
-		return (pow(2,1-m_)-1) * zeta(m_);
-	}
-	if (m_.is_integer_one()) {
-		return -log(1-x_);
-	}
-	if (m_.is_equal(_ex2)) {
-		if (x_.is_equal(I)) {
-			return power(Pi,_ex2)/_ex_48 + Catalan*I;
-		}
-		if (x_.is_equal(-I)) {
-			return power(Pi,_ex2)/_ex_48 - Catalan*I;
-		}
-	}
-
-        if ((is_exactly_a<numeric>(x_) and not ex_to<numeric>(x_).is_exact())
-            or (is_exactly_a<numeric>(m_) and not ex_to<numeric>(m_).is_exact())) {
-	        return Li_evalf(m_, x_, nullptr);
-	}
-
-	return Li(m_, x_).hold();
-}
-
-
-static ex Li_series(const ex& m, const ex& x, const relational& rel, int order, unsigned options)
-{
-	// classical polylog
-	const ex x_pt = x.subs(rel, subs_options::no_pattern);
-	if (m.info(info_flags::numeric) && x_pt.info(info_flags::numeric)) {
-		// First special case: x==0 (derivatives have poles)
-		if (x_pt.is_zero()) {
-			const symbol s;
-			ex ser;
-			// manually construct the primitive expansion
-			for (int i=1; i<order; ++i)
-				ser += pow(s,i) / pow(numeric(i), m);
-			// substitute the argument's series expansion
-			ser = ser.subs(s==x.series(rel, order), subs_options::no_pattern);
-			// maybe that was terminating, so add a proper order term
-			epvector nseq;
-			nseq.push_back(expair(Order(_ex1), order));
-			ser += pseries(rel, nseq);
-			// reexpanding it will collapse the series again
-			return ser.series(rel, order);
-		}
-		// TODO special cases: x==1 (branch point) and x real, >=1 (branch cut)
-		throw std::runtime_error("Li_series: don't know how to do the series expansion at this point!");
-	}
-	// all other cases should be safe, by now:
-	throw do_taylor();  // caught by function::series()
-}
-
-
-static ex Li_deriv(const ex& m_, const ex& x_, unsigned deriv_param)
-{
-	GINAC_ASSERT(deriv_param < 2);
-	if (deriv_param == 0) {
-		return _ex0;
-	}
-	ex m = m_;
-	ex x = x_;
-	if (m > 0) {
-		return Li(m-1, x) / x;
-	} else {
-		return 1/(1-x);
-	}
-}
-
-
-static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
-{
-	lst m;
-	if (is_a<lst>(m_)) {
-		m = ex_to<lst>(m_);
-	} else {
-		m = lst(m_);
-	}
-	lst x;
-	if (is_a<lst>(x_)) {
-		x = ex_to<lst>(x_);
-	} else {
-		x = lst(x_);
-	}
-	c.s << "{\\rm Li}_{";
-	auto itm = m.begin();
-	(*itm).print(c);
-	itm++;
-	for (; itm != m.end(); itm++) {
-		c.s << ",";
-		(*itm).print(c);
-	}
-	c.s << "}(";
-	auto itx = x.begin();
-	(*itx).print(c);
-	itx++;
-	for (; itx != x.end(); itx++) {
-		c.s << ",";
-		(*itx).print(c);
-	}
-	c.s << ")";
-}
-
-
-unsigned Li_SERIAL::serial = function::register_new(function_options("polylog", 2).
-                  evalf_func(Li_evalf).
-                  eval_func(Li_eval).
-                  series_func(Li_series).
-                  derivative_func(Li_deriv).
-                  print_func<print_latex>(Li_print_latex).
-                  do_not_evalf_params());
-
 //////////
 // dilogarithm
 //////////
@@ -612,13 +479,16 @@ unsigned Li_SERIAL::serial = function::register_new(function_options("polylog", 
 static ex Li2_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
-		return Li2(ex_to<numeric>(x));
+		return Li2(ex_to<numeric>(x), parent);
 	
 	return Li2(x).hold();
 }
 
 static ex Li2_eval(const ex & x)
 {
+        if (is_exactly_a<numeric>(x) and not ex_to<numeric>(x).is_exact())
+	        return Li2_evalf(x, nullptr);
+
 	if (x.info(info_flags::numeric)) {
 		// Li2(0) -> 0
 		if (x.is_zero())
@@ -758,5 +628,132 @@ unsigned Li2_SERIAL::serial = function::register_new(function_options("dilog", 1
                        series_func(Li2_series).
                        conjugate_func(Li2_conjugate).
                        latex_name("{\\rm Li}_2"));
+
+//////////////////////////////////////
+// classical polylog function (see inifcns_nstdsum.cpp for multiple)
+//////////////////////////////////////
+
+static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(m_) and is_exactly_a<numeric>(x_))
+                return Li2(ex_to<numeric>(m_), ex_to<numeric>(x_), parent);
+
+        return Li(m_,x_).hold();
+}
+
+
+static ex Li_eval(const ex& m_, const ex& x_)
+{
+	// classical polylogs
+	if (x_.is_zero()) {
+		return _ex0;
+	}
+	if (x_.is_integer_one()) {
+		return zeta(m_);
+	}
+	if ((-x_).is_integer_one()) {
+		return (pow(2,1-m_)-1) * zeta(m_);
+	}
+	if (m_.is_integer_one()) {
+		return -log(1-x_);
+	}
+	if (m_.is_equal(_ex2)) 
+                return Li2_eval(x_);
+
+        if ((is_exactly_a<numeric>(x_) and not ex_to<numeric>(x_).is_exact())
+            or (is_exactly_a<numeric>(m_) and not ex_to<numeric>(m_).is_exact())) {
+	        return Li_evalf(m_, x_, nullptr);
+	}
+
+	return Li(m_, x_).hold();
+}
+
+
+static ex Li_series(const ex& m, const ex& x, const relational& rel, int order, unsigned options)
+{
+	// classical polylog
+	const ex x_pt = x.subs(rel, subs_options::no_pattern);
+	if (m.info(info_flags::numeric) && x_pt.info(info_flags::numeric)) {
+		// First special case: x==0 (derivatives have poles)
+		if (x_pt.is_zero()) {
+			const symbol s;
+			ex ser;
+			// manually construct the primitive expansion
+			for (int i=1; i<order; ++i)
+				ser += pow(s,i) / pow(numeric(i), m);
+			// substitute the argument's series expansion
+			ser = ser.subs(s==x.series(rel, order), subs_options::no_pattern);
+			// maybe that was terminating, so add a proper order term
+			epvector nseq;
+			nseq.push_back(expair(Order(_ex1), order));
+			ser += pseries(rel, nseq);
+			// reexpanding it will collapse the series again
+			return ser.series(rel, order);
+		}
+		// TODO special cases: x==1 (branch point) and x real, >=1 (branch cut)
+		throw std::runtime_error("Li_series: don't know how to do the series expansion at this point!");
+	}
+	// all other cases should be safe, by now:
+	throw do_taylor();  // caught by function::series()
+}
+
+
+static ex Li_deriv(const ex& m_, const ex& x_, unsigned deriv_param)
+{
+	GINAC_ASSERT(deriv_param < 2);
+	if (deriv_param == 0) {
+		return _ex0;
+	}
+	ex m = m_;
+	ex x = x_;
+	if (m > 0) {
+		return Li(m-1, x) / x;
+	} else {
+		return 1/(1-x);
+	}
+}
+
+
+static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
+{
+	lst m;
+	if (is_a<lst>(m_)) {
+		m = ex_to<lst>(m_);
+	} else {
+		m = lst(m_);
+	}
+	lst x;
+	if (is_a<lst>(x_)) {
+		x = ex_to<lst>(x_);
+	} else {
+		x = lst(x_);
+	}
+	c.s << "{\\rm Li}_{";
+	auto itm = m.begin();
+	(*itm).print(c);
+	itm++;
+	for (; itm != m.end(); itm++) {
+		c.s << ",";
+		(*itm).print(c);
+	}
+	c.s << "}(";
+	auto itx = x.begin();
+	(*itx).print(c);
+	itx++;
+	for (; itx != x.end(); itx++) {
+		c.s << ",";
+		(*itx).print(c);
+	}
+	c.s << ")";
+}
+
+
+unsigned Li_SERIAL::serial = function::register_new(function_options("polylog", 2).
+                  evalf_func(Li_evalf).
+                  eval_func(Li_eval).
+                  series_func(Li_series).
+                  derivative_func(Li_deriv).
+                  print_func<print_latex>(Li_print_latex).
+                  do_not_evalf_params());
 
 } // namespace GiNaC

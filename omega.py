@@ -741,7 +741,11 @@ def prepare_inequalities(inequalities, B):
         ....:                       (2, -1, -1, 3)], B)
         ([(-3, 2, 1, 3)], y0^-1*y2^-2, {y2: y2, y1: y0*y1*y2, y0: y0*y2})
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     from itertools import combinations
+    from sage.combinat.posets.posets import Poset
     from sage.matrix.constructor import matrix
     from sage.modules.free_module_element import vector
     from sage.rings.integer_ring import ZZ

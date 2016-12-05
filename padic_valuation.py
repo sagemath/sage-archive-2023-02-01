@@ -29,6 +29,8 @@ from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 from sage.misc.fast_methods import WithEqualityById
 
+from sage.rings.all import infinity
+
 class PadicValuationFactory(UniqueFactory):
     """
     Create a ``prime``-adic valuation on ``R``.
@@ -542,7 +544,6 @@ class pAdicValuation_base(DiscreteValuation):
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
 
-        from sage.rings.all import infinity
         from gauss_valuation import GaussValuation
 
         steps = [ GaussValuation(R, self) ]
@@ -623,7 +624,6 @@ class pAdicValuation_base(DiscreteValuation):
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
 
-        from sage.rings.all import infinity
         from gauss_valuation import GaussValuation
 
         steps = [ GaussValuation(R, self) ]
@@ -969,6 +969,11 @@ class pAdicValuation_int(pAdicValuation_base):
             2
 
         """
+        if x.is_zero():
+            # x.valuation() is a factor 10 slower when computing the valuation
+            # of a rational zero than when computing the valuation of another
+            # small rational. Special casing this is a factor 100 faster.
+            return infinity
         return x.valuation(self.p())
 
     def uniformizer(self):

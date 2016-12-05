@@ -809,6 +809,9 @@ def prepare_equations(equations, B):
     from sage.misc.misc_c import prod
 
     E = matrix(equations)
+    if not E:
+        return 1, {}, ()
+
     cols = E.columns()
     indices_nonzero = tuple(i for i, col in enumerate(cols)
                          if not col.is_zero())

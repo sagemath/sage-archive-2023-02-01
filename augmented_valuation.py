@@ -253,7 +253,7 @@ class AugmentedValuationFactory(UniqueFactory):
 
         from valuation_space import DiscretePseudoValuationSpace
         parent = DiscretePseudoValuationSpace(base_valuation.domain())
-        if mu < infinity:
+        if mu is not infinity:
             if base_valuation.is_trivial():
                 return parent.__make_element_class__(FinalFiniteAugmentedValuation)(parent, base_valuation, phi, mu)
             else:
@@ -1378,7 +1378,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         if not self.domain().base_ring() in Fields():
             raise NotImplementedError("only implemented for polynomial rings over fields")
 
-        if self._base_valuation.is_gauss_valuation() and self._mu == infinity:
+        if self._base_valuation.is_gauss_valuation() and self._mu is infinity:
             raise TypeError("there are no keys over this valuation")
 
         if F.is_constant():

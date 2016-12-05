@@ -55,7 +55,7 @@ class ScaledValuationFactory(UniqueFactory):
             
         """
         from sage.rings.all import infinity, QQ
-        if s == infinity or s not in QQ or s <= 0:
+        if s is infinity or s not in QQ or s <= 0:
             # for these values we can not return a TrivialValuation() in
             # create_object() because that would override that instance's
             # _factory_data and lead to pickling errors

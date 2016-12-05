@@ -374,7 +374,7 @@ class InductiveValuation(DevelopingValuation):
         chain = self.augmentation_chain()
         for w,v in zip(chain, chain[1:]):
             from sage.rings.all import infinity, ZZ
-            if w(w.phi()) == infinity:
+            if w(w.phi()) is infinity:
                 tester.assertEqual(w.E(), v.E())
             tester.assertIn(w.E(), ZZ)
             tester.assertIn(w.F(), ZZ)
@@ -676,7 +676,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             raise ValueError("G must be squarefree")
 
         from sage.rings.all import infinity
-        assert self(G) != infinity # this is a valuation and G is non-zero
+        assert self(G) is not infinity # this is a valuation and G is non-zero
 
         if self.is_key(G):
             return [self.augmentation(G, infinity)]

@@ -331,7 +331,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             from sage.rings.all import infinity
-            if self(self.domain().one()) == infinity:
+            if self(self.domain().one()) is infinity:
                 # the constant infinity
                 return True
             if self(self.uniformizer()) != 0:
@@ -670,7 +670,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             """
             from sage.rings.all import infinity
-            if scalar == infinity:
+            if scalar is infinity:
                 from trivial_valuation import TrivialPseudoValuation
                 return TrivialPseudoValuation(self.domain())
             if scalar == 0:
@@ -784,7 +784,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             n = self(numerator)
             nn = other(numerator)
             assert(n > 0)
-            assert(nn != infinity)
+            assert(nn is not infinity)
             if (nn < 0):
                 return numerator
 
@@ -792,7 +792,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             d = self(denominator)
             dd = other(denominator)
             assert(dd > 0)
-            assert(d != infinity)
+            assert(d is not infinity)
             if d < 0:
                 return self.domain()(1/denominator)
 
@@ -1061,7 +1061,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             from sage.rings.all import infinity
             tester = self._tester(**options)
             for x in tester.some_elements(self.domain().some_elements()):
-                if self(x) == infinity:
+                if self(x) is infinity:
                     tester.assertFalse(x.is_unit())
 
         def _test_value_group(self, **options):
@@ -1079,7 +1079,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester = self._tester(**options)
             # check consistency of trivial valuations first
             if self.is_trivial():
-                if self(self.domain().one()) == infinity:
+                if self(self.domain().one()) is infinity:
                     # a trivial pseudo-valuation that sends everything to infinity
                     with tester.assertRaises(ValueError):
                         self.value_group()
@@ -1087,7 +1087,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             # check that all valuations are in the value group
             for x in tester.some_elements(self.domain().some_elements()):
-                if self(x) != infinity:
+                if self(x) is not infinity:
                     tester.assertIn(self(x), self.value_group())
 
             if not self.is_trivial():

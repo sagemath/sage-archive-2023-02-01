@@ -346,7 +346,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
         """
         from sage.rings.all import infinity
         from augmented_valuation import AugmentedValuation_base
-        if self._initial_approximation(self._G) < infinity:
+        if self._initial_approximation(self._G) is not infinity:
             if isinstance(self._initial_approximation, AugmentedValuation_base):
                 return repr(self._initial_approximation)[:-1] + ", … ]"
         return repr(self._initial_approximation)
@@ -463,7 +463,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
         """
         from sage.rings.all import infinity
-        if self._approximation(self._G) == infinity:
+        if self._approximation(self._G) is infinity:
             # an infinite valuation can not be improved further
             return
 
@@ -519,7 +519,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
         """
         from sage.rings.all import infinity
-        if self._approximation(self._approximation.phi()) == infinity:
+        if self._approximation(self._approximation.phi()) is infinity:
             # an infinite valuation can not be improved further
             return
 

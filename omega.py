@@ -799,6 +799,8 @@ def prepare_equations(equations, B):
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
         sage: prepare_equations([(1, 1, 1, -1, 0)], B)
         (y2, {y1: y1*y2, y0: y0*y2}, (2,))
+        sage: prepare_equations([(0, 1, 0, -1, 0)], B)
+        (1, {y0: y0*y2}, (2,))
         sage: prepare_equations([(-1, 0, 1, -1, -1), (1, 1, 0, 1, 2)], B)
         (y2^-1, {y1: y1*y2^2*y3^-1, y0: y0*y2*y3^-1}, (2, 3))
     """
@@ -814,9 +816,9 @@ def prepare_equations(equations, B):
 
     cols = E.columns()
     indices_nonzero = tuple(i for i, col in enumerate(cols)
-                         if not col.is_zero())
+                            if i > 0 and not col.is_zero())
     indices = indices_nonzero[-E.nrows():]
-    indicesn = indices_nonzero[:-E.nrows()]
+    indicesn = (0,) + indices_nonzero[:-E.nrows()]
     T = E.matrix_from_columns(indices).inverse()
 
     gens = (1,) + B.gens()

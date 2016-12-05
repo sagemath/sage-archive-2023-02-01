@@ -551,7 +551,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
 
     An example of this summation with Giac::
 
-        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')           # optional - giac
+        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')
         (pi*e^(2*pi) - pi*e^(-2*pi))/(e^(2*pi) + e^(-2*pi) - 2)
 
     Use Maple as a backend for summation::

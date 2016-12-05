@@ -1422,21 +1422,25 @@ def integer_vectors_nk_fast_iter(n, k):
         if not n:
             yield []
         return
+    n = Integer(n)
     if k == 1:
         yield [n]
         return
 
-    rem = Integer(-1) # Amount remaining
     zero = ZZ.zero()
-    cur = [n+1] + [zero] * (k-1)
-    pos = 0
+    one = ZZ.one()
     k = int(k)
+
+    pos = 0  # Current position
+    rem = zero  # Amount remaining
+    cur = [n] + [zero] * (k-1)  # Current list
+    yield list(cur)
     while pos >= 0:
         if not cur[pos]:
             pos -= 1
             continue
-        cur[pos] -= 1
-        rem += 1
+        cur[pos] -= one
+        rem += one
         if not rem:
             yield list(cur)
         elif pos == k - 2:
@@ -1445,8 +1449,9 @@ def integer_vectors_nk_fast_iter(n, k):
             cur[pos+1] = zero
         else:
             pos += 1
-            cur[pos] = rem + 1
-            rem = -1
+            cur[pos] = rem  # Guaranteed to be at least 1
+            rem = zero
+            yield list(cur)
 
 def IntegerVectors_nconstraints(n, **constraints):
     """

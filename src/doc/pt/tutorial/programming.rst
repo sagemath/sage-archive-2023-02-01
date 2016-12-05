@@ -673,16 +673,6 @@ converter ambos os números para o mesmo tipo, se possível:
     True
     True
 
-Quase todos pares de objetos podem ser comparados; não se supõe que os
-objetos estejam equipados com uma ordem total.
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
-    True
-
 Use bool para desigualdades simbólicas:
 
 ::

@@ -653,16 +653,6 @@ convert both numbers into the same type if possible:
     True
     True
 
-Almost any two objects may be compared; there is no assumption that
-the objects are equipped with a total ordering.
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
-    True
-
 Use bool for symbolic inequalities:
 
 ::

@@ -1388,7 +1388,7 @@ class IntegerVectorsConstraints(IntegerVectors):
 def integer_vectors_nk_fast_iter(n, k):
     """
     A fast iterator for integer vectors of ``n`` of length ``k`` which
-    yeilds Python lists filled with Sage Integers.
+    yields Python lists filled with Sage Integers.
 
     EXAMPLES::
 

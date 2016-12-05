@@ -798,9 +798,9 @@ def prepare_equations(equations, B):
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
         sage: prepare_equations([(1, 1, 1, -1, 0)], B)
-        (y2, {y1: y1*y2, y0: y0*y2}, (3,))
+        (y2, {y1: y1*y2, y0: y0*y2}, (2,))
         sage: prepare_equations([(-1, 0, 1, -1, -1), (1, 1, 0, 1, 2)], B)
-        (y2^-1, {y1: y1*y2^2*y3^-1, y0: y0*y2*y3^-1}, (3, 4))
+        (y2^-1, {y1: y1*y2^2*y3^-1, y0: y0*y2*y3^-1}, (2, 3))
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -827,7 +827,7 @@ def prepare_equations(equations, B):
     factor = next(rules_pre)[1]
     rules = dict(rules_pre)
 
-    return factor, rules, indices
+    return factor, rules, tuple(i-1 for i in indices)
 
 
 def generating_function_of_polyhedron(polyhedron, indices=None, split=False):

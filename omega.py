@@ -792,6 +792,41 @@ def prepare_inequalities(inequalities, B):
     return inequalities, factor, rules
 
 
+def prepare_equations(equations, B):
+    r"""
+    EXAMPLES::
+
+        sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
+        sage: prepare_equations([(1, 1, 1, -1, 0)], B)
+        (y2, {y1: y1*y2, y0: y0*y2}, (3,))
+        sage: prepare_equations([(-1, 0, 1, -1, -1), (1, 1, 0, 1, 2)], B)
+        (y2^-1, {y1: y1*y2^2*y3^-1, y0: y0*y2*y3^-1}, (3, 4))
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    from sage.matrix.constructor import matrix
+    from sage.misc.misc_c import prod
+
+    E = matrix(equations)
+    cols = E.columns()
+    indices_nonzero = tuple(i for i, col in enumerate(cols)
+                         if not col.is_zero())
+    indices = indices_nonzero[-E.nrows():]
+    indicesn = indices_nonzero[:-E.nrows()]
+    T = E.matrix_from_columns(indices).inverse()
+
+    gens = (1,) + B.gens()
+    z = tuple(gens[i] for i in indices)
+    gens_cols = zip(gens, cols)
+    rules_pre = iter((y, y * prod(zz**(-c) for zz, c in zip(z, T*col)))
+                     for y, col in (gens_cols[i] for i in indicesn))
+    factor = next(rules_pre)[1]
+    rules = dict(rules_pre)
+
+    return factor, rules, indices
+
+
 def generating_function_of_polyhedron(polyhedron, indices=None, split=False):
     r"""
     Return the generating function of the integer points of

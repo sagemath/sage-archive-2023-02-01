@@ -35,7 +35,7 @@ from itertools import product
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.list_clone import ClonableIntArray
+from sage.structure.list_clone import ClonableArray
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -443,7 +443,7 @@ def constant_func(i):
     deprecation(12453, 'constant_func is deprecated. Use lambda x: i instead')
     return lambda x: i
 
-class IntegerVector(ClonableIntArray):
+class IntegerVector(ClonableArray):
     """
     An integer vector.
     """

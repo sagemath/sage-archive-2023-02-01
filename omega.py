@@ -968,14 +968,11 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
               An inequality (0, 1, 0, 0) x + 0 >= 0,
               An inequality (1, -1, -1, 0) x - 1 >= 0,
               An inequality (1, 0, 0, -1) x + 0 >= 0)
-        (-y0^6*y1^2*y2^2*y3^3 - y0^6*y1^2*y2*y3^3 + y0^5*y1^2*y2*y3^3 +
-         y0^5*y1^2*y2*y3^2 + y0^4*y1*y2^2*y3^2 + 2*y0^4*y1*y2*y3^2 +
-         y0^4*y1*y3^2 - y0^3*y1*y2*y3^2 - y0^3*y1*y2*y3 - y0^3*y1*y3^2 -
-         y0^3*y1*y3 - y0^2*y2*y3 - y0^2*y3 + y0*y3 + y0) *
-        (-y0 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y0*y1*y3 + 1)^-1 *
-        (-y0*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1 *
-        (-y0^2*y1*y3 + 1)^-1 * (-y0^2*y1*y2*y3 + 1)^-1
-        [0, 1]: (An inequality (1, -1, -1, 0) x - 1 >= 0,
+        (-y0^2*y2*y3 - y0^2*y3 + y0*y3 + y0) *
+        (-y0*y1*y3 + 1)^-1 * (-y0 + 1)^-1 * (-y0*y3 + 1)^-1 *
+        (-y0*y2 + 1)^-1 * (-y0*y2*y3 + 1)^-1
+        [0, 1]: (An equation (0, 1, 0, -1) x + 0 == 0,
+                 An inequality (1, -1, -1, 0) x - 1 >= 0,
                  An inequality (0, 1, 0, 0) x + 0 >= 0,
                  An inequality (0, 0, 1, 0) x + 0 >= 0)
         y0 * (-y0 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y0*y1*y3 + 1)^-1
@@ -1028,19 +1025,21 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
          (-y0*y2 + 1)^-1 * (-y0*y2*y3 + 1)^-1 * (-y1*y3 + 1)^-1 *
          (-y2 + 1)^-1 * (-y0^2*y1*y2*y3 + 1)^-1 *
          (-y0*y1^2*y3 + 1)^-1 * (-y0*y1*y2 + 1)^-1
-        [0, 2]: (An inequality (-1, 1, 1, 0) x + 1 >= 0,
+        [0, 2]: (An equation (1, 0, -1, -1) x - 1 == 0,
+                 An inequality (-1, 1, 1, 0) x + 1 >= 0,
                  An inequality (1, 0, -1, 0) x - 1 >= 0,
                  An inequality (0, 0, 1, 0) x + 0 >= 0)
         y0 * (-y0*y2 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y1*y3 + 1)^-1
-        [1, 2]: (An inequality (0, -1, 0, 1) x + 0 >= 0,
+        [1, 2]: (An equation (1, -1, -1, 0) x - 1 == 0,
+                 An inequality (0, -1, 0, 1) x + 0 >= 0,
                  An inequality (0, 1, 0, 0) x + 0 >= 0,
                  An inequality (1, 0, 0, -1) x + 0 >= 0,
                  An inequality (1, -1, 0, 0) x - 1 >= 0)
-        (y0^4*y1*y2^2*y3^2 - y0^3*y1*y2*y3^2 - y0^3*y1*y2*y3 -
-         y0^2*y2*y3 + y0*y3 + y0) *
-        (-y0*y1*y3 + 1)^-1 * (-y0*y2 + 1)^-1 *
-        (-y0*y2*y3 + 1)^-1 * (-y0^2*y1*y2*y3 + 1)^-1
-        [0, 1, 2]: (An inequality (0, 1, 0, 0) x + 0 >= 0,
+        (-y0^2*y2*y3 + y0*y3 + y0) *
+        (-y0*y1*y3 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y0*y2*y3 + 1)^-1
+        [0, 1, 2]: (An equation (0, 1, 0, -1) x + 0 == 0,
+                    An equation (1, -1, -1, 0) x - 1 == 0,
+                    An inequality (0, 1, 0, 0) x + 0 >= 0,
                     An inequality (1, -1, 0, 0) x - 1 >= 0)
         y0 * (-y0*y2 + 1)^-1 * (-y0*y1*y3 + 1)^-1
         [3]: (An inequality (-1, 0, 0, 1) x + 0 >= 0,
@@ -1051,68 +1050,74 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
         (-y0*y1*y3^2 - y0*y3^2 + y0*y3 + y3) *
         (-y0*y2*y3 + 1)^-1 * (-y3 + 1)^-1 * (-y1*y3 + 1)^-1 *
         (-y0*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1
-        [0, 3]: ()
+        [0, 3]: (An equation -1 == 0,)
         0
-        [1, 3]: (An inequality (1, -1, -1, 0) x - 1 >= 0,
+        [1, 3]: (An equation (1, 0, 0, -1) x + 0 == 0,
+                 An inequality (1, -1, -1, 0) x - 1 >= 0,
                  An inequality (0, 1, 0, 0) x + 0 >= 0,
                  An inequality (0, 0, 1, 0) x + 0 >= 0)
         y0*y3 * (-y0*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
-        [0, 1, 3]: ()
+        [0, 1, 3]: (An equation -1 == 0,)
         0
-        [2, 3]: (An inequality (1, 0, -1, 0) x + 0 >= 0,
+        [2, 3]: (An equation (0, 1, 1, -1) x + 1 == 0,
+                 An inequality (1, 0, -1, 0) x + 0 >= 0,
                  An inequality (-1, 1, 1, 0) x + 1 >= 0,
                  An inequality (0, 0, 1, 0) x + 0 >= 0,
                  An inequality (0, 1, 0, 0) x + 0 >= 0)
-        (y0^2*y1^2*y2*y3^4 - y0^2*y1*y2*y3^3 - y0*y1*y2*y3^3 -
-         y0*y1*y3^2 + y0*y3 + y3) *
-        (-y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1 *
-        (-y0*y1*y3 + 1)^-1 * (-y0*y1*y2*y3^2 + 1)^-1
-        [0, 2, 3]: ()
+        (-y0*y1*y3^2 + y0*y3 + y3) *
+        (-y0*y2*y3 + 1)^-1 * (-y1*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1
+        [0, 2, 3]: (An equation -1 == 0,)
         0
-        [1, 2, 3]: (An inequality (0, 1, 0, 0) x + 0 >= 0,
+        [1, 2, 3]: (An equation (1, 0, 0, -1) x + 0 == 0,
+                    An equation (1, -1, -1, 0) x - 1 == 0,
+                    An inequality (0, 1, 0, 0) x + 0 >= 0,
                     An inequality (1, -1, 0, 0) x - 1 >= 0)
         y0*y3 * (-y0*y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
-        [0, 1, 2, 3]: ()
+        [0, 1, 2, 3]: (An equation -1 == 0,)
         0
         [4]: (An inequality (-1, -1, 0, 1) x - 1 >= 0,
               An inequality (-1, 0, 1, 0) x + 0 >= 0,
               An inequality (0, 1, 0, 0) x + 0 >= 0,
               An inequality (1, 0, 0, 0) x + 0 >= 0)
         y3 * (-y2 + 1)^-1 * (-y3 + 1)^-1 * (-y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
-        [0, 4]: ()
+        [0, 4]: (An equation -1 == 0,)
         0
-        [1, 4]: ()
+        [1, 4]: (An equation -1 == 0,)
         0
-        [0, 1, 4]: ()
+        [0, 1, 4]: (An equation -1 == 0,)
         0
-        [2, 4]: (An inequality (-1, 0, 1, 0) x + 0 >= 0,
+        [2, 4]: (An equation (1, 1, 0, -1) x + 1 == 0,
+                 An inequality (-1, 0, 1, 0) x + 0 >= 0,
                  An inequality (1, 0, 0, 0) x + 0 >= 0,
                  An inequality (0, 1, 0, 0) x + 0 >= 0)
         y3 * (-y2 + 1)^-1 * (-y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
-        [0, 2, 4]: ()
+        [0, 2, 4]: (An equation -1 == 0,)
         0
-        [1, 2, 4]: ()
+        [1, 2, 4]: (An equation -1 == 0,)
         0
-        [0, 1, 2, 4]: ()
+        [0, 1, 2, 4]: (An equation -1 == 0,)
         0
-        [3, 4]: (An inequality (0, 1, 0, 0) x + 0 >= 0,
+        [3, 4]: (An equation (1, 0, -1, 0) x + 0 == 0,
+                 An inequality (0, 1, 0, 0) x + 0 >= 0,
                  An inequality (-1, -1, 0, 1) x - 1 >= 0,
                  An inequality (1, 0, 0, 0) x + 0 >= 0)
         y3 * (-y3 + 1)^-1 * (-y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
-        [0, 3, 4]: ()
+        [0, 3, 4]: (An equation -1 == 0,)
         0
-        [1, 3, 4]: ()
+        [1, 3, 4]: (An equation -1 == 0,)
         0
-        [0, 1, 3, 4]: ()
+        [0, 1, 3, 4]: (An equation -1 == 0,)
         0
-        [2, 3, 4]: (An inequality (0, 1, 0, 0) x + 0 >= 0,
+        [2, 3, 4]: (An equation (1, 1, 0, -1) x + 1 == 0,
+                    An equation (1, 0, -1, 0) x + 0 == 0,
+                    An inequality (0, 1, 0, 0) x + 0 >= 0,
                     An inequality (1, 0, 0, 0) x + 0 >= 0)
         y3 * (-y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
-        [0, 2, 3, 4]: ()
+        [0, 2, 3, 4]: (An equation -1 == 0,)
         0
-        [1, 2, 3, 4]: ()
+        [1, 2, 3, 4]: (An equation -1 == 0,)
         0
-        [0, 1, 2, 3, 4]: ()
+        [0, 1, 2, 3, 4]: (An equation -1 == 0,)
         0
     """
     import logging

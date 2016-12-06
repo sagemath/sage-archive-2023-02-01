@@ -366,6 +366,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
     else:
         raise ValueError('the only two algorithms available are "gale" and "ryser"')
 
+
 def _default_function(l, default, i):
     """
     EXAMPLES::
@@ -390,6 +391,7 @@ def _default_function(l, default, i):
         return l[i]
     except IndexError:
         return default
+
 
 def list2func(l, default=None):
     """
@@ -425,6 +427,7 @@ def list2func(l, default=None):
         from functools import partial
         return partial(_default_function, l, default)
 
+
 def constant_func(i):
     """
     Return the constant function ``i``.
@@ -443,6 +446,7 @@ def constant_func(i):
     deprecation(12453, 'constant_func is deprecated. Use lambda x: i instead')
     return lambda x: i
 
+
 class IntegerVector(ClonableArray):
     """
     An integer vector.
@@ -460,6 +464,7 @@ class IntegerVector(ClonableArray):
         """
         if any(x < 0 for x in self):
             raise ValueError("all entries must be non-negative")
+
 
 class IntegerVectors(Parent):
     """
@@ -673,6 +678,7 @@ class IntegerVectors(Parent):
                 return False
         return True
 
+
 class IntegerVectors_all(UniqueRepresentation, IntegerVectors):
     """
     Class of all integer vectors.
@@ -711,10 +717,11 @@ class IntegerVectors_all(UniqueRepresentation, IntegerVectors):
         yield self.element_class(self, [])
         n = 1
         while True:
-            for k in range(1,n+1):
+            for k in range(1, n + 1):
                 for v in integer_vectors_nk_fast_iter(n, k):
                     yield self.element_class(self, v, check=False)
             n += 1
+
 
 class IntegerVectors_n(UniqueRepresentation, IntegerVectors):
     """
@@ -787,6 +794,7 @@ class IntegerVectors_n(UniqueRepresentation, IntegerVectors):
             return False
         return sum(x) == self.n
 
+
 class IntegerVectors_k(UniqueRepresentation, IntegerVectors):
     """
     Integer vectors of length `k`.
@@ -855,6 +863,7 @@ class IntegerVectors_k(UniqueRepresentation, IntegerVectors):
             return False
         return len(x) == self.k
 
+
 class IntegerVectors_nk(UniqueRepresentation, IntegerVectors):
     """
     Integer vectors of length `k` that sum to `n`.
@@ -897,10 +906,10 @@ class IntegerVectors_nk(UniqueRepresentation, IntegerVectors):
         if k == 1:
             return [ (n, ) ]
 
-        for nbar in range(n+1):
-            n_diff = n-nbar
-            for rest in self._list_rec( nbar , k-1):
-                res.append((n_diff,)+rest)
+        for nbar in range(n + 1):
+            n_diff = n - nbar
+            for rest in self._list_rec( nbar , k - 1):
+                res.append((n_diff,) + rest)
         return res
 
     def __iter__(self):
@@ -948,7 +957,7 @@ class IntegerVectors_nk(UniqueRepresentation, IntegerVectors):
 
         for nbar in range(self.n+1):
             n = self.n - nbar
-            for rest in integer_vectors_nk_fast_iter(nbar, self.k-1):
+            for rest in integer_vectors_nk_fast_iter(nbar, self.k - 1):
                 yield self.element_class(self, [n] + rest, check=False)
 
     def _repr_(self):
@@ -959,7 +968,8 @@ class IntegerVectors_nk(UniqueRepresentation, IntegerVectors):
             sage: IV
             Integer vectors of length 3 that sum to 2
         """
-        return "Integer vectors of length {} that sum to {}".format(self.k, self.n)
+        return "Integer vectors of length {} that sum to {}".format(self.k,
+                                                                    self.n)
 
     def __contains__(self, x):
         """
@@ -1036,12 +1046,13 @@ class IntegerVectors_nk(UniqueRepresentation, IntegerVectors):
         k = self.k
 
         r = 0
-        for i in range(k-1):
+        for i in range(k - 1):
             k -= 1
             n -= x[i]
-            r += binomial(k+n-1,k)
+            r += binomial(k + n - 1, k)
 
         return r
+
 
 class IntegerVectors_nnondescents(UniqueRepresentation, IntegerVectors):
     r"""
@@ -1063,7 +1074,7 @@ class IntegerVectors_nnondescents(UniqueRepresentation, IntegerVectors):
 
     Those are the integer vectors of sum `n` that are lexicographically
     maximal (for the natural left-to-right reading) in their orbit by the
-    young subgroup `S_{c_1} \times \cdots \times S_{c_k}`. In particular,
+    Young subgroup `S_{c_1} \times \cdots \times S_{c_k}`. In particular,
     they form a set of orbit representative of integer vectors with
     respect to this Young subgroup.
     """
@@ -1161,6 +1172,7 @@ class IntegerVectors_nnondescents(UniqueRepresentation, IntegerVectors):
                 for part in parts:
                     res += part
                 yield self.element_class(self, res, check=False)
+
 
 class IntegerVectorsConstraints(IntegerVectors):
     """
@@ -1310,13 +1322,13 @@ class IntegerVectorsConstraints(IntegerVectors):
             if len(self.constraints) == 1:
                 m = self.constraints['max_part']
                 if self.n is None:
-                    return Integer((m+1) ** self.k)
+                    return Integer((m + 1) ** self.k)
                 if m >= self.n:
-                    return Integer(binomial(self.n+self.k-1, self.n))
+                    return Integer(binomial(self.n + self.k - 1, self.n))
                 # do by inclusion / exclusion on the number
                 # i of parts greater than m
                 return Integer(sum( (-1)**i * binomial(self.n+self.k-1-i*(m+1), self.k-1) \
-                    * binomial(self.k,i) for i in range(0, self.n/(m+1)+1) ))
+                    * binomial(self.k,i) for i in range(self.n/(m+1)+1) ))
         return ZZ.sum(ZZ.one() for x in self)
 
     def __iter__(self):
@@ -1385,6 +1397,7 @@ class IntegerVectorsConstraints(IntegerVectors):
             for x in IntegerListsLex(n, check=False, **self.constraints):
                 yield self.element_class(self, x, check=False)
 
+
 def integer_vectors_nk_fast_iter(n, k):
     """
     A fast iterator for integer vectors of ``n`` of length ``k`` which
@@ -1433,7 +1446,7 @@ def integer_vectors_nk_fast_iter(n, k):
 
     pos = 0  # Current position
     rem = zero  # Amount remaining
-    cur = [n] + [zero] * (k-1)  # Current list
+    cur = [n] + [zero] * (k - 1)  # Current list
     yield list(cur)
     while pos >= 0:
         if not cur[pos]:
@@ -1444,14 +1457,15 @@ def integer_vectors_nk_fast_iter(n, k):
         if not rem:
             yield list(cur)
         elif pos == k - 2:
-            cur[pos+1] = rem
+            cur[pos + 1] = rem
             yield list(cur)
-            cur[pos+1] = zero
+            cur[pos + 1] = zero
         else:
             pos += 1
             cur[pos] = rem  # Guaranteed to be at least 1
             rem = zero
             yield list(cur)
+
 
 def IntegerVectors_nconstraints(n, **constraints):
     """
@@ -1472,6 +1486,7 @@ def IntegerVectors_nconstraints(n, **constraints):
         return IntegerVectors_n(n)
     deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectorsConstraints instead')
     return IntegerVectorsConstraints(n, **constraints)
+
 
 def IntegerVectors_nkconstraints(n=None, k=None, **constraints):
     """
@@ -1502,4 +1517,3 @@ def IntegerVectors_nkconstraints(n=None, k=None, **constraints):
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nconstraints', IntegerVectorsConstraints)
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nkconstraints', IntegerVectorsConstraints)
-

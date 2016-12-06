@@ -28,6 +28,7 @@ from sage.combinat.integer_vector import IntegerVector
 from sage.combinat.words.word import Word
 from sage.combinat.permutation import Permutation
 
+
 class WeightedIntegerVectors(Parent, UniqueRepresentation):
     r"""
     The class of integer vectors of `n` weighted by ``weight``, that is, the
@@ -128,7 +129,7 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
         if isinstance(lst, IntegerVector):
             if lst.parent() is self:
                 return lst
-            raise ValueError("cannot convert %s into %s"(lst, self))
+            raise ValueError("cannot convert %s into %s" % (lst, self))
         return self.element_class(self, lst)
 
     def _repr_(self):
@@ -138,7 +139,7 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
             sage: WeightedIntegerVectors(8, [1,1,2])
             Integer vectors of 8 weighted by [1, 1, 2]
         """
-        return "Integer vectors of %s weighted by %s"%(self._n, list(self._weights))
+        return "Integer vectors of %s weighted by %s" % (self._n, list(self._weights))
 
     def __contains__(self, x):
         """
@@ -172,10 +173,10 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
         if len(self._weights) != len(x):
             return False
         s = 0
-        for i,val in enumerate(x):
+        for i, val in enumerate(x):
             if (not isinstance(val, (int, Integer))) and (val not in ZZ):
                 return False
-            s += x[i]*self._weights[i]
+            s += x[i] * self._weights[i]
         return s == self._n
 
     def _recfun(self, n, l):
@@ -195,8 +196,8 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
                 # Otherwise: bad branch
             return
 
-        for d in range(int(n)//int(w), -1, -1):
-            for x in self._recfun(n-d*w, l):
+        for d in range(int(n) // int(w), -1, -1):
+            for x in self._recfun(n - d * w, l):
                 yield x + [d]
 
     def __iter__(self):
@@ -233,6 +234,7 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
             yield self.element_class(self, [x[i] for i in perm])
             #.action(x)
             #_left_to_right_multiply_on_right(Permutation(x))
+
 
 class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
     r"""
@@ -287,7 +289,7 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: WeightedIntegerVectors([2,1,3])
             Integer vectors weighted by [2, 1, 3]
         """
-        return "Integer vectors weighted by %s"%list(self._weights)
+        return "Integer vectors weighted by %s" % list(self._weights)
 
     def __contains__(self, x):
         """
@@ -326,7 +328,8 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: C.grading((2,1,1))
             8
         """
-        return sum([exp*deg for exp,deg in zip(x, self._weights)])
+        return sum(exp * deg for exp, deg in zip(x, self._weights))
+
 
 def iterator_fast(n, l):
     """
@@ -384,6 +387,7 @@ def iterator_fast(n, l):
             cur.append(rem // l[k] + one)
             rem -= cur[-1] * l[k]
 
+
 def WeightedIntegerVectors_nweight(n, weight):
     """
     Deprecated in :trac:`12453`. Use :class:`WeightedIntegerVectors` instead.
@@ -401,4 +405,3 @@ def WeightedIntegerVectors_nweight(n, weight):
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.integer_vector_weighted', 'WeightedIntegerVectors_nweight', WeightedIntegerVectors)
-

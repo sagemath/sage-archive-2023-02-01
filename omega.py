@@ -1118,6 +1118,7 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
     import logging
     logger = logging.getLogger(__name__)
 
+    from sage.geometry.polyhedron.constructor import Polyhedron
     from sage.geometry.polyhedron.representation import Hrepresentation
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -1131,7 +1132,6 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
 
     if split:
         from sage.combinat.permutation import Permutations
-        from sage.geometry.polyhedron.constructor import Polyhedron
 
         d = polyhedron.dim()
         result = []
@@ -1150,30 +1150,21 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
                 ph, indices=indices, split=False))
         return result
 
-    def inequalities_coeffs(inequalities):
-        for entry in inequalities:
-            if isinstance(entry, (tuple, list)):
-                yield tuple(entry)
-            elif isinstance(entry, Hrepresentation):
-                if entry.is_inequality():
-                    yield tuple(entry.vector())
-                elif entry.is_equation():
-                    e = tuple(entry.vector())
-                    yield e
-                    yield tuple(-ee for ee in e)
-                else:
-                    raise ValueError(
-                        'Cannot handle Hrepresentation {}.'.format(entry))
-            else:
-                raise ValueError('Cannot handle {}.'.format(entry))
-
     try:
-        inequalities = polyhedron.Hrepresentation()
+        Hrepr = polyhedron.Hrepresentation()
     except AttributeError:
-        inequalities = polyhedron
-    inequalities = tuple(inequalities_coeffs(inequalities))
+        Hrepr = polyhedron
+    #inequalities = tuple(reversed(tuple(inequalities_coeffs(inequalities))))
+
+    inequalities = tuple(tuple(entry)
+                         for entry in Hrepr if entry.is_inequality())
+    equations = tuple(tuple(entry)
+                      for entry in Hrepr if entry.is_equation())
+    if len(inequalities) + len(equations) != len(Hrepr):
+        raise ValueError('Cannot handle {}.'.format(polyhedron))
+
     if not inequalities:
-        raise ValueError('no inequality given')
+        raise NotImplementedError('no inequality given')
 
     if indices is None:
         indices = range(len(inequalities[0]) - 1)
@@ -1183,52 +1174,27 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
         sparse=True)
 
     n = len(B.gens()) + 1
-    if any(len(ineq) != n for ineq in inequalities):
+    if any(len(ieq) != n for ieq in inequalities):
         raise ValueError('Not all coefficient vectors of the inequalities '
+                         'have the same length.')
+    if any(len(eq) != n for eq in equations):
+        raise ValueError('Not all coefficient vectors of the equations '
                          'have the same length.')
 
     logger.info('generating_function_of_polyhedron: '
                 '%s inequalities', len(inequalities))
 
-    def is_unit_vector(it):
-        found = 0
-        for e in it:
-            if e != 0:
-                if e != 1:
-                    return False
-                else:
-                    found += 1
-                    if found >= 2:
-                        return False
-        return found == 1
+    extra_inequalities, gf_extra_factor_equations, \
+        rules_equations, indices_equations = \
+            prepare_equations(equations, B)
 
-    def is_aleb(it):
-        founda = 0
-        foundb = 0
-        for e in it:
-            if e != 0:
-                if abs(e) != 1:
-                    return False
-                elif e == -1:
-                    founda += 1
-                    if founda >= 2:
-                        return False
-                elif e == 1:
-                    foundb += 1
-                    if foundb >= 2:
-                        return False
-        return founda == 1 and foundb == 1
-
-
+    inequalities, gf_extra_factor_inequalities, rules_inequalities = \
+        prepare_inequalities(inequalities, B)
 
     numerator = B(1)
     terms = B.gens()
     L = B
     for i, coeffs in enumerate(inequalities):
-        if is_unit_vector(coeffs):
-            logger.debug('generating_function_of_polyhedron: '
-                         'skipping %s', pretty_inequality(coeffs))
-            continue
         L = LaurentPolynomialRing(L, 'mu{}'.format(i), sparse=True)
         l = L.gen()
         logger.debug('generating_function_of_polyhedron: '
@@ -1237,6 +1203,10 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
         numerator *= l**next(it_coeffs)
         assert numerator.parent() == L
         terms = tuple(l**c * t for c, t in zip(it_coeffs, terms))
+    assert all(y == t for y, t in
+               (zip(B.gens(), terms)[i] for i in indices_equations))
+    terms = tuple(t for i, t in enumerate(terms)
+                  if i not in indices_equations)
 
     logger.info('generating_function_of_polyhedron: '
                 'terms denominator %s', terms)
@@ -1260,6 +1230,12 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
         numerator, factors_denominator = \
             _Omega_(numerator.dict(), tuple(decoded_factors))
         terms = other_factors + factors_denominator
+
+    numerator = (numerator.subs(rules_inequalities) *
+                 gf_extra_factor_inequalities).subs(rules_equations) * \
+                 gf_extra_factor_equations
+    terms = tuple(t.subs(rules_inequalities).subs(rules_equations)
+                  for t in terms)
 
     return Factorization([(numerator, 1)] +
                          list((1-t, -1) for t in terms),

@@ -848,6 +848,10 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
         1 * (-y1 + 1)^-1 * (-y0 + 1)^-1 * (-y0*y2 + 1)^-1
         sage: generating_function_of_polyhedron(P2[1])
         1 * (-y1 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y2 + 1)^-1
+        sage: (P2[0] & P2[1]).Hrepresentation()
+        (An equation (1, 0, -1) x + 0 == 0,
+         An inequality (1, 0, 0) x + 0 >= 0,
+         An inequality (0, 1, 0) x + 0 >= 0)
         sage: generating_function_of_polyhedron(P2[0] & P2[1])
         1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
 
@@ -880,7 +884,7 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
         ....:     if not J:
         ....:         continue
         ....:     P = intersect([P3[j] for j in J])
-        ....:     print('{}: {}'.format(J, P.inequalities()))
+        ....:     print('{}: {}'.format(J, P.Hrepresentation()))
         ....:     print(generating_function_of_polyhedron(P))
         [0]: (An inequality (0, 0, 0, 1) x + 0 >= 0,
               An inequality (0, 0, 1, 0) x + 0 >= 0,

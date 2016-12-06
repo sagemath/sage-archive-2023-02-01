@@ -268,7 +268,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         f = self.domain().coerce(f)
 
         for c in self.coefficients(f):
-            yield self._base_valuation(self.domain().base_ring()(c))
+            yield self._base_valuation(c)
 
     @cached_method
     def residue_ring(self):

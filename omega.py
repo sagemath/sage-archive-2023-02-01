@@ -877,10 +877,16 @@ def prepare_equations(equations, B):
         sage: prepare_equations([(-1, 0, 1, -1, -1), (1, 1, 0, 1, 2)], B)
         (y2^-1, {y1: y1*y2^2*y3^-1, y0: y0*y2*y3^-1}, (2, 3))
 
-    ::
+    TESTS::
 
+        sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
         sage: prepare_equations([(0, 0, 1, 0, -1), (-1, 1, -1, -1, 0)], B)
         (y2^-1, {y1: y1*y2^-1*y3, y0: y0*y2}, (2, 3))
+
+        sage: B = LaurentPolynomialRing(ZZ, 'y', 5)
+        sage: prepare_equations([(0, 0, 0, 1, 0, -1), (0, 1, 0, 0, -1, 0),
+        ....:                    (0, 1, -1, 0, 0, 0)], B)
+        (1, {y2: y2*y4, y0: y0*y1*y3}, (1, 3, 4))
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -894,8 +900,20 @@ def prepare_equations(equations, B):
 
     indices_nonzero = tuple(i for i, col in enumerate(E.columns())
                             if i > 0 and not col.is_zero())
-    indices = indices_nonzero[-E.nrows():]
-    indicesn = (0,) + indices_nonzero[:-E.nrows()]
+    indices = []
+    r = 0
+    for i in reversed(indices_nonzero):
+        indices.append(i)
+        r1 = E.matrix_from_columns(indices).rank()
+        if r1 > r:
+            r = r1
+            if len(indices) >= E.nrows():
+                break
+        else:
+            indices = indices[:-1]
+    assert len(indices) == E.nrows()
+    indices = tuple(reversed(indices))
+    indicesn = (0,) + tuple(i for i in indices_nonzero if i not in indices)
     T = E.matrix_from_columns(indices).inverse()
     TE = T*E
 
@@ -1139,6 +1157,13 @@ def generating_function_of_polyhedron(
         ....:     sort_factors=True)
         (-y0^2*y3 + y0*y3 + y0) *
         (-y0 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1
+
+        sage: generating_function_of_polyhedron(
+        ....:     Polyhedron(ieqs=[(0, 1, 0, -1, 0, 0), (0, 0, 0, 1, 0, 0)],
+        ....:                eqns=[(0, 0, 0, 1, 0, -1), (0, 1, 0, 0, -1, 0),
+        ....:                      (0, 1, -1, 0, 0, 0)]),
+        ....:     sort_factors=True)
+        1 * (-y0*y1*y3 + 1)^-1 * (-y0*y1*y2*y3*y4 + 1)^-1
     """
     import logging
     logger = logging.getLogger(__name__)

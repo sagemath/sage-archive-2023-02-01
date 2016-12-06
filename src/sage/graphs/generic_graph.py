@@ -12926,7 +12926,7 @@ class GenericGraph(GenericGraph_pyx):
             0
 
         """
-        if implementation == None:
+        if implementation is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed():
                 implementation = 'networkx'
@@ -13057,7 +13057,7 @@ class GenericGraph(GenericGraph_pyx):
             deprecation(17134, "The option 'return_vertex_weights' has been " +
                         "deprecated and is ignored.")
 
-        if implementation == None:
+        if implementation is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed() or weight:
                 implementation = 'networkx'
@@ -13639,7 +13639,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() == 0:
             raise ValueError("This method has no meaning on empty graphs.")
 
-        if algorithm==None and not by_weight:
+        if algorithm is None and not by_weight:
             algorithm = 'iFUB'
         elif algorithm=='BFS':
             algorithm = 'standard'
@@ -15687,7 +15687,7 @@ class GenericGraph(GenericGraph_pyx):
             ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
 
         """
-        if default_weight != None:
+        if default_weight is not None:
             deprecation(18938, "Variable default_weight is deprecated: hence," +
                         " it is ignored. Please, use weight_function, instead.")
 

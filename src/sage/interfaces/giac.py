@@ -41,7 +41,7 @@ EXAMPLES::
     (x-y)*(x^4+x^3*y+x^2*y^2+x*y^3+y^4)
     sage: R.<x,y>=QQ[];f=(x+y)^5;f2=giac(f);(f-f2).normal()
     0
-    sage: x,y=giac('x,y'); giac.int(y/(cos(2*x)+cos(x)),x)
+    sage: x,y=giac('x,y'); giac.int(y/(cos(2*x)+cos(x)),x)     # random
     y*2*((-(tan(x/2)))/6+(-2*1/6/sqrt(3))*ln(abs(6*tan(x/2)-2*sqrt(3))/abs(6*tan(x/2)+2*sqrt(3))))
 
 
@@ -522,12 +522,12 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         EXAMPLES::
 
             sage: t = giac.cputime()
-            sage: t
+            sage: t                     # random
             0.02
             sage: x = giac('x')
             sage: giac.diff(x^2, x)
             2*x
-            sage: giac.cputime(t)
+            sage: giac.cputime(t)       # random
             0.0
         """
         if t is None:
@@ -817,7 +817,7 @@ class GiacElement(ExpectElement):
         EXAMPLES::
 
             sage: m = giac('x^2+y^2')
-            sage: hash(m)
+            sage: hash(m)              # random
             4614285348919569149
         """
         return hash(giac.eval('string(%s);'%self.name()))
@@ -984,7 +984,7 @@ class GiacElement(ExpectElement):
             sage: R.<x,y>=QQ[]
             sage: M=giac('matrix(4,4,(k,l)->(x^k-y^l))'); M
             matrix[[0,1-y,1-y^2,1-y^3],[x-1,x-y,x-y^2,x-y^3],[x^2-1,x^2-y,x^2-y^2,x^2-y^3],[x^3-1,x^3-y,x^3-y^2,x^3-y^3]]
-            sage: M.eigenvals()
+            sage: M.eigenvals()             # random
             0,0,(x^3+x^2+x-y^3-y^2-y+sqrt(x^6+2*x^5+3*x^4-14*x^3*y^3+2*x^3*y^2+2*x^3*y+6*x^3+2*x^2*y^3-14*x^2*y^2+2*x^2*y+5*x^2+2*x*y^3+2*x*y^2-14*x*y+4*x+y^6+2*y^5+3*y^4+6*y^3+5*y^2+4*y-12))/2,(x^3+x^2+x-y^3-y^2-y-sqrt(x^6+2*x^5+3*x^4-14*x^3*y^3+2*x^3*y^2+2*x^3*y+6*x^3+2*x^2*y^3-14*x^2*y^2+2*x^2*y+5*x^2+2*x*y^3+2*x*y^2-14*x*y+4*x+y^6+2*y^5+3*y^4+6*y^3+5*y^2+4*y-12))/2
             sage: Z=matrix(R,M);Z
             [         0     -y + 1   -y^2 + 1   -y^3 + 1]

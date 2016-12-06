@@ -1203,8 +1203,7 @@ def generating_function_of_polyhedron(
     logger.info('generating_function_of_polyhedron: '
                 '%s inequalities', len(inequalities))
 
-    extra_inequalities, gf_extra_factor_equations, \
-        rules_equations, indices_equations = \
+    gf_extra_factor_equations, rules_equations, indices_equations = \
             prepare_equations(equations, B)
 
     inequalities, gf_extra_factor_inequalities, rules_inequalities = \

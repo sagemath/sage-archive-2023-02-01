@@ -1038,59 +1038,6 @@ def LadderGraph(n):
     G.add_edges( (i,i+n) for i in range(n) )
     return G
 
-def LollipopGraph(n1, n2):
-    """
-    Returns a lollipop graph with n1+n2 nodes.
-
-    A lollipop graph is a path graph (order n2) connected to a complete
-    graph (order n1). (A barbell graph minus one of the bells).
-
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the complete
-    graph will be drawn in the lower-left corner with the (n1)th node
-    at a 45 degree angle above the right horizontal center of the
-    complete graph, leading directly into the path graph.
-
-    EXAMPLES: Construct and show a lollipop graph Candy = 13, Stick =
-    4
-
-    ::
-
-        sage: g = graphs.LollipopGraph(13,4)
-        sage: g.show() # long time
-
-    Create several lollipop graphs in a Sage graphics array
-
-    ::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(6):
-        ....:     k = graphs.LollipopGraph(i+3,4)
-        ....:     g.append(k)
-        sage: for i in range(2):
-        ....:     n = []
-        ....:     for m in range(3):
-        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-    """
-    pos_dict = {}
-
-    for i in range(n1):
-        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        j = n1-1-i
-        pos_dict[j] = (x,y)
-    for i in range(n1, n1+n2):
-        x = float(i - n1 - n2/2 + 1)
-        y = float(i - n1 - n2/2 + 1)
-        pos_dict[i] = (x,y)
-    G = graph.Graph(dict( (i,range(i+1,n1)) for i in range(n1) ), pos=pos_dict, name="Lollipop Graph")
-    G.add_vertices( range(n1+n2) )
-    G.add_path( range(n1-1,n1+n2) )
-    return G
 
 def PathGraph(n, pos=None):
     """

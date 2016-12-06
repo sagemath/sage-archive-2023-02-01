@@ -217,6 +217,7 @@ def BalancedTree(r, h):
     import networkx
     return Graph(networkx.balanced_tree(r, h), name="Balanced tree")
 
+
 def BarbellGraph(n1, n2):
     r"""
     Returns a barbell graph with ``2*n1 + n2`` nodes. The argument ``n1``
@@ -359,6 +360,62 @@ def BarbellGraph(n1, n2):
     import networkx
     G = networkx.barbell_graph(n1, n2)
     return Graph(G, pos=pos_dict, name="Barbell graph")
+
+
+def LollipopGraph(n1, n2):
+    r"""
+    Returns a lollipop graph with n1+n2 nodes.
+
+    A lollipop graph is a path graph (order n2) connected to a complete
+    graph (order n1). (A barbell graph minus one of the bells).
+
+    PLOTTING: Upon construction, the position dictionary is filled to
+    override the spring-layout algorithm. By convention, the complete
+    graph will be drawn in the lower-left corner with the (n1)th node
+    at a 45 degree angle above the right horizontal center of the
+    complete graph, leading directly into the path graph.
+
+    EXAMPLES: Construct and show a lollipop graph Candy = 13, Stick =
+    4
+
+    ::
+
+        sage: g = graphs.LollipopGraph(13,4)
+        sage: g.show() # long time
+
+    Create several lollipop graphs in a Sage graphics array
+
+    ::
+
+        sage: g = []
+        sage: j = []
+        sage: for i in range(6):
+        ....:     k = graphs.LollipopGraph(i+3,4)
+        ....:     g.append(k)
+        sage: for i in range(2):
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
+        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G.show() # long time
+    """
+    pos_dict = {}
+
+    for i in range(n1):
+        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
+        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
+        j = n1-1-i
+        pos_dict[j] = (x,y)
+    for i in range(n1, n1+n2):
+        x = float(i - n1 - n2/2 + 1)
+        y = float(i - n1 - n2/2 + 1)
+        pos_dict[i] = (x,y)
+
+    import networkx
+    G = networkx.lollipop_graph(n1, n2)
+    return Graph(G, pos=pos_dict, name="Lollipop graph")
+
 
 def BubbleSortGraph(n):
     r"""

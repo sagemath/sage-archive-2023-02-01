@@ -746,11 +746,12 @@ def prepare_inequalities(inequalities, B):
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
         sage: prepare_inequalities([(-1, 1, -1, 0, 0)], B)
+        ([], y0, {y3: y3, y2: y2, y1: y0*y1, y0: y0})
         sage: prepare_inequalities([(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
         ....:                       (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)], B)
+        ([(1, 1, 0, 0, -1)], y0, {y3: y3, y2: y2, y1: y0*y1*y3, y0: y0})
         sage: prepare_inequalities([(-2, 1, -1, 0, 0)], B)
-        sage: prepare_inequalities([(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
-        ....:                       (0, 1, 0, 0, -1), (-2, 1, -1, 0, 0)], B)
+        ([], y0^2, {y3: y3, y2: y2, y1: y0*y1, y0: y0})
 
         sage: prepare_inequalities([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
         ....:                       (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)], B)
@@ -875,6 +876,11 @@ def prepare_equations(equations, B):
         (1, {y0: y0*y2}, (2,))
         sage: prepare_equations([(-1, 0, 1, -1, -1), (1, 1, 0, 1, 2)], B)
         (y2^-1, {y1: y1*y2^2*y3^-1, y0: y0*y2*y3^-1}, (2, 3))
+
+    ::
+
+        sage: prepare_equations([(0, 0, 1, 0, -1), (-1, 1, -1, -1, 0)], B)
+        (y2^-1, {y1: y1*y2^-1*y3, y0: y0*y2}, (2, 3))
     """
     import logging
     logger = logging.getLogger(__name__)

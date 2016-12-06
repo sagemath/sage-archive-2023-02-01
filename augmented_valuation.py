@@ -1562,7 +1562,11 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         f = self.domain().coerce(f)
 
         for i,c in enumerate(self.coefficients(f)):
-            yield self._base_valuation(c) + i*self._mu
+            v = self._base_valuation(c)
+            if v is infinity:
+                yield v
+            else:
+                yield v + i*self._mu
 
 
 class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValuation):

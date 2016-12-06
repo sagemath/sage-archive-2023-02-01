@@ -251,11 +251,16 @@ class DevelopingValuation(DiscretePseudoValuation):
         """
         f = self.domain().coerce(f)
 
+        from sage.rings.all import infinity
         if f.is_zero():
-            from sage.rings.all import infinity
             return infinity
 
-        return min(self.valuations(f))
+        ret = infinity
+        for v in self.valuations(f):
+            if ret is infinity or (v is not infinity and v < ret):
+                # "ret is infinity" is redundant but much faster than < when ret is infinite
+                ret = v
+        return ret
 
     @abstract_method
     def valuations(self, f):

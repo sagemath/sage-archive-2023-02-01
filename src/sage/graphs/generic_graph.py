@@ -745,9 +745,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.CompleteGraph(2)
             sage: print(g._latex_())
             \begin{tikzpicture}
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-            %
             \definecolor{cv0}{rgb}{0.0,0.0,0.0}
             \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
             \definecolor{clv0}{rgb}{0.0,0.0,0.0}

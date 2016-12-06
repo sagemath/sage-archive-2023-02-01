@@ -126,7 +126,7 @@ Since Python and C++ syntax are not always compatible, there are
 necessarily some differences. The main ones are:
 
 * The :class:`Linear_Expression` also accepts an iterable as input for
-  the homogeneous cooefficients.
+  the homogeneous coefficients.
 
 * :class:`Polyhedron` and its subclasses as well as
   :class:`Generator_System` and :class:`Constraint_System` can be set

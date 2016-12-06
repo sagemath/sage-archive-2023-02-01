@@ -2344,7 +2344,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             sage: y*x
             y*x
         """
-        # over laurent series, addition and subtraction can be
+        # over Laurent series, addition and subtraction can be
         # expensive, and the degree of this poly is small enough that
         # Karatsuba actually hurts significantly in some cases
         if self._f[0].valuation() + other._f[0].valuation() > -200:

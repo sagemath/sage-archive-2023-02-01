@@ -15,8 +15,6 @@ Classes for symbolic functions
 #*****************************************************************************
 from __future__ import division
 
-from six import itervalues
-
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
@@ -26,6 +24,7 @@ from ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type, is_mpmath_type
 from sage.structure.element cimport coercion_model
+from sage.structure.sage_object cimport richcmp
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
@@ -304,7 +303,7 @@ cdef class Function(SageObject):
         else:
             return self._name
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         TESTS::
 
@@ -317,9 +316,11 @@ cdef class Function(SageObject):
             True
 
         """
-        if isinstance(other, Function):
-            return cmp(self._serial, (<Function>other)._serial)
-        return False
+        try:
+            return richcmp((<Function>self)._serial,
+                           (<Function>other)._serial, op)
+        except AttributeError:
+            return NotImplemented
 
     def __call__(self, *args, bint coerce=True, bint hold=False):
         """
@@ -1156,7 +1157,7 @@ cdef class SymbolicFunction(Function):
         # see if there is already an SFunction with the same state
         cdef Function sfunc
         cdef long myhash = self._hash_()
-        for sfunc in itervalues(sfunction_serial_dict):
+        for sfunc in sfunction_serial_dict.itervalues():
             if isinstance(sfunc, SymbolicFunction) and \
                     myhash == (<SymbolicFunction>sfunc)._hash_():
                 # found one, set self._serial to be a copy

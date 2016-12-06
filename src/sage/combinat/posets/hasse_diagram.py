@@ -1421,22 +1421,24 @@ class HasseDiagram(DiGraph):
         functions of lattices.
 
         The property of being vertically decomposable is defined for lattices.
-        This is not checked, and the function works with any bounded poset.
+        This is *not* checked, and the function works with any bounded poset.
 
         INPUT:
 
         - ``return_list``, a boolean. If ``False`` (the default), return
-          ``True`` if the lattice is vertically decomposable and ``False``
-          otherwise. If ``True``, return list of decomposition elements.
+          an element that is not the top neither the bottom element of the
+          lattice, but is comparable to all elements of the lattice, if
+          the lattice is vertically decomposable and ``None`` otherwise.
+          If ``True``, return list of decomposition elements.
 
         EXAMPLES::
 
             sage: H = Posets.BooleanLattice(4)._hasse_diagram
-            sage: H.vertical_decomposition()
-            False
+            sage: H.vertical_decomposition() is None
+            True
             sage: P = Poset( ([1,2,3,6,12,18,36], attrcall("divides")) )
             sage: P._hasse_diagram.vertical_decomposition()
-            True
+            3
             sage: P._hasse_diagram.vertical_decomposition(return_list=True)
             [3]
         """
@@ -1445,7 +1447,7 @@ class HasseDiagram(DiGraph):
             if return_list:
                 return []
             else:
-                return False
+                return None
         result = [] # Never take the bottom element to list.
         e = 0
         m = 0
@@ -1454,7 +1456,10 @@ class HasseDiagram(DiGraph):
                 m = max(m, j[1])
             if m == i+1:
                 if not return_list:
-                    return m < n-1
+                    if m < n-1:
+                        return m
+                    else:
+                        return None
                 result.append(m)
         result.pop() # Remove the top element.
         return result

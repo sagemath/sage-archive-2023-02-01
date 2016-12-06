@@ -4614,7 +4614,7 @@ cdef class Expression(CommutativeRingElement):
         cdef dict rdict = {}
         cdef GExListIter itr = mlst.begin()
         cdef GExListIter lstend = mlst.end()
-        while itr.is_not_equal(lstend):
+        while itr != lstend:
             key = new_Expression_from_GEx(self._parent, itr.obj().lhs())
             val = new_Expression_from_GEx(self._parent, itr.obj().rhs())
             rdict[key] = val
@@ -4659,7 +4659,7 @@ cdef class Expression(CommutativeRingElement):
         self._gobj.find(p._gobj, found)
         res = []
         cdef GExListIter itr = found.begin()
-        while itr.is_not_equal(found.end()):
+        while itr != found.end():
             res.append(new_Expression_from_GEx(self._parent, itr.obj()))
             itr.inc()
         res = print_sorted(res)
@@ -5088,7 +5088,7 @@ cdef class Expression(CommutativeRingElement):
         g_list_symbols(self._gobj, sym_set)
         res = []
         cdef GExSetIter itr = sym_set.begin()
-        while itr.is_not_equal(sym_set.end()):
+        while itr != sym_set.end():
             res.append(new_Expression_from_GEx(SR, itr.obj()))
             itr.inc()
         res = print_sorted(res)[::-1]

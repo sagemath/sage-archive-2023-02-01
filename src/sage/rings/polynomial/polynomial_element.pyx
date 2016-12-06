@@ -3390,6 +3390,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
         coeffs = self.list()
         return self._parent([n*coeffs[n] for n from 1 <= n <= degree])
 
+    def gradient(self):
+        """
+        Return a list of the partial derivative of ``self``
+        with respect to the variable of this univariate polynomial.
+
+        There is only one partial derivative.
+
+        EXAMPLES::
+
+           sage: P.<x> = QQ[]
+           sage: f = x^2 + (2/3)*x + 1
+           sage: f.gradient()
+           [2*x + 2/3]
+           sage: f = P(1)
+           sage: f.gradient()
+           [0]
+        """
+        return [self.diff()]
+
     def integral(self,var=None):
         """
         Return the integral of this polynomial.
@@ -5096,6 +5115,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return bool(self._is_gen)
 
+    def lc(self):
+        """
+        Return the leading coefficient of this polynomial.
+
+        OUTPUT: element of the base ring
+        This method is same as :meth:`leading_coefficient`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = (-2/5)*x^3 + 2*x - 1/3
+            sage: f.lc()
+            -2/5
+        """
+        return self[self.degree()]
+
     def leading_coefficient(self):
         """
         Return the leading coefficient of this polynomial.
@@ -5110,6 +5145,47 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -2/5
         """
         return self[self.degree()]
+
+    def lm(self):
+        """
+        Return the leading monomial of this polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = (-2/5)*x^3 + 2*x - 1/3
+            sage: f.lm()
+            x^3
+            sage: R(5).lm()
+            1
+            sage: R(0).lm()
+            0
+            sage: R(0).lm().parent() is R
+            True
+        """
+        if self.degree() < 0:
+            return self
+        output = [self.base_ring().zero()] * self.degree() + [self.base_ring().one()]
+        return self._parent(output, check=False)
+
+    def lt(self):
+        """
+        Return the leading term of this polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = (-2/5)*x^3 + 2*x - 1/3
+            sage: f.lt()
+            -2/5*x^3
+            sage: R(5).lt()
+            5
+            sage: R(0).lt()
+            0
+            sage: R(0).lt().parent() is R
+            True
+        """
+        return self.lc() * self.lm()
 
     def monic(self):
         """
@@ -5324,6 +5400,87 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         deprecation(17518, 'The use of coeffs() is now deprecated in favor of coefficients(sparse=False).')
         return self.list()
+
+    def monomial_coefficient(self, m):
+        """
+        Return the coefficient in the base ring of the monomial ``m`` in
+        ``self``, where ``m`` must have the same parent as ``self``.
+
+        INPUT:
+
+        - ``m`` - a monomial
+
+        OUTPUT:
+            coefficient in base ring
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+
+            The parent of the return is a member of the base ring.
+            sage: f = 2 * x
+            sage: c = f.monomial_coefficient(x); c
+            2
+            sage: c.parent()
+            Rational Field
+
+            sage: f = x^9 - 1/2*x^2 + 7*x + 5/11
+            sage: f.monomial_coefficient(x^9)
+            1
+            sage: f.monomial_coefficient(x^2)
+            -1/2
+            sage: f.monomial_coefficient(x)
+            7
+            sage: f.monomial_coefficient(x^0)
+            5/11
+            sage: f.monomial_coefficient(x^3)
+            0
+        """
+        if not m.parent() is self.parent():
+            raise TypeError("monomial must have same parent as self.")
+
+        d = m.degree()
+        coeffs = self.list()
+        if 0 <= d < len(coeffs):
+            return coeffs[d]
+        else:
+            return self.parent().base_ring().zero()
+
+    def monomials(self):
+        """
+        Return the list of the monomials in ``self`` in a decreasing order of their degrees.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: f = x^2 + (2/3)*x + 1
+            sage: f.monomials()
+            [x^2, x, 1]
+            sage: f = P(3/2)
+            sage: f.monomials()
+            [1]
+            sage: f = P(0)
+            sage: f.monomials()
+            []
+            sage: f = x
+            sage: f.monomials()
+            [x]
+            sage: f = - 1/2*x^2 + x^9 + 7*x + 5/11
+            sage: f.monomials()
+            [x^9, x^2, x, 1]
+            sage: x = var('x')
+            sage: K.<rho> = NumberField(x**2 + 1)
+            sage: R.<y> = QQ[]
+            sage: p = rho*y
+            sage: p.monomials()
+            [y]
+        """
+        if self.is_zero():
+            return []
+        v = self.parent().gen()
+        zero = self.parent().base_ring().zero()
+        coeffs = self.list()
+        return [v**i for i in range(self.degree(), -1, -1) if coeffs[i] != zero]
 
     def newton_raphson(self, n, x0):
         """

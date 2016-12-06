@@ -832,7 +832,9 @@ def prepare_equations(equations, B):
     return factor, rules, tuple(i-1 for i in indices)
 
 
-def generating_function_of_polyhedron(polyhedron, indices=None, split=False):
+
+def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
+          Factorization_sort=False, Factorization_simplify=False):
     r"""
     Return the generating function of the integer points of
     the polyhedron's orthant with only nonnegative coordinates.
@@ -1185,4 +1187,5 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False):
 
     return Factorization([(numerator, 1)] +
                          list((1-t, -1) for t in terms),
-                         sort=False, simplify=False)
+                         sort=Factorization_sort,
+                         simplify=Factorization_simplify)

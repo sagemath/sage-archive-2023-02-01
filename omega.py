@@ -905,8 +905,10 @@ def prepare_equations(equations, B):
 
 
 
-def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
-          Factorization_sort=False, Factorization_simplify=False):
+def generating_function_of_polyhedron(
+        polyhedron, indices=None, split=False,
+        Factorization_sort=False, Factorization_simplify=False,
+        sort_factors=False):
     r"""
     Return the generating function of the integer points of
     the polyhedron's orthant with only nonnegative coordinates.
@@ -916,15 +918,15 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
         sage: P2 = (
         ....:   Polyhedron(ieqs=[(0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, -1)]),
         ....:   Polyhedron(ieqs=[(0, -1, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0)]))
-        sage: generating_function_of_polyhedron(P2[0])
-        1 * (-y1 + 1)^-1 * (-y0 + 1)^-1 * (-y0*y2 + 1)^-1
-        sage: generating_function_of_polyhedron(P2[1])
+        sage: generating_function_of_polyhedron(P2[0], sort_factors=True)
+        1 * (-y0 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
+        sage: generating_function_of_polyhedron(P2[1], sort_factors=True)
         1 * (-y1 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y2 + 1)^-1
         sage: (P2[0] & P2[1]).Hrepresentation()
         (An equation (1, 0, -1) x + 0 == 0,
          An inequality (1, 0, 0) x + 0 >= 0,
          An inequality (0, 1, 0) x + 0 >= 0)
-        sage: generating_function_of_polyhedron(P2[0] & P2[1])
+        sage: generating_function_of_polyhedron(P2[0] & P2[1], sort_factors=True)
         1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
 
     ::
@@ -957,20 +959,20 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
         ....:         continue
         ....:     P = intersect([P3[j] for j in J])
         ....:     print('{}: {}'.format(J, P.Hrepresentation()))
-        ....:     print(generating_function_of_polyhedron(P))
+        ....:     print(generating_function_of_polyhedron(P, sort_factors=True))
         [0]: (An inequality (0, 0, 0, 1) x + 0 >= 0,
               An inequality (0, 0, 1, 0) x + 0 >= 0,
               An inequality (0, 1, 0, -1) x + 0 >= 0,
               An inequality (1, 0, -1, -1) x - 1 >= 0)
-        y0 * (-y0 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y1*y3 + 1)^-1
+        y0 * (-y0 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y0*y1*y3 + 1)^-1
         [1]: (An inequality (0, -1, 0, 1) x + 0 >= 0,
               An inequality (0, 0, 1, 0) x + 0 >= 0,
               An inequality (0, 1, 0, 0) x + 0 >= 0,
               An inequality (1, -1, -1, 0) x - 1 >= 0,
               An inequality (1, 0, 0, -1) x + 0 >= 0)
         (-y0^2*y2*y3 - y0^2*y3 + y0*y3 + y0) *
-        (-y0*y1*y3 + 1)^-1 * (-y0 + 1)^-1 * (-y0*y3 + 1)^-1 *
-        (-y0*y2 + 1)^-1 * (-y0*y2*y3 + 1)^-1
+        (-y0 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y0*y3 + 1)^-1 *
+        (-y0*y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
         [0, 1]: (An equation (0, 1, 0, -1) x + 0 == 0,
                  An inequality (1, -1, -1, 0) x - 1 >= 0,
                  An inequality (0, 1, 0, 0) x + 0 >= 0,
@@ -1021,22 +1023,21 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
          y0^2*y1*y2 - y0^2*y1*y3 - y0*y1^2*y3 - y0^2*y2*y3 - 2*y0*y1*y3^2 -
          y0*y1*y2 - 3*y0*y1*y3 - 2*y0*y2*y3 -
          y0*y2 + y0*y3 - y1*y3 + y0 + y3 + 1) *
-         (-y0*y1*y3 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y1*y3 + 1)^-1 *
-         (-y0*y2 + 1)^-1 * (-y0*y2*y3 + 1)^-1 * (-y1*y3 + 1)^-1 *
-         (-y2 + 1)^-1 * (-y0^2*y1*y2*y3 + 1)^-1 *
-         (-y0*y1^2*y3 + 1)^-1 * (-y0*y1*y2 + 1)^-1
+         (-y1 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y1*y3 + 1)^-1 *
+         (-y0*y1*y2 + 1)^-1 * (-y0*y1*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1 *
+         (-y0*y2*y3 + 1)^-1 * (-y0*y1^2*y3 + 1)^-1 * (-y0^2*y1*y2*y3 + 1)^-1
         [0, 2]: (An equation (1, 0, -1, -1) x - 1 == 0,
                  An inequality (-1, 1, 1, 0) x + 1 >= 0,
                  An inequality (1, 0, -1, 0) x - 1 >= 0,
                  An inequality (0, 0, 1, 0) x + 0 >= 0)
-        y0 * (-y0*y2 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y1*y3 + 1)^-1
+        y0 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y0*y1*y3 + 1)^-1
         [1, 2]: (An equation (1, -1, -1, 0) x - 1 == 0,
                  An inequality (0, -1, 0, 1) x + 0 >= 0,
                  An inequality (0, 1, 0, 0) x + 0 >= 0,
                  An inequality (1, 0, 0, -1) x + 0 >= 0,
                  An inequality (1, -1, 0, 0) x - 1 >= 0)
         (-y0^2*y2*y3 + y0*y3 + y0) *
-        (-y0*y1*y3 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y0*y2*y3 + 1)^-1
+        (-y0*y2 + 1)^-1 * (-y0*y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
         [0, 1, 2]: (An equation (0, 1, 0, -1) x + 0 == 0,
                     An equation (1, -1, -1, 0) x - 1 == 0,
                     An inequality (0, 1, 0, 0) x + 0 >= 0,
@@ -1048,8 +1049,8 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
               An inequality (0, 1, 0, 0) x + 0 >= 0,
               An inequality (1, 0, -1, 0) x + 0 >= 0)
         (-y0*y1*y3^2 - y0*y3^2 + y0*y3 + y3) *
-        (-y0*y2*y3 + 1)^-1 * (-y3 + 1)^-1 * (-y1*y3 + 1)^-1 *
-        (-y0*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1
+        (-y3 + 1)^-1 * (-y0*y3 + 1)^-1 *
+        (-y1*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
         [0, 3]: (An equation -1 == 0,)
         0
         [1, 3]: (An equation (1, 0, 0, -1) x + 0 == 0,
@@ -1065,7 +1066,7 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
                  An inequality (0, 0, 1, 0) x + 0 >= 0,
                  An inequality (0, 1, 0, 0) x + 0 >= 0)
         (-y0*y1*y3^2 + y0*y3 + y3) *
-        (-y0*y2*y3 + 1)^-1 * (-y1*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1
+        (-y1*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
         [0, 2, 3]: (An equation -1 == 0,)
         0
         [1, 2, 3]: (An equation (1, 0, 0, -1) x + 0 == 0,
@@ -1242,6 +1243,11 @@ def generating_function_of_polyhedron(polyhedron, indices=None, split=False,
     terms = tuple(t.subs(rules_inequalities).subs(rules_equations)
                   for t in terms)
 
+    if sort_factors:
+        def key(t):
+            D = t.dict().popitem()[0]
+            return (-sum(abs(d) for d in D), D)
+        terms = sorted(terms, key=key, reverse=True)
     return Factorization([(numerator, 1)] +
                          list((1-t, -1) for t in terms),
                          sort=Factorization_sort,

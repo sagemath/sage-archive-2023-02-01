@@ -737,15 +737,67 @@ def prepare_inequalities(inequalities, B):
         sage: prepare_inequalities([(2, -1, 1, 0), (2, -1, -1, 1)], B)
         ([(4, -2, -1, 1)], y1^-2, {y2: y2, y1: y1, y0: y0*y1})
 
+    TESTS::
+
+        sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
         sage: prepare_inequalities([(1, 1, -1, 0), (1, -1, 0, 1),
         ....:                       (2, -1, -1, 3)], B)
         ([(-3, 2, 1, 3)], y0^-1*y2^-2, {y2: y2, y1: y0*y1*y2, y0: y0*y2})
+
+        sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
+        sage: prepare_inequalities([(-1, 1, -1, 0, 0)], B)
+        sage: prepare_inequalities([(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
+        ....:                       (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)], B)
+        sage: prepare_inequalities([(-2, 1, -1, 0, 0)], B)
+        sage: prepare_inequalities([(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
+        ....:                       (0, 1, 0, 0, -1), (-2, 1, -1, 0, 0)], B)
+
+        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
+        ....:                       (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)], B)
+        ([(1, 0, -1, 1, 1)],
+         y3^3,
+         {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
+        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
+        ....:                       (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)], B)
+        ([(1, 0, 1, -1, 1)],
+         y3^3,
+         {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
+        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
+        ....:                       (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
+        ([(1, 0, -1, 1, 1)],
+         y2^3*y3^3,
+         {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
+        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
+        ....:                       (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
+        ([(1, 0, 1, -1, 1)],
+         y2^2*y3^3,
+         {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
+        sage: prepare_inequalities([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        ....:                       (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)], B)
+        ([(1, 0, -1, 1, 1)],
+         y1^2*y3^3,
+         {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
+        sage: prepare_inequalities([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        ....:                       (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)], B)
+        ([(1, 0, 1, -1, 1)],
+         y1^3*y3^3,
+         {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
+        sage: prepare_inequalities([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        ....:                       (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
+        ([(1, 0, -1, 1, 1)],
+         y1^2*y2^3*y3^3,
+         {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
+        sage: prepare_inequalities([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        ....:                       (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
+        ([(1, 0, 1, -1, 1)],
+         y1^3*y2^2*y3^3,
+         {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
     """
     import logging
     logger = logging.getLogger(__name__)
 
-    from itertools import combinations
-    from sage.combinat.posets.posets import Poset
+    from itertools import takewhile
+    from sage.graphs.digraph import DiGraph
     from sage.matrix.constructor import matrix
     from sage.modules.free_module_element import vector
     from sage.rings.integer_ring import ZZ
@@ -753,7 +805,7 @@ def prepare_inequalities(inequalities, B):
     inequalities_filtered = []
     chain_links = {}
     for coeffs in inequalities:
-        n = len(coeffs)
+        dim = len(coeffs)
         constant = coeffs[0]
         ones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == 1)
         mones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == -1)
@@ -770,19 +822,39 @@ def prepare_inequalities(inequalities, B):
         else:
             inequalities_filtered.append(coeffs)
 
+    G = DiGraph(chain_links, format='list_of_edges')
+    potential = {}
+    paths = {}
     D = {}
-    for i in range(n):
+    inequalities_extra = []
+    for i in range(dim):
         D[(i, i)] = 1
-    for chain in Poset((sum(chain_links, ()), chain_links)).maximal_chains():
-        for cl in combinations(chain, 2):
-            D[cl] = 1
-        constant = 0
-        for cc, c in zip(chain[:-1], chain[1:]):
-            constant += chain_links[(cc, c)]
-            D[(0, c)] = -constant
-    T = matrix(ZZ, n, n, D)
+    for v in G.topological_sort():
+        NP = iter(sorted(((n, potential[n] + chain_links[(n, v)])
+                          for n in G.neighbor_in_iterator(v)),
+                         key=lambda k: k[1]))
+        n, p = next(NP, (None, 0))
+        potential[v] = p
+        D[(0, v)] = -p
+        paths[v] = paths.get(n, ()) + (v,)
+        for u in paths[v]:
+            D[(u, v)] = 1
 
-    inequalities = list(tuple(T*vector(ieq)) for ieq in inequalities_filtered)
+        for n, p in NP:
+            ell = len(tuple(takewhile(lambda u: u[0] == u[1],
+                                      zip(paths[n], paths[v]))))
+            coeffs = dim*[0]
+            for u in paths[v][ell:]:
+                coeffs[u] = 1
+            for u in paths[n][ell:]:
+                coeffs[u] = -1
+            coeffs[0] = p - potential[v]
+            inequalities_extra.append(tuple(coeffs))
+    T = matrix(ZZ, dim, dim, D)
+
+    inequalities = list(tuple(T*vector(ieq))
+                        for ieq in inequalities_filtered) + \
+                   inequalities_extra
 
     rules_pre = iter((y, B({tuple(row[1:]): 1}))
                      for y, row in zip((1,) + B.gens(), T.rows()))

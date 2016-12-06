@@ -863,7 +863,7 @@ ex mul::evalf(int level, PyObject* parent) const
 
 	--level;
         for (const auto & elem : seq)
-               s.push_back(expair(
+               s.push_back(combine_ex_with_coeff_to_pair(
                         elem.rest.evalf(level, parent), elem.coeff));
         return mul(s, overall_coeff.evalf(level, parent));
 }

@@ -145,11 +145,17 @@ class DevelopingValuation(DiscretePseudoValuation):
             [(1 + O(2^5))*x + (2 + O(2^5)), (1 + O(2^5))]
 
         """
-        f = self.domain().coerce(f)
+        domain = self.domain()
+        f = domain.coerce(f)
 
-        if self.phi().degree() == 1:
+        if f.degree() < self.phi().degree():
+            yield f
+        elif self.phi().degree() == 1:
             from itertools import imap
-            for c in imap(f.parent(), f(self.phi().parent().gen() - self.phi()[0]).coefficients(sparse=False)): yield c
+            if self.phi() != domain.gen() or not domain.is_exact():
+                f = f(domain.gen() - self.phi()[0])
+            for c in imap(domain, f.coefficients(sparse=False)):
+                yield c
         else:
             while f.degree() >= 0:
                 f,r = self._quo_rem(f)

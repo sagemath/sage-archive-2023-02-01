@@ -515,6 +515,26 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         return "Iwahori-Hecke algebra of type {} in {},{} over {}".format(
             self._cartan_type._repr_(compact=True), self._q1, self._q2, self.base_ring())
 
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<q1,q2> = QQ[]
+            sage: H = IwahoriHeckeAlgebra("A2", q1**2, q2**2, base_ring=Frac(R))
+            sage: latex(H)
+            \mathcal{H}_{q_{1}^{2},q_{2}^{2}}\left(A_{2},
+             \mathrm{Frac}(\Bold{Q}[q_{1}, q_{2}])\right)
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: H = IwahoriHeckeAlgebra("A2", q)
+            sage: latex(H)
+            \mathcal{H}_{q,-1}\left(A_{2}, \Bold{Z}[q^{\pm 1}]\right)
+        """
+        from sage.misc.latex import latex
+        return "\\mathcal{{H}}_{{{},{}}}\\left({}, {}\\right)".format(latex(self._q1),
+                latex(self._q2), latex(self._cartan_type), latex(self.base_ring()))
+
     def _bar_on_coefficients(self, c):
         r"""
         Given a Laurent polynomial ``c`` return the Laurent polynomial obtained

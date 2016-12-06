@@ -886,17 +886,17 @@ def prepare_equations(equations, B):
     if not E:
         return 1, {}, ()
 
-    cols = E.columns()
-    indices_nonzero = tuple(i for i, col in enumerate(cols)
+    indices_nonzero = tuple(i for i, col in enumerate(E.columns())
                             if i > 0 and not col.is_zero())
     indices = indices_nonzero[-E.nrows():]
     indicesn = (0,) + indices_nonzero[:-E.nrows()]
     T = E.matrix_from_columns(indices).inverse()
+    TE = T*E
 
     gens = (1,) + B.gens()
     z = tuple(gens[i] for i in indices)
-    gens_cols = zip(gens, cols)
-    rules_pre = iter((y, y * prod(zz**(-c) for zz, c in zip(z, T*col)))
+    gens_cols = zip(gens, TE.columns())
+    rules_pre = iter((y, y * prod(zz**(-c) for zz, c in zip(z, col)))
                      for y, col in (gens_cols[i] for i in indicesn))
     factor = next(rules_pre)[1]
     rules = dict(rules_pre)

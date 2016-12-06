@@ -100,15 +100,6 @@ if DEVEL:
 if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
     extra_compile_args.append('-fno-tree-copyrename')
 
-#########################################################
-### Generate some Python/Cython sources
-#########################################################
-
-make = os.environ.get("MAKE", 'make')
-make_cmdline = "{} -f generate_py_source.mk SAGE_SRC={}".format(make, sage.env.SAGE_SRC)
-status = subprocess.call(make_cmdline, shell=True)
-if status != 0:
-    raise DistutilsSetupError("{} failed".format(make_cmdline))
 
 #########################################################
 ### Testing related stuff
@@ -347,12 +338,19 @@ def execute_list_of_commands(command_list):
 class sage_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
+        log.info("Generating interpreter sources")
+        self.run_autogen()
         log.warn("Updating Cython code....")
         t = time.time()
         self.run_cython()
         log.warn("Finished Cythonizing, time: %.2f seconds." % (time.time() - t))
         self.copy_extra_files()
         self.check_flags()
+
+    def run_autogen(self):
+        from sage_setup.autogen import autogen_all
+
+        autogen_all()
 
     def run_cython(self):
         """

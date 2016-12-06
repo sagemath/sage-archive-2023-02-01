@@ -1,9 +1,10 @@
 r"""
-Interface to Giac
+Pexpect Interface to Giac
+(You should prefer the cython interface: giacpy_sage and its libgiac command)
 
 (adapted by F. Han from William Stein and Gregg Musiker maple's interface)
 
-You must have the optional  Giac interpreter installed
+You must have the  Giac interpreter installed
 and available as the command ``giac`` in your PATH in
 order to use this interface. You need a giac version
 supporting "giac --sage" ( roughly after 0.9.1 ). In this case you do not have

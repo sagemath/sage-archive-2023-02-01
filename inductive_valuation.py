@@ -894,6 +894,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                    list(self.valuations(f))[0] == self(f) and \
                    tau.divides(len(list(self.coefficients(f))) - 1)
 
+    @cached_method
+    def mu(self):
+        return self(self.phi())
+
     def _equivalence_reduction(self, f):
         r"""
         Helper method for :meth:`is_equivalence_irreducible` and
@@ -924,15 +928,20 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             assert self.residue_ring() is v.residue_ring()
             return v._equivalence_reduction(f)
 
-        phi_divides = 0
-        while self.valuations(f).next() > self(f):
-            # phi is an equivalence-factor of f
-            f = f-self.coefficients(f).next()
-            assert self.phi().divides(f)
-            f,_ = f.quo_rem(self.phi())
-            phi_divides += 1
+        valuations = list(self.valuations(f))
+        valuation = min(valuations)
+        for phi_divides in range(len(valuations)):
+            # count how many times phi divides f
+            if valuations[phi_divides] <= valuation:
+                break
 
-        R = self.equivalence_unit(-self(f))
+        print self,f,phi_divides
+
+        if phi_divides:
+            f = f.parent()(list(self.coefficients(f))[phi_divides:])(self.phi())
+        valuation -= self.mu()*phi_divides
+
+        R = self.equivalence_unit(-valuation)
         return R, phi_divides, self.reduce(f*R)
 
     def is_equivalence_irreducible(self, f):

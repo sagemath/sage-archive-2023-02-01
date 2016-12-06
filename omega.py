@@ -1120,6 +1120,19 @@ def generating_function_of_polyhedron(
         0
         [0, 1, 2, 3, 4]: (An equation -1 == 0,)
         0
+
+    TESTS::
+
+        sage: generating_function_of_polyhedron(
+        ....:     Polyhedron(ieqs=[(0, 0, 1, 0, 0), (-1, 1, -1, 0, 0)]),
+        ....:     sort_factors=True)
+        y0 * (-y0 + 1)^-1 * (-y2 + 1)^-1 * (-y3 + 1)^-1 * (-y0*y1 + 1)^-1
+        sage: generating_function_of_polyhedron(
+        ....:     Polyhedron(ieqs=[(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
+        ....:                      (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)]),
+        ....:     sort_factors=True)
+        (-y0^2*y3 + y0*y3 + y0) *
+        (-y0 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1
     """
     import logging
     logger = logging.getLogger(__name__)

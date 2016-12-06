@@ -729,6 +729,15 @@ class pAdicValuation_base(DiscreteValuation):
             sage: pAdicValuation(M, 2)
             2-adic valuation
 
+        Check that we can extend to a field written as a quotient::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = QQ.extension(x^2 + 1)
+            sage: R.<y> = K[]
+            sage: L.<b> = R.quo(x^2 + a)
+            sage: pAdicValuation(QQ, 2).extensions(L)
+            [2-adic valuation]
+
         """
         if self.domain() is ring:
             return [self]
@@ -736,12 +745,23 @@ class pAdicValuation_base(DiscreteValuation):
             if self.domain().fraction_field().is_subring(ring):
                 return pAdicValuation(self.domain().fraction_field(), self).extensions(ring)
         if self.domain().is_subring(ring):
+            from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
+            if is_PolynomialQuotientRing(ring):
+                if ring.base_ring() is self.domain():
+                    from sage.categories.all import Fields
+                    if ring in Fields():
+                        from valuation_space import DiscretePseudoValuationSpace
+                        parent = DiscretePseudoValuationSpace(ring)
+                        approximants = self.mac_lane_approximants(ring.modulus().change_ring(self.domain()), assume_squarefree=True)
+                        return [pAdicValuation(ring, approximant) for approximant in approximants]
+                else:
+                    return sum([w.extensions(ring) for w in self.extensions(ring.base_ring())], [])
             from sage.rings.number_field.number_field import is_NumberField
             if is_NumberField(ring.fraction_field()):
                 if ring.base_ring().fraction_field() is self.domain().fraction_field():
                     from valuation_space import DiscretePseudoValuationSpace
                     parent = DiscretePseudoValuationSpace(ring)
-                    approximants = self.mac_lane_approximants(ring.fraction_field().relative_polynomial().change_ring(self.domain()))
+                    approximants = self.mac_lane_approximants(ring.fraction_field().relative_polynomial().change_ring(self.domain()), assume_squarefree=True)
                     return [pAdicValuation(ring, approximant) for approximant in approximants]
                 if ring.base_ring() is not ring and self.domain().is_subring(ring.base_ring()):
                     return sum([w.extensions(ring) for w in self.extensions(ring.base_ring())], [])

@@ -1164,6 +1164,26 @@ def generating_function_of_polyhedron(
         ....:                      (0, 1, -1, 0, 0, 0)]),
         ....:     sort_factors=True)
         1 * (-y0*y1*y3 + 1)^-1 * (-y0*y1*y2*y3*y4 + 1)^-1
+
+    ::
+
+        sage: G = generating_function_of_polyhedron(P2[0], sort_factors=True)
+        sage: S = generating_function_of_polyhedron(P2[0], sort_factors=True,
+        ....:                                       split=True)
+        sage: sum(S) == G.value()
+        True
+
+        sage: G = generating_function_of_polyhedron(P2[1], sort_factors=True)
+        sage: S = generating_function_of_polyhedron(P2[1], sort_factors=True,
+        ....:                                       split=True)
+        sage: sum(S) == G.value()
+        True
+
+        sage: G = generating_function_of_polyhedron(P3[0], sort_factors=True)
+        sage: S = generating_function_of_polyhedron(P3[0], sort_factors=True,
+        ....:                                       split=True)
+        sage: sum(S) == G.value()
+        True
     """
     import logging
     logger = logging.getLogger(__name__)

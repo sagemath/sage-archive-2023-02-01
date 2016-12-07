@@ -1946,15 +1946,21 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         r"""
         Return ``True`` if the lattice is modular and ``False`` otherwise.
 
-        A lattice is *modular* if `x \le b` implies
-        `x \vee (a \wedge b) = (x \vee a) \wedge b` for all `x`, `a` and
-        `b` in the lattice. There are other equivalent definitions,
-        see :wikipedia:`Modular_lattice`.
+        A lattice is *modular* if for all elements `x, a, b` in the
+        lattice we have
+
+        .. MATH::
+
+            x \le b \Rightarrow x \vee (a \wedge b) = (x \vee a) \wedge b
+
+        There are other equivalent definitions, see
+        :wikipedia:`Modular_lattice`.
 
         Using the parameter ``L``, this can also be used to check that
         some subset of elements are all modular. An element `x` in a
-        lattice `L` is *modular* if `x \leq b` implies
-        for every `a, b \in L`.
+        lattice `L` is *modular* if `x \leq b` implies 
+        `x \vee (a \wedge b) = (x \vee a) \wedge b` for every
+        `a, b \in L`.
 
         INPUT:
 

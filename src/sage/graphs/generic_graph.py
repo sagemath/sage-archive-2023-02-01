@@ -6830,7 +6830,7 @@ class GenericGraph(GenericGraph_pyx):
             return g
 
     def hamiltonian_path(self, s=None, t=None, use_edge_labels=False, algorithm='MILP', solver=None, verbose=0):
-        """
+        r"""
         Return a Hamiltonian path of the current graph/digraph.
 
         A path is Hamiltonian if it goes through all the vertices exactly once.
@@ -6864,12 +6864,11 @@ class GenericGraph(GenericGraph_pyx):
         - ``algorithm`` -- one of ``"MILP"`` (default) or ``"backtrack"``. Two
           remarks on this respect:
 
-              * While the MILP formulation returns an exact answer, the
-                backtrack algorithm is a randomized heuristic.
+          * While the MILP formulation returns an exact answer, the backtrack
+            algorithm is a randomized heuristic.
 
-              * As the backtrack algorithm does not support edge weighting,
-                setting ``use_edge_labels=True`` will force the use of the MILP
-                algorithm.
+          * As the backtrack algorithm does not support edge weighting, setting
+            ``use_edge_labels=True`` will force the use of the MILP algorithm.
 
         - ``solver`` -- (default: ``None``) Specify the Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -6890,7 +6889,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        The `3\\times 3`-grid has an hamiltonian path, an hamiltonian path
+        The `3\times 3`-grid has an hamiltonian path, an hamiltonian path
         starting from vertex `(0, 0)` and ending at vertex `(2, 2)`, but no
         hamiltonian path starting from `(0, 0)` and ending at `(0, 1)`::
 
@@ -6902,7 +6901,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_path(s=(0,0), t=(0,1))
             Traceback (most recent call last):
             ...
-            AssertionError: the input (di)graph has no hamiltonian path
+            EmptySetError: the given (di)graph has no hamiltonian path
 
         TESTS:
 
@@ -6912,12 +6911,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_path()
             Traceback (most recent call last):
             ...
-            AssertionError: the hamiltonian path problem is not well defined for empty and one-element (di)graphs
+            ValueError: the hamiltonian path problem is not well defined for empty and one-element (di)graphs
             sage: g = Graph(1)
             sage: g.hamiltonian_path()
             Traceback (most recent call last):
             ...
-            AssertionError: the hamiltonian path problem is not well defined for empty and one-element (di)graphs
+            ValueError: the hamiltonian path problem is not well defined for empty and one-element (di)graphs
 
         A non-connected (di)graph has no hamiltonian path::
 
@@ -6925,22 +6924,26 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_path()
             Traceback (most recent call last):
             ...
-            AssertionError: the input (di)graph has no hamiltonian path
+            EmptySetError: the given (di)graph has no hamiltonian path
             sage: g = DiGraph(2)
             sage: g.hamiltonian_path()
             Traceback (most recent call last):
             ...
-            AssertionError: the input (di)graph has no hamiltonian path
+            EmptySetError: the given (di)graph has no hamiltonian path
         """
-        assert self.order() >= 2, 'the hamiltonian path problem is not well ' + \
-                                  'defined for empty and one-element (di)graphs'
-        assert self.is_connected(), 'the input (di)graph has no hamiltonian path'
+        from sage.categories.sets_cat import EmptySetError
+        if self.order() < 2:
+            raise ValueError('the hamiltonian path problem is not well ' + \
+                             'defined for empty and one-element (di)graphs')
+        if not self.is_connected():
+            raise EmptySetError('the given (di)graph has no hamiltonian path')
 
         path = self.longest_path(s=s, t=t, use_edge_labels=use_edge_labels,
                                  algorithm=algorithm, solver=solver, verbose=verbose)
         if use_edge_labels:
             weight,path = path
-        assert len(path)==self.order(), 'the input (di)graph has no hamiltonian path'
+        if len(path) != self.order():
+            raise EmptySetError('the given (di)graph has no hamiltonian path')
         return (weight,path) if use_edge_labels else path
 
     def traveling_salesman_problem(self, use_edge_labels = False, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):

@@ -1183,11 +1183,12 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     from sage.misc.prandom import randint
     cdef int n = G.order()
     cdef int m = G.num_edges()
+    cdef int i, j
 
     # To clean the output when find_path is None or a number
     find_path = True if find_path > 0 else False
 
-    # 
+    # Easy cases
     if n == 0:
         return False, []
     if n == 1:

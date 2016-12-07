@@ -135,9 +135,8 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         indices = DisjointUnionEnumeratedSets([self._hd, self._weyl, self._h])
         CombinatorialFreeModule.__init__(self, base_ring, indices,
                                          category=Algebras(base_ring).WithBasis().Graded(),
-                                         generator_key=RationalCherednikAlgebra._genkey)
+                                         sorting_key=self._genkey)
 
-    @staticmethod
     def _genkey(self, t):
         """
         Construct a key for comparison for a term indexed by ``t``.

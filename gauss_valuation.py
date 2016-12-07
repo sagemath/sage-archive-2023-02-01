@@ -324,10 +324,13 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         """
         f = self.domain().coerce(f)
-        if not all([v>=0 for v in self.valuations(f)]):
-            raise ValueError("reduction not defined for non-integral elements and %r is not integral over %r"%(f, self))
 
-        return f.map_coefficients(lambda c:self._base_valuation.reduce(c), self.restriction(self.domain().base_ring()).residue_field())
+        try:
+            return f.map_coefficients(self._base_valuation.reduce, self._base_valuation.residue_field())
+        except:
+            if not all([v>=0 for v in self.valuations(f)]):
+                raise ValueError("reduction not defined for non-integral elements and %r is not integral over %r"%(f, self))
+            raise
 
     def lift(self, F):
         """

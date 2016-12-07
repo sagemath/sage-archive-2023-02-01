@@ -896,6 +896,18 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
     @cached_method
     def mu(self):
+        r"""
+        Return the valuation of :meth:`phi`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v.mu()
+            0
+
+        """
         return self(self.phi())
 
     def _equivalence_reduction(self, f):

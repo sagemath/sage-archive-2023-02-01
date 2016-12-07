@@ -489,21 +489,37 @@ class ContinuedFraction_base(SageObject):
         from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(self.str(unicode=True, join=False))
 
-    def _latex_(self):
+    def _latex_(self, nterms=10):
         r"""
         EXAMPLES::
 
             sage: cf_pi = continued_fraction(pi)
             sage: latex(cf_pi)
-            3+ \frac{\displaystyle 1}{\displaystyle 7+ \frac{\displaystyle 1}{\displaystyle 15+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 292+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 2+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle \dots}}}}}}}}}}
+            3
+            + \frac{\displaystyle 1}{\displaystyle 7
+            + \frac{\displaystyle 1}{\displaystyle 15
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle 292
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle 2
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle \dots}}}}}}}}}}
+            sage: print cf_pi._latex_(nterms=3)
+            3
+            + \frac{\displaystyle 1}{\displaystyle 7
+            + \frac{\displaystyle 1}{\displaystyle 15
+            + \frac{\displaystyle 1}{\displaystyle \dots}}}
         """
-        nterms=10
-        v=self[:nterms+1]
-        if len(v) == 0:
-            return '0'
-        s = str(v[0])
+        #v=self[:nterms+1]
+        nterms = int(nterms)
+        if nterms <= 0:
+            raise ValueError("nterms must be positive")
+        v=[self.quotient(i) for i in range(nterms+1)]
+        s = str(v[0])+'\n'
         for i in range(1,min(len(v)-1,nterms)):
-            s += '+ \\frac{\\displaystyle 1}{\\displaystyle %s' % v[i]
+            s += '+ \\frac{\\displaystyle 1}{\\displaystyle %s\n' % v[i]
         s += '+ \\frac{\\displaystyle 1}{\\displaystyle \dots'
         s += '}'*(len(v)-1)
         return s
@@ -1488,21 +1504,37 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
 
             sage: a = continued_fraction(-17/389)
             sage: latex(a)
-            -1+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 21+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 7+ \frac{\displaystyle 1}{\displaystyle 2}}}}}
+            -1
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle 21
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle 7
+            + \frac{\displaystyle 1}{\displaystyle 2
+            }}}}}
             sage: K.<a> = QuadraticField(1234)
             sage: cf=continued_fraction(a); cf
             [35; (7, 1, 3, 1, 4, 4, 2, 9, 1, 1, 2, 3, 1, 1, 34, 1, 1, 3, 2, 1, 1, 9, 2, 4, 4, 1, 3, 1, 7, 70)*]
             sage: latex(cf)
-            35+ \frac{\displaystyle 1}{\displaystyle 7+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 3+ \frac{\displaystyle 1}{\displaystyle 1+ \frac{\displaystyle 1}{\displaystyle 4+ \frac{\displaystyle 1}{\displaystyle 4+ \frac{\displaystyle 1}{\displaystyle 2+ \frac{\displaystyle 1}{\displaystyle 9+ \frac{\displaystyle 1}{\displaystyle \dots}}}}}}}}}
+            35
+            + \frac{\displaystyle 1}{\displaystyle 7
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle 3
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle 4
+            + \frac{\displaystyle 1}{\displaystyle 4
+            + \frac{\displaystyle 1}{\displaystyle 2
+            + \frac{\displaystyle 1}{\displaystyle 9
+            + \frac{\displaystyle 1}{\displaystyle 1
+            + \frac{\displaystyle 1}{\displaystyle \dots}}}}}}}}}}
         """
         if self._x2[0] is not Infinity:
             return super(ContinuedFraction_periodic,self)._latex_()
         v = self._x1
         if len(v) == 0:
             return '0'
-        s = str(v[0])
+        s = str(v[0])+'\n'
         for i in range(1,len(v)):
-            s += '+ \\frac{\\displaystyle 1}{\\displaystyle %s' % v[i]
+            s += '+ \\frac{\\displaystyle 1}{\\displaystyle %s\n' % v[i]
         s += '}'*(len(v)-1)
         return s
 

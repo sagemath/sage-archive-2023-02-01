@@ -928,7 +928,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             assert self.residue_ring() is v.residue_ring()
             return v._equivalence_reduction(f)
 
-        valuations = list(self.valuations(f))
+        coefficients = list(self.coefficients(f))
+        valuations = list(self.valuations(f, coefficients=coefficients))
         valuation = min(valuations)
         for phi_divides in range(len(valuations)):
             # count how many times phi divides f
@@ -936,7 +937,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 break
 
         if phi_divides:
-            f = f.parent()(list(self.coefficients(f))[phi_divides:])(self.phi())
+            from sage.rings.all import PolynomialRing
+            R = PolynomialRing(f.parent(), 'phi')
+            f = R(coefficients[phi_divides:])(self.phi())
         valuation -= self.mu()*phi_divides
 
         R = self.equivalence_unit(-valuation)

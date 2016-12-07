@@ -467,7 +467,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             # an infinite valuation can not be improved further
             return
 
-        approximations = self._approximation.mac_lane_step(self._G)
+        approximations = self._approximation.mac_lane_step(self._G, assume_squarefree=True, assume_equivalence_irreducible=True)
         assert(len(approximations)==1)
         self._approximation = approximations[0]
 

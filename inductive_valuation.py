@@ -631,7 +631,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from augmented_valuation import AugmentedValuation
         return AugmentedValuation(self, phi, mu, check)
 
-    def mac_lane_step(self, G, assume_squarefree=False):
+    def mac_lane_step(self, G, assume_squarefree=False, assume_equivalence_irreducible=False):
         r"""
         Perform an approximation step towards the squarefree monic non-constant
         integral polynomial ``G`` which is not an :meth:`equivalence_unit`.
@@ -678,8 +678,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from sage.rings.all import infinity
         assert self(G) is not infinity # this is a valuation and G is non-zero
 
-        if self.is_key(G):
-            return [self.augmentation(G, infinity)]
+        if self.is_key(G, assume_equivalence_irreducible=assume_equivalence_irreducible):
+            return [self.augmentation(G, infinity, check=False)]
 
         F = self.equivalence_decomposition(G)
         assert len(F), "%s equivalence-decomposes as an equivalence-unit %s"%(G, F)
@@ -696,7 +696,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 prec = min([c.precision_absolute() for c in phi.list()])
                 g = G.map_coefficients(lambda c:c.add_bigoh(prec))
                 assert self.is_key(g)
-                return [self.augmentation(g, infinity)]
+                return [self.augmentation(g, infinity, check=False)]
 
             if phi == self.phi():
                 # a factor phi in the equivalence decomposition means that we
@@ -737,7 +737,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                         phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
 
                 phi = G.parent()(phi)
-                w = self._base_valuation.augmentation(phi, infinity)
+                w = self._base_valuation.augmentation(phi, infinity, check=False)
                 ret.append(w)
                 continue
 
@@ -750,14 +750,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     assert new_mu > self(phi)
                     if not base.is_gauss_valuation():
                         base = base._base_valuation
-                new_leaf = base.augmentation(phi, new_mu)
+                new_leaf = base.augmentation(phi, new_mu, check=False)
                 assert slope is -infinity or 0 in new_leaf.newton_polygon(G).slopes(repetition=False)
                 ret.append(new_leaf)
 
         assert ret
         return ret
 
-    def is_key(self, phi, explain=False):
+    def is_key(self, phi, explain=False, assume_equivalence_irreducible=False):
         r"""
         Return whether ``phi`` is a key polynomial for this valuation, i.e.,
         whether it is monic, whether it :meth:`is_equivalence_irreducible`, and
@@ -794,9 +794,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         if not phi.is_monic():
             reason = "phi must be monic"
-        elif not self.is_equivalence_irreducible(phi):
+        elif not assume_equivalence_irreducible and not self.is_equivalence_irreducible(phi):
             reason = "phi must be equivalence irreducible"
-        elif not self.is_minimal(phi):
+        elif not self.is_minimal(phi, assume_equivalence_irreducible=True):
             reason = "phi must be minimal"
 
         if explain:
@@ -804,7 +804,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         else:
             return reason is None
 
-    def is_minimal(self, f):
+    def is_minimal(self, f, assume_equivalence_irreducible=False):
         r"""
         Return whether the polynomial ``f`` is minimal with respect to this
         valuation, i.e., whether ``f`` is not constant any non-constant
@@ -853,7 +853,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if f.is_constant():
             return False
     
-        if not self.is_equivalence_irreducible(f):
+        if not assume_equivalence_irreducible and not self.is_equivalence_irreducible(f):
             # any factor divides f with respect to this valuation
             return False
 

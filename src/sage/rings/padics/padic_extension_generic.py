@@ -81,7 +81,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
             return coerce_map(R, self)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Returns 0 if self == other, and 1 or -1 otherwise.
 
@@ -99,19 +99,25 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: R is S
             True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        groundcmp = self.ground_ring().__cmp__(other.ground_ring())
-        if groundcmp != 0:
-            return groundcmp
-        c = cmp(self.defining_polynomial(), other.defining_polynomial())
-        if c != 0:
-            return c
-        c = cmp(self.precision_cap(), other.precision_cap())
-        if c != 0:
-            return c
-        return self._printer.cmp_modes(other._printer)
+        if not isinstance(other, pAdicExtensionGeneric):
+            return NotImplemented
+
+        lx = self.ground_ring()
+        rx = other.ground_ring()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.defining_polynomial()
+        rx = other.defining_polynomial()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.precision_cap(),
+        rx = other.precision_cap(),
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return self._printer.richcmp_modes(other._printer, op)
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError

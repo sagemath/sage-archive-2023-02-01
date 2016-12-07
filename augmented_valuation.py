@@ -1175,7 +1175,8 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         """
         f = self.domain().coerce(f)
 
-        CV = zip(self.coefficients(f), self.valuations(f))
+        coefficients = list(self.coefficients(f))
+        CV = zip(coefficients, self.valuations(f, coefficients=coefficients))
         if all([v > 0 for (c,v) in CV]):
             return self.residue_ring().zero()
         # rewrite as sum of f_i phi^{i tau}, i.e., drop the coefficients that
@@ -1395,7 +1396,8 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         assert self.reduce(f) == F
 
         f *= self._Q()**F.degree()
-        CV = zip(self.coefficients(f), self.valuations(f))
+        coefficients = list(self.coefficients(f))
+        CV = zip(coefficients, self.valuations(f, coefficients=coefficients))
         vf = self(f)
         CV = [(c,v) if v==vf else (c.parent().zero(),infinity) for c,v in CV]
         while CV[-1][1] is infinity:
@@ -1530,7 +1532,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         """
         return self._base_valuation.value_semigroup() + self._mu
 
-    def valuations(self, f):
+    def valuations(self, f, coefficients=None):
         """
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum_i
         f_i\phi^i`.
@@ -1561,7 +1563,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         """
         f = self.domain().coerce(f)
 
-        for i,c in enumerate(self.coefficients(f)):
+        for i,c in enumerate(coefficients or self.coefficients(f)):
             v = self._base_valuation(c)
             if v is infinity:
                 yield v
@@ -1693,7 +1695,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         """
         return self._base_valuation.value_semigroup()
 
-    def valuations(self, f):
+    def valuations(self, f, coefficients=None):
         """
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum_i
         f_i\phi^i`.
@@ -1720,6 +1722,6 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         f = self.domain().coerce(f)
 
         num_infty_coefficients = f.degree() // self.phi().degree()
-        yield self._base_valuation(self.coefficients(f).next())
+        yield self._base_valuation(coefficients or self.coefficients(f).next())
         for i in range(num_infty_coefficients):
             yield infinity

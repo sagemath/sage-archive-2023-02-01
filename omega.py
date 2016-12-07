@@ -1184,15 +1184,23 @@ def generating_function_of_polyhedron(
         from sage.combinat.permutation import Permutations
 
         d = polyhedron.dim()
+        if d <= 1:
+            raise ValueError('Cannot do splitting with only '
+                             'dimension {}.'.format(d))
         result = []
         for pi in Permutations(d):
             logger.info('generating_function_of_polyhedron: '
                         'split by %s',
-                        ' <= '.join('b{}'.format(a-1) for a in pi))
+                        ' <= '.join('b{}'.format(a-1) for a in pi[:-1]) +
+                        (' <= ' if pi[-2] < pi[-1] else ' < ') +
+                        'b{}'.format(pi[-1]-1))
             ph = polyhedron & Polyhedron(ieqs=
                     [tuple(1 if i==b else (-1 if i==a else 0)
                            for i in range(d+1))
-                     for a, b in zip(pi[:-1], pi[1:])])
+                     for a, b in zip(pi[:-2], pi[1:-1])] +
+                    [tuple(1 if i==pi[-1] else
+                           (-1 if i==pi[-2] or i==0 and pi[-2] > pi[-1] else 0)
+                           for i in range(d+1))])
             logger.info('polyhedron: %s',
                         ', '.join(h.repr_pretty(prefix='b')
                                   for h in ph.Hrepresentation()))

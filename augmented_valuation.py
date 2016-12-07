@@ -1175,16 +1175,17 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         """
         f = self.domain().coerce(f)
 
-        v = self(f)
-        if v < 0:
-            raise ValueError("f must have non-negative valuation")
-        elif v > 0:
-            return self.residue_ring().zero()
-
         CV = zip(self.coefficients(f), self.valuations(f))
+        if all([v > 0 for (c,v) in CV]):
+            return self.residue_ring().zero()
         # rewrite as sum of f_i phi^{i tau}, i.e., drop the coefficients that
         # can have no influence on the reduction
         tau = self.value_group().index(self._base_valuation.value_group())
+        for i,(c,v) in enumerate(CV):
+            if v < 0:
+                raise ValueError("f must have non-negative valuation")
+            assert v != 0 or i % tau == 0
+
         assert not any([v==0 for i,(c,v) in enumerate(CV) if i % tau != 0])
         CV = CV[::tau]
 

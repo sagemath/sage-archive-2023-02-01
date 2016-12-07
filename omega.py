@@ -1190,22 +1190,22 @@ def generating_function_of_polyhedron(
         result = []
         for pi in Permutations(d):
             logger.info('generating_function_of_polyhedron: '
-                        'split by %s',
-                        ' <= '.join('b{}'.format(a-1) for a in pi[:-1]) +
-                        (' <= ' if pi[-2] < pi[-1] else ' < ') +
-                        'b{}'.format(pi[-1]-1))
+                        'split by %s%s', pi[0]-1,
+                        ''.join((' <= ' if a < b else ' < ') +
+                                'b{}'.format(b-1)
+                                for a, b in zip(pi[:-1], pi[1:])))
             ph = polyhedron & Polyhedron(ieqs=
-                    [tuple(1 if i==b else (-1 if i==a else 0)
+                    [tuple(1 if i==b else (-1 if i==a or i==0 and a > b else 0)
                            for i in range(d+1))
-                     for a, b in zip(pi[:-2], pi[1:-1])] +
-                    [tuple(1 if i==pi[-1] else
-                           (-1 if i==pi[-2] or i==0 and pi[-2] > pi[-1] else 0)
-                           for i in range(d+1))])
+                     for a, b in zip(pi[:-1], pi[1:])])
             logger.info('polyhedron: %s',
                         ', '.join(h.repr_pretty(prefix='b')
                                   for h in ph.Hrepresentation()))
             result.append(generating_function_of_polyhedron(
-                ph, indices=indices, split=False))
+                ph, indices=indices, split=False,
+                Factorization_sort=Factorization_sort,
+                Factorization_simplify=Factorization_simplify,
+                sort_factors=sort_factors))
         return result
 
     try:

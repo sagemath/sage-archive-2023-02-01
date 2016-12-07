@@ -988,7 +988,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if phi_divides > 1:
             return False
 
-    @cached_method
     def equivalence_decomposition(self, f, partial=False):
         r"""
         Return an equivalence decomposition of ``f``, i.e., a polynomial

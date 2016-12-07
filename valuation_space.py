@@ -37,6 +37,7 @@ from sage.categories.homset import Homset
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.abstract_method import abstract_method
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.cachefunc import cached_method
 
 class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
     r"""
@@ -363,6 +364,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 
             """
 
+        @cached_method
         def value_group(self):
             r"""
             Return the value group of this discrete pseudo-valuation, the

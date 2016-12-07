@@ -784,6 +784,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         return pAdicValuation(ring, self.p())
 
+    @cached_method
     def value_semigroup(self):
         r"""
         Return the value semigroup of this valuation.

@@ -242,13 +242,18 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         return self.domain()(self._base_valuation.uniformizer())
 
-    def valuations(self, f):
+    def valuations(self, f, coefficients=None):
         """
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum f_i\phi^i`.
 
         INPUT:
 
         - ``f`` -- a polynomial in the domain of this valuation
+
+        - ``coefficients`` -- the coefficients of ``f`` as produced by
+          :meth:`coefficients` or ``None`` (default: ``None``); this can be
+          used to speed up the computation when the expansion of ``f`` is
+          already known from a previous computation.
 
         OUTPUT:
 
@@ -267,7 +272,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         f = self.domain().coerce(f)
 
-        for c in self.coefficients(f):
+        for c in coefficients or self.coefficients(f):
             yield self._base_valuation(c)
 
     @cached_method

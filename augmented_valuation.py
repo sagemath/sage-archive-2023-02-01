@@ -1540,6 +1540,11 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         - ``f`` -- a polynomial in the domain of this valuation
 
+        - ``coefficients`` -- the coefficients of ``f`` as produced by
+          :meth:`coefficients` or ``None`` (default: ``None``); this can be
+          used to speed up the computation when the expansion of ``f`` is
+          already known from a previous computation.
+
         OUTPUT:
 
         An iterator over rational numbers (or infinity) `[v(f_0), v(f_1\phi), \dots]`
@@ -1702,6 +1707,11 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         INPUT:
 
         - ``f`` -- a polynomial in the domain of this valuation
+
+        - ``coefficients`` -- the coefficients of ``f`` as produced by
+          :meth:`coefficients` or ``None`` (default: ``None``); this can be
+          used to speed up the computation when the expansion of ``f`` is
+          already known from a previous computation.
 
         OUTPUT:
 

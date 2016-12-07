@@ -115,8 +115,9 @@ class DevelopingValuation(DiscretePseudoValuation):
         if f.is_zero():
             raise ValueError("the effective degree is only defined for non-zero polynomials")
 
-        v = self(f)
-        return [i for i,w in enumerate(self.valuations(f)) if w == v][-1]
+        valuations = list(self.valuations(f))
+        v = min(valuations)
+        return [i for i,w in enumerate(valuations) if w == v][-1]
 
     def coefficients(self, f):
         r"""

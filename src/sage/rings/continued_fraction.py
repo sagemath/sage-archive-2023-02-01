@@ -512,7 +512,6 @@ class ContinuedFraction_base(SageObject):
             + \frac{\displaystyle 1}{\displaystyle 15
             + \frac{\displaystyle 1}{\displaystyle \dots}}}
         """
-        #v=self[:nterms+1]
         nterms = int(nterms)
         if nterms <= 0:
             raise ValueError("nterms must be positive")

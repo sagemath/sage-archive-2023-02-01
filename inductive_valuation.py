@@ -935,8 +935,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             if valuations[phi_divides] <= valuation:
                 break
 
-        print self,f,phi_divides
-
         if phi_divides:
             f = f.parent()(list(self.coefficients(f))[phi_divides:])(self.phi())
         valuation -= self.mu()*phi_divides

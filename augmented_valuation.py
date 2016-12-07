@@ -1314,7 +1314,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         # now the coefficients correspond to the expansion with (f_iQ^i)(Q^{-1} phi)^i
 
         # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when _Q_reciprocal() is undefined)
-        coeffs = [ (c if i == 0 else c*self._Q_reciprocal()**i).map_coefficients(lambda d:_lift_to_maximal_precision(d)) for i,c in enumerate(coeffs) ]
+        coeffs = [ (c if i == 0 else c*self._Q_reciprocal()**i).map_coefficients(_lift_to_maximal_precision) for i,c in enumerate(coeffs) ]
 
         RR = self.domain().change_ring(self.domain())
 

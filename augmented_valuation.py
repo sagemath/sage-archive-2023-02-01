@@ -1392,7 +1392,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
             return self.phi()
 
         f = self.lift(F)
-        assert self(f) == 0
         assert self.reduce(f) == F
 
         f *= self._Q()**F.degree()

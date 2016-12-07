@@ -67,13 +67,8 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [GGOR03] V. Ginzberg, N. Guay, E. Opdam, R. Rouquier.
-       *On the category `\mathcal{O}` for rational Cherednik algebras*.
-       Invent. Math. **154** (2003). :arxiv:`math/0212036`.
-
-    .. [EM] Pavel Etingof and Xiaoguang Ma.
-       *Lecture notes on Cherednik algebras*.
-       http://www-math.mit.edu/~etingof/73509.pdf :arXiv:`1001.0432`.
+    - [GGOR2003]_
+    - [EM2001]_
     """
     @staticmethod
     def __classcall_private__(cls, ct, c=1, t=None, base_ring=None, prefix=('a', 's', 'ac')):
@@ -140,13 +135,14 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         indices = DisjointUnionEnumeratedSets([self._hd, self._weyl, self._h])
         CombinatorialFreeModule.__init__(self, base_ring, indices,
                                          category=Algebras(base_ring).WithBasis().Graded(),
-                                         generator_cmp=self._gencmp)
+                                         generator_key=RationalCherednikAlgebra._genkey)
 
-    def _gencmp(self, t, u):
+    @staticmethod
+    def _genkey(self, t):
         """
-        Comparison function between two terms indexed by ``t`` and ``u``.
+        Construct a key for comparison for a term indexed by ``t``.
 
-        We compare in the following order:
+        The key we create is the tuple in the following order:
 
         - overall degree
         - length of the weyl group element
@@ -160,16 +156,7 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
             sage: R.an_element()**2 # indirect doctest
             9*ac1^2 + 10*I + 6*a1*ac1 + 6*s1 + 3/2*s2 + 3/2*s1*s2*s1 + a1^2
         """
-        c = cmp(self.degree_on_basis(t), self.degree_on_basis(u))
-        if c:
-            return c
-        c = cmp(t[1].length(), u[1].length())
-        if c:
-            return c
-        c = cmp(t[1], u[1])
-        if c:
-            return c
-        return cmp((str(t[0]), str(t[2])), (str(u[0]), str(u[2])))
+        return (self.degree_on_basis(t), t[1].length(), t[1], str(t[0]), str(t[2]))
 
     @lazy_attribute
     def _reflections(self):

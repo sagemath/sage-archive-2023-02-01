@@ -1192,7 +1192,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         # replace f_i by f_i Q^{i tau}
         vQ = self._mu * tau
         CV = [(c*self._Q()**i, v - vQ*i) for i,(c,v) in enumerate(CV)]
-        assert all([self._base_valuation(c)>=0 for c,v in CV])
 
         # recursively reduce the f_i Q^{i tau}
         C = [self._base_valuation.reduce(c)(self._residue_field_generator()) for c,v in CV]

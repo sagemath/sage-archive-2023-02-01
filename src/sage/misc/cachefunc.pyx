@@ -3228,7 +3228,7 @@ cdef class CachedInParentMethod(CachedMethod):
             sage: class Foo:
             ....:     def __init__(self, x):
             ....:         self._x = x
-            ....:     _parent = MyParent()
+            ....:         self._parent = MyParent()
             ....:     def parent(self):
             ....:         return self._parent
             ....:     @cached_in_parent_method  #indirect doctest
@@ -3289,7 +3289,8 @@ cdef class CachedInParentMethod(CachedMethod):
         Pickling can be enabled with ``do_pickle``::
 
             sage: class A(object):
-            ....:     _parent = MyParent()
+            ....:     def __init__(self):
+            ....:         self._parent = MyParent()
             ....:     def parent(self): return self._parent
             ....:     @cached_in_parent_method(do_pickle=True)
             ....:     def f(self, x): return x
@@ -3299,13 +3300,13 @@ cdef class CachedInParentMethod(CachedMethod):
             1
             sage: len(a.f.cache)
             1
-            sage: b= loads(dumps(a))
+            sage: b = loads(dumps(a))
             sage: len(b.f.cache)
             1
 
         """
         self._cache_name = '_cache__' + 'element_' + (name or f.__name__)
-        self._cachedfunc = CachedFunction(f, classmethod=True, name=name, key=key)
+        self._cachedfunc = CachedFunction(f, classmethod=True, name=name, key=key, do_pickle=do_pickle)
 
     cpdef _get_instance_cache(self, inst):
         """

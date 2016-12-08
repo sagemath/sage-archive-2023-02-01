@@ -647,8 +647,9 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: input = tmp_filename(ext='.rst')
         sage: with open(input, 'w') as F:
         ....:     F.write(s)
-        sage: (out, err, ret) = test_executable(["sage", "--rst2ipynb", input])
-        sage: print(out)
+        sage: L = ["sage", "--rst2ipynb", input]
+        sage: (out, err, ret) = test_executable(L) # optional - rst2ipynb
+        sage: print(out)                           # optional - rst2ipynb
         {
          "nbformat_minor": 0,
          "nbformat": 4,
@@ -714,9 +715,9 @@ def test_executable(args, input="", timeout=100.0, **kwds):
           }
          }
         }
-        sage: err
+        sage: err                   # optional - rst2ipynb
         ''
-        sage: ret
+        sage: ret                   # optional - rst2ipynb
         0
 
     Test ``sage --rst2ipynb file.rst file.ipynb`` on a ReST file::
@@ -726,9 +727,10 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: output = tmp_filename(ext='.ipynb')
         sage: with open(input, 'w') as F:
         ....:     F.write(s)
-        sage: test_executable(["sage", "--rst2ipynb", input, output])
+        sage: L = ["sage", "--rst2ipynb", input, output]
+        sage: test_executable(L)              # optional - rst2ipynb
         ('', '', 0)
-        sage: print(open(output, 'r').read())
+        sage: print(open(output, 'r').read()) # optional - rst2ipynb
         {
          "nbformat_minor": 0,
          "nbformat": 4,

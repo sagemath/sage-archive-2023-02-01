@@ -6848,6 +6848,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return the incidence algebra of ``self`` over ``R``.
 
+        OUTPUT:
+
+        An instance of :class:`sage.combinat.posets.incidence_algebras.IncidenceAlgebra`.
+
         EXAMPLES::
 
             sage: P = posets.BooleanLattice(4)

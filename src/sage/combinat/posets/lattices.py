@@ -2799,6 +2799,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         Return the Möbius algebra of ``self`` over ``R``.
 
+        OUTPUT:
+
+        An instance of :class:`sage.combinat.posets.moebius_algebra.MoebiusAlgebra`.
+
         EXAMPLES::
 
             sage: L = posets.BooleanLattice(4)
@@ -2815,6 +2819,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         INPUT:
 
         - ``q`` -- (optional) the deformation parameter `q`
+
+        OUTPUT:
+
+        An instance of :class:`sage.combinat.posets.moebius_algebra.QuantumMoebiusAlgebra`.
 
         EXAMPLES::
 

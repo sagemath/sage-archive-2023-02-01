@@ -41,59 +41,67 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     EXAMPLES::
 
-        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[], backend='normaliz')
-        sage: TestSuite(p).run(skip='_test_pickling')
+        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)],   # optional - pynormaliz
+        ....:                lines=[], backend='normaliz')
+        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
 
     Two ways to get the full space::
 
-        sage: Polyhedron(eqns=[[0, 0, 0]], backend='normaliz')
+        sage: Polyhedron(eqns=[[0, 0, 0]], backend='normaliz')             # optional - pynormaliz
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 lines
-        sage: Polyhedron(ieqs=[[0, 0, 0]], backend='normaliz')
+        sage: Polyhedron(ieqs=[[0, 0, 0]], backend='normaliz')             # optional - pynormaliz
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 lines
 
     A lower-dimensional affine cone; we test that there are no mysterious
     inequalities coming in from the homogenization::
 
-        sage: P = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)], backend='normaliz')
-        sage: P.n_inequalities()
+        sage: P = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)],             # optional - pynormaliz
+        ....:                backend='normaliz')
+        sage: P.n_inequalities()                                           # optional - pynormaliz
         1
-        sage: P.equations()
+        sage: P.equations()                                                # optional - pynormaliz
         (An equation (1, 0) x - 1 == 0,)
 
     The empty polyhedron::
 
-        sage: P=Polyhedron(ieqs=[[-2, 1, 1], [-3, -1, -1], [-4, 1, -2]], backend='normaliz')
-        sage: P
+        sage: P=Polyhedron(ieqs=[[-2, 1, 1], [-3, -1, -1], [-4, 1, -2]],   # optional - pynormaliz
+        ....:              backend='normaliz')
+        sage: P                                                            # optional - pynormaliz
         The empty polyhedron in QQ^2
-        sage: P.Vrepresentation()
+        sage: P.Vrepresentation()                                          # optional - pynormaliz
         ()
-        sage: P.Hrepresentation()
+        sage: P.Hrepresentation()                                          # optional - pynormaliz
         (An equation -1 == 0,)
 
     TESTS:
 
     Tests copied from various methods in base.py::
 
-        sage: p = Polyhedron(vertices = [[1,0,0],[0,1,0],[0,0,1]], backend='normaliz')
-        sage: p.n_equations()
+        sage: p = Polyhedron(vertices = [[1,0,0], [0,1,0], [0,0,1]],       # optional - pynormaliz
+        ....:                backend='normaliz')
+        sage: p.n_equations()                                              # optional - pynormaliz
         1
-        sage: p.n_inequalities()
+        sage: p.n_inequalities()                                           # optional - pynormaliz
         3
 
-        sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in range(6)], backend='normaliz')
-        sage: p.n_facets()
+        sage: p = Polyhedron(vertices = [[t,t^2,t^3] for t in range(6)],   # optional - pynormaliz
+        ....:                backend='normaliz')
+        sage: p.n_facets()                                                 # optional - pynormaliz
         8
 
-        sage: p = Polyhedron(vertices = [[1,0],[0,1],[1,1]], rays=[[1,1]], backend='normaliz')
-        sage: p.n_vertices()
+        sage: p = Polyhedron(vertices = [[1,0],[0,1],[1,1]], rays=[[1,1]], # optional - pynormaliz
+        ....:                backend='normaliz')
+        sage: p.n_vertices()                                               # optional - pynormaliz
         2
 
-        sage: p = Polyhedron(vertices = [[1,0],[0,1]], rays=[[1,1]], backend='normaliz')
-        sage: p.n_rays()
+        sage: p = Polyhedron(vertices = [[1,0],[0,1]], rays=[[1,1]],       # optional - pynormaliz
+        ....:                backend='normaliz')
+        sage: p.n_rays()                                                   # optional - pynormaliz
         1
 
-        sage: p = Polyhedron(vertices = [[0,0]], rays=[[0,1],[0,-1]], backend='normaliz')
-        sage: p.n_lines()
+        sage: p = Polyhedron(vertices = [[0,0]], rays=[[0,1],[0,-1]],      # optional - pynormaliz
+        ....:                backend='normaliz')
+        sage: p.n_lines()                                                  # optional - pynormaliz
         1
 
     """
@@ -107,7 +115,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS::
 
-            sage: p = Polyhedron(backend='normaliz')    # indirect doctests
+            sage: p = Polyhedron(backend='normaliz')    # indirect doctests, optional - pynormaliz
         """
         if normaliz_cone:
             if Hrep is not None or Vrep is not None:
@@ -133,7 +141,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             self._init_Hrepresentation_from_normaliz()
 
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
-        """
+        r"""
         Construct polyhedron from V-representation data.
 
         INPUT:
@@ -155,9 +163,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(backend='normaliz')
-            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz
-            sage: Polyhedron_normaliz._init_from_Vrepresentation(p, [], [], [])
+            sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
+            sage: Polyhedron_normaliz._init_from_Vrepresentation(p, [], [], [])   # optional - pynormaliz
         """
         import PyNormaliz
         if vertices is None:
@@ -196,7 +204,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             self._init_from_normaliz_cone(cone)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
-        """
+        r"""
         Construct polyhedron from H-representation data.
 
         INPUT:
@@ -216,9 +224,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(backend='normaliz')
-            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz
-            sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])
+            sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
+            sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])   # optional - pynormaliz
         """
         import PyNormaliz
         if ieqs is None: ieqs = []
@@ -257,13 +265,13 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],
-            ...                  backend='normaliz')  # indirect doctest
-            sage: set(p.Hrepresentation())
+            sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],  # indirect doctest # optional - pynormaliz
+            ...                  backend='normaliz')
+            sage: set(p.Hrepresentation())                                 # optional - pynormaliz
             {An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,
              An inequality (-5, 12) x + 10 >= 0}
-            sage: set(p.Vrepresentation())
+            sage: set(p.Vrepresentation())                                 # optional - pynormaliz
             {A vertex at (0, 1/2), A vertex at (2, 0), A vertex at (4, 5/6)}
 
         """
@@ -290,13 +298,13 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],
-            ...                  backend='normaliz')  # indirect doctest
-            sage: set(p.Hrepresentation())
+            sage: p = Polyhedron(vertices=[(0,1/2), (2,0), (4,5/6)],  # indirect doctest # optional - pynormaliz
+            ...                  backend='normaliz')
+            sage: set(p.Hrepresentation())                                 # optional - pynormaliz
             {An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,
              An inequality (-5, 12) x + 10 >= 0}
-            sage: set(p.Vrepresentation())
+            sage: set(p.Vrepresentation())                                 # optional - pynormaliz
             {A vertex at (0, 1/2), A vertex at (2, 0), A vertex at (4, 5/6)}
 
         """
@@ -321,15 +329,15 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS::
 
-            sage: empty = Polyhedron(backend='normaliz'); empty
+            sage: empty = Polyhedron(backend='normaliz'); empty            # optional - pynormaliz
             The empty polyhedron in ZZ^0
-            sage: empty.Vrepresentation()
+            sage: empty.Vrepresentation()                                  # optional - pynormaliz
             ()
-            sage: empty.Hrepresentation()
+            sage: empty.Hrepresentation()                                  # optional - pynormaliz
             (An equation -1 == 0,)
-            sage: Polyhedron(vertices = [], backend='normaliz')
+            sage: Polyhedron(vertices = [], backend='normaliz')            # optional - pynormaliz
             The empty polyhedron in ZZ^0
-            sage: Polyhedron(backend='normaliz')._init_empty_polyhedron()
+            sage: Polyhedron(backend='normaliz')._init_empty_polyhedron()  # optional - pynormaliz
         """
         super(Polyhedron_normaliz, self)._init_empty_polyhedron()
         # Can't seem to set up an empty _normaliz_cone.
@@ -355,28 +363,28 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         Unbounded example from Normaliz manual, "a dull polyhedron"::
 
-            sage: P=Polyhedron(ieqs=[[1, 0, 2], [3, 0, -2], [3, 2, -2]],
+            sage: P=Polyhedron(ieqs=[[1, 0, 2], [3, 0, -2], [3, 2, -2]],   # optional - pynormaliz
             ....:              backend='normaliz')
-            sage: PI=P.integral_hull()
-            sage: P.plot(color='yellow') + PI.plot(color='green') # not tested
-            sage: set(PI.Vrepresentation())
+            sage: PI=P.integral_hull()                                     # optional - pynormaliz
+            sage: P.plot(color='yellow') + PI.plot(color='green') # not tested   # optional - pynormaliz
+            sage: set(PI.Vrepresentation())                                # optional - pynormaliz
             {A vertex at (-1, 0), A vertex at (0, 1), A ray in the direction (1, 0)}
 
         Nonpointed case::
 
-            sage: P=Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]],
+            sage: P=Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]],       # optional - pynormaliz
             ....:              lines=[[-1, 1]], backend='normaliz')
-            sage: PI=P.integral_hull()
-            sage: set(PI.Vrepresentation())
+            sage: PI=P.integral_hull()                                     # optional - pynormaliz
+            sage: set(PI.Vrepresentation())                                # optional - pynormaliz
             {A vertex at (1, 0),
              A ray in the direction (1, 0),
              A line in the direction (1, -1)}
 
         Empty polyhedron::
 
-            sage: P = Polyhedron(backend='normaliz')
-            sage: PI=P.integral_hull()
-            sage: PI.Vrepresentation()
+            sage: P = Polyhedron(backend='normaliz')                       # optional - pynormaliz
+            sage: PI=P.integral_hull()                                     # optional - pynormaliz
+            sage: PI.Vrepresentation()                                     # optional - pynormaliz
             ()
         """
         import PyNormaliz
@@ -405,25 +413,29 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)], backend='normaliz').integral_points()
+            sage: Polyhedron(vertices=[(-1,-1), (1,0), (1,1), (0,1)],      # optional - pynormaliz
+            ....:            backend='normaliz').integral_points()
             ((-1, -1), (0, 0), (0, 1), (1, 0), (1, 1))
 
-            sage: simplex = Polyhedron([(1,2,3), (2,3,7), (-2,-3,-11)], backend='normaliz')
-            sage: simplex.integral_points()
+            sage: simplex = Polyhedron([(1,2,3), (2,3,7), (-2,-3,-11)],    # optional - pynormaliz
+            ....:                      backend='normaliz')
+            sage: simplex.integral_points()                                # optional - pynormaliz
             ((-2, -3, -11), (0, 0, -2), (1, 2, 3), (2, 3, 7))
 
         The polyhedron need not be full-dimensional::
 
-            sage: simplex = Polyhedron([(1,2,3,5), (2,3,7,5), (-2,-3,-11,5)], backend='normaliz')
-            sage: simplex.integral_points()
+            sage: simplex = Polyhedron([(1,2,3,5), (2,3,7,5), (-2,-3,-11,5)],   # optional - pynormaliz
+            ....:                      backend='normaliz')
+            sage: simplex.integral_points()                                # optional - pynormaliz
             ((-2, -3, -11, 5), (0, 0, -2, 5), (1, 2, 3, 5), (2, 3, 7, 5))
 
-            sage: point = Polyhedron([(2,3,7)], backend='normaliz')
-            sage: point.integral_points()
+            sage: point = Polyhedron([(2,3,7)],                            # optional - pynormaliz
+            ....:                    backend='normaliz')
+            sage: point.integral_points()                                  # optional - pynormaliz
             ((2, 3, 7),)
 
-            sage: empty = Polyhedron()
-            sage: empty.integral_points()
+            sage: empty = Polyhedron(backend='normaliz')                   # optional - pynormaliz
+            sage: empty.integral_points()                                  # optional - pynormaliz
             ()
 
         Here is a simplex where the naive algorithm of running over
@@ -431,9 +443,9 @@ class Polyhedron_normaliz(Polyhedron_base):
         enough::
 
             sage: v = [(1,0,7,-1), (-2,-2,4,-3), (-1,-1,-1,4), (2,9,0,-5), (-2,-1,5,1)]
-            sage: simplex = Polyhedron(v, backend='normaliz'); simplex
+            sage: simplex = Polyhedron(v, backend='normaliz'); simplex     # optional - pynormaliz
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
-            sage: len(simplex.integral_points())
+            sage: len(simplex.integral_points())                           # optional - pynormaliz
             49
 
         A rather thin polytope for which the bounding box method would
@@ -441,21 +453,22 @@ class Polyhedron_normaliz(Polyhedron_base):
         polytope, so the other backends use the bounding box method)::
 
             sage: P = Polyhedron(vertices=((0, 0), (1789345,37121))) + 1/1000*polytopes.hypercube(2)
-            sage: P = Polyhedron(vertices=P.vertices_list(), backend='normaliz')
-            sage: len(P.integral_points())
+            sage: P = Polyhedron(vertices=P.vertices_list(),               # optional - pynormaliz
+            ....:                backend='normaliz')
+            sage: len(P.integral_points())                                 # optional - pynormaliz
             3654
 
         Finally, the 3-d reflexive polytope number 4078::
 
             sage: v = [(1,0,0), (0,1,0), (0,0,1), (0,0,-1), (0,-2,1),
             ....:      (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
-            sage: P = Polyhedron(v, backend='normaliz')
-            sage: pts1 = P.integral_points()
-            sage: all(P.contains(p) for p in pts1)
+            sage: P = Polyhedron(v, backend='normaliz')                    # optional - pynormaliz
+            sage: pts1 = P.integral_points()                               # optional - pynormaliz
+            sage: all(P.contains(p) for p in pts1)                         # optional - pynormaliz
             True
             sage: pts2 = LatticePolytope(v).points()          # PALP
-            sage: for p in pts1: p.set_immutable()
-            sage: set(pts1) == set(pts2)
+            sage: for p in pts1: p.set_immutable()                         # optional - pynormaliz
+            sage: set(pts1) == set(pts2)                                   # optional - pynormaliz
             True
 
             sage: timeit('Polyhedron(v, backend='normaliz').integral_points()')   # not tested - random
@@ -465,22 +478,36 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS:
 
-        Test some trivial cases (see :trac:`17937`)::
+        Test some trivial cases (see :trac:`17937`):
 
-            sage: P = Polyhedron(ambient_dim=1, backend='normaliz')  # empty polyhedron in 1 dimension
-            sage: P.integral_points()
+        Empty polyhedron in 1 dimension::
+
+            sage: P = Polyhedron(ambient_dim=1, backend='normaliz')        # optional - pynormaliz
+            sage: P.integral_points()                                      # optional - pynormaliz
             ()
-            sage: P = Polyhedron(ambient_dim=0, backend='normaliz')  # empty polyhedron in 0 dimensions
-            sage: P.integral_points()
+
+        Empty polyhedron in 0 dimensions::
+
+            sage: P = Polyhedron(ambient_dim=0, backend='normaliz')        # optional - pynormaliz
+            sage: P.integral_points()                                      # optional - pynormaliz
             ()
-            sage: P = Polyhedron([[3]], backend='normaliz')  # single point in 1 dimension
-            sage: P.integral_points()
+
+        Single point in 1 dimension::
+
+            sage: P = Polyhedron([[3]], backend='normaliz')                # optional - pynormaliz
+            sage: P.integral_points()                                      # optional - pynormaliz
             ((3),)
-            sage: P = Polyhedron([[1/2]], backend='normaliz')  # single non-integral point in 1 dimension
-            sage: P.integral_points()
+
+        Single non-integral point in 1 dimension::
+
+            sage: P = Polyhedron([[1/2]], backend='normaliz')              # optional - pynormaliz
+            sage: P.integral_points()                                      # optional - pynormaliz
             ()
-            sage: P = Polyhedron([[]], backend='normaliz')  # single point in 0 dimensions
-            sage: P.integral_points()
+
+        Single point in 0 dimensions::
+
+            sage: P = Polyhedron([[]], backend='normaliz')                 # optional - pynormaliz
+            sage: P.integral_points()                                      # optional - pynormaliz
             ((),)
         """
         import PyNormaliz
@@ -524,9 +551,10 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
     EXAMPLES::
 
-        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[],
-        ...                  backend='normaliz', base_ring=QQ)
-        sage: TestSuite(p).run(skip='_test_pickling')
+        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
+        ....:                rays=[(1,1)], lines=[],
+        ....:                backend='normaliz', base_ring=QQ)
+        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
     """
     pass
 
@@ -544,8 +572,15 @@ class Polyhedron_ZZ_normaliz(Polyhedron_normaliz, Polyhedron_ZZ):
 
     EXAMPLES::
 
-        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[])
-        ...                  backend='normaliz', base_ring=ZZ)
-        sage: TestSuite(p).run(skip='_test_pickling')
+        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
+        ....:                rays=[(1,1)], lines=[],
+        ....:                backend='normaliz', base_ring=ZZ)
+        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
     """
     pass
+
+## (local-set-key (kbd "C-;") '(lambda () (interactive) (let ((comment-fill-column 95)) (comment-indent)) (insert " optional - pynormaliz")))
+
+## Local Variables:
+## comment-column: 73
+## End:

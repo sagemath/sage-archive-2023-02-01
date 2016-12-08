@@ -6884,8 +6884,9 @@ class GenericGraph(GenericGraph_pyx):
         OUTPUT:
 
         A subgraph of ``self`` corresponding to a (directed if ``self`` is
-        directed) hamiltonian path. If ``use_edge_labels == True``, a pair
-        ``weight, path`` is returned.
+        directed) hamiltonian path. If no hamiltonian path is found, return
+        ``None``. If ``use_edge_labels == True``, a pair ``weight, path`` is
+        returned.
 
         EXAMPLES:
 
@@ -6898,10 +6899,12 @@ class GenericGraph(GenericGraph_pyx):
             Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices
             sage: g.hamiltonian_path(s=(0,0), t=(2,2))
             Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices
-            sage: g.hamiltonian_path(s=(0,0), t=(0,1))
-            Traceback (most recent call last):
-            ...
-            EmptySetError: the given (di)graph has no hamiltonian path
+            sage: g.hamiltonian_path(s=(0,0), t=(2,2), use_edge_labels=True)
+            (8, Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices)
+            sage: g.hamiltonian_path(s=(0,0), t=(0,1)) is None
+            True
+            sage: g.hamiltonian_path(s=(0,0), t=(0,1), use_edge_labels=True)
+            (0, None)
 
         TESTS:
 
@@ -6921,30 +6924,25 @@ class GenericGraph(GenericGraph_pyx):
         A non-connected (di)graph has no hamiltonian path::
 
             sage: g = Graph(2)
-            sage: g.hamiltonian_path()
-            Traceback (most recent call last):
-            ...
-            EmptySetError: the given (di)graph has no hamiltonian path
+            sage: g.hamiltonian_path() is None
+            True
+            sage: g.hamiltonian_path(use_edge_labels=True)
+            (0, None)
             sage: g = DiGraph(2)
-            sage: g.hamiltonian_path()
-            Traceback (most recent call last):
-            ...
-            EmptySetError: the given (di)graph has no hamiltonian path
+            sage: g.hamiltonian_path() is None
+            True
         """
-        from sage.categories.sets_cat import EmptySetError
         if self.order() < 2:
             raise ValueError('the hamiltonian path problem is not well ' + \
                              'defined for empty and one-element (di)graphs')
         if not self.is_connected():
-            raise EmptySetError('the given (di)graph has no hamiltonian path')
+            return (0, None) if use_edge_labels else None
 
         path = self.longest_path(s=s, t=t, use_edge_labels=use_edge_labels,
                                  algorithm=algorithm, solver=solver, verbose=verbose)
         if use_edge_labels:
-            weight,path = path
-        if len(path) != self.order():
-            raise EmptySetError('the given (di)graph has no hamiltonian path')
-        return (weight,path) if use_edge_labels else path
+            return path if path[1].order()==self.order() else (0, None)
+        return path if path.order()==self.order() else None
 
     def traveling_salesman_problem(self, use_edge_labels = False, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):
         r"""

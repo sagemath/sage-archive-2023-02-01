@@ -1,2 +1,17 @@
 #!/usr/bin/env bash
-pip install --verbose --ignore-installed --no-deps --isolated git+https://github.com/sebasguts/PyNormaliz
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+#Install new version
+cd src
+
+$PIP_INSTALL .
+
+if [ $? -ne 0 ]; then
+   echo "Error installing PyNormaliz."
+   exit 1
+fi

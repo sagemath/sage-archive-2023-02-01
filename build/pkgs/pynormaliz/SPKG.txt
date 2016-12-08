@@ -19,5 +19,3 @@ The Python module PyNormaliz provides wrappers for normaliz.
 
 == Special Update/Build Instructions ==
 
-The install currently needs an internet connection
-because the current version is downloaded from GitHub.

@@ -863,42 +863,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 return ret
             raise NotImplementedError("weakly separating element for %r and %r"%(self, other))
 
-        def _test_scale(self, **options):
-            r"""
-            Check that :meth:`scale` works correctly.
-
-            TESTS::
-
-                sage: from mac_lane import * # optional: standalone
-                sage: v = pAdicValuation(ZZ, 3)
-                sage: v._test_scale()
-
-            """
-            tester = self._tester(**options)
-
-            from sage.rings.all import infinity, QQ
-            from trivial_valuation import TrivialValuation, TrivialPseudoValuation
-
-            tester.assertEqual(QQ(0)*self, TrivialValuation(self.domain()))
-            tester.assertEqual(infinity*self, TrivialPseudoValuation(self.domain()))
-
-            for s in tester.some_elements(QQ.some_elements()):
-                if s < 0:
-                    with tester.assertRaises(ValueError):
-                        s * self
-                    continue
-                if s == 0:
-                    continue
-
-                scaled = s * self
-
-                tester.assertEqual(self.is_trivial(), scaled.is_trivial())
-                if not self.is_trivial():
-                    tester.assertEqual(self.uniformizer(), scaled.uniformizer())
-                    tester.assertEqual(scaled(self.uniformizer()), s * self(self.uniformizer()))
-                unscaled = scaled / s
-                tester.assertEqual(self, unscaled)
-
         def shift(self, x, s):
             r"""
             Shift ``x`` in its expansion with respect to :meth:`uniformizer` by
@@ -984,6 +948,42 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     # it is not clear what a shift should be in this case
                     continue
                 self.shift(x, s)
+
+        def _test_scale(self, **options):
+            r"""
+            Check that :meth:`scale` works correctly.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 3)
+                sage: v._test_scale()
+
+            """
+            tester = self._tester(**options)
+
+            from sage.rings.all import infinity, QQ
+            from trivial_valuation import TrivialValuation, TrivialPseudoValuation
+
+            tester.assertEqual(QQ(0)*self, TrivialValuation(self.domain()))
+            tester.assertEqual(infinity*self, TrivialPseudoValuation(self.domain()))
+
+            for s in tester.some_elements(QQ.some_elements()):
+                if s < 0:
+                    with tester.assertRaises(ValueError):
+                        s * self
+                    continue
+                if s == 0:
+                    continue
+
+                scaled = s * self
+
+                tester.assertEqual(self.is_trivial(), scaled.is_trivial())
+                if not self.is_trivial():
+                    tester.assertEqual(self.uniformizer(), scaled.uniformizer())
+                    tester.assertEqual(scaled(self.uniformizer()), s * self(self.uniformizer()))
+                unscaled = scaled / s
+                tester.assertEqual(self, unscaled)
 
         def _test_add(self, **options):
             r"""

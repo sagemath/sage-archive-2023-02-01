@@ -1134,7 +1134,8 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
             x
 
         """
-        return f.polynomial()(self._base_valuation.domain().gen())
+        polynomial = f.polynomial() if hasattr(f,'polynomial') else f.lift()
+        return polynomial(self._base_valuation.domain().gen())
 
     def _from_base_domain(self, f):
         r"""

@@ -1185,40 +1185,40 @@ def generating_function_of_polyhedron(polyhedron, split=False, **kwds):
     import logging
     logger = logging.getLogger(__name__)
 
+    from sage.combinat.permutation import Permutations
     from sage.geometry.polyhedron.constructor import Polyhedron
-    from sage.geometry.polyhedron.representation import Hrepresentation
-    from sage.rings.integer_ring import ZZ
-    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-    from sage.structure.factorization import Factorization
 
     if polyhedron.is_empty():
+        from sage.structure.factorization import Factorization
         return Factorization([], unit=0)
+
+    logger.info('generating_function_of_polyhedron: %s', polyhedron)
 
     if split is False:
         return _generating_function_of_polyhedron_(polyhedron, **kwds)
-
-    from sage.combinat.permutation import Permutations
 
     d = polyhedron.ambient_dim()
     if d <= 1:
         raise ValueError('Cannot do splitting with only '
                          'dimension {}.'.format(d))
+
+    if split is True:
+        split = iter(
+            (Polyhedron(
+                ieqs=[tuple(1 if i==b else (-1 if i==a or i==0 and a > b else 0)
+                            for i in range(d+1))
+                      for a, b in zip(pi[:-1], pi[1:])]),
+             'b{}'.format(pi[0]-1) +
+             ''.join((' <= ' if a < b else ' < ') +
+                     'b{}'.format(b-1)
+                     for a, b in zip(pi[:-1], pi[1:])))
+            for pi in Permutations(d))
+
     result = []
-    for pi in Permutations(d):
-        logger.info('generating_function_of_polyhedron: '
-                    'split by %s%s', 'b{}'.format(pi[0]-1),
-                    ''.join((' <= ' if a < b else ' < ') +
-                            'b{}'.format(b-1)
-                            for a, b in zip(pi[:-1], pi[1:])))
-        ph = polyhedron & Polyhedron(ieqs=
-                [tuple(1 if i==b else (-1 if i==a or i==0 and a > b else 0)
-                       for i in range(d+1))
-                 for a, b in zip(pi[:-1], pi[1:])])
-        logger.info('polyhedron: %s',
-                    ', '.join(h.repr_pretty(prefix='b')
-                              for h in ph.Hrepresentation()))
+    for split_polyhedron, pi_log in split:
+        logger.info('split polyhedron by %s', pi_log)
         result.append(generating_function_of_polyhedron(
-            ph, split=False, **kwds))
+            polyhedron & split_polyhedron, split=False, **kwds))
     return result
 
 
@@ -1232,6 +1232,9 @@ def _generating_function_of_polyhedron_(
     """
     import logging
     logger = logging.getLogger(__name__)
+
+    logger.info('polyhedron: %s',
+                polyhedron.repr_pretty_Hrepresentation(prefix='b'))
 
     if polyhedron.is_empty():
         return Factorization([], unit=0)

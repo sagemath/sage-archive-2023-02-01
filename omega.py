@@ -929,7 +929,8 @@ def prepare_equations(equations, B):
 
 
 
-def generating_function_of_polyhedron(polyhedron, split=False, **kwds):
+def generating_function_of_polyhedron(polyhedron, split=False,
+                                      result_as_tuple=None, **kwds):
     r"""
     Return the generating function of the integer points of
     the polyhedron's orthant with only nonnegative coordinates.
@@ -1195,7 +1196,11 @@ def generating_function_of_polyhedron(polyhedron, split=False, **kwds):
     logger.info('generating_function_of_polyhedron: %s', polyhedron)
 
     if split is False:
-        return _generating_function_of_polyhedron_(polyhedron, **kwds)
+        result = _generating_function_of_polyhedron_(polyhedron, **kwds)
+        if result_as_tuple is True:
+            return (result,)
+        else:
+            return result
 
     d = polyhedron.ambient_dim()
     if d <= 1:
@@ -1219,6 +1224,8 @@ def generating_function_of_polyhedron(polyhedron, split=False, **kwds):
         logger.info('split polyhedron by %s', pi_log)
         result.append(generating_function_of_polyhedron(
             polyhedron & split_polyhedron, split=False, **kwds))
+    if result_as_tuple is False:
+        raise ValueError('Cannot unpack result.')
     return result
 
 

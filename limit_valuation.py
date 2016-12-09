@@ -704,8 +704,6 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
-            sage: w = v.extension(L)
             sage: v = pAdicValuation(QQ, 5)
             sage: u,uu = v.extensions(L) # long time
             sage: u.value_semigroup() # long time

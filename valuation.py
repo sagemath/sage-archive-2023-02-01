@@ -606,9 +606,9 @@ class DiscreteValuation(DiscretePseudoValuation):
             1/3
             sage: G=Delta.change_ring(K) 
             sage: V=vK.mac_lane_approximants(G); V # long time
-            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + theta^3 + 2*theta + 1) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*theta^4 + theta^3 + theta + 1) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*theta^4 + theta^3 + 3*theta + 1) = 5/3 ]]
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 2*theta + 3) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*theta^4 + theta + 3) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*theta^4 + 3*theta + 3) = 5/3 ]]
 
         """
         R = G.parent()

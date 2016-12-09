@@ -1407,6 +1407,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         CV[-1] = (CV[-1][0].parent().one(), vf)
         ret = self.domain().change_ring(self.domain())([c for c,v in CV])(self.phi())
+        ret = self.simplify(ret)
         ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
         assert (ret == self.phi()) == (F == F.parent().gen())
         assert self.is_key(ret)

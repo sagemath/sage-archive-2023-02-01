@@ -725,11 +725,40 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
             sage: v = pAdicValuation(QQ, 2)
-            sage: w = v.extension(L)
-            sage: v = pAdicValuation(QQ, 2)
-            sage: u, = v.extensions(L)
+            sage: u = v.extension(L)
             sage: u.element_with_valuation(1/2)
             t + 1
 
         """
         return self._initial_approximation.element_with_valuation(s)
+
+    def simplify(self, f, error=None):
+        r"""
+        Return a simplified version of ``f``.
+
+        Produce an element which differs from ``f`` by an element of valuation
+        strictly greater than the valuation of ``f`` (or strictly greater than
+        ``error`` if set.)
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: u = v.extension(L)
+            sage: u.simplify(t + 1024)
+            1
+
+        """
+        f = self.domain().coerce(f)
+
+        v = self(f)
+        # now _approximation is sufficiently precise to compute a valid
+        # simplification of f
+
+        if error is None:
+            error = v
+
+        return self._approximation.simplify(f, error)

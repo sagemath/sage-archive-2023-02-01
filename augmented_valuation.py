@@ -1574,6 +1574,36 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             else:
                 yield v + i*self._mu
 
+    def simplify(self, f, error=None):
+        r"""
+        Return a simplified version of ``f``.
+
+        Produce an element which differs from ``f`` by an element of valuation
+        strictly greater than the valuation of ``f`` (or strictly greater than
+        ``error`` if set.)
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: w.simplify(x^10/2 + 1)
+            (u + 1)*2^-1 + O(2^4)
+
+        """
+        f = self.domain().coerce(f)
+
+        coefficients = list(self.coefficients(f))
+        if error is None:
+            error = min(self.valuations(f, coefficients=coefficients))
+
+        from sage.rings.all import PolynomialRing
+        R = PolynomialRing(f.parent(), 'phi')
+        f = R([self._base_valuation.simplify(c, error=error - i*self._mu) for i,c in enumerate(coefficients)])
+        return f(self.phi())
+
 
 class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValuation):
     r"""
@@ -1734,3 +1764,32 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         yield self._base_valuation(coefficients or self.coefficients(f).next())
         for i in range(num_infty_coefficients):
             yield infinity
+
+    def simplify(self, f, error=None):
+        r"""
+        Return a simplified version of ``f``.
+
+        Produce an element which differs from ``f`` by an element of valuation
+        strictly greater than the valuation of ``f`` (or strictly greater than
+        ``error`` if set.)
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, infinity)
+            sage: w.simplify(x^10/2 + 1)
+            (u + 1)*2^-1 + O(2^4)
+
+        """
+        f = self.domain().coerce(f)
+
+        if error is None:
+            error = self(f)
+
+        if error is infinity:
+            return f
+
+        return self.domain()(self._base_valuation.simplify(self.coefficients(f).next(), error))

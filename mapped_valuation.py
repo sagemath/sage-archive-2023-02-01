@@ -407,6 +407,33 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             return self.domain()(self._base_valuation._weakly_separating_element(other._base_valuation))
         super(FiniteExtensionFromInfiniteValuation, self)._weakly_separating_element(other)
 
+    def simplify(self, x, error=None):
+        r"""
+        Return a simplified version of ``x``.
+
+        Produce an element which differs from ``x`` by an element of
+        valuation strictly greater than the valuation of ``x`` (or strictly
+        greater than ``error`` if set.)
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 5)
+            sage: u,uu = v.extensions(L)
+            sage: u.simplify(125*t + 1)
+            1
+
+        """
+        x = self.domain().coerce(x)
+
+        if error is None:
+            error = self(x)
+
+        return self._from_base_domain(self._base_valuation.simplify(self._to_base_domain(x), error))
+
 
 class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
     r"""

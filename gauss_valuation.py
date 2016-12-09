@@ -677,3 +677,29 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         if scalar in QQ and scalar > 0 and scalar != 1:
             return GaussValuation(self.domain(), self._base_valuation.scale(scalar))
         return super(GaussValuation_generic, self).scale(scalar)
+
+    def simplify(self, f, error=None):
+        r"""
+        Return a simplified version of ``f``.
+
+        Produce an element which differs from ``f`` by an element of valuation
+        strictly greater than the valuation of ``f`` (or strictly greater than
+        ``error`` if set.)
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, infinity)
+            sage: w.simplify(x^10/2 + 1)
+            (u + 1)*2^-1 + O(2^4)
+
+        """
+        f = self.domain().coerce(f)
+
+        if error is None:
+            error = self(f)
+
+        return f.map_coefficients(lambda c: self._base_valuation.simplify(c, error))

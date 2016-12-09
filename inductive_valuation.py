@@ -1089,7 +1089,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: V=v1.mac_lane_step(G) # long time
             sage: v2=V[0] # long time
             sage: v2.equivalence_decomposition(G) # long time
-            (x^4 + 4*x^3 + 6*x^2 + 4*x + alpha^4 + alpha^3 + 1)^3 * (x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*alpha^4 + alpha^3 - 27*alpha + 1)^3 * (x^4 + 4*x^3 + 6*x^2 + 4*x + 3/2*alpha^4 + alpha^3 - 27*alpha + 1)^3
+            (x^4 + 4*x^3 + 6*x^2 + 4*x + alpha^3 + 2*alpha + 1)^3 * (x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*alpha^4 + alpha^3 + alpha + 1)^3 * (x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*alpha^4 + alpha^3 + 3*alpha + 1)^3
 
         REFERENCES:
 
@@ -1125,6 +1125,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         unit *= self.lift(self.residue_ring()(prod([ psi.leading_coefficient()**e for psi,e in F ])))
         F = [(self.lift_to_key(psi/psi.leading_coefficient()),e) for psi,e in F]
         unit *= prod([self.equivalence_reciprocal(self.equivalence_unit(self(g)))**e for g,e in F])
+        unit = self.simplify(unit)
 
         if phi_divides:
             for i,(g,e) in enumerate(F):

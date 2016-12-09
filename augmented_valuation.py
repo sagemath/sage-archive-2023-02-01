@@ -369,6 +369,7 @@ class AugmentedValuation_base(InductiveValuation):
         assert self(ret) == s
         return ret
 
+    @cached_method
     def element_with_valuation(self, s):
         """
         Create an element of minimal degree and of valuation ``s``.
@@ -406,12 +407,14 @@ class AugmentedValuation_base(InductiveValuation):
         """
         if s not in self.value_group():
             raise ValueError("s must be in the value group of the valuation")
+        error = s
 
         ret = self.domain().one()
         while s not in self._base_valuation.value_group():
             ret *= self._phi
             s -= self._mu
-        return ret * self._base_valuation.element_with_valuation(s)
+        ret = ret * self._base_valuation.element_with_valuation(s)
+        return self.simplify(ret, error=error)
 
     def _repr_(self):
         """

@@ -1761,7 +1761,11 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         f = self.domain().coerce(f)
 
         num_infty_coefficients = f.degree() // self.phi().degree()
-        yield self._base_valuation(coefficients or self.coefficients(f).next())
+        if coefficients is not None:
+            constant_coefficient = coefficients[0]
+        else:
+            constant_coefficient = self.coefficients(f).next()
+        yield self._base_valuation(constant_coefficient)
         for i in range(num_infty_coefficients):
             yield infinity
 

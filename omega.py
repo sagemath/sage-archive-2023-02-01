@@ -1242,11 +1242,7 @@ def _generating_function_of_polyhedron_(
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.structure.factorization import Factorization
 
-    try:
-        Hrepr = polyhedron.Hrepresentation()
-    except AttributeError:
-        Hrepr = polyhedron
-    #inequalities = tuple(reversed(tuple(inequalities_coeffs(inequalities))))
+    Hrepr = polyhedron.Hrepresentation()
 
     inequalities = tuple(tuple(entry)
                          for entry in Hrepr if entry.is_inequality())

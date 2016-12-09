@@ -1,6 +1,22 @@
+# -*- coding: utf-8 -*- 
 """
 The Normaliz backend for polyhedral computations
+
+AUTHORS:
+
+- Matthias Köppe (2016-12): initial version
 """
+
+#*****************************************************************************
+#  Copyright (C) 2016 Matthias Köppe <mkoeppe at math.ucdavis.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import absolute_import, print_function
 
 from sage.structure.element import Element
@@ -23,18 +39,18 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     INPUT:
 
-    - ``parent`` -- the parent, an instance of
-      :class:`~sage.geometry.polyhedron.parent.Polyhedra`.
+    - ``parent`` -- :class:`~sage.geometry.polyhedron.parent.Polyhedra`
+      the parent
 
-    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``. The
-      V-representation of the polyhedron. If ``None``, the polyhedron
-      is determined by the H-representation.
+    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``; the
+      V-representation of the polyhedron; if ``None``, the polyhedron
+      is determined by the H-representation
 
-    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``. The
-      H-representation of the polyhedron. If ``None``, the polyhedron
-      is determined by the V-representation.
+    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``; the
+      H-representation of the polyhedron; if ``None``, the polyhedron
+      is determined by the V-representation
 
-    - ``normaliz_cone`` -- a PyNormaliz wrapper of a normaliz cone.
+    - ``normaliz_cone`` -- a PyNormaliz wrapper of a normaliz cone
 
     Only one of ``Vrep``, ``Hrep``, or ``normaliz_cone`` can be different
     from ``None``.
@@ -75,7 +91,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     TESTS:
 
-    Tests copied from various methods in base.py::
+    Tests copied from various methods in :mod:`sage.geometry.polyhedron.base`::
 
         sage: p = Polyhedron(vertices = [[1,0,0], [0,1,0], [0,0,1]],       # optional - pynormaliz
         ....:                backend='normaliz')
@@ -105,7 +121,6 @@ class Polyhedron_normaliz(Polyhedron_base):
         1
 
     """
-
     def __init__(self, parent, Vrep, Hrep, normaliz_cone=None, **kwds):
         """
         Initializes the polyhedron.
@@ -113,13 +128,23 @@ class Polyhedron_normaliz(Polyhedron_base):
         See :class:`Polyhedron_normaliz` for a description of the input
         data.
 
-        TESTS::
+        TESTS:
 
-            sage: p = Polyhedron(backend='normaliz')    # indirect doctests, optional - pynormaliz
+        We skip the pickling test because pickling is currently
+        not implemented::
+
+            sage: p = Polyhedron(backend='normaliz')                 # optional - pynormaliz
+            sage: TestSuite(p).run(skip="_test_pickling")            # optional - pynormaliz
+            sage: p = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)],   # optional - pynormaliz
+            ....:                backend='normaliz')
+            sage: TestSuite(p).run(skip="_test_pickling")            # optional - pynormaliz
+            sage: p = Polyhedron(vertices=[(-1,-1), (1,0), (1,1), (0,1)],  # optional - pynormaliz
+            ....:                backend='normaliz')
+            sage: TestSuite(p).run(skip="_test_pickling")            # optional - pynormaliz
         """
         if normaliz_cone:
             if Hrep is not None or Vrep is not None:
-                raise ValueError("Only one of Vrep, Hrep, or normaliz_cone can be different from None")
+                raise ValueError("only one of Vrep, Hrep, or normaliz_cone can be different from None")
             Element.__init__(self, parent=parent)
             self._init_from_normaliz_cone(normaliz_cone)
         else:
@@ -128,6 +153,12 @@ class Polyhedron_normaliz(Polyhedron_base):
     def _init_from_normaliz_cone(self, normaliz_cone):
         """
         Construct polyhedron from a PyNormaliz wrapper of a normaliz cone.
+
+        TESTS::
+
+            sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
+            sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])  # indirect doctest  # optional - pynormaliz
         """
         import PyNormaliz
         if normaliz_cone and PyNormaliz.NmzResult(normaliz_cone, "AffineDim") < 0:
@@ -146,20 +177,20 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         INPUT:
 
-        - ``vertices`` -- list of point. Each point can be specified
+        - ``vertices`` -- list of point; each point can be specified
            as any iterable container of
-           :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+           :meth:`~sage.geometry.polyhedron.base.base_ring` elements
 
-        - ``rays`` -- list of rays. Each ray can be specified as any
+        - ``rays`` -- list of rays; each ray can be specified as any
           iterable container of
-          :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+          :meth:`~sage.geometry.polyhedron.base.base_ring` elements
 
-        - ``lines`` -- list of lines. Each line can be specified as
+        - ``lines`` -- list of lines; each line can be specified as
           any iterable container of
-          :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+          :meth:`~sage.geometry.polyhedron.base.base_ring` elements
 
-        - ``verbose`` -- boolean (default: ``False``). Whether to print
-          verbose output for debugging purposes.
+        - ``verbose`` -- boolean (default: ``False``); whether to print
+          verbose output for debugging purposes
 
         EXAMPLES::
 
@@ -209,18 +240,18 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         INPUT:
 
-        - ``ieqs`` -- list of inequalities. Each line can be specified
+        - ``ieqs`` -- list of inequalities; each line can be specified
           as any iterable container of
-          :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+          :meth:`~sage.geometry.polyhedron.base.base_ring` elements
 
-        - ``eqns`` -- list of equalities. Each line can be specified
+        - ``eqns`` -- list of equalities; each line can be specified
           as any iterable container of
-          :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+          :meth:`~sage.geometry.polyhedron.base.base_ring` elements
 
-        - ``minimize`` -- boolean (default: ``True``). Ignored.
+        - ``minimize`` -- boolean (default: ``True``); ignored
 
-        - ``verbose`` -- boolean (default: ``False``). Whether to print
-          verbose output for debugging purposes.
+        - ``verbose`` -- boolean (default: ``False``); whether to print
+          verbose output for debugging purposes
 
         EXAMPLES::
 
@@ -260,7 +291,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         self._init_from_normaliz_cone(cone)
 
     def _init_Vrepresentation_from_normaliz(self):
-        """
+        r"""
         Create the Vrepresentation objects from the normaliz polyhedron.
 
         EXAMPLES::
@@ -293,7 +324,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         self._Vrepresentation = tuple(self._Vrepresentation)
 
     def _init_Hrepresentation_from_normaliz(self):
-        """
+        r"""
         Create the Hrepresentation objects from the normaliz polyhedron.
 
         EXAMPLES::
@@ -324,7 +355,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         self._Hrepresentation = tuple(self._Hrepresentation)
 
     def _init_empty_polyhedron(self):
-        """
+        r"""
         Initializes an empty polyhedron.
 
         TESTS::
@@ -349,6 +380,12 @@ class Polyhedron_normaliz(Polyhedron_base):
     def _from_normaliz_cone(cls, parent, normaliz_cone):
         r"""
         Initializes a polyhedron from a PyNormaliz wrapper of a normaliz cone.
+
+        TESTS::
+
+            sage: P=Polyhedron(ieqs=[[1, 0, 2], [3, 0, -2], [3, 2, -2]],   # optional - pynormaliz
+            ....:              backend='normaliz')
+            sage: PI=P.integral_hull()                # indirect doctest   # optional - pynormaliz
         """
         return cls(parent, None, None, normaliz_cone=normaliz_cone)
 
@@ -403,8 +440,8 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         INPUT:
 
-        - ``threshold`` -- integer -- integer (default: 10000). Use the naive
-        algorithm as long as the bounding box is smaller than this.
+        - ``threshold`` -- integer (default: 10000); use the naïve
+        algorithm as long as the bounding box is smaller than this
 
         OUTPUT:
 
@@ -512,7 +549,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         import PyNormaliz
         if not self.is_compact():
-            raise ValueError('Can only enumerate points in a compact polyhedron.')
+            raise ValueError('can only enumerate points in a compact polyhedron')
         # Trivial cases: polyhedron with 0 or 1 vertices
         if self.n_vertices() == 0:
             return ()
@@ -538,16 +575,16 @@ class Polyhedron_normaliz(Polyhedron_base):
             points.append(vector(ZZ, g[:-1]))
         return tuple(points)
 
+
 #########################################################################
 class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
-    """
-    Polyhedra over `\QQ` with normaliz
+    r"""
+    Polyhedra over `\QQ` with normaliz.
 
     INPUT:
 
-    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``.
-
-    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``.
+    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``
+    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``
 
     EXAMPLES::
 
@@ -561,14 +598,13 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
 #########################################################################
 class Polyhedron_ZZ_normaliz(Polyhedron_normaliz, Polyhedron_ZZ):
-    """
-    Polyhedra over `\ZZ` with normaliz
+    r"""
+    Polyhedra over `\ZZ` with normaliz.
 
     INPUT:
 
-    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``.
-
-    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``.
+    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``
+    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``
 
     EXAMPLES::
 
@@ -579,8 +615,3 @@ class Polyhedron_ZZ_normaliz(Polyhedron_normaliz, Polyhedron_ZZ):
     """
     pass
 
-## (local-set-key (kbd "C-;") '(lambda () (interactive) (let ((comment-fill-column 95)) (comment-indent)) (insert " optional - pynormaliz")))
-
-## Local Variables:
-## comment-column: 73
-## End:

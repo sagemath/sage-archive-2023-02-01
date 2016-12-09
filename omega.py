@@ -1203,7 +1203,7 @@ def generating_function_of_polyhedron(
     if split:
         from sage.combinat.permutation import Permutations
 
-        d = polyhedron.dim()
+        d = polyhedron.ambient_dim()
         if d <= 1:
             raise ValueError('Cannot do splitting with only '
                              'dimension {}.'.format(d))

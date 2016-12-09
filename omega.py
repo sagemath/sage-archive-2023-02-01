@@ -1210,7 +1210,7 @@ def generating_function_of_polyhedron(
         result = []
         for pi in Permutations(d):
             logger.info('generating_function_of_polyhedron: '
-                        'split by %s%s', pi[0]-1,
+                        'split by %s%s', 'b{}'.format(pi[0]-1),
                         ''.join((' <= ' if a < b else ' < ') +
                                 'b{}'.format(b-1)
                                 for a, b in zip(pi[:-1], pi[1:])))

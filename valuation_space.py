@@ -919,6 +919,71 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         x //= self.uniformizer()
                     return x
 
+        def simplify(self, x, error=None):
+            r"""
+            Return a simplified version of ``x``.
+
+            Produce an element which differs from ``x`` by an element of
+            valuation strictly greater than the valuation of ``x`` (or strictly
+            greater than ``error`` if set.)
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 2)
+                sage: v.simplify(6)
+                2
+                sage: v.simplify(6, error=0)
+                0
+
+            """
+            x = self.domain().coerce(x)
+
+            if error is not None and self(x) > error:
+                return self.domain().zero()
+            return x
+
+        def _test_simplify(self, **options):
+            r"""
+            Check that :meth:`simplify` works correctly.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 3)
+                sage: v._test_simplify()
+
+            """
+            tester = self._tester(**options)
+
+            try:
+                k = self.residue_ring()
+                has_residue_ring = True
+            except NotImplementedError:
+                # over non-fields (and especially polynomial rings over
+                # non-fields) computation of the residue ring is often
+                # difficult and not very interesting
+                has_residue_ring = False
+
+            X = self.domain().some_elements()
+            for x in tester.some_elements(X):
+                y = self.simplify(x)
+                tester.assertEqual(self(x), self(y))
+                if self(x) >= 0 and  has_residue_ring:
+                    tester.assertEqual(self.reduce(x), self.reduce(y))
+
+            if self.is_trivial() and not self.is_discrete_valuation():
+                return
+
+            S = self.value_group().some_elements()
+            from itertools import product
+            for x,s in tester.some_elements(product(X, S)):
+                y = self.simplify(x, error=s)
+                if self.domain().is_exact():
+                    tester.assertGreaterEqual(self(x-y), s)
+                elif hasattr(y, 'precision_absolute'):
+                    tester.assertGreaterEqual(self(x-y), min(s, y.precision_absolute()))
+
         def _test_shift(self, **options):
             r"""
             Check that :meth:`shift` works correctly.

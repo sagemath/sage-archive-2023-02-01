@@ -990,6 +990,35 @@ class pAdicValuation_padic(pAdicValuation_base):
         v = ZZ(s / self.domain().ramification_index())
         return x << v
 
+    def simplify(self, x, error=None):
+        r"""
+        Return a simplified version of ``x``.
+
+        Produce an element which differs from ``x`` by an element of
+        valuation strictly greater than the valuation of ``x`` (or strictly
+        greater than ``error`` if set.)
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R = Zp(2)
+            sage: v = pAdicValuation(R, 2)
+            sage: v.simplify(6)
+            2 + O(2^21)
+            sage: v.simplify(6, error=0)
+            0
+
+        """
+        x = self.domain().coerce(x)
+
+        if error is None:
+            error = self(x)
+        from sage.rings.all import infinity
+        if error is infinity:
+            return x
+        return x.add_bigoh(error + self.value_group().gen()).lift_to_precision()
+
+
 class pAdicValuation_int(pAdicValuation_base):
     r"""
     A `p`-adic valuation on the integers or the rationals.
@@ -1089,6 +1118,48 @@ class pAdicValuation_int(pAdicValuation_base):
         if isinstance(other, pAdicValuation_int):
             return self.p() == other.p()
         return super(pAdicValuation_base, self)._ge_(other)
+
+    def simplify(self, x, error=None):
+        r"""
+        Return a simplified version of ``x``.
+
+        Produce an element which differs from ``x`` by an element of
+        valuation strictly greater than the valuation of ``x`` (or strictly
+        greater than ``error`` if set.)
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(ZZ, 2)
+            sage: v.simplify(6)
+            2
+            sage: v.simplify(6, error=0)
+            0
+
+        """
+        x = self.domain().coerce(x)
+
+        v = self(x)
+        if error is None:
+            error = v
+        from sage.rings.all import infinity
+        if error is infinity:
+            return x
+        if error < v:
+            return self.domain().zero()
+        
+        from sage.rings.all import Qp
+        precision_ring = Qp(self.p(), error + 1 - v)
+        reduced = precision_ring(x)
+        if error - v >= 5:
+            # If there is not much relative precision left, it is better to
+            # just go with the integer/rational lift. The rational
+            # reconstruction is likely not smaller.
+            reconstruction = reduced.rational_reconstruction()
+            if reconstruction in self.domain():
+                return self.domain()(reconstruction)
+        
+        return self.domain()(reduced.lift())
 
 
 class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_base):

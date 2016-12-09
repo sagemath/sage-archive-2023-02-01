@@ -929,10 +929,7 @@ def prepare_equations(equations, B):
 
 
 
-def generating_function_of_polyhedron(
-        polyhedron, indices=None, split=False,
-        Factorization_sort=False, Factorization_simplify=False,
-        sort_factors=False):
+def generating_function_of_polyhedron(polyhedron, split=False, **kwds):
     r"""
     Return the generating function of the integer points of
     the polyhedron's orthant with only nonnegative coordinates.
@@ -1194,36 +1191,56 @@ def generating_function_of_polyhedron(
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.structure.factorization import Factorization
 
-
-    if split:
-        from sage.combinat.permutation import Permutations
-
-        d = polyhedron.ambient_dim()
-        if d <= 1:
-            raise ValueError('Cannot do splitting with only '
-                             'dimension {}.'.format(d))
-        result = []
-        for pi in Permutations(d):
-            logger.info('generating_function_of_polyhedron: '
-                        'split by %s%s', 'b{}'.format(pi[0]-1),
-                        ''.join((' <= ' if a < b else ' < ') +
-                                'b{}'.format(b-1)
-                                for a, b in zip(pi[:-1], pi[1:])))
-            ph = polyhedron & Polyhedron(ieqs=
-                    [tuple(1 if i==b else (-1 if i==a or i==0 and a > b else 0)
-                           for i in range(d+1))
-                     for a, b in zip(pi[:-1], pi[1:])])
-            logger.info('polyhedron: %s',
-                        ', '.join(h.repr_pretty(prefix='b')
-                                  for h in ph.Hrepresentation()))
-            result.append(generating_function_of_polyhedron(
-                ph, indices=indices, split=False,
-                Factorization_sort=Factorization_sort,
-                Factorization_simplify=Factorization_simplify,
-                sort_factors=sort_factors))
-        return result
     if polyhedron.is_empty():
         return Factorization([], unit=0)
+
+    if split is False:
+        return _generating_function_of_polyhedron_(polyhedron, **kwds)
+
+    from sage.combinat.permutation import Permutations
+
+    d = polyhedron.ambient_dim()
+    if d <= 1:
+        raise ValueError('Cannot do splitting with only '
+                         'dimension {}.'.format(d))
+    result = []
+    for pi in Permutations(d):
+        logger.info('generating_function_of_polyhedron: '
+                    'split by %s%s', 'b{}'.format(pi[0]-1),
+                    ''.join((' <= ' if a < b else ' < ') +
+                            'b{}'.format(b-1)
+                            for a, b in zip(pi[:-1], pi[1:])))
+        ph = polyhedron & Polyhedron(ieqs=
+                [tuple(1 if i==b else (-1 if i==a or i==0 and a > b else 0)
+                       for i in range(d+1))
+                 for a, b in zip(pi[:-1], pi[1:])])
+        logger.info('polyhedron: %s',
+                    ', '.join(h.repr_pretty(prefix='b')
+                              for h in ph.Hrepresentation()))
+        result.append(generating_function_of_polyhedron(
+            ph, split=False, **kwds))
+    return result
+
+
+def _generating_function_of_polyhedron_(
+        polyhedron, indices=None,
+        Factorization_sort=False, Factorization_simplify=False,
+        sort_factors=False):
+    r"""
+    Helper function for :func:`generating_function_of_polyhedron` which
+    does the actual computation of the generating function.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    if polyhedron.is_empty():
+        return Factorization([], unit=0)
+
+    from sage.geometry.polyhedron.constructor import Polyhedron
+    from sage.geometry.polyhedron.representation import Hrepresentation
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+    from sage.structure.factorization import Factorization
 
     try:
         Hrepr = polyhedron.Hrepresentation()

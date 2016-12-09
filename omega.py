@@ -1194,11 +1194,6 @@ def generating_function_of_polyhedron(
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.structure.factorization import Factorization
 
-    try:
-        if polyhedron.is_empty():
-            return Factorization([], unit=0)
-    except AttributeError:
-        pass
 
     if split:
         from sage.combinat.permutation import Permutations
@@ -1227,6 +1222,8 @@ def generating_function_of_polyhedron(
                 Factorization_simplify=Factorization_simplify,
                 sort_factors=sort_factors))
         return result
+    if polyhedron.is_empty():
+        return Factorization([], unit=0)
 
     try:
         Hrepr = polyhedron.Hrepresentation()

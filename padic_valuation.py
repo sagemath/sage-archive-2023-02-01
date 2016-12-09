@@ -1016,7 +1016,8 @@ class pAdicValuation_padic(pAdicValuation_base):
         from sage.rings.all import infinity
         if error is infinity:
             return x
-        return x.add_bigoh(error + self.value_group().gen()).lift_to_precision()
+        normalized_error = (error / self.value_group().gen()).ceil()
+        return x.add_bigoh(normalized_error + 1).lift_to_precision()
 
 
 class pAdicValuation_int(pAdicValuation_base):
@@ -1147,6 +1148,7 @@ class pAdicValuation_int(pAdicValuation_base):
             return x
         if error < v:
             return self.domain().zero()
+        error = error.ceil()
         
         from sage.rings.all import Qp
         precision_ring = Qp(self.p(), error + 1 - v)

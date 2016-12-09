@@ -1148,7 +1148,8 @@ class pAdicValuation_int(pAdicValuation_base):
             return x
         if error < v:
             return self.domain().zero()
-        error = error.ceil()
+        from sage.rings.all import QQ
+        error = QQ(error).ceil()
         
         from sage.rings.all import Qp
         precision_ring = Qp(self.p(), error + 1 - v)

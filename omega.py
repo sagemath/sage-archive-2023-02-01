@@ -812,18 +812,23 @@ def prepare_inequalities(inequalities, B):
     chain_links = {}
     for coeffs in inequalities:
         dim = len(coeffs)
+        if all(c >= 0 for c in coeffs):
+            logger.debug('generating_function_of_polyhedron: '
+                         'skipping %s (all coefficients >= 0)',
+                         pretty_inequality(coeffs))
+            continue
         constant = coeffs[0]
         ones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == 1)
         mones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == -1)
         absgetwo = tuple(i+1 for i, c in enumerate(coeffs[1:]) if abs(c) >= 2)
         if len(ones) == 1 and not mones and not absgetwo:
-            if constant >= 0:
-                logger.debug('generating_function_of_polyhedron: '
-                             'skipping %s', pretty_inequality(coeffs))
-            else:
+            if constant < 0:
                 # TODO: could be skipped...
                 inequalities_filtered.append(coeffs)
         elif len(ones) == 1 and len(mones) == 1 and not absgetwo:
+            logger.debug('generating_function_of_polyhedron: '
+                         'handling %s',
+                         pretty_inequality(coeffs))
             chain_links[(mones[0], ones[0])] = constant
         else:
             inequalities_filtered.append(coeffs)

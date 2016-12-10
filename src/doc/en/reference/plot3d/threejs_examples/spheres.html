@@ -29,6 +29,8 @@
 
     var options = {aspect_ratio: [1.0, 1.0, 1.0], decimals: 2, frame: true, axes: false, axes_labels: ['x', 'y', 'z']};
 
+    var animate = false;
+
     var lights = [{x:0, y:0, z:10}, {x:0, y:0, z:-10}];
     for ( var i=0 ; i < lights.length ; i++ ) {
         var light = new THREE.DirectionalLight( 0xdddddd, 1 );
@@ -139,12 +141,14 @@
     camera.lookAt( scene.position );
 
     var controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.addEventListener( 'change', function() { if ( !animate ) render(); } );
 
     window.addEventListener( 'resize', function() {
         
         renderer.setSize( window.innerWidth, window.innerHeight );
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
+        if ( !animate ) render();
         
     } );
     
@@ -217,9 +221,8 @@
 
     function render() {
 
-        requestAnimationFrame( render );
+        if ( animate ) requestAnimationFrame( render );
         renderer.render( scene, camera );
-        controls.update();
 
         for ( var i=0 ; i < scene.children.length ; i++ ) {
             if ( scene.children[i].type === 'Sprite' ) {
@@ -232,6 +235,7 @@
     }
     
     render();
+    if ( !animate ) render();
 
 </script>
 

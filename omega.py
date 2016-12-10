@@ -945,6 +945,10 @@ def prepare_mod(mod, B, *vecs):
         (y0*y1, {y2: y2, y1: y1^2, y0: y0^2},
          ((-2, -2, -2, 2),), ((0, -2, 2, 0),))
     """
+    from sage.matrix.constructor import matrix
+    from sage.modules.free_module_element import vector
+    from sage.rings.integer_ring import ZZ
+
     if not mod:
         return (1, {}) + vecs
 
@@ -1325,7 +1329,6 @@ def __generating_function_of_polyhedron__(
     import logging
     logger = logging.getLogger(__name__)
 
-    from sage.matrix.constructor import matrix
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.structure.factorization import Factorization

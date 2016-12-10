@@ -381,7 +381,7 @@ class Function_polylog(GinacFunction):
             sage: polylog(1, x)
             -log(-x + 1)
             sage: polylog(2,x^2+1)
-            polylog(2, x^2 + 1)
+            dilog(x^2 + 1)
 
             sage: f = polylog(4, 1); f
             1/90*pi^4

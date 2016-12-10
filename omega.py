@@ -1330,13 +1330,13 @@ def __generating_function_of_polyhedron__(
         tuple('y{}'.format(k) for k in indices),
         sparse=True)
 
-    gf_extra_factor_mod, rules_mod, inequalities, equations = \
+    extra_factor_mod, rules_mod, inequalities, equations = \
         prepare_mod(mod, B, inequalities, equations)
 
-    gf_extra_factor_equations, rules_equations, indices_equations = \
+    extra_factor_equations, rules_equations, indices_equations = \
         prepare_equations(equations, B)
 
-    inequalities, gf_extra_factor_inequalities, rules_inequalities = \
+    inequalities, extra_factor_inequalities, rules_inequalities = \
         prepare_inequalities(inequalities, B)
 
     numerator = B(1)
@@ -1380,8 +1380,8 @@ def __generating_function_of_polyhedron__(
         terms = other_factors + factors_denominator
 
     numerator = (numerator.subs(rules_inequalities) *
-                 gf_extra_factor_inequalities).subs(rules_equations) * \
-                 gf_extra_factor_equations
+                 extra_factor_inequalities).subs(rules_equations) * \
+                 extra_factor_equations
     terms = tuple(t.subs(rules_inequalities).subs(rules_equations)
                   for t in terms)
 

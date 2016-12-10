@@ -875,6 +875,38 @@ def prepare_inequalities(inequalities, B):
     return inequalities, factor, rules
 
 
+def prepare_equations_transformation(E):
+    r"""
+    TESTS::
+
+        sage: prepare_equations_transformation(matrix([(0, 1, 0, -2)]))
+        ([   0 -1/2    0    1], (3,), (0, 1))
+        sage: prepare_equations_transformation(matrix([(0, 1, 0, -2), (0, 2, 0, -3)]))
+        (
+        [0 1 0 0]
+        [0 0 0 1], (1, 3), (0,)
+        )
+    """
+    indices_nonzero = tuple(i for i, col in enumerate(E.columns())
+                            if i > 0 and not col.is_zero())
+    indices = []
+    r = 0
+    for i in reversed(indices_nonzero):
+        indices.append(i)
+        r1 = E.matrix_from_columns(indices).rank()
+        if r1 > r:
+            r = r1
+            if len(indices) >= E.nrows():
+                break
+        else:
+            indices = indices[:-1]
+    assert len(indices) == E.nrows()
+    indices = tuple(reversed(indices))
+    indicesn = (0,) + tuple(i for i in indices_nonzero if i not in indices)
+    TE = E.matrix_from_columns(indices).inverse() * E
+    return TE, indices, indicesn
+
+
 def prepare_equations(equations, B):
     r"""
     EXAMPLES::
@@ -898,9 +930,6 @@ def prepare_equations(equations, B):
         ....:                    (0, 1, -1, 0, 0, 0)], B)
         (1, {y2: y2*y4, y0: y0*y1*y3}, (1, 3, 4))
     """
-    import logging
-    logger = logging.getLogger(__name__)
-
     from sage.matrix.constructor import matrix
     from sage.misc.misc_c import prod
 
@@ -908,24 +937,7 @@ def prepare_equations(equations, B):
     if not E:
         return 1, {}, ()
 
-    indices_nonzero = tuple(i for i, col in enumerate(E.columns())
-                            if i > 0 and not col.is_zero())
-    indices = []
-    r = 0
-    for i in reversed(indices_nonzero):
-        indices.append(i)
-        r1 = E.matrix_from_columns(indices).rank()
-        if r1 > r:
-            r = r1
-            if len(indices) >= E.nrows():
-                break
-        else:
-            indices = indices[:-1]
-    assert len(indices) == E.nrows()
-    indices = tuple(reversed(indices))
-    indicesn = (0,) + tuple(i for i in indices_nonzero if i not in indices)
-    T = E.matrix_from_columns(indices).inverse()
-    TE = T*E
+    TE, indices, indicesn = prepare_equations_transformation(E)
 
     gens = (1,) + B.gens()
     z = tuple(gens[i] for i in indices)

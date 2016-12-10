@@ -1296,10 +1296,10 @@ def _generating_function_of_polyhedron_(
         indices = range(len(inequalities[0]) - 1)
 
     n = len(indices) + 1
-    if any(len(ieq) != n for ieq in inequalities):
+    if any(len(e) != n for e in inequalities):
         raise ValueError('Not all coefficient vectors of the inequalities '
                          'have the same length.')
-    if any(len(eq) != n for eq in equations):
+    if any(len(e) != n for e in equations):
         raise ValueError('Not all coefficient vectors of the equations '
                          'have the same length.')
 

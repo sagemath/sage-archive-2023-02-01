@@ -324,7 +324,7 @@ from copy import deepcopy
 from inspect import getdoc
 import os  # CHECK: possibly unnecessary after removing 4ti2-dependent methods
 from sage.calculus.functional import derivative
-from sage.combinat.integer_vector import IntegerVectors
+from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
 from sage.combinat.parking_functions import ParkingFunctions
 from sage.combinat.set_partition import SetPartitions
 from sage.combinat.vector_partition import IntegerVectorsIterator
@@ -5508,10 +5508,9 @@ class SandpileDivisor(dict):
         else:
             rk = -1
             while True:
-                IV = IntegerVectors(rk+1,S.num_verts())
-                for e in IV:
-                    E = SandpileDivisor(S,e)
-                    if (self - E).effective_div()==[]:
+                for e in integer_vectors_nk_fast_iter(rk+1,S.num_verts()):
+                    E = SandpileDivisor(S, e)
+                    if (self - E).effective_div() == []:
                         self._rank = rk
                         self._rank_witness = E
                         return

@@ -928,6 +928,39 @@ def prepare_equations(equations, B):
     return factor, rules, tuple(i-1 for i in indices)
 
 
+def prepare_mod(mod, B, *vecs):
+    r"""
+    EXAMPLES::
+
+        sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
+        sage: prepare_mod({0: (2, 1)}, B, [(1, -1, 0, 2)])
+        (y0, {y2: y2, y1: y1, y0: y0^2}, ((0, -2, 0, 2),))
+        sage: prepare_mod({0: (2, 1), 1: (2, 1)}, B,
+        ....:             [(0, -1, -1, 2)], [(0, -1, 1, 0)])
+        (y0*y1, {y2: y2, y1: y1^2, y0: y0^2},
+         ((-2, -2, -2, 2),), ((0, -2, 2, 0),))
+    """
+    if not mod:
+        return (1, {}) + vecs
+
+    n = len(B.gens()) + 1
+
+    D = {(i, i): 1 for i in range(n)}
+    for i, mr in iteritems(mod):
+        D[(i+1, i+1)] = mr[0]
+        D[(i+1, 0)] = mr[1]
+    T = matrix(ZZ, n, n, D)
+
+
+    rules_pre = iter((y, B({tuple(row[1:]): 1}))
+                     for y, row in zip((1,) + B.gens(), T.columns()))
+    factor = next(rules_pre)[1]
+    rules = dict(rules_pre)
+
+    vecs = tuple(tuple(tuple(vector(e)*T) for e in vec) for vec in vecs)
+
+    return (factor, rules) + vecs
+
 
 def generating_function_of_polyhedron(polyhedron, split=False,
                                       result_as_tuple=None, **kwds):

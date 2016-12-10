@@ -951,7 +951,6 @@ def prepare_mod(mod, B, *vecs):
         D[(i+1, 0)] = mr[1]
     T = matrix(ZZ, n, n, D)
 
-
     rules_pre = iter((y, B({tuple(row[1:]): 1}))
                      for y, row in zip((1,) + B.gens(), T.columns()))
     factor = next(rules_pre)[1]
@@ -1307,11 +1306,11 @@ def _generating_function_of_polyhedron_(
                 '%s inequalities', len(inequalities))
 
     return __generating_function_of_polyhedron__(
-        indices, inequalities, equations, **kwds)
+        indices, inequalities, equations, {}, **kwds)
 
 
 def __generating_function_of_polyhedron__(
-        indices, inequalities, equations,
+        indices, inequalities, equations, mod,
         Factorization_sort=False, Factorization_simplify=False,
         sort_factors=False):
     r"""
@@ -1321,6 +1320,7 @@ def __generating_function_of_polyhedron__(
     import logging
     logger = logging.getLogger(__name__)
 
+    from sage.matrix.constructor import matrix
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.structure.factorization import Factorization
@@ -1330,8 +1330,11 @@ def __generating_function_of_polyhedron__(
         tuple('y{}'.format(k) for k in indices),
         sparse=True)
 
+    gf_extra_factor_mod, rules_mod, inequalities, equations = \
+        prepare_mod(mod, B, inequalities, equations)
+
     gf_extra_factor_equations, rules_equations, indices_equations = \
-            prepare_equations(equations, B)
+        prepare_equations(equations, B)
 
     inequalities, gf_extra_factor_inequalities, rules_inequalities = \
         prepare_inequalities(inequalities, B)

@@ -364,10 +364,15 @@ def Omega_higher(a, exponents):
          z0*z1*z2 + z0*z2^2 + z1*z2^2 + z0*z2 + z1*z2 + 1,
          (z0, z1, z0*z2^3, z1*z2^6))
 
-    ::
+    TESTS::
 
         sage: Omega_higher(0, (2, 2, 1, 1, 1, 1, 1, -1, -1))[0].number_of_terms()  # long time
         27837
+
+    ::
+
+        sage: Omega_higher(1, (2,))
+        (1, (z0,))
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -389,9 +394,9 @@ def Omega_higher(a, exponents):
     B = QQ.extension(cyclotomic_polynomial(ellcm), 'zeta')
     zeta = B.gen()
     z_names = tuple('z{}'.format(i) for i in range(len(exponents)))
-    L = LaurentPolynomialRing(B, ('t',) + z_names)
+    L = LaurentPolynomialRing(B, ('t',) + z_names, len(z_names) + 1)
     t = L.gens()[0]
-    Z = LaurentPolynomialRing(ZZ, z_names)
+    Z = LaurentPolynomialRing(ZZ, z_names, len(z_names))
     powers = {i: L(zeta**(ellcm//i)) for i in rou}
     powers[2] = L(-1)
     powers[1] = L(1)

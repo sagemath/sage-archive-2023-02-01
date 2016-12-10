@@ -1218,6 +1218,9 @@ def generating_function_of_polyhedron(polyhedron, split=False,
                      'b{}'.format(b-1)
                      for a, b in zip(pi[:-1], pi[1:])))
             for pi in Permutations(d))
+    else:
+        split = iter((ph, ph.repr_pretty_Hrepresentation(prefix='b'))
+                     for ph in split)
 
     result = []
     for split_polyhedron, pi_log in split:
@@ -1230,9 +1233,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
 
 
 def _generating_function_of_polyhedron_(
-        polyhedron, indices=None,
-        Factorization_sort=False, Factorization_simplify=False,
-        sort_factors=False):
+        polyhedron, indices=None, **kwds):
     r"""
     Helper function for :func:`generating_function_of_polyhedron` which
     does the actual computation of the generating function.
@@ -1245,12 +1246,6 @@ def _generating_function_of_polyhedron_(
 
     if polyhedron.is_empty():
         return Factorization([], unit=0)
-
-    from sage.geometry.polyhedron.constructor import Polyhedron
-    from sage.geometry.polyhedron.representation import Hrepresentation
-    from sage.rings.integer_ring import ZZ
-    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-    from sage.structure.factorization import Factorization
 
     Hrepr = polyhedron.Hrepresentation()
 
@@ -1266,12 +1261,8 @@ def _generating_function_of_polyhedron_(
 
     if indices is None:
         indices = range(len(inequalities[0]) - 1)
-    B = LaurentPolynomialRing(
-        ZZ,
-        tuple('y{}'.format(k) for k in indices),
-        sparse=True)
 
-    n = len(B.gens()) + 1
+    n = len(indices) + 1
     if any(len(ieq) != n for ieq in inequalities):
         raise ValueError('Not all coefficient vectors of the inequalities '
                          'have the same length.')
@@ -1281,6 +1272,30 @@ def _generating_function_of_polyhedron_(
 
     logger.info('generating_function_of_polyhedron: '
                 '%s inequalities', len(inequalities))
+
+    return __generating_function_of_polyhedron__(
+        indices, inequalities, equations, **kwds)
+
+
+def __generating_function_of_polyhedron__(
+        indices, inequalities, equations,
+        Factorization_sort=False, Factorization_simplify=False,
+        sort_factors=False):
+    r"""
+    Helper function for :func:`generating_function_of_polyhedron` which
+    does the actual computation of the generating function.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+    from sage.structure.factorization import Factorization
+
+    B = LaurentPolynomialRing(
+        ZZ,
+        tuple('y{}'.format(k) for k in indices),
+        sparse=True)
 
     gf_extra_factor_equations, rules_equations, indices_equations = \
             prepare_equations(equations, B)

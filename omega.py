@@ -1325,6 +1325,22 @@ def __generating_function_of_polyhedron__(
     r"""
     Helper function for :func:`generating_function_of_polyhedron` which
     does the actual computation of the generating function.
+
+    TESTS::
+
+        sage: __generating_function_of_polyhedron__(
+        ....:     (0, 2), [(0, 1, 0)], [(1, -1, 2)],
+        ....:     {0: (2, 1)}, sort_factors=True)
+        y0 * (-y0^2*y2 + 1)^-1
+        sage: __generating_function_of_polyhedron__(
+        ....:     srange(3), [(0, 1, 0, 0), (0, 0, 1, 0)], [(1, -1, 0, 2)],
+        ....:     {0: (2, 1)}, sort_factors=True)
+        y0 * (-y1 + 1)^-1 * (-y0^2*y2 + 1)^-1
+        sage: __generating_function_of_polyhedron__(
+        ....:     srange(3), [(0, 1, 0, 0), (0, -1, 1, 0)], [(0, -1, -1, 2)],
+        ....:     {0: (2, 1), 1: (2, 1)}, sort_factors=True)
+        (-y0^3*y1^3*y2^3 + y0*y1*y2) *
+        (-y1^2*y2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -1387,11 +1403,13 @@ def __generating_function_of_polyhedron__(
             _Omega_(numerator.dict(), tuple(decoded_factors))
         terms = other_factors + factors_denominator
 
-    numerator = (numerator.subs(rules_inequalities) *
-                 extra_factor_inequalities).subs(rules_equations) * \
-                 extra_factor_equations
-    terms = tuple(t.subs(rules_inequalities).subs(rules_equations)
-                  for t in terms)
+    numerator = \
+        (((numerator.subs(rules_inequalities) * extra_factor_inequalities
+          ).subs(rules_equations) * extra_factor_equations
+         ).subs(rules_mod) * extra_factor_mod)
+    terms = tuple(
+        t.subs(rules_inequalities).subs(rules_equations).subs(rules_mod)
+        for t in terms)
 
     if sort_factors:
         def key(t):

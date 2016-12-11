@@ -3609,8 +3609,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ([(4 : 8 : 1), (0 : -1 : 1)], 17, 0.152460177943143)
 
             sage: P, Q, R = EK.gens()
-            sage: print P, Q, R
-            (i - 2 : -i - 3 : 1) (-1 : 1 : 1) (0 : -1 : 1)
+            sage: P, Q, R
+            ((i - 2 : -i - 3 : 1), (-1 : 1 : 1), (0 : -1 : 1))
             sage: EK.saturation([P+Q, Q+R, R+P], lower_ht_bound=0.1)
             ([(841/1369*i - 171/1369 : 41334/50653*i - 74525/50653 : 1),
               (4 : 8 : 1),
@@ -4092,8 +4092,8 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
                       # replaced: any one with a nonzero coordinate in
                       # the appropriate kernel vector will do.
                     if verbose:
-                        print("-- points were not %s-saturated, gaining index %s" % (p,p))
-                    j = (i for i,x in enumerate(vecs[res[1]]) if x).next()
+                        print("-- points were not %s-saturated, gaining index %s" % (p, p))
+                    j = next(i for i, x in enumerate(vecs[res[1]]) if x)
                     return (False, j, res[2])
             else: # rank stayed same; carry on using more Qs
                 pass
@@ -4114,9 +4114,9 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
     if res[0]: # points really were saturated
         return (True, lin_combs)
     else:
-        v = list(vecs[res[1]])
-        j = (i for i,x in enumerate(vecs[res[1]]) if x).next()
+        j = next(i for i, x in enumerate(vecs[res[1]]) if x)
         return (False, j, res[2])
+
 
 def full_p_saturation(Plist, p, lin_combs = dict(), verbose=False):
     r""" Full `p`-saturation of ``Plist``.

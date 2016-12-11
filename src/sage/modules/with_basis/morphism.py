@@ -119,6 +119,7 @@ from sage.categories.morphism import SetMorphism, Morphism
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.structure.element import parent
+from sage.structure.sage_object import op_EQ, op_NE
 from sage.matrix.matrix import is_Matrix
 
 class ModuleMorphism(Morphism):
@@ -334,14 +335,14 @@ class ModuleMorphismByLinearity(ModuleMorphism):
             (True, False, False, False, False, False)
 
         """
-        if op == 2: # ==
+        if op == op_EQ:
             return (self.__class__ is other.__class__
                     and parent(self) == parent(other)
                     and self._zero == other._zero
                     and self._on_basis == other._on_basis
                     and self._position == other._position
                     and self._is_module_with_basis_over_same_base_ring == other._is_module_with_basis_over_same_base_ring)
-        if op == 3: # !=
+        if op == op_NE:
             return not (self == other)
         raise NotImplementedError("Operator not implemented")
 
@@ -729,14 +730,14 @@ class TriangularModuleMorphism(ModuleMorphism):
             False
 
         """
-        if op == 2: # ==
+        if op == op_EQ:
             return (self.__class__ is other.__class__ and self.parent() == other.parent()
                     and self._triangular == other._triangular
                     and self._unitriangular == other._unitriangular
                     and self._inverse_on_support == other._inverse_on_support
                     and self._invertible == other._invertible
                     and self._dominant_item == other._dominant_item)
-        if op == 3: # !=
+        if op == op_NE:
             return not (self == other)
         raise NotImplementedError("Operator not implemented")
 
@@ -1216,10 +1217,10 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularM
             True
 
         """
-        if op == 2: # ==
+        if op == op_EQ:
             return (ModuleMorphismByLinearity._richcmp_(self, other, op)
                     and TriangularModuleMorphism._richcmp_(self, other, op))
-        if op == 3: # !=
+        if op == op_NE:
             return not (self == other)
         raise NotImplementedError("Operator not implemented")
 
@@ -1401,7 +1402,7 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             False
 
         """
-        if op == 2: # ==
+        if op == op_EQ:
             # We skip the on_basis check since the matrix defines the morphism
             return (self.__class__ is other.__class__
                     and parent(self) == parent(other)
@@ -1409,7 +1410,7 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
                     and self._position == other._position
                     and self._is_module_with_basis_over_same_base_ring == other._is_module_with_basis_over_same_base_ring
                     and self._matrix == other._matrix)
-        if op == 3: # !=
+        if op == op_NE:
             return not (self == other)
         raise NotImplementedError("Operator not implemented")
 
@@ -1493,11 +1494,11 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
             False
 
         """
-        if op == 2: # ==
+        if op == op_EQ:
             return (self.__class__ is other.__class__
                     and parent(self) == parent(other)
                     and self._diagonal == other._diagonal)
-        if op == 3: # !=
+        if op == op_NE:
             return not (self == other)
         raise NotImplementedError("Operator not implemented")
 

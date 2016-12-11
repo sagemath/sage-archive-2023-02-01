@@ -730,6 +730,13 @@ def pretty_inequality(ineq, indices=None):
     return '{} >= {}'.format(positive_part*vars, negative_part*vars)
 
 
+class Summandization(tuple):
+    def __repr__(self):
+        return ' + '.join(repr(s) for s in self)
+
+    __str__ = __repr__
+
+
 def prepare_inequalities(inequalities, B):
     r"""
     EXAMPLES::
@@ -1254,7 +1261,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
         from sage.structure.factorization import Factorization
         result = Factorization([], unit=0)
         if result_as_tuple:
-            return (result,)
+            return Summandization((result,))
         else:
             return result
 
@@ -1263,7 +1270,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     if split is False:
         result = _generating_function_of_polyhedron_(polyhedron, **kwds)
         if result_as_tuple:
-            return result
+            return Summandization(result)
         else:
             if len(result) != 1:
                 raise ValueError("Cannot unpack result. "
@@ -1298,7 +1305,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     if not result_as_tuple:
         raise ValueError("Cannot unpack result."
                          "(Unset 'result_as_tuple=False'.)")
-    return sum(result, ())
+    return Summandization(sum(result, ()))
 
 
 def compositions_mod(u, m, r=0, multidimensional=False):

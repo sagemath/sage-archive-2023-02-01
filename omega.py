@@ -1466,7 +1466,7 @@ def _generating_function_of_polyhedron_(
             assert all(cols[j][i] == 1 for i, j in enumerate(TEi))
             pre_mods = compositions_mod((tuple(ZZ(cc*m) for cc in cols[i])
                                          for i in TEin),
-                                        m, r=(-cc for cc in cols[0]),
+                                        m, r=(-cc*m for cc in cols[0]),
                                         multidimensional=True)
             mods = tuple({i-1: (aa.modulus(), ZZ(aa))
                           for i, aa in zip(TEin, a) if aa.modulus() > 1}

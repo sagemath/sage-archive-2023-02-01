@@ -1368,11 +1368,14 @@ def _compositions_mod_(u, r):
     from itertools import product
     from sage.arith.srange import srange
     from sage.modules.free_module_element import vector
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
 
     v = u[0]
-    for j in srange(max(vv.order() for vv in v)):
+    m = max(vv.order() for vv in v)
+    Z = Zmod(m)
+    for j in srange(m):
         for a in _compositions_mod_(u[1:], r - j*v):
-            yield (j,) + a
+            yield (Z(j),) + a
 
 
 def _generating_function_of_polyhedron_(

@@ -1455,6 +1455,7 @@ def _generating_function_of_polyhedron_(
                 '%s inequalities', len(inequalities))
 
     TE, TEi, TEin = prepare_equations_transformation(matrix(equations))
+    TEin = TEin[1:]
     if TE.base_ring() == ZZ:
         mods = [{}]
     elif TE.base_ring() == QQ:
@@ -1474,6 +1475,8 @@ def _generating_function_of_polyhedron_(
     else:
         raise TypeError('Equations over ZZ or QQ expected, but got '
                         'equations over {}.'.format(TE.base_ring()))
+
+    logger.info('splitting by moduli %s', mods)
 
     return tuple(__generating_function_of_polyhedron__(
         indices, inequalities, equations, mod, **kwds) for mod in mods)

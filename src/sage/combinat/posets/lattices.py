@@ -807,7 +807,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: all(Posets.ChainPoset(i).neutral_elements() == range(i)
+            sage: all(Posets.ChainPoset(i).neutral_elements() == list(range(i))
             ....:     for i in range(4))
             True
 

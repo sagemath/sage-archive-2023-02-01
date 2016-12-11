@@ -42,7 +42,7 @@ from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z,
 from sage.libs.mpfr cimport mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p
 from sage.libs.ntl.error import NTLError
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
@@ -5072,8 +5072,19 @@ class CoordinateFunction:
             sage: f == NumberField(x^2 + 3,'b').gen().coordinates_in_terms_of_powers()
             False
         """
-        return cmp(self.__class__, other.__class__) or cmp(self.__K, other.__K) or cmp(self.__alpha, other.__alpha)
+        if not isinstance(other, CoordinateFunction):
+            return -1  # arbitrary
 
+        lx = self.__K
+        rx = other.__K
+        if lx != rx:
+            return 1 if richcmp_not_equal(lx, rx, Py_LT) else -1
+
+        lx = self.__alpha
+        rx = other.__alpha
+        if lx != rx:
+            return 1 if richcmp_not_equal(lx, rx, Py_LT) else -1
+        return 0
 
 
 #################

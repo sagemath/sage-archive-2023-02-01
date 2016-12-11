@@ -27,7 +27,9 @@
 
     var options = SAGE_OPTIONS;
 
-    var animate = false;
+    // When animations are supported by the viewer, the value 'false'
+    // will be replaced with an option set in Python by the user
+    var animate = false; // options.animate;
 
     var lights = SAGE_LIGHTS;
     for ( var i=0 ; i < lights.length ; i++ ) {

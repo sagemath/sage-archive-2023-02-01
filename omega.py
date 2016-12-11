@@ -881,10 +881,10 @@ def prepare_equations_transformation(E):
 
         sage: prepare_equations_transformation(matrix([(0, 1, 0, -2)]))
         ([   0 -1/2    0    1], (3,), (0, 1))
-        sage: prepare_equations_transformation(matrix([(0, 1, 0, -2), (0, 2, 0, -3)]))
+        sage: prepare_equations_transformation(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
         (
-        [0 1 0 0]
-        [0 0 0 1], (1, 3), (0,)
+        [   0 -1/2    1    0]
+        [   0 -2/3    0    1], (2, 3), (0, 1)
         )
     """
     indices_nonzero = tuple(i for i, col in enumerate(E.columns())

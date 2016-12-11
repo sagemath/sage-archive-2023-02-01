@@ -18787,7 +18787,6 @@ class GenericGraph(GenericGraph_pyx):
                     edge_size=edge_size, edge_size2=edge_size2, pos3d=pos3d,
                     color_by_label=color_by_label, **kwds).show()
 
-    @cached_method
     def _keys_for_vertices(self):
         """
         Returns a function mapping each vertex to a unique identifier.
@@ -18801,8 +18800,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.Grid2dGraph(5,5)
             sage: g._keys_for_vertices()
             <function get_label at ...>
+
+        We check that :trac:`21916` is fixed::
+
+            sage: g = graphs.PetersenGraph()
+            sage: key = g._keys_for_vertices()
+            sage: g.add_vertex("a")
+            sage: s = g.graphviz_string()
         """
-        import hashlib
         label = dict()
         for i, v in enumerate(self.vertices()):
             label[v] = 'node_{0}'.format(i)

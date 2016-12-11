@@ -1247,18 +1247,28 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     from sage.combinat.permutation import Permutations
     from sage.geometry.polyhedron.constructor import Polyhedron
 
+    if result_as_tuple is None:
+        result_as_tuple = split
+
     if polyhedron.is_empty():
         from sage.structure.factorization import Factorization
-        return Factorization([], unit=0)
+        result = Factorization([], unit=0)
+        if result_as_tuple:
+            return (result,)
+        else:
+            return result
 
     logger.info('generating_function_of_polyhedron: %s', polyhedron)
 
     if split is False:
         result = _generating_function_of_polyhedron_(polyhedron, **kwds)
-        if result_as_tuple is True:
-            return (result,)
-        else:
+        if result_as_tuple:
             return result
+        else:
+            if len(result) != 1:
+                raise ValueError("Cannot unpack result. "
+                                 "(Set 'result_as_tuple=True'.)")
+            return result[0]
 
     d = polyhedron.ambient_dim()
     if d <= 1:
@@ -1283,11 +1293,12 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     result = []
     for split_polyhedron, pi_log in split:
         logger.info('split polyhedron by %s', pi_log)
-        result.append(generating_function_of_polyhedron(
-            polyhedron & split_polyhedron, split=False, **kwds))
-    if result_as_tuple is False:
-        raise ValueError('Cannot unpack result.')
-    return result
+        result.append(_generating_function_of_polyhedron_(
+            polyhedron & split_polyhedron, **kwds))
+    if not result_as_tuple:
+        raise ValueError("Cannot unpack result."
+                         "(Unset 'result_as_tuple=False'.)")
+    return sum(result, ())
 
 
 def compositions_mod(u, m, r=0, multidimensional=False):
@@ -1395,7 +1406,7 @@ def _generating_function_of_polyhedron_(
                 polyhedron.repr_pretty_Hrepresentation(prefix='b'))
 
     if polyhedron.is_empty():
-        return Factorization([], unit=0)
+        return (Factorization([], unit=0),)
 
     Hrepr = polyhedron.Hrepresentation()
 

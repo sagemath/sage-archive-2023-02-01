@@ -20,6 +20,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -310,12 +311,13 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             if isinstance(arg0, str):
                 names = arg0
             if names is None:
-                index_set = range(arg1)
+                index_set = list(range(arg1))
             else:
                 if isinstance(names, str):
                     names = tuple(names.split(','))
                     if arg1 != 1 and len(names) == 1:
-                        names = tuple('{}{}'.format(names[0],i) for i in xrange(arg1))
+                        names = tuple('{}{}'.format(names[0], i)
+                                      for i in range(arg1))
                 if arg1 != len(names):
                     raise ValueError("the number of names must equal the"
                                      " number of generators")
@@ -875,7 +877,7 @@ class LieAlgebraFromAssociative(LieAlgebraWithGenerators):
             gens = tuple(gens)
             ngens = len(gens)
             if index_set is None and names is None:
-                index_set = range(ngens)
+                index_set = list(range(ngens))
 
         if ngens is not None:
             if A is None:

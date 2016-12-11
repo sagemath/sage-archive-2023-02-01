@@ -1416,6 +1416,7 @@ def _generating_function_of_polyhedron_(
     import logging
     logger = logging.getLogger(__name__)
 
+    from sage.arith.misc import lcm
     from sage.matrix.constructor import matrix
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ
@@ -1424,6 +1425,7 @@ def _generating_function_of_polyhedron_(
                 polyhedron.repr_pretty_Hrepresentation(prefix='b'))
 
     if polyhedron.is_empty():
+        from sage.structure.factorization import Factorization
         return (Factorization([], unit=0),)
 
     Hrepr = polyhedron.Hrepresentation()

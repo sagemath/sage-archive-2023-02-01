@@ -1290,9 +1290,9 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     return result
 
 
-def compositions_mod(u, m, r=0):
+def compositions_mod(u, m, r=0, multidimensional=False):
     r"""
-    Return an iterable of tuples `a` such that `a u \equiv r \mod m`.
+    Return an iterable of tuples `a` such that `a u^T \equiv r \mod m`.
 
     INPUT:
 
@@ -1318,17 +1318,30 @@ def compositions_mod(u, m, r=0):
         sage: list(compositions_mod([1, 0], 2))
         [(0, 0)]
     """
+    from sage.modules.free_module_element import vector
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+
+    Z = Zmod(m)
+    if multidimensional:
+        raise NotImplementedError
+    else:
+        return _compositions_mod_(tuple(vector([Z(uu)]) for uu in u),
+                                  vector([Z(r)]))
+
+
+def _compositions_mod_(u, r):
     if not u:
-        if r == 0:
+        if all(rr == 0 for rr in r):
             yield ()
         return
 
+    from itertools import product
     from sage.arith.srange import srange
-    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    from sage.modules.free_module_element import vector
 
-    v = Zmod(m)(u[0])
-    for j in srange(v.order()):
-        for a in compositions_mod(u[1:], m, r-j*v):
+    v = u[0]
+    for j in srange(max(vv.order() for vv in v)):
+        for a in _compositions_mod_(u[1:], r - j*v):
             yield (j,) + a
 
 

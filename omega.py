@@ -1401,6 +1401,17 @@ def _generating_function_of_polyhedron_(
     r"""
     Helper function for :func:`generating_function_of_polyhedron` which
     does the actual computation of the generating function.
+
+    TESTS::
+
+        sage: generating_function_of_polyhedron(  # indirect doctest
+        ....:     Polyhedron(ieqs=[(0, 1, 0, 0), (0, -1, 1, 0)],
+        ....:                eqns=[(0, -1, -1, 2)]),
+        ....:     result_as_tuple=True, sort_factors=True)
+        (-y0^2*y1^2*y2^2 + 1) * (-y1^2*y2 + 1)^-1 *
+        (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1 +
+        (-y0^3*y1^3*y2^3 + y0*y1*y2) * (-y1^2*y2 + 1)^-1 *
+        (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1
     """
     import logging
     logger = logging.getLogger(__name__)

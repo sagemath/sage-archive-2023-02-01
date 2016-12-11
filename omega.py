@@ -1387,6 +1387,10 @@ def _generating_function_of_polyhedron_(
     import logging
     logger = logging.getLogger(__name__)
 
+    from sage.matrix.constructor import matrix
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.rational_field import QQ
+
     logger.info('polyhedron: %s',
                 polyhedron.repr_pretty_Hrepresentation(prefix='b'))
 
@@ -1419,8 +1423,29 @@ def _generating_function_of_polyhedron_(
     logger.info('generating_function_of_polyhedron: '
                 '%s inequalities', len(inequalities))
 
-    return __generating_function_of_polyhedron__(
-        indices, inequalities, equations, {}, **kwds)
+    TE, TEi, TEin = prepare_equations_transformation(matrix(equations))
+    if TE.base_ring() == ZZ:
+        mods = [{}]
+    elif TE.base_ring() == QQ:
+        m = lcm([e.denominator() for e in TE.list()])
+        if m == 1:
+            mods = [{}]
+        else:
+            cols = TE.columns()
+            assert all(cols[j][i] == 1 for i, j in enumerate(TEi))
+            pre_mods = compositions_mod((tuple(ZZ(cc*m) for cc in cols[i])
+                                         for i in TEin),
+                                        m, r=(-cc for cc in cols[0]),
+                                        multidimensional=True)
+            mods = tuple({i-1: (aa.modulus(), ZZ(aa))
+                          for i, aa in zip(TEin, a) if aa.modulus() > 1}
+                         for a in pre_mods)
+    else:
+        raise TypeError('Equations over ZZ or QQ expected, but got '
+                        'equations over {}.'.format(TE.base_ring()))
+
+    return tuple(__generating_function_of_polyhedron__(
+        indices, inequalities, equations, mod, **kwds) for mod in mods)
 
 
 def __generating_function_of_polyhedron__(

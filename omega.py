@@ -1296,11 +1296,23 @@ def compositions_mod(u, m, r=0, multidimensional=False):
 
     INPUT:
 
-    - ``u`` -- the coefficients as a tuple.
-
     - ``m`` -- the modulus as a positive integer.
 
-    - ``r`` -- the remainder as a nonnegative integer.
+    - ``multidimensional`` -- (default: ``False``) a boolean.
+
+    If ``multidimensional=False``:
+
+    - ``u`` -- the coefficients as a tuple.
+
+    - ``r`` -- (default: `0`)
+      the remainder as a nonnegative integer.
+
+    If ``multidimensional=True``:
+
+    - ``u`` -- the coefficients as a tuple of tuples (read column-wise).
+
+    - ``r`` -- (default: the zero vector)
+      the remainder as a tuple of nonnegative integers.
 
     OUTPUT:
 
@@ -1312,6 +1324,18 @@ def compositions_mod(u, m, r=0, multidimensional=False):
         [(0, 0), (1, 1)]
         sage: list(compositions_mod([1, 2, 3], 6))
         [(0, 0, 0), (1, 1, 1), (2, 2, 0), (3, 0, 1), (4, 1, 0), (5, 2, 1)]
+        sage: list(compositions_mod([2, 2, 2], 6))
+        [(0, 0, 0), (0, 1, 2), (0, 2, 1), (1, 0, 2),
+         (1, 1, 1), (1, 2, 0), (2, 0, 1), (2, 1, 0), (2, 2, 2)]
+
+    ::
+
+        sage: list(compositions_mod([(1, 0), (0, 1)], 2,
+        ....:                       multidimensional=True))
+        [(0, 0)]
+        sage: list(compositions_mod([(1, 2), (2, 2), (3, 2)], 6,
+        ....:                       multidimensional=True))
+        [(0, 0, 0), (1, 1, 1), (2, 2, 2)]
 
     TESTS::
 
@@ -1322,11 +1346,17 @@ def compositions_mod(u, m, r=0, multidimensional=False):
     from sage.rings.finite_rings.integer_mod_ring import Zmod
 
     Z = Zmod(m)
-    if multidimensional:
-        raise NotImplementedError
+    if not multidimensional:
+        u = tuple(vector([Z(uu)]) for uu in u)
+        r = vector([Z(r)])
     else:
-        return _compositions_mod_(tuple(vector([Z(uu)]) for uu in u),
-                                  vector([Z(r)]))
+        u = tuple(vector(Z(uuu) for uuu in uu) for uu in u)
+        if r == 0:
+            r = vector(Z(0) for _ in range(len(u[0])))
+        else:
+            r = vector(Z(rr) for rr in r)
+
+    return _compositions_mod_(u, r)
 
 
 def _compositions_mod_(u, r):

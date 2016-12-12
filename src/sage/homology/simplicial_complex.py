@@ -1004,13 +1004,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._sorted = False
             return
 
-        try:  # vertex_set is an iterable
-            if sort_facets:
-                vertices = tuple(sorted(vertex_set))
-            else:
-                vertices = tuple(vertex_set)
-        except TypeError:  # vertex_set is an integer
+        if isinstance(vertex_set, (int, Integer)):
             vertices = tuple(range(vertex_set + 1))
+        elif sort_facets:
+            vertices = tuple(sorted(vertex_set))
+        else:
+            vertices = tuple(vertex_set)
         gen_dict = {}
         for v in vertices:
             if name_check:
@@ -1051,7 +1050,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # self._facets: list of facets
         self._facets = good_faces
         # self._sorted: True if the vertex set should be sorted. This
-        # gets used by the add_faces method.
+        # gets used by the add_face method.
         self._sorted = sort_facets
         # self._faces: dictionary of dictionaries of faces.  The main
         # dictionary is keyed by subcomplexes, and each value is a
@@ -2544,7 +2543,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._vertex_set = tuple(reduce(union, [self._vertex_set, new_face]))
 
             # Update self._faces.
-            all_new_faces = SimplicialComplex([new_face]).faces()
+            all_new_faces = SimplicialComplex([new_face], sort_facets=self._sorted).faces()
             for L in self._faces:
                 L_complex = self._faces[L]
                 for dim in range(new_face.dimension()+1):

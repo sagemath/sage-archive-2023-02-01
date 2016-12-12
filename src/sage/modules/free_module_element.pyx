@@ -111,6 +111,7 @@ from cpython.slice cimport PySlice_GetIndicesEx
 from sage.structure.sequence import Sequence
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 from sage.structure.element import canonical_coercion
+from sage.structure.sage_object cimport richcmp_not_equal, richcmp, rich_to_bool
 
 from sage.rings.ring import is_Ring
 from sage.rings.infinity import Infinity, AnInfinity
@@ -834,21 +835,21 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         EXAMPLES::
 
-            sage: v = vector(ZZ, 4, range(4))              # optional - giac
-            sage: giac(v)+v                                # optional -  giac
+            sage: v = vector(ZZ, 4, range(4))
+            sage: giac(v)+v
             [0,2,4,6]
 
         ::
 
-            sage: v = vector(QQ, 3, [2/3, 0, 5/4])         # optional -  giac
-            sage: giac(v)                                  # optional -  giac
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])
+            sage: giac(v)
             [2/3,0,5/4]
 
         ::
 
-            sage: P.<x> = ZZ[]                                       # optional -  giac
-            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) # optional -  giac
-            sage: giac(v)                                            # optional -  giac
+            sage: P.<x> = ZZ[]
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x])
+            sage: giac(v)
             [x^2+2,2*x+1,-2*x^2+4*x]
         """
         return self.list()
@@ -1695,10 +1696,10 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         if p < 1:
             raise ValueError("%s is not greater than or equal to 1" % p)
 
-        s = sum([a**p for a in abs_self])
+        s = sum(a ** p for a in abs_self)
         return s**(__one__/p)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         EXAMPLES::
 
@@ -1710,9 +1711,9 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v == v
             True
             sage: w = vector(SR, [-1,x,pi,0])
-            sage: w < v
+            sage: bool(w < v)
             True
-            sage: w > v
+            sage: bool(w > v)
             False
 
         TESTS::
@@ -1726,11 +1727,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             False
         """
         cdef Py_ssize_t i
-        cdef int c
         for i in range(left._degree):
-            c = cmp(left[i], right[i])
-            if c: return c
-        return 0
+            lx = left[i]
+            rx = right[i]
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+        return rich_to_bool(op, 0)
 
     def __getitem__(self, i):
         """
@@ -4707,7 +4709,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return left._new_c(v)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare two sparse free module elements.
 
@@ -4728,19 +4730,15 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: V = FreeModule( GF(3), 2, sparse=True)
             sage: a = V([0,1])
             sage: b = V([1,0])
-            sage: cmp(a, b)
-            -1
+            sage: a < b
+            True
         """
-
-        a = left._entries.items()
+        a = (<FreeModuleElement_generic_sparse>left)._entries.items()
         a.sort()
-        b = (< FreeModuleElement_generic_sparse > right)._entries.items()
+        b = (<FreeModuleElement_generic_sparse>right)._entries.items()
         b.sort()
 
-        a = [(-x,y) for x, y in a]
-        b = [(-x,y) for x, y in b]
-
-        return cmp(a, b)
+        return richcmp([(-x, y) for x, y in a], [(-x, y) for x, y in b], op)
 
     def iteritems(self):
         """

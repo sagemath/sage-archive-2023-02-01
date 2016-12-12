@@ -656,6 +656,10 @@ REFERENCES:
             submitted, 2012. Preprint:
             http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
 
+.. [GGD2011] \E. Girondo, \G. Gonzalez-Diez, *Introduction to Compact
+             Riemann surfaces and Dessins d'enfant*, (2011)
+             London Mathematical Society, Student Text 79.
+
 .. [GHJV1994] \E. Gamma, R. Helm, R. Johnson, J. Vlissides, *Design
               Patterns: Elements of Reusable Object-Oriented
               Software*. Addison-Wesley (1994). ISBN 0-201-63361-2.
@@ -1346,7 +1350,7 @@ REFERENCES:
              :doi:`10.1007/978-1-4684-9322-1`,
              ISBN 978-1-4684-9322-1.
 
-.. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
+.. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 

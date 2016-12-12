@@ -317,8 +317,8 @@ class ComplexBallField(UniqueRepresentation, Field):
         """
         TESTS::
 
-            sage: CBF._real_field()
-            Real ball field with 53 bits precision
+            sage: CBF._real_field() is RBF
+            True
         """
         return self._base
 

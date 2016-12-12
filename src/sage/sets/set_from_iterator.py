@@ -27,7 +27,7 @@ The module also provides decorator for functions and methods::
 
     sage: from sage.sets.set_from_iterator import set_from_function
     sage: @set_from_function
-    ... def f(n): return xsrange(n)
+    ....: def f(n): return xsrange(n)
     sage: f(3)
     {0, 1, 2}
     sage: f(5)
@@ -573,10 +573,11 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     EXAMPLES::
 
         sage: from sage.sets.set_from_iterator import set_from_function
+        sage: from six.moves import range
         sage: @set_from_function
-        ... def f(n):
-        ....:  for i in xrange(n):
-        ....:      yield i**2 + i + 1
+        ....: def f(n):
+        ....:     for i in range(n):
+        ....:         yield i**2 + i + 1
         sage: f(3)
         {1, 3, 7}
         sage: f(100)
@@ -587,11 +588,11 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     :class:`EnumeratedSetFromIterator`::
 
         sage: @set_from_function(category=InfiniteEnumeratedSets())
-        ... def Fibonacci():
-        ....:  a = 1; b = 2
-        ....:  while True:
-        ....:     yield a
-        ....:     a,b = b,a+b
+        ....: def Fibonacci():
+        ....:     a = 1; b = 2
+        ....:     while True:
+        ....:         yield a
+        ....:         a, b = b, a + b
         sage: F = Fibonacci()
         sage: F
         {1, 2, 3, 5, 8, ...}
@@ -603,7 +604,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
         sage: @set_from_function(
         ....:      name = "From %(m)d to %(n)d",
         ....:      category = FiniteEnumeratedSets())
-        ... def f(m,n): return xsrange(m,n+1)
+        ....: def f(m, n): return xsrange(m,n+1)
         sage: E = f(3,10); E
         From 3 to 10
         sage: E.list()
@@ -619,11 +620,11 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     ``cached_method``::
 
         sage: @cached_function
-        ... @set_from_function(
+        ....: @set_from_function(
         ....:  name = "Graphs on %(n)d vertices",
         ....:  category = FiniteEnumeratedSets(),
         ....:  cache = True)
-        ... def Graphs(n): return graphs(n)
+        ....: def Graphs(n): return graphs(n)
         sage: Graphs(10)
         Graphs on 10 vertices
         sage: Graphs(10).unrank(0)
@@ -637,8 +638,8 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
         ....:  name = "Graphs on %(n)d vertices",
         ....:  category = FiniteEnumeratedSets(),
         ....:  cache = True)
-        ... @cached_function
-        ... def Graphs(n): return graphs(n)
+        ....: @cached_function
+        ....: def Graphs(n): return graphs(n)
         sage: Graphs(10)
         Graphs on 10 vertices
         sage: Graphs(10).unrank(0)

@@ -6344,7 +6344,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Quite obviously, the max cut of a bipartite graph
         is the number of edges, and the two sets of vertices
-        are the the two sides ::
+        are the two sides ::
 
             sage: g = graphs.CompleteBipartiteGraph(5,6)
             sage: [ value, edges, [ setA, setB ]] = g.max_cut(vertices=True)
@@ -12926,7 +12926,7 @@ class GenericGraph(GenericGraph_pyx):
             0
 
         """
-        if implementation == None:
+        if implementation is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed():
                 implementation = 'networkx'
@@ -13057,7 +13057,7 @@ class GenericGraph(GenericGraph_pyx):
             deprecation(17134, "The option 'return_vertex_weights' has been " +
                         "deprecated and is ignored.")
 
-        if implementation == None:
+        if implementation is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed() or weight:
                 implementation = 'networkx'
@@ -13639,7 +13639,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() == 0:
             raise ValueError("This method has no meaning on empty graphs.")
 
-        if algorithm==None and not by_weight:
+        if algorithm is None and not by_weight:
             algorithm = 'iFUB'
         elif algorithm=='BFS':
             algorithm = 'standard'
@@ -15687,7 +15687,7 @@ class GenericGraph(GenericGraph_pyx):
             ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
 
         """
-        if default_weight != None:
+        if default_weight is not None:
             deprecation(18938, "Variable default_weight is deprecated: hence," +
                         " it is ignored. Please, use weight_function, instead.")
 
@@ -19516,7 +19516,7 @@ class GenericGraph(GenericGraph_pyx):
         the vector space that is the eigenspace for that eigenvalue,
         when the eigenvectors are placed on the right of the matrix.
 
-        For some graphs, some of the the eigenspaces are described
+        For some graphs, some of the eigenspaces are described
         exactly by vector spaces over a
         :func:`~sage.rings.number_field.number_field.NumberField`.
         For numerical eigenvectors use :meth:`eigenvectors`.

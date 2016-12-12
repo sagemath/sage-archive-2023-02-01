@@ -44,11 +44,11 @@ def row_reduced_form(M,transformation=False):
 
      - `M` - a matrix over `k(x)` or `k[x]` for `k` a field.
      - `transformation` - A boolean (default: `False`). If this boolean is set to `True` a second matrix is output (see OUTPUT).
-     
+
     OUTPUT:
 
     If `transformation` is `False`, the output is `W`, a row reduced form of `M`.
-    
+
     If `transformation` is `True`, this function will output a pair `(W,N)` consisting of two matrices over `k(x)`:
 
     1. `W` - a row reduced form of `M`.
@@ -70,7 +70,7 @@ def row_reduced_form(M,transformation=False):
         [          0]
 
     The last example shows the usage of the transformation parameter.
-        
+
     ::
         sage: Fq.<a> = GF(2^3)
         sage: Fx.<x> = Fq[]
@@ -81,7 +81,7 @@ def row_reduced_form(M,transformation=False):
         [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
         [                    x^3                   a*x^4], [      0                 1]
         )
-            
+
     NOTES:
 
     See docstring for row_reduced_form method of matrices for
@@ -184,7 +184,7 @@ def row_reduced_form(M,transformation=False):
                             r[indices[i]] = v
 
                             if transformation:
-                                # If the user asked for it, record the row operation 
+                                # If the user asked for it, record the row operation
                                 v = []
                                 for k in range(len(N[indices[i]])):
                                     v.append(N[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * N[indices[j]][k])

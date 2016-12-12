@@ -6965,7 +6965,48 @@ cdef class Matrix(matrix1.Matrix):
         return extended
 
     def weak_popov_form(self, transformation=None, ascend=None, old_call=True):
-    #def weak_popov_form(self, ascend=True,implementation=None,transposition=False):
+        """
+        Returns a matrix in weak Popov form which is row space-equivalent to
+        the input matrix, if the input is over `k[x]` or `k(x)`.
+
+        A matrix is in weak Popov form if the (row-wise) leading positions of
+        the non-zero rows are all different. The leading position of a row is
+        the right-most position whose entry has maximal degree of the entries in
+        that row.
+
+        .. WARNING::
+
+            This function currently does **not** compute the weak Popov form of a
+            matrix, but rather a row reduced form (which is a slightly weaker
+            requirement). See :meth:`row_reduced_form`.
+
+        INPUT:
+
+        - `transformation` - A boolean (default: `True`). If this is set to
+          ``True``, the transformation matrix `U` will be returned as well: this
+          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
+          where `W` is the output matrix.
+
+          Warning: the default of `transformation` will soon be set to ``False``,
+          see :trac:`16896`. Until then, this function will print a deprecation
+          warning as long as `transformation` was not explicitly set to ``True``
+          or ``False``.
+
+        - `ascend` - Deprecated and has no effect.
+
+        - `old_call` - For backwards compatibility until the old calling
+          convention will be deprecated (default: `True`). If `True`, then
+          return `(W,U,d)`, where `U` is as when `transformation = True`, and
+          `d` is a list of the degrees of the rows of `W`.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(16888, "This function currently does *not* compute a weak Popov form,
+        but rather a row reduced form. This function will soon be fixed (see Ticket #16742).")
+
+        return self.row_reduced_form(transformation=transformation,
+                ascend=ascend, old_call=old_call)
+
+    def _weak_popov_form(self, transformation=None, ascend=None, old_call=True):
         """
         Returns a matrix in weak Popov form which is row space-equivalent to
         the input matrix, if the input is over `k[x]` or `k(x)`.
@@ -7016,15 +7057,11 @@ cdef class Matrix(matrix1.Matrix):
           return `(W,U,d)`, where `U` is as when `transformation = True`, and
           `d` is a list of the degrees of the rows of `W`.
         """
-        from sage.misc.superseded import deprecation
-        depr_message = \
-"""This function currently does *not* compute a weak Popov form, but rather a \
-row reduced form. This function will soon be fixed (see Ticket #16742)."""
-        deprecation(16888, depr_message)
-
-        return self.row_reduced_form(transformation=transformation,
-                ascend=ascend, old_call=old_call)
-
+        if implementation=="cython":
+            from sage.matrix.weak_popov import mulders_storjohann
+            return mulders_storjohann(self)
+        import sage.matrix.matrix_misc
+        return sage.matrix.matrix_misc.weak_popov_form(self)
 
     def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
         r"""
@@ -7194,24 +7231,22 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
 
         from sage.misc.superseded import deprecation
         if ascend is not None:
-            ascend_message = \
-"""row_reduced_form: The `ascend` argument is deprecated and has no effect (see \
-Ticket #16742)."""
-            deprecation(16888, ascend_message)
+            deprecation(16888,
+                "row_reduced_form: The `ascend` argument is deprecated
+                and has no effect (see Ticket #16742).")
         if old_call == True:
-            oldcall_message = \
-"""row_reduced_form: The old calling convention is deprecated. In the future, \
-only the matrix in row reduced form will be returned. Set `old_call = False` for \
-that behaviour now, and to avoid this message (see Ticket #16742)."""
-            deprecation(16888, oldcall_message)
+            deprecation(16888,
+                "row_reduced_form: The old calling convention is deprecated.
+                In the future, only the matrix in row reduced form will be returned.
+                Set `old_call = False` for that behaviour now, and to avoid this message (see Ticket #16742).")
 
         get_transformation = False
         if transformation is None:
             transformation_message = \
-"""row_reduced_form: The `transformation` argument will soon change to have\
-default value to `False` from the current default value `True`. For now, \
-explicitly setting the argument to `True` or `False` will avoid this message."""
-            deprecation(16888, transformation_message)
+            deprecation(16888,
+                "row_reduced_form: The `transformation` argument will soon change to have
+                default value to `False` from the current default value `True`. For now,
+                explicitly setting the argument to `True` or `False` will avoid this message.")
             get_transformation = True
         elif old_call == True or transformation == True:
             get_transformation = True
@@ -7234,14 +7269,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 if d[-1] < 0:
                     d[-1] = -infinity
             return (W,U,d)
-
-
-        """
-        #if implementation=="cython":
-        #    from sage.matrix.weak_popov import mulders_storjohann
-        #    return mulders_storjohann(self)
-        #import sage.matrix.matrix_misc
-        #return sage.matrix.matrix_misc.weak_popov_form(self)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #

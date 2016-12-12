@@ -1,5 +1,5 @@
 """
-Mulders-Storjohann algorithm to compute the weak popov form 
+Mulders-Storjohann algorithm to compute the weak popov form
 of polynomial matrices.
 
 AUTHORS:
@@ -19,12 +19,12 @@ cdef leading_position(v):
 
     OUTPUT:
 
-    Outputs the leading position of a vector v, which is the position 
-    with highest degree. For multiple positions with equal degrees 
+    Outputs the leading position of a vector v, which is the position
+    with highest degree. For multiple positions with equal degrees
     the highest position i, or rightmost in the vector, is chosen.
-    
+
     .. note::
-    
+
         This method is used in the mulders-storjohann algorithm.
 
     """
@@ -44,28 +44,28 @@ cdef simple_transformation(M, rowtochange, basisrow, LP, U=None):
     INPUT:
 
      - `M` - Matrix to operate on.
-     
-     - `rowtochange` - Integer to indicate the row M[rowtochange] that 
+
+     - `rowtochange` - Integer to indicate the row M[rowtochange] that
      is to be changed.
-     
-     - `basisrow` - Integer to indicate the row M[basisrow] that is used 
+
+     - `basisrow` - Integer to indicate the row M[basisrow] that is used
      to change M[rowtochange].
-     
+
      - `LP` - Position of the leading positions in the two vectors.
 
     OUTPUT:
 
-    Transforms M[rowtochange] into M[rowtochange]-a*x^d*M[basisrow], 
-    wherby d is the difference of the degree of the leading positions 
+    Transforms M[rowtochange] into M[rowtochange]-a*x^d*M[basisrow],
+    wherby d is the difference of the degree of the leading positions
     and a is the division of the leading coefficients.
-    
+
     .. WARNING::
-    
+
         The degree of the leadingposition of rowtochange has to be greater or equal
         to the degree of the leadingposition of basisrow.
-    
+
     .. note::
-    
+
         This method is used in the mulders-storjohann algorithm.
 
     """
@@ -85,40 +85,40 @@ cpdef mulders_storjohann(M, transposition=False):
     INPUT:
 
      - `M` - Matrix over a polynomialring.
-     
+
      - `transposition` - Boolean (default: False) indicating if a Matrix
      U should be computed so that U*M = M.weak_popov_form()
-     
+
     OUTPUT:
 
     M transformed into weak popov form. If transposition is True, a touple
     (M,U) is returned with U*Original M = M in weak popov form.
-    
+
     .. WARNING::
-    
-        This function modifies your parameter matrix. If you want it saved, 
+
+        This function modifies your parameter matrix. If you want it saved,
         make a copy.
-    
+
     ALGORITHM::
-    
+
         This function uses the mulders-storjohann algorithm of [MS].
         It works as follow:
         #. As long as M is not in weak popov form do:
             #. Find two rows with conflicting leading positions.
             #. Do a simple transformation:
-                #. Let x and y be indicators of rows with identical 
+                #. Let x and y be indicators of rows with identical
                    leading position
-                #. Let LP be the Leading Position and LC the Leading 
+                #. Let LP be the Leading Position and LC the Leading
                    Coefficient
                 #. let a = LP(M[x]).degree() - LP(M[y]).degree()
                 #. let d = LC(LP(M[x])) / LC(LP(M[y]))
                 #. substitute M[x] = M[x] - a * x^d * M[y]
 
     EXAMPLES:
-    
-    The value transposition can be used to get a second matrix to check 
+
+    The value transposition can be used to get a second matrix to check
     unimodular equivalence. ::
-    
+
         sage: F.<a> = GF(2^4,'a')
         sage: PF.<x> = F[]
         sage: A = matrix(PF,[[1,a*x^17+1],[0,a*x^11+a^2*x^7+1]])
@@ -131,16 +131,16 @@ cpdef mulders_storjohann(M, transposition=False):
 
     The cython implementation can be used to speed up the computation of
     a weak popov form. ::
-    
+
         sage: B = matrix(PF,[[x^2+a,x^2+a,x^2+a], [x^3+a*x+1,x+a^2,x^5+a*x^4+a^2*x^3]])
         sage: B.weak_popov_form(implementation="cython")
-        [                    x^2 + a                     x^2 + a                 
+        [                    x^2 + a                     x^2 + a
               x^2 + a]
-        [x^5 + (a + 1)*x^3 + a*x + 1       x^5 + a*x^3 + x + a^2       a*x^4 + 
+        [x^5 + (a + 1)*x^3 + a*x + 1       x^5 + a*x^3 + x + a^2       a*x^4 +
         (a^2 + a)*x^3]
-    
+
     Matrices containing only zeros will return the way they are. ::
-    
+
         sage: Z = matrix(PF,5,3)
         sage: Z.weak_popov_form(implementation="cython")
         [0 0 0]
@@ -148,9 +148,9 @@ cpdef mulders_storjohann(M, transposition=False):
         [0 0 0]
         [0 0 0]
         [0 0 0]
-    
+
     Generally matrices in weak popov form will just be returned. ::
-    
+
         sage: F.<a> = GF(17,'a')
         sage: PF.<x> = F[]
         sage: C = matrix(PF,[[1,7,x],[x^2,x,4],[2,x,11]])
@@ -158,9 +158,9 @@ cpdef mulders_storjohann(M, transposition=False):
         [  1   7   x]
         [x^2   x   4]
         [  2   x  11]
-    
+
     And the transposition will be the identity matrix. ::
-    
+
         sage: C.weak_popov_form(implementation="cython",transposition=True)
         (
         [  1   7   x]  [1 0 0]
@@ -187,9 +187,9 @@ cpdef mulders_storjohann(M, transposition=False):
         Traceback (most recent call last):
         ...
         TypeError: the entries of M must lie in a univariate polynomial ring
-            
+
     This function can be called directly. ::
-    
+
         sage: from sage.matrix.weak_popov import mulders_storjohann
         sage: PF = PolynomialRing(GF(2,'a'),'x')
         sage: E = matrix(PF,[[x+1,x,x],[x^2,x,x^4+x^3+x^2+x]])
@@ -197,11 +197,11 @@ cpdef mulders_storjohann(M, transposition=False):
         [          x + 1               x               x]
         [x^4 + x^3 + x^2         x^4 + x   x^3 + x^2 + x]
 
-    
+
     .. SEEALSO::
 
         :meth:`is_weak_popov <sage.matrix.matrix0.is_weak_popov>`
-        
+
     REFERENCES::
 
     .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
@@ -216,7 +216,7 @@ cpdef mulders_storjohann(M, transposition=False):
         U = identity_matrix(M.base_ring(), M.nrows())
     else:
         U = None
-    
+
     zerolines = 0
     lps = defaultdict(list)
     for c in range(M.nrows()):
@@ -227,12 +227,12 @@ cpdef mulders_storjohann(M, transposition=False):
             lps[lp].append(c)
 
     """
-    If there are conflicts, the dictionary will contain at least one 
+    If there are conflicts, the dictionary will contain at least one
     entry with more than one list entry:
     {0:[1,3],1:[0],5:[2]}
     But if all are singular:
     {0:[2],2:[1]}
-    The length of lps will be the number of rows, because every 
+    The length of lps will be the number of rows, because every
     non zero row has its own entry. Zero rows are counted and ignored.
     """
     while (len(lps) + zerolines) < M.nrows():
@@ -246,7 +246,7 @@ cpdef mulders_storjohann(M, transposition=False):
                     basisrow = lps[pos][0]
                 simple_transformation(M,rowtochange, basisrow, pos, U)
                 lps[pos].remove(rowtochange)
-                
+
                 if M[rowtochange, leading_position(M[rowtochange])] == 0:
                     zerolines += 1
                 else:
@@ -256,4 +256,4 @@ cpdef mulders_storjohann(M, transposition=False):
     if U is not None:
         return (M, U)
     return M
-    
+

@@ -6379,10 +6379,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             for y in self.upper_covers(x):
                 for c in self.upper_covers(y):
                     d[c] = d.get(c, 0) + 1
-            if not all(y < 3 for y in itervalues(d)):
-                if certificate:
-                    return (False, (x, c))
-                return False
+            for c, y in six.iteritems(d):
+                if y >= 3:
+                    if certificate:
+                        return (False, (x, c))
+                    return False
         if certificate:
             return (True, None)
         return True

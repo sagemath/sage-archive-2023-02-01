@@ -286,6 +286,10 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
         True
         sage: (-1)^(1/3)*(-1)^(1/5)
         (-1)^(8/15)
+        sage: bool((-1)^(2/3) == -1/2 + sqrt(3)/2*I)
+        True
+        sage: all((-1)^(p/q) == cos(p*pi/q) + I * sin(p*pi/q) for p in srange(1,6) for q in srange(1,6))
+        True
     """
     b_negative=False
     if b < 0:

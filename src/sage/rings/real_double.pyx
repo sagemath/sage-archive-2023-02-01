@@ -234,6 +234,8 @@ cdef class RealDoubleField_class(Field):
         """
         if isinstance(x, RealDoubleField_class):
             return rich_to_bool(op, 0)
+        if op == Py_NE:
+            return True
         return NotImplemented
 
     def construction(self):
@@ -1672,15 +1674,15 @@ cdef class RealDoubleElement(FieldElement):
         # correctly with NaNs.
         cdef double x = (<RealDoubleElement>left)._value
         cdef double y = (<RealDoubleElement>right)._value
-        if op == 0:
+        if op == Py_LT:
             return x < y
-        elif op == 1:
+        elif op == Py_LE:
             return x <= y
-        elif op == 2:
+        elif op == Py_EQ:
             return x == y
-        elif op == 3:
+        elif op == Py_NE:
             return x != y
-        elif op == 4:
+        elif op == Py_GT:
             return x > y
         else:
             return x >= y

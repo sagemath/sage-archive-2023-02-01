@@ -46,6 +46,7 @@ This is a result of Kinnersley [Kin92]_ and Bodlaender [Bod98]_.
     :meth:`lower_bound` | Returns a lower bound on the vertex separation of `G`
     :meth:`is_valid_ordering` | Test if the linear vertex ordering `L` is valid for (di)graph `G`
     :meth:`width_of_path_decomposition` | Returns the width of the path decomposition induced by the linear ordering `L` of the vertices of `G`
+    :meth:`linear_ordering_to_path_decomposition`| Return the path decomposition encoded in the ordering `L`
 
 
 Exponential algorithm for vertex separation
@@ -374,6 +375,110 @@ def lower_bound(G):
     sig_free(minimums)
 
     return min
+
+###################################################################
+# Method for turning an ordering to a path decomposition and back #
+###################################################################
+
+def linear_ordering_to_path_decomposition(G, L):
+    """
+    Return the path decomposition encoded in the ordering L
+
+    INPUT:
+
+    - ``G`` -- a Graph
+
+    - ``L`` -- a linear ordering for G
+
+    OUTPUT:
+
+    A path graph whose vertices are the bags of the path decomposition.
+
+    EXAMPLES:
+
+    The bags of an optimal path decomposition of a path-graph have two vertices each::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
+        sage: from sage.graphs.graph_decompositions.vertex_separation import linear_ordering_to_path_decomposition
+        sage: g = graphs.PathGraph(5)
+        sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
+        1
+        sage: h = linear_ordering_to_path_decomposition(g, L)
+        sage: h.vertices()
+        [{3, 4}, {0, 1}, {2, 3}, {1, 2}]
+        sage: h.edges(labels=None)
+        [({0, 1}, {1, 2}), ({2, 3}, {3, 4}), ({1, 2}, {2, 3})]
+
+    Giving a non-optimal linear ordering::
+
+        sage: g = graphs.PathGraph(5)
+        sage: L = [1, 4, 0, 2, 3]
+        sage: from sage.graphs.graph_decompositions.vertex_separation import width_of_path_decomposition
+        sage: width_of_path_decomposition(g, L)
+        3
+        sage: h = linear_ordering_to_path_decomposition(g, L)
+        sage: h.vertices()
+        [{0, 2, 3, 4}, {0, 1, 2}]
+        
+    The bags of the path decomposition of a cycle have three vertices each::
+
+        sage: g = graphs.CycleGraph(6)
+        sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
+        2
+        sage: h = linear_ordering_to_path_decomposition(g, L)
+        sage: h.vertices()
+        [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
+        sage: h.edges(labels=None)
+        [({1, 2, 5}, {2, 4, 5}), ({0, 1, 5}, {1, 2, 5}), ({2, 4, 5}, {2, 3, 4})]
+
+
+    TESTS::
+
+        sage: linear_ordering_to_path_decomposition(Graph(), [])
+        Graph on 0 vertices
+        sage: linear_ordering_to_path_decomposition(DiGraph(), [])
+        Traceback (most recent call last):
+        ...
+        ValueError: the first parameter must be a Graph
+        sage: g = graphs.CycleGraph(6)
+        sage: linear_ordering_to_path_decomposition(g, range(7))
+        Traceback (most recent call last):
+        ...
+        ValueError: the input linear vertex ordering L is not valid for G
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(G, Graph):
+        raise ValueError("the first parameter must be a Graph")
+    if not G:
+        return Graph()
+    if not is_valid_ordering(G, L):
+        raise ValueError("the input linear vertex ordering L is not valid for G")
+
+    cdef set seen    = set()  # already treated vertices
+    cdef set covered = set()  # vertices in the neighborhood of seen but not in seen
+    cdef list bags   = list() # The bags of the path decomposition
+
+    # We build the bags of the path-decomposition, and avoid adding useless bags
+    for u in L:
+        seen.add(u)
+        covered.update(G.neighbors(u))
+        covered.difference_update(seen)
+        new_bag = covered.union([u])
+        if bags:
+            if new_bag.issubset(bags[-1]):
+                continue
+            if new_bag.issuperset(bags[-1]):
+                bags.pop()
+
+        bags.append(new_bag)
+
+    # We now build a graph whose vertices are bags
+    from sage.sets.set import Set
+    H = Graph()
+    H.add_path([Set(bag) for bag in bags])
+    return H
+
+
 
 ##################################################################
 # Front end methods for path decomposition and vertex separation #

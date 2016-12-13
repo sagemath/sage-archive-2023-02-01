@@ -1407,8 +1407,9 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         f *= self._Q()**F.degree()
         coefficients = list(self.coefficients(f))
-        CV = zip(coefficients, self.valuations(f, coefficients=coefficients))
-        vf = self(f)
+        valuations = list(self.valuations(f, coefficients=coefficients))
+        CV = zip(coefficients, valuations)
+        vf = min(valuations)
         CV = [(c,v) if v==vf else (c.parent().zero(),infinity) for c,v in CV]
         while CV[-1][1] is infinity:
             CV.pop()

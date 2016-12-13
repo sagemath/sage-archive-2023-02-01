@@ -38,7 +38,7 @@ This is a result of Kinnersley [Kin92]_ and Bodlaender [Bod98]_.
     :widths: 30, 70
     :delim: |
 
-    :meth:`pathwidth` | Computes the pathwidth of `self` (and provides a decomposition)
+    :meth:`pathwidth` | Computes the pathwidth of ``self`` (and provides a decomposition)
     :meth:`path_decomposition` | Returns the pathwidth of the given graph and the ordering of the vertices resulting in a corresponding path decomposition
     :meth:`vertex_separation` | Returns an optimal ordering of the vertices and its cost for vertex-separation
     :meth:`vertex_separation_exp` | Computes the vertex separation of `G` using an exponential time and space algorithm
@@ -488,7 +488,7 @@ def linear_ordering_to_path_decomposition(G, L):
 def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
               max_prefix_length=20, max_prefix_number=10**6):
     """
-    Computes the pathwidth of `self` (and provides a decomposition)
+    Computes the pathwidth of ``self`` (and provides a decomposition)
 
     INPUT:
 
@@ -540,23 +540,24 @@ def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
 
     The pathwidth of a cycle is equal to 2::
 
-        sage: from sage.graphs.graph_decompositions.vertex_separation import pathwidth
         sage: g = graphs.CycleGraph(6)
-        sage: pathwidth(g)
+        sage: g.pathwidth()
         2
-        sage: pw, decomp = pathwidth(g, certificate=True)
+        sage: pw, decomp = g.pathwidth(certificate=True)
         sage: decomp.vertices()
         [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
 
     The pathwidth of a Petersen graph is 5::
 
         sage: g = graphs.PetersenGraph()
-        sage: pathwidth(g)
+        sage: g.pathwidth()
         5
-        sage: pathwidth(g, k=2)
+        sage: g.pathwidth(k=2)
         False
-        sage: pathwidth(g, k=6)
+        sage: g.pathwidth(k=6)
         True
+        sage: g.pathwidth(k=6, certificate=True)
+        (True, Graph on 5 vertices)
 
     TESTS:
 

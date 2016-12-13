@@ -406,7 +406,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
             sage: v = FunctionFieldValuation(K, 1)
             sage: w = v.extensions(L)[0]; w
-            [ (x - 1)-adic valuation, v(y^2 - 2) = 1 ]-adic valuation
+            [ (x - 1)-adic valuation, v(y^2 - x - 1) = +Infinity ]-adic valuation
             sage: s = w.reduce(y); s
             u1
             sage: w.lift(s) # indirect doctest

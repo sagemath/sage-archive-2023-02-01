@@ -56,7 +56,7 @@ class InductiveValuation(DevelopingValuation):
         sage: TestSuite(v).run() # long time
 
     """
-    def is_equivalence_unit(self, f):
+    def is_equivalence_unit(self, f, valuations=None):
         r"""
         Return whether ``f`` is an equivalence unit, i.e., an element of
         :meth:`effective_degree` zero (see [ML1936'] p.497.)
@@ -83,7 +83,7 @@ class InductiveValuation(DevelopingValuation):
 
         if f.is_zero():
             return False
-        return self.effective_degree(f) == 0
+        return self.effective_degree(f, valuations=valuations) == 0
 
     def equivalence_reciprocal(self, f):
         r"""
@@ -178,6 +178,22 @@ class InductiveValuation(DevelopingValuation):
         h = h.parent()([ c if self(e0*c) <= 0 else c.parent().zero() for c in h.coefficients(sparse=False)])
 
         return h
+
+    @cached_method
+    def mu(self):
+        r"""
+        Return the valuation of :meth:`phi`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v.mu()
+            0
+
+        """
+        return self(self.phi())
 
     @abstract_method
     def equivalence_unit(self, s):
@@ -631,7 +647,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from augmented_valuation import AugmentedValuation
         return AugmentedValuation(self, phi, mu, check)
 
-    def mac_lane_step(self, G, assume_squarefree=False, assume_equivalence_irreducible=False):
+    def mac_lane_step(self, G, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds=False):
         r"""
         Perform an approximation step towards the squarefree monic non-constant
         integral polynomial ``G`` which is not an :meth:`equivalence_unit`.
@@ -666,10 +682,12 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if not G.is_monic():
             raise ValueError("G must be monic")
 
-        if self(G) < 0:
+        valuations = list(self.valuations(G))
+
+        if min(valuations) < 0:
             raise ValueError("G must be integral")
 
-        if self.is_equivalence_unit(G):
+        if self.is_equivalence_unit(G, valuations=valuations):
             raise ValueError("G must not be an equivalence-unit")
 
         if not assume_squarefree and not G.is_squarefree():
@@ -678,83 +696,95 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from sage.rings.all import infinity
         assert self(G) is not infinity # this is a valuation and G is non-zero
 
-        if self.is_key(G, assume_equivalence_irreducible=assume_equivalence_irreducible):
-            return [self.augmentation(G, infinity, check=False)]
-
-        F = self.equivalence_decomposition(G)
-        assert len(F), "%s equivalence-decomposes as an equivalence-unit %s"%(G, F)
-
         ret = []
-        for phi,e in F:
-            if G == phi:
-                # Something strange happened here:
-                # G is not a key (we checked that before) but phi==G is; so phi must have less precision than G
-                # this can happen if not all coefficients of G have the same precision
-                # if we drop some precision of G then it will be a key (but is
-                # that really what we should do?)
-                assert not G.base_ring().is_exact()
-                prec = min([c.precision_absolute() for c in phi.list()])
-                g = G.map_coefficients(lambda c:c.add_bigoh(prec))
-                assert self.is_key(g)
-                return [self.augmentation(g, infinity, check=False)]
 
-            if phi == self.phi():
-                # a factor phi in the equivalence decomposition means that we
-                # found an actual factor of G, i.e., we can set
-                # v(phi)=infinity
-                # However, this should already have happened in the last step
-                # (when this polynomial had -infinite slope in the Newton
-                # polygon.)
-                if self.is_gauss_valuation(): # unless in the first step
-                    pass
-                else:
+        if self.is_key(G, assume_equivalence_irreducible=assume_equivalence_irreducible):
+            ret.append((self.augmentation(G, infinity, check=False), G.degree()))
+        else:
+            F = self.equivalence_decomposition(G, assume_not_equivalence_unit=True)
+            assert len(F), "%s equivalence-decomposes as an equivalence-unit %s"%(G, F)
+
+            for phi,e in F:
+                if G == phi:
+                    # Something strange happened here:
+                    # G is not a key (we checked that before) but phi==G is; so phi must have less precision than G
+                    # this can happen if not all coefficients of G have the same precision
+                    # if we drop some precision of G then it will be a key (but is
+                    # that really what we should do?)
+                    assert not G.base_ring().is_exact()
+                    prec = min([c.precision_absolute() for c in phi.list()])
+                    g = G.map_coefficients(lambda c:c.add_bigoh(prec))
+                    assert self.is_key(g)
+                    ret.append((self.augmentation(g, infinity, check=False), g.degree()))
+                    assert len(F) == 1
+                    break
+
+                if phi == self.phi():
+                    # a factor phi in the equivalence decomposition means that we
+                    # found an actual factor of G, i.e., we can set
+                    # v(phi)=infinity
+                    # However, this should already have happened in the last step
+                    # (when this polynomial had -infinite slope in the Newton
+                    # polygon.)
+                    if self.is_gauss_valuation(): # unless in the first step
+                        pass
+                    else:
+                        continue
+
+                verbose("Determining the augmentation for %s"%phi, level=11)
+                w = self.augmentation(phi, self(phi), check=False)
+                NP = w.newton_polygon(G).principal_part()
+                verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=11)
+                slopes = NP.slopes(repetition=True)
+                multiplicities = {slope : len([s for s in slopes if s == slope]) for slope in slopes}
+                slopes = multiplicities.keys()
+                if NP.vertices()[0][0] != 0:
+                    slopes = [-infinity] + slopes
+                    multiplicities[-infinity] = 1
+
+                if not slopes:
+                    q,r = G.quo_rem(phi)
+                    assert not r.is_zero()
+                    phi = phi.coefficients(sparse=False)
+                    for i,c in enumerate(r.coefficients(sparse=False)):
+                        if not c.is_zero():
+                            v = w(c)
+                            # for a correct result we need to add O(pi^v) in degree i
+                            # we try to find the coefficient of phi where such an
+                            # error can be introduced without losing much absolute
+                            # precision on phi
+                            best = i
+                            for j in range(i):
+                                if w(q[j]) < w(q[best]):
+                                    best = j
+                            # now add the right O() to phi in degree i - best
+                            phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
+
+                    phi = G.parent()(phi)
+                    w = self._base_valuation.augmentation(phi, infinity, check=False)
+                    ret.append((w, phi.degree()))
                     continue
 
-            verbose("Determining the valuation for %s"%phi, level=11)
-            w = self.augmentation(phi, self(phi), check=False)
-            NP = w.newton_polygon(G).principal_part()
-            verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=11)
-            slopes = NP.slopes(repetition=False)
-            if NP.vertices()[0][0] != 0:
-                slopes = [-infinity] + slopes
+                for i, slope in enumerate(slopes):
+                    slope = slopes[i]
+                    verbose("Slope = %s"%slope, level=12)
+                    new_mu = self(phi) - slope
+                    base = self
+                    if phi.degree() == base.phi().degree():
+                        assert new_mu > self(phi)
+                        if not base.is_gauss_valuation():
+                            base = base._base_valuation
+                    w = base.augmentation(phi, new_mu, check=False)
+                    assert slope is -infinity or 0 in w.newton_polygon(G).slopes(repetition=False)
 
-            if not slopes:
-                q,r = G.quo_rem(phi)
-                assert not r.is_zero()
-                phi = phi.coefficients(sparse=False)
-                for i,c in enumerate(r.coefficients(sparse=False)):
-                    if not c.is_zero():
-                        v = w(c)
-                        # for a correct result we need to add O(pi^v) in degree i
-                        # we try to find the coefficient of phi where such an
-                        # error can be introduced without losing much absolute
-                        # precision on phi
-                        best = i
-                        for j in range(i):
-                            if w(q[j]) < w(q[best]):
-                                best = j
-                        # now add the right O() to phi in degree i - best
-                        phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
-
-                phi = G.parent()(phi)
-                w = self._base_valuation.augmentation(phi, infinity, check=False)
-                ret.append(w)
-                continue
-
-            for i in range(len(slopes)):
-                slope = slopes[i]
-                verbose("Slope = %s"%slope, level=12)
-                new_mu = self(phi) - slope
-                base = self
-                if phi.degree() == base.phi().degree():
-                    assert new_mu > self(phi)
-                    if not base.is_gauss_valuation():
-                        base = base._base_valuation
-                new_leaf = base.augmentation(phi, new_mu, check=False)
-                assert slope is -infinity or 0 in new_leaf.newton_polygon(G).slopes(repetition=False)
-                ret.append(new_leaf)
+                    from sage.rings.all import ZZ
+                    assert (phi.degree() / self.phi().degree()) in ZZ 
+                    degree_bound = multiplicities[slope] * self.phi().degree()
+                    ret.append((w, degree_bound))
 
         assert ret
+        if not report_degree_bounds:
+            ret = [v for v,_ in ret]
         return ret
 
     def is_key(self, phi, explain=False, assume_equivalence_irreducible=False):
@@ -894,22 +924,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                    list(self.valuations(f))[0] == self(f) and \
                    tau.divides(len(list(self.coefficients(f))) - 1)
 
-    @cached_method
-    def mu(self):
-        r"""
-        Return the valuation of :meth:`phi`.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
-            sage: v.mu()
-            0
-
-        """
-        return self(self.phi())
-
     def _equivalence_reduction(self, f):
         r"""
         Helper method for :meth:`is_equivalence_irreducible` and
@@ -1003,7 +1017,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if phi_divides > 1:
             return False
 
-    def equivalence_decomposition(self, f, partial=False):
+    def equivalence_decomposition(self, f, assume_not_equivalence_unit=False):
         r"""
         Return an equivalence decomposition of ``f``, i.e., a polynomial
         `g(x)=e(x)\prod_i \phi_i(x)` with `e(x)` an equivalence unit (see
@@ -1104,7 +1118,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             raise ValueError("equivalence decomposition of zero is not defined")
 
         from sage.structure.factorization import Factorization
-        if self.is_equivalence_unit(f):
+        if not assume_not_equivalence_unit and self.is_equivalence_unit(f):
             return Factorization([], unit=f, sort=False)
 
         if not self.domain().base_ring().is_field():

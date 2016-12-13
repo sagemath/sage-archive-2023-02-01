@@ -393,30 +393,45 @@ class DiscreteValuation(DiscretePseudoValuation):
         """
         return True
 
-    def mac_lane_approximants(self, G, precision_cap=None, assume_squarefree=False):
+    def mac_lane_approximants(self, G, assume_squarefree=False, require_final_EF=True, required_precision=-1, require_incomparability=False, require_maximal_degree=False):
         r"""
         Return approximants on `K[x]` for the extensions of this valuation to
         `L=K[x]/(G)`.
 
-        If `G` is an irreducible polynomial, then this corresponds to the
+        If `G` is an irreducible polynomial, then this corresponds to
         extensions of this valuation to the completion of `L`.
 
         INPUT:
 
-        - ``G`` -- a square-free monic integral polynomial defined over a
+        - ``G`` -- a monic squarefree integral polynomial defined over a
           univariate polynomial ring over the :meth:`domain` of this valuation.
 
-        - ``precision_cap`` -- a number, infinity, or ``None`` (default:
-          ``None``); the approximants are always determined such that they are in
-          one-to-one correspondance to the extensions of this valuation to `L`
-          and such that the approximants have the ramification index and
-          residual degree of these extensions.
-          If ``precision_cap`` is not ``None``, then the approximants are
-          determined such that they last key polynomial also has valuation at
-          least ``precision_cap``.
+        - ``assume_squarefree`` -- a boolean (default: ``False``), whether to
+          assume that ``G`` is squarefree. If ``True``, the squafreeness of
+          ``G`` is not verified though it is necessary when
+          ``require_final_EF`` is set for the algorithm to terminate.
 
-        - ``assume_squarefree`` -- a boolean (default: ``False``), whether or
-          not to assume that ``G`` is squarefree.
+        - ``require_final_EF`` -- a boolean (default: ``True``); whether to
+          require the returned key polynomials to be in one-to-one
+          correspondance to the extensions of this valuation to ``L`` and
+          require them to have the ramification index and residue degree of the
+          valuations they correspond to.
+
+        - ``required_precision`` -- a number or infinity (default: -1); whether
+          to require the last key polynomial of the returned valuations to have
+          at least that valuation.
+
+        - ``require_incomparability`` -- a boolean (default: ``False``);
+          whether to require require the returned valuations to be incomparable
+          (with respect to the partial order on valuations defined by comparing
+          them pointwise.)
+
+        - ``require_maximal_degree`` -- a boolean (deault: ``False``); whether
+          to require the last key polynomial of the returned valuation to have
+          maximal degree. This is most relevant when using this algorithm to
+          compute approximate factorizations of ``G``, when set to ``True``,
+          the last key polynomial has the same degree as the corresponding
+          factor.
 
         EXAMPLES::
 
@@ -425,18 +440,18 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x> = QQ[]
             sage: v.mac_lane_approximants(x^2 + 1)
             [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 ]]
-            sage: v.mac_lane_approximants(x^2 + 1, precision_cap=infinity)
+            sage: v.mac_lane_approximants(x^2 + 1, required_precision=infinity)
             [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2, v(x^2 + 1) = +Infinity ]]
             sage: v.mac_lane_approximants(x^2 + x + 1)
             [[ Gauss valuation induced by 2-adic valuation, v(x^2 + x + 1) = +Infinity ]]
 
         Note that ``G`` does not need to be irreducible. Here, we detect a
-        factor of the polynomial `x + 1` and an approximate factor `x + 1`
-        (which is an approximation to `x - 1`)::
+        factor `x + 1` and an approximate factor `x + 1` (which is an
+        approximation to `x - 1`)::
 
             sage: v.mac_lane_approximants(x^2 - 1)
             [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = +Infinity ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 3) = 2 ]]
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1 ]]
 
         However, it needs to be squarefree::
 
@@ -496,19 +511,19 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: G = x
             sage: v.mac_lane_approximants(G)
             [Gauss valuation induced by 2-adic valuation]
-            sage: v.mac_lane_approximants(G, precision_cap = infinity)
+            sage: v.mac_lane_approximants(G, required_precision = infinity)
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = +Infinity ]]
 
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G) # optional: integrated
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2 ]]
-            sage: v.mac_lane_approximants(G, precision_cap = infinity) # optional: integrated
+            sage: v.mac_lane_approximants(G, required_precision = infinity) # optional: integrated
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2, v((1 + O(2^10))*x^2 + (1 + O(2^10))) = +Infinity ]]
 
             sage: G = x^4 + 2*x^3 + 2*x^2 - 2*x + 2
             sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4 ]]
-            sage: v.mac_lane_approximants(G, infinity) # long time
+            sage: v.mac_lane_approximants(G, required_precision=infinity) # long time
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + (2 + O(2^11))) = +Infinity ]]
 
         The factorization of primes in the Gaussian integers can be read off
@@ -528,7 +543,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v0.mac_lane_approximants(G)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: v0.mac_lane_approximants(G, precision_cap = 10) # long time
+            sage: v0.mac_lane_approximants(G, required_precision = 10) # long time
             [[ Gauss valuation induced by 5-adic valuation, v(x + 6139557) = 10 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 3626068) = 10 ]]
 
@@ -543,7 +558,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
             ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ])
-            sage: w1, w2 = v.mac_lane_approximants(G,precision_cap=2); w1,w2 # long time
+            sage: w1, w2 = v.mac_lane_approximants(G, required_precision = 2); w1,w2 # long time
             ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + O(5^4))) = 2 ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + O(5^4))) = 2 ])
 
@@ -556,7 +571,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         In this example, the process stops with a factorization of `x^2 + 1`::
 
-            sage: v.mac_lane_approximants(G, precision_cap=infinity) # long time
+            sage: v.mac_lane_approximants(G, required_precision=infinity) # long time
             [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
 
@@ -568,7 +583,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: v.mac_lane_approximants(G, precision_cap=5) # long time
+            sage: v.mac_lane_approximants(G, required_precision=5) # long time
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2057) = 5 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 1068) = 6 ]]
 
@@ -614,8 +629,6 @@ class DiscreteValuation(DiscretePseudoValuation):
         R = G.parent()
         if R.base_ring() is not self.domain():
             raise ValueError("G must be defined over the domain of this valuation")
-        if not assume_squarefree and not G.is_squarefree():
-            raise ValueError("G must be squarefree")
 
         from sage.misc.misc import verbose
         verbose("Approximants of %r towards %r"%(self, G), level=3)
@@ -623,51 +636,60 @@ class DiscreteValuation(DiscretePseudoValuation):
         from sage.rings.all import infinity
         from gauss_valuation import GaussValuation
 
-        def is_sufficiently_precise(v, others):
-            if precision_cap is None or v(v.phi()) >= precision_cap:
-                # the precision to which we have determined the approximants is sufficient
-                if not [w for w in others if w <= v or w>=v]:
-                    # the approximants do not approximate each other
-                    return True
-            return False
+        # Leaves in the computation of the tree of approximants. Each vertex
+        # consists of a triple (v,ef,p) where v is an approximant, i.e., a
+        # valuation, ef is a boolean, and p is the parent of this vertex.
+        # The boolean ef denotes whether v already has the final ramification
+        # index E and residue degree F of this approximant.
+        # An edge V -- P represents the relation P.v ≤ V.v (pointwise on the
+        # polynomial ring K[x]) between the valuations.
+        leaves = [ (GaussValuation(R, self), G.degree() == 1, None) ]
 
-        leaves = [ (GaussValuation(R, self), None) ]
+        if require_maximal_degree:
+            # we can only assert maximality of degrees when E and F are final
+            require_final_EF = True
+
+        if not assume_squarefree:
+            if require_final_EF and not G.is_squarefree():
+                raise ValueError("G must be squarefree")
+            else:
+                # if only required_precision is set, we do not need to check
+                # whether G is squarefree. If G is not squarefree, we compute
+                # valuations corresponding to approximants for all the
+                # squarefree factors of G (up to required_precision.)
+                pass
+
+        def is_sufficient(leaf, others):
+            valuation, ef, parent = leaf
+            if valuation.mu() < required_precision:
+                return False
+            if require_final_EF and not ef:
+                return False
+            if require_maximal_degree and valuation.phi().degree() != valuation.E()*valuation.F():
+                return False
+            if require_incomparability:
+                if any(valuation <= o for o in others):
+                    return False
+            return True
+
         while True:
-            ef = [ v.E()*v.F() for v,_ in leaves]
-            verbose("Augmenting with ef=%r"%(ef,), level=5)
-            if sum(ef) == G.degree():
-                # the ramification indexes and residual degrees are final
-                if all([is_sufficiently_precise(v, [w for w,_ in leaves if w != v]) for v,_ in leaves]):
-                    break
-
-            expandables = []
             new_leaves = []
-            for v,parent in leaves:
-                if v(G) is infinity:
-                    new_leaves.append((v,parent))
+            for leaf in leaves:
+                v, ef, parent = leaf
+                others = [w for (w,_,_) in leaves if w != v]
+                if is_sufficient((v,ef,parent), others):
+                    new_leaves.append(leaf)
                 else:
-                    expandables.append((v,parent))
+                    augmentations = v.mac_lane_step(G, report_degree_bounds=True)
+                    for w, bound in augmentations:
+                        ef = bound == w.E()*w.F()
+                        new_leaves.append((w, ef, leaf))
+
+            if leaves == new_leaves:
+                break
             leaves = new_leaves
 
-            assert expandables
-
-            for v,parent in expandables:
-                leaves.extend([(w,(v,parent)) for w in v.mac_lane_step(G, assume_squarefree=True)])
-
-        # rollback each approximant as much as possible to make the
-        # coefficients of the key polynomials as small as possible
-        ret = []
-        for i in range(len(leaves)):
-            others = [w for w,_ in leaves if w != leaves[i][0]]
-            while leaves[i][1] is not None and leaves[i][0].E() == leaves[i][1][0].E() and leaves[i][0].F() == leaves[i][1][0].F() and is_sufficiently_precise(leaves[i][1][0], others):
-                verbose("Replacing %r with %r which is sufficiently precise"%(leaves[i][0], leaves[i][1][0]), level=9)
-                leaves[i] = leaves[i][1]
-            assert is_sufficiently_precise(leaves[i][0], others)
-
-        for v,parent in leaves:
-            w=v,parent
-
-        return [v for v,_ in leaves]
+        return [v for v,_,_ in leaves]
 
     def mac_lane_approximant(self, G, valuation, approximants = None):
         r"""
@@ -729,7 +751,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
             sage: w = GaussValuation(R, v).augmentation(x + 3, 2)
             sage: v.mac_lane_approximant(G, w)
-            [ Gauss valuation induced by 2-adic valuation, v(x + 3) = 2 ]
+            [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1 ]
 
         """
         if valuation.restriction(valuation.domain().base_ring()) is not self:
@@ -764,7 +786,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         assert len(smaller_approximants) == 1
         return smaller_approximants[0]
 
-    def montes_factorization(self, G, assume_squarefree=False, precision_cap=None):
+    def montes_factorization(self, G, assume_squarefree=False, required_precision=None):
         """
         Factor ``G`` over the completion of the domain of this valuation.
 
@@ -775,14 +797,14 @@ class DiscreteValuation(DiscretePseudoValuation):
         - ``assume_squarefree`` -- a boolean (default: ``False``), whether to
           assume ``G`` to be squarefree
 
-        - ``precision_cap`` -- a number, ``None``, or infinity (default:
-          ``None``); if ``None`` or ``infinity``, the returned are actual
-          factors of ``G``, otherwise they are only factors with precision at
-          least ``precision_cap``.
+        - ``required_precision`` -- a number or infinity (default:
+          infinity); if ``infinity``, the returned polynomials are actual factors of
+          ``G``, otherwise they are only factors with precision at least
+          ``required_precision``.
 
         ALGORITHM:
 
-            We compute :meth:`mac_lane_approximants` with ``precision_cap``.
+            We compute :meth:`mac_lane_approximants` with ``required_precision``.
             The key polynomials approximate factors of ``G``.
 
         EXAMPLES::
@@ -805,7 +827,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
             sage: v.montes_factorization(x^2 - 1) # not tested, does not terminate
 
-            sage: v.montes_factorization(x^2 - 1, precision_cap=10)
+            sage: v.montes_factorization(x^2 - 1, required_precision=10)
             (x + 1) * (x + 1023)
 
         REFERENCES:
@@ -815,6 +837,10 @@ class DiscreteValuation(DiscretePseudoValuation):
         [math.NT]
 
         """
+        if required_precision is None:
+            from sage.rings.all import infinity
+            required_precision = infinity
+
         R = G.parent()
         if R.base_ring() is not self.domain():
             raise ValueError("G must be defined over the domain of this valuation")
@@ -823,9 +849,8 @@ class DiscreteValuation(DiscretePseudoValuation):
         if not all([self(c)>=0 for c in G.coefficients()]):
             raise ValueError("G must be integral")
 
-        from sage.rings.all import infinity
         # W contains approximate factors of G
-        W = self.mac_lane_approximants(G, precision_cap=precision_cap or infinity,assume_squarefree=assume_squarefree)
+        W = self.mac_lane_approximants(G, required_precision=required_precision, require_maximal_degree=True, assume_squarefree=assume_squarefree)
         ret = [w.phi() for w in W]
 
         from sage.structure.factorization import Factorization

@@ -86,7 +86,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         """
         return self._phi
 
-    def effective_degree(self, f):
+    def effective_degree(self, f, valuations=None):
         r"""
         Return the effective degree of ``f`` with respect to this valuation.
 
@@ -115,7 +115,8 @@ class DevelopingValuation(DiscretePseudoValuation):
         if f.is_zero():
             raise ValueError("the effective degree is only defined for non-zero polynomials")
 
-        valuations = list(self.valuations(f))
+        if valuations is None:
+            valuations = list(self.valuations(f))
         v = min(valuations)
         return [i for i,w in enumerate(valuations) if w == v][-1]
 

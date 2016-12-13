@@ -20,6 +20,36 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     Return the generating function of the integer points of
     the polyhedron's orthant with only nonnegative coordinates.
 
+    INPUT:
+
+    - ``polyhedron`` -- an instance of
+      :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
+      (see also :mod:`sage/geometry/polyhedron/constructor`).
+
+    - ``split`` -- (default: ``False``) ``False`` computes the generating
+      function directly, whereas ``True`` splits the ``polyhedron``
+      into several small disjoint polyhedra and adds the results.
+      ``split`` may also be a list of disjoint polyhedra.
+
+    - ``result_as_tuple`` -- (default: ``None``) a boolean or ``None``.
+
+    - ``indices`` -- (default: ``None``) a list or tuple. If this
+      is ``None``, this is automatically determined.
+
+    - ``Factorization_sort`` (default: ``False``) and
+      ``Factorization_simplify`` (default: ``True``) -- are passed on to
+      :class:`sage.structure.factorization.Factorization` when creating
+      the result.
+
+    - ``sort_factors`` -- (default: ``False``) a boolean.
+
+    OUTPUT:
+
+    The generating function as a (partial)
+    :class:`~sage.structure.factorization.Factorization`
+    of the result whose factors are laurent polynomials or
+    a tuple (:class:`Summandization`) of such elements.
+
     EXAMPLES::
 
         sage: P2 = (
@@ -495,6 +525,20 @@ def __generating_function_of_polyhedron__(
 
 
 def pretty_inequality(ineq, indices=None):
+    r"""
+    Format the given inequality pretty.
+
+    INPUT:
+
+    - ``ineq`` -- a list or tuple.
+
+    - ``indices`` -- (default: ``None``) a list or tuple.
+
+    OUTPUT:
+
+    A string.
+
+    """
     from sage.symbolic.ring import SR
     from sage.modules.free_module_element import vector
 
@@ -509,6 +553,10 @@ def pretty_inequality(ineq, indices=None):
 
 
 class Summandization(tuple):
+    r"""
+    A class representing a tuple as sum. It is shown
+    as summands joined by a `+`.
+    """
     def __repr__(self):
         return ' + '.join(repr(s) for s in self)
 
@@ -517,6 +565,9 @@ class Summandization(tuple):
 
 def prepare_inequalities(inequalities, B):
     r"""
+    Split off (simple) inequalities which can be handled better
+    without passing them to Omega.
+
     EXAMPLES::
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
@@ -889,5 +940,3 @@ def _compositions_mod_(u, r):
     for j in srange(m):
         for a in _compositions_mod_(u[1:], r - j*v):
             yield (Z(j),) + a
-
-

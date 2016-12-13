@@ -38,6 +38,7 @@ This is a result of Kinnersley [Kin92]_ and Bodlaender [Bod98]_.
     :widths: 30, 70
     :delim: |
 
+    :meth:`pathwidth` | Computes the pathwidth of `self` (and provides a decomposition)
     :meth:`path_decomposition` | Returns the pathwidth of the given graph and the ordering of the vertices resulting in a corresponding path decomposition
     :meth:`vertex_separation` | Returns an optimal ordering of the vertices and its cost for vertex-separation
     :meth:`vertex_separation_exp` | Computes the vertex separation of `G` using an exponential time and space algorithm
@@ -483,6 +484,114 @@ def linear_ordering_to_path_decomposition(G, L):
 ##################################################################
 # Front end methods for path decomposition and vertex separation #
 ##################################################################
+
+def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
+              max_prefix_length=20, max_prefix_number=10**6):
+    """
+    Computes the pathwidth of `self` (and provides a decomposition)
+
+    INPUT:
+
+    - ``k`` (integer) -- the width to be considered. When ``k`` is an integer,
+      the method checks that the graph has pathwidth `\leq k`. If ``k`` is
+      ``None`` (default), the method computes the optimal pathwidth.
+
+    - ``certificate`` -- whether to return the path-decomposition itself.
+
+    - ``algorithm`` -- (default: ``"BAB"``) Specify the algorithm to use among
+
+      - ``"BAB"`` -- Use a branch-and-bound algorithm. This algorithm has no
+        size restriction but could take a very long time on large graphs. It can
+        also be used to test is the input graph has pathwidth `\leq k`, in which
+        cas it will return the first found solution with width `\leq k` is
+        ``certificate==True``.
+
+      - ``exponential`` -- Use an exponential time and space algorithm. This
+        algorithm only works of graphs on less than 32 vertices.
+
+      - ``MILP`` -- Use a mixed integer linear programming formulation. This
+        algorithm has no size restriction but could take a very long time.
+
+    - ``verbose`` (boolean) -- whether to display information on the
+      computations.
+
+    - ``max_prefix_length`` -- (default: 20) limits the length of the stored
+      prefixes to prevent storing too many prefixes. This parameter is used only
+      when ``algorithm=="BAB"``.
+
+    - ``max_prefix_number`` -- (default: 10**6) upper bound on the number of
+      stored prefixes used to prevent using too much memory. This parameter is
+      used only when ``algorithm=="BAB"``.
+
+    OUTPUT:
+
+    Return the pathwidth of ``self``. When ``k`` is specified, it returns
+    ``False`` when no path-decomposition of width `\leq k` exists or ``True``
+    otherwise. When ``certificate=True``, the path-decomposition is also
+    returned.
+
+    .. SEEALSO::
+
+        * :meth:`Graph.treewidth` -- computes the treewidth of a graph
+        * :meth:`~sage.graphs.graph_decompositions.vertex_separation.vertex_separation`
+          -- computes the vertex separation of a (di)graph
+
+    EXAMPLE:
+
+    The pathwidth of a cycle is equal to 2::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+        sage: g = graphs.CycleGraph(6)
+        sage: pathwidth(g)
+        2
+        sage: pw, decomp = pathwidth(g, certificate=True)
+        sage: decomp.vertices()
+        [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
+
+    The pathwidth of a Petersen graph is 5::
+
+        sage: g = graphs.PetersenGraph()
+        sage: pathwidth(g)
+        5
+        sage: pathwidth(g, k=2)
+        False
+        sage: pathwidth(g, k=6)
+        True
+
+    TESTS:
+
+    Given anything else than a Graph::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+        sage: pathwidth(DiGraph())
+        Traceback (most recent call last):
+        ...
+        ValueError: the parameter must be a Graph
+
+    Given a wrong algorithm::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+        sage: pathwidth(Graph(), algorithm="SuperFast")
+        Traceback (most recent call last):
+        ...
+        ValueError: Algorithm "SuperFast" has not been implemented yet. Please contribute.
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(self, Graph):
+        raise ValueError("the parameter must be a Graph")
+
+    pw, L = vertex_separation(self, algorithm=algorithm, verbose=verbose,
+                              cut_off=k, upper_bound=None if k is None else (k+1),
+                              max_prefix_length=max_prefix_length,
+                              max_prefix_number=max_prefix_number)
+
+    if k is None:
+        return (pw, linear_ordering_to_path_decomposition(self, L)) if certificate else pw
+    if pw < 0:
+        # no solution found
+        return (False, Graph()) if certificate else False
+    return (pw <= k, linear_ordering_to_path_decomposition(self, L)) if certificate else pw <= k
+
 
 def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, verbose = False,
                        max_prefix_length=20, max_prefix_number=10**6):

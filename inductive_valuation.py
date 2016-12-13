@@ -737,7 +737,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                         continue
 
                 verbose("Determining the augmentation for %s"%phi, level=11)
-                w = self.augmentation(phi, self(phi), check=False)
+                old_mu = self(phi)
+                w = self.augmentation(phi, old_mu, check=False)
                 NP = w.newton_polygon(G).principal_part()
                 verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=11)
                 slopes = NP.slopes(repetition=True)
@@ -773,7 +774,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 for i, slope in enumerate(slopes):
                     slope = slopes[i]
                     verbose("Slope = %s"%slope, level=12)
-                    new_mu = self(phi) - slope
+                    new_mu = old_mu - slope
                     base = self
                     if phi.degree() == base.phi().degree():
                         assert new_mu > self(phi)

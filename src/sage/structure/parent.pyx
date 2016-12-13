@@ -1220,15 +1220,12 @@ cdef class Parent(category_object.CategoryObject):
             sage: ZZ < QQ
             True
         """
-        if not isinstance(right, Parent) or not isinstance(left, Parent):
-            # One is not a parent -- not equal and not ordered
-            if op == Py_NE:
-                return True
-            else:
-                return False
-
         if left is right:
             return rich_to_bool(op, 0)
+
+        if not isinstance(right, Parent) or not isinstance(left, Parent):
+            # One is not a parent -- not equal and not ordered
+            return op == Py_NE
 
         try:
             return left._richcmp_(right, op)
@@ -1240,10 +1237,7 @@ cdef class Parent(category_object.CategoryObject):
         except AttributeError:
             pass
 
-        if op == Py_NE:
-            return True
-        else:
-            return False
+        return op == Py_NE
 
     cpdef int _cmp_(left, right) except -2:
         """

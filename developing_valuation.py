@@ -200,7 +200,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         f = self.domain().one() << degree
         return f.quo_rem(self.phi())
 
-    def newton_polygon(self, f):
+    def newton_polygon(self, f, valuations=None):
         r"""
         Return the newton polygon the `\phi`-adic development of ``f``.
 
@@ -228,7 +228,9 @@ class DevelopingValuation(DiscretePseudoValuation):
         f = self.domain().coerce(f)
 
         from sage.geometry.newton_polygon import NewtonPolygon
-        return NewtonPolygon(enumerate(self.valuations(f)))
+        if valuations is None:
+            valuations = self.valuations(f)
+        return NewtonPolygon(enumerate(valuations))
 
     def _call_(self, f):
         r"""

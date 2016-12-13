@@ -637,13 +637,15 @@ class DiscreteValuation(DiscretePseudoValuation):
         from gauss_valuation import GaussValuation
 
         # Leaves in the computation of the tree of approximants. Each vertex
-        # consists of a triple (v,ef,p) where v is an approximant, i.e., a
-        # valuation, ef is a boolean, and p is the parent of this vertex.
+        # consists of a tuple (v,ef,p,coeffs,vals) where v is an approximant, i.e., a
+        # valuation, ef is a boolean, p is the parent of this vertex, and
+        # coeffs and vals are cached values. (Only v and ef are relevant,
+        # everything else are caches/debug info.)
         # The boolean ef denotes whether v already has the final ramification
         # index E and residue degree F of this approximant.
         # An edge V -- P represents the relation P.v ≤ V.v (pointwise on the
         # polynomial ring K[x]) between the valuations.
-        leaves = [ (GaussValuation(R, self), G.degree() == 1, None) ]
+        leaves = [ (GaussValuation(R, self), G.degree() == 1, None, None, None) ]
 
         if require_maximal_degree:
             # we can only assert maximality of degrees when E and F are final
@@ -660,7 +662,7 @@ class DiscreteValuation(DiscretePseudoValuation):
                 pass
 
         def is_sufficient(leaf, others):
-            valuation, ef, parent = leaf
+            valuation, ef, _, _, _ = leaf
             if valuation.mu() < required_precision:
                 return False
             if require_final_EF and not ef:
@@ -675,21 +677,21 @@ class DiscreteValuation(DiscretePseudoValuation):
         while True:
             new_leaves = []
             for leaf in leaves:
-                v, ef, parent = leaf
-                others = [w for (w,_,_) in leaves if w != v]
-                if is_sufficient((v,ef,parent), others):
+                v, ef, coefficients, valuations, parent = leaf
+                others = [w for (w,_,_,_,_) in leaves if w != v]
+                if is_sufficient(leaf, others):
                     new_leaves.append(leaf)
                 else:
-                    augmentations = v.mac_lane_step(G, report_degree_bounds=True)
-                    for w, bound in augmentations:
+                    augmentations = v.mac_lane_step(G, report_degree_bounds_and_caches=True, coefficients=coefficients, valuations=valuations)
+                    for w, bound, coefficients, valuations in augmentations:
                         ef = bound == w.E()*w.F()
-                        new_leaves.append((w, ef, leaf))
+                        new_leaves.append((w, ef, coefficients, valuations, leaf))
 
             if leaves == new_leaves:
                 break
             leaves = new_leaves
 
-        return [v for v,_,_ in leaves]
+        return [v for v,_,_,_,_ in leaves]
 
     def mac_lane_approximant(self, G, valuation, approximants = None):
         r"""

@@ -651,7 +651,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from augmented_valuation import AugmentedValuation
         return AugmentedValuation(self, phi, mu, check)
 
-    def mac_lane_step(self, G, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds=False):
+    def mac_lane_step(self, G, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None):
         r"""
         Perform an approximation step towards the squarefree monic non-constant
         integral polynomial ``G`` which is not an :meth:`equivalence_unit`.
@@ -686,8 +686,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if not G.is_monic():
             raise ValueError("G must be monic")
 
-        coefficients = list(self.coefficients(G))
-        valuations = list(self.valuations(G, coefficients=coefficients))
+        if coefficients is None:
+            coefficients = list(self.coefficients(G))
+        if valuations is None:
+            valuations = list(self.valuations(G, coefficients=coefficients))
 
         if min(valuations) < 0:
             raise ValueError("G must be integral")
@@ -707,7 +709,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         assert len(F), "%s equivalence-decomposes as an equivalence-unit %s"%(G, F)
         if len(F) == 1 and F[0][1] == 1 and F[0][0].degree() == G.degree():
             assert self.is_key(G, assume_equivalence_irreducible=assume_equivalence_irreducible)
-            ret.append((self.augmentation(G, infinity, check=False), G.degree()))
+            ret.append((self.augmentation(G, infinity, check=False), G.degree(), None, None))
         else:
             for phi,e in F:
                 if G == phi:
@@ -720,7 +722,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     prec = min([c.precision_absolute() for c in phi.list()])
                     g = G.map_coefficients(lambda c:c.add_bigoh(prec))
                     assert self.is_key(g)
-                    ret.append((self.augmentation(g, infinity, check=False), g.degree()))
+                    ret.append((self.augmentation(g, infinity, check=False), g.degree(), None, None))
                     assert len(F) == 1
                     break
 
@@ -739,7 +741,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 verbose("Determining the augmentation for %s"%phi, level=11)
                 old_mu = self(phi)
                 w = self.augmentation(phi, old_mu, check=False)
-                NP = w.newton_polygon(G).principal_part()
+                w_coefficients = list(w.coefficients(G))
+                w_valuations = list(w.valuations(G, coefficients=w_coefficients))
+                NP = w.newton_polygon(G, valuations=w_valuations).principal_part()
                 verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=11)
                 slopes = NP.slopes(repetition=True)
                 multiplicities = {slope : len([s for s in slopes if s == slope]) for slope in slopes}
@@ -768,13 +772,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
                     phi = G.parent()(phi)
                     w = self._base_valuation.augmentation(phi, infinity, check=False)
-                    ret.append((w, phi.degree()))
+                    ret.append((w, phi.degree(), None, None))
                     continue
 
                 for i, slope in enumerate(slopes):
                     slope = slopes[i]
                     verbose("Slope = %s"%slope, level=12)
                     new_mu = old_mu - slope
+                    new_valuations = [val - (j*slope if slope is not -infinity else (0 if j == 0 else -infinity)) for j,val in enumerate(w_valuations)]
                     base = self
                     if phi.degree() == base.phi().degree():
                         assert new_mu > self(phi)
@@ -786,11 +791,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     from sage.rings.all import ZZ
                     assert (phi.degree() / self.phi().degree()) in ZZ 
                     degree_bound = multiplicities[slope] * self.phi().degree()
-                    ret.append((w, degree_bound))
+                    ret.append((w, degree_bound, w_coefficients, new_valuations))
 
         assert ret
-        if not report_degree_bounds:
-            ret = [v for v,_ in ret]
+        if not report_degree_bounds_and_caches:
+            ret = [v for v,_,_,_ in ret]
         return ret
 
     def is_key(self, phi, explain=False, assume_equivalence_irreducible=False):

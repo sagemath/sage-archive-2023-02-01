@@ -698,12 +698,12 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ret = []
 
-        if self.is_key(G, assume_equivalence_irreducible=assume_equivalence_irreducible):
+        F = self.equivalence_decomposition(G, assume_not_equivalence_unit=True)
+        assert len(F), "%s equivalence-decomposes as an equivalence-unit %s"%(G, F)
+        if len(F) == 1 and F[0][1] == 1 and F[0][0].degree() == G.degree():
+            assert self.is_key(G, assume_equivalence_irreducible=assume_equivalence_irreducible)
             ret.append((self.augmentation(G, infinity, check=False), G.degree()))
         else:
-            F = self.equivalence_decomposition(G, assume_not_equivalence_unit=True)
-            assert len(F), "%s equivalence-decomposes as an equivalence-unit %s"%(G, F)
-
             for phi,e in F:
                 if G == phi:
                     # Something strange happened here:

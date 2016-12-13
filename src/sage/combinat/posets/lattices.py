@@ -2948,7 +2948,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`neutral_elements`, :meth:`complements`.
+            :meth:`neutral_elements`, :meth:`complements`
 
         TESTS::
 
@@ -2963,7 +2963,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
         """
         neutrals = self.neutral_elements()
-        comps = self.complements().keys()
+        comps = self.complements()
         return self.sublattice([e for e in neutrals if e in comps])
 
     def is_dismantlable(self, certificate=False):

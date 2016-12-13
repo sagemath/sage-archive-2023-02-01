@@ -103,7 +103,7 @@ cdef class ParentWithGens(ParentWithBase):
         EXAMPLES::
 
             sage: class MyParent(ParentWithGens):
-            ...       def ngens(self): return 3
+            ....:     def ngens(self): return 3
             sage: P = MyParent(base = QQ, names = 'a,b,c', normalize = True, category = Groups())
             sage: P.category()
             Category of groups

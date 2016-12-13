@@ -277,7 +277,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
     EXAMPLES::
 
         sage: from sage.symbolic.integration.integral import \
-        ...       _normalize_integral_input
+        ....:     _normalize_integral_input
         sage: _normalize_integral_input(x^2, x, 0, 3)
         (x^2, x, 0, 3)
         sage: _normalize_integral_input(x^2, [x, 0, 3], None, None)

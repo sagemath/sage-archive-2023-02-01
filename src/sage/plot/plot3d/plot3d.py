@@ -4,8 +4,7 @@ Plotting Functions
 EXAMPLES::
 
     sage: def f(x,y):
-    ...       return math.sin(y*y+x*x)/math.sqrt(x*x+y*y+.0001)
-    ...
+    ....:     return math.sin(y*y+x*x)/math.sqrt(x*x+y*y+.0001)
     sage: P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sage: P.show()
 
@@ -18,7 +17,7 @@ EXAMPLES::
 ::
 
     sage: def f(x,y):
-    ...       return math.exp(x/5)*math.sin(y)
+    ....:     return math.exp(x/5)*math.sin(y)
     ...
     sage: P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'])
     sage: from sage.plot.plot3d.plot3d import axes
@@ -965,7 +964,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: E = plot3d(2,(u,-pi,pi),(v,-pi,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
         sage: @interact
         ... def _(which_plot=[A,B,C,D,E]):
-        ...       show(which_plot)
+        ....:     show(which_plot)
         <html>...
 
     Now plot a function::
@@ -978,7 +977,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: J = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
         sage: @interact
         ... def _(which_plot=[F, G, H, I, J]):
-        ...       show(which_plot)
+        ....:     show(which_plot)
         <html>...
 
     TESTS:

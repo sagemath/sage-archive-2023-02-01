@@ -1565,13 +1565,13 @@ cdef class Expression(CommutativeRingElement):
             sage: f = function('f')(*X)
             sage: hashes=set()
             sage: for length in range(1,max_order+1):  # long time (4s on sage.math, 2012)
-            ...       for s in UnorderedTuples(X, length):
-            ...           deriv = f.diff(*s)
-            ...           h = hash(deriv)
-            ...           if h in hashes:
-            ...               print("deriv: %s, hash:%s" % (deriv, h))
-            ...           else:
-            ...               hashes.add(n)
+            ....:     for s in UnorderedTuples(X, length):
+            ....:         deriv = f.diff(*s)
+            ....:         h = hash(deriv)
+            ....:         if h in hashes:
+            ....:             print("deriv: %s, hash:%s" % (deriv, h))
+            ....:         else:
+            ....:             hashes.add(n)
 
         Check whether `oo` keeps its hash in `SR` (:trac:`19928`)::
 

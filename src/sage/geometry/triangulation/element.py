@@ -327,8 +327,6 @@ class Triangulation(Element):
             True
             sage: abs( cmp(t1, Triangulation(((0,1),(1,2)), pc, check=False) ))
             1
-            sage: abs( cmp(t2, "not a triangulation") )
-            1
         """
         left = self
         c = cmp(isinstance(left,Triangulation), isinstance(right,Triangulation))

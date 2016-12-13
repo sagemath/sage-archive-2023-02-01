@@ -406,8 +406,6 @@ class Polyhedron_base(Element):
             -1
             sage: cmp(P,P)
             0
-            sage: abs(cmp(P, 'anything'))
-            1
 
        The polytope ``Q`` is contained in ``P``::
 
@@ -417,11 +415,6 @@ class Polyhedron_base(Element):
             False
             sage: P == Q
             False
-
-        TESTS::
-
-            sage: abs(cmp(P, 'string'))
-            1
          """
         if not isinstance(other, Polyhedron_base):
             return -1

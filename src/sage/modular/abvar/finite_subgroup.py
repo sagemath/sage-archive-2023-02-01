@@ -235,10 +235,6 @@ class FiniteSubgroup(Module):
             True
             sage: H.is_subgroup(G)
             True
-            sage: H < 5 #random (meaningless since it depends on memory layout)
-            False
-            sage: 5 < H #random (meaningless since it depends on memory layout)
-            True
 
         The ambient varieties are compared::
 

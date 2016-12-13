@@ -222,8 +222,6 @@ class FormalSum(ModuleElement):
             0
             sage: abs(cmp(a,0))          # 0 is coerced into a.parent()(0)
             1
-            sage: abs(cmp(a,'string'))   # will NOT evaluate via this method
-            1
         """
         # if necessary, left and right have already been coerced to the same parent()
         return cmp(left._data, right._data)

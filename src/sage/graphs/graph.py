@@ -7448,6 +7448,9 @@ Graph.chromatic_polynomial      = types.MethodType(sage.graphs.chrompoly.chromat
 import sage.graphs.graph_decompositions.rankwidth
 Graph.rank_decomposition        = types.MethodType(sage.graphs.graph_decompositions.rankwidth.rank_decomposition, None, Graph)
 
+import sage.graphs.graph_decompositions.vertex_separation
+Graph.pathwidth                 = types.MethodType(sage.graphs.graph_decompositions.vertex_separation.pathwidth, None, Graph)
+
 import sage.graphs.matchpoly
 Graph.matching_polynomial       = types.MethodType(sage.graphs.matchpoly.matching_polynomial, None, Graph)
 
@@ -7486,6 +7489,7 @@ _additional_categories = {
     Graph.is_asteroidal_triple_free : "Graph properties",
     Graph.chromatic_polynomial      : "Algorithmically hard stuff",
     Graph.rank_decomposition        : "Algorithmically hard stuff",
+    Graph.pathwidth                 : "Algorithmically hard stuff",
     Graph.matching_polynomial       : "Algorithmically hard stuff",
     Graph.cliques_maximum           : "Clique-related methods",
     Graph.random_spanning_tree      : "Connectivity, orientations, trees",

@@ -686,7 +686,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if not G.is_monic():
             raise ValueError("G must be monic")
 
-        valuations = list(self.valuations(G))
+        coefficients = list(self.coefficients(G))
+        valuations = list(self.valuations(G, coefficients=coefficients))
 
         if min(valuations) < 0:
             raise ValueError("G must be integral")
@@ -702,7 +703,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ret = []
 
-        F = self.equivalence_decomposition(G, assume_not_equivalence_unit=True)
+        F = self.equivalence_decomposition(G, assume_not_equivalence_unit=True, coefficients=coefficients, valuations=valuations)
         assert len(F), "%s equivalence-decomposes as an equivalence-unit %s"%(G, F)
         if len(F) == 1 and F[0][1] == 1 and F[0][0].degree() == G.degree():
             assert self.is_key(G, assume_equivalence_irreducible=assume_equivalence_irreducible)
@@ -928,7 +929,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                    list(self.valuations(f))[0] == self(f) and \
                    tau.divides(len(list(self.coefficients(f))) - 1)
 
-    def _equivalence_reduction(self, f):
+    def _equivalence_reduction(self, f, coefficients=None, valuations=None):
         r"""
         Helper method for :meth:`is_equivalence_irreducible` and
         :meth:`equivalence_decomposition` which essentially returns the
@@ -958,8 +959,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             assert self.residue_ring() is v.residue_ring()
             return v._equivalence_reduction(f)
 
-        coefficients = list(self.coefficients(f))
-        valuations = list(self.valuations(f, coefficients=coefficients))
+        if coefficients is None:
+            coefficients = list(self.coefficients(f))
+        if valuations is None:
+            valuations = list(self.valuations(f, coefficients=coefficients))
         valuation = min(valuations)
         for phi_divides in range(len(valuations)):
             # count how many times phi divides f
@@ -975,7 +978,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         R = self.equivalence_unit(-valuation)
         return valuation, phi_divides, self.reduce(f*R)
 
-    def is_equivalence_irreducible(self, f):
+    def is_equivalence_irreducible(self, f, coefficients=None, valuations=None):
         r"""
         Return whether the polynomial ``f`` is equivalence-irreducible, i.e.,
         whether its :meth:`equivalence_decomposition` is trivial.
@@ -1013,7 +1016,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if f.is_constant():
             raise ValueError("f must not be constant")
 
-        _, phi_divides, F = self._equivalence_reduction(f)
+        _, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations)
         if phi_divides == 0:
             return F.is_constant() or F.is_irreducible()
         if phi_divides == 1:
@@ -1021,7 +1024,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if phi_divides > 1:
             return False
 
-    def equivalence_decomposition(self, f, assume_not_equivalence_unit=False):
+    def equivalence_decomposition(self, f, assume_not_equivalence_unit=False, coefficients=None, valuations=None):
         r"""
         Return an equivalence decomposition of ``f``, i.e., a polynomial
         `g(x)=e(x)\prod_i \phi_i(x)` with `e(x)` an equivalence unit (see
@@ -1131,7 +1134,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             ret = v.equivalence_decomposition(v.domain()(f))
             return Factorization([(g.change_ring(self.domain().base_ring()),e) for g,e in ret], unit=ret.unit().change_ring(self.domain().base_ring()), sort=False)
 
-        valuation, phi_divides, F = self._equivalence_reduction(f)
+        valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations)
         F = F.factor()
         from sage.misc.misc import verbose
         verbose("%s factors as %s = %s in reduction"%(f, F.prod(), F), level=20)

@@ -252,8 +252,8 @@ class PoorManMap(sage.structure.sage_object.SageObject):
             3
 
             sage: g = PoorManMap(lambda x: -x,  domain = (2,3,4), codomain = (-2,-3,-4))
-            sage: (f*g)(2)
-            -1
+            sage: (g*f)(2)
+            -3
 
         """
         for function in reversed(self._functions):

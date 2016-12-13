@@ -1,4 +1,6 @@
-
+r"""
+MacMahon's Omega Operator
+"""
 # *****************************************************************************
 # Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>
 #
@@ -47,6 +49,11 @@ def Omega(var, expression, denominator=None, op=operator.ge,
       polynomials).
 
     - ``op`` -- (default: ``operator.ge``) an operator.
+
+    - ``Factorization_sort`` (default: ``False``) and
+      ``Factorization_simplify`` (default: ``True``) -- are passed on to
+      :class:`sage.structure.factorization.Factorization` when creating
+      the result.
 
     OUTPUT:
 
@@ -264,7 +271,6 @@ def _Omega_(A, decoded_factors):
         (42, ())
         sage: _Omega_({-1: 42}, [])
         (0, ())
-
     """
     if not decoded_factors:
         return sum(c for a, c in iteritems(A) if a >= 0), tuple()
@@ -556,6 +562,23 @@ def Omega_numerator(a, x, y, t):
 
 
 def Omega_numerator_P(a, x, y, t):
+    r"""
+    Helper function for :func:`Omega_numerator`.
+
+    INPUT:
+
+    - ``a`` -- an integer.
+
+    - ``x`` and ``y`` -- a tuple of tuples of laurent polynomials. The
+      flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
+      `y_1,...,y_m`.
+
+    - ``t`` -- a temporary laurent polynomial variable used for substituting.
+
+    OUTPUT:
+
+    A laurent polynomial.
+    """
     import logging
     logger = logging.getLogger(__name__)
 
@@ -674,6 +697,8 @@ def partition(items, predicate=bool):
 
     - ``item`` -- an iterator.
 
+    - ``predicate`` -- a function.
+
     OUTPUT:
 
     A pair of iterators; the first contains the elements not satisfying
@@ -696,6 +721,18 @@ def partition(items, predicate=bool):
 
 def HomogenousSymmetricFunction(j, x):
     r"""
+    Return a complete homogeneous symmetric polynomial.
+
+    INPUT:
+
+    - ``j`` -- the degree as a nonnegative integer.
+
+    - ``x`` -- an iterable of variables.
+
+    OUTPUT:
+
+    A polynomial whose type is determined by the input ``x``.
+
     EXAMPLES::
 
         sage: P = PolynomialRing(ZZ, 'X', 3)

@@ -315,13 +315,18 @@ class AugmentedValuation_base(InductiveValuation):
         self._base_valuation = v
         self._mu = mu
 
-    def equivalence_unit(self, s):
+    @cached_method
+    def equivalence_unit(self, s, reciprocal=False):
         """
         Return an equivalence unit of minimal degree and valuation ``s``.
 
         INPUT:
 
         - ``s`` -- a rational number
+
+        - ``reciprocal`` -- a boolean (default: ``False``); whether or not to
+          return the equivalence unit as the :meth:`equivalence_reciprocal` of
+          the equivalence unit of valuation ``-s``.
 
         OUTPUT:
 
@@ -363,7 +368,10 @@ class AugmentedValuation_base(InductiveValuation):
             (2^-1 + O(2^4))*x^2
 
         """
-        ret = self._base_valuation.element_with_valuation(s)
+        if reciprocal:
+            ret = self.equivalence_reciprocal(self.equivalence_unit(-s))
+        else:
+            ret = self._base_valuation.element_with_valuation(s)
 
         assert self.is_equivalence_unit(ret)
         assert self(ret) == s

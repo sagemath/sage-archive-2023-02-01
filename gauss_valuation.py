@@ -412,13 +412,18 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         return self.lift(F)
 
-    def equivalence_unit(self, s):
+    @cached_method
+    def equivalence_unit(self, s, reciprocal=False):
         """
         Return an equivalence unit of valuation ``s``.
 
         INPUT:
 
         - ``s`` -- an element of the :meth:`value_group`
+
+        - ``reciprocal`` -- a boolean (default: ``False``); whether or not to
+          return the equivalence unit as the :meth:`equivalence_reciprocal` of
+          the equivalence unit of valuation ``-s``.
 
         EXAMPLES::
 
@@ -431,6 +436,9 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             (3^-2 + O(3^3))
 
         """
+        if reciprocal:
+            return self.equivalence_reciprocal(self.equivalence_unit(-s))
+        
         ret = self._base_valuation.element_with_valuation(s)
         return self.domain()(ret)
 

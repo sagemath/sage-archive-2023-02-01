@@ -196,13 +196,17 @@ class InductiveValuation(DevelopingValuation):
         return self(self.phi())
 
     @abstract_method
-    def equivalence_unit(self, s):
+    def equivalence_unit(self, s, reciprocal=False):
         """
         Return an equivalence unit of valuation ``s``.
 
         INPUT:
 
         - ``s`` -- an element of the :meth:`value_group`
+
+        - ``reciprocal`` -- a boolean (default: ``False``); whether or not to
+          return the equivalence unit as the :meth:`equivalence_reciprocal` of
+          the equivalence unit of valuation ``-s``.
 
         EXAMPLES::
 
@@ -941,7 +945,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v._equivalence_reduction(2*x^6 + 4*x^5 + 2*x^4 + 8)
-            (1/2, 4, x^2 + 1)
+            (1, 4, x^2 + 1)
 
         """
         f = self.domain().coerce(f)
@@ -969,7 +973,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         valuation -= self.mu()*phi_divides
 
         R = self.equivalence_unit(-valuation)
-        return R, phi_divides, self.reduce(f*R)
+        return valuation, phi_divides, self.reduce(f*R)
 
     def is_equivalence_irreducible(self, f):
         r"""
@@ -1127,18 +1131,19 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             ret = v.equivalence_decomposition(v.domain()(f))
             return Factorization([(g.change_ring(self.domain().base_ring()),e) for g,e in ret], unit=ret.unit().change_ring(self.domain().base_ring()), sort=False)
 
-        R, phi_divides, F = self._equivalence_reduction(f)
+        valuation, phi_divides, F = self._equivalence_reduction(f)
         F = F.factor()
         from sage.misc.misc import verbose
         verbose("%s factors as %s = %s in reduction"%(f, F.prod(), F), level=20)
 
-        unit = self.lift(self.residue_ring()(F.unit())) * self.equivalence_reciprocal(R)
+        R_ = self.equivalence_unit(valuation, reciprocal=True)
+        unit = self.lift(self.residue_ring()(F.unit())) * R_
         F = list(F)
 
         from sage.misc.all import prod
         unit *= self.lift(self.residue_ring()(prod([ psi.leading_coefficient()**e for psi,e in F ])))
         F = [(self.lift_to_key(psi/psi.leading_coefficient()),e) for psi,e in F]
-        unit *= prod([self.equivalence_reciprocal(self.equivalence_unit(self(g)))**e for g,e in F])
+        unit *= prod([self.equivalence_unit(-self(g), reciprocal=True)**e for g,e in F])
         unit = self.simplify(unit)
 
         if phi_divides:

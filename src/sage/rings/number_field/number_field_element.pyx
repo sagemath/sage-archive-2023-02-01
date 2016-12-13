@@ -5059,7 +5059,7 @@ class CoordinateFunction:
             raise TypeError("Cannot coerce element into this number field")
         return self.__W.coordinates(self.__to_V(self.__K(x)))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         EXAMPLE::
 
@@ -5073,18 +5073,19 @@ class CoordinateFunction:
             False
         """
         if not isinstance(other, CoordinateFunction):
-            return -1  # arbitrary
+            return NotImplemented
 
         lx = self.__K
         rx = other.__K
         if lx != rx:
-            return 1 if richcmp_not_equal(lx, rx, Py_LT) else -1
+            return richcmp_not_equal(lx, rx, op)
 
         lx = self.__alpha
         rx = other.__alpha
         if lx != rx:
-            return 1 if richcmp_not_equal(lx, rx, Py_LT) else -1
-        return 0
+            return richcmp_not_equal(lx, rx, op)
+
+        return rich_to_bool(op, 0)
 
 
 #################

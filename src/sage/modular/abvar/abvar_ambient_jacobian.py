@@ -400,7 +400,7 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
 
         OUTPUT:
 
-            - an array of newforms
+        - an array of newforms
 
         EXAMPLES::
 

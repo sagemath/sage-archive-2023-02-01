@@ -747,4 +747,3 @@ class QQbarTorsionSubgroup(Module):
             Abelian variety J0(23) of dimension 2
         """
         return self.__abvar
-

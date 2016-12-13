@@ -55,7 +55,8 @@ class Lseries(SageObject):
         Return the abelian variety that this `L`-series is attached to.
 
         OUTPUT:
-            a modular abelian variety
+
+        a modular abelian variety
 
         EXAMPLES::
 
@@ -86,7 +87,8 @@ class Lseries_complex(Lseries):
           used in computing the lseries of the newforms.
 
         OUTPUT:
-            a complex number L(A, s).
+
+        a complex number L(A, s).
 
         EXAMPLES::
 
@@ -147,7 +149,8 @@ class Lseries_complex(Lseries):
         - ``other`` -- object
 
         OUTPUT:
-           -1, 0, or 1
+
+        -1, 0, or 1
 
         EXAMPLES::
 
@@ -169,7 +172,8 @@ class Lseries_complex(Lseries):
         String representation of `L`-series.
 
         OUTPUT:
-            a string
+
+        a string
 
         EXAMPLES::
 
@@ -184,7 +188,8 @@ class Lseries_complex(Lseries):
         Return True if `L(1)=0` and return False otherwise.
 
         OUTPUT:
-            a boolean
+
+        a boolean
 
         EXAMPLES:
 
@@ -232,7 +237,8 @@ class Lseries_complex(Lseries):
         value 1.
 
         OUTPUT:
-            a rational number
+
+        a rational number
 
         EXAMPLES::
 
@@ -291,10 +297,12 @@ class Lseries_padic(Lseries):
         then the primes are compared.
 
         INPUT:
-            other -- object
+
+        other -- object
 
         OUTPUT:
-            -1, 0, or 1
+
+        -1, 0, or 1
 
         EXAMPLES::
 

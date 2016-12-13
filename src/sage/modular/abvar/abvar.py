@@ -186,7 +186,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def is_J0(self):
         """
-        Returns whether of not self is of the form J0(N).
+        Return whether of not self is of the form J0(N).
 
         OUTPUT: bool
 
@@ -208,7 +208,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def is_J1(self):
         """
-        Returns whether of not self is of the form J1(N).
+        Return whether of not self is of the form J1(N).
 
         OUTPUT: bool
 
@@ -849,7 +849,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def intersection(self, other):
         """
-        Returns the intersection of self and other inside a common ambient
+        Return the intersection of self and other inside a common ambient
         Jacobian product.
 
         INPUT:
@@ -964,7 +964,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def __add__(self, other):
         r"""
-        Returns the sum of the *images* of self and other inside the
+        Return the sum of the *images* of self and other inside the
         ambient Jacobian product. self and other must be abelian
         subvarieties of the ambient Jacobian product.
 
@@ -1323,8 +1323,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         -  ``G`` - a finite subgroup of self
 
 
-        OUTPUT: abelian variety - the quotient `Q` of self by
-        `G`
+        OUTPUT: abelian variety - the quotient `Q` of self by `G`
 
 
         -  ``morphism`` - from self to the quotient
@@ -2263,7 +2262,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         OUTPUT:
 
-            a monic integral polynomial
+        a monic integral polynomial
 
         EXAMPLES::
 
@@ -3638,9 +3637,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Return the dual of this abelian variety.
 
         OUTPUT:
-            - dual abelian variety
-            - morphism from self to dual
-            - covering morphism from J to dual
+
+        - dual abelian variety
+        - morphism from self to dual
+        - covering morphism from J to dual
 
         .. warning::
 
@@ -3840,8 +3840,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def __getitem__(self, i):
         """
-        Returns the `i^{th}` decomposition factor of self
-        or returns the slice `i` of decompositions of self.
+        Return the `i^{th}` decomposition factor of self
+        or return the slice `i` of decompositions of self.
 
         EXAMPLES::
 
@@ -4550,10 +4550,12 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         quotient is the same as the component group of its dual (which is the subvariety).
 
         INPUT:
-            - p -- a prime number
+
+        - p -- a prime number
 
         OUTPUT:
-            - Integer
+
+        - Integer
 
         EXAMPLES::
 
@@ -4648,9 +4650,12 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         change, which is why it starts with an underscore.
 
         INPUT:
-            - p -- integer
+
+        - p -- integer
+
         OUTPUT:
-            - list -- of elementary invariants
+
+        - list -- of elementary invariants
 
         EXAMPLES::
 
@@ -4680,10 +4685,12 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         self.tamagawa_number_bounds functions.
 
         INPUT:
-            - p -- a prime number
+
+        - p -- a prime number
 
         OUTPUT:
-            - Integer
+
+        - Integer
 
         EXAMPLES::
 
@@ -4723,13 +4730,15 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         NOTE: the input abelian variety must be simple
 
         INPUT:
-            - p -- a prime number
+
+        - p -- a prime number
 
         OUTPUT:
-            - div -- integer; divisor of Tamagawa number at p
-            - mul -- integer; multiple of Tamagawa number at p
-            - mul_primes -- tuple; in case mul==0, a list of all
-              primes that can possibly divide the Tamagawa number at p.
+
+        - div -- integer; divisor of Tamagawa number at p
+        - mul -- integer; multiple of Tamagawa number at p
+        - mul_primes -- tuple; in case mul==0, a list of all
+        primes that can possibly divide the Tamagawa number at p.
 
         EXAMPLES::
 
@@ -4787,10 +4796,12 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         infinity.
 
         INPUT:
-            - p -- prime that exactly divides the level
+
+        - p -- prime that exactly divides the level
 
         OUTPUT:
-            - Brandt module space that corresponds to self.
+
+        - Brandt module space that corresponds to self.
 
         EXAMPLES::
 

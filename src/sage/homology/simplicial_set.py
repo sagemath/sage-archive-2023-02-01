@@ -86,8 +86,8 @@ associated with them. Wedges, for example::
     sage: W.projection_map(1).codomain()
     Quotient: (Wedge: (Torus v S^3)/Simplicial set with 6 non-degenerate simplices)
 
-If the `5`-sphere were not already available via
-``simplicial_sets.Sphere(5)``, you could construct it as follows::
+If the `1`-sphere were not already available via
+``simplicial_sets.Sphere(1)``, you could construct it as follows::
 
     sage: pt = simplicial_sets.Simplex(0)
     sage: edge = pt.cone()
@@ -1247,9 +1247,19 @@ class SimplicialSet_arbitrary(Parent):
             False
             sage: S1.n_cells(1)[0] in K
             False
+
+        TESTS:
+
+        Make sure we answer gracefully for unexpected input::
+
+            sage: 248 in K
+            False
         """
-        underlying = x.nondegenerate()
-        return underlying in self.n_cells(underlying.dimension())
+        try:
+            underlying = x.nondegenerate()
+            return underlying in self.n_cells(underlying.dimension())
+        except AttributeError:
+            return False
 
     def alexander_whitney(self, simplex, dim_left):
         r"""
@@ -2677,7 +2687,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: K = T.factor(0, as_subset=True)
             sage: f = S1.Hom(T)({S1.n_cells(0)[0]:K.n_cells(0)[0], S1.n_cells(1)[0]:K.n_cells(1)[0]})
             sage: D = S1.cone()      # the cone C(S^1)
-            sage: g = D.map_from_X() # map from S^1 to C(S^1)
+            sage: g = D.map_from_base() # map from S^1 to C(S^1)
             sage: P = T.product(D)
             sage: h = P.universal_property(f, g)
             sage: h.domain() == S1
@@ -2815,9 +2825,9 @@ class SimplicialSet_arbitrary(Parent):
         `X` as a subset of the cone, and also the map from `X`, in the
         unreduced case::
 
-            sage: CX.X_as_subset()
+            sage: CX.base_as_subset()
             Simplicial set with 2 non-degenerate simplices
-            sage: CX.map_from_X()
+            sage: CX.map_from_base()
             Simplicial set morphism:
             From: Simplicial set with 2 non-degenerate simplices
               To:   Cone of Simplicial set with 2 non-degenerate simplices
@@ -2829,7 +2839,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: CX = X.cone()  # reduced cone
             sage: CX.nondegenerate_simplices()
             [*, e, (e,*)]
-            sage: CX.map_from_X()
+            sage: CX.map_from_base()
             Simplicial set morphism:
               From: Simplicial set with 2 non-degenerate simplices
               To:   Reduced cone of Simplicial set with 2 non-degenerate simplices
@@ -3791,7 +3801,7 @@ SimplicialSet = SimplicialSet_finite
 
 def standardize_degeneracies(*L):
     r"""
-    Return list of indices degeneracy maps in standard (decreasing)
+    Return list of indices of degeneracy maps in standard (decreasing)
     order.
 
     INPUT:

@@ -1118,7 +1118,7 @@ class SimplicialSetMorphism(Morphism):
         """
         dom = self.domain()
         cone = dom.cone()
-        i = cone.map_from_X()
+        i = cone.map_from_base()
         return self.pushout(i)
 
     def product(self, *others):

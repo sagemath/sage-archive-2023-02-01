@@ -1212,7 +1212,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
             sage: T = simplicial_sets.Torus()
             sage: T = T.unset_base_point()
             sage: CT = T.cone()
-            sage: inc = CT.X_as_subset().inclusion_map()
+            sage: inc = CT.base_as_subset().inclusion_map()
             sage: P = T.pushout(inc, inc)
             sage: P.homology()
             {0: 0, 1: 0, 2: Z x Z, 3: Z}
@@ -1222,7 +1222,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
         It is more efficient to construct the suspension as the
         quotient `CX/X`::
 
-            sage: len(CT.quotient(CT.X_as_subset()).nondegenerate_simplices())
+            sage: len(CT.quotient(CT.base_as_subset()).nondegenerate_simplices())
             8
 
         It is more efficient still if the original simplicial set has
@@ -1466,7 +1466,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
             # setting x equivalent to f_i(x) for each simplex x in X
             # and each defining map f_i. We do this by constructing a
             # graph and finding its connected components: the vertices
-            # of the graph are be the n-cells of X and the Y_i, and
+            # of the graph are the n-cells of X and the Y_i, and
             # there are edges from x to f_i(x).
             vertices = []
             for (Y,i) in spaces:
@@ -2292,18 +2292,18 @@ class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,
 
 
 class ConeOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
-    def __init__(self, X):
+    def __init__(self, base):
         r"""
         Return the unreduced cone on a finite simplicial set.
 
         INPUT:
 
-        - ``X`` -- return the cone on this simplicial set.
+        - ``base`` -- return the cone on this simplicial set.
 
         Add a point `*` (which will become the base point) and for
-        each simplex `\sigma` in `X`, add both `\sigma` and a simplex
-        made up of `*` and `\sigma` (topologically, form the join of
-        `*` and `\sigma`).
+        each simplex `\sigma` in ``base``, add both `\sigma` and a
+        simplex made up of `*` and `\sigma` (topologically, form the
+        join of `*` and `\sigma`).
 
         EXAMPLES::
 
@@ -2318,11 +2318,11 @@ class ConeOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             *
         """
         Cat = SimplicialSets().Pointed()
-        if X.is_finite():
+        if base.is_finite():
             Cat = Cat.Finite()
         Parent.__init__(self, category=Cat)
         star = AbstractSimplex(0, name='*')
-        self._X = X
+        self._base = base
         self._basepoint = star
         self._n_skeleton = (-1, Empty())
 
@@ -2356,7 +2356,7 @@ class ConeOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             return skel
         elif start > n:
             return skel.n_skeleton(n)
-        ans = ConeOfSimplicialSet_finite(self._X.n_skeleton(n)).n_skeleton(n)
+        ans = ConeOfSimplicialSet_finite(self._base.n_skeleton(n)).n_skeleton(n)
         self._n_skeleton = (n, ans)
         self._basepoint = ans.base_point()
         return ans
@@ -2370,7 +2370,7 @@ class ConeOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             sage: simplicial_sets.Simplex(3).cone()
             Cone of 3-simplex
         """
-        return 'Cone of {}'.format(self._X)
+        return 'Cone of {}'.format(self._base)
 
     def _latex_(self):
         """
@@ -2381,22 +2381,22 @@ class ConeOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             sage: latex(simplicial_sets.Simplex(3).cone())
             C \Delta^{3}
         """
-        return 'C {}'.format(latex(self._X))
+        return 'C {}'.format(latex(self._base))
 
 
 class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
-    def __init__(self, X):
+    def __init__(self, base):
         r"""
         Return the unreduced cone on a finite simplicial set.
 
         INPUT:
 
-        - ``X`` -- return the cone on this simplicial set.
+        - ``base`` -- return the cone on this simplicial set.
 
         Add a point `*` (which will become the base point) and for
-        each simplex `\sigma` in `X`, add both `\sigma` and a simplex
-        made up of `*` and `\sigma` (topologically, form the join of
-        `*` and `\sigma`).
+        each simplex `\sigma` in ``base``, add both `\sigma` and a
+        simplex made up of `*` and `\sigma` (topologically, form the
+        join of `*` and `\sigma`).
 
         EXAMPLES::
 
@@ -2417,7 +2417,7 @@ class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
         # old simplices, corresponding value is the new simplex
         # (sigma, *).
         new_simplices = {'cone': star}
-        for sigma in X.nondegenerate_simplices():
+        for sigma in base.nondegenerate_simplices():
             new = AbstractSimplex(sigma.dimension()+1,
                                   name='({},*)'.format(sigma),
                                   latex_name='({},*)'.format(latex(sigma)))
@@ -2425,25 +2425,25 @@ class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
                 data[sigma] = None
                 data[new] = (star, sigma)
             else:
-                sigma_faces = X.face_data()[sigma]
+                sigma_faces = base.face_data()[sigma]
                 data[sigma] = sigma_faces
                 new_faces = [new_simplices[face.nondegenerate()].apply_degeneracies(*face.degeneracies())
                              for face in sigma_faces]
                 data[new] = (new_faces + [sigma])
             new_simplices[sigma] = new
         SimplicialSet_finite.__init__(self, data, base_point=star)
-        # self._X: original simplicial set.
-        self._X = X
-        # self._joins: dictionary, each key is a simplex sigma in X,
-        # the corresponding value is the new simplex (sigma, *) in
-        # CX. Also, one other key is 'cone', and the value is the cone
-        # vertex. This is used in the suspension class to construct
-        # the suspension of a morphism. It could be used to construct
-        # the cone of a morphism, also, although cones of morphisms
-        # are not yet implemented.
+        # self._base: original simplicial set.
+        self._base = base
+        # self._joins: dictionary, each key is a simplex sigma in
+        # base, the corresponding value is the new simplex (sigma, *)
+        # in the cone. Also, one other key is 'cone', and the value is
+        # the cone vertex. This is used in the suspension class to
+        # construct the suspension of a morphism. It could be used to
+        # construct the cone of a morphism, also, although cones of
+        # morphisms are not yet implemented.
         self._joins = new_simplices
 
-    def X_as_subset(self):
+    def base_as_subset(self):
         """
         If this is the cone `CX` on `X`, return `X` as a subsimplicial set.
 
@@ -2451,15 +2451,15 @@ class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
 
             sage: X = simplicial_sets.RealProjectiveSpace(4).unset_base_point()
             sage: Y = X.cone()
-            sage: Y.X_as_subset()
+            sage: Y.base_as_subset()
             Simplicial set with 5 non-degenerate simplices
-            sage: Y.X_as_subset() == X
+            sage: Y.base_as_subset() == X
             True
         """
-        X = self._X
+        X = self._base
         return self.subsimplicial_set(X.nondegenerate_simplices())
 
-    def map_from_X(self):
+    def map_from_base(self):
         r"""
         If this is the cone `CX` on `X`, return the inclusion map from `X`.
 
@@ -2467,28 +2467,28 @@ class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
 
             sage: X = simplicial_sets.Simplex(2).n_skeleton(1)
             sage: Y = X.cone()
-            sage: Y.map_from_X()
+            sage: Y.map_from_base()
             Simplicial set morphism:
               From: Simplicial set with 6 non-degenerate simplices
               To:   Cone of Simplicial set with 6 non-degenerate simplices
               Defn: [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)] --> [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
         """
-        return self.X_as_subset().inclusion_map()
+        return self.base_as_subset().inclusion_map()
 
 
 class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
-    def __init__(self, X):
+    def __init__(self, base):
         r"""
         Return the reduced cone on a simplicial set.
 
         INPUT:
 
-        - ``X`` -- return the cone on this simplicial set.
+        - ``base`` -- return the cone on this simplicial set.
 
-        Start with the unreduced cone: take `X` and add a point `*`
-        (which will become the base point) and for each simplex
-        `\sigma` in `X`, add both `\sigma` and a simplex made up of `*`
-        and `\sigma` (topologically, form the join of `*` and
+        Start with the unreduced cone: take ``base`` and add a point
+        `*` (which will become the base point) and for each simplex
+        `\sigma` in ``base``, add both `\sigma` and a simplex made up
+        of `*` and `\sigma` (topologically, form the join of `*` and
         `\sigma`).
 
         Now reduce: take the quotient by the 1-simplex connecting the
@@ -2505,16 +2505,16 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
             sage: CX.nondegenerate_simplices()
             [*, e, (e,*)]
         """
-        CX = ConeOfSimplicialSet(X)
-        edge_faces = sorted([CX.n_skeleton(1).base_point(), X.base_point()])
-        for t in CX.n_cells(1):
-            edge_faces = sorted([CX.base_point(), X.base_point()])
-            if sorted(CX.faces(t)) == edge_faces:
+        C = ConeOfSimplicialSet(base)
+        edge_faces = sorted([C.n_skeleton(1).base_point(), base.base_point()])
+        for t in C.n_cells(1):
+            edge_faces = sorted([C.base_point(), base.base_point()])
+            if sorted(C.faces(t)) == edge_faces:
                 edge = t
                 break
-        inc = CX.subsimplicial_set([edge]).inclusion_map()
+        inc = C.subsimplicial_set([edge]).inclusion_map()
         QuotientOfSimplicialSet.__init__(self, inc)
-        self._X = X
+        self._base = base
         self._n_skeleton = (-1, Empty())
 
     def n_skeleton(self, n):
@@ -2545,7 +2545,7 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
             return skel
         elif start > n:
             return skel.n_skeleton(n)
-        ans = ReducedConeOfSimplicialSet_finite(self._X.n_skeleton(n)).n_skeleton(n)
+        ans = ReducedConeOfSimplicialSet_finite(self._base.n_skeleton(n)).n_skeleton(n)
         self._n_skeleton = (n, ans)
         return ans
 
@@ -2559,7 +2559,7 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
             sage: X.cone()
             Reduced cone of S^4
         """
-        return 'Reduced cone of {}'.format(self._X)
+        return 'Reduced cone of {}'.format(self._base)
 
     def _latex_(self):
         """
@@ -2570,23 +2570,23 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
             sage: latex(simplicial_sets.Sphere(4).cone())
             C S^{4}
         """
-        return 'C {}'.format(latex(self._X))
+        return 'C {}'.format(latex(self._base))
 
 
 class ReducedConeOfSimplicialSet_finite(ReducedConeOfSimplicialSet,
                                         QuotientOfSimplicialSet_finite):
-    def __init__(self, X):
+    def __init__(self, base):
         r"""
         Return the reduced cone on a simplicial set.
 
         INPUT:
 
-        - ``X`` -- return the cone on this simplicial set.
+        - ``base`` -- return the cone on this simplicial set.
 
-        Start with the unreduced cone: take `X` and add a point `*`
-        (which will become the base point) and for each simplex
-        `\sigma` in `X`, add both `\sigma` and a simplex made up of `*`
-        and `\sigma` (topologically, form the join of `*` and
+        Start with the unreduced cone: take ``base`` and add a point
+        `*` (which will become the base point) and for each simplex
+        `\sigma` in ``base``, add both `\sigma` and a simplex made up
+        of `*` and `\sigma` (topologically, form the join of `*` and
         `\sigma`).
 
         Now reduce: take the quotient by the 1-simplex connecting the
@@ -2603,19 +2603,19 @@ class ReducedConeOfSimplicialSet_finite(ReducedConeOfSimplicialSet,
             sage: CX.nondegenerate_simplices()
             [*, e, (e,*)]
         """
-        CX = ConeOfSimplicialSet_finite(X)
-        edge_faces = sorted([CX.base_point(), X.base_point()])
-        for t in CX.n_cells(1):
-            if sorted(CX.faces(t)) == edge_faces:
+        C = ConeOfSimplicialSet_finite(base)
+        edge_faces = sorted([C.base_point(), base.base_point()])
+        for t in C.n_cells(1):
+            if sorted(C.faces(t)) == edge_faces:
                 edge = t
                 break
-        inc = CX.subsimplicial_set([edge]).inclusion_map()
+        inc = C.subsimplicial_set([edge]).inclusion_map()
         QuotientOfSimplicialSet_finite.__init__(self, inc)
-        self._X = X
+        self._base = base
         q = self.quotient_map()
-        self._joins = {sigma:q(CX._joins[sigma]) for sigma in CX._joins}
+        self._joins = {sigma:q(C._joins[sigma]) for sigma in C._joins}
 
-    def map_from_X(self):
+    def map_from_base(self):
         r"""
         If this is the cone `\tilde{C}X` on `X`, return the map from `X`.
 
@@ -2629,7 +2629,7 @@ class ReducedConeOfSimplicialSet_finite(ReducedConeOfSimplicialSet,
 
             sage: S3 = simplicial_sets.Sphere(3)
             sage: CS3 = S3.cone()
-            sage: CS3.map_from_X()
+            sage: CS3.map_from_base()
             Simplicial set morphism:
               From: S^3
               To:   Reduced cone of S^3
@@ -2637,26 +2637,26 @@ class ReducedConeOfSimplicialSet_finite(ReducedConeOfSimplicialSet,
         """
         quotient_map = self.quotient_map()
         unreduced = quotient_map.domain()
-        temp_map = unreduced.map_from_X()
-        X = self._X
+        temp_map = unreduced.map_from_base()
+        X = self._base
         incl = X.Hom(unreduced)(temp_map._dictionary)
         return quotient_map * incl
 
 
 class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
-    def __init__(self, X):
+    def __init__(self, base):
         r"""
         Return the (reduced) suspension of a simplicial set.
 
         INPUT:
 
-        - ``X`` -- return the suspension of this simplicial set.
+        - ``base`` -- return the suspension of this simplicial set.
 
-        If this simplicial set `X` is not pointed, or if `X` is itself
-        an unreduced suspension, return the unreduced suspension: the
-        quotient `CX/X`, where `CX` is the (ordinary, unreduced) cone
-        on `X`. If `X` is pointed, then use the reduced cone instead,
-        and so return the reduced suspension.
+        If this simplicial set ``X=base`` is not pointed, or if it is
+        itself an unreduced suspension, return the unreduced
+        suspension: the quotient `CX/X`, where `CX` is the (ordinary,
+        unreduced) cone on `X`. If `X` is pointed, then use the
+        reduced cone instead, and so return the reduced suspension.
 
         We use `S` to denote unreduced suspension, `\Sigma` for
         reduced suspension.
@@ -2690,16 +2690,16 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             True
         """
         Cat = SimplicialSets()
-        if X.is_finite():
+        if base.is_finite():
             Cat = Cat.Finite()
-        reduced = (X.is_pointed()
-                   and (not hasattr(X, '_reduced')
-                        or (hasattr(X, '_reduced') and X._reduced)))
+        reduced = (base.is_pointed()
+                   and (not hasattr(base, '_reduced')
+                        or (hasattr(base, '_reduced') and base._reduced)))
         if reduced:
             Cat = Cat.Pointed()
         Parent.__init__(self, category=Cat)
         self._reduced = reduced
-        self._X = X
+        self._base = base
         self._n_skeleton = (-1, Empty())
 
     def n_skeleton(self, n):
@@ -2735,11 +2735,11 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             return skel
         elif start > n:
             return skel.n_skeleton(n)
-        ans = SuspensionOfSimplicialSet_finite(self._X.n_skeleton(n)).n_skeleton(n)
+        ans = SuspensionOfSimplicialSet_finite(self._base.n_skeleton(n)).n_skeleton(n)
         self._n_skeleton = (n, ans)
         return ans
 
-    def _repr_or_latex_(self, output_type=None):
+    def __repr_or_latex__(self, output_type=None):
         r"""
         Print representation, for either :meth:`_repr_` or :meth:`_latex_`.
 
@@ -2755,13 +2755,13 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
 
             sage: T = simplicial_sets.Torus()
             sage: K = T.suspension(10)
-            sage: K._repr_or_latex_()
+            sage: K.__repr_or_latex__()
             'Sigma^10(Torus)'
-            sage: K._repr_or_latex_('latex')
+            sage: K.__repr_or_latex__('latex')
             '\\Sigma^{10}(S^{1} \\times S^{1})'
         """
         latex_output = (output_type == 'latex')
-        X = self._X
+        base = self._base
         if self._reduced:
             # Reduced suspension.
             if latex_output:
@@ -2772,18 +2772,18 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             # Unreduced suspension.
             symbol = 'S'
         idx = 1
-        while isinstance(X, SuspensionOfSimplicialSet):
+        while isinstance(base, SuspensionOfSimplicialSet):
             idx += 1
-            X = X._X
+            base = base._base
         if latex_output:
-            X = latex(X)
+            base = latex(base)
             exp = '^{{{}}}'
         else:
             exp = '^{}'
         if idx > 1:
-            return ('{}' + exp + '({})').format(symbol, idx, X)
+            return ('{}' + exp + '({})').format(symbol, idx, base)
         else:
-            return ('{}({})').format(symbol, X)
+            return ('{}({})').format(symbol, base)
 
     def _repr_(self):
         r"""
@@ -2803,7 +2803,7 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             sage: K.suspension()
             S(2-simplex)
         """
-        return self._repr_or_latex_()
+        return self.__repr_or_latex__()
 
     def _latex_(self):
         r"""
@@ -2823,7 +2823,7 @@ class SuspensionOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
             sage: latex(K.suspension())
             S(\Delta^{2})
         """
-        return self._repr_or_latex_('latex')
+        return self.__repr_or_latex__('latex')
 
 
 class SuspensionOfSimplicialSet_finite(SuspensionOfSimplicialSet,
@@ -2833,11 +2833,11 @@ class SuspensionOfSimplicialSet_finite(SuspensionOfSimplicialSet,
 
     See :class:`SuspensionOfSimplicialSet` for more information.
     """
-    def __init__(self, X):
+    def __init__(self, base):
         r"""
         INPUT:
 
-        - ``X`` -- return the suspension of this finite simplicial set.
+        - ``base`` -- return the suspension of this finite simplicial set.
 
         See :class:`SuspensionOfSimplicialSet` for more information.
 
@@ -2850,22 +2850,22 @@ class SuspensionOfSimplicialSet_finite(SuspensionOfSimplicialSet,
             sage: Y.suspension(2)
             S^2(Simplicial set with 2 non-degenerate simplices)
         """
-        self._X = X
-        reduced = (X.is_pointed()
-                   and (not hasattr(X, '_reduced')
-                        or (hasattr(X, '_reduced') and X._reduced)))
+        self._base = base
+        reduced = (base.is_pointed()
+                   and (not hasattr(base, '_reduced')
+                        or (hasattr(base, '_reduced') and base._reduced)))
         if reduced:
-            CX = ReducedConeOfSimplicialSet_finite(X)
-            subcomplex = CX.map_from_X().image()
+            C = ReducedConeOfSimplicialSet_finite(base)
+            subcomplex = C.map_from_base().image()
         else:
-            CX = ConeOfSimplicialSet_finite(X)
-            subcomplex = CX.X_as_subset()
+            C = ConeOfSimplicialSet_finite(base)
+            subcomplex = C.base_as_subset()
         QuotientOfSimplicialSet_finite.__init__(self, subcomplex.inclusion_map())
         self._reduced = reduced
         # self._suspensions: dictionary, each key is a simplex sigma
-        # in X, the corresponding value is the new simplex (sigma, *)
-        # in SX. Another key is 'cone', and its value is the cone
-        # vertex in CX. This is used to construct the suspension of a
+        # in base, the corresponding value is the new simplex (sigma, *)
+        # in S(base). Another key is 'cone', and its value is the cone
+        # vertex in C(base). This is used to construct the suspension of a
         # morphism.
         q = self.quotient_map()
-        self._suspensions = {sigma: q(CX._joins[sigma]) for sigma in CX._joins}
+        self._suspensions = {sigma: q(C._joins[sigma]) for sigma in C._joins}

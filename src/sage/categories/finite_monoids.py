@@ -65,11 +65,6 @@ class FiniteMonoids(CategoryWithAxiom):
             corresponding face of the simplex will be a degenerate
             simplex.
 
-            This complex will have homology groups isomorphic to those of
-            $BG$ up to and including dimension $n-1$. The homology of this
-            complex in dimension $n$ will likely not be the same as that
-            of $BG$.
-
             EXAMPLES:
 
             The nerve (classifying space) of the cyclic group of order
@@ -165,7 +160,6 @@ class FiniteMonoids(CategoryWithAxiom):
             from sage.homology.simplicial_set_examples import Nerve
             return Nerve(self)
 
-    class ParentMethods:
         def rhodes_radical_congruence(self, base_ring=None):
             r"""
             Return the Rhodes radical congruence of the semigroup.

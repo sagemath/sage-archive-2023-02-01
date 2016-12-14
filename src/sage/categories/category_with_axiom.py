@@ -850,7 +850,7 @@ commutative, i.e. is a finite field. In other words,
 ``DivisionRings().Finite()`` *coincides* with ``Fields().Finite()``::
 
         sage: DivisionRings().Finite()
-        Category of finite fields
+        Category of finite enumerated fields
         sage: DivisionRings().Finite() is Fields().Finite()
         True
 
@@ -1312,7 +1312,7 @@ Other design goals include:
        sage: Rings().Commutative().Finite().NoZeroDivisors()
        Category of finite integral domains
        sage: Rings().Finite().Division()
-       Category of finite fields
+       Category of finite enumerated fields
 
    This will allow for progressively getting rid of all the entries
    like :class:`GradedHopfAlgebrasWithBasis` which are polluting the
@@ -1638,7 +1638,7 @@ TESTS:
     Category of integral domains
 
     sage: DivisionRings().Finite() # Wedderburn's theorem
-    Category of finite fields
+    Category of finite enumerated fields
 
     sage: FiniteMonoids().Algebras(QQ)
     Join of Category of monoid algebras over Rational Field
@@ -1677,7 +1677,7 @@ all_axioms += ("Flying", "Blue",
                "Differentiable", "Smooth", "Analytic", "AlmostComplex",
                "FinitelyGeneratedAsMagma",
                "WellGenerated",
-               "Facade", "Finite", "Infinite",
+               "Facade", "Finite", "Infinite","Enumerated",
                "Complete",
                "FiniteDimensional", "Connected", "WithBasis",
                "Irreducible",

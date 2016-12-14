@@ -43,7 +43,7 @@ if [ -z "$UPSTREAM_SOURCE_DIRECTORY" ]; then
         # The following is inspired from make_tar.sh
         #sh make_tar.sh
         #begin make_tar.sh
-        git checkout "$SINGULAR_GIT_COMMIT" 
+        git checkout "$SINGULAR_GIT_COMMIT"
         git checkout-index -a -f --prefix=singular-$DOTVERSION/
         rm singular-$DOTVERSION/.gdbinit singular-$DOTVERSION/*/.gdbinit singular-$DOTVERSION/*/*/.gdbinit singular-$DOTVERSION/*/*/*/.gdbinit
         rm singular-$DOTVERSION/IntegerProgramming/README
@@ -93,26 +93,6 @@ if [ ! -d "singular-$DOTVERSION" ]; then
     exit 1
 fi
 mv "singular-$DOTVERSION" latest
-
-# Patching
-cd latest
-for patch in "${SAGE_ROOT}"/build/pkgs/singular/patches/src/*.patch; do
-    patch -p1 <"$patch"
-done
-cd ..
-
-# We need to run autoreconf -fiv in xalloc directory for debug builds
-# To prevent libtool to choke because different versions got used
-# we run it everywhere
-cd latest/
-autoreconf -fiv
-cd xalloc
-autoreconf -fiv
-cd ..
-rm -rf autom4te.cache
-rm -rf */autom4te.cache
-rm -rf */*/autom4te.cache
-cd ..
 
 # Touch autotools files to make sure nothing gets autoregenerated during make
 # It indeed seems autotools leave them in a broken state

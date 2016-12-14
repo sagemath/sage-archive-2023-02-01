@@ -44,7 +44,7 @@ class HammingCode(AbstractLinearCode):
 
         sage: C = codes.HammingCode(GF(7), 3)
         sage: C
-        [57, 54] Hamming Code over Finite Field of size 7
+        [57, 54] Hamming Code over GF(7)
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -106,10 +106,10 @@ class HammingCode(AbstractLinearCode):
 
             sage: C = codes.HammingCode(GF(7), 3)
             sage: C
-            [57, 54] Hamming Code over Finite Field of size 7
+            [57, 54] Hamming Code over GF(7)
         """
-        return "[%s, %s] Hamming Code over %s"\
-                % (self.length(), self.dimension(), self.base_field())
+        return "[%s, %s] Hamming Code over GF(%s)"\
+                % (self.length(), self.dimension(), self.base_field().cardinality())
 
     def _latex_(self):
         r"""
@@ -119,10 +119,10 @@ class HammingCode(AbstractLinearCode):
 
             sage: C = codes.HammingCode(GF(7), 3)
             sage: latex(C)
-            [57, 54] \textnormal{ Hamming Code over Finite Field of size 7}
+            [57, 54] \textnormal{ Hamming Code over }\Bold{F}_{7}
         """
-        return "[%s, %s] \\textnormal{ Hamming Code over %s}"\
-                % (self.length(), self.dimension(), self.base_field())
+        return "[%s, %s] \\textnormal{ Hamming Code over }%s"\
+                % (self.length(), self.dimension(), self.base_field()._latex_())
 
 
     def parity_check_matrix(self):

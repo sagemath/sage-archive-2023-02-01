@@ -21,7 +21,7 @@ functions `d_i` from `X_n` to `X_{n-1}`, with `d_i(s)` equal to the
 `i`-th face of `s` for each simplex `s \in X_n`.  These maps must
 satisfy the *simplicial identity*
 
-  .. math::
+  .. MATH::
 
     d_i d_j = d_{j-1} d_i \text{ for all } i<j.
 

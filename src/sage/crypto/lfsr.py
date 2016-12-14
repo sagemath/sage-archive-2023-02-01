@@ -9,7 +9,7 @@ sequence of numbers `{\bf a}=\{a_n\}_{n=1}^\infty`,
 `a_n\in \{0,1\}`, should display to be considered
 "random". Define the autocorrelation of `{\bf a}` to be
 
-.. math::
+.. MATH::
 
      C(k)=C(k,{\bf a})=\lim_{N\rightarrow \infty} {1\over N}\sum_{n=1}^N (-1)^{a_n+a_{n+k}}.
 
@@ -17,7 +17,7 @@ sequence of numbers `{\bf a}=\{a_n\}_{n=1}^\infty`,
 In the case where `{\bf a}` is periodic with period
 `P` then this reduces to
 
-.. math::
+.. MATH::
 
      C(k)={1\over P}\sum_{n=1}^P (-1)^{a_n+a_{n+k}}.
 
@@ -29,7 +29,7 @@ Assume `{\bf a}` is periodic with period `P`.
 
 -  low autocorrelation:
 
-   .. math::
+   .. MATH::
 
       C(k)= \left\{ \begin{array}{cc} 1,& k=0,\\ \epsilon, & k\not= 0. \end{array} \right.
 
@@ -46,7 +46,7 @@ Assume `{\bf a}` is periodic with period `P`.
 A general feedback shift register is a map
 `f:{\bf F}_q^d\rightarrow {\bf F}_q^d` of the form
 
-.. math::
+.. MATH::
 
      \begin{array}{c} f(x_0,...,x_{n-1})=(x_1,x_2,...,x_n),\\ x_n=C(x_0,...,x_{n-1}), \end{array}
 
@@ -54,7 +54,7 @@ A general feedback shift register is a map
 where `C:{\bf F}_q^d\rightarrow {\bf F}_q` is a given
 function. When `C` is of the form
 
-.. math::
+.. MATH::
 
      C(x_0,...,x_{n-1})=a_0x_0+...+a_{n-1}x_{n-1},
 
@@ -64,20 +64,20 @@ called a linear feedback shift register (LFSR).
 
 Example of a LFSR Let
 
-.. math::
+.. MATH::
 
      f(x)=a_{{0}}+a_{{1}}x+...+a_{{n}}{x}^n+...,
 
 
 
-.. math::
+.. MATH::
 
      g(x)=b_{{0}}+b_{{1}}x+...+b_{{n}}{x}^n+...,
 
 
 be given polynomials in `{\bf F}_2[x]` and let
 
-.. math::
+.. MATH::
 
      h(x)={f(x)\over g(x)}=c_0+c_1x+...+c_nx^n+... \ .
 
@@ -85,7 +85,7 @@ be given polynomials in `{\bf F}_2[x]` and let
 We can compute a recursion formula which allows us to rapidly
 compute the coefficients of `h(x)` (take `f(x)=1`):
 
-.. math::
+.. MATH::
 
      c_{n}=\sum_{i=1}^n {{-b_i\over b_0}c_{n-i}}.
 
@@ -97,19 +97,19 @@ certain statistical points of view.
 
 Example: For instance, if
 
-.. math::
+.. MATH::
 
      f(x)=1,\ \ \ \ g(x)=x^4+x+1,
 
 then
 
-.. math::
+.. MATH::
 
      h(x)=1+x+x^2+x^3+x^5+x^7+x^8+...\ .
 
 The coefficients of `h` are
 
-.. math::
+.. MATH::
 
      \begin{array}{c} 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, \\ 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, ...\ . \end{array}
 

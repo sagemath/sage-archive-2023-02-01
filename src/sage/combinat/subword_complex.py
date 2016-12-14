@@ -120,6 +120,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.homology.simplicial_complex import SimplicialComplex, Simplex
+from sage.categories.simplicial_complexes import SimplicialComplexes
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.cone import Cone
 from sage.combinat.subword_complex_c import _flip_c, _construct_facets_c
@@ -1073,6 +1074,28 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             Subword complex of type ['A', 3] for Q = (1, 2, 3, 1, 2, 3, 1, 2, 1) and pi = [1, 2, 3, 1, 2, 1]
             sage: len(SC)
             14
+
+        TESTS:
+
+        Check for methods from the enumerated sets category::
+
+            sage: W = ReflectionGroup(['A',2])                          # optional - gap3
+            sage: w = W.from_reduced_word([1,2,1])                      # optional - gap3
+            sage: SC = SubwordComplex([1,2,1,2,1], w)                   # optional - gap3
+            sage: list(SC)                                              # optional - gap3
+            [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
+
+            sage: W = CoxeterGroup(['A',2])
+            sage: w = W.from_reduced_word([1,2,1])
+            sage: SC = SubwordComplex([1,2,1,2,1], w)
+            sage: list(SC)
+            [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
+
+            sage: W = CoxeterGroup(['A',2])
+            sage: w = W.from_reduced_word([1,1,1])
+            sage: SC = SubwordComplex([1,2,2,2,1], w)
+            sage: len(SC)
+            2
         """
         W = w.parent()
         I = W.index_set()
@@ -1089,8 +1112,10 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
                              "either inductive or greedy")
         if Fs == []:
             raise ValueError("The word %s does not contain a reduced expression for %s" % (Q, w.reduced_word()))
+        cat = SimplicialComplexes().Finite().Enumerated()
         SimplicialComplex.__init__(self, maximal_faces=Fs,
-                                   maximality_check=False)
+                                   maximality_check=False,
+                                   category=cat)
         self.__custom_name = 'Subword complex'
         self._W = W
         try:
@@ -1231,26 +1256,6 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         if not all(i in list(range(len(Q))) for i in F):
             return False
         return W.from_reduced_word(Qi for i, Qi in enumerate(Q) if i not in F) == self.pi()
-
-    def list(self):
-        r"""
-        Return the list of facets of ``self``.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup(['A',2])                          # optional - gap3
-            sage: w = W.from_reduced_word([1,2,1])                      # optional - gap3
-            sage: SC = SubwordComplex([1,2,1,2,1], w)                   # optional - gap3
-            sage: list(SC)                                              # optional - gap3
-            [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
-
-            sage: W = CoxeterGroup(['A',2])
-            sage: w = W.from_reduced_word([1,2,1])
-            sage: SC = SubwordComplex([1,2,1,2,1], w)
-            sage: list(SC)
-            [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
-        """
-        return [F for F in self]
 
     # getting the stored properties
 

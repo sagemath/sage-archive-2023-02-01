@@ -134,9 +134,9 @@ import sage.misc.weak_dict
 
 import operator
 
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.gen cimport gen
-from sage.libs.pari.stack cimport new_gen
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
@@ -1353,7 +1353,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(2, rnd="RNDN")(w).str(2)
             '10.'
 
-        .. note::
+        .. NOTE::
 
            A real number is an arbitrary precision mantissa with a
            limited precision exponent. A real number can have three
@@ -1590,13 +1590,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: for prec in (2, 53, 200):
-            ...       for rnd_dir in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
-            ...           fld = RealField(prec, rnd=rnd_dir)
-            ...           var = polygen(fld)
-            ...           for v in [NaN, -infinity, -20, -e, 0, 1, 2^500, -2^4000, -2^-500, 2^-4000] + [fld.random_element() for _ in range(5)]:
-            ...               for preparse in (True, False, None):
-            ...                   _ = sage_input(fld(v), verify=True, preparse=preparse)
-            ...                   _ = sage_input(fld(v) * var, verify=True, preparse=preparse)
+            ....:     for rnd_dir in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
+            ....:         fld = RealField(prec, rnd=rnd_dir)
+            ....:         var = polygen(fld)
+            ....:         for v in [NaN, -infinity, -20, -e, 0, 1, 2^500, -2^4000, -2^-500, 2^-4000] + [fld.random_element() for _ in range(5)]:
+            ....:             for preparse in (True, False, None):
+            ....:                 _ = sage_input(fld(v), verify=True, preparse=preparse)
+            ....:                 _ = sage_input(fld(v) * var, verify=True, preparse=preparse)
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sib_np = SageInputBuilder(preparse=False)
@@ -2159,7 +2159,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: [x.fp_rank_delta(x.nextabove()) for x in
-            ...      (RR(-infinity), -1.0, 0.0, 1.0, RR(pi), RR(infinity))]
+            ....:    (RR(-infinity), -1.0, 0.0, 1.0, RR(pi), RR(infinity))]
             [1, 1, 1, 1, 1, 0]
 
         In the 2-bit floating-point field, one subsegment of the
@@ -3790,18 +3790,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RR(1).__nonzero__()
+            sage: bool(RR(1))
             True
-            sage: RR(0).__nonzero__()
+            sage: bool(RR(0))
             False
-            sage: RR('inf').__nonzero__()
+            sage: bool(RR('inf'))
             True
 
         TESTS:
 
         Check that :trac:`20502` is fixed::
 
-            sage: RR('nan').__nonzero__()
+            sage: bool(RR('nan'))
             True
             sage: RR('nan').is_zero()
             False
@@ -5040,7 +5040,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ::
 
             sage: type(z)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: R(z)
             1.64493406684823
         """
@@ -5147,18 +5147,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
         all cases::
 
             sage: def check(x, n):
-            ...       answers = []
-            ...       for sign in (1, -1):
-            ...           if is_even(n) and sign == -1:
-            ...               continue
-            ...           for rounding in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
-            ...               fld = RealField(x.prec(), rnd=rounding)
-            ...               fx = fld(sign * x)
-            ...               alg_mpfr = fx.nth_root(n, algorithm=1)
-            ...               alg_mpfi = fx.nth_root(n, algorithm=2)
-            ...               assert(alg_mpfr == alg_mpfi)
-            ...               if sign == 1: answers.append(alg_mpfr)
-            ...       return answers
+            ....:     answers = []
+            ....:     for sign in (1, -1):
+            ....:         if is_even(n) and sign == -1:
+            ....:             continue
+            ....:         for rounding in ('RNDN', 'RNDD', 'RNDU', 'RNDZ'):
+            ....:             fld = RealField(x.prec(), rnd=rounding)
+            ....:             fx = fld(sign * x)
+            ....:             alg_mpfr = fx.nth_root(n, algorithm=1)
+            ....:             alg_mpfi = fx.nth_root(n, algorithm=2)
+            ....:             assert(alg_mpfr == alg_mpfi)
+            ....:             if sign == 1: answers.append(alg_mpfr)
+            ....:     return answers
 
         Check some perfect powers (and nearby numbers)::
 

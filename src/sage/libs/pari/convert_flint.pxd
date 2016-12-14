@@ -1,5 +1,5 @@
-from .types cimport GEN
-from .gen cimport gen
+from sage.libs.cypari2.types cimport GEN
+from sage.libs.cypari2.gen cimport gen
 from sage.libs.flint.types cimport fmpz_t, fmpz_mat_t
 
 cdef GEN _new_GEN_from_fmpz_t(fmpz_t value)

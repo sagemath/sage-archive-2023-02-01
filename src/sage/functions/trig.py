@@ -274,6 +274,15 @@ class Function_cot(GinacFunction):
             sage: type(_)
             <type 'float'>
 
+            sage: cot(float(0))
+            Infinity
+            sage: cot(SR(0))
+            Infinity
+            sage: cot(float(0.1))
+            9.966644423259238
+            sage: type(_)
+            <type 'float'>
+
         Test complex input::
 
             sage: cot(complex(1,1))     # rel tol 1e-15

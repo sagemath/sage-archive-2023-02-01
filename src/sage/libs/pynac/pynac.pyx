@@ -191,7 +191,7 @@ cdef object paramset_to_PyTuple(const_paramset_ref s):
     """
     cdef GParamSetIter itr = s.begin()
     res = []
-    while itr.is_not_equal(s.end()):
+    while itr != s.end():
         res.append(itr.obj())
         itr.inc()
     return res
@@ -1486,10 +1486,9 @@ cdef object py_step(object n) except +:
     """
     Return step function of n.
     """
-    cdef int c = cmp(n, 0)
-    if c < 0:
+    if n < 0:
         return ZERO
-    elif c > 0:
+    elif n > 0:
         return ONE
     return ONE_HALF
 
@@ -1788,24 +1787,31 @@ cdef object py_atan2(object x, object y) except +:
         sage: RR100 = RealField(100)
         sage: py_atan2(RR100(0), RR100(1))
         1.5707963267948966192313216916
+
+    Check that :trac:`21428` is fixed::
+
+        sage: plot(real(sqrt(x - 1.*I)), (x,0,1))
+        Graphics object consisting of 1 graphics primitive
     """
     from sage.symbolic.constants import pi
     parent = parent_c(x)
+    if parent is float and parent_c(y) is not float:
+        parent = RR
     assert parent is parent_c(y)
     if parent is ZZ:
         parent = RR
     pi_n = parent(pi)
-    cdef int sgn_y = cmp(y, 0)
-    cdef int sgn_x = cmp(x, 0)
-    if sgn_y:
-        if sgn_x > 0:
+    cdef int sgn_y
+    if y != 0:
+        sgn_y = -1 if y < 0 else 1
+        if x > 0:
             return py_atan(abs(y/x)) * sgn_y
-        elif sgn_x == 0:
+        elif x == 0:
             return pi_n/2 * sgn_y
         else:
             return (pi_n - py_atan(abs(y/x))) * sgn_y
     else:
-        if sgn_x > 0:
+        if x > 0:
             return 0
         elif x == 0:
             raise ValueError("arctan2(0,0) undefined")

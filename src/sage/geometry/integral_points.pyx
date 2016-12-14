@@ -90,7 +90,7 @@ def parallelotope_points(spanning_points, lattice):
     The tuple of all lattice points in the half-open parallelotope
     spanned by the rays `r_i`,
 
-    .. math::
+    .. MATH::
 
         \mathop{par}(\{r_i\}) =
         \sum_{0\leq a_i < 1} a_i r_i
@@ -399,7 +399,7 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
 
       * Unwind inner loop (and next-to-inner loop):
 
-        .. math::
+        .. MATH::
 
             Ax\leq b
             \quad \Leftrightarrow \quad
@@ -459,8 +459,8 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
         True
 
         sage: set(map(tuple,pts)) == \
-        ...   set([(-4,-3,-2,-1),(3,1,1,1),(1,2,1,1),(1,1,3,0),(1,3,2,4),
-        ...        (0,1,1,1),(1,2,2,2),(-1,0,0,1),(1,1,1,1),(2,1,1,1)])   # computed with PALP
+        ....: set([(-4,-3,-2,-1),(3,1,1,1),(1,2,1,1),(1,1,3,0),(1,3,2,4),
+        ....:      (0,1,1,1),(1,2,2,2),(-1,0,0,1),(1,1,1,1),(2,1,1,1)])   # computed with PALP
         True
 
     Long ints and non-integral polyhedra are explictly allowed::
@@ -1190,7 +1190,7 @@ cdef class InequalityCollection:
         we have to repeatedly evaluate `A x-A_0 x_0+b`. To speed up
         computation, we pre-evaluate
 
-        .. math::
+        .. MATH::
 
             c = b + \sum_{i=2} A_i x_i
 
@@ -1227,7 +1227,7 @@ cdef class InequalityCollection:
         In the inner loop of :func:`rectangular_box_points`, we have
         to repeatedly evaluate `A x+b\geq 0`. To speed up computation, we pre-evaluate
 
-        .. math::
+        .. MATH::
 
             c = A x - A_0 x_0 +b = b + \sum_{i=1} A_i x_i
 
@@ -1266,7 +1266,7 @@ cdef class InequalityCollection:
         INPUT:
 
         - ``i`` -- Integer. The :class:`Inequality_int` to swap to the
-          beginnig of the list of integral inequalities.
+          beginning of the list of integral inequalities.
 
         EXAMPLES::
 

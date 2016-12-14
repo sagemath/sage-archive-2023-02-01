@@ -122,7 +122,7 @@ class Gamma_class(CongruenceSubgroup):
         r"""
         Return the index of self in the full modular group. This is given by
 
-        .. math::
+        .. MATH::
 
           \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(p^{3e}-p^{3e-2}\right).
 

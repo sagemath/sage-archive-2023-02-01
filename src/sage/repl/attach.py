@@ -589,7 +589,7 @@ def reload_attached_files_if_modified():
         timestr = time.strftime('%T', mtime)
         notice = '### reloading attached file {0} modified at {1} ###'.format(basename, timestr)
         if ip and ip.pt_cli:
-            with ip.pt_cli.patch_stdout_context():
+            with ip.pt_cli.patch_stdout_context(raw=True):
                 print(notice)
                 code = load_wrap(filename, attach=True)
                 ip.run_cell(code)

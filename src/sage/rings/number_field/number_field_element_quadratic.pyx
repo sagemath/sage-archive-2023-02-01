@@ -37,6 +37,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
+from sage.libs.mpfi cimport mpfi_set_z, mpfi_set_q, mpfi_sqrt, mpfi_add_z, mpfi_mul_z, mpfi_div_z, mpfi_neg
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -49,6 +50,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.categories.morphism cimport Morphism
 from sage.rings.number_field.number_field_element import _inverse_mod_generic
+from sage.rings.real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class
 
 import number_field
 
@@ -508,6 +510,60 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         ZZX_rem(x.__numerator, result, _num.x)
         (<NumberFieldElement_absolute>x)._reduce_c_()
         return x
+
+    def _real_mpfi_(self, RealIntervalField_class R):
+        r"""
+        Conversion to a real interval field
+
+        TESTS::
+
+            sage: K1 = QuadraticField(2)
+            sage: RIF(K1.gen())
+            1.414213562373095?
+            sage: RIF(K1(1/5))
+            0.2000000000000000?
+            sage: RIF(3/5*K1.gen() + 1/5)
+            1.048528137423857?
+
+            sage: K2 = QuadraticField(2, embedding=-RLF(2).sqrt())
+            sage: RIF(K2.gen())
+            -1.414213562373095?
+
+            sage: K3 = QuadraticField(-1)
+            sage: RIF(K3.gen())
+            Traceback (most recent call last):
+            ...
+            ValueError: can not convert complex algebraic number to real interval
+            sage: RIF(K3(2))
+            2
+
+        Check that :trac:`21979` is fixed::
+
+            sage: a = QuadraticField(5).gen()
+            sage: u = -573147844013817084101/2*a + 1281597540372340914251/2
+            sage: RealIntervalField(128)(u)
+            0.?e-17
+            sage: RealIntervalField(128)(u).is_zero()
+            False
+        """
+        cdef RealIntervalFieldElement ans = R._new()
+
+        if mpz_cmp_ui(self.b, 0):
+            if mpz_cmp_ui(self.D.value, 0) < 0:
+                raise ValueError("can not convert complex algebraic number to real interval")
+            mpfi_set_z(ans.value, self.D.value)
+            mpfi_sqrt(ans.value, ans.value)
+            if not self.standard_embedding:
+                mpfi_neg(ans.value, ans.value)
+            mpfi_mul_z(ans.value, ans.value, self.b)
+
+            mpfi_add_z(ans.value, ans.value, self.a)
+
+        else:
+            mpfi_set_z(ans.value, self.a)
+
+        mpfi_div_z(ans.value, ans.value, self.denom)
+        return ans
 
     def parts(self):
         """

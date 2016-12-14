@@ -319,6 +319,7 @@ see :trac:`11645`::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 import os
 import re
@@ -1086,7 +1087,7 @@ class Singular(ExtraTabCompletion, Expect):
             //        block   2 : ordering C
             sage: singular.set_ring(R)
             sage: singular.current_ring()
-            polynomial ring, over a field, local/mixed ordering
+            polynomial ring, over a field, local ordering
             //   characteristic : 7
             //   number of vars : 2
             //        block   1 : ordering ds
@@ -1178,7 +1179,12 @@ class Singular(ExtraTabCompletion, Expect):
 
     def version(self):
         """
-        EXAMPLES:
+        Return the version of Singular being used.
+
+        EXAMPLES::
+
+            sage: singular.version()
+            "Singular ... version 4.0.3 ...
         """
         return singular_version()
 
@@ -1436,19 +1442,21 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         else:
             P.eval('%s[%s] = %s'%(self.name(), n, value.name()))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Returns True if this Singular element is not zero.
+        Returns ``True`` if this Singular element is not zero.
 
         EXAMPLES::
 
-            sage: singular(0).__nonzero__()
+            sage: bool(singular(0))
             False
-            sage: singular(1).__nonzero__()
+            sage: bool(singular(1))
             True
         """
         P = self.parent()
-        return P.eval('%s == 0'%self.name()) == '0'
+        return P.eval('%s == 0' % self.name()) == '0'
+
+    __nonzero__ = __bool__
 
     def sage_polystring(self):
         r"""
@@ -1743,7 +1751,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         # Singular 4 puts parentheses around floats and sign outside them
         charstr = self.parent().eval('charstr(basering)').split(',',1)
         if charstr[0] in ['real', 'complex']:
-              for i in range(coeff_start, 2*coeff_start):
+              for i in range(coeff_start, 2 * coeff_start):
                   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 
         if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
@@ -1947,8 +1955,8 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             from sage.matrix.constructor import matrix
             from sage.rings.integer_ring import ZZ
             A =  matrix(ZZ, int(self.nrows()), int(self.ncols()))
-            for i in xrange(A.nrows()):
-                for j in xrange(A.ncols()):
+            for i in range(A.nrows()):
+                for j in range(A.ncols()):
                     A[i,j] = sage.rings.integer.Integer(str(self[i+1,j+1]))
             return A
         elif typ == 'string':
@@ -1995,7 +2003,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             //        block   2 : ordering C
             sage: R.set_ring()
             sage: singular.current_ring()
-            polynomial ring, over a field, local/mixed ordering
+            polynomial ring, over a field, local ordering
             //   characteristic : 7
             //   number of vars : 2
             //        block   1 : ordering ds
@@ -2107,7 +2115,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             l = self.ncols()
         else:
             l = len(self)
-        for i in range(1, l+1):
+        for i in range(1, l + 1):
             yield self[i]
 
     def _singular_(self):
@@ -2371,9 +2379,12 @@ def singular_console():
 
 def singular_version():
     """
-    Returns the version of Singular being used.
+    Return the version of Singular being used.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: singular.version()
+        "Singular ... version 4.0.3 ...
     """
     return singular.eval('system("--version");')
 

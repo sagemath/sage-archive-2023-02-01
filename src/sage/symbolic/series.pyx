@@ -76,6 +76,12 @@ expanded to a series. This must be explicitly done by the user::
     sin(1*x + (-1/6)*x^3 + Order(x^4))
     sage: sin(ex1).series(x,9)
     1*x + (-1/3)*x^3 + 11/120*x^5 + (-53/2520)*x^7 + Order(x^9)
+    sage: (sin(x^2)^(-5)).series(x,3)
+    1*x^(-10) + 5/6*x^(-6) + 3/8*x^(-2) + 367/3024*x^2 + Order(x^3)
+    sage: (cot(x)^(-3)).series(x,3)
+    Order(x^3)
+    sage: (cot(x)^(-3)).series(x,4)
+    1*x^3 + Order(x^4)
 
 TESTS:
 
@@ -83,6 +89,13 @@ Check that :trac:`20088` is fixed::
 
     sage: ((1+x).series(x)^pi).series(x,3)
     1 + (pi)*x + (-1/2*pi + 1/2*pi^2)*x^2 + Order(x^3)
+
+Check that :trac:`14878` is fixed, this should take only microseconds::
+
+    sage: sin(x*sin(x*sin(x*sin(x)))).series(x,8)
+    1*x^4 + (-1/6)*x^6 + Order(x^8)
+    sage: sin(x*sin(x*sin(x*sin(x)))).series(x,12)
+    1*x^4 + (-1/6)*x^6 + (-19/120)*x^8 + (-421/5040)*x^10 + Order(x^12)
 """
 
 #*****************************************************************************
@@ -130,7 +143,9 @@ cdef class SymbolicSeries(Expression):
         Return True if the series is without order term.
 
         A series is terminating if it can be represented exactly,
-        without requiring an order term.
+        without requiring an order term. You can explicitly
+        request terminating series by setting the order to
+        positive infinity.
 
         OUTPUT:
 
@@ -138,9 +153,9 @@ cdef class SymbolicSeries(Expression):
 
         EXAMPLES::
 
-            sage: (x^5+x^2+1).series(x,10)
+            sage: (x^5+x^2+1).series(x, +oo)
             1 + 1*x^2 + 1*x^5
-            sage: (x^5+x^2+1).series(x,10).is_terminating_series()
+            sage: (x^5+x^2+1).series(x,+oo).is_terminating_series()
             True
             sage: SR(5).is_terminating_series()
             False

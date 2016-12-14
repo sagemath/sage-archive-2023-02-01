@@ -525,7 +525,7 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
 cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
     cdef int  i
     cdef long _deg, deg
-    
+
     deg = -1
     _deg = -1 
     if p == NULL:
@@ -533,7 +533,7 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
     if(r != currRing): rChangeCurrRing(r)
     if x == NULL:
         while p:  
-            _deg = p_WTotaldegree(p,r)
+            _deg = p_WDegree(p,r)
           
             if _deg > deg:
                 deg = _deg

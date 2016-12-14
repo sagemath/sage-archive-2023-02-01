@@ -27,10 +27,11 @@ from sage.libs.gmp.mpq cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpq cimport *
 from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.fmpq_poly cimport *
 
 from sage.interfaces.all import singular as singular_default
 
-from sage.libs.pari.gen import gen as pari_gen
+from sage.libs.cypari2.gen import gen as pari_gen
 
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.integer_ring import ZZ
@@ -610,7 +611,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.reverse(I)
             Traceback (most recent call last):
             ...
-            ValueError: cannot convert I + 1 to int
+            ValueError: can not convert complex algebraic number to real interval
 
         We check that this specialized implementation is compatible with the
         generic one::
@@ -1440,7 +1441,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         -  Derivative as a ``Polynomial_rational_flint``
 
-        .. seealso:: :meth:`~Polynomial.derivative`
+        .. SEEALSO:: :meth:`~Polynomial.derivative`
 
         EXAMPLES::
 
@@ -1501,7 +1502,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         coefficients of `f` and `g`, the resultant of the two polynomials
         is defined by
 
-        .. math::
+        .. MATH::
 
             x^{\deg g} y^{\deg f} \prod_{i,j} (r_i - s_j).
 
@@ -2025,7 +2026,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         The Galois group is computed using PARI in C library mode, or possibly
         KASH or MAGMA.
 
-        .. note::
+        .. NOTE::
 
             The PARI documentation contains the following warning: The method
             used is that of resolvent polynomials and is sensitive to the
@@ -2354,7 +2355,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         The discriminant `R_n` is defined as
 
-        .. math::
+        .. MATH::
 
             R_n = a_n^{2 n-2} \prod_{1 \le i < j \le n} (r_i - r_j)^2,
 
@@ -2367,7 +2368,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         -  Discriminant, an element of the base ring of the polynomial ring
 
-        .. note::
+        .. NOTE::
 
             Note the identity `R_n(f) := (-1)^(n (n-1)/2) R(f,f') a_n^(n-k-2)`,
             where `n` is the degree of this polynomial, `a_n` is the leading

@@ -1,5 +1,10 @@
 """
 Auto-generate methods for PARI functions.
+
+Run tests from the ``SAGE_SRC`` directory::
+
+    sage: from sage.env import SAGE_SRC
+    sage: os.chdir(SAGE_SRC)
 """
 
 #*****************************************************************************
@@ -49,6 +54,7 @@ function_re = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 function_blacklist = {"O",  # O(p^e) needs special parser support
         "alias",            # Not needed and difficult documentation
         "listcreate",       # "redundant and obsolete" according to PARI
+        "allocatemem",      # Better hand-written support in PariInstance
         }
 
 class PariFunctionGenerator(object):

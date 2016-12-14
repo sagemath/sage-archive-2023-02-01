@@ -1,4 +1,3 @@
-# distutils: language = c++
 """
 GLPK Backend for access to GLPK graph functions
 
@@ -369,7 +368,7 @@ cdef class GLPKGraphBackend(object):
 
         # We do not want to have [None,None,None,1] as input as a vertex named
         # "1" would be created twice (a first time when adding a 'None' vertex,
-        # and and a second time when reading the last item of the list).
+        # and a second time when reading the last item of the list).
         nonecount = 0
         for v in vertices:
             if v is None:

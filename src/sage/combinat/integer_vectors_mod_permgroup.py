@@ -36,7 +36,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     is maximal in its orbit under the action of `G`. `v` is
     canonical if and only if
 
-    .. math::
+    .. MATH::
 
         v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 
@@ -44,7 +44,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     simple transposition `s_1 = (1, 2)` swaps the first and the second entries
     of any integer vector `v = [a_1, a_2, a_3, \dots , a_n]`
 
-    .. math::
+    .. MATH::
 
         s_1 \cdot v = [a_2, a_1, a_3, \dots , a_n]
 
@@ -82,13 +82,13 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
 
         sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
         sage: I.category()
-        Join of Category of infinite enumerated sets and Category of quotients of sets
+        Category of infinite enumerated quotients of sets
         sage: I.cardinality()
         +Infinity
         sage: I.list()
         Traceback (most recent call last):
         ...
-        NotImplementedError: infinite list
+        NotImplementedError: cannot list an infinite set
         sage: p = iter(I)
         sage: for i in range(10): next(p)
         [0, 0, 0]
@@ -158,8 +158,8 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         sage: I = IntegerVectorsModPermutationGroup(SymmetricGroup(5)) # long time
         sage: p = iter(I) # long time
         sage: for i in range(100): # long time
-        ...       v = list(next(p))
-        ...       assert sorted(v, reverse=True) == v
+        ....:     v = list(next(p))
+        ....:     assert sorted(v, reverse=True) == v
 
     We now check that there is as much of canonical vectors under the
     symmetric group `S_n` whose entries sum to `d` than partitions of
@@ -273,7 +273,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: I
             Integer vectors of length 4 enumerated up to the action of Permutation Group with generators [(1,2,3,4)]
             sage: I.category()
-            Join of Category of infinite enumerated sets and Category of quotients of sets
+            Category of infinite enumerated quotients of sets
             sage: TestSuite(I).run()
         """
         SearchForest.__init__(self, algorithm = 'breadth', category = InfiniteEnumeratedSets().Quotients())
@@ -323,7 +323,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: v = S.lift(S([4,3,0,1])); v
             [4, 3, 0, 1]
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
         """
         # TODO: For now, Sage integer vectors are just python list.
         # Once Integer vectors will have an element class, update this
@@ -417,7 +417,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         define ``self``.  Such integer vectors are said to be
         canonical. A vector `v` is canonical if and only if
 
-        .. math::
+        .. MATH::
 
             v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 
@@ -772,7 +772,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         define ``self``.  Such integer vectors are said to be
         canonical. A vector `v` is canonical if and only if
 
-        .. math::
+        .. MATH::
 
             v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 

@@ -30,7 +30,7 @@ and its subclasses:
 - :class:`NormalizedClonableList` for lists of objects with a normalization method;
 - :class:`ClonableIntArray` for arrays of int.
 
-.. seealso:: The following parents from :mod:`sage.structure.list_clone_demo`
+.. SEEALSO:: The following parents from :mod:`sage.structure.list_clone_demo`
     demonstrate how to use them:
 
     - ``IncreasingArrays()`` (see
@@ -147,6 +147,7 @@ from cpython.ref cimport *
 import sage
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object cimport richcmp
 
 ############################################################################
 ###                         Basic clone elements                         ###
@@ -230,7 +231,7 @@ cdef class ClonableElement(Element):
         ....:      def set_x(self, v): self._require_mutable(); self._x = v
         ....:      def set_y(self, v): self._require_mutable(); self._y = v
 
-    .. note:: we don't need to define ``__copy__`` since it is properly
+    .. NOTE:: we don't need to define ``__copy__`` since it is properly
        inherited from :class:`Element<sage.structure.element.Element>`.
 
     We now demonstrate the behavior. Let's create an ``IntPair``::
@@ -453,7 +454,7 @@ cdef class ClonableElement(Element):
         """
         Implement the self guarding clone protocol.
 
-        .. note:: The input argument are required by the ``with`` protocol but
+        .. NOTE:: The input argument are required by the ``with`` protocol but
            are ignored.
 
         TESTS::
@@ -501,7 +502,7 @@ cdef class ClonableArray(ClonableElement):
     - ``immutable`` -- a boolean telling wether the created element is
       immutable (defaults to ``True``)
 
-    .. seealso:: :class:`~sage.structure.list_clone_demo.IncreasingArray` for
+    .. SEEALSO:: :class:`~sage.structure.list_clone_demo.IncreasingArray` for
                  an example of usage.
 
     EXAMPLES::
@@ -642,7 +643,7 @@ cdef class ClonableArray(ClonableElement):
             sage: IncreasingArrays()([1,2,3])[:]
             [1, 2, 3]
             sage: type(IncreasingArrays()([1,2,3])[:])
-            <type 'list'>
+            <... 'list'>
         """
         if isinstance(key, slice):
             self._list[key.start:key.stop:key.step]
@@ -819,7 +820,7 @@ cdef class ClonableArray(ClonableElement):
         return self._hash
 
     # See protocol in comment in sage/structure/element.pyx
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         TESTS::
 
@@ -840,7 +841,7 @@ cdef class ClonableArray(ClonableElement):
             (False, True, True)
         """
         cdef ClonableArray rgt = <ClonableArray>right
-        return cmp(left._list, rgt._list)
+        return richcmp(left._list, rgt._list, op)
 
     cpdef ClonableArray __copy__(self):
         """
@@ -996,7 +997,7 @@ cdef class ClonableList(ClonableArray):
     implement the clone protocol. See :class:`ClonableElement` for details
     about clone protocol.
 
-    .. seealso:: :class:`~sage.structure.list_clone_demo.IncreasingList` for
+    .. SEEALSO:: :class:`~sage.structure.list_clone_demo.IncreasingList` for
                  an example of usage.
     """
     cpdef append(self, el):
@@ -1225,7 +1226,7 @@ cdef class ClonableIntArray(ClonableElement):
     - ``immutable`` -- a boolean telling wether the created element is
       immutable (defaults to ``True``)
 
-    .. seealso:: :class:`~sage.structure.list_clone_demo.IncreasingIntArray`
+    .. SEEALSO:: :class:`~sage.structure.list_clone_demo.IncreasingIntArray`
                  for an example of usage.
     """
     def __cinit__(self):
@@ -1414,7 +1415,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: el[1:3]
             [2, 3]
             sage: type(el[:])
-            <type 'list'>
+            <... 'list'>
             sage: list(el)
             [1, 2, 3]
             sage: it = iter(el); next(it), next(it)
@@ -1770,7 +1771,7 @@ cdef class NormalizedClonableList(ClonableList):
     This is a subclass of :class:`ClonableList` which call a method
     :meth:`normalize` at creation and after any modification of its instance.
 
-    .. seealso:: :class:`~sage.structure.list_clone_demo.SortedList` for an
+    .. SEEALSO:: :class:`~sage.structure.list_clone_demo.SortedList` for an
                  example of usage.
 
     EXAMPLES:

@@ -76,6 +76,8 @@ from sage.categories.action import Action
 from sage.sets.set import Set
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
 from sage.misc.package import PackageNotFoundError
+from sage.structure.sage_object import richcmp, rich_to_bool
+
 
 class Braid(FinitelyPresentedGroupElement):
     """
@@ -93,7 +95,7 @@ class Braid(FinitelyPresentedGroupElement):
         sage: B((1, 2, -3, -2))
         s0*s1*s2^-1*s1^-1
     """
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` and ``other``
 
@@ -104,18 +106,16 @@ class Braid(FinitelyPresentedGroupElement):
             sage: c = B([2, 1, 2])
             sage: b == c #indirect doctest
             True
-            sage: b._cmp_(c^(-1))
-            -1
-            sage: B([])._cmp_(B.one())
-            0
+            sage: b < c^(-1)
+            True
+            sage: B([]) == B.one()
+            True
         """
-        if self.Tietze()==other.Tietze():
-            return 0
+        if self.Tietze() == other.Tietze():
+            return rich_to_bool(op, 0)
         nfself = [i.Tietze() for i in self.left_normal_form()]
         nfother = [i.Tietze() for i in other.left_normal_form()]
-        return cmp(nfself, nfother)
-
-    __cmp__ = _cmp_
+        return richcmp(nfself, nfother, op)
 
     def __hash__(self):
         r"""
@@ -291,11 +291,11 @@ class Braid(FinitelyPresentedGroupElement):
                     A[-i, -1-i] = t**(-1)
                 if j == 1:
                     for k in range(n - 1):
-                        A[k,0] = -t
+                        A[k, 0] = -t
                 if j == -1:
-                    A[0,0] = -t**(-1)
+                    A[0, 0] = -t**(-1)
                     for k in range(1, n - 1):
-                        A[k,0] = -1
+                        A[k, 0] = -1
                 M = M * A
         return M
 
@@ -934,8 +934,8 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4)
             sage: b11n42 = B([1, -2, 3, -2, 3, -2, -2, -1, 2, -3, -3, 2, 2])
             sage: b11n34 = B([1, 1, 2, -3, 2, -3, 1, -2, -2, -3, -3])
-            sage: cmp(b11n42.jones_polynomial(), b11n34.jones_polynomial())
-            0
+            sage: bool(b11n42.jones_polynomial() == b11n34.jones_polynomial())
+            True
         """
         if skein_normalization:
             if variab is None:
@@ -975,10 +975,10 @@ class Braid(FinitelyPresentedGroupElement):
         a = lnfp[0]
         l = lnfp[1:]
         n = self.strands()
-        delta = Permutation([n-i for i in range(n)])
+        delta = Permutation([n - i for i in range(n)])
         P = self.parent()
-        return tuple( [P._permutation_braid(delta) ** a] +
-                      [P._permutation_braid(i) for i in l] )
+        return tuple([P._permutation_braid(delta) ** a] +
+                     [P._permutation_braid(i) for i in l])
 
     def _left_normal_form_perm_(self):
         """
@@ -1447,6 +1447,7 @@ class Braid(FinitelyPresentedGroupElement):
         B = self.parent()
         return [[B._element_from_libbraiding(i) for i in s] for s in slc]
 
+
 class BraidGroup_class(FinitelyPresentedGroup):
     """
     The braid group on `n` strands.
@@ -1512,7 +1513,9 @@ class BraidGroup_class(FinitelyPresentedGroup):
              e*f*e*f^-1*e^-1*f^-1)
         """
         n = len(names)
-        if n<1: #n is the number of generators, not the number of strands (see ticket 14081)
+        # n is the number of generators, not the number of strands (see
+        # ticket 14081)
+        if n < 1:
             raise ValueError("the number of strands must be an integer bigger than one")
         free_group = FreeGroup(names)
         rels = []
@@ -1553,7 +1556,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B1 # indirect doctest
             Braid group on 5 strands
         """
-        return "Braid group on %s strands"%self._nstrands_
+        return "Braid group on %s strands" % self._nstrands_
 
     def cardinality(self):
         """
@@ -1645,8 +1648,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
             [s0, s0*s1, (s0*s1)^3]
         """
         elements_list = [self.gen(0)]
-        elements_list.append(self(range(1,self.strands())))
-        elements_list.append(elements_list[-1]**self.strands())
+        elements_list.append(self(range(1, self.strands())))
+        elements_list.append(elements_list[-1] ** self.strands())
         return elements_list
 
     def _permutation_braid_Tietze(self, p):
@@ -1669,11 +1672,11 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B._permutation_braid_Tietze(P)
             (1, 2, 1, 3, 2, 4)
         """
-        if p.length() == 0:
+        if not p.length():
             return ()
         pl = p
         l = []
-        while pl.length()>0:
+        while pl.length() > 0:
             i = 1
             while i<max(pl):
                 if pl(i)>pl(i+1):
@@ -2281,7 +2284,7 @@ def BraidGroup(n=None, names='s'):
         (g0, g1)
 
     Since the word problem for the braid groups is solvable, their Cayley graph
-    can be localy obtained as follows (see :trac:`16059`)::
+    can be locally obtained as follows (see :trac:`16059`)::
 
         sage: def ball(group, radius):
         ....:     ret = set()
@@ -2326,7 +2329,6 @@ def BraidGroup(n=None, names='s'):
     from sage.structure.category_object import normalize_names
     names = normalize_names(n, names)
     return BraidGroup_class(names)
-
 
 
 class MappingClassGroupAction(Action):

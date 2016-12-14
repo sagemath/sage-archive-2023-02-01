@@ -388,7 +388,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         -  2-elements list - Given a list ``[alpha, beta]``,
            where `\alpha` and `\beta` are (coercible to)
            cusps, return the modular symbol `\{\alpha, \beta\}`. When
-           the the weight `k > 2` return
+           the weight `k > 2` return
            `Y^{k-2} \{\alpha, \beta\}`.
 
         -  3-element list - Given a list ``[i, alpha, beta]``,
@@ -1185,7 +1185,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
          -- (matrix) The matrix of the operator
 
-        .. math::
+        .. MATH::
 
                             x \mapsto \sum_{g in R} g.x,
 
@@ -1405,7 +1405,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         INPUT:
 
         - ``M`` (int) -- a space of modular symbols whose level is an integer
-          multiple of the the level of self
+          multiple of the level of self
 
         - ``t`` (int) -- a positive integer dividing the quotient of the two
           levels.
@@ -2089,7 +2089,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
         (modular symbol) The so-called 'twisted winding element':
 
-        .. math::
+        .. MATH::
 
                 \sum_{a \in (\ZZ/m\ZZ)^\times} \varepsilon(a) * [ i, 0, a/m ].
 
@@ -3552,7 +3552,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         OUTPUT: a matrix, which represents the operator
 
-        .. math::
+        .. MATH::
 
                             x \mapsto \sum_{g in R} g.x
 

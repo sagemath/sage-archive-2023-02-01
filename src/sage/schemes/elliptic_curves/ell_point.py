@@ -131,8 +131,8 @@ from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
-from sage.libs.pari.pari_instance import prec_words_to_bits
-from sage.libs.pari import pari
+from sage.libs.cypari2.pari_instance import prec_words_to_bits
+from sage.libs.cypari2 import pari
 from sage.structure.sequence import Sequence
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
@@ -539,9 +539,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         return self.scheme()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True if this is not the zero point on the curve.
+        Return ``True`` if this is not the zero point on the curve.
 
         EXAMPLES::
 
@@ -555,6 +555,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             False
         """
         return bool(self[2])
+
+    __nonzero__ = __bool__
 
     def has_finite_order(self):
         """

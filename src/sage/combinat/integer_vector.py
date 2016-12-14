@@ -849,7 +849,7 @@ class IntegerVectors_nk(CombinatorialClass):
         TESTS::
 
             sage: IV = IntegerVectors(4,5) 
-            sage: range(IV.cardinality()) == [IV.rank(x) for x in IV]
+            sage: list(range(IV.cardinality())) == [IV.rank(x) for x in IV]
             True
         """
 
@@ -880,7 +880,7 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
             sage: v = IntegerVectors(2,3,min_slope=0).first(); v
             [0, 1, 1]
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
 
         TESTS::
 
@@ -1048,7 +1048,7 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
             sage: IntegerVectors(3).list()
             Traceback (most recent call last):
             ...
-            NotImplementedError: infinite list
+            NotImplementedError: cannot list an infinite set
         """
         category = EnumeratedSets().Infinite() if not constraints else None
         IntegerVectors_nkconstraints.__init__(self, n, -1, constraints,

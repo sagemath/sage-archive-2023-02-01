@@ -1911,8 +1911,12 @@ class HoldRemover(ExpressionTreeWalker):
             sage: h()
             0
         """
+        from sage.functions.other import Function_sum
+        from sage.calculus.calculus import symbolic_sum
         if not operator:
             return self
+        if isinstance(operator, Function_sum):
+            return symbolic_sum(*map(self, ex.operands()))
         if operator in self._exclude:
             return operator(*map(self, ex.operands()), hold=True)
         else:

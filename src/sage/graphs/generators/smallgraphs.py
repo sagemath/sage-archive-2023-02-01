@@ -3053,7 +3053,7 @@ def HigmanSimsGraph(relabel=True):
         sage: K.is_isomorphic(A) and K.is_isomorphic(B)
         True
         sage: C = H.subgraph(range(25,75))
-        sage: D = H.subgraph(range(0,25)+range(75,100))
+        sage: D = H.subgraph(list(range(0,25))+list(range(75,100)))
         sage: K.is_isomorphic(C) and K.is_isomorphic(D)
         True
 
@@ -5002,3 +5002,176 @@ def JankoKharaghaniTonchevGraph():
             Gamma.add_edges(map(tuple,G.Orbit(libgap.Set([i,j]), libgap.OnSets)))
     Gamma.relabel()
     return Gamma
+
+def IoninKharaghani765Graph():
+    r"""
+    Return a `(765, 192, 48, 48)`-strongly regular graph.
+
+    Existence of a strongly regular graph with these parameters was claimed in [IK03]_.
+    Implementing the construction in the latter did not work, however. This function
+    implements the following instructions, shared by Yury Ionin and Hadi
+    Kharaghani.
+
+        Let `A` be the affine plane over the field `GF(3)=\{-1,0,1\}`. Let
+
+        .. MATH::
+
+            \phi_1(x,y) &= x\\
+            \phi_2(x,y) &= y\\
+            \phi_3(x,y) &= x+y\\
+            \phi_4(x,y) &= x-y\\
+
+        For `i=1,2,3,4` and `j\in GF(3)`, let `L_{i,j}` be the line in `A`
+        defined by `\phi_i(x,y)=j`. Let `\mathcal M` be the set of all 12 lines
+        `L_{i,j}`, plus the empty set. Let `\pi` be the permutation defined on
+        `\mathcal M` by `\pi(L_{i,j}) = L_{i,j+1}` and `\pi(\emptyset) =
+        \emptyset`, so that `\pi` has three orbits of cardinality 3 and one of
+        cardinality 1.
+
+        Let `A=(p_1,...,p_9)` with `p_1=(-1,1)`, `p_2=(-1,0)`, `p_3=(-1,1)`,
+        `p_4=(0,-1)`, `p_5=(0,0)`, `p_6=(0,1)`, `p_7=(1,-1)`, `p_8=(1,0)`,
+        `p_9=(1,1)`. Note that `p_i+p_{10-i}=(0,0)`. For any subset `X` of `A`,
+        let `M(X)` be the `(0,1)`-matrix of order 9 whose `(i,j)`-entry equals 1
+        if and only if `p_{10-i}-p_j\in X`. Note that `M` is a symmetric matrix.
+
+        An `MF`-tuple is an ordered quintuple `(X_1, X_2, X_3, X_4, X_5)` of
+        subsets of `A`, of which one is the empty set and the other four are
+        pairwise non-parallel lines. Such a quintuple generates the following
+        block matrix:
+
+        .. MATH::
+
+            N(X_1, X_2, X_3, X_4, X_5) = \left( \begin{array}{ccccc}
+                M(X_1) & M(X_2) & M(X_3) & M(X_4) & M(X_5)\\
+                M(X_2) & M(X_3) & M(X_4) & M(X_5) & M(X_1)\\
+                M(X_3) & M(X_4) & M(X_5) & M(X_1) & M(X_2)\\
+                M(X_4) & M(X_5) & M(X_1) & M(X_2) & M(X_3)\\
+                M(X_5) & M(X_1) & M(X_2) & M(X_3) & M(X_4)
+                \end{array}\right)
+
+        Observe that if `(X_1, X_2, X_3, X_4, X_5)` is an `MF`-tuple, then
+        `N(X_1, X_2, X_3, X_4, X_5)` is the symmetric incidence matrix of a
+        symmetric `(45, 12, 3)`-design.
+
+        Let `\mathcal F` be the set of all `MF`-tuples and let `\sigma` be the
+        following permutation of `\mathcal F`:
+
+        .. MATH::
+
+            \sigma(X_1, X_2, X_3, X_4, X_5) & = (X_2, X_3, X_4, X_5, X_1)\\
+            \pi(X_1, X_2, X_3, X_4, X_5) & = (\pi(X_1), \pi(X_2), \pi(X_3), \pi(X_4), \pi(X_5))\\
+
+        Observe that `\sigma` and `\pi` commute, and generate a (cyclic) group
+        `G` of order 15. We will from now on identify `G` with the (cyclic)
+        multiplicative group of the field `GF(16)` equal to
+        `\{\omega^0,...,\omega^{14}\}`. Let `W=[w_{ij}]` be the following matrix
+        of order 17 over `GF(16)=\{a_1,...,a_16\}`:
+
+        .. MATH::
+
+            w_{ij}=\left\{\begin{array}{ll}
+                a_i+a_j & \text{if }1\leq i\leq 16, 1\leq j\leq 16,\\
+                1       & \text{if }i=17, j\neq 17,\\
+                1       & \text{if }i\neq 17, j= 17,\\
+                0       & \text{if }i=j=17
+                \end{array}\right.
+
+        The diagonal entries of `W` are equal to 0, each off-diagonal entry can
+        be represented as `\omega^k` with `0\leq k\leq 14`. Matrix `W` is a
+        symmetric `BGW(17,16,15; G)`.
+
+        Fix an `MF`-tuple `(X_1, X_2, X_3, X_4, X_5)` and let `S` be the block
+        matrix obtained from `W` by replacing every diagonal entry of `W` by the
+        zero matrix of order 45, and every off-diagonal entry `\omega^k` by the
+        matrix `N(\sigma^k(X_1, X_2, X_3, X_4, X_5))` (through the association
+        of `\omega^k` with an element of `G`). Then `S` is a symmetric incidence
+        matrix of a symmetric `(765, 192, 48)`-design with zero diagonal, and
+        therefore `S` is an adjacency matrix of a strongly regular graph with
+        parameters `(765, 192, 48, 48)`.
+
+    EXAMPLES::
+
+        sage: g = graphs.IoninKharaghani765Graph(); g
+        Ionin-Kharaghani: Graph on 765 vertices
+
+    TESTS::
+
+        sage: graphs.strongly_regular_graph(765, 192, 48, 48)
+        Ionin-Kharaghani: Graph on 765 vertices
+
+    .. TODO::
+
+        An update to [IK03]_ meant to fix the problem encountered became available
+        2016/02/24, see http://www.cs.uleth.ca/~hadi/research/IoninKharaghani.pdf
+
+    REFERENCE:
+
+    .. [IK03] Yury Ionin, Hadi Kharaghani
+       New families of strongly regular graphs.
+       Journal of Combinatorial Designs,
+       Vol 11 (2003), no. 3, 208–217,
+       :doi:`10.1002/jcd.10038`
+    """
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+    K = GF(3)
+
+    # the four φ functions
+    phi = [lambda xy: 1*xy[0]+0*xy[1],
+           lambda xy: 0*xy[0]+1*xy[1],
+           lambda xy: 1*xy[0]+1*xy[1],
+           lambda xy: 1*xy[0]-1*xy[1]]
+
+    # Defining L_{i,j}
+    L = {(i,j):set() for i in range(4) for j in K}
+    from itertools import product
+    for p in product(K,K):
+        for i in range(4):
+            L[i,phi[i](p)].add(p)
+
+    L = {k:frozenset(v) for k,v in L.iteritems()}
+
+    # Defining pi
+    pi = {L[i,j]:L[i,(j+1)%3] for (i,j) in L}
+    pi[frozenset()] = frozenset()
+
+    # Defining A
+    A = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,0), (0,1), (1,-1), (1,0), (1,1)]
+
+    def M(S):
+        S = set([(K(x),K(y)) for x,y in S])
+        difference = lambda (x,y),(xx,yy): (K(x-xx),K(y-yy))
+        return matrix([[1 if difference(A[8-i],A[j]) in S else 0 for i in range(9)]
+                       for j in range(9)])
+
+    def N(Xi):
+        Xi = map(M,Xi)
+        return matrix.block([Xi[i:]+Xi[:i]
+                             for i in range(len(Xi))])
+
+    sigma = lambda Xi: Xi[1:] + [pi[Xi[0]]]
+    f_pow = lambda f,i,X : f_pow(f,i-1,f(X)) if i else X
+
+    sigma2 = lambda Xi: Xi[1:] + [Xi[0]]
+    pi_vec = lambda x: map(pi.get,x)
+
+    # The matrix W, with off-diagonal entries equal to integers 1,...,15
+    # (instead of x^1,...,x^15)
+    from sage.matrix.constructor import matrix
+    GF16 = GF(16,'x')
+    W = matrix( [[x+y for x in GF16] + [1] for y in GF16] +
+                [[1]*16+[0]])
+    x = GF16.primitive_element()
+    log_x = {x**i:i for i in range(15)}
+    W = W.apply_map(lambda x:log_x[x]+1 if x else 0)
+
+    # Associate a matrix to every entry of W
+    int_to_matrix = {0:matrix.zero(45)}
+    for i in range(15):
+        vec = [frozenset([]),L[0,0],L[1,0],L[2,0],L[3,0]]
+        vec = f_pow(pi_vec,i%3,vec)
+        vec = f_pow(sigma2,i%5,vec)
+        int_to_matrix[i+1] = N(vec)
+
+    M = matrix.block([[int_to_matrix[x] for x in R] for R in W.rows()])
+    g = Graph(M,name="Ionin-Kharaghani")
+    return g

@@ -125,8 +125,7 @@ of several different types of polynomial rings.
 
    You are encouraged to include miscellaneous notes, emails, design
    discussions, etc., in your package.  Make these plain text files
-   (with extension ``.txt``) in a subdirectory called ``notes``.  For
-   example, see ``SAGE_ROOT/src/sage/ext/notes/``.
+   (with extension ``.txt``) in a subdirectory called ``notes``.
 
 If you want to create a new directory in the Sage library
 ``SAGE_ROOT/src/sage`` (say, ``measure_theory``), that directory
@@ -150,6 +149,18 @@ but it is generally better to use the lazy import framework::
 Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::
 
     from sage.measure_theory.all import *
+
+Non-Python Sage source code and supporting files should be placed in appropriate
+subdirectories of ``SAGE_ROOT/src/ext/``. They will then be automatically
+copied to the corresponding subdirectories of ``SAGE_ROOT/local/share/sage/ext/``
+during the build process and can be accessed at runtime using ``SAGE_EXTCODE``.
+For example, if ``file`` is placed in ``SAGE_ROOT/src/ext/directory/`` it can
+be accessed with ::
+
+    from sage.env import SAGE_EXTCODE
+    file = os.path.join(SAGE_EXTCODE, 'directory', 'file')
+
+``SAGE_EXTCODE`` is used because not all distributions have ``SAGE_ROOT``.
 
 
 Learn by copy/paste
@@ -227,6 +238,19 @@ information. You can use the existing functions of Sage as templates.
    describes the function or method's effect as a command ("Do this",
    "Return that"), not as a description like "Returns the pathname ...".
 
+-  A **longer description**.
+
+   This is optional if the one-sentence description does not need
+   more explanations. (Like "Return the number of vertices.")
+
+   Start with assumptions of the object, if there are any. ("The poset is
+   expected to be ranked.", if the function raises an exception when
+   called on non-ranked poset.)
+
+   Define your terms ("The lexicographic product of G and H is the graph
+   with vertex set ...") and mention possible aliases ("The tensor product
+   is also known as the categorical product and...").
+
 -  An **INPUT** and an **OUTPUT** block describing the input/output of
    the function. This is not optional.
 
@@ -243,7 +267,7 @@ information. You can use the existing functions of Sage as templates.
 
        INPUT:
 
-       - ``p`` -- (default: 2) a positive prime integer.
+       - ``p`` -- (default: 2) a positive prime integer
 
        OUTPUT:
 
@@ -264,16 +288,14 @@ information. You can use the existing functions of Sage as templates.
 
 -  An **EXAMPLES** block for examples. This is not optional.
 
-   These examples are used both for:
-
-   1. Documentation
-   2. Automatic testing before each release.
+   These examples are used for documentation, but they are also
+   tested before each release just like TESTS block.
 
    They should have good coverage of the functionality in question.
 
 -  A **SEEALSO** block (highly recommended) with links to related parts of
-   Sage. This helps users find the features that interests them and discover the
-   new ones. ::
+   Sage. This helps users find the features that interest them and discover
+   the new ones. ::
 
        .. SEEALSO::
 
@@ -357,7 +379,7 @@ information. You can use the existing functions of Sage as templates.
           g = graphs.PetersenGraph()
           sphinx_plot(g)
 
-- A **REFERENCES** block to list related books or papers (optional)
+- A **REFERENCES** block to list related books or papers (optional).
 
   Almost all bibliographic information should be put in the master bibliography
   file, see below. Citations will then link to the master bibliography where the
@@ -384,12 +406,18 @@ information. You can use the existing functions of Sage as templates.
   <http://sphinx.pocoo.org/rest.html#citations>`_. For links to trac tickets or
   wikipedia, see :ref:`chapter-sage_manuals_links`.
 
-- A **TESTS** block (optional)
+- A **TESTS** block (highly recommended).
 
   Formatted just like EXAMPLES, containing tests that are not relevant
   to users.  In particular, these blocks are not shown when users ask
-  for help via `foo?`: they are stripped by the function
+  for help via ``foo?``: they are stripped by the function
   :func:`sage.misc.sagedoc.skip_TESTS_block`.
+
+  Special and corner cases, like number zero, one-element group etc.
+  should usually go to this block. This is also right place for most
+  tests of input validation; for example if the function accepts
+  ``direction='up'`` and ``direction='down'``, you can use this block to check
+  that ``direction='junk'`` raises an exception.
 
   For the purposes of removal, A "TESTS" block is a block starting
   with "TEST:" or "TESTS:" (or the same with two colons), on a line on
@@ -505,6 +533,10 @@ indentation:
 
         ...
 
+        TESTS::
+
+            sage: A.point(42, 0)  # Check for corner case y=0
+            xxx
         """
         <body of the function>
 
@@ -1041,6 +1073,27 @@ See the files in ``SAGE_ROOT/src/doc/en/tutorial/`` for many
 examples of how to include automated testing in ReST documentation for
 Sage.
 
+
+.. _section-coding-general-whitespace:
+
+General Coding Style Regarding Whitespace
+=========================================
+
+Use spaces instead of tabs for indentation.  The only exception is for
+makefiles, in which tabs have a syntactic meaning different from
+spaces.
+
+Do not add trailing whitespace.
+
+Sage provides editor configuration for Emacs, using the file
+``.dir-locals.el``, to use spaces instead of tabs.  Regarding trailing
+whitespace, see https://www.emacswiki.org/emacs/DeletingWhitespace
+for various solutions.
+
+If you use another editor, we recommend to configure it so you do not
+add tabs to files.
+
+
 .. _chapter-picklejar:
 
 The Pickle Jar
@@ -1075,10 +1128,10 @@ see :func:`sage.structure.sage_object.register_unpickle_override`
 
 .. WARNING::
 
-    Sage's pickle jar helps to ensure backward compatibility in sage. Pickles should
-    **only** be removed from the pickle jar after the corresponding objects
-    have been properly deprecated. Any proposal to remove pickles from the
-    pickle jar should first be discussed on sage-devel.
+    Sage's pickle jar helps to ensure backward compatibility in sage. Pickles
+    should **only** be removed from the pickle jar after the corresponding
+    objects have been properly deprecated. Any proposal to remove pickles
+    from the pickle jar should first be discussed on sage-devel.
 
 
 Global Options
@@ -1087,3 +1140,51 @@ Global Options
 Global options for classes can be defined in Sage using
 :class:`~sage.structure.global_options.GlobalOptions`.
 
+Miscellanous minor things
+=========================
+
+Some decisions are arbitrary, but common conventions make life easier.
+
+* Non-ASCII names in identifiers:
+
+  * Translate *ä* and *ö* to *ae* and *oe*, like ``moebius_function``
+    for Möbius function.
+  * Translate *á* to *a*, like ``lovasz_number`` for Lovász number.
+
+* Common function keyword arguments:
+
+  This is a list of some keyword arguments that many functions and
+  methods take.  For consistency, you should use the keywords from the
+  list below with the meaning as explained here. Do not use a
+  different keyword with the same meaning (for example, do not use
+  ``method``; use ``algorithm`` instead).
+
+  * ``algorithm``, a string or ``None``: choose between various
+    implementation or algorithm. Use ``None`` as a default that
+    selects a sensible default, which could depend on installed
+    optional packages.
+
+  * ``certificate``, a Boolean with ``False`` as default: whether the
+    function should return some kind of certificate together with the
+    result. With ``certificate=True`` the return value should be a
+    pair `(r, c)` where `r` is the result that would be given with
+    ``certificate=False`` and `c` is the certificate or ``None`` if
+    there is no meaningfull certificate.
+
+  * ``proof``, a Boolean with ``True`` as default: if ``True``,
+    require a mathematically proven computation. If ``False``, a
+    probabilistic algorithm or an algorithm relying to non-proved
+    hypothesis like RH can be used.
+
+  * ``check``, a Boolean: do some additional checks to verify the
+    input parameters. This should not otherwise influence the
+    functioning of the code: if code works with ``check=True``, it should
+    also work with ``check=False``.
+
+  * ``coerce``, a Boolean: convert the input parameters to a suitable
+    parent. This is typically used in constructors. You can call a
+    method with ``coerce=False`` to skip some checks if the parent is
+    known to be correct.
+
+  * ``inplace``, a Boolean: whether to modify the object in-place or
+    to return a copy.

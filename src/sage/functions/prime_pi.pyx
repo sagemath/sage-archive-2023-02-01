@@ -31,7 +31,7 @@ from __future__ import absolute_import
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.paridecl cimport *
 
 from libc.stdint cimport int_fast8_t, uint_fast16_t, uint8_t, uint32_t, uint64_t
 from sage.rings.integer cimport Integer

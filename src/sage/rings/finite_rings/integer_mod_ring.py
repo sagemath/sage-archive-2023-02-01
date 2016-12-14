@@ -144,7 +144,7 @@ class IntegerModFactory(UniqueFactory):
         sage: R in Fields()
         True
         sage: R.category()
-        Join of Category of finite fields
+        Join of Category of finite enumerated fields
             and Category of subquotients of monoids
             and Category of quotients of semigroups
         sage: S = IntegerModRing(5, is_field=True)
@@ -715,7 +715,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R.is_field()
             True
             sage: R.category()
-            Join of Category of finite fields
+            Join of Category of finite enumerated fields
                 and Category of subquotients of monoids
                 and Category of quotients of semigroups
 
@@ -1136,10 +1136,10 @@ In the latter case, please inform the developers.""".format(self.order()))
         The following test refers to :trac:`6468`::
 
             sage: class foo_parent(Parent):
-            ...       pass
+            ....:     pass
             sage: class foo(RingElement):
-            ...       def lift(self):
-            ...           raise PariError
+            ....:     def lift(self):
+            ....:         raise PariError
             sage: P = foo_parent()
             sage: F = foo(P)
             sage: GF(2)(F)

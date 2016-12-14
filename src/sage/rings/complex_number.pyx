@@ -259,14 +259,14 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: for prec in (2, 53, 200):
-            ...       fld = ComplexField(prec)
-            ...       var = polygen(fld)
-            ...       ins = [-20, 0, 1, -2^4000, 2^-4000] + [fld._real_field().random_element() for _ in range(3)]
-            ...       for v1 in ins:
-            ...           for v2 in ins:
-            ...               v = fld(v1, v2)
-            ...               _ = sage_input(fld(v), verify=True)
-            ...               _ = sage_input(fld(v) * var, verify=True)
+            ....:     fld = ComplexField(prec)
+            ....:     var = polygen(fld)
+            ....:     ins = [-20, 0, 1, -2^4000, 2^-4000] + [fld._real_field().random_element() for _ in range(3)]
+            ....:     for v1 in ins:
+            ....:         for v2 in ins:
+            ....:             v = fld(v1, v2)
+            ....:             _ = sage_input(fld(v), verify=True)
+            ....:             _ = sage_input(fld(v) * var, verify=True)
             sage: x = polygen(CC)
             sage: for v1 in [-2, 0, 2]:
             ....:     for v2 in [-2, -1, 0, 1, 2]:
@@ -556,11 +556,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: pari(a).type()
             't_COMPLEX'
             sage: type(pari(a))
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: a._pari_()
             2.00000000000000 + 1.00000000000000*I
             sage: type(a._pari_())
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: a = CC(pi)
             sage: pari(a)
             3.14159265358979
@@ -794,7 +794,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __pow__(self, right, modulus):
         r"""
-        Raise ``self`` to the ``right`` expontent.
+        Raise ``self`` to the ``right`` exponent.
 
         This takes `a^b` and compues `\exp(b \log(a))`.
 

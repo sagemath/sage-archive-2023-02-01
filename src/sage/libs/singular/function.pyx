@@ -1038,7 +1038,7 @@ cdef class LibraryCallHandler(BaseCallHandler):
 
     This class implements calling a library function.
 
-    .. note::
+    .. NOTE::
 
         Do not construct this class directly, use
         :func:`singular_function` instead.
@@ -1079,7 +1079,7 @@ cdef class KernelCallHandler(BaseCallHandler):
 
     This class implements calling a kernel function.
 
-    .. note::
+    .. NOTE::
 
         Do not construct this class directly, use
         :func:`singular_function` instead.
@@ -1118,7 +1118,7 @@ cdef class KernelCallHandler(BaseCallHandler):
                 arg1 = argument_list.pop_front()
                 if _ring != currRing: rChangeCurrRing(_ring)
                 iiExprArith1(res, arg1, self.cmd_n)
-                free_leftv(arg1)
+                free_leftv(arg1, _ring)
                 return res
 
         elif number_of_arguments == 2:
@@ -1127,8 +1127,8 @@ cdef class KernelCallHandler(BaseCallHandler):
                 arg2 = argument_list.pop_front()
                 if _ring != currRing: rChangeCurrRing(_ring)
                 iiExprArith2(res, arg1, self.cmd_n, arg2, True)
-                free_leftv(arg1)
-                free_leftv(arg2)
+                free_leftv(arg1, _ring)
+                free_leftv(arg2, _ring)
                 return res
 
         elif number_of_arguments == 3:
@@ -1138,9 +1138,9 @@ cdef class KernelCallHandler(BaseCallHandler):
                 arg3 = argument_list.pop_front()
                 if _ring != currRing: rChangeCurrRing(_ring)
                 iiExprArith3(res, self.cmd_n, arg1, arg2, arg3)
-                free_leftv(arg1)
-                free_leftv(arg2)
-                free_leftv(arg3)
+                free_leftv(arg1, _ring)
+                free_leftv(arg2, _ring)
+                free_leftv(arg3, _ring)
                 return res
 
         global errorreported

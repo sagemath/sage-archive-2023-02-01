@@ -1,7 +1,7 @@
 r"""
 Base class for old-style parent objects with generators
 
-.. note::
+.. NOTE::
 
    This class is being deprecated, see
    ``sage.structure.parent.Parent`` and
@@ -257,7 +257,7 @@ cdef class ParentWithGens(ParentWithBase):
 
         - a homomorphism self --> codomain
 
-        .. note::
+        .. NOTE::
 
            As a shortcut, one can also give an object X instead of
            ``im_gens``, in which case return the (if it exists)
@@ -354,7 +354,7 @@ cdef class localvars:
         ....:     print(x^3 + y^3 - x*y)
         z^3 + w^3 - z*w
 
-    .. note::
+    .. NOTE::
 
        I wrote this because it was needed to print elements of the
        quotient of a ring R by an ideal I using the print function for

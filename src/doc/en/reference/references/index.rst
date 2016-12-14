@@ -3,8 +3,8 @@ The references for Sage, sorted alphabetically by citation key.
 REFERENCES:
 
 :ref:`A <ref-A>`
-:ref:`B <ref-B>` 
-:ref:`C <ref-C>` 
+:ref:`B <ref-B>`
+:ref:`C <ref-C>`
 :ref:`D <ref-D>`
 :ref:`E <ref-E>`
 :ref:`F <ref-F>`
@@ -215,6 +215,9 @@ REFERENCES:
              Conference, AMS/IP Studies in Advanced Mathematics 35
              (2003). :arxiv:`math/0204057v1`
 
+.. [Bir1975] \J. Birman. *Braids, Links, and Mapping Class Groups*,
+             Princeton University Press, 1975
+
 .. [BK1992] \U. Brehm and W. Kuhnel, "15-vertex triangulations of an
             8-manifold", Math. Annalen 294 (1992), no. 1, 167-193.
 
@@ -332,6 +335,10 @@ REFERENCES:
 .. [Ch2012] Cho-Ho Chu. *Jordan Structures in Geometry and
             Analysis*. Cambridge University Press, New
             York. 2012. IBSN 978-1-107-01617-0.
+
+.. [Cha92] Chameni-Nembua C. and Monjardet B.
+           *Les Treillis Pseudocomplémentés Finis*
+           Europ. J. Combinatorics (1992) 13, 89-107.
 
 .. [Cha2006] Ruth Charney. *An introduction to right-angled Artin
              groups*. http://people.brandeis.edu/~charney/papers/RAAGfinal.pdf,
@@ -652,6 +659,10 @@ REFERENCES:
             submitted, 2012. Preprint:
             http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
 
+.. [GGD2011] \E. Girondo, \G. Gonzalez-Diez, *Introduction to Compact
+             Riemann surfaces and Dessins d'enfant*, (2011)
+             London Mathematical Society, Student Text 79.
+
 .. [GHJV1994] \E. Gamma, R. Helm, R. Johnson, J. Vlissides, *Design
               Patterns: Elements of Reusable Object-Oriented
               Software*. Addison-Wesley (1994). ISBN 0-201-63361-2.
@@ -672,6 +683,9 @@ REFERENCES:
 
 .. [Go1967] Solomon Golomb, Shift register sequences, Aegean Park
             Press, Laguna Hills, Ca, 1967
+
+.. [God1968] \R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
+             (Boston) (1968)
 
 .. [Gor1980] Daniel Gorenstein, Finite Groups (New York: Chelsea
              Publishing, 1980)
@@ -936,7 +950,7 @@ REFERENCES:
 
 .. [Kur2008] Chris Kurth, "K Farey package for Sage",
              http://wayback.archive-it.org/855/20100510123900/http://www.public.iastate.edu/~kurthc/research/index.html
-    
+
 .. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
             moduli space of Abelian differentials with prescripebd
             singularities" Invent. math. 153, 631-678 (2003)
@@ -963,11 +977,14 @@ REFERENCES:
              of three spherical harmonics', Comput. Phys. Commun.,
              Volume 25, pp. 81-85 (1982)
 
-.. [Lee2011] \J. M. Lee, *Introduction to Topological Manifolds*,
-             Springer-Verlag, GTM volume 202, 2011.
+.. [Lee1997] \J. M. Lee, *Riemannian Manifolds*, Springer (New York) (1997);
+             :doi:`10.1007/b98852`
+
+.. [Lee2011] \J. M. Lee, *Introduction to Topological Manifolds*, 2nd ed.,
+             Springer (New York) (2011); :doi:`10.1007/978-1-4419-7940-7`
 
 .. [Lee2013] \J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed.,
-             Springer (New York) (2012)
+             Springer (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
 
 .. [Lev2014] Lionel Levine. Threshold state and a conjecture of
              Poghosyan, Poghosyan, Priezzhev and Ruelle,
@@ -1260,6 +1277,9 @@ REFERENCES:
              Math. Soc. Monogr. (N.S.). Oxford University
              Press. (1993).
 
+.. [Rho69] John Rhodes, *Characters and complexity of finite semigroups*
+           \J. Combinatorial Theory, vol 6, 1969
+
 .. [RH2003] \J. Rasch and A. C. H. Yu, 'Efficient Storage Scheme for
             Pre-calculated Wigner 3j, 6j and Gaunt Coefficients',
             SIAM J. Sci. Comput. Volume 25, Issue 4,
@@ -1338,7 +1358,12 @@ REFERENCES:
              systems: Algorithmic, game-theoretic, and logical
              foundations.* Cambridge University Press, 2008.
 
-.. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
+.. [Spa1966] Edwin H. Spanier, *Algebraic Topology*,
+             Springer-Verlag New York, 1966.
+             :doi:`10.1007/978-1-4684-9322-1`,
+             ISBN 978-1-4684-9322-1.
+
+.. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 
@@ -1495,6 +1520,10 @@ REFERENCES:
 
 .. [Web2007] James Webb. *Game theory: decisions, interaction and
              Evolution*. Springer Science & Business Media, 2007.
+
+.. [Wei1994] Charles A. Weibel, *An introduction to homological
+             algebra*. Cambridge Studies in Advanced Math., vol. 38,
+             Cambridge Univ. Press, 1994.
 
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.

@@ -303,7 +303,7 @@ def eta(x):
 
     The `\eta` function is
 
-    .. math::
+    .. MATH::
 
                     \eta(z) = e^{\pi i z / 12} \prod_{n=1}^{\infty}(1-e^{2\pi inz})
 
@@ -419,6 +419,8 @@ def symbolic_sum(expression, *args, **kwds):
       - ``'mathematica'`` - (optional) use Mathematica
 
       - ``'giac'`` - (optional) use Giac
+
+      - ``'sympy'`` - use SymPy
 
     EXAMPLES::
 

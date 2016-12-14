@@ -357,8 +357,14 @@ cdef number *sa2si_QQ(Rational r, ring *_ring):
 cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     """
     """
-    if _ring != currRing: rChangeCurrRing(_ring)
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    if _ring != currRing:
+        rChangeCurrRing(_ring)
+    cdef number* n1
+    cdef number* n2
+    cdef number* a
+    cdef number* coeff
+    cdef number* apow1
+    cdef number* apow2
     cdef int b = _ring.cf.ch
 
     a = _ring.cf.cfParameter(1, _ring.cf)
@@ -761,18 +767,8 @@ cdef init_libsingular():
 
     cdef void *handle = NULL
 
-    import os
-    from sage.env import SAGE_LOCAL 
-    UNAME = os.uname()[0]
-    if UNAME[:6] == "CYGWIN":
-        extension = "dll"
-    elif UNAME == "Darwin":
-        extension = "dylib"
-    else:
-        extension = "so"
-
-    # library name changed from libsingular to libSingular btw 3.x and 4.x
-    lib = SAGE_LOCAL+"/lib/libSingular."+extension
+    from sage.env import SINGULAR_SO
+    lib = SINGULAR_SO
 
     if not os.path.exists(lib):
         raise ImportError("cannot locate Singular library ({})".format(lib))

@@ -72,12 +72,12 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
 #########################################################
 # PARI C library
-from sage.libs.pari.gen cimport gen
+from sage.libs.cypari2.gen cimport gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz
 from sage.libs.pari.convert_flint cimport (_new_GEN_from_fmpz_mat_t,
            _new_GEN_from_fmpz_mat_t_rotate90, integer_matrix)
-from sage.libs.pari.stack cimport clear_stack
-from sage.libs.pari.paridecl cimport *
+from sage.libs.cypari2.stack cimport clear_stack
+from sage.libs.cypari2.paridecl cimport *
 #########################################################
 
 include "cysignals/signals.pxi"
@@ -85,6 +85,8 @@ include "sage/ext/stdsage.pxi"
 
 
 from sage.arith.multi_modular cimport MultiModularBasis
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_mat cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -343,7 +345,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         list, so the following also works::
 
             sage: v = reversed(range(4)); type(v)
-            <type 'listreverseiterator'>
+            <... 'listreverseiterator'>
             sage: A(v)
             [3 2]
             [1 0]
@@ -1082,19 +1084,19 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
     cpdef int _cmp_(self, right) except -2:
         r"""
-        Compares self with right, examining entries in lexicographic (row
-        major) ordering.
+        Compare ``self`` with ``right``, examining entries in
+        lexicographic (row major) ordering.
 
         EXAMPLES::
 
-            sage: Matrix(ZZ, [[0, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 10], [20, 30]]))
-            0
-            sage: Matrix(ZZ, [[0, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 15], [20, 30]]))
-            -1
-            sage: Matrix(ZZ, [[5, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 15], [20, 30]]))
-            1
-            sage: Matrix(ZZ, [[5, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 10], [25, 30]]))
-            1
+            sage: Matrix(ZZ, [[0, 10], [20, 30]]) == (Matrix(ZZ, [[0, 10], [20, 30]]))
+            True
+            sage: Matrix(ZZ, [[0, 10], [20, 30]]) < (Matrix(ZZ, [[0, 15], [20, 30]]))
+            True
+            sage: Matrix(ZZ, [[5, 10], [20, 30]]) > (Matrix(ZZ, [[0, 15], [20, 30]]))
+            True
+            sage: Matrix(ZZ, [[5, 10], [20, 30]]) <= (Matrix(ZZ, [[0, 10], [25, 30]]))
+            False
         """
         cdef Py_ssize_t i, j
         cdef int k
@@ -1261,7 +1263,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         -  ``algorithm`` - 'linbox' (default) 'generic'
 
 
-        .. note::
+        .. NOTE::
 
            Linbox charpoly disabled on 64-bit machines, since it hangs
            in many cases.
@@ -1732,7 +1734,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: m.echelon_form()
             []
 
-        .. note::
+        .. NOTE::
 
            If 'ntl' is chosen for a non square matrix this function
            raises a ValueError.
@@ -1804,11 +1806,11 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         Check that :trac:`12280` is fixed::
 
             sage: m = matrix([(-2, 1, 9, 2, -8, 1, -3, -1, -4, -1),
-            ...               (5, -2, 0, 1, 0, 4, -1, 1, -2, 0),
-            ...               (-11, 3, 1, 0, -3, -2, -1, -11, 2, -2),
-            ...               (-1, 1, -1, -2, 1, -1, -1, -1, -1, 7),
-            ...               (-2, -1, -1, 1, 1, -2, 1, 0, 2, -4)]).stack(
-            ...               200 * identity_matrix(ZZ, 10))
+            ....:             (5, -2, 0, 1, 0, 4, -1, 1, -2, 0),
+            ....:             (-11, 3, 1, 0, -3, -2, -1, -11, 2, -2),
+            ....:             (-1, 1, -1, -2, 1, -1, -1, -1, -1, 7),
+            ....:             (-2, -1, -1, 1, 1, -2, 1, 0, 2, -4)]).stack(
+            ....:             200 * identity_matrix(ZZ, 10))
             sage: matrix(ZZ,m).hermite_form(algorithm='pari', include_zero_rows=False)
             [  1   0   2   0  13   5   1 166  72  69]
             [  0   1   1   0  20   4  15 195  65 190]
@@ -2010,7 +2012,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         -  ``matrix`` - a matrix over ZZ
 
 
-        .. note::
+        .. NOTE::
 
            The result is *not* cached.
 
@@ -2168,7 +2170,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         OUTPUT: list of integers
 
 
-        .. note::
+        .. NOTE::
 
            These are the invariants of the cokernel of *left* multiplication::
 
@@ -2205,7 +2207,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`smith_form`
         """
@@ -2300,7 +2302,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: m = MatrixSpace(ZZ, 0,0)(0); d,u,v = m.smith_form(); u*m*v == d
             True
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`elementary_divisors`
         """
@@ -2429,9 +2431,9 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         EXAMPLES::
 
             sage: A = matrix(ZZ, [[4, 7, 9, 7, 5, 0],
-            ...                   [1, 0, 5, 8, 9, 1],
-            ...                   [0, 1, 0, 1, 9, 7],
-            ...                   [4, 7, 6, 5, 1, 4]])
+            ....:                 [1, 0, 5, 8, 9, 1],
+            ....:                 [0, 1, 0, 1, 9, 7],
+            ....:                 [4, 7, 6, 5, 1, 4]])
 
             sage: result = A._right_kernel_matrix(algorithm='pari')
             sage: result[0]
@@ -2578,7 +2580,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
             sage: A = a._ntl_()
 
-        .. note::
+        .. NOTE::
 
            NTL only knows dense matrices, so if you provide a sparse
            matrix NTL will allocate memory for every zero entry.
@@ -3487,7 +3489,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         -  ``proof`` - bool or None; if None use
            proof.linear_algebra(); only relevant for the padic algorithm.
 
-           .. note::
+           .. NOTE::
 
               It would be *VERY VERY* hard for det to fail even with
               proof=False.
@@ -3901,13 +3903,13 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         ring of `X` is the integers unless a denominator is needed
         in which case the base ring is the rational numbers.
 
-        .. note::
+        .. NOTE::
 
            In Sage one can also write ``A  B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
            MATLAB/Octave backslash operator".
 
-        .. note::
+        .. NOTE::
 
            This is currently only implemented when A is square.
 
@@ -4368,7 +4370,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         and put the matrix (1/d)\*X everywhere else, then you get the
         reduced row echelon form of self, without zero rows at the bottom.
 
-        .. note::
+        .. NOTE::
 
            IML is the actual underlying `p`-adic solver that we
            use.
@@ -5290,7 +5292,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         ::
 
-            sage: A = matrix(ZZ, 2, 3, xrange(6))
+            sage: A = matrix(ZZ, 2, 3, range(6))
             sage: type(A)
             <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: B = A.transpose()
@@ -5391,7 +5393,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: pari(a)
             [1, 2; 3, 4]
             sage: type(pari(a))
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
         """
         return integer_matrix(self._matrix, self._nrows, self._ncols, 0)
 

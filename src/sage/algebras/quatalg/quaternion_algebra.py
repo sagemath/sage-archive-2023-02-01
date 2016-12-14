@@ -1461,7 +1461,7 @@ class QuaternionOrder(Algebra):
         The args and kwds are passed to the random_element method of
         the integer ring, and we return an element of the form
 
-        .. math::
+        .. MATH::
 
             ae_1 + be_2 + ce_3 + de_4
 

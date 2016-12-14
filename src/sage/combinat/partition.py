@@ -1226,7 +1226,7 @@ class Partition(CombinatorialElement):
 
             sage: plist = [int(F(3*x)) for x in range(1,11)]; plist
             [3, 6, 9, 1, 4, 7, 10, 2, 5, 8]
-            sage: range(1,11)
+            sage: list(range(1, 11))
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
             sage: p = PermutationGroupElement('(3,4,8,7,9)')
             sage: p.sign()
@@ -4057,7 +4057,7 @@ class Partition(CombinatorialElement):
             sage: p = Partition([2,1]).to_list(); p
             [2, 1]
             sage: type(p)
-            <type 'list'>
+            <... 'list'>
 
         TESTS::
 
@@ -5613,21 +5613,21 @@ class Partitions_all(Partitions):
         We check that :trac:`11412` is actually fixed::
 
             sage: test = lambda x, k: x == Partition(core=x.core(k),
-            ...                                      quotient=x.quotient(k))
+            ....:                                    quotient=x.quotient(k))
             sage: all(test(mu,k) for k in range(1,5)
-            ...       for n in range(10) for mu in Partitions(n))
+            ....:     for n in range(10) for mu in Partitions(n))
             True
             sage: test2 = lambda core, mus: (
-            ...       Partition(core=core, quotient=mus).core(mus.level()) == core
-            ...       and
-            ...       Partition(core=core, quotient=mus).quotient(mus.level()) == mus)
+            ....:     Partition(core=core, quotient=mus).core(mus.level()) == core
+            ....:     and
+            ....:     Partition(core=core, quotient=mus).quotient(mus.level()) == mus)
             sage: all(test2(core,mus)  # long time (5s on sage.math, 2011)
-            ...       for k in range(1,10)
-            ...       for n_core in range(10-k)
-            ...       for core in Partitions(n_core)
-            ...       if core.core(k) == core
-            ...       for n_mus in range(10-k)
-            ...       for mus in PartitionTuples(k,n_mus))
+            ....:     for k in range(1,10)
+            ....:     for n_core in range(10-k)
+            ....:     for core in Partitions(n_core)
+            ....:     if core.core(k) == core
+            ....:     for n_mus in range(10-k)
+            ....:     for mus in PartitionTuples(k,n_mus))
             True
         """
         from .partition_tuple import PartitionTuple, PartitionTuples
@@ -5995,7 +5995,7 @@ class Partitions_n(Partitions):
         TESTS::
 
             sage: all(Part.random_element_plancherel() in Part
-            ...       for Part in map(Partitions, range(10)))
+            ....:     for Part in map(Partitions, range(10)))
             True
 
         Check that :trac:`18752` is fixed::
@@ -6569,7 +6569,7 @@ class Partitions_parts_in(Partitions):
             sage: next(it)
             [4]
             sage: type(_)
-            <type 'list'>
+            <... 'list'>
         """
         if n == 0:
             yield []

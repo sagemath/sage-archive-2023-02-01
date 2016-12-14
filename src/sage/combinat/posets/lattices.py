@@ -1990,10 +1990,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         :wikipedia:`Modular_lattice`.
 
         Using the parameter ``L``, this can also be used to check that
-        some subset of elements are all modular. An element `x` in a
+        some subset of elements are all modular. An element `b` in a
         lattice `L` is *modular* if `x \leq b` implies 
         `x \vee (a \wedge b) = (x \vee a) \wedge b` for every
-        `a, b \in L`.
+        `x, a \in L`.
 
         INPUT:
 
@@ -2008,8 +2008,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         - If ``certificate=True`` return either ``(True, None)`` or
           ``(False, (x, a, b))``, where `a`, `b` and `x` are elements
           of the lattice such that `x < b` but
-          `x \vee (a \wedge b) \not= (x \vee a) \wedge b`.
-          If ``certificate=False`` return ``True`` or ``False``.
+          `x \vee (a \wedge b) \not= (x \vee a) \wedge b`. If also
+          `L` is given then `b` in the certificate will be an element
+          of `L`. If ``certificate=False`` return ``True`` or ``False``.
 
         .. SEEALSO::
 
@@ -2036,12 +2037,17 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: all(Posets.ChainPoset(i).is_modular() for i in range(4))
             True
+
+            sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
+            sage: L.is_modular(L=[1, 4, 2], certificate=True)
+            (False, (2, 6, 4))
+            sage: L.is_modular(L=[1, 6, 2], certificate=True)
+            (False, (3, 4, 6))
         """
-        if certificate and L is not None:
-            raise ValueError("parameters L and certificate can not be combined")
         if not certificate and L is None:
             return self.is_upper_semimodular() and self.is_lower_semimodular()
-        if certificate:
+
+        if certificate and L is None:
             tmp = self.is_lower_semimodular(certificate=True)
             if not tmp[0]:
                 a, b = tmp[1]
@@ -2062,14 +2068,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                         return (False, (a, x, b))
             return (True, None)
 
-        if not self.is_ranked():
-            return False
-        H = self._hasse_diagram
-        n = H.order()
-        L = [self._element_to_vertex_dict[x] for x in L]
-        return all(H._rank[a] + H._rank[b] ==
-                   H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
-                   for a in L for b in range(n))
+        # L is not None
+        for b in L:
+            for x in self.principal_lower_set(b):
+                for a in self:
+                    if (self.join(x, self.meet(a, b)) !=
+                        self.meet(self.join(x, a), b)):
+                        if certificate:
+                            return (False, (x, a, b))
+                        return False
+        if certificate:
+            return (True, None)
+        return True
 
     def is_modular_element(self, x):
         r"""

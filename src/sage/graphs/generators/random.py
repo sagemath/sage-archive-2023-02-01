@@ -1187,7 +1187,7 @@ def blossoming_contour(t, shift=0):
         tt1 += [label1]
     else:
         label1 = ('n', shift + 2 * n1 - 1)
-        tt1 = [label1] + blossoming_contour(t1, shift) 
+        tt1 = [label1] + blossoming_contour(t1, shift)
         tt1 += [label1, leaf_x, label1]
 
     # adding buds on edges in t2
@@ -1195,7 +1195,7 @@ def blossoming_contour(t, shift=0):
         tt2 = [leaf_xb]
     elif randint(0, 1):
         label2 = ('n', shift + 2 * n1 + 1)
-        tt2 = [label2, leaf_x, label2] 
+        tt2 = [label2, leaf_x, label2]
         tt2 += blossoming_contour(t2, shift + 2 * n1 + 2) + [label2]
     else:
         label2 = ('n', shift + 2 * n - 2)
@@ -1274,7 +1274,7 @@ def RandomBicubicPlanar(n):
     # next pick a random blossoming of this tree, compute its contour
     contour = blossoming_contour(t) + [('xb',)]   # adding the final xb
 
-    # first step : rotate the contour word to one of 3 balanced 
+    # first step : rotate the contour word to one of 3 balanced
     N = len(contour)
     double_contour = contour + contour
     pile = []

@@ -392,6 +392,31 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
         self._G = G
 
+    def extensions(self, ring):
+        r"""
+        Return the extensions of this valuation to ``ring``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(GaussianIntegers(), 2)
+            sage: u = v._base_valuation
+            sage: u.extensions(QQ['x'])
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 , … ]]
+
+        """
+        if self.domain() is ring:
+            return [self]
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if is_PolynomialRing(ring) and self.domain().base_ring().is_subring(ring.base_ring()):
+            if self.domain().base_ring().fraction_field() is ring.base_ring():
+                return [LimitValuation(self._initial_approximation.change_domain(ring), self._G.change_ring(ring.base_ring()))]
+            else:
+                # we need to recompute the mac lane approximants over this base
+                # ring because it could split differently
+                pass
+        return super(MacLaneLimitValuation, self).extensions(ring)
+
     def lift(self, F):
         r"""
         Return a lift of ``F`` from the :meth:`residue_ring` to the

@@ -1216,6 +1216,12 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
         FiniteExtensionFromLimitValuation.__init__(self, parent, approximant, G, approximants)
         pAdicValuation_base.__init__(self, parent, approximant.restriction(approximant.domain().base_ring()).p())
 
+        from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
+        if is_PolynomialQuotientRing(self.domain()):
+            self._gen = self.domain().gen()
+        else:
+            self._gen = self.domain()(self.domain().fraction_field().gen())
+
     def _to_base_domain(self, f):
         r"""
         Return ``f``, an element of the domain of this valuation, as an element
@@ -1246,7 +1252,7 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
             I
 
         """
-        return f(self.domain().fraction_field().gen())
+        return f(self._gen)
 
     def extensions(self, ring):
         r"""

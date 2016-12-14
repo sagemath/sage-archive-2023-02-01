@@ -295,6 +295,7 @@ __doc__ += """
 
 __append_to_doc(
     ["RandomBarabasiAlbert",
+     "RandomBicubicPlanar",
      "RandomBipartite",
      "RandomBoundedToleranceGraph",
      "RandomGNM",
@@ -2066,6 +2067,7 @@ class GraphGenerators():
     import sage.graphs.generators.random
     RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
     RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
+    RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)

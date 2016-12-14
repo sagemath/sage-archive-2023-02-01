@@ -50,6 +50,7 @@ extern ex collect_common_factors(const ex & e);
 
 // Resultant of two polynomials e1,e2 with respect to symbol s.
 extern ex resultant(const ex & e1, const ex & e2, const ex & s);
+extern ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s);
 
 } // namespace GiNaC
 

@@ -711,14 +711,8 @@ ex sqrfree_parfrac(const ex & a, const symbol & x)
 
 /** Resultant of two expressions e1,e2 with respect to symbol s.
  *  Method: Compute determinant of Sylvester matrix of e1,e2,s.  */
-ex resultant(const ex & e1, const ex & e2, const ex & s)
+ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
 {
-	const ex ee1 = e1.expand();
-	const ex ee2 = e2.expand();
-	if (!ee1.info(info_flags::polynomial) ||
-	    !ee2.info(info_flags::polynomial))
-		throw(std::runtime_error("resultant(): arguments must be polynomials"));
-
 	const int h1 = ee1.degree(s);
 	const int l1 = ee1.ldegree(s);
 	const int h2 = ee2.degree(s);
@@ -741,6 +735,16 @@ ex resultant(const ex & e1, const ex & e2, const ex & s)
 	return m.determinant();
 }
 
+ex resultant(const ex & e1, const ex & e2, const ex & s)
+{
+	const ex ee1 = e1.expand();
+	const ex ee2 = e2.expand();
+	if (!ee1.info(info_flags::polynomial) ||
+	    !ee2.info(info_flags::polynomial))
+		throw(std::runtime_error("resultant(): arguments must be polynomials"));
+
+        return resultantpoly(ee1, ee2, s);
+}
 
 } // namespace GiNaC
 

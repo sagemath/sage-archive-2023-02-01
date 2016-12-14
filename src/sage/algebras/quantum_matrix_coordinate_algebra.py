@@ -15,6 +15,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -26,6 +27,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.all import ZZ
+
 
 class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
     """
@@ -57,8 +59,9 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
                 q = R(q)
         if q is None:
             q = LaurentPolynomialRing(R, 'q').gen()
-        return super(QuantumMatrixCoordinateAlgebra_abstract, cls).__classcall__(cls,
-                                q=q, bar=bar, R=q.parent(), **kwds)
+        return super(QuantumMatrixCoordinateAlgebra_abstract,
+                     cls).__classcall__(cls,
+                                        q=q, bar=bar, R=q.parent(), **kwds)
 
     def __init__(self, gp_indices, n, q, bar, R, category):
         """
@@ -72,7 +75,9 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
         self._n = n
         self._q = q
         if bar is None:
-            bar = lambda x: x.subs(q=~self._q)
+
+            def bar(x):
+                return x.subs(q=~self._q)
         self._bar = bar
         indices = IndexedFreeAbelianMonoid(gp_indices)
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
@@ -97,9 +102,11 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
         S = m._sorted_items()
         if not S:
             return '1'
-        exp = lambda e: '^{}'.format(e) if e > 1 else ''
+
+        def exp(e):
+            return '^{}'.format(e) if e > 1 else ''
         return '*'.join(('x[{},{}]'.format(*k) if k != 'c' else 'c') + exp(e)
-                        for k,e in m._sorted_items())
+                        for k, e in m._sorted_items())
 
     def _latex_term(self, m):
         r"""
@@ -121,9 +128,11 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
         S = m._sorted_items()
         if not S:
             return '1'
-        exp = lambda e: '^{{{}}}'.format(e) if e > 1 else ''
+
+        def exp(e):
+            return '^{{{}}}'.format(e) if e > 1 else ''
         return ' '.join(('x_{{{},{}}}'.format(*k) if k != 'c' else 'c') + exp(e)
-                        for k,e in m._sorted_items())
+                        for k, e in m._sorted_items())
 
     def n(self):
         """
@@ -217,7 +226,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             ....:     qdet = O.quantum_determinant()
             ....:     assert all(g * qdet == qdet * g for g in O.algebra_generators())
 
-        We also verify taht it is group-like::
+        We also verify that it is group-like::
 
             sage: for n in range(2,4):
             ....:     O = algebras.QuantumMatrixCoordinate(n)
@@ -228,8 +237,8 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             raise ValueError("undefined for non-square quantum matrices")
         from sage.combinat.permutation import Permutations
         q = self._q
-        return self.sum(self.term(self._indices({(i,p(i)): 1 for i in range(1, self._n+1)}),
-                                  (-q)**p.length())
+        return self.sum(self.term(self._indices({(i, p(i)): 1 for i in range(1, self._n + 1)}),
+                                  (-q) ** p.length())
                         for p in Permutations(self._n))
 
     def product_on_basis(self, a, b):
@@ -259,54 +268,55 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             return self.monomial(b)
         if not bl:
             return self.monomial(a)
-        if al[-1][0] < bl[0][0]: # Already in order
-            return self.monomial(a*b)
+        if al[-1][0] < bl[0][0]:  # Already in order
+            return self.monomial(a * b)
         G = self._indices.monoid_generators()
         one = self.base_ring().one()
         ret = self.zero()
         q = self._q
-        qi = q**-1
+        qi = q ** -1
         monomial = b
         coeff = one
-        for pos in range(len(al)-1,-1,-1):
-            ax,ae = al[pos]
-            for bx,be in bl:
+        for pos in range(len(al) - 1, -1, -1):
+            ax, ae = al[pos]
+            for bx, be in bl:
                 if ax[0] < bx[0]:
                     # In order, so nothing more to do
                     break
                 elif ax[0] == bx[0]:
                     if ax[1] > bx[1]:
                         # x_{it} x_{ij} = q^{-1} x_{ij} x_{it} if t < j
-                        coeff *= qi**(ae*be)
+                        coeff *= qi ** (ae * be)
                     else:
                         # In order, so nothing more to do
                         break
                 elif ax[1] == bx[1]:
                     # x_{sj} x_{ij} = q^{-1} x_{ij} x_{sj} if s > i
-                    coeff *= qi**(ae*be)
-                elif ax[1] > bx[1]: # By this point, we must have ax[0] > bx[0]
+                    coeff *= qi ** (ae * be)
+                elif ax[1] > bx[1]:  # By this point, we must have ax[0] > bx[0]
                     # x_{st} x_{ij} = x_{ij} x_{st} + (q^-1 - q) x_{it} x_{sj}
                     # if s > i, t > j
 
                     # By Lemma 2.7 (with fixed typo) in H. Zhang and R.B. Zhang:
                     # x_{st} x_{ij}^k = x_{ij}^k x_{st}
                     #                  + (q^{1-2k} - q) x_{ij}^{k-1} x_{it} x_{sj}
-                    m1 = G[bx]**be * G[ax]
-                    m2 = G[bx]**(be-1) * G[(bx[0],ax[1])] * G[(ax[0],bx[1])]
-                    ret = self._from_dict({m1: one, m2: (q**(1-2*be) - q)})
+                    m1 = G[bx] ** be * G[ax]
+                    m2 = G[bx] ** (be - 1) * G[(bx[0], ax[1])] * G[(ax[0], bx[1])]
+                    ret = self._from_dict({m1: one, m2: (q ** (1 - 2 * be) - q)})
                     ml = monomial._sorted_items()
                     index = ml.index((bx, be))
                     a_key = self._indices(dict(al[:pos]))
-                    bp_key = self._indices(dict(ml[:index])) * G[ax]**(ae-1)
-                    return (self.monomial(a_key)
-                            * self.monomial(bp_key)
-                            * ret
-                            * self.term(self._indices(dict(ml[index+1:])), coeff))
+                    bp_key = self._indices(dict(ml[:index])) * G[ax] ** (ae - 1)
+                    return (self.monomial(a_key) *
+                            self.monomial(bp_key) *
+                            ret *
+                            self.term(self._indices(dict(ml[index + 1:])),
+                                      coeff))
 
                 # Otherwise ax[1] > bx[1], but for this case they commute:
                 # x_{st} x_{ij} = x_{ij} x_{st} if s > i, t < j
                 # So there is nothing to do to coeff
-            monomial *= G[ax]**ae
+            monomial *= G[ax] ** ae
         return self.term(monomial, coeff)
 
     @cached_method
@@ -322,8 +332,8 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             (q^-16)*x[1,1]^2*x[1,2]^2*x[1,3]^3
         """
         ret = self.one()
-        for k,e in reversed(x._sorted_items()):
-            ret *= self.monomial(self._indices({k:e}))
+        for k, e in reversed(x._sorted_items()):
+            ret *= self.monomial(self._indices({k: e}))
         return ret
 
     def counit_on_basis(self, x):
@@ -341,7 +351,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             [0 0 1 0]
             [0 0 0 1]
         """
-        if all(t == 'c' or t[0] == t[1] for t,e in x._sorted_items()):
+        if all(t == 'c' or t[0] == t[1] for t, e in x._sorted_items()):
             return self.base_ring().one()
         else:
             return self.base_ring().zero()
@@ -374,7 +384,8 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
                 x[1,1]^2*x[1,2]^2*x[1,3]^3*x[2,4]
             """
             P = self.parent()
-            return P.sum(P._bar(c) * P._bar_on_basis(m) for m,c in self)
+            return P.sum(P._bar(c) * P._bar_on_basis(m) for m, c in self)
+
 
 class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
     r"""
@@ -508,7 +519,7 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
             sage: O = algebras.QuantumMatrixCoordinate(4)
             sage: TestSuite(O).run()
         """
-        gp_indices = [(i, j) for i in range(1, m+1) for j in range(1, n+1)]
+        gp_indices = [(i, j) for i in range(1, m + 1) for j in range(1, n + 1)]
 
         if m == n:
             cat = Bialgebras(R.category()).WithBasis()
@@ -535,8 +546,8 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
             Quantized coordinate algebra of M(4, 2) with q=q over
              Univariate Laurent Polynomial Ring in q over Integer Ring
         """
-        return "Quantized coordinate algebra of M({}, {}) with q={} over {}".format(
-                    self._m, self._n, self._q, self.base_ring())
+        txt = "Quantized coordinate algebra of M({}, {}) with q={} over {}"
+        return txt.format(self._m, self._n, self._q, self.base_ring())
 
     def _latex_(self):
         r"""
@@ -548,7 +559,7 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
             sage: latex(O)
             \mathcal{O}_{q}(M(4, 4))
         """
-        return "\\mathcal{O}_{%s}(M(%s, %s))"%(self._q, self._m, self._n)
+        return "\\mathcal{O}_{%s}(M(%s, %s))" % (self._q, self._m, self._n)
 
     def m(self):
         """
@@ -577,10 +588,11 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
             Finite family {(1, 2): x[1,2], (1, 1): x[1,1],
                            (2, 1): x[2,1], (2, 2): x[2,2]}
         """
-        l = [(i,j) for i in range(1, self._m+1) for j in range(1, self._n+1)]
+        l = [(i, j) for i in range(1, self._m + 1)
+             for j in range(1, self._n + 1)]
         G = self._indices.monoid_generators()
         one = self.base_ring().one()
-        return Family(l, lambda x: self.element_class(self, {G[x]:one}))
+        return Family(l, lambda x: self.element_class(self, {G[x]: one}))
 
     def coproduct_on_basis(self, x):
         r"""
@@ -608,8 +620,9 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
         T = self.tensor_square()
         I = self._indices.monoid_generators()
         return T.prod(T.sum_of_monomials((I[t[0], k], I[k, t[1]])
-                                  for k in range(1,self._n+1))**e
-                      for t,e in x._sorted_items())
+                                         for k in range(1, self._n + 1)) ** e
+                      for t, e in x._sorted_items())
+
 
 class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
     r"""
@@ -736,7 +749,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
             sage: TestSuite(O).run(elements=elts) # long time
         """
         # Set the names
-        gp_indices = [(i, j) for i in range(1, n+1) for j in range(1, n+1)]
+        gp_indices = [(i, j) for i in range(1, n + 1) for j in range(1, n + 1)]
         gp_indices.append('c')
         cat = HopfAlgebras(R.category()).WithBasis()
         QuantumMatrixCoordinateAlgebra_abstract.__init__(self, gp_indices, n, q, bar, R, cat)
@@ -754,8 +767,8 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
             Quantized coordinate algebra of GL(4) with q=q over
              Univariate Laurent Polynomial Ring in q over Integer Ring
         """
-        return "Quantized coordinate algebra of GL({}) with q={} over {}".format(
-                    self._n, self._q, self.base_ring())
+        txt = "Quantized coordinate algebra of GL({}) with q={} over {}"
+        return txt.format(self._n, self._q, self.base_ring())
 
     def _latex_(self):
         r"""
@@ -767,7 +780,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
             sage: latex(O)
             \mathcal{O}_{q}(GL(4))
         """
-        return "\\mathcal{O}_{%s}(GL(%s))"%(self._q, self._n)
+        return "\\mathcal{O}_{%s}(GL(%s))" % (self._q, self._n)
 
     @cached_method
     def algebra_generators(self):
@@ -781,11 +794,12 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
             Finite family {(1, 2): x[1,2], 'c': c, (1, 1): x[1,1],
                            (2, 1): x[2,1], (2, 2): x[2,2]}
         """
-        l = [(i,j) for i in range(1, self._n+1) for j in range(1, self._n+1)]
+        l = [(i, j) for i in range(1, self._n + 1)
+             for j in range(1, self._n + 1)]
         l.append('c')
         G = self._indices.monoid_generators()
         one = self.base_ring().one()
-        return Family(l, lambda x: self.element_class(self, {G[x]:one}))
+        return Family(l, lambda x: self.element_class(self, {G[x]: one}))
 
     @lazy_attribute
     def _qdet_cancel_monomial(self):
@@ -800,7 +814,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         """
         I = self._indices
         gens = I.monoid_generators()
-        return I.prod(gens[i,i] for i in range(1, self._n+1))
+        return I.prod(gens[i, i] for i in range(1, self._n + 1))
 
     @lazy_attribute
     def _qdet_remaining(self):
@@ -820,7 +834,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         """
         temp = self.monomial(self._qdet_cancel_monomial) - self.quantum_determinant()
         c = self._indices.monoid_generators()['c']
-        ret = {c * mon: coeff for mon,coeff in temp}
+        ret = {c * mon: coeff for mon, coeff in temp}
         return self._from_dict(ret, remove_zeros=False) + self.one()
 
     def product_on_basis(self, a, b):
@@ -851,11 +865,11 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         I = self._indices
         c_exp = 0
         if 'c' in a._monomial:
-            da = dict(a._monomial) # Make a copy
+            da = dict(a._monomial)  # Make a copy
             c_exp += da.pop('c')
             a = I(da)
         if 'c' in b._monomial:
-            db = dict(b._monomial) # Make a copy
+            db = dict(b._monomial)  # Make a copy
             c_exp += db.pop('c')
             b = I(db)
         # a and b contain no powers of c
@@ -865,7 +879,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         c = self._indices.monoid_generators()['c']
         ret = {}
         other = self.zero()
-        for mon,coeff in p:
+        for mon, coeff in p:
             try:
                 # Given that cz = R and we have a monomial ab, we need to
                 #   rewrite zx in terms of ab plus lower order terms L:
@@ -876,14 +890,14 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
                 L = self.monomial(self._qdet_cancel_monomial) * rem
                 co = L[mon]
                 del L._monomial_coefficients[mon]
-                temp = self.term(c**(c_exp-1), coeff) * self._qdet_remaining * rem
+                temp = self.term(c ** (c_exp - 1), coeff) * self._qdet_remaining * rem
                 if L != self.zero():
-                    temp -= self.term(c**c_exp, coeff) * L
+                    temp -= self.term(c ** c_exp, coeff) * L
                 for k in temp._monomial_coefficients:
                     temp._monomial_coefficients[k] //= co
                 other += temp
-            except ValueError: # We cannot cancel, so we just add on the correct power of c
-                ret[c**c_exp * mon] = coeff
+            except ValueError:  # We cannot cancel, so we just add on the correct power of c
+                ret[c ** c_exp * mon] = coeff
         return self._from_dict(ret, remove_zeros=False) + other
 
     @cached_method
@@ -900,13 +914,16 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         """
         from sage.combinat.permutation import Permutations
         q = self._q
-        I = range(1, j) + range(j+1, self._n+1)
-        lift = lambda p: [val if val < i else val + 1 for val in p]
+        I = list(range(1, j)) + list(range(j + 1, self._n + 1))
+
+        def lift(p):
+            return [val if val < i else val + 1 for val in p]
         gens = self.algebra_generators()
-        t_tilde = self.sum((-q)**p.length() * gens['c']
-                           * self.prod( gens[I[k],val] for k, val in enumerate(lift(p)) )
-                           for p in Permutations(self._n-1))
-        return (-q)**(i - j) * t_tilde
+        t_tilde = self.sum((-q) ** p.length() * gens['c'] *
+                           self.prod(gens[I[k], val]
+                                     for k, val in enumerate(lift(p)))
+                           for p in Permutations(self._n - 1))
+        return (-q) ** (i - j) * t_tilde
 
     def antipode_on_basis(self, x):
         r"""
@@ -924,11 +941,11 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
             True
         """
         ret = self.one()
-        for k,e in reversed(x._sorted_items()):
+        for k, e in reversed(x._sorted_items()):
             if k == 'c':
-                ret *= self.quantum_determinant()**e
+                ret *= self.quantum_determinant() ** e
             else:
-                ret *= self._antipode_on_generator(*k)**e
+                ret *= self._antipode_on_generator(*k) ** e
         return ret
 
     def coproduct_on_basis(self, x):
@@ -949,9 +966,10 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         T = self.tensor_square()
         I = self._indices.monoid_generators()
         return T.prod(T.sum_of_monomials((I[t[0], k], I[k, t[1]])
-                                         for k in range(1,self._n+1))**e
-                      if t != 'c' else T.monomial((I['c'], I['c']))**e
-                      for t,e in x._sorted_items())
+                                         for k in range(1, self._n + 1)) ** e
+                      if t != 'c' else T.monomial((I['c'], I['c'])) ** e
+                      for t, e in x._sorted_items())
+
 
 def gcmp(x, y):
     r"""
@@ -982,4 +1000,3 @@ def gcmp(x, y):
         return 1
     # Both must be tuples, so we use the Python cmp
     return cmp(x, y)
-

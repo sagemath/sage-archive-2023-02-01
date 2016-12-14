@@ -243,7 +243,7 @@ class PadicValuationFactory(UniqueFactory):
             2-adic valuation
 
         """
-        K, L, G = self._normalize_number_field_data(R.fraction_field())
+        K, L, G = self._normalize_number_field_data(R)
 
         from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
         from valuation import DiscretePseudoValuation
@@ -273,14 +273,26 @@ class PadicValuationFactory(UniqueFactory):
             sage: pAdicValuation(GaussianIntegers(), pAdicValuation(ZZ, 2)) # indirect doctest
             2-adic valuation
 
+        TESTS:
+
+        We can extend to the field of fractions of a quotient ring::
+
+            sage: R.<x> = ZZ[]
+            sage: S = R.quo(x^2 + 1)
+            sage: v = pAdicValuation(S, 2)
+            sage: R.<x> = QQ[]
+            sage: S = R.quo(x^2 + 1)
+            sage: v = pAdicValuation(S, v)
+
         """
-        K, L, G = self._normalize_number_field_data(R.fraction_field())
+        K, L, G = self._normalize_number_field_data(R)
 
         if v.domain().is_subring(G.parent()):
-            # v is defined on a subring of K[x]
-            # We try to lift v to a pseudo-valuation on K[x]
-            # First, we lift valuations defined on subrings of K to valuations on K[x]
-            if v.domain().fraction_field() is not G.parent().fraction_field():
+            # v is defined on a subring of K[x].
+            # We try to lift v to a pseudo-valuation on K[x].
+            if _fraction_field(v.domain()) is not _fraction_field(G.parent()):
+                # First, we lift valuations defined on subrings of K to
+                # valuations on K[x].
                 if v.domain().is_subring(K):
                     if v.domain() is not K:
                         v = pAdicValuation(K, v)
@@ -290,15 +302,19 @@ class PadicValuationFactory(UniqueFactory):
                 # Then, we lift valuations defined on polynmial rings which are
                 # subrings of K[x] to K[x]
                 v = v.extension(G.parent())
+        elif _fraction_field(v.domain()) == L:
+            # v is defined on a ring whose field of fractions is L
+            v = v._base_valuation._initial_approximation.change_domain(G.parent())
         else:
             raise NotImplementedError("can not rewrite %r which is defined on %r as a pseudo-valuation on %r"%(v, v.domain(), G.parent()))
             
+
         assert(v.domain() is G.parent())
 
         # To obtain uniqueness of p-adic valuations, we need a canonical
         # description of v. We consider all extensions of vK to L and select
         # the one approximated by v.
-        vK = v.restriction(v.domain().base_ring())
+        vK = v.restriction(v.domain().base_ring()).extension(K)
         approximants = vK.mac_lane_approximants(G)
         approximant = vK.mac_lane_approximant(G, v, approximants=tuple(approximants))
 
@@ -322,7 +338,7 @@ class PadicValuationFactory(UniqueFactory):
             2-adic valuation
 
         """
-        K, L, G = self._normalize_number_field_data(R.fraction_field())
+        K, L, G = self._normalize_number_field_data(R)
 
         # To obtain uniqueness of p-adic valuations, we need a canonical
         # description of v. We consider all extensions of vK to L and select
@@ -371,17 +387,18 @@ class PadicValuationFactory(UniqueFactory):
         # there and then come back to the original ring
         from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
         from sage.rings.number_field.number_field import is_NumberField
-        if is_NumberField(R):
+        from sage.rings.fraction_field import is_FractionField
+        if is_NumberField(R.fraction_field()):
             L = R.fraction_field()
             G = L.relative_polynomial()
             K = L.base_ring()
         elif is_PolynomialQuotientRing(R):
             from sage.categories.all import NumberFields
-            if R.base_ring() not in NumberFields():
+            if R.base_ring().fraction_field() not in NumberFields():
                 raise NotImplementedError("can not normalize quotients over %r"%(R.base_ring(),))
-            L = R
-            G = R.modulus()
-            K = R.base_ring()
+            L = R.fraction_field()
+            K = R.base_ring().fraction_field()
+            G = R.modulus().change_ring(K)
         else:
             raise NotImplementedError("can not normalize %r"%(R,))
 
@@ -422,7 +439,7 @@ class PadicValuationFactory(UniqueFactory):
             if is_NumberField(K):
                 G = K.relative_polynomial()
             elif is_PolynomialQuotientRing(R):
-                G = K.modulus()
+                G = R.modulus()
             else:
                 raise NotImplementedError
             return parent.__make_element_class__(pAdicFromLimitValuation)(parent, v, G.change_ring(R.base_ring()), approximants)
@@ -741,15 +758,20 @@ class pAdicValuation_base(DiscreteValuation):
         """
         if self.domain() is ring:
             return [self]
-        if self.domain().fraction_field() is not self.domain():
-            if self.domain().fraction_field().is_subring(ring):
-                return pAdicValuation(self.domain().fraction_field(), self).extensions(ring)
+        domain_fraction_field = _fraction_field(self.domain())
+        if domain_fraction_field is not self.domain():
+            if domain_fraction_field.is_subring(ring):
+                return pAdicValuation(domain_fraction_field, self).extensions(ring)
         if self.domain().is_subring(ring):
             from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
             if is_PolynomialQuotientRing(ring):
+                if is_PolynomialQuotientRing(self.domain()):
+                    if self.domain().modulus() == ring.modulus():
+                        base_extensions = self._base_valuation.extensions(self._base_valuation.domain().change_ring(self._base_valuation.domain().base_ring().fraction_field()))
+                        return [pAdicValuation(ring, base._initial_approximation) for base in base_extensions]
                 if ring.base_ring() is self.domain():
-                    from sage.categories.all import Fields
-                    if ring in Fields():
+                    from sage.categories.all import IntegralDomains
+                    if ring in IntegralDomains():
                         from valuation_space import DiscretePseudoValuationSpace
                         parent = DiscretePseudoValuationSpace(ring)
                         approximants = self.mac_lane_approximants(ring.modulus().change_ring(self.domain()), assume_squarefree=True)
@@ -1246,3 +1268,32 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
                 approximant = self._base_valuation.change_domain(G.parent())._initial_approximation
                 return [pAdicValuation(ring, approximant)]
         return super(pAdicFromLimitValuation, self).extensions(ring)
+
+def _fraction_field(ring):
+    r"""
+    Return a fraction field of ``ring``.
+
+    EXAMPLES:
+
+    This works around some annoyances with ``ring.fraction_field()``::
+
+        sage: R.<x> = ZZ[]
+        sage: S = R.quo(x^2 + 1)
+        sage: S.fraction_field()
+        Fraction Field of Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
+
+        sage: from mac_lane.padic_valuation import _fraction_field
+        sage: _fraction_field(S)
+        Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
+
+    """
+    from sage.categories.all import Fields
+    if ring in Fields():
+        return ring
+
+    from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
+    if is_PolynomialQuotientRing(ring):
+        from sage.categories.all import IntegralDomains
+        if ring in IntegralDomains():
+            return ring.base().change_ring(ring.base_ring().fraction_field()).quo(ring.modulus())
+    return ring.fraction_field()

@@ -790,7 +790,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
                     from sage.rings.all import ZZ
                     assert (phi.degree() / self.phi().degree()) in ZZ 
-                    degree_bound = multiplicities[slope] * self.phi().degree()
+                    degree_bound = multiplicities[slope] * self.phi().degree() * e
                     ret.append((w, degree_bound, w_coefficients, new_valuations))
 
         assert ret

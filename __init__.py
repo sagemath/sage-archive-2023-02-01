@@ -370,6 +370,24 @@ class CallableConvertMap_patched(sage.rings.fraction_field.CallableConvertMap):
 
 sage.rings.fraction_field.CallableConvertMap = CallableConvertMap_patched
 
+# inverses of quotient ring elements
+def inverse_of_unit(self):
+    r"""
+    TESTS::
+
+        sage: R.<x> = ZZ[]
+        sage: S = R.quo(x^2+x+1)
+        sage: S(1).inverse_of_unit()
+        1
+
+    """
+    inverse = ~self
+    if inverse.parent() is self.parent():
+        return inverse
+    raise NotImplementedError
+
+sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement.inverse_of_unit = inverse_of_unit
+del(inverse_of_unit)
 
 # factorization in polynomial quotient fields
 def _factor_univariate_polynomial(self, f):

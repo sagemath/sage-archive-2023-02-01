@@ -416,6 +416,27 @@ class HasseDiagram(DiGraph):
                 all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
                 all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1
 
+    def is_antichain_of_poset(self, elms):
+        """
+        Return ``True`` if ``elms`` is an antichain of the Hasse
+        diagram and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.is_antichain_of_poset([1, 2, 3])
+            True
+            sage: H.is_antichain_of_poset([0, 2, 3])
+            False
+        """
+        from itertools import combinations
+        from sage.misc.misc import uniq
+
+        elms_sorted = uniq(elms)
+        return not any(self.is_lequal(a, b) for a, b in
+                       combinations(elms_sorted, 2))
+
     def dual(self):
         """
         Returns a poset that is dual to the given poset.

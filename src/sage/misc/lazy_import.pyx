@@ -538,7 +538,7 @@ cdef class LazyImport(object):
         """
         TESTS::
 
-            sage: sage.all.foo = range(10)
+            sage: sage.all.foo = list(range(10))
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
@@ -552,7 +552,7 @@ cdef class LazyImport(object):
         """
         TESTS::
 
-            sage: sage.all.foo = range(10)
+            sage: sage.all.foo = list(range(10))
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>

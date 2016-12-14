@@ -6688,6 +6688,37 @@ cdef class Expression(CommutativeRingElement):
             # make the error message refer to lcm, not gcd
             raise ValueError("lcm: arguments must be polynomials over the rationals")
 
+    def resultant(self, other, var):
+        """
+        Compute the resultant of this polynomial expression and the first
+        argument with respect to the variable given as the second
+        argument.
+
+        EXAMPLES::
+
+            sage: _ = var('a b n k u x y')
+            sage: x.resultant(y, x)
+            y
+            sage: (x+y).resultant(x-y, x)
+            -2*y
+            sage: r = (x^4*y^2+x^2*y-y).resultant(x*y-y*a-x*b+a*b+u,x); r
+            a^4*b^4*y^2 - 4*a^4*b^3*y^3 + 6*a^4*b^2*y^4 - 4*a^4*b*y^5 + a^4*y^6 + 4*a^3*b^3*u*y^2 - 12*a^3*b^2*u*y^3 + 12*a^3*b*u*y^4 - 4*a^3*u*y^5 + 6*a^2*b^2*u^2*y^2 - 12*a^2*b*u^2*y^3 + 6*a^2*u^2*y^4 + a^2*b^4*y - 4*a^2*b^3*y^2 + 4*a*b*u^3*y^2 + 6*a^2*b^2*y^3 - 4*a*u^3*y^3 - 4*a^2*b*y^4 + a^2*y^5 + 2*a*b^3*u*y - 6*a*b^2*u*y^2 + u^4*y^2 + 6*a*b*u*y^3 - 2*a*u*y^4 - b^4*y + b^2*u^2*y + 4*b^3*y^2 - 2*b*u^2*y^2 - 6*b^2*y^3 + u^2*y^3 + 4*b*y^4 - y^5
+            sage: x.resultant(sin(x), x)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: resultant(): arguments must be polynomials
+        """
+        cdef Expression o = self.coerce_in(other)
+        cdef Expression v = self.coerce_in(var)
+        cdef GEx x
+        sig_on()
+        try:
+            x = g_resultant(self._gobj, o._gobj, v._gobj)
+        finally:
+            sig_off()
+        return new_Expression_from_GEx(self._parent, x)
+
+
     def collect(Expression self, s):
         """
         Collect the coefficients of ``s`` into a group.

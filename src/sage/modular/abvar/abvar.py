@@ -777,7 +777,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Category of modular abelian varieties over Rational Field
         """
         if cat is None:
-            K = self.base_field(); L = B.base_field()
+            K = self.base_field()
+            L = B.base_field()
             if K == L:
                 F = K
             elif K == QQbar or L == QQbar:
@@ -3463,7 +3464,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         amb = self.ambient_variety()
         S   = self.vector_space()
         X = amb.decomposition(simple=simple, bound=bound)
-        IN = []; OUT = []
+        IN = []
+        OUT = []
         i = 0
         V = 0
         last_dimension = 0
@@ -4574,13 +4576,15 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         if not self.is_simple():
             raise ValueError("self must be simple")
         p = Integer(p)
-        if not p.is_prime(): raise ValueError("p must be a prime integer")
-        try: return self.__component_group[p][0]
+        if not p.is_prime():
+            raise ValueError("p must be a prime integer")
+        try:
+            return self.__component_group[p][0]
         except AttributeError:
             self.__component_group = {}
         except KeyError: pass
         # Easy special case -- a prime of good reduction
-        if self.level() % p != 0:
+        if self.level() % p:
             one = Integer(1)
             self.__component_group[p] = (one,one,one)
             return one
@@ -4725,20 +4729,20 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
 
     def tamagawa_number_bounds(self, p):
         """
-        Return a divisor and multiple of the Tamagawa number of self at p.
+        Return a divisor and multiple of the Tamagawa number of self at `p`.
 
-        NOTE: the input abelian variety must be simple
+        NOTE: the input abelian variety must be simple.
 
         INPUT:
 
-        - p -- a prime number
+        - `p` -- a prime number
 
         OUTPUT:
 
-        - div -- integer; divisor of Tamagawa number at p
-        - mul -- integer; multiple of Tamagawa number at p
+        - div -- integer; divisor of Tamagawa number at `p`
+        - mul -- integer; multiple of Tamagawa number at `p`
         - mul_primes -- tuple; in case mul==0, a list of all
-        primes that can possibly divide the Tamagawa number at p.
+          primes that can possibly divide the Tamagawa number at `p`
 
         EXAMPLES::
 
@@ -4749,15 +4753,21 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
             sage: A.tamagawa_number_bounds(3)
             (1, 0, (2, 3, 5))
         """
-        try: return self.__tamagawa_number_bounds[p]
-        except AttributeError: self.__tamagawa_number_bounds = {}
-        except KeyError: pass
+        try:
+            return self.__tamagawa_number_bounds[p]
+        except AttributeError:
+            self.__tamagawa_number_bounds = {}
+        except KeyError:
+            pass
         if not self.is_simple():
             raise ValueError("self must be simple")
         N = self.level()
-        div = 1; mul = 0; mul_primes = []
-        if N % p != 0:
-            div = 1; mul = 1
+        div = 1
+        mul = 0
+        mul_primes = []
+        if N % p:
+            div = 1
+            mul = 1
         elif N.valuation(p) == 1:
             M = self.modular_symbols(sign=1)
             if is_Gamma0(M.group()):
@@ -4766,7 +4776,8 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
                 cp = None
                 if W == -1:
                     # Frob acts trivially
-                    div = g; mul = g
+                    div = g
+                    mul = g
                 elif W == 1:
                     # Frob acts by -1
                     n = g.valuation(2)
@@ -4950,7 +4961,8 @@ def factor_new_space(M):
         Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
         ]
     """
-    t = None; p = 2
+    t = None
+    p = 2
     for i in range(200):
         t, p = random_hecke_operator(M, t, p)
         f = t.charpoly()

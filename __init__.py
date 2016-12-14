@@ -344,6 +344,47 @@ def _coerce_map_from_patched(self, domain):
 sage.rings.number_field.order.Order._coerce_map_from_ = _coerce_map_from_patched
 del(_coerce_map_from_patched)
 
+# quotient rings embed if their underlying rings do
+class DefaultConvertMap_unique_patched3(sage.structure.coerce_maps.DefaultConvertMap_unique):
+    def is_injective(self):
+        r"""
+        TESTS::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<x> = QQ[]
+            sage: S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1)).is_injective()
+            True
+
+        """
+        if self.codomain().base().coerce_map_from(self.domain().base()).is_injective():
+            return True
+        raise NotImplementedError
+
+sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic._coerce_map_from_original = sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic._coerce_map_from_
+def _coerce_map_from_patched(self, domain):
+    r"""
+    TESTS::
+
+        sage: R.<x> = ZZ[]
+        sage: S.<x> = QQ[]
+        sage: S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1)).is_injective() # indirect doctest
+        True
+
+    """
+    from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
+    if is_PolynomialQuotientRing(domain) and domain.modulus() == self.modulus():
+        if self.base().has_coerce_map_from(domain.base()):
+            return DefaultConvertMap_unique_patched3(domain, self)
+    from sage.rings.fraction_field import is_FractionField
+    if is_FractionField(domain):
+        # this should be implemented on a much higher level:
+        # if there is a morphism R -> K then there is a morphism Frac(R) -> K
+        if self.has_coerce_map_from(domain.base()):
+            return True
+    return self._coerce_map_from_original(domain)
+sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic._coerce_map_from_ = _coerce_map_from_patched
+del(_coerce_map_from_patched)
+
 # a ring embeds into its field of fractions
 class CallableConvertMap_patched(sage.rings.fraction_field.CallableConvertMap):
     def is_injective(self):

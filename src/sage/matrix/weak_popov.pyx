@@ -10,23 +10,16 @@ AUTHORS:
 from collections import defaultdict
 
 cdef leading_position(v):
-    r"""
-    Used to compute the leading position of a vector v.
+    """
+    Return the leading position of vector ``v``.
 
     INPUT:
 
-     - `v` - vector
+     - ``v`` -- vector
 
-    OUTPUT:
-
-    Outputs the leading position of a vector v, which is the position
+    Output the leading position of a vector v, which is the position
     with highest degree. For multiple positions with equal degrees
     the highest position i, or rightmost in the vector, is chosen.
-
-    .. note::
-
-        This method is used in the mulders-storjohann algorithm.
-
     """
     p = -1 # pos of max
     m = -1 # max
@@ -35,7 +28,6 @@ cdef leading_position(v):
             m = v[c].degree()
             p = c
     return p
-
 
 cdef simple_transformation(M, rowtochange, basisrow, LP, U=None):
     r"""
@@ -71,14 +63,14 @@ cdef simple_transformation(M, rowtochange, basisrow, LP, U=None):
     """
     cdef delta = M[rowtochange][LP].degree() - M[basisrow][LP].degree()
     cdef alpha = (M[rowtochange][LP].coefficients()[-1]) / (M[basisrow][LP].coefficients()[-1])
+
     for i in range(M.ncols()):
         M[rowtochange,i] -= alpha * M[basisrow,i].shift(delta)
     if U is not None:
         for i in range(U.ncols()):
             U[rowtochange,i] -= alpha * U[basisrow,i].shift(delta)
 
-
-cpdef mulders_storjohann(M, transposition=False):
+cpdef weak_popov_form_mulders_storjohann(M, transformation=False):
     r"""
     Function to transform M into weak popov form.
 
@@ -86,12 +78,12 @@ cpdef mulders_storjohann(M, transposition=False):
 
      - `M` - Matrix over a polynomialring.
 
-     - `transposition` - Boolean (default: False) indicating if a Matrix
+     - `transformation` - Boolean (default: False) indicating if a Matrix
      U should be computed so that U*M = M.weak_popov_form()
 
     OUTPUT:
 
-    M transformed into weak popov form. If transposition is True, a touple
+    M transformed into weak popov form. If transformation is True, a touple
     (M,U) is returned with U*Original M = M in weak popov form.
 
     .. WARNING::
@@ -116,14 +108,14 @@ cpdef mulders_storjohann(M, transposition=False):
 
     EXAMPLES:
 
-    The value transposition can be used to get a second matrix to check
+    The value transformation can be used to get a second matrix to check
     unimodular equivalence. ::
 
         sage: F.<a> = GF(2^4,'a')
         sage: PF.<x> = F[]
         sage: A = matrix(PF,[[1,a*x^17+1],[0,a*x^11+a^2*x^7+1]])
         sage: Ac = copy(A)
-        sage: au = A.weak_popov_form(implementation="cython",transposition=True)
+        sage: au = A.weak_popov_form(implementation="cython",transformation=True)
         sage: au[1]*Ac == au[0]
         True
         sage: au[1].is_invertible()
@@ -159,9 +151,9 @@ cpdef mulders_storjohann(M, transposition=False):
         [x^2   x   4]
         [  2   x  11]
 
-    And the transposition will be the identity matrix. ::
+    And the transformation will be the identity matrix. ::
 
-        sage: C.weak_popov_form(implementation="cython",transposition=True)
+        sage: C.weak_popov_form(implementation="cython",transformation=True)
         (
         [  1   7   x]  [1 0 0]
         [x^2   x   4]  [0 1 0]
@@ -190,10 +182,10 @@ cpdef mulders_storjohann(M, transposition=False):
 
     This function can be called directly. ::
 
-        sage: from sage.matrix.weak_popov import mulders_storjohann
+        sage: from sage.matrix.weak_popov import weak_popov_form_mulders_storjohann
         sage: PF = PolynomialRing(GF(2,'a'),'x')
         sage: E = matrix(PF,[[x+1,x,x],[x^2,x,x^4+x^3+x^2+x]])
-        sage: mulders_storjohann(E)
+        sage: weak_popov_form_mulders_storjohann(E)
         [          x + 1               x               x]
         [x^4 + x^3 + x^2         x^4 + x   x^3 + x^2 + x]
 
@@ -211,7 +203,7 @@ cpdef mulders_storjohann(M, transposition=False):
     if not is_PolynomialRing(M.base_ring()):
         raise TypeError("the entries of M must lie in a univariate polynomial ring")
 
-    if transposition == True:
+    if transformation == True:
         from sage.matrix.constructor import identity_matrix
         U = identity_matrix(M.base_ring(), M.nrows())
     else:

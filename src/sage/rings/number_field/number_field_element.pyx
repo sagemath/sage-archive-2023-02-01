@@ -42,7 +42,7 @@ from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z,
 from sage.libs.mpfr cimport mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p
 from sage.libs.ntl.error import NTLError
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.sage_object cimport rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
@@ -5058,34 +5058,6 @@ class CoordinateFunction:
         if not self.__K.has_coerce_map_from(parent(x)):
             raise TypeError("Cannot coerce element into this number field")
         return self.__W.coordinates(self.__to_V(self.__K(x)))
-
-    def __richcmp__(self, other, op):
-        r"""
-        EXAMPLE::
-
-            sage: K.<a> = NumberField(x^4 + 1)
-            sage: f = (a + 1).coordinates_in_terms_of_powers()
-            sage: f == loads(dumps(f))
-            True
-            sage: f == (a + 2).coordinates_in_terms_of_powers()
-            False
-            sage: f == NumberField(x^2 + 3,'b').gen().coordinates_in_terms_of_powers()
-            False
-        """
-        if not isinstance(other, CoordinateFunction):
-            return NotImplemented
-
-        lx = self.__K
-        rx = other.__K
-        if lx != rx:
-            return richcmp_not_equal(lx, rx, op)
-
-        lx = self.__alpha
-        rx = other.__alpha
-        if lx != rx:
-            return richcmp_not_equal(lx, rx, op)
-
-        return rich_to_bool(op, 0)
 
     def __eq__(self, other):
         """

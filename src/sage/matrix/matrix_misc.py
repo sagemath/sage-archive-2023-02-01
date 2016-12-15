@@ -34,7 +34,6 @@ def weak_popov_form(M,ascend=True):
     deprecation(16888, 'You should call row_reduced_form() instead')
     return row_reduced_form(M)
 
-
 def row_reduced_form(M,transformation=False):
     """
     This function computes a row reduced form of a matrix over a rational
@@ -114,91 +113,16 @@ def row_reduced_form(M,transformation=False):
         # No need to clear denominators
         num = M
 
-    r = [list(v) for v in num.rows()]
-
     if transformation:
-        N = matrix(num.nrows(), num.nrows(), R(1)).rows()
-
-
-    rank = 0
-    num_zero = 0
-    if M.is_zero():
-        num_zero = len(r)
-    while rank != len(r) - num_zero:
-        # construct matrix of leading coefficients
-        v = []
-        for w in map(list, r):
-            # calculate degree of row (= max of degree of entries)
-            d = max([e.numerator().degree() for e in w])
-
-            # extract leading coefficients from current row
-            x = []
-            for y in w:
-                if y.degree() >= d and d >= 0:   x.append(y.coefficients(sparse=False)[d])
-                else:                            x.append(0)
-            v.append(x)
-        l = matrix(v)
-
-        # count number of zero rows in leading coefficient matrix
-        # because they do *not* contribute interesting relations
-        num_zero = 0
-        for v in l.rows():
-            is_zero = 1
-            for w in v:
-                if w != 0:
-                    is_zero = 0
-            if is_zero == 1:
-                num_zero += 1
-
-        # find non-trivial relations among the columns of the
-        # leading coefficient matrix
-        kern = l.kernel().basis()
-        rank = num.nrows() - len(kern)
-
-        # do a row operation if there's a non-trivial relation
-        if not rank == len(r) - num_zero:
-            for rel in kern:
-                # find the row of num involved in the relation and of
-                # maximal degree
-                indices = []
-                degrees = []
-                for i in range(len(rel)):
-                    if rel[i] != 0:
-                        indices.append(i)
-                        degrees.append(max([e.degree() for e in r[i]]))
-
-                # find maximum degree among rows involved in relation
-                max_deg = max(degrees)
-
-                # check if relation involves non-zero rows
-                if max_deg != -1:
-                    i = degrees.index(max_deg)
-                    rel /= rel[indices[i]]
-
-                    for j in range(len(indices)):
-                        if j != i:
-                            # do the row operation
-                            v = []
-                            for k in range(len(r[indices[i]])):
-                                v.append(r[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * r[indices[j]][k])
-                            r[indices[i]] = v
-
-                            if transformation:
-                                # If the user asked for it, record the row operation
-                                v = []
-                                for k in range(len(N[indices[i]])):
-                                    v.append(N[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * N[indices[j]][k])
-                                N[indices[i]] = v
-
-                    # remaining relations (if any) are no longer valid,
-                    # so continue onto next step of algorithm
-                    break
-    if is_PolynomialRing(R0):
-        A = matrix(R, r)
+        A, N = num._row_reduced_form(transformation=True)
     else:
-        A = matrix(R, r)/den
+        A = num._row_reduced_form(transformation=False)
+
+    if not is_PolynomialRing(R0):
+        A = ~den * A
+
     if transformation:
-        return (A, matrix(N))
+        return (A, N)
     else:
         return A
 

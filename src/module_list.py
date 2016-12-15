@@ -894,6 +894,9 @@ ext_modules = [
     Extension('sage.matrix.matrix_mpolynomial_dense',
               sources = ['sage/matrix/matrix_mpolynomial_dense.pyx']),
 
+    Extension('sage.matrix.matrix_polynomial_dense',
+              sources = ['sage/matrix/matrix_polynomial_dense.pyx']),
+
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               extra_compile_args = ["-std=c99", "-D_XPG6"] + m4ri_extra_compile_args,

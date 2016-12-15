@@ -22,7 +22,9 @@ from __future__ import absolute_import
 
 from .padic_generic import pAdicGeneric
 from .padic_base_generic import pAdicBaseGeneric
+from sage.structure.sage_object import op_EQ
 from functools import reduce
+
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -81,11 +83,13 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
             return coerce_map(R, self)
 
-    def __richcmp__(self, other, op):
+    def __eq__(self, other):
         """
-        Returns 0 if self == other, and 1 or -1 otherwise.
+        Return ``True`` if ``self == other`` and ``False`` otherwise.
 
-        We consider two p-adic rings or fields to be equal if they are equal mathematically, and also have the same precision cap and printing parameters.
+        We consider two `p`-adic rings or fields to be equal if they are
+        equal mathematically, and also have the same precision cap and
+        printing parameters.
 
         EXAMPLES::
 
@@ -100,24 +104,25 @@ class pAdicExtensionGeneric(pAdicGeneric):
             True
         """
         if not isinstance(other, pAdicExtensionGeneric):
-            return NotImplemented
+            return False
 
-        lx = self.ground_ring()
-        rx = other.ground_ring()
-        if lx != rx:
-            return richcmp_not_equal(lx, rx, op)
+        return (self.ground_ring() == other.ground_ring() and
+                self.defining_polynomial() == other.defining_polynomial() and
+                self.precision_cap() == other.precision_cap() and
+                self._printer.richcmp_modes(other._printer, op_EQ))
 
-        lx = self.defining_polynomial()
-        rx = other.defining_polynomial()
-        if lx != rx:
-            return richcmp_not_equal(lx, rx, op)
+    def __ne__(self, other):
+        """
+        Test inequality.
 
-        lx = self.precision_cap(),
-        rx = other.precision_cap(),
-        if lx != rx:
-            return richcmp_not_equal(lx, rx, op)
+        EXAMPLES::
 
-        return self._printer.richcmp_modes(other._printer, op)
+            sage: R.<a> = Qq(27)
+            sage: S.<a> = Qq(27,print_mode='val-unit')
+            sage: R != S
+            True
+        """
+        return not self.__eq__(other)
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError

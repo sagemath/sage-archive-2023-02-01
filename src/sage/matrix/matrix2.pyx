@@ -7006,26 +7006,6 @@ cdef class Matrix(matrix1.Matrix):
         return self.row_reduced_form(transformation=transformation,
                 ascend=ascend, old_call=old_call)
 
-    def _weak_popov_form(self, transformation=False):
-        """
-        Return a matrix in weak Popov form which is row space-equivalent to
-        the input matrix, if the input is over `k[x]` or `k(x)`.
-
-        A matrix is in weak Popov form if the (row-wise) leading positions of
-        the non-zero rows are all different. The leading position of a row is
-        the right-most position whose entry has maximal degree of the entries in
-        that row.
-
-        INPUT:
-
-        - ``transformation`` -- (default: `True`). If this is set to
-          ``True``, the transformation matrix `U` will be returned as well: this
-          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
-          where `W` is the output matrix.
-        """
-        from sage.matrix.weak_popov import weak_popov_form_mulders_storjohann
-        return weak_popov_form_mulders_storjohann(self, transformation)
-
     def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
         r"""
         This function computes a row reduced form of a matrix over a rational
@@ -7175,14 +7155,6 @@ cdef class Matrix(matrix1.Matrix):
          - For consistency with LLL and other algorithms in Sage, we have opted
            for row operations; however, references such as [Hes2002]_ transpose and use
            column operations.
-
-         - There are multiple weak Popov forms of a matrix, so one may want to
-           extend this code to produce a Popov form (see section 1.2 of [V]).  The
-           latter is canonical, but more work to produce.
-
-        .. SEEALSO::
-
-            :meth:`is_weak_popov <sage.matrix.matrix0.is_weak_popov>`
 
         REFERENCES:
 

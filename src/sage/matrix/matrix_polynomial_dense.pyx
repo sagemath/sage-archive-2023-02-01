@@ -18,16 +18,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.polynomial.multi_polynomial_libsingular cimport new_MP
-
 from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
-from sage.matrix.matrix2 cimport Matrix
-
-from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
-from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
-from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
-
-from sage.libs.singular.function import singular_function
 
 cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     """
@@ -177,8 +168,116 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           ``True``, the transformation matrix `U` will be returned as well: this
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
+
+        ALGORITHM::
+
+            This function uses the mulders-storjohann algorithm of [MS].
+            It works as follow:
+            #. As long as M is not in weak popov form do:
+                #. Find two rows with conflicting leading positions.
+                #. Do a simple transformation:
+                    #. Let x and y be indicators of rows with identical
+                       leading position
+                    #. Let LP be the Leading Position and LC the Leading
+                       Coefficient
+                    #. let a = LP(M[x]).degree() - LP(M[y]).degree()
+                    #. let d = LC(LP(M[x])) / LC(LP(M[y]))
+                    #. substitute M[x] = M[x] - a * x^d * M[y]
+
+        EXAMPLES:
+
+        The value transposition can be used to get a second matrix to check
+        unimodular equivalence. ::
+
+            sage: F.<a> = GF(2^4,'a')
+            sage: PF.<x> = F[]
+            sage: A = matrix(PF,[[1,a*x^17+1],[0,a*x^11+a^2*x^7+1]])
+            sage: Ac = copy(A)
+            sage: au = A.weak_popov_form(implementation="cython",transposition=True)
+            sage: au[1]*Ac == au[0]
+            True
+            sage: au[1].is_invertible()
+            True
+
+        The cython implementation can be used to speed up the computation of
+        a weak popov form. ::
+
+            sage: B = matrix(PF,[[x^2+a,x^2+a,x^2+a], [x^3+a*x+1,x+a^2,x^5+a*x^4+a^2*x^3]])
+            sage: B.weak_popov_form(implementation="cython")
+            [                    x^2 + a                     x^2 + a
+                  x^2 + a]
+            [x^5 + (a + 1)*x^3 + a*x + 1       x^5 + a*x^3 + x + a^2       a*x^4 +
+            (a^2 + a)*x^3]
+
+        Matrices containing only zeros will return the way they are. ::
+
+            sage: Z = matrix(PF,5,3)
+            sage: Z.weak_popov_form(implementation="cython")
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+
+        Generally matrices in weak popov form will just be returned. ::
+
+            sage: F.<a> = GF(17,'a')
+            sage: PF.<x> = F[]
+            sage: C = matrix(PF,[[1,7,x],[x^2,x,4],[2,x,11]])
+            sage: C.weak_popov_form(implementation="cython")
+            [  1   7   x]
+            [x^2   x   4]
+            [  2   x  11]
+
+        And the transposition will be the identity matrix. ::
+
+            sage: C.weak_popov_form(implementation="cython",transposition=True)
+            (
+            [  1   7   x]  [1 0 0]
+            [x^2   x   4]  [0 1 0]
+            [  2   x  11], [0 0 1]
+            )
+
+
+        It is an error to call this function with a matrix not over a polynomial
+        ring. ::
+
+            sage: M = matrix([[1,0],[1,1]])
+            sage: M.weak_popov_form(implementation="cython")
+            Traceback (most recent call last):
+            ...
+            TypeError: the entries of M must lie in a univariate polynomial ring
+
+        It is also an error to call this function using a matrix containing
+        elements of the fraction field. ::
+
+            sage: R.<t> = QQ['t']
+            sage: M = matrix([[1/t,1/(t^2),t],[0,0,t]])
+            sage: M.weak_popov_form(implementation="cython")
+            Traceback (most recent call last):
+            ...
+            TypeError: the entries of M must lie in a univariate polynomial ring
+
+        This function can be called directly. ::
+
+            sage: from sage.matrix.weak_popov import mulders_storjohann
+            sage: PF = PolynomialRing(GF(2,'a'),'x')
+            sage: E = matrix(PF,[[x+1,x,x],[x^2,x,x^4+x^3+x^2+x]])
+            sage: mulders_storjohann(E)
+            [          x + 1               x               x]
+            [x^4 + x^3 + x^2         x^4 + x   x^3 + x^2 + x]
+
+
+        .. SEEALSO::
+
+            :meth:`is_weak_popov <sage.matrix.matrix0.is_weak_popov>`
+
+        REFERENCES::
+
+        .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
+              matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
         """
-        mat = copy(self)
+        mat = self.__copy__()
         R = mat.base_ring()
         m = mat.nrows()
         n = mat.ncols()
@@ -200,7 +299,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 col = -1
                 for j in range(n):
                     curr_deg = mat[i,j].degree()
-                    if prev_deg <= curr_deg:
+                    if curr_deg >= 0 and prev_deg <= curr_deg:
                         prev_deg = curr_deg
                         col = j
                 if col < 0: # zero row
@@ -213,12 +312,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     ci = mat[i,col].leading_coefficient()
                     di = mat[i,col].degree()
                     if di >= dr:
-                        q = - ci/cr * x**(di-dr)
+                        q = R(-ci/cr).shift(di-dr)
                         mat[i] += q * mat[r]
                         if transformation:
                             U.add_multiple_of_row(i, r, q)
                     else:
-                        q = - cr/ci * x**(dr-di)
+                        q = R(-cr/ci).shift(dr-di)
                         mat[r] += q * mat[i]
                         if transformation:
                             U.add_multiple_of_row(r, i, q)
@@ -226,7 +325,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     break
                 else:
                     pivot_cols.append(col)
-        mat.cache('pivots', pivot_cols)
 
         if transformation:
             return mat, U
@@ -514,427 +612,3 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             return (A, matrix(N))
         else:
             return A
-
-#    def echelon_form(self, algorithm='row_reduction', **kwds):
-#        """
-#        Return an echelon form of ``self`` using chosen algorithm.
-#
-#        By default only a usual row reduction with no divisions or column swaps
-#        is returned.
-#
-#        If Gauss-Bareiss algorithm is chosen, column swaps are recorded and can
-#        be retrieved via :meth:`swapped_columns`.
-#
-#        INPUT:
-#
-#        - ``algorithm`` -- string, which algorithm to use (default:
-#          'row_reduction'). Valid options are:
-#
-#            - ``'row_reduction'`` (default) -- reduce as far as
-#              possible, only divide by constant entries
-#
-#            - ``'frac'`` -- reduced echelon form over fraction field
-#
-#            - ``'bareiss'`` -- fraction free Gauss-Bareiss algorithm
-#              with column swaps
-#
-#        OUTPUT:
-#
-#        The row echelon form of A depending on the chosen algorithm,
-#        as an immutable matrix.  Note that ``self`` is *not* changed
-#        by this command. Use ``A.echelonize()``` to change `A` in
-#        place.
-#
-#        EXAMPLES::
-#
-#            sage: P.<x,y> = PolynomialRing(GF(127), 2)
-#            sage: A = matrix(P, 2, 2, [1, x, 1, y])
-#            sage: A
-#            [1 x]
-#            [1 y]
-#            sage: A.echelon_form()
-#            [     1      x]
-#            [     0 -x + y]
-#
-#
-#        The reduced row echelon form over the fraction field is as follows::
-#
-#            sage: A.echelon_form('frac') # over fraction field
-#            [1 0]
-#            [0 1]
-#
-#        Alternatively, the Gauss-Bareiss algorithm may be chosen::
-#
-#            sage: E = A.echelon_form('bareiss'); E
-#            [    1     y]
-#            [    0 x - y]
-#
-#        After the application of the Gauss-Bareiss algorithm the swapped columns
-#        may inspected::
-#
-#            sage: E.swapped_columns(), E.pivots()
-#            ((0, 1), (0, 1))
-#            sage: A.swapped_columns(), A.pivots()
-#            (None, (0, 1))
-#
-#        Another approach is to row reduce as far as possible::
-#
-#            sage: A.echelon_form('row_reduction')
-#            [     1      x]
-#            [     0 -x + y]
-#        """
-#        x = self.fetch('echelon_form_'+algorithm)
-#        if x is not None: return x
-#
-#        if  algorithm == "frac":
-#            E = self.matrix_over_field()
-#            E.echelonize(**kwds)
-#        else:
-#            E = self.__copy__()
-#            E.echelonize(algorithm=algorithm, **kwds)
-#
-#        E.set_immutable()  # so we can cache the echelon form.
-#        self.cache('echelon_form_'+algorithm, E)
-#
-#        if algorithm == "frac":
-#            self.cache('pivots', E.pivots())
-#        elif algorithm == "bareiss":
-#            l = E.swapped_columns()
-#            self.cache('pivots', tuple(sorted(l)))
-#        elif algorithm == "row_reduction":
-#            pass
-#
-#        return E
-#
-#    def pivots(self):
-#        """
-#        Return the pivot column positions of this matrix as a list of integers.
-#
-#        This returns a list, of the position of the first nonzero entry in each
-#        row of the echelon form.
-#
-#        OUTPUT:
-#
-#        A list of Python ints.
-#
-#        EXAMPLES::
-#
-#            sage: matrix([PolynomialRing(GF(2), 2, 'x').gen()]).pivots()
-#            (0,)
-#            sage: K = QQ['x,y']
-#            sage: x, y = K.gens()
-#            sage: m = matrix(K, [(-x, 1, y, x - y), (-x*y, y, y^2 - 1, x*y - y^2 + x), (-x*y + x, y - 1, y^2 - y - 2, x*y - y^2 + x + y)])
-#            sage: m.pivots()
-#            (0, 2)
-#            sage: m.rank()
-#            2
-#        """
-#        x = self.fetch('pivots')
-#        if not x is None:
-#            return x
-#
-#        self.echelon_form('frac')
-#        x = self.fetch('pivots')
-#
-#        if x is None:
-#            raise RuntimeError("BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent())
-#        return x
-#
-#    def echelonize(self, algorithm='row_reduction', **kwds):
-#        """
-#        Transform self into a matrix in echelon form over the same base ring as
-#        ``self``.
-#
-#        If Gauss-Bareiss algorithm is chosen, column swaps are recorded and can
-#        be retrieved via :meth:`swapped_columns`.
-#
-#        INPUT:
-#
-#        - ``algorithm`` -- string, which algorithm to use. Valid options are:
-#
-#            - ``'row_reduction'`` -- reduce as far as possible, only
-#              divide by constant entries
-#
-#            - ``'bareiss'`` -- fraction free Gauss-Bareiss algorithm
-#              with column swaps
-#
-#        EXAMPLES::
-#
-#            sage: P.<x,y> = PolynomialRing(QQ, 2)
-#            sage: A = matrix(P, 2, 2, [1/2, x, 1, 3/4*y+1])
-#            sage: A
-#            [      1/2         x]
-#            [        1 3/4*y + 1]
-#
-#            sage: B = copy(A)
-#            sage: B.echelonize('bareiss'); B
-#            [              1       3/4*y + 1]
-#            [              0 x - 3/8*y - 1/2]
-#
-#            sage: B = copy(A)
-#            sage: B.echelonize('row_reduction'); B
-#            [               1              2*x]
-#            [               0 -2*x + 3/4*y + 1]
-#
-#            sage: P.<x,y> = PolynomialRing(QQ, 2)
-#            sage: A = matrix(P,2,3,[2,x,0,3,y,1]); A
-#            [2 x 0]
-#            [3 y 1]
-#
-#            sage: E = A.echelon_form('bareiss'); E
-#            [1 3 y]
-#            [0 2 x]
-#            sage: E.swapped_columns()
-#            (2, 0, 1)
-#            sage: A.pivots()
-#            (0, 1, 2)
-#        """
-#        self.check_mutability()
-#
-#        if self._nrows == 0 or self._ncols == 0:
-#            self.cache('in_echelon_form_'+algorithm, True)
-#            self.cache('rank', 0)
-#            self.cache('pivots', tuple())
-#            return
-#
-#        x = self.fetch('in_echelon_form_'+algorithm)
-#        if not x is None:
-#            return  # already known to be in echelon form
-#
-#        if algorithm == 'bareiss':
-#            self._echelonize_gauss_bareiss()
-#        elif algorithm == 'row_reduction':
-#            self._echelonize_row_reduction()
-#        else:
-#            raise ValueError("Unknown algorithm '%s'"%algorithm)
-#
-#    def _echelonize_gauss_bareiss(self):
-#        """
-#        Transform this matrix into a matrix in upper triangular form over the
-#        same base ring as ``self`` using the fraction free Gauss-Bareiss
-#        algorithm with column swaps.
-#
-#        The performed column swaps can be accessed via
-#        :meth:`swapped_columns`.
-#
-#        EXAMPLE::
-#
-#            sage: R.<x,y> = QQ[]
-#            sage: C = random_matrix(R, 2, 2, terms=2)
-#            sage: C
-#            [-6/5*x*y - y^2 -6*y^2 - 1/4*y]
-#            [  -1/3*x*y - 3        x*y - x]
-#
-#            sage: E = C.echelon_form('bareiss')     # indirect doctest
-#            sage: E
-#            [ -1/3*x*y - 3                                                          x*y - x]
-#            [            0 6/5*x^2*y^2 + 3*x*y^3 - 6/5*x^2*y - 11/12*x*y^2 + 18*y^2 + 3/4*y]
-#            sage: E.swapped_columns()
-#            (0, 1)
-#
-#        ALGORITHM:
-#
-#        Uses libSINGULAR or SINGULAR
-#        """
-#        cdef R = self.base_ring()
-#
-#        x = self.fetch('in_echelon_form_bareiss')
-#        if not x is None:
-#            return  # already known to be in echelon form
-#
-#        if isinstance(self.base_ring(), MPolynomialRing_libsingular):
-#
-#            self.check_mutability()
-#            self.clear_cache()
-#
-#            singular_bareiss = singular_function("bareiss")
-#            E, l = singular_bareiss(self.T)
-#
-#            m = len(E)
-#            n = len(E[0])
-#
-#            for r in xrange(m):
-#                for c in range(n):
-#                    self.set_unsafe(r, c, E[r][c])
-#                for c in xrange(n, self.ncols()):
-#                    self.set_unsafe(r, c, R._zero_element)
-#            for r in xrange(m, self.nrows()):
-#                for c in xrange(self.ncols()):
-#                    self.set_unsafe(r, c, R._zero_element)
-#
-#            from sage.rings.all import ZZ
-#            l = [ZZ(e-1) for e in l]
-#
-#            self.cache('in_echelon_form_bareiss',True)
-#            self.cache('rank', len(E))
-#            self.cache('pivots', tuple(range(len(E))))
-#            self.cache('swapped_columns', tuple(l))
-#
-#        elif can_convert_to_singular(self.base_ring()):
-#
-#            self.check_mutability()
-#            self.clear_cache()
-#
-#            E,l = self.T._singular_().bareiss()._sage_(self.base_ring())
-#
-#            # clear matrix
-#            for r from 0 <= r < self._nrows:
-#                for c from 0 <= c < self._ncols:
-#                    self.set_unsafe(r,c,R._zero_element)
-#
-#            for r from 0 <= r < E.nrows():
-#                for c from 0 <= c < E.ncols():
-#                    self.set_unsafe(c,r, E[r,c])
-#
-#            self.cache('in_echelon_form_bareiss',True)
-#            self.cache('rank', E.nrows())
-#            self.cache('pivots', tuple(range(E.nrows())))
-#            self.cache('swapped_columns', l)
-#
-#        else:
-#
-#            raise NotImplementedError("cannot apply Gauss-Bareiss algorithm over this base ring")
-#
-#    def _echelonize_row_reduction(self):
-#        """
-#        Transform this matrix to a matrix in row reduced form as far as this is
-#        possible, i.e., only perform division by constant elements.
-#
-#        EXAMPLES:
-#
-#        If all entries are constant, then this method performs the same
-#        operations as ``echelon_form('default')`` ::
-#
-#            sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(127), 4)
-#            sage: A = Matrix(P, 4, 4, [-14,0,45,-55,-61,-16,0,0,0,0,25,-62,-22,0,52,0]); A
-#            [-14   0  45 -55]
-#            [-61 -16   0   0]
-#            [  0   0  25 -62]
-#            [-22   0  52   0]
-#            sage: E1 = A.echelon_form()
-#            sage: E2 = A.echelon_form('row_reduction')  # indirect doctest
-#            sage: E1 == E2
-#            True
-#
-#        If no entries are constant, nothing happens::
-#
-#            sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2), 4)
-#            sage: A = Matrix(P, 2, 2, [x0, y0, x0, y0]); A
-#            [x0 y0]
-#            [x0 y0]
-#
-#            sage: B = copy(A)
-#            sage: A.echelonize('row_reduction') # modifies self
-#            sage: B == A
-#            True
-#
-#        A more interesting example::
-#
-#            sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2), 4)
-#            sage: l = [1, 1, 1, 1,     1, \
-#                       0, 1, 0, 1,    x0, \
-#                       0, 0, 1, 1,    x1, \
-#                       1, 1, 0, 0,    y0, \
-#                       0, 1, 0, 1,    y1, \
-#                       0, 1, 0, 0, x0*y0, \
-#                       0, 1, 0, 1, x0*y1, \
-#                       0, 0, 0, 0, x1*y0, \
-#                       0, 0, 0, 1, x1*y1]
-#            sage: A = Matrix(P, 9, 5, l)
-#            sage: B = A.__copy__()
-#            sage: B.echelonize('row_reduction'); B
-#            [                 1                  0                  0                  0     x0*y0 + x1 + 1]
-#            [                 0                  1                  0                  0              x0*y0]
-#            [                 0                  0                  1                  0    x0*y0 + x0 + x1]
-#            [                 0                  0                  0                  1         x0*y0 + x0]
-#            [                 0                  0                  0                  0            x0 + y1]
-#            [                 0                  0                  0                  0        x1 + y0 + 1]
-#            [                 0                  0                  0                  0         x0*y1 + x0]
-#            [                 0                  0                  0                  0              x1*y0]
-#            [                 0                  0                  0                  0 x0*y0 + x1*y1 + x0]
-#
-#        This is the same result as SINGULAR's ``rowred`` command which
-#        returns::
-#
-#            sage: E = A._singular_().rowred()._sage_(P)
-#            sage: E == B
-#            True
-#
-#        ALGORITHM:
-#
-#        Gaussian elimination with division limited to constant
-#        entries. Based on SINGULAR's rowred commamnd.
-#        """
-#        from sage.matrix.constructor import matrix
-#
-#        cdef int c, r, i, j, rc, start_row, nr, nc
-#
-#        x = self.fetch('in_echelon_form_row_reduction')
-#        if not x is None: return  # already known to be in echelon form
-#
-#        nr,nc = self.nrows(),self.ncols()
-#        F = self.base_ring().base_ring()
-#        cdef Matrix d = matrix(F,nr,nc)
-#        start_row = 0
-#
-#        for r from 0 <= r < nr:
-#            for c from 0 <= c < nc:
-#                p = self.get_unsafe(r,c)
-#                if p.is_constant():
-#                    d.set_unsafe(r, c, p.constant_coefficient())
-#
-#        for c from 0 <= c < nc:
-#            r = -1
-#            for rc from start_row <= rc < nr:
-#                if d.get_unsafe(rc, c):
-#                    r = rc
-#                    break
-#            if r!=-1:
-#                a_inverse = ~self.get_unsafe(r,c)
-#                self.rescale_row_c(r, a_inverse , c)
-#                self.swap_rows_c(r, start_row)
-#
-#                for i from 0 <= i < nr:
-#                    if i != start_row:
-#                        minus_b = -self.get_unsafe(i,c)
-#                        self.add_multiple_of_row(i, start_row, minus_b, 0)
-#
-#                start_row +=1
-#
-#                d = d._parent(0)
-#                for i from start_row <= i < nr:
-#                    for j from c+1 <= j < nc:
-#                        if self.get_unsafe(i,j).is_constant():
-#                            d.set_unsafe(i,j, self.get_unsafe(i,j).constant_coefficient())
-#
-#        self.cache('in_echelon_form_row_reduction',True)
-#
-#    def swapped_columns(self):
-#        """
-#        Return which columns were swapped during the Gauss-Bareiss reduction
-#
-#        OUTPUT:
-#
-#        Return a tuple representing the column swaps during the last application
-#        of the Gauss-Bareiss algorithm (see :meth:`echelon_form` for details).
-#
-#        The tuple as length equal to the rank of self and the value at the
-#        $i$-th position indicates the source column which was put as the $i$-th
-#        column.
-#
-#        If no Gauss-Bareiss reduction was performed yet, None is
-#        returned.
-#
-#        EXAMPLES::
-#
-#            sage: R.<x,y> = QQ[]
-#            sage: C = random_matrix(R, 2, 2, terms=2)
-#            sage: C.swapped_columns()
-#            sage: E = C.echelon_form('bareiss')
-#            sage: E.swapped_columns()
-#            (0, 1)
-#        """
-#        return self.fetch('swapped_columns')
-
-
-

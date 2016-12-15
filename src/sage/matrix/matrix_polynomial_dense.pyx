@@ -31,17 +31,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         OUTPUT:
 
-        A matrix over an ordered ring is in weak Popov form if all
+        A matrix over a polynomial ring is in weak Popov form if all
         leading positions are different [MS2003]_. A leading position
-        is the position `i` in a row with the highest order (for
-        polynomials this is the degree), for multiple entries with
-        equal but highest order the maximal `i` is chosen (which is
-        the furthest to the right in the matrix).
-
-        .. WARNING::
-
-            This implementation only works for objects implementing a degree
-            function. It is designed to work for polynomials.
+        is the position `i` in a row with the highest degree, for multiple
+        entries with equal but highest degree the maximal `i` is chosen
+        (which is the furthest to the right in the matrix).
 
         EXAMPLES:
 
@@ -128,21 +122,21 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - `transformation` - A boolean (default: `True`). If this is set to
+        - ``transformation`` -- A boolean (default: `True`). If this is set to
           ``True``, the transformation matrix `U` will be returned as well: this
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
 
-          Warning: the default of `transformation` will soon be set to ``False``,
+          Warning: the default of ``transformation`` will soon be set to ``False``,
           see :trac:`16896`. Until then, this function will print a deprecation
-          warning as long as `transformation` was not explicitly set to ``True``
+          warning as long as ``transformation`` was not explicitly set to ``True``
           or ``False``.
 
-        - `ascend` - Deprecated and has no effect.
+        - ``ascend`` -- Deprecated and has no effect.
 
-        - `old_call` - For backwards compatibility until the old calling
-          convention will be deprecated (default: `True`). If `True`, then
-          return `(W,U,d)`, where `U` is as when `transformation = True`, and
+        - ``old_call`` -- For backwards compatibility until the old calling
+          convention will be deprecated (default: `True`). If ``True``, then
+          return `(W,U,d)`, where `U` is as when ``transformation = True``, and
           `d` is a list of the degrees of the rows of `W`.
         """
         from sage.misc.superseded import deprecation
@@ -154,13 +148,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def _weak_popov_form(self, transformation=False):
         """
-        Return a matrix in weak Popov form which is row space-equivalent to
-        the input matrix, if the input is over `k[x]` or `k(x)`.
+        Return a weak Popov form of this matrix.
 
-        A matrix is in weak Popov form if the (row-wise) leading positions of
+        A matrix is in weak Popov form if the leading positions of
         the non-zero rows are all different. The leading position of a row is
-        the right-most position whose entry has maximal degree of the entries in
-        that row.
+        the right-most position whose entry has the maximal degree in the row.
 
         .. WARNING::
 
@@ -169,25 +161,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``transformation`` -- (default: `True`). If this is set to
-          ``True``, the transformation matrix `U` will be returned as well: this
-          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
-          where `W` is the output matrix.
+        - ``transformation`` -- If this is ``True``, the transformation
+          matrix will be returned together with the weak Popov form.
 
-        ALGORITHM::
+        ALGORITHM:
 
-            This function uses the mulders-storjohann algorithm of [MS].
-            It works as follow:
-            #. As long as M is not in weak popov form do:
-                #. Find two rows with conflicting leading positions.
-                #. Do a simple transformation:
-                    #. Let x and y be indicators of rows with identical
-                       leading position
-                    #. Let LP be the Leading Position and LC the Leading
-                       Coefficient
-                    #. let a = LP(M[x]).degree() - LP(M[y]).degree()
-                    #. let d = LC(LP(M[x])) / LC(LP(M[y]))
-                    #. substitute M[x] = M[x] - a * x^d * M[y]
+        This method implements the Mulders-Storjohann algorithm of [MS2003]_.
 
         EXAMPLES::
 
@@ -212,15 +191,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [0 0 0]
             [0 0 0]
 
-        Matrices in weak popov form will just return untouched::
+        Matrices in weak popov form will just be returned untouched::
 
             sage: F.<a> = GF(17,'a')
             sage: PF.<x> = F[]
-            sage: C = matrix(PF,[[1,7,x],[x^2,x,4],[2,x,11]])
-            sage: C._weak_popov_form()
+            sage: C = matrix(PF,[[1,7,x],[x^2,x,4],[2,x,11]]); C
             [  1   7   x]
             [x^2   x   4]
             [  2   x  11]
+            sage: D = C._weak_popov_form()
+            sage: D == C
+            True
 
         And the transformation matrix will be the identity matrix::
 
@@ -234,11 +215,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         .. SEEALSO::
 
             :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`
-
-        REFERENCES::
-
-        .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
-              matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
         """
         mat = self.__copy__()
         R = mat.base_ring()
@@ -249,8 +225,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if transformation:
             from sage.matrix.constructor import identity_matrix
             U = identity_matrix(R, m)
-        else:
-            U = None
 
         retry = True
         while retry:
@@ -268,7 +242,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 if col < 0: # zero row
                     pivot_cols.append(col)
                     continue
-                elif col in pivot_cols:
+                elif col in pivot_cols: # leading positions collide
                     r = pivot_cols.index(col)
                     cr = mat[r,col].leading_coefficient()
                     dr = mat[r,col].degree()
@@ -305,22 +279,21 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - `transformation` - A boolean (default: ``False``). If this is set to
+        - ``transformation`` -- (default: ``False``). If this is set to
           ``True``, the transformation matrix `U` will be returned as well: this
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
 
-        - `ascend` - Deprecated and has no effect.
+        - ``ascend`` -- Deprecated and has no effect.
 
-        - `old_call` - For backwards compatibility until the old calling
-          convention will be deprecated (default: `True`). If `True`, then
-          return `(W,U,d)`, where `U` is as when `transformation = True`, and
+        - ``old_call`` -- For backwards compatibility until the old calling
+          convention will be deprecated (default: ``True``). If ``True``, then
+          return `(W,U,d)`, where `U` is as when ``transformation = True``, and
           `d` is a list of the degrees of the rows of `W`.
 
         OUTPUT:
 
-        - `W` - a matrix over the same ring as `self` (i.e. either `k(x)` or
-          `k[x]` for a field `k`) giving a row reduced form of ``self``.
+        - `W` -- row reduced form of this matrix.
 
         EXAMPLES::
 
@@ -331,9 +304,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [    0]
             [t + 2]
 
-        If ``self`` is an `n \times 1` matrix with at least one non-zero entry,
+        If the matrix is an `n \times 1` matrix with at least one non-zero entry,
         `W` has a single non-zero entry and that entry is a scalar multiple of
-        the greatest-common-divisor of the entries of ``self``.
+        the greatest-common-divisor of the entries of the matrix.
 
         ::
 
@@ -345,7 +318,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [t]
 
         The following is the first half of example 5 in [Hes2002]_ *except* that we
-        have transposed ``self``; [Hes2002]_ uses column operations and we use row.
+        have transposed the matrix; [Hes2002]_ uses column operations and we use row.
 
         ::
 
@@ -355,7 +328,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [      t    -t^2]
             [t^2 - 2       t]
 
-        The next example demonstrates what happens when ``self`` is a zero matrix.
+        The next example demonstrates what happens when the matrix is a zero matrix.
 
         ::
 
@@ -365,7 +338,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [0 0]
             [0 0]
 
-        In the following example, ``self`` has more rows than columns. Note also
+        In the following example, the matrix has more rows than columns. Note also
         that the output is row reduced but not in weak Popov form (see
         :meth:`weak_popov_form`).
 
@@ -397,13 +370,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         NOTES:
 
-         - For consistency with LLL and other algorithms in Sage, we have opted
-           for row operations; however, references such as [Hes2002]_ transpose and use
-           column operations.
+        - For consistency with LLL and other algorithms in Sage, we have opted
+          for row operations; however, references such as [Hes2002]_ transpose and use
+          column operations.
 
-         - There are multiple weak Popov forms of a matrix, so one may want to
-           extend this code to produce a Popov form (see section 1.2 of [V]).  The
-           latter is canonical, but more work to produce.
+        - There are multiple weak Popov forms of a matrix, so one may want to
+          extend this code to produce a Popov form (see section 1.2 of [V]).  The
+          latter is canonical, but more work to produce.
 
         .. SEEALSO::
 
@@ -467,10 +440,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         If ``transformation`` is ``True``, this function will output matrices ``W`` and ``N`` such that
 
-        1. ``W`` -- a row reduced form of this matrix ``M``.
-        2. ``N`` -- a unimodular matrix satisfying ``N * W = M``.
+        1. `W` -- a row reduced form of this matrix `M`.
+        2. `N` -- a unimodular matrix satisfying `N * W = M`.
 
-        If `transformation` is `False`, the output is just ``W``.
+        If ``transformation`` is ``False``, the output is just `W`.
 
         EXAMPLES::
 

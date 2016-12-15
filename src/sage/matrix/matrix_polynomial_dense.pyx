@@ -178,8 +178,60 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
         """
-        from sage.matrix.weak_popov import weak_popov_form_mulders_storjohann
-        return weak_popov_form_mulders_storjohann(self, transformation)
+        mat = copy(self)
+        R = mat.base_ring()
+        m = mat.nrows()
+        n = mat.ncols()
+        x = R.gen()
+
+        if transformation:
+            from sage.matrix.constructor import identity_matrix
+            U = identity_matrix(R, m)
+        else:
+            U = None
+
+        retry = True
+        while retry:
+            retry = False
+            pivot_cols = []
+            for i in range(m):
+                j = 0
+                prev_deg = -1
+                col = -1
+                for j in range(n):
+                    curr_deg = mat[i,j].degree()
+                    if prev_deg <= curr_deg:
+                        prev_deg = curr_deg
+                        col = j
+                if col < 0: # zero row
+                    pivot_cols.append(col)
+                    continue
+                elif col in pivot_cols:
+                    r = pivot_cols.index(col)
+                    cr = mat[r,col].leading_coefficient()
+                    dr = mat[r,col].degree()
+                    ci = mat[i,col].leading_coefficient()
+                    di = mat[i,col].degree()
+                    if di >= dr:
+                        q = - ci/cr * x**(di-dr)
+                        mat[i] += q * mat[r]
+                        if transformation:
+                            U.add_multiple_of_row(i, r, q)
+                    else:
+                        q = - cr/ci * x**(dr-di)
+                        mat[r] += q * mat[i]
+                        if transformation:
+                            U.add_multiple_of_row(r, i, q)
+                    retry = True
+                    break
+                else:
+                    pivot_cols.append(col)
+        mat.cache('pivots', pivot_cols)
+
+        if transformation:
+            return mat, U
+        else:
+            return mat
 
     def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
         r"""
@@ -347,17 +399,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - `transformation` -- (default: `False`). If this is `True`,
+        - ``transformation`` -- (default: ``False``). If this is ``True``,
            the transformation matrix is output.
 
         OUTPUT:
 
-        If `transformation` is `False`, the output is `W`, a row reduced form of `M`.
+        If ``transformation`` is ``True``, this function will output matrices ``W`` and ``N`` such that
 
-        If `transformation` is `True`, this function will output a pair `(W,N)` of two matrices:
+        1. ``W`` -- a row reduced form of this matrix ``M``.
+        2. ``N`` -- a unimodular matrix satisfying ``N * W = M``.
 
-        1. `W` - a row reduced form of `M`.
-        2. `N` - a unimodular matrix satisfying `N * W = M`.
+        If `transformation` is `False`, the output is just ``W``.
 
         EXAMPLES::
 

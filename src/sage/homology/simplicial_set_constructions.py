@@ -450,6 +450,16 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
             sage: c = Hom(B,B).constant_map()
             sage: B.pullback(one, c).is_finite()
             False
+
+        TESTS::
+
+            sage: P = simplicial_sets.Point()
+            sage: P.pullback(P.constant_map(), P.constant_map())
+            Pullback of maps:
+              Simplicial set endomorphism of Point
+                Defn: Identity map
+              Simplicial set endomorphism of Point
+                Defn: Identity map
         """
         # Import this here to prevent circular imports.
         from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
@@ -579,6 +589,8 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
 
         if all(f.is_pointed() for f in maps):
             basept = translate[tuple([(sset.base_point(), ()) for sset in domains])]
+            if not data:
+                data = {basept: None}
             SimplicialSet_finite.__init__(self, data, base_point=basept)
         else:
             SimplicialSet_finite.__init__(self, data)

@@ -919,12 +919,12 @@ class Posets(object):
         start = Permutation(start)
         end = Permutation(end)
         if len(start) != len(end):
-            raise TypeError("Start (%s) and end (%s) must have same length."%(start, end))
+            raise TypeError("Start (%s) and end (%s) must have same length." % (start, end))
         if not start.bruhat_lequal(end):
-            raise TypeError("Must have start (%s) <= end (%s) in Bruhat order."%(start, end))
+            raise TypeError("Must have start (%s) <= end (%s) in Bruhat order." % (start, end))
         unseen = [start]
         nodes = {}
-        while len(unseen):
+        while unseen:
             perm = unseen.pop(0)
             nodes[perm] = [succ_perm for succ_perm in perm.bruhat_succ()
                            if succ_perm.bruhat_lequal(end)]

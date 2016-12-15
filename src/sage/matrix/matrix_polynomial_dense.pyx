@@ -4,9 +4,9 @@ Dense matrices over univariate polynomials over fields
 This implementation inherits from Matrix_generic_dense, i.e. it is not
 optimized for speed only some methods were added.
 
-AUTHOR:
+AUTHORS:
 
-- Kwankyu Lee <ekwankyu@gmail.com>
+- Kwankyu Lee (2016-12-15): Initial version with code moved from other files.
 """
 
 #*****************************************************************************

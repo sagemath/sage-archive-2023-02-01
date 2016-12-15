@@ -6920,12 +6920,30 @@ def cremona_optimal_curves(conductors):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 
-def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
+def integral_points_with_bounded_mw_coeffs(E, mw_base, N, prec=100):
     r"""
     Returns the set of integers `x` which are
     `x`-coordinates of points on the curve `E` which
     are linear combinations of the generators (basis and torsion
     points) with coefficients bounded by `N`.
+
+    TESTS:
+
+    We check that some large integral points in a paper of Zagier are found::
+
+    sage: def t(a,b,x): # indirect doctest
+    ...       E=EllipticCurve([0,0,0,a,b])
+    ...       xs = [P[0] for P in E.integral_points()]
+    ...       return x in xs
+    sage: all([t(a,b,x) for a,b,x in [ (-2,5, 1318), (4,-1, 4321),\
+    (0,17, 5234), (11,4, 16833), (-13,37, 60721), (-12,-10, 80327),\
+    (-7,22, 484961), (-9,28, 764396), (-13,4, 1056517), (-19,-51,\
+    2955980), (-24,124, 4435710), (-30,133, 5143326), (-37,60,\
+    11975623), (-23,-33, 17454557), (-16,49, 19103002), (27,-62,\
+    28844402), (37,18, 64039202), (2,97, 90086608), (49,-64,\
+    482042404), (-59,74, 7257247018), (94,689, 30841587841),\
+    (469,1594, 6327540232326), (1785,0, 275702503440)] ])
+    True
     """
     from sage.groups.generic import multiples
     xs=set()
@@ -6936,7 +6954,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
         """
         Helper function to record x-coord of a point if integral.
         """
-        if not P.is_zero():
+        if P:
             xP = P[0]
             if xP.is_integral():
                 xs.add(xP)
@@ -6960,19 +6978,19 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
     # the linear combinations over RR, and only compute them as
     # rational points if they are approximately integral.
 
-    # Note: making eps larger here will dramatically increase
-    # the running time.  If evidence arises that integral
-    # points are being missed, it would be better to increase
-    # the real precision than to increase eps.
+    Epoly = E.defining_polynomial()
 
-    def is_approx_integral(P):
-        r"""
-        Local function, returns True if the real point `P` is approximately integral.
+    def is_approx_integral(RP):
+        r""" Local function. Returns P if the real point `RP` is
+        approximately integral with coordinates which round to a valid
+        integral point P on E, else 0.
         """
-        eps = 0.0001
-        return (abs(P[0]-P[0].round()))<eps and (abs(P[1]-P[1].round()))<eps
+        P = [c.round() for c in RP]
+        if Epoly(P)==0:
+            return E.point(P, check=False)
+        return 0
 
-    RR = RealField(100) #(100)
+    RR = RealField(prec)
     ER = E.change_ring(RR)
     ER0 = ER(0)
 
@@ -7008,9 +7026,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
         RP = RPi[r-1]
 
         for T, TR in zip(tors_points, tors_points_R):
-            if is_approx_integral(RP + TR):
-                 P = sum([ni[i]*mw_base[i] for i in range(r)],T)
-                 use(P)
+            use(is_approx_integral(RP + TR))
 
         # increment indices and stored points
         i0 = r-1

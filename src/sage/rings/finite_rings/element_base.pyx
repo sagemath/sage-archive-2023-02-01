@@ -319,7 +319,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: t_string
             'Mod(Mod(3, 5)*y^2 + Mod(2, 5)*y + Mod(4, 5), Mod(1, 5)*y^3 + Mod(3, 5)*y + Mod(3, 5))'
             sage: type(t_string)
-            <type 'str'>
+            <... 'str'>
             sage: t_element = t._pari_('b')
             sage: t_element
             3*b^2 + 2*b + 4

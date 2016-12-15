@@ -1043,7 +1043,7 @@ cdef class GapElement(RingElement):
             sage: libgap('this is a string').sage()
             'this is a string'
             sage: type(_)
-            <type 'str'>
+            <... 'str'>
         """
         if self.value is NULL:
             return None
@@ -1835,7 +1835,7 @@ cdef class GapElement_String(GapElement):
             sage: s.sage()
             'string'
             sage: type(_)
-            <type 'str'>
+            <... 'str'>
         """
         libgap_enter()
         s = libGAP_CSTR_STRING(self.value)

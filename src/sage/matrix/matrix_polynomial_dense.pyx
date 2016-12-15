@@ -6,7 +6,7 @@ optimized for speed only some methods were added.
 
 AUTHOR:
 
-* Kwankyu Lee <ekwankyu@gmail.com>
+- Kwankyu Lee <ekwankyu@gmail.com>
 """
 
 #*****************************************************************************
@@ -91,7 +91,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
 
-            - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
+            - :meth:`weak_popov_form <sage.matrix.matrix_polynomial_dense.weak_popov_form>`
 
         AUTHOR:
 
@@ -162,6 +162,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         the right-most position whose entry has maximal degree of the entries in
         that row.
 
+        .. WARNING::
+
+            This method will replace the current :meth:`weak_popov_form` when
+            the current one is removed after deprecation period.
+
         INPUT:
 
         - ``transformation`` -- (default: `True`). If this is set to
@@ -184,93 +189,51 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     #. let d = LC(LP(M[x])) / LC(LP(M[y]))
                     #. substitute M[x] = M[x] - a * x^d * M[y]
 
-        EXAMPLES:
-
-        The value transposition can be used to get a second matrix to check
-        unimodular equivalence. ::
+        EXAMPLES::
 
             sage: F.<a> = GF(2^4,'a')
             sage: PF.<x> = F[]
             sage: A = matrix(PF,[[1,a*x^17+1],[0,a*x^11+a^2*x^7+1]])
-            sage: Ac = copy(A)
-            sage: au = A.weak_popov_form(implementation="cython",transposition=True)
-            sage: au[1]*Ac == au[0]
+            sage: M, U = A._weak_popov_form(transformation=True)
+            sage: U * A == M
             True
-            sage: au[1].is_invertible()
+            sage: M.is_weak_popov()
+            True
+            sage: U.is_invertible()
             True
 
-        The cython implementation can be used to speed up the computation of
-        a weak popov form. ::
-
-            sage: B = matrix(PF,[[x^2+a,x^2+a,x^2+a], [x^3+a*x+1,x+a^2,x^5+a*x^4+a^2*x^3]])
-            sage: B.weak_popov_form(implementation="cython")
-            [                    x^2 + a                     x^2 + a
-                  x^2 + a]
-            [x^5 + (a + 1)*x^3 + a*x + 1       x^5 + a*x^3 + x + a^2       a*x^4 +
-            (a^2 + a)*x^3]
-
-        Matrices containing only zeros will return the way they are. ::
+        A zero matrix will return itself::
 
             sage: Z = matrix(PF,5,3)
-            sage: Z.weak_popov_form(implementation="cython")
+            sage: Z._weak_popov_form()
             [0 0 0]
             [0 0 0]
             [0 0 0]
             [0 0 0]
             [0 0 0]
 
-        Generally matrices in weak popov form will just be returned. ::
+        Matrices in weak popov form will just return untouched::
 
             sage: F.<a> = GF(17,'a')
             sage: PF.<x> = F[]
             sage: C = matrix(PF,[[1,7,x],[x^2,x,4],[2,x,11]])
-            sage: C.weak_popov_form(implementation="cython")
+            sage: C._weak_popov_form()
             [  1   7   x]
             [x^2   x   4]
             [  2   x  11]
 
-        And the transposition will be the identity matrix. ::
+        And the transformation matrix will be the identity matrix::
 
-            sage: C.weak_popov_form(implementation="cython",transposition=True)
+            sage: C._weak_popov_form(transformation=True)
             (
             [  1   7   x]  [1 0 0]
             [x^2   x   4]  [0 1 0]
             [  2   x  11], [0 0 1]
             )
 
-
-        It is an error to call this function with a matrix not over a polynomial
-        ring. ::
-
-            sage: M = matrix([[1,0],[1,1]])
-            sage: M.weak_popov_form(implementation="cython")
-            Traceback (most recent call last):
-            ...
-            TypeError: the entries of M must lie in a univariate polynomial ring
-
-        It is also an error to call this function using a matrix containing
-        elements of the fraction field. ::
-
-            sage: R.<t> = QQ['t']
-            sage: M = matrix([[1/t,1/(t^2),t],[0,0,t]])
-            sage: M.weak_popov_form(implementation="cython")
-            Traceback (most recent call last):
-            ...
-            TypeError: the entries of M must lie in a univariate polynomial ring
-
-        This function can be called directly. ::
-
-            sage: from sage.matrix.weak_popov import mulders_storjohann
-            sage: PF = PolynomialRing(GF(2,'a'),'x')
-            sage: E = matrix(PF,[[x+1,x,x],[x^2,x,x^4+x^3+x^2+x]])
-            sage: mulders_storjohann(E)
-            [          x + 1               x               x]
-            [x^4 + x^3 + x^2         x^4 + x   x^3 + x^2 + x]
-
-
         .. SEEALSO::
 
-            :meth:`is_weak_popov <sage.matrix.matrix0.is_weak_popov>`
+            :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`
 
         REFERENCES::
 

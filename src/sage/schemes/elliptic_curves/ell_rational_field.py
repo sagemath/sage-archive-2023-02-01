@@ -6927,23 +6927,36 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N, prec=100):
     are linear combinations of the generators (basis and torsion
     points) with coefficients bounded by `N`.
 
+    INPUT:
+
+    - ``E`` -  an elliptic curve
+    - ``mw_base`` - a list of points on `E` (generators)
+    - ``N`` - a positive integer (bound on coefficients)
+    - ``prec`` - a positive integer (bit precision used for real arithmetic)
+
+    OUTPUT:
+
+    (list) list of integral points on `E` which are linear combinations
+    of the given points with coefficients bounded by `N` in absolute
+    value.
+
     TESTS:
 
     We check that some large integral points in a paper of Zagier are found::
 
-    sage: def t(a,b,x): # indirect doctest
-    ...       E=EllipticCurve([0,0,0,a,b])
-    ...       xs = [P[0] for P in E.integral_points()]
-    ...       return x in xs
-    sage: all([t(a,b,x) for a,b,x in [ (-2,5, 1318), (4,-1, 4321),\
-    (0,17, 5234), (11,4, 16833), (-13,37, 60721), (-12,-10, 80327),\
-    (-7,22, 484961), (-9,28, 764396), (-13,4, 1056517), (-19,-51,\
-    2955980), (-24,124, 4435710), (-30,133, 5143326), (-37,60,\
-    11975623), (-23,-33, 17454557), (-16,49, 19103002), (27,-62,\
-    28844402), (37,18, 64039202), (2,97, 90086608), (49,-64,\
-    482042404), (-59,74, 7257247018), (94,689, 30841587841),\
-    (469,1594, 6327540232326), (1785,0, 275702503440)] ])
-    True
+        sage: def t(a,b,x): # indirect doctest
+        ...       E=EllipticCurve([0,0,0,a,b])
+        ...       xs = [P[0] for P in E.integral_points()]
+        ...       return x in xs
+        sage: all([t(a,b,x) for a,b,x in [ (-2,5, 1318), (4,-1, 4321),\
+        (0,17, 5234), (11,4, 16833), (-13,37, 60721), (-12,-10, 80327),\
+        (-7,22, 484961), (-9,28, 764396), (-13,4, 1056517), (-19,-51,\
+        2955980), (-24,124, 4435710), (-30,133, 5143326), (-37,60,\
+        11975623), (-23,-33, 17454557), (-16,49, 19103002), (27,-62,\
+        28844402), (37,18, 64039202), (2,97, 90086608), (49,-64,\
+        482042404), (-59,74, 7257247018), (94,689, 30841587841),\
+        (469,1594, 6327540232326), (1785,0, 275702503440)] ])
+        True
     """
     from sage.groups.generic import multiples
     xs=set()

@@ -5087,6 +5087,44 @@ class CoordinateFunction:
 
         return rich_to_bool(op, 0)
 
+    def __eq__(self, other):
+        """
+        Test equality
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: c = (a + 2).coordinates_in_terms_of_powers()
+            sage: c == (a - 3).coordinates_in_terms_of_powers()
+            False
+
+            sage: K.<a> = NumberField(x^4 + 1)
+            sage: f = (a + 1).coordinates_in_terms_of_powers()
+            sage: f == loads(dumps(f))
+            True
+            sage: f == (a + 2).coordinates_in_terms_of_powers()
+            False
+            sage: f == NumberField(x^2 + 3,'b').gen().coordinates_in_terms_of_powers()
+            False
+        """
+        if not isinstance(other, CoordinateFunction):
+            return False
+
+        return self.__K == other.__K and self.__alpha ==  other.__alpha
+
+    def __ne__(self, other):
+        """
+        Test inequality
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: c = (a + 2).coordinates_in_terms_of_powers()
+            sage: c != (a - 3).coordinates_in_terms_of_powers()
+            True
+        """
+        return not self.__eq__(other)
+
 
 #################
 

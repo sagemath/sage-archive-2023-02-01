@@ -705,7 +705,8 @@ def partition(items, predicate=bool):
     the ``predicate``, the second the elements satisfying the ``predicate``.
 
     Source of the code:
-    `http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html`_
+    `http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html
+    <http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html>`_
 
     EXAMPLES:
 

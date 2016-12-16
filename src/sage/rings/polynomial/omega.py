@@ -276,7 +276,7 @@ def _Omega_(A, decoded_factors):
         return sum(c for a, c in iteritems(A) if a >= 0), tuple()
 
     # Below we sort to make the caching more efficient. Doing this here
-    # (in contrast to directly in Omega_higher) results in much cleaner
+    # (in contrast to directly in Omega_ge) results in much cleaner
     # code and prevents an additional substitution or passing of a permutation.
     values, exponents = zip(*sorted(decoded_factors, key=lambda k: -k[1]))
 
@@ -284,7 +284,7 @@ def _Omega_(A, decoded_factors):
     factors_denominator = None
     rules = None
     for a, c in iteritems(A):
-        n, fd = Omega_higher(a, exponents)
+        n, fd = Omega_ge(a, exponents)
         if factors_denominator is None:
             factors_denominator = fd
         else:
@@ -299,7 +299,7 @@ def _Omega_(A, decoded_factors):
 
 
 @cached_function
-def Omega_higher(a, exponents):
+def Omega_ge(a, exponents):
     r"""
     Return `\Omega_{\ge}` of the expression specified by the input.
 
@@ -327,41 +327,41 @@ def Omega_higher(a, exponents):
 
     EXAMPLES::
 
-        sage: Omega_higher(0, (1, -2))
+        sage: Omega_ge(0, (1, -2))
         (1, (z0, z0^2*z1))
-        sage: Omega_higher(0, (1, -3))
+        sage: Omega_ge(0, (1, -3))
         (1, (z0, z0^3*z1))
-        sage: Omega_higher(0, (1, -4))
+        sage: Omega_ge(0, (1, -4))
         (1, (z0, z0^4*z1))
 
-        sage: Omega_higher(0, (2, -1))
+        sage: Omega_ge(0, (2, -1))
         (z0*z1 + 1, (z0, z0*z1^2))
-        sage: Omega_higher(0, (3, -1))
+        sage: Omega_ge(0, (3, -1))
         (z0*z1^2 + z0*z1 + 1, (z0, z0*z1^3))
-        sage: Omega_higher(0, (4, -1))
+        sage: Omega_ge(0, (4, -1))
         (z0*z1^3 + z0*z1^2 + z0*z1 + 1, (z0, z0*z1^4))
 
-        sage: Omega_higher(0, (1, 1, -2))
+        sage: Omega_ge(0, (1, 1, -2))
         (-z0^2*z1*z2 - z0*z1^2*z2 + z0*z1*z2 + 1, (z0, z1, z0^2*z2, z1^2*z2))
-        sage: Omega_higher(0, (2, -1, -1))
+        sage: Omega_ge(0, (2, -1, -1))
         (z0*z1*z2 + z0*z1 + z0*z2 + 1, (z0, z0*z1^2, z0*z2^2))
-        sage: Omega_higher(0, (2, 1, -1))
+        sage: Omega_ge(0, (2, 1, -1))
         (-z0*z1*z2^2 - z0*z1*z2 + z0*z2 + 1, (z0, z1, z0*z2^2, z1*z2))
 
     ::
 
-        sage: Omega_higher(0, (2, -2))
+        sage: Omega_ge(0, (2, -2))
         (-z0*z1 + 1, (z0, z0*z1, z0*z1))
-        sage: Omega_higher(0, (2, -3))
+        sage: Omega_ge(0, (2, -3))
         (z0^2*z1 + 1, (z0, z0^3*z1^2))
-        sage: Omega_higher(0, (3, 1, -3))
+        sage: Omega_ge(0, (3, 1, -3))
         (-z0^3*z1^3*z2^3 + 2*z0^2*z1^3*z2^2 - z0*z1^3*z2
          + z0^2*z2^2 - 2*z0*z2 + 1,
          (z0, z1, z0*z2, z0*z2, z0*z2, z1^3*z2))
 
     ::
 
-        sage: Omega_higher(0, (3, 6, -1))
+        sage: Omega_ge(0, (3, 6, -1))
         (-z0*z1*z2^8 - z0*z1*z2^7 - z0*z1*z2^6 - z0*z1*z2^5 - z0*z1*z2^4 +
          z1*z2^5 - z0*z1*z2^3 + z1*z2^4 - z0*z1*z2^2 + z1*z2^3 -
          z0*z1*z2 + z0*z2^2 + z1*z2^2 + z0*z2 + z1*z2 + 1,
@@ -369,17 +369,17 @@ def Omega_higher(a, exponents):
 
     TESTS::
 
-        sage: Omega_higher(0, (2, 2, 1, 1, 1, 1, 1, -1, -1))[0].number_of_terms()  # long time
+        sage: Omega_ge(0, (2, 2, 1, 1, 1, 1, 1, -1, -1))[0].number_of_terms()  # long time
         27837
 
     ::
 
-        sage: Omega_higher(1, (2,))
+        sage: Omega_ge(1, (2,))
         (1, (z0,))
     """
     import logging
     logger = logging.getLogger(__name__)
-    logger.info('Omega_higher: a=%s, exponents=%s', a, exponents)
+    logger.info('Omega_ge: a=%s, exponents=%s', a, exponents)
 
     from sage.arith.misc import lcm
     from sage.arith.srange import srange
@@ -433,14 +433,14 @@ def Omega_higher(a, exponents):
             expression = subs_power(expression, var, abs(e))
         return expression
 
-    logger.debug('Omega_higher: preparing denominator')
+    logger.debug('Omega_ge: preparing denominator')
     factors_denominator = tuple(de_power(1 - factor)
                                 for factor in Omega_factors_denominator(x, y))
 
-    logger.debug('Omega_higher: preparing numerator')
+    logger.debug('Omega_ge: preparing numerator')
     numerator = de_power(Omega_numerator(a, x, y, t))
 
-    logger.info('Omega_higher: completed')
+    logger.info('Omega_ge: completed')
     return numerator, factors_denominator
 
 

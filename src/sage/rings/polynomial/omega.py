@@ -267,6 +267,7 @@ def _Omega_(A, decoded_factors):
 
     ::
 
+        sage: from sage.rings.polynomial.omega import _Omega_
         sage: _Omega_({0: 2, 1: 40, -1: -3}, [])
         (42, ())
         sage: _Omega_({-1: 42}, [])
@@ -327,6 +328,7 @@ def Omega_ge(a, exponents):
 
     EXAMPLES::
 
+        sage: from sage.rings.polynomial.omega import Omega_ge
         sage: Omega_ge(0, (1, -2))
         (1, (z0, z0^2*z1))
         sage: Omega_ge(0, (1, -3))
@@ -475,6 +477,8 @@ def Omega_numerator(a, x, y, t):
 
     EXAMPLES::
 
+        sage: from sage.rings.polynomial.omega import Omega_numerator, Omega_factors_denominator
+
         sage: L.<x0, x1, x2, x3, y0, y1, t> = LaurentPolynomialRing(ZZ)
         sage: Omega_numerator(0, ((x0,),), ((y0,),), t)
         1
@@ -578,6 +582,10 @@ def Omega_numerator_P(a, x, y, t):
     OUTPUT:
 
     A laurent polynomial.
+
+    TESTS::
+
+        sage: from sage.rings.polynomial.omega import Omega_numerator_P
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -639,6 +647,8 @@ def Omega_factors_denominator(x, y):
     a tuple of laurent polynomials.
 
     EXAMPLES::
+
+        sage: from sage.rings.polynomial.omega import Omega_factors_denominator
 
         sage: L.<x0, x1, x2, x3, y0, y1> = LaurentPolynomialRing(ZZ)
         sage: Omega_factors_denominator(((x0,),), ((y0,),))
@@ -710,6 +720,7 @@ def partition(items, predicate=bool):
 
     EXAMPLES:
 
+        sage: from sage.rings.polynomial.omega import partition
         sage: E, O = partition(srange(10), is_odd)
         sage: tuple(E), tuple(O)
         ((0, 2, 4, 6, 8), (1, 3, 5, 7, 9))
@@ -736,6 +747,7 @@ def HomogenousSymmetricFunction(j, x):
 
     EXAMPLES::
 
+        sage: from sage.rings.polynomial.omega import HomogenousSymmetricFunction
         sage: P = PolynomialRing(ZZ, 'X', 3)
         sage: HomogenousSymmetricFunction(0, P.gens())
         1

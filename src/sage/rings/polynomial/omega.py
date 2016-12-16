@@ -573,9 +573,7 @@ def _Omega_numerator_P_(a, x, y, t):
 
     - ``a`` -- an integer.
 
-    - ``x`` and ``y`` -- a tuple of tuples of laurent polynomials. The
-      flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
-      `y_1,...,y_m`.
+    - ``x`` and ``y`` -- a tuple of laurent polynomials.
 
     - ``t`` -- a temporary laurent polynomial variable used for substituting.
 
@@ -586,6 +584,9 @@ def _Omega_numerator_P_(a, x, y, t):
     TESTS::
 
         sage: from sage.rings.polynomial.omega import _Omega_numerator_P_
+        sage: L.<x0, x1, y0, y1, t> = LaurentPolynomialRing(ZZ)
+        sage: _Omega_numerator_P_(0, (x0, x1), (y0,), t).subs({t: x1})
+        -x0*x1*y0 + 1
     """
     import logging
     logger = logging.getLogger(__name__)

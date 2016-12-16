@@ -1105,7 +1105,7 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             raise ValueError("base ring must be an integral domain")
         LaurentPolynomialRing_generic.__init__(self, R, prepend_string, names)
 
-    def _element_constructor_(self, x):
+    def _element_constructor_(self, x, mon=None):
         """
         EXAMPLES::
 
@@ -1184,26 +1184,48 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             d*e
         """
         from sage.symbolic.expression import Expression
-        if isinstance(x, Expression):
+        element_class = LaurentPolynomial_mpair
+
+        if mon is not None:
+            return element_class(self, x, mon)
+
+        try:
+            P = x.parent()
+        except AttributeError:
+            return element_class(self, x)
+
+        if P is self:
+            return x
+
+        elif P == self:
+            return element_class(self, x)
+
+        elif P is self.polynomial_ring():
+            from sage.rings.polynomial.polydict import ETuple
+            return element_class(
+                self, x, mon=ETuple({}, int(self.ngens())))
+
+        elif isinstance(x, Expression):
             return x.laurent_polynomial(ring=self)
 
         elif isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
-            P = x.parent()
-            if set(self.variable_names()) & set(P.variable_names()):
+            if self.variable_names() == P.variable_names():
+                return element_class(self, x)
+            elif set(self.variable_names()) & set(P.variable_names()):
                 if isinstance(x, LaurentPolynomial_univariate):
                     d = {(k,): v for k, v in iteritems(x.dict())}
                 else:
                     d = x.dict()
-                x = _split_laurent_polynomial_dict_(self, P, d)
+                return element_class(self, _split_laurent_polynomial_dict_(self, P, d))
             elif self.base_ring().has_coerce_map_from(P):
                 from sage.rings.polynomial.polydict import ETuple
-                x = {ETuple({}, int(self.ngens())): self.base_ring()(x)}
+                return element_class(self, {ETuple({}, int(self.ngens())): self.base_ring()(x)})
             elif x.is_constant() and self.has_coerce_map_from(x.parent().base_ring()):
                 return self(x.constant_coefficient())
             elif len(self.variable_names()) == len(P.variable_names()):
-                x = x.dict()
+                return element_class(self, x.dict())
 
-        return LaurentPolynomial_mpair(self, x)
+        return element_class(self, x)
 
     def __reduce__(self):
         """

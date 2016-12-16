@@ -1513,6 +1513,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     for k in x:
                         D[k.esub(self._mon)] = x[k]
                     x = D
+            elif isinstance(x, LaurentPolynomial_mpair) and \
+                 parent.variable_names() == x.parent().variable_names():
+                self._mon = (<LaurentPolynomial_mpair>x)._mon
+                x = (<LaurentPolynomial_mpair>x)._poly
             else: # since x should coerce into parent, _mon should be (0,...,0)
                 self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)
@@ -1527,11 +1531,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: loads(dumps(x1)) == x1 # indirect doctest
             True
             sage: z = x1/x2
-            sage: loads(dumps(z)) == z   # not tested (bug)
+            sage: loads(dumps(z)) == z
             True
         """
-        # one should also record the monomial self._mon
-        return self._parent, (self._poly,)  # THIS IS WRONG !
+        return self._parent, (self._poly, self._mon)
 
     def __hash__(self):
         r"""

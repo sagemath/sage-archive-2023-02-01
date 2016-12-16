@@ -474,10 +474,10 @@ def __generating_function_of_polyhedron__(
     import logging
     logger = logging.getLogger(__name__)
 
-    from omega import _Omega_
-    from omega import partition
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+    from sage.rings.polynomial.omega import _Omega_
+    from sage.rings.polynomial.omega import partition
     from sage.structure.factorization import Factorization
 
     B = LaurentPolynomialRing(

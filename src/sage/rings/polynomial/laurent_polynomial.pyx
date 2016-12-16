@@ -1418,10 +1418,22 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
     """
     Multivariate Laurent polynomials.
     """
-    def __init__(self, parent, x, reduce=True):
+    def __init__(self, parent, x, mon=None, reduce=True):
         """
         Currently, one can only create LaurentPolynomials out of dictionaries
         and elements of the base ring.
+
+        INPUT:
+
+        - ``parent`` -- a SageMath parent.
+
+        - ``x`` -- an element or dictionary or anything the underlying
+          polynomial ring accepts
+
+        - ``mon`` -- (default: ``None``) a tuple specifying the shift
+          in the exponents.
+
+        - ``reduce`` -- (default: ``True``) a boolean.
 
         EXAMPLES::
 
@@ -1446,28 +1458,37 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x0^2 + x2
             sage: _.parent()
             Multivariate Laurent Polynomial Ring in x0, x1, x2 over Rational Field
+
+        ::
+
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair
+            sage: LaurentPolynomial_mpair(L, {(1,2): 1/42}, mon=(-3, -3))
+            1/42*w^-2*z^-1
         """
         if isinstance(x, PolyDict):
             x = x.dict()
-        if isinstance(x, dict):
-            self._mon = ETuple({},int(parent.ngens()))
-            for k in x: # ETuple-ize keys, set _mon
-                if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
-                    self._mon = ETuple({}, int(parent.ngens()))
-                    break
-                if isinstance(k, tuple):
-                    a = x[k]
-                    del x[k]
-                    k = ETuple(k)
-                    x[k] = a
-                self._mon = self._mon.emin(k) # point-wise min of _mon and k
-            if len(self._mon.nonzero_positions()) != 0: # factor out _mon
-                D = {}
-                for k in x:
-                    D[k.esub(self._mon)] = x[k]
-                x = D
-        else: # since x should coerce into parent, _mon should be (0,...,0)
-            self._mon = ETuple({}, int(parent.ngens()))
+        if mon is not None:
+            self._mon = ETuple(mon)
+        else:
+            if isinstance(x, dict):
+                self._mon = ETuple({},int(parent.ngens()))
+                for k in x: # ETuple-ize keys, set _mon
+                    if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
+                        self._mon = ETuple({}, int(parent.ngens()))
+                        break
+                    if isinstance(k, tuple):
+                        a = x[k]
+                        del x[k]
+                        k = ETuple(k)
+                        x[k] = a
+                    self._mon = self._mon.emin(k) # point-wise min of _mon and k
+                if len(self._mon.nonzero_positions()) != 0: # factor out _mon
+                    D = {}
+                    for k in x:
+                        D[k.esub(self._mon)] = x[k]
+                    x = D
+            else: # since x should coerce into parent, _mon should be (0,...,0)
+                self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)
         CommutativeAlgebraElement.__init__(self, parent)
 
@@ -2246,6 +2267,38 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._mon = self._mon.esub((<LaurentPolynomial_mpair>right)._mon)
         ans._poly = self._poly // (<LaurentPolynomial_mpair>right)._poly
         return ans
+
+    @coerce_binop
+    def quo_rem(self, right):
+        """
+        Divide this laurent polynomial by ``right`` and return a quotient and
+        a remainder.
+
+        INPUT:
+
+        - ``right`` -- a laurent polynomial
+
+        OUTPUT:
+
+        A pair of laurent polynomials.
+
+        EXAMPLES::
+
+            sage: R.<s, t> = LaurentPolynomialRing(QQ)
+            sage: (s^2-t^2).quo_rem(s-t)
+            (s + t, 0)
+            sage: (s^-2-t^2).quo_rem(s-t)
+            (s + t, -s^4 + 1)
+            sage: (s^-2-t^2).quo_rem(s^-1-t)
+            (t + s^-1, 0)
+        """
+        cdef LaurentPolynomial_mpair rightl = <LaurentPolynomial_mpair>right
+        q, r = self._poly.quo_rem(rightl._poly)
+        ql = LaurentPolynomial_mpair(self._parent, q,
+                                     mon=self._mon.esub(rightl._mon))
+        rl = LaurentPolynomial_mpair(self._parent, r,
+                                     mon=ETuple({}, int(self._parent.ngens())))
+        return (ql, rl)
 
     cpdef int _cmp_(self, right) except -2:
         """

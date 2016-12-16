@@ -1606,42 +1606,42 @@ class FunctionField_polymod(FunctionField):
             sage: M.<z> = L.extension(z^2 - y)
 
             sage: M.change_variable_name('zz')
-            (Function field in zz defined by z^2 - y,
+            (Function field in zz defined by zz^2 - y,
              Function Field morphism:
-              From: Function field in zz defined by z^2 - y
+              From: Function field in zz defined by zz^2 - y
               To:   Function field in z defined by z^2 - y
               Defn: zz |--> z
                     y |--> y
                     x |--> x,
              Function Field morphism:
               From: Function field in z defined by z^2 - y
-              To:   Function field in zz defined by z^2 - y
+              To:   Function field in zz defined by zz^2 - y
               Defn: z |--> zz
                     y |--> y
                     x |--> x)
             sage: M.change_variable_name(('zz','yy'))
-            (Function field in zz defined by z^2 - yy, Function Field morphism:
-              From: Function field in zz defined by z^2 - yy
+            (Function field in zz defined by zz^2 - yy, Function Field morphism:
+              From: Function field in zz defined by zz^2 - yy
               To:   Function field in z defined by z^2 - y
               Defn: zz |--> z
                     yy |--> y
                     x |--> x, Function Field morphism:
               From: Function field in z defined by z^2 - y
-              To:   Function field in zz defined by z^2 - yy
+              To:   Function field in zz defined by zz^2 - yy
               Defn: z |--> zz
                     y |--> yy
                     x |--> x)
             sage: M.change_variable_name(('zz','yy','xx'))
-            (Function field in zz defined by z^2 - yy,
+            (Function field in zz defined by zz^2 - yy,
              Function Field morphism:
-              From: Function field in zz defined by z^2 - yy
+              From: Function field in zz defined by zz^2 - yy
               To:   Function field in z defined by z^2 - y
               Defn: zz |--> z
                     yy |--> y
                     xx |--> x,
              Function Field morphism:
               From: Function field in z defined by z^2 - y
-              To:   Function field in zz defined by z^2 - yy
+              To:   Function field in zz defined by zz^2 - yy
               Defn: z |--> zz
                     y |--> yy
                     x |--> xx)

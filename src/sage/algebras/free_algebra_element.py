@@ -1,0 +1,281 @@
+"""
+Free algebra elements
+
+AUTHORS:
+
+- David Kohel (2005-09)
+
+TESTS::
+
+    sage: R.<x,y> = FreeAlgebra(QQ,2)
+    sage: x == loads(dumps(x))
+    True
+    sage: x*y
+    x*y
+    sage: (x*y)^0
+    1
+    sage: (x*y)^3
+    x*y*x*y*x*y
+"""
+
+#*****************************************************************************
+#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty
+#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#  See the GNU General Public License for more details; the full text
+#  is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from __future__ import print_function
+
+from sage.misc.misc import repr_lincomb
+from sage.monoids.free_monoid_element import FreeMonoidElement
+from sage.combinat.free_module import CombinatorialFreeModuleElement
+from sage.structure.element import AlgebraElement
+
+# We need to have AlgebraElement first to avoid a segfault...
+class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
+    """
+    A free algebra element.
+    """
+    def __init__(self, A, x):
+        """
+        Create the element ``x`` of the FreeAlgebra ``A``.
+
+        TESTS::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: elt = x^3 * y - z^2*x
+            sage: TestSuite(elt).run()
+        """
+        if isinstance(x, FreeAlgebraElement):
+            x = x._monomial_coefficients
+        R = A.base_ring()
+        if isinstance(x, AlgebraElement): #and x.parent() == A.base_ring():
+            x = { A.monoid()(1):R(x) }
+        elif isinstance(x, FreeMonoidElement):
+            x = { x:R(1) }
+        elif True:
+            x = dict([ (A.monoid()(e1),R(e2)) for e1,e2 in x.items()])
+        else:
+            raise TypeError("Argument x (= {}) is of the wrong type.".format(x))
+
+        CombinatorialFreeModuleElement.__init__(self, A, x)
+
+    # ...however AlgebraElement has a default error raising version of these
+    #   so we must explicitly pull them from CombinatorialFreeModuleElement
+    _add_ = CombinatorialFreeModuleElement._add_
+    _sub_ = CombinatorialFreeModuleElement._sub_
+    _neg_ = CombinatorialFreeModuleElement._neg_
+
+    def _repr_(self):
+        """
+        Return string representation of self.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
+            sage: repr(-x+3*y*z)    # indirect doctest
+            '-x + 3*y*z'
+
+        Trac ticket :trac:`11068` enables the use of local variable names::
+
+            sage: from sage.structure.parent_gens import localvars
+            sage: with localvars(A, ['a','b','c']):
+            ....:    print(-x+3*y*z)
+            -a + 3*b*c
+
+        """
+        v = sorted(self._monomial_coefficients.items())
+        P = self.parent()
+        M = P.monoid()
+        from sage.structure.parent_gens import localvars
+        with localvars(M, P.variable_names(), normalize=False):
+            x = repr_lincomb(v, strip_one=True)
+        return x
+
+    def _latex_(self):
+        r"""
+        Return latex representation of self.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
+            sage: latex(-x+3*y^20*z)   # indirect doctest
+            -x + 3y^{20}z
+            sage: alpha,beta,gamma=FreeAlgebra(ZZ,3,'alpha,beta,gamma').gens()
+            sage: latex(alpha-beta)
+            \alpha - \beta
+        """
+        v = sorted(self._monomial_coefficients.items())
+        return repr_lincomb(v, strip_one=True, is_latex=True)
+
+    def __call__(self, *x, **kwds):
+        """
+        EXAMPLES::
+
+            sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
+            sage: (x+3*y).subs(x=1,y=2,z=14)
+            7
+            sage: (2*x+y).subs({x:1,y:z})
+            2 + z
+            sage: f=x+3*y+z
+            sage: f(1,2,1/2)
+            15/2
+            sage: f(1,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: must specify as many values as generators in parent
+
+        AUTHORS:
+
+        - Joel B. Mohler (2007-10-27)
+        """
+        if len(kwds)>0 and len(x)>0:
+            raise ValueError("must not specify both a keyword and positional argument")
+
+        if len(kwds)>0:
+            p = self.parent()
+            def extract_from(kwds,g):
+                for x in g:
+                    try:
+                        return kwds[x]
+                    except KeyError:
+                        pass
+                return None
+
+            x = [extract_from(kwds,(p.gen(i),p.variable_name(i))) for i in range(p.ngens())]
+        elif isinstance(x[0],tuple):
+            x = x[0]
+
+        if len(x) != self.parent().ngens():
+            raise ValueError("must specify as many values as generators in parent")
+
+        # I don't start with 0, because I don't want to preclude evaluation with
+        #arbitrary objects (e.g. matrices) because of funny coercion.
+        result = None
+        for m, c in self._monomial_coefficients.iteritems():
+            if result is None:
+                result = c*m(x)
+            else:
+                result += c*m(x)
+
+        if result is None:
+            return self.parent()(0)
+        return result
+
+    def __cmp__(left, right):
+        """
+        Compare two free algebra elements with the same parents.
+
+        The ordering is the one on the underlying sorted list of
+        (monomial,coefficients) pairs.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: x < y
+            True
+            sage: x * y < y * x
+            True
+            sage: y * x < x * y
+            False
+        """
+        v = sorted(left._monomial_coefficients.items())
+        w = sorted(right._monomial_coefficients.items())
+        return cmp(v, w)
+
+    def _mul_(self, y):
+        """
+        Return the product of ``self`` and ``y`` (another free algebra
+        element with the same parent).
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(ZZ,3)
+            sage: (x+y+x*y)*(x+y+1)
+            x + y + x^2 + 2*x*y + y*x + y^2 + x*y*x + x*y^2
+        """
+        A = self.parent()
+        z_elt = {}
+        for mx, cx in self:
+            for my, cy in y:
+                key = mx*my
+                if key in z_elt:
+                    z_elt[key] += cx*cy
+                else:
+                    z_elt[key] = cx*cy
+                if not z_elt[key]:
+                    del z_elt[key]
+        return A._from_dict(z_elt)
+
+    def _acted_upon_(self, scalar, self_on_left=False):
+        """
+        Return the action of a scalar on ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: f = Factorization([(x,2),(y,3)]); f
+            x^2 * y^3
+            sage: x * f
+            x^3 * y^3
+            sage: f * x
+            x^2 * y^3 * x
+        """
+        from sage.structure.factorization import Factorization
+        # FIXME: Make factorization work properly in the coercion framework
+        # Keep factorization since we want to "coerce" into a factorization
+        if isinstance(scalar, Factorization):
+            if self_on_left:
+                return Factorization([(self, 1)]) * scalar
+            return scalar * Factorization([(self, 1)])
+        return super(FreeAlgebraElement, self)._acted_upon_(scalar, self_on_left)
+
+    # For backward compatibility
+    #_lmul_ = _acted_upon_
+    #_rmul_ = _acted_upon_
+
+    def variables(self):
+        """
+        Return the variables used in ``self``.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(ZZ,3)
+            sage: elt = x + x*y + x^3*y
+            sage: elt.variables()
+            [x, y]
+            sage: elt = x + x^2 - x^4
+            sage: elt.variables()
+            [x]
+            sage: elt = x + z*y + z*x
+            sage: elt.variables()
+            [x, y, z]
+        """
+        v = set([])
+        for s in self._monomial_coefficients: # Only gets the keys
+            for var,exp in s:
+                v.add(var)
+        A = self.parent()
+        return sorted(map(A, v))
+
+    def to_pbw_basis(self):
+        """
+        Return ``self`` in the Poincare-Birkhoff-Witt (PBW) basis.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(ZZ, 3)
+            sage: p = x^2*y + 3*y*x + 2
+            sage: p.to_pbw_basis()
+            2*PBW[1] + 3*PBW[y]*PBW[x] + PBW[x^2*y] + PBW[x*y]*PBW[x] + PBW[y]*PBW[x]^2
+        """
+        return self.parent().pbw_element(self)
+

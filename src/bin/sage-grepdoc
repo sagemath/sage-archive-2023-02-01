@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+cd "$SAGE_DOC"
+
+find html -print | GREP_OPTIONS= egrep '.html$' | xargs grep "$@"

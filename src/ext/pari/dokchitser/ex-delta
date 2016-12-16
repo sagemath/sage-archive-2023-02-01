@@ -1,0 +1,35 @@
+/*** EXAMPLE: Modular form Delta                                    ***/
+/*** (illustration of unusual coefficient growth)                   ***/
+/***                                                                ***/
+/*** v1.2, July 2013, questions to tim.dokchitser@bristol.ac.uk     ***/
+/*** type \rex-delta or read("ex-delta") at pari prompt to run this ***/
+
+read("computel");                 \\ read the ComputeL package
+                                  \\ and set the default values
+default(realprecision,40);        \\ set working precision; used throughout
+
+\\ * Coefficients are given by Ramanujan's tau function
+\\ * Re-define the default bound on the coefficients:
+\\   Deligne's estimate on tau(n) is better than the default
+\\   coefgrow(n)=(4n)^(11/2)     (by a factor 1024),
+\\   so re-defining coefgrow() improves efficiency (slightly faster)
+
+coefgrow(n) = 2*n^(11/2);
+tau(n)      = (5*sigma(n,3)+7*sigma(n,5))*n/12\
+              -35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5));
+
+                            \\ initialize L-function parameters
+conductor = 1;              \\ exponential factor
+gammaV    = [0,1];          \\ list of gamma-factors
+weight    = 12;             \\ L(s)=sgn*L(weight-s)
+sgn       = 1;              \\ sign in the functional equation
+
+
+initLdata("tau(k)");        \\ L-series coefficients a(k)
+
+print("EXAMPLE: L-function associated to the modular form Delta of weight 12");
+print("         coefficients = Ramanujan's tau function");
+print("         with ",default(realprecision)," digits precision");
+print("Verifying functional equation. Error: ",errprint(checkfeq()));
+print("L(1)       = ",lval = L(1));
+print(" (check)   = ",lval2 = L(1,1.1),"  (err=",errprint(lval-lval2),")");

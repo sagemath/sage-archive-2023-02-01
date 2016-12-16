@@ -1,0 +1,30 @@
+/*** EXAMPLE: Eisenstein series G_k, k>2 even                       ***/
+/*** v1.2, July 2013, questions to tim.dokchitser@bristol.ac.uk     ***/
+/***                                                                ***/
+/*** type \rex-eisen or read("ex-eisen") at gp prompt to run this   ***/
+
+read("computel");                 \\ read the ComputeL package
+                                  \\ and set the default values
+default(realprecision,40);        \\ set working precision; used throughout
+
+K = 16;    \\ Our modular form is G_K with this K
+           \\ may change this to any even K
+
+conductor = 1;              \\ exponential factor
+gammaV    = [0,1];          \\ list of gamma-factors
+weight    = K;              \\ L(s)=sgn*L(weight-s)
+sgn       = (-1)^(K/2);     \\ sign in the functional equation
+
+\\ It has a simple pole in s=K
+Lpoles    = [K];
+Lresidues = [(-1)^(K/2)*sqrt(Pi)*bernfrac(K)/K];
+
+initLdata("sigma(k,K-1)");  \\ initialize L-series
+                            \\ Coefficients given by the divisor function
+
+print("EXAMPLE: L-function associated to the modular form G_",K," of weight ",K);
+print("         coefficients = divisor function sigma(n,",K-1,")");
+print("         with ",default(realprecision)," digits precision");
+print("Verifying functional equation. Error: ",errprint(checkfeq()));
+print("L(1)       = ",lval = L(1));
+print(" (check)   = ",lval2 = L(1,1.1),"  (err=",errprint(lval-lval2),")");

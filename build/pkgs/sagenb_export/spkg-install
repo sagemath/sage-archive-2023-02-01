@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+cd src
+$PIP_INSTALL .
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing SageNB Export"
+    exit 1
+fi

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# We reuse the gdb pythonstartup script.
+PYTHONSTARTUP=$SAGE_LOCAL/bin/sage-ipython
+export PYTHONSTARTUP
+echo $PYTHONSTARTUP
+if [ ! -d "$DOT_SAGE/valgrind" ]; then
+    mkdir "$DOT_SAGE/valgrind"
+fi
+
+LOG="$DOT_SAGE"/valgrind/sage-omega.%p
+echo "Log file is $LOG"
+
+OMEGA_FLAGS="--log-file=$LOG "; export OMEGA_FLAGS
+if [ "$SAGE_OMEGA_FLAGS" ]; then
+    echo "Overwriting omega flags with:"
+    echo $SAGE_OMEGA_FLAGS
+    OMEGA_FLAGS=$SAGE_OMEGA_FLAGS; export OMEGA_FLAGS
+else
+    echo "Using default flags:"
+    echo $OMEGA_FLAGS
+fi
+
+valgrind --tool=exp-omega $OMEGA_FLAGS python -i
+

@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Sage IPython startup script.
+"""
+
+from sage.repl.interpreter import SageTerminalApp
+
+app = SageTerminalApp.instance()
+app.initialize()
+app.start()

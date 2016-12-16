@@ -1,0 +1,269 @@
+
+Orders and Relative Extensions
+==============================
+
+Orders in Number Fields
+-----------------------
+
+An *order* in a number field :math:`K` is a subring of :math:`K` whose
+rank over :math:`\ZZ` equals the degree of :math:`K`. For
+example, if :math:`K=\QQ(\sqrt{-1})`, then
+:math:`\ZZ[7i]` is an order in :math:`K`. A good first exercise
+is to prove that every element of an order is an algebraic integer.
+
+::
+
+    sage: K.<I> = NumberField(x^2 + 1)
+    sage: R = K.order(7*I)
+    sage: R
+    Order in Number Field in I with defining polynomial x^2 + 1
+    sage: R.basis()
+    [1, 7*I]
+
+
+Using the ``discriminant`` command, we compute the
+discriminant of this order
+
+.. link
+
+::
+
+    sage: factor(R.discriminant())
+    -1 * 2^2 * 7^2
+
+
+Constructing the order with given generators
+--------------------------------------------
+
+You can give any list of elements of the number field, and it will
+generate the smallest ring :math:`R` that contains them.
+
+::
+
+    sage: K.<a> = NumberField(x^4 + 2)
+    sage: K.order([12*a^2, 4*a + 12]).basis()
+    [1, 4*a, 4*a^2, 16*a^3]
+
+If :math:`R` isn't of rank equal to the degree of the number
+field (i.e., :math:`R` isn't an order), then you'll get an error
+message.
+
+.. link
+
+::
+
+    sage: K.order([a^2])
+    Traceback (most recent call last):
+    ...
+    ValueError: the rank of the span of gens is wrong
+
+
+Computing Maximal Orders
+------------------------
+
+We can also compute the maximal order, using the ``maxima order``
+command, which behind the scenes finds an integral basis using Pari's
+``nfbasis`` command. For example, :math:`\QQ(\sqrt[4]{2})` has
+maximal order :math:`\ZZ[\sqrt[4]{2}]`, and if :math:`\alpha`
+is a root of :math:`x^3 + x^2 - 2x+8`, then :math:`\QQ(\alpha)`
+has maximal order with :math:`\ZZ`-basis
+
+.. math::
+
+    1, \frac{1}{2} a^{2} + \frac{1}{2} a,  a^{2}.
+
+
+
+::
+
+    sage: K.<a> = NumberField(x^4 + 2)
+    sage: K.maximal_order().basis()
+    [1, a, a^2, a^3]
+    sage: L.<a> = NumberField(x^3 + x^2 - 2*x+8)
+    sage: L.maximal_order().basis()
+    [1, 1/2*a^2 + 1/2*a, a^2]
+    sage: L.maximal_order().basis()[1].minpoly()
+    x^3 - 2*x^2 + 3*x - 10
+
+
+Functionality for non-maximal orders is minimal
+-----------------------------------------------
+
+There is still much important functionality for computing with
+non-maximal orders that is missing in Sage. For example, there is
+no support at all in Sage for computing with modules over orders or
+with ideals in non-maximal orders.
+
+::
+
+    sage: K.<a> = NumberField(x^3 + 2)
+    sage: R = K.order(3*a)
+    sage: R.ideal(5)
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: ideals of non-maximal orders not
+    yet supported.
+
+
+Relative Extensions
+-------------------
+
+A *relative number field* :math:`L` is a number field of the form
+:math:`K(\alpha)`, where :math:`K` is a number field, and an *absolute
+number field* is a number field presented in the form
+:math:`\QQ(\alpha)`. By the primitive element theorem, any
+relative number field :math:`K(\alpha)` can be written as
+:math:`\QQ(\beta)` for some :math:`\beta\in L`. However, in
+practice it is often convenient to view :math:`L` as
+:math:`K(\alpha)`.  In :ref:`section-symbolic`, we constructed the
+number field :math:`\QQ(\sqrt{2})(\alpha)`, where
+:math:`\alpha` is a root of :math:`x^3 + \sqrt{2} x + 5`, but *not* as
+a relative field--we obtained just the number field defined by a root
+of :math:`x^6 + 10x^3 - 2x^2 + 25`.
+
+Constructing a relative number field step by step
+-------------------------------------------------
+
+To construct this number field as a relative number field, first we
+let :math:`K` be :math:`\QQ(\sqrt{2})`.
+
+::
+
+    sage: K.<sqrt2> = QuadraticField(2)
+
+Next we create the univariate polynomial ring :math:`R = K[X]`.  In
+Sage, we do this by typing ``R.<X> = K[]``. Here ``R.<X>`` means
+"create the object :math:`R` with generator :math:`X`" and ``K[]``
+means a "polynomial ring over :math:`K`", where the generator is named
+based on the aformentioned :math:`X` (to create a polynomial ring in
+two variables :math:`X,Y` simply replace ``R.<X>`` by ``R.<X,Y>``).
+
+.. link
+
+::
+
+    sage: R.<X> = K[]
+    sage: R
+    Univariate Polynomial Ring in X over Number Field in sqrt2
+    with defining polynomial x^2 - 2
+
+Now we can make a polynomial over the number field
+:math:`K=\QQ(\sqrt{2})`, and construct the extension of
+:math:`K` obtained by adjoining a root of that polynomial to
+:math:`K`.
+
+.. link
+
+::
+
+    sage: L.<a> = K.extension(X^3 + sqrt2*X + 5)
+    sage: L
+    Number Field in a with defining polynomial X^3 + sqrt2*X + 5...
+
+Finally, :math:`L` is the number field
+:math:`\QQ(\sqrt{2})(\alpha)`, where :math:`\alpha` is a root
+of :math:`X^3 + \sqrt{2}\alpha + 5`. We can do now do arithmetic in
+this number field, and of course include :math:`\sqrt{2}` in
+expressions.
+
+.. link
+
+::
+
+    sage: a^3
+    -sqrt2*a - 5
+    sage: a^3 + sqrt2*a
+    -5
+
+
+Functions on relative number fields
+-----------------------------------
+
+The relative number field :math:`L` also has numerous functions, many
+of which have both relative and absolute version. For example the
+``relative_degree`` function on :math:`L` returns the relative degree
+of :math:`L` over :math:`K`; the degree of :math:`L` over
+:math:`\QQ` is given by the ``absolute_degree`` function.  To
+avoid possible ambiguity ``degree`` is not implemented for relative
+number fields.
+
+.. link
+
+::
+
+    sage: L.relative_degree()
+    3
+    sage: L.absolute_degree()
+    6
+
+
+Extra structure on relative number fields
+-----------------------------------------
+
+Given any relative number field you can also an absolute number field
+that is isomorphic to it. Below we create :math:`M = \QQ(b)`,
+which is isomorphic to :math:`L`, but is an absolute field over
+:math:`\QQ`.
+
+.. link
+
+::
+
+    sage: M.<b> = L.absolute_field()
+    sage: M
+    Number Field in b with defining
+    polynomial x^6 + 10*x^3 - 2*x^2 + 25
+
+The ``structure`` function returns isomorphisms in both directions
+between :math:`M` and :math:`L`.
+
+.. link
+
+::
+
+    sage: M.structure()
+    (Isomorphism map:
+      From: Number Field in b with defining polynomial x^6 + 10*x^3 - 2*x^2 + 25
+      To:   Number Field in a with defining polynomial X^3 + sqrt2*X + 5 over its base field, Isomorphism map:
+      From: Number Field in a with defining polynomial X^3 + sqrt2*X + 5 over its base field
+      To:   Number Field in b with defining polynomial x^6 + 10*x^3 - 2*x^2 + 25)
+
+Arbitrary towers of relative number fields
+------------------------------------------
+
+In Sage one can create arbitrary towers of relative number fields
+(unlike in Pari, where a relative extension must be a single
+extension of an absolute field).
+
+.. link
+
+::
+
+    sage: R.<X> = L[]
+    sage: Z.<b> = L.extension(X^3 - a)
+    sage: Z
+    Number Field in b with defining polynomial X^3 - a over its base field
+    sage: Z.absolute_degree()
+    18
+
+
+.. note::
+
+    Exercise: Construct the relative number field
+    :math:`L = K(\sqrt[3]{\sqrt{2}+\sqrt{3}})`, where
+    :math:`K=\QQ(\sqrt{2}, \sqrt{3})`.
+
+
+Relative number field arithmetic can be slow
+--------------------------------------------
+
+One shortcoming with relative extensions in Sage is that behind the
+scenes all arithmetic is done in terms of a single absolute
+defining polynomial, and in some cases this can be very slow (much
+slower than Magma). Perhaps this could be fixed by using Singular's
+multivariate polynomials modulo an appropriate ideal, since
+Singular polynomial arithmetic is extremely fast. Also, Sage has
+very little direct support for constructive class field theory,
+which is a major motivation for explicit computation with relative
+orders; it would be good to expose more of Pari's functionality in
+this regard.

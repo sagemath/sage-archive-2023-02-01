@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# The entire sage-native-execute should probably be removed, but wait
+# for http://trac.sagemath.org/ticket/9386
+
+"$@"
+

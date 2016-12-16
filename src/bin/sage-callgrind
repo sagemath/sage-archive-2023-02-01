@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if [ ! -d "$DOT_SAGE/valgrind" ]; then
+    mkdir "$DOT_SAGE/valgrind"
+fi
+LOG="$DOT_SAGE"/valgrind/sage-callgrind.%p
+
+CALLGRIND_FLAGS="--callgrind-out-file=$LOG "
+if [ "$SAGE_CALLGRIND_FLAGS" ]; then
+    echo "Overwriting callgrind flags with: $SAGE_CALLGRIND_FLAGS"
+    CALLGRIND_FLAGS=$SAGE_CALLGRIND_FLAGS
+ else
+    echo "Using default flags: $CALLGRIND_FLAGS"
+fi
+
+valgrind --tool=callgrind $CALLGRIND_FLAGS python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i

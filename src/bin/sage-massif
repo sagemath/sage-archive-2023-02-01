@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# We reuse the gdb pythonstartup script.
+PYTHONSTARTUP=$SAGE_LOCAL/bin/sage-ipython
+export PYTHONSTARTUP
+echo $PYTHONSTARTUP
+if [ ! -d "$DOT_SAGE/valgrind" ]; then
+    mkdir "$DOT_SAGE/valgrind"
+fi
+
+LOG="$DOT_SAGE"/valgrind/sage-massif.%p
+echo "Log file is $LOG"
+
+MASSIF_FLAGS="--log-file=$LOG --depth=6 "; export MASSIF_FLAGS
+if [ "$SAGE_MASSIF_FLAGS" ]; then
+    echo "Overwriting massif flags with:"
+    echo $SAGE_MASSIF_FLAGS
+    MASSIF_FLAGS=$SAGE_MASSIF_FLAGS; export MASSIF_FLAGS
+else
+    echo "Using default flags:"
+    echo $MASSIF_FLAGS
+fi
+
+valgrind --tool=massif $MASSIF_FLAGS python -i
+

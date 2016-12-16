@@ -318,6 +318,11 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert R Interpreter to a symbolic expression
+
+        Check that :trac:`22068` is fixed::
+
+            sage: SR(RR('NaN')).is_real()
+            False
         """
         cdef GEx exp
         if is_Expression(x):
@@ -340,6 +345,9 @@ cdef class SymbolicRing(CommutativeRing):
         from sage.structure.factorization import Factorization
 
         if isinstance(x, (Integer, RealNumber, float, long, complex)):
+            if x == RR('NaN'):
+                from sage.symbolic.constants import NaN
+                return NaN
             GEx_construct_pyobject(exp, x)
         elif isinstance(x, int):
             GEx_construct_long(&exp, x)

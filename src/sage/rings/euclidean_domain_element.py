@@ -17,6 +17,9 @@ Base class for Euclidean domain elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecation
+deprecation(19167, "the module sage.rings.euclidean_domain_element is deprecated, import from sage.structure.element instead")
+
 from sage.structure.element import EuclideanDomainElement
 
 def is_EuclideanDomainElement(x):
@@ -25,6 +28,9 @@ def is_EuclideanDomainElement(x):
 
     EXAMPLES::
 
+        sage: import sage.rings.euclidean_domain_element
+        doctest:...: DeprecationWarning: the module sage.rings.euclidean_domain_element is deprecated, import from sage.structure.element instead
+        See http://trac.sagemath.org/19167 for details.
         sage: sage.rings.euclidean_domain_element.is_EuclideanDomainElement(EuclideanDomainElement(ZZ))
         True
     """

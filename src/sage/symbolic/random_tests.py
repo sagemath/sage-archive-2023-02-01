@@ -1,5 +1,5 @@
 """
-Randomized tests of GiNaC / PyNaC.
+Randomized tests of GiNaC / PyNaC
 """
 
 ###############################################################################
@@ -10,13 +10,14 @@ Randomized tests of GiNaC / PyNaC.
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 
 from sage.misc.prandom import randint, random
 import operator
 from sage.rings.all import QQ
 from sage.symbolic.ring import SR
-import sage.symbolic.pynac
+from sage.libs.pynac.pynac import symbol_table
 from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
                                      catalan, khinchin, twinprime, mertens)
 from sage.functions.hypergeometric import hypergeometric
@@ -49,7 +50,7 @@ def _mk_full_functions():
     random_expr will fail as well.  That's OK; just fix the doctest
     to match the new output.
     """
-    items = sorted(sage.symbolic.pynac.symbol_table['functions'].items())
+    items = sorted(symbol_table['functions'].items())
     return [(1.0, f, f.number_of_arguments())
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
@@ -228,7 +229,7 @@ def random_expr_helper(n_nodes, internal, leaves, verbose):
         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
         if verbose:
-            print "About to apply %r to %r" % (r[1], children)
+            print("About to apply %r to %r" % (r[1], children))
         return r[1](*children)
 
 def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5,
@@ -331,44 +332,45 @@ def assert_strict_weak_order(a,b,c, cmp_func):
         sage: a, b, c = [ randint(-10,10) for i in range(0,3) ]
         sage: assert_strict_weak_order(a,b,c, lambda x,y: x<y)
 
-        sage: x = [SR(unsigned_infinity), SR(oo), -SR(oo)]
+        sage: x = [-SR(oo), SR(0), SR(oo)]
         sage: cmp = matrix(3,3)
-        sage: indices = list(CartesianProduct(range(0,3),range(0,3)))
-        sage: for i,j in CartesianProduct(range(0,3),range(0,3)):
-        ...       cmp[i,j] = x[i].__cmp__(x[j])
+        sage: for i in range(3):
+        ....:     for j in range(3):
+        ....:         cmp[i,j] = x[i].__cmp__(x[j])
         sage: cmp
         [ 0 -1 -1]
         [ 1  0 -1]
         [ 1  1  0]
     """
     from sage.matrix.constructor import matrix
-    from sage.combinat.cartesian_product import CartesianProduct
     from sage.combinat.permutation import Permutations
     x = (a,b,c)
     cmp = matrix(3,3)
-    indices = list(CartesianProduct(range(0,3),range(0,3)))
-    for i,j in indices:
-        cmp[i,j] = (cmp_func(x[i], x[j]) == 1)   # or -1, doesn't matter
+    for i in range(3):
+        for j in range(3):
+            cmp[i,j] = (cmp_func(x[i], x[j]) == 1)   # or -1, doesn't matter
     msg = 'The binary relation failed to be a strict weak order on the elements\n'
     msg += ' a = '+str(a)+'\n'
     msg += ' b = '+str(b)+'\n'
     msg += ' c = '+str(c)+'\n'
     msg += str(cmp)
 
-    for i in range(0,3):   # irreflexivity
+    for i in range(3):
+        # irreflexivity
         if cmp[i,i]: raise ValueError(msg)
 
-    for i,j in indices:    # asymmetric
-        if i==j: continue
-        #if x[i] == x[j]: continue
-        if cmp[i,j] and cmp[j,i]: raise ValueError(msg)
-
-    for i,j,k in Permutations([0,1,2]):   # transitivity
-        if cmp[i,j] and cmp[j,k] and not cmp[i,k]: raise ValueError(msg)
+        # asymmetric
+        for j in range(i):
+            if cmp[i,j] and cmp[j,i]: raise ValueError(msg)
 
     def incomparable(i,j):
-        return (not cmp[i,j]) and (not cmp[j,i])
-    for i,j,k in Permutations([0,1,2]):   # transitivity of equivalence
+        return not (cmp[i,j] or cmp[j,i])
+
+    for i,j,k in Permutations([0,1,2]):
+        # transitivity
+        if cmp[i,j] and cmp[j,k] and not cmp[i,k]: raise ValueError(msg)
+
+        # transitivity of equivalence
         if incomparable(i,j) and incomparable(j,k) and not incomparable(i,k): raise ValueError(msg)
 
 def test_symbolic_expression_order(repetitions=100):
@@ -396,12 +398,13 @@ def test_symbolic_expression_order(repetitions=100):
         return randint(-100,100)/randint(1,100)
 
     def make_random_expr():
+        from sage.symbolic.random_tests import random_expr, fast_nodes
         while True:
             try:
-                return sage.symbolic.random_tests.random_expr(
+                return random_expr(
                     rnd_length, nvars=nvars, ncoeffs=ncoeffs, var_frac=var_frac,
                     nullary_frac=nullary_frac, coeff_generator=coeff_generator,
-                    internal=sage.symbolic.random_tests.fast_nodes)
+                    internal=fast_nodes)
             except (ZeroDivisionError, ValueError):
                 pass
 

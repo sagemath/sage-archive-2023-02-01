@@ -94,7 +94,9 @@ def _latex_module(R, m):
 
 
 @rename_keyword(deprecation=15151, check_products='check', check_diffs='check')
-def ChainComplex(data=None, **kwds):
+def ChainComplex(data=None, base_ring=None, grading_group=None,
+                 degree_of_differential=1, degree=1,
+                 check=True):
     r"""
     Define a chain complex.
 
@@ -114,7 +116,7 @@ def ChainComplex(data=None, **kwds):
       indexed.
 
     - ``degree_of_differential`` -- element of grading_group
-       (optional, default ``1``). The degree of the differential.
+      (optional, default ``1``). The degree of the differential.
 
     - ``degree`` -- alias for ``degree_of_differential``.
 
@@ -228,14 +230,14 @@ def ChainComplex(data=None, **kwds):
         sage: ChainComplex([matrix(GF(125, 'a'), 3, 1)], base_ring=QQ)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce 0 (<type 
-        'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>) to Rational
+        TypeError: unable to convert 0 to a rational
     """
-    
-    check = kwds.get('check', True)
-    base_ring = kwds.get('base_ring', None)
-    grading_group = kwds.get('grading_group', ZZ)
-    degree = kwds.get('degree_of_differential', kwds.get('degree', 1))
+    if grading_group is None:
+        grading_group = ZZ
+    if degree_of_differential != 1 and degree != 1:
+        raise(ValueError, 'specify only one of degree_of_differential or degree, not both')
+    if degree_of_differential != 1:
+        degree = degree_of_differential
     try:
         degree = grading_group(degree)
     except Exception:
@@ -457,7 +459,7 @@ class Chain_class(ModuleElement):
         of the differentials.
 
         EXAMPLES::
-        
+
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
             sage: c.is_cycle()
@@ -480,7 +482,7 @@ class Chain_class(ModuleElement):
         the differentials.
 
         EXAMPLES::
-        
+
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
             sage: c.is_boundary()
@@ -524,7 +526,7 @@ class Chain_class(ModuleElement):
         parent = self.parent()
         return parent.element_class(parent, vectors)
 
-    def _rmul_(self, scalar):
+    def _lmul_(self, scalar):
         """
         Scalar multiplication
 
@@ -546,9 +548,9 @@ class Chain_class(ModuleElement):
         parent = self.parent()
         return parent.element_class(parent, vectors)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare two chains
+        Return ``True`` if this chain is equal to ``other``.
 
         EXAMPLES::
 
@@ -559,13 +561,24 @@ class Chain_class(ModuleElement):
             sage: c == C(0)
             False
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        c = cmp(self.parent(), other.parent())
-        if c != 0:
-            return c
-        return cmp(self._vec, other._vec)
+        if type(self) != type(other) or self.parent() != other.parent():
+            return False
+        return self._vec == other._vec
+
+    def __ne__(self, other):
+        """
+        Return ``True`` if this chain is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
+            sage: c != c
+            False
+            sage: c != C(0)
+            True
+        """
+        return not self == other
         
 
 class ChainComplex_class(Parent):
@@ -799,7 +812,7 @@ class ChainComplex_class(Parent):
         are returned in sort order.
 
         EXAMPLES::
-        
+
             sage: one = matrix(ZZ, [[1]])
             sage: D = ChainComplex({0: one, 2: one, 6:one})
             sage: ascii_art(D)
@@ -987,7 +1000,7 @@ class ChainComplex_class(Parent):
             rank = self.free_module_rank(degree)
         return FreeModule(self.base_ring(), rank)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Return ``True`` iff this chain complex is the same as other: that
         is, if the base rings and the matrices of the two are the
@@ -1000,11 +1013,8 @@ class ChainComplex_class(Parent):
             sage: C == D
             True
         """
-        if not isinstance(other, ChainComplex_class):
-            return cmp(type(other), ChainComplex_class)
-        c = cmp(self.base_ring(), other.base_ring())
-        if c != 0:
-            return c
+        if not isinstance(other, ChainComplex_class) or self.base_ring() != other.base_ring():
+            return False
         R = self.base_ring()
         equal = True
         for d,mat in self.differential().iteritems():
@@ -1016,9 +1026,23 @@ class ChainComplex_class(Parent):
         for d,mat in other.differential().iteritems():
             if d not in self.differential():
                 equal = equal and mat.ncols() == 0 and mat.nrows() == 0
-        if equal:
-            return 0
-        return -1
+        return equal
+
+    def __ne__(self, other):
+        """
+        Return ``True`` iff this chain complex is not the same as other.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])}, base_ring=GF(2))
+            sage: D = ChainComplex({0: matrix(GF(2), 2, 3, [1, 0, 0, 0, 0, 0]), 1: matrix(ZZ, 0, 2), 3: matrix(ZZ, 0, 0)})  # base_ring determined from the matrices
+            sage: C != D
+            False
+            sage: E = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])}, base_ring=ZZ)
+            sage: C != E
+            True
+        """
+        return not self == other
 
     def _homology_chomp(self, deg, base_ring, verbose, generators):
         """
@@ -1068,7 +1092,8 @@ class ChainComplex_class(Parent):
             return HomologyGroup(0, base_ring)
 
     @rename_keyword(deprecation=15151, dim='deg')
-    def homology(self, deg=None, **kwds):
+    def homology(self, deg=None, base_ring=None, generators=False,
+                 verbose=False, algorithm='pari'):
         r"""
         The homology of the chain complex.
 
@@ -1091,7 +1116,7 @@ class ChainComplex_class(Parent):
         - ``verbose`` - boolean (optional, default ``False``); if
           ``True``, print some messages as the homology is computed
 
-        - ``algorithm`` - string (optional, default ``'auto'``); the
+        - ``algorithm`` - string (optional, default ``'pari'``); the
           options are:
 
           * ``'auto'``
@@ -1110,9 +1135,9 @@ class ChainComplex_class(Parent):
 
         ALGORITHM:
 
-        If ``algorithm`` is set to ``'auto'`` (the default), then use
+        If ``algorithm`` is set to ``'auto'``, then use
         CHomP if available. CHomP is available at the web page
-        http://chomp.rutgers.edu/.  It is also an experimental package
+        http://chomp.rutgers.edu/.  It is also an optional package
         for Sage. If ``algorithm`` is ``chomp``, always use chomp.
 
         CHomP computes homology, not cohomology, and only works over
@@ -1134,17 +1159,15 @@ class ChainComplex_class(Parent):
         then for each relatively small matrix, use the standard Sage
         method, which calls the Pari package.  For any large matrix,
         reduce it using the Dumas, Heckenbach, Saunders, and Welker
-        elimination algorithm [DHSW]_: see
+        elimination algorithm [DHSW2003]_: see
         :func:`~sage.homology.matrix_utils.dhsw_snf` for details.
 
         Finally, ``algorithm`` may also be ``'pari'`` or ``'dhsw'``, which
         forces the named algorithm to be used regardless of the size
         of the matrices and regardless of whether CHomP is available.
 
-        As of this writing, CHomP is by far the fastest option,
-        followed by the ``'auto'`` or ``'no_chomp'`` setting of using the
-        Dumas, Heckenbach, Saunders, and Welker elimination algorithm
-        [DHSW]_ for large matrices and Pari for small ones.
+        As of this writing, ``'pari'`` is the fastest standard option.
+        The optional CHomP package may be better still.
 
         .. WARNING::
 
@@ -1183,26 +1206,25 @@ class ChainComplex_class(Parent):
             sage: T = simplicial_complexes.Torus()
             sage: C_t = T.chain_complex()
             sage: C_t.homology(base_ring=QQ, generators=True)
-            {0: [(Vector space of dimension 1 over Rational Field, Chain(0:(0, 0, 0, 0, 0, 0, 1)))],
+            {0: [(Vector space of dimension 1 over Rational Field,
+               Chain(0:(0, 0, 0, 0, 0, 0, 1)))],
              1: [(Vector space of dimension 1 over Rational Field,
-               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, -1, 0, 1, 0))),
+               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 1))),
               (Vector space of dimension 1 over Rational Field,
-               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, -1, -1)))],
+               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, -1, 0)))],
              2: [(Vector space of dimension 1 over Rational Field,
-               Chain(2:(1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1)))]}
+               Chain(2:(1, -1, 1, -1, 1, -1, -1, 1, -1, 1, -1, 1, 1, -1)))]}
         """
         from sage.interfaces.chomp import have_chomp
 
         if deg is not None and deg not in self.grading_group():
             raise ValueError('degree is not an element of the grading group')
 
-        verbose = kwds.get('verbose', False)
-        generators = kwds.get('generators', False)
-        base_ring = kwds.get('base_ring', self.base_ring())
+        if base_ring is None:
+            base_ring = self.base_ring()
         if not (base_ring.is_field() or base_ring is ZZ):
             raise NotImplementedError('can only compute homology if the base ring is the integers or a field')
 
-        algorithm = kwds.get('algorithm', 'auto')
         if algorithm not in ['dhsw', 'pari', 'auto', 'no_chomp', 'chomp']:
             raise NotImplementedError('algorithm not recognized')
         if algorithm == 'auto' \
@@ -1502,6 +1524,69 @@ class ChainComplex_class(Parent):
         for d in self.differential():
             data[-d] = self.differential()[d]
         return ChainComplex(data, degree=-deg)
+
+    def shift(self, n=1):
+        """
+        Shift this chain complex `n` times.
+
+        INPUT:
+
+        - ``n`` -- an integer (optional, default 1)
+
+        The *shift* operation is also sometimes called *translation* or
+        *suspension*.
+
+        To shift a chain complex by `n`, shift its entries up by `n`
+        (if it is a chain complex) or down by `n` (if it is a cochain
+        complex); that is, shifting by 1 always shifts in the opposite
+        direction of the differential. In symbols, if `C` is a chain
+        complex and `C[n]` is its `n`-th shift, then `C[n]_j =
+        C_{j-n}`. The differential in the shift `C[n]` is obtained by
+        multiplying each differential in `C` by `(-1)^n`.
+
+        Caveat: different sources use different conventions for
+        shifting: what we call `C[n]` might be called `C[-n]` in some
+        places. See for example.
+        https://ncatlab.org/nlab/show/suspension+of+a+chain+complex
+        (which uses `C[n]` as we do but acknowledges `C[-n]`) or 1.2.8
+        in [Wei1994]_ (which uses `C[-n]`).
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1).chain_complex()
+            sage: S1.shift(1).differential(2) == -S1.differential(1)
+            True
+            sage: S1.shift(2).differential(3) == S1.differential(1)
+            True
+            sage: S1.shift(3).homology(4)
+            Z
+
+        For cochain complexes, shifting goes in the other
+        direction. Topologically, this makes sense if we grade the
+        cochain complex for a space negatively::
+
+            sage: T = simplicial_complexes.Torus()
+            sage: co_T = T.chain_complex()._flip_()
+            sage: co_T.homology()
+            {-2: Z, -1: Z x Z, 0: Z}
+            sage: co_T.degree_of_differential()
+            1
+            sage: co_T.shift(2).homology()
+            {-4: Z, -3: Z x Z, -2: Z}
+
+        You can achieve the same result by tensoring (on the left, to
+        get the signs right) with a rank one free module in degree
+        ``-n * deg``, if ``deg`` is the degree of the differential::
+
+            sage: C = ChainComplex({-2: matrix(ZZ, 0, 1)})
+            sage: C.tensor(co_T).homology()
+            {-4: Z, -3: Z x Z, -2: Z}
+        """
+        deg = self.degree_of_differential()
+        shift = n * deg
+        sgn = (-1)**n
+        return ChainComplex({k-shift: sgn * self._diff[k] for k in self._diff},
+                            degree_of_differential=deg)
 
     def _chomp_repr_(self):
         r"""
@@ -1914,6 +1999,17 @@ class ChainComplex_class(Parent):
                                                 [y]
                              [ x -y]            [x]
              0 <-- C_(8, 3) <-------- C_(6, 2) <---- C_(4, 1) <-- 0
+
+        Check that :trac:`21760` is fixed::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 0, 2)}, degree=-1)
+            sage: ascii_art(C)
+             0 <-- C_0 <-- 0
+            sage: T = C.tensor(C)
+            sage: ascii_art(T)
+             0 <-- C_0 <-- 0
+            sage: T.free_module_rank(0)
+            4
         """
         if not factors:
             return self
@@ -1939,9 +2035,9 @@ class ChainComplex_class(Parent):
             # Setup
             d = ret.differential()
             dD = D.differential()
-            deg = sorted((k, ret.free_module_rank(k)) for k in d.keys()
+            deg = sorted((k, ret.free_module_rank(k)) for k in d
                          if ret.free_module_rank(k) > 0)
-            degD = sorted((k, D.free_module_rank(k)) for k in dD.keys()
+            degD = sorted((k, D.free_module_rank(k)) for k in dD
                           if D.free_module_rank(k) > 0)
             diff = {}
 
@@ -1956,26 +2052,22 @@ class ChainComplex_class(Parent):
                         diff[a+b] = {}
                     mor = diff[a+b]
                     cur = {}
-                    if rp != 0:
-                        cur[(a+deg_diff,b)] = []
-                    if sp != 0:
-                        cur[(a,b+deg_diff)] = []
+                    cur[(a+deg_diff,b)] = []
+                    cur[(a,b+deg_diff)] = []
 
                     for i in range(r):
                         for j in range(s):
                             # \partial x_i \otimes y_j
-                            if rp != 0:
-                                vec = [zero]*(rp*s)
-                                for k,val in enumerate(d[a].column(i)):
-                                    vec[s*k+j] += val
-                                cur[(a+deg_diff,b)].append(vec)
+                            vec = [zero]*(rp*s)
+                            for k,val in enumerate(d[a].column(i)):
+                                vec[s*k+j] += val
+                            cur[(a+deg_diff,b)].append(vec)
 
                             # (-1)^a x_i \otimes \partial y_j
-                            if sp != 0:
-                                vec = [zero]*(r*sp)
-                                for k,val in enumerate(dD[b].column(j)):
-                                    vec[sp*i+k] += scalar(a) * val
-                                cur[(a,b+deg_diff)].append(vec)
+                            vec = [zero]*(r*sp)
+                            for k,val in enumerate(dD[b].column(j)):
+                                vec[sp*i+k] += scalar(a) * val
+                            cur[(a,b+deg_diff)].append(vec)
 
                     mor[a,b] = cur
 

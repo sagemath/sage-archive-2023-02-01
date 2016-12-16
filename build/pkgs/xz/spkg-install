@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+cd src/
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+./configure --prefix=$SAGE_LOCAL
+
+$MAKE
+if [ $? -ne 0 ]; then
+   echo "Error building xz"
+   exit 1
+fi
+
+$MAKE install
+if [ $? -ne 0 ]; then
+   echo "Error installing xz"
+   exit 1
+fi
+

@@ -17,36 +17,40 @@ AUTHORS:
     The ``_new()`` method should be overridden in this class to copy the ``D``
     and ``standard_embedding`` attributes
 """
+
 #*****************************************************************************
-#     Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
+include "sage/libs/ntl/decl.pxi"
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
+from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
+from sage.libs.mpfi cimport mpfi_set_z, mpfi_set_q, mpfi_sqrt, mpfi_add_z, mpfi_mul_z, mpfi_div_z, mpfi_neg
 
-from sage.structure.element cimport Element
+from sage.structure.parent_base cimport ParentWithBase
+from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.sage_object cimport rich_to_bool_sgn
 
+from sage.rings.rational cimport Rational
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.categories.morphism cimport Morphism
 from sage.rings.number_field.number_field_element import _inverse_mod_generic
+from sage.rings.real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class
 
 import number_field
 
@@ -507,6 +511,60 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         (<NumberFieldElement_absolute>x)._reduce_c_()
         return x
 
+    def _real_mpfi_(self, RealIntervalField_class R):
+        r"""
+        Conversion to a real interval field
+
+        TESTS::
+
+            sage: K1 = QuadraticField(2)
+            sage: RIF(K1.gen())
+            1.414213562373095?
+            sage: RIF(K1(1/5))
+            0.2000000000000000?
+            sage: RIF(3/5*K1.gen() + 1/5)
+            1.048528137423857?
+
+            sage: K2 = QuadraticField(2, embedding=-RLF(2).sqrt())
+            sage: RIF(K2.gen())
+            -1.414213562373095?
+
+            sage: K3 = QuadraticField(-1)
+            sage: RIF(K3.gen())
+            Traceback (most recent call last):
+            ...
+            ValueError: can not convert complex algebraic number to real interval
+            sage: RIF(K3(2))
+            2
+
+        Check that :trac:`21979` is fixed::
+
+            sage: a = QuadraticField(5).gen()
+            sage: u = -573147844013817084101/2*a + 1281597540372340914251/2
+            sage: RealIntervalField(128)(u)
+            0.?e-17
+            sage: RealIntervalField(128)(u).is_zero()
+            False
+        """
+        cdef RealIntervalFieldElement ans = R._new()
+
+        if mpz_cmp_ui(self.b, 0):
+            if mpz_cmp_ui(self.D.value, 0) < 0:
+                raise ValueError("can not convert complex algebraic number to real interval")
+            mpfi_set_z(ans.value, self.D.value)
+            mpfi_sqrt(ans.value, ans.value)
+            if not self.standard_embedding:
+                mpfi_neg(ans.value, ans.value)
+            mpfi_mul_z(ans.value, ans.value, self.b)
+
+            mpfi_add_z(ans.value, ans.value, self.a)
+
+        else:
+            mpfi_set_z(ans.value, self.a)
+
+        mpfi_div_z(ans.value, ans.value, self.denom)
+        return ans
+
     def parts(self):
         """
         This function returns a pair of rationals `a` and `b` such that self `=
@@ -658,31 +716,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return test
         return -test
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, _right, int op):
         r"""
-        Note: we may implement a more direct way of comparison for integer,
-        float and quadratic numbers input (ie avoiding coercion).
+        Rich comparison of elements.
 
         TESTS::
 
             sage: K.<i> = QuadraticField(-1)
             sage: sorted([5*i+1, 2, 3*i+1, 2-i])
             [3*i + 1, 5*i + 1, -i + 2, 2]
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element _right, int op):
-        r"""
-        C implementation of comparison.
-
-        TESTS:
 
         Make some random tests to check that the order is compatible with the
         ones of the real field (RR) and complex field (CC)::
 
             sage: K1 = NumberField(x^2 - 2, 'a', embedding=RR(1.4))
             sage: K2 = NumberField(x^2 - 2, 'a', embedding=RR(-1.4))
-            sage: for _ in xrange(500):
+            sage: for _ in range(500):
             ....:     for K in K1, K2:
             ....:         a = K.random_element()
             ....:         b = K.random_element()
@@ -697,7 +746,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
             sage: K1 = NumberField(x^2 + 2, 'a', embedding=CC(0,1))
             sage: K2 = NumberField(x^2 + 2, 'a', embedding=CC(0,-1))
-            sage: for _ in xrange(500):
+            sage: for _ in range(500):
             ....:     for K in K1, K2:
             ....:         a = K.random_element()
             ....:         b = K.random_element()
@@ -796,8 +845,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_clear(j)
         return rich_to_bool_sgn(op, test)
 
-    def __cmp__(left, right):
-        r"""
+    cpdef int _cmp_(left, _right) except -2:
+        """
         Comparisons of elements.
 
         When there is a real embedding defined, the comparisons uses comparison
@@ -869,12 +918,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: map(CDF, l) == sorted(map(CDF, l))
             True
         """
-        return (<Element>left)._cmp(right)
-
-    cpdef int _cmp_(left, Element _right) except -2:
-        """
-        C implementation of comparison.
-        """
         cdef NumberFieldElement_quadratic right = <NumberFieldElement_quadratic> _right
         cdef int test
 
@@ -935,7 +978,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: cf.n()
             1.41421356237310
             sage: sqrt2.n()
-            1.41421356237310
+            1.41421356237309
             sage: cf.value()
             sqrt2
 
@@ -973,7 +1016,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_clear(gcd)
 
 
-    cpdef ModuleElement _add_(self, ModuleElement other_m):
+    cpdef _add_(self, other_m):
         """
         EXAMPLES::
 
@@ -1030,7 +1073,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement other_m):
+    cpdef _sub_(self, other_m):
         """
         EXAMPLES::
 
@@ -1097,7 +1140,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef RingElement _mul_(self, RingElement other_m):
+    cpdef _mul_(self, other_m):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+23)
@@ -1154,7 +1197,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef ModuleElement _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2+43)
@@ -1170,7 +1213,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef ModuleElement _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2+43)
@@ -1186,7 +1229,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2-5)
@@ -1313,32 +1356,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: L.<a> = QuadraticField(-7)
             sage: hash(a)
             42082631
-
             sage: hash(L(1))
             1
             sage: hash(L(-3))
             -3
-
-            sage: hash(L(-32/118))
-            -53
-            sage: hash(-32/118)
-            -53
+            sage: hash(L(-32/118)) == hash(-32/118)
+            True
         """
         # 1. compute the hash of a/denom as if it was a rational
         # (see the corresponding code in sage/rings/rational.pyx)
-        cdef long a_hash = mpz_pythonhash(self.a)
-        cdef long d_hash = mpz_pythonhash(self.denom)
-        if d_hash != 1:
-            a_hash ^= d_hash
-            if a_hash == -1:
-                a_hash == -2
+        cdef Py_hash_t n = mpz_pythonhash(self.a)
+        cdef Py_hash_t d = mpz_pythonhash(self.denom)
+        cdef Py_hash_t h = n + (d - 1) * <Py_hash_t>(7461864723258187525)
 
-        # 2. mix them together with b
-        a_hash += 42082631 * mpz_pythonhash(self.b)
-        if a_hash == -1:
-            return -2
-        return a_hash
-
+        # 2. mix the hash together with b
+        h += 42082631 * mpz_pythonhash(self.b)
+        return h
 
     def __nonzero__(self):
         """
@@ -1393,6 +1426,29 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpz_set(mpq_denref(res.value), self.denom)
             mpq_canonicalize(res.value)
             return res
+
+    def _algebraic_(self, parent):
+        r"""
+        Convert this element to an algebraic number, if possible.
+
+        EXAMPLES::
+
+            sage: NF.<i> = QuadraticField(-1)
+            sage: QQbar(1+i)
+            I + 1
+            sage: NF.<sqrt3> = QuadraticField(2)
+            sage: AA(sqrt3)
+            1.414213562373095?
+        """
+        import sage.rings.qqbar as qqbar
+        if (parent is qqbar.QQbar
+                and list(self._parent.polynomial()) == [1, 0, 1]):
+            # AlgebraicNumber.__init__ does a better job than
+            # NumberFieldElement._algebraic_ in this case, but
+            # QQbar._element_constructor_ calls the latter first.
+            return qqbar.AlgebraicNumber(self)
+        else:
+            return NumberFieldElement._algebraic_(self, parent)
 
     cpdef bint is_one(self):
         r"""
@@ -1541,16 +1597,15 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         if mpz_sgn(self.D.value) > 0:
             return Rational.__new__(Rational)  # = 0
-        embedding =  self._parent.coerce_embedding()
-        cdef Integer negD = -self.D
+        cdef Integer negD = <Integer>Integer.__new__(Integer)
+        mpz_neg(negD.value, self.D.value)
         cdef NumberFieldElement_quadratic q = <NumberFieldElement_quadratic>self._new()
         mpz_set_ui(q.b, 1)
         mpz_set_ui(q.denom, 1)
-        from sage.rings.complex_double import CDF
         cdef Rational res
-        if mpz_cmp_ui(negD.value, 1) == 0 or negD.is_square():
+        if mpz_cmp_ui(negD.value, 1) == 0 or mpz_perfect_square_p(negD.value):
             # D = -1 is the most common case we'll see here
-            if embedding is None:
+            if self._parent._embedding is None:
                 raise ValueError("Embedding must be specified.")
             res = <Rational>Rational.__new__(Rational)
             if mpz_cmp_ui(negD.value, 1) == 0:
@@ -1565,13 +1620,13 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return res
         else:
             # avoid circular import
-            if embedding is None:
+            if self._parent._embedding is None:
                 from number_field import NumberField
                 K = NumberField(QQ['x'].gen()**2 - negD, 'sqrt%s' % negD)
             else:
                 from number_field import QuadraticField
                 K = QuadraticField(negD, 'sqrt%s' % negD)
-            q = K(0)
+            q = K.zero()
             mpz_set(q.denom, self.denom)
             if self.standard_embedding:
                 mpz_set(q.b, self.b)
@@ -1579,7 +1634,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                 mpz_neg(q.b, self.b)
             return q
 
-    def _coefficients(self):
+    cpdef list _coefficients(self):
         """
         EXAMPLES::
 
@@ -1893,7 +1948,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K2.<sqrt2> = QuadraticField(2)
             sage: K3.<sqrt3> = QuadraticField(3)
             sage: K5.<sqrt5> = QuadraticField(5)
-            sage: for _ in xrange(100):
+            sage: for _ in range(100):
             ....:    a = QQ.random_element(1000,20)
             ....:    b = QQ.random_element(1000,20)
             ....:    assert floor(a+b*sqrt(2.)) == floor(a+b*sqrt2)
@@ -1957,7 +2012,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K2.<sqrt2> = QuadraticField(2)
             sage: K3.<sqrt3> = QuadraticField(3)
             sage: K5.<sqrt5> = QuadraticField(5)
-            sage: for _ in xrange(100):
+            sage: for _ in range(100):
             ....:    a = QQ.random_element(1000,20)
             ....:    b = QQ.random_element(1000,20)
             ....:    assert ceil(a+b*sqrt(2.)) == ceil(a+b*sqrt2)
@@ -2084,7 +2139,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return self._parent.number_field()
 
     # We must override these since the basering is now ZZ not QQ.
-    cpdef ModuleElement _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2-27)
@@ -2103,7 +2158,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return res
 
 
-    cpdef ModuleElement _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, RingElement _c):
         """
         EXAMPLE:
             sage: K.<a> = NumberField(x^2+43)
@@ -2121,7 +2176,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         res._reduce_c_()
         return res
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         r"""
         Implement division, checking that the result has the
         right parent. It's not so crucial what the parent actually
@@ -2182,8 +2237,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
 
         EXAMPLES::
 
-            sage: OE = QuadraticField(-7, 's').ring_of_integers()
-            sage: w = OE.ring_generators()[0]
+            sage: OE.<w> = EquationOrder(x^2 - x + 2)
             sage: w.inverse_mod(13) == 6*w - 6
             True
             sage: w*(6*w - 6) - 1
@@ -2193,7 +2247,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
             sage: w.inverse_mod(2*OE)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: 1/2*s + 1/2 is not invertible modulo Fractional ideal (2)
+            ZeroDivisionError: w is not invertible modulo Fractional ideal (2)
         """
         R = self.parent()
         return R(_inverse_mod_generic(self, I))

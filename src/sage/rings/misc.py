@@ -23,6 +23,8 @@ def composite_field(K, L):
 
     EXAMPLES:
         sage: composite_field(QQ,QQbar)
+        doctest:...: DeprecationWarning: The function composite_field() is deprecated. Use get_coercion_model().common_parent() instead
+        See http://trac.sagemath.org/19415 for details.
         Algebraic Field
         sage: composite_field(QQ,QQ[sqrt(2)])
         Number Field in sqrt2 with defining polynomial x^2 - 2
@@ -33,6 +35,8 @@ def composite_field(K, L):
         ...
         ValueError: unable to find a common field
     """
+    from sage.misc.superseded import deprecation
+    deprecation(19415, "The function composite_field() is deprecated. Use get_coercion_model().common_parent() instead")
     C = Sequence([K(0), L(0)]).universe()
     if C not in _Fields:
         raise ValueError("unable to find a common field")

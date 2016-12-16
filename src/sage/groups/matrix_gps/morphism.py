@@ -20,6 +20,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.categories.morphism import Morphism
 from sage.misc.latex import latex
@@ -109,6 +110,19 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             sage: G = MatrixGroup([MS([3,0,0,1])])
             sage: a = G.gens()[0]^2
             sage: phi = G.hom([a])
+
+        TESTS:
+
+        Check that :trac:`19406` is fixed::
+
+            sage: G = GL(2, GF(3))
+            sage: H = GL(3, GF(2))
+            sage: mat1 = H([[-1,0,0],[0,0,-1],[0,-1,0]])
+            sage: mat2 = H([[1,1,1],[0,0,-1],[-1,0,0]])
+            sage: phi = G.hom([mat1, mat2])
+            Traceback (most recent call last):
+            ...
+            TypeError: images do not define a group homomorphism
         """
         MatrixGroupMorphism.__init__(self, homset)   # sets the parent
         from sage.libs.gap.libgap import libgap
@@ -118,7 +132,7 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         imgs = [to_libgap(x) for x in imgsH]
         self._phi = phi = libgap.GroupHomomorphismByImages(G.gap(), H.gap(), gens, imgs)
         if not phi.IsGroupHomomorphism():
-            raise ValueError('The map '+str(gensG)+'-->'+str(imgsH)+' is not a homomorphism')
+            raise ValueError('the map {}-->{} is not a homomorphism'.format(G.gens(), imgsH))
 
     def gap(self):
         """
@@ -171,7 +185,7 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: G = MatrixGroup([MS([1,1,0,1])])
             sage: phi = G.hom(G.gens())
-            sage: print latex(phi)
+            sage: print(latex(phi))
             \left\langle \left(\begin{array}{rr}
             1 & 1 \\
             0 & 1
@@ -211,17 +225,17 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
 
         INPUT:
 
-        ``J`` -- a subgroup or an element of the domain of ``self``.
+        ``J`` -- a subgroup or an element of the domain of ``self``
 
         OUTPUT:
 
-        The image of ``J`` under ``self``
+        The image of ``J`` under ``self``.
 
-        NOTE:
+        .. NOTE::
 
-        ``pushforward`` is the method that is used when a map is called on
-        anything that is not an element of its domain. For historical reasons,
-        we keep the alias ``image()`` for this method.
+            ``pushforward`` is the method that is used when a map is called
+            on anything that is not an element of its domain. For historical
+            reasons, we keep the alias ``image()`` for this method.
 
         EXAMPLES::
 
@@ -241,9 +255,9 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             [0 1]
             )
 
-        The following tests against trac ticket #10659::
+        The following tests against :trac:`10659`::
 
-            sage: phi(H)   # indirect doctestest
+            sage: phi(H)   # indirect doctest
             Matrix group over Finite Field of size 7 with 1 generators (
             [4 0]
             [0 1]
@@ -256,16 +270,17 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             from sage.groups.matrix_gps.all import MatrixGroup
             img_gens = [x.matrix(F) for x in phi.Image(gapJ).GeneratorsOfGroup()]
             return MatrixGroup(img_gens)
-        return phi.Image(gapJ).matrix(F)
+        C = self.codomain()
+        return C(phi.Image(gapJ).matrix(F))
 
     image = pushforward
 
-    def _call_( self, g ):
+    def _call_(self, g):
         """
         Call syntax for morphisms.
 
-        Some python code for wrapping GAP's Images function for a
-        matrix group G. Returns an error if g is not in G.
+        Some python code for wrapping GAP's ``Images`` function for a
+        matrix group ``G``. Returns an error if ``g`` is not in ``G``.
 
         EXAMPLES::
 
@@ -291,10 +306,10 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             [1 1]
             [0 1]
 
-        TEST:
+        TESTS:
 
         The following tests that the call method was successfully
-        improved in trac ticket #10659::
+        improved in :trac:`10659`::
 
             sage: O = WeylGroup(['D',6])
             sage: r = prod(O.gens())
@@ -334,9 +349,19 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             [0 0 0 0 1 0]  [ 0  0  0  0  1  0]
             [1 0 0 0 0 0], [-1  0  0  0  0  0]
             )
+
+        We check that :trac:`19780` is fixed::
+
+            sage: G = groups.matrix.SO(3, 3)
+            sage: H = groups.matrix.GL(3, 3)
+            sage: phi = G.hom([H(x) for x in G.gens()])
+            sage: phi(G.one()).parent()
+            General Linear Group of degree 3 over Finite Field of size 3
         """
         phi = self.gap()
         G = self.domain()
-        F = G.base_ring()
+        C = self.codomain()
+        F = C.base_ring()
         h = g.gap()
-        return phi.Image(h).matrix(F)
+        return C(phi.Image(h).matrix(F))
+

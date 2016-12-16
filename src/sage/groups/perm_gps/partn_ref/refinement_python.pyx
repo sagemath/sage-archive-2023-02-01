@@ -1,7 +1,8 @@
 """
 Python interface to partition backtrack functions
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_python
 
 This module provides Python frontends to the Cython-based partition backtrack
@@ -27,6 +28,12 @@ debugger.
 #*****************************************************************************
 
 include 'data_structures_pyx.pxi' # includes bitsets
+
+from .automorphism_group_canonical_label cimport (
+    get_aut_gp_and_can_lab, aut_gp_and_can_lab,
+    allocate_agcl_output, deallocate_agcl_output)
+from .double_coset cimport double_coset
+
 
 cdef class PythonPartitionStack:
     """
@@ -100,7 +107,7 @@ cdef class PythonPartitionStack:
             sage: P = PythonPartitionStack(7)
             sage: P.is_discrete()
             False
-            sage: [P.set_level(i,0) for i in xrange(7)]
+            sage: [P.set_level(i,0) for i in range(7)]
             [None, None, None, None, None, None, None]
             sage: P.is_discrete()
             True
@@ -352,11 +359,11 @@ class PythonObjectWrapper:
 
             sage: from sage.groups.perm_gps.partn_ref.refinement_python import PythonObjectWrapper
             sage: def acae(a,b):
-            ...    return 0
+            ....:  return 0
             sage: def rari(a,b,c):
-            ...    return 0
+            ....:  return 0
             sage: def cs(a,b,c,d,e):
-            ...    return 0
+            ....:  return 0
             sage: from sage.groups.perm_gps.partn_ref.refinement_python import PythonObjectWrapper
             sage: P = PythonObjectWrapper(None, acae, rari, cs, 7) # implicit doctest
             sage: P.obj
@@ -414,7 +421,7 @@ def aut_gp_and_can_lab_python(S, partition, n,
     """
     Calls the automorphism group and canonical label function.
 
-    INPUT::
+    INPUT:
 
         S -- the object to examine
         partition -- an ordered partition, as a list of lists
@@ -440,11 +447,11 @@ def aut_gp_and_can_lab_python(S, partition, n,
 
         sage: from sage.groups.perm_gps.partn_ref.refinement_python import aut_gp_and_can_lab_python
         sage: def acae(a,b):
-        ...    return 0
+        ....:  return 0
         sage: def rari(a,b,c):
-        ...    return 0
+        ....:  return 0
         sage: def cs(a,b,c,d,e):
-        ...    return 0
+        ....:  return 0
         sage: aut_gp_and_can_lab_python(None, [[0,1,2,3],[4,5]], 6, acae, rari, cs, True, True, True)
         ([[0, 1, 3, 2, 4, 5],
           [0, 2, 1, 3, 4, 5],
@@ -500,7 +507,7 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
     """
     Calls the double coset function.
 
-    INPUT::
+    INPUT:
 
         S1, S2 -- the objects to examine
         partition1 -- an ordered partition, as a list of lists
@@ -522,19 +529,19 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
 
         sage: from sage.groups.perm_gps.partn_ref.refinement_python import double_coset_python
         sage: def acae(a,b):
-        ...    return 0
+        ....:     return 0
         sage: def rari(a,b,c):
-        ...    return 0
+        ....:     return 0
         sage: def cs(a,b,c,d,e):
-        ...    return 0
+        ....:     return 0
         sage: double_coset_python(None, None, [[0,1,2,3],[4,5]], [2,3,1,5,0,4], 6, acae, rari, cs)
         [1, 2, 3, 5, 0, 4]
 
         sage: def compare_lists(p1,p2,l1,l2,deg):
-        ...    for i in xrange(len(l1)):
-        ...        j = cmp(l1[p1[i]], l2[p2[i]])
-        ...        if j != 0: return j
-        ...    return 0
+        ....:     for i in range(len(l1)):
+        ....:         j = cmp(l1[p1[i]], l2[p2[i]])
+        ....:         if j != 0: return j
+        ....:     return 0
 
         sage: double_coset_python([0,0,1], [1,0,0], [[0,1,2]], [0,1,2], 3, acae, rari, compare_lists)
         [1, 2, 0]
@@ -544,12 +551,12 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
     obj_wrapper2 = PythonObjectWrapper(S2, all_children_are_equivalent, refine_and_return_invariant, compare_structures, n)
 
     cdef PartitionStack *part = PS_from_list(partition1)
-    cdef int *ordering = <int *> sage_malloc(n * sizeof(int))
-    cdef int *output = <int *> sage_malloc(n * sizeof(int))
+    cdef int *ordering = <int *> sig_malloc(n * sizeof(int))
+    cdef int *output = <int *> sig_malloc(n * sizeof(int))
     if part is NULL or ordering is NULL or output is NULL:
         PS_dealloc(part)
-        sage_free(ordering)
-        sage_free(output)
+        sig_free(ordering)
+        sig_free(output)
         raise MemoryError
     for i from 0 <= i < n:
         ordering[i] = ordering2[i]
@@ -561,12 +568,12 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
         &compare_structures_python, NULL, NULL, output)
 
     PS_dealloc(part)
-    sage_free(ordering)
+    sig_free(ordering)
     if isomorphic:
         output_py = [output[i] for i from 0 <= i < n]
     else:
         output_py = False
-    sage_free(output)
+    sig_free(output)
     return output_py
 
 

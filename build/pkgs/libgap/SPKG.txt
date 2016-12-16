@@ -8,10 +8,6 @@ This is the
 
 GPL v3+
 
-== SPKG Maintainers ==
-
-* Volker Braun
-
 == Upstream Contact ==
 
 Volker Braun <vbraun.name@gmail.com>
@@ -40,6 +36,6 @@ though. This scrip parses the GAP sources, identifies global
 identifiers, and adds a libGAP_ prefix to them to avoid symbol
 namespace collisions in Sage.
 
-=== Patches === 
+=== Patches ===
 
 None

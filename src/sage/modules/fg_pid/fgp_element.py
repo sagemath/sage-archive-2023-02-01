@@ -5,20 +5,15 @@ AUTHOR:
     - William Stein, 2009
 """
 
-####################################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-####################################################################################
+#*****************************************************************************
 
 from sage.structure.element import ModuleElement
 
@@ -140,7 +135,7 @@ class FGP_Element(ModuleElement):
             True
         """
         P = self.parent()
-        return P.element_class(P, self._x.__neg__())
+        return P.element_class(P, -self._x)
 
 
     def _add_(self, other):
@@ -301,7 +296,7 @@ class FGP_Element(ModuleElement):
             sage: Q(V.1)._repr_()
             '(0, 1)'
         """
-        return self.vector().__repr__()
+        return repr(self.vector())
 
 
     def __getitem__(self, *args):
@@ -343,7 +338,27 @@ class FGP_Element(ModuleElement):
         try: return self.__vector
         except AttributeError:
             self.__vector = self.parent().coordinate_vector(self, reduce=True)
+            self.__vector.set_immutable()
             return self.__vector
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ)
+            sage: W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: Q = V/W
+            sage: x = Q.0 + 3*Q.1
+            sage: hash(x)
+            3713081631933328131 # 64-bit
+            1298787075          # 32-bit
+
+            sage: A = AdditiveAbelianGroup([3])
+            sage: hash(A.an_element())
+            3430019387558 # 64-bit
+            -1659481946   # 32-bit
+        """
+        return hash(self.vector())
 
     def _vector_(self, base_ring=None):
         """
@@ -367,10 +382,21 @@ class FGP_Element(ModuleElement):
             (1, 3)
             sage: vector(CDF, x)
             (1.0, 3.0)
+
+        TESTS::
+
+            sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ)
+            sage: W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: Q = V/W
+            sage: x = Q.0 + 3*Q.1
+            sage: vector(x).is_mutable()
+            True
+            sage: vector(CDF,x).is_mutable()
+            True
         """
         v = self.vector()
         if base_ring is None or v.base_ring() is base_ring:
-            return v
+            return v.__copy__()
         else:
             return v.change_ring(base_ring)
 
@@ -425,7 +451,8 @@ class FGP_Element(ModuleElement):
         I = Q.invariants()
         v = self.vector()
 
-        from sage.rings.all import infinity, lcm, Mod, Integer
+        from sage.rings.all import infinity, Mod, Integer
+        from sage.arith.all import lcm
         n = Integer(1)
         for i, a in enumerate(I):
             if a == 0:

@@ -1,6 +1,7 @@
 """
 Denis Simon's PARI scripts
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -23,7 +24,7 @@ from sage.interfaces.gp import Gp
 from sage.misc.sage_eval import sage_eval
 from sage.misc.randstate import current_randstate
 from sage.rings.all import QQ, ZZ
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 
 gp = None
 def init():
@@ -36,8 +37,8 @@ def init():
         from sage.env import DOT_SAGE
         logfile = os.path.join(DOT_SAGE, 'gp-simon.log')
         gp = Gp(script_subdirectory='simon', logfile=logfile)
-        gp.read("ell.gp")
         gp.read("ellQ.gp")
+        gp.read("ell.gp")
         gp.read("qfsolve.gp")
         gp.read("resultant3.gp")
 
@@ -93,7 +94,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
 
     K = E.base_ring()
     K_orig = K
-    # The following is to correct the bug at \#5204: the gp script
+    # The following is to correct the bug at #5204: the gp script
     # fails when K is a number field whose generator is called 'x'.
     # It also deals with relative number fields.
     E_orig = E

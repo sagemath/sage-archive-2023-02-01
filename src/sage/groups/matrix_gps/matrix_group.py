@@ -36,6 +36,7 @@ AUTHORS:
 - Simon King (2010-05): Improve invariant_generators by using GAP
   for the construction of the Reynolds operator in Singular.
 """
+from __future__ import absolute_import
 
 ##############################################################################
 #       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
@@ -51,7 +52,7 @@ import types
 from sage.rings.all import ZZ
 from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.interfaces.gap import gap
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
@@ -400,9 +401,9 @@ class MatrixGroup_generic(MatrixGroup_base):
 
         INPUT:
 
-        - ``G`` -- group. The codomain.
+        - ``G`` -- group; the codomain
 
-        - ``cat`` -- a category. Must be unset.
+        - ``cat`` -- category; must be unset
 
         OUTPUT:
 
@@ -420,13 +421,22 @@ class MatrixGroup_generic(MatrixGroup_base):
             [1 0]  [1 2]
             [0 1], [3 4]
             )
+
+        TESTS:
+
+        Check that :trac:`19407` is fixed::
+
+            sage: G = GL(2, GF(2))
+            sage: H = GL(3, ZZ)
+            sage: Hom(G, H)
+            Set of Homomorphisms from General Linear Group of degree 2
+             over Finite Field of size 2 to General Linear Group of degree 3
+             over Integer Ring
         """
-        if not (cat is None or (cat is G.category() and cat is self.category())):
-            raise TypeError
         if not is_MatrixGroup(G):
             raise TypeError("G (=%s) must be a matrix group."%G)
-        import homset
-        return homset.MatrixGroupHomset(self, G)
+        from . import homset
+        return homset.MatrixGroupHomset(self, G, cat)
 
     def hom(self, x):
         """
@@ -575,19 +585,19 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             sage: i = iter(GL(6,5))
             sage: [ next(i) for j in range(8) ]
             [
-            [1 0 0 0 0 0]  [4 0 0 0 0 1]  [0 4 0 0 0 0]  [0 4 0 0 0 0]
-            [0 1 0 0 0 0]  [4 0 0 0 0 0]  [0 0 4 0 0 0]  [0 0 4 0 0 0]
-            [0 0 1 0 0 0]  [0 4 0 0 0 0]  [0 0 0 4 0 0]  [0 0 0 4 0 0]
-            [0 0 0 1 0 0]  [0 0 4 0 0 0]  [0 0 0 0 4 0]  [0 0 0 0 4 0]
-            [0 0 0 0 1 0]  [0 0 0 4 0 0]  [0 0 0 0 0 4]  [0 0 0 0 0 4]
-            [0 0 0 0 0 1], [0 0 0 0 4 0], [1 4 0 0 0 0], [2 4 0 0 0 0],
+            [1 0 0 0 0 0]  [2 0 0 0 0 0]  [3 0 0 0 0 0]  [3 2 0 0 0 0]
+            [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]
+            [0 0 1 0 0 0]  [0 0 1 0 0 0]  [0 0 1 0 0 0]  [0 0 1 0 0 0]
+            [0 0 0 1 0 0]  [0 0 0 1 0 0]  [0 0 0 1 0 0]  [0 0 0 1 0 0]
+            [0 0 0 0 1 0]  [0 0 0 0 1 0]  [0 0 0 0 1 0]  [0 0 0 0 1 0]
+            [0 0 0 0 0 1], [0 0 0 0 0 1], [0 0 0 0 0 1], [0 0 0 0 0 1],
             <BLANKLINE>
-            [3 0 0 0 0 1]  [4 0 0 1 3 3]  [0 0 0 2 0 0]  [1 0 0 0 4 4]
-            [3 0 0 0 0 0]  [4 0 0 0 3 3]  [0 0 0 0 4 0]  [1 0 0 0 0 4]
-            [0 4 0 0 0 0]  [3 0 0 0 0 1]  [2 2 0 0 0 2]  [1 0 0 0 0 0]
-            [0 0 4 0 0 0]  [3 0 0 0 0 0]  [1 4 0 0 0 0]  [0 1 0 0 0 0]
-            [0 0 0 4 0 0]  [0 4 0 0 0 0]  [0 2 4 0 0 0]  [0 0 1 0 0 0]
-            [4 0 0 0 2 3], [2 0 3 4 4 4], [0 0 1 4 0 0], [0 0 0 1 0 0]
+            [2 1 0 0 0 0]  [3 3 0 2 3 0]  [2 4 0 1 4 0]  [1 2 4 1 0 3]
+            [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]
+            [0 0 1 0 0 0]  [0 0 1 0 0 0]  [0 0 1 0 0 0]  [0 0 1 0 0 0]
+            [0 0 0 1 0 0]  [0 0 0 1 0 0]  [0 0 0 1 0 0]  [0 0 0 1 0 0]
+            [0 0 0 0 1 0]  [0 0 0 0 1 0]  [0 0 0 0 1 0]  [0 0 0 0 1 0]
+            [0 0 0 0 0 1], [0 0 0 0 0 1], [0 0 0 0 0 1], [0 0 0 0 0 1]
             ]
 
         This is the direct computation in GAP, which will just run
@@ -649,7 +659,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             sage: all(g in G for g in G.list())
             True
 
-        An example over a ring (see trac 5241)::
+        An example over a ring (see :trac:`5241`)::
 
             sage: M1 = matrix(ZZ,2,[[-1,0],[0,1]])
             sage: M2 = matrix(ZZ,2,[[1,0],[0,-1]])
@@ -669,7 +679,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             [ 0  1], [ 0 -1], [ 0 -1]
             )
 
-        An example over a field (see trac 10515)::
+        An example over a field (see :trac:`10515`)::
 
             sage: gens = [matrix(QQ,2,[1,0,0,1])]
             sage: MatrixGroup(gens).list()
@@ -678,7 +688,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             [0 1]
             )
 
-        Another example over a ring (see trac 9437)::
+        Another example over a ring (see :trac:`9437`)::
 
             sage: len(SL(2, Zmod(4)).list())
             48

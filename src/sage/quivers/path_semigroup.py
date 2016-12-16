@@ -18,6 +18,8 @@ Path Semigroups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 import six
 from sage.rings.integer import Integer
@@ -30,8 +32,8 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from paths import QuiverPath
-from representation import QuiverRep
+from .paths import QuiverPath
+from .representation import QuiverRep
 
 #########################
 # Some auxiliary function to create generating functions to count paths.
@@ -64,7 +66,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         sage: S.gens()
         (e_1, e_2, e_3, a, b, c, d)
         sage: S.category()
-        Join of Category of finite semigroups and Category of finite enumerated sets
+        Category of finite enumerated semigroups
 
     In the test suite, we skip the associativity test, as in this example the
     paths used for testing can't be concatenated::
@@ -81,7 +83,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         sage: M
         Monoid formed by the directed paths of Looped multi-digraph on 1 vertex
         sage: M.category()
-        Join of Category of monoids and Category of infinite enumerated sets
+        Category of infinite enumerated monoids
         sage: TestSuite(M).run()
     """
     Element = QuiverPath
@@ -539,7 +541,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: list(A.basis())
             Traceback (most recent call last):
             ...
-            NotImplementedError: infinite list
+            ValueError: the underlying quiver has cycles, thus, there may be an infinity of directed paths
         """
         from sage.all import ZZ
         if self._quiver.is_directed_acyclic() and not self._quiver.has_loops():
@@ -575,7 +577,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: counter = 0
             sage: for p in P:
             ....:     counter += 1
-            ....:     print p
+            ....:     print(p)
             ....:     if counter==20:
             ....:         break
             e_1
@@ -738,7 +740,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         return self._quiver.reverse().path_semigroup()
 
-    def algebra(self, k):
+    def algebra(self, k, order = "negdegrevlex"):
         """
         Return the path algebra of the underlying quiver.
 
@@ -746,15 +748,41 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         - ``k`` -- a commutative ring
 
+        - ``order`` -- optional string, one of "negdegrevlex" (default),
+          "degrevlex", "negdeglex" or "deglex", defining the monomial order to
+          be used.
+
+        NOTE:
+
+        Monomial orders that are not degree orders are not supported.
+
         EXAMPLES::
 
             sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
             sage: P = Q.path_semigroup()
             sage: P.algebra(GF(3))
             Path algebra of Multi-digraph on 3 vertices over Finite Field of size 3
+
+        Now some example with different monomial orderings::
+
+            sage: P1 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'))
+            sage: P2 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'), order="degrevlex")
+            sage: P3 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'), order="negdeglex")
+            sage: P4 = DiGraph({1:{1:['x','y','z']}}).path_semigroup().algebra(GF(25,'t'), order="deglex")
+            sage: P1.order_string()
+            'negdegrevlex'
+            sage: sage_eval('(x+2*z+1)^3', P1.gens_dict())
+            e_1 + z + 3*x + 2*z*z + x*z + z*x + 3*x*x + 3*z*z*z + 4*x*z*z + 4*z*x*z + 2*x*x*z + 4*z*z*x + 2*x*z*x + 2*z*x*x + x*x*x
+            sage: sage_eval('(x+2*z+1)^3', P2.gens_dict())
+            3*z*z*z + 4*x*z*z + 4*z*x*z + 2*x*x*z + 4*z*z*x + 2*x*z*x + 2*z*x*x + x*x*x + 2*z*z + x*z + z*x + 3*x*x + z + 3*x + e_1
+            sage: sage_eval('(x+2*z+1)^3', P3.gens_dict())
+            e_1 + z + 3*x + 2*z*z + z*x + x*z + 3*x*x + 3*z*z*z + 4*z*z*x + 4*z*x*z + 2*z*x*x + 4*x*z*z + 2*x*z*x + 2*x*x*z + x*x*x
+            sage: sage_eval('(x+2*z+1)^3', P4.gens_dict())
+            3*z*z*z + 4*z*z*x + 4*z*x*z + 2*z*x*x + 4*x*z*z + 2*x*z*x + 2*x*x*z + x*x*x + 2*z*z + z*x + x*z + 3*x*x + z + 3*x + e_1
+
         """
         from sage.quivers.algebra import PathAlgebra
-        return PathAlgebra(k, self)
+        return PathAlgebra(k, self, order)
 
     ###########################################################################
     #                                                                         #

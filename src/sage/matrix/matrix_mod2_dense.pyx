@@ -100,13 +100,14 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include 'sage/ext/stdsage.pxi'
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 
 cimport matrix_dense
 from libc.stdio cimport *
-from sage.structure.element cimport Matrix, Vector
-from sage.structure.element cimport ModuleElement, Element
+from sage.structure.element cimport (Matrix, Vector, parent_c,
+                                     ModuleElement, Element)
+from sage.modules.free_module_element cimport FreeModuleElement
 from sage.libs.gmp.random cimport *
 from sage.misc.functional import log
 from sage.misc.randstate cimport randstate, current_randstate
@@ -182,7 +183,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 0 1]
 
-        See trac #10858::
+        See :trac:`10858`::
 
             sage: matrix(GF(2),0,[]) * vector(GF(2),0,[])
             ()
@@ -268,39 +269,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for j from 0 <= j < self._ncols:
                 mzd_write_bit(self._entries,i,j, R(entries[k]))
                 k = k + 1
-
-    def __richcmp__(Matrix self, right, int op):
-        """
-        Compares ``self`` with ``right``. While equality and
-        inequality are clearly defined, ``<`` and ``>`` are not.  For
-        those first the matrix dimensions of ``self`` and ``right``
-        are compared. If these match then ``<`` means that there is a
-        position smallest (i,j) in ``self`` where ``self[i,j]`` is
-        zero but ``right[i,j]`` is one. This (i,j) is smaller than the
-        (i,j) if ``self`` and ``right`` are exchanged for the
-        comparison.
-
-        INPUT:
-
-        - ``right`` - a matrix
-        - ``op`` - comparison operation
-
-        EXAMPLE::
-
-            sage: A = MatrixSpace(GF(2),3,3).one()
-            sage: B = copy(MatrixSpace(GF(2),3,3).one())
-            sage: B[0,1] = 1
-            sage: A < B
-            True
-
-        TESTS::
-
-            sage: A = matrix(GF(2),2,0)
-            sage: B = matrix(GF(2),2,0)
-            sage: A < B
-            False
-        """
-        return self._richcmp(right, op)
 
     def __hash__(self):
         r"""
@@ -592,7 +560,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Matrix addition.
 
@@ -630,7 +598,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         return A
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Matrix addition.
 
@@ -646,7 +614,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         return self._add_(right)
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         EXAMPLES::
 
@@ -657,6 +625,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: r1 = A*v1
             sage: r0.column(0) == r1
             True
+
+        TESTS:
+
+        Check that :trac:`19378` is fixed::
+
+            sage: m = matrix(GF(2), 11, 0)
+            sage: v = vector(GF(2), 0)
+            sage: m * v
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         cdef mzd_t *tmp
         if not isinstance(v, Vector_mod2_dense):
@@ -666,6 +643,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
 
         VS = VectorSpace(self._base_ring, self._nrows)
+        # If the vector is 0-dimensional, the result will be the 0-vector
+        if not self.ncols():
+            return VS.zero()
         cdef Vector_mod2_dense c = Vector_mod2_dense.__new__(Vector_mod2_dense)
         c._init(self._nrows, VS)
         c._entries = mzd_init(1, self._nrows)
@@ -676,7 +656,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mzd_free(tmp)
         return c
 
-    cdef Matrix _matrix_times_matrix_(self, Matrix right):
+    cdef _matrix_times_matrix_(self, Matrix right):
         """
         Matrix multiplication.
 
@@ -695,9 +675,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Multiplication' (M4RM) or Konrod's method.
 
         The algorithm is based on an algorithm by Arlazarov, Dinic,
-        Kronrod, and Faradzev [ADKF70] and appeared in [AHU]. This
+        Kronrod, and Faradzev [ADKF1970]_ and appeared in [AHU1974]_. This
         implementation is based on a description given in Gregory
-        Bard's 'Method of the Four Russians Inversion' paper [B06].
+        Bard's 'Method of the Four Russians Inversion' paper [Bar06]_.
 
         INPUT:
 
@@ -746,22 +726,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        ..  [AHU] A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6:
-                     Matrix Multiplication and Related Operations.'
-                     The Design and Analysis of Computer
-                     Algorithms. Addison-Wesley, 1974.
-
-        ..  [ADKF70] V. Arlazarov, E. Dinic, M. Kronrod, and
-                     I. Faradzev. 'On Economical Construction of the
-                     Transitive Closure of a Directed Graph.'
-                     Dokl. Akad. Nauk. SSSR No. 194 (in Russian),
-                     English Translation in Soviet Math Dokl. No. 11,
-                     1970.
-
-        ..  [Bard06] G. Bard. 'Accelerating Cryptanalysis with the
-                     Method of Four Russians'. Cryptography E-Print
-                     Archive (http://eprint.iacr.org/2006/251.pdf),
-                     2006.
+        - [AHU1974]_
+        - [AKF1970]_
+        - [Bar2006]_
         """
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
@@ -833,11 +800,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     cpdef Matrix_mod2_dense _multiply_strassen(Matrix_mod2_dense self, Matrix_mod2_dense right, int cutoff):
         r"""
-        Strassen-Winograd `O(n^{2.807})` multiplication [Str69].
+        Strassen-Winograd `O(n^{2.807})` multiplication [Str1969]_.
 
         This implementation in M4RI is inspired by Sage's generic
-        Strassen implementation [BHS08] but uses a more memory
-        efficient operation schedule [DP08].
+        Strassen implementation [BHS2008]_ but uses a more memory
+        efficient operation schedule [DP2008]_.
 
         The performance of this routine depends on the parameter
         cutoff. On many modern machines 2048 should give acceptable
@@ -894,19 +861,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         ALGORITHM: Uses Strassen-Winograd matrix multiplication with
         M4RM as base case as implemented in the M4RI library.
-
-        REFERENCES:
-
-        ..  [Str69] Volker Strassen. Gaussian elimination is not
-                    optimal. Numerische Mathematik, 13:354-356, 1969.
-
-        ..  [BHS08] Robert Bradshaw, David Harvey and William
-                    Stein. strassen_window_multiply_c. strassen.pyx,
-                    Sage 3.0, 2008. http://www.sagemath.org
-
-        ..  [DP08] Jean-Guillaume Dumas and Clement Pernet. Memory
-                   efficient scheduling of Strassen-Winograd's matrix
-                   multiplication algorithm. arXiv:0707.2347v1, 2008.
         """
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
@@ -1107,9 +1061,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         REFERENCES:
 
-        .. [Bard06] G. Bard. 'Accelerating Cryptanalysis with the Method of
-           Four Russians'. Cryptography E-Print Archive
-           (http://eprint.iacr.org/2006/251.pdf), 2006.
+        - [Bar2006]_
         """
         if self._nrows == 0 or self._ncols == 0:
             self.cache('in_echelon_form',True)
@@ -1495,7 +1447,32 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             A.subdivide(*self.subdivisions())
         return A
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef int _cmp_(self, right) except -2:
+        """
+        Compares ``self`` with ``right``. While equality and
+        inequality are clearly defined, ``<`` and ``>`` are not.  For
+        those first the matrix dimensions of ``self`` and ``right``
+        are compared. If these match then ``<`` means that there is a
+        position smallest (i,j) in ``self`` where ``self[i,j]`` is
+        zero but ``right[i,j]`` is one. This (i,j) is smaller than the
+        (i,j) if ``self`` and ``right`` are exchanged for the
+        comparison.
+
+        EXAMPLE::
+
+            sage: A = MatrixSpace(GF(2),3,3).one()
+            sage: B = copy(MatrixSpace(GF(2),3,3).one())
+            sage: B[0,1] = 1
+            sage: A < B
+            True
+
+        TESTS::
+
+            sage: A = matrix(GF(2),2,0)
+            sage: B = matrix(GF(2),2,0)
+            sage: A < B
+            False
+        """
         if self._nrows == 0 or self._ncols == 0:
             return 0
         return mzd_cmp(self._entries, (<Matrix_mod2_dense>right)._entries)
@@ -1571,11 +1548,36 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: N = Matrix(GF(2), 0, 1, 0)
             sage: M.augment(N)
             []
+
+        Check that :trac:`19165` is solved::
+
+            sage: m = matrix(GF(2), 2, range(4))
+            sage: m.augment(matrix(GF(2), 2, range(4), sparse=True))
+            [0 1 0 1]
+            [0 1 0 1]
+
+            sage: m.augment(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: right must either be a matrix or a vector. Not
+            <type 'sage.rings.integer.Integer'>
         """
-        if hasattr(right, '_vector_'):
+        cdef Matrix_mod2_dense other
+
+        if isinstance(right, FreeModuleElement):
             right = right.column()
 
-        cdef Matrix_mod2_dense other = right
+        if isinstance(right, Matrix_mod2_dense):
+            other = <Matrix_mod2_dense> right
+        elif isinstance(right, Matrix):
+            from sage.matrix.constructor import matrix
+            other = matrix(self.base_ring(),
+                           right.nrows(),
+                           right.ncols(),
+                           right.list(),
+                           sparse=False)
+        else:
+            raise TypeError("right must either be a matrix or a vector. Not {}".format(type(right)))
 
         if self._nrows != other._nrows:
             raise TypeError("Both numbers of rows must match.")
@@ -1697,7 +1699,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              sage: A[1:200,1:200] == A.submatrix(1,1,199,199)
              True
 
-        TESTS for handling of default arguments (ticket #18761)::
+        TESTS for handling of default arguments (:trac:`18761`)::
 
              sage: A.submatrix(17,15) == A.submatrix(17,15,183,185)
              True
@@ -1792,7 +1794,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             data = ''
         else:
             n = self._nrows*self._ncols*2 + 2
-            s = <char*> sage_malloc(n * sizeof(char))
+            s = <char*> sig_malloc(n * sizeof(char))
             k = 0
             sig_on()
             for i in range(self._nrows):
@@ -1804,7 +1806,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sig_off()
             s[k-1] = <char>0
             data = str(s)
-            sage_free(s)
+            sig_free(s)
         return data
 
     def density(self, approx=False):
@@ -1909,12 +1911,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         EXAMPLES::
 
             sage: A = matrix(GF(2), [
-            ...                      [0, 1, 0, 0, 1, 0, 1, 1],
-            ...                      [1, 0, 1, 0, 0, 1, 1, 0],
-            ...                      [0, 0, 1, 0, 0, 1, 0, 1],
-            ...                      [1, 0, 1, 1, 0, 1, 1, 0],
-            ...                      [0, 0, 1, 0, 0, 1, 0, 1],
-            ...                      [1, 1, 0, 1, 1, 0, 0, 0]])
+            ....:                    [0, 1, 0, 0, 1, 0, 1, 1],
+            ....:                    [1, 0, 1, 0, 0, 1, 1, 0],
+            ....:                    [0, 0, 1, 0, 0, 1, 0, 1],
+            ....:                    [1, 0, 1, 1, 0, 1, 1, 0],
+            ....:                    [0, 0, 1, 0, 0, 1, 0, 1],
+            ....:                    [1, 1, 0, 1, 1, 0, 0, 0]])
             sage: A
             [0 1 0 0 1 0 1 1]
             [1 0 1 0 0 1 1 0]
@@ -2029,7 +2031,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
         True
     """
     from sage.matrix.constructor import Matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
     cdef int i, j
     cdef Matrix_mod2_dense A
@@ -2038,7 +2040,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     if r == 0 or c == 0:
         return A
 
-    cdef signed char *buf = <signed char*>sage_malloc(size)
+    cdef signed char *buf = <signed char*>sig_malloc(size)
     for i from 0 <= i < size:
         buf[i] = data[i]
 
@@ -2046,7 +2048,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     cdef gdImagePtr im = gdImageCreateFromPngPtr(size, buf)
     sig_off()
 
-    sage_free(buf)
+    sig_free(buf)
 
     if gdImageSX(im) != c or gdImageSY(im) != r:
         raise TypeError("Pickled data dimension doesn't match.")
@@ -2079,7 +2081,7 @@ def from_png(filename):
         True
     """
     from sage.matrix.constructor import Matrix
-    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
     cdef int i,j,r,c
     cdef Matrix_mod2_dense A

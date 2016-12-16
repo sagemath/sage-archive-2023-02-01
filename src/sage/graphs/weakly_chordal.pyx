@@ -110,6 +110,9 @@ def is_long_hole_free(g, certificate=False):
     g._scream_if_not_simple()
     cdef int a,b,c,i,u,v,d
 
+    if g.is_immutable():
+        g = g.copy(immutable=False)
+
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)
     cdef dict id_label = {idd:label for label, idd in label_id.iteritems()}
@@ -166,7 +169,8 @@ def is_long_hole_free(g, certificate=False):
 
                         # Return the answer, and relabel it on-the-fly with the
                         # vertices' real name
-                        return False, map(lambda x:id_label[x],C[min(u,v): max(u,v)+1])
+                        return False, [id_label[x]
+                                       for x in C[min(u, v): max(u, v) + 1]]
 
                     else:
                         return False, None
@@ -279,6 +283,9 @@ def is_long_antihole_free(g, certificate = False):
     g._scream_if_not_simple()
     cdef int a,b,c,i,u,v,d
 
+    if g.is_immutable():
+        g = g.copy(immutable=False)
+
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)
     cdef dict id_label = {idd:label for label, idd in label_id.iteritems()}
@@ -332,7 +339,8 @@ def is_long_antihole_free(g, certificate = False):
 
                         # Return the answer, and relabel it on-the-fly with the
                         # vertices' real name
-                        return False, map(lambda x:id_label[x],C[min(u,v): max(u,v)+1])
+                        return False, [id_label[x]
+                                       for x in C[min(u, v): max(u, v) + 1]]
 
                     else:
                         return False, []

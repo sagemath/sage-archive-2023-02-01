@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 from libc.stdio cimport FILE
 from sage.libs.gmp.types cimport mpz_t
 from sage.libs.flint.types cimport *
@@ -45,6 +47,8 @@ cdef extern from "flint/fmpz.h":
     int fmpz_fits_si(fmpz_t f)
     void fmpz_zero(fmpz_t f)
     void fmpz_one(fmpz_t f)
+    void fmpz_setbit(fmpz_t f, ulong i)
+    int fmpz_tstbit(fmpz_t f, ulong i)
 
     # Input and output
     int fmpz_read(fmpz_t)

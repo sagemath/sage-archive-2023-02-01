@@ -1,19 +1,13 @@
 r"""
 Wigner, Clebsch-Gordan, Racah, and Gaunt coefficients
 
-Collection of functions for calculating Wigner 3j, 6j, 9j,
+Collection of functions for calculating Wigner 3-`j`, 6-`j`, 9-`j`,
 Clebsch-Gordan, Racah as well as Gaunt coefficients exactly, all
 evaluating to a rational number times the square root of a rational
-number [Rasch03]_.
+number [RH2003]_.
 
 Please see the description of the individual functions for further
 details and examples.
-
-REFERENCES:
-
-.. [Rasch03] J. Rasch and A. C. H. Yu, 'Efficient Storage Scheme for
-  Pre-calculated Wigner 3j, 6j and Gaunt Coefficients', SIAM
-  J. Sci. Comput. Volume 25, Issue 4, pp. 1416-1428 (2003)
 
 AUTHORS:
 
@@ -68,7 +62,7 @@ def _calc_factlist(nn):
 
 def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     r"""
-    Calculate the Wigner 3j symbol `Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)`.
+    Calculate the Wigner 3-`j` symbol `\begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}`.
 
     INPUT:
 
@@ -109,29 +103,29 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
 
     NOTES:
 
-    The Wigner 3j symbol obeys the following symmetry rules:
+    The Wigner 3-`j` symbol obeys the following symmetry rules:
 
     - invariant under any permutation of the columns (with the
-      exception of a sign change where `J:=j_1+j_2+j_3`):
+      exception of a sign change where `J=j_1+j_2+j_3`):
 
-      .. math::
+      .. MATH::
 
-         Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
-          =Wigner3j(j_3,j_1,j_2,m_3,m_1,m_2)
-          =Wigner3j(j_2,j_3,j_1,m_2,m_3,m_1)
-          =(-1)^J Wigner3j(j_3,j_2,j_1,m_3,m_2,m_1)
-          =(-1)^J Wigner3j(j_1,j_3,j_2,m_1,m_3,m_2)
-          =(-1)^J Wigner3j(j_2,j_1,j_3,m_2,m_1,m_3)
+         \begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
+          =\begin{pmatrix} j_3 & j_1 & j_2 \\ m_3 & m_1 & m_2 \end{pmatrix}
+          =\begin{pmatrix} j_2 & j_3 & j_1 \\ m_2 & m_3 & m_1 \end{pmatrix} \hspace{10em} \\
+          =(-1)^J \begin{pmatrix} j_3 & j_2 & j_1 \\ m_3 & m_2 & m_1 \end{pmatrix}
+          =(-1)^J \begin{pmatrix} j_1 & j_3 & j_2 \\ m_1 & m_3 & m_2 \end{pmatrix}
+          =(-1)^J \begin{pmatrix} j_2 & j_1 & j_3 \\ m_2 & m_1 & m_3 \end{pmatrix}
 
     - invariant under space inflection, i.e.
 
-      .. math::
+      .. MATH::
 
-         Wigner3j(j_1,j_2,j_3,m_1,m_2,m_3)
-         =(-1)^J Wigner3j(j_1,j_2,j_3,-m_1,-m_2,-m_3)
+         \begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
+         =(-1)^J \begin{pmatrix} j_1 & j_2 & j_3 \\ -m_1 & -m_2 & -m_3 \end{pmatrix}
 
     - symmetric with respect to the 72 additional symmetries based on
-      the work by [Regge58]_
+      the work by [Reg1958]_
 
     - zero for `j_1`, `j_2`, `j_3` not fulfilling triangle relation
 
@@ -142,19 +136,11 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
 
     ALGORITHM:
 
-    This function uses the algorithm of [Edmonds74]_ to calculate the
-    value of the 3j symbol exactly. Note that the formula contains
+    This function uses the algorithm of [Ed1974]_ to calculate the
+    value of the 3-`j` symbol exactly. Note that the formula contains
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
-    algebra system [Rasch03]_.
-
-    REFERENCES:
-
-    .. [Regge58] 'Symmetry Properties of Clebsch-Gordan Coefficients',
-      T. Regge, Nuovo Cimento, Volume 10, pp. 544 (1958)
-
-    .. [Edmonds74] 'Angular Momentum in Quantum Mechanics',
-      A. R. Edmonds, Princeton University Press (1974)
+    algebra system [RH2003]_.
 
     AUTHORS:
 
@@ -222,7 +208,7 @@ def clebsch_gordan(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     Calculates the Clebsch-Gordan coefficient
     `\langle j_1 m_1 \; j_2 m_2 | j_3 m_3 \rangle`.
 
-    The reference for this function is [Edmonds74]_.
+    The reference for this function is [Ed1974]_.
 
     INPUT:
 
@@ -248,15 +234,15 @@ def clebsch_gordan(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     NOTES:
 
     The Clebsch-Gordan coefficient will be evaluated via its relation
-    to Wigner 3j symbols:
+    to Wigner 3-`j` symbols:
 
-    .. math::
+    .. MATH::
 
         \langle j_1 m_1 \; j_2 m_2 | j_3 m_3 \rangle
-        =(-1)^{j_1-j_2+m_3} \sqrt{2j_3+1} \;
-        Wigner3j(j_1,j_2,j_3,m_1,m_2,-m_3)
+        =(-1)^{j_1-j_2+m_3} \sqrt{2j_3+1}
+        \begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & -m_3 \end{pmatrix}
 
-    See also the documentation on Wigner 3j symbols which exhibit much
+    See also the documentation on Wigner 3-`j` symbols which exhibit much
     higher symmetry relations than the Clebsch-Gordan coefficient.
 
     AUTHORS:
@@ -325,11 +311,11 @@ def _big_delta_coeff(aa, bb, cc, prec=None):
 
 def racah(aa, bb, cc, dd, ee, ff, prec=None):
     r"""
-    Calculate the Racah symbol `W(a,b,c,d;e,f)`.
+    Calculate the Racah symbol `W(aa,bb,cc,dd;ee,ff)`.
 
     INPUT:
 
-    -  ``a``, ..., ``f`` - integer or half integer
+    -  ``aa``, ..., ``ff`` - integer or half integer
 
     -  ``prec`` - precision, default: ``None``. Providing a precision can
        drastically speed up the calculation.
@@ -346,23 +332,23 @@ def racah(aa, bb, cc, dd, ee, ff, prec=None):
 
     NOTES:
 
-    The Racah symbol is related to the Wigner 6j symbol:
+    The Racah symbol is related to the Wigner 6-`j` symbol:
 
-    .. math::
+    .. MATH::
 
-       Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-       =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
+       \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
+       =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4;j_3,j_6)
 
-    Please see the 6j symbol for its much richer symmetries and for
+    Please see the 6-`j` symbol for its much richer symmetries and for
     additional properties.
 
     ALGORITHM:
 
-    This function uses the algorithm of [Edmonds74]_ to calculate the
-    value of the 6j symbol exactly. Note that the formula contains
+    This function uses the algorithm of [Ed1974]_ to calculate the
+    value of the 6-`j` symbol exactly. Note that the formula contains
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
-    algebra system [Rasch03]_.
+    algebra system [RH2003]_.
 
     AUTHORS:
 
@@ -398,7 +384,7 @@ def racah(aa, bb, cc, dd, ee, ff, prec=None):
 
 def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
     r"""
-    Calculate the Wigner 6j symbol `Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)`.
+    Calculate the Wigner 6-`j` symbol `\begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}`.
 
     INPUT:
 
@@ -443,55 +429,50 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
 
     NOTES:
 
-    The Wigner 6j symbol is related to the Racah symbol but exhibits
+    The Wigner 6-`j` symbol is related to the Racah symbol but exhibits
     more symmetries as detailed below.
 
-    .. math::
+    .. MATH::
 
-       Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-        =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4,j_3,j_6)
+       \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
+        =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4;j_3,j_6)
 
-    The Wigner 6j symbol obeys the following symmetry rules:
+    The Wigner 6-`j` symbol obeys the following symmetry rules:
 
-    - Wigner 6j symbols are left invariant under any permutation of
+    - Wigner 6-`j` symbols are left invariant under any permutation of
       the columns:
 
-      .. math::
+      .. MATH::
 
-         Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-          =Wigner6j(j_3,j_1,j_2,j_6,j_4,j_5)
-          =Wigner6j(j_2,j_3,j_1,j_5,j_6,j_4)
-          =Wigner6j(j_3,j_2,j_1,j_6,j_5,j_4)
-          =Wigner6j(j_1,j_3,j_2,j_4,j_6,j_5)
-          =Wigner6j(j_2,j_1,j_3,j_5,j_4,j_6)
+         \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
+          =\begin{Bmatrix} j_3 & j_1 & j_2 \\ j_6 & j_4 & j_5 \end{Bmatrix}
+          =\begin{Bmatrix} j_2 & j_3 & j_1 \\ j_5 & j_6 & j_4 \end{Bmatrix} \hspace{7em} \\
+          =\begin{Bmatrix} j_3 & j_2 & j_1 \\ j_6 & j_5 & j_4 \end{Bmatrix}
+          =\begin{Bmatrix} j_1 & j_3 & j_2 \\ j_4 & j_6 & j_5 \end{Bmatrix}
+          =\begin{Bmatrix} j_2 & j_1 & j_3 \\ j_5 & j_4 & j_6 \end{Bmatrix} \hspace{3em}
 
     - They are invariant under the exchange of the upper and lower
       arguments in each of any two columns, i.e.
 
-      .. math::
+      .. MATH::
 
-         Wigner6j(j_1,j_2,j_3,j_4,j_5,j_6)
-          =Wigner6j(j_1,j_5,j_6,j_4,j_2,j_3)
-          =Wigner6j(j_4,j_2,j_6,j_1,j_5,j_3)
-          =Wigner6j(j_4,j_5,j_3,j_1,j_2,j_6)
+         \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
+          =\begin{Bmatrix} j_1 & j_5 & j_6 \\ j_4 & j_2 & j_3 \end{Bmatrix}
+          =\begin{Bmatrix} j_4 & j_2 & j_6 \\ j_1 & j_5 & j_3 \end{Bmatrix}
+          =\begin{Bmatrix} j_4 & j_5 & j_3 \\ j_1 & j_2 & j_6 \end{Bmatrix}
 
-    - additional 6 symmetries [Regge59]_ giving rise to 144 symmetries
+    - additional 6 symmetries [Reg1959]_ giving rise to 144 symmetries
       in total
 
     - only non-zero if any triple of `j`'s fulfill a triangle relation
 
     ALGORITHM:
 
-    This function uses the algorithm of [Edmonds74]_ to calculate the
-    value of the 6j symbol exactly. Note that the formula contains
+    This function uses the algorithm of [Ed1974]_ to calculate the
+    value of the 6-`j` symbol exactly. Note that the formula contains
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
-    algebra system [Rasch03]_.
-
-    REFERENCES:
-
-    .. [Regge59] 'Symmetry Properties of Racah Coefficients',
-      T. Regge, Nuovo Cimento, Volume 11, pp. 116 (1959)
+    algebra system [RH2003]_.
     """
     res = (-1) ** int(j_1 + j_2 + j_4 + j_5) * \
         racah(j_1, j_2, j_5, j_4, j_3, j_6, prec)
@@ -500,8 +481,8 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
 
 def wigner_9j(j_1, j_2, j_3, j_4, j_5, j_6, j_7, j_8, j_9, prec=None):
     r"""
-    Calculate the Wigner 9j symbol
-    `Wigner9j(j_1,j_2,j_3,j_4,j_5,j_6,j_7,j_8,j_9)`.
+    Calculate the Wigner 9-`j` symbol
+    `\begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \\ j_7 & j_8 & j_9 \end{Bmatrix}`.
 
     INPUT:
 
@@ -559,11 +540,11 @@ def wigner_9j(j_1, j_2, j_3, j_4, j_5, j_6, j_7, j_8, j_9, prec=None):
 
     ALGORITHM:
 
-    This function uses the algorithm of [Edmonds74]_ to calculate the
-    value of the 3j symbol exactly. Note that the formula contains
+    This function uses the algorithm of [Ed1974]_ to calculate the
+    value of the 3-`j` symbol exactly. Note that the formula contains
     alternating sums over large factorials and is therefore unsuitable
     for finite precision arithmetic and only useful for a computer
-    algebra system [Rasch03]_.
+    algebra system [RH2003]_.
     """
     imin = 0
     imax = min(j_1 + j_9, j_2 + j_6, j_4 + j_8)
@@ -584,13 +565,14 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
     The Gaunt coefficient is defined as the integral over three
     spherical harmonics:
 
-    .. math::
+    .. MATH::
 
-        Y(j_1,j_2,j_3,m_1,m_2,m_3)
-        =\int Y_{l_1,m_1}(\Omega)
-         Y_{l_2,m_2}(\Omega) Y_{l_3,m_3}(\Omega) d\Omega
-        =\sqrt{(2l_1+1)(2l_2+1)(2l_3+1)/(4\pi)}
-         \; Y(j_1,j_2,j_3,0,0,0) \; Y(j_1,j_2,j_3,m_1,m_2,m_3)
+        Y(l_1,l_2,l_3,m_1,m_2,m_3) \hspace{12em} \\ 
+        =\int Y_{l_1,m_1}(\Omega) \
+         Y_{l_2,m_2}(\Omega) \ Y_{l_3,m_3}(\Omega) \ d\Omega \hspace{5em} \\
+        =\sqrt{\frac{(2l_1+1)(2l_2+1)(2l_3+1)}{4\pi}} \hspace{6.5em} \\ 
+         \times \begin{pmatrix} l_1 & l_2 & l_3 \\ 0 & 0 & 0 \end{pmatrix}
+         \begin{pmatrix} l_1 & l_2 & l_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
 
     INPUT:
 
@@ -646,22 +628,24 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
 
     - invariant under any permutation of the columns
 
-      .. math::
-          Y(j_1,j_2,j_3,m_1,m_2,m_3)
-          =Y(j_3,j_1,j_2,m_3,m_1,m_2)
-          =Y(j_2,j_3,j_1,m_2,m_3,m_1)
-          =Y(j_3,j_2,j_1,m_3,m_2,m_1)
-          =Y(j_1,j_3,j_2,m_1,m_3,m_2)
-          =Y(j_2,j_1,j_3,m_2,m_1,m_3)
+      .. MATH::
+
+          Y(l_1,l_2,l_3,m_1,m_2,m_3)
+          =Y(l_3,l_1,l_2,m_3,m_1,m_2) \hspace{3em} \\ \hspace{3em}
+          =Y(l_2,l_3,l_1,m_2,m_3,m_1)
+          =Y(l_3,l_2,l_1,m_3,m_2,m_1) \\ \hspace{3em}
+          =Y(l_1,l_3,l_2,m_1,m_3,m_2)
+          =Y(l_2,l_1,l_3,m_2,m_1,m_3)
 
     - invariant under space inflection, i.e.
 
-      .. math::
-          Y(j_1,j_2,j_3,m_1,m_2,m_3)
-          =Y(j_1,j_2,j_3,-m_1,-m_2,-m_3)
+      .. MATH::
+
+          Y(l_1,l_2,l_3,m_1,m_2,m_3)
+          =Y(l_1,l_2,l_3,-m_1,-m_2,-m_3)
 
     - symmetric with respect to the 72 Regge symmetries as inherited
-      for the `3j` symbols [Regge58]_
+      for the 3-`j` symbols [Reg1958]_
 
     - zero for `l_1`, `l_2`, `l_3` not fulfilling triangle relation
 
@@ -673,17 +657,11 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
 
     ALGORITHM:
 
-    This function uses the algorithm of [Liberatodebrito82]_ to
+    This function uses the algorithm of [LdB1982]_ to
     calculate the value of the Gaunt coefficient exactly. Note that
     the formula contains alternating sums over large factorials and is
     therefore unsuitable for finite precision arithmetic and only
-    useful for a computer algebra system [Rasch03]_.
-
-    REFERENCES:
-
-    .. [Liberatodebrito82] 'FORTRAN program for the integral of three
-      spherical harmonics', A. Liberato de Brito,
-      Comput. Phys. Commun., Volume 25, pp. 81-85 (1982)
+    useful for a computer algebra system [RH2003]_.
 
     AUTHORS:
 

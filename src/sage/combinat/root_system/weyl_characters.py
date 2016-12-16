@@ -8,6 +8,7 @@ Weyl Character Rings
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage.combinat.root_system.branching_rules
 from sage.categories.all import Category, Algebras, AlgebrasWithBasis
@@ -87,7 +88,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
     For more information, see the thematic tutorial *Lie Methods and
     Related Combinatorics in Sage*, available at:
 
-    http://www.sagemath.org/doc/thematic_tutorials/lie.html
+    http://doc.sagemath.org/html/en/thematic_tutorials/lie.html
     """
     @staticmethod
     def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice"):
@@ -105,7 +106,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
-                prefix = ct.__repr__()
+                prefix = repr(ct)
         return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style)
 
     def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice"):
@@ -125,7 +126,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
-                prefix = ct.__repr__()
+                prefix = repr(ct)
         self._prefix = prefix
         self._style = style
         if style == "coroots":
@@ -622,24 +623,24 @@ class WeylCharacterRing(CombinatorialFreeModule):
         for i in index_set:
             cm[i] = tuple(int(alpha[i].inner_product(alphacheck[j])) for j in index_set)
             if debug:
-                print "cm[%s]=%s"%(i,cm[i])
+                print("cm[%s]=%s" % (i, cm[i]))
         accum = dd
         if word == "long":
             word = self._word
         for i in reversed(word):
             if debug:
-                print "i=%s"%i
+                print("i=%s" % i)
             next = {}
             for v in accum:
                 coroot = v[i-1]
                 if debug:
-                    print "   v=%s, coroot=%s"%(v, coroot)
+                    print("   v=%s, coroot=%s" % (v, coroot))
                 if coroot >= 0:
                     mu = v
                     for j in range(coroot+1):
                         next[mu] = next.get(mu,0)+accum[v]
                         if debug:
-                            print "     mu=%s, next[mu]=%s"%(mu, next[mu])
+                            print("     mu=%s, next[mu]=%s" % (mu, next[mu]))
                         mu = tuple(mu[k] - cm[i][k] for k in range(r))
                 else:
                     mu = v
@@ -647,7 +648,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                         mu = tuple(mu[k] + cm[i][k] for k in range(r))
                         next[mu] = next.get(mu,0)-accum[v]
                         if debug:
-                            print "     mu=%s, next[mu]=%s"%(mu, next[mu])
+                            print("     mu=%s, next[mu]=%s" % (mu, next[mu]))
             accum = {}
             for v in next:
                 accum[v] = next[v]
@@ -1104,7 +1105,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         def __pow__(self, n):
             """
-            We override the method in :module:`sage.monoids.monoids` since
+            Return the nth power of self.
+
+            We override the method in :mod:`sage.monoids.monoids` since
             using the Brauer-Klimyk algorithm, it is more efficient to
             compute ``a*(a*(a*a))`` than ``(a*a)*(a*a)``.
 
@@ -1114,13 +1117,26 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 sage: spin = B4(0,0,0,1)
                 sage: [spin^k for k in [0,1,3]]
                 [B4(0,0,0,0), B4(0,0,0,1), 5*B4(0,0,0,1) + 4*B4(1,0,0,1) + 3*B4(0,1,0,1) + 2*B4(0,0,1,1) + B4(0,0,0,3)]
+                sage: spin^-1
+                Traceback (most recent call last):
+                ...
+                ValueError: cannot invert self (= B4(0,0,0,1))
+                sage: x = 2 * B4.one(); x
+                2*B4(0,0,0,0)
+                sage: x^-3
+                1/8*B4(0,0,0,0)
             """
-            if n == 0:
+            n = ZZ(n)
+            if not n:
                 return self.parent().one()
-            elif n == 1:
-                return self
-            else:
-                return self*self.__pow__(n-1)
+            if n < 0:
+                self = ~self
+                n = -n
+
+            res = self
+            for i in range(n-1):
+                res = self * res
+            return res
 
         def is_irreducible(self):
             """
@@ -1479,7 +1495,7 @@ def irreducible_character_freudenthal(hwv, debug=False):
     simple_roots = L.simple_roots()
     positive_roots = L.positive_roots()
 
-    while len(current_layer) > 0:
+    while current_layer:
         next_layer = {}
         for mu in current_layer:
             if current_layer[mu] != 0:
@@ -1487,7 +1503,7 @@ def irreducible_character_freudenthal(hwv, debug=False):
                 for alpha in simple_roots:
                     next_layer[mu-alpha] = None
         if debug:
-            print next_layer
+            print(next_layer)
 
         for mu in next_layer:
             if next_layer[mu] is None:

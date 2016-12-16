@@ -39,6 +39,7 @@ representing the elements of the spin crystal by sequences of signs
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
@@ -181,7 +182,6 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
             self.rename("The minus crystal of spins for type %s"%ct)
 
         self.Element = element_class
-#        super(GenericCrystalOfSpins, self).__init__(category = FiniteEnumeratedSets())
         Parent.__init__(self, category = ClassicalCrystals())
 
         if case == "minus":
@@ -189,27 +189,8 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
             generator.append(-1)
         else:
             generator = [1]*ct[1]
-        self.module_generators = (self._element_constructor_(tuple(generator)),)
-        self._list = list(self)
-#        self._digraph = ClassicalCrystal.digraph(self)
-        self._digraph = super(GenericCrystalOfSpins, self).digraph()
-        self._digraph_closure = self.digraph().transitive_closure()
+        self.module_generators = (self.element_class(self, tuple(generator)),)
 
-    def __call__(self, value):
-        """
-        Parse input for ``cached_method``.
-
-        EXAMPLES::
-
-            sage: C = crystals.Spins(['B',3])
-            sage: C([1,1,1])
-            +++
-        """
-        if value.__class__ == self.element_class and value.parent() == self:
-            return value
-        return self._element_constructor_(tuple(value))
-
-    @cached_method
     def _element_constructor_(self, value):
         """
         Construct an element of ``self`` from ``value``.
@@ -217,21 +198,14 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: C = crystals.Spins(['B',3])
-            sage: C((1,1,1))
+            sage: x = C((1,1,1)); x
             +++
+            sage: y = C([1,1,1]); y
+            +++
+            sage: x == y
+            True
         """
-        return self.element_class(self, value)
-
-    def list(self):
-        """
-        Return a list of the elements of ``self``.
-
-        EXAMPLES::
-
-            sage: crystals.Spins(['B',3]).list()
-            [+++, ++-, +-+, -++, +--, -+-, --+, ---]
-        """
-        return self._list
+        return self.element_class(self, tuple(value))
 
     def digraph(self):
         """
@@ -242,6 +216,12 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
             sage: crystals.Spins(['B',3]).digraph()
             Digraph on 8 vertices
         """
+        try:
+            return self._digraph
+        except AttributeError:
+            pass
+        self._digraph = super(GenericCrystalOfSpins, self).digraph()
+        self._digraph.copy(immutable=True)
         return self._digraph
 
     def lt_elements(self, x,y):
@@ -266,8 +246,13 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
             False
         """
         if x.parent() is not self or y.parent() is not self:
-            raise ValueError("Both elements must be in this crystal")
-        if self._digraph_closure.has_edge(x,y):
+            raise ValueError("both elements must be in this crystal")
+        try:
+            GC = self._digraph_closure
+        except AttributeError:
+            GC = self.digraph().transitive_closure()
+            self._digraph_closure = GC
+        if GC.has_edge(x,y):
             return True
         return False
 
@@ -339,7 +324,7 @@ class Spin(LetterTuple):
 
             sage: C = crystals.Spins(['B',3])
             sage: b = C([1,1,-1])
-            sage: print b._repr_diagram()
+            sage: print(b._repr_diagram())
             +
             +
             -
@@ -359,7 +344,7 @@ class Spin(LetterTuple):
             +
             -
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def _latex_(self):
         r"""
@@ -369,7 +354,7 @@ class Spin(LetterTuple):
 
             sage: C = crystals.Spins(['B',3])
             sage: b = C([1,1,-1])
-            sage: print b._latex_()
+            sage: print(b._latex_())
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
             \lr{-}\\\cline{1-1}
@@ -432,14 +417,14 @@ class Spin_crystal_type_B_element(Spin):
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = 1
                 ret[i] = -1
-                return self.parent()(ret)
+                return self.__class__(self.parent(), tuple(ret))
         elif i == rank:
             if self.value[i-1] == -1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = 1
-                return self.parent()(ret)
-        else:
-            return None
+                return self.__class__(self.parent(), tuple(ret))
+
+        return None
 
     def f(self, i):
         r"""
@@ -459,14 +444,14 @@ class Spin_crystal_type_B_element(Spin):
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = -1
                 ret[i] = 1
-                return self.parent()(ret)
+                return self.__class__(self.parent(), tuple(ret))
         elif i == rank:
             if self.value[i-1] == 1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = -1
-                return self.parent()(ret)
-        else:
-            return None
+                return self.__class__(self.parent(), tuple(ret))
+
+        return None
 
 class Spin_crystal_type_D_element(Spin):
     r"""
@@ -497,15 +482,15 @@ class Spin_crystal_type_D_element(Spin):
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = 1
                 ret[i] = -1
-                return self.parent()(ret)
+                return self.__class__(self.parent(), tuple(ret))
         elif i == rank:
             if self.value[i-2] == -1 and self.value[i-1] == -1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-2] = 1
                 ret[i-1] = 1
-                return self.parent()(ret)
-        else:
-            return None
+                return self.__class__(self.parent(), tuple(ret))
+
+        return None
 
     def f(self, i):
         r"""
@@ -532,12 +517,12 @@ class Spin_crystal_type_D_element(Spin):
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-1] = -1
                 ret[i] = 1
-                return self.parent()(ret)
+                return self.__class__(self.parent(), tuple(ret))
         elif i == rank:
             if self.value[i-2] == 1 and self.value[i-1] == 1:
                 ret = [self.value[x] for x in range(rank)]
                 ret[i-2] = -1
                 ret[i-1] = -1
-                return self.parent()(ret)
-        else:
-            return None
+                return self.__class__(self.parent(), tuple(ret))
+
+        return None

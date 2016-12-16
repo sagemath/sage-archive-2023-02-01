@@ -52,6 +52,8 @@ polytopes and polyhedra (with rational or numerical coordinates).
 
    sage/geometry/newton_polygon
 
+   sage/geometry/ribbon_graph
+
 Hyperbolic Geometry
 -------------------
 
@@ -90,5 +92,6 @@ Internals
    sage/geometry/fan_isomorphism
    sage/geometry/hasse_diagram
    sage/geometry/integral_points
+   sage/geometry/hyperplane_arrangement/check_freeness
 
 .. include:: ../footer.txt

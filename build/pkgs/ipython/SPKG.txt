@@ -19,11 +19,6 @@ IPython is a multiplatform, Free Software project (BSD licensed) that offers:
 
 BSD
 
-== SPKG Maintainers ==
-
- * Jason Grout
- * William Stein
-
 == Upstream Contact ==
 
 http://ipython.scipy.org/
@@ -31,12 +26,3 @@ http://ipython.scipy.org/
 ipython-dev@scipy.org
 
 ipython-user@scipy.org
-
-== Dependencies ==
-
- * Python
-
-== Patches ==
-
-* github_pr_5874.patch: https://github.com/ipython/ipython/pull/5874
-

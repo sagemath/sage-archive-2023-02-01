@@ -15,17 +15,19 @@ Partition/Diagram Algebras
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import range
 
-from combinat import catalan_number
-from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
+from .combinat import catalan_number
+from .combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 from sage.combinat.set_partition import SetPartition, SetPartitions, SetPartitions_set
 from sage.sets.set import Set, is_Set
 from sage.graphs.graph import Graph
-from sage.rings.arith import factorial, binomial
-from permutation import Permutations
+from sage.arith.all import factorial, binomial
+from .permutation import Permutations
 from sage.rings.all import Integer
 from sage.rings.real_mpfr import is_RealNumber
-from subset import Subsets
+from .subset import Subsets
 from sage.functions.all import ceil
 import functools
 import math
@@ -59,7 +61,7 @@ class SetPartitionsXkElement(SetPartition):
         """
         Check to make sure this is a set partition.
 
-        EXAMLPLES::
+        EXAMPLES::
 
             sage: A2p5 = SetPartitionsAk(2.5)
             sage: x = A2p5.first(); x # random
@@ -163,7 +165,7 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
         TESTS::
 
             sage: A2p5 = SetPartitionsAk(2.5)
-            sage: all([ sp in A2p5 for sp in A2p5])
+            sage: all(sp in A2p5 for sp in A2p5)
             True
             sage: A3 = SetPartitionsAk(3)
             sage: len(filter(lambda x: x in A2p5, A3))
@@ -195,7 +197,7 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
 
             sage: ks = [ 1.5, 2.5, 3.5 ]
             sage: aks = map(SetPartitionsAk, ks)
-            sage: all([ak.cardinality() == len(ak.list()) for ak in aks])
+            sage: all(ak.cardinality() == len(ak.list()) for ak in aks)
             True
         """
         kp = Set([-self.k-1])
@@ -274,7 +276,7 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: S3 = SetPartitionsSk(3)
-            sage: all([ sp in S3 for sp in S3])
+            sage: all(sp in S3 for sp in S3)
             True
             sage: S3.cardinality()
             6
@@ -317,9 +319,9 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
              {{1, -2}, {2, -3}, {3, -1}},
              {{1, -3}, {2, -1}, {3, -2}},
              {{1, -3}, {2, -2}, {3, -1}}]
-            sage: ks = range(1, 6)
+            sage: ks = list(range(1, 6))
             sage: sks = map(SetPartitionsSk, ks)
-            sage: all([ sk.cardinality() == len(sk.list()) for sk in sks])
+            sage: all(sk.cardinality() == len(sk.list()) for sk in sks)
             True
         """
         for p in Permutations(self.k):
@@ -335,7 +337,7 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
 
             sage: S2p5 = SetPartitionsSk(2.5)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([sp in S2p5 for sp in S2p5])
+            sage: all(sp in S2p5 for sp in S2p5)
             True
             sage: len(filter(lambda x: x in S2p5, A3))
             2
@@ -373,7 +375,7 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
 
             sage: ks = [2.5, 3.5, 4.5, 5.5]
             sage: sks = [SetPartitionsSk(k) for k in ks]
-            sage: all([ sk.cardinality() == len(sk.list()) for sk in sks])
+            sage: all(sk.cardinality() == len(sk.list()) for sk in sks)
             True
         """
         return factorial(self.k)
@@ -452,7 +454,7 @@ class SetPartitionsIk_k(SetPartitionsAk_k):
 
             sage: I3 = SetPartitionsIk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in I3 for sp in I3])
+            sage: all(sp in I3 for sp in I3)
             True
             sage: len(filter(lambda x: x in I3, A3))
             197
@@ -504,7 +506,7 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
 
             sage: I2p5 = SetPartitionsIk(2.5)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in I2p5 for sp in I2p5])
+            sage: all(sp in I2p5 for sp in I2p5)
             True
             sage: len(filter(lambda x: x in I2p5, A3))
             50
@@ -677,8 +679,8 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
 
         ::
 
-            sage: bks = [ SetPartitionsBk(i) for i in range(1, 6) ]
-            sage: all( [ bk.cardinality() == len(bk.list()) for bk in bks] )
+            sage: bks = [SetPartitionsBk(i) for i in range(1, 6)]
+            sage: all(bk.cardinality() == len(bk.list()) for bk in bks)
             True
         """
         for sp in SetPartitions(self._set, [2]*(len(self._set)//2)):
@@ -701,7 +703,7 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: B2p5 = SetPartitionsBk(2.5)
-            sage: all([ sp in B2p5 for sp in B2p5 ])
+            sage: all(sp in B2p5 for sp in B2p5)
             True
             sage: len(filter(lambda x: x in B2p5, A3))
             3
@@ -812,7 +814,7 @@ class SetPartitionsPk_k(SetPartitionsAk_k):
             132
             sage: P3.cardinality()
             132
-            sage: all([sp in P3 for sp in P3])
+            sage: all(sp in P3 for sp in P3)
             True
         """
         if not SetPartitionsAk_k.__contains__(self, x):
@@ -867,7 +869,7 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: P2p5 = SetPartitionsPk(2.5)
-            sage: all([ sp in P2p5 for sp in P2p5 ])
+            sage: all(sp in P2p5 for sp in P2p5)
             True
             sage: len(filter(lambda x: x in P2p5, A3))
             42
@@ -967,7 +969,7 @@ class SetPartitionsTk_k(SetPartitionsBk_k):
 
             sage: T3 = SetPartitionsTk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in T3 for sp in T3])
+            sage: all(sp in T3 for sp in T3)
             True
             sage: len(filter(lambda x: x in T3, A3))
             5
@@ -1019,7 +1021,7 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: T2p5 = SetPartitionsTk(2.5)
-            sage: all([ sp in T2p5 for sp in T2p5 ])
+            sage: all(sp in T2p5 for sp in T2p5)
             True
             sage: len(filter(lambda x: x in T2p5, A3))
             2
@@ -1104,7 +1106,7 @@ class SetPartitionsRk_k(SetPartitionsAk_k):
 
             sage: R3 = SetPartitionsRk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in R3 for sp in R3])
+            sage: all(sp in R3 for sp in R3)
             True
             sage: len(filter(lambda x: x in R3, A3))
             34
@@ -1174,7 +1176,7 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: R2p5 = SetPartitionsRk(2.5)
-            sage: all([ sp in R2p5 for sp in R2p5 ])
+            sage: all(sp in R2p5 for sp in R2p5)
             True
             sage: len(filter(lambda x: x in R2p5, A3))
             7
@@ -1286,7 +1288,7 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
 
             sage: PR3 = SetPartitionsPRk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: all([ sp in PR3 for sp in PR3])
+            sage: all(sp in PR3 for sp in PR3)
             True
             sage: len(filter(lambda x: x in PR3, A3))
             20
@@ -1344,7 +1346,7 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
 
             sage: A3 = SetPartitionsAk(3)
             sage: PR2p5 = SetPartitionsPRk(2.5)
-            sage: all([ sp in PR2p5 for sp in PR2p5 ])
+            sage: all(sp in PR2p5 for sp in PR2p5)
             True
             sage: len(filter(lambda x: x in PR2p5, A3))
             6
@@ -1625,7 +1627,7 @@ def is_planar(sp):
                         #No gap, continue on
                         continue
                     else:
-                        rng = range(row[s] + 1, row[s+1])
+                        rng = list(range(row[s] + 1, row[s + 1]))
 
                         #Go through and make sure any parts that
                         #contain numbers in this range are completely

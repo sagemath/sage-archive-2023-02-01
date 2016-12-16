@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 from sage.libs.gmp.types cimport *
 from sage.libs.flint.types cimport *
 

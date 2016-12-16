@@ -15,17 +15,15 @@ symmetric functions.
 ::
 
     sage: class PowerSums(CombinatorialAlgebra):
-    ...     def __init__(self, R):
-    ...         self._one = Partition([])
-    ...         self._name = 'Power-sum symmetric functions'
-    ...         CombinatorialAlgebra.__init__(self, R, Partitions())
-    ...         self.print_options(prefix='p')
-    ...
-    ...     def _multiply_basis(self, a, b):
-    ...         l = list(a)+list(b)
-    ...         l.sort(reverse=True)
-    ...         return Partition(l)
-    ...
+    ....:   def __init__(self, R):
+    ....:       self._one = Partition([])
+    ....:       self._name = 'Power-sum symmetric functions'
+    ....:       CombinatorialAlgebra.__init__(self, R, Partitions())
+    ....:       self.print_options(prefix='p')
+    ....:   def _multiply_basis(self, a, b):
+    ....:       l = list(a)+list(b)
+    ....:       l.sort(reverse=True)
+    ....:       return Partition(l)
 
 ::
 
@@ -133,7 +131,7 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
 
             sage: s = sage.combinat.combinatorial_algebra.TestAlgebra(QQ)
             sage: a = 2 + s([3,2,1])
-            sage: print a.__repr__()
+            sage: print(a.__repr__())
             2*s[] + s[3, 2, 1]
         """
         v = sorted(self._monomial_coefficients.items())

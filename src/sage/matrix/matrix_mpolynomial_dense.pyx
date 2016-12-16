@@ -19,9 +19,6 @@ AUTHOR:
 #*****************************************************************************
 
 
-include "sage/ext/python.pxi"
-include "sage/ext/interrupt.pxi"
-
 from sage.rings.polynomial.multi_polynomial_libsingular cimport new_MP
 
 from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
@@ -38,7 +35,6 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
     """
     Dense matrix over a multivariate polynomial ring over a field.
     """
-
     def echelon_form(self, algorithm='row_reduction', **kwds):
         """
         Return an echelon form of ``self`` using chosen algorithm.

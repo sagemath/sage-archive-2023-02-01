@@ -11,11 +11,11 @@ More information can be found in [LLMS2006]_ .
 
 REFERENCES:
 
-.. [LLMS2006] T. Lam, L. Lapointe, J. Morse, M. Shimozono,
+.. [LLMS2006] \T. Lam, L. Lapointe, J. Morse, M. Shimozono,
    Affine insertion and Pieri rules for the affine Grassmannian,
    Memoirs of the AMS, 208 (2010), no. 977, :arxiv:`math.CO/0609110`
 
-.. [LLMSSZ2013] T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
+.. [LLMSSZ2013] \T. Lam, L. Lapointe, J. Morse, A. Schilling, M. Shimozono, M. Zabrocki,
    `k`-Schur functions and affine Schubert calculus,
    preprint :arXiv:`1301.3569`
 
@@ -39,6 +39,8 @@ Authors:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function, absolute_import
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
@@ -53,10 +55,10 @@ from sage.misc.misc import uniq
 from sage.functions.generalized import sgn
 from sage.misc.flatten import flatten
 from sage.combinat.skew_partition import SkewPartition
-from sage.combinat.tableau import TableauOptions
+from sage.combinat.tableau import Tableaux
 from sage.combinat.composition import Composition
-import cartesian_product
 import copy
+
 
 def WeakTableau(t, k, inner_shape = [], representation = "core"):
     r"""
@@ -191,7 +193,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
         sage: t = WeakTableau([[2,0],[3,2],[1,0]], 3, representation = "bla")
         Traceback (most recent call last):
         ...
-        NotImplementedError: The representation option needs to be 'core', 'bounded', or 'factorized_permuation'
+        NotImplementedError: The representation option needs to be 'core', 'bounded', or 'factorized_permutation'
     """
     if representation == "core":
         return WeakTableau_core(t, k)
@@ -200,7 +202,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableau_factorized_permutation(t, k, inner_shape = inner_shape)
     else:
-        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 def WeakTableaux(k, shape , weight, representation = "core"):
     r"""
@@ -264,7 +266,7 @@ def WeakTableaux(k, shape , weight, representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableaux_factorized_permutation(k, shape, weight)
     else:
-        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 #Abstract class for the elements of weak tableau
 class WeakTableau_abstract(ClonableList):
@@ -423,9 +425,9 @@ class WeakTableau_abstract(ClonableList):
             [s2*s0, s3*s2]
         """
         if self.parent()._representation in ['core', 'bounded']:
-            print self._repr_diagram()
+            print(self._repr_diagram())
         else:
-            print self
+            print(self)
 
     def __hash__(self):
         r"""
@@ -479,7 +481,7 @@ class WeakTableau_abstract(ClonableList):
             return "%s"%x
         if self.parent()._representation in ['core', 'bounded']:
             t = [[chi(x) for x in row] for row in self]
-            from output import tex_from_array
+            from .output import tex_from_array
             return tex_from_array(t)
         else:
             return "["+"".join(self[i]._latex_()+',' for i in range(len(self)-1))+self[len(self)-1]._latex_()+"]"
@@ -747,7 +749,7 @@ class WeakTableau_core(WeakTableau_abstract):
         EXAMPLES::
 
             sage: t = WeakTableau([[None, None, 2, 3, 4], [1, 4], [2]], 3)
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
             .  .  2  3  4
             1  4
             2
@@ -1026,7 +1028,7 @@ class WeakTableau_core(WeakTableau_abstract):
             for v in range(1,mu[i]):
                 D = self.dictionary_of_coordinates_at_residues(v+1)
                 new_D = {a:b for (a,b) in D.iteritems() if all(x not in already_used for x in b)}
-                r = (r - min([self.k+1 - (x-r)%(self.k+1) for x in new_D.keys()]))%(self.k+1)
+                r = (r - min([self.k+1 - (x-r)%(self.k+1) for x in new_D]))%(self.k+1)
                 standard_cells.append(new_D[r][-1])
                 already_used += new_D[r]
             out.append(standard_cells)
@@ -1458,12 +1460,12 @@ class WeakTableau_bounded(WeakTableau_abstract):
         EXAMPLES::
 
             sage: t = WeakTableau([[None, None, 1], [2, 4], [3]], 3, representation = 'bounded')
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
             .  .  1
             2  4
             3
             sage: t = WeakTableau([[1,1,1],[2,2],[3]], 3, representation = 'bounded')
-            sage: print t._repr_diagram()
+            sage: print(t._repr_diagram())
             1  1  1
             2  2
             3
@@ -2680,20 +2682,20 @@ class StrongTableau(ClonableList):
             sage: T = StrongTableau([[-1,-2,3],[-3]],2)
             sage: T
             [[-1, -2, 3], [-3]]
-            sage: Tableaux.global_options(display="diagram")
+            sage: Tableaux.options(display="diagram")
             sage: T
              -1 -2  3
              -3
-            sage: Tableaux.global_options(convention="French")
+            sage: Tableaux.options(convention="French")
             sage: T
              -3
              -1 -2  3
-            sage: Tableaux.global_options(display="compact")
+            sage: Tableaux.options(display="compact")
             sage: T
             -1,-2,3/-3
-            sage: Tableaux.global_options(display="list",convention="English")
+            sage: Tableaux.options(display="list",convention="English")
         """
-        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def cell_of_marked_head(self, v):
         r"""
@@ -2908,7 +2910,7 @@ class StrongTableau(ClonableList):
         Return a dictionary of values and lists of cells where the heads with the values
         are located.
 
-        OUPUT:
+        OUTPUT:
 
         - a dictionary with keys the entries in the tableau and values are the coordinates
           of the heads with those entries
@@ -2957,7 +2959,7 @@ class StrongTableau(ClonableList):
 
         - ``v`` -- an integer label
 
-        OUPUT:
+        OUTPUT:
 
         - a list of pairs of integers of the coordinates of the heads of the ribbons
           with label ``v``
@@ -2986,7 +2988,7 @@ class StrongTableau(ClonableList):
             []
         """
         dout = self.cells_head_dictionary()
-        if v in dout.keys():
+        if v in dout:
             return dout[v]
         else:
             return []
@@ -3001,7 +3003,7 @@ class StrongTableau(ClonableList):
 
         - ``v`` -- an integer label
 
-        OUPUT:
+        OUTPUT:
 
         - a list of integers of the content of the heads of the ribbons with label ``v``
 
@@ -3288,7 +3290,7 @@ class StrongTableau(ClonableList):
               3
               3
               3
-            sage: Tableaux.global_options(convention="French")
+            sage: Tableaux.options(convention="French")
             sage: T.pp()
               3
               3
@@ -3298,9 +3300,9 @@ class StrongTableau(ClonableList):
              -1 -2
               .  .
               .  . -1 -2
-            sage: Tableaux.global_options(convention="English")
+            sage: Tableaux.options(convention="English")
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def outer_shape( self ):
         r"""
@@ -3606,7 +3608,7 @@ class StrongTableau(ClonableList):
         EXAMPLES::
 
             sage: T = StrongTableau( [[None, -1, -2, 3], [2, -3]], 2, weight=[2,1] )
-            sage: Tableaux.global_options(convention = "English")
+            sage: Tableaux.options(convention = "English")
             sage: latex(T)
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{1-4}
@@ -3614,7 +3616,7 @@ class StrongTableau(ClonableList):
             \lr{1}&\lr{2^\ast}\\\cline{1-2}
             \end{array}$}
             }
-            sage: Tableaux.global_options(convention = "French")
+            sage: Tableaux.options(convention = "French")
             sage: latex(T)
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[t]{*{4}c}\cline{1-2}
@@ -3633,7 +3635,7 @@ class StrongTableau(ClonableList):
                 return s
             return "%s"%x
         T = [[chi(x) for x in row] for row in self.to_list()]
-        from output import tex_from_array
+        from .output import tex_from_array
         return tex_from_array(T)
 
     def restrict( self, r ):
@@ -3726,7 +3728,7 @@ class StrongTableau(ClonableList):
 
         - ``tij`` -- a transposition represented as a pair `(i, j)`.
 
-        OUPUT:
+        OUTPUT:
 
         - ``self`` after it has been modified by the action of the transposition ``tij``
 
@@ -3991,7 +3993,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         s +="%sand of weight %s"%(" ",self._weight)
         return s
 
-    global_options = TableauOptions
+    options = Tableaux.options
 
     def an_element(self):
         r"""
@@ -4003,7 +4005,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: ST.an_element()
             [[-1, -1, -1]]
         """
-        return next(self.__iter__())
+        return next(iter(self))
 
     def outer_shape(self):
         r"""
@@ -4211,9 +4213,9 @@ class StrongTableaux(UniqueRepresentation, Parent):
         if td == {}: # the tableau is empty
             yield StrongTableau( unmarkedT, k, [] )
         else:
-            allmarkings = cartesian_product.CartesianProduct(*[td[v] for v in td.keys()])
+            import itertools
             dsc = Composition(weight).descents()
-            for m in allmarkings:
+            for m in itertools.product(*td.values()):
                 if all(((m[i][1]-m[i][0]<m[i+1][1]-m[i+1][0]) or (i in dsc)) for i in range(len(m)-1)):
                    yield StrongTableaux.add_marking( unmarkedT, m, k, weight )
 
@@ -4377,7 +4379,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         - ``outer_shape`` - a list which is a `k+1`-core (default: ``None``)
         - ``inner_shape`` - a list which is a `k+1`-core (default: [])
 
-        OUPUT:
+        OUTPUT:
 
         - an iterator which returns the standard marked tableaux with ``size`` cells
           and that are contained in ``outer_shape`` and contain ``inner_shape``
@@ -4420,7 +4422,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
 
         - ``T`` -- a strong standard unmarked tableau as a list of lists
 
-        OUPUT:
+        OUTPUT:
 
         - a dictionary with keys the entries in the tableau and values are the coordinates
           of the heads with those entries
@@ -4451,16 +4453,16 @@ class StrongTableaux(UniqueRepresentation, Parent):
              sage: StrongTableaux.cells_head_dictionary([])
              {}
         """
-        if T==[]:
+        if T == []:
             return {}
         ST = SkewTableau(T)
         dout = {}
-        for i in range(-len(T),len(T[0])):
-            nextv = ST.entries_by_content(i+1)
+        for i in range(-len(T), len(T[0])):
+            nextv = ST.entries_by_content(i + 1)
             for c in ST.cells_by_content(i):
                 v = T[c[0]][c[1]]
                 if not v in nextv:
-                    if v in dout.keys():
+                    if v in dout:
                         dout[v] += [c]
                     else:
                         dout[v] = [c]
@@ -4646,3 +4648,7 @@ def intermediate_shapes(t):
     for i in range(len(t.weight())+1):
         shapes += [ t.restrict(i).outer_shape()]
     return shapes
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+StrongTableaux.global_options = deprecated_function_alias(18555, StrongTableaux.options)

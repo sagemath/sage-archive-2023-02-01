@@ -54,8 +54,10 @@ Classes and methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
-from c_graph cimport CGraphBackend
-from c_graph cimport CGraph
+from __future__ import absolute_import
+
+from .c_graph cimport CGraphBackend, CGraph
+
 
 cdef class GenericGraphBackend(SageObject):
     """
@@ -76,7 +78,7 @@ cdef class GenericGraphBackend(SageObject):
         Add an edge (u,v) to self, with label l.  If directed is True, this is
         interpreted as an arc from u to v.
 
-        INPUT::
+        INPUT:
 
         - ``u,v`` -- vertices
         - ``l`` -- edge label
@@ -670,9 +672,9 @@ cdef class GenericGraphBackend(SageObject):
             sage: loads(dumps(gi)) == gi
             True
         """
-        from static_sparse_backend import StaticSparseBackend
-        from sparse_graph import SparseGraphBackend
-        from dense_graph import DenseGraphBackend
+        from .static_sparse_backend import StaticSparseBackend
+        from .sparse_graph import SparseGraphBackend
+        from .dense_graph import DenseGraphBackend
 
         # implementation, data_structure, multiedges, directed, loops
         if isinstance(self, CGraphBackend):
@@ -682,7 +684,7 @@ cdef class GenericGraphBackend(SageObject):
             elif isinstance(self,DenseGraphBackend):
                 data_structure = "dense"
             elif isinstance(self,StaticSparseBackend):
-                implementaton = "static_sparse"
+                implementation = "static_sparse"
             else:
                 raise Exception
             multiedges = (<CGraphBackend> self)._multiple_edges
@@ -1223,6 +1225,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
             ...
             NetworkXError: Edge (1,2) requested via get_edge_label does not exist.
         """
+        cdef dict E
         try:
             E = self._nxg.edge[u][v]
         except KeyError:
@@ -1256,10 +1259,12 @@ class NetworkXGraphBackend(GenericGraphBackend):
             return False
         if l is None:
             return True
+        cdef dict E = self._nxg.adj[u][v]
         if self._nxg.is_multigraph():
-            return any( e.get('weight',None) == l for e in self._nxg.adj[u][v].itervalues() )
+            return any(e.get('weight', None) == l
+                       for e in E.itervalues())
         else:
-            return any( e == l for e in self._nxg.adj[u][v].itervalues() )
+            return any(e == l for e in E.itervalues())
 
     def has_vertex(self, v):
         """

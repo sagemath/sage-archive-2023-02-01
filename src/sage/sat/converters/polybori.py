@@ -1,7 +1,7 @@
 """
 An ANF to CNF Converter using a Dense/Sparse Strategy
 
-This converter is based on two converters. The first one, by Martin Albrecht, was based on [CB07]_,
+This converter is based on two converters. The first one, by Martin Albrecht, was based on [CB2007]_,
 this is the basis of the "dense" part of the converter. It was later improved by Mate Soos. The
 second one, by Michael Brickenstein, uses a reduced truth table based approach and forms the
 "sparse" part of the converter.
@@ -12,12 +12,6 @@ AUTHORS:
 - Michael Brickenstein - (2009) 'cnf.py' for PolyBoRi
 - Mate Soos - (2010) improved version of 'anf2cnf.py'
 - Martin Albrecht - (2012) unified and added to Sage
-
-REFERENCES:
-
-.. [CB07] Nicolas Courtois, Gregory V. Bard: Algebraic Cryptanalysis of the Data Encryption
-   Standard, In 11-th IMA Conference, Cirencester, UK, 18-20 December 2007, Springer LNCS 4887. See
-   also http://eprint.iacr.org/2006/402/.
 
 Classes and Methods
 -------------------
@@ -67,7 +61,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``solver`` - a SAT-solver instance
 
-        - ``ring`` - a :class:`sage.rins.polynomial.pbori.BooleanPolynomialRing`
+        - ``ring`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomialRing`
 
         - ``max_vars_sparse`` - maximum number of variables for direct conversion
 
@@ -92,7 +86,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B)
             sage: e.clauses_sparse(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 0
             -2 0
@@ -109,7 +103,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B)
             sage: e.clauses_dense(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 4 5
             1 -4 0
             2 -4 0
@@ -154,7 +148,7 @@ class CNFEncoder(ANF2CNFConverter):
         INPUT:
 
         - ``m`` - something the new variables maps to, usually a monomial
-        - ``decision`` - is this variable a deicison variable?
+        - ``decision`` - is this variable a decision variable?
 
         EXAMPLE::
 
@@ -272,7 +266,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B)
             sage: e.clauses_sparse(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 0
             -2 0
@@ -317,7 +311,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B)
             sage: e.clauses_dense(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 4 5
             1 -4 0
             2 -4 0
@@ -506,7 +500,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B, max_vars_sparse=2)
             sage: e.clauses(a*b + a + 1)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 0
             -2 0
@@ -521,7 +515,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e = CNFEncoder(solver, B, max_vars_sparse=2)
             sage: e.clauses(a*b + a + c)
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 4 7
             1 -4 0
             2 -4 0
@@ -561,7 +555,7 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e([a*b + a + 1, a*b+ a + c])
             [None, a, b, c, a*b]
             sage: _ = solver.write()
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 4 9
             1 0
             -2 0

@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -55,6 +56,7 @@ class LocalGeneric(CommutativeRing):
             category = CompleteDiscreteValuationFields()
         else:
             category = CompleteDiscreteValuationRings()
+        category = category.Metric().Complete()
         if default_category is not None:
             category = check_default_category(default_category, category)
         Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
@@ -550,7 +552,7 @@ class LocalGeneric(CommutativeRing):
         for x in tester.some_elements():
             errors = []
             if x.precision_absolute() <= 0:
-                from precision_error import PrecisionError
+                from .precision_error import PrecisionError
                 errors.append(PrecisionError)
             if x.valuation() < 0:
                 errors.append(ValueError)

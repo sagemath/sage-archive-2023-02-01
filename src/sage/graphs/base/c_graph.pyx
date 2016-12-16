@@ -38,6 +38,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #**************************************************************************
+from __future__ import print_function, absolute_import
 
 include "sage/data_structures/bitset.pxi"
 
@@ -276,7 +277,7 @@ cdef class CGraph:
             sage: G.verts()
             [0, 1, 2]
             sage: for i in range(10):
-            ...       _ = G.add_vertex(-1);
+            ....:     _ = G.add_vertex(-1);
             ...
             sage: G.verts()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -288,7 +289,7 @@ cdef class CGraph:
             sage: G.verts()
             [0, 1, 2]
             sage: for i in range(12):
-            ...       _ = G.add_vertex(-1);
+            ....:     _ = G.add_vertex(-1);
             ...
             sage: G.verts()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
@@ -410,7 +411,7 @@ cdef class CGraph:
         if self.out_degrees[v] > size:
             size = self.out_degrees[v]
         if size > 0:
-            neighbors = <int *> sage_malloc(size * sizeof(int))
+            neighbors = <int *> sig_malloc(size * sizeof(int))
             if not neighbors:
                 raise RuntimeError("Failure allocating memory.")
             # delete each arc incident with v
@@ -420,7 +421,7 @@ cdef class CGraph:
             num_nbrs = self.out_neighbors_unsafe(v, neighbors, size)
             for i in range(num_nbrs):
                 self.del_arc_unsafe(v, neighbors[i])
-            sage_free(neighbors)
+            sig_free(neighbors)
 
         self.num_verts -= 1
         bitset_remove(self.active_vertices, v)
@@ -455,9 +456,9 @@ cdef class CGraph:
             sage: G.add_arc(2, 0)
             sage: G.del_vertex(2)
             sage: for i in range(2):
-            ...       for j in range(2):
-            ...           if G.has_arc(i, j):
-            ...               print i, j
+            ....:     for j in range(2):
+            ....:         if G.has_arc(i, j):
+            ....:             print("{} {}".format(i,j))
             0 1
             sage: G = SparseGraph(3)
             sage: G.add_arc(0, 1)
@@ -465,10 +466,10 @@ cdef class CGraph:
             sage: G.add_arc(1, 2)
             sage: G.add_arc(2, 0)
             sage: G.del_vertex(1)
-            sage: for i in xrange(3):
-            ...       for j in xrange(3):
-            ...           if G.has_arc(i, j):
-            ...               print i, j
+            sage: for i in range(3):
+            ....:     for j in range(3):
+            ....:         if G.has_arc(i, j):
+            ....:             print("{} {}".format(i,j))
             0 2
             2 0
 
@@ -484,10 +485,9 @@ cdef class CGraph:
             sage: G.del_vertex(3); G.verts()
             [0, 1, 2]
             sage: for i in range(3):
-            ...       for j in range(3):
-            ...           if G.has_arc(i, j):
-            ...               print i, j
-            ...
+            ....:     for j in range(3):
+            ....:         if G.has_arc(i, j):
+            ....:             print("{} {}".format(i,j))
             0 1
             0 2
             1 2
@@ -1043,6 +1043,8 @@ cdef class CGraph:
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._in_degree(3)
+            doctest:...: DeprecationWarning: _in_degree is deprecated
+            See http://trac.sagemath.org/20253 for details.
             0
 
         TEST::
@@ -1051,6 +1053,8 @@ cdef class CGraph:
             sage: g._backend.degree(5, False)
             3
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20253, "_in_degree is deprecated")
         if not self.has_vertex(v):
             raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(v))
         return self.in_degrees[v]
@@ -1071,8 +1075,12 @@ cdef class CGraph:
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._out_degree(3)
+            doctest:...: DeprecationWarning: _out_degree is deprecated
+            See http://trac.sagemath.org/20253 for details.
             0
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20253, "_out_degree is deprecated")
         if not self.has_vertex(v):
             raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(v))
         return self.out_degrees[v]
@@ -1093,8 +1101,12 @@ cdef class CGraph:
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._num_verts()
+            doctest:...: DeprecationWarning: _num_verts is deprecated
+            See http://trac.sagemath.org/20253 for details.
             7
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20253, "_num_verts is deprecated")
         return self.num_verts
 
     def _num_arcs(self):
@@ -1113,8 +1125,12 @@ cdef class CGraph:
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._num_arcs()
+            doctest:...: DeprecationWarning: _num_arcs is deprecated
+            See http://trac.sagemath.org/20253 for details.
             0
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20253, "_num_arcs is deprecated")
         return self.num_arcs
 
 cdef class CGraphBackend(GenericGraphBackend):
@@ -1329,10 +1345,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         Ensure that ticket :trac:`8395` is fixed. ::
 
             sage: def my_add_edges(G, m, n):
-            ...       for i in range(m):
-            ...           u = randint(0, n)
-            ...           v = randint(0, n)
-            ...           G.add_edge(u, v)
+            ....:     for i in range(m):
+            ....:         u = randint(0, n)
+            ....:         v = randint(0, n)
+            ....:         G.add_edge(u, v)
             sage: G = Graph({1:[1]}); G
             Looped graph on 1 vertex
             sage: G.edges(labels=False)
@@ -1435,14 +1451,14 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef int v_int = self.get_vertex(v)
         if directed:
-            return self._cg._in_degree(v_int) + self._cg._out_degree(v_int)
+            return self._cg.in_degrees[v_int] + self._cg.out_degrees[v_int]
         d = 0
         if self._loops and self.has_edge(v, v, None):
             if self._multiple_edges:
                 d += len(self.get_edge_label(v, v))
             else:
                 d += 1
-        return self._cg._out_degree(v_int) + d
+        return self._cg.out_degrees[v_int] + d
 
     def out_degree(self, v):
         r"""
@@ -1461,7 +1477,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef int v_int = self.get_vertex(v)
         if self._directed:
-            return self._cg._out_degree(v_int)
+            return self._cg.out_degrees[v_int]
         d = 0
         if self._loops and self.has_edge(v, v, None):
             if self._multiple_edges:
@@ -1469,7 +1485,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             else:
                 d += 1
 
-        return self._cg._out_degree(v_int) + d
+        return self._cg.out_degrees[v_int] + d
 
     def in_degree(self, v):
         r"""
@@ -1491,7 +1507,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         cdef int v_int = self.get_vertex(v)
 
-        return self._cg_rev._out_degree(v_int)
+        return self._cg_rev.out_degrees[v_int]
 
     def add_vertex(self, name):
         """
@@ -1830,7 +1846,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef int i
         if verts is None:
-            S = set(self.vertex_ints.iterkeys())
+            S = set(self.vertex_ints)
             for i in range((<CGraph>self._cg).active_vertices.size):
                 if (i not in self.vertex_labels and
                     bitset_in((<CGraph>self._cg).active_vertices, i)):
@@ -1911,7 +1927,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         TESTS:
 
-        Ensure that ticket #8395 is fixed. ::
+        Ensure that :trac:`8395` is fixed. ::
 
             sage: G = Graph({1:[1]}); G
             Looped graph on 1 vertex
@@ -1971,9 +1987,9 @@ cdef class CGraphBackend(GenericGraphBackend):
             1
         """
         if directed:
-            return self._cg._num_arcs()
+            return self._cg.num_arcs
         else:
-            i = self._cg._num_arcs()
+            i = self._cg.num_arcs
             k = 0
             if self.loops(None):
                 if self.multiple_edges(None):
@@ -2205,7 +2221,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: for (u,v) in G.edges(labels=None):
-            ...      G.set_edge_label(u,v,1)
+            ....:    G.set_edge_label(u,v,1)
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
             sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
@@ -2310,6 +2326,8 @@ cdef class CGraphBackend(GenericGraphBackend):
                         v_obj = self.vertex_label(v)
                         w_obj = self.vertex_label(w)
                         edge_label = weight_function((v_obj, w_obj, self.get_edge_label(v_obj, w_obj))) if side == 1 else weight_function((w_obj, v_obj, self.get_edge_label(w_obj, v_obj)))
+                        if edge_label < 0:
+                            raise ValueError("The graph contains an edge with negative weight!")
                         heappush(queue, (distance + edge_label, side, v, w))
 
         # No meeting point has been found
@@ -2490,15 +2508,15 @@ cdef class CGraphBackend(GenericGraphBackend):
         Visiting German cities using depth-first search::
 
             sage: G = Graph({"Mannheim": ["Frankfurt","Karlsruhe"],
-            ...   "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
-            ...   "Kassel": ["Frankfurt","Munchen"],
-            ...   "Munchen": ["Kassel","Nurnberg","Augsburg"],
-            ...   "Augsburg": ["Munchen","Karlsruhe"],
-            ...   "Karlsruhe": ["Mannheim","Augsburg"],
-            ...   "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
-            ...   "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
-            ...   "Stuttgart": ["Nurnberg"],
-            ...   "Erfurt": ["Wurzburg"]}, implementation="c_graph")
+            ....: "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
+            ....: "Kassel": ["Frankfurt","Munchen"],
+            ....: "Munchen": ["Kassel","Nurnberg","Augsburg"],
+            ....: "Augsburg": ["Munchen","Karlsruhe"],
+            ....: "Karlsruhe": ["Mannheim","Augsburg"],
+            ....: "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
+            ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
+            ....: "Stuttgart": ["Nurnberg"],
+            ....: "Erfurt": ["Wurzburg"]}, implementation="c_graph")
             sage: list(G.depth_first_search("Frankfurt"))
             ['Frankfurt', 'Wurzburg', 'Nurnberg', 'Munchen', 'Kassel', 'Augsburg', 'Karlsruhe', 'Mannheim', 'Stuttgart', 'Erfurt']
         """
@@ -2573,15 +2591,15 @@ cdef class CGraphBackend(GenericGraphBackend):
         Visiting German cities using breadth-first search::
 
             sage: G = Graph({"Mannheim": ["Frankfurt","Karlsruhe"],
-            ...   "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
-            ...   "Kassel": ["Frankfurt","Munchen"],
-            ...   "Munchen": ["Kassel","Nurnberg","Augsburg"],
-            ...   "Augsburg": ["Munchen","Karlsruhe"],
-            ...   "Karlsruhe": ["Mannheim","Augsburg"],
-            ...   "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
-            ...   "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
-            ...   "Stuttgart": ["Nurnberg"],
-            ...   "Erfurt": ["Wurzburg"]}, implementation="c_graph")
+            ....: "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
+            ....: "Kassel": ["Frankfurt","Munchen"],
+            ....: "Munchen": ["Kassel","Nurnberg","Augsburg"],
+            ....: "Augsburg": ["Munchen","Karlsruhe"],
+            ....: "Karlsruhe": ["Mannheim","Augsburg"],
+            ....: "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
+            ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
+            ....: "Stuttgart": ["Nurnberg"],
+            ....: "Erfurt": ["Wurzburg"]}, implementation="c_graph")
             sage: list(G.breadth_first_search("Frankfurt"))
             ['Frankfurt', 'Mannheim', 'Kassel', 'Wurzburg', 'Karlsruhe', 'Munchen', 'Erfurt', 'Nurnberg', 'Augsburg', 'Stuttgart']
         """
@@ -2775,13 +2793,13 @@ cdef class CGraphBackend(GenericGraphBackend):
         Checking acyclic graphs are indeed acyclic ::
 
             sage: def random_acyclic(n, p):
-            ...    g = graphs.RandomGNP(n, p)
-            ...    h = DiGraph()
-            ...    h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
-            ...    return h
+            ....:  g = graphs.RandomGNP(n, p)
+            ....:  h = DiGraph()
+            ....:  h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
+            ....:  return h
             ...
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
-            ...        for i in range(50))                              # long time
+            ....:      for i in range(50))                              # long time
             True
         """
         if not self._directed:

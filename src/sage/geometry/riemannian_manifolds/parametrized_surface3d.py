@@ -13,6 +13,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from itertools import product
 
@@ -108,11 +109,11 @@ class ParametrizedSurface3D(SageObject):
 
         sage: u, v = var('u, v', domain='real')
         sage: sphere = ParametrizedSurface3D((cos(u)*cos(v), sin(u)*cos(v), sin(v)), (u, v), 'sphere')
-        sage: print latex(sphere)
+        sage: print(latex(sphere))
         \left(\cos\left(u\right) \cos\left(v\right), \cos\left(v\right) \sin\left(u\right), \sin\left(v\right)\right)
-        sage: print sphere._latex_()
+        sage: print(sphere._latex_())
         \left(\cos\left(u\right) \cos\left(v\right), \cos\left(v\right) \sin\left(u\right), \sin\left(v\right)\right)
-        sage: print sphere
+        sage: print(sphere)
         Parametrized surface ('sphere') with equation (cos(u)*cos(v), cos(v)*sin(u), sin(v))
 
     To plot a parametric surface, use the :meth:`plot` member function::
@@ -179,7 +180,7 @@ class ParametrizedSurface3D(SageObject):
     determine the numerical value of the length integral::
 
         sage: L = sqrt(ellipsoid.first_fundamental_form(du, du).substitute(u1=u1,u2=u2))
-        sage: print numerical_integral(L.substitute(a=2, b=1.5, c=1),0,1)[0]
+        sage: numerical_integral(L.substitute(a=2, b=1.5, c=1),0,1)[0] # rel tol 1e-11
         2.00127905972
 
     We find the area of the sphere of radius $R$::
@@ -378,7 +379,7 @@ class ParametrizedSurface3D(SageObject):
             sage: u, v = var('u, v', domain='real')
             sage: eq = (3*u + 3*u*v^2 - u^3, 3*v + 3*u^2*v - v^3, 3*(u^2-v^2))
             sage: enneper = ParametrizedSurface3D(eq,[u,v],'enneper_surface')
-            sage: print enneper
+            sage: print(enneper)
             Parametrized surface ('enneper_surface') with equation (-u^3 + 3*u*v^2 + 3*u, 3*u^2*v - v^3 + 3*v, 3*u^2 - 3*v^2)
             sage: enneper._repr_()
             "Parametrized surface ('enneper_surface') with equation (-u^3 + 3*u*v^2 + 3*u, 3*u^2*v - v^3 + 3*v, 3*u^2 - 3*v^2)"
@@ -1497,6 +1498,7 @@ class ParametrizedSurface3D(SageObject):
         geodesic equations, used by :meth:`geodesics_numerical`.
 
         EXAMPLES::
+
            sage: p, q = var('p,q', domain='real')
            sage: sphere = ParametrizedSurface3D([cos(q)*cos(p),sin(q)*cos(p),sin(p)],[p,q],'sphere')
            sage: ode = sphere._create_geodesic_ode_system()
@@ -1520,9 +1522,9 @@ class ParametrizedSurface3D(SageObject):
         fun2 = fast_float(dv2, str(u1), str(u2), str(v1), str(v2))
 
         geodesic_ode = ode_solver()
-        geodesic_ode.function = \
-                              lambda t, (u1, u2, v1, v2) : \
-                              [v1, v2, fun1(u1, u2, v1, v2), fun2(u1, u2, v1, v2)]
+        geodesic_ode.function = (
+                              lambda t, u1_u2_v1_v2:
+                              [u1_u2_v1_v2[2], u1_u2_v1_v2[3], fun1(*u1_u2_v1_v2), fun2(*u1_u2_v1_v2)])
         return geodesic_ode
 
 
@@ -1608,6 +1610,7 @@ class ParametrizedSurface3D(SageObject):
          - ``t`` - curve parameter
 
         EXAMPLES::
+
            sage: p, q = var('p,q', domain='real')
            sage: sphere = ParametrizedSurface3D([cos(q)*cos(p),sin(q)*cos(p),sin(p)],[p,q],'sphere')
            sage: s = var('s')
@@ -1640,7 +1643,7 @@ class ParametrizedSurface3D(SageObject):
         fun2 = fast_float(dv2, str(t), str(v1), str(v2))
 
         pt_ode = ode_solver()
-        pt_ode.function = lambda t, (v1, v2): [fun1(t, v1, v2), fun2(t, v1, v2)]
+        pt_ode.function = lambda t, v1_v2: [fun1(t, v1_v2[0], v1_v2[1]), fun2(t, v1_v2[0], v1_v2[1])]
         return pt_ode
 
 

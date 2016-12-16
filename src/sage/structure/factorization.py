@@ -25,8 +25,7 @@ It prints in a nice factored form::
     sage: F
     -1 * 3^2 * 5
 
-There is an underlying list representation, \emph{which ignores the
-unit part}::
+There is an underlying list representation, which ignores the unit part::
 
     sage: list(F)
     [(3, 2), (5, 1)]
@@ -181,6 +180,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
@@ -292,8 +292,8 @@ class Factorization(SageObject):
         """
         if not isinstance(x, list):
             raise TypeError("x must be a list")
-        for i in xrange(len(x)):
-            t=x[i]
+        for i in range(len(x)):
+            t = x[i]
             if not (isinstance(t, tuple) and len(t) == 2):
                 raise TypeError("x must be a list of pairs (p, e) with e an integer")
             if not isinstance(t[1],(int, long, Integer)):
@@ -342,7 +342,7 @@ class Factorization(SageObject):
             ...
             IndexError: list index out of range
         """
-        return self.__x.__getitem__(i)
+        return self.__x[i]
 
     def __setitem__(self, i, v):
         """
@@ -638,27 +638,35 @@ class Factorization(SageObject):
         if repeat:
             self.simplify()
 
-    def sort(self, _cmp=None):
+    def sort(self, _cmp=None, key=None):
         r"""
         Sort the factors in this factorization.
 
         INPUT:
 
-        - ``_cmp`` - (default: None) comparison function
+        - ``_cmp`` - (default: ``None``) comparison function (deprecated)
+        - ``key`` - (default: ``None``) comparison key
 
         OUTPUT:
 
-        - changes this factorization to be sorted
+        - changes this factorization to be sorted (inplace)
 
-        If _cmp is None, we determine the comparison function as
-        follows: If the prime in the first factor has a dimension
+        If ``_cmp`` is ``None``, we use a comparison key.
+
+        If ``key`` is ``None``, we determine the comparison key as
+        follows:
+
+        If the prime in the first factor has a dimension
         method, then we sort based first on *dimension* then on
-        the exponent.  If there is no dimension method, we next
+        the exponent.
+
+        If there is no dimension method, we next
         attempt to sort based on a degree method, in which case, we
         sort based first on *degree*, then exponent to break ties
         when two factors have the same degree, and if those match
-        break ties based on the actual prime itself.  If there is no
-        degree method, we sort based on dimension.
+        break ties based on the actual prime itself.
+
+        Otherwise, we sort according to the prime itself.
 
         EXAMPLES:
 
@@ -668,52 +676,62 @@ class Factorization(SageObject):
             sage: F = factor(x^3 + 1); F
             (x + 1) * (x^2 - x + 1)
 
-        Then we sort it but using the negated version of the standard
-        Python cmp function::
+        We sort it by decreasing degree::
 
-            sage: F.sort(_cmp = lambda x,y: -cmp(x,y))
+            sage: F.sort(key=lambda x:(-x[0].degree(), x))
+            sage: F
+            (x^2 - x + 1) * (x + 1)
+
+        TESTS:
+
+        We sort it using the negated version of the
+        Python cmp function (using ``_cmp`` is deprecated)::
+
+            sage: F.sort(_cmp=lambda x,y: -cmp(x,y))
+            doctest:...: DeprecationWarning: Please use 'key' to sort.
+            See http://trac.sagemath.org/21145 for details.
             sage: F
             (x^2 - x + 1) * (x + 1)
         """
         if len(self) == 0:
             return
-        if _cmp is None:
+
+        if _cmp is not None:
+            from functools import cmp_to_key
+            from sage.misc.superseded import deprecation
+            deprecation(21145, "Please use 'key' to sort.")
+            self.__x.sort(key=cmp_to_key(_cmp))
+            return
+
+        if key is not None:
+            self.__x.sort(key=key)
+            return
+
+        a = self.__x[0][0]
+        sort_key = None
+        if hasattr(a, 'dimension'):
             try:
-                a = self.__x[0][0].dimension()
-                def _cmp(f,g):
-                    """
-                    This is used internally for comparing.  (indirect doctest)
+                a.dimension()
 
-                    EXAMPLES::
+                def sort_key(f):
+                    return (f[0].dimension(), f[1], f[0])
+            except (AttributeError, NotImplementedError, TypeError):
+                pass
+        elif hasattr(a, 'degree'):
+            try:
+                a.degree()
 
-                        sage: factor(6)
-                        2 * 3
-                    """
-                    try:
-                        return cmp((f[0].dimension(), f[1]), (g[0].dimension(),g[1]))
-                    except (AttributeError, NotImplementedError):
-                        return cmp((f[0],f[1]), (g[0], g[1]))
-            except (AttributeError, NotImplementedError):
-                try:
-                    a = self.__x[0][0].degree()
-                    def _cmp(f,g):
-                        """
-                        This is used internally for comparing.  (indirect doctest)
+                def sort_key(f):
+                    return (f[0].degree(), f[1], f[0])
+            except (AttributeError, NotImplementedError, TypeError):
+                pass
 
-                        EXAMPLES::
+        if sort_key is None:
 
-                            sage: factor(6)
-                            2 * 3
-                        """
-                        try:
-                            return cmp((f[0].degree(),f[1],f[0]), (g[0].degree(),g[1],g[0]))
-                        except (AttributeError, NotImplementedError):
-                            return cmp(f[0], g[0])
-                except (AttributeError, NotImplementedError, TypeError):  # TypeError in case degree must take an argument, e.g., for symbolic expressions it has to.
-                    self.__x.sort()
-                    return
+            def sort_key(f):
+                return f[0]
 
-        self.__x.sort(_cmp)
+        self.__x.sort(key=sort_key)
 
     def unit(self):
         r"""
@@ -1077,7 +1095,7 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).union(set(d2.keys())):
+            for a in set(d1).union(set(d2)):
                 s[a] = d1.get(a,0) + d2.get(a,0)
             return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
         else:
@@ -1143,7 +1161,7 @@ class Factorization(SageObject):
         return Factorization([(p,-e) for p,e in reversed(self)],
             cr=self._cr(), unit=self.unit()**(-1))
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Return the quotient of two factorizations, which is obtained by
         multiplying the first by the inverse of the second.
@@ -1166,6 +1184,8 @@ class Factorization(SageObject):
         if not isinstance(other, Factorization):
             return self / Factorization([(other, 1)])
         return self * other**-1
+
+    __div__ = __truediv__
 
     def value(self):
         """
@@ -1226,7 +1246,7 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).intersection(set(d2.keys())):
+            for a in set(d1).intersection(set(d2)):
                 s[a] = min(d1[a],d2[a])
             return Factorization(list(s.iteritems()))
         else:
@@ -1268,7 +1288,7 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).union(set(d2.keys())):
+            for a in set(d1).union(set(d2)):
                 s[a] = max(d1.get(a,0),d2.get(a,0))
             return Factorization(list(s.iteritems()))
         else:

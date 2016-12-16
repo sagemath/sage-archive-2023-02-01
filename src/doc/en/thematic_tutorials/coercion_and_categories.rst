@@ -104,14 +104,15 @@ it makes sense to build on top of the base class
 This base class provides a lot more methods than a general parent::
 
     sage: [p for p in dir(Field) if p not in dir(Parent)]
-    ['__div__',
-     '__fraction_field',
+    ['__fraction_field',
      '__ideal_monoid',
      '__iter__',
+     '__len__',
      '__pow__',
-     '__rdiv__',
      '__rpow__',
+     '__rtruediv__',
      '__rxor__',
+     '__truediv__',
      '__xor__',
      '_an_element',
      '_an_element_c',
@@ -119,7 +120,6 @@ This base class provides a lot more methods than a general parent::
      '_coerce_',
      '_coerce_c',
      '_coerce_impl',
-     '_coerce_self',
      '_coerce_try',
      '_default_category',
      '_gcd_univariate_polynomial',
@@ -140,7 +140,6 @@ This base class provides a lot more methods than a general parent::
      'cardinality',
      'class_group',
      'coerce_map_from_c',
-     'coerce_map_from_impl',
      'content',
      'divides',
      'epsilon',
@@ -153,7 +152,6 @@ This base class provides a lot more methods than a general parent::
      'get_action_c',
      'get_action_impl',
      'has_coerce_map_from_c',
-     'has_coerce_map_from_impl',
      'ideal',
      'ideal_monoid',
      'integral_closure',
@@ -167,7 +165,6 @@ This base class provides a lot more methods than a general parent::
      'is_ring',
      'is_subring',
      'krull_dimension',
-     'list',
      'ngens',
      'one',
      'order',
@@ -191,7 +188,7 @@ be complemented later.
     sage: class MyFrac(UniqueRepresentation, Field):
     ....:     def __init__(self, base):
     ....:         if base not in IntegralDomains():
-    ....:             raise ValueError, "%s is no integral domain"%base
+    ....:             raise ValueError("%s is no integral domain" % base)
     ....:         Field.__init__(self, base)
     ....:     def _repr_(self):
     ....:         return "NewFrac(%s)"%repr(self.base())
@@ -220,9 +217,9 @@ This basic implementation is formed by the following steps:
 
   .. end of output
 
-  We are implementing a seperate method returning the base ring.
+  We are implementing a separate method returning the base ring.
 
-- Python uses double\--underscore methods for arithemetic methods and string
+- Python uses double\--underscore methods for arithmetic methods and string
   representations. Sage's base classes often have a default implementation,
   and it is requested to **implement SINGLE underscore methods _repr_, and
   similarly _add_, _mul_ etc.**
@@ -469,19 +466,19 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    58
+    59
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    86
+    89
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
 
     sage: MS1.__class__.__bases__
     (<class 'sage.matrix.matrix_space.MatrixSpace'>,
-     <class 'sage.categories.vector_spaces.VectorSpaces.parent_class'>)
+    <class 'sage.categories.category.JoinCategory.parent_class'>)
     sage: MS2.__class__.__bases__
     (<class 'sage.matrix.matrix_space.MatrixSpace'>,
-     <class 'sage.categories.algebras.Algebras.parent_class'>)
+    <class 'sage.categories.category.JoinCategory.parent_class'>)
 
 .. end of output
 
@@ -577,7 +574,7 @@ category::
     sage: class MyFrac(MyFrac):
     ....:     def __init__(self, base, category=None):
     ....:         if base not in IntegralDomains():
-    ....:             raise ValueError, "%s is no integral domain"%base
+    ....:             raise ValueError("%s is no integral domain" % base)
     ....:         Field.__init__(self, base, category=category or QuotientFields())
 
 When constructing instances of ``MyFrac``, their class is dynamically changed
@@ -881,7 +878,7 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Category of euclidean domains
+          Join of Category of euclidean domains and Category of metric spaces
 
       .. end of output
 
@@ -1597,6 +1594,7 @@ Let us see what tests are actually performed::
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
+      running ._test_new() . . . pass
       running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
@@ -1608,6 +1606,7 @@ Let us see what tests are actually performed::
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -1767,6 +1766,7 @@ interesting.
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
       running ._test_factorisation() . . . pass
+      running ._test_new() . . . pass
       running ._test_nonzero_equal() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
@@ -1778,6 +1778,7 @@ interesting.
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
@@ -1891,7 +1892,7 @@ Appendix: The complete code
         def __init__(self, base, category=None):
             # Fraction fields only exist for integral domains
             if base not in IntegralDomains():
-                raise ValueError, "%s is no integral domain"%base
+                raise ValueError("%s is no integral domain" % base)
             # Implement the category framework for the parent
             Field.__init__(self, base, category=category or QuotientFields())
 

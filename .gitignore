@@ -4,7 +4,6 @@
 /local
 /logs
 /upstream
-/src/mac-app/build
 
 #############################
 # Autotools generated files #
@@ -76,3 +75,9 @@ $RECYCLE.BIN/
 *.sage-chat
 *.sage-history
 *.syncdoc*
+
+###########
+# Jupyter #
+###########
+.ipynb_checkpoints
+Untitled*.ipynb

@@ -1,5 +1,5 @@
 r"""
-Multivariate Power Series.
+Multivariate Power Series
 
 Construct and manipulate multivariate power series (in finitely many
 variables) over a given commutative ring. Multivariate power series
@@ -157,7 +157,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.power_series_ring_element import PowerSeries
-
+from sage.structure.sage_object import richcmp
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
 
@@ -220,7 +220,7 @@ class MPowerSeries(PowerSeries):
     #
     # _mul_prec : works just fine
     #
-    # __nonzero__ : works just fine
+    # __bool__ : works just fine
     #
     """
     Multivariate power series; these are the elements of Multivariate Power
@@ -654,12 +654,12 @@ class MPowerSeries(PowerSeries):
             - 2*a^2*c - 5*a*b^2 - 4*a*b*c - b^3 - 2*b^2*c + O(a, b, c)^4
         """
         if self.valuation() == 0:
-            return self.parent(self._bg_value.__invert__())
+            return self.parent(~self._bg_value)
         else:
             raise NotImplementedError("Multiplicative inverse of multivariate power series currently implemented only if constant coefficient is a unit.")
 
     ## comparisons
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` to ``other``.
 
@@ -691,8 +691,7 @@ class MPowerSeries(PowerSeries):
             sage: f < 2*f
             True
         """
-        return cmp(self._bg_value,other._bg_value)
-
+        return richcmp(self._bg_value, other._bg_value, op)
 
     ## arithmetic
     def _add_(left, right):
@@ -759,10 +758,6 @@ class MPowerSeries(PowerSeries):
         """
         f = left._bg_value * right._bg_value
         return MPowerSeries(left.parent(), f, prec=f.prec())
-
-#    def _rmul_(self, c):
-#        # multivariate power series rings are assumed to be commutative
-#        return self._lmul_(c)
 
     def _lmul_(self, c):
         """
@@ -1024,7 +1019,7 @@ class MPowerSeries(PowerSeries):
             True
         """
         if denom_r.is_unit(): # faster if denom_r is a unit
-            return self.parent(self._bg_value * denom_r._bg_value.__invert__())
+            return self.parent(self._bg_value * ~denom_r._bg_value)
         quo, rem = self.quo_rem(denom_r)
         if rem:
             raise ValueError("not divisible")
@@ -1694,9 +1689,9 @@ class MPowerSeries(PowerSeries):
             sage: aa.is_gen()
             False
             sage: aa.integral(aa)
-            -2*a^2
+            3*a^2
             sage: aa.integral(a)
-            -2*a^2
+            3*a^2
         """
         P = self.parent()
         R = P.base_ring()

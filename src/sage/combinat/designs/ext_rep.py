@@ -7,12 +7,7 @@ block designs. The module also provides the related I/O operations for
 reading/writing ext-rep files or data. The parsing is based on expat.
 
 This is a modified form of the module ext_rep.py (version 0.8)
-written by Peter Dobcsanyi [D2009]_ peter@designtheory.org.
-
-REFERENCES:
-
-.. [D2009] P. Dobcsanyi et al. DesignTheory.org
-   http://designtheory.org/database/
+written by Peter Dobcsanyi [Do2009]_ peter@designtheory.org.
 
 .. TODO::
 
@@ -40,14 +35,16 @@ Functions
 
 import sys
 import xml.parsers.expat
-from types import *
 import re
 import os.path
 import gzip
 import bz2
 from sage.misc.all import tmp_filename
-import urllib2
 import sys
+
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlopen
+from six import string_types
 
 XML_NAMESPACE   = 'http://designtheory.org/xml-namespace'
 DTRS_PROTOCOL   = '2.0'
@@ -559,7 +556,7 @@ def open_extrep_url(url):
         sage: s = ext_rep.designs_from_XML_url("http://designtheory.org/database/v-b-k/v3-b6-k2.icgsa.txt.bz2") # optional - internet
     """
 
-    f = urllib2.urlopen(url)
+    f = urlopen(url)
 
     root, ext = os.path.splitext(url)
     if ext == '.gz':
@@ -666,7 +663,7 @@ class XTree(object):
         """
 
 
-        if isinstance(node, StringType):
+        if isinstance(node, string_types):
             node = (node, {}, [])
         name, attributes, children = node
         self.xt_node = node
@@ -713,7 +710,7 @@ class XTree(object):
                             # need this to get an empty Xtree, for append
                             return XTree(child)
                         grandchild = children[0]
-                        if isinstance(grandchild, TupleType):
+                        if isinstance(grandchild, tuple):
                             if len(grandchild[1]) == 0 and \
                                 len(grandchild[2]) == 0:
                                 return grandchild[0]
@@ -748,14 +745,14 @@ class XTree(object):
         try:
             child = self.xt_children[i]
         except IndexError:
-            raise IndexError('{} has no index {}'.format(self.__repr__(), i))
-        if isinstance(child, TupleType):
+            raise IndexError('{!r} has no index {}'.format(self, i))
+        if isinstance(child, tuple):
             name, attributes, children = child
             if len(attributes) > 0:
                 return XTree(child)
             else:
                 grandchild = children[0]
-                if isinstance(grandchild, TupleType):
+                if isinstance(grandchild, tuple):
                     if len(grandchild[1]) == 0 and len(grandchild[2]) == 0:
                         return grandchild[0]
                     else:
@@ -899,7 +896,7 @@ class XTreeProcessor(object):
 
         if self.in_item:
             children = self.current_node[2]
-            if len(children) > 0 and isinstance(children[0], TupleType):
+            if len(children) > 0 and isinstance(children[0], tuple):
                 if children[0][0] == 'z' or children[0][0] == 'd' \
                    or children[0][0] == 'q':
                     if children[0][0] == 'z':
@@ -996,10 +993,11 @@ class XTreeProcessor(object):
         p.CharacterDataHandler = self._char_data
         p.returns_unicode = 0
 
-        if isinstance(xml_source, StringType):
+        if isinstance(xml_source, string_types):
             p.Parse(xml_source)
         else:
             p.ParseFile(xml_source)
+
 
 def designs_from_XML(fname):
     """
@@ -1065,4 +1063,3 @@ def designs_from_XML_url(url):
     proc.parse(s)
 
     return proc.list_of_designs
-

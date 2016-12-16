@@ -18,7 +18,7 @@ from sage.rings.all import QQ, ZZ
 from sage.misc.misc_c import prod
 
 from sage.combinat.combinat import stirling_number2
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.polynomial.polynomial_ring import polygen
 
 from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
@@ -137,9 +137,7 @@ class HyperplaneArrangementLibrary(object):
 
         REFERENCES:
 
-        ..  [BigraphicalArrangements] S. Hopkins, D. Perkinson.
-            "Bigraphical Arrangements".
-            :arxiv:`1212.4398`
+        - [HP2016]_
         """
         n = G.num_verts()
         if A is None:  # default to G-semiorder arrangement
@@ -399,9 +397,7 @@ class HyperplaneArrangementLibrary(object):
 
         REFERENCES:
 
-        ..  [AR] D. Armstrong, B. Rhoades
-            "The Shi arrangement and the Ish arrangement"
-            :arxiv:`1009.1655`
+        - [AR2012]_
         """
         H = make_parent(K, n, names)
         x = H.gens()

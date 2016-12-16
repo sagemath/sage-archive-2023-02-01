@@ -180,7 +180,7 @@ class ConjugacyClass(Parent):
             sage: a = G(a)
             sage: C = ConjugacyClass(G, a)
             sage: it = iter(C)
-            sage: [next(it) for _ in range(5)]
+            sage: [next(it) for _ in range(5)] # random (nothing guarantees enumeration order)
             [
             [1 1]  [ 2  1]  [ 0  1]  [ 3  1]  [ 3  4]
             [0 1], [-1  0], [-1  2], [-4 -1], [-1 -1]

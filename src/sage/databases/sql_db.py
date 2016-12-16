@@ -72,6 +72,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import sqlite3 as sqlite
 import os
 import re
@@ -104,8 +106,7 @@ def regexp(expr, item):
 
     REFERENCES:
 
-    .. [GH2005] Gerhard Haring. [Online] Available:
-        http://lists.initd.org/pipermail/pysqlite/2005-November/000253.html
+    - [Ha2005]_
 
     EXAMPLES::
 
@@ -240,7 +241,7 @@ def construct_skeleton(database):
     skeleton = {}
     cur = database.__connection__.cursor()
     exe = cur.execute("SELECT name FROM sqlite_master WHERE TYPE='table'")
-    from sage.env import SAGE_SHARE
+    from sage.env import GRAPHS_DATA_DIR
     for table in exe.fetchall():
         skeleton[table[0]] = {}
         exe1 = cur.execute("PRAGMA table_info(%s)"%table[0])
@@ -255,7 +256,7 @@ def construct_skeleton(database):
         for col in exe2.fetchall():
             if col[1].find('sqlite') == -1:
                 if database.__dblocation__ == \
-                        os.path.join(SAGE_SHARE,'graphs','graphs.db'):
+                        os.path.join(GRAPHS_DATA_DIR,'graphs.db'):
                     name = col[1]
                 else:
                     name = col[1][len(table[0])+3:]
@@ -1077,7 +1078,7 @@ class SQLDatabase(SageObject):
             sage: replace_with_filepath = tmp_dir() + 'test.db'
             sage: SD = SQLDatabase(replace_with_filepath, False)
             sage: SD.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}})
-            sage: print SD
+            sage: print(SD)
             table simon:
                 column n: index: True; unique: False; primary_key: False;
                     sql: INTEGER;

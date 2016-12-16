@@ -15,7 +15,7 @@ def AdditiveAbelianGroup(invs, remember_generators = True):
     r"""
     Construct a finitely-generated additive abelian group.
 
-    INPUTS:
+    INPUT:
 
     - ``invs`` (list of integers): the invariants.
       These should all be greater than or equal to zero.
@@ -134,9 +134,10 @@ def cover_and_relations_from_invariants(invs):
         [0 2 0]
         [0 0 3])
     """
+    from six.moves import range
     n = len(invs)
     A = ZZ**n
-    B = A.span([A.gen(i) * invs[i] for i in xrange(n)])
+    B = A.span([A.gen(i) * invs[i] for i in range(n)])
     return (A, B)
 
 
@@ -163,12 +164,13 @@ class AdditiveAbelianGroupElement(FGP_Element):
             sage: v._hermite_lift()
             (1, 0)
         """
+        from six.moves import range
         y = self.lift()
         H = self.parent().W().basis_matrix()
         pivot_rows = H.pivot_rows()
         pivots = H.pivots()
 
-        for i in xrange(H.nrows()):
+        for i in range(H.nrows()):
             if i in pivot_rows:
                 j = pivots[i]
                 N = H[i,j]
@@ -284,7 +286,7 @@ class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
             return "Trivial group"
         return " + ".join("Z" if j == +oo else "Z/%s"%j for j in invs)
 
-    def _module_constructor(self, cover, relations):
+    def _module_constructor(self, cover, relations, check=True):
         r"""
         Construct quotients of groups.
 
@@ -294,7 +296,9 @@ class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
 
         - ``relations`` -- the relations as submodule of ``cover``.
 
-        EXAMPLE::
+        - ``check`` -- ignored, present for compatibility with ``fg_pid`` code.
+
+        EXAMPLES::
 
             sage: G = AdditiveAbelianGroup([0, 4, 2]); G
             Additive abelian group isomorphic to Z + Z/4 + Z/2
@@ -304,6 +308,15 @@ class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
             Additive abelian group isomorphic to Z/2 + Z
             sage: G._module_constructor(G.cover(),H.cover()+G.relations())
             Additive abelian group isomorphic to Z/2 + Z
+
+        TESTS:
+
+        Check that :trac:`21027` is fixed::
+
+            sage: G = AdditiveAbelianGroup([2,2,2])
+            sage: phi = G.hom([G.0, G.0, G.0])
+            sage: phi.image()
+            Additive abelian group isomorphic to Z/2
         """
         return AdditiveAbelianGroup_class(cover, relations)
 
@@ -401,7 +414,7 @@ class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
             Additive abelian group isomorphic to Z/3
         """
         AdditiveAbelianGroup_class.__init__(self, cover, rels)
-        self._orig_gens = [self(x) for x in gens]
+        self._orig_gens = tuple(self(x) for x in gens)
 
     def gens(self):
         r"""
@@ -416,7 +429,7 @@ class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
             sage: G.smith_form_gens()
             ((1, 2),)
         """
-        return tuple(self._orig_gens)
+        return self._orig_gens
 
     def identity(self):
         r"""

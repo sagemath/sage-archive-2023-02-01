@@ -1,3 +1,5 @@
+cimport sage.rings.number_field.number_field_element_quadratic as nfeq
+
 from sage.libs.arb.arb cimport arb_t
 from sage.libs.mpfi cimport mpfi_t
 from sage.rings.real_mpfi cimport RealIntervalField_class, RealIntervalFieldElement
@@ -6,6 +8,7 @@ from sage.structure.element cimport RingElement
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision)
 cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -1
+cdef int real_part_of_quadratic_element_to_arb(arb_t res, nfeq.NumberFieldElement_quadratic x, const long prec) except -1
 
 cdef class RealBall(RingElement):
     cdef arb_t value

@@ -17,7 +17,7 @@ instead you see a folder called "sage", proceed as follows.
 2) Drag the sage folder somewhere, e.g., /Applications
 
  ** WARNING ** If you get an error copying the folder do the following:
-    Do not drag the the folder out of the dmg image. Use the
+    Do not drag the folder out of the dmg image. Use the
     shell (via Terminal) and do a
      "cp -R -P /Volumes/sage-2.9.2-OSX10.4-intel-i386-Darwin/sage ."
     from the location where you want to install to. Adjust the name of the
@@ -148,12 +148,13 @@ You will of course have to restart Sage.app
 Building
 --------
 
-If you wish to build a copy of Sage.app for yourself, you can run
+To build Sage.app yourself, you just have to run "make" in the
+SAGE_ROOT/src/mac-app directory. This app will only work locally
+because the contained Sage is not relocatable. To build a binary
+distribution that can be installed to a different directory you must
+use https://github.com/sagemath/binary-pkg
 
-SAGE_APP_BUNDLE=yes sage -bdist VERSION
-
-which will create a version that is bundled with a binary
-distribution.  If you wish to make changes, or create a version which
+If you wish to make changes, or create a version which
 does not contain a distribution, then open
 src/mac-app/Sage.xcodeproj in Xcode.  If you are
 building on OS X 10.4, then you will need to change the SDK by opening

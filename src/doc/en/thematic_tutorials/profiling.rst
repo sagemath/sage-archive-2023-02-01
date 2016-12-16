@@ -99,7 +99,7 @@ when ``code_to_run`` is executed::
   1193                                           def random_prime(n, proof=None, lbound=2):
   ...                                                ...
   1251                                               # since we don't want current_randstate to get
-  1252                                               # pulled when you say "from sage.arith import *".
+  1252                                               # pulled when you say "from sage.arith.all import *".
   1253         1           11     11.0      0.0      from sage.misc.randstate import current_randstate
   1254         1            7      7.0      0.0      from sage.structure.proof.proof import get_flag
   1255         1            6      6.0      0.0      proof = get_flag(proof, "arithmetic")

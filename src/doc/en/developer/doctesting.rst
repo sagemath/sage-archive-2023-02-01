@@ -830,6 +830,25 @@ In order to just run the tests that are marked as requiring magma, omit ``sage``
         cpu time: 0.1 seconds
         cumulative wall time: 2.0 seconds
 
+If you want Sage to detect external software or other capabilities
+(such as magma, latex, internet) automatically and run all of the
+relevant tests, then add ``external``::
+
+    $ sage -t --optional=external src/sage/rings/real_mpfr.pyx 
+    Running doctests with ID 2016-03-16-14-10-21-af2ebb67.
+    Using --optional=external
+    External software to be detected: cplex,gurobi,internet,latex,macaulay2,magma,maple,mathematica,matlab,octave,scilab
+    Doctesting 1 file.
+    sage -t --warn-long 28.0 src/sage/rings/real_mpfr.pyx
+        [5 tests, 0.04 s]
+    ----------------------------------------------------------------------
+    All tests passed!
+    ----------------------------------------------------------------------
+    Total time for all tests: 0.5 seconds
+        cpu time: 0.0 seconds
+        cumulative wall time: 0.0 seconds
+    External software detected for doctesting: magma
+
 To run all tests, regardless of whether they are marked optional, pass ``all`` as the ``optional`` tag::
 
     [roed@sage sage-6.0]$ sage -t --optional=all src/sage/rings/real_mpfr.pyx

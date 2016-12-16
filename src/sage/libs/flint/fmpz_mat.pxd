@@ -1,3 +1,5 @@
+# distutils: libraries = flint
+
 from sage.libs.flint.types cimport fmpz_t, fmpz_poly_t, fmpz_mat_t
 
 cdef extern from "flint/fmpz_mat.h":
@@ -19,7 +21,8 @@ cdef extern from "flint/fmpz_mat.h":
     void fmpz_mat_add(fmpz_mat_t C, const fmpz_mat_t A, const fmpz_mat_t B)
     void fmpz_mat_sub(fmpz_mat_t C, const fmpz_mat_t A, const fmpz_mat_t B)
     void fmpz_mat_pow(fmpz_mat_t C, const fmpz_mat_t A, unsigned long n)
-    int fmpz_mat_is_zero(const fmpz_mat_t mat)
+    bint fmpz_mat_is_zero(const fmpz_mat_t mat)
+    bint fmpz_mat_is_one(const fmpz_mat_t mat)
     void fmpz_mat_charpoly(fmpz_poly_t cp, const fmpz_mat_t mat)
     void fmpz_mat_det(fmpz_t det, const fmpz_mat_t A)
     int fmpz_mat_inv(fmpz_mat_t Ainv, fmpz_t den, const fmpz_mat_t A)
@@ -30,3 +33,5 @@ cdef extern from "flint/fmpz_mat.h":
     long fmpz_mat_rank(const fmpz_mat_t A)
     int fmpz_mat_solve(fmpz_mat_t X, fmpz_t den, const fmpz_mat_t A, const fmpz_mat_t B)
     long fmpz_mat_nullspace(fmpz_mat_t B, const fmpz_mat_t A)
+    void fmpz_mat_hnf(fmpz_mat_t H , const fmpz_mat_t A)
+    void fmpz_mat_hnf_transform(fmpz_mat_t H, fmpz_mat_t U, const fmpz_mat_t A)

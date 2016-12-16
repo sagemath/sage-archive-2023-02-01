@@ -142,7 +142,7 @@ class FiniteDimensionalAlgebraMorphism(RingHomomorphism_im_gens):
             sage: phi != H.zero()
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def matrix(self):
         """

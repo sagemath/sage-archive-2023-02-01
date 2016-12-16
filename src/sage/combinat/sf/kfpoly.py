@@ -20,6 +20,7 @@ which can be found at http://www.math.lsa.umich.edu/~jrs/maple.html
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage.combinat.partition
 from sage.rings.polynomial.polynomial_ring import polygen
@@ -129,45 +130,45 @@ def schur_to_hl(mu, t=None):
         sage: schur_to_hl([1,1,1])
         {[1, 1, 1]: 1}
         sage: a = schur_to_hl([2,1])
-        sage: for m,c in sorted(a.iteritems()): print m, c
-        [1, 1, 1] t^2 + t
-        [2, 1] 1
+        sage: for mc in sorted(a.iteritems()): print(mc)
+        ([1, 1, 1], t^2 + t)
+        ([2, 1], 1)
         sage: a = schur_to_hl([3])
-        sage: for m,c in sorted(a.iteritems()): print m, c
-        [1, 1, 1] t^3
-        [2, 1] t
-        [3] 1
+        sage: for mc in sorted(a.iteritems()): print(mc)
+        ([1, 1, 1], t^3)
+        ([2, 1], t)
+        ([3], 1)
         sage: a = schur_to_hl([4])
-        sage: for m,c in sorted(a.iteritems()): print m, c
-        [1, 1, 1, 1] t^6
-        [2, 1, 1] t^3
-        [2, 2] t^2
-        [3, 1] t
-        [4] 1
+        sage: for mc in sorted(a.iteritems()): print(mc)
+        ([1, 1, 1, 1], t^6)
+        ([2, 1, 1], t^3)
+        ([2, 2], t^2)
+        ([3, 1], t)
+        ([4], 1)
         sage: a = schur_to_hl([3,1])
-        sage: for m,c in sorted(a.iteritems()): print m, c
-        [1, 1, 1, 1] t^5 + t^4 + t^3
-        [2, 1, 1] t^2 + t
-        [2, 2] t
-        [3, 1] 1
+        sage: for mc in sorted(a.iteritems()): print(mc)
+        ([1, 1, 1, 1], t^5 + t^4 + t^3)
+        ([2, 1, 1], t^2 + t)
+        ([2, 2], t)
+        ([3, 1], 1)
         sage: a = schur_to_hl([2,2])
-        sage: for m,c in sorted(a.iteritems()): print m, c
-        [1, 1, 1, 1] t^4 + t^2
-        [2, 1, 1] t
-        [2, 2] 1
+        sage: for mc in sorted(a.iteritems()): print(mc)
+        ([1, 1, 1, 1], t^4 + t^2)
+        ([2, 1, 1], t)
+        ([2, 2], 1)
         sage: a = schur_to_hl([2,1,1])
-        sage: for m,c in sorted(a.iteritems()): print m, c
-        [1, 1, 1, 1] t^3 + t^2 + t
-        [2, 1, 1] 1
+        sage: for mc in sorted(a.iteritems()): print(mc)
+        ([1, 1, 1, 1], t^3 + t^2 + t)
+        ([2, 1, 1], 1)
         sage: a = schur_to_hl([1,1,1,1])
-        sage: for m,c in sorted(a.iteritems()): print m, c
-        [1, 1, 1, 1] 1
+        sage: for mc in sorted(a.iteritems()): print(mc)
+        ([1, 1, 1, 1], 1)
         sage: a = schur_to_hl([2,2,2])
-        sage: for m,c in sorted(a.iteritems()): print m, c
-        [1, 1, 1, 1, 1, 1] t^9 + t^7 + t^6 + t^5 + t^3
-        [2, 1, 1, 1, 1] t^4 + t^2
-        [2, 2, 1, 1] t
-        [2, 2, 2] 1
+        sage: for mc in sorted(a.iteritems()): print(mc)
+        ([1, 1, 1, 1, 1, 1], t^9 + t^7 + t^6 + t^5 + t^3)
+        ([2, 1, 1, 1, 1], t^4 + t^2)
+        ([2, 2, 1, 1], t)
+        ([2, 2, 2], 1)
     """
     if mu == []:
         return {mu: 1}
@@ -365,28 +366,3 @@ def weight(rg, t=None):
             mu = nu[k-1][i]-nu[k][i]
             res *= t**int((mu*(mu-1)/2))
     return res
-
-def q_bin(a,b,t=None):
-    r"""
-    Returns the `t`-binomial coefficient `[a+b,b]_t`.
-
-    INPUT:
-
-    - ``a``, ``b`` -- two nonnegative integers
-
-    By definition `[a+b,b]_t = (1-t)(1-t^2) \cdots (1-t^{a+b}) / ((1-t) \cdots (1-t^b) (1-t) \cdots (1-t^a))`.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.sf.kfpoly import q_bin
-        sage: t = PolynomialRing(ZZ, 't').gen()
-        sage: q_bin(4,2, t)
-        doctest:...: DeprecationWarning: please use sage.combinat.q_analogues.q_binomial instead
-        See http://trac.sagemath.org/14496 for details.
-        t^8 + t^7 + 2*t^6 + 2*t^5 + 3*t^4 + 2*t^3 + 2*t^2 + t + 1
-        sage: q_bin(4,3, t)
-        t^12 + t^11 + 2*t^10 + 3*t^9 + 4*t^8 + 4*t^7 + 5*t^6 + 4*t^5 + 4*t^4 + 3*t^3 + 2*t^2 + t + 1
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14496,'please use sage.combinat.q_analogues.q_binomial instead')
-    return sage.combinat.q_analogues.q_binomial(a+b,b,t)

@@ -21,6 +21,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.global_options import GlobalOptions
@@ -32,73 +34,11 @@ from sage.rings.all import QQ
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, KRRCSimplyLacedElement, KRRCNonSimplyLacedElement,
      KRRCTypeA2DualElement)
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
-
-RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
-    doc=r"""
-    Sets and displays the global options for rigged configurations.
-    If no parameters are set, then the function returns a copy of
-    the options dictionary.
-
-    The ``options`` to partitions can be accessed as the method
-    :obj:`RiggedConfigurations.global_options` of
-    :class:`RiggedConfigurations`.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: RC = RiggedConfigurations(['A',3,1], [[2,2],[1,1],[1,1]])
-        sage: elt = RC(partition_list=[[3,1], [3], [1]])
-        sage: elt
-        <BLANKLINE>
-        -3[ ][ ][ ]-3
-        -1[ ]-1
-        <BLANKLINE>
-        1[ ][ ][ ]1
-        <BLANKLINE>
-        -1[ ]-1
-        <BLANKLINE>
-        sage: RiggedConfigurations.global_options(display="horizontal", convention="french")
-        sage: elt
-        -1[ ]-1         1[ ][ ][ ]1   -1[ ]-1
-        -3[ ][ ][ ]-3
-
-    Changing the ``convention`` for rigged configurations also changes the
-    ``convention`` option for tableaux and vice versa::
-
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T.pp()
-          4  5
-          1  2  3
-        sage: Tableaux.global_options(convention="english")
-        sage: elt
-        -3[ ][ ][ ]-3   1[ ][ ][ ]1   -1[ ]-1
-        -1[ ]-1
-        sage: T.pp()
-          1  2  3
-          4  5
-        sage: RiggedConfigurations.global_options.reset()
-    """,
-    display=dict(default="vertical",
-                 description='Specifies how rigged configurations should be printed',
-                 values=dict(vertical='displayed vertically',
-                             horizontal='displayed horizontally'),
-                 case_sensitive=False),
-    element_ascii_art=dict(default=True,
-                     description='display using the repr option ``element_ascii_art``',
-                     checker=lambda x: isinstance(x, bool)),
-    
-    half_width_boxes_type_B=dict(default=True,
-            description='display the last rigged partition in affine type B as half width boxes',
-            checker=lambda x: isinstance(x, bool)),
-    convention=dict(link_to=(tableau.TableauOptions,'convention')),
-    notation = dict(alt_name='convention')
-)
 
 # Used in the KR crystals catalog so that there is a common interface
 def KirillovReshetikhinCrystal(cartan_type, r, s):
@@ -129,7 +69,7 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
     return RiggedConfigurations(cartan_type, [[r,s]])
 
 # Note on implementation, this class is used for simply-laced types only
-class RiggedConfigurations(Parent, UniqueRepresentation):
+class RiggedConfigurations(UniqueRepresentation, Parent):
     r"""
     Rigged configurations as `U_q^{\prime}(\mathfrak{g})`-crystals.
 
@@ -212,7 +152,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
     REFERENCES:
 
-    .. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
+    .. [HKOTT2002] \G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
        Paths, Crystals and Fermionic Formulae.
        Prog. Math. Phys. **23** (2002) Pages 205-272.
 
@@ -249,7 +189,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         6
         sage: len(RC.list()) == RC.cardinality()
         True
-        sage: RC.list()
+        sage: RC.list() # random
         [
         <BLANKLINE>
                                                  0[ ]0
@@ -444,6 +384,68 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         self._cartan_matrix = cl.cartan_matrix()
         Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
 
+    # add options to class
+    options=GlobalOptions('RiggedConfigurations',
+        module='sage.combinat.rigged_configurations.rigged_configurations',
+        doc=r"""
+        Sets and displays the options for rigged configurations.
+        If no parameters are set, then the function returns a copy of
+        the options dictionary.
+
+        The ``options`` to partitions can be accessed as the method
+        :obj:`RiggedConfigurations.options` of
+        :class:`RiggedConfigurations`.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A',3,1], [[2,2],[1,1],[1,1]])
+            sage: elt = RC(partition_list=[[3,1], [3], [1]])
+            sage: elt
+            <BLANKLINE>
+            -3[ ][ ][ ]-3
+            -1[ ]-1
+            <BLANKLINE>
+            1[ ][ ][ ]1
+            <BLANKLINE>
+            -1[ ]-1
+            <BLANKLINE>
+            sage: RiggedConfigurations.options(display="horizontal", convention="french")
+            sage: elt
+            -1[ ]-1         1[ ][ ][ ]1   -1[ ]-1
+            -3[ ][ ][ ]-3
+
+        Changing the ``convention`` for rigged configurations also changes the
+        ``convention`` option for tableaux and vice versa::
+
+            sage: T = Tableau([[1,2,3],[4,5]])
+            sage: T.pp()
+              4  5
+              1  2  3
+            sage: Tableaux.options.convention="english"
+            sage: elt
+            -3[ ][ ][ ]-3   1[ ][ ][ ]1   -1[ ]-1
+            -1[ ]-1
+            sage: T.pp()
+              1  2  3
+              4  5
+            sage: RiggedConfigurations.options._reset()
+        """,
+        display=dict(default="vertical",
+                     description='Specifies how rigged configurations should be printed',
+                     values=dict(vertical='displayed vertically',
+                                 horizontal='displayed horizontally'),
+                     case_sensitive=False),
+        element_ascii_art=dict(default=True,
+                         description='display using the repr option ``element_ascii_art``',
+                         checker=lambda x: isinstance(x, bool)),
+        half_width_boxes_type_B=dict(default=True,
+                description='display the last rigged partition in affine type B as half width boxes',
+                checker=lambda x: isinstance(x, bool)),
+        convention=dict(link_to=(tableau.Tableaux.options,'convention')),
+        notation = dict(alt_name='convention')
+    )
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -468,10 +470,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             True
         """
         if key == 'element_ascii_art':
-            return self.global_options('element_ascii_art')
+            return self.options.element_ascii_art
         return super(RiggedConfigurations, self)._repr_option(key)
-
-    global_options = RiggedConfigurationOptions
 
     def __iter__(self):
         """
@@ -480,29 +480,15 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1], [1,1]])
-            sage: g = RC.__iter__()
-            sage: next(g)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            sage: next(g)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            -1[ ]-1
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
+            sage: L = [x for x in RC]
+            sage: len(L)
+            24
         """
         index_set = self._cartan_type.classical().index_set()
         from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
         return RecursivelyEnumeratedSet(self.module_generators,
                     lambda x: [x.f(i) for i in index_set],
-                    structure=None).naive_search_iterator()
+                    structure='graded').breadth_first_search_iterator()
 
     @lazy_attribute
     def module_generators(self):
@@ -602,10 +588,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for curBlocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(curBlocks[:]),
@@ -771,8 +756,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}` in ``self``.
 
         This assumes that `\gamma_a = 1` for all `a` and `(\alpha_a \mid
         \alpha_b ) = A_{ab}`.
@@ -783,41 +767,36 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
             sage: elt = RC(partition_list=[[1], [1], [], []])
-            sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 1, 1)
             0
         """
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
                 if len(tableau) == self._rc_index[a]:
-                    vac_num += min(row_len, len(tableau[0]))
+                    vac_num += min(i, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
                 for kvp in L[a].items():
-                    vac_num += min(kvp[0], row_len) * kvp[1]
+                    vac_num += min(kvp[0], i) * kvp[1]
         elif "dims" in options:
             for dim in options["dims"]:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
         else:
             for dim in self.dims:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
 
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(row_len)
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i)
 
         return vac_num
 
@@ -858,12 +837,18 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2]])
             sage: RC.cardinality()
             100
-            sage: RC = RiggedConfigurations(['B', 3, 1], [[2,2],[1,2]])
-            sage: RC.cardinality()
-            5130
+            sage: len(RC.list())
+            100
+
             sage: RC = RiggedConfigurations(['E', 7, 1], [[1,1]])
             sage: RC.cardinality()
             134
+            sage: len(RC.list())
+            134
+
+            sage: RC = RiggedConfigurations(['B', 3, 1], [[2,2],[1,2]])
+            sage: RC.cardinality()
+            5130
         """
         CWLR = self.cartan_type().classical().root_system().ambient_space()
         return sum(CWLR.weyl_dimension(mg.classical_weight()) for mg in self.module_generators)
@@ -927,7 +912,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         INPUT:
 
         - ``q`` -- the variable `q`
-        - ``only_highest_weight`` -- use only the classicaly highest weight
+        - ``only_highest_weight`` -- use only the classically highest weight
           rigged configurations
         - ``weight`` -- return the fermionic formula `M(\lambda, L; q)` where
           `\lambda` is the classical weight ``weight``
@@ -1135,8 +1120,7 @@ class RCNonSimplyLaced(RiggedConfigurations):
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}` in ``self``.
 
         INPUT:
 
@@ -1144,42 +1128,39 @@ class RCNonSimplyLaced(RiggedConfigurations):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: RC = RiggedConfigurations(['C', 4, 1], [[2, 1]])
             sage: elt = RC(partition_list=[[1], [2], [2], [1]])
-            sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 1, 2)
             0
         """
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
                 if len(tableau) == self._rc_index[a]:
-                    vac_num += min(row_len, len(tableau[0]))
+                    vac_num += min(i, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
                 for kvp in L[a].items():
-                    vac_num += min(kvp[0], row_len) * kvp[1]
+                    vac_num += min(kvp[0], i) * kvp[1]
         elif "dims" in options:
             for dim in options["dims"]:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
         else:
             for dim in self.dims:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
 
         gamma = self._folded_ct.scaling_factors()
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(gamma[a+1]*row_len, gamma[b+1]) // gamma[b+1]
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= (self._cartan_matrix[a,b]
+                        * partitions[b].get_num_cells_to_column(gamma[a+1]*i, gamma[b+1])
+                        // gamma[b+1])
 
         return vac_num
 
@@ -1285,10 +1266,9 @@ class RCNonSimplyLaced(RiggedConfigurations):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for cur_blocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(cur_blocks[:]), vac_nums[:]]) )
@@ -1358,18 +1338,15 @@ class RCNonSimplyLaced(RiggedConfigurations):
         gamma = self._folded_ct.scaling_factors()
         sigma = self._folded_ct.folding_orbit()
         n = self._folded_ct._folding.classical().rank()
-        partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
         # +/- 1 for indexing
-        for a in range(len(rc)):
+        partitions = [None] * n
+        for a,rp in enumerate(rc):
+            g = gamma[a+1]
             for i in sigma[a+1]:
-                partitions[i-1] = [row_len*gamma[a+1] for row_len in rc[a]._list]
-                riggings[i-1] = [rig_val*gamma[a+1] for rig_val in rc[a].rigging]
-                vac_nums[i-1] = [vac_num*gamma[a+1] for vac_num in rc[a].vacancy_numbers]
-        return self.virtual.element_class(self.virtual, partition_list=partitions,
-                            rigging_list=riggings,
-                            vacancy_numbers_list=vac_nums)
+                partitions[i-1] = RiggedPartition([row_len*g for row_len in rp._list],
+                                                  [rig_val*g for rig_val in rp.rigging],
+                                                  [vac_num*g for vac_num in rp.vacancy_numbers])
+        return self.virtual.element_class(self.virtual, partitions, use_vacancy_numbers=True)
 
     def from_virtual(self, vrc):
         """
@@ -1397,16 +1374,14 @@ class RCNonSimplyLaced(RiggedConfigurations):
         sigma = self._folded_ct.folding_orbit()
         n = self._cartan_type.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
         # +/- 1 for indexing
         for a in range(n):
-            index = sigma[a+1][0]-1
-            partitions[a] = [row_len//gamma[a+1] for row_len in vrc[index]._list]
-            riggings[a] = [rig_val//gamma[a+1] for rig_val in vrc[index].rigging]
-            vac_nums[a] = [vac_val//gamma[a+1] for vac_val in vrc[index].vacancy_numbers]
-        return self.element_class(self, partition_list=partitions,
-                                  rigging_list=riggings, vacancy_numbers_list=vac_nums)
+            rp = vrc[sigma[a+1][0] - 1]
+            g = gamma[a+1]
+            partitions[a] = RiggedPartition([row_len//g for row_len in rp._list],
+                                            [rig_val//g for rig_val in rp.rigging],
+                                            [vac_val//g for vac_val in rp.vacancy_numbers])
+        return self.element_class(self, partitions, use_vacancy_numbers=True)
 
     def _test_virtual_vacancy_numbers(self, **options):
         """
@@ -1488,8 +1463,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}` in ``self``.
 
         This is a special implementation for type `A_{2n}^{(2)}`.
 
@@ -1499,42 +1473,37 @@ class RCTypeA2Even(RCNonSimplyLaced):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: RC = RiggedConfigurations(['A', 4, 2], [[2, 1]])
             sage: elt = RC(partition_list=[[1], [2]])
-            sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 1, 2)
             0
         """
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
                 if len(tableau) == self._rc_index[a]:
-                    vac_num += min(row_len, len(tableau[0]))
+                    vac_num += min(i, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
                 for kvp in L[a].items():
-                    vac_num += min(kvp[0], row_len) * kvp[1]
+                    vac_num += min(kvp[0], i) * kvp[1]
         elif "dims" in options:
             for dim in options["dims"]:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
         else:
             for dim in self.dims:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
 
         gamma = self._folded_ct.scaling_factors()
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(row_len) // gamma[b+1]
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) // gamma[b+1]
 
         return vac_num
 
@@ -1570,17 +1539,14 @@ class RCTypeA2Even(RCNonSimplyLaced):
         sigma = self._folded_ct.folding_orbit()
         n = self._folded_ct._folding.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
-        # +/- 1 for indexing
-        for a in range(len(rc)):
+        for a,rp in enumerate(rc):
+            g = gamma[a+1]
             for i in sigma[a+1]:
-                partitions[i-1] = [row_len for row_len in rc[a]._list]
-                riggings[i-1] = [rig_val*gamma[a+1] for rig_val in rc[a].rigging]
-                vac_nums[i-1] = [vac_num*gamma[a+1] for vac_num in rc[a].vacancy_numbers]
-        return self.virtual.element_class(self.virtual, partition_list=partitions,
-                            rigging_list=riggings,
-                            vacancy_numbers_list=vac_nums)
+                partitions[i-1] = RiggedPartition([row_len for row_len in rp._list],
+                                                  [rig_val*g for rig_val in rp.rigging],
+                                                  [vac_num*g for vac_num in rp.vacancy_numbers])
+        return self.virtual.element_class(self.virtual, partitions, use_vacancy_numbers=True)
+
 
     def from_virtual(self, vrc):
         """
@@ -1609,16 +1575,15 @@ class RCTypeA2Even(RCNonSimplyLaced):
         sigma = self._folded_ct.folding_orbit()
         n = self._cartan_type.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
         # +/- 1 for indexing
         for a in range(n):
-            index = sigma[a+1][0]-1
-            partitions[index] = [row_len for row_len in vrc[index]._list]
-            riggings[index] = [rig_val//gamma[a+1] for rig_val in vrc[index].rigging]
-            vac_nums[a] = [vac_val//gamma[a+1] for vac_val in vrc[index].vacancy_numbers]
-        return self.element_class(self, partition_list=partitions,
-                                  rigging_list=riggings, vacancy_numbers_list=vac_nums)
+            rp = vrc[sigma[a+1][0] - 1]
+            g = gamma[a+1]
+            partitions[a] = RiggedPartition([row_len for row_len in rp._list],
+                                            [rig_val//g for rig_val in rp.rigging],
+                                            [vac_val//g for vac_val in rp.vacancy_numbers])
+        return self.element_class(self, partitions, use_vacancy_numbers=True)
+
 
 class RCTypeA2Dual(RCTypeA2Even):
     r"""
@@ -1645,8 +1610,8 @@ class RCTypeA2Dual(RCTypeA2Even):
     """
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number. A special case is needed for the `n`-th
-        partition for type `A_{2n}^{(2)\dagger}`.
+        Calculate the vacancy number `p_i^{(a)}` in ``self``. A special case
+        is needed for the `n`-th partition for type `A_{2n}^{(2)\dagger}`.
 
         INPUT:
 
@@ -1654,43 +1619,39 @@ class RCTypeA2Dual(RCTypeA2Even):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row lenth
 
         TESTS::
 
             sage: RC = RiggedConfigurations(CartanType(['A', 6, 2]).dual(), [[2,1]])
             sage: elt = RC(partition_list=[[1], [2], [2]])
-            sage: RC._calc_vacancy_number(elt.nu(), 0, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 0, 1)
             -1
         """
         if a != self._cartan_type.classical().rank()-1:
             return RCTypeA2Even._calc_vacancy_number(self, partitions, a, i, **options)
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
                 if len(tableau) == self._rc_index[a]:
-                    vac_num += min(row_len, len(tableau[0]))
+                    vac_num += min(i, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
                 for kvp in L[a].items():
-                    vac_num += min(kvp[0], row_len) * kvp[1]
+                    vac_num += min(kvp[0], i) * kvp[1]
         elif "dims" in options:
             for dim in options["dims"]:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
         else:
             for dim in self.dims:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
 
-        for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(row_len) / 2
+        for b in range(self._cartan_matrix.ncols()):
+            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) / 2
 
         return vac_num
 
@@ -1784,7 +1745,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
             # Special case for the final tableau
             partition = base[-1]
@@ -1815,10 +1776,9 @@ class RCTypeA2Dual(RCTypeA2Even):
                         L2.append(IterableFunctionCall(self._block_iterator_n_odd, block))
                     else:
                         L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for curBlocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(curBlocks[:]), vac_nums[:]]) )
@@ -1900,17 +1860,12 @@ class RCTypeA2Dual(RCTypeA2Even):
         sigma = self._folded_ct.folding_orbit()
         n = self._folded_ct._folding.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
-        # +/- 1 for indexing
-        for a in range(len(rc)):
+        for a,rp in enumerate(rc):
+            g = gammatilde[a+1]
             for i in sigma[a+1]:
-                partitions[i-1] = [row_len for row_len in rc[a]._list]
-                riggings[i-1] = [rig_val*gammatilde[a+1] for rig_val in rc[a].rigging]
-                vac_nums[i-1] = [vac_num for vac_num in rc[a].vacancy_numbers]
-        return self.virtual.element_class(self.virtual, partition_list=partitions,
-                            rigging_list=riggings,
-                            vacancy_numbers_list=vac_nums)
+                partitions[i-1] = RiggedPartition([row_len for row_len in rp._list],
+                                                  [rig_val*g for rig_val in rp.rigging])
+        return self.virtual.element_class(self.virtual, partitions)
 
     def from_virtual(self, vrc):
         """
@@ -1940,40 +1895,17 @@ class RCTypeA2Dual(RCTypeA2Even):
         sigma = self._folded_ct.folding_orbit()
         n = self._cartan_type.classical().rank()
         partitions = [None] * n
-        riggings = [None] * n
-        vac_nums = [None] * n
         # +/- 1 for indexing
         for a in range(n):
-            index = sigma[a+1][0]-1
-            partitions[index] = [row_len for row_len in vrc[index]._list]
-            riggings[index] = [rig_val/gammatilde[a+1] for rig_val in vrc[index].rigging]
-            vac_nums[a] = [vac_val for vac_val in vrc[index].vacancy_numbers]
-        return self.element_class(self, partition_list=partitions,
-                                  rigging_list=riggings, vacancy_numbers_list=vac_nums)
+            rp = vrc[sigma[a+1][0] - 1]
+            g = gammatilde[a+1]
+            partitions[a] = RiggedPartition([row_len for row_len in rp._list],
+                                            [rig_val/g for rig_val in rp.rigging])
+        return self.element_class(self, partitions)
 
     Element = KRRCTypeA2DualElement
 
-def HighestWeightRiggedConfigurations(cartan_type, B):
-    """
-    Deprecated in :trac:`13872`. Use instead the attribute
-    ``module_generators`` of :class:`RiggedConfigurations`.
-
-    EXAMPLES::
-
-        sage: HighestWeightRiggedConfigurations(['A',2,1], [[1,1]])
-        doctest:...: DeprecationWarning: this class is deprecated.
-         Use RiggedConfigurations(cartan_type, B).module_generators instead
-        See http://trac.sagemath.org/13872 for details.
-        (
-        <BLANKLINE>
-        (/)
-        <BLANKLINE>
-        (/)
-        <BLANKLINE>
-        )
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13872, 'this class is deprecated. Use RiggedConfigurations('
-                       'cartan_type, B).module_generators instead')
-    return RiggedConfigurations(cartan_type, B).module_generators
-
+# deprecations from trac:18555
+from sage.misc.superseded import deprecated_function_alias
+RiggedConfigurations.global_options=deprecated_function_alias(18555, RiggedConfigurations.options)
+RiggedConfigurationOptions = deprecated_function_alias(18555, RiggedConfigurations.options)

@@ -10,10 +10,11 @@ Utility functions for libGAP
 #   the License, or (at your option) any later version.
 #                   http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function, absolute_import
 
-from sage.env import SAGE_LOCAL
+from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
 from libc.stdint cimport uintptr_t
-from element cimport *
+from .element cimport *
 
 
 ############################################################################
@@ -133,7 +134,7 @@ cdef void gasman_callback():
     Callback before each GAP garbage collection
     """
     global owned_objects_refcount
-    for obj in owned_objects_refcount.iterkeys():
+    for obj in owned_objects_refcount:
         libGAP_MARK_BAG((<ObjWrapper>obj).value)
 
 
@@ -156,10 +157,9 @@ def gap_root():
         '/home/vbraun/opt/sage-5.3.rc0/local/gap/latest'
     """
     import os.path
-    gapdir = os.path.join(SAGE_LOCAL, 'gap', 'latest')
-    if os.path.exists(gapdir):
-        return gapdir
-    print 'The gap-4.5.5.spkg (or later) seems to be not installed!'
+    if os.path.exists(GAP_ROOT_DIR):
+        return GAP_ROOT_DIR
+    print('The gap-4.5.5.spkg (or later) seems to be not installed!')
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
     gapdir = filter(lambda dir:dir.strip().startswith('GAP_DIR'), gap_sh)[0]
     gapdir = gapdir.split('"')[1]
@@ -258,7 +258,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
 
         sage: libgap.eval('if 4>3 then\nPrint("hi");\nfi')
         NULL
-        sage: libgap.eval('1+1')   # testing that we have sucessfully recovered
+        sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
 
         sage: libgap.eval('if 4>3 thenPrint("hi");\nfi')
@@ -268,7 +268,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         if 4>3 thenPrint("hi");
         fi;
                        ^
-        sage: libgap.eval('1+1')   # testing that we have sucessfully recovered
+        sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
     """
     initialize()
@@ -280,7 +280,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
@@ -330,7 +330,7 @@ cdef void hold_reference(libGAP_Obj obj):
 ### Error handler ##########################################################
 ############################################################################
 
-include 'sage/ext/interrupt.pxi'
+include "cysignals/signals.pxi"
 from cpython.exc cimport PyErr_SetObject
 
 cdef void error_handler(char* msg):
@@ -362,7 +362,7 @@ cdef inline void DEBUG_CHECK(libGAP_Obj obj):
     libGAP_CheckMasterPointers()
     libgap_exit()
     if obj == NULL:
-        print 'DEBUG_CHECK: Null pointer!'
+        print('DEBUG_CHECK: Null pointer!')
 
 
 
@@ -464,7 +464,7 @@ def command(command_string):
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
@@ -479,10 +479,10 @@ def command(command_string):
         if libGAP_ReadEvalResult:
             libGAP_ViewObjHandler(libGAP_ReadEvalResult)
             s = libgap_get_output()
-            print 'Output follows...'
-            print s.strip()
+            print('Output follows...')
+            print(s.strip())
         else:
-            print 'No output.'
+            print('No output.')
 
     finally:
         libgap_exit()

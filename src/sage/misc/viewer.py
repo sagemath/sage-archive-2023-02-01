@@ -161,7 +161,7 @@ class Viewer(SageObject):
         Change the default viewer. Return the current setting if the
         argument ``app`` is ``None``.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
         - ``TYPE`` -- a string, must be in the list ``VIEWERS`` defined in
@@ -197,7 +197,7 @@ class Viewer(SageObject):
         Change the default browser. Return the current setting if arg
         is ``None``, which is the default.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
 
@@ -217,7 +217,7 @@ class Viewer(SageObject):
         Change the default dvi viewer. Return the current setting if arg
         is ``None``, which is the default.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
 
@@ -237,7 +237,7 @@ class Viewer(SageObject):
         Change the default pdf viewer. Return the current setting if arg
         is ``None``, which is the default.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
 
@@ -257,7 +257,7 @@ class Viewer(SageObject):
         Change the default png viewer. Return the current setting if arg
         is ``None``, which is the default.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
 
@@ -276,7 +276,7 @@ class Viewer(SageObject):
         """
         Return the current setting for a viewer program.
 
-        INPUTS:
+        INPUT:
 
         - ``x`` -- string
 

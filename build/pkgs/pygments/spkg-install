@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+#Install new version
+cd src
+
+# Apply patches
+echo "Patching Pygments..."
+for p in ../patches/*.patch; do
+    patch -p1 <$p
+    if [ $? -ne 0 ]; then
+        echo "Error applying patch $p"
+        exit 1
+    fi
+done
+
+$PIP_INSTALL .
+
+if [ $? -ne 0 ]; then
+   echo "Error installing Pygments."
+   exit 1
+fi

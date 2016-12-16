@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+r"""
+Script to list the Sage packages
+
+This is script can be called with one argument which might be either
+"installed", "standard", "optional", "experimental" or "pip". It is mostly a
+script interface to sage_setup.packages.list_packages.
+"""
+
+from __future__ import absolute_import, print_function
+
+import os
+import argparse
+
+if "SAGE_ROOT" not in os.environ:
+    raise RuntimeError("The environment variable SAGE_ROOT must be set.")
+SAGE_ROOT = os.environ["SAGE_ROOT"]
+
+from sage.misc.package import list_packages, pkgname_split
+
+# Input parsing #
+#################
+
+parser = argparse.ArgumentParser(description="List Sage's packages")
+parser.add_argument('category', choices=['standard', 'optional',
+                                         'experimental', 'pip', 'installed'],
+                    metavar="category",
+                    help="The type of packages. Can be 'standard', "
+                    "'optional', 'experimental', 'pip' or 'installed'.")
+parser.add_argument('--dump', dest='dump', default=False, action='store_true',
+                    help='Output computer-friendly format')
+parser.add_argument('--no-version', dest='version', default=True,
+                    action='store_false',
+                    help='Do not display version numbers')
+parser.add_argument('--local', dest='local', default=False,
+                    action='store_true',
+                    help='Only read local data')
+
+args = vars(parser.parse_args())
+
+# Get the data #
+################
+
+
+# set the output format
+if args['version']:
+    if args['category'] == 'installed':
+        format_string = "{installed_version}"
+    else:
+        format_string = "{remote_version} ({installed_version})"
+else:
+    args['dump'] = True
+    format_string = ''
+
+if args['dump']:
+    format_string = "{name} " + format_string
+else:
+    format_string = "{name:.<40}" + format_string
+    print(format_string.format(name="[package]", installed_version="[version]",
+                               remote_version="[latest version]"))
+    print()
+
+# make the list of packages
+if args['category'] == 'installed':
+    L = [pkg for pkg in list_packages(local=True, ignore_URLError=True).values() if pkg['installed']]
+elif args['category'] == 'optional':
+    L = list_packages('optional', 'pip', local=args['local'], ignore_URLError=True).values()
+else:
+    L = list_packages(args['category'], local=args['local'], ignore_URLError=True).values()
+L.sort(key = lambda pkg: pkg['name'])
+
+# print (while getting rid of None in versions)
+for pkg in L:
+    pkg['installed_version'] = pkg['installed_version'] or 'not_installed'
+    pkg['remote_version'] = pkg['remote_version'] or '?'
+    print(format_string.format(**pkg))

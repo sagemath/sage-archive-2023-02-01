@@ -1,0 +1,43 @@
+/*** EXAMPLE: Birch-Swinnerton-Dyer for an elliptic curve over Q  ***/
+/*** v1.2, July 2013, questions to tim.dokchitser@bristol.ac.uk   ***/
+/***                                                              ***/
+/*** type \rex-bsw or read("ex-bsw") at pari prompt to run this   ***/
+
+elleq  = [0,0,1,-7,6];            \\ L-function of this elliptic curve over Q
+points = [[1,-1],[2,-1],[0,-3]];  \\ basis of Mordell-Weil modulo torsion
+                                  \\ May change this to any other E/Q
+
+read("computel");                 \\ read the ComputeL package
+                                  \\ and set the default values
+default(realprecision,20);        \\ set working precision; used throughout
+
+ellorig = ellinit(elleq);
+gred    = ellglobalred(ellorig);
+ell     = ellchangecurve(ellorig,gred[2]);    \\ global minimal model
+
+                            \\ initialize L-function parameters
+conductor = gred[1];        \\ conductor for the exponential factor
+gammaV    = [0,1];          \\ list of gamma-factors
+weight    = 2;              \\ L(s)=sgn*L(weight-s)
+sgn       = ellrootno(ell); \\ sign in the functional equation
+a(k)      = ellak(ell,k);   \\ L-series coefficients a(k)
+
+initLdata("a(k)",1);  \\ initialize the vector of coefficients
+                      \\ we won't call checkfeq(cutoff) or L(s,cutoff)
+                      \\ so set cutoff=1, saves some coefficients
+
+print("EXAMPLE: Birch-Swinnerton-Dyer on an elliptic curve over Q");
+print("         with ",default(realprecision)," digits precision");
+print("Elliptic curve : ", elleq);
+print("Points         : ", points);
+print("Conductor      = ", conductor);
+print("Root number    = ", sgn);
+print("Mord.-Weil rnk = ", rnk  = length(points));
+print("Lead.term L(1) = ", lval = L(1,,rnk)/rnk!); \\ leading (order rnk)
+                                                   \\ term of L(s) at s=1
+print("Real period    = ", om   = ell.omega[1]*((ell.disc>0)+1));
+print("Regulator      = ", reg  = matdet(ellheightmatrix(ellorig,points)));
+print("Product(c_p)   = ", cp   = ellglobalred(ell)[3]);
+print("Torsion size   = ", tors = elltors(ell)[1]);
+print("Analytic #Sha  = ", sha  = lval/om/reg/cp*tors^2);
+print("               = ", round(sha),", error=",errprint(sha-round(sha)));

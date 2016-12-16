@@ -1,0 +1,47 @@
+/*** EXAMPLE: Riemann's zeta-function for large imaginary s         ***/
+/*** (illustration of precision issues when Im(s) is large)         ***/
+/***                                                                ***/
+/*** v1.2, July 2013, questions to tim.dokchitser@bristol.ac.uk     ***/
+/*** type \rex-zeta2 or read("ex-zeta2") at pari prompt to run this ***/
+
+read("computel");                 \\ read the ComputeL package
+                                  \\ and set the default values
+default(realprecision,20);        \\ set working precision; used throughout
+
+                            \\ initialize L-function parameters
+conductor = 1;              \\ exponential factor
+gammaV    = [0];            \\ list of gamma-factors
+weight    = 1;              \\ L(s)=sgn*L(weight-s)
+sgn       = 1;              \\ sign in the functional equation
+Lpoles    = [1];            \\ poles of zeta(s) with Re(s)>0.5
+Lresidues = [-1];           \\ and residues in there
+
+initLdata("1");             \\ initialize the package; all coeffs equal to 1
+
+print("EXAMPLE: L(s)=zeta(s), Riemann zeta function");
+print("         for s with large imaginary part");
+print("         with ",default(realprecision)," digits precision");
+print("Verifying functional equation. Error: ",errprint(checkfeq()));
+print("For large imaginary s there is precision loss and a warning is printed");
+print("");
+print("zeta(1/2+40 I) = ",L(1/2+40*I));
+print("  (pari)       = ",zeta(1/2+40*I));
+print("");
+
+print("Changing MaxImaginaryPart to 40 and re-calculating");
+
+MaxImaginaryPart=40;
+initLdata("1");      \\ re-initialize the package
+                     \\ MaxImaginaryPart changed -> more coeffs necessary
+
+print("zeta(1/2+40 I) = ",L(1/2+40*I));
+print("  (pari)       = ",zeta(1/2+40*I));
+print("");
+
+print("Locating a nearby zero of zeta(s) using Newton-Raphson (5 iterations)");
+z0=1/2+40*I;
+for(k=1,5,z0=1/2+I*imag(z0-L(z0)/L(z0,,1)));
+
+header = concatstr("|zeta(",z0,"| = ");
+print(header,errprint(abs(L(z0))));
+print(StrTab("  (pari)",length(header)-3)," = ",errprint(abs(zeta(z0))));

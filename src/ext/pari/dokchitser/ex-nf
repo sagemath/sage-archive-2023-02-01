@@ -1,0 +1,48 @@
+/*** Dedekind zeta-function of a number field F/Q                   ***/
+/*** v1.3, December 2013, questions to tim.dokchitser@bristol.ac.uk ***/
+/***                                                                ***/
+/*** type \rex-nf or read("ex-nf") at pari prompt to run this       ***/
+
+fpol = x^4-x^2-1;                 \\ polynomial which defines F/Q
+                                  \\ may change this to any other polynomial
+
+read("computel");                 \\ read the ComputeL package
+                                  \\ and set the default values
+default(realprecision,20);        \\ set working precision; used throughout
+
+nf        = nfinit(fpol);         \\ initialize the number field F/Q
+zinit     = zetakinit(nf);        \\ and the built-in Dedekind zeta-function
+LPari(x)  = zetak(zinit,x);
+
+print("EXAMPLE: Dedekind zeta-function L(s)=zeta_F(s) of number field F");
+print("         with ",default(realprecision)," digits precision");
+print("F                   = Q(root of ",fpol,")");
+print("[F:Q]               = ",Fdegree = poldegree(fpol));
+print("Discriminant        = ",disc    = nf.disc);
+print("r1 (real emb.)      = ",r1      = nf.sign[1]);
+print("r2 (complex emb.)   = ",r2      = nf.sign[2]);
+print("Gamma factor        = ",gammaV  = concat(vector(r1+r2,X,0),vector(r2,X,1)));
+
+conductor = abs(disc);                   \\ exponential factor
+weight    = 1;                           \\ L(s)=sgn*L(weight-s)
+sgn       = 1;                           \\ sign in the functional equation
+Lpoles    = [1];                         \\ pole at s=1, Lresidues=automatic
+dzk       = dirzetak(nf,cflength());     \\ coefficients a(k) in L(s)
+
+initLdata("dzk[k]");         \\ initialize L-series
+
+\\ Determine residue at s=1 and check the functional equation
+print("Error in func. eq.  = ",errprint(checkfeq()));
+
+\\ Compare L(2) and built-in LPari(2)
+print("L(2)                = ",L(2));
+print(" (or using pari)    = ",LPari(2));
+
+\\ Compare residue at 1 and the one given by class number formula
+print("Residue at s=1");
+print(" (automatically determined) = ",Lresidues[1]);
+
+\\ Determine the residue at s=1 using the class number formula
+bnf       = bnfinit(fpol);
+residue   = - 2^(r1+r2) * Pi^(r2/2) * bnf.reg * bnf.clgp.no / bnf.tu[1];
+print(" (class number formula)     = ",residue);

@@ -1,0 +1,3 @@
+This is a stub autotools project to generate the system-dependent
+libtool script. Nothing is compiled here. The Makefile.am unpacks the
+atlas static libraries and repacks them into shared libraries.

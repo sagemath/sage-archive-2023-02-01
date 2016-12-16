@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# We reuse the gdb pythonstartup script.
+PYTHONSTARTUP=$SAGE_LOCAL/bin/sage-ipython
+export PYTHONSTARTUP
+echo $PYTHONSTARTUP
+if [ ! -d "$DOT_SAGE/valgrind" ]; then
+    mkdir "$DOT_SAGE/valgrind"
+fi
+
+LOG="$DOT_SAGE"/valgrind/sage-cachegrind.%p
+echo "Log file is $LOG"
+
+CACHEGRIND_FLAGS="--log-file=$LOG "; export CACHEGRIND_FLAGS
+if [ "$SAGE_CACHEGRIND_FLAGS" ]; then
+    echo "Overwriting cachegrind flags with:"
+    echo $SAGE_CACHEGRIND_FLAGS
+    CACHEGRIND_FLAGS=$SAGE_CACHEGRIND_FLAGS; export CACHEGRIND_FLAGS
+else
+    echo "Using default flags:"
+    echo $CACHEGRIND_FLAGS
+fi
+
+valgrind --tool=cachegrind $CACHEGRIND_FLAGS python -i
+

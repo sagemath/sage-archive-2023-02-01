@@ -1,0 +1,38 @@
+/*** EXAMPLE: L-function of a genus 2 curve over Q                  ***/
+/*** v1.3, December 2013, questions to tim.dokchitser@bristol.ac.uk ***/
+/***                                                                ***/
+/*** type \rex-gen2 or read("ex-gen2") at pari prompt to run this   ***/
+
+
+read("computel");                 \\ read the ComputeL package
+                                  \\ and set the default values
+default(realprecision,14);        \\ set working precision; used throughout
+                                  \\ larger precision needs more coefficients
+
+/*********** C: y^2+(x^3+x+1)y=x^5+x^4  (genus2, hyperelliptic) **********/
+cond = 169;  \\ conductor
+sgn  = 1;    \\ sign in the functional equation
+\\ Vector of coefficients
+coef = [1,-3,-2,4,0,6,0,-3,3,0,0,-8,-5,0,0,3,3,-9,-6,0,0,0,6,6,7,15,-10,0,\
+  -3,0,0,-6,0,-9,0,12,15,18,10,0,-9,0,-8,0,0,-18,0,-6,-7,-21,-6,-20,-6,30,\
+  0,0,12,9,12,0,-1,0,0,5,0,0,6,12,-12,0,6,-9,0,-45,-14,-24,0,-30,8,0,20,27,\
+  0,0,0,24,6,0,-12,0,0,24,0,0,0,12,12,21,0,28,3,18,-20,15,0,18,-6,-40,0,0,\
+  -30,0,15,-36,0,-12,-15,-36,0,0,-11,3,18,0,0,0,2,9,16,0,36,0,0,-18,0,-9,\
+  -27,36,4,0,0,-18,0,9,0,0];
+/*************************************************************************/
+
+                              \\ initialize L-function parameters
+conductor = cond;             \\ exponential factor
+gammaV    = [0,0,1,1];        \\ list of gamma-factors
+weight    = 2;                \\ L(s)=sgn*L(weight-s)
+initLdata("coef[k]",-146);    \\ initialize the L-series data
+
+print("EXAMPLE: L-function of a genus 2 curve over Q");
+print("         with 14 digits precision");
+print("C: y^2+(x^3+x+1)y=x^5+x^4 (hyperelliptic)");
+print("Conductor      = ", conductor);
+print("Functional eq. = ", errprint(checkfeq()));
+print("L(1)           = ", L(1));
+print(" (check)       = ", L(1,1.1));
+print("L(2)           = ", L(2));
+print(" (check)       = ", L(2,1.1));

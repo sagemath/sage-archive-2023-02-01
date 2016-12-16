@@ -1,0 +1,23 @@
+\begin{tikzpicture}[>=latex,line join=bevel,line width=2pt]
+  \node (graph-0) at (100bp, 600bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\end{tikzpicture}$};
+  \node (graph-1) at (100bp, 500bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\end{tikzpicture}$};
+  \node (graph-2) at (200bp, 400bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\Edge(0)(2)\end{tikzpicture}$};
+  \node (graph-3) at (100bp, 300bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\Edge(0)(2)\Edge(1)(2)\end{tikzpicture}$};
+  \node (graph-4) at (300bp, 300bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\Edge(0)(2)\Edge(0)(3)\end{tikzpicture}$};
+  \node (graph-5) at (  0bp, 400bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\Edge(2)(3)\end{tikzpicture}$};
+  \node (graph-6) at (200bp, 300bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\Edge(0)(2)\Edge(2)(3)\end{tikzpicture}$};
+  \node (graph-7) at (100bp, 200bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\Edge(0)(2)\Edge(1)(2)\Edge(2)(3)\end{tikzpicture}$};
+  \node (graph-8) at (200bp, 200bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\Edge(0)(2)\Edge(1)(3)\Edge(2)(3)\end{tikzpicture}$};
+  \node (graph-9) at (100bp, 100bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\Edge(0)(2)\Edge(1)(2)\Edge(1)(3)\Edge(2)(3)\end{tikzpicture}$};
+  \node (graph-10) at (100bp,  0bp) {$\begin{tikzpicture}[scale=.75]\Vertices*{circle}{0,1,2,3}\Edge(0)(1)\Edge(0)(2)\Edge(0)(3)\Edge(1)(2)\Edge(1)(3)\Edge(2)(3)\end{tikzpicture}$};
+  \draw [->] (graph-0) -- (graph-1);
+  \draw [->] (graph-1) -- (graph-2);
+  \draw [->] (graph-1) -- (graph-5);
+  \draw [->] (graph-2) -- (graph-3);
+  \draw [->] (graph-2) -- (graph-4);
+  \draw [->] (graph-2) -- (graph-6);
+  \draw [->] (graph-3) -- (graph-7);
+  \draw [->] (graph-6) -- (graph-8);
+  \draw [->] (graph-7) -- (graph-9);
+  \draw [->] (graph-9) -- (graph-10);
+\end{tikzpicture}

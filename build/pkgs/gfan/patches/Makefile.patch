@@ -1,0 +1,46 @@
+--- a/Makefile.orig	2012-07-11 11:50:44.733022911 +1200
++++ b/Makefile	2012-07-11 12:20:02.644997882 +1200
+@@ -75,18 +75,10 @@
+ MKDIR=mkdir -p
+ 
+ 
+-SHELL       = /bin/sh
+-#ARCH        = LINUX
+-CC          = gcc
+-CLINKER     = $(CC)
+-CXX         = g++
+-CCLINKER    = $(CXX)
+-#OPTFLAGS    = -O2 -DGMPRATIONAL -DNDEBUG
+ OPTFLAGS    = -O2 -DGMPRATIONAL -Wuninitialized
+ 
+-CFLAGS	  = $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS) #-pedantic
+-CCFLAGS	  = $(CFLAGS)
+-FFLAGS	  = $(OPTFLAGS)
++CFLAGS_LOCAL  = $(CFLAGS) $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS) #-pedantic
++CXXFLAGS_LOCAL= $(CXXFLAGS) $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS) #-pedantic
+ 
+ CATSOBJECTS =	$(GCATSPATH)lp_cdd.o \
+ 		$(SOPLEX_OBJECTS) \
+@@ -317,7 +309,7 @@
+ default: $(OBJECTS) $(ADDITIONALOBJECTS) $(EXECS)
+ 
+ $(MAIN): $(OBJECTS)
+-	$(CCLINKER) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -o $(MAIN)
++	$(CXX) $(CXXFLAGS) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -o $(MAIN) $(LDFLAGS)
+ 
+ release:
+ 	rm -f -r $(RELEASEDIR)/*
+@@ -431,11 +423,11 @@
+ 	cp gfanlib_* gfanlib/
+ 	tar zcf -  gfanlib > gfanlib.tar.gz
+ .c.o:
+-	$(CC) $(CFLAGS) -c $<
++	$(CC) $(CFLAGS_LOCAL) $(CPPFLAGS) -c $<
+ .cc.o:
+ 	$(CXX) -c $<
+ .cpp.o:
+-	$(CXX) $(CFLAGS) -c $<
++	$(CXX) $(CXXFLAGS_LOCAL) $(CPPFLAGS) -c $<
+ .C.o:
+ 	$(CXX) -c $<
+ # wget http://ftp.sunet.se/pub/gnu/gmp/gmp-4.2.2.tar.gz

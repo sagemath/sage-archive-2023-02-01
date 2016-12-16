@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+
+###########################################
+## Singular
+###########################################
+
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "Error: SAGE_LOCAL undefined -- exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+cd src
+
+# Apply all patches
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+SRC=`pwd`/latest
+SHARED=`pwd`/shared
+
+cd "$SRC"
+
+if [ "x$SAGE_DEBUG" = "xyes" ]; then
+    SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --enable-debug --disable-optimizationflags"
+
+    # --disable-omalloc is broken: linking fails because of missing flags
+    #SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --disable-omalloc"
+
+    # Replace omalloc by xalloc in places unaffected by --disable-omalloc
+    # See xalloc/README, altough here we just replace the folder for simplicity
+    rm -rf "$SRC/omalloc"
+    mv "$SRC/xalloc" "$SRC/omalloc"
+
+    CFLAGS="$CFLAGS -O0 -g"
+    CXXFLAGS="$CXXFLAGS -O0 -g"
+else
+    # Singular 4.x (mostly) does not longer set defaults for CFLAGS and CXXFLAGS
+    CFLAGS="-O2 -g $CFLAGS"
+    CXXFLAGS="-O2 -g $CXXFLAGS"
+fi
+
+export CFLAGS CXXFLAGS
+
+if [ "x$SAGE64" = xyes ]; then
+    echo "Building a 64-bit version of Singular"
+    CFLAGS="$CFLAGS -m64"
+    CXXFLAGS="$CXXFLAGS -m64"
+    CPPFLAGS="$CPPFLAGS -m64"; export CPPFLAGS
+    LDFLAGS="$LDFLAGS -m64"; export LDFLAGS
+    if [ "x`uname`" = xSunOS ] ; then
+        export CC="$CC -m64"
+        export CXX="$CXX -m64"
+    fi
+fi
+
+remove_old_version()
+{
+    # the following is a little verbose but it ensures we leave no trace of 3.x
+    # _or_ 4.x
+    rm -f "$SAGE_LOCAL"/bin/*Singular*
+    rm -f "$SAGE_LOCAL"/bin/*singular*
+    rm -rf "$SAGE_LOCAL/include/singular" # 3.x and 4.x
+    rm -rf "$SAGE_LOCAL/include/factory" # 3.x and 4.x
+    rm -f "$SAGE_LOCAL/include/factor.h" # 3.x only
+    rm -f "$SAGE_LOCAL/include/factoryconf.h" # 3.x only
+    rm -rf "$SAGE_LOCAL/include/omalloc" #4.x only
+    rm -f "$SAGE_LOCAL/include/omalloc.h" # 3.x only
+    rm -f "$SAGE_LOCAL/include/omlimits.h" # 3.x only
+    rm -rf "$SAGE_LOCAL/include/resources" #4.x only
+    rm -rf "$SAGE_LOCAL/include/gfanlib" #4.x only
+    rm -f "$SAGE_LOCAL"/lib/libsingular* # 3.x with lower case
+    rm -f "$SAGE_LOCAL"/lib/libsingcf*.a # 3.x only additional archives
+    rm -f "$SAGE_LOCAL"/lib/libsingfac*.a # 3.x only additional archives
+    rm -f "$SAGE_LOCAL"/lib/libSingular* # 4.x with upper case
+    rm -f "$SAGE_LOCAL"/lib/p_Procs_Field* # 3.x only
+    # a bunch of additional libraries for 4.x
+    rm -f "$SAGE_LOCAL"/lib/libpolys*
+    rm -f "$SAGE_LOCAL"/lib/libfactory*
+    rm -f "$SAGE_LOCAL"/lib/libomalloc*
+    rm -f "$SAGE_LOCAL"/lib/libresources*
+    rm -r "$SAGE_LOCAL"/lib/libgfan*
+    rm -rf "$SAGE_LOCAL/share/singular"
+}
+
+config()
+{
+    # configure notes (dates from Singular 3.x, maybe outdated for 4.x):
+    # 1) We really need to add --exec-prefix and --bindir as Singular
+    #    uses some weird defaults.
+    # 2) configure calls other configure scripts (for example
+    #    omalloc/configure).  Not all of these configure scripts
+    #    support all options given here, leading to warnings which
+    #    may be ignored.
+    ./configure --prefix="$SAGE_LOCAL" \
+                --exec-prefix="$SAGE_LOCAL" \
+                --bindir="$SAGE_LOCAL"/bin \
+                --libdir="$SAGE_LOCAL"/lib \
+                --with-gmp="$SAGE_LOCAL" \
+                --with-ntl="$SAGE_LOCAL" \
+                --with-flint="$SAGE_LOCAL" \
+                --enable-gfanlib \
+                --enable-Singular \
+                --enable-factory \
+                --disable-doc \
+                $SINGULAR_CONFIGURE
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error configuring Singular."
+        exit 1
+    fi
+}
+
+
+build_singular()
+{
+    $MAKE
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error building Singular."
+        exit 1
+    fi
+
+    $MAKE install
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error installing Singular."
+        exit 1
+    fi
+
+}
+
+install_docs()
+{
+    cd "$SHARED"
+    $CP -p singular.hlp singular.idx "$SAGE_LOCAL/share/singular/"
+}
+
+
+fix_includes()
+{
+    # Fix all Singular includes to work from local/include
+    cd "$SAGE_LOCAL/include"
+
+    # First, generate a sed script to do these replacements
+    find singular -name '*.h' | while read include; do
+        # Replace #include <foo> by #include <singular/foo>
+        echo "s|# *include .${include#singular/}.|#include <$include>|"
+    done >"$SRC/fix_includes.sed"
+
+    # Now execute the script (we add .bak because BSD sed, used also
+    # on OS X, requires an argument for -i)
+    find singular -name '*.h' -exec sed -i.bak -f "$SRC/fix_includes.sed" {} \;
+}
+
+
+# Actually run all the functions defined above
+for i in remove_old_version config \
+  build_singular fix_includes \
+  install_docs ; do
+    echo "############### Singular stage $i ###############"
+    cd "$SRC" && $i
+done

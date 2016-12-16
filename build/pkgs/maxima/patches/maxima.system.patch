@@ -1,0 +1,11 @@
+--- src/src/maxima.system	2010-12-04 18:06:03.000000000 -0800
++++ /Users/wstein/sage/install/sage-4.7.3.alpha1/spkg/build/maxima-5.23.2.p0/src/src/maxima.system	2011-10-30 23:52:09.000000000 -0700
+@@ -1,5 +1,8 @@
+ ;;; -*- Lisp -*-
+ 
++(require :cmp)
++(setf c::*compile-in-constants* t)
++
+ (in-package :cl-user)
+ 
+ (pushnew :cl *features*)

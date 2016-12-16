@@ -1,5 +1,10 @@
 r"""
 MacMahon's Omega Operator
+
+This module implements :func:`MacMahon's Omega Operator <Omega>`
+[MacMahon1915]_, which takes a quotient of laurent polynomials and
+removes all negative exponents in the corresponding power series.
+
 """
 # *****************************************************************************
 # Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>

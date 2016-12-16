@@ -74,6 +74,9 @@ def generating_function_of_polyhedron(polyhedron, split=False,
 
     EXAMPLES::
 
+        sage: from sage.geometry.polyhedron.generating_function import generating_function_of_polyhedron
+
+    ::
         sage: P2 = (
         ....:   Polyhedron(ieqs=[(0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, -1)]),
         ....:   Polyhedron(ieqs=[(0, -1, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0)]))
@@ -388,6 +391,8 @@ def _generating_function_of_polyhedron_(
 
     TESTS::
 
+        sage: from sage.geometry.polyhedron.generating_function import generating_function_of_polyhedron
+
         sage: generating_function_of_polyhedron(  # indirect doctest
         ....:     Polyhedron(ieqs=[(0, 1, 0, 0), (0, -1, 1, 0)],
         ....:                eqns=[(0, -1, -1, 2)]),
@@ -449,6 +454,8 @@ def __generating_function_of_polyhedron__(
     does the actual computation of the generating function.
 
     TESTS::
+
+        sage: from sage.geometry.polyhedron.generating_function import __generating_function_of_polyhedron__
 
         sage: __generating_function_of_polyhedron__(
         ....:     (0, 2), [(0, 1, 0)], [(1, -1, 2)],
@@ -591,6 +598,8 @@ def prepare_inequalities(inequalities, B):
     without passing them to Omega.
 
     EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.generating_function import prepare_inequalities
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
         sage: prepare_inequalities([(0, -1, 1, 0), (2, -1, -1, 1)], B)
@@ -737,6 +746,8 @@ def prepare_equations_transformation(E):
     r"""
     TESTS::
 
+        sage: from sage.geometry.polyhedron.generating_function import prepare_equations_transformation
+
         sage: prepare_equations_transformation(matrix([(0, 1, 0, -2)]))
         ([   0 -1/2    0    1], (3,), (0, 1))
         sage: prepare_equations_transformation(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
@@ -768,6 +779,8 @@ def prepare_equations_transformation(E):
 def prepare_equations(equations, B):
     r"""
     EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.generating_function import prepare_equations
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
         sage: prepare_equations([(1, 1, 1, -1, 0)], B)
@@ -843,6 +856,8 @@ def prepare_mod(mod, B, *vecs):
     r"""
     EXAMPLES::
 
+        sage: from sage.geometry.polyhedron.generating_function import prepare_mod
+
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
         sage: prepare_mod({0: (2, 1)}, B, [(1, -1, 0, 2)])
         (y0, {y2: y2, y1: y1, y0: y0^2}, ((0, -2, 0, 2),))
@@ -905,6 +920,8 @@ def compositions_mod(u, m, r=0, multidimensional=False):
     An iterable of tuples; all these tuples have the same size as ``u``.
 
     EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.generating_function import compositions_mod
 
         sage: list(compositions_mod([1, 1], 2))
         [(0, 0), (1, 1)]

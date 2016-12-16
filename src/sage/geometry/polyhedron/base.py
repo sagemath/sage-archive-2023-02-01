@@ -1174,6 +1174,38 @@ class Polyhedron_base(Element):
         else:
             return self._Hrepresentation[index]
 
+    def repr_pretty_Hrepresentation(self, separator=', ', **kwds):
+        r"""
+        Return a pretty representation of the Hrepresentation of this
+        polyhedron.
+
+        INPUT:
+
+        - ``separator`` -- a string.
+
+        Keyword parameters of
+        :meth:`~sage.geometry.polyhedron.representation.Hrepresentation.repr_pretty`
+        are passed on:
+
+        - ``prefix`` -- a string.
+
+        - ``indices`` -- a tuple or other iterable.
+
+        - ``latex`` -- a boolean.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(ieqs=[(0, 1, 0, 0), (1, 2, 1, 0)],
+            ....:                eqns=[(1, -1, -1, 1)])
+            sage: P.repr_pretty_Hrepresentation()
+            'x0 + x1 == x2 + 1, x0 >= 0, 2*x0 + x1 + 1 >= 0'
+        """
+        return separator.join(h.repr_pretty(**kwds)
+                              for h in self.Hrepresentation())
 
     def Hrep_generator(self):
         """

@@ -4117,7 +4117,7 @@ class SandpileConfig(dict):
         .. NOTE::
 
             To define ``c.burst(v)``, if `v` is not the sink, let `c'` be the unique
-            recurrent for which the the stabilization of `c' + v` is `c`.  The
+            recurrent for which the stabilization of `c' + v` is `c`.  The
             burst size is then the amount of sand that goes into the sink during this
             stabilization.  If `v` is the sink, the burst size is defined to be 1.
 

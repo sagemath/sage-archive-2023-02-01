@@ -779,9 +779,9 @@ class WordGenerator(object):
         From an iterator of the continued fraction expansion of a real::
 
             sage: def cf():
-            ...     yield 0
-            ...     yield 2
-            ...     while True: yield 1
+            ....:   yield 0
+            ....:   yield 2
+            ....:   while True: yield 1
             sage: F = words.CharacteristicSturmianWord(cf()); F
             word: 0100101001001010010100100101001001010010...
             sage: Fib = words.FibonacciWord(); Fib
@@ -1011,10 +1011,10 @@ class WordGenerator(object):
         TESTS::
 
             sage: for i in range(1,10):
-            ...       for j in range(1,10):
-            ...           if i != j:
-            ...               w = words.KolakoskiWord(alphabet=(i,j))
-            ...               assert w[:50] == w.delta()[:50]
+            ....:     for j in range(1,10):
+            ....:         if i != j:
+            ....:             w = words.KolakoskiWord(alphabet=(i,j))
+            ....:             assert w[:50] == w.delta()[:50]
 
         ::
 
@@ -1776,7 +1776,7 @@ class WordGenerator(object):
 
             sage: from sage.misc.prandom import randint
             sage: def it():
-            ...     while True: yield randint(0,1)
+            ....:   while True: yield randint(0,1)
             sage: words.s_adic(it(), repeat('a'), [tm,fib])
             word: abbaabababbaababbaabbaababbaabababbaabba...
             sage: words.s_adic(it(), repeat('a'), [tm,fib])

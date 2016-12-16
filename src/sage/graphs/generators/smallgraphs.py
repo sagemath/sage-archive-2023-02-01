@@ -5116,10 +5116,10 @@ def IoninKharaghani765Graph():
     K = GF(3)
 
     # the four φ functions
-    phi = [lambda (x,y): 1*x+0*y,
-           lambda (x,y): 0*x+1*y,
-           lambda (x,y): 1*x+1*y,
-           lambda (x,y): 1*x-1*y]
+    phi = [lambda xy: 1*xy[0]+0*xy[1],
+           lambda xy: 0*xy[0]+1*xy[1],
+           lambda xy: 1*xy[0]+1*xy[1],
+           lambda xy: 1*xy[0]-1*xy[1]]
 
     # Defining L_{i,j}
     L = {(i,j):set() for i in range(4) for j in K}

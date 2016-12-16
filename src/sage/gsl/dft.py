@@ -678,7 +678,7 @@ class IndexedSequence(SageObject):
 
         INPUT:
 
-        - ``other`` -- the the name of the type of wavelet; valid choices are:
+        - ``other`` -- the name of the type of wavelet; valid choices are:
 
           * ``'daubechies'``
           * ``'daubechies_centered'``

@@ -8,16 +8,6 @@ fi
 
 cd src
 
-# Patch sources
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
 # OpenBLAS does not build on 32bit Haswell. Upstream suggests to pass BINARY=32 to default to NEHALEM kernels
 # See https://github.com/xianyi/OpenBLAS/issues/657
 # Right now this affect all 32bit CPUs.

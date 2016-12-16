@@ -2068,7 +2068,7 @@ class DocTestTask(object):
         OUTPUT:
 
         - ``(doctests, result_dict)`` where ``doctests`` is the number of
-          doctests and and ``result_dict`` is a dictionary annotated with
+          doctests and ``result_dict`` is a dictionary annotated with
           timings and error information.
 
         - Also put ``(doctests, result_dict)`` onto the ``result_queue``

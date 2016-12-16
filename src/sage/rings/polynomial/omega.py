@@ -5,6 +5,15 @@ This module implements :func:`MacMahon's Omega Operator <Omega>`
 [MacMahon1915]_, which takes a quotient of laurent polynomials and
 removes all negative exponents in the corresponding power series.
 
+REFERENCES:
+
+.. [MacMahon1915] Percy A. MacMahon, *Combinatory Analysis*,
+   Cambridge University Press (1915--1916).
+   (Reprinted: Chelsea, New York, 1960)
+
+.. [APR2001] George E. Andrews, Peter Paule, Axel Riese,
+   *MacMahon's partition analysis: the Omega package*,
+   European J. Combin. 22 (2001), no. 7, 887--904.
 """
 # *****************************************************************************
 # Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>
@@ -68,6 +77,12 @@ def Omega(var, expression, denominator=None, op=operator.ge,
     .. NOTE::
 
         The numerator of the result may not be factored.
+
+    REFERENCES:
+
+    - [MacMahon1915]_
+
+    - [APR2001]_
 
     EXAMPLES::
 

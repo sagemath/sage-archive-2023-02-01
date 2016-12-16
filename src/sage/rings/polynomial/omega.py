@@ -557,7 +557,7 @@ def Omega_numerator(a, x, y, t):
         result = sum(homogenous_symmetric_function(j, xy)
                      for j in srange(a+1))
     else:
-        result = Omega_numerator_P(a, x_flat, y_flat, t).subs({t: x_flat[-1]})
+        result = _Omega_numerator_P_(a, x_flat, y_flat, t).subs({t: x_flat[-1]})
     L = t.parent()
     result = L(result)
 
@@ -565,7 +565,7 @@ def Omega_numerator(a, x, y, t):
     return result
 
 
-def Omega_numerator_P(a, x, y, t):
+def _Omega_numerator_P_(a, x, y, t):
     r"""
     Helper function for :func:`Omega_numerator`.
 
@@ -585,7 +585,7 @@ def Omega_numerator_P(a, x, y, t):
 
     TESTS::
 
-        sage: from sage.rings.polynomial.omega import Omega_numerator_P
+        sage: from sage.rings.polynomial.omega import _Omega_numerator_P_
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -602,7 +602,7 @@ def Omega_numerator_P(a, x, y, t):
                  for j in srange(a))
              if a > 0 else 0)
     else:
-        Pprev = Omega_numerator_P(a, x[:n-1], y, t)
+        Pprev = _Omega_numerator_P_(a, x[:n-1], y, t)
         x2 = x[n-2]
         logger.debug('Omega_numerator: P(%s): substituting...', n)
         x1 = t

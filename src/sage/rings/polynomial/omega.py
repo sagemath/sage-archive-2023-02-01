@@ -309,7 +309,7 @@ def Omega_ge(a, exponents):
     .. MATH::
 
         \Omega_{\ge} \frac{\mu^a}{
-        (1 - z_1 \mu^{e_1}) \dots (1 - z_n \mu^{e_n})
+        (1 - z_1 \mu^{e_1}) \dots (1 - z_n \mu^{e_n})}
 
     and returns its numerator and a factorization of its denominator.
 
@@ -457,7 +457,7 @@ def Omega_numerator(a, x, y, t):
 
         \Omega_{\ge} \frac{\mu^a}{
         (1 - x_1 \mu) \dots (1 - x_n \mu)
-        (1 - y_1 / \mu) \dots (1 - y_m / \mu)
+        (1 - y_1 / \mu) \dots (1 - y_m / \mu)}
 
     and returns its numerator.
 
@@ -634,7 +634,7 @@ def Omega_factors_denominator(x, y):
 
         \Omega_{\ge} \frac{1}{
         (1 - x_1 \mu) \dots (1 - x_n \mu)
-        (1 - y_1 / \mu) \dots (1 - y_m / \mu)
+        (1 - y_1 / \mu) \dots (1 - y_m / \mu)}
 
     and returns a factorization of its denominator.
 
@@ -723,7 +723,7 @@ def partition(items, predicate=bool):
     `http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html
     <http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html>`_
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.omega import partition
         sage: E, O = partition(srange(10), is_odd)

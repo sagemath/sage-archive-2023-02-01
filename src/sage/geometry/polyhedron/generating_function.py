@@ -1,3 +1,25 @@
+r"""
+Generating Function of Polyhedron
+
+This module provides :func:`generating_function_of_polyhedron` which
+computes the generating function of an integer valued polyhedron.
+
+
+Various
+=======
+
+AUTHORS:
+
+- Daniel Krenn (2016)
+
+ACKNOWLEDGEMENT:
+
+- Daniel Krenn is supported by the Austrian Science Fund (FWF): P 24644-N26.
+
+
+Functions
+=========
+"""
 
 # *****************************************************************************
 # Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>

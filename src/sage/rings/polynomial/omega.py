@@ -550,11 +550,11 @@ def Omega_numerator(a, x, y, t):
 
     if m == 0:
         result = 1 - (prod(Omega_factors_denominator(x, y)) *
-                      sum(HomogenousSymmetricFunction(j, xy)
+                      sum(homogenous_symmetric_function(j, xy)
                           for j in srange(-a))
                       if a < 0 else 0)
     elif n == 0:
-        result = sum(HomogenousSymmetricFunction(j, xy)
+        result = sum(homogenous_symmetric_function(j, xy)
                      for j in srange(a+1))
     else:
         result = Omega_numerator_P(a, x_flat, y_flat, t).subs({t: x_flat[-1]})
@@ -598,7 +598,7 @@ def Omega_numerator_P(a, x, y, t):
         x0 = t
         result = x0**(-a) + \
             (prod(1 - x0*yy for yy in y) *
-             sum(HomogenousSymmetricFunction(j, y) * (1-x0**(j-a))
+             sum(homogenous_symmetric_function(j, y) * (1-x0**(j-a))
                  for j in srange(a))
              if a > 0 else 0)
     else:
@@ -731,7 +731,7 @@ def partition(items, predicate=bool):
             (item for pred, item in b if pred))
 
 
-def HomogenousSymmetricFunction(j, x):
+def homogenous_symmetric_function(j, x):
     r"""
     Return a complete homogeneous symmetric polynomial.
 
@@ -747,15 +747,15 @@ def HomogenousSymmetricFunction(j, x):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.omega import HomogenousSymmetricFunction
+        sage: from sage.rings.polynomial.omega import homogenous_symmetric_function
         sage: P = PolynomialRing(ZZ, 'X', 3)
-        sage: HomogenousSymmetricFunction(0, P.gens())
+        sage: homogenous_symmetric_function(0, P.gens())
         1
-        sage: HomogenousSymmetricFunction(1, P.gens())
+        sage: homogenous_symmetric_function(1, P.gens())
         X0 + X1 + X2
-        sage: HomogenousSymmetricFunction(2, P.gens())
+        sage: homogenous_symmetric_function(2, P.gens())
         X0^2 + X0*X1 + X1^2 + X0*X2 + X1*X2 + X2^2
-        sage: HomogenousSymmetricFunction(3, P.gens())
+        sage: homogenous_symmetric_function(3, P.gens())
         X0^3 + X0^2*X1 + X0*X1^2 + X1^3 + X0^2*X2 +
         X0*X1*X2 + X1^2*X2 + X0*X2^2 + X1*X2^2 + X2^3
     """

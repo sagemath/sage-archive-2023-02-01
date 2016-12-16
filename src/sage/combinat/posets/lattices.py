@@ -1979,21 +1979,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         r"""
         Return ``True`` if the lattice is modular and ``False`` otherwise.
 
-        A lattice is *modular* if for all elements `x, a, b` in the
-        lattice we have
+        An element `b` of a lattice is *modular* if
 
         .. MATH::
 
             x \le b \Rightarrow x \vee (a \wedge b) = (x \vee a) \wedge b
 
-        There are other equivalent definitions, see
+        for every elements `x` and `a`. A lattice is modular if every
+        element is modular. There are other equivalent definitions, see
         :wikipedia:`Modular_lattice`.
 
-        Using the parameter ``L``, this can also be used to check that
-        some subset of elements are all modular. An element `b` in a
-        lattice `L` is *modular* if `x \leq b` implies 
-        `x \vee (a \wedge b) = (x \vee a) \wedge b` for every
-        `x, a \in L`.
+        With the parameter ``L`` this can be used to check that
+        some subset of elements are all modular.
 
         INPUT:
 
@@ -2008,7 +2005,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         - If ``certificate=True`` return either ``(True, None)`` or
           ``(False, (x, a, b))``, where `a`, `b` and `x` are elements
           of the lattice such that `x < b` but
-          `x \vee (a \wedge b) \not= (x \vee a) \wedge b`. If also
+          `x \vee (a \wedge b) \neq (x \vee a) \wedge b`. If also
           `L` is given then `b` in the certificate will be an element
           of `L`. If ``certificate=False`` return ``True`` or ``False``.
 

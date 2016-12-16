@@ -7937,7 +7937,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return RR(sum([abs(i)**p for i in coeffs]))**(1/p)
 
-    def number_of_terms(self):
+    cpdef long number_of_terms(self):
         """
         Returns the number of non-zero coefficients of self. Also called weight,
         hamming weight or sparsity.

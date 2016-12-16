@@ -461,6 +461,8 @@ def Omega_numerator(a, x, y, t):
 
     and returns its numerator.
 
+    This function is meant to be a helper function of :func:`Omega`.
+
     INPUT:
 
     - ``a`` -- an integer.
@@ -635,6 +637,8 @@ def Omega_factors_denominator(x, y):
         (1 - y_1 / \mu) \dots (1 - y_m / \mu)
 
     and returns a factorization of its denominator.
+
+    This function is meant to be a helper function of :func:`Omega`.
 
     INPUT:
 

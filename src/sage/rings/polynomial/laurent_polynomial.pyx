@@ -1591,6 +1591,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: f.factor() # Notice the y has been factored out.
             (y) * (2*x^2 + x + 1)
         """
+        from sage.rings.integer_ring import ZZ
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
         if i is None:
             e = None
@@ -1600,7 +1601,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 else:
                     e = e.emin(k)
             if len(e.nonzero_positions()) > 0:
-                self._poly = self._poly // self._poly.parent()({e: 1})
+                self._poly = self._poly // self._poly.parent()({e: ZZ(1)})
                 self._mon = self._mon.eadd(e)
         else:
             e = None

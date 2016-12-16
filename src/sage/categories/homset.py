@@ -30,9 +30,9 @@ overwritten::
     sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
     sage: L = [x for x in gc.get_objects() if isinstance(x, FF)]
     sage: len(L)
-    2
+    1
     sage: L
-    [Finite Field of size 2, Finite Field of size 199]
+    [Finite Field of size 199]
 
 AUTHORS:
 
@@ -114,7 +114,7 @@ def Hom(X, Y, category=None, check=True):
         Vector space of dimension 3 over Rational Field
         sage: G = AlternatingGroup(3)
         sage: Hom(G, G)
-        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite permutation groups
+        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite enumerated permutation groups
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
 
@@ -134,8 +134,8 @@ def Hom(X, Y, category=None, check=True):
         624
         sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
         sage: L = [x for x in gc.get_objects() if isinstance(x, FF)]
-        sage: len(L), L[0], L[len(L)-1]
-        (2, Finite Field of size 2, Finite Field of size 997)
+        sage: len(L), L[0]
+        (1, Finite Field of size 997)
 
     To illustrate the choice of the category, we consider the
     following parents as running examples::
@@ -151,7 +151,7 @@ def Hom(X, Y, category=None, check=True):
         sage: Hom(X, Y)
         Set of Morphisms from Integer Ring
          to Symmetric group of order 3! as a permutation group
-         in Join of Category of monoids and Category of enumerated sets
+         in Category of enumerated monoids
 
     Otherwise, if ``category`` is specified, then ``category`` is used,
     after checking that ``X`` and ``Y`` are indeed in ``category``::
@@ -455,7 +455,7 @@ def End(X, category=None):
 
         sage: G = AlternatingGroup(3)
         sage: S = End(G); S
-        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite permutation groups
+        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite enumerated permutation groups
         sage: from sage.categories.homset import is_Endset
         sage: is_Endset(S)
         True
@@ -698,7 +698,7 @@ class Homset(Set_generic):
         """
         return hash((self._domain, self._codomain, self.base()))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS::
 
@@ -706,6 +706,8 @@ class Homset(Set_generic):
             True
         """
         return True
+
+    __nonzero__ = __bool__
 
     def _generic_convert_map(self, S):
         """
@@ -782,7 +784,7 @@ class Homset(Set_generic):
 
             sage: H = Hom(AlternatingGroup(4), AlternatingGroup(7))
             sage: H.homset_category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
         """
         return self.__category
 

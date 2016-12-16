@@ -37,12 +37,16 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 include 'sage/data_structures/bitset.pxi'
 
-from matroid cimport Matroid
-from set_system cimport SetSystem
+from .matroid cimport Matroid
+from .set_system cimport SetSystem
+
 from copy import copy
 from itertools import combinations, permutations
+
 
 cdef class BasisExchangeMatroid(Matroid):
     r"""
@@ -500,7 +504,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: type(M.groundset())
             <type 'frozenset'>
             sage: type(M.groundset_list())
-            <type 'list'>
+            <... 'list'>
             sage: sorted(M.groundset_list())
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
@@ -2064,7 +2068,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: PM = M._heuristic_partition()
             sage: PN = N._heuristic_partition()
             sage: morphism = {}
-            sage: for i in xrange(len(M)): morphism[min(PM[i])]=min(PN[i])
+            sage: for i in range(len(M)): morphism[min(PM[i])] = min(PN[i])
             sage: M._is_isomorphism(N, morphism)
             True
         """

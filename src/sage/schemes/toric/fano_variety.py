@@ -415,7 +415,7 @@ def CPRFanoToricVariety(Delta=None,
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points="all",
         ...         coordinate_names="x y Z+",
-        ...         coordinate_name_indices=range(8))
+        ...         coordinate_name_indices=list(range(8)))
         sage: FTV.gens()
         (x, y, Z2, Z3, Z4, Z5, Z6, Z7)
 
@@ -427,7 +427,7 @@ def CPRFanoToricVariety(Delta=None,
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points="all",
         ...         coordinate_names="x Z+",
-        ...         coordinate_name_indices=range(8))
+        ...         coordinate_name_indices=list(range(8)))
         sage: FTV.gens()
         (x, Z1, Z2, Z3, Z4, Z5, Z6, Z7)
 
@@ -437,14 +437,14 @@ def CPRFanoToricVariety(Delta=None,
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points="all",
         ...         coordinate_names="x Z+",
-        ...         coordinate_name_indices=[0] + range(7))
+        ...         coordinate_name_indices=[0] + list(range(7)))
         sage: FTV.gens()
         (x, Z0, Z1, Z2, Z3, Z4, Z5, Z6)
 
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points="all",
         ...         coordinate_names="x y Z+",
-        ...         coordinate_name_indices=[0]*2 + range(6))
+        ...         coordinate_name_indices=[0]*2 + list(range(6)))
         sage: FTV.gens()
         (x, y, Z0, Z1, Z2, Z3, Z4, Z5)
 
@@ -1166,7 +1166,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
             sage: X.nef_complete_intersection(np,  # long time
             ...         monomial_points="vertices",
-            ...         coefficients=[("a", "a^2", "a/e", "c_i"), range(1,6)])
+            ...         coefficients=[("a", "a^2", "a/e", "c_i"), list(range(1,6))])
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
               a/e*z1*z4^2*z5^2*z7^3 + a^2*z2*z4*z5*z6*z7^2*z8^2

@@ -263,13 +263,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
+import six
 
 from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.env import DOT_SAGE
 import re
-import six
 import sage.rings.integer
 from sage.structure.element import parent
 from sage.misc.cachefunc import cached_method
@@ -707,7 +707,7 @@ class R(ExtraTabCompletion, Expect):
         #The following was more structural, but breaks on my machine.  (stein)
         #p = p._sage_()
         #s = p['_Dim'][0]
-        #l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in xrange(0,s)]
+        #l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in range(0,s)]
         #return l
 
     def _object_class(self):
@@ -1386,14 +1386,14 @@ class RElement(ExtraTabCompletion, ExpectElement):
             return P.new('%s[%s]'%(self._name, n))
         else:
             L = []
-            for i in xrange(len(n)):
+            for i in range(len(n)):
                 if parent(n[i]) is P:
                     L.append(n[i].name())
                 else:
                     L.append(str(n[i]))
             return P.new('%s[%s]'%(self._name, ','.join(L)))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Implements bool(self).
 
@@ -1415,6 +1415,8 @@ class RElement(ExtraTabCompletion, ExpectElement):
             True
         """
         return "FALSE" in repr(self==0)
+
+    __nonzero__ = __bool__
 
     def _comparison(self, other, symbol):
         """

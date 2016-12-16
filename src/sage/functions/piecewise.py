@@ -75,6 +75,8 @@ from sage.symbolic.ring import SR
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import minus_infinity, infinity
 
+from six import get_function_code
+
 
 class PiecewiseFunction(BuiltinFunction):
     def __init__(self):
@@ -145,7 +147,7 @@ class PiecewiseFunction(BuiltinFunction):
             if isinstance(function, FunctionType):
                 if var is None:
                     var = SR.var('x')
-                if function.func_code.co_argcount == 0:
+                if get_function_code(function).co_argcount == 0:
                     function = function()
                 else:
                     function = function(var)
@@ -570,7 +572,8 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: bool(h == f)
                 True
             """
-            result = [(domain, func) for domain,func in parameters if func<>0]
+            result = [(domain, func) for domain,func in parameters
+                      if func != 0]
             return piecewise(result, var=variable)
 
         def pieces(cls, self, parameters, variable):
@@ -1145,7 +1148,7 @@ class PiecewiseFunction(BuiltinFunction):
             r"""
             Returns the partial sum
 
-            .. math::
+            .. MATH::
 
                f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
 

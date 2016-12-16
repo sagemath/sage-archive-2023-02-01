@@ -180,6 +180,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
@@ -291,8 +292,8 @@ class Factorization(SageObject):
         """
         if not isinstance(x, list):
             raise TypeError("x must be a list")
-        for i in xrange(len(x)):
-            t=x[i]
+        for i in range(len(x)):
+            t = x[i]
             if not (isinstance(t, tuple) and len(t) == 2):
                 raise TypeError("x must be a list of pairs (p, e) with e an integer")
             if not isinstance(t[1],(int, long, Integer)):
@@ -1094,7 +1095,7 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).union(set(d2.keys())):
+            for a in set(d1).union(set(d2)):
                 s[a] = d1.get(a,0) + d2.get(a,0)
             return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
         else:
@@ -1245,7 +1246,7 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).intersection(set(d2.keys())):
+            for a in set(d1).intersection(set(d2)):
                 s[a] = min(d1[a],d2[a])
             return Factorization(list(s.iteritems()))
         else:
@@ -1287,7 +1288,7 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).union(set(d2.keys())):
+            for a in set(d1).union(set(d2)):
                 s[a] = max(d1.get(a,0),d2.get(a,0))
             return Factorization(list(s.iteritems()))
         else:

@@ -45,7 +45,8 @@ done
 
 
 echo "Configuring GSL..."
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+  LIBS="`pkg-config --libs-only-l cblas` -lm"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring GSL."
     exit 1

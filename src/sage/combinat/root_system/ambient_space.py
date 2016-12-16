@@ -94,7 +94,7 @@ class AmbientSpace(CombinatorialFreeModule):
         Tests that the norm of the roots is, up to an overal constant factor,
         given by the symmetrizer of the Cartan matrix.
 
-        .. seealso:: :class:`TestSuite`
+        .. SEEALSO:: :class:`TestSuite`
 
         EXAMPLES::
 

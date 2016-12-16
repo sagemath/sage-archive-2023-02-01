@@ -2318,7 +2318,7 @@ class RationalFunctionField(FunctionField):
             id = Hom(self,self).identity()
             return self,id,id
         else:
-            from constructor import FunctionField
+            from .constructor import FunctionField
             ret = FunctionField(self.constant_base_field(), name)
             return ret, ret.hom(self.gen()), self.hom(ret.gen())
 

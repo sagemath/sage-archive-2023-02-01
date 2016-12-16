@@ -8,7 +8,7 @@ example, we derive the quadratic formula as follows::
     sage: qe = (a*x^2 + b*x + c == 0)
     sage: qe
     a*x^2 + b*x + c == 0
-    sage: print solve(qe, x)
+    sage: print(solve(qe, x))
     [
     x == -1/2*(b + sqrt(b^2 - 4*a*c))/a,
     x == -1/2*(b - sqrt(b^2 - 4*a*c))/a
@@ -76,7 +76,7 @@ Multiply two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m * n
     x*sin(x) == (5*x + 1)*sin(2*pi + x)
     sage: m = 2*x == 3*x^2 - 5
@@ -87,11 +87,11 @@ Divide two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) == (5*x + 1)/sin(2*pi + x)
     sage: m = x != 5*x + 1
-    sage: n = sin(x) != sin(x+2*pi)
+    sage: n = sin(x) != sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) != (5*x + 1)/sin(2*pi + x)
 
@@ -247,8 +247,8 @@ LaTeX output::
     sage: latex(x^(3/5) >= pi)
     x^{\frac{3}{5}} \geq \pi
 
-When working with the symbolic complex number `I`, notice that comparison do not
-automatically simplifies even in trivial situations::
+When working with the symbolic complex number `I`, notice that comparisons do not
+automatically simplify even in trivial situations::
 
     sage: I^2 == -1
     -1 == -1
@@ -280,7 +280,7 @@ More Examples
 
     sage: f = x^5 + a
     sage: solve(f==0,x)
-    [x == (-a)^(1/5)*e^(2/5*I*pi), x == (-a)^(1/5)*e^(4/5*I*pi), x == (-a)^(1/5)*e^(-4/5*I*pi), x == (-a)^(1/5)*e^(-2/5*I*pi), x == (-a)^(1/5)]
+    [x == 1/4*(-a)^(1/5)*(sqrt(5) + I*sqrt(2*sqrt(5) + 10) - 1), x == -1/4*(-a)^(1/5)*(sqrt(5) - I*sqrt(-2*sqrt(5) + 10) + 1), x == -1/4*(-a)^(1/5)*(sqrt(5) + I*sqrt(-2*sqrt(5) + 10) + 1), x == 1/4*(-a)^(1/5)*(sqrt(5) - I*sqrt(2*sqrt(5) + 10) - 1), x == (-a)^(1/5)]
 
 You can also do arithmetic with inequalities, as illustrated
 below::
@@ -328,8 +328,11 @@ AUTHORS:
 - William Stein (2007-07-16): added arithmetic with symbolic equations
 
 """
+from __future__ import print_function
+from six.moves import range
+
 import operator
-from sage.calculus.calculus import maxima
+
 
 def test_relation_maxima(relation):
     """
@@ -393,6 +396,60 @@ def test_relation_maxima(relation):
         sage: test_relation_maxima(x!=1)
         False
         sage: forget()
+
+    TESTS:
+
+    Ensure that ``canonicalize_radical()`` and ``simplify_log`` are not
+    used inappropriately, :trac:`17389`. Either one would simplify ``f``
+    to zero below::
+
+        sage: x,y = SR.var('x,y')
+        sage: assume(y, 'complex')
+        sage: f = log(x*y) - (log(x) + log(y))
+        sage: f(x=-1, y=i)
+        -2*I*pi
+        sage: test_relation_maxima(f == 0)
+        False
+        sage: forget()
+
+    Ensure that the ``sqrt(x^2)`` -> ``abs(x)`` simplification is not
+    performed when testing equality::
+
+        sage: assume(x, 'complex')
+        sage: f = sqrt(x^2) - abs(x)
+        sage: test_relation_maxima(f == 0)
+        False
+        sage: forget()
+
+    If assumptions are made, ``simplify_rectform()`` is used::
+
+        sage: assume(x, 'real')
+        sage: f1 = ( e^(I*x) - e^(-I*x) ) / ( I*e^(I*x) + I*e^(-I*x) )
+        sage: f2 = sin(x)/cos(x)
+        sage: test_relation_maxima(f1 - f2 == 0)
+        True
+        sage: forget()
+
+    But not if ``x`` itself is complex::
+
+        sage: assume(x, 'complex')
+        sage: f1 = ( e^(I*x) - e^(-I*x) ) / ( I*e^(I*x) + I*e^(-I*x) )
+        sage: f2 = sin(x)/cos(x)
+        sage: test_relation_maxima(f1 - f2 == 0)
+        False
+        sage: forget()
+
+    If assumptions are made, then ``simplify_factorial()`` is used::
+
+        sage: n,k = SR.var('n,k')
+        sage: assume(n, 'integer')
+        sage: assume(k, 'integer')
+        sage: f1 = factorial(n+1)/factorial(n)
+        sage: f2 = n + 1
+        sage: test_relation_maxima(f1 - f2 == 0)
+        True
+        sage: forget()
+
     """
     m = relation._maxima_()
 
@@ -405,20 +462,20 @@ def test_relation_maxima(relation):
     if relation.operator() == operator.eq: # operator is equality
         try:
             s = m.parent()._eval_line('is (equal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError as msg:
-            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
+        except TypeError:
+            raise ValueError("unable to evaluate the predicate '%s'" % repr(relation))
 
     elif relation.operator() == operator.ne: # operator is not equal
         try:
             s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError as msg:
-            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
+        except TypeError:
+            raise ValueError("unable to evaluate the predicate '%s'" % repr(relation))
 
     else: # operator is < or > or <= or >=, which Maxima handles fine
         try:
             s = m.parent()._eval_line('is (%s)'%repr(m))
-        except TypeError as msg:
-            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
+        except TypeError:
+            raise ValueError("unable to evaluate the predicate '%s'" % repr(relation))
 
     if s == 'true':
         return True
@@ -432,8 +489,18 @@ def test_relation_maxima(relation):
     if repr(difference) == '0':
         return True
 
-    #Try to apply some simplifications to see if left - right == 0
-    simp_list = [difference.simplify_log, difference.simplify_rational, difference.simplify_exp,difference.simplify_radical,difference.simplify_trig]
+    # Try to apply some simplifications to see if left - right == 0.
+    #
+    # TODO: If simplify_log() is ever removed from simplify_full(), we
+    # can replace all of these individual simplifications with a
+    # single call to simplify_full(). That would work in cases where
+    # two simplifications are needed consecutively; the current
+    # approach does not.
+    #
+    simp_list = [difference.simplify_factorial(),
+                 difference.simplify_rational(),
+                 difference.simplify_rectform(),
+                 difference.simplify_trig()]
     for f in simp_list:
         try:
             if repr( f() ).strip() == "0":
@@ -532,7 +599,7 @@ def solve(f, *args, **kwds):
         sage: solve([sqrt(x) + sqrt(y) == 5, x + y == 10], x, y)
         [[x == -5/2*I*sqrt(5) + 5, y == 5/2*I*sqrt(5) + 5], [x == 5/2*I*sqrt(5) + 5, y == -5/2*I*sqrt(5) + 5]]
         sage: solutions=solve([x^2+y^2 == 1, y^2 == x^3 + x + 1], x, y, solution_dict=True)
-        sage: for solution in solutions: print solution[x].n(digits=3), ",", solution[y].n(digits=3)
+        sage: for solution in solutions: print("{} , {}".format(solution[x].n(digits=3), solution[y].n(digits=3)))
         -0.500 - 0.866*I , -1.27 + 0.341*I
         -0.500 - 0.866*I , 1.27 - 0.341*I
         -0.500 + 0.866*I , -1.27 - 0.341*I
@@ -545,7 +612,7 @@ def solve(f, *args, **kwds):
     underlying algorithm in Maxima::
 
         sage: sols = solve([x^3==y,y^2==x],[x,y]); sols[-1], sols[0]
-        ([x == 0, y == 0], [x == (0.309016994375 + 0.951056516295*I),  y == (-0.809016994375 - 0.587785252292*I)])
+        ([x == 0, y == 0], [x == (0.3090169943749475 + 0.9510565162951535*I), y == (-0.8090169943749475 - 0.5877852522924731*I)])
         sage: sols[0][0].rhs().pyobject().parent()
         Complex Double Field
 
@@ -553,7 +620,7 @@ def solve(f, *args, **kwds):
     for symbolic expressions, which defaults to exact answers only::
 
         sage: solve([y^6==y],y)
-        [y == e^(2/5*I*pi), y == e^(4/5*I*pi), y == e^(-4/5*I*pi), y == e^(-2/5*I*pi), y == 1, y == 0]
+        [y == 1/4*sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) + 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == 1/4*sqrt(5) - 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == 1, y == 0]
         sage: solve( [y^6 == y], y)==solve( y^6 == y, y)
         True
 
@@ -600,7 +667,7 @@ def solve(f, *args, **kwds):
         sage: solve([x^2-4*x+4],x,solution_dict=True)
         [{x: 2}]
         sage: res = solve([x^2 == y, y == 4],x,y,solution_dict=True)
-        sage: for soln in res: print "x: %s, y: %s"%(soln[x], soln[y])
+        sage: for soln in res: print("x: %s, y: %s" % (soln[x], soln[y]))
         x: 2, y: 4
         x: -2, y: 4
 
@@ -615,7 +682,7 @@ def solve(f, *args, **kwds):
     be implicitly an integer (hence the ``z``)::
 
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
-        [[x == 1/4*pi + pi*z80, y == -1/4*pi - pi*z80]]
+        [[x == 1/4*pi + pi*z79, y == -1/4*pi - pi*z79]]
 
     Expressions which are not equations are assumed to be set equal
     to zero, as with `x` in the following example::
@@ -676,7 +743,7 @@ def solve(f, *args, **kwds):
         TypeError:  The first argument must be a symbolic expression or a list of symbolic expressions.
 
     Test if the empty list is returned, too, when (a list of)
-    dictionaries (is) are requested (#8553)::
+    dictionaries (is) are requested (:trac:`8553`)::
 
         sage: solve([SR(0)==1],x)
         []
@@ -689,7 +756,7 @@ def solve(f, *args, **kwds):
         sage: solve((x==1,x==-1),x,solution_dict=0)
         []
 
-    Relaxed form, suggested by Mike Hansen (#8553)::
+    Relaxed form, suggested by Mike Hansen (:trac:`8553`)::
 
         sage: solve([x^2-1],x,solution_dict=-1)
         [{x: -1}, {x: 1}]
@@ -700,7 +767,7 @@ def solve(f, *args, **kwds):
         sage: solve((x==1,x==-1),x,solution_dict=1)
         []
 
-    This inequality holds for any real ``x`` (trac #8078)::
+    This inequality holds for any real ``x`` (:trac:`8078`)::
 
         sage: solve(x^4+2>0,x)
         [x < +Infinity]
@@ -726,8 +793,8 @@ def solve(f, *args, **kwds):
 
         sage: var('y,z')
         (y, z)
-        sage: solve([x^2*y*z==18,x*y^3*z==24,x*y*z^4==6],x,y,z)
-        [[x == 3, y == 2, z == 1], [x == (1.33721506733 - 2.68548987407*I), y == (-1.70043427146 + 1.05286432575*I), z == (0.932472229404 - 0.361241666187*I)], ...]
+        sage: solve([x^2 * y * z == 18, x * y^3 * z == 24, x * y * z^4 == 6], x, y, z)
+        [[x == 3, y == 2, z == 1], [x == (1.337215067... - 2.685489874...*I), y == (-1.700434271... + 1.052864325...*I), z == (0.9324722294... - 0.3612416661...*I)], ...]
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression
@@ -1022,7 +1089,7 @@ def _solve_mod_prime_power(eqns, p, m, vars):
 
     TESTS:
 
-    Confirm we can reproduce the first few terms of OEIS A187719::
+    Confirm we can reproduce the first few terms of :oeis:`A187719`::
 
         sage: from sage.symbolic.relation import _solve_mod_prime_power
         sage: [sorted(_solve_mod_prime_power([x^2==41], 10, i, [x]))[0][0] for i in [1..13]]
@@ -1036,15 +1103,15 @@ def _solve_mod_prime_power(eqns, p, m, vars):
 
     mrunning = 1
     ans = []
-    for mi in xrange(m):
+    for mi in range(m):
         mrunning *= p
         R = Integers(mrunning)
         S = PolynomialRing(R, len(vars), vars)
         eqns_mod = [S(eq) for eq in eqns]
         if mi == 0:
-            possibles = cartesian_product_iterator([xrange(len(R)) for _ in xrange(len(vars))])
+            possibles = cartesian_product_iterator([range(len(R)) for _ in range(len(vars))])
         else:
-            shifts = cartesian_product_iterator([xrange(p) for _ in xrange(len(vars))])
+            shifts = cartesian_product_iterator([range(p) for _ in range(len(vars))])
             pairs = cartesian_product_iterator([shifts, ans])
             possibles = (tuple(vector(t)+vector(shift)*(mrunning//p)) for shift, t in pairs)
         ans = list(t for t in possibles if all(e(*t) == 0 for e in eqns_mod))
@@ -1089,7 +1156,7 @@ def solve_ineq_univar(ineq):
     """
     ineqvar = ineq.variables()
     if len(ineqvar) != 1:
-        raise NotImplementedError, "The command solve_ineq_univar accepts univariate inequalities only. Your variables are ", ineqvar
+        raise NotImplementedError("The command solve_ineq_univar accepts univariate inequalities only. Your variables are " + ineqvar)
     ineq0 = ineq._maxima_()
     ineq0.parent().eval("if solve_rat_ineq_loaded#true then (solve_rat_ineq_loaded:true,load(\"solve_rat_ineq.mac\")) ")
     sol = ineq0.solve_rat_ineq().sage()
@@ -1100,7 +1167,7 @@ def solve_ineq_univar(ineq):
 
 def solve_ineq_fourier(ineq,vars=None):
     """
-    Solves sytem of inequalities using Maxima and fourier elimination
+    Solves system of inequalities using Maxima and Fourier elimination
 
     Can be used for system of linear inequalities and for some types
     of nonlinear inequalities. For examples see the section EXAMPLES
@@ -1111,7 +1178,7 @@ def solve_ineq_fourier(ineq,vars=None):
 
     - ``ineq`` - list with system of inequalities
 
-    - ``vars`` - optionally list with variables for fourier elimination.
+    - ``vars`` - optionally list with variables for Fourier elimination.
 
     OUTPUT:
 
@@ -1140,7 +1207,7 @@ def solve_ineq_fourier(ineq,vars=None):
     Note that different systems will find default variables in different
     orders, so the following is not tested::
 
-        sage: solve_ineq_fourier([log(x)>log(y)]) # not tested - one of the following appears
+        sage: solve_ineq_fourier([log(x)>log(y)])  # random (one of the following appears)
         [[0 < y, y < x, 0 < x]]
         [[y < x, 0 < y]]
 
@@ -1176,7 +1243,7 @@ def solve_ineq(ineq, vars=None):
     Solves inequalities and systems of inequalities using Maxima.
     Switches between rational inequalities
     (sage.symbolic.relation.solve_ineq_rational)
-    and fourier elimination (sage.symbolic.relation.solve_ineq_fouried).
+    and Fourier elimination (sage.symbolic.relation.solve_ineq_fouried).
     See the documentation of these functions for more details.
 
     INPUT:
@@ -1196,7 +1263,7 @@ def solve_ineq(ineq, vars=None):
       for a big gallery of problems covered by this algorithm.
 
     - ``vars`` - optional parameter with list of variables. This list
-      is used only if fourier elimination is used. If omitted or if
+      is used only if Fourier elimination is used. If omitted or if
       rational inequality is solved, then variables are determined
       automatically.
 
@@ -1230,7 +1297,7 @@ def solve_ineq(ineq, vars=None):
     the order it puts them in may depend on the system, so the following
     command is only guaranteed to give you one of the above answers::
 
-        sage: solve_ineq([x-y<0,x+y-3<0]) # not tested - random
+        sage: solve_ineq([x-y<0,x+y-3<0])  # random
         [[x < y, y < -x + 3, x < (3/2)]]
 
     ALGORITHM:

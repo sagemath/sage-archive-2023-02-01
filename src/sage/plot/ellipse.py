@@ -15,7 +15,10 @@ Ellipses
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from primitive import GraphicPrimitive
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .primitive import GraphicPrimitive
 from sage.plot.misc import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from math import sin, cos, sqrt, pi, fmod
@@ -51,7 +54,7 @@ class Ellipse(GraphicPrimitive):
 
             sage: from sage.plot.ellipse import Ellipse
             sage: e = Ellipse(0, 0, 1, 1, 0, {})
-            sage: print loads(dumps(e))
+            sage: print(loads(dumps(e)))
             Ellipse centered at (0.0, 0.0) with radii (1.0, 1.0) and angle 0.0
             sage: ellipse((0,0),0,1)
             Traceback (most recent call last):
@@ -176,10 +179,12 @@ class Ellipse(GraphicPrimitive):
         TESTS::
 
             sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3)
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: ellipse((3,2),1,2)
+            Graphics object consisting of 1 graphics primitive
         """
         import matplotlib.patches as patches
         from sage.plot.misc import get_matplotlib_linestyle
@@ -265,20 +270,25 @@ def ellipse(center, r1, r2, angle=0, **options):
     Note that the default color is blue::
 
         sage: ellipse((0,0),2,1)
+        Graphics object consisting of 1 graphics primitive
 
     More complicated examples with tilted axes and drawing options::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="dashed")
+        Graphics object consisting of 1 graphics primitive
         sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="--")
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='black',facecolor='red')
+        Graphics object consisting of 1 graphics primitive
 
     We see that ``rgbcolor`` overrides these other options, as this plot
     is green::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='black',facecolor='red',rgbcolor='green')
+        Graphics object consisting of 1 graphics primitive
 
     The default aspect ratio for ellipses is 1.0::
 
@@ -295,6 +305,7 @@ def ellipse(center, r1, r2, angle=0, **options):
     We can also give ellipses a legend::
 
         sage: ellipse((0,0),2,1,legend_label="My ellipse", legend_color='green')
+        Graphics object consisting of 1 graphics primitive
     """
     from sage.plot.all import Graphics
     g = Graphics()

@@ -14,27 +14,23 @@ generators. You can print the generators as arbitrary strings using
 the optional ``names`` argument to the
 ``FreeMonoid`` function.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
+#       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.structure.parent_gens import normalize_names
-from free_monoid_element import FreeMonoidElement
+from sage.structure.category_object import normalize_names
+from .free_monoid_element import FreeMonoidElement
 
-from monoid import Monoid_class
+from .monoid import Monoid_class
 
 from sage.combinat.words.finite_word import FiniteWord_class
 
@@ -261,7 +257,7 @@ class FreeMonoid_class(Monoid_class):
             return self.element_class(self, x, check)
         if isinstance(x, FiniteWord_class):
             d = self.gens_dict()
-            return self.prod(map(lambda let: d[let], x))
+            return self.prod([d[let] for let in x])
         if isinstance(x, list):
             return self.element_class(self, x, check)
 
@@ -306,19 +302,6 @@ class FreeMonoid_class(Monoid_class):
             2005
         """
         return self.__ngens
-
-    @cached_method
-    def one_element(self):
-        """
-        Returns the identity element in this monoid.
-
-        EXAMPLES::
-
-            sage: F = FreeMonoid(2005, 'a')
-            sage: F.one_element()
-            1
-        """
-        return self(1)
 
     def cardinality(self):
         r"""

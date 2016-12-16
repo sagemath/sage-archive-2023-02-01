@@ -35,17 +35,13 @@ seed, but currently there is no facility to do so.
 #   the License, or (at your option) any later version.
 #                   http://www.gnu.org/licenses/
 ###############################################################################
-
+from __future__ import print_function
 
 import os
 import re
-from math import ceil, floor
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
-from sage.misc.misc import verbose, tmp_filename
-from sage.misc.decorators import rename_keyword
-
 
 
 class ECM(SageObject):
@@ -194,9 +190,9 @@ class ECM(SageObject):
     def _run_ecm(self, cmd, n):
         """
         Run ECM and return output as string.
-        
+
         INPUT:
-        
+
         - ``cmd`` -- list of strings. The command.
 
         - ``n`` -- integer suitable for ECM. No argument checking is
@@ -211,13 +207,13 @@ class ECM(SageObject):
             sage: ecm._run_ecm(['cat'], 1234)
             '1234'
         """
-        from subprocess import Popen, PIPE, STDOUT
+        from subprocess import Popen, PIPE
         p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
         out, err = p.communicate(input=str(n))
         if err != '':
             raise ValueError(err)
         return out
-            
+
     def __call__(self, n):
         """
         Call syntax.
@@ -225,7 +221,7 @@ class ECM(SageObject):
         INPUT:
 
         - ``n`` -- integer.
-        
+
         OUTPUT:
 
         String. The ECM output.
@@ -246,14 +242,14 @@ class ECM(SageObject):
         Interactively interact with the ECM program.
 
         EXAMPLES::
-    
+
             sage: ecm.interact()    # not tested
         """
-        print "Enter numbers to run ECM on them."
-        print "Press control-C to exit."
+        print("Enter numbers to run ECM on them.")
+        print("Press control-C to exit.")
         os.system(self._cmd)
 
-    # Recommended settings from 
+    # Recommended settings from
     # http://www.mersennewiki.org/index.php/Elliptic_Curve_Method
     _recommended_B1_list = {15: 2000,
                             20: 11000,
@@ -266,7 +262,7 @@ class ECM(SageObject):
                             55: 110000000,
                             60: 260000000,
                             65: 850000000,
-                            70: 2900000000,}
+                            70: 2900000000}
 
     def _B1_table_value(self, factor_digits, min=15, max=70):
         """
@@ -287,12 +283,12 @@ class ECM(SageObject):
             sage: ecm._B1_table_value(33)
             35
         """
-        if factor_digits < min: 
+        if factor_digits < min:
             factor_digits = min
-        if factor_digits > max: 
+        if factor_digits > max:
             raise ValueError('too many digits')
         step = 5
-        return ((factor_digits+step-1) // step) * step
+        return ((factor_digits + step - 1) // step) * step
 
     def recommended_B1(self, factor_digits):
         r"""
@@ -334,7 +330,7 @@ class ECM(SageObject):
         - ``n`` -- integer. The ECM input number.
 
         - ``out`` -- string. The stdout from the ECM invocation.
-        
+
         OUTPUT:
 
         List of pairs ``(integer, bool)`` consisting of factors of the
@@ -374,7 +370,7 @@ class ECM(SageObject):
             sage: from sage.interfaces.ecm import TEST_ECM_OUTPUT_3, TEST_ECM_OUTPUT_4
             sage: n3 = 66955751844124594814248420514215108438425124740949701470891
             sage: ecm._parse_output(n3, TEST_ECM_OUTPUT_3)
-            [(197002597249, True), 
+            [(197002597249, True),
              (339872432034468861533158743041639097889948066859, False)]
             sage: ecm._parse_output(n3, TEST_ECM_OUTPUT_4)
             [(265748496095531068869578877937, False),
@@ -389,8 +385,8 @@ class ECM(SageObject):
             m = self._parse_status_re.match(line)
             if m is not None:
                 group = m.groups()
-                self._last_params = {'B1' : group[0], 'B2' : group[1],
-                                     'poly' : group[2], 'sigma' : group[3]}
+                self._last_params = {'B1': group[0], 'B2': group[1],
+                                     'poly': group[2], 'sigma': group[3]}
                 continue
             m = self._found_input_re.match(line)
             if m is not None:
@@ -408,7 +404,7 @@ class ECM(SageObject):
                 primality = m.group('primality')
                 assert primality in ['Probable prime', 'Composite']
                 result += [(ZZ(cofactor), primality == 'Probable prime')]
-                #assert len(result) == 2
+                # assert len(result) == 2
                 return result
         raise ValueError('failed to parse ECM output')
 
@@ -421,7 +417,7 @@ class ECM(SageObject):
         curves to factor `n`.
 
         INPUT:
-        
+
         - ``n`` -- a positive integer
 
         - ``factor_digits`` -- integer. Decimal digits estimate of the
@@ -494,8 +490,8 @@ class ECM(SageObject):
 
             sage: f = ECM()
             sage: n = 508021860739623467191080372196682785441177798407961
-            sage: f._find_factor(n, None, 2000)
-            [(79792266297612017, True), 
+            sage: sorted(f._find_factor(n, None, 2000))
+            [(79792266297612017, True),
              (6366805760909027985741435139224233, True)]
         """
         n = self._validate(n)
@@ -517,8 +513,8 @@ class ECM(SageObject):
         `n`.
 
         INPUT:
-        
-        - ``n`` -- a positive integer, 
+
+        - ``n`` -- a positive integer,
 
         - ``factor_digits`` -- integer or ``None`` (default). Decimal
           digits estimate of the wanted factor.
@@ -534,7 +530,7 @@ class ECM(SageObject):
         the factor, this is the best algorithm to find a
         factor.
 
-        .. NOTE: 
+        .. NOTE::
 
             ECM is not a good primality test. Not finding a
             factorization is only weak evidence for `n` being
@@ -548,7 +544,7 @@ class ECM(SageObject):
             sage: f.find_factor(n)
             [79792266297612017, 6366805760909027985741435139224233]
 
-        Note that the input number can't have more than 4095 digits::
+        Note that the input number cannot have more than 4095 digits::
 
             sage: f=2^2^14+1
             sage: ecm.find_factor(f)
@@ -566,7 +562,7 @@ class ECM(SageObject):
         Combines GMP-ECM with a primality test, see
         :meth:`~sage.rings.integer.Integer.is_prime`. The primality
         test is provable or probabilistic depending on the `proof`
-        flag. 
+        flag.
 
         Moreover, for small `n` PARI is used directly.
 
@@ -586,7 +582,7 @@ class ECM(SageObject):
 
         - ``B1`` -- initial lower bound, defaults to 2000 (15 digit
           factors). Used if ``factor_digits`` is not specified.
-        
+
         - ``proof`` -- boolean (default: ``False``). Whether to prove
           that the factors are prime.
 
@@ -600,7 +596,7 @@ class ECM(SageObject):
         .. NOTE::
 
             Trial division should typically be performed, but this is
-            not implemented (yet) in this method.  
+            not implemented (yet) in this method.
 
             If you suspect that n is the product of two
             similarly-sized primes, other methods (such as a quadratic
@@ -625,7 +621,7 @@ class ECM(SageObject):
         probable_prime_factors = []   # output prime factors
         while len(factors) > 0:
             n = factors.pop()
-            
+
             # Step 0: Primality test
             if n.is_prime(proof=proof):
                 probable_prime_factors.append(n)
@@ -633,10 +629,10 @@ class ECM(SageObject):
 
             # Step 1: Use PARI directly for small primes
             if n.ndigits() < 15:
-                for p,e in n.factor(algorithm='pari'):
-                    probable_prime_factors.extend([p]*e)
+                for p, e in n.factor(algorithm='pari'):
+                    probable_prime_factors.extend([p] * e)
                 continue
-                
+
             # Step 2: Deal with small factors efficiently
             # Step 2+1/3: Determine if N is a perfect power
             if n.is_perfect_power():
@@ -665,7 +661,7 @@ class ECM(SageObject):
         will return the parameters that yielded the factorization.
 
         OUTPUT:
-    
+
         A dictionary containing the parameters for the most recent
         factorization.
 
@@ -683,7 +679,7 @@ class ECM(SageObject):
         Print a runtime estimate.
 
         BUGS:
-        
+
         This method should really return something and not just print
         stuff on the screen.
 
@@ -776,13 +772,13 @@ class ECM(SageObject):
         print('offset', offset)
         curve_count = curve_count_table.split()[offset]
         time = time_table.split()[offset]
-        print 'Expected curves: {0}, Expected time: {1}'.format(curve_count, time)
+        print('Expected curves: {0}, Expected time: {1}'.format(curve_count, time))
 
     def _validate(self, n):
         """
         Verify that n is positive and has at most 4095 digits.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- integer.
 
@@ -880,8 +876,3 @@ Step 2 took 2ms
 Found composite factor of 30 digits: 265748496095531068869578877937
 Probable prime cofactor 251951573867253012259144010843 has 30 digits
 """
-
-
-
-
-

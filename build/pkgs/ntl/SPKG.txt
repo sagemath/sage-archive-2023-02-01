@@ -8,10 +8,7 @@ matrices, and polynomials over the integers and over finite fields.
 Website: http://www.shoup.net/ntl/
 
 == License ==
- * GNU GPLv2+
-
-== SPKG Maintainers ==
- * William Stein
+ * GNU LGPLv2.1+
 
 == Upstream Contact ==
  * Victor Shoup - for contact info see http://www.shoup.net/
@@ -21,14 +18,4 @@ Website: http://www.shoup.net/ntl/
  * gf2x
 
 == Special Update/Build Instructions ==
- * We generate our own libtool by running the configure in the src/libtool
-   directory, see spkg-src for details.
-
-== Patches ==
- * new_singular.patch: modfiy new.h to accomodate Singular.
- * errorcallback.patch: modify tools.c and tools.h to provide an error
-   callback framework (SetErrorCallbackFunction).
- * libtool_flag.patch: modify mfile to enable the build of a shared library
-   on Cygwin
- * make.patch: use `$(MAKE)` instead of `make` in mfile, the Perl script
-   WizardAux and the shell script TestScript.
+ * None

@@ -10,7 +10,7 @@ fi
 PRIME_SIZE=7
 
 CCFLAGS_NO_SSE="-I$SAGE_LOCAL/include -Wall -O2 -fPIC -DRATPOINTS_MAX_BITS_IN_PRIME=$PRIME_SIZE"
-CCFLAGS2="-L$SAGE_LOCAL/lib -lgmp -lm"
+CCFLAGS2="-L$SAGE_LOCAL/lib -lgmp -lm $LDFLAGS"
 CCFLAGS3="-L. -lratpoints"
 
 if [[ "$UNAME" = "Darwin" ]]; then
@@ -22,8 +22,7 @@ else
 fi
 
 # Copy CFLAGS set externally to CCFLAGS.
-# Prepend -fnested-functions if supported by the compiler.
-CCFLAGS="`testcflags.sh -fnested-functions` $CFLAGS"
+CCFLAGS="$CFLAGS"
 
 # When CFLAG64 is not set, set it to the default -m64
 if [[ -z $CFLAG64 ]]; then
@@ -40,21 +39,7 @@ export CCFLAGS2
 export CCFLAGS3
 export CCFLAGS
 
-
 cd src/
-
-###########################
-# Apply patches (if any): #
-###########################
-
-echo "Applying patches to upstream source..."
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [[ $? -ne 0 ]]; then
-        echo >&2 "Error applying '$patch'."
-        exit 1
-    fi
-done
 
 #############################
 # Build (just) the library: #

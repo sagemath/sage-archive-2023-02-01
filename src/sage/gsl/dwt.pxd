@@ -1,10 +1,7 @@
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
-include "gsl_wavelet.pxi"
-import gsl_array
-cimport gsl_array
+from sage.libs.gsl.wavelet cimport *
+from .gsl_array cimport GSLDoubleArray
 
 
-cdef class DiscreteWaveletTransform(gsl_array.GSLDoubleArray):
-  cdef gsl_wavelet* wavelet
-  cdef gsl_wavelet_workspace* workspace
+cdef class DiscreteWaveletTransform(GSLDoubleArray):
+    cdef gsl_wavelet* wavelet
+    cdef gsl_wavelet_workspace* workspace

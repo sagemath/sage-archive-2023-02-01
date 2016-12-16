@@ -25,6 +25,9 @@ Functions and classes
 ---------------------
 """
 
+from sage.structure.sage_object import SageObject
+
+
 VIEWERS = ['browser', 'dvi_viewer', 'pdf_viewer', 'png_viewer']
 
 def default_viewer(viewer=None):
@@ -136,12 +139,10 @@ def default_viewer(viewer=None):
         raise ValueError('Unknown type of viewer: {}.'.format(viewer))
 
 
-from sage.structure.sage_object import SageObject
-
 # _viewer_prefs: a dictionary holding global preferences for viewers.
 _viewer_prefs = {}
 
-class Viewer:
+class Viewer(SageObject):
     """
     Set defaults for various viewing applications: a web browser, a
     dvi viewer, a pdf viewer, and a png viewer.
@@ -160,7 +161,7 @@ class Viewer:
         Change the default viewer. Return the current setting if the
         argument ``app`` is ``None``.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
         - ``TYPE`` -- a string, must be in the list ``VIEWERS`` defined in
@@ -196,7 +197,7 @@ class Viewer:
         Change the default browser. Return the current setting if arg
         is ``None``, which is the default.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
 
@@ -216,7 +217,7 @@ class Viewer:
         Change the default dvi viewer. Return the current setting if arg
         is ``None``, which is the default.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
 
@@ -236,7 +237,7 @@ class Viewer:
         Change the default pdf viewer. Return the current setting if arg
         is ``None``, which is the default.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
 
@@ -256,7 +257,7 @@ class Viewer:
         Change the default png viewer. Return the current setting if arg
         is ``None``, which is the default.
 
-        INPUTS:
+        INPUT:
 
         - ``app`` -- ``None`` or a string, the program to use
 
@@ -275,7 +276,7 @@ class Viewer:
         """
         Return the current setting for a viewer program.
 
-        INPUTS:
+        INPUT:
 
         - ``x`` -- string
 

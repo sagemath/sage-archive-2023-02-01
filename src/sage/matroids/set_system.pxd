@@ -1,4 +1,4 @@
-from sage.misc.bitset cimport bitset_t
+from sage.data_structures.bitset cimport bitset_t
 
 cdef class SetSystem:
     cdef long _groundset_size, _bitset_size
@@ -24,6 +24,7 @@ cdef class SetSystem:
     cdef long subset_characteristic(self, SetSystem P, long e)
     cdef subsets_partition(self, SetSystem P=*, E=*)
     cdef _distinguish(self, v)
+    cpdef is_connected(self)
 
     cdef initial_partition(self, SetSystem P=*, E=*)
     cpdef _equitable_partition(self, SetSystem P=*, EP=*)

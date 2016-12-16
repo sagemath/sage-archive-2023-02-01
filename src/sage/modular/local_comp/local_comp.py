@@ -10,17 +10,15 @@ representations, but they are specified by a finite amount of data, and this
 module provides functions which determine a description of the local factor
 `\pi_{f, p}` at a finite prime `p`.
 
-The functions in this module are based on the algorithms described in:
-
-.. [LW11] David Loeffler and Jared Weinstein, *On the computation of local components of a newform*,
-   Mathematics of Computation (to appear), 2011. `Online version
-   <http://dx.doi.org/10.1090/S0025-5718-2011-02530-5>`_.
+The functions in this module are based on the algorithms described in
+[LW2012]_.
 
 AUTHORS:
 
 - David Loeffler
 - Jared Weinstein
 """
+from __future__ import absolute_import
 
 import operator
 from sage.structure.sage_object     import SageObject
@@ -31,8 +29,8 @@ from sage.misc.cachefunc            import cached_method
 from sage.misc.abstract_method      import abstract_method
 from sage.structure.sequence        import Sequence
 
-from type_space                     import TypeSpace
-from smoothchar                     import SmoothCharacterGroupQp, SmoothCharacterGroupUnramifiedQuadratic, SmoothCharacterGroupRamifiedQuadratic
+from .type_space                     import TypeSpace
+from .smoothchar                     import SmoothCharacterGroupQp, SmoothCharacterGroupUnramifiedQuadratic, SmoothCharacterGroupRamifiedQuadratic
 
 def LocalComponent(f, p, twist_factor=None):
     r"""
@@ -262,7 +260,7 @@ class LocalComponentBase(SageObject):
             sage: LocalComponent(Newforms(DirichletGroup(24)([1, -1,-1]), 3, names='a')[0], 2).central_character()
             Character of Q_2*, of level 3, mapping 7 |--> 1, 5 |--> -1, 2 |--> -2
         """
-        from sage.rings.arith import crt
+        from sage.arith.all import crt
         chi = self.newform().character()
         f = self.prime() ** self.conductor()
         N = self.newform().level() // f
@@ -275,7 +273,7 @@ class LocalComponentBase(SageObject):
         else:
             return SmoothCharacterGroupQp(self.prime(), self.coefficient_field()).character(chip.conductor().valuation(self.prime()), list((~chip).values_on_gens()) + [chi(a) * self.prime()**self.twist_factor()])
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Comparison function.
 
@@ -293,10 +291,31 @@ class LocalComponentBase(SageObject):
             sage: Pi == loads(dumps(Pi))
             True
         """
-        return (cmp(type(self), type(other))
-            or cmp(self.prime(), other.prime())
-            or cmp(self.newform(), other.newform())
-            or cmp(self.twist_factor(), other.twist_factor()))
+        return (isinstance(other, LocalComponentBase)
+                and self.prime() == other.prime()
+                and self.newform() == other.newform()
+                and self.twist_factor() == other.twist_factor())
+
+    def __ne__(self, other):
+        """
+        Return True if ``self != other``.
+
+        EXAMPLE::
+
+            sage: Pi = LocalComponent(Newform("50a"), 5)
+            sage: Pi != LocalComponent(Newform("50a"), 3)
+            True
+            sage: Pi != LocalComponent(Newform("50b"), 5)
+            True
+            sage: Pi != QQ
+            True
+            sage: Pi != None
+            True
+            sage: Pi != loads(dumps(Pi))
+            False
+        """
+        return not (self == other)
+
 
 class PrincipalSeries(LocalComponentBase):
     r"""
@@ -371,7 +390,7 @@ class UnramifiedPrincipalSeries(PrincipalSeries):
         Return the Satake polynomial of this representation, i.e.~the polynomial whose roots are `\chi_1(p), \chi_2(p)`
         where this representation is `\pi(\chi_1, \chi_2)`. Concretely, this is the polynomial
 
-        .. math::
+        .. MATH::
 
             X^2 - p^{(j - k + 2)/2} a_p(f) X + p^{j + 1} \varepsilon(p)`.
 
@@ -539,7 +558,9 @@ class PrimitiveSpecial(LocalComponentBase):
 
 class PrimitiveSupercuspidal(LocalComponentBase):
     r"""
-    A primitive supercuspidal representation. Except for some excpetional cases
+    A primitive supercuspidal representation.
+
+    Except for some exceptional cases
     when `p = 2` which we do not implement here, such representations are
     parametrized by smooth characters of tamely ramified quadratic extensions
     of `\QQ_p`.
@@ -591,7 +612,7 @@ class PrimitiveSupercuspidal(LocalComponentBase):
 
         EXAMPLES:
 
-        The first example from _[LW11]::
+        The first example from [LW2012]_::
 
             sage: f = Newform('50a')
             sage: Pi = LocalComponent(f, 5)
@@ -624,7 +645,7 @@ class PrimitiveSupercuspidal(LocalComponentBase):
         .. warning::
 
             The above output isn't actually the same as in Example 2 of
-            _[LW11], due to an error in the published paper (correction
+            [LW2012]_, due to an error in the published paper (correction
             pending) -- the published paper has the inverses of the above
             characters.
 

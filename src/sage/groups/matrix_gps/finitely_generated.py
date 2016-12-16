@@ -58,12 +58,13 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 from sage.groups.group import Group
 from sage.rings.all import ZZ
 from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.interfaces.gap import gap
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
@@ -120,7 +121,7 @@ def normalize_square_matrices(matrices):
             gens.append(m)
             continue
         if isinstance(m[0], (list, tuple)):
-            m = map(list, m)
+            m = [list(_) for _ in m]
             degree = ZZ(len(m))
         else:
             degree, rem = ZZ(len(m)).sqrtrem()
@@ -194,7 +195,7 @@ def QuaternionMatrixGroupGF3():
         sage: QP.is_isomorphic(H)
         False
     """
-    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.matrix.matrix_space import MatrixSpace
     MS = MatrixSpace(FiniteField(3), 2)
     aye = MS([1,1,1,2])
@@ -544,7 +545,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         smallest one.
 
         EXAMPLES::
-
+        
             sage: MS = MatrixSpace(GF(2), 5, 5)
             sage: A = MS([[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,0,0,0,0]])
             sage: G = MatrixGroup([A])
@@ -579,6 +580,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         MatrixGroup G over GF(7). The section "Irreducible Maximal Finite
         Integral Matrix Groups" in the GAP reference manual has more
         details.
+
+        TESTS::
+
+            sage: A= matrix(QQ, 2, [0, 1, 1, 0])
+            sage: B= matrix(QQ, 2, [1, 0, 0, 1])
+            sage: a, b= MatrixGroup([A, B]).as_permutation_group().gens()
+            sage: a.order(), b.order()
+            (2, 1)
         """
         # Note that the output of IsomorphismPermGroup() depends on
         # memory locations and will change if you change the order of
@@ -600,7 +609,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             C = gap("Image( small )")
         else:
             C = gap("Image( iso )")
-        return PermutationGroup(gap_group=C)
+        return PermutationGroup(gap_group=C, canonicalize=False)
 
     def module_composition_factors(self, algorithm=None):
         r"""
@@ -650,7 +659,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         gap.eval("MCFs := MTX.CompositionFactors( M )")
         N = eval(gap.eval("Length(MCFs)"))
         if algorithm == "verbose":
-            print gap.eval('MCFs')+"\n"
+            print(gap.eval('MCFs') + "\n")
         L = []
         for i in range(1,N+1):
             gap.eval("MCF := MCFs[%s]"%i)
@@ -685,7 +694,10 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: gens = [MS([[0,1],[-1,0]]),MS([[1,1],[2,3]])]
             sage: G = MatrixGroup(gens)
             sage: G.invariant_generators()
-            [x1^7*x2 - x1*x2^7, x1^12 - 2*x1^9*x2^3 - x1^6*x2^6 + 2*x1^3*x2^9 + x2^12, x1^18 + 2*x1^15*x2^3 + 3*x1^12*x2^6 + 3*x1^6*x2^12 - 2*x1^3*x2^15 + x2^18]
+            [x1^7*x2 - x1*x2^7, 
+             x1^12 - 2*x1^9*x2^3 - x1^6*x2^6 + 2*x1^3*x2^9 + x2^12, 
+             x1^18 + 2*x1^15*x2^3 + 3*x1^12*x2^6 + 3*x1^6*x2^12 - 2*x1^3*x2^15 + x2^18]
+
             sage: q = 4; a = 2
             sage: MS = MatrixSpace(QQ, 2, 2)
             sage: gen1 = [[1/a,(q-1)/a],[1/a, -1/a]]; gen2 = [[1,0],[0,-1]]; gen3 = [[-1,0],[0,1]]
@@ -694,23 +706,19 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             12
             sage: G.invariant_generators()
             [x1^2 + 3*x2^2, x1^6 + 15*x1^4*x2^2 + 15*x1^2*x2^4 + 33*x2^6]
-            sage: F = GF(5); MS = MatrixSpace(F,2,2)
-            sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[-1,1]])]
-            sage: G = MatrixGroup(gens)
-            sage: G.invariant_generators()  # long time (67s on sage.math, 2012)
-            [x1^20 + x1^16*x2^4 + x1^12*x2^8 + x1^8*x2^12 + x1^4*x2^16 + x2^20, x1^20*x2^4 + x1^16*x2^8 + x1^12*x2^12 + x1^8*x2^16 + x1^4*x2^20]
-            sage: F=CyclotomicField(8)
-            sage: z=F.gen()
-            sage: a=z+1/z
-            sage: b=z^2
-            sage: MS=MatrixSpace(F,2,2)
-            sage: g1=MS([[1/a,1/a],[1/a,-1/a]])
-            sage: g2=MS([[1,0],[0,b]])
-            sage: g3=MS([[b,0],[0,1]])
-            sage: G=MatrixGroup([g1,g2,g3])
-            sage: G.invariant_generators()  # long time (12s on sage.math, 2011)
-            [x1^8 + 14*x1^4*x2^4 + x2^8,
-             x1^24 + 10626/1025*x1^20*x2^4 + 735471/1025*x1^16*x2^8 + 2704156/1025*x1^12*x2^12 + 735471/1025*x1^8*x2^16 + 10626/1025*x1^4*x2^20 + x2^24]
+
+            sage: F = CyclotomicField(8)
+            sage: z = F.gen()
+            sage: a = z+1/z
+            sage: b = z^2
+            sage: MS = MatrixSpace(F,2,2)
+            sage: g1 = MS([[1/a, 1/a], [1/a, -1/a]])
+            sage: g2 = MS([[-b, 0], [0, b]])
+            sage: G=MatrixGroup([g1,g2])
+            sage: G.invariant_generators()
+            [x1^4 + 2*x1^2*x2^2 + x2^4,
+             x1^5*x2 - x1*x2^5,
+             x1^8 + 28/9*x1^6*x2^2 + 70/9*x1^4*x2^4 + 28/9*x1^2*x2^6 + x2^8]
 
         AUTHORS:
 
@@ -767,7 +775,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 ReyName = 't'+singular._next_var_name()
                 singular.eval('matrix %s[%d][%d]'%(ReyName,self.cardinality(),n))
                 for i in range(1,self.cardinality()+1):
-                    M = Matrix(elements[i-1],F)
+                    M = Matrix(F, elements[i-1])
                     D = [{} for foobar in range(self.degree())]
                     for x,y in M.dict().items():
                         D[x[0]][x[1]] = y

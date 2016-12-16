@@ -1,33 +1,10 @@
-"""
+r"""
 Root systems
+============
 
-Quickref
---------
-
-- ``T = CartanType(["A", 3]), T.is_finite()``     -- Cartan types
-- ``T.dynkin_diagram(), DynkinDiagram(["G",2])``  -- Dynkin diagrams
-- ``T.cartan_matrix(),  CartanMatrix(["F",4])``   -- Cartan matrices
-- ``RootSystem(T).weight_lattice()``              -- Root systems
-- ``WeylGroup(["B", 6, 1]).simple_reflections()`` -- Affine Weyl groups
-- ``WeylCharacterRing(["D", 4])``                 -- Weyl character rings
-
-Documentation
--------------
-
-- :ref:`sage.combinat.root_system.root_system`    -- This current overview
-- :class:`CartanType`                             -- An introduction to Cartan types
-- :class:`RootSystem`                             -- An introduction to root systems
-- :ref:`sage.combinat.root_system.plot`           -- A root system visualization tutorial
-- The ``Lie Methods and Related Combinatorics`` thematic tutorial
-
-See also
---------
-
-- :class:`CoxeterGroups`, :class:`WeylGroups`, ...-- The categories of Coxeter and Weyl groups
-- :ref:`sage.combinat.crystals.crystals`          -- An introduction to crystals
-- :mod:`.type_A`, :mod:`.type_B_affine`, ...      -- Type specific root system data
-
+See :ref:`sage.combinat.root_system` for an overview.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007      Mike Hansen <mhansen@gmail.com>,
 #                               Justin Walker <justin at mac.com>
@@ -41,11 +18,11 @@ See also
 # Design largely inspired from MuPAD-Combinat
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from cartan_type import CartanType
+from .cartan_type import CartanType
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
-from root_space import RootSpace
-from weight_space import WeightSpace
+from .root_space import RootSpace
+from .weight_space import WeightSpace
 
 class RootSystem(UniqueRepresentation, SageObject):
     r"""
@@ -241,6 +218,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         sage: L = RootSystem(['A',2]).ambient_space()
         sage: L.plot()
+        Graphics object consisting of 13 graphics primitives
 
     For more on plotting, see :ref:`sage.combinat.root_system.plot`.
 
@@ -275,7 +253,7 @@ class RootSystem(UniqueRepresentation, SageObject):
     The coweight lattice and space are defined similarly. Note that, to
     limit confusion, all the output have been tweaked appropriately.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :mod:`sage.combinat.root_system`
         - :class:`RootSpace`
@@ -299,7 +277,7 @@ class RootSystem(UniqueRepresentation, SageObject):
     ::
 
         sage: for T in CartanType.samples(crystallographic=True):  # long time (13s on sage.math, 2012)
-        ...       TestSuite(RootSystem(T)).run()
+        ....:     TestSuite(RootSystem(T)).run()
     """
 
     @staticmethod
@@ -307,7 +285,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         Straighten arguments to enable unique representation
 
-        .. seealso:: :class:`UniqueRepresentation`
+        .. SEEALSO:: :class:`UniqueRepresentation`
 
         TESTS::
 
@@ -470,6 +448,11 @@ class RootSystem(UniqueRepresentation, SageObject):
             True
             sage: r1 == r2
             False
+
+        Check that they inherit a hash method from ``UniqueRepresentation``::
+
+            sage: hash(r1)  # random
+            42
         """
         if self.__class__ != other.__class__:
             return cmp(self.__class__, other.__class__)
@@ -527,7 +510,7 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: Phi = RootSystem(['B',2]).root_poset(); Phi
             Finite poset containing 4 elements
             sage: Phi.cover_relations()
-            [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
+            [[alpha[2], alpha[1] + alpha[2]], [alpha[1], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
         """
         return self.root_lattice().root_poset(restricted=restricted,facade=facade)
 
@@ -687,7 +670,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         root or weight lattice (and dually).
 
         There is no mechanical way to define the ambient space just
-        from the Cartan matrix. Instead is is constructed from hard
+        from the Cartan matrix. Instead it is constructed from hard
         coded type by type data, according to the usual Bourbaki
         conventions. Such data is provided for all the finite
         (crystallographic) types. From this data, ambient spaces can be

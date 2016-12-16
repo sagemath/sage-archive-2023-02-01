@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Disjoint-set data structure
 
@@ -6,9 +7,9 @@ type to return. For more on the data structure, see :func:`DisjointSet`.
 
 AUTHORS:
 
-- Sebastien Labbe (2008) - Initial version.
-- Sebastien Labbe (2009-11-24) - Pickling support
-- Sebastien Labbe (2010-01) - Inclusion into sage (:trac:`6775`).
+- Sébastien Labbé (2008) - Initial version.
+- Sébastien Labbé (2009-11-24) - Pickling support
+- Sébastien Labbé (2010-01) - Inclusion into sage (:trac:`6775`).
 
 EXAMPLES:
 
@@ -26,7 +27,7 @@ Disjoint set of integers from ``0`` to ``n - 1``::
     1
     sage: s.find(5)
     1
-    sage: map(s.find, range(6))
+    sage: list(map(s.find, range(6)))
     [0, 1, 2, 1, 2, 1]
 
 Disjoint set of hashables objects::
@@ -54,6 +55,7 @@ include '../groups/perm_gps/partn_ref/data_structures_pyx.pxi'
 import itertools
 from sage.rings.integer import Integer
 from sage.structure.sage_object cimport SageObject
+from cpython.object cimport PyObject_RichCompare
 
 def DisjointSet(arg):
     r"""
@@ -67,6 +69,7 @@ def DisjointSet(arg):
 
     - :meth:`~sage.sets.disjoint_set.DisjointSet_of_hashables.find` --
       Determine which set a particular element is in.
+
     - :meth:`~sage.sets.disjoint_set.DisjointSet_of_hashables.union` --
       Combine or merge two sets into a single set.
 
@@ -126,7 +129,7 @@ def DisjointSet(arg):
     """
     if isinstance(arg, (Integer, int)):
         if arg < 0:
-            raise ValueError, 'arg (=%s) must be a non negative integer'%arg
+            raise ValueError('arg (=%s) must be a non negative integer' % arg)
         return DisjointSet_of_integers(arg)
     else:
         return DisjointSet_of_hashables(arg)
@@ -159,13 +162,30 @@ cdef class DisjointSet_class(SageObject):
             '{{0}, {1}, {2, 4}, {3}}'
         """
         res = []
-        for l in self.root_to_elements_dict().itervalues():
+        for l in (<dict?>self.root_to_elements_dict()).itervalues():
             l.sort()
-            res.append('{%s}'% ', '.join(itertools.imap(repr, l)))
+            res.append('{%s}' % ', '.join(repr(u) for u in l))
         res.sort()
-        return '{%s}'% ', '.join(res)
+        return '{%s}' % ', '.join(res)
 
-    def __cmp__(self, other):
+    def __iter__(self):
+        """
+        Iterate over elements of the set.
+
+        EXAMPLES::
+
+            sage: d = DisjointSet(4)
+            sage: d.union(2,0)
+            sage: sorted(d)
+            [[0, 2], [1], [3]]
+
+            sage: d = DisjointSet('abc')
+            sage: sorted(d)
+            [['a'], ['b'], ['c']]
+        """
+        return (<dict?>self.root_to_elements_dict()).itervalues()
+
+    def __richcmp__(self, other, int op):
         r"""
         Compare the disjoint sets ``self`` and ``other``.
 
@@ -212,8 +232,11 @@ cdef class DisjointSet_class(SageObject):
         """
         from sage.sets.all import Set
         s = Set(map(Set, self.root_to_elements_dict().values()))
-        t = Set(map(Set, other.root_to_elements_dict().values()))
-        return cmp(s,t)
+        try:
+            t = Set(map(Set, other.root_to_elements_dict().values()))
+        except AttributeError:
+            return NotImplemented
+        return PyObject_RichCompare(s, t, op)
 
     def cardinality(self):
         r"""
@@ -449,7 +472,7 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
         """
         card = self.cardinality()
         if i < 0 or i>= card:
-            raise ValueError, 'i(=%s) must be between 0 and %s'%(i, card-1)
+            raise ValueError('i(=%s) must be between 0 and %s' % (i, card - 1))
         return OP_find(self._nodes, i)
 
     def union(self, int i, int j):
@@ -483,11 +506,11 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
             ...
             ValueError: j(=5) must be between 0 and 4
         """
-        card = self.cardinality()
-        if i < 0 or i>= card:
-            raise ValueError, 'i(=%s) must be between 0 and %s'%(i, card-1)
-        if j < 0 or j>= card:
-            raise ValueError, 'j(=%s) must be between 0 and %s'%(j, card-1)
+        cdef int card = self._nodes.degree
+        if i < 0 or i >= card:
+            raise ValueError('i(=%s) must be between 0 and %s'%(i, card-1))
+        if j < 0 or j >= card:
+            raise ValueError('j(=%s) must be between 0 and %s'%(j, card-1))
         OP_join(self._nodes, i, j)
 
     def root_to_elements_dict(self):

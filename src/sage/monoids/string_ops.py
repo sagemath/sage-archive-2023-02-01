@@ -1,3 +1,6 @@
+"Utility functions on strings"
+from __future__ import absolute_import
+
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -7,13 +10,14 @@
 #*****************************************************************************
 
 from sage.rings.all import RealField
-from sage.probability.random_variable import DiscreteProbabilitySpace
-from string_monoid_element import StringMonoidElement
+from .string_monoid_element import StringMonoidElement
 
 def strip_encoding(S):
     """
     The upper case string of S stripped of all non-alphabetic characters.
-    EXAMPLES:
+
+    EXAMPLES::
+
         sage: S = "The cat in the hat."
         sage: strip_encoding(S)
         'THECATINTHEHAT'
@@ -47,13 +51,16 @@ def frequency_distribution(S, n=1, field=None):
                 P[c] += eps
             else:
                 P[c] = eps
+        from sage.probability.random_variable import DiscreteProbabilitySpace
         return DiscreteProbabilitySpace(S,P,field)
     raise TypeError("Argument S (= %s) must be a string, list, or tuple.")
 
 def coincidence_index(S,n=1):
     """
     The coincidence index of the string S.
-    EXAMPLES:
+
+    EXAMPLES::
+
         sage: S = strip_encoding("The cat in the hat.")
         sage: coincidence_index(S)
         0.120879120879121
@@ -82,7 +89,8 @@ def coincidence_discriminant(S,n=2):
     Output: A measure of the difference of probability of association of
     character pairs, relative to their independent one-character probabilities.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: S = strip_encoding("The cat in the hat.")
         sage: coincidence_discriminant([ S[i:i+2] for i in range(len(S)-1) ])
         0.0827001855677322

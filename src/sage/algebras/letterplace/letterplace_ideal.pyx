@@ -177,6 +177,7 @@ class LetterplaceIdeal(Ideal_nc):
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
             sage: TestSuite(I).run(skip=['_test_category'],verbose=True)
             running ._test_eq() . . . pass
+            running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . pass
 
@@ -258,9 +259,9 @@ class LetterplaceIdeal(Ideal_nc):
         if self.__uptodeg >= degbound:
             return self.__GB
         if not A.base().is_field():
-            raise TypeError, "Currently, we can only compute Groebner bases if the ring of coefficients is a field"
+            raise TypeError("Currently, we can only compute Groebner bases if the ring of coefficients is a field")
         if self.side()!='twosided':
-            raise TypeError, "This ideal is not two-sided. We can only compute two-sided Groebner bases"
+            raise TypeError("This ideal is not two-sided. We can only compute two-sided Groebner bases")
         if degbound == Infinity:
             while self.__uptodeg<Infinity:
                 test_bound = 2*max([x._poly.degree() for x in self.__GB.gens()])
@@ -338,7 +339,7 @@ class LetterplaceIdeal(Ideal_nc):
         P = self.ring()
         if not isinstance(G,(list,tuple)):
             if G==P:
-                return P.ideal([P.zero_element()])
+                return P.ideal([P.zero()])
             if G in P:
                 return G.normal_form(self)
             G = G.gens()

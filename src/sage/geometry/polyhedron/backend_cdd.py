@@ -1,15 +1,17 @@
 """
 The cdd backend for polyhedral computations
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 from subprocess import Popen, PIPE
 from sage.rings.all import ZZ, QQ, RDF
 from sage.misc.all import SAGE_TMP, tmp_filename, union, cached_method, prod
 from sage.matrix.constructor import matrix
 
-from base import Polyhedron_base
-from base_QQ import Polyhedron_QQ
-from base_RDF import Polyhedron_RDF
+from .base import Polyhedron_base
+from .base_QQ import Polyhedron_QQ
+from .base_RDF import Polyhedron_RDF
 
 
 
@@ -43,11 +45,11 @@ class Polyhedron_cdd(Polyhedron_base):
         EXAMPLES::
 
             sage: Polyhedron(vertices=[(0,0)], rays=[(1,1)],
-            ...              lines=[(1,-1)], backend='cdd', base_ring=QQ)  # indirect doctest
+            ....:            lines=[(1,-1)], backend='cdd', base_ring=QQ)  # indirect doctest
             A 2-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex, 1 ray, 1 line
         """
-        from cdd_file_format import cdd_Vrepresentation
+        from .cdd_file_format import cdd_Vrepresentation
         s = cdd_Vrepresentation(self._cdd_type, vertices, rays, lines)
         self._init_from_cdd_input(s, '--reps', verbose)
 
@@ -72,11 +74,11 @@ class Polyhedron_cdd(Polyhedron_base):
         EXAMPLES::
 
             sage: Polyhedron(ieqs=[(0,1,1)], eqns=[(0,1,-1)],
-            ...              backend='cdd', base_ring=QQ)  # indirect doctest
+            ....:            backend='cdd', base_ring=QQ)  # indirect doctest
             A 1-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex and 1 ray
         """
-        from cdd_file_format import cdd_Hrepresentation
+        from .cdd_file_format import cdd_Hrepresentation
         s = cdd_Hrepresentation(self._cdd_type, ieqs, eqns)
         self._init_from_cdd_input(s, '--reps', verbose)
 
@@ -139,7 +141,7 @@ class Polyhedron_cdd(Polyhedron_base):
         TESTS::
 
             sage: p = Polyhedron(vertices=[[0,0,0],[1,0,0],[0,1,0],[0,0,1]],
-            ...                  backend='cdd', base_ring=QQ)
+            ....:                backend='cdd', base_ring=QQ)
             sage: from sage.geometry.polyhedron.cdd_file_format import cdd_Vrepresentation
             sage: s = cdd_Vrepresentation('rational', [[0,0,1],[0,1,0],[1,0,0]], [], [])
             sage: p._init_from_cdd_input(s)
@@ -159,17 +161,17 @@ class Polyhedron_cdd(Polyhedron_base):
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
         """
         if verbose:
-            print '---- CDD input -----'
-            print cdd_input_string
+            print('---- CDD input -----')
+            print(cdd_input_string)
 
         cdd_proc = Popen([self._cdd_executable, cmdline_arg],
                          stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ans, err = cdd_proc.communicate(input=cdd_input_string)
 
         if verbose:
-            print '---- CDD output -----'
-            print ans
-            print err
+            print('---- CDD output -----')
+            print(ans)
+            print(err)
         if 'Error:' in ans + err:
             # cdd reports errors on stdout and misc information on stderr
             raise ValueError(ans.strip())

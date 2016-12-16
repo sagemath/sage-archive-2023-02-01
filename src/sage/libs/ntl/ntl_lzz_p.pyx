@@ -30,12 +30,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+from __future__ import division
+
+include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -54,7 +56,7 @@ ZZ_sage = IntegerRing()
 #
 ##############################################################################
 
-cdef class ntl_zz_p:
+cdef class ntl_zz_p(object):
     r"""
     The class \class{zz_p} implements arithmetic modulo $p$,
     for p smaller than a machine word.
@@ -65,56 +67,52 @@ cdef class ntl_zz_p:
     # See ntl_zz_p.pxd for definition of data members
     def __init__(self, a=0, modulus=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(5,7)
             sage: f
             5
-            sage: g = ntl.zz_p(2,7) ; g
+            sage: g = ntl.zz_p(int(-5),7)
+            sage: g
             2
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus."
+            raise ValueError("You must specify a modulus.")
 
-        cdef long temp
-        if PY_TYPE_CHECK(modulus, Integer):
+        if isinstance(modulus, Integer):
             p_sage = modulus
         else:
             p_sage = Integer(self.c.p)
 
-
         #self.c.restore_c()   ## This was done in __new__
 
-        if PY_TYPE_CHECK(a, IntegerMod_int):
+        if isinstance(a, IntegerMod_int):
             if (self.c.p == (<IntegerMod_int>a).__modulus.int32): ## this is slow
-                zz_p_set_from_long(self.x, (<IntegerMod_int>a).ivalue)
+                self.x = (<IntegerMod_int>a).ivalue
             else:
-                raise ValueError, \
-                      "Mismatched modulus for converting to zz_p."
+                raise ValueError("Mismatched modulus for converting to zz_p.")
 
-        elif PY_TYPE_CHECK(a, IntegerMod_int64):
+        elif isinstance(a, IntegerMod_int64):
             if (self.c.p == (<IntegerMod_int64>a).__modulus.int64): ## this is slow
-                zz_p_set_from_long(self.x, (<IntegerMod_int64>a).ivalue)
+                self.x = (<IntegerMod_int64>a).ivalue
             else:
-                raise ValueError, \
-                      "Mismatched modulus for converting to zz_p."
+                raise ValueError("Mismatched modulus for converting to zz_p.")
 
-        elif PY_TYPE_CHECK(a, IntegerMod_gmp):
+        elif isinstance(a, IntegerMod_gmp):
             if (p_sage == (<IntegerMod_gmp>a).__modulus.sageInteger): ## this is slow
-                zz_p_set_from_long(self.x, mpz_get_si((<IntegerMod_gmp>a).value))
+                self.x = mpz_get_si((<IntegerMod_gmp>a).value)
             else:
-                raise ValueError, \
-                      "Mismatched modulus for converting to zz_p."
+                raise ValueError("Mismatched modulus for converting to zz_p.")
 
-        elif PY_TYPE_CHECK(a, Integer):
-            zz_p_set_from_long(self.x, mpz_get_si((<Integer>a).value)%self.c.p)
+        elif isinstance(a, Integer):
+            self.x = mpz_get_si((<Integer>a).value)%self.c.p
 
-        elif PY_TYPE_CHECK(a, int):
+        elif isinstance(a, int):
             ## we're lucky that python int is no larger than long
-            temp = a
-            zz_p_set_from_long(self.x, temp%self.c.p)
+            self.x = (<long>a)%self.c.p
         else:
             a = Integer(a)
-            zz_p_set_from_long(self.x, mpz_get_si((<Integer>a).value)%self.c.p)
+            self.x = mpz_get_si((<Integer>a).value)%self.c.p
 
         return
 
@@ -125,7 +123,7 @@ cdef class ntl_zz_p:
         ## the error checking in __init__ will prevent##
         ## you from constructing a zz_p               ##
         ## inappropriately.  However, from Cython, you##
-        ## could do r = PY_NEW(ntl_zz_p) without      ##
+        ## could do r = ntl_zz_p.__new__(ntl_zz_p) without
         ## first restoring a zz_pContext, which could ##
         ## have unfortunate consequences.  See _new  ##
         ## defined below for an example of the right  ##
@@ -133,27 +131,22 @@ cdef class ntl_zz_p:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            zz_p_construct(&self.x)
             return
-        if PY_TYPE_CHECK( modulus, ntl_zz_pContext_class ):
+        if isinstance(modulus, ntl_zz_pContext_class):
             self.c = <ntl_zz_pContext_class>modulus
-        elif PY_TYPE_CHECK( modulus, Integer ):
+        elif isinstance(modulus, Integer):
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
-        elif PY_TYPE_CHECK( modulus, long ):
+        elif isinstance(modulus, long):
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
         else:
             try:
                 modulus = int(modulus)
             except Exception:
-                raise ValueError, "%s is not a valid modulus."%modulus
+                raise ValueError("%s is not a valid modulus." % modulus)
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
 
         ## now that we've determined the modulus, set that modulus.
         self.c.restore_c()
-        zz_p_construct(&self.x)
-
-    def __dealloc__(self):
-        zz_p_destruct(&self.x)
 
     cdef ntl_zz_p _new(self):
         """
@@ -165,7 +158,7 @@ cdef class ntl_zz_p:
         """
         cdef ntl_zz_p y
         self.c.restore_c()
-        y = PY_NEW(ntl_zz_p)
+        y = ntl_zz_p.__new__(ntl_zz_p)
         y.c = self.c
         return y
 
@@ -184,11 +177,12 @@ cdef class ntl_zz_p:
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(3,79).__repr__()
             '3'
         """
-        return Integer(zz_p_rep(self.x)).__repr__()
+        return repr(Integer(zz_p_rep(self.x)))
 
     def __add__(ntl_zz_p self, other):
         """
@@ -197,10 +191,10 @@ cdef class ntl_zz_p:
             11
         """
         cdef ntl_zz_p y
-        if not PY_TYPE_CHECK(other, ntl_zz_p):
+        if not isinstance(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         self.c.restore_c()
         y = self._new()
         zz_p_add(y.x, self.x, (<ntl_zz_p>other).x)
@@ -213,10 +207,10 @@ cdef class ntl_zz_p:
             22
         """
         cdef ntl_zz_p y
-        if not PY_TYPE_CHECK(other, ntl_zz_p):
+        if not isinstance(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         self.c.restore_c()
         y = self._new()
         zz_p_sub(y.x, self.x, (<ntl_zz_p>other).x)
@@ -229,32 +223,35 @@ cdef class ntl_zz_p:
             7
         """
         cdef ntl_zz_p y
-        if not PY_TYPE_CHECK(other, ntl_zz_p):
+        if not isinstance(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         y = self._new()
         self.c.restore_c()
         zz_p_mul(y.x, self.x, (<ntl_zz_p>other).x)
         return y
 
-    def __div__(ntl_zz_p self, other):
+    def __truediv__(ntl_zz_p self, other):
         """
         EXAMPLES:
             sage: ntl.zz_p(5,23) / ntl.zz_p(2,23)
             14
         """
         cdef ntl_zz_p q
-        if not PY_TYPE_CHECK(other, ntl_zz_p):
+        if not isinstance(other, ntl_zz_p):
             other = ntl_zz_p(other, modulus=self.c)
         elif self.c is not (<ntl_zz_p>other).c:
-            raise ValueError, "arithmetic operands must have the same modulus."
+            raise ValueError("arithmetic operands must have the same modulus.")
         q = self._new()
         self.c.restore_c()
         sig_on()
         zz_p_div(q.x, self.x, (<ntl_zz_p>other).x)
         sig_off()
         return q
+
+    def __div__(self, other):
+        return self / other
 
     def __pow__(ntl_zz_p self, long n, ignored):
         """
@@ -272,7 +269,7 @@ cdef class ntl_zz_p:
         cdef ntl_zz_p y
         if self.is_zero():
             if n == 0:
-                raise ArithmeticError, "0^0 is undefined."
+                raise ArithmeticError("0^0 is undefined.")
             elif n < 0:
                 raise ZeroDivisionError
             else:
@@ -285,7 +282,7 @@ cdef class ntl_zz_p:
             if n == 0:
                 return self
             elif n < 0:
-                y = PY_NEW(ntl_zz_p)
+                y = ntl_zz_p.__new__(ntl_zz_p)
                 y.c = self.c
                 zz_p_inv(y.x, self.x)
                 return power(y, -n, ntl_zz_p(1,self.c))
@@ -307,33 +304,36 @@ cdef class ntl_zz_p:
         zz_p_negate(y.x, self.x)
         return y
 
-    def __cmp__(ntl_zz_p self, other):
+    def __richcmp__(ntl_zz_p self, other, int op):
         """
-        Decide whether or not self and other are equal.
+        Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(3,20)
             sage: g = ntl.zz_p(2,20)
+            sage: h = ntl.zz_p(3,60)
             sage: f == g
             False
             sage: f == f
             True
-            sage: g = ntl.zz_p(3,60)
-            sage: f == g
-            False
+            sage: f == h
+            True
+            sage: f == 3
+            True
         """
-        if not PY_TYPE_CHECK(other, ntl_zz_p):
-            return cmp(ntl_zz_p, other.parent())
-        if not (self.c is (<ntl_zz_p>other).c):
-            return cmp(self.c.p, (<ntl_zz_p>other).c.p)
-
         self.c.restore_c()
-        if not PY_TYPE_CHECK(other, ntl_zz_p):
-            return -1
-        if (NTL_zz_p_DOUBLE_EQUALS(self.x, (<ntl_zz_p>other).x)):
-            return 0
-        else:
-            return -1
+
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("integers mod p are not ordered")
+
+        cdef ntl_zz_p b
+        try:
+            b = <ntl_zz_p?>other
+        except TypeError:
+            b = ntl_zz_p(other, self.c)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __int__(self):
         """

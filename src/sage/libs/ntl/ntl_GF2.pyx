@@ -13,12 +13,13 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
+from __future__ import division
+
+include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 
@@ -26,7 +27,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 # GF2: Bits
 ##############################################################################
 
-cdef class ntl_GF2:
+cdef class ntl_GF2(object):
     r"""
     The \class{GF2} represents the field GF(2). Computationally
     speaking, it is not a particularly useful class.  Its main use is
@@ -45,21 +46,15 @@ cdef class ntl_GF2:
             sage: ntl.GF2('1')
             1
         """
-        if PY_TYPE_CHECK(v, ntl_GF2):
+        if isinstance(v, ntl_GF2):
             self.x = (<ntl_GF2>v).x
-        elif PyInt_Check(v) or PyLong_Check(v) or PY_TYPE_CHECK(v, Integer):
+        elif isinstance(v, int) or isinstance(v, long) or isinstance(v, Integer):
             GF2_conv_long(self.x, int(v) % 2)
         elif v is not None:
             v = str(v)
             sig_on()
             GF2_from_str(&self.x, v)
             sig_off()
-
-    def __cinit__(self):
-        GF2_construct(&self.x)
-
-    def __dealloc__(self):
-        GF2_destruct(&self.x)
 
     def __repr__(self):
         """
@@ -82,31 +77,35 @@ cdef class ntl_GF2:
         """
         return unpickle_class_value, (ntl_GF2, int(self))
 
-    def __richcmp__(self, other, op):
+    def __richcmp__(ntl_GF2 self, other, int op):
         """
         Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = ntl.GF2(1)
             sage: b = ntl.GF2(0)
+            sage: a == a
+            True
             sage: a == b
             False
+            sage: a == 1
+            True
+            sage: a < b
+            Traceback (most recent call last):
+            ...
+            TypeError: elements of GF(2) are not ordered
         """
-        if op != 2 and op != 3:
-            raise TypeError, "elements in GF(2) are not ordered."
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("elements of GF(2) are not ordered")
 
-        if not PY_TYPE_CHECK(other, ntl_GF2):
-            other = ntl_GF2(other)
+        cdef ntl_GF2 b
+        try:
+            b = <ntl_GF2?>other
+        except TypeError:
+            b = ntl_GF2(other)
 
-        if not PY_TYPE_CHECK(self, ntl_GF2):
-            self = ntl_GF2(self)
-
-        cdef int t
-        t = GF2_equal((<ntl_GF2>self).x, (<ntl_GF2>other).x)
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __mul__(self, other):
         """
@@ -121,15 +120,15 @@ cdef class ntl_GF2:
             sage: z*z
             0
         """
-        cdef ntl_GF2 r = PY_NEW(ntl_GF2)
-        if not PY_TYPE_CHECK(self, ntl_GF2):
+        cdef ntl_GF2 r = ntl_GF2.__new__(ntl_GF2)
+        if not isinstance(self, ntl_GF2):
             self = ntl_GF2(self)
-        if not PY_TYPE_CHECK(other, ntl_GF2):
+        if not isinstance(other, ntl_GF2):
             other = ntl_GF2(other)
         GF2_mul(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """
             sage: o = ntl.GF2(1)
             sage: z = ntl.GF2(0)
@@ -141,15 +140,18 @@ cdef class ntl_GF2:
             ZeroDivisionError
         """
         cdef ntl_GF2 r
-        if not PY_TYPE_CHECK(self, ntl_GF2):
+        if not isinstance(self, ntl_GF2):
             self = ntl_GF2(self)
-        if not PY_TYPE_CHECK(other, ntl_GF2):
+        if not isinstance(other, ntl_GF2):
             other = ntl_GF2(other)
         if GF2_IsZero((<ntl_GF2>other).x):
             raise ZeroDivisionError
-        r = PY_NEW(ntl_GF2)
+        r = ntl_GF2.__new__(ntl_GF2)
         GF2_div(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
+
+    def __div__(self, other):
+        return self / other
 
     def __sub__(self, other):
         """
@@ -164,10 +166,10 @@ cdef class ntl_GF2:
             sage: z-z
             0
         """
-        cdef ntl_GF2 r = PY_NEW(ntl_GF2)
-        if not PY_TYPE_CHECK(self, ntl_GF2):
+        cdef ntl_GF2 r = ntl_GF2.__new__(ntl_GF2)
+        if not isinstance(self, ntl_GF2):
             self = ntl_GF2(self)
-        if not PY_TYPE_CHECK(other, ntl_GF2):
+        if not isinstance(other, ntl_GF2):
             other = ntl_GF2(other)
         GF2_sub(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
@@ -185,10 +187,10 @@ cdef class ntl_GF2:
             sage: z+z
             0
         """
-        cdef ntl_GF2 r = PY_NEW(ntl_GF2)
-        if not PY_TYPE_CHECK(self, ntl_GF2):
+        cdef ntl_GF2 r = ntl_GF2.__new__(ntl_GF2)
+        if not isinstance(self, ntl_GF2):
             self = ntl_GF2(self)
-        if not PY_TYPE_CHECK(other, ntl_GF2):
+        if not isinstance(other, ntl_GF2):
             other = ntl_GF2(other)
         GF2_add(r.x, (<ntl_GF2>self).x, (<ntl_GF2>other).x)
         return r
@@ -202,7 +204,7 @@ cdef class ntl_GF2:
             sage: -o
             1
         """
-        cdef ntl_GF2 r = PY_NEW(ntl_GF2)
+        cdef ntl_GF2 r = ntl_GF2.__new__(ntl_GF2)
         GF2_negate(r.x, self.x)
         return r
 

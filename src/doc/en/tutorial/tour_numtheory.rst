@@ -81,10 +81,10 @@ We next verify something about the :math:`3n+1` problem.
 
     sage: n = 2005
     sage: for i in range(1000):
-    ...       n = 3*odd_part(n) + 1
-    ...       if odd_part(n)==1:
-    ...           print i
-    ...           break
+    ....:     n = 3*odd_part(n) + 1
+    ....:     if odd_part(n)==1:
+    ....:         print(i)
+    ....:         break
     38
 
 Finally we illustrate the Chinese remainder theorem.
@@ -127,8 +127,9 @@ precision.
     10*11^-2 + 5*11^-1 + 4 + 2*11 + O(11^18)
 
 Much work has been done implementing rings of integers in
-:math:`p`-adic fields or number fields other than . The
-interested reader is invited to ask the experts on the
+:math:`p`-adic fields and number fields. The
+interested reader is invited to read
+:ref:`sage.rings.padics.tutorial` and ask the experts on the
 ``sage-support`` Google group for further details.
 
 A number of related methods are already implemented in the

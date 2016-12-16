@@ -1,4 +1,6 @@
 r"""
+Fast decomposition of small integers into sums of squares
+
 Implement fast version of decomposition of (small) integers into sum of squares
 by direct method not relying on factorisation.
 
@@ -14,11 +16,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from libc.math cimport sqrt
-from libc.stdint cimport uint_fast32_t, uint32_t
 
-include "sage/ext/interrupt.pxi"
+
+include "cysignals/signals.pxi"
 
 cimport integer
 import integer
@@ -27,7 +30,7 @@ cdef int two_squares_c(uint_fast32_t n, uint_fast32_t res[2]):
     r"""
     Return ``1`` if ``n`` is a sum of two squares and ``0`` otherwise.
 
-    If ``1`` is returned, the the value of ``res[0]`` and ``res[1]`` are set to the
+    If ``1`` is returned, the value of ``res[0]`` and ``res[1]`` are set to the
     lexicographically smallest solution of `a^2 + b^2 = n`.
     """
     cdef uint_fast32_t fac,i,ii,j,jj,nn
@@ -135,7 +138,7 @@ def two_squares_pyx(uint32_t n):
 
     .. SEEALSO::
 
-        :func:`~sage.rings.arith.two_squares` is much more suited for large inputs
+        :func:`~sage.arith.all.two_squares` is much more suited for large inputs
 
     EXAMPLES::
 
@@ -160,16 +163,16 @@ def two_squares_pyx(uint32_t n):
 
     TESTS::
 
-        sage: s = lambda (x,y) : x**2 + y**2
+        sage: s = lambda t: sum(i^2 for i in t)
         sage: for ij in Subsets(Subsets(45000,15).random_element(),2):
         ....:     if s(two_squares_pyx(s(ij))) != s(ij):
-        ....:         print "hey"
+        ....:         print("hey")
 
-        sage: for n in xrange(1,65536):
-        ....:     if two_squares_pyx(n**2) != (0, n):
-        ....:         print "hey"
-        ....:     if two_squares_pyx(n**2+1) != (1, n):
-        ....:         print "ho"
+        sage: for n in range(1,65536):
+        ....:     if two_squares_pyx(n^2) != (0, n):
+        ....:         print("hey")
+        ....:     if two_squares_pyx(n^2 + 1) != (1, n):
+        ....:         print("ho")
     """
     cdef uint_fast32_t i[2]
 
@@ -248,10 +251,10 @@ def three_squares_pyx(uint32_t n):
 
     TESTS::
 
-        sage: s = lambda (x,y,z) : x**2 + y**2 + z**2
+        sage: s = lambda t: sum(i^2 for i in t)
         sage: for ijk in Subsets(Subsets(35000,15).random_element(),3):
         ....:     if s(three_squares_pyx(s(ijk))) != s(ijk):
-        ....:         print "hey"
+        ....:         print("hey")
     """
     cdef uint_fast32_t i[3]
 
@@ -273,7 +276,7 @@ def four_squares_pyx(uint32_t n):
 
     .. SEEALSO::
 
-        :func:`~sage.rings.arith.four_squares` is much more suited for large input
+        :func:`~sage.arith.all.four_squares` is much more suited for large input
 
     EXAMPLES::
 
@@ -298,8 +301,8 @@ def four_squares_pyx(uint32_t n):
         sage: four_squares_pyx(0)
         (0, 0, 0, 0)
 
-        sage: s = lambda (x,y,z,t): x**2 + y**2 + z**2 + t**2
-        sage: all(s(four_squares_pyx(n)) == n for n in xrange(5000,10000))
+        sage: s = lambda t: sum(i^2 for i in t)
+        sage: all(s(four_squares_pyx(n)) == n for n in range(5000,10000))
         True
     """
     cdef uint_fast32_t fac, j, nn

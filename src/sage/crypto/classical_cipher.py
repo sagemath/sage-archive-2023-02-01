@@ -1,6 +1,7 @@
 """
 Classical Ciphers
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -9,8 +10,9 @@ Classical Ciphers
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
-from cipher import SymmetricKeyCipher
+from .cipher import SymmetricKeyCipher
 from sage.monoids.string_monoid_element import StringMonoidElement
 from sage.modules.free_module import FreeModule
 
@@ -71,7 +73,7 @@ class AffineCipher(SymmetricKeyCipher):
             sage: aff1(1, 2) == aff2(1, 2)
             True
         """
-        return isinstance(self, type(other)) and self.parent() == other.parent() and self.key() == other.key()
+        return type(self) is type(other) and self.parent() == other.parent() and self.key() == other.key()
 
     def __call__(self, M):
         r"""
@@ -191,7 +193,7 @@ class HillCipher(SymmetricKeyCipher):
         SymmetricKeyCipher.__init__(self, parent, key)
 
     def __eq__(self, right):
-        return isinstance(self, type(right)) and self.parent() == right.parent() and self.key() == right.key()
+        return type(self) is type(right) and self.parent() == right.parent() and self.key() == right.key()
 
     def __call__(self, M):
         S = self.domain() # = plaintext_space = ciphertext_space
@@ -297,7 +299,7 @@ class ShiftCipher(SymmetricKeyCipher):
             sage: shift1 == shift2
             False
         """
-        return isinstance(self, type(other)) and self.parent() == other.parent() and self.key() == other.key()
+        return type(self) is type(other) and self.parent() == other.parent() and self.key() == other.key()
 
     def __call__(self, M):
         r"""
@@ -414,7 +416,7 @@ class SubstitutionCipher(SymmetricKeyCipher):
         SymmetricKeyCipher.__init__(self, parent, key)
 
     def __eq__(self, right):
-        return isinstance(self, type(right)) and self.parent() == right.parent() and self.key() == right.key()
+        return type(self) is type(right) and self.parent() == right.parent() and self.key() == right.key()
 
     def __call__(self, M):
         S = self.domain() # = plaintext_space = ciphertext_space
@@ -433,19 +435,19 @@ class SubstitutionCipher(SymmetricKeyCipher):
         EXAMPLES::
 
             sage: A = HexadecimalStrings(); S = SubstitutionCryptosystem(A)
-            sage: K = A([16-i for i in xrange(16)]); S(K)
+            sage: K = A([16-i for i in range(16)]); S(K)
             Substitution cipher on Free hexadecimal string monoid
             sage: A = AlphabeticStrings(); S = SubstitutionCryptosystem(A)
-            sage: K = A([26-i for i in xrange(26)]); S(K)
+            sage: K = A([26-i for i in range(26)]); S(K)
             Substitution cipher on Free alphabetic string monoid on A-Z
             sage: A = OctalStrings(); S = SubstitutionCryptosystem(A)
-            sage: K = A([8-i for i in xrange(8)]); S(K)
+            sage: K = A([8-i for i in range(8)]); S(K)
             Substitution cipher on Free octal string monoid
             sage: A = BinaryStrings(); S = SubstitutionCryptosystem(A)
-            sage: K = A([2-i for i in xrange(2)]); S(K)
+            sage: K = A([2-i for i in range(2)]); S(K)
             Substitution cipher on Free binary string monoid
             sage: A = Radix64Strings(); S = SubstitutionCryptosystem(A)
-            sage: K = A([64-i for i in xrange(64)]); S(K)
+            sage: K = A([64-i for i in range(64)]); S(K)
             Substitution cipher on Free radix 64 string monoid
         """
         return "Substitution cipher on %s" % self.parent().cipher_domain()

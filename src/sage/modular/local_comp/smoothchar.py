@@ -40,9 +40,10 @@ Characters are themselves group elements, and basic arithmetic on them works::
     sage: chi.multiplicative_order()
     +Infinity
 """
+from six.moves import range
 
 import operator
-from sage.structure.element     import MultiplicativeGroupElement
+from sage.structure.element import MultiplicativeGroupElement, parent
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.sequence    import Sequence
 from sage.rings.all             import QQ, ZZ, Zmod, NumberField
@@ -54,7 +55,6 @@ from sage.categories.groups     import Groups
 from sage.functions.other       import ceil
 from sage.misc.mrange           import xmrange
 
-from sage.structure.element import FieldElement
 
 class SmoothCharacterGeneric(MultiplicativeGroupElement):
     r"""
@@ -143,7 +143,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: G.character(0, [1]).multiplicative_order()
             1
         """
-        from sage.rings.arith import lcm
+        from sage.arith.all import lcm
         from sage.rings.infinity import Infinity
         if self._values_on_gens[-1].multiplicative_order() == Infinity:
             return Infinity
@@ -205,7 +205,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             -z^3
         """
         v = self.parent().discrete_log(self.level(), x)
-        return prod([self._values_on_gens[i] ** v[i] for i in xrange(len(v))])
+        return prod([self._values_on_gens[i] ** v[i] for i in range(len(v))])
 
     def _repr_(self):
         r"""
@@ -360,13 +360,13 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G(GK.character(0, [i])) # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce i to a rational
+            TypeError: unable to convert i to an element of Rational Field
         """
         if x == 1:
             return self.character(0, [1])
-        if hasattr(x, 'parent') \
-          and isinstance(x.parent(), SmoothCharacterGroupGeneric) \
-          and x.parent().number_field().has_coerce_map_from(self.number_field()):
+        P = parent(x)
+        if (isinstance(P, SmoothCharacterGroupGeneric)
+                and P.number_field().has_coerce_map_from(self.number_field())):
             return self.character(x.level(), [x(v) for v in self.unit_gens(x.level())])
         else:
             raise TypeError
@@ -665,7 +665,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         S = Sequence(values_on_gens, universe=self.base_ring(), immutable=True)
         assert len(S) == len(self.unit_gens(level)), "{0} images must be given".format(len(self.unit_gens(level)))
         n = self.exponents(level)
-        for i in xrange(len(S)):
+        for i in range(len(S)):
             if n[i] != 0 and not S[i]**n[i] == 1:
                 raise ValueError( "value on generator %s (=%s) should be a root of unity of order %s" % (self.unit_gens(level)[i], S[i], n[i]) )
             elif n[i] == 0 and not S[i].is_unit():
@@ -699,7 +699,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: SmoothCharacterGroupUnramifiedQuadratic(2, Zmod(8))._test_unitgens()
         """
         T = self._tester(**options)
-        for c in xrange(6):
+        for c in range(6):
             gens = self.unit_gens(c)
             exps = self.exponents(c)
             T.assert_(exps[-1] == 0)
@@ -707,9 +707,9 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             T.assert_(all([u.parent() is self.number_field() for u in gens]))
 
             I = self.ideal(c)
-            for i in xrange(len(exps[:-1])):
+            for i in range(len(exps[:-1])):
                 g = gens[i]
-                for m in xrange(1, exps[i]):
+                for m in range(1, exps[i]):
                     if (g - 1 in I):
                         T.fail("For generator g=%s, g^%s = %s = 1 mod I, but order should be %s" % (gens[i], m, g, exps[i]))
                     g = g * gens[i]
@@ -736,7 +736,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: SmoothCharacterGroupQp(2, CC)._test_subgroupgens()
         """
         T = self._tester(**options)
-        for c in xrange(1, 6):
+        for c in range(1, 6):
             sgs = self.subgroup_gens(c)
             I2 = self.ideal(c-1)
             T.assert_(all([x-1 in I2 for x in sgs]), "Kernel gens at level %s not in kernel!" % c)
@@ -1179,7 +1179,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         r"""
         Find an element generating the quotient
 
-        .. math::
+        .. MATH::
 
             \mathcal{O}_F^\times / \ZZ_p^\times \cdot (1 + p^c \mathcal{O}_F),
 
@@ -1302,7 +1302,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         values_on_other_gens = [x] + [chi(u) for u in other_gens[1:]]
         for s in self.unit_gens(level)[:-1]:
             t = self.ideal(level).ideallog(s, other_gens)
-            values_on_standard_gens.append( prod([values_on_other_gens[i] ** t[i] for i in xrange(len(t))]) )
+            values_on_standard_gens.append( prod([values_on_other_gens[i] ** t[i] for i in range(len(t))]) )
         values_on_standard_gens.append(chi(self.prime()))
         chiE = self.character(level, values_on_standard_gens)
 

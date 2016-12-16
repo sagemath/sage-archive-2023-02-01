@@ -13,7 +13,7 @@ For design documentation see matrix/docs.py.
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include 'sage/ext/stdsage.pxi'
+from sage.ext.stdsage cimport PY_SET_TP_NEW
 
 def is_Matrix(x):
     """
@@ -25,12 +25,12 @@ def is_Matrix(x):
         sage: is_Matrix(matrix([[1,2],[3,4]]))
         True
     """
-    return IS_INSTANCE(x, Matrix)
+    return isinstance(x, Matrix)
 
-cdef class Matrix(matrix2.Matrix):
+cdef class Matrix(Matrix2):
     pass
 
 # This is pretty nasty low level stuff. The idea is to speed up construction
 # of EuclideanDomainElements (in particular Integers) by skipping some tp_new
 # calls up the inheritance tree.
-PY_SET_TP_NEW(Matrix, matrix2.Matrix)
+PY_SET_TP_NEW(Matrix, Matrix2)

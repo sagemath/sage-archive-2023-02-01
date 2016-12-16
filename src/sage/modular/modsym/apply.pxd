@@ -1,9 +1,4 @@
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-
-from sage.libs.flint.flint cimport *
-include "sage/libs/flint/fmpz_poly.pxi"
-
+from sage.libs.flint.types cimport fmpz_poly_t
 
 cdef class Apply:
     cdef fmpz_poly_t f, g, ff, gg

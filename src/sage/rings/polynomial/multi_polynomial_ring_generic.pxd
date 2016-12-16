@@ -1,6 +1,4 @@
-import sage.rings.ring
 cimport sage.rings.ring
-
 from sage.structure.parent cimport Parent
 
 cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
@@ -11,4 +9,3 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     cdef public dict _magma_cache
 
     cdef _coerce_c_impl(self, x)
-    cdef int _cmp_c_impl(left, Parent right) except -2

@@ -13,17 +13,15 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
-from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
 
 zz_pContextDict = {}
 
-cdef class ntl_zz_pContext_class:
+cdef class ntl_zz_pContext_class(object):
     def __init__(self, long v):
         """
         EXAMPLES:
@@ -48,13 +46,10 @@ cdef class ntl_zz_pContext_class:
 
     def __cinit__(self, long v):
         if v > NTL_SP_BOUND:
-            raise ValueError, "Modulus (=%s) is too big"%v
-        zz_pContext_construct_long(&self.x, v)
+            raise ValueError("Modulus (=%s) is too big" % v)
+        self.x = zz_pContext_c(v)
         zz_pContextDict[repr(v)] = self
         self.p = v
-
-    def __dealloc__(self):
-        zz_pContext_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -96,7 +91,8 @@ cdef class ntl_zz_pContext_class:
             sage: n*n ## indirect doctest
             4
         """
-        zz_pContext_restore(&self.x)
+        self.x.restore()
+
 
 def ntl_zz_pContext( v ):
     """
@@ -110,8 +106,8 @@ def ntl_zz_pContext( v ):
         ValueError: Modulus (=10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000) is too big
     """
     if v > NTL_SP_BOUND:
-        raise ValueError, "Modulus (=%s) is too big"%v
-    if PY_TYPE_CHECK(v, Integer):
+        raise ValueError("Modulus (=%s) is too big" % v)
+    if isinstance(v, Integer):
         v = mpz_get_si((<Integer>v).value)
     try:
         return zz_pContextDict[repr(v)]

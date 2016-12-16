@@ -18,7 +18,6 @@ fi
 
 # Pick up Sage's zlib:
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 
 cd src
 
@@ -32,16 +31,6 @@ fi
 if [ "$UNAME" = "CYGWIN" ]; then
     MAKE="$MAKE SYMBOL_PREFIX= "
 fi
-
-# Pick up patches
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
 
 echo "Building libpng..."
 $MAKE

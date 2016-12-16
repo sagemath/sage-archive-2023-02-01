@@ -71,16 +71,20 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/stdsage.pxi'
-include 'sage/misc/bitset.pxi'
-from matroid cimport Matroid
-from basis_exchange_matroid cimport BasisExchangeMatroid
-from itertools import permutations
-from sage.rings.arith import binomial
-from set_system cimport SetSystem
-from itertools import combinations
+from __future__ import absolute_import
+
+include 'sage/data_structures/bitset.pxi'
+
+from .matroid cimport Matroid
+from .basis_exchange_matroid cimport BasisExchangeMatroid
+from .set_system cimport SetSystem
+
+from sage.arith.all import binomial
+
+from itertools import permutations, combinations
 
 # class of general matroids, represented by their list of bases
+
 
 cdef class BasisMatroid(BasisExchangeMatroid):
     """
@@ -101,7 +105,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         sage: from sage.matroids.advanced import *
         sage: M = BasisMatroid()
         sage: M.groundset()
-        frozenset([])
+        frozenset()
         sage: M.full_rank()
         0
 
@@ -260,7 +264,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
     # support for parent BasisExchangeMatroid
 
-    cdef  bint __is_exchange_pair(self, long x, long y):      # test if current_basis-x + y is a basis
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:      # test if current_basis-x + y is a basis
         """
         Test if `B-e + f` is a basis of the current matroid.
 
@@ -329,7 +333,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
     # dual and minors
 
     cpdef dual(self):
-        """
+        r"""
         Return the dual of the matroid.
 
         Let `M` be a matroid with ground set `E`. If `B` is the set of bases
@@ -349,7 +353,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         ALGORITHM:
 
         A BasisMatroid on `n` elements and of rank `r` is stored as a
-        bitvector of length `n \choose r`. The `i`-th bit in this vector
+        bitvector of length `\binom{n}{r}`. The `i`-th bit in this vector
         indicates that the `i`-th `r`-set in the lexicographic enumeration of
         `r`-subsets of the groundset is a basis. Reversing this bitvector
         yields a bitvector that indicates whether the complement of an
@@ -793,7 +797,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: PM = M._bases_partition3()
             sage: PN = N._bases_partition3()
             sage: morphism = {}
-            sage: for i in xrange(len(M)): morphism[min(PM[i])]=min(PN[i])
+            sage: for i in range(len(M)): morphism[min(PM[i])] = min(PN[i])
             sage: M._is_isomorphism(N, morphism)
             True
         """
@@ -949,9 +953,9 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             ot = other
         return self.bases_count() == (<BasisMatroid>ot).bases_count() and self._is_relaxation(ot, morphism)
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _isomorphism(self, other):
         """
-        Return if this matroid is isomorphic to the given matroid.
+        Return isomorphism from ``self`` to ``other``, if one exists.
 
         INPUT:
 
@@ -959,7 +963,88 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
         OUTPUT:
 
-        Boolean.
+        A dictionary, or ``None``
+
+        .. NOTE::
+
+            Internal version that does no input checking.
+
+        EXAMPLES::
+        
+            sage: from sage.matroids.advanced import *
+            sage: M = BasisMatroid(matroids.Wheel(3))
+            sage: N = BasisMatroid(matroids.CompleteGraphic(4))
+            sage: morphism = M._isomorphism(N)
+            sage: M._is_isomorphism(N, morphism)
+            True
+            sage: M = BasisMatroid(matroids.named_matroids.NonFano())
+            sage: N = BasisMatroid(matroids.named_matroids.Fano())
+            sage: M._isomorphism(N) is not None
+            False
+        """
+        if not isinstance(other, BasisMatroid):
+            return self.isomorphism(BasisMatroid(other))
+        if self is other:
+            return {e:e for e in self.groundset()}
+        if len(self) != len(other):
+            return None
+        if self.full_rank() != other.full_rank():
+            return None
+        if self.full_rank() == 0:
+            return {self.groundset_list()[i]: other.groundset_list()[i] for i in xrange(len(self))}        
+        if self.bases_count() != other.bases_count():
+            return None
+
+        if self._bases_invariant() != other._bases_invariant():
+            return None
+        PS = self._bases_partition()
+        PO = other._bases_partition()
+        if len(PS) == len(self) and len(PO) == len(other):
+            morphism = {}
+            for i in xrange(len(self)):
+                morphism[min(PS[i])] = min(PO[i])
+            if self._is_relaxation(other, morphism):
+                return morphism
+            else:
+                return None
+
+        if self._bases_invariant2() != other._bases_invariant2():
+            return None
+        PS = self._bases_partition2()
+        PO = other._bases_partition2()
+        if len(PS) == len(self) and len(PO) == len(other):
+            morphism = {}
+            for i in xrange(len(self)):
+                morphism[min(PS[i])] = min(PO[i])
+            if self._is_relaxation(other, morphism):
+                return morphism
+            else:
+                return None
+
+        if self._bases_invariant3() == other._bases_invariant3():
+            PHS = self._bases_partition3()
+            PHO = other._bases_partition3()
+            morphism = {}
+            for i in xrange(len(self)):
+                morphism[min(PHS[i])] = min(PHO[i])
+            if self._is_relaxation(other, morphism):
+                return morphism
+
+        return self.nonbases()._isomorphism(other.nonbases(), PS, PO)
+        
+    cpdef _is_isomorphic(self, other, certificate=False):
+        """
+        Return if this matroid is isomorphic to the given matroid.
+
+        INPUT:
+
+        - ``other`` -- A matroid,
+        - optional parameter ``certificate`` -- Boolean.
+
+        OUTPUT:
+
+        Boolean,
+        and, if certificate = True, a dictionary giving the isomophism or None
 
         .. NOTE::
 
@@ -972,7 +1057,11 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: N = BasisMatroid(matroids.named_matroids.Fano())
             sage: M._is_isomorphic(N)
             False
+            sage: M._is_isomorphic(N, certificate=True)
+            (False, None)
         """
+        if certificate:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if not isinstance(other, BasisMatroid):
             return BasisExchangeMatroid._is_isomorphic(self, other)
         if self is other:

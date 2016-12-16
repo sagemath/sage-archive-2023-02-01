@@ -9,8 +9,8 @@ Integer vectors modulo the action of a permutation group
 #              The full text of the GPL is available at:
 #                    http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-from itertools import imap
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.semirings.all import NN
 
@@ -36,7 +36,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     is maximal in its orbit under the action of `G`. `v` is
     canonical if and only if
 
-    .. math::
+    .. MATH::
 
         v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 
@@ -44,7 +44,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     simple transposition `s_1 = (1, 2)` swaps the first and the second entries
     of any integer vector `v = [a_1, a_2, a_3, \dots , a_n]`
 
-    .. math::
+    .. MATH::
 
         s_1 \cdot v = [a_2, a_1, a_3, \dots , a_n]
 
@@ -82,15 +82,15 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
 
         sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
         sage: I.category()
-        Join of Category of infinite enumerated sets and Category of quotients of sets
+        Category of infinite enumerated quotients of sets
         sage: I.cardinality()
         +Infinity
         sage: I.list()
         Traceback (most recent call last):
         ...
-        NotImplementedError: infinite list
+        NotImplementedError: cannot list an infinite set
         sage: p = iter(I)
-        sage: for i in range(10): p.next()
+        sage: for i in range(10): next(p)
         [0, 0, 0]
         [1, 0, 0]
         [2, 0, 0]
@@ -143,13 +143,12 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
     we convert the returned set of vectors into a list in increasing lexicographic order,
     to get a reproducible test::
 
-        sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
-        sage: sorted(I.orbit([6,0,0]), cmp=lex_cmp)
+        sage: sorted(I.orbit([6,0,0]))
         [[0, 0, 6], [0, 6, 0], [6, 0, 0]]
-        sage: sorted(I.orbit([5,1,0]), cmp=lex_cmp)
+        sage: sorted(I.orbit([5,1,0]))
         [[0, 5, 1], [1, 0, 5], [5, 1, 0]]
         sage: I.orbit([2,2,2])
-        set([[2, 2, 2]])
+        {[2, 2, 2]}
 
     TESTS:
 
@@ -159,8 +158,8 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         sage: I = IntegerVectorsModPermutationGroup(SymmetricGroup(5)) # long time
         sage: p = iter(I) # long time
         sage: for i in range(100): # long time
-        ...       v = list(p.next())
-        ...       assert sorted(v, reverse=True) == v
+        ....:     v = list(next(p))
+        ....:     assert sorted(v, reverse=True) == v
 
     We now check that there is as much of canonical vectors under the
     symmetric group `S_n` whose entries sum to `d` than partitions of
@@ -168,10 +167,10 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
 
         sage: I = IntegerVectorsModPermutationGroup(SymmetricGroup(5)) # long time
         sage: for i in range(10): # long time
-        ...       d1 = I.subset(i).cardinality()
-        ...       d2 = Partitions(i, max_length=5).cardinality()
-        ...       print d1
-        ...       assert d1 == d2
+        ....:     d1 = I.subset(i).cardinality()
+        ....:     d2 = Partitions(i, max_length=5).cardinality()
+        ....:     print(d1)
+        ....:     assert d1 == d2
         1
         1
         2
@@ -192,10 +191,10 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         1
         sage: I = IntegerVectorsModPermutationGroup(G) # long time
         sage: for i in range(10): # long time
-        ...       d1 = I.subset(i).cardinality()
-        ...       d2 = IntegerVectors(i,6).cardinality()
-        ...       print d1
-        ...       assert d1 == d2
+        ....:     d1 = I.subset(i).cardinality()
+        ....:     d2 = IntegerVectors(i,6).cardinality()
+        ....:     print(d1)
+        ....:     assert d1 == d2
         1
         6
         21
@@ -251,13 +250,13 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         +Infinity
         sage: TestSuite(I).run()
         sage: it = iter(I)
-        sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+        sage: [next(it), next(it), next(it), next(it), next(it)]
         [[0, 0, 0, 0],
          [1, 0, 0, 0],
          [2, 0, 0, 0],
          [1, 1, 0, 0],
          [1, 0, 1, 0]]
-        sage: x = it.next(); x
+        sage: x = next(it); x
         [3, 0, 0, 0]
         sage: I.first()
         [0, 0, 0, 0]
@@ -274,7 +273,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: I
             Integer vectors of length 4 enumerated up to the action of Permutation Group with generators [(1,2,3,4)]
             sage: I.category()
-            Join of Category of infinite enumerated sets and Category of quotients of sets
+            Category of infinite enumerated quotients of sets
             sage: TestSuite(I).run()
         """
         SearchForest.__init__(self, algorithm = 'breadth', category = InfiniteEnumeratedSets().Quotients())
@@ -285,7 +284,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         if sgs is None:
             self._sgs = G.strong_generating_system()
         else:
-            self._sgs = map(lambda x: list(x), list(sgs))
+            self._sgs = [list(x) for x in list(sgs)]
 
     def _repr_(self):
         """
@@ -294,7 +293,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3)]]))
             Integer vectors of length 3 enumerated up to the action of Permutation Group with generators [(1,2,3)]
         """
-        return "Integer vectors of length %s enumerated up to the action of %s"%(str(self.n), self._permgroup.__repr__())
+        return "Integer vectors of length %s enumerated up to the action of %r"%(self.n, self._permgroup)
 
     def ambient(self):
         r"""
@@ -306,9 +305,13 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: S.ambient()
             Integer vectors
         """
-        # TODO: Fix me once 'IntegerVectors(length=bla)' will return
-        # the integer vectors of length bla
-        return IntegerVectors(length=self.n)
+        ## TODO: Fix me once 'IntegerVectors(length=bla)' will return
+        ## the integer vectors of length bla
+        #return IntegerVectors(length=self.n)
+
+        # (#17927) The previous line was replaced by the following, as
+        # IntegerVectors(length=k) is invalid at the moment.
+        return IntegerVectors()
 
     def lift(self, elt):
         r"""
@@ -320,7 +323,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: v = S.lift(S([4,3,0,1])); v
             [4, 3, 0, 1]
             sage: type(v)
-            <type 'list'>
+            <... 'list'>
         """
         # TODO: For now, Sage integer vectors are just python list.
         # Once Integer vectors will have an element class, update this
@@ -339,15 +342,15 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
 
         EXAMPLES::
 
-            sage: [0,0,0,0] in IntegerVectors(length=4)
+            sage: [0,0,0,0] in IntegerVectors(0,4)
             True
-            sage: [1,0,0,0] in IntegerVectors(length=4)
+            sage: [1,0,0,0] in IntegerVectors(1,4)
             True
-            sage: [0,1,0,0] in IntegerVectors(length=4)
+            sage: [0,1,0,0] in IntegerVectors(1,4)
             True
-            sage: [1,0,1,0] in IntegerVectors(length=4)
+            sage: [1,0,1,0] in IntegerVectors(2,4)
             True
-            sage: [0,1,0,1] in IntegerVectors(length=4)
+            sage: [0,1,0,1] in IntegerVectors(2,4)
             True
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
             sage: S.retract([0,0,0,0])
@@ -414,7 +417,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         define ``self``.  Such integer vectors are said to be
         canonical. A vector `v` is canonical if and only if
 
-        .. math::
+        .. MATH::
 
             v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 
@@ -487,18 +490,17 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         In order to get reproducible doctests, we convert the returned sets
         into lists in increasing lexicographic order::
 
-            sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
-            sage: sorted(I.orbit([2,2,0,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,2,0,0]))
             [[0, 0, 2, 2], [0, 2, 2, 0], [2, 0, 0, 2], [2, 2, 0, 0]]
-            sage: sorted(I.orbit([2,1,0,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,1,0,0]))
             [[0, 0, 2, 1], [0, 2, 1, 0], [1, 0, 0, 2], [2, 1, 0, 0]]
-            sage: sorted(I.orbit([2,0,1,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,0,1,0]))
             [[0, 1, 0, 2], [0, 2, 0, 1], [1, 0, 2, 0], [2, 0, 1, 0]]
-            sage: sorted(I.orbit([2,0,2,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,0,2,0]))
             [[0, 2, 0, 2], [2, 0, 2, 0]]
             sage: I.orbit([1,1,1,1])
-            set([[1, 1, 1, 1]])
+            {[1, 1, 1, 1]}
         """
         assert isinstance(v, (list, ClonableIntArray)), '%s shoud be a Python list or an element of %s'%(v, self)
         try:
@@ -587,8 +589,8 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
 
     Here is the enumeration of unlabeled graphs over 5 vertices::
 
-        sage: G = IntegerVectorsModPermutationGroup(TransitiveGroup(10,12), max_part=1) # optional
-        sage: G.cardinality() # optional
+        sage: G = IntegerVectorsModPermutationGroup(TransitiveGroup(10,12), max_part=1) # optional - database_gap
+        sage: G.cardinality()  # optional - database_gap
         34
 
     TESTS::
@@ -615,7 +617,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         if sgs is None:
             self._sgs = G.strong_generating_system()
         else:
-            self._sgs = map(lambda x: list(x), list(sgs))
+            self._sgs = [list(x) for x in list(sgs)]
 
     def _repr_(self):
         r"""
@@ -756,7 +758,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             return self.elements_of_depth_iterator(self._sum)
         else:
             SF = SearchForest((self([0]*(self.n), check=False),),
-                              lambda x : map(lambda y : self(y, check=False), canonical_children(self._sgs, x, self._max_part)),
+                              lambda x : [self(y, check=False) for y in canonical_children(self._sgs, x, self._max_part)],
                               algorithm = 'breadth')
             if self._sum is None:
                 return iter(SF)
@@ -770,7 +772,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         define ``self``.  Such integer vectors are said to be
         canonical. A vector `v` is canonical if and only if
 
-        .. math::
+        .. MATH::
 
             v = \max_{\text{lex order}} \{g \cdot v | g \in G \}
 
@@ -816,9 +818,13 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             else:
                 return IntegerVectors(n=self._sum, max_part=self._max_part)
         else:
-            # Fix me once max_part should be accepted as a single
-            # argument for integer vectors
-            return IntegerVectors(max_part=self._max_part)
+            ## Fix me once max_part should be accepted as a single
+            ## argument for integer vectors
+            #return IntegerVectors(max_part=self._max_part)
+
+            # (#17927) The previous line was replaced by the following, as
+            # IntegerVectors(max_part=k) is invalid at the moment.
+            return IntegerVectors()
 
     def lift(self, elt):
         r"""
@@ -829,7 +835,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), max_part=1)
             sage: v = S.lift([1,0,1,0]); v
             [1, 0, 1, 0]
-            sage: v in IntegerVectors(max_part=1)
+            sage: v in IntegerVectors(2,4,max_part=1)
             True
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), sum=6)
             sage: v = S.lift(S.list()[5]); v
@@ -905,7 +911,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         else:
             try:
                 v = iter(self)
-                return v.next()
+                return next(v)
             except StopIteration:
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError
@@ -925,11 +931,10 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         We convert the result in a list in increasing lexicographic
         order, to get a reproducible doctest::
 
-            sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]),4)
             sage: I.orbit([1,1,1,1])
-            set([[1, 1, 1, 1]])
-            sage: sorted(I.orbit([3,0,0,1]), cmp=lex_cmp)
+            {[1, 1, 1, 1]}
+            sage: sorted(I.orbit([3,0,0,1]))
             [[0, 0, 1, 3], [0, 1, 3, 0], [1, 3, 0, 0], [3, 0, 0, 1]]
         """
         assert isinstance(v, (list, ClonableIntArray)), '%s shoud be a Python list or an element of %s'%(v, self)

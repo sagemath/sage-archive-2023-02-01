@@ -127,8 +127,7 @@ REFERENCES:
 
 - :wikipedia:`Jacobi's_elliptic_functions`
 
-.. [KhaSuk04] A. Khare and U. Sukhatme. "Cyclic Identities Involving
-   Jacobi Elliptic Functions". :arxiv:`math-ph/0201004`
+- [KS2002]_
 
 AUTHORS:
 
@@ -148,10 +147,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.function import BuiltinFunction, is_inexact
-from sage.structure.coerce import parent
-from sage.structure.element import get_coercion_model
-from sage.symbolic.expression import Expression
+from sage.symbolic.function import BuiltinFunction
 from sage.functions.trig import (arctan, arcsin, arccos, arccot, arcsec,
                                  arccsc, csc, sec, sin, cos, tan, cot)
 from sage.functions.hyperbolic import (arctanh, arccosh, arcsinh, arcsech,
@@ -270,10 +266,6 @@ class Jacobi(BuiltinFunction):
             sage: almosteq(n(jacobi_cs(-6, 1, hold=True)), n(jacobi_cs(-6, 1)))
             True
         """
-        coercion_model = get_coercion_model()
-        co = coercion_model.canonical_coercion(x, m)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            return self._evalf_(x, m, parent(co))
         if self.kind == 'nd':
             if m == 0:
                 return Integer(1)
@@ -641,10 +633,6 @@ class InverseJacobi(BuiltinFunction):
             ....:          n(inverse_jacobi_sn(0, 6)))
             True
         """
-        coercion_model = get_coercion_model()
-        x, m = coercion_model.canonical_coercion(x, m)
-        if is_inexact(x) and not isinstance(x, Expression):
-            return self._evalf_(x, m, parent(x))
         if self.kind == 'cd':
             if m == 0:
                 return arccos(x)
@@ -949,10 +937,10 @@ def jacobi(kind, z, m, **kwargs):
         sage: jacobi('cd', 1, 1/2)
         jacobi_cd(1, 1/2)
         sage: RDF(jacobi('cd', 1, 1/2))
-        0.724009721659
+        0.7240097216593705
         sage: (RDF(jacobi('cn', 1, 1/2)), RDF(jacobi('dn', 1, 1/2)),
         ....:  RDF(jacobi('cn', 1, 1/2) / jacobi('dn', 1, 1/2)))
-        (0.595976567672, 0.823161001632, 0.724009721659)
+        (0.5959765676721407, 0.8231610016315962, 0.7240097216593705)
         sage: jsn = jacobi('sn', x, 1)
         sage: P = plot(jsn, 0, 1)
     """
@@ -1091,10 +1079,6 @@ class JacobiAmplitude(BuiltinFunction):
             sage: jacobi_am(3, 4.)
             -0.339059208303591
         """
-        coercion_model = get_coercion_model()
-        x, m = coercion_model.canonical_coercion(x, m)
-        if is_inexact(x) and not isinstance(x, Expression):
-            return self._evalf_(x, m, parent(x))
         if m == 0:
             return x
         elif x == 0:
@@ -1152,14 +1136,8 @@ jacobi_am = JacobiAmplitude()
 def inverse_jacobi_f(kind, x, m):
     r"""
     Internal function for numerical evaluation of a continous complex branch
-    of each inverse Jacobi function, as described in [Tee97]_. Only accepts
+    of each inverse Jacobi function, as described in [Tee1997]_. Only accepts
     real arguments.
-
-    REFERENCES:
-
-    .. [Tee97] Tee, Garry J. "Continuous branches of inverses of the 12 Jacobi
-       elliptic functions for real argument". 1997.
-       https://researchspace.auckland.ac.nz/bitstream/handle/2292/5042/390.pdf.
 
     TESTS::
 
@@ -1627,13 +1605,7 @@ def inverse_jacobi_f(kind, x, m):
 def jacobi_am_f(x, m):
     r"""
     Internal function for numeric evaluation of the Jacobi amplitude function
-    for real arguments. Procedure described in [Ehrhardt13]_.
-
-    REFERENCES:
-
-    .. [Ehrhardt13] Ehrhardt, Wolfgang. "The AMath and DAMath Special
-       Functions: Reference Manual and Implementation Notes, Version 1.3".
-       2013. http://www.wolfgang-ehrhardt.de/specialfunctions.pdf.
+    for real arguments. Procedure described in [Eh2013]_.
 
     TESTS::
 

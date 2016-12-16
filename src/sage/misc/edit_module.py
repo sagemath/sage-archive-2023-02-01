@@ -85,7 +85,7 @@ def file_and_line(obj):
       sage: edit_module.file_and_line(sage)
       ('...sage/__init__.py', 0)
 
-   The following tests against a bug that was fixed in trac ticket #11298::
+   The following tests against a bug that was fixed in :trac:`11298`::
 
       sage: edit_module.file_and_line(x)
       ('...sage/symbolic/expression.pyx', ...)
@@ -170,7 +170,7 @@ def set_edit_template(template_string):
       sage: from sage.misc.edit_module import set_edit_template
       sage: set_edit_template("echo EDIT ${file}:${line}")
       sage: edit(sage)      # not tested
-      EDIT /usr/local/sage/default/devel/sage/sage/__init__.py:1
+      EDIT /usr/local/sage/src/sage/__init__.py:1
    """
    global edit_template
 
@@ -288,8 +288,8 @@ def edit_devel(self, filename, linenum):
 
     This hook calls the default implementation, but changes the filename for
     files that appear to be from the sage library: if the filename begins with
-    SAGE_ROOT/local/lib/python.../site-packages/ it replaces this by
-    SAGE_ROOT/devel/sage
+    'SAGE_LOCAL/lib/python.../site-packages', it replaces this by
+    'SAGE_ROOT/src'.
 
     EXAMPLES::
 
@@ -298,7 +298,7 @@ def edit_devel(self, filename, linenum):
 
     The above should open your favorite editor (as stored in the environment
     variable :envvar:`EDITOR`) with the file in which gcd is defined, and when your
-    editor supports it, also at the line in wich gcd is defined.
+    editor supports it, also at the line in which gcd is defined.
     """
     import IPython.core.hooks
     runpathpattern = '^'+sage.env.SAGE_LIB

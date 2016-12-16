@@ -1,6 +1,7 @@
 """
 Elementary symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -17,7 +18,7 @@ Elementary symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import multiplicative, classical
+from . import multiplicative, classical
 from sage.combinat.partition import Partition
 
 
@@ -256,7 +257,7 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
             """
             parent = self.parent()
             e_coords_of_self = self.monomial_coefficients().items()
-            dct = {Partition(map(lambda i: i // n, lam)):
+            dct = {Partition([i // n for i in lam]):
                    (-1) ** (sum(lam) - (sum(lam) // n)) * coeff
                    for (lam, coeff) in e_coords_of_self
                    if all( i % n == 0 for i in lam )}
@@ -265,17 +266,19 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
 
         def expand(self, n, alphabet='x'):
             """
-            Expands the symmetric function as a symmetric polynomial in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in ``n`` variables.
 
             INPUT:
 
-            - ``self`` -- an element of the elementary basis of the symmetric functions
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+            - ``n`` -- a nonnegative integer
+
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
 
             OUTPUT:
 
-            - a monomial expansion of an instance of ``self`` in `n` variables
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -294,6 +297,10 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
                 y0*y1*y2 + y0*y1*y3 + y0*y2*y3 + y1*y2*y3
                 sage: e([]).expand(2)
                 1
+                sage: e([]).expand(0)
+                1
+                sage: (3*e([])).expand(0)
+                3
             """
             condition = lambda part: max(part) > n
             return self._expand(condition, n, alphabet)

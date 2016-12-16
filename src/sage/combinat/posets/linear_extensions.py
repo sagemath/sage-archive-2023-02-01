@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 r"""
 Linear Extensions of Posets
+
+This module defines two classes:
+
+- :class:`LinearExtensionOfPoset`
+- :class:`LinearExtensionsOfPoset`
+
+Classes and methods
+-------------------
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Anne Schilling <anne at math.ucdavis.edu>
@@ -16,6 +24,8 @@ Linear Extensions of Posets
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
+from six.moves import range
 
 from sage.rings.rational_field import QQ
 from sage.categories.posets import Posets
@@ -28,7 +38,7 @@ from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.posets import Poset
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.permutation import Permutation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
 
@@ -46,20 +56,20 @@ class LinearExtensionOfPoset(ClonableArray):
     - ``linear_extension`` -- a list of the elements of `P`
     - ``poset`` -- the underlying poset `P`
 
-    .. seealso:: :class:`Poset`, :class:`LinearExtensionsOfPosets`
+    .. SEEALSO:: :class:`~sage.combinat.posets.posets.Poset`, :class:`LinearExtensionsOfPoset`
 
     EXAMPLES::
 
-        sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade = False)
+        sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade=False)
         sage: p = P.linear_extension([1,4,2,3]); p
         [1, 4, 2, 3]
         sage: p.parent()
-        The set of all linear extensions of Finite poset containing 4 elements
+        The set of all linear extensions of Finite poset containing 4 elements with distinguished linear extension
         sage: p[0], p[1], p[2], p[3]
         (1, 4, 2, 3)
 
     Following Schützenberger and later Haiman and
-    Malvenuto-Reutenauer, Stanley [Stanley2009]_ defined a promotion
+    Malvenuto-Reutenauer, Stanley [Stan2009]_ defined a promotion
     and evacuation operator on any finite poset `P` using operators
     `\tau_i` on the linear extensions of `P`::
 
@@ -78,16 +88,8 @@ class LinearExtensionOfPoset(ClonableArray):
         False
         sage: Q.cover_relations()
         [[1, 2], [1, 4], [3, 4]]
-
-    REFERENCES:
-
-        .. [Stanley2009] Richard Stanley,
-           *Promotion and evacuation*,
-           Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of Anders Björner,
-           Research Paper 9, 24 pp.
     """
-
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, linear_extension, poset):
@@ -169,10 +171,10 @@ class LinearExtensionOfPoset(ClonableArray):
 
     def to_poset(self):
         r"""
-        Returns the poset associated to the linear extension ``self``.
+        Return the poset associated to the linear extension ``self``.
 
         This method returns the poset obtained from the original poset
-        `P` by relabelling the 'i'-th element of ``self`` to the
+        `P` by relabelling the `i`-th element of ``self`` to the
         `i`-th element of the original poset, while keeping the linear
         extension of the original poset.
 
@@ -183,10 +185,10 @@ class LinearExtensionOfPoset(ClonableArray):
 
         EXAMPLES::
 
-            sage: P = Poset(([1,2,3,4], [[1,2],[1,3],[3,4]]), facade = False)
+            sage: P = Poset(([1,2,3,4], [[1,2],[1,3],[3,4]]), linear_extension=True, facade=False)
             sage: p = P.linear_extension([1,3,4,2])
             sage: Q = p.to_poset(); Q
-            Finite poset containing 4 elements
+            Finite poset containing 4 elements with distinguished linear extension
             sage: P == Q
             False
 
@@ -226,7 +228,7 @@ class LinearExtensionOfPoset(ClonableArray):
         The operator `\tau_i` on a linear extension `\pi` of a poset
         `P` interchanges positions `i` and `i+1` if the result is
         again a linear extension of `P`, and otherwise acts
-        trivially. For more details, see [Stanley2009]_.
+        trivially. For more details, see [Stan2009]_.
 
         EXAMPLES::
 
@@ -237,9 +239,8 @@ class LinearExtensionOfPoset(ClonableArray):
             sage: l.tau(1)
             [2, 1, 3, 4]
             sage: for p in L:
-            ...       for i in range(1,4):
-            ...           print i, p, p.tau(i)
-            ...
+            ....:     for i in range(1,4):
+            ....:         print("{} {} {}".format(i, p, p.tau(i)))
             1 [1, 2, 3, 4] [2, 1, 3, 4]
             2 [1, 2, 3, 4] [1, 2, 3, 4]
             3 [1, 2, 3, 4] [1, 2, 4, 3]
@@ -285,9 +286,9 @@ class LinearExtensionOfPoset(ClonableArray):
         `\pi` is defined as `\pi \tau_i \tau_{i+1} \cdots \tau_{n-1}`, where `n` is the
         size of the linear extension (or size of the underlying poset).
 
-        For more details see [Stanley2009]_.
+        For more details see [Stan2009]_.
 
-        .. seealso:: :meth:`tau`, :meth:`evacuation`
+        .. SEEALSO:: :meth:`tau`, :meth:`evacuation`
 
         EXAMPLES::
 
@@ -310,9 +311,9 @@ class LinearExtensionOfPoset(ClonableArray):
 
         Evacuation on a linear extension `\pi` of length `n` is defined as
         `\pi (\tau_1 \cdots \tau_{n-1}) (\tau_1 \cdots \tau_{n-2}) \cdots (\tau_1)`.
-        For more details see [Stanley2009]_.
+        For more details see [Stan2009]_.
 
-        .. seealso:: :meth:`tau`, :meth:`promotion`
+        .. SEEALSO:: :meth:`tau`, :meth:`promotion`
 
         EXAMPLES::
 
@@ -335,9 +336,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     INPUT:
 
     - ``poset`` -- a poset `P` of size `n`
-    - ``facade`` -- a boolean (default: False)
+    - ``facade`` -- a boolean (default: ``False``)
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`sage.combinat.posets.posets.FinitePoset.linear_extensions`
         - :class:`sage.graphs.linearextensions.LinearExtensions`
@@ -348,7 +349,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         sage: rels = [[1,3],[1,4],[2,3]]
         sage: P = Poset((elms, rels), linear_extension=True)
         sage: L = P.linear_extensions(); L
-        The set of all linear extensions of Finite poset containing 4 elements
+        The set of all linear extensions of Finite poset containing 4 elements with distinguished linear extension
         sage: L.cardinality()
         5
         sage: L.list()
@@ -356,7 +357,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         sage: L.an_element()
         [1, 2, 3, 4]
         sage: L.poset()
-        Finite poset containing 4 elements
+        Finite poset containing 4 elements with distinguished linear extension
     """
 
     @staticmethod
@@ -432,6 +433,35 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         return self._poset
 
+    def cardinality(self):
+        """
+        Return the number of linear extensions.
+
+        EXAMPLES::
+
+            sage: N = Poset({0: [2, 3], 1: [3]})
+            sage: N.linear_extensions().cardinality()
+            5
+
+        TESTS::
+
+            sage: Poset().linear_extensions().cardinality()
+            1
+            sage: Posets.ChainPoset(1).linear_extensions().cardinality()
+            1
+        """
+        from sage.rings.integer import Integer
+
+        H = self._poset.order_ideals_lattice(as_ideals=False)._hasse_diagram
+        L = H.level_sets()
+        c = [0] * H.order()
+        for l in L[0]:
+            c[l] = 1
+        for lev in L[1:]:
+            for l in lev:
+                c[l] = sum(c[i] for i in H.lower_covers_iterator(l))
+        return Integer(sum(c[i] for i in H.sinks()))
+    
     def __iter__(self):
         r"""
         Iterates through the linear extensions of the underlying poset.
@@ -447,7 +477,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         vertex_to_element = self._poset._vertex_to_element
         for lin_ext in self._linear_extensions_of_hasse_diagram:
-            yield self._element_constructor_(map(vertex_to_element,lin_ext))
+            yield self._element_constructor_([vertex_to_element(_) for _ in lin_ext])
 
     def __contains__(self, obj):
         """
@@ -533,7 +563,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         The edges of the graph are by default colored using blue for
         edge 1, red for edge 2, green for edge 3, and yellow for edge 4::
 
-            sage: view(G) #optional - dot2tex graphviz
+            sage: view(G) # optional - dot2tex graphviz, not tested (opens external window)
 
         Alternatively, one may get the graph of the action of the ``tau`` operator::
 
@@ -547,9 +577,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             ([1, 4, 2, 3], [1, 2, 4, 3], 2), ([1, 4, 2, 3], [1, 4, 2, 3], 1), ([1, 4, 2, 3], [1, 4, 2, 3], 3),
             ([2, 1, 3, 4], [1, 2, 3, 4], 1), ([2, 1, 3, 4], [2, 1, 3, 4], 2), ([2, 1, 3, 4], [2, 1, 4, 3], 3),
             ([2, 1, 4, 3], [1, 2, 4, 3], 1), ([2, 1, 4, 3], [2, 1, 3, 4], 3), ([2, 1, 4, 3], [2, 1, 4, 3], 2)]
-            sage: view(G) #optional - dot2tex graphviz
+            sage: view(G) # optional - dot2tex graphviz, not tested (opens external window)
 
-        .. seealso:: :meth:`markov_chain_transition_matrix`, :meth:`promotion`, :meth:`tau`
+        .. SEEALSO:: :meth:`markov_chain_transition_matrix`, :meth:`promotion`, :meth:`tau`
 
         TESTS::
 
@@ -560,9 +590,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         d = dict([x,dict([y,[]] for y in self)] for x in self)
         if action == 'promotion':
-            R = range(self.poset().cardinality())
+            R = list(range(self.poset().cardinality()))
         else:
-            R = range(self.poset().cardinality()-1)
+            R = list(range(self.poset().cardinality() - 1))
         if labeling == 'source':
             for x in self:
                 for i in R:
@@ -573,7 +603,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
                 for i in R:
                     child = getattr(x, action)(i+1)
                     d[x][child]+=[i+1]
-        G = DiGraph(d)
+        G = DiGraph(d, format="dict_of_dicts")
         if have_dot2tex():
             G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = {1:"blue", 2:"red", 3:"green", 4:"yellow"})
             #G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = {1:"green", 2:"blue", 3:"brown", 4:"red"})
@@ -625,7 +655,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             [           x0             0             0      -x1 - x2            x3]
             [            0            x0             0            x2      -x1 - x3]
 
-        .. seealso:: :meth:`markov_chain_digraph`, :meth:`promotion`, :meth:`tau`
+        .. SEEALSO:: :meth:`markov_chain_digraph`, :meth:`promotion`, :meth:`tau`
 
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -671,9 +701,11 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: L._element_constructor_([4,3,2,1],check=False)
             [4, 3, 2, 1]
         """
+        if isinstance(lst, LinearExtensionOfPoset):
+            lst = list(lst)
         if not isinstance(lst, (list, tuple)):
-            raise TypeError("Input should be a list or tuple.")
-        lst = map(self._poset, lst)
+            raise TypeError("input should be a list or tuple")
+        lst = [self._poset(_) for _ in lst]
         if self._is_facade:
             return lst
         else:

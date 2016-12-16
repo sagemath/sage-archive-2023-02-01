@@ -1,4 +1,3 @@
-
 #*****************************************************************************
 #      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #      Copyright (C) 2009 Nicolas Borie <nicolas.borie@math.u-psud.fr>
@@ -7,14 +6,8 @@
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
 include 'data_structures_pxd.pxi' # includes bitsets
 
-
-from sage.rings.integer cimport Integer
-from double_coset cimport double_coset
 
 # name of the three functions to customize
 cdef int refine_list(PartitionStack *, void *, int *, int)

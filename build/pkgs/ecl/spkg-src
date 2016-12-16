@@ -1,39 +1,57 @@
 #!/usr/bin/env bash
 #
-# Script to prepare a ECL spkg for Sage.  This script is only for the
+# Script to prepare a ECL tarball for Sage.  This script is only for the
 # package maintainer, not for building ECL during a Sage install.
 # WARNING: This script will delete/overwrite files in this directory
 # and its subdirectories!
 #
-# HOW TO MAKE THE SPKG:
-# 1) cp [pathto]/ecl-$ECLVERSION.tar.gz ../
-# 2) ./spkg-src
-# 3) cd ..; sage -pkg ecl-[version]
+# HOW TO MAKE THE TARBALL:
+# 1) sage --sh build/pkgs/ecl/spkg-src
+#
+# needs autotools and sage in your PATH.
 #
 # AUTHOR: Jeroen Demeyer (November 2011)
+#         Dima Pasechnik (July 2015)
 
-# Sanity check: must be run from current directory
-if ! [ -f spkg-src ]; then
-    echo >&2 "This script must be run from its own source directory!"
+if [ -z "$SAGE_ROOT" ] ; then
+    echo >&2 "Error - SAGE_ROOT undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
 
 # Exit on failure
 set -e
 
-# Clean an existing src/ and ecl/ directory
-rm -rf src ecl*
+cd build/pkgs/ecl
 
-# Untar ECL tarball
-ECLVERSION=12.12.1
-tar xf ../ecl-"$ECLVERSION".tgz
-mv ecl-"$ECLVERSION" src
+ECLVERSION=`cat package-version.txt |sed 's/[.]p.*//'`
+ECLTARBALL="$SAGE_DISTFILES/ecl-$ECLVERSION.tar.bz2"
+
+# Remove old cruft
+rm -rf ecl-*
+
+# Download and extract upstream tarball
+sage-download-file https://common-lisp.net/project/ecl/static/files/release/ecl-$ECLVERSION.tgz |tar xz
+cd ecl-$ECLVERSION
+
+# Some patches are applied here, if they need to be applied before
+# running autoconf.
+echo "applying patches in ecl-$ECLVERSION/src"
+# For some of the patches, Cygwin also has upstream fixes that are
+# closely related, keep track.  See Trac #11119, for example.
+for patch in ../patches/src/*.patch; do
+    patch -p1 <"$patch"
+done
 
 # Remove unneeded files to save space
-cd src
-rm -rf msvc contrib/encodings contrib/unicode
-cd src
-rm -rf gc-unstable libffi
+rm -r msvc src/gmp/ src/libffi
 
-# Remove gmp directory
-rm -rf gmp
+# Run autotools
+cd src
+libtoolize
+autoreconf -ivf
+
+cd ../..
+tar c ecl-$ECLVERSION | bzip2 -c >"$ECLTARBALL"
+sage-fix-pkg-checksums "$ECLTARBALL"
+rm -rf ecl-*

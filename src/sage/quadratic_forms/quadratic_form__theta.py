@@ -10,6 +10,7 @@ AUTHORS:
 - Gonzalo Tornaria (2010-03-23): theta series of degree 2
 
 """
+from __future__ import print_function
 
 from copy import deepcopy
 
@@ -63,7 +64,7 @@ def theta_series(self, Max=10, var_str='q', safe_flag=True):
         M = -1
 
     if (Max not in ['mod_form']) and (not M >= 0):
-        print Max
+        print(Max)
         raise TypeError("Oops!  Max is not an integer >= 0 or an allowed string.")
 
     if Max == 'mod_form':
@@ -95,10 +96,12 @@ def theta_by_pari(self, Max, var_str='q', safe_flag=True):
 
 
     INPUT:
+
         Max -- an integer >=0
         var_str -- a string
 
     OUTPUT:
+
         a power series or a vector
 
     EXAMPLES::
@@ -151,6 +154,7 @@ def theta_by_cholesky(self, q_prec):
     {\text{q\_prec} + 1})`.)
 
     REFERENCE:
+
         From Cohen's "A Course in Computational Algebraic Number Theory" book,
         p 102.
 
@@ -384,7 +388,7 @@ def theta_series_degree_2(Q, prec):
     t = cputime()
     max = int(floor((X+1)/4))
     v_list = (Q.vectors_by_length(max))        # assume a>0
-    v_list = map(lambda vs: map(V, vs), v_list)  # coerce vectors into V
+    v_list = [[V(_) for _ in vs] for vs in v_list]  # coerce vectors into V
     verbose("Computed vectors_by_length" , t)
 
     # Deal with the singular part

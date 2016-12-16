@@ -1,7 +1,7 @@
 r"""
-Canonical forms and automorphism group computation for linear codes over finite fields.
+Canonical forms and automorphism group computation for linear codes over finite fields
 
-We implemented the algorithm described in [Feu2009] which computes the unique
+We implemented the algorithm described in [Feu2009]_ which computes the unique
 semilinearly isometric code (canonical form) in the equivalence class of a given
 linear code ``C``. Furthermore, this algorithm will return the automorphism
 group of ``C``, too.
@@ -53,16 +53,14 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Feu2009] T. Feulner. The Automorphism Groups of Linear Codes and
-  Canonical Representatives of Their Semilinear Isometry Classes.
-  Advances in Mathematics of Communications 3 (4), pp. 363-383, Nov 2009
+- [Feu2009]
 
 EXAMPLES:
 
 Get the canonical form of the Simplex code::
 
     sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-    sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
+    sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
     sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
     sage: cf = P.get_canonical_form(); cf
     [1 0 0 0 0 1 1 1 1 1 1 1 1]
@@ -110,31 +108,27 @@ cdef class InnerGroup:
     `G = (GL(k,q) \times \GF{q}^n ) \rtimes Aut(\GF{q})`.
 
     Those stabilizers can be stored as triples:
-        - ``rank`` - an integer in `\{0, \ldots, k\}`
-        - ``row_partition`` - a partition of `\{0, \ldots, k-1\}` with
-          discrete cells for all integers `i \geq rank`.
-        - ``frob_pow`` an integer in `\{0, \ldots, r-1\}` if `q = p^r`
+
+    - ``rank`` - an integer in `\{0, \ldots, k\}`
+    - ``row_partition`` - a partition of `\{0, \ldots, k-1\}` with
+        discrete cells for all integers `i \geq rank`.
+    - ``frob_pow`` an integer in `\{0, \ldots, r-1\}` if `q = p^r`
 
     The group `G_{\Pi^{(I)}(x)}` contains all elements `(A, \varphi, \alpha) \in G`,
     where
-        - `A` is a `2 \times 2` blockmatrix, whose upper left matrix
-          is a `k \times k` diagonal matrix whose entries `A_{i,i}` are constant
-          on the cells of the partition ``row_partition``.
-          The lower left matrix is zero.
-          And the right part is arbitrary.
-        - The support of the columns given by `i \in I` intersect exactly one
-          cell of the partition. The entry `\varphi_i` is equal to the entries
-          of the corresponding diagonal entry of `A`.
-        - `alpha` is a power of `\tau^{frob_pow}`, where `tau` denotes the
-          Frobenius automorphism of the finite field `\GF{q}`.
+
+    - `A` is a `2 \times 2` blockmatrix, whose upper left matrix
+      is a `k \times k` diagonal matrix whose entries `A_{i,i}` are constant
+      on the cells of the partition ``row_partition``.
+      The lower left matrix is zero.
+      And the right part is arbitrary.
+    - The support of the columns given by `i \in I` intersect exactly one
+      cell of the partition. The entry `\varphi_i` is equal to the entries
+      of the corresponding diagonal entry of `A`.
+    - `\alpha` is a power of `\tau^{frob_pow}`, where `\tau` denotes the
+       Frobenius automorphism of the finite field `\GF{q}`.
 
     See [Feu2009]_ for more details.
-
-    REFERENCES:
-
-    .. [Feu2009] T. Feulner. The Automorphism Groups of Linear Codes and
-      Canonical Representatives of Their Semilinear Isometry Classes.
-      Advances in Mathematics of Communications 3 (4), pp. 363-383, Nov 2009
     """
     def __cinit__(self, k=0, algorithm="semilinear", **kwds):
         r"""
@@ -144,9 +138,11 @@ cdef class InnerGroup:
 
         - ``k`` -- an integer, gives the dimension of the matrix component
         - ``algorithm`` -- either
+
             * "semilinear" --  full group
             * "linear" -- no field automorphisms, i.e. `G = (GL(k,q) \times \GF{q}^n )`
             * "permutational -- no field automorphisms and no column multiplications
+
               i.e. `G = GL(k,q)`
         - ``transporter`` (optional) -- set to an element of the group
           :class:`sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup`
@@ -301,7 +297,7 @@ cdef class InnerGroup:
                     factor = d.get(self.get_rep(i))
                     if factor and not factor.is_zero():
                         m.rescale_row(i, factor)
-                for i in d.iterkeys():
+                for i in d:
                     first_nz_rep = self.join_rows(first_nz_rep, i)
                 # rescale the already fixed part by column multiplications
                 for col in fixed_minimized_cols:
@@ -459,7 +455,7 @@ cdef class InnerGroup:
         cols = iter(mat.columns())
         for i in range(mat.ncols()):
             # there should be no zero columns by assumption!
-            m = OP_find(self.row_partition, cols.next().nonzero_positions()[0])
+            m = OP_find(self.row_partition, next(cols).nonzero_positions()[0])
             r[m].append(i)
         return [ x for x in r if len(x) > 0 ]
 
@@ -470,7 +466,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
     EXAMPLES::
 
         sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-        sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
+        sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
         sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
         sage: cf = P.get_canonical_form(); cf
         [1 0 0 0 0 1 1 1 1 1 1 1 1]
@@ -490,55 +486,66 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
         True
     """
-    def __cinit__(self, n, gen_mat, **kwds):
+    def __cinit__(self):
         r"""
         Initialization. See :meth:`__init__`.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-            sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
-            sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
+            sage: C = PartitionRefinementLinearCode.__new__(PartitionRefinementLinearCode, 0)
         """
-        self._k = gen_mat.nrows()
-        self._q = len(gen_mat.base_ring())
+        self._hyp2points = NULL
+        self._points2hyp = NULL
+        self._hyp_part = NULL
+        self._hyp_refine_vals_scratch = NULL
         self._nr_of_supp_refine_calls = 0
         self._nr_of_point_refine_calls = 0
-        self._matrix = copy(gen_mat)
-        self._root_matrix = gen_mat
         self._stored_states = dict()
-        self._supp_refine_vals = _BestValStore(n)
-        self._point_refine_vals = _BestValStore(n)
-        # self._hyp_refine_vals will initialized after
-        # we computed the set of codewords
 
-    def __init__(self, n, gen_mat, P=None, algorithm_type="semilinear"):
+    def __init__(self, n, generator_matrix, P=None, algorithm_type="semilinear"):
         r"""
         Initialization, we immediately start the algorithm
         (see :mod:``sage.coding.codecan.codecan``)
         to compute the canonical form and automorphism group of the linear code
-        generated by ``gen_mat``.
+        generated by ``generator_matrix``.
 
         INPUT:
 
         - ``n`` -- an integer
-        - ``gen_mat`` -- a `k \times n` matrix over `\GF{q}` of full row rank,
+        - ``generator_matrix`` -- a `k \times n` matrix over `\GF{q}` of full row rank,
           i.e. `k<n` and without zero columns.
         - partition (optional) -- a partition (as list of lists) of the set
           `\{0, \ldots, n-1\}` which restricts the action of the permutational
           part of the group to the stabilizer of this partition
         - algorithm_type (optional) -- use one of the following options
-            * "semilinear" -  full group
-            * "linear" - no field automorphisms, i.e. `G = (GL(k,q) \times \GF{q}^n )`
-            * "permutational - no field automorphisms and no column multiplications
-              i.e. `G = GL(k,q)`
+
+          * "semilinear" -  full group
+          * "linear" - no field automorphisms, i.e. `G = (GL(k,q) \times \GF{q}^n )`
+          * "permutational - no field automorphisms and no column multiplications
+            i.e. `G = GL(k,q)`
 
         EXAMPLES::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-            sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
+            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
+            sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
+
+        ::
+
+            sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
+            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
             sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
         """
+        self._k = generator_matrix.nrows()
+        self._q = len(generator_matrix.base_ring())
+        self._matrix = copy(generator_matrix)
+        self._root_matrix = generator_matrix
+        self._supp_refine_vals = _BestValStore(n)
+        self._point_refine_vals = _BestValStore(n)
+        # self._hyp_refine_vals will initialized after
+        # we computed the set of codewords
+
         self._run(P, algorithm_type)
 
     def __dealloc__(self):
@@ -546,23 +553,25 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         Deallocates ``self``.
         """
         cdef int i
-        for i in range(self._n):
-            bitset_free(self._points2hyp[i])
+        if self._points2hyp is not NULL:
+            for i in range(self._n):
+                bitset_free(self._points2hyp[i])
+            sig_free(self._points2hyp)
 
-        for i in range(self._hyp_part.degree):
-            bitset_free(self._hyp2points[i])
+        if self._points2hyp is not NULL:
+            for i in range(self._hyp_part.degree):
+                bitset_free(self._hyp2points[i])
+            sig_free(self._hyp2points)
 
-        sage_free(self._hyp2points)
-        sage_free(self._points2hyp)
         PS_dealloc(self._hyp_part)
-        sage_free(self._hyp_refine_vals_scratch)
+        sig_free(self._hyp_refine_vals_scratch)
 
     def __repr__(self):
         """
         EXAMPLES::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-            sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
+            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
             sage: PartitionRefinementLinearCode(mat.ncols(), mat)
             Canonical form algorithm for linear code generated by
             [1 0 1 1 0 1 0 1 1 1 0 1 1]
@@ -580,7 +589,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         EXAMPLES::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-            sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
+            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
             sage: P = PartitionRefinementLinearCode(mat.ncols(), mat) #indirect doctest
             sage: P.get_canonical_form()
             [1 0 0 0 0 1 1 1 1 1 1 1 1]
@@ -666,7 +675,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         EXAMPLES::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-            sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
+            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
             sage: P1 = PartitionRefinementLinearCode(mat.ncols(), mat)
             sage: CF1 = P1.get_canonical_form()
             sage: s = SemimonomialTransformationGroup(GF(3), mat.ncols()).an_element()
@@ -684,7 +693,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         EXAMPLES::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-            sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
+            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
             sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
             sage: CF = P.get_canonical_form()
             sage: t = P.get_transporter()
@@ -700,7 +709,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         EXAMPLES::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-            sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
+            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
             sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
             sage: A = P.get_autom_gens()
             sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
@@ -716,7 +725,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         EXAMPLES::
 
             sage: from sage.coding.codecan.codecan import PartitionRefinementLinearCode
-            sage: mat = codes.HammingCode(3, GF(3)).dual_code().gen_mat()
+            sage: mat = codes.HammingCode(GF(3), 3).dual_code().generator_matrix()
             sage: P = PartitionRefinementLinearCode(mat.ncols(), mat)
             sage: P.get_autom_order_inner_stabilizer()
             2
@@ -756,7 +765,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         while True:  # compute an invariant set of (normalized) codewords which span the subspace
             try:
-                cw = iter.next()
+                cw = next(iter)
             except StopIteration:
                 break
             w = cw.hamming_weight()
@@ -784,30 +793,19 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
             if s >= 0:
                 self._hyp_part.levels[s] = 0
 
-        self._hyp2points = < bitset_t *> sage_malloc(self._hyp_part.degree * sizeof(bitset_t))
-        if self._hyp2points is NULL:
-            raise MemoryError('allocating PartitionRefinementLinearCode')
-        self._points2hyp = < bitset_t *> sage_malloc(self._n * sizeof(bitset_t))
-        if self._hyp2points is NULL:
-            sage_free(self._hyp2points)
-            raise MemoryError('allocating PartitionRefinementLinearCode')
-
+        self._points2hyp = <bitset_t*>check_calloc(self._n, sizeof(bitset_t))
         for i in range(self._n):
             bitset_init(self._points2hyp[i], self._hyp_part.degree)
-            bitset_zero(self._points2hyp[i])
 
+        self._hyp2points = <bitset_t*>check_calloc(self._hyp_part.degree, sizeof(bitset_t))
         for i in range(self._hyp_part.degree):
             bitset_init(self._hyp2points[i], self._n)
-            bitset_zero(self._hyp2points[i])
             for j in flat_W[i].support():
                 bitset_add(self._hyp2points[i], j)
                 bitset_add(self._points2hyp[j], i)
 
-        self._hyp_refine_vals_scratch = <long *> sage_malloc(
-                            self._hyp_part.degree * sizeof(long))
-        if self._hyp_refine_vals_scratch is NULL:
-            self.__dealloc__()
-            raise MemoryError('allocating PartitionRefinementLinearCode')
+        self._hyp_refine_vals_scratch = <long*>check_allocarray(
+                self._hyp_part.degree, sizeof(long))
 
         self._hyp_refine_vals = _BestValStore(self._hyp_part.degree)
 
@@ -839,16 +837,15 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         # finally compare the new column with the best candidate
         if self._is_candidate_initialized:
-            cmp_res = cmp(self._matrix.column(pos), self._best_candidate.column(
-                self._inner_min_order_best[ len(self._fixed_minimized) ]))
-            if cmp_res > 0:
+            A = self._matrix.column(pos)
+            B = self._best_candidate.column(
+                self._inner_min_order_best[len(self._fixed_minimized)])
+            if B < A:
                 return False
-            if cmp_res < 0:
+            if A < B:
                 # the next leaf will become the next candidate
                 self._is_candidate_initialized = False
         return True
-
-
 
     cdef bint _refine(self, bint *part_changed,
                       bint inner_group_changed, bint first_step):
@@ -925,8 +922,8 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         upper = iter(self._matrix[ self._inner_group.rank :  ].columns())
 
         for i in range(self._n):
-            l = lower.next()
-            u = upper.next()
+            l = next(lower)
+            u = next(upper)
 
             if u.is_zero() and not i in self._fixed_minimized:
                 # minimize by self._inner_group as in _inner_min:
@@ -973,9 +970,9 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         self._part.depth += 1
         PS_clear(self._part)
 
-        cdef bitset_t * nonsingletons, scratch
+        cdef bitset_t *nonsingletons = NULL
+        cdef bitset_t scratch
         bitset_init(scratch, self._hyp_part.degree)
-        nonsingletons = < bitset_t *> sage_malloc(0)
         cdef int nr_cells = PS_all_new_cells(self._hyp_part, & nonsingletons)
 
         for i in range(self._n):
@@ -987,7 +984,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         for j in range(nr_cells):
             bitset_free(nonsingletons[j])
-        sage_free(nonsingletons)
+        sig_free(nonsingletons)
         bitset_free(scratch)
 
         # provide some space to store the result (if not already exists)
@@ -1017,9 +1014,9 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         self._hyp_part.depth += 1
         PS_clear(self._hyp_part)
-        cdef bitset_t * nonsingletons, scratch
+        cdef bitset_t *nonsingletons = NULL
+        cdef bitset_t scratch
         bitset_init(scratch, self._part.degree)
-        nonsingletons = < bitset_t *> sage_malloc(0)
         cdef int nr_cells = PS_all_new_cells(self._part, & nonsingletons)
 
         for i in range(self._hyp_part.degree):
@@ -1031,7 +1028,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         for j in range(nr_cells):
             bitset_free(nonsingletons[j])
-        sage_free(nonsingletons)
+        sig_free(nonsingletons)
         bitset_free(scratch)
 
         # provide some space to store the result (if not already exists)

@@ -6,7 +6,6 @@ AUTHORS::
 - David Roe (2010-1-14) -- factored out of sage.structure.element
 
 """
-include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
@@ -18,7 +17,7 @@ def is_FiniteFieldElement(x):
 
     EXAMPLE::
 
-        sage: from sage.rings.finite_rings.element_ext_pari import is_FiniteFieldElement
+        sage: from sage.rings.finite_rings.element_base import is_FiniteFieldElement
         sage: is_FiniteFieldElement(1)
         False
         sage: is_FiniteFieldElement(IntegerRing())
@@ -61,7 +60,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
         n = n % (q-1)
         if n == 0:
             if all: return []
-            else: raise ValueError, "no nth root"
+            else: raise ValueError("no nth root")
         gcd, alpha, beta = n.xgcd(q-1) # gcd = alpha*n + beta*(q-1), so 1/n = alpha/gcd (mod q-1)
         if gcd == 1:
             return [self**alpha] if all else self**alpha
@@ -69,7 +68,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
         q1overn = (q-1)//n
         if self**q1overn != 1:
             if all: return []
-            else: raise ValueError, "no nth root"
+            else: raise ValueError("no nth root")
         self = self**alpha
         if cunningham:
             from sage.rings.factorint import factor_cunningham
@@ -98,7 +97,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             else:
                 return self
         else:
-            raise ValueError, "unknown algorithm"
+            raise ValueError("unknown algorithm")
 
 cdef class FinitePolyExtElement(FiniteRingElement):
     """
@@ -131,29 +130,50 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         ## applies here.
         return codomain(self.polynomial()(im_gens[0]))
 
-    def minpoly(self,var='x'):
+    def minpoly(self,var='x',algorithm='pari'):
         """
         Returns the minimal polynomial of this element
         (over the corresponding prime subfield).
 
+        INPUT:
+
+        - ``var`` - string (default: 'x')
+
+        - ``algorithm`` - string (default: 'pari')
+
+          - 'pari' -- use pari's minpoly
+
+          - 'matrix' -- return the minpoly computed from the matrix of
+            left multiplication by self
+
         EXAMPLES::
 
+            sage: from sage.rings.finite_rings.element_base import FinitePolyExtElement
             sage: k.<a> = FiniteField(19^2)
             sage: parent(a)
             Finite Field in a of size 19^2
-            sage: b=a**20;p=b.charpoly("x");p
-            x^2 + 15*x + 4
-            sage: factor(p)
-            (x + 17)^2
-            sage: b.minpoly('x')
+            sage: b=a**20
+            sage: p=FinitePolyExtElement.minpoly(b,"x", algorithm="pari")
+            sage: q=FinitePolyExtElement.minpoly(b,"x", algorithm="matrix")
+            sage: q == p
+            True
+            sage: p
             x + 17
         """
-        p=self.charpoly(var);
-        for q in p.factor():
-            if q[0](self)==0:
-                return q[0]
-        # This shouldn't be reached, but you never know!
-        raise ArithmeticError("Could not find the minimal polynomial")
+        if self.polynomial().degree() == 0:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(self.parent().prime_subfield(), var)
+            return R.gen() - self.polynomial()[0]
+
+        if algorithm == 'pari':
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(self.parent().prime_subfield(), var)
+            return R(self._pari_().minpoly('x').lift())
+        elif algorithm == 'matrix':
+            return self._matrix_().minpoly(var)
+        else:
+            raise ValueError("unknown algorithm '%s'" % algorithm)
+
 
         ## We have two names for the same method
         ## for compatibility with sage.matrix
@@ -181,7 +201,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         Return a vector in self.parent().vector_space() matching
         self. The most significant bit is to the right.
 
-        INPUT::
+        INPUT:
 
         - ``reverse`` -- reverse the order of the bits
           from little endian to big endian.
@@ -210,43 +230,37 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1)
         """
         #vector(foo) might pass in ZZ
-        if PY_TYPE_CHECK(reverse, Parent):
-            raise TypeError, "Base field is fixed to prime subfield."
+        if isinstance(reverse, Parent):
+            raise TypeError("Base field is fixed to prime subfield.")
 
         k = self.parent()
-
-        v = self.polynomial().list()
-
-        ret = [v[i] for i in range(len(v))]
-
-        for i in range(k.degree() - len(ret)):
-            ret.append(0)
+        p = self.polynomial()
+        ret = p.list() + [0] * (k.degree() - p.degree() - 1)
 
         if reverse:
-            ret = list(reversed(ret))
+            ret.reverse()
         return k.vector_space()(ret)
 
     def _matrix_(self, reverse=False):
         """
-        Return the matrix of right multiplication by the element on
+        Return the matrix of left multiplication by the element on
         the power basis `1, x, x^2, \ldots, x^{d-1}` for the field
-        extension.  Thus the \emph{rows} of this matrix give the images
+        extension.  Thus the \emph{columns} of this matrix give the images
         of each of the `x^i`.
 
         INPUT:
 
-        - ``reverse`` - if True act on vectors in reversed order
+        - ``reverse`` -- if True, act on vectors in reversed order
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(2^4)
-            sage: a._vector_(reverse=True), a._matrix_(reverse=True) * a._vector_(reverse=True)
-            ((0, 0, 1, 0), (0, 1, 0, 0))
-            sage: vector(a), matrix(a) * vector(a)
-            ((0, 1, 0, 0), (0, 0, 1, 0))
+            sage: b = k.random_element()
+            sage: vector(a*b) == matrix(a) * vector(b)
+            True
+            sage: (a*b)._vector_(reverse=True) == a._matrix_(reverse=True) * b._vector_(reverse=True)
+            True
         """
-        import sage.matrix.matrix_space
-
         K = self.parent()
         a = K.gen()
         x = K(1)
@@ -254,22 +268,18 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         columns = []
 
-        if not reverse:
-            l = xrange(d)
-        else:
-            l = reversed(range(d))
-
-        for i in l:
-            columns.append( (self * x)._vector_() )
+        for i in xrange(d):
+            columns.append( (self * x)._vector_(reverse=reverse) )
             x *= a
 
-        k = K.base_ring()
-        M = sage.matrix.matrix_space.MatrixSpace(k, d)
-
         if reverse:
-            return M(columns)
-        else:
-            return M(columns).transpose()
+            columns.reverse()
+
+        from sage.matrix.matrix_space import MatrixSpace
+        M = MatrixSpace(K.base_ring(), d)
+
+        return M(columns).transpose()
+
     def _latex_(self):
         r"""
         Return the latex representation of self, which is just the
@@ -289,13 +299,48 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         else:
             return str(self)
 
+    def _pari_(self, var=None):
+        r"""
+        Return PARI representation of this finite field element.
+
+        INPUT:
+
+        - ``var`` -- (default: ``None``) optional variable string
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(5^3)
+            sage: a._pari_()
+            a
+            sage: a._pari_('b')
+            b
+            sage: t = 3*a^2 + 2*a + 4
+            sage: t_string = t._pari_init_('y')
+            sage: t_string
+            'Mod(Mod(3, 5)*y^2 + Mod(2, 5)*y + Mod(4, 5), Mod(1, 5)*y^3 + Mod(3, 5)*y + Mod(3, 5))'
+            sage: type(t_string)
+            <type 'str'>
+            sage: t_element = t._pari_('b')
+            sage: t_element
+            3*b^2 + 2*b + 4
+            sage: type(t_element)
+            <type 'sage.libs.cypari2.gen.gen'>
+        """
+        if var is None:
+            var = self.parent().variable_name()
+        from sage.libs.pari.all import pari
+        ffgen = self._parent.modulus()._pari_with_name(var).ffgen()
+        polypari = self.polynomial()._pari_with_name()
+        # Add ffgen - ffgen to ensure that we really get an FFELT
+        return polypari.subst("x", ffgen) + ffgen - ffgen
+
     def _pari_init_(self, var=None):
         r"""
         Return a string that defines this element when evaluated in PARI.
 
         INPUT:
 
-        - ``var`` - default: ``None`` - a string for a new variable name to use.
+        - ``var`` -- default: ``None`` - a string for a new variable name to use.
 
         EXAMPLES::
 
@@ -308,7 +353,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         TESTS:
 
-        The following tests against a bug fixed in trac ticket #11530.  ::
+        The following tests against a bug fixed in :trac:`11530`::
 
             sage: F.<d> = GF(3^4)
             sage: F.modulus()
@@ -318,7 +363,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: (d^2+2*d+1)._pari_init_("p")
             'Mod(Mod(1, 3)*p^2 + Mod(2, 3)*p + Mod(1, 3), Mod(1, 3)*p^4 + Mod(2, 3)*p^3 + Mod(2, 3))'
             sage: d._pari_()
-            Mod(Mod(1, 3)*d, Mod(1, 3)*d^4 + Mod(2, 3)*d^3 + Mod(2, 3))
+            d
 
             sage: K.<M> = GF(2^8)
             sage: K.modulus()
@@ -334,44 +379,49 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         f = self.polynomial()._pari_with_name(var)
         return 'Mod({0}, {1})'.format(f, g)
 
-    def charpoly(self, var='x', algorithm='matrix'):
+    def charpoly(self, var='x', algorithm='pari'):
         """
         Return the characteristic polynomial of self as a polynomial with given variable.
 
         INPUT:
 
-        - ``var`` - string (default: 'x')
+        - ``var`` -- string (default: 'x')
 
-        - ``algorithm`` - string (default: 'matrix')
+        - ``algorithm`` -- string (default: 'pari')
 
-          - 'matrix' - return the charpoly computed from the matrix of
+          - 'pari' -- use pari's charpoly
+
+          - 'matrix' -- return the charpoly computed from the matrix of
             left multiplication by self
-
-          - 'pari' -- use pari's charpoly routine on polymods, which
-            is not very good except in small cases
 
         The result is not cached.
 
         EXAMPLES::
 
-            sage: k.<a> = GF(19^2)
+            sage: from sage.rings.finite_rings.element_base import FinitePolyExtElement
+            sage: k.<a> = FiniteField(19^2)
             sage: parent(a)
             Finite Field in a of size 19^2
-            sage: a.charpoly('X')
-            X^2 + 18*X + 2
-            sage: a^2 + 18*a + 2
-            0
-            sage: a.charpoly('X', algorithm='pari')
-            X^2 + 18*X + 2
+            sage: b=a**20
+            sage: p=FinitePolyExtElement.charpoly(b,"x", algorithm="pari")
+            sage: q=FinitePolyExtElement.charpoly(b,"x", algorithm="matrix")
+            sage: q == p
+            True
+            sage: p
+            x^2 + 15*x + 4
+            sage: factor(p)
+            (x + 17)^2
+            sage: b.minpoly('x')
+            x + 17
         """
-        if algorithm == 'matrix':
-            return self._matrix_().charpoly(var)
-        elif algorithm == 'pari':
+        if algorithm == 'pari':
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             R = PolynomialRing(self.parent().prime_subfield(), var)
             return R(self._pari_().charpoly('x').lift())
+        elif algorithm == 'matrix':
+            return self._matrix_().charpoly(var)
         else:
-            raise ValueError, "unknown algorithm '%s'"%algorithm
+            raise ValueError("unknown algorithm '%s'" % algorithm)
 
     def norm(self):
         """
@@ -448,13 +498,11 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             ...
             ArithmeticError: Multiplicative order of 0 not defined.
         """
-        import sage.rings.arith
-
         if self.is_zero():
             raise ArithmeticError("Multiplicative order of 0 not defined.")
         n = self._parent.order() - 1
         F = self._parent.factored_unit_order()[0]
-        order = 1
+        order = Integer(1)
         for p, e in F:
             # Determine the power of p that divides the order.
             a = self**(n//(p**e))
@@ -482,23 +530,111 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             return Integer(1)
         return self.parent().characteristic()
 
+    def is_square(self):
+        """
+        Returns ``True`` if and only if this element is a perfect square.
+
+        EXAMPLES::
+
+            sage: k.<a> = FiniteField(9, impl='givaro', modulus='primitive')
+            sage: a.is_square()
+            False
+            sage: (a**2).is_square()
+            True
+            sage: k.<a> = FiniteField(4, impl='ntl', modulus='primitive')
+            sage: (a**2).is_square()
+            True
+            sage: k.<a> = FiniteField(17^5, impl='pari_ffelt', modulus='primitive')
+            sage: a.is_square()
+            False
+            sage: (a**2).is_square()
+            True
+
+        ::
+
+            sage: k(0).is_square()
+            True
+        """
+        K = self.parent()
+        if K.characteristic() == 2:
+            return True
+        n = K.order() - 1
+        a = self**(n // 2)
+        return a == 1 or a == 0
+
+    def square_root(self, extend=False, all=False):
+        """
+        The square root function.
+
+        INPUT:
+
+
+        -  ``extend`` -- bool (default: ``True``); if ``True``, return a
+           square root in an extension ring, if necessary. Otherwise, raise a
+           ValueError if the root is not in the base ring.
+
+           .. WARNING::
+
+               This option is not implemented!
+
+        -  ``all`` -- bool (default: ``False``); if ``True``, return all
+           square roots of ``self``, instead of just one.
+
+        .. WARNING::
+
+           The ``'extend'`` option is not implemented (yet).
+
+        EXAMPLES::
+
+            sage: F = FiniteField(7^2, 'a')
+            sage: F(2).square_root()
+            4
+            sage: F(3).square_root()
+            2*a + 6
+            sage: F(3).square_root()**2
+            3
+            sage: F(4).square_root()
+            2
+            sage: K = FiniteField(7^3, 'alpha', impl='pari_ffelt')
+            sage: K(3).square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be a perfect square.
+        """
+        try:
+            return self.nth_root(2, extend=extend, all=all)
+        except ValueError:
+            raise ValueError("must be a perfect square.")
+
+    def sqrt(self, extend=False, all = False):
+        """
+        See :meth:square_root().
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17)
+            sage: (a^3 - a - 1).sqrt()
+            a^16 + 2*a^15 + a^13 + 2*a^12 + a^10 + 2*a^9 + 2*a^8 + a^7 + a^6 + 2*a^5 + a^4 + 2*a^2 + 2*a + 2
+        """
+        return self.square_root(extend=extend, all=all)
+
     def nth_root(self, n, extend = False, all = False, algorithm=None, cunningham=False):
         r"""
         Returns an `n`\th root of ``self``.
 
         INPUT:
 
-        - ``n`` - integer `\geq 1`
+        - ``n`` -- integer `\geq 1`
 
-        - ``extend`` - bool (default: ``False``); if ``True``, return an `n`\th
+        - ``extend`` -- bool (default: ``False``); if ``True``, return an `n`\th
           root in an extension ring, if necessary. Otherwise, raise a
           ValueError if the root is not in the base ring.  Warning:
           this option is not implemented!
 
-        - ``all`` - bool (default: ``False``); if ``True``, return all `n`\th
+        - ``all`` -- bool (default: ``False``); if ``True``, return all `n`\th
           roots of ``self``, instead of just one.
 
-        - ``algorithm`` - string (default: ``None``); 'Johnston' is the only
+        - ``algorithm`` -- string (default: ``None``); 'Johnston' is the only
           currently supported option.  For IntegerMod elements, the problem
           is reduced to the prime modulus case using CRT and `p`-adic logs,
           and then this algorithm used.
@@ -611,7 +747,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``k`` - integer (default: 1, must fit in C int type)
+        - ``k`` -- integer (default: 1, must fit in C int type)
 
         Note that if `k` is negative, then this computes the appropriate root.
 
@@ -645,7 +781,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         INPUT:
 
-        - ``k`` - integer (default: 1, must fit in C int type)
+        - ``k`` -- integer (default: 1, must fit in C int type)
 
         Note that if `k` is negative, then this computes the appropriate power.
 

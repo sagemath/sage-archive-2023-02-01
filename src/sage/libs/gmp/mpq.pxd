@@ -1,4 +1,6 @@
-from types cimport *
+# distutils: libraries = gmp
+
+from .types cimport *
 
 cdef extern from "gmp.h":
 

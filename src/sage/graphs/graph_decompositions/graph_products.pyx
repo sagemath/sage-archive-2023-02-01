@@ -3,7 +3,7 @@ Products of graphs
 
 This module gathers everything related to graph products. At the moment it
 contains an implementation of a recognition algorithm for graphs that can be
-written as a cartesian product of smaller ones.
+written as a Cartesian product of smaller ones.
 
 References:
 
@@ -21,7 +21,7 @@ Cartesian product of graphs -- the recognition problem
 
 First, a definition:
 
-  **Definition** The cartesian product of two graphs `G` and `H`, denoted
+  **Definition** The Cartesian product of two graphs `G` and `H`, denoted
   `G\square H`, is a graph defined on the pairs `(g, h)\in V(G)\times V(H)`.
 
   Two elements `(g, h),(g', h')\in V(G\square H)` are adjacent in `G\square H`
@@ -32,7 +32,7 @@ First, a definition:
 
 Two remarks follow :
 
-#. The cartesian product is commutative
+#. The Cartesian product is commutative
 
 #. Any edge `uv` of a graph `G_1 \square \cdots \square G_k` can be given a color
    `i` corresponding to the unique index `i` such that `u_i` and `v_i` differ.
@@ -131,9 +131,12 @@ Methods
 #                         http://www.gnu.org/licenses/                        *
 #******************************************************************************
 
+from copy import copy
+
+
 def is_cartesian_product(g, certificate = False, relabeling = False):
     r"""
-    Tests whether the graph is a cartesian product.
+    Tests whether the graph is a Cartesian product.
 
     INPUT:
 
@@ -145,7 +148,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     - ``relabeling`` (boolean) -- if ``relabeling = True`` (implies
       ``certificate = True``), the method also returns a dictionary associating
       to each vertex its natural coordinates as a vertex of a product graph. If
-      `g` is not a cartesian product, ``None`` is returned instead.
+      `g` is not a Cartesian product, ``None`` is returned instead.
 
       This is set to ``False`` by default.
 
@@ -209,8 +212,17 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
         sage: g = graphs.WagnerGraph()
         sage: g.is_cartesian_product()
         False
+
+    Empty and one-element graph (:trac:`19546`)::
+
+        sage: Graph().is_cartesian_product()
+        False
+        sage: Graph({0:[]}).is_cartesian_product()
+        False
     """
     g._scream_if_not_simple()
+    if g.is_directed():
+        raise NotImplementedError("recognition of Cartesian product is not implemented for directed graphs")
     if relabeling:
         certificate = True
 
@@ -218,7 +230,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     H = g
 
     # Of course the number of vertices of g can not be prime !
-    if Integer(g.order()).is_prime():
+    if g.order() <= 1 or Integer(g.order()).is_prime():
         return (False, None) if relabeling else False
     if not g.is_connected():
         raise ValueError("The graph must be connected !")
@@ -227,7 +239,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
 
     # As we need the vertices of g to be linearly ordered, we copy the graph and
     # relabel it
-    g = g.copy()
+    g = copy(g)
     trev = g.relabel(return_map = True)
     t = dict([(x,y) for y,x in trev.iteritems()])
 
@@ -294,7 +306,8 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
                 h.add_edge(r(u,v),r(uu,vv))
 
     # Gathering the connected components, relabeling the vertices on-the-fly
-    edges = map(lambda x:map(lambda y : (t[y[0]],t[y[1]]),x),h.connected_components())
+    edges = [[(t[y[0]], t[y[1]]) for y in x]
+             for x in h.connected_components()]
 
     #Print the graph, distinguishing the edges according to their color classes
     #
@@ -318,7 +331,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
         answer = answer.cartesian_product(factors[i])
 
     # Checking that the resulting graph is indeed isomorphic to what we have.
-    isiso, dictt = g.is_isomorphic(answer, certify = True)
+    isiso, dictt = g.is_isomorphic(answer, certificate=True)
     if not isiso:
         raise ValueError("Something weird happened during the algorithm... "+
                          "Please report the bug and give us the graph instance"+

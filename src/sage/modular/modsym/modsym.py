@@ -21,9 +21,9 @@ over a bigger field. In each case we also decompose the space using
 ::
 
     sage: M = ModularSymbols(23,2,base_ring=QQ)
-    sage: print M.T(2).charpoly('x').factor()
+    sage: M.T(2).charpoly('x').factor()
     (x - 3) * (x^2 + x - 1)^2
-    sage: print M.decomposition(2)
+    sage: M.decomposition(2)
     [
     Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field,
     Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
@@ -32,9 +32,9 @@ over a bigger field. In each case we also decompose the space using
 ::
 
     sage: M = ModularSymbols(23,2,base_ring=QuadraticField(5, 'sqrt5'))
-    sage: print M.T(2).charpoly('x').factor()
+    sage: M.T(2).charpoly('x').factor()
     (x - 3) * (x - 1/2*sqrt5 + 1/2)^2 * (x + 1/2*sqrt5 + 1/2)^2
-    sage: print M.decomposition(2)
+    sage: M.decomposition(2)
     [
     Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5,
     Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5,
@@ -48,7 +48,7 @@ We compute some Hecke operators and do a consistency check::
     sage: t2*t5 - t5*t2 == 0
     True
 
-This tests the bug reported in trac #1220::
+This tests the bug reported in :trac:`1220`::
 
     sage: G = GammaH(36, [13, 19])
     sage: G.modular_symbols()
@@ -78,15 +78,15 @@ This test catches a tricky corner case for spaces with character::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 import weakref
 
-import ambient
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.rational_field as rational_field
 import sage.rings.all as rings
-from sage.rings.commutative_ring import is_CommutativeRing
 
 
 def canonical_parameters(group, weight, sign, base_ring):
@@ -117,23 +117,19 @@ def canonical_parameters(group, weight, sign, base_ring):
 
     if isinstance(group, (int, rings.Integer)):
         group = arithgroup.Gamma0(group)
-
     elif isinstance(group, dirichlet.DirichletCharacter):
-        try:
-            eps = group.minimize_base_ring()
-        except NotImplementedError:
-        # TODO -- implement minimize_base_ring over finite fields
-            eps = group
-        G = eps.parent()
-        if eps.is_trivial():
-            group = arithgroup.Gamma0(eps.modulus())
+        if group.is_trivial():
+            group = arithgroup.Gamma0(group.modulus())
         else:
-            group = (eps, G)
-        if base_ring is None: base_ring = eps.base_ring()
+            eps = group.minimize_base_ring()
+            group = (eps, eps.parent())
+            if base_ring is None:
+                base_ring = eps.base_ring()
 
-    if base_ring is None: base_ring = rational_field.RationalField()
+    if base_ring is None:
+        base_ring = rational_field.RationalField()
 
-    if not is_CommutativeRing(base_ring):
+    if not isinstance(base_ring, rings.CommutativeRing):
         raise TypeError("base_ring (=%s) must be a commutative ring"%base_ring)
 
     if not base_ring.is_field():
@@ -281,7 +277,7 @@ def ModularSymbols(group  = 1,
     ::
 
         sage: G = DirichletGroup(13,GF(4,'a')); G
-        Group of Dirichlet characters of modulus 13 over Finite Field in a of size 2^2
+        Group of Dirichlet characters modulo 13 with values in Finite Field in a of size 2^2
         sage: e = G.list()[2]; e
         Dirichlet character modulo 13 of conductor 13 mapping 2 |--> a + 1
         sage: M = ModularSymbols(e,4); M
@@ -320,7 +316,9 @@ def ModularSymbols(group  = 1,
         sage: M.customize
         'hi2'
 
-    TESTS: We test use_cache::
+    TESTS:
+
+    We test use_cache::
 
         sage: ModularSymbols_clear_cache()
         sage: M = ModularSymbols(11,use_cache=False)
@@ -334,6 +332,7 @@ def ModularSymbols(group  = 1,
         sage: M is ModularSymbols(11,use_cache=False)
         False
     """
+    from . import ambient
     key = canonical_parameters(group, weight, sign, base_ring)
 
     if use_cache and key in _cache:

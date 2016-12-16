@@ -5,6 +5,7 @@ At the moment this module only implement one method, which calls Brendan McKay's
 Nauty (`<http://cs.anu.edu.au/~bdm/nauty/>`_) to enumerate hypergraphs up to
 isomorphism.
 """
+from __future__ import print_function
 
 class HypergraphGenerators():
     r"""
@@ -75,37 +76,34 @@ class HypergraphGenerators():
 
         Small hypergraphs::
 
-            sage: list(hypergraphs.nauty(4,2)) # optional - nauty
+            sage: list(hypergraphs.nauty(4,2))
             [((), (0,), (1,), (0, 1))]
 
         Only connected ones::
 
-            sage: list(hypergraphs.nauty(2,2, connected = True)) # optional - nauty
+            sage: list(hypergraphs.nauty(2,2, connected = True))
             [((0,), (0, 1))]
 
         Non-empty sets only::
 
-            sage: list(hypergraphs.nauty(3,2, set_min_size = 1)) # optional - nauty
+            sage: list(hypergraphs.nauty(3,2, set_min_size = 1))
             [((0,), (1,), (0, 1))]
 
         The Fano Plane, as the only 3-uniform hypergraph with 7 sets and 7
         vertices::
 
-            sage: fano = hypergraphs.nauty(7,7, uniform = 3, max_intersection =1).next() # optional - nauty
-            sage: print fano # optional - nauty
+            sage: fano = next(hypergraphs.nauty(7, 7, uniform=3, max_intersection=1))
+            sage: print(fano)
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
 
         The Fano Plane, as the only 3-regular hypergraph with 7 sets and 7
         vertices::
 
-            sage: fano = hypergraphs.nauty(7,7, regular = 3, max_intersection =1).next() # optional - nauty
-            sage: print fano # optional - nauty
+            sage: fano = next(hypergraphs.nauty(7, 7, regular=3, max_intersection=1))
+            sage: print(fano)
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
         """
         import subprocess
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("nauty"):
-            raise TypeError("The optional nauty spkg does not seem to be installed")
 
         nauty_input = options
 
@@ -139,7 +137,7 @@ class HypergraphGenerators():
 
         nauty_input +=  " "+str(number_of_vertices) +" "+str(number_of_sets)+" "
 
-        sp = subprocess.Popen("nauty-genbg {0}".format(nauty_input), shell=True,
+        sp = subprocess.Popen("genbg {0}".format(nauty_input), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
 
@@ -150,7 +148,7 @@ class HypergraphGenerators():
         total = number_of_sets + number_of_vertices
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
 
@@ -158,5 +156,24 @@ class HypergraphGenerators():
             G = Graph(s[:-1], format='graph6')
 
             yield tuple( tuple( x for x in G.neighbors(v)) for v in range(number_of_vertices, total))
+
+    def CompleteUniform(self, n, k):
+        r"""
+        Return the complete `k`-uniform hypergraph on `n` points.
+
+        INPUT:
+
+        - ``k,n`` -- nonnegative integers with `k\leq n`
+
+        EXAMPLE::
+
+            sage: h = hypergraphs.CompleteUniform(5,2); h
+            Incidence structure with 5 points and 10 blocks
+            sage: len(h.packing())
+            2
+        """
+        from sage.combinat.designs.incidence_structures import IncidenceStructure
+        from itertools import combinations
+        return IncidenceStructure(list(combinations(range(n),k)))
 
 hypergraphs = HypergraphGenerators()

@@ -34,7 +34,7 @@ Sage example in ./float.tex, line 154::
 
 Sage example in ./float.tex, line 168::
 
-    sage: x = 1.0; print type(x)
+    sage: x = 1.0; print(type(x))
     <type 'sage.rings.real_mpfr.RealLiteral'>
     sage: x.prec()
     53
@@ -54,7 +54,7 @@ Sage example in ./float.tex, line 182::
 Sage example in ./float.tex, line 194::
 
     sage: RDF(8/3)
-    2.66666666667
+    2.6666666666666665
     sage: R100 = RealField(100); R100(8/3)
     2.6666666666666666666666666667
 
@@ -64,7 +64,7 @@ Sage example in ./float.tex, line 202::
     sage: R = RealField(); R(x)
     2.66666666666667
     sage: RDF(x)
-    2.66666666667
+    2.6666666666666665
 
 Sage example in ./float.tex, line 216::
 
@@ -136,7 +136,7 @@ Sage example in ./float.tex, line 410::
 Sage example in ./float.tex, line 431::
 
     sage: x = RDF(1/3)
-    sage: for i in range(1,100): x = 4*x-1; print x
+    sage: for i in range(1,100): x = 4*x-1; print(x)
     0.333333333333
     0.333333333333
     0.333333333333
@@ -154,7 +154,7 @@ Sage example in ./float.tex, line 431::
 Sage example in ./float.tex, line 461::
 
     sage: x = RDF(1/2)
-    sage: for i in range(1,100): x = 3*x-1; print x
+    sage: for i in range(1,100): x = 3*x-1; print(x)
     0.5
     0.5
     0.5
@@ -203,7 +203,7 @@ Sage example in ./float.tex, line 608::
     sage: y0 = RDF(10^13); delta0 = RDF(1); a = RDF(1-10^(-8)); n = 100000
     sage: ii = iter(y0,delta0,a,n)
     sage: s = exact(10^13,1,1-10^(-8),n)
-    sage: print "exact - sommation classique:", s-ii # abs tol 0.1
+    sage: print("exact - sommation classique: {}".format(s-ii)) # abs tol 0.1
     exact - sommation classique: -45.5
 
 Sage example in ./float.tex, line 618::
@@ -220,7 +220,7 @@ Sage example in ./float.tex, line 618::
 Sage example in ./float.tex, line 662::
 
     sage: c = sumcomp(y0,delta0,RDF(0.0),n,a)
-    sage: print "exact-sommation compensee:", s-c
+    sage: print("exact-sommation compensee: {}".format(s-c))
     exact-sommation compensee: 0.0
 
 Sage example in ./float.tex, line 681::
@@ -252,7 +252,7 @@ Sage example in ./float.tex, line 714::
 Sage example in ./float.tex, line 723::
 
     sage: x = RDF.pi()/2; x.cos() # approximation flottante de zero!
-    6.12323399574e-17
+    6.123233995736757e-17
     sage: x.cos().arccos() - x
     0.0
 

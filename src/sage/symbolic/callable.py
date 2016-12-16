@@ -1,9 +1,9 @@
 """
 Callable Symbolic Expressions
 
-EXAMPLES::
+EXAMPLES:
 
-When you do arithmetic with
+When you do arithmetic with::
 
     sage: f(x, y, z) = sin(x+y+z)
     sage: g(x, y) = y + 2*x
@@ -61,7 +61,8 @@ The arguments in the definition must be symbolic variables #10747::
     SyntaxError: can't assign to function call
 """
 
-from sage.symbolic.ring import SymbolicRing, SR, ParentWithBase
+from sage.structure.parent_base import ParentWithBase
+from sage.symbolic.ring import SymbolicRing, SR
 from sage.categories.pushout import ConstructionFunctor
 
 #########################################################################################
@@ -69,7 +70,7 @@ from sage.categories.pushout import ConstructionFunctor
 #########################################################################################
 def is_CallableSymbolicExpressionRing(x):
     """
-    Return True if x is a callable symbolic expression ring.
+    Return ``True`` if ``x`` is a callable symbolic expression ring.
 
     INPUT:
 
@@ -91,7 +92,7 @@ def is_CallableSymbolicExpressionRing(x):
 
 def is_CallableSymbolicExpression(x):
     r"""
-    Returns true if ``x`` is a callable symbolic
+    Returns ``True`` if ``x`` is a callable symbolic
     expression.
 
     EXAMPLES::
@@ -206,11 +207,11 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
            alphabetical order.
 
 
-        .. note::
+        .. NOTE::
 
            When used for arithmetic between
-           ``CallableSymbolicExpression``s, these rules ensure that
-           the set of ``CallableSymbolicExpression``s will have
+           ``CallableSymbolicExpression``'s, these rules ensure that
+           the set of ``CallableSymbolicExpression``'s will have
            certain properties. In particular, it ensures that the set
            is a *commutative* ring, i.e., the order of the input
            variables is the same no matter in which order arithmetic
@@ -235,12 +236,11 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
 
         - Bobby Moretti: thanks to William Stein for the rules
         """
-        from sage.calculus.calculus import var_cmp
         a = self.arguments()
         b = x.arguments()
 
         # Rule #1
-        if [str(x) for x in a] == [str(x) for x in b]:
+        if [str(y) for y in a] == [str(z) for z in b]:
             return a
 
         # Rule #2
@@ -248,7 +248,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
         done = False
         i = 0
         while not done and i < min(len(a), len(b)):
-            if var_cmp(a[i], b[i]) == 0:
+            if repr(a[i]) == repr(b[i]):
                 new_list.append(a[i])
                 i += 1
             else:
@@ -264,9 +264,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
             if not b[j] in temp:
                 temp.add(b[j])
 
-        temp = list(temp)
-        temp.sort(var_cmp)
-        new_list.extend(temp)
+        new_list.extend(sorted(temp, key=repr))
         return tuple(new_list)
 
 
@@ -275,44 +273,22 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         """
         EXAMPLES:
 
-        We verify that coercion works in the case where x is not an
+        We verify that coercion works in the case where ``x`` is not an
         instance of SymbolicExpression, but its parent is still the
         SymbolicRing::
 
             sage: f(x) = 1
             sage: f*e
             x |--> e
+
+        TESTS::
+
+            sage: TestSuite(f.parent()).run()
         """
         self._arguments = arguments
-        ParentWithBase.__init__(self, SR)
+        SymbolicRing.__init__(self, SR)
         self._populate_coercion_lists_(coerce_list=[SR])
-
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: f(x,y) = x + y
-            sage: hash(f.parent()) #random
-            -8878119762643067638
-        """
-        return hash(('CallableSymbolicExpressionRing', self._arguments))
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: f(x) = x+1
-            sage: g(y) = y+1
-            sage: h(x) = x^2
-            sage: f.parent() == g.parent()
-            False
-            sage: f.parent() == h.parent()
-            True
-        """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        else:
-            return cmp(self._arguments, other._arguments)
+        self.symbols = SR.symbols  # Use the same list of symbols as SR
 
     def _coerce_map_from_(self, R):
         """
@@ -369,11 +345,22 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
             sage: R = CallableSymbolicExpressionRing(var('x,y,theta'))
             sage: R._repr_()
             'Callable function ring with arguments (x, y, theta)'
+
+        We verify that :trac:`12298` has been fixed:: 
+
+            sage: S = CallableSymbolicExpressionRing([var('z')])
+            sage: S._repr_()
+            'Callable function ring with argument z'
         """
-        return "Callable function ring with arguments %s"%(self._arguments,)
+        if len(self._arguments) == 0:
+            return "Callable function ring with no named arguments"
+        elif len(self._arguments) == 1:
+            return "Callable function ring with argument {}".format(self._arguments[0])
+        else:
+            return "Callable function ring with arguments {}".format(self._arguments)
 
     def arguments(self):
-        r"""
+        """
         Returns the arguments of ``self``. The order that the
         variables appear in ``self.arguments()`` is the order that
         is used in evaluating the elements of ``self``.
@@ -394,7 +381,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
 
     def _repr_element_(self, x):
         """
-        Returns the string representation of the Expression x.
+        Returns the string representation of the Expression ``x``.
 
         EXAMPLES::
 
@@ -472,10 +459,12 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         if any([type(arg).__module__ == 'numpy' and type(arg).__name__ == "ndarray" for arg in args]): # avoid importing
             raise NotImplementedError("Numpy arrays are not supported as arguments for symbolic expressions")
 
-        d = dict(zip(map(repr, self.arguments()), args))
+        d = dict(zip([repr(_) for _ in self.arguments()], args))
         d.update(kwds)
         return SR(_the_element.substitute(**d))
 
+    # __reduce__ gets replaced by the CallableSymbolicExpressionRingFactory
+    __reduce__ = object.__reduce__
 
 
 from sage.structure.factory import UniqueFactory
@@ -512,4 +501,3 @@ class CallableSymbolicExpressionRingFactory(UniqueFactory):
         return CallableSymbolicExpressionRing_class(key)
 
 CallableSymbolicExpressionRing = CallableSymbolicExpressionRingFactory('sage.symbolic.callable.CallableSymbolicExpressionRing')
-

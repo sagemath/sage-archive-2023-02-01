@@ -27,10 +27,9 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import print_function
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 cdef extern from "math.h":
     double log(double)
@@ -39,6 +38,7 @@ from sage.finance.time_series cimport TimeSeries
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all import matrix
 from sage.misc.randstate cimport current_randstate, randstate
+from cpython.object cimport PyObject_RichCompare
 
 from util cimport HMM_Util
 
@@ -136,6 +136,7 @@ cdef class HiddenMarkovModel:
             sage: G.edges()
             [(0, 0, 0.3), (0, 2, 0.7), (1, 2, 1.0), (2, 0, 0.5), (2, 1, 0.5)]
             sage: G.plot()
+            Graphics object consisting of 11 graphics primitives
         """
         cdef int i, j
         m = self.transition_matrix()
@@ -161,14 +162,14 @@ cdef class HiddenMarkovModel:
 
         OUTPUT:
 
-            - if number is not given, return a single TimeSeries.
-            - if number is given, return a list of TimeSeries.
+        - if number is not given, return a single TimeSeries.
+        - if number is given, return a list of TimeSeries.
 
         EXAMPLES::
 
             sage: set_random_seed(0)
             sage: a = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.1,0.9]], [[1,0],[0,1]], [0,1])
-            sage: print a.sample(10, 3)
+            sage: print(a.sample(10, 3))
             [[1, 0, 1, 1, 1, 1, 0, 1, 1, 1], [1, 1, 0, 0, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 0, 1, 0, 1, 1, 1]]
             sage: a.sample(15)
             [1, 1, 1, 1, 0 ... 1, 1, 1, 1, 1]
@@ -197,7 +198,7 @@ cdef class HiddenMarkovModel:
 
 
     #########################################################
-    # Some internal funcitons used for various general
+    # Some internal functions used for various general
     # HMM algorithms.
     #########################################################
     cdef TimeSeries _baum_welch_gamma(self, TimeSeries alpha, TimeSeries beta):
@@ -279,18 +280,19 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         ([1, 1, 1, 1, 1, 1], -5.378832842208748)
         sage: m.baum_welch([0,1,0,1,0,1])
         (0.0, 22)
-        sage: m
+        sage: m  # rel tol 1e-10
         Discrete Hidden Markov Model with 2 States and 2 Emissions
         Transition matrix:
-        [1.0134345614...e-70               1.0]
-        [              1.0 3.997435271...e-19]
+        [1.0134345614745788e-70                    1.0]
+        [                   1.0 3.9974352713558623e-19]
         Emission matrix:
-        [7.3802215662...e-54               1.0]
-        [              1.0  3.99743526...e-19]
+        [ 7.380221566254936e-54                    1.0]
+        [                   1.0 3.9974352626002193e-19]
         Initial probabilities: [0.0000, 1.0000]
         sage: m.sample(10)
         [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
         sage: m.graph().plot()
+        Graphics object consisting of 6 graphics primitives
 
     A 3-state model that happens to always outputs 'b'::
 
@@ -321,8 +323,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             [0.5 0.5]
             [0.1 0.9]
             sage: hmm.DiscreteHiddenMarkovModel([1,2,.1,1.2], [[1],[1]],[.5,.5]).transition_matrix()
-            [ 0.333333333333  0.666666666667]
-            [0.0769230769231  0.923076923077]
+            [ 0.3333333333333333  0.6666666666666666]
+            [0.07692307692307693   0.923076923076923]
+
         """
         self.pi = util.initial_probs_to_TimeSeries(pi, normalize)
         self.N = len(self.pi)
@@ -334,11 +337,11 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         if not is_Matrix(B):
             B = matrix(B)
         if B.nrows() != self.N:
-            raise ValueError, "number of rows of B must equal number of states"
+            raise ValueError("number of rows of B must equal number of states")
         self.B = TimeSeries(B.list())
         self.n_out = B.ncols()
         if emission_symbols is not None and len(emission_symbols) != self.n_out:
-            raise ValueError, "number of emission symbols must equal number of output states"
+            raise ValueError("number of emission symbols must equal number of output states")
         cdef Py_ssize_t i
         if normalize:
             for i in range(self.N):
@@ -357,7 +360,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         return unpickle_discrete_hmm_v1, \
                (self.A, self.B, self.pi, self.n_out, self._emission_symbols, self._emission_symbols_dict)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -373,9 +376,9 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             False
         """
         if not isinstance(other, DiscreteHiddenMarkovModel):
-            raise ValueError
-        return cmp(self.__reduce__()[1], other.__reduce__()[1])
-
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def emission_matrix(self):
         """
@@ -547,7 +550,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             -inf
         """
         if obs.max() > self.N or obs.min() < 0:
-            raise ValueError, "invalid observation sequence, since it includes unknown states"
+            raise ValueError("invalid observation sequence, since it includes unknown states")
 
         cdef Py_ssize_t i, j, t, T = len(obs)
 
@@ -705,7 +708,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             (['up', 'up', 'down', 'down', 'down'], [0, 0, 1, 1, 1])
         """
         if length < 0:
-            raise ValueError, "length must be nonnegative"
+            raise ValueError("length must be nonnegative")
 
         # Create Integer lists for states and observations
         cdef IntList states = IntList(length)
@@ -745,7 +748,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         else:
             q = starting_state
             if q < 0 or q >= self.N:
-                raise ValueError, "starting state must be between 0 and %s"%(self.N-1)
+                raise ValueError("starting state must be between 0 and %s"%(self.N-1))
 
         states._values[0] = q
         # Generate a symbol from state q
@@ -1195,14 +1198,14 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.9,0.1]], [[.5,.5],[0,1]], [.2,.8])
             sage: m.baum_welch([1,0]*20, log_likelihood_cutoff=0)
             (0.0, 4)
-            sage: m
+            sage: m  # rel tol 1e-14
             Discrete Hidden Markov Model with 2 States and 2 Emissions
             Transition matrix:
-            [1.35152697077e-51               1.0]
-            [              1.0               0.0]
+            [1.3515269707707603e-51                    1.0]
+            [                   1.0                    0.0]
             Emission matrix:
-            [              1.0 6.46253713885e-52]
-            [              0.0               1.0]
+            [                  1.0 6.462537138850569e-52]
+            [                  0.0                   1.0]
             Initial probabilities: [0.0000, 1.0000]
 
         The following illustrates how Baum-Welch is only a local
@@ -1233,10 +1236,10 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             [0.2 0.8]
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.9,0.1]], [[.5,.5],[.2,.8]], [.2,.8])
             sage: m.baum_welch(v)
-            (-66.7823606592935..., 100)
-            sage: m.emission_matrix()
-            [0.530308574863 0.469691425137]
-            [0.290977555017 0.709022444983]
+            (-66.782360659293..., 100)
+            sage: m.emission_matrix()  # rel tol 1e-14
+            [ 0.5303085748626447 0.46969142513735535]
+            [ 0.2909775550173978  0.7090224449826023]
         """
         if self._emission_symbols is not None:
             obs = self._emission_symbols_to_IntList(obs)
@@ -1319,20 +1322,31 @@ def unpickle_discrete_hmm_v0(A, B, pi, emission_symbols, name):
     return DiscreteHiddenMarkovModel(A,B,pi,emission_symbols,normalize=False)
 
 def unpickle_discrete_hmm_v1(A, B, pi, n_out, emission_symbols, emission_symbols_dict):
-    """
+    r"""
+    Return a :class:`DiscreteHiddenMarkovModel`, restored from the arguments.
+
+    This function is used internally for unpickling.
+
     TESTS::
 
         sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.0,1.0],[0.5,0.5]], [1,0],['a','b'])
-        sage: loads(dumps(m)) == m   # indirect test
+        sage: m2 = loads(dumps(m)) # indirect doctest
+        sage: m2 == m
+        True
+
+    Test that :trac:`15711` has been resolved::
+
+        sage: str(m2) == str(m)
+        True
+        sage: m2.log_likelihood('baa'*2) == m.log_likelihood('baa'*2)
         True
     """
-    cdef DiscreteHiddenMarkovModel m = PY_NEW(DiscreteHiddenMarkovModel)
+    cdef DiscreteHiddenMarkovModel m = DiscreteHiddenMarkovModel.__new__(DiscreteHiddenMarkovModel)
     m.A = A
     m.B = B
     m.pi = pi
+    m.N = len(pi)
     m.n_out = n_out
     m._emission_symbols = emission_symbols
     m._emission_symbols_dict = emission_symbols_dict
     return m
-
-

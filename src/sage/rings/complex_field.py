@@ -18,12 +18,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import complex_number
-import complex_double
-import field
-import integer
-import real_mpfr
+from .complex_number import ComplexNumber, RRtoCC
+from .complex_double import ComplexDoubleElement
+from . import ring
+from .real_mpfr import RealNumber
 import weakref
 from sage.misc.sage_eval import sage_eval
 
@@ -68,8 +68,8 @@ def late_import():
         QQbar = sage.rings.qqbar.QQbar
         import sage.symbolic.ring
         SR = sage.symbolic.ring.SR
-        from real_lazy import CLF, RLF
-        from complex_double import CDF
+        from .real_lazy import CLF, RLF
+        from .complex_double import CDF
 
 def is_ComplexField(x):
     """
@@ -116,7 +116,7 @@ def ComplexField(prec=53, names=None):
     return C
 
 
-class ComplexField_class(field.Field):
+class ComplexField_class(ring.Field):
     """
     An approximation to the field of complex numbers using floating
     point numbers with any specified precision. Answers derived from
@@ -198,14 +198,14 @@ class ComplexField_class(field.Field):
 
             sage: C = ComplexField(200)
             sage: C.category()
-            Category of fields
+            Join of Category of fields and Category of complete metric spaces
             sage: TestSuite(C).run()
         """
         self._prec = int(prec)
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category = Fields())
+        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category=Fields().Metric().Complete())
 #        self._populate_coercion_lists_()
-        self._populate_coercion_lists_(coerce_list=[complex_number.RRtoCC(self._real_field(), self)])
+        self._populate_coercion_lists_(coerce_list=[RRtoCC(self._real_field(), self)])
 
     def __reduce__(self):
         """
@@ -294,7 +294,8 @@ class ComplexField_class(field.Field):
         try:
             return self.__real_field
         except AttributeError:
-            self.__real_field = real_mpfr.RealField(self._prec)
+            from .real_mpfr import RealField
+            self.__real_field = RealField(self._prec)
             return self.__real_field
 
     def __cmp__(self, other):
@@ -344,7 +345,7 @@ class ComplexField_class(field.Field):
             Complex Field with 53 bits of precision
         """
         if x is None:
-            return self.zero_element()
+            return self.zero()
         # we leave this here to handle the imaginary parameter
         if im is not None:
             x = x, im
@@ -367,20 +368,20 @@ class ComplexField_class(field.Field):
             1.00000000000000*I
 
         """
-        if not isinstance(x, (real_mpfr.RealNumber, tuple)):
-            if isinstance(x, complex_double.ComplexDoubleElement):
-                return complex_number.ComplexNumber(self, x.real(), x.imag())
+        if not isinstance(x, (RealNumber, tuple)):
+            if isinstance(x, ComplexDoubleElement):
+                return ComplexNumber(self, x.real(), x.imag())
             elif isinstance(x, str):
                 # TODO: this is probably not the best and most
                 # efficient way to do this.  -- Martin Albrecht
-                return complex_number.ComplexNumber(self,
+                return ComplexNumber(self,
                             sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
 
             late_import()
             if isinstance(x, NumberFieldElement_quadratic):
                 if isinstance(x.parent(), NumberField_quadratic) and list(x.parent().polynomial()) == [1, 0, 1]:
                     (re, im) = list(x)
-                    return complex_number.ComplexNumber(self, re, im)
+                    return ComplexNumber(self, re, im)
 
             try:
                 return self(x.sage())
@@ -390,7 +391,7 @@ class ComplexField_class(field.Field):
                 return x._complex_mpfr_field_( self )
             except AttributeError:
                 pass
-        return complex_number.ComplexNumber(self, x)
+        return ComplexNumber(self, x)
 
     def _coerce_map_from_(self, S):
         """
@@ -413,14 +414,31 @@ class ComplexField_class(field.Field):
             True
             sage: ComplexField(200).has_coerce_map_from(CDF)
             False
+            sage: ComplexField(53).has_coerce_map_from(complex)
+            True
+            sage: ComplexField(200).has_coerce_map_from(complex)
+            False
         """
         RR = self._real_field()
         if RR.has_coerce_map_from(S):
-            return complex_number.RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
-        if is_ComplexField(S) and S._prec >= self._prec:
-            return self._generic_convert_map(S)
+            return RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
+        if is_ComplexField(S):
+            if self._prec <= S._prec:
+                return self._generic_convert_map(S)
+            else:
+                return None
+        if S is complex:
+            if self._prec <= 53:
+                return self._generic_convert_map(S)
+            else:
+                return None
         late_import()
-        if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
+        if S is CDF:
+            if self._prec <= 53:
+                return self._generic_convert_map(S)
+            else:
+                return None
+        if S in [AA, QQbar, CLF, RLF]:
             return self._generic_convert_map(S)
         return self._coerce_map_via([CLF], S)
 
@@ -492,7 +510,8 @@ class ComplexField_class(field.Field):
             sage: ComplexField().characteristic()
             0
         """
-        return integer.Integer(0)
+        from .integer import Integer
+        return Integer(0)
 
     def gen(self, n=0):
         """
@@ -505,7 +524,7 @@ class ComplexField_class(field.Field):
         """
         if n != 0:
             raise IndexError("n must be 0")
-        return complex_number.ComplexNumber(self, 0, 1)
+        return ComplexNumber(self, 0, 1)
 
     def is_field(self, proof = True):
         """
@@ -624,7 +643,7 @@ class ComplexField_class(field.Field):
             sage: C.zeta(5)
             0.309016994374947 + 0.951056516295154*I
         """
-        from integer import Integer
+        from .integer import Integer
         n = Integer(n)
         if n == 1:
             x = self(1)
@@ -636,7 +655,7 @@ class ComplexField_class(field.Field):
             RR = self._real_field()
             pi = RR.pi()
             z = 2*pi/n
-            x = complex_number.ComplexNumber(self, z.cos(), z.sin())
+            x = ComplexNumber(self, z.cos(), z.sin())
         x._set_multiplicative_order( n )
         return x
 

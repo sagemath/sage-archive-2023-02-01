@@ -2,24 +2,29 @@ r"""
 Base class for sparse matrices
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from __future__ import print_function
+
+cimport cython
 cimport matrix
 cimport matrix0
 from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
+from sage.structure.sage_object cimport richcmp
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/python.pxi'
-include 'sage/ext/interrupt.pxi'
-
-cdef extern from "Python.h":
-    PyObject* PyTuple_GET_ITEM0 "PyTuple_GET_ITEM" (PyObject*  p, Py_ssize_t pos)
-    PyObject* PyList_GET_ITEM0 "PyList_GET_ITEM" (PyObject*  list, Py_ssize_t i)
-    Py_ssize_t PyNumber_AsSsize_t(PyObject* o, PyObject* exc)
-
+include "cysignals/memory.pxi"
+include "cysignals/signals.pxi"
+from cpython cimport *
 
 import sage.matrix.matrix_space
+
 
 cdef class Matrix_sparse(matrix.Matrix):
 
@@ -58,7 +63,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             [-------------------------------------]
         """
         if not is_Ring(ring):
-            raise TypeError, "input must be a ring"
+            raise TypeError("input must be a ring")
         if ring is self._base_ring:
             if self._is_immutable:
                 return self
@@ -136,7 +141,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         if not x is None: return x
 
         if not self._is_immutable:
-            raise TypeError, "mutable matrices are unhashable"
+            raise TypeError("mutable matrices are unhashable")
 
         v = self._dict()
         cdef long i, h
@@ -234,12 +239,12 @@ cdef class Matrix_sparse(matrix.Matrix):
         right_nonzero = right.nonzero_positions(copy=False, column_order=True)
         len_left = len(left_nonzero)
         len_right = len(right_nonzero)
-        next_row = <Py_ssize_t *> sage_malloc(sizeof(Py_ssize_t) * left._nrows)
-        next_col = <Py_ssize_t *> sage_malloc(sizeof(Py_ssize_t) * right._ncols)
+        next_row = <Py_ssize_t *> sig_malloc(sizeof(Py_ssize_t) * left._nrows)
+        next_col = <Py_ssize_t *> sig_malloc(sizeof(Py_ssize_t) * right._ncols)
         if next_row == NULL or next_col == NULL:
-            if next_row != NULL: sage_free(next_row)
+            if next_row != NULL: sig_free(next_row)
             sig_off()
-            raise MemoryError, "out of memory multiplying a matrix"
+            raise MemoryError("out of memory multiplying a matrix")
 
         sig_on()
         i = len_left - 1
@@ -282,27 +287,28 @@ cdef class Matrix_sparse(matrix.Matrix):
                 k2 = next_col[col]
             k1 = next_row[row]
 
-        sage_free(next_row)
-        sage_free(next_col)
+        sig_free(next_row)
+        sig_free(next_col)
         sig_off()
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Left scalar multiplication. Internal usage only.
 
         INPUT:
 
-            - `right` -- a ring element which must already be in the basering of self (no coercion done here).
+        - `right` -- a ring element which must already be in the basering
+          of self (no coercion done here).
 
         OUTPUT:
 
-            - the matrix self*right
+        - the matrix self * right
 
         EXAMPLES::
 
-            sage: M=Matrix(QQ,3,6,xrange(18),sparse=true); M
+            sage: M = Matrix(QQ, 3, 6, range(18), sparse=true); M
             [ 0  1  2  3  4  5]
             [ 6  7  8  9 10 11]
             [12 13 14 15 16 17]
@@ -353,14 +359,12 @@ cdef class Matrix_sparse(matrix.Matrix):
         cdef Py_ssize_t i, j, k
         if version == -1:
             for ij, x in data.iteritems():
-                i = PyNumber_AsSsize_t(PyTuple_GET_ITEM0(<PyObject*> ij, 0), NULL)
-                j = PyNumber_AsSsize_t(PyTuple_GET_ITEM0(<PyObject*> ij, 1), NULL)
-                self.set_unsafe(i, j, x)
+                self.set_unsafe(ij[0], ij[1], x)
         else:
-            raise RuntimeError, "unknown matrix version (=%s)"%version
+            raise RuntimeError("unknown matrix version (=%s)" % version)
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
-        return cmp(self._dict(), right._dict())
+    cpdef _richcmp_(self, right, int op):
+        return richcmp(self._dict(), right._dict(), op)
 
     def transpose(self):
         """
@@ -374,10 +378,10 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: M = MatrixSpace(QQ,  2, sparse=True)
             sage: A = M([1,2,3,4])
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [1 3]
             [2 4]
-            sage: print A
+            sage: print(A)
             [1 2]
             [3 4]
 
@@ -483,7 +487,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         raised.
 
         This routine is meant to be called from the
-        meth:`~sage.matrix.matrix2.Matrix.elementwise_product`
+        :meth:`~sage.matrix.matrix2.Matrix.elementwise_product`
         method, which will ensure that this routine receives
         proper input.  More thorough documentation is provided
         there.
@@ -694,7 +698,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         Differentiate with respect to var by differentiating each element
         with respect to var.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`derivative`
 
@@ -808,10 +812,15 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jason Grout: sparse matrix optimizations
         """
-        if not PY_TYPE_CHECK(rows, list):
-            raise TypeError, "rows must be a list of integers"
-        if not PY_TYPE_CHECK(columns, list):
-            raise TypeError, "columns must be a list of integers"
+        if isinstance(rows, xrange):
+            rows = list(rows)
+        elif not isinstance(rows, list):
+            raise TypeError("rows must be a list of integers")
+
+        if isinstance(columns, xrange):
+            columns = list(columns)
+        elif not isinstance(columns, list):
+            raise TypeError("columns must be a list of integers")
 
         cdef Py_ssize_t nrows, ncols,k,r,i,j
 
@@ -823,12 +832,12 @@ cdef class Matrix_sparse(matrix.Matrix):
         tmp = [el for el in columns if el >= 0 and el < self._ncols]
         columns = tmp
         if ncols != PyList_GET_SIZE(columns):
-            raise IndexError, "column index out of range"
+            raise IndexError("column index out of range")
 
         tmp = [el for el in rows if el >= 0 and el < self._nrows]
         rows = tmp
         if nrows != PyList_GET_SIZE(rows):
-            raise IndexError, "row index out of range"
+            raise IndexError("row index out of range")
 
         row_map = {}
         for new_row, old_row in enumerate(rows):
@@ -855,9 +864,9 @@ cdef class Matrix_sparse(matrix.Matrix):
                         A.set_unsafe(new_row, new_col, entry)
         return A
 
-    def stack(self, bottom, subdivide=False):
+    cdef _stack_impl(self, bottom):
         r"""
-        Stack ``self`` on top of ``bottom``.
+        Stack ``self`` on top of ``bottom``::
 
             [ self  ]
             [ bottom ]
@@ -894,29 +903,36 @@ cdef class Matrix_sparse(matrix.Matrix):
             [-----------]
             [ 0  1  2  3]
             [ 4  5  6  7]
+
+        TESTS::
+
+        One can stack matrices over different rings (:trac:`16399`). ::
+
+            sage: M = Matrix(ZZ, 2, 3, range(6), sparse=True)
+            sage: N = Matrix(QQ, 1, 3, [10,11,12], sparse=True)
+            sage: M.stack(N)
+            [ 0  1  2]
+            [ 3  4  5]
+            [10 11 12]
+            sage: N.stack(M)
+            [10 11 12]
+            [ 0  1  2]
+            [ 3  4  5]
+            sage: M2 = Matrix(ZZ['x'], 2, 3, range(6), sparse=True)
+            sage: N.stack(M2)
+            [10 11 12]
+            [ 0  1  2]
+            [ 3  4  5]
         """
-        if hasattr(bottom, '_vector_'):
-            bottom = bottom.row()
-        if not isinstance(bottom, matrix.Matrix):
-            raise TypeError, "other must be a matrix"
-
-        cdef Matrix_sparse other = bottom.sparse_matrix()
-
-        if self._ncols != other._ncols:
-            raise TypeError, "number of columns must be the same"
-
-        if not (self._base_ring is other.base_ring()):
-            other = other.change_ring(self._base_ring)
-
+        cdef Matrix_sparse other = <Matrix_sparse>bottom
         cdef Matrix_sparse Z
-        Z = self.new_matrix(nrows = self._nrows + other.nrows())
+        Z = self.new_matrix(nrows=self._nrows + other._nrows, ncols=self._ncols)
 
         for i, j in self.nonzero_positions(copy=False):
             Z.set_unsafe(i, j, self.get_unsafe(i,j))
         for i, j in other.nonzero_positions(copy=False):
             Z.set_unsafe(i + self._nrows, j, other.get_unsafe(i,j))
-        if subdivide:
-            Z._subdivide_on_stack(self, other)
+
         return Z
 
     def augment(self, right, subdivide=False):
@@ -967,7 +983,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         TESTS:
 
-        Verify that Trac #12689 is fixed::
+        Verify that :trac:`12689` is fixed::
 
             sage: A = identity_matrix(QQ, 2, sparse=True)
             sage: B = identity_matrix(ZZ, 2, sparse=True)
@@ -978,7 +994,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         if hasattr(right, '_vector_'):
             right = right.column()
         if not isinstance(right, matrix.Matrix):
-            raise TypeError, "right must be a matrix"
+            raise TypeError("right must be a matrix")
 
         if not (self._base_ring is right.base_ring()):
             right = right.change_ring(self._base_ring)
@@ -986,7 +1002,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         cdef Matrix_sparse other = right.sparse_matrix()
 
         if self._nrows != other._nrows:
-            raise TypeError, "number of rows must be the same"
+            raise TypeError("number of rows must be the same")
 
         cdef Matrix_sparse Z
         Z = self.new_matrix(ncols = self._ncols + other._ncols)
@@ -998,7 +1014,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             Z._subdivide_on_augment(self, other)
         return Z
 
-    cdef Vector _vector_times_matrix_(self, Vector v):
+    cdef _vector_times_matrix_(self, Vector v):
         """
         Returns the vector times matrix product.
 
@@ -1025,13 +1041,13 @@ cdef class Matrix_sparse(matrix.Matrix):
         cdef int i, j
         from sage.modules.free_module import FreeModule
         if self.nrows() != v.degree():
-            raise ArithmeticError, "number of rows of matrix must equal degree of vector"
+            raise ArithmeticError("number of rows of matrix must equal degree of vector")
         s = FreeModule(self.base_ring(), self.ncols(), sparse=v.is_sparse()).zero_vector()
         for (i, j), a in self._dict().iteritems():
             s[j] += v[i] * a
         return s
 
-    cdef Vector _matrix_times_vector_(self, Vector v):
+    cdef _matrix_times_vector_(self, Vector v):
         """
         Returns the matrix times vector product.
 
@@ -1077,76 +1093,17 @@ cdef class Matrix_sparse(matrix.Matrix):
         cdef int i, j
         from sage.modules.free_module import FreeModule
         if self.ncols() != v.degree():
-            raise ArithmeticError, "number of columns of matrix must equal degree of vector"
+            raise ArithmeticError("number of columns of matrix must equal degree of vector")
         s = FreeModule(v.base_ring(), self.nrows(), sparse=v.is_sparse()).zero_vector()
         for (i, j), a in self._dict().iteritems():
             s[i] += a * v[j]
         return s
 
-##     def _echelon_in_place_classical(self):
-##         """
-##         Replace this matrix by its echelon form.
 
-##         INPUT:
-##            params -- ignored.
-##         """
-##         # ALGORITHM:
-##         # Since we know nothing about the base field, we use a generic
-##         # algorithm.  We first convert to a list of sparse rows, then
-##         # directly perform a generic echelon algorithm on that list of
-##         # rows.
-##         if self.fetch('in_echelon_form'):
-##             return
-##         K = self.base_ring()
-##         ONE = K(1)
-##         if not K.is_field():
-##             raise ArithmeticError, "The base ring must be a field."
-##         X = self.rows()
-##         nrows = self.nrows()
-##         ncols = self.ncols()
-##         pivot_positions = []
-##         start_row = 0
-##         nrows = self.nrows()
-##         ncols = self.ncols()
-##         for c in range(ncols):
-##             N = []
-##             for r in xrange(start_row, nrows):
-##                 if X[r].first_nonzero_position() == c:
-##                     N.append((X[r].num_nonzero(),r))
-##             if len(N) == 0:
-##                 continue
-##             N.sort()
-##             r = N[0][1]
-##             leading = X[r].first_nonzero_entry()
-##             if leading != 0:
-##                 pivot_positions.append(c)
-##                 # 1. Rescale
-##                 X[r].rescale(ONE/leading)
-##                 # 2. Swap
-##                 X[r], X[start_row] = X[start_row], X[r]
-##                 # 3. Clear column
-##                 for i in range(nrows):
-##                     if i != start_row:
-##                         s = X[i][c]
-##                         if s != 0:
-##                             X[i] = X[i].add(X[start_row], -s)
-##             # endif
-##             start_row = start_row + 1
-##         #endfor
-##         if self.is_immutable():
-##             self.__pivots = pivot_positions
-##             E = Matrix_generic_sparse_from_rows(X)
-##             E.__pivots = pivot_positions
-##             self.__echelon_form = E
-##         misc.verbose("Finished generic echelon.",t)
-##         return E
-
-##################################
-# Helper code
-
-cdef Py_ssize_t get_ij(v, Py_ssize_t i, int j):
-    return PyNumber_AsSsize_t(PyTuple_GET_ITEM0(PyList_GET_ITEM0(<PyObject*>v, i), j), NULL)
-
-#cdef Py_ssize_t get_ij(v, Py_ssize_t i, int j):
-#    return PyNumber_AsSsize_t(<object>PyTuple_GET_ITEM(
-#              <object>PyList_GET_ITEM(v, i), j), <object>NULL)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+# Return v[i][j] where v is a list of tuples.
+# No checking is done, make sure you feed it valid input!
+cdef inline Py_ssize_t get_ij(v, Py_ssize_t i, Py_ssize_t j):
+    t = (<list>v)[i]
+    return (<tuple>t)[j]

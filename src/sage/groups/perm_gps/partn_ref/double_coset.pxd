@@ -1,4 +1,3 @@
-
 #*****************************************************************************
 #      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
@@ -6,11 +5,17 @@
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
 include 'data_structures_pxd.pxi' # includes bitsets
 
 from sage.rings.integer cimport Integer
+
+cdef inline int int_cmp(int a, int b):
+    if a < b:
+        return -1
+    elif a == b:
+        return 0
+    else:
+        return 1
 
 cdef struct dc_work_space:
     int degree
@@ -34,6 +39,3 @@ cdef int double_coset( void *, void *, PartitionStack *, int *, int,
     int (*)(PartitionStack *, void *, int *, int),
     int (*)(int *, int *, void *, void *, int),
     StabilizerChain *, dc_work_space *, int *) except -1
-
-
-

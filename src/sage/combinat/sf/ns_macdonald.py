@@ -6,7 +6,7 @@ from sage.combinat.words.word import Word
 from sage.combinat.combination import Combinations
 from sage.combinat.permutation import Permutation
 from sage.rings.all import QQ, PolynomialRing
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.combinat.backtrack import GenericBacktracker
 import copy
 
@@ -371,9 +371,9 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             [1, 2, 1, 1, 2, 1]
         """
         ed = self.reading_word().evaluation_dict()
-        entries = ed.keys()
+        entries = list(ed)
         m = max(entries) + 1 if entries else -1
-        return [ed.get(k,0) for k in range(1,m)]
+        return [ed.get(k, 0) for k in range(1, m)]
 
     def descents(self):
         """
@@ -624,7 +624,7 @@ class NonattackingFillings_shape(CombinatorialClass):
 
     def flip(self):
         """
-        Returns the nonattacking fillings of the the flipped shape.
+        Return the nonattacking fillings of the flipped shape.
 
         EXAMPLES::
 

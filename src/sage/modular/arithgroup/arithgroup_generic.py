@@ -1,7 +1,6 @@
 r"""
 Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 """
-
 ################################################################################
 #
 #       Copyright (C) 2009, The Sage Group -- http://www.sagemath.org/
@@ -13,11 +12,12 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 #                  http://www.gnu.org/licenses/
 #
 ################################################################################
+from __future__ import absolute_import
+from six.moves import range
 
-
-import sage.groups.old as group
+from sage.groups.old import Group
 from sage.rings.all import ZZ
-import sage.rings.arith as arith
+from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
 from sage.modular.modsym.p1list import lift_to_sl2z
@@ -27,7 +27,7 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.modular.arithgroup.congroup_sl2z', 'SL2Z')
 from sage.structure.element import parent
 
-from arithgroup_element import ArithmeticSubgroupElement
+from .arithgroup_element import ArithmeticSubgroupElement
 
 def is_ArithmeticSubgroup(x):
     r"""
@@ -45,7 +45,7 @@ def is_ArithmeticSubgroup(x):
     return isinstance(x, ArithmeticSubgroup)
 
 
-class ArithmeticSubgroup(group.Group):
+class ArithmeticSubgroup(Group):
     r"""
     Base class for arithmetic subgroups of `{\rm SL}_2(\ZZ)`. Not
     intended to be used directly, but still includes quite a few
@@ -65,7 +65,7 @@ class ArithmeticSubgroup(group.Group):
             sage: G.category() # indirect doctest
             Category of groups
         """
-        group.Group.__init__(self)
+        Group.__init__(self)
 
     def _repr_(self):
         r"""
@@ -159,7 +159,7 @@ class ArithmeticSubgroup(group.Group):
         """
         # Do not override this function! Derived classes should override
         # _contains_sl2.
-        if isinstance(x, type([])) and len(x) == 4:
+        if isinstance(x, list) and len(x) == 4:
             if not (x[0] in ZZ and x[1] in ZZ and x[2] in ZZ and x[3] in ZZ):
                 return False
             a,b,c,d = map(ZZ, x)
@@ -258,7 +258,7 @@ class ArithmeticSubgroup(group.Group):
 
         INPUT:
 
-        - ``G`` - intermediate subgroup (currently not implemented if diffferent
+        - ``G`` - intermediate subgroup (currently not implemented if different
           from SL(2,Z))
 
         - ``on_right`` - boolean (default: True) - if True return right coset
@@ -288,36 +288,36 @@ class ArithmeticSubgroup(group.Group):
             sage: reps, gens, l, s = G.todd_coxeter()
             sage: len(reps) == G.index()
             True
-            sage: all(reps[i] * L * ~reps[l[i]] in G for i in xrange(6))
+            sage: all(reps[i] * L * ~reps[l[i]] in G for i in range(6))
             True
-            sage: all(reps[i] * S * ~reps[s[i]] in G for i in xrange(6))
+            sage: all(reps[i] * S * ~reps[s[i]] in G for i in range(6))
             True
 
             sage: G = Gamma0(7)
             sage: reps, gens, l, s = G.todd_coxeter()
             sage: len(reps) == G.index()
             True
-            sage: all(reps[i] * L * ~reps[l[i]] in G for i in xrange(8))
+            sage: all(reps[i] * L * ~reps[l[i]] in G for i in range(8))
             True
-            sage: all(reps[i] * S * ~reps[s[i]] in G for i in xrange(8))
+            sage: all(reps[i] * S * ~reps[s[i]] in G for i in range(8))
             True
 
             sage: G = Gamma1(3)
             sage: reps, gens, l, s = G.todd_coxeter(on_right=False)
             sage: len(reps) == G.index()
             True
-            sage: all(~reps[l[i]] * L * reps[i] in G for i in xrange(8))
+            sage: all(~reps[l[i]] * L * reps[i] in G for i in range(8))
             True
-            sage: all(~reps[s[i]] * S * reps[i] in G for i in xrange(8))
+            sage: all(~reps[s[i]] * S * reps[i] in G for i in range(8))
             True
 
             sage: G = Gamma0(5)
             sage: reps, gens, l, s = G.todd_coxeter(on_right=False)
             sage: len(reps) == G.index()
             True
-            sage: all(~reps[l[i]] * L * reps[i] in G for i in xrange(6))
+            sage: all(~reps[l[i]] * L * reps[i] in G for i in range(6))
             True
-            sage: all(~reps[s[i]] * S * reps[i] in G for i in xrange(6))
+            sage: all(~reps[s[i]] * S * reps[i] in G for i in range(6))
             True
         """
         if G is None:
@@ -352,7 +352,7 @@ class ArithmeticSubgroup(group.Group):
                         y = y*l
                     else:
                         y = l*y
-                    for i in xrange(len(l_wait_back)):
+                    for i in range(len(l_wait_back)):
                         v = l_wait_back[i]
                         if on_right:
                             yy = y*~v
@@ -384,7 +384,7 @@ class ArithmeticSubgroup(group.Group):
                         y = y*s
                     else:
                         y = s*y
-                    for i in xrange(len(s_wait_back)):
+                    for i in range(len(s_wait_back)):
                         v = s_wait_back[i]
                         if on_right:
                             yy = y*~v
@@ -432,7 +432,7 @@ class ArithmeticSubgroup(group.Group):
         # Cheap trick: if self is a subgroup of something with no elliptic points,
         # then self has no elliptic points either.
 
-        from all import Gamma0, is_CongruenceSubgroup
+        from .all import Gamma0, is_CongruenceSubgroup
         if is_CongruenceSubgroup(self):
             if self.is_subgroup(Gamma0(self.level())) and Gamma0(self.level()).nu2() == 0:
                 return 0
@@ -463,7 +463,7 @@ class ArithmeticSubgroup(group.Group):
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.nu3(Gamma0(1729)) == 8
             True
 
-        We test that a bug in handling of subgroups not containing -1 is fixed: ::
+        We test that a bug in handling of subgroups not containing -1 is fixed::
 
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.nu3(GammaH(7, [2]))
             2
@@ -472,7 +472,7 @@ class ArithmeticSubgroup(group.Group):
         # Cheap trick: if self is a subgroup of something with no elliptic points,
         # then self has no elliptic points either.
 
-        from all import Gamma0, is_CongruenceSubgroup
+        from .all import Gamma0, is_CongruenceSubgroup
         if is_CongruenceSubgroup(self):
             if self.is_subgroup(Gamma0(self.level())) and Gamma0(self.level()).nu3() == 0:
                 return 0
@@ -679,7 +679,7 @@ class ArithmeticSubgroup(group.Group):
         representatives for the orbits of self on `\mathbb{P}^1(\QQ)`.
         These should be returned in a reduced form where this makes sense.
 
-        INPUTS:
+        INPUT:
 
         - ``algorithm`` -- which algorithm to use to compute the cusps of self.
           ``'default'`` finds representatives for a known complete set of
@@ -703,7 +703,7 @@ class ArithmeticSubgroup(group.Group):
         except (AttributeError,KeyError):
             self._cusp_list = {}
 
-        from congroup_sl2z import is_SL2Z
+        from .congroup_sl2z import is_SL2Z
         if is_SL2Z(self):
             s = [Cusp(1,0)]
 
@@ -782,7 +782,7 @@ class ArithmeticSubgroup(group.Group):
         vy = lift_to_sl2z(y.numerator(),y.denominator(), 0)
         dy = SL2Z([vy[2], -vy[0], vy[3], -vy[1]])
 
-        for i in xrange(self.index()):
+        for i in range(self.index()):
             # Note that the width of any cusp is bounded above by the index of self.
             # If self is congruence, then the level of self is a much better bound, but
             # this method is written to work with non-congruence subgroups as well,
@@ -818,7 +818,7 @@ class ArithmeticSubgroup(group.Group):
         w = lift_to_sl2z(c.denominator(), c.numerator(), 0)
         g = SL2Z([w[3], w[1], w[2],w[0]])
 
-        for d in xrange(1,1+self.index()):
+        for d in range(1,1+self.index()):
             if g * SL2Z([1,d,0,1]) * (~g) in self:
                 return (g * SL2Z([1,d,0,1]) * (~g), d, 1)
             elif g * SL2Z([-1,-d,0,-1]) * (~g) in self:
@@ -900,7 +900,7 @@ class ArithmeticSubgroup(group.Group):
             sage: G.generalised_level()
             4
         """
-        return arith.lcm([self.cusp_width(c) for c in self.cusps()])
+        return lcm([self.cusp_width(c) for c in self.cusps()])
 
     def projective_index(self):
         r"""
@@ -974,7 +974,7 @@ class ArithmeticSubgroup(group.Group):
             sage: Gamma1(4).farey_symbol()
             FareySymbol(Congruence Subgroup Gamma1(4))
         """
-        from farey_symbol import Farey
+        from .farey_symbol import Farey
         return Farey(self)
 
     @cached_method
@@ -1292,7 +1292,7 @@ class ArithmeticSubgroup(group.Group):
         n = len(l_edges)
         s3_edges = [None] * n
         r_edges = [None] * n
-        for i in xrange(n):
+        for i in range(n):
             ii = s2_edges[l_edges[i]]
             s3_edges[ii] = i
             r_edges[ii] = s2_edges[i]
@@ -1315,6 +1315,7 @@ class ArithmeticSubgroup(group.Group):
         -  ``weight`` - an integer `\geq 2` (default: 2)
 
         EXAMPLES::
+
             sage: Gamma0(11).sturm_bound(2)
             2
             sage: Gamma0(389).sturm_bound(2)

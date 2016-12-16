@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 # WARNING -- if you add a package here, also add it to
-# the gap_reset_workspace() command in 
-#    <SAGE_ROOT>/devel/sage/sage/interfaces/gap.py
+# the gap_reset_workspace() command in
+#    <SAGE_ROOT>/src/sage/interfaces/gap.py
 #
 
-if [ -z "$SAGE_LOCAL" ]; then 
-    echo >&2 "SAGE_LOCAL undefined ... exiting" 
-    echo >&2 "Maybe run 'sage --sh'?" 
-    exit 1 
-fi 
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
+fi
 
 GAP_DIR="$SAGE_LOCAL/gap/latest"
 PKG_DIR="$GAP_DIR/pkg"
@@ -27,10 +27,9 @@ fi
 
 cd src/
 
-# HAPprime should be added in the future?
 for p in \
-    crime ctbllib design factint grape \
-    guava-3.12 Hap1.10 HAPcryst laguna polymaking \
+    aclib crime ctbllib cryst crystcat design factint grape \
+    guava-3.13 Hap1.11 HAPcryst happrime laguna polymaking \
     sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
 do
     echo "Copying package $p"
@@ -58,14 +57,13 @@ fi
 
 
 # Build GUAVA package
-cd "$PKG_DIR/guava-3.12"
-./configure "$GAP_DIR"
-if [ $? -ne 0 ]; then 
+cd "$PKG_DIR"/guava-3* && ./configure "$GAP_DIR"
+if [ $? -ne 0 ]; then
     echo >&2 "Error configuring GUAVA packagae."
     exit 1
 fi
 $MAKE -j1
-if [ $? -ne 0 ]; then 
+if [ $? -ne 0 ]; then
     echo >&2 "Error building GUAVA package."
     exit 1
 fi

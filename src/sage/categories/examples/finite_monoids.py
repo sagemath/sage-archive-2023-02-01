@@ -13,7 +13,7 @@ from sage.sets.family import Family
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
-from sage.categories.all import FiniteMonoids
+from sage.categories.all import Monoids
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
@@ -29,18 +29,20 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
         An example of a finite multiplicative monoid: the integers modulo 12
 
         sage: S.category()
-        Category of finite monoids
+        Category of finitely generated finite enumerated monoids
 
     We conclude by running systematic tests on this monoid::
 
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -52,6 +54,7 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
         running ._test_enumerated_set_iter_cardinality() . . . pass
         running ._test_enumerated_set_iter_list() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -72,7 +75,7 @@ class IntegerModMonoid(UniqueRepresentation, Parent):
 
         """
         self.n = n
-        Parent.__init__(self, category = FiniteMonoids())
+        Parent.__init__(self, category=Monoids().Finite().FinitelyGenerated())
 
     def _repr_(self):
         r"""

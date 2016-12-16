@@ -1,10 +1,7 @@
 r"""
-This module implements the two following categories :
-
- -  Complete Discrete Valuation Rings (CDVR)
-
- -  Complete Discrete Valuation Fields (CDVF)
+Complete Discrete Valuation Rings (CDVR) and Fields (CDVF)
 """
+from __future__ import absolute_import
 #**************************************************************************
 #  Copyright (C) 2013 Xavier Caruso <xavier.caruso@normalesup.org>
 #
@@ -16,7 +13,7 @@ This module implements the two following categories :
 from sage.misc.abstract_method import abstract_method
 
 from sage.categories.category_singleton import Category_singleton
-from discrete_valuation import DiscreteValuationRings, DiscreteValuationFields
+from .discrete_valuation import DiscreteValuationRings, DiscreteValuationFields
 #from sage.misc.cachefunc import cached_method
 
 class CompleteDiscreteValuationRings(Category_singleton):
@@ -50,7 +47,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             Return the absolute precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: R = Zp(7)
                 sage: x = R(7); x
@@ -64,7 +61,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             Return the relative precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: R = Zp(7)
                 sage: x = R(7); x
@@ -105,7 +102,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             """
             Return the absolute precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: K = Qp(7)
                 sage: x = K(7); x
@@ -119,7 +116,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             """
             Return the relative precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: K = Qp(7)
                 sage: x = K(7); x

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+cd src
+
+$PIP_INSTALL .
+
+if [ $? -ne 0 ]; then
+    echo "Error installing ptyprocess"
+    exit 1
+fi

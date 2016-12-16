@@ -1,7 +1,8 @@
 """
 Testing modular symbols spaces.
 
-TESTS:
+TESTS::
+
     sage: m = ModularSymbols(389)
     sage: [(g.degree(), e) for g, e in m.T(2).fcp()]
     [(1, 1), (1, 2), (2, 2), (3, 2), (6, 2), (20, 2)]
@@ -23,11 +24,12 @@ TESTS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from __future__ import absolute_import
 
 import random
 
-import modsym
+from . import modsym
 import sage.modular.dirichlet as dirichlet
 import sage.modular.arithgroup.all as arithgroup
 from sage.misc.misc import cputime
@@ -104,15 +106,15 @@ class Test:
         else:
             which = random.randrange(0,3)
         if which == 0:
-            print "gamma0"
+            print("gamma0")
             M = self._modular_symbols_space_gamma0()
         elif which == 1:
-            print "gamma1"
+            print("gamma1")
             M = self._modular_symbols_space_gamma1()
         else:
-            print "character"
+            print("character")
             M = self._modular_symbols_space_character()
-        print "\t",M
+        print("\t", M)
         return M
 
     def _level_weight_sign(self):
@@ -128,8 +130,8 @@ class Test:
         """
         level = random.choice(self.levels)
         weight = random.choice(self.weights)
-        sign = random.choice([-1,0,1])
-        print "level = %s, weight = %s, sign = %s"%(level,weight,sign)
+        sign = random.choice([-1, 0, 1])
+        print("level = %s, weight = %s, sign = %s" % (level, weight, sign))
         return level, weight, sign
 
     def _modular_symbols_space_gamma0(self):
@@ -192,8 +194,8 @@ class Test:
             test_random
             ...
         """
-        print "test_%s"%name
-        Test.__dict__["test_%s"%name](self)
+        print("test_%s" % name)
+        Test.__dict__["test_%s" % name](self)
 
     #################################################################
     # The tests
@@ -233,7 +235,7 @@ class Test:
                 s += " (will stop after about %s seconds)"%seconds
             t = cputime()
             self._do(name)
-            print "\ttime=%s\telapsed=%s"%(cputime(t),cputime(total))
+            print("\ttime=%s\telapsed=%s" % (cputime(t), cputime(total)))
             n += 1
 
     def test_cs_dimension(self):
@@ -264,8 +266,8 @@ class Test:
         V = M.cuspidal_submodule().new_submodule()
         d = V.dimension()
         d2 = M._cuspidal_new_submodule_dimension_formula()
-        if d != d2:
-            assert False, "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(M, d, d2)
+        assert d == d2, \
+            "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(M, d, d2)
 
     def test_csns_nscs(self):
         """
@@ -283,8 +285,8 @@ class Test:
         V2 = M.new_submodule().cuspidal_submodule()
         assert V1 == V2, "Test failed for M=\"%s\", where the new cuspidal and cuspidal new spaces are computed differently."%M
         d = M._cuspidal_new_submodule_dimension_formula()
-        if d != V1.dimension():
-            assert False, "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(
+        assert d == V1.dimension(), \
+            "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(
                      M, V1.dimension(), d)
 
 
@@ -329,6 +331,5 @@ class Test:
         """
         tests = [a for a in Test.__dict__.keys() if a[:5] == "test_" and a != "test_random"]
         name = random.choice(tests)
-        print "Doing random test %s"%name
+        print("Doing random test %s" % name)
         Test.__dict__[name](self)
-

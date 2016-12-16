@@ -20,16 +20,9 @@ Installation Guide for more about those.)
   executed every time Sage starts.  The default value is
   ``$DOT_SAGE/init.sage``.
 
-- :envvar:`SAGE_SERVER` -- if you want to install a Sage package using
-  ``sage -i PKG_NAME``, Sage downloads the file from the web, using
-  the address ``http://www.sagemath.org/`` by default, or the address
-  given by :envvar:`SAGE_SERVER` if it is set.  If you wish to set up
-  your own server, then note that Sage will search the directories
-  ``SAGE_SERVER/packages/standard/``,
-  ``SAGE_SERVER/packages/optional/``,
-  ``SAGE_SERVER/packages/experimental/``, and
-  ``SAGE_SERVER/packages/archive/`` for packages.  See the script
-  :file:`$SAGE_ROOT/spkg/bin/sage-spkg` for the implementation.
+- :envvar:`SAGE_SERVER` -- only used for installing
+  packages. Alternative mirror from which to download sources, see the
+  Installation Guide for details.
 
 - :envvar:`SAGE_PATH` -- a colon-separated list of directories which
   Sage searches when trying to locate Python libraries.
@@ -38,16 +31,26 @@ Installation Guide for more about those.)
   command to run a web browser, but if this doesn't seem to work on
   your machine, set this variable to the appropriate command.
 
-- :envvar:`SAGE_ORIG_LD_LIBRARY_PATH_SET` -- set this to something
-  non-empty to force Sage to set the :envvar:`LD_LIBRARY_PATH` before
-  executing system commands.
+Relevant environment variables for other packages
+=================================================
 
-- :envvar:`SAGE_ORIG_DYLD_LIBRARY_PATH_SET` -- similar, but only used
-  on Mac OS X to set the :envvar:`DYLD_LIBRARY_PATH`.
+This is a non-exhaustive list of environment variables which influence
+some package contained within the SageMath distribution.
 
-- :envvar:`SAGE_CBLAS` -- used in the file
-  :file:`SAGE_ROOT/devel/sage/sage/misc/cython.py`.  Set this to the
-  base name of the BLAS library file on your system if you want to
-  override the default setting.  That is, if the relevant file is
-  called :file:`libcblas_new.so` or :file:`libcblas_new.dylib`, then
-  set this to "cblas_new".
+In many cases, SageMath uses a custom default value if the variable is
+not set, which is not the same default that the system-wide package
+would use. So, if you would like to use your system-wide configuration,
+you need to explicitly set the environment variable to the system-wide
+default.
+
+- :envvar:`IPYTHONDIR` --
+  directory where the configuation of IPython is stored. By default,
+  this is some directory inside :envvar:`DOT_SAGE`.
+  See http://ipython.readthedocs.io/en/stable/development/config.html
+  for more information.
+
+- :envvar:`JUPYTER_CONFIG_DIR` --
+  directory where the configuation of Jupyter is stored. By default,
+  this is some directory inside :envvar:`DOT_SAGE`.
+  See http://jupyter.readthedocs.io/en/latest/projects/jupyter-directories.html
+  for more information.

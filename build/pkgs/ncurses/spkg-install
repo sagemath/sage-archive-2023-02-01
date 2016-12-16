@@ -20,7 +20,7 @@ if [ $SAGE64 = yes ]; then
 fi
 
 DEBUG_CONFIGURE_FLAG=''
-if [ $SAGE_DEBUG = yes ]; then
+if [ "$SAGE_DEBUG" = yes ]; then
     CFLAGS="-O0 -g $CFLAGS"
     DEBUG_CONFIGURE_FLAG='--with-debug'
 else
@@ -41,17 +41,6 @@ export LDFLAGS
 
 cd src
 
-echo "Applying patches to upstream source..."
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'."
-        exit 1
-    fi
-done
-
-
 # Ncurses cannot build narrow and wide (unicode, --enable-widec)
 # versions in one go. Need to compile twice. Note that Python's curses
 # module will want the wide version, and readline the narrow version.
@@ -71,6 +60,8 @@ echo "Configuring ncurses (narrow)..."
     --without-ada \
     --disable-rpath-hack \
     --enable-overwrite \
+    --with-pkg-config-libdir="$SAGE_LOCAL/lib/pkgconfig" \
+    --enable-pc-files \
     "$DEBUG_CONFIGURE_FLAG"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring ncurses (narrow)."
@@ -109,6 +100,8 @@ echo "Configuring ncurses (wide)..."
     --without-ada \
     --disable-rpath-hack \
     --enable-overwrite \
+    --with-pkg-config-libdir="$SAGE_LOCAL/lib/pkgconfig" \
+    --enable-pc-files \
     "$DEBUG_CONFIGURE_FLAG"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring ncurses (wide)."

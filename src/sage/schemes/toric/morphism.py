@@ -60,7 +60,7 @@ homogeneously rescaled coordinates of a point of `\mathbb{P}^1` map to the same
 point in `\mathbb{P}^2` up to its homogeneous rescalings. It is not
 equivariant with respect to the torus actions
 
-.. math::
+.. MATH::
 
     \CC^\times \times \mathbb{P}^1,
     (\mu,[u:v]) \mapsto [u:\mu v]
@@ -137,7 +137,7 @@ If we denote the homogeneous coordinates of `O_{\mathbb{P}^1}(2)` by
 `x`, `t`, `y` corresponding to the rays `(1,2)`, `(1,1)`, and `(1,0)`
 then the blow-up map is [BB]_:
 
-.. math::
+.. MATH::
 
     f: O_{\mathbb{P}^1}(2) \to \CC^2/\ZZ_2, \quad
     (x,t,y) \mapsto \left( x\sqrt{t}, y\sqrt{t} \right)
@@ -161,7 +161,7 @@ For example, consider the blow-up restricted to one of the two
 coordinate charts of $O_{\mathbb{P}^1}(2)$ ::
 
 
-    sage: O2_P1_chart = ToricVariety(Fan([O2_P1.fan().generating_cones()[1]]))
+    sage: O2_P1_chart = ToricVariety(Fan([O2_P1.fan().generating_cones()[0]]))
     sage: single_chart = O2_P1_chart.hom(identity_matrix(2), A2_Z2)
     sage: single_chart.is_dominant()
     True
@@ -316,10 +316,10 @@ corresponding to the cones of the domain fan::
 
     sage: fm = phi_d.fan_morphism()
     sage: for c in flatten(phi_d.domain().fan().cones()):
-    ...       fc, m = phi_d.fiber_component(c, multiplicity=True)
-    ...       print "{} |-> {} ({} rays, multiplicity {}) over {}".format(
-    ...         c.ambient_ray_indices(), fc, fc.fan().nrays(),
-    ...         m, fm.image_cone(c).ambient_ray_indices())
+    ....:     fc, m = phi_d.fiber_component(c, multiplicity=True)
+    ....:     print("{} |-> {} ({} rays, multiplicity {}) over {}".format(
+    ....:       c.ambient_ray_indices(), fc, fc.fan().nrays(),
+    ....:       m, fm.image_cone(c).ambient_ray_indices()))
     () |-> 1-d affine toric variety (0 rays, multiplicity 2) over ()
     (0,) |-> 1-d affine toric variety (0 rays, multiplicity 1) over (0,)
     (1,) |-> 2-d affine toric variety (2 rays, multiplicity 1) over (0, 1)
@@ -336,9 +336,9 @@ affine line. An alternative perspective is provided by cones of the codomain
 fan::
 
     sage: for c in flatten(phi_d.codomain().fan().cones()):
-    ...       print "{} connected components over {}, each with {} irreducible components.".format(
-    ...         fm.index(c), c.ambient_ray_indices(),
-    ...         len(fm.primitive_preimage_cones(c)))
+    ....:     print("{} connected components over {}, each with {} irreducible components.".format(
+    ....:       fm.index(c), c.ambient_ray_indices(),
+    ....:       len(fm.primitive_preimage_cones(c))))
     2 connected components over (), each with 1 irreducible components.
     1 connected components over (0,), each with 1 irreducible components.
     None connected components over (1,), each with 0 irreducible components.
@@ -355,14 +355,18 @@ REFERENCES:
     http://arxiv.org/abs/1004.4924
 """
 
-
 #*****************************************************************************
-#  Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
-#  Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 # For now, the scheme morphism base class cannot derive from Morphism
 # since this would clash with elliptic curves. So we derive only on
@@ -370,8 +374,11 @@ REFERENCES:
 # https://groups.google.com/d/msg/sage-devel/qF4yU6Vdmao/wQlNrneSmWAJ
 from sage.categories.morphism import Morphism
 
-from sage.structure.sequence  import Sequence
-from sage.rings.all import ZZ, gcd
+from sage.structure.sage_object import richcmp_not_equal, richcmp
+
+from sage.structure.sequence import Sequence
+from sage.rings.all import ZZ
+from sage.arith.all import gcd
 from sage.misc.all import cached_method
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module_element import vector
@@ -472,7 +479,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
     Same as for
     :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial`.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
@@ -584,7 +591,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
                 cone of Rational polyhedral fan in 2-d lattice N.
 
     TESTS::
-    
+
         sage: V.embedding_morphism()._reverse_ray_map()
         {N(-1): 3, N(1): 2}
         sage: V.embedding_morphism()._defining_cone
@@ -646,7 +653,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
             sage: P1 = P2_112.orbit_closure(Cone([(1,0)]))
             sage: f = P1.embedding_morphism()
             sage: f._ray_map
-            {N(0, 1): (1), N(1, 0): (0), N(-1, -2): (-2)}
+            {N(-1, -2): (-2), N(0, 1): (1), N(1, 0): (0)}
             sage: f._reverse_ray_map()
             {N(-2): 2, N(1): 1}
         """
@@ -813,7 +820,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         :class:`SchemeMorphism_fan_toric_variety_dominant` for
         additional functionality for fibrations.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety`.
 
@@ -876,18 +883,20 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             raise ValueError('The fan morphism codomain must be the fan of the codomain.')
         self._fan_morphism = fan_morphism
 
-    def __cmp__(self, right):
+    def _richcmp_(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
         INPUT:
 
-        - ``right`` -- anything.
+        - ``right`` -- another toric morphism
 
         OUTPUT:
 
-        - 0 if ``right`` is also a toric morphism between the same domain and
-          codomain, given by an equal fan morphism. 1 or -1 otherwise.
+        - boolean
+
+        Comparison is done first by domain, then by codomain, then by
+        fan morphism.
 
         TESTS::
 
@@ -895,21 +904,27 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             sage: P3 = toric_varieties.P(3)
             sage: m = matrix([(2,0,0), (1,1,0)])
             sage: phi = A2.hom(m, P3)
-            sage: cmp(phi, phi)
-            0
-            sage: cmp(phi, prod(phi.factor()))
-            0
-            sage: abs(cmp(phi, phi.factor()[0]))
-            1
-            sage: cmp(phi, 1) * cmp(1, phi)
-            -1
+            sage: phi == phi
+            True
+            sage: phi == prod(phi.factor())
+            True
+            sage: phi == phi.factor()[0]
+            False
         """
-        if isinstance(right, SchemeMorphism_fan_toric_variety):
-            return cmp(
-                [self.domain(), self.codomain(), self.fan_morphism()],
-                [right.domain(), right.codomain(), right.fan_morphism()])
-        else:
-            return cmp(type(self), type(right))
+        if not isinstance(right, SchemeMorphism_fan_toric_variety):
+            return NotImplemented
+
+        lx = self.domain()
+        rx = right.domain()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.codomain()
+        rx = right.codomain()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self.fan_morphism(), right.fan_morphism(), op)
 
     def _composition_(self, right, homset):
         """
@@ -978,7 +993,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         The intermediate varieties are universal in the following sense. Let
         ``self`` map `X` to `X'` and let `X_s`, `X_i` sit in between, that is,
 
-        .. math::
+        .. MATH::
 
             X
             \twoheadrightarrow
@@ -1352,7 +1367,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
     morphism :meth:`must be dominant
     <sage.geometry.fan_morphism.FanMorphism.is_dominant>`.
 
-    OUPUT:
+    OUTPUT:
 
     A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety_dominant`.
 
@@ -1484,7 +1499,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
             (2-d toric variety covered by 4 affine patches, 1)
 
             sage: for primitive_cone in primitive_cones:
-            ...       print fibration.fiber_component(primitive_cone)
+            ....:     print(fibration.fiber_component(primitive_cone))
             2-d toric variety covered by 4 affine patches
             2-d toric variety covered by 3 affine patches
             2-d toric variety covered by 3 affine patches
@@ -1580,8 +1595,8 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         corresponding nodes of the graph are joined by an edge. Note that
         irreducible components do not have to be of the same dimension.
         
-        .. seealso::
-        
+        .. SEEALSO::
+
             :meth:`~SchemeMorphism_fan_toric_variety_dominant.fiber_component`.
 
         EXAMPLES::
@@ -1941,12 +1956,12 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             sage: fc = fibration.fiber_component(primitive_cone)
             sage: f = fc.embedding_morphism()
             sage: for r in fc.fan().rays():
-            ...       print r, f._image_ray_multiplicity(r)
+            ....:     print("{} {}".format(r, f._image_ray_multiplicity(r)))
             N(0, 1) (5, 1)
             N(1, -3) (9, 2)
             N(-1, 2) (11, 1)
             sage: f._ray_index_map
-            {N(0, 1): 5, N(-3, 4): 10, N(-1, 2): 11, N(1, 0): 4, N(2, -6): 9}
+            {N(-3, 4): 10, N(-1, 2): 11, N(0, 1): 5, N(1, 0): 4, N(2, -6): 9}
         """
         try:
             image_ray_index = self._ray_index_map[fiber_ray]

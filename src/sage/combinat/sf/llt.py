@@ -14,6 +14,7 @@ REFERENCES:
    Adv. Stud. Pure Math., vol. 28, Kinokuniya, Tokyo, 2000, pp 155-220
    arXiv:math/9809122v3 [math.q-alg]
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -30,8 +31,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.calculus.var import var
-import sfa
+from . import sfa
 import sage.combinat.ribbon_tableau as ribbon_tableau
 import sage.combinat.skew_partition
 from sage.rings.all import ZZ
@@ -117,18 +117,23 @@ class LLT_class(UniqueRepresentation):
             True
             sage: L3p != SymmetricFunctions(QQ).llt(3,t=1)
             True
+
+            sage: Sym = SymmetricFunctions(QQ['t'])
+            sage: ks3 = Sym.kschur(3)
+            sage: llt3 = Sym.llt(3)
+            sage: f = llt3.cospin([[1],[2,1],[1,1]]).omega()
+            sage: ks3(f)
+            ks3[2, 2, 1, 1] + ks3[2, 2, 2] + t*ks3[3, 1, 1, 1] + t^2*ks3[3, 2, 1]
         """
         self._k = k
         self._sym = Sym
         self._name = "level %s LLT polynomials"%self._k
-        if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
-            raise ValueError("parameter t must be in the base ring")
         self.t = Sym.base_ring()(t)
         self._name_suffix = ""
         if str(t) !='t':
             self._name_suffix += " with t=%s"%self.t
         self._name += self._name_suffix+" over %s"%self._sym.base_ring()
-        self._m = sage.combinat.sf.sf.SymmetricFunctions(QQt).monomial()
+        self._m = Sym.monomial()
 
     def __repr__(self):
         r"""
@@ -345,7 +350,7 @@ class LLT_class(UniqueRepresentation):
 
         - ``self`` -- a family of LLT symmetric functions bases
 
-        OUPUT:
+        OUTPUT:
 
         - returns the h-cospin basis of the LLT symmetric functions
 
@@ -376,7 +381,7 @@ class LLT_class(UniqueRepresentation):
 
         - ``self`` -- a family of LLT symmetric functions bases
 
-        OUPUT:
+        OUTPUT:
 
         - returns the h-spin basis of the LLT symmetric functions
 

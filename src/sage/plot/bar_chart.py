@@ -31,7 +31,7 @@ class BarChart(GraphicPrimitive):
     EXAMPLES::
 
         sage: from sage.plot.bar_chart import BarChart
-        sage: g = BarChart(range(4), [1,3,2,0], {}); g
+        sage: g = BarChart(list(range(4)), [1,3,2,0], {}); g
         BarChart defined by a 4 datalist
         sage: type(g)
         <class 'sage.plot.bar_chart.BarChart'>
@@ -43,7 +43,7 @@ class BarChart(GraphicPrimitive):
         EXAMPLES::
 
             sage: from sage.plot.bar_chart import BarChart
-            sage: BarChart(range(3), [10,3,5], {'width':0.7})
+            sage: BarChart(list(range(3)), [10,3,5], {'width':0.7})
             BarChart defined by a 3 datalist
         """
         self.datalist = datalist
@@ -74,7 +74,7 @@ class BarChart(GraphicPrimitive):
         EXAMPLES::
 
             sage: from sage.plot.bar_chart import BarChart
-            sage: g = BarChart(range(4), [1,3,2,0], {})
+            sage: g = BarChart(list(range(4)), [1,3,2,0], {})
             sage: list(sorted(g._allowed_options().iteritems()))
             [('hue', 'The color given as a hue.'), ('legend_label', 'The label for this item in the legend.'), ('rgbcolor', 'The color as an RGB tuple.'), ('width', 'The width of the bars'), ('zorder', 'The layer level in which to draw')]
         """
@@ -91,7 +91,7 @@ class BarChart(GraphicPrimitive):
         EXAMPLES::
 
             sage: from sage.plot.bar_chart import BarChart
-            sage: g = BarChart(range(4), [1,3,2,0], {})
+            sage: g = BarChart(list(range(4)), [1,3,2,0], {})
             sage: g._repr_()
             'BarChart defined by a 4 datalist'
         """
@@ -108,6 +108,7 @@ class BarChart(GraphicPrimitive):
         is executed::
 
             sage: bar_chart([1,2,10])
+            Graphics object consisting of 1 graphics primitive
         """
         options = self.options()
         color = options['rgbcolor']
@@ -131,22 +132,27 @@ def bar_chart(datalist, **options):
     A bar_chart with blue bars::
 
         sage: bar_chart([1,2,3,4])
+        Graphics object consisting of 1 graphics primitive
 
     A bar_chart with thinner bars::
 
         sage: bar_chart([x^2 for x in range(1,20)], width=0.2)
+        Graphics object consisting of 1 graphics primitive
 
     A bar_chart with negative values and red bars::
 
         sage: bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
+        Graphics object consisting of 1 graphics primitive
 
     A bar chart with a legend (it's possible, not necessarily useful)::
 
         sage: bar_chart([-1,1,-1,1], legend_label='wave')
+        Graphics object consisting of 1 graphics primitive
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: bar_chart([-2,8,-7,3], rgbcolor=(1,0,0), axes=False)
+        Graphics object consisting of 1 graphics primitive
         sage: bar_chart([-2,8,-7,3], rgbcolor=(1,0,0)).show(axes=False) # These are equivalent
     """
     dl = len(datalist)
@@ -171,7 +177,7 @@ def bar_chart(datalist, **options):
     #    g._bar_chart(ind, pnts, xrange, yrange, options=options)
     #    cnt += 1
     #else:
-    ind = range(len(datalist))
+    ind = list(range(len(datalist)))
     g.add_primitive(BarChart(ind, datalist, options=options))
     if options['legend_label']:
         g.legend(True)

@@ -1,6 +1,10 @@
 """
 Homogeneous symmetric functions
+
+By this we mean the basis formed of the complete homogeneous
+symmetric functions `h_\lambda`, not an arbitrary graded basis.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -22,13 +26,14 @@ Homogeneous symmetric functions
 # Homogeneous Symmetric Functions  #
 #                                  #
 ####################################
-import multiplicative, classical
+from . import multiplicative, classical
 from sage.combinat.partition import Partition
 
 class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     def __init__(self, Sym):
         """
-        A class of methods specific to the homogeneous basis of symmetric functions
+        A class of methods specific to the homogeneous basis of
+        symmetric functions.
 
         INPUT:
 
@@ -52,18 +57,22 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
         INPUT:
 
         - ``self`` -- a homogeneous basis of symmetric functions
-        - ``scalar`` -- optional input which specifies a function ``zee`` on partitions. The function
-                        ``zee`` determines the scalar product on the power sum basis
-                        with normalization `\langle p_\mu, p_\mu \rangle = \mathrm{zee}(mu)`.
-                        (default: uses standard ``zee`` function)
-        - ``scalar_name`` -- specifies the name of the scalar function (optional)
-        - ``prefix`` -- optional input, specifies the prefix to be used to display the basis.
+        - ``scalar`` -- optional input which specifies a function ``zee``
+          on partitions. The function ``zee`` determines the scalar
+          product on the power sum basis with normalization
+          `\langle p_\mu, p_\mu \rangle = \mathrm{zee}(mu)`.
+          (default: uses standard ``zee`` function)
+        - ``scalar_name`` -- specifies the name of the scalar function
+          (optional)
+        - ``prefix`` -- optional input, specifies the prefix to be
+          used to display the basis.
 
         OUTPUT:
 
-        - This method returns the dual basis of the homogeneous basis with respect to the
-          standard scalar product (the monomial basis).  If a function ``zee`` is specified,
-          the dual basis is with respect to the modified scalar product.
+        The dual basis of the homogeneous basis with respect to the
+        standard scalar product (the monomial basis).  If a function
+        ``zee`` is specified, the dual basis is with respect to the
+        modified scalar product.
 
         EXAMPLES::
 
@@ -173,15 +182,19 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
         def expand(self, n, alphabet='x'):
             """
-            Expands the symmetric function as a symmetric polynomial in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in ``n`` variables.
 
             INPUT:
 
-            - ``self`` -- an element of the homogeneous basis of symmetric functions
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+            - ``n`` -- a nonnegative integer
 
-            OUTPUT: a monomial expansion of an instance of ``self`` in `n` variables
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
+
+            OUTPUT:
+
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -200,7 +213,13 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
                 x^3 + x^2*y + x*y^2 + y^3 + x^2*z + x*y*z + y^2*z + x*z^2 + y*z^2 + z^3
                 sage: (h([]) + 2*h([1])).expand(3)
                 2*x0 + 2*x1 + 2*x2 + 1
+                sage: h([1]).expand(0)
+                0
+                sage: (3*h([])).expand(0)
+                3
             """
+            if n == 0:   # Symmetrica crashes otherwise...
+                return self.counit()
             condition = lambda part: False
             return self._expand(condition, n, alphabet)
 

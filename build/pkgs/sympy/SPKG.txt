@@ -6,14 +6,11 @@ SymPy is a Python library for symbolic mathematics. It aims to become a full-fea
 
 == Website ==
 
-http://code.google.com/p/sympy/
+http://sympy.org/
 
 == License ==
 
 New BSD: http://www.opensource.org/licenses/bsd-license.php
-
-== SPKG Maintainers ==
- * Ondrej Certik
 
 == Upstream Contact ==
 
@@ -28,7 +25,11 @@ sympy mailinglist: http://groups.google.com/group/sympy
 
 == Changelog ==
 
-=== sympy-0.7.3 (Eviatar Bach, 17 August 2013) ==
+=== sympy-0.7.5 (Sergey B Kirpichev, 29 September 2014) ===
+ * new upstream release
+ * fix SPKG.txt
+
+=== sympy-0.7.3 (Eviatar Bach, 17 August 2013) ===
  * Trac #14694: new upstream release
  * updating SymPy download URL
 

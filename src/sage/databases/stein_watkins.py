@@ -19,7 +19,7 @@ time, using the command
 This database covers a wide range of conductors, but unlike the
 :mod:`Cremona database <sage.databases.cremona>`, this database need not list
 all curves of a given conductor. It lists the curves whose coefficients are not
-"too large" (see [SteinWatkins]_).
+"too large" (see [SW2002]_).
 
 
 -  The command ``SteinWatkinsAllData(n)`` returns an iterator over the curves
@@ -41,15 +41,15 @@ EXAMPLES: We obtain the first table of elliptic curves.
     sage: d
     Stein-Watkins Database a.0 Iterator
 
-We type ``d.next()`` to get each isogeny class of
+We type ``next(d)`` to get each isogeny class of
 curves from ``d``::
 
-    sage: C = d.next()                                   # optional - database_stein_watkins
-    sage: C                                              # optional - database_stein_watkins
+    sage: C = next(d)                                   # optional - database_stein_watkins
+    sage: C                                             # optional - database_stein_watkins
     Stein-Watkins isogeny class of conductor 11
-    sage: d.next()                                       # optional - database_stein_watkins
+    sage: next(d)                                       # optional - database_stein_watkins
     Stein-Watkins isogeny class of conductor 14
-    sage: d.next()                                       # optional - database_stein_watkins
+    sage: next(d)                                       # optional - database_stein_watkins
     Stein-Watkins isogeny class of conductor 15
 
 An isogeny class has a number of attributes that give data about
@@ -75,7 +75,7 @@ conductor, leading coefficient of `L`-function, etc.
     sage: C.isogeny_number                               # optional - database_stein_watkins
     '25'
 
-If we were to continue typing ``d.next()`` we would
+If we were to continue typing ``next(d)`` we would
 iterate over all curves in the Stein-Watkins database up to
 conductor `10^5`. We could also type ``for C in d:
 ...``
@@ -84,24 +84,24 @@ To access the data file starting at `10^5` do the
 following::
 
     sage: d = SteinWatkinsAllData(1)
-    sage: C = d.next()                                  # optional - database_stein_watkins
-    sage: C                                             # optional - database_stein_watkins
+    sage: C = next(d)                                  # optional - database_stein_watkins
+    sage: C                                            # optional - database_stein_watkins
     Stein-Watkins isogeny class of conductor 100002
-    sage: C.curves                                      # optional - database_stein_watkins
+    sage: C.curves                                     # optional - database_stein_watkins
     [[[1, 1, 0, 112, 0], '(8,1,2,1)', 'X', '2'],
      [[1, 1, 0, -448, -560], '[4,2,1,2]', 'X', '2']]
 
 Next we access the prime-conductor data::
 
     sage: d = SteinWatkinsPrimeData(0)
-    sage: C = d.next()                                 # optional - database_stein_watkins
+    sage: C = next(d)                                  # optional - database_stein_watkins
     sage: C                                            # optional - database_stein_watkins
     Stein-Watkins isogeny class of conductor 11
 
-Each call ``d.next()`` gives another elliptic curve of
+Each call ``next(d)`` gives another elliptic curve of
 prime conductor::
 
-    sage: C = d.next()                                 # optional - database_stein_watkins
+    sage: C = next(d)                                  # optional - database_stein_watkins
     sage: C                                            # optional - database_stein_watkins
     Stein-Watkins isogeny class of conductor 17
     sage: C.curves                                     # optional - database_stein_watkins
@@ -109,17 +109,13 @@ prime conductor::
      [[1, -1, 1, -6, -4], '[2]', '1', '2x'],
      [[1, -1, 1, -1, -14], '(4)', '1', '4'],
      [[1, -1, 1, -91, -310], '[1]', '1', '2']]
-    sage: C = d.next()                                 # optional - database_stein_watkins
+    sage: C = next(d)                                  # optional - database_stein_watkins
     sage: C                                            # optional - database_stein_watkins
     Stein-Watkins isogeny class of conductor 19
 
 REFERENCE:
 
-.. [SteinWatkins] William Stein and Mark Watkins, *A database of elliptic
-   curves---first report*. In *Algorithmic number theory (ANTS V), Sydney,
-   2002*, Lecture Notes in Computer Science 2369, Springer, 2002, p267--275.
-   http://modular.math.washington.edu/papers/stein-watkins/
-
+- [SW2002]_
 """
 
 #*****************************************************************************
@@ -137,10 +133,13 @@ REFERENCE:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six.moves import range
 
-import bz2, os
+import bz2
+import os
 
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 
 class SteinWatkinsIsogenyClass:
     def __init__(self, conductor):
@@ -187,7 +186,7 @@ class SteinWatkinsAllData:
         name = str(num)
         name = '0'*(3-len(name)) + name
         self._file = os.path.join(SAGE_SHARE, 'stein_watkins', 'a.%s.bz2'%name)
-        self._iter = self.__iter__()
+        self._iter = iter(self)
 
     def __repr__(self):
         """
@@ -206,7 +205,7 @@ class SteinWatkinsAllData:
             sage: d = SteinWatkinsAllData(0)
             sage: d = d[10:20]                         # optional - database_stein_watkins; long time
             sage: for C in d:                          # optional - database_stein_watkins; long time
-            ....:     print C
+            ....:     print(C)
             Stein-Watkins isogeny class of conductor 11
             Stein-Watkins isogeny class of conductor 14
             Stein-Watkins isogeny class of conductor 15
@@ -239,8 +238,10 @@ class SteinWatkinsAllData:
                 C.curves.append([eval(w[0]), w[1], w[2], w[3]])
         yield C
 
-    def next(self):
-        return self._iter.next()
+    def __next__(self):
+        return next(self._iter)
+
+    next = __next__
 
     def __getitem__(self, N):
         """
@@ -282,20 +283,20 @@ class SteinWatkinsAllData:
 
             sage: d = SteinWatkinsAllData(1)
             sage: E = d.iter_levels()
-            sage: E.next()                             # optional - database_stein_watkins
+            sage: next(E)                             # optional - database_stein_watkins
             [Stein-Watkins isogeny class of conductor 100002]
-            sage: E.next()                             # optional - database_stein_watkins
+            sage: next(E)                             # optional - database_stein_watkins
             [Stein-Watkins isogeny class of conductor 100005,
             Stein-Watkins isogeny class of conductor 100005]
-            sage: E.next()                             # optional - database_stein_watkins
+            sage: next(E)                             # optional - database_stein_watkins
             [Stein-Watkins isogeny class of conductor 100007]
         """
-        iter = self.__iter__()
+        it = iter(self)
         C = []
         N = 0
         while True:
             try:
-                E = iter.next()
+                E = next(it)
             except StopIteration:
                 if C != []:
                     yield C
@@ -319,7 +320,7 @@ class SteinWatkinsPrimeData(SteinWatkinsAllData):
         name = str(num)
         name = '0'*(2-len(name)) + name
         self._file = os.path.join(SAGE_SHARE,'stein_watkins', 'p.%s.bz2'%name)
-        self._iter = self.__iter__()
+        self._iter = iter(self)
 
     def __repr__(self):
         """
@@ -349,10 +350,10 @@ def ecdb_num_curves(max_level=200000):
     i = 0
     N = 1
     d = SteinWatkinsAllData(i)
-    v = [int(0) for _ in xrange(max_level+1)]
+    v = [int(0) for _ in range(max_level + 1)]
     while True:
         try:
-            C = d.next()
+            C = next(d)
         except StopIteration:
             i += 1
             d = SteinWatkinsAllData(i)

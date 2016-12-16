@@ -1,14 +1,25 @@
-include 'sage/ext/stdsage.pxi'
-from sage.misc.sage_itertools import unique_merge
+"""
+Miscellaneous utilities
+"""
+
+from cpython.object cimport PyObject, Py_TYPE, descrgetfunc
+
+cdef extern from "Python.h":
+    # Internal API to look for a name through the MRO.
+    # This returns a borrowed reference, and doesn't set an exception!
+    PyObject* _PyType_Lookup(type t, name)
+
 
 def is_extension_type(cls):
     """
     INPUT:
-     - cls: a class
+
+    - cls: a class
 
     Tests whether cls is an extension type (int, list, cython compiled classes, ...)
 
-    EXAMPLES
+    EXAMPLES::
+
         sage: from sage.structure.parent import is_extension_type
         sage: is_extension_type(int)
         True
@@ -26,22 +37,19 @@ def is_extension_type(cls):
         pass
     return False
 
-class A(object):
-    pass
-methodwrapper = type(A.__call__)
 
 cdef class AttributeErrorMessage:
     """
     Tries to emulate the standard Python ``AttributeError`` message.
 
-    NOTE:
+    .. NOTE::
 
-    The typical fate of an attribute error is being caught. Hence,
-    under normal circumstances, nobody will ever see the error
-    message. The idea for this class is to provide an object that
-    is fast to create and whose string representation is an attribute
-    error's message. That string representation is only created if
-    someone wants to see it.
+        The typical fate of an attribute error is being caught. Hence,
+        under normal circumstances, nobody will ever see the error
+        message. The idea for this class is to provide an object that
+        is fast to create and whose string representation is an attribute
+        error's message. That string representation is only created if
+        someone wants to see it.
 
     EXAMPLES::
 
@@ -61,8 +69,7 @@ cdef class AttributeErrorMessage:
 
     By :trac:`14100`, the attribute errors raised on elements and parents are
     unique objects. The error message of this unique error object is changed
-    inplace. This is for reasons of efficiency.
-    ::
+    inplace. This is for reasons of efficiency. ::
 
         sage: try:
         ....:     1.__bla
@@ -78,7 +85,7 @@ cdef class AttributeErrorMessage:
         True
         sage: ElementError
         AttributeError('sage.symbolic.expression.Expression' object has no attribute '__bla',)
-        sage: isinstance(ElementError.message, sage.structure.misc.AttributeErrorMessage)
+        sage: isinstance(ElementError.args[0], sage.structure.misc.AttributeErrorMessage)
         True
 
     Hence, if one really needs the error message as a string, then one should
@@ -100,85 +107,94 @@ cdef class AttributeErrorMessage:
         sage: ParentError2
         AttributeError('sage.rings.integer_ring.IntegerRing_class' object has no attribute '__bla',)
         sage: ParentError2 is ElementError
-        False
+        True
 
     AUTHOR:
 
     - Simon King (2011-05-21)
     """
-
-    def __init__(self, P,str name):
+    def __init__(self, P, name):
         """
         INPUT:
 
-        - ``P``, any object
-        - ``name``, a string
+        - ``P`` -- any object
 
-        TEST::
+        - ``name`` -- a string
+
+        TESTS::
 
             sage: from sage.structure.misc import AttributeErrorMessage
-            sage: AttributeErrorMessage(int(1),'bla')
+            sage: AttributeErrorMessage(int(1), 'bla')
             'int' object has no attribute 'bla'
-
         """
         self.cls = type(P)
         self.name = name
+
     def __repr__(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.structure.misc import AttributeErrorMessage
-            sage: AttributeErrorMessage(int(1),'bla')
+            sage: AttributeErrorMessage(int(1), 'bla')
             'int' object has no attribute 'bla'
-
         """
-        cdef int dictoff
+        cdef int dictoff = 1
         try:
             dictoff = self.cls.__dictoffset__
         except AttributeError:
-            return "'"+self.cls.__name__+"' object has no attribute '"+self.name+"'"
+            pass
         if dictoff:
-            return "'"+self.cls.__name__+"' object has no attribute '"+self.name+"'"
-        return repr(self.cls)[6:-1] + " object has no attribute '"+self.name+"'"
+            cls = repr(self.cls.__name__)
+        else:
+            cls = repr(self.cls)[6:-1]
+        return f"{cls} object has no attribute {self.name!r}"
+
 
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
 dummy_attribute_error = AttributeError(dummy_error_message)
 
-def getattr_from_other_class(self, cls, str name):
+
+cpdef getattr_from_other_class(self, cls, name):
     """
-    INPUT::
+    Emulate ``getattr(self, name)``, as if ``self`` was an instance of
+    ``cls``.
 
-     - ``self``: some object
-     - ``cls``: a class
-     - ``name``: a string
+    INPUT:
 
-    Emulates ``getattr(self, name)``, as if self was an instance of ``cls``.
+    - ``self`` -- some object
+
+    - ``cls`` -- a new-style class
+
+    - ``name`` -- a string
 
     If self is an instance of cls, raises an ``AttributeError``, to
     avoid a double lookup. This function is intended to be called from
     __getattr__, and so should not be called if name is an attribute
     of self.
 
-    TODO: lookup if such a function readilly exists in Python, and if
-    not triple check this specs and make this implementation
-    rock-solid.
-
-    Caveat: this is pretty hacky, does not handle caching, there is no
-    guarantee of robustness with super calls and descriptors, ...
-
     EXAMPLES::
 
-        sage: from sage.structure.parent import getattr_from_other_class
+        sage: from sage.structure.misc import getattr_from_other_class
         sage: class A(object):
-        ...        def inc(self):
-        ...            return self + 1
-        ...        @lazy_attribute
-        ...        def lazy_attribute(self):
-        ...            return repr(self)
+        ....:      def inc(self):
+        ....:          return self + 1
+        ....:
+        ....:      @staticmethod
+        ....:      def greeting():
+        ....:          print("Hello World!")
+        ....:
+        ....:      @lazy_attribute
+        ....:      def lazy_attribute(self):
+        ....:          return repr(self)
         sage: getattr_from_other_class(1, A, "inc")
         <bound method A.inc of 1>
         sage: getattr_from_other_class(1, A, "inc")()
         2
+
+    Static methods work::
+
+        sage: getattr_from_other_class(1, A, "greeting")()
+        Hello World!
 
     Caveat: lazy attributes work with extension types only
     if they allow attribute assignment or have a public attribute
@@ -219,7 +235,7 @@ def getattr_from_other_class(self, cls, str name):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no attribute '__weakref__'
 
-    This was caught by #8296 for which we do a couple more tests::
+    This was caught by :trac:`8296` for which we do a couple more tests::
 
         sage: "__weakref__" in dir(A)
         True
@@ -244,36 +260,62 @@ def getattr_from_other_class(self, cls, str name):
         Traceback (most recent call last):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no attribute '__call__'
+
+    TESTS:
+
+    Check that we do not pick up special attributes from the ``type``
+    class, see :trac:`20686`::
+
+        sage: getattr_from_other_class(1, type, "__name__")
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no attribute '__name__'
+
+    This does not work with an old-style class::
+
+        sage: class OldStyle:
+        ....:     pass
+        sage: getattr_from_other_class(1, OldStyle, "foo")
+        Traceback (most recent call last):
+        ...
+        TypeError: <class __main__.OldStyle at ...> is not a type
+
+    Non-strings as "name" are handled gracefully::
+
+        sage: getattr_from_other_class(1, type, None)
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no attribute None
     """
-    if PY_TYPE_CHECK(self, cls):
+    if not isinstance(cls, type):
+        raise TypeError(f"{cls!r} is not a type")
+    if isinstance(self, cls):
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name
         raise dummy_attribute_error
-    try:
-        attribute = getattr(cls, name)
-    except AttributeError:
+    cdef PyObject* attr = _PyType_Lookup(<type>cls, name)
+    if attr is NULL:
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name
         raise dummy_attribute_error
-    if PY_TYPE_CHECK(attribute, methodwrapper):
-        dummy_error_message.cls = type(self)
-        dummy_error_message.name = name
-        raise dummy_attribute_error
-    try:
-        getter = attribute.__get__
-    except AttributeError:
+    attribute = <object>attr
+    # Check for a descriptor (__get__ in Python)
+    cdef descrgetfunc getter = Py_TYPE(attribute).tp_descr_get
+    if getter is NULL:
+        # Not a descriptor
         return attribute
     # Conditionally defined lazy_attributes don't work well with fake subclasses
-    # (a TypeError is raised if the lazy attribute is not defined)
-    # For the moment, we ignore that when this occurs
+    # (a TypeError is raised if the lazy attribute is not defined).
+    # For the moment, we ignore that when this occurs.
     # Other descriptors (including __weakref__) also break.
     try:
-        return getter(self, cls)
+        return getter(attribute, self, cls)
     except TypeError:
         pass
     dummy_error_message.cls = type(self)
     dummy_error_message.name = name
     raise dummy_attribute_error
+
 
 def dir_with_other_class(self, cls):
     r"""
@@ -284,16 +326,17 @@ def dir_with_other_class(self, cls):
     EXAMPLES::
 
         sage: class A(object):
-        ...      a = 1
-        ...      b = 2
-        ...      c = 3
+        ....:    a = 1
+        ....:    b = 2
+        ....:    c = 3
         sage: class B(object):
-        ...      b = 2
-        ...      c = 3
-        ...      d = 4
+        ....:    b = 2
+        ....:    c = 3
+        ....:    d = 4
         sage: x = A()
         sage: x.c = 1; x.e = 1
-        sage: sage.structure.parent.dir_with_other_class(x, B)
+        sage: from sage.structure.misc import dir_with_other_class
+        sage: dir_with_other_class(x, B)
         [..., 'a', 'b', 'c', 'd', 'e']
 
     Check that objects without dicts are well handled::
@@ -304,12 +347,12 @@ def dir_with_other_class(self, cls):
         sage: x.a = 1
         sage: hasattr(x,'__dict__')
         False
-        sage: sage.structure.parent.dir_with_other_class(x, B)
+        sage: dir_with_other_class(x, B)
         [..., 'a', 'b']
 
     TESTS:
 
-    Check that #13043 is fixed::
+    Check that :trac:`13043` is fixed::
 
         sage: len(dir(RIF))==len(set(dir(RIF)))
         True
@@ -321,8 +364,7 @@ def dir_with_other_class(self, cls):
     # attributes coming from subclasses of A will be ignored
     ret.update(dir(self.__class__))
     if hasattr(self, "__dict__"):
-        ret.update(self.__dict__.keys())
+        ret.update(list(self.__dict__))
     if not isinstance(self, cls):
         ret.update(dir(cls))
     return sorted(ret)
-

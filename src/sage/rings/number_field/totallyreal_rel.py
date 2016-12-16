@@ -83,9 +83,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
 
-
-from sage.rings.arith import binomial, gcd, divisors
+from sage.arith.all import binomial, gcd, divisors
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.number_field.totallyreal_data import ZZx, lagrange_degree_3, int_has_small_square_divisor, hermite_constant
@@ -95,7 +95,8 @@ from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_total
 from sage.libs.pari.all import pari
 from sage.rings.all import ZZ, QQ
 
-import math, bisect, sys
+import math
+import sys
 
 
 def integral_elements_in_box(K, C):
@@ -197,7 +198,7 @@ def integral_elements_in_box(K, C):
     S = []
 
     try:
-        pts = P.points_pc()
+        pts = P.points()
     except ValueError:
         return []
 
@@ -371,13 +372,6 @@ class tr_data_rel:
         OUTPUT:
 
         the successor polynomial as a coefficient list.
-
-        EXAMPLES:
-
-        As this function is heavily used internally by the various enumeration
-        routines, there is no separate test::
-
-            sage: pass # not tested
         """
 
         import numpy
@@ -396,7 +390,7 @@ class tr_data_rel:
                 return
             else:
                 if verbose:
-                    print "  finished"
+                    print("  finished")
 
                 # Already reached maximum, so "carry the 1" to find the next value of k.
                 k += 1
@@ -426,10 +420,10 @@ class tr_data_rel:
             # Recall k == -1 means all coefficients are good to go.
             while k >= 0 and (not haltk or k >= haltk):
                 if verbose:
-                    print k, ":",
-                    for i in range(0,self.m+1):
-                        print self.a[i],
-                    print ""
+                    print(k, ":", end="")
+                    for i in range(self.m + 1):
+                        print(self.a[i], end="")
+                    print("")
 
                 if k == m-2:
                     # We only know the value of a[n-1], the trace.
@@ -441,12 +435,12 @@ class tr_data_rel:
                     # Check for trivially empty.
                     if bl > br:
                         if verbose:
-                            print " ", br, ">", bl
+                            print(" ", br, ">", bl)
                         maxoutflag = 1
                         break
 
                     if verbose >= 2:
-                        print "  bl, br:", bl, br
+                        print("  bl, br:", bl, br)
 
                     # Enumerate all elements of Z_F with T_2 <= br
                     T2s = []
@@ -456,7 +450,7 @@ class tr_data_rel:
                         if tre[0] <= bl and tre[1] >= br:
                             trace_elts_found = True
                             if verbose >= 2:
-                                print "  found copy!"
+                                print("  found copy!")
                             for theta in tre[2]:
                                 if theta.trace() >= bl and theta.trace() <= br:
                                     T2s.append(theta)
@@ -477,12 +471,12 @@ class tr_data_rel:
                                 am2s.append(am2)
 
                     if verbose >= 2:
-                        print "  am2s:", am2s
+                        print("  am2s:", am2s)
 
                     # If none survive, break!
                     if len(am2s) == 0:
                         if verbose:
-                            print "  finished"
+                            print("  finished")
                         maxoutflag = 1
                         break
 
@@ -498,7 +492,7 @@ class tr_data_rel:
                     self.gnk[k] = [0, (m-1)*self.a[m-1], m*(m-1)/2]
 
                     if verbose >= 2:
-                        print "  betak:", self.beta[k]
+                        print("  betak:", self.beta[k])
                 else:
                     # Compute the roots of the derivative.
                     self.gnk[k+1][0] = self.a[k+1]
@@ -510,7 +504,7 @@ class tr_data_rel:
                             self.beta[k][i].sort()
                     except TypeError:
                         if verbose:
-                            print "  betak:", self.beta[k]
+                            print("  betak:", self.beta[k])
                         maxoutflag = True
                         break
 
@@ -523,7 +517,7 @@ class tr_data_rel:
                             df = self.Fx(self.gnk[k+2])
                             if gcd(f,df) != 1:
                                 if verbose:
-                                    print "  gnk has multiple factor!"
+                                    print("  gnk has multiple factor!")
                                 maxoutflag = True
                                 break
                     if maxoutflag:
@@ -543,7 +537,7 @@ class tr_data_rel:
                     self.beta[k] = [[self.b_lower[i]] + self.beta[k][i] + [self.b_upper[i]] for i in range(len(self.beta[k]))]
 
                     if verbose >= 2:
-                        print "  betak:", self.beta[k]
+                        print("  betak:", self.beta[k])
 
                     # Compute next g_(m-(k+1)), k times the formal integral of g_(m-k).
                     self.gnk[k] = [self.F.primitive_element()*0] + [self.gnk[k+1][i-1]*(k+1)/i for i in range(1,m-k+1)]
@@ -554,8 +548,8 @@ class tr_data_rel:
                     mk = m-(k+1)
 
                     if verbose >= 2:
-                        print "  gnk:", self.gnk[k]
-                        print "  gnks:", gnks
+                        print("  gnk:", self.gnk[k])
+                        print("  gnks:", gnks)
 
                     # Compute upper and lower bounds which guarantee one retains
                     # a polynomial with all real roots.
@@ -577,13 +571,13 @@ class tr_data_rel:
                                        abs(numpy.polyval(gnkm1s[j], betak[j][mk-2*i])*eps_global)) for j in range(self.d)]
 
                     if verbose >= 2:
-                        print "  akmin:", akmin
-                        print "  akmax:", akmax
+                        print("  akmin:", akmin)
+                        print("  akmax:", akmax)
 
                     for i in range(self.d):
                         if akmin[i] > akmax[i]:
                             if verbose:
-                                print " ", akmin[i], ">", akmax[i]
+                                print(" ", akmin[i], ">", akmax[i])
                             maxoutflag = 1
                             break
                     if maxoutflag:
@@ -602,10 +596,10 @@ class tr_data_rel:
                                 pass
 
                     if verbose:
-                        print "  amaxvals[k]:", self.amaxvals[k]
+                        print("  amaxvals[k]:", self.amaxvals[k])
                     if len(self.amaxvals[k]) == 0:
                         if verbose:
-                            print "  finished"
+                            print("  finished")
                         maxoutflag = True
                         break
                     self.a[k] = self.amaxvals[k].pop()
@@ -708,8 +702,8 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     Each of the outputs must be elements of Sage if ``return_pari_objects``
     is set to ``False``::
 
-        sage: enumerate_totallyreal_fields_rel(F, 2, 2000)[0][1].parent()
-        Interface to the PARI C library
+        sage: type(enumerate_totallyreal_fields_rel(F, 2, 2000)[0][1])
+        <type 'sage.libs.cypari2.gen.gen'>
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_pari_objects=False)[0][0].parent()
         Integer Ring
         sage: enumerate_totallyreal_fields_rel(F, 2, 2000, return_pari_objects=False)[0][1].parent()
@@ -735,22 +729,21 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     n = F.degree()*m
 
     # Initialize
-    S = []
-    Srel = []
+    S = {}        # dictionary of the form {(d, fabs): f, ...}
     dB_odlyzko = odlyzko_bound_totallyreal(n)
     dB = math.ceil(40000*dB_odlyzko**n)
     counts = [0,0,0,0]
 
     # Trivial case
     if m == 1:
-        g = pari(F.defining_polynomial()).reverse().Vec()
+        g = pari(F.defining_polynomial()).polrecip().Vec()
         if return_seqs:
             return [[0,0,0,0], [1, [-1, 1], g]]
         elif return_pari_objects:
             return [[1, g, pari('xF-1')]]
         else:
             Px = PolynomialRing(QQ, 'xF')
-            return [[ZZ(1), map(QQ, g), Px.gen()-1]]
+            return [[ZZ(1), [QQ(_) for _ in g], Px.gen()-1]]
 
     if verbose:
         saveout = sys.stdout
@@ -773,7 +766,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     while f_out[m] != 0:
         counts[0] += 1
         if verbose:
-            print "==>", f_out,
+            print("==>", f_out, end="")
 
         f_str = ''
         for i in range(len(f_out)):
@@ -786,7 +779,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         nf = nf.polresultant(nfF, parit)
         d = nf.poldisc()
         #counts[0] += 1
-        if d > 0 and nf.polsturm_full() == n:
+        if d > 0 and nf.polsturm() == n:
             da = int_has_small_square_divisor(Integer(d))
             if d > dB or d <= B*da:
                 counts[1] += 1
@@ -796,42 +789,35 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
 
                     if d <= B:
                         if verbose:
-                            print "has discriminant", d,
+                            print("has discriminant", d, end="")
 
                         # Find a minimal lattice element
                         counts[3] += 1
                         ng = pari([nf,zk]).polredabs()
 
                         # Check if K is contained in the list.
-                        found = False
-                        ind = bisect.bisect_left(S, [d,ng])
-                        while ind < len(S) and S[ind][0] == d:
-                            if S[ind][1] == ng:
-                                if verbose:
-                                    print "but is not new"
-                                found = True
-                                break
-                            ind += 1
-                        if not found:
+                        if (d, ng) in S:
                             if verbose:
-                                print "and is new!"
-                            S.insert(ind, [d,ng])
-                            Srel.insert(ind, Fx(f_out))
+                                print("but is not new")
+                        else:
+                            if verbose:
+                                print("and is new!")
+                            S[(d, ng)] = Fx(f_out)
                     else:
                         if verbose:
-                            print "has discriminant", abs(d), "> B"
+                            print("has discriminant", abs(d), "> B")
                 else:
                     if verbose:
-                        print "is not absolutely irreducible"
+                        print("is not absolutely irreducible")
             else:
                 if verbose:
-                    print "has discriminant", abs(d), "with no large enough square divisor"
+                    print("has discriminant", abs(d), "with no large enough square divisor")
         else:
             if verbose:
                 if d == 0:
-                    print "is not squarefree"
+                    print("is not squarefree")
                 else:
-                    print "is not totally real"
+                    print("is not totally real")
         if verbose == 2:
             T.incr(f_out,verbose=verbose)
         else:
@@ -847,9 +833,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
-                ind = bisect.bisect_left(S, [d,ng])
-                S.insert(ind, [d,ng])
-                Srel.insert(ind, Fx([-1,1,1]))
+                S[(d, ng)] = Fx([-1,1,1])
         elif F.degree() == 2:
             for ff in [[1,-7,13,-7,1],[1,-8,14,-7,1]]:
                 f = Fx(ff).factor()[0][0]
@@ -859,9 +843,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
                 d = K.absolute_discriminant()
                 if abs(d) <= B:
                     ng = Kabs_pari.polredabs()
-                    ind = bisect.bisect_left(S, [d,ng])
-                    S.insert(ind, [d,ng])
-                    Srel.insert(ind, f)
+                    S[(d, ng)] = f
     elif m == 3:
         if Fx([-1,6,-5,1]).is_irreducible():
             K = F.extension(Fx([-1,6,-5,1]), 'tK')
@@ -870,39 +852,41 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
-                ind = bisect.bisect_left(S, [d,ng])
-                S.insert(ind, [d,ng])
-                Srel.insert(ind, Fx([-1,6,-5,1]))
+                S[(d, ng)] = Fx([-1,6,-5,1])
+
+    # Convert S to a sorted list of triples [d, fabs, f], taking care
+    # to use cmp() and not the comparison operators on PARI polynomials.
+    S = [[s[0], s[1], t] for s, t in S.items()]
+    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
 
     # Now check for isomorphic fields
-    S = [[S[i][0],S[i][1],Srel[i]] for i in range(len(S))]
     weed_fields(S)
 
     # Output.
     if verbose:
-        print "="*80
-        print "Polynomials tested: {}".format(counts[0])
-        print ( "Polynomials with discriminant with large enough square"
-                " divisor: {}".format(counts[1]))
-        print "Irreducible polynomials: {}".format(counts[2])
-        print "Polynomials with nfdisc <= B: {}".format(counts[3])
+        print("=" * 80)
+        print("Polynomials tested: {}".format(counts[0]))
+        print("Polynomials with discriminant with large enough square"
+              " divisor: {}".format(counts[1]))
+        print("Irreducible polynomials: {}".format(counts[2]))
+        print("Polynomials with nfdisc <= B: {}".format(counts[3]))
         for i in range(len(S)):
-            print S[i]
+            print(S[i])
         if isinstance(verbose, str):
             fsock.close()
         sys.stdout = saveout
 
     # Make sure to return elements that belong to Sage
     if return_seqs:
-        return [map(ZZ, counts),
-                [[s[0], map(QQ, s[1].reverse().Vec()), s[2].coeffs()]
+        return [[ZZ(x) for x in counts],
+                [[s[0], [QQ(x) for x in s[1].polrecip().Vec()], s[2].coefficients(sparse=False)]
                  for s in S]
                ]
     elif return_pari_objects:
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[s[0], Px(map(QQ, s[1].list())), s[2]] for s in S]
+        return [[s[0], Px([QQ(_) for _ in s[1].list()]), s[2]] for s in S]
 
 def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                                      return_pari_objects=True):
@@ -946,8 +930,8 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
 
         sage: enumerate_totallyreal_fields_all(2, 10)
         [[5, x^2 - x - 1], [8, x^2 - 2]]
-        sage: enumerate_totallyreal_fields_all(2, 10)[0][1].parent()
-        Interface to the PARI C library
+        sage: type(enumerate_totallyreal_fields_all(2, 10)[0][1])
+        <type 'sage.libs.cypari2.gen.gen'>
         sage: enumerate_totallyreal_fields_all(2, 10, return_pari_objects=False)[0][1].parent()
         Univariate Polynomial Ring in x over Rational Field
 
@@ -975,8 +959,8 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
             Sds = enumerate_totallyreal_fields_prim(d, int(math.floor((1.*B)**(1.*d/n))), verbose=verbose)
             for i in range(len(Sds)):
                 if verbose:
-                    print "="*80
-                    print "Taking F =", Sds[i][1]
+                    print("=" * 80)
+                    print("Taking F =", Sds[i][1])
                 F = NumberField(ZZx(Sds[i][1]), 't')
                 T = enumerate_totallyreal_fields_rel(F, n/d, B, verbose=verbose, return_seqs=return_seqs)
                 if return_seqs:
@@ -991,7 +975,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                         if EF.degree() == n and EF.disc() <= B:
                             S.append([EF.disc(), pari(EF.absolute_polynomial())])
     S += enumerate_totallyreal_fields_prim(n, B, verbose=verbose)
-    S.sort()
+    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
     weed_fields(S)
 
     # Output.
@@ -1001,26 +985,26 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
             fsock = open(verbose, 'w')
             sys.stdout = fsock
         # Else, print to screen
-        print "="*80
-        print "Polynomials tested: {}".format(counts[0])
-        print ( "Polynomials with discriminant with large enough square"
-                " divisor: {}".format(counts[1]))
-        print "Irreducible polynomials: {}".format(counts[2])
-        print "Polynomials with nfdisc <= B: {}".format(counts[3])
+        print("=" * 80)
+        print("Polynomials tested: {}".format(counts[0]))
+        print("Polynomials with discriminant with large enough square"
+              " divisor: {}".format(counts[1]))
+        print("Irreducible polynomials: {}".format(counts[2]))
+        print("Polynomials with nfdisc <= B: {}".format(counts[3]))
         for i in range(len(S)):
-            print S[i]
+            print(S[i])
         if isinstance(verbose, str):
             fsock.close()
         sys.stdout = saveout
 
     # Make sure to return elements that belong to Sage
     if return_seqs:
-        return [map(ZZ, counts),
-                [[ZZ(s[0]), map(QQ, s[1].reverse().Vec())] for s in S]]
+        return [[ZZ(_) for _ in counts],
+                [[ZZ(s[0]), [QQ(_) for _ in s[1].polrecip().Vec()]] for s in S]]
     elif return_pari_objects:
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[ZZ(s[0]), Px(map(QQ, s[1].list()))]
+        return [[ZZ(s[0]), Px([QQ(_) for _ in s[1].list()])]
                 for s in S]
 

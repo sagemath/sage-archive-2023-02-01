@@ -29,13 +29,13 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         sage: NN.list()
         Traceback (most recent call last):
         ...
-        NotImplementedError: infinite list
+        NotImplementedError: cannot list an infinite set
         sage: NN.element_class
         <type 'sage.rings.integer.Integer'>
         sage: it = iter(NN)
-        sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+        sage: [next(it), next(it), next(it), next(it), next(it)]
         [0, 1, 2, 3, 4]
-        sage: x = it.next(); type(x)
+        sage: x = next(it); type(x)
         <type 'sage.rings.integer.Integer'>
         sage: x.parent()
         Integer Ring
@@ -51,11 +51,13 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
 
         sage: TestSuite(NN).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -68,6 +70,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         running ._test_enumerated_set_iter_cardinality() . . . pass
         running ._test_enumerated_set_iter_list() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -113,7 +116,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
 
             sage: NN = InfiniteEnumeratedSets().example()
             sage: g = iter(NN)
-            sage: g.next(), g.next(), g.next(), g.next()
+            sage: next(g), next(g), next(g), next(g)
             (0, 1, 2, 3)
         """
         i = Integer(0)

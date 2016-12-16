@@ -1,4 +1,9 @@
-import catalog as crystals
+"""
+Crystal features that are imported by default in the interpreter namespace
+"""
+from __future__ import absolute_import
+
+from . import catalog as crystals
 
 from sage.misc.lazy_import import lazy_import
 
@@ -41,10 +46,6 @@ lazy_import('sage.combinat.crystals.elementary_crystals',
 lazy_import('sage.combinat.crystals.kirillov_reshetikhin',
             'KirillovReshetikhinCrystal',
             deprecation=(15882, "this is being removed from the global namespace. Use crystals.KirillovResetikhin instead"))
-
-lazy_import('sage.combinat.crystals.alcove_path',
-            ['CrystalOfAlcovePaths', 'ClassicalCrystalOfAlcovePaths'],
-            deprecation=(15882, "this is being removed from the global namespace. Use crystals.AlcovePath instead"))
 
 lazy_import('sage.combinat.crystals.littelmann_path',
             ['CrystalOfLSPaths', 'CrystalOfProjectedLevelZeroLSPaths'],

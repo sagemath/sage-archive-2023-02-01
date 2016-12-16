@@ -24,9 +24,9 @@ Development supported by NSF award No. 0702939.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+include "cysignals/signals.pxi"
 
 from sage.misc.decorators import options
 from sage.plot.all import list_plot, Graphics
@@ -35,7 +35,7 @@ from sage.ext.fast_eval import fast_callable
 
 from sage.rings.all import CDF
 
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 
 from sage.gsl.interpolation import spline
 
@@ -71,8 +71,7 @@ cdef FLOAT_T TWOPI = 2*PI
 cdef COMPLEX_T I = complex(0,1)
 
 cdef class Riemann_Map:
-    """
-
+    r"""
     The ``Riemann_Map`` class computes an interior or exterior Riemann map,
     or an Ahlfors map of a region given by the supplied boundary curve(s)
     and center point. The class also provides various methods to
@@ -88,7 +87,7 @@ cdef class Riemann_Map:
     inaccurate. Error computations for the ellipse can be found in the
     documentation for :meth:`analytic_boundary` and :meth:`analytic_interior`.
 
-    [BSV]_ provides an overview of the Riemann map and discusses the research
+    [BSV2010]_ provides an overview of the Riemann map and discusses the research
     that lead to the creation of this module.
 
     INPUT:
@@ -138,12 +137,14 @@ cdef class Riemann_Map:
         sage: fprime(t) = I*e^(I*t)
         sage: m = Riemann_Map([f], [fprime], 0)  # long time (4 sec)
         sage: m.plot_colored() + m.plot_spiderweb()  # long time
+        Graphics object consisting of 22 graphics primitives
 
     The exterior map for the unit circle::
 
         sage: m = Riemann_Map([f], [fprime], 0, exterior=True)  # long time (4 sec)
         sage: #spiderwebs are not supported for exterior maps
         sage: m.plot_colored() # long time
+        Graphics object consisting of 1 graphics primitive
 
     The unit circle with a small hole::
 
@@ -155,6 +156,7 @@ cdef class Riemann_Map:
         sage: #spiderweb and color plots cannot be added for multiply
         sage: #connected regions. Instead we do this.
         sage: m.plot_spiderweb(withcolor = True)  # long time
+        Graphics object consisting of 3 graphics primitives
 
     A square::
 
@@ -163,11 +165,12 @@ cdef class Riemann_Map:
         sage: fprime = lambda t: ps.derivative(real(t))
         sage: m = Riemann_Map([f], [fprime], 0.25, ncorners=4)
         sage: m.plot_colored() + m.plot_spiderweb()  # long time
+        Graphics object consisting of 22 graphics primitives
 
     Compute rough error for this map::
 
         sage: x = 0.75  # long time
-        sage: print "error =", m.inverse_riemann_map(m.riemann_map(x)) - x  # long time
+        sage: print("error = {}".format(m.inverse_riemann_map(m.riemann_map(x)) - x))  # long time
         error = (-0.000...+0.0016...j)
 
     A fun, complex region for demonstration purposes::
@@ -189,17 +192,8 @@ cdef class Riemann_Map:
     ALGORITHM:
 
     This class computes the Riemann Map via the Szego kernel using an
-    adaptation of the method described by [KT]_.
+    adaptation of the method described by [KT1986]_.
 
-    REFERENCES:
-
-    .. [KT] N. Kerzman and M. R. Trummer. "Numerical Conformal Mapping via
-      the Szego kernel". Journal of Computational and Applied Mathematics,
-      14(1-2): 111--123, 1986.
-
-    .. [BSV] M. Bolt, S. Snoeyink, E. Van Andel. "Visual representation of
-      the Riemann map and Ahlfors map via the Kerzman-Stein equation".
-      Involve 3-4 (2010), 405-420.
 
     """
     cdef int N, B, ncorners
@@ -307,7 +301,7 @@ cdef class Riemann_Map:
     cdef _generate_theta_array(self):
         """
         Generates the essential data for the Riemann map, primarily the
-        Szego kernel and boundary correspondence.  See [KT]_ for the algorithm.
+        Szego kernel and boundary correspondence.  See [KT1986]_ for the algorithm.
 
         TESTS::
 
@@ -420,6 +414,7 @@ cdef class Riemann_Map:
             sage: sz = m.get_szego(boundary=0)
             sage: points = m.get_szego(absolute_value=True)
             sage: list_plot(points)
+            Graphics object consisting of 1 graphics primitive
 
         Extending the points by a spline::
 
@@ -427,6 +422,7 @@ cdef class Riemann_Map:
             sage: s(3*pi / 4)
             0.0012158...
             sage: plot(s,0,2*pi) # plot the kernel
+            Graphics object consisting of 1 graphics primitive
 
         The unit circle with a small hole::
 
@@ -493,6 +489,7 @@ cdef class Riemann_Map:
             sage: m = Riemann_Map([f], [fprime], 0)
             sage: points = m.get_theta_points()
             sage: list_plot(points)
+            Graphics object consisting of 1 graphics primitive
 
         Extending the points by a spline::
 
@@ -749,12 +746,14 @@ cdef class Riemann_Map:
         Default plot::
 
             sage: m.plot_boundaries()
+            Graphics object consisting of 1 graphics primitive
 
         Big blue collocation points::
 
             sage: m.plot_boundaries(plotjoined=False, rgbcolor=[0,0,1], thickness=6)
+            Graphics object consisting of 1 graphics primitive
         """
-        plots = range(self.B)
+        plots = list(range(self.B))
         for k in xrange(self.B):
             # This conditional should be eliminated when the thickness/pointsize
             # issue is resolved later. Same for the others in plot_spiderweb().
@@ -796,7 +795,7 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
             sage: m = Riemann_Map([f], [fprime], 0)
             sage: data = m.compute_on_grid([],5)
-            sage: print data[0][8,1]
+            sage: data[0][8,1]
             (-0.0879...+0.9709...j)
         """
         cdef FLOAT_T xmin, xmax, xstep, ymin, ymax, ystep
@@ -909,14 +908,17 @@ cdef class Riemann_Map:
         Default plot::
 
             sage: m.plot_spiderweb()
+            Graphics object consisting of 21 graphics primitives
 
         Simplified plot with many discrete points::
 
             sage: m.plot_spiderweb(spokes=4, circles=1, pts=400, linescale=0.95, plotjoined=False)
+            Graphics object consisting of 6 graphics primitives
 
         Plot with thick, red lines::
 
             sage: m.plot_spiderweb(rgbcolor=[1,0,0], thickness=3)
+            Graphics object consisting of 21 graphics primitives
 
         To generate the unit circle map, it's helpful to see what the
         original spiderweb looks like::
@@ -925,6 +927,7 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t)
             sage: m = Riemann_Map([f], [fprime], 0, 1000)
             sage: m.plot_spiderweb()
+            Graphics object consisting of 21 graphics primitives
 
         A multiply connected region with corners. We set ``min_mag`` higher
         to remove "fuzz" outside the domain::
@@ -943,13 +946,13 @@ cdef class Riemann_Map:
         if self.B == 1: #The efficient simply connected
             edge = self.plot_boundaries(plotjoined=plotjoined,
                 rgbcolor=rgbcolor, thickness=thickness)
-            circle_list = range(circles)
+            circle_list = list(range(circles))
             theta_array = self.theta_array[0]
             s = spline(np.column_stack([self.theta_array[0], self.tk2]).tolist())
             tmax = self.theta_array[0, self.N]
             tmin = self.theta_array[0, 0]
             for k in xrange(circles):
-                temp = range(pts*2)
+                temp = list(range(pts*2))
                 for i in xrange(2*pts):
                     temp[i] = self.inverse_riemann_map(
                         (k + 1) / (circles + 1.0) * exp(I*i * TWOPI / (2*pts)))
@@ -959,9 +962,9 @@ cdef class Riemann_Map:
                 else:
                     circle_list[k] = list_plot(comp_pt(temp, 1),
                         rgbcolor=rgbcolor, pointsize=thickness)
-            line_list = range(spokes)
+            line_list = list(range(spokes))
             for k in xrange(spokes):
-                temp = range(pts)
+                temp = list(range(pts))
                 angle = (k*1.0) / spokes * TWOPI
                 if angle >= tmax:
                     angle -= TWOPI
@@ -1026,14 +1029,17 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
             sage: m = Riemann_Map([f], [fprime], 0)
             sage: m.plot_colored()
+            Graphics object consisting of 1 graphics primitive
 
         Plot zoomed in on a specific spot::
 
             sage: m.plot_colored(plot_range=[0,1,.25,.75])
+            Graphics object consisting of 1 graphics primitive
 
         High resolution plot::
 
             sage: m.plot_colored(plot_points=1000)  # long time (29s on sage.math, 2012)
+            Graphics object consisting of 1 graphics primitive
 
         To generate the unit circle map, it's helpful to see what the
         colors correspond to::
@@ -1042,6 +1048,7 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t)
             sage: m = Riemann_Map([f], [fprime], 0, 1000)
             sage: m.plot_colored()
+            Graphics object consisting of 1 graphics primitive
         """
         z_values, xmin, xmax, ymin, ymax = self.compute_on_grid(plot_range,
             plot_points)
@@ -1072,12 +1079,11 @@ cdef comp_pt(clist, loop=True):
         sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
         sage: m = Riemann_Map([f], [fprime], 0)
         sage: m.plot_spiderweb()
+        Graphics object consisting of 21 graphics primitives
     """
-    list2 = range(len(clist) + 1) if loop else range(len(clist))
-    for i in xrange(len(clist)):
-        list2[i] = (clist[i].real, clist[i].imag)
+    list2 = [(c.real, c.imag) for c in clist]
     if loop:
-        list2[len(clist)] = list2[0]
+        list2.append(list2[0])
     return list2
 
 cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
@@ -1086,7 +1092,7 @@ cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
     Computes the r*e^(I*theta) form of derivatives from the grid of points. The
     derivatives are computed using quick-and-dirty taylor expansion and
     assuming analyticity. As such ``get_derivatives`` is primarily intended
-    to be used for comparisions in ``plot_spiderweb`` and not for
+    to be used for comparisons in ``plot_spiderweb`` and not for
     applications that require great precision.
 
     INPUT:
@@ -1303,9 +1309,9 @@ cpdef complex_to_rgb(np.ndarray[COMPLEX_T, ndim = 2] z_values):
         dtype=FLOAT, shape=(imax, jmax, 3))
 
     sig_on()
-    for i from 0 <= i < imax: #replace with xrange?
+    for i in xrange(imax):
         row = z_values[i]
-        for j from 0 <= j < jmax: #replace with xrange?
+        for j in xrange(jmax):
             z = row[j]
             mag = abs(z)
             arg = phase(z)
@@ -1454,7 +1460,7 @@ cpdef cauchy_kernel(t, args):
 
 cpdef analytic_interior(COMPLEX_T z, int n, FLOAT_T epsilon):
     """
-    Provides a nearly exact compuation of the Riemann Map of an interior
+    Provides a nearly exact computation of the Riemann Map of an interior
     point of the ellipse with axes 1 + epsilon and 1 - epsilon. It is
     primarily useful for testing the accuracy of the numerical Riemann Map.
 

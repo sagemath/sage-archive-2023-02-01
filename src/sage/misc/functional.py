@@ -15,23 +15,19 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six.moves import range
+from six.moves import builtins
 
 import sage.misc.latex
 import sage.interfaces.expect
 import sage.interfaces.mathematica
-
 
 from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
@@ -39,10 +35,6 @@ from sage.rings.real_double import RDF, RealDoubleElement
 import sage.rings.real_mpfr
 import sage.rings.complex_field
 import sage.rings.integer
-
-import __builtin__
-
-LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
@@ -130,7 +122,8 @@ def category(x):
 
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
-        Category of vector spaces over Rational Field
+        Category of finite dimensional vector spaces with basis over
+         (quotient fields and metric spaces)
     """
     try:
         return x.category()
@@ -138,25 +131,6 @@ def category(x):
         import sage.categories.all
         return sage.categories.all.Objects()
 
-def ceil(x):
-    """
-    Returns the ceiling (least integer) function of x.
-
-    EXAMPLES::
-
-        sage: ceil(3.5)
-        4
-        sage: ceil(7/2)
-        4
-        sage: ceil(-3.5)
-        -3
-        sage: ceil(RIF(1.3,2.3))
-        3.?
-    """
-    try:
-        return x.ceil()
-    except AttributeError:
-        return sage.rings.all.ceil(x)
 
 def characteristic_polynomial(x, var='x'):
     """
@@ -216,61 +190,6 @@ def coerce(P, x):
     except AttributeError:
         return P(x)
 
-
-def acos(x):
-    """
-    Returns the arc cosine of x.
-
-    EXAMPLES::
-
-        sage: acos(.5)
-        1.04719755119660
-        sage: acos(sin(pi/3))
-        arccos(1/2*sqrt(3))
-        sage: acos(sin(pi/3)).simplify_full()
-        1/6*pi
-    """
-    try: return x.acos()
-    except AttributeError: return RDF(x).acos()
-
-def asin(x):
-    """
-    Returns the arc sine of x.
-
-    EXAMPLES::
-
-        sage: asin(.5)
-        0.523598775598299
-        sage: asin(sin(pi/3))
-        arcsin(1/2*sqrt(3))
-        sage: asin(sin(pi/3)).simplify_full()
-        1/3*pi
-    """
-    try: return x.asin()
-    except AttributeError: return RDF(x).asin()
-
-def atan(x):
-    """
-    Returns the arc tangent of x.
-
-    EXAMPLES::
-
-        sage: z = atan(3);z
-        arctan(3)
-        sage: n(z)
-        1.24904577239825
-        sage: atan(tan(pi/4))
-        1/4*pi
-    """
-    try: return x.atan()
-    except AttributeError: return RDF(x).atan()
-
-## def cuspidal_submodule(x):
-##     return x.cuspidal_submodule()
-
-## def cuspidal_subspace(x):
-##     return x.cuspidal_subspace()
-
 def cyclotomic_polynomial(n, var='x'):
     """
     Returns the `n^{th}` cyclotomic polynomial.
@@ -310,7 +229,7 @@ def decomposition(x):
         [Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1,
         Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4]
         sage: d[0].parent()
-        Group of Dirichlet characters of modulus 4 over Cyclotomic Field of order 4 and degree 2
+        Group of Dirichlet characters modulo 4 with values in Cyclotomic Field of order 4 and degree 2
     """
     return x.decomposition()
 
@@ -376,13 +295,6 @@ def discriminant(x):
 
 disc = discriminant
 
-# This is dangerous since it gets the scoping all wrong ??
-#import __builtin__
-#def eval(x):
-#    try:
-#        return x._eval_()
-#    except AttributeError:
-#        return __builtin__.eval(x)
 
 def eta(x):
     r"""
@@ -391,66 +303,18 @@ def eta(x):
 
     The `\eta` function is
 
-    .. math::
+    .. MATH::
 
                     \eta(z) = e^{\pi i z / 12} \prod_{n=1}^{\infty}(1-e^{2\pi inz})
-
-
 
     EXAMPLES::
 
         sage: eta(1+I)
-        0.742048775837 + 0.19883137023*I
+        0.7420487758365647 + 0.1988313702299107*I
     """
     try: return x.eta()
     except AttributeError: return CDF(x).eta()
 
-def exp(x):
-    """
-    Returns the value of the exponentiation function at x.
-
-    EXAMPLES::
-
-        sage: exp(3)
-        e^3
-        sage: exp(0)
-        1
-        sage: exp(2.5)
-        12.1824939607035
-        sage: exp(pi*i)
-        -1
-    """
-    try: return x.exp()
-    except AttributeError: return RDF(x).exp()
-
-def factor(x, *args, **kwds):
-    """
-    Returns the (prime) factorization of x.
-
-    EXAMPLES::
-
-        sage: factor(factorial(10))
-        2^8 * 3^4 * 5^2 * 7
-        sage: n = next_prime(10^6); n
-        1000003
-        sage: factor(n)
-        1000003
-
-        Note that this depends on the type of x::
-
-        sage: factor(55)
-        5 * 11
-        sage: factor(x^2+2*x+1)
-        (x + 1)^2
-        sage: factor(55*x^2+110*x+55)
-        55*(x + 1)^2
-
-    """
-    try: return x.factor(*args, **kwds)
-    except AttributeError: return sage.rings.all.factor(x, *args, **kwds)
-
-factorization = factor
-factorisation = factor
 
 def fcp(x, var='x'):
     """
@@ -464,13 +328,8 @@ def fcp(x, var='x'):
         x * (x^2 - 15*x - 18)
     """
     try: return x.fcp(var)
-    except AttributeError: return factor(charpoly(x, var))
+    except AttributeError: return charpoly(x, var).factor()
 
-## def floor(x):
-##     try:
-##         return x.floor()
-##     except AttributeError:
-##         return sage.rings.all.floor(x)
 
 def gen(x):
     """
@@ -519,7 +378,6 @@ def hecke_operator(x,n):
     """
     return x.hecke_operator(n)
 
-ideal = sage.rings.ideal.Ideal
 
 def image(x):
     """
@@ -552,10 +410,17 @@ def symbolic_sum(expression, *args, **kwds):
 
     - ``b`` - upper endpoint of the sum
 
-    - ``algorithm`` - (default: 'maxima')  one of
-      - 'maxima' - use Maxima (the default)
-      - 'maple' - (optional) use Maple
-      - 'mathematica' - (optional) use Mathematica
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'maple'`` - (optional) use Maple
+
+      - ``'mathematica'`` - (optional) use Mathematica
+
+      - ``'giac'`` - (optional) use Giac
+
+      - ``'sympy'`` - use SymPy
 
     EXAMPLES::
 
@@ -574,32 +439,32 @@ def symbolic_sum(expression, *args, **kwds):
         zeta(5)
 
     .. WARNING::
-    
+
         This function only works with symbolic expressions. To sum any
         other objects like list elements or function return values,
         please use python summation, see
         http://docs.python.org/library/functions.html#sum
 
         In particular, this does not work::
-        
+
             sage: n = var('n')
-            sage: list=[1,2,3,4,5]
-            sage: sum(list[n],n,0,3)
+            sage: mylist = [1,2,3,4,5]
+            sage: sum(mylist[n], n, 0, 3)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=n) to an integer
+            TypeError: unable to convert n to an integer
             
         Use python ``sum()`` instead::
-        
-            sage: sum(list[n] for n in range(4))
+
+            sage: sum(mylist[n] for n in range(4))
             10
             
         Also, only a limited number of functions are recognized in symbolic sums::
-        
+
             sage: sum(valuation(n,2),n,1,5)
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
+            TypeError: unable to convert n to an integer
             
         Again, use python ``sum()``::
         
@@ -634,7 +499,7 @@ def symbolic_sum(expression, *args, **kwds):
         sage: sum(2^(-k)/(k*(k+1)), k, 1, oo)
         -log(2) + 1
 
-    Another binomial identity (trac #7952)::
+    Another binomial identity (:trac:`7952`)::
 
         sage: t,k,i = var('t,k,i')
         sage: sum(binomial(i+t,t),i,0,k)
@@ -682,7 +547,7 @@ def symbolic_sum(expression, *args, **kwds):
         sage: sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional - maple
         (x + 1)^n
 
-    Python ints should work as limits of summation (trac #9393)::
+    Python ints should work as limits of summation (:trac:`9393`)::
 
         sage: sum(x, x, 1r, 5r)
         15
@@ -776,7 +641,7 @@ def integral(x, *args, **kwds):
         sage: f = exp(-x) * sinh(sqrt(x))
         sage: t = integrate(f, x, 0, Infinity); t            # long time
         1/4*sqrt(pi)*(erf(1) - 1)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) + 1/4*sqrt(pi)*e^(1/4) - 1/2*e^(1/4) + 1/2*e^(-3/4)
-        sage: t.simplify_exp()  # long time
+        sage: t.canonicalize_radical()  # long time
         1/2*sqrt(pi)*e^(1/4)
         sage: sage.calculus.calculus.maxima('domain: complex')
         complex
@@ -834,7 +699,7 @@ def interval(a, b):
         sage: 4 in I
         False
     """
-    return range(a,b+1)
+    return list(range(a, b + 1))
 
 def xinterval(a, b):
     r"""
@@ -849,7 +714,7 @@ def xinterval(a, b):
         sage: 6 in I
         False
     """
-    return xrange(a, b+1)
+    return range(a, b + 1)
 
 def is_commutative(x):
     """
@@ -907,24 +772,6 @@ def is_field(x):
     """
     return x.is_field()
 
-def is_noetherian(x):
-    """
-    Returns whether or not x is a Noetherian
-    object (has ascending chain condition).
-
-    EXAMPLES::
-
-        sage: from sage.misc.functional import is_noetherian
-        sage: is_noetherian(ZZ)
-        True
-        sage: is_noetherian(QQ)
-        True
-        sage: A = SteenrodAlgebra(3)
-        sage: is_noetherian(A)
-        False
-    """
-
-    return x.is_noetherian()
 
 def is_odd(x):
     """
@@ -944,18 +791,6 @@ def is_odd(x):
     """
     return not is_even(x)
 
-## def j_invariant(x):
-##     """
-##     Return the j_invariant of x.
-
-##     EXAMPLES:
-##         sage: E = EllipticCurve([0, -1, 1, -10, -20])
-##         sage: E
-##         Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
-##         sage: j_invariant(E)
-##         -122023936/161051
-##     """
-##     return x.j_invariant()
 
 def kernel(x):
     """
@@ -1116,11 +951,6 @@ def multiplicative_order(x):
     """
     return x.multiplicative_order()
 
-## def new_submodule(x):
-##     return x.new_submodule()
-
-## def new_subspace(x):
-##     return x.new_subspace()
 
 def ngens(x):
     """
@@ -1200,19 +1030,19 @@ def norm(x):
         sage: v = vector([-1,2,3])
         sage: norm(v)
         sqrt(14)
-        sage: _ = var("a b c d")
+        sage: _ = var("a b c d", domain='real')
         sage: v = vector([a, b, c, d])
         sage: norm(v)
-        sqrt(abs(a)^2 + abs(b)^2 + abs(c)^2 + abs(d)^2)
+        sqrt(a^2 + b^2 + c^2 + d^2)
 
     The norm of matrices::
 
         sage: z = 1 + 2*I
         sage: norm(matrix([[z]]))
-        2.2360679775
+        2.23606797749979
         sage: M = matrix(ZZ, [[1,2,4,3], [-1,0,3,-10]])
-        sage: norm(M)
-        10.6903311292
+        sage: norm(M)  # abs tol 1e-14
+        10.690331129154467
         sage: norm(CDF(z))
         5.0
         sage: norm(CC(z))
@@ -1263,36 +1093,31 @@ def numerator(x):
         return x
     return x.numerator()
 
-# Following is the top-level numerical_approx function.
-# Implement a ._numerical_approx(prec, digits, algorithm) method for your
-# objects to enable the three top-level functions and three methods
 
 def numerical_approx(x, prec=None, digits=None, algorithm=None):
     r"""
-    Returns a numerical approximation of an object ``x`` with at
-    least ``prec`` bits (or decimal ``digits``) of precision.
+    Return a numerical approximation of ``self`` with ``prec`` bits
+    (or decimal ``digits``) of precision.
+
+    No guarantee is made about the accuracy of the result.
 
     .. note::
 
-       Both upper case ``N`` and lower case ``n`` are aliases for
-       :func:`numerical_approx`, and all three may be used as
-       methods.
+       Lower case :func:`n` is an alias for :func:`numerical_approx`
+       and may be used as a method.
 
     INPUT:
 
-    -  ``x`` - an object that has a numerical_approx
-       method, or can be coerced into a real or complex field
-    -  ``prec`` (optional) - an integer (bits of
-       precision)
-    -  ``digits`` (optional) - an integer (digits of
-       precision)
-    -  ``algorithm`` (optional) - a string specifying
-       the algorithm to use for functions that implement
-       more than one
+    - ``prec`` -- precision in bits
 
-    If neither the ``prec`` or ``digits`` are specified,
-    the default is 53 bits of precision.  If both are
-    specified, then ``prec`` is used.
+    - ``digits`` -- precision in decimal digits (only used if
+      ``prec`` is not given)
+
+    - ``algorithm`` -- which algorithm to use to compute this
+      approximation (the accepted algorithms depend on the object)
+
+    If neither ``prec`` nor ``digits`` is given, the default
+    precision is 53 bits (roughly 16 digits).
 
     EXAMPLES::
 
@@ -1308,25 +1133,23 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         12.5878862295484
         sage: n(pi^2 + e, digits=50)
         12.587886229548403854194778471228813633070946500941
-        sage: a = CC(-5).n(prec=100)
-        sage: b = ComplexField(100)(-5)
+        sage: a = CC(-5).n(prec=40)
+        sage: b = ComplexField(40)(-5)
         sage: a == b
         True
-        sage: type(a) == type(b)
+        sage: parent(a) is parent(b)
         True
         sage: numerical_approx(9)
         9.00000000000000
 
-    You can also usually use method notation.  ::
+    You can also usually use method notation::
 
         sage: (pi^2 + e).n()
-        12.5878862295484
-        sage: (pi^2 + e).N()
         12.5878862295484
         sage: (pi^2 + e).numerical_approx()
         12.5878862295484
 
-    Vectors and matrices may also have their entries approximated.  ::
+    Vectors and matrices may also have their entries approximated::
 
         sage: v = vector(RDF, [1,2,3])
         sage: v.n()
@@ -1337,8 +1160,8 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         (1.00000000000000, 2.00000000000000, 3.00000000000000)
         sage: _.parent()
         Vector space of dimension 3 over Complex Field with 53 bits of precision
-        sage: v.n(prec=75)
-        (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+        sage: v.n(prec=20)
+        (1.0000, 2.0000, 3.0000)
 
         sage: u = vector(QQ, [1/2, 1/3, 1/4])
         sage: n(u, prec=15)
@@ -1379,6 +1202,21 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         sage: y.str(base=2)
         '11.001000111101'
 
+    Increasing the precision of a floating point number is not allowed::
+
+        sage: CC(-5).n(prec=100)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot approximate to a precision of 100 bits, use at most 53 bits
+        sage: n(1.3r, digits=20)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot approximate to a precision of 70 bits, use at most 53 bits
+        sage: RealField(24).pi().n()
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot approximate to a precision of 53 bits, use at most 24 bits
+
     As an exceptional case, ``digits=1`` usually leads to 2 digits (one
     significant) in the decimal output (see :trac:`11647`)::
 
@@ -1390,7 +1228,6 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         320.
         sage: N(100*pi, digits=2)
         310.
-
 
     In the following example, ``pi`` and ``3`` are both approximated to two
     bits of precision and then subtracted, which kills two bits of precision::
@@ -1425,7 +1262,7 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         [18.1681536508882, -0.0840768254441065 - 0.219026148480291*I, -0.0840768254441065 + 0.219026148480291*I]
 
     Make sure we've rounded up log(10,2) enough to guarantee
-    sufficient precision (trac #10164)::
+    sufficient precision (:trac:`10164`)::
 
         sage: ks = 4*10**5, 10**6
         sage: check_str_length = lambda k: len(str(numerical_approx(1+10**-k,digits=k+1)))-1 >= k+1
@@ -1447,25 +1284,19 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         0.000000000000000
     """
     if prec is None:
-        if digits is None:
-            prec = 53
-        else:
-            prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
+        from sage.arith.numerical_approx import digits_to_bits
+        prec = digits_to_bits(digits)
     try:
-        return x._numerical_approx(prec, algorithm=algorithm)
+        n = x.numerical_approx
     except AttributeError:
-        from sage.rings.complex_double import is_ComplexDoubleElement
-        from sage.rings.complex_number import is_ComplexNumber
-        if not (is_ComplexNumber(x) or is_ComplexDoubleElement(x)):
-            try:
-                return sage.rings.real_mpfr.RealField(prec)(x)
-            # Trac 10761: now catches ValueErrors as well as TypeErrors
-            except (TypeError, ValueError):
-                pass
-        return sage.rings.complex_field.ComplexField(prec)(x)
+        from sage.arith.numerical_approx import numerical_approx_generic
+        return numerical_approx_generic(x, prec)
+    else:
+        return n(prec, algorithm=algorithm)
 
 n = numerical_approx
 N = numerical_approx
+
 
 def objgens(x):
     """
@@ -1490,20 +1321,6 @@ def objgen(x):
         x
     """
     return x.objgen()
-
-def one(R):
-    """
-    Returns the one element of the ring R.
-
-    EXAMPLES::
-
-        sage: R.<x> = PolynomialRing(QQ)
-        sage: one(R)*x == x
-        True
-        sage: one(R) in R
-        True
-    """
-    return R(1)
 
 def order(x):
     """
@@ -1597,16 +1414,16 @@ def round(x, ndigits=0):
        This is currently slower than the builtin round function, since
        it does more work - i.e., allocating an RDF element and
        initializing it. To access the builtin version do
-       ``import __builtin__; __builtin__.round``.
+       ``from six.moves import builtins; builtins.round``.
     """
     try:
         if ndigits:
-            return RealDoubleElement(__builtin__.round(x, ndigits))
+            return RealDoubleElement(builtins.round(x, ndigits))
         else:
             try:
                 return x.round()
             except AttributeError:
-                return RealDoubleElement(__builtin__.round(x, 0))
+                return RealDoubleElement(builtins.round(x, 0))
     except ArithmeticError:
         if not isinstance(x, RealDoubleElement):
             return round(RDF(x), ndigits)
@@ -1637,91 +1454,6 @@ def quotient(x, y, *args, **kwds):
 
 quo = quotient
 
-def show(x, *args, **kwds):
-    r"""
-    Show a graphics object x.
-
-    For additional ways to show objects in the notebook, look
-    at the methods on the html object.  For example,
-    html.table will produce an HTML table from a nested
-    list.
-
-
-    OPTIONAL INPUT:
-
-
-    -  ``filename`` - (default: None) string
-
-
-    SOME OF THESE MAY APPLY:
-
-    - ``dpi`` - dots per inch
-
-    - ``figsize``- [width, height] (same for square aspect)
-
-    - ``axes`` - (default: True)
-
-    - ``fontsize`` - positive integer
-
-    - ``frame`` - (default: False) draw a MATLAB-like frame around the
-      image
-
-    EXAMPLES::
-
-        sage: show(graphs(3))
-        sage: show(list(graphs(3)))
-    """
-    if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
-        try:
-            return x.show(*args, **kwds)
-        except AttributeError:
-            pass
-    if isinstance(x, sage.interfaces.mathematica.MathematicaElement):
-        return x.show(*args, **kwds)
-
-    import types
-    if isinstance(x, types.GeneratorType):
-        x = list(x)
-    if isinstance(x, list):
-        if len(x) > 0:
-            from sage.graphs.graph import GenericGraph
-            if isinstance(x[0], GenericGraph):
-                import sage.graphs.graph_list as graphs_list
-                graphs_list.show_graphs(x)
-                return
-    _do_show(x)
-
-def _do_show(x):
-    if sage.doctest.DOCTEST_MODE:
-        return sage.misc.latex.latex(x)
-    from latex import view
-    view(x, mode='display')
-    #raise AttributeError, "object %s does not support show."%(x, )
-
-def sqrt(x):
-    """
-    Returns a square root of x.
-
-    This function (``numerical_sqrt``) is deprecated.  Use ``sqrt(x,
-    prec=n)`` instead.
-
-    EXAMPLES::
-
-        sage: numerical_sqrt(10.1)
-        doctest:...: DeprecationWarning: numerical_sqrt is deprecated, use sqrt(x, prec=n) instead
-        See http://trac.sagemath.org/5404 for details.
-        3.17804971641414
-        sage: numerical_sqrt(9)
-        3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(5404, "numerical_sqrt is deprecated, use sqrt(x, prec=n) instead")
-    try: return x.sqrt()
-    except (AttributeError, ValueError):
-        try:
-            return RDF(x).sqrt()
-        except TypeError:
-            return CDF(x).sqrt()
 
 def isqrt(x):
     """
@@ -1779,6 +1511,8 @@ def squarefree_part(x):
         return x.squarefree_part()
     except AttributeError:
         pass
+    from sage.arith.all import factor
+    from sage.structure.all import parent
     F = factor(x)
     n = parent(x)(1)
     for p, e in F:
@@ -1786,20 +1520,6 @@ def squarefree_part(x):
             n *= p
     return n * F.unit()
 
-## def square_root(x):
-##     """
-##     Return a square root of x with the same parent as x, if possible,
-##     otherwise raise a ValueError.
-##     EXAMPLES:
-##         sage: square_root(9)
-##         3
-##         sage: square_root(100)
-##         10
-##     """
-##     try:
-##         return x.square_root()
-##     except AttributeError:
-##         raise NotImplementedError
 
 def transpose(x):
     """
@@ -1815,50 +1535,3 @@ def transpose(x):
         [3 6 9]
     """
     return x.transpose()
-
-## def vector(x, R):
-##     r"""
-##     Return the \sage vector over $R$ obtained from x, if possible.
-##     """
-##     try:
-##         return x._vector_(R)
-##     except AttributeError:
-##         import sage.modules.free_module_element
-##         return sage.modules.free_module_element.Vector(x, R)
-
-def zero(R):
-    """
-    Returns the zero element of the ring R.
-
-    EXAMPLES::
-
-        sage: R.<x> = PolynomialRing(QQ)
-        sage: zero(R) in R
-        True
-        sage: zero(R)*x == zero(R)
-        True
-    """
-    return R(0)
-
-
-
-#################################################################
-# Generic parent
-#################################################################
-def parent(x):
-    """
-    Returns x.parent() if defined, or type(x) if not.
-
-    EXAMPLE::
-
-        sage: Z = parent(int(5))
-        sage: Z(17)
-        17
-        sage: Z
-        <type 'int'>
-    """
-    try:
-        return x.parent()
-    except AttributeError:
-        return type(x)
-

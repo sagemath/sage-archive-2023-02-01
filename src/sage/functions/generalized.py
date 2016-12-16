@@ -82,6 +82,8 @@ class FunctionDiracDelta(BuiltinFunction):
         dirac_delta(0)
         sage: dirac_delta(x)
         dirac_delta(x)
+        sage: integrate(dirac_delta(x), x, -1, 1, algorithm='sympy')
+        1
 
     REFERENCES:
 
@@ -109,10 +111,13 @@ class FunctionDiracDelta(BuiltinFunction):
 
             sage: loads(dumps(dirac_delta(x)))
             dirac_delta(x)
+            sage: dirac_delta(x)._sympy_()
+            DiracDelta(x)
         """
         BuiltinFunction.__init__(self, "dirac_delta", latex_name=r"\delta",
                                    conversions=dict(maxima='delta',
-                                    mathematica='DiracDelta'))
+                                                  mathematica='DiracDelta',
+                                                  sympy='DiracDelta'))
 
     def _eval_(self, x):
         """
@@ -137,15 +142,26 @@ class FunctionDiracDelta(BuiltinFunction):
             0
         """
         try:
-            approx_x = ComplexIntervalField()(x)
-            if bool(approx_x.imag() == 0):      # x is real
-                if bool(approx_x.real() == 0):  # x is zero
-                    return None
-                else:
-                    return 0
-        except Exception:                     # x is symbolic
+            return self._evalf_(x)
+        except (TypeError,ValueError):      # x is symbolic
             pass
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = dirac_delta(x)
+            sage: h(pi).numerical_approx()
+            0.000000000000000
+        """
+        approx_x = ComplexIntervalField()(x)
+        if bool(approx_x.imag() == 0):      # x is real
+            if bool(approx_x.real() == 0):  # x is zero
+                return None
+            else:
+                return 0
+        raise ValueError("Numeric evaluation of symbolic expression")
 
 dirac_delta = FunctionDiracDelta()
 
@@ -174,9 +190,14 @@ class FunctionHeaviside(BuiltinFunction):
         sage: heaviside(x)
         heaviside(x)
 
+    TESTS::
+
+        sage: heaviside(x)._sympy_()
+        Heaviside(x)
+
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Heaviside_function
+    -  :wikipedia:`Heaviside_function`
 
     """
     def __init__(self):
@@ -199,9 +220,13 @@ class FunctionHeaviside(BuiltinFunction):
             heaviside(x)
             sage: latex(heaviside(x))
             H\left(x\right)
+            sage: heaviside(x)._sympy_()
+            Heaviside(x)
         """
         BuiltinFunction.__init__(self, "heaviside", latex_name="H",
-                                   conversions=dict(mathematica='HeavisideTheta'))
+                                 conversions=dict(maxima='hstep',
+                                                  mathematica='HeavisideTheta',
+                                                  sympy='Heaviside'))
 
     def _eval_(self, x):
         """
@@ -240,18 +265,29 @@ class FunctionHeaviside(BuiltinFunction):
             2
         """
         try:
-            approx_x = ComplexIntervalField()(x)
-            if bool(approx_x.imag() == 0):      # x is real
-                if bool(approx_x.real() == 0):  # x is zero
-                    return None
-                # Now we have a non-zero real
-                if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
-                    return 1
-                else:
-                    return 0
-        except Exception:                     # x is symbolic
+            return self._evalf_(x)
+        except (TypeError,ValueError):      # x is symbolic
             pass
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = heaviside(x)
+            sage: h(pi).numerical_approx()
+            1.00000000000000
+        """
+        approx_x = ComplexIntervalField()(x)
+        if bool(approx_x.imag() == 0):      # x is real
+            if bool(approx_x.real() == 0):  # x is zero
+                return None
+            # Now we have a non-zero real
+            if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
+                return 1
+            else:
+                return 0
+        raise ValueError("Numeric evaluation of symbolic expression")
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -349,18 +385,29 @@ class FunctionUnitStep(BuiltinFunction):
             1
         """
         try:
-            approx_x = ComplexIntervalField()(x)
-            if bool(approx_x.imag() == 0):      # x is real
-                if bool(approx_x.real() == 0):  # x is zero
-                    return 1
-                # Now we have a non-zero real
-                if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
-                    return 1
-                else:
-                    return 0
-        except Exception:                     # x is symbolic
+            return self._evalf_(x)
+        except (TypeError,ValueError):      # x is symbolic
             pass
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = unit_step(x)
+            sage: h(pi).numerical_approx()
+            1.00000000000000
+        """
+        approx_x = ComplexIntervalField()(x)
+        if bool(approx_x.imag() == 0):      # x is real
+            if bool(approx_x.real() == 0):  # x is zero
+                return 1
+            # Now we have a non-zero real
+            if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
+                return 1
+            else:
+                return 0
+        raise ValueError("Numeric evaluation of symbolic expression")
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -414,11 +461,10 @@ class FunctionSignum(BuiltinFunction):
 
     TESTS:
 
-    Check if conversion to sympy works #11921::
+    Check if conversion to sympy works :trac:`11921`::
 
         sage: sgn(x)._sympy_()
         sign(x)
-
 
     REFERENCES:
 
@@ -439,6 +485,8 @@ class FunctionSignum(BuiltinFunction):
             0
             sage: sgn(x)
             sgn(x)
+            sage: sgn(x)._sympy_()
+            sign(x)
         """
         BuiltinFunction.__init__(self, "sgn", latex_name=r"\mathrm{sgn}",
                 conversions=dict(maxima='signum',mathematica='Sign',sympy='sign'),
@@ -480,23 +528,40 @@ class FunctionSignum(BuiltinFunction):
             sage: sign(AA(0))
             0
         """
+        try:
+            return self._evalf_(x)
+        except (TypeError,ValueError):      # x is symbolic
+            pass
+        return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS:
+
+        Check that :trac:`16587` is fixed::
+
+            sage: M = sgn(3/2, hold=True); M
+            sgn(3/2)
+            sage: M.n()
+            1
+            sage: h(x) = sgn(x)
+            sage: h(pi).numerical_approx()
+            1.00000000000000
+        """
         if hasattr(x,'sign'): # First check if x has a sign method
             return x.sign()
         if hasattr(x,'sgn'): # or a sgn method
             return x.sgn()
-        try:
-            approx_x = ComplexIntervalField()(x)
-            if bool(approx_x.imag() == 0):      # x is real
-                if bool(approx_x.real() == 0):  # x is zero
-                    return ZZ(0)
-                # Now we have a non-zero real
-                if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
-                    return ZZ(1)
-                else:
-                    return ZZ(-1)
-        except Exception:                     # x is symbolic
-            pass
-        return None
+        approx_x = ComplexIntervalField()(x)
+        if bool(approx_x.imag() == 0):      # x is real
+            if bool(approx_x.real() == 0):  # x is zero
+                return ZZ(0)
+            # Now we have a non-zero real
+            if bool((approx_x**(0.5)).imag() == 0): # Check: x > 0
+                return ZZ(1)
+            else:
+                return ZZ(-1)
+        raise ValueError("Numeric evaluation of symbolic expression")
 
     def _derivative_(self, x, diff_param=None):
         """
@@ -554,10 +619,14 @@ class FunctionKroneckerDelta(BuiltinFunction):
             0
             sage: kronecker_delta(1,1)
             1
+            sage: y = var('y')
+            sage: kronecker_delta(x, y)._sympy_()
+            KroneckerDelta(x, y)
         """
         BuiltinFunction.__init__(self, "kronecker_delta", nargs=2,
                                         conversions=dict(maxima='kron_delta',
-                                        mathematica='KroneckerDelta'))
+                                        mathematica='KroneckerDelta',
+                                        sympy='KroneckerDelta'))
 
     def _eval_(self, m, n):
         """
@@ -586,22 +655,33 @@ class FunctionKroneckerDelta(BuiltinFunction):
             sage: kronecker_delta(1,x).subs(x=1)
             1
         """
+        try:
+            return self._evalf_(m,n)
+        except (TypeError,ValueError):      # x is symbolic
+            pass
+        return None
+
+    def _evalf_(self, m, n, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = kronecker_delta(3,x)
+            sage: h(pi).numerical_approx()
+            0.000000000000000
+        """
         if bool(repr(m) > repr(n)):
             return kronecker_delta(n, m)
 
         x = m - n
-        try:
-            approx_x = ComplexIntervalField()(x)
-            if bool(approx_x.imag() == 0):      # x is real
-                if bool(approx_x.real() == 0):  # x is zero
-                    return 1
-                else:
-                    return 0
+        approx_x = ComplexIntervalField()(x)
+        if bool(approx_x.imag() == 0):      # x is real
+            if bool(approx_x.real() == 0):  # x is zero
+                return 1
             else:
-                return 0            # x is complex
-        except Exception:                     # x is symbolic
-            pass
-        return None
+                return 0
+        else:
+            return 0            # x is complex
+        raise ValueError("Numeric evaluation of symbolic expression")
 
     def _derivative_(self, *args, **kwds):
         """

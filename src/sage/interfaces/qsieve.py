@@ -1,6 +1,8 @@
 """
 Interface to Bill Hart's Quadratic Sieve
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 
@@ -23,36 +25,37 @@ def qsieve(n, block=True, time=False, verbose=False):
     of the integer n that it finds.
 
     CONDITIONS:
+
     The conditions for the quadratic sieve to work are as follows:
 
-    \begin{enumerate}
-       \item No small factors
-       \item Not a perfect power
-       \item Not prime
-    \end{enumerate}
+    - No small factors
+    - Not a perfect power
+    - Not prime
 
     If any of these fails, the sieve will also.
 
 
     INPUT:
-        n -- an integer with at least 40 digits
-        block -- (default: True) if True, you must wait until the
-            sieve computation is complete before using Sage further.
-            If False, Sage will run while the sieve computation
-            runs in parallel.  If q is the returned object, use
-            q.quit() to terminate a running factorization.
-        time -- (default: False) if True, time the command using
-            the UNIX "time" command (which you might have to install).
-        verbose -- (default: False) if True, print out verbose
-            logging information about what happened during
-            the Sieve run (for non-blocking Sieve, verbose information
-            is always available via the log() method.)
+
+    - n -- an integer with at least 40 digits
+    - block -- (default: True) if True, you must wait until the
+      sieve computation is complete before using Sage further.
+      If False, Sage will run while the sieve computation
+      runs in parallel.  If q is the returned object, use
+      q.quit() to terminate a running factorization.
+    - time -- (default: False) if True, time the command using
+      the UNIX "time" command (which you might have to install).
+    - verbose -- (default: False) if True, print out verbose
+      logging information about what happened during
+      the Sieve run (for non-blocking Sieve, verbose information
+      is always available via the log() method.)
 
     OUTPUT:
-        list -- a list of the distinct proper factors of n found
-        str -- the time in cpu seconds that the computation took, as given
-               by the command line time command.  (If time is False,
-               this is always an empty string.)
+
+    - list -- a list of the distinct proper factors of n found
+    - str -- the time in cpu seconds that the computation took, as given
+      by the command line time command.  (If time is False,
+      this is always an empty string.)
 
     EXAMPLES::
 
@@ -87,7 +90,7 @@ def qsieve_block(n, time, verbose=False):
     out = os.popen('echo "%s" | %s QuadraticSieve 2>&1'%(n,t)).read()
     z = data_to_list(out, n, time=time)
     if verbose:
-        print z[-1]
+        print(z[-1])
     return z[:2]
 
 def data_to_list(out, n, time):
@@ -95,12 +98,14 @@ def data_to_list(out, n, time):
     Convert output of Hart's sieve and n to a list and time.
 
     INPUT:
-        out -- snapshot of text output of Hart's QuadraticSieve program
-        n -- the integer being factored
+
+    - out -- snapshot of text output of Hart's QuadraticSieve program
+    - n -- the integer being factored
 
     OUTPUT:
-        list -- proper factors found so far
-        str -- time information
+
+    - list -- proper factors found so far
+    - str -- time information
     """
     i = out.find('FACTORS:')
     if i == -1:
@@ -126,8 +131,9 @@ def data_to_list(out, n, time):
     return v, t, verbose
 
 
+from sage.interfaces.sagespawn import SageSpawn
 import pexpect
-import cleaner
+from . import cleaner
 class qsieve_nonblock:
     """
     A non-blocking version of Hart's quadratic sieve.
@@ -161,7 +167,7 @@ class qsieve_nonblock:
         else:
             cmd = 'QuadraticSieve'
         tmpdir()
-        self._p = pexpect.spawn(cmd)
+        self._p = SageSpawn(cmd)
         cleaner.cleaner(self._p.pid, 'QuadraticSieve')
         self._p.sendline(str(self._n)+'\n\n\n')
         self._done = False
@@ -253,7 +259,7 @@ class qsieve_nonblock:
 
         EXAMPLES::
 
-            sage: n = next_prime(2^110)*next_prime(2^100)
+            sage: n = next_prime(2^310)*next_prime(2^300)
             sage: qs = qsieve(n, block=False)
             sage: qs
             Proper factors so far: []
@@ -277,9 +283,9 @@ class qsieve_nonblock:
         e = self._p
         try:
             e.expect('xxx', timeout=timeout)
-        except pexpect.TIMEOUT as msg:
+        except pexpect.TIMEOUT:
             pass
-        except pexpect.EOF as msg:
+        except pexpect.EOF:
             pass
             self._done = True
             self._p.close()

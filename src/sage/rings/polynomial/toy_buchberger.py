@@ -141,9 +141,10 @@ AUTHOR:
 - Martin Albrecht (2007-05-24): initial version
 - Marshall Hampton (2009-07-08): some doctest additions
 """
+from __future__ import print_function
 
 from sage.misc.misc import get_verbose
-from sage.rings.arith import LCM
+from sage.arith.all import LCM
 from sage.structure.sequence import Sequence
 
 #some aliases that conform to Becker and Weispfenning's notation:
@@ -218,13 +219,13 @@ def buchberger(F):
             G.add( h )
 
         if get_verbose() >= 1:
-            print "(%s, %s) => %s"%(g1, g2, h)
-            print "G: %s\n"%(G)
-            if h==0:
-                reductions_to_zero +=1
+            print("(%s, %s) => %s" % (g1, g2, h))
+            print("G: %s\n" % G)
+            if h == 0:
+                reductions_to_zero += 1
 
     if get_verbose() >= 1:
-        print "%d reductions to zero."%(reductions_to_zero)
+        print("%d reductions to zero." % reductions_to_zero)
 
     return Sequence(G)
 
@@ -279,13 +280,13 @@ def buchberger_improved(F):
         if h!=0: G,B = update(G,B,h)
 
         if get_verbose() >= 1:
-            print "(%s, %s) => %s"%(g1,g2,h)
-            print "G: %s\n"%(G)
-            if h==0:
-                reductions_to_zero +=1
+            print("(%s, %s) => %s" % (g1, g2, h))
+            print("G: %s\n" % G)
+            if h == 0:
+                reductions_to_zero += 1
 
     if get_verbose() >= 1:
-        print "%d reductions to zero."%(reductions_to_zero)
+        print("%d reductions to zero." % reductions_to_zero)
 
     return Sequence(inter_reduction(G))
 
@@ -314,11 +315,11 @@ def update(G,B,h):
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
         sage: set_verbose(0)
         sage: update(set(),set(),x*y*z)
-        (set([x*y*z]), set([]))
+        ({x*y*z}, set())
         sage: G,B = update(set(),set(),x*y*z-1)
         sage: G,B = update(G,B,x*y^2-1)
         sage: G,B
-        (set([x*y*z - 1, x*y^2 - 1]), set([(x*y^2 - 1, x*y*z - 1)]))
+        ({x*y*z - 1, x*y^2 - 1}, {(x*y^2 - 1, x*y*z - 1)})
     """
     R = h.parent()
 
@@ -410,18 +411,20 @@ def inter_reduction(Q):
 
         sage: from sage.rings.polynomial.toy_buchberger import inter_reduction
         sage: inter_reduction(set())
-        set([])
+        set()
 
     ::
 
-        sage: (x,y) = QQ['x,y'].gens()
+        sage: P.<x,y> = QQ[]
         sage: reduced = inter_reduction(set([x^2-5*y^2,x^3]))
         sage: reduced == set([x*y^2, x^2-5*y^2])
+        True
+        sage: reduced == inter_reduction(set([2*(x^2-5*y^2),x^3]))
         True
     """
     if not Q:
         return Q # if Q is empty we cannot get a base ring
-    base_ring = iter(Q).next().base_ring()
+    base_ring = next(iter(Q)).base_ring()
 
     Q = set(Q)
     while True:

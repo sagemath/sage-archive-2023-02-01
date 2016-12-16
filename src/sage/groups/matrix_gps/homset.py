@@ -44,15 +44,15 @@ def is_MatrixGroupHomset(x):
 
 class MatrixGroupHomset(GroupHomset_generic):
 
-    def __init__(self, G, H):
+    def __init__(self, G, H, category=None):
         r"""
         Return the homset of two matrix groups.
 
         INPUT:
 
-        - ``G`` -- a matrix group.
+        - ``G`` -- a matrix group
 
-        - ``H`` -- a matrix group.
+        - ``H`` -- a matrix group
 
         OUTPUT:
 
@@ -74,9 +74,8 @@ class MatrixGroupHomset(GroupHomset_generic):
             [4 1], [0 1]
             )
         """
-        from sage.categories.groups import Groups
         from sage.categories.homset import HomsetWithBase
-        HomsetWithBase.__init__(self, G, H, Groups(), G.base_ring())
+        HomsetWithBase.__init__(self, G, H, category, G.base_ring())
 
     def __call__(self, im_gens, check=True):
         """

@@ -33,6 +33,7 @@ TESTS::
 
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2010 Jason Grout <jason-sage@creativetrax.com>
@@ -49,19 +50,17 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import free_module_element
+from . import free_module_element
 from sage.symbolic.ring import SR
 
 
 class Vector_callable_symbolic_dense(free_module_element.FreeModuleElement_generic_dense):
-
-
-
     def _repr_(self):
         """
         Returns the string representation of the vector
 
         EXAMPLES::
+
             sage: f(u,v,w) = (2*u+v,u-w,w^2+u)
             sage: f
             (u, v, w) |--> (2*u + v, u - w, w^2 + u)
@@ -69,7 +68,7 @@ class Vector_callable_symbolic_dense(free_module_element.FreeModuleElement_gener
             sage: r
             t |--> (cos(t), sin(t))
         """
-        ring=self.base_ring()
+        ring = self.coordinate_ring()
         args = ring.arguments()
         repr_x=self.change_ring(SR)._repr_()
         if len(args) == 1:
@@ -78,12 +77,12 @@ class Vector_callable_symbolic_dense(free_module_element.FreeModuleElement_gener
             args = ", ".join(map(str, args))
             return "(%s) |--> %s" % (args, repr_x)
 
-
     def _latex_(self):
         """
         Returns the latex representation of the vector
 
         EXAMPLES::
+
             sage: f(u,v,w) = (2*u+v,u-w,w^2+u)
             sage: f
             (u, v, w) |--> (2*u + v, u - w, w^2 + u)
@@ -96,7 +95,7 @@ class Vector_callable_symbolic_dense(free_module_element.FreeModuleElement_gener
             t \ {\mapsto}\ \left(\cos\left(t\right),\,\sin\left(t\right)\right)
         """
         from sage.misc.latex import latex
-        ring=self.base_ring()
+        ring = self.coordinate_ring()
         args = ring.arguments()
         args = [latex(arg) for arg in args]
         latex_x = self.change_ring(SR)._latex_()

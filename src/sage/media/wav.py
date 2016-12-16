@@ -1,5 +1,5 @@
 r"""
-Work with WAV files.
+Work with WAV files
 
 A WAV file is a header specifying format information, followed by a
 sequence of bytes, representing the state of some audio signal over a
@@ -12,17 +12,21 @@ per channel, per frame. Every wav file has a sample width, or, the
 number of bytes per sample. Typically this is either 1 or 2 bytes.
 
 The wav module supplies more convenient access to this data. In
-particular, see the docstring for \code{Wave.channel_data()}.
+particular, see the docstring for ``Wave.channel_data()``.
 
 The header contains information necessary for playing the WAV file,
 including the number of frames per second, the number of bytes per
 sample, and the number of channels in the file.
 
 AUTHORS:
-    -- Bobby Moretti and Gonzolo Tornaria (2007-07-01): First version
-    -- William Stein (2007-07-03): add more
-    -- Bobby Moretti (2007-07-03): add doctests
+
+- Bobby Moretti and Gonzolo Tornaria (2007-07-01): First version
+- William Stein (2007-07-03): add more
+- Bobby Moretti (2007-07-03): add doctests
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import range
 
 import math
 import os
@@ -30,7 +34,7 @@ import wave
 
 from sage.plot.plot import list_plot
 from sage.structure.sage_object import SageObject
-from sage.misc.all import srange
+from sage.arith.srange import srange
 from sage.misc.html import html
 from sage.rings.all import RDF
 
@@ -39,23 +43,25 @@ class Wave(SageObject):
     A class wrapping a wave audio file.
 
     INPUT:
-        You must call Wave() with either data = filename, where
-        filename is the name of a wave file, or with each of the
-        following options:
 
-            channels  -- the number of channels in the wave file (1 for
-                        mono, 2 for stereo, etc...
-            width     -- the number of bytes per sample
-            framerate -- the number of frames per second
-            nframes   -- the number of frames in the data stream
-            bytes     -- a string object containing the bytes of the
-                         data stream
+    You must call Wave() with either data = filename, where
+    filename is the name of a wave file, or with each of the
+    following options:
+
+    - channels  -- the number of channels in the wave file (1 for mono, 2 for
+      stereo, etc...
+    - width     -- the number of bytes per sample
+    - framerate -- the number of frames per second
+    - nframes   -- the number of frames in the data stream
+    - bytes     -- a string object containing the bytes of the data stream
 
     Slicing:
+
         Slicing a Wave object returns a new wave object that has been
         trimmed to the bytes that you have given it.
 
     Indexing:
+
         Getting the $n$th item in a Wave object will give you the value
         of the $n$th frame.
     """
@@ -69,7 +75,7 @@ class Wave(SageObject):
             self._framerate = wv.getframerate()
             self._nframes = wv.getnframes()
             self._bytes = wv.readframes(self._nframes)
-            from channels import _separate_channels
+            from .channels import _separate_channels
             self._channel_data = _separate_channels(self._bytes,
                                                    self._width,
                                                    self._nchannels)
@@ -219,7 +225,7 @@ class Wave(SageObject):
         seconds = float(self._nframes) / float(self._width)
         frame_duration = seconds / (float(npoints) * float(self._framerate))
 
-        domain = [n * frame_duration for n in xrange(npoints)]
+        domain = [n * frame_duration for n in range(npoints)]
         return domain
 
     def values(self, npoints=None, channel=0):
@@ -235,7 +241,7 @@ class Wave(SageObject):
 
         # now scale the values
         scale = float(1 << (8*self._width -1))
-        values = [cd[frame_skip*i]/scale for i in xrange(npoints)]
+        values = [cd[frame_skip*i]/scale for i in range(npoints)]
         return values
 
     def set_values(self, values, channel=0):
@@ -253,7 +259,7 @@ class Wave(SageObject):
 
         # the values of the function at each point in the domain
         c = self.channel_data(channel)
-        for i in xrange(npoints):
+        for i in range(npoints):
             c[i] = values[i]
 
     def vector(self, npoints=None, channel=0):
@@ -267,13 +273,15 @@ class Wave(SageObject):
         Plots the audio data.
 
         INPUT:
-            npoints -- number of sample points to take; if not given, draws
-                       all known points.
-            channel -- 0 or 1 (if stereo).  default: 0
-            plotjoined -- whether to just draw dots or draw lines between sample points
+
+        - npoints -- number of sample points to take; if not given, draws all
+          known points.
+        - channel -- 0 or 1 (if stereo).  default: 0
+        - plotjoined -- whether to just draw dots or draw lines between sample points
 
         OUTPUT:
-            a plot object that can be shown.
+
+        a plot object that can be shown.
         """
 
         domain = self.domain(npoints = npoints)
@@ -305,9 +313,9 @@ class Wave(SageObject):
         npoints = self._normalize_npoints(npoints)
         seconds = float(self._nframes) / float(self._width)
         sample_step = seconds / float(npoints)
-        domain = [float(n*sample_step) / float(self._framerate) for n in xrange(npoints)]
+        domain = [float(n*sample_step) / float(self._framerate) for n in range(npoints)]
         frame_skip = self._nframes / npoints
-        values = [self.channel_data(channel)[frame_skip*i] for i in xrange(npoints)]
+        values = [self.channel_data(channel)[frame_skip*i] for i in range(npoints)]
         points = zip(domain, values)
 
         return list_plot(points, plotjoined=plotjoined, **kwds)
@@ -346,7 +354,7 @@ class Wave(SageObject):
         start = start * self._width
         stop = stop * self._width
         channels_sliced = [self._channel_data[i][start:stop] for i in range(self._nchannels)]
-        print stop - start
+        print(stop - start)
 
         return Wave(nchannels = self._nchannels,
                     width = self._width,

@@ -1,11 +1,13 @@
 """
-Chromatic Polynomial Routine
+Chromatic Polynomial
 
 AUTHORS:
-    -- Gordon Royle - original C implementation
-    -- Robert Miller - transplant
+
+- Gordon Royle - original C implementation
+- Robert Miller - transplant
 
 REFERENCE:
+
     Ronald C Read, An improved method for computing the chromatic polynomials of
     sparse graphs.
 """
@@ -16,17 +18,17 @@ REFERENCE:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
-from sage.misc.misc import prod
-include 'sage/ext/interrupt.pxi'
+from sage.ext.memory_allocator cimport MemoryAllocator
+from sage.misc.all import prod
+include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
 
-def chromatic_polynomial(G, return_tree_basis = False):
+
+def chromatic_polynomial(G, return_tree_basis=False):
     """
-    Computes the chromatic polynomial of the graph G.
+    Compute the chromatic polynomial of the graph G.
 
     The algorithm used is a recursive one, based on the following observations
     of Read:
@@ -50,7 +52,7 @@ def chromatic_polynomial(G, return_tree_basis = False):
         sage: graphs.CompleteBipartiteGraph(3,3).chromatic_polynomial()
         x^6 - 9*x^5 + 36*x^4 - 75*x^3 + 78*x^2 - 31*x
         sage: for i in range(2,7):
-        ...     graphs.CompleteGraph(i).chromatic_polynomial().factor()
+        ....:     graphs.CompleteGraph(i).chromatic_polynomial().factor()
         (x - 1) * x
         (x - 2) * (x - 1) * x
         (x - 3) * (x - 2) * (x - 1) * x
@@ -73,54 +75,54 @@ def chromatic_polynomial(G, return_tree_basis = False):
 
         sage: G = graphs.PetersenGraph()
         sage: P = G.chromatic_polynomial()
-        sage: min((i for i in xrange(11) if P(i) > 0)) == G.chromatic_number()
+        sage: min(i for i in range(11) if P(i) > 0) == G.chromatic_number()
         True
 
         sage: G = graphs.RandomGNP(10,0.7)
         sage: P = G.chromatic_polynomial()
-        sage: min((i for i in xrange(11) if P(i) > 0)) == G.chromatic_number()
+        sage: min(i for i in range(11) if P(i) > 0) == G.chromatic_number()
         True
+
+    TESTS:
+
+    Check that :trac:`21502` is solved::
+
+        sage: graphs.EmptyGraph().chromatic_polynomial()
+        1
     """
+    if not G:
+        R = ZZ['x']
+        return R.one()
     if not G.is_connected():
         return prod([chromatic_polynomial(g) for g in G.connected_components_subgraphs()])
     R = ZZ['x']
     x = R.gen()
     if G.is_tree():
-        return x*(x-1)**(G.num_verts()-1)
+        return x * (x - 1) ** (G.num_verts() - 1)
 
     cdef int nverts, nedges, i, j, u, v, top, bot, num_chords, next_v
-    cdef int *queue, *chords1, *chords2, *bfs_reorder, *parent
-    cdef mpz_t m, coeff, *tot, *coeffs
+    cdef int *queue
+    cdef int *chords1
+    cdef int *chords2
+    cdef int *bfs_reorder
+    cdef int *parent
+    cdef mpz_t m, coeff
+    cdef mpz_t *tot
+    cdef mpz_t *coeffs
     G = G.relabel(inplace=False)
     G.remove_multiple_edges()
     G.remove_loops()
     nverts = G.num_verts()
     nedges = G.num_edges()
-    queue = <int *> sage_malloc(nverts * sizeof(int))
-    chords1 = <int *> sage_malloc((nedges - nverts + 1) * sizeof(int))
-    chords2 = <int *> sage_malloc((nedges - nverts + 1) * sizeof(int))
-    parent = <int *> sage_malloc(nverts * sizeof(int))
-    bfs_reorder = <int *> sage_malloc(nverts * sizeof(int))
-    tot = <mpz_t *> sage_malloc((nverts+1) * sizeof(mpz_t))
-    if queue is NULL or \
-       chords1 is NULL or \
-       chords2 is NULL or \
-       parent is NULL or \
-       bfs_reorder is NULL or \
-       tot is NULL:
-        if queue is not NULL:
-            sage_free(queue)
-        if chords1 is not NULL:
-            sage_free(chords1)
-        if chords2 is not NULL:
-            sage_free(chords2)
-        if parent is not NULL:
-            sage_free(parent)
-        if bfs_reorder is not NULL:
-            sage_free(bfs_reorder)
-        if tot is not NULL:
-            sage_free(tot)
-        raise RuntimeError("Error allocating memory for chrompoly.")
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    queue       = <int *>   mem.allocarray(nverts, sizeof(int))
+    chords1     = <int *>   mem.allocarray((nedges - nverts + 1), sizeof(int))
+    chords2     = <int *>   mem.allocarray((nedges - nverts + 1), sizeof(int))
+    parent      = <int *>   mem.allocarray(nverts, sizeof(int))
+    bfs_reorder = <int *>   mem.allocarray(nverts, sizeof(int))
+    tot         = <mpz_t *> mem.allocarray((nverts+1), sizeof(mpz_t))
+    coeffs      = <mpz_t *> mem.allocarray((nverts+1), sizeof(mpz_t))
     num_chords = 0
 
     # Breadth first search from 0:
@@ -167,29 +169,14 @@ def chromatic_polynomial(G, return_tree_basis = False):
                     i -= 1
     try:
         sig_on()
-        contract_and_count(chords1, chords2, num_chords, nverts, tot, parent)
-        sig_off()
-    except RuntimeError:
-        sage_free(queue)
-        sage_free(chords1)
-        sage_free(chords2)
-        sage_free(parent)
-        sage_free(bfs_reorder)
-        for i from 0 <= i <= nverts:
+        try:
+            contract_and_count(chords1, chords2, num_chords, nverts, tot, parent)
+        finally:
+            sig_off()
+    except BaseException:
+        for i in range(nverts):
             mpz_clear(tot[i])
-        sage_free(tot)
-        raise RuntimeError("Error allocating memory for chrompoly.")
-    coeffs = <mpz_t *> sage_malloc((nverts+1) * sizeof(mpz_t))
-    if coeffs is NULL:
-        sage_free(queue)
-        sage_free(chords1)
-        sage_free(chords2)
-        sage_free(parent)
-        sage_free(bfs_reorder)
-        for i from 0 <= i <= nverts:
-            mpz_clear(tot[i])
-        sage_free(tot)
-        raise RuntimeError("Error allocating memory for chrompoly.")
+        raise
     for i from 0 <= i <= nverts:
         mpz_init(coeffs[i]) # also sets them to 0
     mpz_init(coeff)
@@ -219,18 +206,10 @@ def chromatic_polynomial(G, return_tree_basis = False):
         mpz_set(c_ZZ.value, coeffs[i])
         coeffs_ZZ.append(c_ZZ)
     f = R(coeffs_ZZ)
-    sage_free(queue)
-    sage_free(chords1)
-    sage_free(chords2)
-    sage_free(parent)
-    sage_free(bfs_reorder)
 
     for i from 0 <= i <= nverts:
         mpz_clear(tot[i])
         mpz_clear(coeffs[i])
-
-    sage_free(tot)
-    sage_free(coeffs)
 
     mpz_clear(coeff)
     mpz_clear(m)
@@ -242,20 +221,11 @@ cdef int contract_and_count(int *chords1, int *chords2, int num_chords, int nver
     if num_chords == 0:
         mpz_add_ui(tot[nverts], tot[nverts], 1)
         return 0
-    cdef int *new_chords1 = <int *> sage_malloc(num_chords * sizeof(int))
-    cdef int *new_chords2 = <int *> sage_malloc(num_chords * sizeof(int))
-    cdef int *ins_list1 = <int *> sage_malloc(num_chords * sizeof(int))
-    cdef int *ins_list2 = <int *> sage_malloc(num_chords * sizeof(int))
-    if new_chords1 is NULL or new_chords2 is NULL or ins_list1 is NULL or ins_list2 is NULL:
-        if new_chords1 is not NULL:
-            sage_free(new_chords1)
-        if new_chords2 is not NULL:
-            sage_free(new_chords2)
-        if ins_list1 is not NULL:
-            sage_free(ins_list1)
-        if ins_list2 is not NULL:
-            sage_free(ins_list2)
-        raise RuntimeError("Error allocating memory for chrompoly.")
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int *new_chords1 = <int *> mem.allocarray(num_chords, sizeof(int))
+    cdef int *new_chords2 = <int *> mem.allocarray(num_chords, sizeof(int))
+    cdef int *ins_list1   = <int *> mem.allocarray(num_chords, sizeof(int))
+    cdef int *ins_list2   = <int *> mem.allocarray(num_chords, sizeof(int))
     cdef int i, j, k, x1, xj, z, num, insnum, parent_checked
     for i from 0 <= i < num_chords:
         # contract chord i, and recurse
@@ -326,18 +296,5 @@ cdef int contract_and_count(int *chords1, int *chords2, int num_chords, int nver
                 new_chords2[num] = chords2[j]
                 num += 1
                 j += 1
-        try:
-            contract_and_count(new_chords1, new_chords2, num, nverts - 1, tot, parent)
-        except RuntimeError:
-            sage_free(new_chords1)
-            sage_free(new_chords2)
-            sage_free(ins_list1)
-            sage_free(ins_list2)
-            raise RuntimeError("Error allocating memory for chrompoly.")
+        contract_and_count(new_chords1, new_chords2, num, nverts - 1, tot, parent)
     mpz_add_ui(tot[nverts], tot[nverts], 1)
-    sage_free(new_chords1)
-    sage_free(new_chords2)
-    sage_free(ins_list1)
-    sage_free(ins_list2)
-
-

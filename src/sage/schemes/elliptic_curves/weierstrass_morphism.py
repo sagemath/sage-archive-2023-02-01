@@ -7,6 +7,7 @@ AUTHORS:
 - John Cremona (Jan 2008): isomorphisms, automorphisms and twists
   in all characteristics
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #   Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -25,7 +26,7 @@ AUTHORS:
 
 
 from sage.categories.morphism import Morphism
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 from sage.categories.homset import Hom
 
 class baseWI:
@@ -95,9 +96,8 @@ class baseWI:
             sage: baseWI(1,2,3,4)>baseWI(1,2,3,4)
             False
 
-        ::
+        It will never return equality if other is of another type::
 
-        It will never return equality if other is of another type:
             sage: baseWI() == 1
             False
 
@@ -170,7 +170,7 @@ class baseWI:
             sage: baseWI(2,3,4,5)
             (2, 3, 4, 5)
         """
-        return self.tuple().__repr__()
+        return repr(self.tuple())
 
     def is_identity(self):
         r"""
@@ -270,7 +270,7 @@ def isomorphisms(E,F,JustOne=False):
         []
         sage: isomorphisms(EllipticCurve_from_j(0),EllipticCurve('27a1'),JustOne=True)
     """
-    from ell_generic import is_EllipticCurve
+    from .ell_generic import is_EllipticCurve
     if not is_EllipticCurve(E) or not is_EllipticCurve(F):
         raise ValueError("arguments are not elliptic curves")
     K = E.base_ring()
@@ -368,7 +368,7 @@ def isomorphisms(E,F,JustOne=False):
     ans.sort()
     return ans
 
-class WeierstrassIsomorphism(baseWI,Morphism):
+class WeierstrassIsomorphism(baseWI, Morphism):
     r"""
     Class representing a Weierstrass isomorphism between two elliptic curves.
     """
@@ -418,7 +418,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             sage: w._domain_curve==E
             True
         """
-        from ell_generic import is_EllipticCurve
+        from .ell_generic import is_EllipticCurve
 
         if E is not None:
             if not is_EllipticCurve(E):
@@ -470,43 +470,43 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             self._codomain_curve = F
         return
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         r"""
         Standard comparison function for the WeierstrassIsomorphism class.
 
-        EXAMPLE::
+        EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: E=EllipticCurve('389a1')
-        sage: F=E.change_weierstrass_model(1,2,3,4)
-        sage: w1=E.isomorphism_to(F)
-        sage: w1==w1
-        True
-        sage: w2 = F.automorphisms()[0] *w1
-        sage: w1==w2
-        False
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
+            sage: E=EllipticCurve('389a1')
+            sage: F=E.change_weierstrass_model(1,2,3,4)
+            sage: w1=E.isomorphism_to(F)
+            sage: w1==w1
+            True
+            sage: w2 = F.automorphisms()[0] *w1
+            sage: w1==w2
+            False
 
-    ::
+        ::
 
-        sage: E=EllipticCurve_from_j(GF(7)(0))
-        sage: F=E.change_weierstrass_model(2,3,4,5)
-        sage: a=E.isomorphisms(F)
-        sage: b=[w*a[0] for w in F.automorphisms()]
-        sage: b.sort()
-        sage: a==b
-        True
-        sage: c=[a[0]*w for w in E.automorphisms()]
-        sage: c.sort()
-        sage: a==c
-        True
+            sage: E=EllipticCurve_from_j(GF(7)(0))
+            sage: F=E.change_weierstrass_model(2,3,4,5)
+            sage: a=E.isomorphisms(F)
+            sage: b=[w*a[0] for w in F.automorphisms()]
+            sage: b.sort()
+            sage: a==b
+            True
+            sage: c=[a[0]*w for w in E.automorphisms()]
+            sage: c.sort()
+            sage: a==c
+            True
         """
-        if not isinstance(other, WeierstrassIsomorphism):
-            return cmp(type(self), type(other))
         t = cmp(self._domain_curve, other._domain_curve)
         if t: return t
         t = cmp(self._codomain_curve, other._codomain_curve)
         if t: return t
         return baseWI.__cmp__(self,other)
+
+    __cmp__ = _cmp_
 
     def __call__(self, P):
         r"""

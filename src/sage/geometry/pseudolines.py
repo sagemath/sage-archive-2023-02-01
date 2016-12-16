@@ -7,7 +7,7 @@ arrangement of pseudolines in several different ways, and to translate one
 description into another, as well as to display *Wiring diagrams* via the
 :meth:`show <sage.geometry.pseudolines.PseudolineArrangement.show>` method.
 
-In the following, we try to stick to the terminology given in [Felsner]_, which
+In the following, we try to stick to the terminology given in [Fe1997]_, which
 can be checked in case of doubt. And please fix this module's documentation
 afterwards :-)
 
@@ -88,6 +88,7 @@ vector ``[0, 0, 1]``. Hence we can transform the list of permutations above into
 a list of `n` bit vectors of length `n-1`, that is
 
 .. MATH::
+
     \begin{array}{ccc}
       3 & 2 & 1\\
       3 & 2 & 0\\
@@ -109,7 +110,7 @@ corresponds in the wiring diagram to a line going up while the line immediately
 above it goes down -- those two lines cross. Each time such a pattern is found
 it yields a new transposition, and the matrix can be updated so that this
 pattern disappears. A more detailed description of this algorithm is given in
-[Felsner]_.
+[Fe1997]_.
 
 ::
 
@@ -128,10 +129,9 @@ them are parallel by making sure all of the `a` chosen are different, and we
 avoid a common crossing of three lines by adding a random noise to `b`::
 
     sage: n = 20
-    sage: l = zip(Subsets(20*n,n).random_element(), [randint(0,20*n)+random() for i in range(n)])
-    sage: print l[:5]                            # not tested
+    sage: l = sorted(zip(Subsets(20*n,n).random_element(), [randint(0,20*n)+random() for i in range(n)]))
+    sage: print(l[:5])                            # not tested
     [(96, 278.0130613051349), (74, 332.92512282478714), (13, 155.65820951249867), (209, 34.753946221755307), (147, 193.51376457741441)]
-    sage: l.sort()
 
 We can now compute for each `i` the order in which line `i` meets the other lines::
 
@@ -145,17 +145,9 @@ And finally build the line arrangement::
 
     sage: from sage.geometry.pseudolines import PseudolineArrangement
     sage: p = PseudolineArrangement(permutations)
-    sage: print p
+    sage: print(p)
     Arrangement of pseudolines of size 20
     sage: p.show(figsize=[20,8])
-
-
-References
-^^^^^^^^^^
-
-.. [Felsner] On the Number of Arrangements of Pseudolines,
-  Stefan Felsner,
-  http://page.math.tu-berlin.de/~felsner/Paper/numarr.pdf
 
 Author
 ^^^^^^
@@ -170,6 +162,7 @@ Methods
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 from copy import deepcopy
 
@@ -226,8 +219,6 @@ class PseudolineArrangement:
             sage: PseudolineArrangement(matrix) == p
             True
 
-        TESTS:
-
         Wrong input::
 
             sage: PseudolineArrangement([[5, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]])
@@ -263,7 +254,7 @@ class PseudolineArrangement:
             (encoding == "auto" and (len(seq[0]) == len(seq)-1) and max(seq[0]) > 1)):
 
             self._n = len(seq)
-            self._permutations = map(list,seq)
+            self._permutations = [list(_) for _ in seq]
 
             if max(map(max, seq)) != self._n -1 :
                 raise ValueError("Are the lines really numbered from 0 to n-1?")

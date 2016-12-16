@@ -9,8 +9,10 @@ Root system data for type BC affine
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
-from cartan_type import CartanType_standard_affine
+from .cartan_type import CartanType_standard_affine
 from sage.rings.integer_ring import ZZ
 class CartanType(CartanType_standard_affine):
     def __init__(self, n):
@@ -106,7 +108,7 @@ class CartanType(CartanType_standard_affine):
             [(0, 1, 1), (1, 0, 4)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         n = self.n
         g = DynkinDiagram_class(self)
         if n == 1:
@@ -127,25 +129,25 @@ class CartanType(CartanType_standard_affine):
             sage: latex(CartanType(['BC',4,2]))
             BC_{4}^{(2)}
 
-            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: CartanType.options.notation = 'Kac'
             sage: latex(CartanType(['BC',4,2]))
             A_{8}^{(2)}
             sage: latex(CartanType(['A',8,2]))
             A_{8}^{(2)}
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
-        if self.global_options('notation') == "Kac":
+        if self.options.notation == "Kac":
             return "A_{%s}^{(2)}"%(2*self.classical().rank())
         else:
             return "BC_{%s}^{(2)}"%self.n
 
-    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False):
+    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2, dual=False):
         r"""
         Return a latex representation of the Dynkin diagram.
 
         EXAMPLES::
 
-            sage: print CartanType(['BC',4,2])._latex_dynkin_diagram()
+            sage: print(CartanType(['BC',4,2])._latex_dynkin_diagram())
             \draw (0, 0.1 cm) -- +(2 cm,0);
             \draw (0, -0.1 cm) -- +(2 cm,0);
             \draw[shift={(0.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
@@ -155,13 +157,15 @@ class CartanType(CartanType_standard_affine):
             \draw (4 cm, 0.1 cm) -- +(2 cm,0);
             \draw (4 cm, -0.1 cm) -- +(2 cm,0);
             \draw[shift={(4.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
-            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
-            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
-            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
             }
-            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$0$};
-            sage: print CartanType(['BC',4,2]).dual()._latex_dynkin_diagram()
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
+            <BLANKLINE>
+
+            sage: print(CartanType(['BC',4,2]).dual()._latex_dynkin_diagram())
             \draw (0, 0.1 cm) -- +(2 cm,0);
             \draw (0, -0.1 cm) -- +(2 cm,0);
             \draw[shift={(1.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
@@ -171,17 +175,16 @@ class CartanType(CartanType_standard_affine):
             \draw (4 cm, 0.1 cm) -- +(2 cm,0);
             \draw (4 cm, -0.1 cm) -- +(2 cm,0);
             \draw[shift={(5.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
-            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
-            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
-            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
             }
-            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$0$};
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
+            <BLANKLINE>
         """
-        if self.global_options('mark_special_node') in ['latex', 'both']:
-            special_fill = 'black'
-        else:
-            special_fill = 'white'
+        if node is None:
+            node = self._latex_draw_node
         if self.n == 1:
             ret = "\\draw (0, 0.05 cm) -- +(%s cm,0);\n"%node_dist
             ret += "\\draw (0, -0.05 cm) -- +(%s cm,0);\n"%node_dist
@@ -191,9 +194,10 @@ class CartanType(CartanType_standard_affine):
                 ret += self._latex_draw_arrow_tip(0.5*node_dist+0.2, 0, 0)
             else:
                 ret += self._latex_draw_arrow_tip(0.5*node_dist-0.2, 0, 180)
-            ret += "\\draw[fill=%s] (0,0) circle (.25cm) node[below=4pt]{$%s$};\n"%(special_fill, label(0))
-            ret += "\\draw[fill=white] (%s cm,0) circle (.25cm) node[below=4pt]{$%s$};"%(node_dist, label(1))
+            ret += node(0, 0, label(0))
+            ret += node(node_dist, 0, label(1))
             return ret
+
         n = self.n
         ret = "\\draw (0, 0.1 cm) -- +(%s cm,0);\n"%node_dist
         ret += "\\draw (0, -0.1 cm) -- +(%s cm,0);\n"%node_dist
@@ -203,40 +207,39 @@ class CartanType(CartanType_standard_affine):
             ret += self._latex_draw_arrow_tip(0.5*node_dist-0.2, 0, 180)
         ret += "{\n\\pgftransformxshift{%s cm}\n"%node_dist
         classical = self.classical()
-        ret += self.classical()._latex_dynkin_diagram(label, node_dist, dual=dual)
-        ret += "\n}\n\\draw[fill=%s] (0 cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%(special_fill, label(0))
+        ret += self.classical()._latex_dynkin_diagram(label, node, node_dist, dual=dual)
+        ret += "}\n" + node(0, 0, label(0))
         return ret
 
-    def ascii_art(self, label = lambda x: x):
+    def ascii_art(self, label=lambda i: i, node=None):
         """
-        Returns a ascii art representation of the extended Dynkin diagram
+        Return a ascii art representation of the extended Dynkin diagram.
 
         EXAMPLES::
 
-            sage: print CartanType(['BC',2,2]).ascii_art()
+            sage: print(CartanType(['BC',2,2]).ascii_art())
             O=<=O=<=O
             0   1   2
-            sage: print CartanType(['BC',3,2]).ascii_art()
+            sage: print(CartanType(['BC',3,2]).ascii_art())
             O=<=O---O=<=O
             0   1   2   3
-            sage: print CartanType(['BC',5,2]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['BC',5,2]).ascii_art(label = lambda x: x+2))
             O=<=O---O---O---O=<=O
             2   3   4   5   6   7
 
-            sage: print CartanType(['BC',1,2]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['BC',1,2]).ascii_art(label = lambda x: x+2))
               4
             O=<=O
             2   3
         """
+        if node is None:
+            node = self._ascii_art_node
         n = self.n
-        if self.global_options('mark_special_node') in ['printing', 'both']:
-            special_str = self.global_options('special_node_str')
-        else:
-            special_str = 'O'
         if n == 1:
-            return "  4\n%s=<=O\n%s   %s"%(special_str, label(0), label(1))
-        ret = "%s=<=O"%special_str + (n-2)*"---O"+"=<=O\n%s   "%label(0)
-        ret += "   ".join("%s"%label(i) for i in range(1,n+1))
+            return "  4\n{}=<={}\n{!s:4}{!s:4}".format(node(label(0)), node(label(1)), label(0), label(1))
+        ret = node(label(0)) + "=<=" + "---".join(node(label(i)) for i in range(1,n))
+        ret += "=<=" + node(label(n)) + '\n'
+        ret += "".join("{!s:4}".format(label(i)) for i in range(n+1))
         return ret
 
     def classical(self):
@@ -246,7 +249,7 @@ class CartanType(CartanType_standard_affine):
             sage: CartanType(["BC", 3, 2]).classical()
             ['C', 3]
         """
-        import cartan_type
+        from . import cartan_type
         return cartan_type.CartanType(["C", self.n])
 
     def basic_untwisted(self):
@@ -267,7 +270,7 @@ class CartanType(CartanType_standard_affine):
             sage: CartanType(['BC', 4, 2]).basic_untwisted()
             ['A', 8]
         """
-        import cartan_type
+        from . import cartan_type
         return cartan_type.CartanType(["A", 2*self.n])
 
     def _default_folded_cartan_type(self):

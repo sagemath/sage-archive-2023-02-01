@@ -25,6 +25,7 @@ from sage.structure.parent import Parent
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.structure.element import Element, parent
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.structure.sage_object import richcmp
 
 
 class FastCrystal(UniqueRepresentation, Parent):
@@ -364,7 +365,17 @@ class FastCrystal(UniqueRepresentation, Parent):
             else:
                 raise NotImplementedError
 
-        def __eq__(self, other):
+        def __hash__(self):
+            r"""
+            TESTS::
+
+                sage: C = crystals.FastRankTwo(['A',2],shape=[2,1])
+                sage: hash(C(0))
+                0
+            """
+            return hash(self.value)
+
+        def _richcmp_(self, other, op):
             """
             EXAMPLES::
 
@@ -376,14 +387,6 @@ class FastCrystal(UniqueRepresentation, Parent):
                 False
                 sage: C(0) == D(0)
                 False
-            """
-            return self.__class__ is other.__class__ and \
-                   self.parent() == other.parent() and \
-                   self.value == other.value
-
-        def __ne__(self, other):
-            """
-            EXAMPLES::
 
                 sage: C = crystals.FastRankTwo(['A',2],shape=[2,1])
                 sage: D = crystals.FastRankTwo(['B',2],shape=[2,1])
@@ -393,13 +396,6 @@ class FastCrystal(UniqueRepresentation, Parent):
                 True
                 sage: C(0) != D(0)
                 True
-            """
-            return not self == other
-
-
-        def __cmp__(self, other):
-            """
-            EXAMPLES::
 
                 sage: C = crystals.FastRankTwo(['A',2],shape=[2,1])
                 sage: C(1) < C(2)
@@ -411,11 +407,7 @@ class FastCrystal(UniqueRepresentation, Parent):
                 sage: C(1) <= C(1)
                 True
             """
-            if not isinstance(self, type(other)):
-                return cmp(type(self), type(other))
-            if self.parent() != other.parent():
-                return cmp(self.parent(), other.parent())
-            return self.parent().cmp_elements(self, other)
+            return richcmp(self.value, other.value, op)
 
         def e(self, i):
             """
@@ -435,7 +427,6 @@ class FastCrystal(UniqueRepresentation, Parent):
             else:
                 r = self.parent()._rootoperators[self.value][2]
             return self.parent()(r) if r is not None else None
-
 
         def f(self, i):
             """

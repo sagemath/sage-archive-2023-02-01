@@ -1,6 +1,7 @@
 r"""
 AlgebraIdeals
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -10,8 +11,8 @@ AlgebraIdeals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from category_types import Category_ideal
-from algebra_modules import AlgebraModules
+from .category_types import Category_ideal
+from .algebra_modules import AlgebraModules
 
 class AlgebraIdeals(Category_ideal):
     """
@@ -56,7 +57,7 @@ class AlgebraIdeals(Category_ideal):
         """
         EXAMPLES::
 
-            sage: AlgebraIdeals(QQ[x]).algebra()
+            sage: AlgebraIdeals(QQ['x']).algebra()
             Univariate Polynomial Ring in x over Rational Field
         """
         return self.ambient()
@@ -70,7 +71,7 @@ class AlgebraIdeals(Category_ideal):
 
         EXAMPLES::
 
-            sage: AlgebraIdeals(QQ[x]).super_categories()
+            sage: AlgebraIdeals(QQ['x']).super_categories()
             [Category of algebra modules over Univariate Polynomial Ring in x over Rational Field]
             sage: C = AlgebraIdeals(FreeAlgebra(QQ,2,'a,b'))
             sage: C.super_categories()

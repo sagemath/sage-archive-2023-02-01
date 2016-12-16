@@ -87,6 +87,7 @@ AUTHORS:
 Methods
 =======
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz>
@@ -98,6 +99,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import itervalues
 
 from itertools import combinations
 import sage.matrix.matrix_space as matrix_space
@@ -107,12 +109,12 @@ import sage.matrix.matrix
 from sage.rings.all import ZZ, QQ, FiniteField, GF
 import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid
-from minor_matroid import MinorMatroid
-from dual_matroid import DualMatroid
-from rank_matroid import RankMatroid
-from circuit_closures_matroid import CircuitClosuresMatroid
-from basis_matroid import BasisMatroid
-from linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
+from .minor_matroid import MinorMatroid
+from .dual_matroid import DualMatroid
+from .rank_matroid import RankMatroid
+from .circuit_closures_matroid import CircuitClosuresMatroid
+from .basis_matroid import BasisMatroid
+from .linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
 import sage.matroids.utilities
 from networkx import NetworkXError
 
@@ -348,7 +350,7 @@ def Matroid(*args, **kwds):
         :meth:`G.edge_iterator() <sage.graphs.generic_graph.GenericGraph.edge_iterator>`
         provides::
 
-            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)])
+            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)],multiedges=True)
             sage: M = Matroid('abcd', G)
             sage: M.rank(['b', 'c'])
             1
@@ -369,7 +371,7 @@ def Matroid(*args, **kwds):
             sage: sorted(M.groundset())
             [(0, 1), (0, 2), (1, 2)]
 
-            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)])
+            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)],multiedges=True)
             sage: M = Matroid(G)
             sage: sorted(M.groundset())
             [0, 1, 2, 3]
@@ -804,7 +806,7 @@ def Matroid(*args, **kwds):
         if 'groundset' not in kwds:
             E = set()
             if isinstance(kwds['circuit_closures'], dict):
-                for X in kwds['circuit_closures'].itervalues():
+                for X in itervalues(kwds['circuit_closures']):
                     for Y in X:
                         E.update(Y)
             else:

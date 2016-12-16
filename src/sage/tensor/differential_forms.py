@@ -8,11 +8,11 @@ AUTHORS:
 
  - Joris Vankerschaver (2010-05-26)
 
-TODO:
+.. TODO::
 
- - Allow for forms with values in a vector space
+    - Allow for forms with values in a vector space
 
- - Incorporate Kahler differentials
+    - Incorporate Kahler differentials
 
 REFERENCES:
 
@@ -38,7 +38,7 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 
 from sage.rings.ring import Algebra
 from sage.tensor.coordinate_patch import CoordinatePatch
@@ -76,11 +76,13 @@ class DifferentialForms(Algebra):
     def __init__(self, coordinate_patch = None):
         """
         Construct the algebra of differential forms on a given coordinate patch.
+
         See ``DifferentialForms`` for details.
 
-        INPUT::
+        INPUT:
 
         - ``coordinate_patch`` -- Coordinate patch where the algebra lives.
+
         If no coordinate patch is given, a default coordinate patch with
         coordinates (x, y, z) is used.
 
@@ -91,9 +93,7 @@ class DifferentialForms(Algebra):
             Open subset of R^2 with coordinates p, q
             sage: F = DifferentialForms(U); F
             Algebra of differential forms in the variables p, q
-
         """
-
         from sage.categories.graded_algebras_with_basis \
             import GradedAlgebrasWithBasis
         from sage.structure.parent_gens import ParentWithGens
@@ -134,7 +134,7 @@ class DifferentialForms(Algebra):
             True
         """
 
-        if isinstance(other, type(self)):
+        if type(other) is type(self):
             return self._patch == other._patch
         else:
             return False
@@ -159,10 +159,7 @@ class DifferentialForms(Algebra):
             sage: F != G
             True
         """
-
-        return not self.__eq__(other)
-
-
+        return not self == other
 
     def ngens(self):
         """
@@ -210,7 +207,6 @@ class DifferentialForms(Algebra):
         form = DifferentialForm(self, 0, self._patch.coordinate(i))
         return form.diff()
 
-
     def gens(self):
         """
         Return a list of the generators of ``self``.
@@ -224,11 +220,8 @@ class DifferentialForms(Algebra):
             Algebra of differential forms in the variables x, y, z
             sage: F.gens()
             (dx, dy, dz)
-
         """
-
-        return tuple(self.gen(n) for n in xrange(0, self._patch.dim()))
-
+        return tuple(self.gen(n) for n in range(self._patch.dim()))
 
     def base_space(self):
         """
@@ -346,9 +339,8 @@ class DifferentialForms(Algebra):
             'Algebra of differential forms in the variables x, y, z'
         """
 
-        from string import join
         return "Algebra of differential forms in the variables " + \
-            ', '.join([str(var) for var in self._patch.coordinates()])
+            ', '.join(str(var) for var in self._patch.coordinates())
 
 
     def _latex_(self):

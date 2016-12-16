@@ -1,6 +1,7 @@
 """
 Power sum symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -17,8 +18,9 @@ Power sum symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import sfa, multiplicative, classical
+from . import sfa, multiplicative, classical
 from sage.combinat.partition import Partition
+from sage.arith.all import divisors
 
 class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     def __init__(self, Sym):
@@ -163,6 +165,55 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
         return self.sum_of_terms([(p, coeff) for p, coeff
                                   in s_partition if len(p) == degree],
                                  distinct=True)
+
+    def eval_at_permutation_roots_on_generators(self, k, rho):
+        r"""
+        Evaluate `p_k` at eigenvalues of permutation matrix.
+
+        This function evaluates a symmetric function ``p([k])``
+        at the eigenvalues of a permutation matrix with cycle
+        structure ``\rho``.
+
+        This function evaluates a `p_k` at the roots of unity
+
+        .. MATH::
+
+            \Xi_{\rho_1},\Xi_{\rho_2},\ldots,\Xi_{\rho_\ell}
+
+        where
+
+        .. MATH::
+
+            \Xi_{m} = 1,\zeta_m,\zeta_m^2,\ldots,\zeta_m^{m-1}
+
+        and `\zeta_m` is an `m` root of unity.
+        This is characterized by `p_k[ A , B ] = p_k[A] + p_k[B]` and
+        `p_k[ \Xi_m ] = 0` unless `m` divides `k` and `p_{rm}[\Xi_m]=m`.
+
+        INPUT:
+
+        - ``k`` -- a non-negative integer
+        - ``rho`` -- a partition or a list of non-negative integers
+
+        OUTPUT:
+
+        - an element of the base ring
+
+        EXAMPLES::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: p.eval_at_permutation_roots_on_generators(3, [6])
+            0
+            sage: p.eval_at_permutation_roots_on_generators(3, [3])
+            3
+            sage: p.eval_at_permutation_roots_on_generators(3, [1])
+            1
+            sage: p.eval_at_permutation_roots_on_generators(3, [3,3])
+            6
+            sage: p.eval_at_permutation_roots_on_generators(3, [1,1,1,1,1])
+            5
+        """
+        return self.base_ring().sum(d*list(rho).count(d) for d in divisors(k))
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def omega(self):
@@ -423,7 +474,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
                 :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.plethysm`
             """
-            dct = {Partition(map(lambda i: n * i, lam)): coeff
+            dct = {Partition([n * i for i in lam]): coeff
                    for (lam, coeff) in self.monomial_coefficients().items()}
             return self.parent()._from_dict(dct)
 
@@ -546,7 +597,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             """
             parent = self.parent()
             p_coords_of_self = self.monomial_coefficients().items()
-            dct = {Partition(map(lambda i: i // n, lam)): coeff * (n ** len(lam))
+            dct = {Partition([i // n for i in lam]): coeff * (n ** len(lam))
                    for (lam, coeff) in p_coords_of_self
                    if all( i % n == 0 for i in lam )}
             result_in_p_basis = parent._from_dict(dct)
@@ -554,17 +605,19 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
         def expand(self, n, alphabet='x'):
             """
-            Expand the symmetric function as a symmetric polynomial
-            in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in ``n`` variables.
 
             INPUT:
 
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- (default: `x`) a variable for the expansion
+            - ``n`` -- a nonnegative integer
+
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
 
             OUTPUT:
 
-            - a polynomial expansion of an instance of ``self`` in `n` variables
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -588,9 +641,68 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
                 0
                 sage: (p([]) + 2*p([1])).expand(3)
                 2*x0 + 2*x1 + 2*x2 + 1
+                sage: p([1]).expand(0)
+                0
+                sage: (3*p([])).expand(0)
+                3
             """
+            if n == 0:   # Symmetrica crashes otherwise...
+                return self.counit()
             condition = lambda part: False
             return self._expand(condition, n, alphabet)
+
+        def eval_at_permutation_roots(self, rho):
+            r"""
+            Evaluate at eigenvalues of a permutation matrix.
+
+            Evaluate an element of the power sum basis at the eigenvalues
+            of a permutation matrix with cycle structure `\rho`.
+
+            This function evaluates an element at the roots of unity
+
+            .. MATH::
+
+                \Xi_{\rho_1},\Xi_{\rho_2},\ldots,\Xi_{\rho_\ell}
+
+            where
+
+            .. MATH::
+
+                \Xi_{m} = 1,\zeta_m,\zeta_m^2,\ldots,\zeta_m^{m-1}
+
+            and `\zeta_m` is an `m` root of unity.
+            These roots of unity represent the eigenvalues of permutation
+            matrix with cycle structure `\rho`.
+
+            INPUT:
+
+            - ``rho`` -- a partition or a list of non-negative integers
+
+            OUTPUT:
+
+            - an element of the base ring
+
+            EXAMPLES::
+
+                sage: p = SymmetricFunctions(QQ).p()
+                sage: p([3,3]).eval_at_permutation_roots([6])
+                0
+                sage: p([3,3]).eval_at_permutation_roots([3])
+                9
+                sage: p([3,3]).eval_at_permutation_roots([1])
+                1
+                sage: p([3,3]).eval_at_permutation_roots([3,3])
+                36
+                sage: p([3,3]).eval_at_permutation_roots([1,1,1,1,1])
+                25
+                sage: (p[1]+p[2]+p[3]).eval_at_permutation_roots([3,2])
+                5
+            """
+            p = self.parent()
+            R = self.base_ring()
+            on_basis = lambda lam: R.prod(
+                p.eval_at_permutation_roots_on_generators(k, rho) for k in lam)
+            return p._apply_module_morphism(self, on_basis, R)
 
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override

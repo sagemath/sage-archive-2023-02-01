@@ -21,7 +21,7 @@ Basic Symbolic Techniques
 
 ::
 
-    sage: y = function('y',x)
+    sage: y = function('y')(x)
     sage: de = diff(y,x) + y -2
     sage: h = desolve(de, y)
 
@@ -64,6 +64,7 @@ slope field.
     sage: Plot1=plot_slope_field(2-y,(x,0,3),(y,0,5))
     sage: Plot2=plot(h,x,0,3)
     sage: Plot1+Plot2
+    Graphics object consisting of 2 graphics primitives
 
 .. note::
    Regarding symbolic functions versus symbolic variables:
@@ -101,7 +102,7 @@ gives the last list in the example.
 
 ::
 
-    sage: f=function('f',x)
+    sage: f=function('f')(x)
     sage: desolve_laplace(diff(f,x,2) == 2*diff(f,x)-f, dvar = f, ics = [0,1,2])
     x*e^x + e^x
 
@@ -123,7 +124,7 @@ conditions.
 
 ::
 
-    sage: y = function('y',x)
+    sage: y = function('y')(x)
     sage: de = diff(y,x) + y -2
     sage: h = desolve_rk4(de, y, step=.05, ics=[0,3])
 
@@ -134,6 +135,7 @@ use the ``points`` command from the advanced plotting tutorial.
 
     sage: h1 = desolve(de, y, ics=[0,3])
     sage: plot(h1,(x,0,5),color='red')+points(h)
+    Graphics object consisting of 2 graphics primitives
 
 The primary use of numerical routines from here is pedagogical in nature.
 
@@ -163,6 +165,7 @@ This power series solution is pretty good for a while!
 
     sage: h = h.polynomial()
     sage: plot(h,-2,5)+plot(2+e^-x,(x,-2,5),color='red',linestyle=':',thickness=3)
+    Graphics object consisting of 2 graphics primitives
 
 This was just an introduction; there are a lot of resources for
 differential equations using Sage elsewhere, including a book by David

@@ -74,17 +74,22 @@ AUTHORS:
 - William Stein
 """
 
-###########################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
+from six.moves import range
 
-import sage.rings.commutative_ring_element as commutative_ring_element
+from sage.structure.element import CommutativeRingElement
 import sage.rings.number_field.number_field_rel as number_field_rel
 import sage.rings.polynomial.polynomial_singular_interface as polynomial_singular_interface
 
-class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_singular_repr,commutative_ring_element.CommutativeRingElement):
+class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_singular_repr, CommutativeRingElement):
     """
     Element of a quotient of a polynomial ring.
 
@@ -118,7 +123,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
         from sage.rings.polynomial.polynomial_element import Polynomial
 
-        commutative_ring_element.CommutativeRingElement.__init__(self, parent)
+        CommutativeRingElement.__init__(self, parent)
         if check:
             if not isinstance(parent, PolynomialQuotientRing_generic):
                 raise TypeError("parent must be a polynomial quotient ring")
@@ -151,7 +156,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         return self._polynomial._im_gens_(codomain, im_gens)
 
     def __hash__(self):
-        return self._polynomial.__hash__()
+        return hash(self._polynomial)
 
     def __reduce__(self):
         """
@@ -200,7 +205,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: I = R.ideal(x^10)
             sage: S.<xb> = R.quo(I)
             sage: pari(xb)^10
-            0
+            Mod(0, x^10)
         """
         return self._polynomial._pari_().Mod(self.parent().modulus()._pari_())
 
@@ -630,7 +635,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             x = R.gen()
             a = R(1)
             d = R.degree()
-            for _ in xrange(d):
+            for _ in range(d):
                 v += (a*self).list()
                 a *= x
             S = R.base_ring()

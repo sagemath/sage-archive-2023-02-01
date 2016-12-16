@@ -1,10 +1,13 @@
-cimport free_module_element
-import  free_module_element
+from .free_module_element cimport FreeModuleElement
+from sage.libs.gmp.types cimport mpq_t
+from sage.structure.parent cimport Parent
 
-include 'sage/ext/cdefs.pxi'
+cdef class Vector_rational_dense(FreeModuleElement):
+    cdef mpq_t* _entries
+    cdef int _init(self, Py_ssize_t degree, Parent parent) except -1
 
-cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
-        cdef mpq_t* _entries
-        cdef _new_c(self)
-        cdef _init(self, Py_ssize_t degree, parent)
-
+    cdef inline Vector_rational_dense _new_c(self):
+        cdef type t = type(self)
+        cdef Vector_rational_dense x = <Vector_rational_dense>(t.__new__(t))
+        x._init(self._degree, self._parent)
+        return x

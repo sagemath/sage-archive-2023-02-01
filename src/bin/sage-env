@@ -146,6 +146,18 @@ if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" ]; then
     echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
 fi
 
+# Display the Sage startup banner, used in src/bin/sage
+sage_banner() {
+    if [ "$SAGE_BANNER" = "bare" ]; then
+        cat "$SAGE_ROOT/VERSION.txt"
+    elif [ "$SAGE_BANNER" != "no" ]; then
+        # This file sage-banner is not yet available during the build
+        # of Sage, so we ignore errors from cat.
+        cat "$SAGE_LOCAL/bin/sage-banner" 2>/dev/null
+    fi
+}
+
+
 # Don't execute the commands more than once for the same version of
 # sage-env.  Check this after checking the validity of SAGE_ROOT, but
 # before modifying its value.
@@ -154,7 +166,7 @@ fi
 # "version number" of sage-env.  If a different version of sage-env was
 # sourced earlier (when upgrading), we still source the new version.
 # The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.  Note that build/deps might also need
+# required for upgrading.  Note that build/make/deps might also need
 # to be changed: the packages which need the new sage-env must depend on
 # SAGE_ROOT_REPO (the root repo contains sage-env).
 #
@@ -173,13 +185,17 @@ export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
 export SAGE_ROOT="$NEW_SAGE_ROOT"
 
+# SAGE_LOCAL is the installation prefix and can be customized
+if [ -z "$SAGE_LOCAL" ]; then
+    export SAGE_LOCAL="$SAGE_ROOT/local"
+fi
 
 # sage-env must know where the Sage's script files are
 if [ -z "$SAGE_SCRIPTS_DIR" ]; then
     if [ -f "`dirname $0`/sage-env" ]; then
         SAGE_SCRIPTS_DIR=`dirname $0`
-    elif [ -f "$SAGE_ROOT/local/bin/sage-env" ]; then
-        SAGE_SCRIPTS_DIR="$SAGE_ROOT/local/bin"
+    elif [ -f "$SAGE_LOCAL/bin/sage-env" ]; then
+        SAGE_SCRIPTS_DIR="$SAGE_LOCAL/bin"
     elif [ -f "$SAGE_ROOT/src/bin/sage-env" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_ROOT/src/bin"
     else
@@ -244,16 +260,22 @@ if [ 1 = 2 ]; then
     echo "if you use sh, bash or a similar shell"
 fi
 
-# Setting Sage-related location environment variables.
-export SAGE_LOCAL="$SAGE_ROOT/local"
+# Setting Sage-related location environment variables,
+# depending on SAGE_ROOT and SAGE_LOCAL which are already defined.
 export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
-export SAGE_DOC="$SAGE_SRC/doc"
-export PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+export SAGE_DOC_SRC="$SAGE_SRC/doc"
+export SAGE_DOC="$SAGE_SHARE/doc/sage"
+
+if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
+    SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH
+    SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET
+fi
+export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.
@@ -261,14 +283,27 @@ if [ -f $SAGE_LOCAL/toolchain/toolchain-env ]; then
   source $SAGE_LOCAL/toolchain/toolchain-env
 fi
 
+# setting of the variable UNAME (describing the o.s.)
+# On Cygwin the result of `uname` depends on the version of Windows
+# it is running on, e.g. CYGWIN_NT-5.1 on 32 bits Windows XP or
+# CYGWIN_NT-6.1-WOW64 on 64 bits Windows 7.
+# Currently, this information is of no use to us so we discard it.
+export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
+
 # Mac OS X-specific setup
-if [ `uname` = "Darwin" ]; then
+if [ "$UNAME" = "Darwin" ]; then
     # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
     # cause lots of random "Abort trap" issues on OSX. see trac
     # #7095 for an example.
     MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
-    MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
-    export MACOSX_DEPLOYMENT_TARGET
+    if [ $MACOSX_VERSION -ge 14 ]; then
+        # various packages have still have issues with
+        # two digit OS X versions
+        MACOSX_DEPLOYMENT_TARGET=10.9
+    else
+        MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
+    fi
+    export MACOSX_DEPLOYMENT_TARGET MACOSX_VERSION
 fi
 
 # Compile-time path for libraries.  This is the equivalent of
@@ -294,30 +329,16 @@ GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 GPHELP="$SAGE_LOCAL/bin/gphelp" && export GPHELP
 GPDOCDIR="$SAGE_LOCAL/share/pari/doc" && export GPDOCDIR
 
-# Allow git to work without warning messages after relocating Sage.
-# See trac #15901.
-GIT_TEMPLATE_DIR="$SAGE_LOCAL"/share/git-core/templates && export GIT_TEMPLATE_DIR
-GIT_EXEC_PATH="$SAGE_LOCAL"/libexec/git-core && export GIT_EXEC_PATH
-
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 
-if [ "$SAGE_SERVER" = "" ]; then
-    SAGE_SERVER="http://www.sagemath.org/"
-    export SAGE_SERVER
-fi
-
-if [ "$SAGE_UPSTREAM" = "" ]; then
-    SAGE_UPSTREAM="${SAGE_SERVER}packages/upstream"
-    export SAGE_UPSTREAM
-fi
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
     SAGE_REPO_ANONYMOUS="git://trac.sagemath.org/sage.git"
     export SAGE_REPO_ANONYMOUS
 fi
 if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then
-	SAGE_REPO_AUTHENTICATED="ssh://git@trac.sagemath.org:2222/sage.git"
-	export SAGE_REPO_AUTHENTICATED
+        SAGE_REPO_AUTHENTICATED="ssh://git@trac.sagemath.org:2222/sage.git"
+        export SAGE_REPO_AUTHENTICATED
 fi
 if [ -z "$SAGE_DISTFILES" ]; then
     SAGE_DISTFILES="$SAGE_ROOT/upstream"
@@ -353,9 +374,22 @@ if [ "$SAGE_STARTUP_FILE" = "" ]; then
     export SAGE_STARTUP_FILE
 fi
 
-IPYTHONDIR=`find "$SAGE_SPKG_INST" -name "ipython*"`
-if [ -n "$IPYTHONDIR" ]; then
-    export IPYTHONDIR="$DOT_SAGE/${IPYTHONDIR##*/}"
+if [ -z "$IPYTHONDIR" ]; then
+    # We hardcode a version number in the directory name. The idea is
+    # that we keep using the same version number as long as that is
+    # possible. Only when some future IPython version really requires
+    # a new structure for the $IPYTHONDIR should this version number be
+    # changed to the new IPython version.
+    export IPYTHONDIR="$DOT_SAGE/ipython-5.0.0"
+fi
+
+if [ -z "$JUPYTER_CONFIG_DIR" ]; then
+    # We hardcode a version number in the directory name. The idea is
+    # that we keep using the same version number as long as that is
+    # possible. Only when some future Jupyter version really requires
+    # a new structure for the $JUPYTER_CONFIG_DIR should this version
+    # number be changed to the new jupyter_core version.
+    export JUPYTER_CONFIG_DIR="$DOT_SAGE/jupyter-4.1"
 fi
 
 if [ "$PYTHON_EGG_CACHE" = "" ]; then
@@ -363,63 +397,80 @@ if [ "$PYTHON_EGG_CACHE" = "" ]; then
     export PYTHON_EGG_CACHE
 fi
 
-if [ -d "$SAGE_ROOT/local/lib/python" ]; then
-    PYTHONPATH="$SAGE_ROOT/local/lib/python"
+# Set PYTHONUSERBASE to avoid picking up non-Sage versions of
+# Matplotlib, numpy, etc. See http://trac.sagemath.org/ticket/19612.
+#
+# For more history (it used to be PYTHONNOUSERSITE=yes which killed
+# the ability to do "sage -pip install PACKAGE --user"), see
+# http://trac.sagemath.org/ticket/14243 and
+# http://trac.sagemath.org/ticket/18955.
+
+if [ "$PYTHONUSERBASE" = "" ]; then
+    PYTHONUSERBASE="$DOT_SAGE/local"
+    export PYTHONUSERBASE
+fi
+
+if [ -d "$SAGE_LOCAL/lib/python" ]; then
+    PYTHONPATH="$SAGE_LOCAL/lib/python"
     if [ -n "$SAGE_PATH" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi
-    PYTHONHOME="$SAGE_ROOT/local"
+    PYTHONHOME="$SAGE_LOCAL"
     export PYTHONPATH
     export PYTHONHOME
 fi
 
-if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then
-    SAGE_ORIG_LD_LIBRARY_PATH=$LD_LIBRARY_PATH && export SAGE_ORIG_LD_LIBRARY_PATH
-    SAGE_ORIG_LD_LIBRARY_PATH_SET=True && export SAGE_ORIG_LD_LIBRARY_PATH_SET
-fi
-
-# Add some directories to $LD_LIBRARY_PATH:
-# * lib/openmpi is needed for openmpi.
-# * lib/R/lib is needed for R in case the Sage install is moved.
-# * lib32 and lib64 are needed for GCC, see #12405.
-for d in lib/openmpi lib/R/lib lib32 lib64 lib; do
-    libdir="$SAGE_LOCAL/$d"
-    # Add only existing directories
-    if [ -d "$libdir" ]; then
-        [ -z "$LD_LIBRARY_PATH" ] || LD_LIBRARY_PATH=":${LD_LIBRARY_PATH}"
-        LD_LIBRARY_PATH="${libdir}$LD_LIBRARY_PATH"
-    fi
-done
-export LD_LIBRARY_PATH
-
-# The following is needed for OS X (especially for the
-# Singular install).
-if [ `uname` = "Darwin" ]; then
-    if [ -z "${SAGE_ORIG_DYLD_LIBRARY_PATH_SET}" ]; then
-        SAGE_ORIG_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH && export SAGE_ORIG_DYLD_LIBRARY_PATH
-        SAGE_ORIG_DYLD_LIBRARY_PATH_SET=True && export SAGE_ORIG_DYLD_LIBRARY_PATH_SET
-    fi
-    DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$SAGE_LOCAL/lib/R/lib" && export DYLD_LIBRARY_PATH
-fi
+LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"
+export LDFLAGS
 
 # Use a matplotlib config directory specific to Sage and specific to
 # the version number of matplotlib, by setting the environment
 # variable MPLCONFIGDIR. Note that we can't find the version number by
 # importing matplotlib, because that could create matplotlib's standard
 # config directory. So we use pkg_resources.
-"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
+"$SAGE_LOCAL/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
 if [ $? -eq 0 ]; then
-    MPLVERSION=`"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; print pkg_resources.get_distribution("matplotlib").version'`
+    MPLVERSION=`"$SAGE_LOCAL/bin/python" -c 'import pkg_resources; print (pkg_resources.get_distribution("matplotlib").version)'`
     MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
     export MPLCONFIGDIR
     # The directory is created when Sage starts (see sage.misc.misc).
 fi
 
-# Unset these variables which interfere with R
+# Make sure that a system-wide R installation does not interfere
 unset R_HOME
 unset R_PROFILE
+# Do not use the global Makevars.site and ~/.R/Makevars when installing R packages
+# Provide empty files to appease some R packages' installation scripts.
+if [ -d "$SAGE_LOCAL/lib/R/share" ] ; then
+   R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
+   if ! [ -f "$R_MAKEVARS_SITE" ] ; then
+       if ! [ -a "$R_MAKEVARS_SITE" ] ; then
+           echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
+       else
+           >&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
+       fi
+   fi
+fi
+if [ -d "$DOT_SAGE" ] ; then
+    if ! [ -d "$DOT_SAGE/R" ] ; then
+        if ! [ -a  "$DOT_SAGE/R" ] ; then
+            mkdir -p "$DOT_SAGE/R"
+        else
+            >&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
+        fi
+    fi
+    R_MAKEVARS_USER="$DOT_SAGE/R/Makevars.user" && export R_MAKEVARS_USER
+    if ! [ -f "$R_MAKEVARS_USER" ] ; then
+        if ! [ -a "$R_MAKEVARS_USER" ] ; then
+            echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
+        else
+            >&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
+        fi
+    fi
+fi
+export MAXIMA_PREFIX="$SAGE_LOCAL"
 
-MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
+PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
 
 ############ architecture flags
 
@@ -432,12 +483,6 @@ MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 
 ############ compilation flags
 
-# On Cygwin the result of `uname` depends on the version of Windows
-# it is running on, e.g. CYGWIN_NT-5.1 on 32 bits Windows XP or
-# CYGWIN_NT-6.1-WOW64 on 64 bits Windows 7.
-# Currently, this information is of no use to us so we discard it.
-export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
-
 # Setting Sage-related compilation flags.
 # This could be used in code to make special changes only when
 # code is being built as part of Sage.
@@ -449,8 +494,9 @@ if [ -z "$CC" ]; then
     # default C compiler as some older versions of XCode 4 ship broken
     # versions of GCC which fail to bootstrap GCC-4.6.3.
     # See http://trac.sagemath.org/sage_trac/ticket/12820
-    if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = Darwin ] && [ `uname -r | cut -d. -f1` -ge 11 ]; then
+    if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = "Darwin" ] && [ "$MACOSX_VERSION" -ge 11 ]; then
         CC=`which clang 2>/dev/null`
+        CXX=`which clang++ 2>/dev/null`
     fi
 fi
 if [ -z "$CC" ]; then
@@ -542,8 +588,21 @@ if [ "$LDFLAGS" = "" ]; then
     LDFLAGS=""          && export LDFLAGS
 fi
 
-if [ "$CXXFLAGS" = "" ]; then
+if [ -z "$CFLAGS" ]; then
+    unset CFLAGS
+fi
+
+if [ -z "$CXXFLAGS" ]; then
+    unset CXXFLAGS
+fi
+
+if [ -n "$CFLAGS" -a -z "$CXXFLAGS" ]; then
     export CXXFLAGS="$CFLAGS"
+fi
+
+if [ "$UNAME" = "Darwin" ]; then
+    # Trac #21175 - export empty ARCHFLAGS for the benefit of Perl modules
+    ARCHFLAGS="" && export ARCHFLAGS
 fi
 
 if [ "$CP" = "" ]; then
@@ -608,6 +667,8 @@ if [ "${MAKEFLAGS-__unset__}" != "__unset__" ]; then
 fi
 export MAKE
 
+export PIP_INSTALL="sage-pip-install"
+
 # When building documentation, use MathJax by default. To turn it off,
 # set SAGE_DOC_MATHJAX to be "no" or "False".
 if [ -z "$SAGE_DOC_MATHJAX" ]; then
@@ -619,6 +680,12 @@ if [ -z "$SAGE_DOC_MATHJAX" ]; then
         SAGE_DOC_MATHJAX="True"
     fi
     export SAGE_DOC_MATHJAX
+fi
+
+# Set the cysignals crash logs directory
+if [ -z "$CYSIGNALS_CRASH_LOGS" ]; then
+    export CYSIGNALS_CRASH_LOGS="$DOT_SAGE/crash_logs"
+    export CYSIGNALS_CRASH_DAYS=7  # keep logs for 7 days
 fi
 
 # You can set environment variables in $SAGE_RC_FILE

@@ -7,21 +7,19 @@
 
 from sage.numerical.backends.generic_backend cimport GenericBackend
 
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/cdefs.pxi'
-
 cdef struct c_cpxlp
 
-cdef extern from *:
-    ctypedef double* const_double_ptr "double*"
-
+cdef extern from "stdio.h":
+    ctypedef struct FILE
+    FILE * fopen (const char * filename, const char * opentype)
 
 cdef class CPLEXBackend(GenericBackend):
     cdef bint _mixed
     cdef c_cpxlp * env
     cdef c_cpxlp * lp
     cdef current_sol
-    cpdef CPLEXBackend copy(self)
+    cdef str _logfilename
+    cpdef __copy__(self)
 
 cdef extern from "cplex.h":
 
@@ -44,6 +42,9 @@ cdef extern from "cplex.h":
 
      # Solve LP
      int CPXlpopt (c_cpxlp * env, c_cpxlp * lp)
+
+     # Get solution status
+     int CPXgetstat(c_cpxlp * env, c_cpxlp * lp)
 
      # Solve MILP through filling the solution pool
      int CPXpopulate (c_cpxlp * env, c_cpxlp * lp)
@@ -97,6 +98,12 @@ cdef extern from "cplex.h":
 
      # Get the objective value
      int CPXgetobjval (c_cpxlp *, c_cpxlp *, double *)
+
+     # Get the best objective value (i.e., best lower/upper bound)
+     int CPXgetbestobjval (c_cpxlp *, c_cpxlp *, double *)
+
+     # Get MIP relative gap
+     int CPXgetmiprelgap (c_cpxlp *, c_cpxlp *, double *)
 
      # Add columns
      int CPXnewcols(c_cpxlp * env, c_cpxlp * lp, int, double *, double *, double *, char *, char **)
@@ -197,6 +204,9 @@ cdef extern from "cplex.h":
      # sets the value of a string parameter
      int CPXsetstrparam(c_cpxlp * env, int paramid, char * value)
 
+     # sets the log stream file
+     int CPXsetlogfile (c_cpxlp * env, FILE * f)
+
      # CONSTANTS
      int CPX_ON = 1
      int CPX_PARAM_SCRIND = 1035
@@ -223,6 +233,14 @@ cdef extern from "cpxconst.h":
      # The problem has no solution
      int CPX_NO_SOLN
 
+     # Solution status
+     int CPX_STAT_OPTIMAL
+     int CPX_STAT_INFEASIBLE
+     int CPX_STAT_UNBOUNDED
+     int CPX_STAT_INForUNBD
 
-
+     int CPXMIP_OPTIMAL
+     int CPXMIP_INFEASIBLE
+     int CPXMIP_UNBOUNDED
+     int CPXMIP_INForUNBD
 

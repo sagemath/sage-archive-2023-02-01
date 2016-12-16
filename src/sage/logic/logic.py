@@ -25,6 +25,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, division
 
 import string
 
@@ -107,8 +108,8 @@ class SymbolicLogic:
         statement = [toks, vars, vars_order]
         try:                           #verify the syntax
              eval(toks)
-        except(KeyError, RuntimeError):
-            print 'Malformed Statement'
+        except (KeyError, RuntimeError):
+            print('Malformed Statement')
             return []
         return statement
 
@@ -143,10 +144,24 @@ class SymbolicLogic:
         We can now create truthtable of rows 1 to 5::
 
             sage: s2 = log.truthtable(s, 1, 5); s2
-            [[['OPAREN', 'a', 'AND', 'b', 'OR', 'NOT', 'OPAREN', 'c', 'OR', 'a', 'CPAREN', 'CPAREN'],
-              {'a': 'False', 'c': 'True', 'b': 'False'}, ['a', 'b', 'c']],
-             ['False', 'False', 'True', 'False'], ['False', 'True', 'False', 'True'],
-             ['False', 'True', 'True', 'True'], ['True', 'False', 'False', 'False']]
+            [[['OPAREN',
+               'a',
+               'AND',
+               'b',
+               'OR',
+               'NOT',
+               'OPAREN',
+               'c',
+               'OR',
+               'a',
+               'CPAREN',
+               'CPAREN'],
+              {'a': 'False', 'b': 'False', 'c': 'True'},
+              ['a', 'b', 'c']],
+             ['False', 'False', 'True', 'False'],
+             ['False', 'True', 'False', 'True'],
+             ['False', 'True', 'True', 'True'],
+             ['True', 'False', 'False', 'False']]
 
         .. NOTE::
 
@@ -231,8 +246,8 @@ class SymbolicLogic:
                 s += ' '
             s += '| '
             line += s
-        print line
-        print len(line) * '-'
+        print(line)
+        print(len(line) * '-')
         for row in table:
             line = s = ""
             i = 0
@@ -248,8 +263,8 @@ class SymbolicLogic:
                 s += '| '
                 line += s
                 i += 1
-            print line
-        print
+            print(line)
+        print("")
 
     def combine(self, statement1, statement2):
         r"""
@@ -373,12 +388,13 @@ def get_bit(x, c):
              b = 'False'
          else:
              b = 'True'
-         x /= 2
+         x = x // 2
          bits.append(b)
     if c > len(bits) - 1:
         return 'False'
     else:
         return bits[c]
+
 
 def eval(toks):
     r"""
@@ -862,7 +878,7 @@ def tokenize(s, toks):
                 if tok not in vars_order:
                     vars_order.append(tok)
             else:
-                print 'Invalid variable name: ', tok
+                print('Invalid variable name: ', tok)
                 toks = []
 
     toks.append('CPAREN')

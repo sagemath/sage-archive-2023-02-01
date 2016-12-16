@@ -17,13 +17,13 @@ vector space of dimension equal to the number of cusps for `G`. The embedding
 takes `[P, u/v]` to `P(u,v)\cdot [(u,v)]`. We represent the basis vectors by
 pairs `[(u,v)]` with u, v coprime. On `B_k(G)`, we have the relations
 
-.. math::
+.. MATH::
 
      [\gamma \cdot (u,v)] = [(u,v)]
 
 for all `\gamma \in G` and
 
-.. math::
+.. MATH::
 
      [(\lambda u, \lambda v)] = \operatorname{sign}(\lambda)^k [(u,v)]
 
@@ -77,6 +77,7 @@ REFERENCES:
 
 - Stein, "Modular Forms, a computational approach." AMS (2007).
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -94,7 +95,7 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 __doc_exclude = ['repr_lincomb', 'QQ']
 
 # Python imports
@@ -109,13 +110,13 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.cusps as cusps
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
+from sage.modular.modsym.manin_symbol import ManinSymbol
 
 import sage.rings.all as rings
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
-import ambient
-import element
-import manin_symbols
+
+from . import element
 
 
 class BoundarySpaceElement(hecke.HeckeModuleElement):
@@ -349,7 +350,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             sage: B2 == ModularSymbols(17, 2).boundary_space()
             False
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return cmp(type(self), type(other))
         else:
             return cmp( (self.group(), self.weight(), self.character()), (other.group(), other.weight(), other.character()) )
@@ -557,18 +558,19 @@ class BoundarySpace(hecke.HeckeModule_generic):
             ...
             TypeError: Coercion of 7 (of type <type 'sage.rings.integer.Integer'>) into Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(15) of weight 2 and over Rational Field not (yet) defined.
         """
+        from .ambient import ModularSymbolsAmbient
         if isinstance(x, int) and x == 0:
             return BoundarySpaceElement(self, {})
 
         elif isinstance(x, cusps.Cusp):
             return self._coerce_cusp(x)
 
-        elif manin_symbols.is_ManinSymbol(x):
+        elif isinstance(x, ManinSymbol):
             return self._coerce_in_manin_symbol(x)
 
         elif element.is_ModularSymbolsElement(x):
             M = x.parent()
-            if not isinstance(M, ambient.ModularSymbolsAmbient):
+            if not isinstance(M, ModularSymbolsAmbient):
                 raise TypeError("x (=%s) must be an element of a space of modular symbols of type ModularSymbolsAmbient"%x)
             if M.level() != self.level():
                 raise TypeError("x (=%s) must have level %s but has level %s"%(
@@ -579,7 +581,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             return sum([c*self._coerce_in_manin_symbol(v) for c, v in S])
 
         elif is_FreeModuleElement(x):
-            y = dict([(i,x[i]) for i in xrange(len(x))])
+            y = dict([(i,x[i]) for i in range(len(x))])
             return BoundarySpaceElement(self, y)
 
         raise TypeError("Coercion of %s (of type %s) into %s not (yet) defined."%(x, type(x), self))
@@ -616,7 +618,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             if self._is_equiv(cusp, g[i]):
                 return i
         return -1
@@ -858,7 +860,7 @@ class BoundarySpace_wtk_g1(BoundarySpace):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             t, eps = self._is_equiv(cusp, g[i])
             if t:
                 return i, eps
@@ -1057,7 +1059,7 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             t, eps = self._is_equiv(cusp, g[i])
             if t:
                 return i, eps
@@ -1283,7 +1285,7 @@ class BoundarySpace_wtk_eps(BoundarySpace):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             t, s = self._is_equiv(cusp, g[i])
             if t:
                 return i, self.__eps(s)

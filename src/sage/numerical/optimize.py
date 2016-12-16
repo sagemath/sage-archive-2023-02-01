@@ -10,9 +10,8 @@ AUTHOR:
 Functions and Methods
 ----------------------
 """
+from six.moves import range
 
-
-from sage.misc.superseded import deprecated_function_alias
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
@@ -72,6 +71,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     This agrees with the plot::
 
         sage: plot(f,2,2.01)
+        Graphics object consisting of 1 graphics primitive
     """
     try:
         return f.find_root(a=a,b=b,xtol=xtol,rtol=rtol,maxiter=maxiter,full_output=full_output)
@@ -229,11 +229,6 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
 
-
-find_maximum_on_interval = deprecated_function_alias(2607, find_local_maximum)
-find_minimum_on_interval = deprecated_function_alias(2607, find_local_minimum)
-
-
 def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     r"""
     This function is an interface to a variety of algorithms for computing
@@ -317,36 +312,36 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     from scipy import optimize
     if isinstance(func, Expression):
         var_list=func.variables()
-        var_names=map(str,var_list)
+        var_names = [str(_) for _ in var_list]
         fast_f=fast_callable(func, vars=var_names, domain=float)
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
-        fast_gradient_functions=[fast_callable(gradient_list[i], vars=var_names, domain=float)  for i in xrange(len(gradient_list))]
+        fast_gradient_functions=[fast_callable(gradient_list[i], vars=var_names, domain=float)  for i in range(len(gradient_list))]
         gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
     else:
         f=func
 
     if algorithm=="default":
         if gradient is None:
-            min=optimize.fmin(f,map(float,x0),**args)
+            min = optimize.fmin(f, [float(_) for _ in x0], **args)
         else:
-            min= optimize.fmin_bfgs(f,map(float,x0),fprime=gradient,**args)
+            min= optimize.fmin_bfgs(f, [float(_) for _ in x0],fprime=gradient, **args)
     else:
         if algorithm=="simplex":
-            min= optimize.fmin(f,map(float,x0),**args)
+            min= optimize.fmin(f, [float(_) for _ in x0], **args)
         elif algorithm=="bfgs":
-            min= optimize.fmin_bfgs(f,map(float,x0),fprime=gradient,**args)
+            min= optimize.fmin_bfgs(f, [float(_) for _ in x0], fprime=gradient, **args)
         elif algorithm=="cg":
-            min= optimize.fmin_cg(f,map(float,x0),fprime=gradient,**args)
+            min= optimize.fmin_cg(f, [float(_) for _ in x0], fprime=gradient, **args)
         elif algorithm=="powell":
-            min= optimize.fmin_powell(f,map(float,x0),**args)
+            min= optimize.fmin_powell(f, [float(_) for _ in x0], **args)
         elif algorithm=="ncg":
             if isinstance(func, Expression):
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
                 hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
-                min= optimize.fmin_ncg(f,map(float,x0),fprime=gradient,fhess=hessian,fhess_p=hessian_p,**args)
+                min= optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, fhess=hessian, fhess_p=hessian_p, **args)
     return vector(RDF,min)
 
 def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args):
@@ -375,7 +370,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
       - ``'default'``  -- default choices
 
       - ``'l-bfgs-b'`` -- only effective if you specify bound constraints.
-        See [ZBN97]_.
+        See [ZBN1997]_.
 
     - ``gradient`` -- Optional gradient function. This will be computed
       automatically for symbolic functions. This is only used when the
@@ -396,7 +391,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         sage: c_4 = lambda p: -30*p[0]-33*p[1]+2100
         sage: a = minimize_constrained(f,[c_1,c_2,c_3,c_4],[2,3])
         sage: a
-        (45.0, 6.25)
+        (45.0, 6.25...)
 
     Let's find a minimum of `\sin(xy)`::
 
@@ -417,14 +412,6 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         (-10.0, 10.0)
         sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],algorithm='l-bfgs-b')
         (-10.0, 10.0)
-
-
-    REFERENCES:
-
-    .. [ZBN97] C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm 778:
-      L-BFGS-B, FORTRAN routines for large scale bound constrained
-      optimization. ACM Transactions on Mathematical Software, Vol 23, Num. 4,
-      pp.550--560, 1997.
     """
     from sage.symbolic.expression import Expression
     import scipy
@@ -433,11 +420,11 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
 
     if isinstance(func, Expression):
         var_list=func.variables()
-        var_names=map(str,var_list)
+        var_names = [str(_) for _ in var_list]
         fast_f=func._fast_float_(*var_names)
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
-        fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in xrange(len(gradient_list))]
+        fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in range(len(gradient_list))]
         gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
     else:
         f=func
@@ -524,12 +511,12 @@ def linear_program(c,G,h,A=None,b=None,solver=None):
         sage: h=vector([2400.0,2100.0,-45.0,-5.0,1.0,-1.0])
         sage: sol=linear_program(v,m,h)
         sage: sol['x']
-        (45.000000..., 6.2499999...3, 1.00000000...)
+        (45.000000..., 6.2499999..., 1.00000000...)
         sage: sol=linear_program(v,m,h,solver='glpk')
         GLPK Simplex Optimizer...
-        OPTIMAL SOLUTION FOUND
+        OPTIMAL LP SOLUTION FOUND
         sage: sol['x']
-        (45.0..., 6.25, 1.0...)
+        (45.0..., 6.25..., 1.0...)
     """
     from cvxopt.base import matrix as m
     from cvxopt import solvers
@@ -622,7 +609,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     We search for a formula for the `n`-th prime number::
 
-        sage: dataprime = [(i, nth_prime(i)) for i in xrange(1, 5000, 100)]
+        sage: dataprime = [(i, nth_prime(i)) for i in range(1, 5000, 100)]
         sage: find_fit(dataprime, a * x * log(b * x), parameters = [a, b], variables = [x])
         [a == 1.11..., b == 1.24...]
 
@@ -678,21 +665,21 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     if isinstance(model, Expression):
         var_list = variables + parameters
-        var_names = map(str, var_list)
+        var_names = [str(_) for _ in var_list]
         func = model._fast_float_(*var_names)
     else:
         func = model
 
     def function(x_data, params):
         result = numpy.zeros(len(x_data))
-        for row in xrange(len(x_data)):
+        for row in range(len(x_data)):
             fparams = numpy.hstack((x_data[row], params)).tolist()
             result[row] = func(*fparams)
         return result
 
     def error_function(params, x_data, y_data):
         result = numpy.zeros(len(x_data))
-        for row in xrange(len(x_data)):
+        for row in range(len(x_data)):
             fparams = x_data[row].tolist() + params.tolist()
             result[row] = func(*fparams)
         return result - y_data

@@ -1,4 +1,6 @@
 """
+Lazy import cache
+
 This is a pure Python file with no dependencies so it can be used in setup.py.
 """
 
@@ -17,7 +19,7 @@ def get_cache_file():
         '...-lazy_import_cache.pickle'
         sage: get_cache_file().startswith(DOT_SAGE)
         True
-        sage: 'src' in get_cache_file()
+        sage: 'cache' in get_cache_file()
         True
 
     It shouldn't matter whether DOT_SAGE ends with a slash::

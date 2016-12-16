@@ -33,7 +33,7 @@ class FinitePosets(CategoryWithAxiom):
         sage: FinitePosets().example()
         NotImplemented
 
-    .. seealso:: :class:`~sage.categories.posets.Posets`, :func:`Poset`
+    .. SEEALSO:: :class:`~sage.categories.posets.Posets`, :func:`Poset`
 
     TESTS::
 
@@ -67,7 +67,8 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P.is_lattice()
                 False
             """
-            return self.is_meet_semilattice() and self.is_join_semilattice()
+            return (self.cardinality() == 0 or
+                     (self.has_bottom() and self.is_join_semilattice()))
 
         def is_selfdual(self):
             r"""
@@ -88,7 +89,15 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P.is_selfdual()
                 True
             """
-            return self.is_isomorphic( self.dual() )
+            # Two quick checks before full isomorphic test.
+            if sorted(self._hasse_diagram.in_degree()) != sorted(self._hasse_diagram.out_degree()):
+                return False
+            levels_orig=[len(x) for x in self._hasse_diagram.level_sets()]
+            dual_poset_hasse=self._hasse_diagram.reverse()
+            levels_dual=[len(x) for x in dual_poset_hasse.level_sets()]
+            if levels_orig != levels_dual:
+                return False
+            return self._hasse_diagram.is_isomorphic(dual_poset_hasse)
 
 
         ##########################################################################
@@ -143,7 +152,7 @@ class FinitePosets(CategoryWithAxiom):
                responsible for the conversions between integers and subsets to
                elements of ``D`` and ``B`` and back.
 
-            .. seealso:: :meth:`FiniteLatticePosets.ParentMethods.is_lattice_morphism`
+            .. SEEALSO:: :meth:`FiniteLatticePosets.ParentMethods.is_lattice_morphism`
             """
             image = set(f(x) for x in self)
             if len(image) != self.cardinality():
@@ -200,7 +209,7 @@ class FinitePosets(CategoryWithAxiom):
 
             FIXME: should this be ``is_order_preserving_morphism``?
 
-            .. seealso:: :meth:`is_poset_isomorphism`
+            .. SEEALSO:: :meth:`is_poset_isomorphism`
 
             TESTS:
 
@@ -260,7 +269,7 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset((Subsets([1,2,3]), attrcall("issubset")))
                 sage: I = P.order_ideal([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{}, {1}, {3}, {2}, {1, 2}, {2, 3}]
+                [{}, {3}, {2}, {2, 3}, {1}, {1, 2}]
 
             Then, we retrieve the generators of this ideal::
 
@@ -271,7 +280,7 @@ class FinitePosets(CategoryWithAxiom):
             the minimal generators for an order filter::
 
                 sage: I = P.order_filter([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{1}, {1, 3}, {1, 2}, {2, 3}, {1, 2, 3}]
+                [{2, 3}, {1}, {1, 2}, {1, 3}, {1, 2, 3}]
                 sage: P.order_ideal_generators(I, direction='up')
                 {{2, 3}, {1}}
 
@@ -299,11 +308,11 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset((Subsets([1,2,3]), attrcall("issubset")))
                 sage: I = P.order_filter([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{1}, {1, 3}, {1, 2}, {2, 3}, {1, 2, 3}]
+                [{2, 3}, {1}, {1, 2}, {1, 3}, {1, 2, 3}]
                 sage: P.order_filter_generators(I)
                 {{2, 3}, {1}}
 
-            .. seealso:: :meth:`order_ideal_generators`
+            .. SEEALSO:: :meth:`order_ideal_generators`
             """
             return self.order_ideal_generators(filter, direction='up')
 
@@ -349,22 +358,22 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: P.order_ideal_complement_generators([1])
-                set([2])
+                {2}
                 sage: P.order_ideal_complement_generators([3])
-                set([])
+                set()
                 sage: P.order_ideal_complement_generators([1,2])
-                set([3])
+                {3}
                 sage: P.order_ideal_complement_generators([1,2,3])
-                set([])
+                set()
 
                 sage: P.order_ideal_complement_generators([1], direction="down")
-                set([2])
+                {2}
                 sage: P.order_ideal_complement_generators([3], direction="down")
-                set([1, 2])
+                {1, 2}
                 sage: P.order_ideal_complement_generators([1,2], direction="down")
-                set([])
+                set()
                 sage: P.order_ideal_complement_generators([1,2,3], direction="down")
-                set([])
+                set()
 
             .. WARNING::
 
@@ -432,17 +441,17 @@ class FinitePosets(CategoryWithAxiom):
 
             Let us hold back defining this, and introduce birational
             toggles and birational rowmotion first. These notions have
-            been introduced in [EP13]_ as generalizations of the notions
+            been introduced in [EP2013]_ as generalizations of the notions
             of toggles (:meth:`order_ideal_toggle`) and :meth:`rowmotion
             <rowmotion>` on order ideals of a finite poset. They
-            have been studied further in [GR13]_.
+            have been studied further in [GR2013]_.
 
             Let `\mathbf{K}` be a field, and `P` be a finite poset. Let
             `\widehat{P}` denote the poset obtained from `P` by adding a
             new element `1` which is greater than all existing elements
             of `P`, and a new element `0` which is smaller than all
-            existing elements of `P` and `1`. Now, a *`\mathbf{K}`-labelling
-            of `P`* will mean any function from `\widehat{P}` to `\mathbf{K}`.
+            existing elements of `P` and `1`. Now, a `\mathbf{K}`-*labelling
+            of* `P` will mean any function from `\widehat{P}` to `\mathbf{K}`.
             The image of an element `v` of `\widehat{P}` under this labelling
             will be called the *label* of this labelling at `v`. The set
             of all `\mathbf{K}`-labellings of `P` is clearly
@@ -465,7 +474,7 @@ class FinitePosets(CategoryWithAxiom):
             respectively given conditions). Here, `\lessdot` and `\gtrdot`
             mean (respectively) "covered by" and "covers", interpreted with
             respect to the poset `\widehat{P}`. This rational map `T_v`
-            is an involution and is called the *(birational) `v`-toggle*; see
+            is an involution and is called the *(birational)* `v`-*toggle*; see
             :meth:`birational_toggle` for its implementation.
 
             Now, *birational rowmotion* is defined as the composition
@@ -486,9 +495,9 @@ class FinitePosets(CategoryWithAxiom):
             <sage.rings.semirings.tropical_semiring.TropicalSemiring>`,
             in which case birational rowmotion relates to classical
             constructions such as promotion of rectangular semistandard
-            Young tableaux (page 5 of [EP13b]_ and future work, via the
+            Young tableaux (page 5 of [EP2013b]_ and future work, via the
             related notion of birational *promotion*) and rowmotion on
-            order ideals of the poset ([EP13]_).
+            order ideals of the poset ([EP2013]_).
 
             The *birational free labelling* is a special labelling
             defined for every finite poset `P` and every linear extension
@@ -560,22 +569,6 @@ class FinitePosets(CategoryWithAxiom):
             The birational free labelling of the poset ``self`` and the
             linear extension ``linear_extension``. Or, if ``reduced``
             is set to ``True``, the reduced birational free labelling.
-
-            REFERENCES:
-
-            .. [EP13] David Einstein, James Propp.
-               *Combinatorial, piecewise-linear, and birational homomesy
-               for products of two chains*.
-               :arxiv:`1310.5294v1`.
-
-            .. [EP13b] David Einstein, James Propp.
-               *Piecewise-linear and birational toggling*.
-               Extended abstract for FPSAC 2014.
-               http://faculty.uml.edu/jpropp/fpsac14.pdf
-
-            .. [GR13] Darij Grinberg, Tom Roby.
-               *Iterative properties of birational rowmotion I*.
-               http://web.mit.edu/~darij/www/algebra/skeletal.pdf
 
             EXAMPLES:
 
@@ -665,7 +658,7 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Posets.ChainPoset(2).product(Posets.ChainPoset(3))
                 sage: P
-                Finite poset containing 6 elements
+                Finite lattice containing 6 elements
                 sage: lex = [(1,0),(0,0),(1,1),(0,1),(1,2),(0,2)]
                 sage: l = P.birational_free_labelling(linear_extension=lex,
                 ....:                                 prefix="u", reduced=True)
@@ -901,7 +894,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: t1 = V.birational_toggle(1, t)
                 Traceback (most recent call last):
                 ...
-                ZeroDivisionError: Rational division by zero
+                ZeroDivisionError: rational division by zero
 
             We don't get into zero-division issues in the tropical
             semiring (unless the zero of the tropical semiring appears
@@ -1003,7 +996,7 @@ class FinitePosets(CategoryWithAxiom):
                 x = FF.one() / b
             else:
                 x = FF.sum(FF.one() / newdict[j] for j in uppers)
-                # ``FF.sum``, not ``sum``, see :trac:`15591`.
+                # ``FF.sum``, not ``sum``, see trac #15591.
             x = FF.one() / x
             # Construct the sum ``y`` of the labels at the elements
             # covered by ``v``:
@@ -1136,7 +1129,7 @@ class FinitePosets(CategoryWithAxiom):
                 [(1, a*b/x4), (2, (x1*x2*b + x1*x3*b)/(x2*x4)),
                  (3, (x1*x2*b + x1*x3*b)/(x3*x4)), (4, (x2*b + x3*b)/x4)]
 
-            A result of [GR13]_ states that applying birational rowmotion
+            A result of [GR2013]_ states that applying birational rowmotion
             `n+m` times to a `\mathbf{K}`-labelling `f` of the poset
             `[n] \times [m]` gives back `f`. Let us check this::
 
@@ -1253,17 +1246,17 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: P.panyushev_orbits()
-                [[set([2]), set([1])], [set([]), set([1, 2]), set([3])]]
+                [[{2}, {1}], [set(), {1, 2}, {3}]]
                 sage: P.panyushev_orbits(element_constructor=list)
                 [[[2], [1]], [[], [1, 2], [3]]]
                 sage: P.panyushev_orbits(element_constructor=frozenset)
-                [[frozenset([2]), frozenset([1])],
-                 [frozenset([]), frozenset([1, 2]), frozenset([3])]]
+                [[frozenset({2}), frozenset({1})],
+                 [frozenset(), frozenset({1, 2}), frozenset({3})]]
                 sage: P.panyushev_orbits(element_constructor=tuple)
                 [[(2,), (1,)], [(), (1, 2), (3,)]]
                 sage: P = Poset( {} )
                 sage: P.panyushev_orbits()
-                [[set([])]]
+                [[set()]]
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning the orbits.
@@ -1277,7 +1270,7 @@ class FinitePosets(CategoryWithAxiom):
                     if A not in AC: break
                     orbit.append( A )
                     AC.remove( A )
-                orbits.append(map(element_constructor, orbit))
+                orbits.append([element_constructor(_) for _ in orbit])
             return orbits
 
         def rowmotion_orbits(self, element_constructor = set):
@@ -1371,7 +1364,7 @@ class FinitePosets(CategoryWithAxiom):
                     if A not in OI: break
                     orbit.append( A )
                     OI.remove( A )
-                orbits.append(map(element_constructor, orbit))
+                orbits.append([element_constructor(_) for _ in orbit])
             return orbits
 
         def panyushev_orbit_iter(self, antichain, element_constructor=set, stop=True, check=True):
@@ -1418,32 +1411,32 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: list(P.panyushev_orbit_iter(set([1, 2])))
-                [set([1, 2]), set([3]), set([])]
+                [{1, 2}, {3}, set()]
                 sage: list(P.panyushev_orbit_iter([1, 2]))
-                [set([1, 2]), set([3]), set([])]
+                [{1, 2}, {3}, set()]
                 sage: list(P.panyushev_orbit_iter([2, 1]))
-                [set([1, 2]), set([3]), set([])]
+                [{1, 2}, {3}, set()]
                 sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=list))
                 [[1, 2], [3], []]
                 sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=frozenset))
-                [frozenset([1, 2]), frozenset([3]), frozenset([])]
+                [frozenset({1, 2}), frozenset({3}), frozenset()]
                 sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=tuple))
                 [(1, 2), (3,), ()]
 
                 sage: P = Poset( {} )
                 sage: list(P.panyushev_orbit_iter([]))
-                [set([])]
+                [set()]
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.panyushev_orbit_iter([2], stop=False)
-                sage: Piter.next()
-                set([2])
-                sage: Piter.next()
-                set([3])
-                sage: Piter.next()
-                set([2])
-                sage: Piter.next()
-                set([3])
+                sage: next(Piter)
+                {2}
+                sage: next(Piter)
+                {3}
+                sage: next(Piter)
+                {2}
+                sage: next(Piter)
+                {3}
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning an orbit of a given
@@ -1507,34 +1500,34 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: list(P.rowmotion_orbit_iter(set([1, 2])))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.rowmotion_orbit_iter([1, 2]))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.rowmotion_orbit_iter([2, 1]))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=list))
                 [[1, 2], [1, 2, 3], []]
                 sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=frozenset))
-                [frozenset([1, 2]), frozenset([1, 2, 3]), frozenset([])]
+                [frozenset({1, 2}), frozenset({1, 2, 3}), frozenset()]
                 sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=tuple))
                 [(1, 2), (1, 2, 3), ()]
 
                 sage: P = Poset( {} )
                 sage: list(P.rowmotion_orbit_iter([]))
-                [set([])]
+                [set()]
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.rowmotion_orbit_iter([1, 2, 3], stop=False)
-                sage: Piter.next()
-                set([1, 2, 3])
-                sage: Piter.next()
-                set([1, 2, 3, 4])
-                sage: Piter.next()
-                set([])
-                sage: Piter.next()
-                set([1])
-                sage: Piter.next()
-                set([1, 2, 3])
+                sage: next(Piter)
+                {1, 2, 3}
+                sage: next(Piter)
+                {1, 2, 3, 4}
+                sage: next(Piter)
+                set()
+                sage: next(Piter)
+                {1}
+                sage: next(Piter)
+                {1, 2, 3}
 
                 sage: P = Poset({ 1: [4], 2: [4, 5], 3: [5] })
                 sage: list(P.rowmotion_orbit_iter([1, 2], element_constructor=list))
@@ -1618,15 +1611,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: list(P.toggling_orbit_iter([1, 3, 1], set([1, 2])))
-                [set([1, 2])]
+                [{1, 2}]
                 sage: list(P.toggling_orbit_iter([1, 2, 3], set([1, 2])))
-                [set([1, 2]), set([]), set([1, 2, 3])]
+                [{1, 2}, set(), {1, 2, 3}]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2])))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=list))
                 [[1, 2], [1, 2, 3], []]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=frozenset))
-                [frozenset([1, 2]), frozenset([1, 2, 3]), frozenset([])]
+                [frozenset({1, 2}), frozenset({1, 2, 3}), frozenset()]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=tuple))
                 [(1, 2), (1, 2, 3), ()]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], [2, 1], element_constructor=tuple))
@@ -1634,20 +1627,20 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( {} )
                 sage: list(P.toggling_orbit_iter([], []))
-                [set([])]
+                [set()]
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.toggling_orbit_iter([1, 2, 4, 3], [1, 2, 3], stop=False)
-                sage: Piter.next()
-                set([1, 2, 3])
-                sage: Piter.next()
-                set([1])
-                sage: Piter.next()
-                set([])
-                sage: Piter.next()
-                set([1, 2, 3])
-                sage: Piter.next()
-                set([1])
+                sage: next(Piter)
+                {1, 2, 3}
+                sage: next(Piter)
+                {1}
+                sage: next(Piter)
+                set()
+                sage: next(Piter)
+                {1, 2, 3}
+                sage: next(Piter)
+                {1}
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning an orbit of a given
@@ -1669,7 +1662,7 @@ class FinitePosets(CategoryWithAxiom):
                     next = self.order_ideal_toggles(next, vs)
                     yield element_constructor(next)
 
-        def order_ideals_lattice(self, as_ideals=True, facade=False):
+        def order_ideals_lattice(self, as_ideals=True, facade=None):
             r"""
             Return the lattice of order ideals of a poset ``self``,
             ordered by inclusion.
@@ -1691,16 +1684,19 @@ class FinitePosets(CategoryWithAxiom):
             - ``as_ideals`` -- Boolean, if ``True`` (default) returns
               a poset on the set of order ideals, otherwise on the set
               of antichains
+            - ``facade`` -- Boolean or ``None`` (default). Whether to
+              return a facade lattice or not. By default return facade
+              lattice if the poset is a facade poset.
 
             EXAMPLES::
 
-                sage: P = Posets.PentagonPoset(facade = True)
+                sage: P = Posets.PentagonPoset()
                 sage: P.cover_relations()
                 [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
                 sage: J = P.order_ideals_lattice(); J
                 Finite lattice containing 8 elements
                 sage: list(J)
-                [{}, {0}, {0, 2}, {0, 1}, {0, 1, 2}, {0, 2, 3}, {0, 1, 2, 3}, {0, 1, 2, 3, 4}]
+                [{}, {0}, {0, 2}, {0, 2, 3}, {0, 1}, {0, 1, 2}, {0, 1, 2, 3}, {0, 1, 2, 3, 4}]
 
             As a lattice on antichains::
 
@@ -1718,10 +1714,15 @@ class FinitePosets(CategoryWithAxiom):
                 sage: J.cover_relations()
                 [[{}, {0}], [{0}, {0, 2}], [{0}, {0, 1}], [{0, 2}, {0, 1, 2}], [{0, 1}, {0, 1, 2}], [{0, 1, 2}, {0, 1, 2, 3}]]
 
-            .. NOTE:: we use facade posets in the examples above just
-               to ensure a nicer ordering in the output.
+                sage: P = Poset({1:[2]})
+                sage: J_facade = P.order_ideals_lattice()
+                sage: J_nonfacade = P.order_ideals_lattice(facade=False)
+                sage: type(J_facade[0]) == type(J_nonfacade[0])
+                False
             """
             from sage.combinat.posets.lattices import LatticePoset
+            if facade is None:
+                facade = self._is_facade
             if as_ideals:
                 from sage.misc.misc import attrcall
                 from sage.sets.set import Set
@@ -1776,4 +1777,6 @@ class FinitePosets(CategoryWithAxiom):
                 sage: list(Poset().directed_subsets('up'))
                 [[]]
             """
+            if direction != 'up' and direction != 'down':
+                raise ValueError("Direction must be either 'up' or 'down'.")
             return self.antichains().map(lambda elements: self.directed_subset(elements, direction))

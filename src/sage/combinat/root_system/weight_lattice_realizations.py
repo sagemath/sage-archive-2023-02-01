@@ -1,6 +1,7 @@
 """
 Weight lattice realizations
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007-2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -21,10 +22,10 @@ Weight lattice realizations
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.categories.category_types import Category_over_base_ring
 from sage.combinat.family import Family
-from root_lattice_realizations import RootLatticeRealizations
+from .root_lattice_realizations import RootLatticeRealizations
 
 class WeightLatticeRealizations(Category_over_base_ring):
     r"""
@@ -51,7 +52,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
     lattice; on the other hand, the embedding of the simple roots is
     given for free.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :class:`~sage.combinat.root_system.root_system.RootSystem`
         - :class:`~sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations`
@@ -167,7 +168,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
           """
           Returns whether this is a realization of the extended weight lattice
 
-          .. seealso:: :class:`sage.combinat.root_system.weight_space.WeightSpace`
+          .. SEEALSO:: :class:`sage.combinat.root_system.weight_space.WeightSpace`
 
           EXAMPLES::
 
@@ -215,7 +216,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 :meth:`_test_weight_lattice_realization`.
             """
             from sage.rings.all import ZZ
-            from weight_space import WeightSpace
+            from .weight_space import WeightSpace
             K = self.base_ring()
             # If self is the root lattice or the root space, we don't want
             # to register its trivial embedding into itself. This builds
@@ -240,7 +241,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             - embeddings from the weight lattice and weight space
             - rho, highest_root, ...
 
-            .. seealso:: :class:`TestSuite`
+            .. SEEALSO:: :class:`TestSuite`
 
             EXAMPLES::
 
@@ -344,7 +345,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
             interpretation of type `A`; see the thematic tutorial on Lie
             Methods and Related Combinatorics in Sage for details.
             """
-            assert i in self.index_set()
+            if i not in self.index_set():
+                raise ValueError("{} is not in the index set".format(i))
             alphai = self.root_system.weight_lattice().simple_root(i)
             # Note: it would be nicer to just return ``self(alpha[i])``,
             # However the embedding from the weight lattice is defined
@@ -389,7 +391,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             of the extended affine Weyl group admits a unique
             decomposition of the form:
 
-            .. math:: f = d w ,
+            .. MATH:: f = d w ,
 
             where `w` is in the Weyl group, and `d` is a function which
             maps the fundamental alcove to itself. As `d` permutes the
@@ -518,7 +520,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             This method returns the Dynkin diagram automorphism for
             the decomposition `f = d w` (see
-            :meth:`reduced_word_of_alcove_morphism`), as a dictionnary
+            :meth:`reduced_word_of_alcove_morphism`), as a dictionary
             mapping elements of the index set to itself.
 
             EXAMPLES::
@@ -633,12 +635,6 @@ class WeightLatticeRealizations(Category_over_base_ring):
             """
             return self.reduced_word_of_alcove_morphism(t.translation)
 
-        #    # This should be in a method to_weight_lattice()
-        #    alphac = self.simple_coroots()
-        #    Lambda = self.fundamental_weights()
-        #    assert( t == self.plus(t.scalar(alphac[i]) * Lambda[i] for i in self.index_set() ) )
-        #    t = self.plus( t.scalar(alphac[i]) * c[i] * Lambda[i] for i in self.index_set() )
-
         def _test_reduced_word_of_translation(self, elements=None, **options):
             r"""
             Tests the method :meth:`reduced_word_of_translation`.
@@ -724,7 +720,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             `y_k` is obtained recursively from `y_{k-1}` by applying the
             following reflection:
 
-            .. math::
+            .. MATH::
 
                   y_k = s_{w_{k-1} \alpha_{i_k}} y_{k-1}
 
@@ -845,31 +841,39 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: L.embed_at_level(alpha[1], 1)
                 Lambda[0] + 2*Lambda[1] - Lambda[2]
             """
-            assert self.classical().is_parent_of(x)
+            if not self.classical().is_parent_of(x):
+                raise ValueError("x must be an element of the classical type")
             Lambda = self.fundamental_weights()
             result = self.sum_of_terms(x)
             result += Lambda[0] * (level-result.level()) / (Lambda[0].level())
             assert result.level() == level
             return result
 
-
         # Should it be a method of highest_weight?
         def weyl_dimension(self, highest_weight):
-            """
+            r"""
+            Return the dimension of the highest weight representation of highest weight ``highest_weight``.
+
             EXAMPLES::
 
                 sage: RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0])
                 20
+                sage: P = RootSystem(['C',2]).weight_lattice()
+                sage: La = P.basis()
+                sage: P.weyl_dimension(La[1]+La[2])
+                16
 
                 sage: type(RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0]))
                 <type 'sage.rings.integer.Integer'>
             """
             highest_weight = self(highest_weight)
-            assert(highest_weight.is_dominant())
+            if not highest_weight.is_dominant():
+                raise ValueError("the highest weight must be dominant")
             rho = self.rho()
-            n = prod([(rho+highest_weight).dot_product(x) for x in self.positive_roots()])
-            d = prod([ rho.dot_product(x) for x in self.positive_roots()])
+            pr = self.coroot_lattice().positive_roots()
             from sage.rings.integer import Integer
+            n = prod(((rho+highest_weight).scalar(x) for x in pr), Integer(1))
+            d = prod((rho.scalar(x) for x in pr), Integer(1))
             return Integer(n/d)
 
         @lazy_attribute
@@ -1029,3 +1033,42 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             return sum(cl*sym[iset.index(ml),iset.index(mr)]*cr
                        for ml,cl in self for mr,cr in la)
+
+        #    # This should be in a method to_weight_lattice()
+        #    alphac = self.simple_coroots()
+        #    Lambda = self.fundamental_weights()
+        #    assert( t == self.plus(t.scalar(alphac[i]) * Lambda[i] for i in self.index_set() ) )
+        #    t = self.plus( t.scalar(alphac[i]) * c[i] * Lambda[i] for i in self.index_set() )
+
+        def to_weight_space(self, base_ring = None):
+            r"""
+            Map ``self`` to the weight space.
+
+            .. WARNING::
+
+                Implemented for finite Cartan type.
+
+            EXAMPLES::
+
+                sage: b = CartanType(['B',2]).root_system().ambient_space().from_vector(vector([1,-2])); b
+                (1, -2)
+                sage: b.to_weight_space()
+                3*Lambda[1] - 4*Lambda[2]
+                sage: b = CartanType(['B',2]).root_system().ambient_space().from_vector(vector([1/2,0])); b
+                (1/2, 0)
+                sage: b.to_weight_space()
+                1/2*Lambda[1]
+                sage: b.to_weight_space(ZZ)
+                Traceback (most recent call last):
+                ...
+                TypeError: no conversion of this rational to integer
+                sage: b = CartanType(['G',2]).root_system().ambient_space().from_vector(vector([4,-5,1])); b
+                (4, -5, 1)
+                sage: b.to_weight_space()
+                -6*Lambda[1] + 5*Lambda[2]
+            """
+            L = self.parent()
+            if base_ring is None:
+                base_ring = L.base_ring()
+            
+            return L.root_system.weight_space(base_ring).sum_of_terms([i, base_ring(self.scalar(L.simple_coroot(i)))] for i in L.cartan_type().index_set())

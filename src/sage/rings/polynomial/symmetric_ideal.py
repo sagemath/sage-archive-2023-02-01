@@ -54,6 +54,8 @@ equal to `x_1` in ``Q``. Indeed, we have
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 from sage.rings.ideal import Ideal_generic
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
@@ -98,18 +100,18 @@ class SymmetricIdeal( Ideal_generic ):
     Buchberger type that computes a Groebner basis `G` for `I` that
     allows for computation of a unique normal form, that is zero
     precisely for the elements of `I` -- see [AB2008]_. See
-    :meth:`.groebner_basis` for more details.
+    :meth:`groebner_basis` for more details.
 
     Our implementation allows more than one generator and also
     provides degree lexicographic and degree reverse lexicographic
     monomial orderings -- we do, however, not guarantee termination of
     the Buchberger algorithm in these cases.
 
-    .. [AB2007] M. Aschenbrenner, C. Hillar,
+    .. [AB2007] \M. Aschenbrenner, C. Hillar,
        Finite generation of symmetric ideals.
        Trans. Amer. Math. Soc. 359 (2007), no. 11, 5171--5192.
 
-    .. [AB2008] M. Aschenbrenner, C. Hillar,
+    .. [AB2008] \M. Aschenbrenner, C. Hillar,
        `An Algorithm for Finding Symmetric Groebner Bases in Infinite Dimensional Rings.
        <http://de.arxiv.org/abs/0801.4439>`_
 
@@ -281,7 +283,7 @@ class SymmetricIdeal( Ideal_generic ):
         oGen = list(other.gens())
         SymL = oGen
         for i in range(sN):
-            oGen = [X.__pow__(P) for X in oGen]
+            oGen = [X ** P for X in oGen]
             SymL = SymL + oGen
         # Now, SymL contains all necessary permutations of the second factor
         OUT = []
@@ -519,13 +521,13 @@ class SymmetricIdeal( Ideal_generic ):
             VarList = list(VarList)
             if not VarList:
                 return SymmetricIdeal(PARENT,[0])
-            VarList.sort(cmp=PARENT.varname_cmp, reverse=True)
+            VarList.sort(key=PARENT.varname_key, reverse=True)
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             CommonR = PolynomialRing(self.base_ring(), VarList, order=self.ring()._order)
 
         ## Now, the symmetric interreduction starts
         if not (report is None):
-            print 'Symmetric interreduction'
+            print('Symmetric interreduction')
         from sage.rings.polynomial.symmetric_reduction import SymmetricReductionStrategy
         if RStrat is None:
             RStrat = SymmetricReductionStrategy(self.ring(),tailreduce=tailreduce)
@@ -534,8 +536,8 @@ class SymmetricIdeal( Ideal_generic ):
             RStrat.setgens(GroundState)
             DONE = []
             for i in range(len(TODO)):
-                if (not (report is None)):
-                    print '[%d/%d] '%(i+1,len(TODO)),
+                if report is not None:
+                    print('[%d/%d] ' % (i + 1, len(TODO)), end="")
                     sys.stdout.flush()
                 p = RStrat.reduce(TODO[i], report=report)
                 if p._p != 0:
@@ -545,7 +547,7 @@ class SymmetricIdeal( Ideal_generic ):
                     DONE.append(p)
                 else:
                     if not (report is None):
-                        print "-> 0"
+                        print("-> 0")
             DONE.sort()
             if DONE == TODO:
                 break
@@ -637,7 +639,8 @@ class SymmetricIdeal( Ideal_generic ):
         if hasattr(R,'_max') and R._max<N:
             R.gen()[N]
         if report is not None:
-            print "Symmetrise %d polynomials at level %d"%(len(newOUT.gens()),N)
+            print("Symmetrise %d polynomials at level %d" %
+                  (len(newOUT.gens()), N))
         if use_full_group:
             from sage.combinat.permutation import Permutations
             NewGens = []
@@ -652,7 +655,7 @@ class SymmetricIdeal( Ideal_generic ):
             OUT = newOUT
             PermutedGens = list(OUT.gens())
             if not (report is None):
-                print "Apply permutations"
+                print("Apply permutations")
             for i in range(1,N):
                 for j in range(i+1,N+1):
                     P = Permutation(((i,j)))
@@ -923,7 +926,7 @@ class SymmetricIdeal( Ideal_generic ):
             raise TypeError("The base ring (= %s) must be a field"%PARENT.base_ring())
         OUT = self.symmetrisation(tailreduce=tailreduce,report=report,use_full_group=use_full_group)
         if not (report is None):
-            print "Symmetrisation done"
+            print("Symmetrisation done")
         VarList = set([])
         for P in OUT.gens():
             if P._p!=0:
@@ -948,27 +951,23 @@ class SymmetricIdeal( Ideal_generic ):
                             return Sequence([PARENT(1)], PARENT, check=False)
                         VarList = VarList.union([str(X) for X in P.variables()])
                 VarList = list(VarList)
-                VarList.sort(cmp=PARENT.varname_cmp, reverse=True)
+                VarList.sort(key=PARENT.varname_key, reverse=True)
                 CommonR = PolynomialRing(PARENT._base, VarList, order=PARENT._order)
 
             try: # working around one libsingular bug and one libsingular oddity
                 DenseIdeal = [CommonR(P._p) if ((CommonR is P._p.parent()) or CommonR.ngens()!=P._p.parent().ngens()) else CommonR(repr(P._p))  for P in OUT.gens()]*CommonR
             except Exception:
                 if report is not None:
-                    print "working around a libsingular bug"
+                    print("working around a libsingular bug")
                 DenseIdeal = [repr(P._p) for P in OUT.gens()]*CommonR
-            if hasattr(DenseIdeal,'groebner_basis'):
-                if report is not None:
-                    print "Classical Groebner basis"
-                    if algorithm!='':
-                        print "(using %s)"%algorithm
-                newOUT = (DenseIdeal.groebner_basis(algorithm)*PARENT)
-                if report is not None:
-                    print "->",len(newOUT.gens()),'generators'
-            else:
-                if report is not None:
-                    print "Univariate polynomial ideal"
-                newOUT = DenseIdeal.gens()*PARENT
+
+            if report is not None:
+                print("Classical Groebner basis")
+                if algorithm!='':
+                    print("(using %s)" % algorithm)
+            newOUT = (DenseIdeal.groebner_basis(algorithm)*PARENT)
+            if report is not None:
+                print("->", len(newOUT.gens()), 'generators')
             # Symmetrise out to the next index:
             N += 1
             newOUT = newOUT.symmetrisation(N=N,tailreduce=tailreduce,report=report,use_full_group=use_full_group)

@@ -10,7 +10,7 @@ code is then inserted into a .html file to be opened by a browser.
 
 What Sage feeds javascript with is a "graph" object with the following content:
 
-- ``vertices`` -- each vertex is a dictionay defining :
+- ``vertices`` -- each vertex is a dictionary defining :
 
     - ``name``  -- The vertex's label
 
@@ -45,15 +45,14 @@ definition can be found in the documentation of
 ``link_distance``, ``link_strength``, ``gravity``, ``vertex_size``,
 ``edge_thickness``.
 
-.. WARNING:: 
+.. WARNING::
 
     Since the d3js package is not standard yet, the javascript is fetched from
     d3js.org website by the browser. If you want to avoid that (e.g.  to
     protect your privacy or by lack of internet connection), you can install
-    the d3js package for offline use with the Sage command
-    ``install_package('d3js')`` or by running ``sage -i d3js`` from the command
-    line.
-  
+    the d3js package for offline use by running ``sage -i d3js`` from
+    the command line.
+
 .. TODO::
 
     - Add tooltip like in `<http://bl.ocks.org/bentwonk/2514276>`_.
@@ -87,9 +86,10 @@ import os
 
 
 def gen_html_code(G,
-                  vertex_labels=False,
+                  vertex_labels=True,
                   edge_labels=False,
                   vertex_partition=[],
+                  vertex_colors=None,
                   edge_partition=[],
                   force_spring_layout=False,
                   charge=-120,
@@ -119,12 +119,16 @@ def gen_html_code(G,
       vertex set. Vertices are then colored in the graph according to the
       partition. Set to ``[]`` by default.
 
+    - ``vertex_colors`` -- a dictionary representing a partition of
+      the vertex set. Keys are colors (ignored) and values are lists of
+      vertices. Vertices are then colored in the graph according to the
+      partition. Set to ``None`` by default.
+
     - ``edge_partition`` -- same as ``vertex_partition``, with edges
       instead. Set to ``[]`` by default.
 
-    - ``force_spring_layout`` -- whether to take sage's position into account if
-      there is one (see :meth:`~sage.graphs.generic_graph.GenericGraph.` and
-      :meth:`~sage.graphs.generic_graph.GenericGraph.`), or to compute a spring
+    - ``force_spring_layout`` -- whether to take previously computed position
+      of nodes into account if there is one, or to compute a spring
       layout. Set to ``False`` by default.
 
     - ``vertex_size`` -- The size of a vertex' circle. Set to `7` by default.
@@ -148,14 +152,13 @@ def gen_html_code(G,
       information. Set to ``0.04`` by default.
 
     .. WARNING::
-    
+
         Since the d3js package is not standard yet, the javascript is fetched
         from d3js.org website by the browser. If you want to avoid that (e.g.
         to protect your privacy or by lack of internet connection), you can
-        install the d3js package for offline use with the Sage command
-        ``install_package('d3js')`` or by running ``sage -i d3js`` from the
-        command line.
-  
+        install the d3js package for offline use by running
+        ``sage -i d3js`` from the command line.
+
     EXAMPLES::
 
         sage: graphs.RandomTree(50).show(method="js") # optional -- internet
@@ -183,6 +186,10 @@ def gen_html_code(G,
 
         sage: from sage.graphs.graph_plot_js import gen_html_code
         sage: filename = gen_html_code(graphs.PetersenGraph())
+
+    :trac:`17370`::
+
+        sage: filename = gen_html_code(graphs.CompleteBipartiteGraph(4,5))
     """
     directed = G.is_directed()
     multiple_edges = G.has_multiple_edges()
@@ -191,6 +198,8 @@ def gen_html_code(G,
     v_to_id = {v: i for i, v in enumerate(G.vertices())}
 
     # Vertex colors
+    if vertex_colors is not None:
+        vertex_partition = list(vertex_colors.values())
     color = {i: len(vertex_partition) for i in range(G.order())}
     for i, l in enumerate(vertex_partition):
         for v in l:
@@ -269,12 +278,14 @@ def gen_html_code(G,
 
         for v in G.vertices():
             x, y = Gpos[v]
-            pos.append([x, -y])
+            pos.append([float(x), float(-y)])
 
     # Encodes the data as a JSON string
     from json import JSONEncoder
     string = JSONEncoder().encode({"nodes": nodes,
-                                   "links": edges, "loops": loops, "pos": pos,
+                                   "links": edges,
+                                   "loops": loops,
+                                   "pos": pos,
                                    "directed": G.is_directed(),
                                    "charge": int(charge),
                                    "link_distance": int(link_distance),

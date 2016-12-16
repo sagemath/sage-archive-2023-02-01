@@ -6,6 +6,7 @@ interpreter.  These changes consist of the following major components:
 
   - :class:`SageTerminalApp`
   - :class:`SageInteractiveShell`
+  - :class:`SageTerminalInteractiveShell`
   - :func:`interface_shell_embed`
 
 SageTerminalApp
@@ -15,7 +16,7 @@ This is the main application object.  It is used by the
 ``$SAGE_LOCAL/bin/sage-ipython`` script to start the Sage
 command-line.  It's primary purpose is to
 
-  - Initialize the :class:`SageInteractiveShell`.
+  - Initialize the :class:`SageTerminalInteractiveShell`.
 
   - Provide default configuration options for the shell, and its
     subcomponents.  These work with (and can be overridden by)
@@ -37,11 +38,26 @@ this object can be retrieved by running::
 
     sage: shell = get_ipython()   # not tested
 
+Any input is preprocessed and evaluated inside the ``shell.run_cell``
+method. If the command line processing does not do what you want it to
+do, you can step through it in the debugger::
+
+    sage: %debug shell.run_cell('?')        # not tested
+
 The :class:`SageInteractiveShell` provides the following
 customizations:
 
   - Modify the libraries before calling system commands. See
     :meth:`~SageInteractiveShell.system_raw`.
+
+SageTerminalInteractiveShell
+----------------------------
+
+The :class:`SageTerminalInteractiveShell` is a close relative of
+:class:`SageInteractiveShell` that is specialized for running in a
+terminal. In particular, running commands like ``!ls`` will directly
+write to stdout. Technically, the ``system`` attribute will point to
+``system_raw`` instead of ``system_piped``.
 
 Interface Shell
 ---------------
@@ -52,44 +68,49 @@ embeddable IPython shell which can be used to directly interact with
 that shell.  The bulk of this functionality is provided through
 :class:`InterfaceShellTransformer`.
 
+TESTS:
+
+Check that Cython source code appears in tracebacks::
+
+    sage: from sage.repl.interpreter import get_test_shell
+    sage: shell = get_test_shell()
+    sage: shell.run_cell('1/0')
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)
+    <ipython-input-...> in <module>()
+    ----> 1 Integer(1)/Integer(0)
+    <BLANKLINE>
+    .../src/sage/rings/integer.pyx in sage.rings.integer.Integer.__div__ (.../cythonized/sage/rings/integer.c:...)()
+       ...          if type(left) is type(right):
+       ...              if mpz_sgn((<Integer>right).value) == 0:
+    -> ...                  raise ZeroDivisionError("rational division by zero")
+       ...              x = <Rational> Rational.__new__(Rational)
+       ...              mpq_div_zz(x.value, (<Integer>left).value, (<Integer>right).value)
+    <BLANKLINE>
+    ZeroDivisionError: rational division by zero
+    sage: shell.quit()
 """
 
 #*****************************************************************************
 #       Copyright (C) 2004-2012 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import copy
+
 import os
 import re
-import sys
-from sage.misc.preparser import preparse
+from sage.repl.preparse import preparse
+from sage.repl.prompts import SagePrompts, InterfacePrompts
 
-from IPython import Config
+from traitlets import Bool, Type
 
 from sage.env import SAGE_LOCAL
-
-SAGE_EXTENSION = 'sage'
-
-DEFAULT_SAGE_CONFIG = Config(
-    PromptManager = Config(
-        in_template = 'sage: ',
-        in2_template = '....: ',
-        justify = False,
-        out_template = ''),
-    TerminalIPythonApp = Config(
-        display_banner = False,
-        verbose_crash = True),
-    TerminalInteractiveShell = Config(
-        ast_node_interactivity = 'all',
-        colors = 'LightBG' if sys.stdout.isatty() else 'NoColor',
-        confirm_exit = False,
-        separate_in = ''),
-    InteractiveShellApp = Config(extensions=[SAGE_EXTENSION]),
-    )
+from sage.repl.configuration import sage_ipython_config, SAGE_EXTENSION
 
 def embedded():
     """
@@ -104,7 +125,7 @@ def embedded():
     import sage.server.support
     return sage.server.support.EMBEDDED_MODE
 
-#TODO: This global variable do_preparse should be associtated with an
+#TODO: This global variable do_preparse should be associated with an
 #IPython InteractiveShell as opposed to a global variable in this
 #module.
 _do_preparse=True
@@ -129,20 +150,36 @@ def preparser(on=True):
     global _do_preparse
     _do_preparse = on is True
 
-####################
-# InteractiveShell #
-####################
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
+##############################
+# Sage[Terminal]InteractiveShell #
+##############################
+class SageShellOverride(object):
+    """
+    Mixin to override methods in IPython's [Terminal]InteractiveShell
+    classes.
+    """
 
-class SageInteractiveShell(TerminalInteractiveShell):
+    def show_usage(self):
+        """
+        Print the basic Sage usage.
+
+        This method ends up being called when you enter ``?`` and
+        nothing else on the command line.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('?')
+            Welcome to Sage ...
+            sage: shell.quit()
+        """
+        from sage.misc.sagedoc import help
+        help()
 
     def system_raw(self, cmd):
         """
         Run a system command.
-
-        If the command is not a sage-specific binary, adjust the library
-        paths before calling system commands.  See :trac:`975` for a
-        discussion of running system commands.
 
         This is equivalent to the sage-native-execute shell script.
 
@@ -156,23 +193,181 @@ class SageInteractiveShell(TerminalInteractiveShell):
             sage: shell.system_raw('true')
             sage: shell.user_ns['_exit_code']
             0
-            sage: shell.system_raw('env | grep "^LD_LIBRARY_PATH=" | grep $SAGE_LOCAL')
-            sage: shell.user_ns['_exit_code']
-            1
             sage: shell.system_raw('R --version')
             R version ...
             sage: shell.user_ns['_exit_code']
             0
+            sage: shell.quit()
         """
-        path = os.path.join(SAGE_LOCAL, 'bin',
-                            re.split(r'[\s|;&]', cmd)[0])
-        if not os.access(path, os.X_OK):
-            libraries = 'LD_LIBRARY_PATH="$SAGE_ORIG_LD_LIBRARY_PATH";export LD_LIBRARY_PATH;'
-            if os.uname()[0]=='Darwin':
-                libraries += 'DYLD_LIBRARY_PATH="$SAGE_ORIG_DYLD_LIBRARY_PATH";export DYLD_LIBRARY_PATH;'
-            cmd = libraries+cmd
-        return super(SageInteractiveShell, self).system_raw(cmd)
+        return super(SageShellOverride, self).system_raw(cmd)
 
+
+from IPython.core.interactiveshell import InteractiveShell
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
+
+
+class SageNotebookInteractiveShell(SageShellOverride, InteractiveShell):
+    """
+    IPython Shell for the Sage IPython Notebook
+
+    The doctests are not tested since they would change the current
+    rich output backend away from the doctest rich output backend.
+
+    EXAMPLES::
+
+        sage: from sage.repl.interpreter import SageNotebookInteractiveShell
+        sage: SageNotebookInteractiveShell()   # not tested
+        <sage.repl.interpreter.SageNotebookInteractiveShell object at 0x...>
+    """
+
+    def init_display_formatter(self):
+        """
+        Switch to the Sage IPython notebook rich output backend
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import SageNotebookInteractiveShell
+            sage: SageNotebookInteractiveShell().init_display_formatter()   # not tested
+        """
+        from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+        backend = BackendIPythonNotebook()
+        backend.get_display_manager().switch_backend(backend, shell=self)
+
+
+class SageTerminalInteractiveShell(SageShellOverride, TerminalInteractiveShell):
+    """
+    IPython Shell for the Sage IPython Commandline Interface
+
+    The doctests are not tested since they would change the current
+    rich output backend away from the doctest rich output backend.
+
+    EXAMPLES::
+
+        sage: from sage.repl.interpreter import SageTerminalInteractiveShell
+        sage: SageTerminalInteractiveShell()   # not tested
+        <sage.repl.interpreter.SageNotebookInteractiveShell object at 0x...>
+    """
+
+    def init_display_formatter(self):
+        """
+        Switch to the Sage IPython commandline rich output backend
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import SageTerminalInteractiveShell
+            sage: SageTerminalInteractiveShell().init_display_formatter()   # not tested
+        """
+        from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+        backend = BackendIPythonCommandline()
+        backend.get_display_manager().switch_backend(backend, shell=self)
+
+
+class SageTestShell(SageShellOverride, TerminalInteractiveShell):
+    """
+    Test Shell
+
+    Care must be taken in these doctests to quit the test shell in
+    order to switch back the rich output display backend to the
+    doctest backend.
+
+    EXAMPLES::
+
+        sage: from sage.repl.interpreter import get_test_shell
+        sage: shell = get_test_shell();  shell
+        <sage.repl.interpreter.SageTestShell object at 0x...>
+        sage: shell.quit()
+    """
+
+    def init_display_formatter(self):
+        """
+        Switch to the Sage IPython commandline rich output backend
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell();  shell
+            <sage.repl.interpreter.SageTestShell object at 0x...>
+            sage: shell.quit()
+            sage: shell.init_display_formatter()
+            sage: shell.quit()
+        """
+        from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+        self._ipython_backend = backend = BackendIPythonCommandline()
+        self._display_manager = backend.get_display_manager()
+        self._doctest_backend = self._display_manager.switch_backend(backend, shell=self)
+
+    def quit(self):
+        """
+        Quit the test shell.
+
+        To make the test shell as realistic as possible, we switch to
+        the
+        :class:`~sage.repl.rich_output.backend_ipython.BackendIPythonCommandline`
+        display backend. This method restores the previous display
+        backend, which is the
+        :class:`~sage.repl.rich_output.backend_doctest.BackendDoctest`
+        during doctests.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: get_display_manager()
+            The Sage display manager using the doctest backend
+
+            sage: shell = get_test_shell()
+            sage: get_display_manager()
+            The Sage display manager using the IPython command line backend
+
+            sage: shell.quit()
+            sage: get_display_manager()
+            The Sage display manager using the doctest backend
+        """
+        self._display_manager.switch_backend(self._doctest_backend)
+
+    def _restart(self):
+        """
+        Restart the test shell (after :meth:`quit`).
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.quit()
+            sage: shell._restart()
+            sage: shell.quit()
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: get_display_manager()
+            The Sage display manager using the doctest backend
+        """
+        self._display_manager.switch_backend(self._ipython_backend, shell=self)
+
+    def run_cell(self, *args, **kwds):
+        """
+        Run IPython cell
+
+        Starting with IPython-3.0, this returns an success/failure
+        information. Since it is more convenient for doctests, we
+        ignore it.
+
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: rc = shell.run_cell('1/0')
+            ---------------------------------------------------------------------------
+            ZeroDivisionError                         Traceback (most recent call last)
+            ...
+            ZeroDivisionError: rational division by zero
+            sage: rc is None
+            True
+            sage: shell.quit()
+        """
+        rc = super(SageTestShell, self).run_cell(*args, **kwds)
+
+
+    
 ###################################################################
 # Transformers used in the SageInputSplitter
 ###################################################################
@@ -210,6 +405,7 @@ def SagePreparseTransformer(line):
           File "<string>", line unknown
         SyntaxError: Mismatched ']'
         <BLANKLINE>
+        sage: shell.quit()
     """
     if _do_preparse and not line.startswith('%'):
         return preparse(line)
@@ -258,6 +454,7 @@ def SagePromptTransformer():
 
         sage: shell.run_cell('    sage: 1+1')
         2
+        sage: shell.quit()
     """
     _sage_prompt_re = re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+')
     return _strip_prompts(_sage_prompt_re)
@@ -280,7 +477,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
            a list of hold onto interface objects and keep them from being
            garbage collected
 
-        .. seealso:: :func:`interface_shell_embed`
+        .. SEEALSO:: :func:`interface_shell_embed`
 
         EXAMPLES::
 
@@ -288,7 +485,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: shell = interface_shell_embed(maxima)
             sage: ift = shell.prefilter_manager.transformers[0]
             sage: ift.temporary_objects
-            set([])
+            set()
             sage: ift._sage_import_re.findall('sage(a) + maxima(b)')
             ['a', 'b']
         """
@@ -324,8 +521,8 @@ class InterfaceShellTransformer(PrefilterTransformer):
             '2 + sage0 '
             sage: maxima.eval('sage0')
             '3'
-            sage: ift.preparse_imports_from_sage('2 + maxima(a)')
-            '2 +  sage1 '
+            sage: ift.preparse_imports_from_sage('2 + maxima(a)') # maxima calls set_seed on startup which is why 'sage0' will becomes 'sage4' and not just 'sage1'
+            '2 +  sage4 '
             sage: ift.preparse_imports_from_sage('2 + gap(a)')
             '2 + gap(a)'
         """
@@ -357,7 +554,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: ift.transform(r'sage(a)+4', False)
             'sage.misc.all.logstr("""8""")'
             sage: ift.temporary_objects
-            set([])
+            set()
             sage: shell = interface_shell_embed(gap)
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
             sage: ift.transform('2+2', False)
@@ -390,18 +587,14 @@ def interface_shell_embed(interface):
         sage: shell = interface_shell_embed(gap)
         sage: shell.run_cell('List( [1..10], IsPrime )')
         [ false, true, true, false, true, false, true, false, false, false ]
+        <ExecutionResult object at ..., execution_count=None error_before_exec=None error_in_exec=None result=[ false, true, true, false, true, false, true, false, false, false ]>
     """
-    try:
-        cfg = copy.deepcopy(get_ipython().config)
-    except NameError:
-        cfg = copy.deepcopy(DEFAULT_SAGE_CONFIG)
-    cfg.PromptManager['in_template'] = interface.name() + ': '
-    cfg.PromptManager['in2_template'] = len(interface.name())*'.' + ': '
-
+    cfg = sage_ipython_config.copy()
     ipshell = InteractiveShellEmbed(config=cfg,
                                     banner1='\n  --> Switching to %s <--\n\n'%interface,
-                                    exit_msg = '\n  --> Exiting back to Sage <--\n')
+                                    exit_msg='\n  --> Exiting back to Sage <--\n')
     ipshell.interface = interface
+    ipshell.prompts = InterfacePrompts(interface.name())
 
     while ipshell.prefilter_manager.transformers:
         ipshell.prefilter_manager.transformers.pop()
@@ -419,13 +612,20 @@ def get_test_shell():
     Returns a IPython shell that can be used in testing the functions
     in this module.
 
-    :returns: an IPython shell
+    OUTPUT:
+
+    An IPython shell
 
     EXAMPLES::
 
         sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell(); shell
-        <sage.repl.interpreter.SageInteractiveShell object at 0x...>
+        <sage.repl.interpreter.SageTestShell object at 0x...>
+        sage: shell.parent.shell_class
+        <class 'sage.repl.interpreter.SageTestShell'>
+        sage: shell.parent.test_shell
+        True
+        sage: shell.quit()
 
     TESTS:
 
@@ -437,9 +637,18 @@ def get_test_shell():
         sage: out + err
         ''
     """
-    app = SageTerminalApp.instance(config=copy.deepcopy(DEFAULT_SAGE_CONFIG))
+    config = sage_ipython_config.default()
+    config.TerminalIPythonApp.test_shell = True
+    config.TerminalIPythonApp.shell_class = SageTestShell
+    app = SageTerminalApp.instance(config=config)
     if app.shell is None:
         app.initialize(argv=[])
+    else:
+        try:
+            app.shell._restart()
+        except AttributeError:
+            pass
+    # No quit noise
     app.shell.verbose_quit = False
     return app.shell
 
@@ -475,10 +684,15 @@ class SageCrashHandler(IPAppCrashHandler):
             app, contact_name, contact_email, bug_tracker, show_crash_traceback=False)
         self.crash_report_fname = 'Sage_crash_report.txt'
 
+
 class SageTerminalApp(TerminalIPythonApp):
     name = u'Sage'
     crash_handler_class = SageCrashHandler
-    test_shell = False
+
+    test_shell = Bool(False, help='Whether the shell is a test shell')
+    test_shell.tag(config=True)
+    shell_class = Type(InteractiveShell, help='Type of the shell')
+    shell_class.tag(config=True)
 
     def load_config_file(self, *args, **kwds):
         r"""
@@ -495,18 +709,16 @@ class SageTerminalApp(TerminalIPythonApp):
             sage: from sage.misc.temporary_file import tmp_dir
             sage: from sage.repl.interpreter import SageTerminalApp
             sage: d = tmp_dir()
-            sage: IPYTHONDIR = os.environ['IPYTHONDIR']
+            sage: from IPython.paths import get_ipython_dir
+            sage: IPYTHONDIR = get_ipython_dir()
             sage: os.environ['IPYTHONDIR'] = d
             sage: SageTerminalApp().load_config_file()
             sage: os.environ['IPYTHONDIR'] = IPYTHONDIR
         """
         super(SageTerminalApp, self).load_config_file(*args, **kwds)
-
-        newconfig = copy.deepcopy(DEFAULT_SAGE_CONFIG)
-
+        newconfig = sage_ipython_config.default()
         # merge in the config loaded from file
         newconfig.merge(self.config)
-
         self.config = newconfig
 
     def init_shell(self):
@@ -516,22 +728,31 @@ class SageTerminalApp(TerminalIPythonApp):
         .. note::
 
             This code is based on
-            :meth:`TermintalIPythonApp.init_shell`.
+            :meth:`TerminalIPythonApp.init_shell`.
 
         EXAMPLES::
 
-            sage: from sage.repl.interpreter import SageTerminalApp, DEFAULT_SAGE_CONFIG
-            sage: app = SageTerminalApp(config=DEFAULT_SAGE_CONFIG)
-            sage: app.initialize(argv=[])  # indirect doctest
+            sage: from sage.repl.interpreter import SageTerminalApp
+            sage: app = SageTerminalApp.instance()
             sage: app.shell
-            <sage.repl.interpreter.SageInteractiveShell object at 0x...>
+            <sage.repl.interpreter.SageTestShell object at 0x...>
         """
         # Shell initialization
-        self.shell = SageInteractiveShell.instance(config=self.config,
-                        display_banner=False, profile_dir=self.profile_dir,
-                        ipython_dir=self.ipython_dir)
+        self.shell = self.shell_class.instance(
+            parent=self,
+            config=self.config,
+            profile_dir=self.profile_dir,
+            ipython_dir=self.ipython_dir)
         self.shell.configurables.append(self)
         self.shell.has_sage_extensions = SAGE_EXTENSION in self.extensions
+
+        # Load the %lprun extension if available
+        try:
+            import line_profiler
+        except ImportError:
+            pass
+        else:
+            self.extensions.append('line_profiler')
 
         if self.shell.has_sage_extensions:
             self.extensions.remove(SAGE_EXTENSION)
@@ -539,3 +760,5 @@ class SageTerminalApp(TerminalIPythonApp):
             # load sage extension here to get a crash if
             # something is wrong with the sage library
             self.shell.extension_manager.load_extension(SAGE_EXTENSION)
+
+

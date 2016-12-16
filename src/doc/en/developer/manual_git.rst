@@ -4,22 +4,23 @@
 Git the Hard Way
 ================
 
-For beginners to Sage development with no git experience, we recommend
-using the ``git trac`` script as explained in :ref:`chapter-git_trac`,
-which simplifies the interaction with our git and trac
-servers. However, you can use just git directly to work with remote
-repositories. This chapter will tell you how to do so assuming some
-basic familiarity with git. In particular, you should have read
-:ref:`chapter-walkthrough` first.
+If you have no git experience, we recommend you to read the
+:ref:`chapter-git_trac` chapter instead. The ``git-trac`` simplifies the
+interaction with our git and trac servers.
+
+If you want to contribute using git only, you are at the right place. This
+chapter will tell you how to do so, assuming some basic familiarity with git. In
+particular, you should have read :ref:`chapter-walkthrough` first.
+
+Randall Munroe has provided a `basic overview <http://xkcd.com/1597/>`_.
 
 We assume that you have a copy of the Sage git repository, for example
 by running::
 
     [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
     [user@localhost ~]$ cd sage
+    [user@localhost sage]$ git checkout develop
     [user@localhost sage]$ make
-
-
 
 .. _section-git-trac:
 
@@ -46,7 +47,7 @@ of them as bookmarks. You can then use ``git pull`` to get changes and
     [user@localhost sage]$ git <push|pull> trac [ARGS]
 
 .. note::
-   
+
     In the command above we set up the remote to only track the
     ``master`` branch on the trac server (the ``-t master``
     option). This avoids clutter by not automatically downloading all
@@ -121,41 +122,34 @@ Pushing Your Changes to a Ticket
 --------------------------------
 
 To add your local branch to a trac ticket, you should first decide on
-a name on the Sage trac repository. In order to avoid name clashes,
-you have push permissions to branches of the form ``u/user/*`` where
-``user`` is your trac username and ``*`` is any valid git branch name.
-By default, you do *not* have push permissions
-to other user's branches or the Sage master branch. In the following,
-we will be using ``u/user/description`` as the branch name, where it
-is understood that you replaced
+a name on the Sage trac repository.
 
-* ``user`` with your trac username, and
-* ``description`` with some (short but self-explanatory) description of
-  your branch. May contain further slashes, but spaces are not allowed.
+For read/write permissions on git branches, see
+:ref:`section-git_trac-branch-names`
 
-Your first step should be to put your chosen name into the "Branch:"
-field on the trac ticket. To push your branch to trac you then use
-either::
+In order to avoid name clashes, you can use
+``u/your_username/a_description_of_your_branch`` (the description can contain
+slashes, but no spaces). Then:
+
+- **Fill** the ``Branch`` field of the trac ticket with that name.
+
+- **Push** your branch to trac with either::
 
     [user@localhost sage]$ git push --set-upstream trac HEAD:u/user/description
 
-if you started the branch yourself and do not follow any other branch,
-or use::
+  if you started the branch yourself and do not follow any other branch,
+  or use::
 
     [user@localhost sage]$ git push trac HEAD:u/user/description
 
-if your branch already has an upstream branch.  The ``HEAD`` means
-that you are pushing the most recent commit (and, by extension, all of
-its parent commits) of the current local branch to the remote
+  if your branch already has an upstream branch.
+
+Here, ``HEAD`` means that you are pushing the most recent commit (and, by
+extension, all of its parent commits) of the current local branch to the remote
 branch.
 
-The ``Branch`` field on the trac ticket page is color coded:
-red means there is an issue,
-green means it will merge cleanly into ``master``. If it is red, the
-tooltip will tell you what is wrong.  If it is green, then it will
-link to a diff of the changes against ``master``.
-
-
+The ``Branch`` field on the trac ticket can appear in red/green. See
+:ref:`section-trac-fields` to learn what it means.
 
 .. _section-git-pull:
 
@@ -206,15 +200,16 @@ section.
 Updating Master
 ---------------
 
-The ``master`` branch can be updated just like any other
-branch. However, you should be take care to keep your local copy of
-the master branch identical to the trac master branch, since this is
-the current official Sage version. In particular, if you accidentally
-added commits to your local copy of the master then you need to delete
-those instead of merging them with the official master branch. One way
-to ensure that you are notified of potential problems is to use ``git
-pull --ff-only``, which will raise an error if a non-trivial merge
-would be required::
+The ``master`` branch can be updated just like any other branch. However, your
+local copy of the master branch should stay **identical** to the trac master
+branch.
+
+If you accidentally added commits to your local copy of ``master``, you must
+delete them before updating the branch.
+
+One way to ensure that you are notified of potential problems is to use ``git
+pull --ff-only``, which will raise an error if a non-trivial merge would be
+required::
 
     [user@localhost sage]$ git checkout master
     [user@localhost sage]$ git pull --ff-only trac master
@@ -231,115 +226,108 @@ master branch. To switch to the correct Sage master branch, use::
 Merging and Rebasing
 ====================
 
-Invariably, Sage development continues while you are working on your
-local branch. For example, let us assume you started ``my_branch`` at
-commit ``B``. After a while, your branch has advanced to commit ``Z``
-while the Sage master branch has advanced to ``D`` ::
+Sometimes, a new version of Sage is released while you work on a git branch.
+
+Let us assume you started ``my_branch`` at commit ``B``. After a while, your
+branch has advanced to commit ``Z``, but you updated ``master`` (see
+:ref:`section-git-pull-master`) and now your git history looks like this (see
+:ref:`section_walkthrough_logs`)::
 
                      X---Y---Z my_branch
                     /
                A---B---C---D master
 
-How should you deal with upstream changes while you are
-still developing your code? In principle, there are two ways of
-dealing with it:
+How should you deal with such changes? In principle, there are two ways:
 
 
-* The first solution is to change the commits in your local branch to
-  start out at the new master. This is called **rebase**, and it
-  rewrites your current branch::
-   
+* **Rebase:** The first solution is to **replay** commits ``X,Y,Z`` atop of the
+  new ``master``. This is called **rebase**, and it rewrites your current
+  branch::
+
       git checkout my_branch
-      git rebase master
+      git rebase -i master
 
-  Here, we assumed that ``master`` is your local and up-to-date copy
-  of the master branch. Alternatively, you can pull changes from the
-  trac server and rebase the current in one go with the combination
-  ``git pull -r master`` command, see :ref:`section-git-pull`. In
-  terms of the commit graph, this results in::
+  In terms of the commit graph, this results in::
 
                              X'--Y'--Z' my_branch
                             /
                A---B---C---D master
 
-  Since the SHA1 hash includes the hash of the parent, all commits
-  change. This means that you should only ever use rebase if nobody
-  else has used one of your ``X``, ``Y``, ``Z`` commits to base their
-  development on. 
+  Note that this operation rewrites the history of ``my_branch`` (see
+  :ref:`section-git-rewriting-history`). This can lead to problems if somebody
+  began to write code atop of your commits ``X,Y,Z``. It is safe otherwise.
 
+  **Alternatively**, you can rebase ``my_branch`` while updating master at the
+  same time (see :ref:`section-git-pull`)::
 
-* The other solution is to not change any commits, and instead create
-  a new merge commit ``W`` which merges in the changes from the newer
-  master. This is called **merge**, and it merges your current branch
-  with another branch::
+    git checkout my_branch
+    git pull -r master
+
+* **Merging** your branch with ``master`` will create a new commit above the two
+  of them::
 
       git checkout my_branch
       git merge master
 
-  Here, we assumed that ``master`` is your local and up-to-date copy
-  of the master branch. Alternatively, you can pull changes from the
-  trac server and merge them into the current branch with the
-  combination ``git pull master`` command, see
-  :ref:`section-git-pull`. The result is the following commit graph::
+  The result is the following commit graph::
 
                      X---Y---Z---W my_branch
                     /           /
                A---B---C-------D master
 
-  The downside is that it introduced an extra merge commit that would
-  not be there had you used rebase. But that is also the advantage of
-  merging: None of the existing commits is changed, only a new commit
-  is made. This additional commit is then easily pushed to the git
-  repository and distributed to your collaborators.
+  - **Pros:** you did not rewrite history (see
+    :ref:`section-git-rewriting-history`).The additional commit is then easily
+    pushed to the git repository and distributed to your collaborators.
 
+  - **Cons:** it introduced an extra merge commit that would
+    not be there had you used rebase.
 
-As a general rule of thumb, use merge if you are in doubt. The
-downsides of rebasing can be really severe for other developers, while
-the downside of merging is just minor. Finally, and perhaps the most
-important advice, do nothing unless necessary. It is perfectly fine
-for your branch to be behind the master branch. Just keep developing
-your feature. Trac will tell you if it doesn't merge cleanly with the
-current master by the color of the "Branch:" field, and the patchbot
-(coloured blob on the trac ticket) will test whether your branch still
-works on the current master. Unless either a) you really need a
-feature that is only available in the current master, or b) there is a
-conflict with the current master, there is no need to do anything on
-your side.
+  **Alternatively**, you can merge ``my_branch`` while updating master at the
+  same time (see :ref:`section-git-pull`)::
 
+    git checkout my_branch
+    git pull master
+
+**In case of doubt** use merge rather than rebase. There is less risk involved,
+and rebase in this case is only useful for branches with a very long history.
+
+Finally, **do nothing unless necessary:** it is perfectly fine for your branch
+to be behind ``master``. You can always merge/rebase if/when your branch's name
+appears in red on its trac page (see :ref:`section-trac-fields`), or when you
+will really need a feature that is only available in the current master.
 
 .. _section-git-mergetool:
 
 Merge Tools
 ===========
 
-In the :ref:`section-git_trac-conflict` section we already reviewed
-how to deal with conflicts by editing the file with the conflict
-markers. This is is often the simplest solution. However, for more
-complicated conflicts there is a range of specialized programs
-available to help you identify the conflicts. Because the conflict
-marker includes the hash of the most recent common parent, you can use
-a three-way diff::
+Simple conflicts can be easily solved with git only (see :ref:`section-git_trac-conflict`)
+
+For more complicated ones, a range of specialized programs are
+available. Because the conflict marker includes the hash of the most recent
+common parent, you can use a three-way diff::
 
     [alice@laptop]$ git mergetool
-    
+
     This message is displayed because 'merge.tool' is not configured.
     See 'git mergetool --tool-help' or 'git help config' for more details.
     'git mergetool' will now attempt to use one of the following tools:
     meld opendiff kdiff3 [...] merge araxis bc3 codecompare emerge vimdiff
     Merging:
     fibonacci.py
-    
+
     Normal merge conflict for 'fibonacci.py':
       {local}: modified file
       {remote}: modified file
-    Hit return to start merge resolution tool (meld): 
-    
-If you don't have a favorite merge tool we suggest you try meld
-(cross-platform). The result looks like the following screenshot.
+    Hit return to start merge resolution tool (meld):
+
+If you don't have a favourite merge tool we suggest you try `meld
+<http://meldmerge.org/>`_ (cross-platform). The result looks like the following
+screenshot.
 
 .. image:: static/meld-screenshot.png
 
 The middle file is the most recent common parent; on the right is
 Bob's version and on the left is Alice's conflicting version. Clicking
 on the arrow moves the marked change to the file in the adjacent
-pane. 
+pane.

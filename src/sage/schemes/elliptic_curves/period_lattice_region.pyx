@@ -16,33 +16,30 @@ AUTHORS:
 
 REFERENCES:
 
-.. [T] T. Thongjunthug, Computing a lower bound for the canonical
+.. [T] \T. Thongjunthug, Computing a lower bound for the canonical
    height on elliptic curves over number fields, Math. Comp. 79
    (2010), pages 2431-2449.
 
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
+from __future__ import division
 
 import numpy as np
 cimport numpy as np
 
 from sage.rings.all import CIF
-from sage.rings.arith import gcd
+from cpython.object cimport Py_EQ, Py_NE
+
 
 cdef class PeriodicRegion:
 
@@ -67,14 +64,15 @@ cdef class PeriodicRegion:
             sage: from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
             sage: S = PeriodicRegion(CDF(2), CDF(2*I), np.zeros((4, 4)))
             sage: S.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: data = np.zeros((4, 4))
             sage: data[1,1] = True
             sage: S = PeriodicRegion(CDF(2), CDF(2*I+1), data)
             sage: S.plot()
+            Graphics object consisting of 5 graphics primitives
         """
         if data.dtype is not np.int8:
             data = data.astype(np.int8)
-        full = int(full)
         self.w1 = w1
         self.w2 = w2
         self.data = data
@@ -243,9 +241,9 @@ cdef class PeriodicRegion:
             dw2 /= 2
             for i in range(2*m):
                 for j in range(2*n):
-                    if less[i/2, j/2]:
+                    if less[i//2, j//2]:
                         new_data[i,j] = True
-                    elif fuzz[i/2, j/2]:
+                    elif fuzz[i//2, j//2]:
                         new_data[i,j] = condition(dw1*(i+.5) + dw2*(j+.5))
         return PeriodicRegion(self.w1, self.w2, new_data, self.full).refine(condition, times-1)
 
@@ -262,13 +260,16 @@ cdef class PeriodicRegion:
             sage: data[1,1] = True
             sage: S = PeriodicRegion(CDF(1), CDF(I + 1/2), data)
             sage: S.plot()
+            Graphics object consisting of 5 graphics primitives
             sage: S.expand().plot()
+            Graphics object consisting of 13 graphics primitives
             sage: S.expand().data
             array([[1, 1, 1, 0],
                    [1, 1, 1, 0],
                    [1, 1, 1, 0],
                    [0, 0, 0, 0]], dtype=int8)
             sage: S.expand(corners=False).plot()
+            Graphics object consisting of 13 graphics primitives
             sage: S.expand(corners=False).data
             array([[0, 1, 0, 0],
                    [1, 1, 1, 0],
@@ -307,7 +308,9 @@ cdef class PeriodicRegion:
             sage: data[1:4,1:4] = True
             sage: S = PeriodicRegion(CDF(1), CDF(I + 1/2), data)
             sage: S.plot()
+            Graphics object consisting of 13 graphics primitives
             sage: S.contract().plot()
+            Graphics object consisting of 5 graphics primitives
             sage: S.contract().data.sum()
             1
             sage: S.contract().contract().is_empty()
@@ -364,7 +367,7 @@ cdef class PeriodicRegion:
         m, n = self.data.shape
         return self.data[int(m * i), int(n * j)]
 
-    def __div__(self, int n):
+    def __truediv__(self, unsigned int n):
         """
         Returns a new region of the same resolution that is the image
         of this region under the map z -> z/n.
@@ -373,6 +376,7 @@ cdef class PeriodicRegion:
         always at worse a superset of the true image.
 
         EXAMPLES::
+
             sage: import numpy as np
             sage: from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
 
@@ -382,8 +386,11 @@ cdef class PeriodicRegion:
             sage: data[3, 3] = True
             sage: S = PeriodicRegion(CDF(1), CDF(I + 1/2), data)
             sage: S.plot()
+            Graphics object consisting of 29 graphics primitives
             sage: (S / 2).plot()
+            Graphics object consisting of 57 graphics primitives
             sage: (S / 3).plot()
+            Graphics object consisting of 109 graphics primitives
             sage: (S / 2 / 3) == (S / 6) == (S / 3 / 2)
             True
 
@@ -405,30 +412,39 @@ cdef class PeriodicRegion:
             False
             sage: any(z/3 + j/3 + k/3 in S/3 for z in outside for j in range(3) for k in range(3))
             False
+
+            sage: (S / 1) is S
+            True
+            sage: S / 0
+            Traceback (most recent call last):
+            ...
+            ValueError: divisor must be positive
+            sage: S / (-1)
+            Traceback (most recent call last):
+            ...
+            OverflowError: can't convert negative value to unsigned int
         """
-        cdef int i, j, a, b, rows, cols, g
-        cdef double d, e
-        if n == 1:
-            return self
+        cdef unsigned int i, j, a, b, rows, cols
+        if n <= 1:
+            if n == 1:
+                return self
+            raise ValueError("divisor must be positive")
         self._ensure_full()
         cdef np.ndarray[np.npy_int8, ndim=2] data, new_data
         data = self.data
         rows, cols = self.data.shape
-        if n != 1:
-            new_data = np.zeros(self.data.shape, self.data.dtype)
-            d = 1.0/n
-            e = 1-d/2
-            for i in range(rows):
-                for j in range(cols):
-                    if data[i,j]:
-                        for a in range(n):
-                            for b in range(n):
-                                new_data[<int>((a*rows+i  )*d), <int>((b*cols+j  )*d)] = True
-                                new_data[<int>((a*rows+i+e)*d), <int>((b*cols+j  )*d)] = True
-                                new_data[<int>((a*rows+i+e)*d), <int>((b*cols+j+e)*d)] = True
-                                new_data[<int>((a*rows+i  )*d), <int>((b*cols+j+e)*d)] = True
-            data = new_data
-        return PeriodicRegion(self.w1, self.w2, data)
+
+        new_data = np.zeros(self.data.shape, self.data.dtype)
+        for i in range(rows):
+            for j in range(cols):
+                if data[i,j]:
+                    for a in range(n):
+                        for b in range(n):
+                            new_data[(a*rows+i)//n, (b*cols+j)//n] = data[i,j]
+        return PeriodicRegion(self.w1, self.w2, new_data)
+
+    def __div__(self, other):
+        return self / other
 
     def __invert__(self):
         """
@@ -506,11 +522,11 @@ cdef class PeriodicRegion:
             right._ensure_full()
         return PeriodicRegion(left.w1, left.w2, left.data ^ right.data, left.full)
 
-    def __cmp__(left, right):
+    def __richcmp__(left, right, op):
         """
-        Compares to regions.
+        Compare two regions.
 
-        Note: this is good for equality but not an ordering relation.
+        .. NOTE:: This is good for equality but not an ordering relation.
 
         TESTS::
 
@@ -530,17 +546,20 @@ cdef class PeriodicRegion:
             sage: S2 == S3
             False
         """
-        c = cmp(type(left), type(right))
-        if c: return c
-        c = cmp((left.w1, left.w2), (right.w1, right.w2))
-        if c: return c
-        if left.full ^ right.full:
-            left._ensure_full()
-            right._ensure_full()
-        if (left.data == right.data).all():
-            return 0
+        if type(left) is not type(right) or op not in [Py_EQ, Py_NE]:
+            return NotImplemented
+
+        if (left.w1, left.w2) != (right.w1, right.w2):
+            equal = False
         else:
-            return 1
+            if left.full ^ right.full:
+                left._ensure_full()
+                right._ensure_full()
+            equal = (left.data == right.data).all()
+
+        if op is Py_EQ:
+            return equal
+        return not equal
 
     def border(self, raw=True):
         """
@@ -614,6 +633,7 @@ cdef class PeriodicRegion:
             sage: S.innermost_point()
             0.375 + 0.25*I
             sage: S.plot() + point(S.innermost_point())
+            Graphics object consisting of 24 graphics primitives
         """
         if self.is_empty():
             from sage.categories.sets_cat import EmptySetError
@@ -640,6 +660,7 @@ cdef class PeriodicRegion:
             sage: data[3, 3] = True
             sage: S = PeriodicRegion(CDF(1), CDF(I + 1/2), data)
             sage: plot(S) + plot(S.expand(), rgbcolor=(1, 0, 1), thickness=2)
+            Graphics object consisting of 46 graphics primitives
         """
         from sage.all import line
         dw1, dw2 = self.ds()

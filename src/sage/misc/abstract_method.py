@@ -34,15 +34,15 @@ def abstract_method(f = None, optional = False):
 
         sage: class A(object):
         ...
-        ...       @abstract_method
-        ...       def my_method(self):
-        ...           '''
-        ...           The method :meth:`my_method` computes my_method
+        ....:     @abstract_method
+        ....:     def my_method(self):
+        ....:         '''
+        ....:         The method :meth:`my_method` computes my_method
         ...
-        ...           EXAMPLES::
+        ....:         EXAMPLES::
         ...
-        ...           '''
-        ...           pass
+        ....:         '''
+        ....:         pass
         ...
         sage: A.my_method
         <abstract method my_method at ...>
@@ -61,15 +61,15 @@ def abstract_method(f = None, optional = False):
 
         sage: class A(object):
         ...
-        ...       @abstract_method(optional = True)
-        ...       def my_method(self):
-        ...           '''
-        ...           The method :meth:`my_method` computes my_method
+        ....:     @abstract_method(optional = True)
+        ....:     def my_method(self):
+        ....:         '''
+        ....:         The method :meth:`my_method` computes my_method
         ...
-        ...           EXAMPLES::
+        ....:         EXAMPLES::
         ...
-        ...           '''
-        ...           pass
+        ....:         '''
+        ....:         pass
         ...
 
         sage: A.my_method
@@ -145,8 +145,8 @@ class AbstractMethod(object):
         EXAMPLES::
 
             sage: def f(x):
-            ...       "doc of f"
-            ...       return 1
+            ....:     "doc of f"
+            ....:     return 1
             ...
             sage: x = abstract_method(f); x
             <abstract method f at ...>
@@ -157,18 +157,16 @@ class AbstractMethod(object):
             sage: x.__module__
             '__main__'
         """
-        assert isinstance(f, types.FunctionType) # only plain functions are supported yet
+        assert isinstance(f, types.FunctionType) or getattr(type(f),'__name__',None)=='cython_function_or_method'
         assert isinstance(optional, bool)
         self._f = f
         self._optional = optional
-        if hasattr(f, "__doc__"):
-            self.__doc__ = f.__doc__
-        if hasattr(f, "__name__"):
-            self.__name__ = f.__name__
-        else:
-            self.__name__ = "..."
-        if hasattr(f, "__module__"):
+        self.__doc__ = f.__doc__
+        self.__name__ = f.__name__
+        try:
             self.__module__ = f.__module__
+        except AttributeError:
+            pass
 
     def __repr__(self):
         """
@@ -180,7 +178,7 @@ class AbstractMethod(object):
             sage: abstract_method(banner, optional = True)
             <optional abstract method banner at ...>
         """
-        return "<" + ("optional " if self._optional else "") + "abstract method %s"%repr(self._f)[10:]
+        return "<" + ("optional " if self._optional else "") + "abstract method %s at %s>"%(self.__name__, hex(id(self._f)))
 
     def _sage_src_lines_(self):
         """
@@ -192,9 +190,9 @@ class AbstractMethod(object):
             sage: g = abstract_method(banner)
             sage: (src, lines) = sage_getsourcelines(g)
             sage: src[0]
-            'def banner():\n'
+            'def banner(full=None):\n'
             sage: lines
-            78
+            87
         """
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self._f)
@@ -229,11 +227,11 @@ class AbstractMethod(object):
         EXAMPLES::
 
             sage: class AbstractClass:
-            ...       @abstract_method
-            ...       def required(): pass
+            ....:     @abstract_method
+            ....:     def required(): pass
             ...
-            ...       @abstract_method(optional = True)
-            ...       def optional(): pass
+            ....:     @abstract_method(optional = True)
+            ....:     def optional(): pass
             sage: AbstractClass.required.is_optional()
             False
             sage: AbstractClass.optional.is_optional()
@@ -248,20 +246,21 @@ def abstract_methods_of_class(cls):
     EXAMPLES::
 
         sage: class AbstractClass:
-        ...       @abstract_method
-        ...       def required1(): pass
+        ....:     @abstract_method
+        ....:     def required1(): pass
         ...
-        ...       @abstract_method(optional = True)
-        ...       def optional2(): pass
+        ....:     @abstract_method(optional = True)
+        ....:     def optional2(): pass
         ...
-        ...       @abstract_method(optional = True)
-        ...       def optional1(): pass
+        ....:     @abstract_method(optional = True)
+        ....:     def optional1(): pass
         ...
-        ...       @abstract_method
-        ...       def required2(): pass
+        ....:     @abstract_method
+        ....:     def required2(): pass
         ...
         sage: sage.misc.abstract_method.abstract_methods_of_class(AbstractClass)
-        {'required': ['required1', 'required2'], 'optional': ['optional1', 'optional2']}
+        {'optional': ['optional1', 'optional2'],
+         'required': ['required1', 'required2']}
 
     """
     result = { "required"  : [],

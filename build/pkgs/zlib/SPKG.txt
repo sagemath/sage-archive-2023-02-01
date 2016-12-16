@@ -9,10 +9,6 @@ Free, Not to Mention Unencumbered by Patents)
 
  * Modified BSD.
 
-== SPKG Maintainers ==
-
- * William Stein <wstein@gmail.com>
-
 == Upstream Contact ==
 
  * http://www.zlib.net/

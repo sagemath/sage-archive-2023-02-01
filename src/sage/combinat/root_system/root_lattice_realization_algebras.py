@@ -10,6 +10,8 @@ Group algebras of root lattice realizations
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import functools, operator
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.lazy_import import lazy_import
@@ -195,7 +197,8 @@ class Algebras(AlgebrasCategory):
             """
             P = self.basis().keys()  # the root lattice realization
             n = weight.scalar(P.simple_coroot(i))
-            assert n in ZZ
+            if n not in ZZ:
+                raise ValueError("the weight does not have an integral scalar product with the coroot")
             alphai = P.simple_root(i)
             if n >= 0:
                 return  self.sum_of_monomials(weight-j*alphai for j in range(0,n+1))
@@ -224,7 +227,7 @@ class Algebras(AlgebrasCategory):
 
             REFERENCES:
 
-            .. [Kumar1987] S. Kumar, Demazure character formula in arbitrary Kac-Moody setting,
+            .. [Kumar1987] \S. Kumar, Demazure character formula in arbitrary Kac-Moody setting,
                Invent. Math. 89 (1987), no. 2, 395-423.
 
             EXAMPLES:
@@ -276,7 +279,7 @@ class Algebras(AlgebrasCategory):
                 The Demazure operators are only defined if all the
                 elements in the support have integral scalar products
                 with the coroots (basically, they are in the weight
-                lattice). Otherwise an assertion is raised::
+                lattice). Otherwise an error is raised::
 
                     sage: L = RootSystem(CartanType(["G",2]).dual()).ambient_space()
                     sage: KL = L.algebra(QQ)
@@ -284,7 +287,7 @@ class Algebras(AlgebrasCategory):
                     sage: pi[1](KL.monomial(L([0,0,1])))
                     Traceback (most recent call last):
                     ...
-                    AssertionError
+                    ValueError: the weight does not have an integral scalar product with the coroot
             """
             return HeckeAlgebraRepresentation(self, self.isobaric_divided_difference_on_basis, self.cartan_type(), 0, 1, side="left")
 
@@ -309,7 +312,6 @@ class Algebras(AlgebrasCategory):
                         # Demazure operators are not defined in this case
                         continue
                     x = self.monomial(weight)
-                    #print x,i
                     result = pi[i](x)
                     tester.assertEqual(result * (self.one()-emalphai),
                                        x - emalphai * x.map_support(s[i]))
@@ -424,11 +426,11 @@ class Algebras(AlgebrasCategory):
 
             REFERENCES:
 
-            .. [Lusztig1985] G. Lusztig,
+            .. [Lusztig1985] \G. Lusztig,
                *Equivariant K-theory and representations of Hecke algebras*,
                Proc. Amer. Math. Soc. 94 (1985), no. 2, 337-342.
 
-            .. [Cherednik1995] I. Cherednik,
+            .. [Cherednik1995] \I. Cherednik,
                *Nonsymmetric Macdonald polynomials*. IMRN 10, 483-515 (1995).
 
             EXAMPLES::
@@ -751,7 +753,7 @@ class Algebras(AlgebrasCategory):
 
             REFERENCES:
 
-            .. [Haiman06] M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics, ICM 2006.
+            .. [Haiman06] \M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics, ICM 2006.
 
             .. WARNING::
 
@@ -782,10 +784,10 @@ class Algebras(AlgebrasCategory):
             The following results have not been checked::
 
                 sage: for x in some_weights:
-                ....:     print x, ": ", f(x)
-                (1, 0, 0, 0) :  q1*B[(1, 0, 0, 0)]
-                (1, 1, 0, 0) :  q1*B[(1, 1, 0, 0)]
-                (1, 1, 1, 0) :  q1*B[(1, 1, 1, 0)]
+                ....:     print("{} : {}".format(x, f(x)))
+                (1, 0, 0, 0) : q1*B[(1, 0, 0, 0)]
+                (1, 1, 0, 0) : q1*B[(1, 1, 0, 0)]
+                (1, 1, 1, 0) : q1*B[(1, 1, 1, 0)]
 
             Some examples for type `B_2^{(1)}` dual::
 

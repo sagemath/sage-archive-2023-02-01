@@ -38,11 +38,13 @@ class Example(UniqueRepresentation, Parent):
 
         sage: TestSuite(C).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -55,6 +57,7 @@ class Example(UniqueRepresentation, Parent):
         running ._test_enumerated_set_iter_cardinality() . . . pass
         running ._test_enumerated_set_iter_list() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -71,7 +74,7 @@ class Example(UniqueRepresentation, Parent):
             Category of facade finite enumerated sets
             sage: TestSuite(C).run()
         """
-        self._set = map(Integer, [1,2,3])
+        self._set = [Integer(_) for _ in [1,2,3]]
         Parent.__init__(self, facade = IntegerRing(), category = FiniteEnumeratedSets())
 
     def _repr_(self):

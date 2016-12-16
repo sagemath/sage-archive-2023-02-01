@@ -5,8 +5,8 @@ As of Python 2.6, names for nested classes are set by Python in  a
 way which is incompatible with the pickling of such classes (pickling by name)::
 
     sage: class A:
-    ...       class B:
-    ...            pass
+    ....:     class B:
+    ....:         pass
     sage: A.B.__name__
     'B'
 
@@ -58,20 +58,20 @@ EXAMPLES::
 All of this is not perfect. In the following scenario::
 
     sage: class A1:
-    ...       class A2:
-    ...           pass
+    ....:     class A2:
+    ....:         pass
     sage: class B1:
-    ...       A2 = A1.A2
-    ...
+    ....:     A2 = A1.A2
+    ....:
 
 The name for ``"A1.A2"`` could potentially be set to ``"B1.A2"``. But that will work anyway.
 """
+from __future__ import print_function, absolute_import
 
 import sys
 cdef dict sys_modules = sys.modules
 
-import types
-from types import ClassType
+from six import class_types
 
 __all__ = ['modify_for_nested_pickle', 'nested_pickle',
            'NestedClassMetaclass', 'MainClass'
@@ -85,7 +85,7 @@ cpdef modify_for_nested_pickle(cls, str name_prefix, module, first_run=True):
     giving them a mangled name and putting the mangled name in the
     module namespace.
 
-    INPUTS:
+    INPUT:
 
     - ``cls`` - The class to modify.
     - ``name_prefix`` - The prefix to prepend to the class name.
@@ -102,8 +102,8 @@ cpdef modify_for_nested_pickle(cls, str name_prefix, module, first_run=True):
 
         sage: from sage.misc.nested_class import *
         sage: class A(object):
-        ...       class B(object):
-        ...           pass
+        ....:     class B(object):
+        ....:         pass
         ...
         sage: module = sys.modules['__main__']
         sage: A.B.__name__
@@ -176,9 +176,9 @@ cpdef modify_for_nested_pickle(cls, str name_prefix, module, first_run=True):
                     setattr(module, dotted_name, v)
                     modify_for_nested_pickle(v, name_prefix, module, False)
                     v.__name__ = dotted_name
-            elif isinstance(v, (type, ClassType)):
+            elif isinstance(v, class_types):
                 v_name = v.__name__
-                if v_name==name and v.__module__ == mod_name and getattr(module, v_name, None) is not v:
+                if v_name == name and v.__module__ == mod_name and getattr(module, v_name, None) is not v:
                     # OK, probably this is a nested class.
                     dotted_name = name_prefix + '.' + v_name
                     setattr(module, dotted_name, v)
@@ -186,9 +186,9 @@ cpdef modify_for_nested_pickle(cls, str name_prefix, module, first_run=True):
                     v.__name__ = dotted_name
     else:
         for (name, v) in cls.__dict__.iteritems():
-            if isinstance(v, (type, ClassType, NestedClassMetaclass)):
+            if isinstance(v, class_types):
                 v_name = v.__name__
-                if v_name==cls_name+name and v.__module__ == mod_name:
+                if v_name == cls_name+name and v.__module__ == mod_name:
                     # OK, probably this is a nested class.
                     dotted_name = name_prefix + '.' + v_name
                     setattr(module, dotted_name, v)
@@ -206,8 +206,8 @@ def nested_pickle(cls):
         sage: from sage.misc.nested_class import nested_pickle
         sage: module = sys.modules['__main__']
         sage: class A(object):
-        ...       class B:
-        ...           pass
+        ....:     class B:
+        ....:         pass
         sage: nested_pickle(A)
         <class '__main__.A'>
 
@@ -223,9 +223,9 @@ def nested_pickle(cls):
     should work as a decorator::
 
         sage: @nested_pickle    # todo: not implemented
-        ...   class A2(object):
-        ...       class B:
-        ...           pass
+        ....: class A2(object):
+        ....:     class B:
+        ....:         pass
         sage: A2.B.__name__    # todo: not implemented
         'A2.B'
         sage: getattr(module, 'A2.B', 'Not found')    # todo: not implemented
@@ -249,11 +249,11 @@ cdef class NestedClassMetaclass(type):
 
         sage: from sage.misc.nested_class import NestedClassMetaclass
         sage: class ASuperClass(object):
-        ...       __metaclass__ = NestedClassMetaclass
+        ....:     __metaclass__ = NestedClassMetaclass
         ...
         sage: class A3(ASuperClass):
-        ...       class B(object):
-        ...           pass
+        ....:     class B(object):
+        ....:         pass
         ...
         sage: A3.B.__name__
         'A3.B'
@@ -266,9 +266,9 @@ cdef class NestedClassMetaclass(type):
 
         sage: from sage.misc.nested_class import NestedClassMetaclass
         sage: class A(object):
-        ...       __metaclass__ = NestedClassMetaclass
-        ...       class B(object):
-        ...           pass
+        ....:     __metaclass__ = NestedClassMetaclass
+        ....:     class B(object):
+        ....:         pass
         ...
         sage: A.B
         <class '__main__.A.B'>
@@ -311,7 +311,24 @@ class MainClass(object):
                 sage: MainClass.NestedClass.NestedSubClass.__name__
                 'MainClass.NestedClass.NestedSubClass'
             """
-            pass
+            def dummy(self, x, *args, r=(1,2,3.4), **kwds):
+                """
+                A dummy method to demonstrate the embedding of
+                method signature for nested classes.
+
+                TESTS::
+
+                    sage: from sage.misc.nested_class import MainClass
+                    sage: print(MainClass.NestedClass.NestedSubClass.dummy.__doc__)
+                    NestedSubClass.dummy(self, x, *args, r=(1, 2, 3.4), **kwds)
+                    File: sage/misc/nested_class.pyx (starting at line 314)
+                    <BLANKLINE>
+                                    A dummy method to demonstrate the embedding of
+                                    method signature for nested classes.
+                    ...
+
+                """
+                pass
 
 class SubClass(MainClass):
     r"""

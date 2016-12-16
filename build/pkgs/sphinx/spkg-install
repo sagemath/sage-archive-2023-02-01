@@ -19,47 +19,14 @@ CUR=`pwd`
 
 cd src
 
-# Apply patches
-echo "Patching Sphinx..."
-for p in ../patches/*.patch; do
-    patch -p1 <"$p"
-    success "Error applying patch \"$p\""
-done
-echo
-
-# Build new version
-echo "Building Sphinx..."
-python setup.py build
-success 'Error building Sphinx'
-echo
-
-echo "Removing old version of Sphinx..."
-rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Sphinx-*
-success 'Error deleting previous version'
-echo
-
 # Install new version
 echo "Installing Sphinx..."
-python setup.py install
+$PIP_INSTALL .
 success 'Error installing Sphinx'
 echo
 
 cd "$CUR"
-cp patches/sphinx-build "$SAGE_LOCAL/bin/"
-success "Error copying sphinx-build to $SAGE_LOCAL/bin/"
-echo
-
 echo "Creating grammar pickle..."
 python create_grammar_pickle.py
 success 'Error creating the grammar pickle'
-echo
-
-echo "Deleting old Sage documentation output..."
-for docdir in "$SAGE_ROOT"/devel/sage-*/doc/output; do
-    if [ -d "$docdir" ]; then
-        echo "Removing \"$docdir\"..."
-        rm -rf "$docdir"
-    fi
-done
-success 'Error deleting old documentation output'
 echo

@@ -1,3 +1,5 @@
+"_separate_channels"
+
 def _separate_channels(_data, _width, _nchannels):
     """
     Separates the channels. This is an internal helper method for
@@ -26,6 +28,6 @@ def _separate_channels(_data, _width, _nchannels):
             #x -= 65536*(x > a)
             channel_data[n % nchannels].append(x)
     else:
-        raise NotImplementedError, "greater than 16-bit wavs not supported"
+        raise NotImplementedError("greater than 16-bit wavs not supported")
 
     return channel_data

@@ -41,7 +41,8 @@ are relative to the bases of the domain and codomain.  ::
     sage: K = Hom(GF(3)^2, GF(3)^2)
     sage: B = K.basis()
     sage: for f in B:
-    ...     print f, "\n"
+    ....:     print(f)
+    ....:     print("\n")
     Vector space morphism represented by the matrix:
     [1 0]
     [0 0]
@@ -189,6 +190,8 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 ####################################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 import inspect
 import sage.matrix.all as matrix
@@ -355,13 +358,13 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
             sage: V = GF(3)^0
             sage: W = GF(3)^1
             sage: H = V.Hom(W)
-            sage: H.zero_element().is_zero()
+            sage: H.zero().is_zero()
             True
 
         Previously the above code resulted in a TypeError because the
         dimensions of the matrix were incorrect.
         """
-        from vector_space_morphism import is_VectorSpaceMorphism, VectorSpaceMorphism
+        from .vector_space_morphism import is_VectorSpaceMorphism, VectorSpaceMorphism
         D = self.domain()
         C = self.codomain()
         from sage.matrix.matrix import is_Matrix

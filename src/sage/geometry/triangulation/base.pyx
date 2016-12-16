@@ -16,9 +16,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import absolute_import
 
-
-
+from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
 from sage.categories.sets_cat import Sets
@@ -26,8 +26,8 @@ from sage.matrix.constructor import matrix
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 
-from functions cimport binomial
-from triangulations cimport \
+from .functions cimport binomial
+from .triangulations cimport \
     triangulations_ptr, init_triangulations, next_triangulation, delete_triangulations
 
 
@@ -97,6 +97,17 @@ cdef class Point(SageObject):
         P = point_configuration.reduced_projective_vector_space()
         self._reduced_projective_vector = P(self.reduced_projective())
 
+    def __hash__(self):
+        r"""
+        Hash value for a point in a point configuration
+
+        EXAMPLES::
+
+            sage: p = PointConfiguration([[0,0],[0,1],[1,1]])
+            sage: hash(p[0]) # random
+            35822008390213632
+        """
+        return hash(self._point_configuration) ^ (<long>self._index)
 
     cpdef point_configuration(self):
         r"""
@@ -130,8 +141,7 @@ cdef class Point(SageObject):
             sage: list(p)  # indirect doctest
             [3, 4]
         """
-        return self._affine.__iter__()
-
+        return iter(self._affine)
 
     def __len__(self):
         r"""
@@ -455,6 +465,17 @@ cdef class PointConfiguration_base(Parent):
         self._pts = tuple([ Point(self, i, proj.column(i), aff.column(i), red.column(i))
                            for i in range(0,n) ])
 
+    def __hash__(self):
+        r"""
+        Hash function.
+
+        TESTS::
+
+            sage: p = PointConfiguration([[0,0],[0,1]])
+            sage: hash(p) # random
+            8746748042501
+        """
+        return hash_by_id(<void *> self)
 
     cpdef reduced_affine_vector_space(self):
         """
@@ -752,12 +773,12 @@ cdef class PointConfiguration_base(Parent):
         EXAMPLES::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: pc = PointConfiguration(U.columns())
             sage: pc.simplex_to_int([1,3,4,7,10,13])
             1678
@@ -797,12 +818,12 @@ cdef class PointConfiguration_base(Parent):
         EXAMPLES::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: pc = PointConfiguration(U.columns())
             sage: pc.simplex_to_int([1,3,4,7,10,13])
             1678
@@ -876,15 +897,15 @@ cdef class ConnectedTriangulationsIterator(SageObject):
         sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
         sage: from sage.geometry.triangulation.base import ConnectedTriangulationsIterator
         sage: ci = ConnectedTriangulationsIterator(p)
-        sage: ci.next()
+        sage: next(ci)
         (9, 10)
-        sage: ci.next()
+        sage: next(ci)
         (2, 3, 4, 5)
-        sage: ci.next()
+        sage: next(ci)
         (7, 8)
-        sage: ci.next()
+        sage: next(ci)
         (1, 3, 5, 7)
-        sage: ci.next()
+        sage: next(ci)
         Traceback (most recent call last):
         ...
         StopIteration
@@ -996,10 +1017,6 @@ cdef class ConnectedTriangulationsIterator(SageObject):
             (9, 10)
         """
         t = next_triangulation(self._tp)
-        if len(t)==0:
+        if len(t) == 0:
             raise StopIteration
         return t
-
-
-
-

@@ -337,7 +337,7 @@ doesn't::
     sage: T = TermOrder("royalorder")
     Traceback (most recent call last):
     ...
-    TypeError: Unknown term order 'royalorder'
+    ValueError: unknown term order 'royalorder'
     sage: T = TermOrder("royalorder",force=True)
     sage: T
     royalorder term order
@@ -355,8 +355,18 @@ AUTHORS:
 - Kwankyu Lee: implemented matrix and weighted degree term orders, refactoring
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 import re
 from sage.structure.sage_object import SageObject
+from sage.misc.superseded import deprecation
 
 print_name_mapping = {
     'lex'           : 'Lexicographic',
@@ -604,6 +614,13 @@ class TermOrder(SageObject):
             sage: t4
             Degree negative lexicographic term order
 
+        We allow blocks of length 0, these are simply ignored::
+
+            sage: TermOrder('lex(0),degrevlex(5),deglex(0),deglex(2)')
+            Block term order with blocks:
+            (Degree reverse lexicographic term order of length 5,
+             Degree lexicographic term order of length 2)
+
         .. note::
 
            The optional `n` parameter is not necessary if only
@@ -631,17 +648,16 @@ class TermOrder(SageObject):
             sage: R.<x0,y0,z0,x1,y1,z1,a0,a1,a2,a3,a4,a5,a6,a7,a8> = PolynomialRing(QQ,order=T)
             Traceback (most recent call last):
             ...
-            ValueError: TermOrder copy constructor called with different number of variables (15) than input term order (16).
-
+            ValueError: the length of the given term order (16) differs from the number of variables (15)
         """
         if isinstance(name, TermOrder):
             self.__copy(name)
-            if n > 0:
+            if n:
                 if not name.is_block_order() and not name.is_weighted_degree_order():
                     self._length = n
-                else:
-                    if n != len(name):
-                        raise ValueError("TermOrder copy constructor called with different number of variables (%d) than input term order (%d)."%(n,len(name)))
+                elif self._length != n:
+                    raise ValueError("the length of the given term order ({}) differs from the number of variables ({})"
+                            .format(self._length, n))
             return
 
         if isinstance(name, str):
@@ -652,7 +668,7 @@ class TermOrder(SageObject):
                     name = name.list() # name may be a matrix
                 name = tuple(name)
             except Exception:
-                raise TypeError("%s is not a valid term order"%(name,))
+                raise ValueError("{!r} is not a valid term order".format(name))
 
         self._blocks = tuple()
         self._weights = None
@@ -662,16 +678,12 @@ class TermOrder(SageObject):
         if name == "block": # block term order with blocks in a list
             length = 0
             blocks = []
-            name_str = []
             singular_str = []
             macaulay2_str = []
 
             for t in n:
                 if not isinstance(t, TermOrder):
-                    try:
-                        t = TermOrder(t,force=True)
-                    except Exception:
-                        raise TypeError
+                    t = TermOrder(t, force=True)
                 if t.name() == 'block':
                     blocks = blocks + list(t.blocks())
                     singular_str.append("%s"%(t.singular_str()[1:-1],))  # [1:-1] is needed to remove parenthesis
@@ -708,16 +720,16 @@ class TermOrder(SageObject):
                 block_names = re.findall(split_pattern,name)
 
                 if len(block_names) == 0:
-                    raise TypeError("No term order specified")
+                    raise ValueError("no term order specified")
                 elif len(block_names) == 1:
                     name = block_names[0]
                     match = re.match('m\(([-+0-9,]+)\)$',name)
                     if match: # matrix term order
-                        m = map(int,match.groups()[0].split(',')) # replace match.groups()[0]  with match.group(1) later
+                        m = [int(_) for _ in match.groups()[0].split(',')] # replace match.groups()[0]  with match.group(1) later
                         self.__copy(TermOrder(m))
                     else: # simple order
                         if name not in print_name_mapping.keys() and name not in singular_name_mapping.values():
-                            raise TypeError("Unknown term order '%s'"%(name,))
+                            raise ValueError("unknown term order {!r}".format(name))
                         self._length = n
                         self._name = name
                         self._singular_str = singular_name_mapping.get(name,name)
@@ -726,7 +738,6 @@ class TermOrder(SageObject):
                 else: # len(block_names) > 1, and hence block order represented by a string
                     length = 0
                     blocks = []
-                    name_str = []
                     singular_str = []
                     macaulay2_str = []
 
@@ -735,24 +746,22 @@ class TermOrder(SageObject):
                         try:
                             block_name, block_length, _ = re.split(length_pattern,block.strip())
                             block_length = int(block_length)
-                            assert( block_length > 0)
-
-                            blocks.append( TermOrder(block_name, block_length, force=force) )
-                            name_str.append("%s(%d)"%(block_name, block_length))
-                            singular_str.append("%s(%d)"%(singular_name_mapping.get(block_name, block_name), block_length))
-                            macaulay2_str.append("%s => %d"%(macaulay2_name_mapping.get(block_name, block_name), block_length))
-                            length += block_length
+                            if block_length > 0:  # ignore blocks with length 0
+                                blocks.append( TermOrder(block_name, block_length, force=force) )
+                                singular_str.append("%s(%d)"%(singular_name_mapping.get(block_name, block_name), block_length))
+                                macaulay2_str.append("%s => %d"%(macaulay2_name_mapping.get(block_name, block_name), block_length))
+                                length += block_length
                         except ValueError:
                             block_name = block.strip()
                             if block_name.lower() != "c":
-                                raise TypeError("%s is not a valid term ordering (wrong part: '%s')"%(name, block))
+                                raise ValueError("{!r} is not a valid term order (wrong part: {!r})".format(name, block))
 
-                    if n != 0 and length != n:
-                        raise TypeError("Term order length does not match the number of generators")
+                    if n and length != n:
+                        raise ValueError("term order length does not match the number of generators")
                     self.__copy(TermOrder('block', blocks))
         elif isinstance(name, str) and (isinstance(n, tuple) or isinstance(n,list)): # weighted degree term orders
             if name not in print_name_mapping.keys() and name not in singular_name_mapping.values() and not force:
-                raise TypeError("Unknown term order '%s'"%(name,))
+                raise ValueError("unknown term order {!r}".format(name))
             weights = tuple(int(w) for w in n) # n is a tuple of weights
             if any([w<=0 for w in weights]):
                 raise ValueError("the degree weights must be positive integers")
@@ -764,11 +773,11 @@ class TermOrder(SageObject):
             self._magma_str = ""
             self._weights = weights # defined only for weighted degree orders
         elif isinstance(name, tuple): # name represents a matrix
-            if n == 0:
+            if not n:
                 from math import sqrt
                 n = int(sqrt(len(name)))
-            if n**2 != len(name):
-                raise TypeError("%s does not specify a square matrix"%(name,))
+            if n*n != len(name):
+                raise ValueError("{} does not specify a square matrix".format(name))
 
             int_str = ','.join([str(int(e)) for e in name])
 
@@ -780,9 +789,10 @@ class TermOrder(SageObject):
 
             from sage.matrix.constructor import matrix
             self._matrix = matrix(n,name)  # defined only for matrix term order
+            self._matrix.set_immutable()
             self._weights = name[:n] # the first row of the matrix gives weights
         else:
-            raise TypeError("%s is not a valid term order"%(name,))
+            raise ValueError("{!r} is not a valid term order".format(name))
 
         if self._length != 0:
             self._singular_str = self._singular_str%dict(ngens=self._length)
@@ -790,6 +800,16 @@ class TermOrder(SageObject):
             self._singular_moreblocks += 1
 
         self.__doc__ = description_mapping.get(self._name, "No description available")
+
+    def __hash__(self):
+        r"""
+        A hash function
+
+        EXAMPLE::
+
+            sage: _=hash(TermOrder('lex'))
+        """
+        return hash((self._name, self._blocks, self._weights, self._matrix))
 
     def __copy(self, other):
         """
@@ -806,44 +826,34 @@ class TermOrder(SageObject):
 
     def __getattr__(self,name):
         """
-        Return the correct compare_tuples/greater_tuple function.
+        Return the correct ``compare_tuples/greater_tuple/sortkey function``.
+
+        Note that the ``compare_tuples`` methods have been deprecated in
+        :trac:`21766`.
 
         EXAMPLE::
 
             sage: TermOrder('lex').compare_tuples
             <bound method TermOrder.compare_tuples_lex of Lexicographic term order>
-
-        ::
-
+            sage: TermOrder('lex').sortkey
+            <bound method TermOrder.sortkey_lex of Lexicographic term order>
             sage: TermOrder('deglex').compare_tuples
             <bound method TermOrder.compare_tuples_deglex of Degree lexicographic term order>
         """
         if name == 'compare_tuples':
-            return getattr(self,'compare_tuples_'+self._name)
+            return getattr(self, 'compare_tuples_' + self._name)
         elif name == 'greater_tuple':
-            return getattr(self,'greater_tuple_'+self._name)
+            return getattr(self, 'greater_tuple_' + self._name)
+        elif name == 'sortkey':
+            return getattr(self, 'sortkey_' + self._name)
         else:
             raise AttributeError(name)
 
-    def compare_tuples_matrix(self,f,g):
+    def compare_tuples_matrix(self, f, g):
         """
-        Compares two exponent tuples with respect to the matrix
-        term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLES::
-
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='m(1,3,1,0)')
-            sage: y > x^2 # indirect doctest
-            True
-            sage: y > x^3
-            False
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         for row in self._matrix:
             sf = sum(l*r for (l,r) in zip(row,f))
             sg = sum(l*r for (l,r) in zip(row,g))
@@ -854,16 +864,46 @@ class TermOrder(SageObject):
                 return -1
         return 0
 
-    def compare_tuples_lex(self,f,g):
+    def sortkey_matrix(self, f):
         """
-        Compares two exponent tuples with respect to the lexicographical
+        Return the sortkey of an exponent tuple with respect to the matrix
         term order.
 
         INPUT:
 
         - ``f`` - exponent tuple
 
-        - ``g`` - exponent tuple
+        EXAMPLES::
+
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='m(1,3,1,0)')
+            sage: y > x^2 # indirect doctest
+            True
+            sage: y > x^3
+            False
+        """
+        return tuple(sum(l * r for l, r in zip(row, f))
+                     for row in self._matrix)
+
+    def compare_tuples_lex(self,f,g):
+        """
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
+        if f > g:
+            return 1
+        elif f < g:
+            return -1
+        else:
+            return 0
+
+    def sortkey_lex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -873,23 +913,23 @@ class TermOrder(SageObject):
             sage: x > 1
             True
         """
-        if f > g:
-            return 1
-        elif f < g:
-            return -1
-        else:
-            return 0
+        return f
 
     def compare_tuples_invlex(self,f,g):
         """
-        Compares two exponent tuples with respect to the inversed
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
+        return self.compare_tuples_lex(f.reversed(),g.reversed())
+
+    def sortkey_invlex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the inversed
         lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -899,27 +939,13 @@ class TermOrder(SageObject):
             sage: x > 1
             True
         """
-        return self.compare_tuples_lex(f.reversed(),g.reversed())
+        return f.reversed()
 
     def compare_tuples_deglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the degree
-        lexicographical term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='deglex')
-            sage: x > y^2 # indirect doctest
-            False
-            sage: x > 1
-            True
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
         if sf > sg:
@@ -929,16 +955,48 @@ class TermOrder(SageObject):
         elif sf == sg:
             return self.compare_tuples_lex(f,g)
 
-    def compare_tuples_degrevlex(self,f,g):
+    def sortkey_deglex(self, f):
         """
-        Compares two exponent tuples with respect to the degree reversed
+        Return the sortkey of an exponent tuple with respect to the degree
         lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
+        - ``f`` -- exponent tuple
 
-        - ``g`` - exponent tuple
+        EXAMPLE::
+
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='deglex')
+            sage: x > y^2 # indirect doctest
+            False
+            sage: x > 1
+            True
+
+        """
+        return (sum(f.nonzero_values(sort=False)), f)
+
+    def compare_tuples_degrevlex(self,f,g):
+        """
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
+        sf = sum(f.nonzero_values(sort=False))
+        sg = sum(g.nonzero_values(sort=False))
+        if sf > sg:
+            return 1
+        elif sf < sg:
+            return -1
+        elif sf == sg:
+            return -self.compare_tuples_lex(f.reversed(), g.reversed())
+
+    def sortkey_degrevlex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        degree reversed lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -947,26 +1005,26 @@ class TermOrder(SageObject):
             False
             sage: x > 1
             True
+
         """
-        sf = sum(f.nonzero_values(sort=False))
-        sg = sum(g.nonzero_values(sort=False))
-        if sf > sg:
-            return 1
-        elif sf < sg:
-            return -1
-        elif sf == sg:
-            return -self.compare_tuples_lex(f.reversed(),g.reversed())
+        return (sum(f.nonzero_values(sort=False)),
+                tuple(-v for v in f.reversed()))
 
     def compare_tuples_neglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the negative
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
+        return -self.compare_tuples_lex(f,g)
+
+    def sortkey_neglex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the negative
         lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -976,18 +1034,30 @@ class TermOrder(SageObject):
             sage: x > 1
             False
         """
-        return -self.compare_tuples_lex(f,g)
+        return tuple(-v for v in f)
 
     def compare_tuples_negdegrevlex(self,f,g):
         """
-        Compares two exponent tuples with respect to the negative degree
-        reverse lexicographical term order.
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
+        sf = sum(f.nonzero_values(sort=False))
+        sg = sum(g.nonzero_values(sort=False))
+        if sf > sg:
+            return -1
+        elif sf < sg:
+            return 1
+        elif sf == sg:
+            return -self.compare_tuples_lex(f.reversed(), g.reversed())
+
+    def sortkey_negdegrevlex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        negative degree reverse lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -997,34 +1067,14 @@ class TermOrder(SageObject):
             sage: x > 1
             False
         """
-        sf = sum(f.nonzero_values(sort=False))
-        sg = sum(g.nonzero_values(sort=False))
-        if sf > sg:
-            return -1
-        elif sf < sg:
-            return 1
-        elif sf == sg:
-            return (-1)*self.compare_tuples_lex(f.reversed(),g.reversed())
+        return (-sum(f.nonzero_values(sort=False)),
+                tuple(-v for v in f.reversed()))
 
     def compare_tuples_negdeglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the negative degree
-        lexicographical term order.
-
-        INPUT:
-
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
-
-        EXAMPLE::
-
-            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='negdeglex')
-            sage: x > y^2 # indirect doctest
-            True
-            sage: x > 1
-            False
+        DEPRECATED in :trac:`21766`
         """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
         if sf > sg:
@@ -1034,25 +1084,30 @@ class TermOrder(SageObject):
         elif sf == sg:
             return self.compare_tuples_lex(f,g)
 
-    def compare_tuples_degneglex(self,f,g):
+    def sortkey_negdeglex(self, f):
         """
-        Compares two exponent tuples with respect to the degree negative
-        lexicographical term order.
+        Return the sortkey of an exponent tuple with respect to the
+        negative degree lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
-            sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='degneglex')
-            sage: x*y > y*z # indirect doctest
-            False
-            sage: x*y > x
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='negdeglex')
+            sage: x > y^2 # indirect doctest
             True
+            sage: x > 1
+            False
         """
+        return (-sum(f.nonzero_values(sort=False)), f)
+
+    def compare_tuples_degneglex(self,f,g):
+        """
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(f.nonzero_values(sort=False))
         sg = sum(g.nonzero_values(sort=False))
         if sf < sg:
@@ -1062,16 +1117,47 @@ class TermOrder(SageObject):
         elif sf == sg:
             return self.compare_tuples_neglex(f,g)
 
-    def compare_tuples_wdegrevlex(self,f,g):
+    def sortkey_degneglex(self, f):
         """
-        Compares two exponent tuples with respect to the weighted degree reverse
-        lexicographical term order.
+        Return the sortkey of an exponent tuple with respect to the
+        degree negative lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
+        - ``f`` -- exponent tuple
 
-        - ``g`` - exponent tuple
+        EXAMPLE::
+
+            sage: P.<x,y,z> = PolynomialRing(QQbar, 3, order='degneglex')
+            sage: x*y > y*z # indirect doctest
+            False
+            sage: x*y > x
+            True
+        """
+        return (sum(f.nonzero_values(sort=False)), tuple(-v for v in f))
+
+    def compare_tuples_wdegrevlex(self,f,g):
+        """
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
+        sf = sum(l*r for (l,r) in zip(f,self._weights))
+        sg = sum(l*r for (l,r) in zip(g,self._weights))
+        if sf > sg:
+            return 1
+        elif sf < sg:
+            return -1
+        elif sf == sg:
+            return -self.compare_tuples_lex(f.reversed(), g.reversed())
+
+    def sortkey_wdegrevlex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        weighted degree reverse lexicographical term order.
+
+        INPUT:
+
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -1082,6 +1168,14 @@ class TermOrder(SageObject):
             sage: x^2 > y^3
             True
         """
+        return (sum(l * r for (l, r) in zip(f, self._weights)),
+                tuple(-v for v in f.reversed()))
+
+    def compare_tuples_wdeglex(self,f,g):
+        """
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
         if sf > sg:
@@ -1089,18 +1183,16 @@ class TermOrder(SageObject):
         elif sf < sg:
             return -1
         elif sf == sg:
-            return -self.compare_tuples_lex(f.reversed(),g.reversed())
+            return self.compare_tuples_lex(f,g)
 
-    def compare_tuples_wdeglex(self,f,g):
+    def sortkey_wdeglex(self, f):
         """
-        Compares two exponent tuples with respect to the weighted degree
-        lexicographical term order.
+        Return the sortkey of an exponent tuple with respect to the
+        weighted degree lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -1111,25 +1203,30 @@ class TermOrder(SageObject):
             sage: x > y
             True
         """
-        sf = sum(l*r for (l,r) in zip(f,self._weights))
-        sg = sum(l*r for (l,r) in zip(g,self._weights))
-        if sf > sg:
-            return 1
-        elif sf < sg:
-            return -1
-        elif sf == sg:
-            return self.compare_tuples_lex(f,g)
+        return (sum(l * r for (l, r) in zip(f, self._weights)), f)
 
     def compare_tuples_negwdeglex(self,f,g):
         """
-        Compares two exponent tuples with respect to the negative weighted
-        degree lexicographical term order.
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
+        sf = sum(l*r for (l,r) in zip(f,self._weights))
+        sg = sum(l*r for (l,r) in zip(g,self._weights))
+        if sf > sg:
+            return -1
+        elif sf < sg:
+            return 1
+        elif sf == sg:
+            return self.compare_tuples_lex(f,g)
+
+    def sortkey_negwdeglex(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        negative weighted degree lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -1140,6 +1237,13 @@ class TermOrder(SageObject):
             sage: x^2 > y^3
             True
         """
+        return (-sum(l * r for (l, r) in zip(f, self._weights)), f)
+
+    def compare_tuples_negwdegrevlex(self,f,g):
+        """
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
         sf = sum(l*r for (l,r) in zip(f,self._weights))
         sg = sum(l*r for (l,r) in zip(g,self._weights))
         if sf > sg:
@@ -1147,18 +1251,16 @@ class TermOrder(SageObject):
         elif sf < sg:
             return 1
         elif sf == sg:
-            return self.compare_tuples_lex(f,g)
+            return -self.compare_tuples_lex(f.reversed(), g.reversed())
 
-    def compare_tuples_negwdegrevlex(self,f,g):
+    def sortkey_negwdegrevlex(self, f):
         """
-        Compares two exponent tuples with respect to the negative weighted
-        degree reverse lexicographical term order.
+        Return the sortkey of an exponent tuple with respect to the
+        negative weighted degree reverse lexicographical term order.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -1169,25 +1271,30 @@ class TermOrder(SageObject):
             sage: x^2 > y^3
             True
         """
-        sf = sum(l*r for (l,r) in zip(f,self._weights))
-        sg = sum(l*r for (l,r) in zip(g,self._weights))
-        if sf > sg:
-            return -1
-        elif sf < sg:
-            return 1
-        elif sf == sg:
-            return (-1)*self.compare_tuples_lex(f.reversed(),g.reversed())
+        return (-sum(l * r for (l, r) in zip(f, self._weights)),
+                tuple(-v for v in f.reversed()))
 
     def compare_tuples_block(self, f,g):
         """
-        Compares two exponent tuples with respect to the block order as
-        specified when constructing this element.
+        DEPRECATED in :trac:`21766`
+        """
+        deprecation(21766, 'sorting of polynomials now uses sortkey instead')
+        n = 0
+        for block in self:
+            r = getattr(block,"compare_tuples_" + block.name())(f[n:n+len(block)],g[n:n+len(block)])
+            if r != 0:
+                return r
+            n += len(block)
+        return 0
+
+    def sortkey_block(self, f):
+        """
+        Return the sortkey of an exponent tuple with respect to the
+        block order as specified when constructing this element.
 
         INPUT:
 
-        - ``f`` - exponent tuple
-
-        - ``g`` - exponent tuple
+        - ``f`` -- exponent tuple
 
         EXAMPLE::
 
@@ -1197,13 +1304,13 @@ class TermOrder(SageObject):
             sage: a > e^4
             True
         """
+        key = tuple()
         n = 0
         for block in self:
-            r = getattr(block,"compare_tuples_" + block.name())(f[n:n+len(block)],g[n:n+len(block)])
-            if r != 0:
-                return r
+            r = getattr(block, "sortkey_" + block.name())(f[n:n + len(block)])
+            key += r
             n += len(block)
-        return 0
+        return key
 
     def greater_tuple_matrix(self,f,g):
         """
@@ -1575,9 +1682,11 @@ class TermOrder(SageObject):
         """
         n = 0
         for block in self:
-            r = getattr(block,"compare_tuples_" + block.name())(f[n:n+len(block)],g[n:n+len(block)])
-            if r != 0:
-                if r < 0:
+            keyfn = getattr(block, "sortkey_" + block.name())
+            f_key = keyfn(f[n:n + len(block)])
+            g_key = keyfn(g[n:n + len(block)])
+            if f_key != g_key:
+                if f_key < g_key:
                     return g
                 else:
                     return f
@@ -1646,6 +1755,7 @@ class TermOrder(SageObject):
             sage: T.singular_str()
             '(lp(3),Dp(5),lp(2))'
             sage: P._singular_()
+            polynomial ring, over a field, global ordering
             //   characteristic : 127
             //   number of vars : 10
             //        block   1 : ordering lp
@@ -1673,6 +1783,7 @@ class TermOrder(SageObject):
             sage: T.singular_str()
             '(a(1:2),ls(2),a(1:2),ls(2))'
             sage: P._singular_()
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 4
             //        block   1 : ordering a
@@ -1868,7 +1979,7 @@ class TermOrder(SageObject):
             sage: T1 != T2
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __add__(self, other):
         """
@@ -1990,7 +2101,7 @@ class TermOrder(SageObject):
         """
         if self.name() in ('lex','degrevlex','deglex','degneglex','wdegrevlex','wdeglex'):
             return True
-        elif self.name() is 'block':
+        elif self.name() == 'block':
             return all([t.is_global() for t in self.blocks()])
         else:
             return False
@@ -2016,7 +2127,7 @@ class TermOrder(SageObject):
         if (self.name() in ('neglex','negdegrevlex','negdeglex','negwdegrevlex','negwdeglex') or
             self.singular_str() in ('ls','ds','Ds','ws','Ws')):
             return True
-        elif self.name() is 'block':
+        elif self.name() == 'block':
             return all([t.is_local() for t in self.blocks()])
         else:
             return False
@@ -2045,6 +2156,7 @@ class TermOrder(SageObject):
         """
         return self._weights is not None
 
+
 def termorder_from_singular(S):
     """
     Return the Sage term order of the basering in the given Singular interface
@@ -2062,7 +2174,7 @@ def termorder_from_singular(S):
     EXAMPLE::
 
         sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
-        'ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
+        ''
         sage: from sage.rings.polynomial.term_order import termorder_from_singular
         sage: termorder_from_singular(singular)
         Block term order with blocks:
@@ -2080,7 +2192,6 @@ def termorder_from_singular(S):
     from sage.all import ZZ
     singular = S
     T = singular('ringlist(basering)[3]')
-    nblocks = ZZ(singular.eval('size(%s)'%T.name()))
     order = []
     for block in T:
         blocktype = singular.eval('%s[1]'%block.name())
@@ -2096,7 +2207,7 @@ def termorder_from_singular(S):
         else:
             order.append(TermOrder(inv_singular_name_mapping[blocktype], ZZ(singular.eval("size(%s[2])"%block.name()))))
     if not order:
-        raise ValueError("Invalid term order in Singular")
+        raise ValueError("invalid term order in Singular")
     out = order.pop(0)
     while order:
         out = out + order.pop(0)

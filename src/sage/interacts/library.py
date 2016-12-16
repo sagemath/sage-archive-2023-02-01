@@ -46,8 +46,8 @@ def library_interact(f):
 
         sage: import sage.interacts.library as library
         sage: @library.library_interact
-        ... def f(n=5): print n
-        ...
+        ....: def f(n=5): print(n)
+        ....:
         sage: f()  # an interact appears, if using the notebook, else code
         <html>...</html>
     """
@@ -80,7 +80,7 @@ def demo(n=tuple(range(10)), m=tuple(range(10))):
         sage: interacts.demo()
         <html>...</html>
     """
-    print n+m
+    print(n + m)
 
 @library_interact
 def taylor_polynomial(
@@ -393,7 +393,7 @@ def trigonometric_properties_triangle(
     xy = [0]*3
     html('<h2>Trigonometric Properties of a Triangle</h2>')
     # Coordinates of the angles
-    a = map(lambda x : math.radians(float(x)), [a0, a1, a2])
+    a = [math.radians(float(x)) for x in [a0, a1, a2]]
     for i in range(3):
         xy[i] = (cos(a[i]), sin(a[i]))
 
@@ -497,7 +497,11 @@ def unit_circle(
     C_graph += Cf_point + Cf_line1 + Cf_line2
     G_graph += Gf + Gf_point + Gf_line
 
-    html.table([[r"$\text{Unit Circle}$",r"$\text{Function}$"], [C_graph, G_graph]], header=True)
+    pretty_print(table([
+        [r"$\text{Unit Circle}$", r"$\text{Function}$"],
+        [C_graph, G_graph]
+    ], header=True))
+
 
 @library_interact
 def special_points(
@@ -559,7 +563,7 @@ def special_points(
         return plot((y2-y1) / (x2-x1) * (x-x1) + y1, (x,-3,3), **plot_kwargs)
 
     # Coordinates of the angles
-    a = map(lambda x : math.radians(float(x)), [a0, a1, a2])
+    a = [math.radians(float(x)) for x in [a0, a1, a2]]
     xy = [(math.cos(a[i]), math.sin(a[i])) for i in range(3)]
 
     # Labels of the angles drawn in a distance from points
@@ -761,7 +765,7 @@ def bisection_method(
     try:
         c, intervals = _bisection_method(f, float(a), float(b), maxn, h)
     except ValueError:
-        print "f must have opposite sign at the endpoints of the interval"
+        print("f must have opposite sign at the endpoints of the interval")
         show(plot(f, a, b, color='red'), xmin=a, xmax=b)
     else:
         html(r"$\text{Precision }h = 10^{-d}=10^{-%s}=%.5f$"%(d, float(h)))
@@ -821,7 +825,7 @@ def secant_method(
     a, b = interval
     h = 10**(-d)
     if float(f(a)*f(b)) > 0:
-        print "f must have opposite sign at the endpoints of the interval"
+        print("f must have opposite sign at the endpoints of the interval")
         show(plot(f, a, b, color='red'), xmin=a, xmax=b)
     else:
         c, intervals = _secant_method(f, float(a), float(b), maxn, h)
@@ -894,7 +898,7 @@ def newton_method(
         s = [["$n$","$x_n$","$f(x_n)$", "$f(x_n-h)\,f(x_n+h)$"]]
         for i, c in enumerate(midpoints):
             s.append([i+1, c, f(c), (c-h)*f(c+h)])
-        html.table(s,header=True)
+        pretty_print(table(s, header=True))
     else:
         P = plot(f, x, interval, color="blue")
         L = sum(line([(c, 0), (c, f(c))], color="green") for c in midpoints[:-1])
@@ -1008,7 +1012,7 @@ def trapezoid_integration(
             else:
                 j = 2
             s.append([i, xs[i], ys[i],j,N(j*ys[i])])
-        html.table(s,header=True)
+        pretty_print(table(s, header=True))
 
 @library_interact
 def simpson_integration(
@@ -1128,7 +1132,7 @@ def simpson_integration(
                 j = (i+1)%2*(-2)+4
             s.append([i, xs[i], ys[i],j,N(j*ys[i])])
         s.append(['','','','$\sum$','$%s$'%latex(3/dx*approx)])
-        html.table(s,header=True)
+        pretty_print(table(s, header=True))
         html(r'$\int_{%.2f}^{%.2f} {f(x) \, \mathrm{d}x}\approx\frac {%.2f}{3}\cdot %s=%s$'%
              (interval[0], interval[1],dx,latex(3/dx*approx),latex(approx)))
 
@@ -1198,9 +1202,11 @@ def riemann_sum(
     show(plot(func(x),(x,a,b),zorder=5) + rects)
     delka_intervalu=[division[i+1]-division[i] for i in range(n)]
     if list_table:
-        html.table([["$i$","$[x_{i-1},x_i]$","$\eta_i$","$f(\eta_i)$","$x_{i}-x_{i-1}$"]]\
-        +[[i+1,[division[i],division[i+1]],xs[i],ys[i],delka_intervalu[i]] for i in range(n)],\
-        header=True)
+        pretty_print(table([
+            ["$i$", "$[x_{i-1},x_i]$", "$\eta_i$", "$f(\eta_i)$", "$x_{i}-x_{i-1}$"]
+        ] + [
+            [i+1,[division[i],division[i+1]],xs[i],ys[i],delka_intervalu[i]] for i in range(n)
+        ],  header=True))
 
     html('Riemann sum: $\displaystyle\sum_{i=1}^{%s} f(\eta_i)(x_i-x_{i-1})=%s$ '%
          (latex(n),latex(sum([ys[i]*delka_intervalu[i] for i in range(n)]))))
@@ -1246,8 +1252,8 @@ def function_tool(f=sin(x), g=cos(x), xrange=range_slider(-3,3,default=(0,1),lab
     try:
         f = SR(f); g = SR(g); a = SR(a)
     except TypeError as msg:
-        print msg[-200:]
-        print "Unable to make sense of f,g, or a as symbolic expressions in single variable x."
+        print(msg[-200:])
+        print("Unable to make sense of f,g, or a as symbolic expressions in single variable x.")
         return
     if not (isinstance(xrange, tuple) and len(xrange) == 2):
           xrange = (0,1)
@@ -1508,13 +1514,13 @@ def polar_prime_spiral(
     from sage.plot.colors import hue
 
     if start < 1 or end <= start:
-        print "invalid start or end value"
+        print("invalid start or end value")
         return
     if n > end:
-        print "WARNING: n is greater than end value"
+        print("WARNING: n is greater than end value")
         return
     if n < start:
-        print "n < start value"
+        print("n < start value")
         return
     nn = SR.var('nn')
     f1 = fast_float(sqrt(nn)*cos(2*pi*sqrt(nn)), 'nn')

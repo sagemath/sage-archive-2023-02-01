@@ -24,8 +24,9 @@ class FiniteLatticePosets(CategoryWithAxiom):
         sage: FiniteLatticePosets().example()
         NotImplemented
 
-    .. seealso:: :class:`FinitePosets`, :class:`LatticePosets`,
-       :class:`LatticePoset`
+    .. SEEALSO::
+
+        :class:`FinitePosets`, :class:`LatticePosets`, :class:`LatticePoset`
 
     TESTS::
 
@@ -40,7 +41,7 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
         def join_irreducibles(self):
             r"""
-            Returns the join-irreducible elements of this finite lattice.
+            Return the join-irreducible elements of this finite lattice.
 
             A *join-irreducible element* of ``self`` is an element
             `x` that is not minimal and that can not be written as
@@ -48,17 +49,21 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+                sage: L = LatticePoset({0:[1,2],1:[3],2:[3,4],3:[5],4:[5]})
                 sage: L.join_irreducibles()
-                [1, 2, 3]
+                [1, 2, 4]
 
-            .. seealso:: :meth:`join_irreducibles_poset`
+            .. SEEALSO::
+
+                :meth:`meet_irreducibles`,
+                :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.double_irreducibles`,
+                :meth:`meet_irreducibles_poset`
             """
             return [x for x in self if len(self.lower_covers(x)) == 1]
 
         def join_irreducibles_poset(self):
             r"""
-            Returns the poset of join-irreducible elements of this finite lattice.
+            Return the poset of join-irreducible elements of this finite lattice.
 
             A *join-irreducible element* of ``self`` is an element `x`
             that is not minimal and can not be written as the join of two
@@ -70,30 +75,77 @@ class FiniteLatticePosets(CategoryWithAxiom):
                 sage: L.join_irreducibles_poset()
                 Finite poset containing 3 elements
 
-            .. seealso:: :meth:`join_irreducibles`
+            .. SEEALSO:: :meth:`join_irreducibles`
             """
             return self.subposet(self.join_irreducibles())
+
+        def meet_irreducibles(self):
+            r"""
+            Return the meet-irreducible elements of this finite lattice.
+
+            A *meet-irreducible element* of ``self`` is an element
+            `x` that is not maximal and that can not be written as
+            the meet of two elements different from `x`.
+
+            EXAMPLES::
+
+                sage: L = LatticePoset({0:[1,2],1:[3],2:[3,4],3:[5],4:[5]})
+                sage: L.meet_irreducibles()
+                [1, 3, 4]
+
+            .. SEEALSO::
+
+                :meth:`join_irreducibles`,
+                :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.double_irreducibles`,
+                :meth:`meet_irreducibles_poset`
+            """
+            return [x for x in self if len(self.upper_covers(x)) == 1]
+
+        def meet_irreducibles_poset(self):
+            r"""
+            Return the poset of join-irreducible elements of this finite lattice.
+
+            A *meet-irreducible element* of ``self`` is an element `x`
+            that is not maximal and can not be written as the meet of two
+            elements different from `x`.
+
+            EXAMPLES::
+
+                sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+                sage: L.join_irreducibles_poset()
+                Finite poset containing 3 elements
+
+            .. SEEALSO:: :meth:`meet_irreducibles`
+            """
+            return self.subposet(self.meet_irreducibles())
+
 
         ##########################################################################
         # Lattice morphisms
 
         def is_lattice_morphism(self, f, codomain):
             r"""
+            Return whether ``f`` is a morphism of posets from ``self``
+            to ``codomain``.
+
+            A map `f : P \to Q` is a poset morphism if
+
+            .. MATH::
+
+                x \leq y \Rightarrow f(x) \leq f(y)
+
+            for all `x,y \in P`.
+
             INPUT:
 
             - ``f`` -- a function from ``self`` to ``codomain``
             - ``codomain`` -- a lattice
 
-            Returns whether `f` is a morphism of posets form ``self``
-            to ``codomain``, that is
-
-            .. math:: x\leq y \Rightarrow f(x) \leq f(y)
-
             EXAMPLES:
 
             We build the boolean lattice of `\{2,2,3\}` and the
             lattice of divisors of `60`, and check that the map
-            `b \mapsto 5\prod_{x\in b} x` is a morphism of lattices::
+            `b \mapsto 5 \prod_{x\in b} x` is a morphism of lattices::
 
                 sage: D = LatticePoset((divisors(60), attrcall("divides")))
                 sage: B = LatticePoset((Subsets([2,2,3]), attrcall("issubset")))
@@ -126,7 +178,8 @@ class FiniteLatticePosets(CategoryWithAxiom):
                 sage: B.is_lattice_morphism(f, L)
                 False
 
-            .. seealso::
+            .. SEEALSO::
+
                 :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_poset_morphism`
             """
             # Note: in a lattice, x <= y iff join(x,y) = y .
@@ -140,3 +193,4 @@ class FiniteLatticePosets(CategoryWithAxiom):
                 if f(self.meet(x,y)) != codomain.meet(f(x), f(y)):
                     return False
             return True
+

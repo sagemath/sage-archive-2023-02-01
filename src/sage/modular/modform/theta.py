@@ -2,29 +2,31 @@
 q-expansions of Theta Series
 
 AUTHOR:
-    -- William Stein
-"""
 
+William Stein
+"""
+from six.moves import range
 from sage.rings.all  import Integer, ZZ, PowerSeriesRing
 
 from math import sqrt
 
 def theta2_qexp(prec=10, var='q', K=ZZ, sparse=False):
     r"""
-    Return the $q$-expansion of the series
-      $$
-        \theta_2 = \sum_{n odd} q^{n^2}.
-      $$
+    Return the `q`-expansion of the series
+    ` \theta_2 = \sum_{n odd} q^{n^2}. `
 
     INPUT:
-        prec -- integer; the absolute precision of the output
-        var -- (default: 'q') variable name
-        K -- (default: ZZ) base ring of answer
+
+    - prec -- integer; the absolute precision of the output
+    - var -- (default: 'q') variable name
+    - K -- (default: ZZ) base ring of answer
 
     OUTPUT:
-        a power series over K
 
-    EXAMPLES:
+    a power series over K
+
+    EXAMPLES::
+
         sage: theta2_qexp(18)
         q + q^9 + O(q^18)
         sage: theta2_qexp(49)
@@ -53,27 +55,28 @@ def theta2_qexp(prec=10, var='q', K=ZZ, sparse=False):
     n = int(sqrt(prec))
     if n*n < prec:
         n += 1
-    for m in xrange(1, n, 2):
+    for m in range(1, n, 2):
         v[m*m] = one
     R = PowerSeriesRing(K, sparse=sparse, names=var)
     return R(v, prec=prec)
 
 def theta_qexp(prec=10, var='q', K=ZZ, sparse=False):
     r"""
-    Return the $q$-expansion of the standard $\theta$ series
-    $$
-      \theta = 1 + 2\sum_{n=1}{^\infty} q^{n^2}.
-    $$
+    Return the `q`-expansion of the standard `\theta` series
+    ` \theta = 1 + 2\sum_{n=1}{^\infty} q^{n^2}. `
 
     INPUT:
-        prec -- integer; the absolute precision of the output
-        var -- (default: 'q') variable name
-        K -- (default: ZZ) base ring of answer
+
+    - prec -- integer; the absolute precision of the output
+    - var -- (default: 'q') variable name
+    - K -- (default: ZZ) base ring of answer
 
     OUTPUT:
-        a power series over K
 
-    EXAMPLES:
+    a power series over K
+
+    EXAMPLES::
+
         sage: theta_qexp(25)
         1 + 2*q + 2*q^4 + 2*q^9 + 2*q^16 + O(q^25)
         sage: theta_qexp(10)
@@ -102,10 +105,8 @@ def theta_qexp(prec=10, var='q', K=ZZ, sparse=False):
     n = int(sqrt(prec))
     if n*n != prec:
         n += 1
-    for m in xrange(1, n):
+    for m in range(1, n):
         v[m*m] = two
 
     R = PowerSeriesRing(K, sparse=sparse, names=var)
     return R(v, prec=prec)
-
-

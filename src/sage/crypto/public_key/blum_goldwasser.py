@@ -2,20 +2,10 @@ r"""
 Blum-Goldwasser Probabilistic Encryption
 
 The Blum-Goldwasser probabilistic public-key encryption scheme. This scheme
-was originally described in [BlumGoldwasser1985]_. See also section 8.7.2
-of [MenezesEtAl1996]_ and the
+was originally described in [BG1985]_. See also section 8.7.2
+of [MvOV1996]_ and the
 `Wikipedia article <http://en.wikipedia.org/wiki/Blum-Goldwasser_cryptosystem>`_
 on this scheme.
-
-REFERENCES:
-
-.. [BlumGoldwasser1985] M. Blum and S. Goldwasser. An Efficient
-  Probabilistic Public-Key Encryption Scheme Which Hides All Partial
-  Information. In *Proceedings of CRYPTO 84 on Advances in Cryptology*,
-  pp. 289--299, Springer, 1985.
-
-.. [MenezesEtAl1996] A. J. Menezes, P. C. van Oorschot, and S. A. Vanstone.
-  *Handbook of Applied Cryptography*. CRC Press, 1996.
 
 AUTHORS:
 
@@ -24,27 +14,21 @@ AUTHORS:
 
 - Minh Van Nguyen (2009-12): integrate into Sage as a class and relicense
   under the GPLv2+. Complete rewrite of the original version to follow
-  the description contained in [MenezesEtAl1996]_.
+  the description contained in [MvOV1996]_.
 """
 
-###########################################################################
-# Copyright (c) 2009, 2010
-# Mike Hogan
-# David Joyner <wdjoyner@gmail.com>
-# Minh Van Nguyen <nguyenminh2@gmail.com>
+#*****************************************************************************
+#       Copyright (c) 2009, 2010 Mike Hogan
+#       Copyright (c) 2009, 2010 David Joyner <wdjoyner@gmail.com>
+#       Copyright (c) 2009, 2010 Minh Van Nguyen <nguyenminh2@gmail.com>
 #
-# This program is free software; you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
+# the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# http://www.gnu.org/licenses/
-###########################################################################
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from six.moves import range
 
 from operator import xor
 
@@ -55,9 +39,7 @@ from sage.crypto.util import random_blum_prime
 from sage.functions.log import log
 from sage.functions.other import Function_floor
 from sage.monoids.string_monoid import BinaryStrings
-from sage.rings.arith import gcd
-from sage.rings.arith import power_mod
-from sage.rings.arith import xgcd
+from sage.arith.all import gcd, power_mod, xgcd
 from sage.rings.finite_rings.integer_mod import Mod as mod
 from sage.rings.finite_rings.integer_mod_ring import IntegerModFactory
 
@@ -107,7 +89,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
     EXAMPLES:
 
     The following encryption/decryption example is taken from Example 8.57,
-    pages 309--310 of [MenezesEtAl1996]_::
+    pages 309--310 of [MvOV1996]_::
 
         sage: from sage.crypto.public_key.blum_goldwasser import BlumGoldwasser
         sage: bg = BlumGoldwasser(); bg
@@ -122,7 +104,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         ([[0, 0, 1, 0], [0, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [0, 1, 0, 0]], 139680)
         sage: M = bg.decrypt(C, prikey); M
         [[1, 0, 0, 1], [1, 1, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [1, 1, 0, 0]]
-        sage: M = "".join(map(lambda x: str(x), flatten(M))); M
+        sage: M = "".join(str(x) for x in flatten(M)); M
         '10011100000100001100'
         sage: M == P
         True
@@ -198,10 +180,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg1 == bg2
             True
         """
-        if self.__repr__() == other.__repr__():
-            return True
-        else:
-            return False
+        return repr(self) == repr(other)
 
     def __repr__(self):
         """
@@ -245,7 +224,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         ALGORITHM:
 
         The Blum-Goldwasser decryption algorithm is described in Algorithm
-        8.56, page 309 of [MenezesEtAl1996]_. The algorithm works as follows:
+        8.56, page 309 of [MvOV1996]_. The algorithm works as follows:
 
         #. Let `C` be the ciphertext `C = (c_1, c_2, \dots, c_t, x_{t+1})`.
            Then `t` is the number of ciphertext sub-blocks and `h` is the
@@ -268,7 +247,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         EXAMPLES:
 
         The following decryption example is taken from Example 8.57, pages
-        309--310 of [MenezesEtAl1996]_. Here we decrypt a binary string::
+        309--310 of [MvOV1996]_. Here we decrypt a binary string::
 
             sage: from sage.crypto.public_key.blum_goldwasser import BlumGoldwasser
             sage: bg = BlumGoldwasser()
@@ -361,10 +340,10 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         x0 = mod(v*a*p + u*b*q, n).lift()
         # perform the decryption
         M = []
-        for i in xrange(t):
+        for i in range(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
-            M.append(map(xor, p, c[i]))
+            M.append(list(map(xor, p, c[i])))
             x0 = x1
         return M
 
@@ -402,7 +381,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         ALGORITHM:
 
         The Blum-Goldwasser encryption algorithm is described in Algorithm
-        8.56, page 309 of [MenezesEtAl1996]_. The algorithm works as follows:
+        8.56, page 309 of [MvOV1996]_. The algorithm works as follows:
 
         #. Let `n` be a public key, where `n = pq` is the product of two
            distinct Blum primes `p` and `q`.
@@ -432,7 +411,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         EXAMPLES:
 
         The following encryption example is taken from Example 8.57,
-        pages 309--310 of [MenezesEtAl1996]_. Here, we encrypt a binary
+        pages 309--310 of [MvOV1996]_. Here, we encrypt a binary
         string::
 
             sage: from sage.crypto.public_key.blum_goldwasser import BlumGoldwasser
@@ -502,10 +481,10 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         t = 0
         try:
             # Attempt to use t and h values from the algorithm described
-            # in [MenezesEtAl1996].
+            # in [MvOV1996].
             t = len(M) / h
             # If the following raises an exception, then we can't use
-            # the t and h values specified by [MenezesEtAl1996].
+            # the t and h values specified by [MvOV1996].
             mod(len(M), t)
         # fall back to using other sub-block lengths
         except TypeError:
@@ -540,12 +519,12 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         # perform the encryption
         to_int = lambda x: int(str(x))
         C = []
-        for i in xrange(t):
+        for i in range(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
             # xor p with a sub-block of length h. There are t sub-blocks of
             # length h each.
-            C.append(map(xor, p, map(to_int, M[i*h : (i+1)*h])))
+            C.append(list(map(xor, p, [to_int(_) for _ in M[i*h : (i+1)*h]])))
             x0 = x1
         x1 = power_mod(x0, 2, n)
         return (C, x1)
@@ -580,7 +559,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg = BlumGoldwasser()
             sage: P = primes_first_n(10); P
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: map(is_blum_prime, P)
+            sage: [is_blum_prime(_) for _ in P]
             [False, True, False, True, True, False, False, True, True, False]
             sage: bg.private_key(19, 23)
             (19, 23, -6, 5)
@@ -655,7 +634,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg = BlumGoldwasser()
             sage: P = primes_first_n(10); P
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: map(is_blum_prime, P)
+            sage: [is_blum_prime(_) for _ in P]
             [False, True, False, True, True, False, False, True, True, False]
             sage: bg.public_key(3, 7)
             21
@@ -731,7 +710,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         ALGORITHM:
 
         The key generation algorithm is described in Algorithm 8.55,
-        page 308 of [MenezesEtAl1996]_. The algorithm works as follows:
+        page 308 of [MvOV1996]_. The algorithm works as follows:
 
         #. Let `p` and `q` be distinct large random primes, each congruent
            to 3 modulo 4. That is, `p` and `q` are Blum primes.

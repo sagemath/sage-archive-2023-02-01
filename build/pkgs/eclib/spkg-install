@@ -56,6 +56,7 @@ echo "Now configuring eclib..."
             --with-ntl="$SAGE_LOCAL" \
             --with-pari="$SAGE_LOCAL" \
             --with-flint="$SAGE_LOCAL" \
+            --with-boost="no" \
             --disable-allprogs
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring eclib."

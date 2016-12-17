@@ -483,7 +483,7 @@ def __generating_function_of_polyhedron__(
         tuple('y{}'.format(k) for k in indices),
         sparse=True)
 
-    logger.debug('preprocessing %s inequalities and %s equations...',
+    logger.info('preprocessing %s inequalities and %s equations...',
                  len(inequalities), len(equations))
 
     extra_factor_mod, rules_mod, inequalities, equations = \
@@ -653,8 +653,7 @@ def prepare_inequalities(inequalities, B):
     for coeffs in inequalities:
         dim = len(coeffs)
         if all(c >= 0 for c in coeffs):
-            logger.debug('generating_function_of_polyhedron: '
-                         'skipping %s (all coefficients >= 0)',
+            logger.debug('skipping %s (all coefficients >= 0)',
                          repr_pretty(coeffs, 0))
             continue
         constant = coeffs[0]
@@ -666,8 +665,7 @@ def prepare_inequalities(inequalities, B):
                 # TODO: could be skipped...
                 inequalities_filtered.append(coeffs)
         elif len(ones) == 1 and len(mones) == 1 and not absgetwo:
-            logger.debug('generating_function_of_polyhedron: '
-                         'handling %s',
+            logger.debug('handling %s',
                          repr_pretty(coeffs, 0))
             chain_links[(mones[0], ones[0])] = constant
         else:

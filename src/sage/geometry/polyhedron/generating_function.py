@@ -72,8 +72,9 @@ def generating_function_of_polyhedron(polyhedron, split=False,
 
     The generating function as a (partial)
     :class:`~sage.structure.factorization.Factorization`
-    of the result whose factors are laurent polynomials or
-    a tuple of such elements.
+    of the result whose factors are laurent polynomials.
+    The result might be a tuple of such factorizations
+    (depending on the parameter ``result_as_tuple``) as well.
 
     EXAMPLES::
 

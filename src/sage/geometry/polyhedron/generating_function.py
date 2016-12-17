@@ -713,15 +713,15 @@ def _prepare_inequalities_(inequalities, B):
     return inequalities, factor, rules
 
 
-def prepare_equations_transformation(E):
+def _prepare_equations_transformation_(E):
     r"""
     TESTS::
 
-        sage: from sage.geometry.polyhedron.generating_function import prepare_equations_transformation
+        sage: from sage.geometry.polyhedron.generating_function import _prepare_equations_transformation_
 
-        sage: prepare_equations_transformation(matrix([(0, 1, 0, -2)]))
+        sage: _prepare_equations_transformation_(matrix([(0, 1, 0, -2)]))
         ([   0 -1/2    0    1], (3,), (0, 1))
-        sage: prepare_equations_transformation(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
+        sage: _prepare_equations_transformation_(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
         (
         [   0 -1/2    1    0]
         [   0 -2/3    0    1], (2, 3), (0, 1)
@@ -747,28 +747,28 @@ def prepare_equations_transformation(E):
     return TE, indices, indicesn
 
 
-def prepare_equations(equations, B):
+def _prepare_equations_(equations, B):
     r"""
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import prepare_equations
+        sage: from sage.geometry.polyhedron.generating_function import _prepare_equations_
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
-        sage: prepare_equations([(1, 1, 1, -1, 0)], B)
+        sage: _prepare_equations_([(1, 1, 1, -1, 0)], B)
         (y2, {y1: y1*y2, y0: y0*y2}, (2,))
-        sage: prepare_equations([(0, 1, 0, -1, 0)], B)
+        sage: _prepare_equations_([(0, 1, 0, -1, 0)], B)
         (1, {y0: y0*y2}, (2,))
-        sage: prepare_equations([(-1, 0, 1, -1, -1), (1, 1, 0, 1, 2)], B)
+        sage: _prepare_equations_([(-1, 0, 1, -1, -1), (1, 1, 0, 1, 2)], B)
         (y2^-1, {y1: y1*y2^2*y3^-1, y0: y0*y2*y3^-1}, (2, 3))
 
     TESTS::
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
-        sage: prepare_equations([(0, 0, 1, 0, -1), (-1, 1, -1, -1, 0)], B)
+        sage: _prepare_equations_([(0, 0, 1, 0, -1), (-1, 1, -1, -1, 0)], B)
         (y2^-1, {y1: y1*y2^-1*y3, y0: y0*y2}, (2, 3))
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 5)
-        sage: prepare_equations([(0, 0, 0, 1, 0, -1), (0, 1, 0, 0, -1, 0),
+        sage: _prepare_equations_([(0, 0, 0, 1, 0, -1), (0, 1, 0, 0, -1, 0),
         ....:                    (0, 1, -1, 0, 0, 0)], B)
         (1, {y2: y2*y4, y0: y0*y1*y3}, (1, 3, 4))
     """
@@ -779,7 +779,7 @@ def prepare_equations(equations, B):
     if not E:
         return 1, {}, ()
 
-    TE, indices, indicesn = prepare_equations_transformation(E)
+    TE, indices, indicesn = _prepare_equations_transformation_(E)
 
     gens = (1,) + B.gens()
     z = tuple(gens[i] for i in indices)

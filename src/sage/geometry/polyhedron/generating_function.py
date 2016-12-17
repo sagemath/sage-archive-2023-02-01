@@ -662,7 +662,7 @@ def _prepare_inequalities_(inequalities, B):
         absgetwo = tuple(i+1 for i, c in enumerate(coeffs[1:]) if abs(c) >= 2)
         if len(ones) == 1 and not mones and not absgetwo:
             if constant < 0:
-                # TODO: could be skipped...
+                # This case could be cleverly skipped... (TODO at one point)
                 inequalities_filtered.append(coeffs)
         elif len(ones) == 1 and len(mones) == 1 and not absgetwo:
             logger.debug('handling %s',
@@ -715,6 +715,9 @@ def _prepare_inequalities_(inequalities, B):
 
 def _prepare_equations_transformation_(E):
     r"""
+    Return a transformation matrix and indices which variables
+    in the equation to "eliminate" and deal with later.
+
     TESTS::
 
         sage: from sage.geometry.polyhedron.generating_function import _prepare_equations_transformation_
@@ -749,6 +752,9 @@ def _prepare_equations_transformation_(E):
 
 def _prepare_equations_(equations, B):
     r"""
+    Prepare the substitutions coming from "eliminated" variables
+    in the given equations.
+
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.generating_function import _prepare_equations_
@@ -793,6 +799,10 @@ def _prepare_equations_(equations, B):
 
 
 def _generate_mods_(equations):
+    r"""
+    Extract the moduli and residue classes implied
+    by the equations.
+    """
     from sage.arith.misc import lcm
     from sage.matrix.constructor import matrix
     from sage.rings.integer_ring import ZZ
@@ -825,6 +835,8 @@ def _generate_mods_(equations):
 
 def _prepare_mod_(mod, B, *vecs):
     r"""
+    Prepare the substitutions coming from the moduli.
+
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.generating_function import _prepare_mod_
@@ -934,6 +946,16 @@ def compositions_mod(u, m, r=0, multidimensional=False):
 
 
 def _compositions_mod_(u, r):
+    r"""
+    Helper function to :func:`compositions_mod`.
+
+    TESTS::
+
+        sage: from sage.geometry.polyhedron.generating_function import _compositions_mod_
+        sage: Z = Zmod(2)
+        sage: list(compositions_mod((vector([Z(1), Z(1)]),), vector([Z(0)])))
+        [(0, 0), (1, 1)]
+    """
     if not u:
         if all(rr == 0 for rr in r):
             yield ()

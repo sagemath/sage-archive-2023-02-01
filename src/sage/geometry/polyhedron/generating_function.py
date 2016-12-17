@@ -70,7 +70,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     The generating function as a (partial)
     :class:`~sage.structure.factorization.Factorization`
     of the result whose factors are laurent polynomials or
-    a tuple (:class:`Summandization`) of such elements.
+    a tuple of such elements.
 
     EXAMPLES::
 
@@ -336,7 +336,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
         from sage.structure.factorization import Factorization
         result = Factorization([], unit=0)
         if result_as_tuple:
-            return Summandization((result,))
+            return (result,)
         else:
             return result
 
@@ -345,7 +345,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     if split is False:
         result = _generating_function_of_polyhedron_(polyhedron, **kwds)
         if result_as_tuple:
-            return Summandization(result)
+            return result
         else:
             if len(result) != 1:
                 raise ValueError("Cannot unpack result. "
@@ -380,7 +380,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     if not result_as_tuple:
         raise ValueError("Cannot unpack result."
                          "(Unset 'result_as_tuple=False'.)")
-    return Summandization(sum(result, ()))
+    return sum(result, ())
 
 
 def _generating_function_of_polyhedron_(
@@ -397,10 +397,10 @@ def _generating_function_of_polyhedron_(
         ....:     Polyhedron(ieqs=[(0, 1, 0, 0), (0, -1, 1, 0)],
         ....:                eqns=[(0, -1, -1, 2)]),
         ....:     result_as_tuple=True, sort_factors=True)
-        (-y0^2*y1^2*y2^2 + 1) * (-y1^2*y2 + 1)^-1 *
-        (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1 +
-        (-y0^3*y1^3*y2^3 + y0*y1*y2) * (-y1^2*y2 + 1)^-1 *
-        (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1
+        ((-y0^2*y1^2*y2^2 + 1) * (-y1^2*y2 + 1)^-1 *
+         (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1,
+         (-y0^3*y1^3*y2^3 + y0*y1*y2) * (-y1^2*y2 + 1)^-1 *
+         (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1)
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -551,17 +551,6 @@ def __generating_function_of_polyhedron__(
                          list((1-t, -1) for t in terms),
                          sort=Factorization_sort,
                          simplify=Factorization_simplify)
-
-
-class Summandization(tuple):
-    r"""
-    A class representing a tuple as sum. It is shown
-    as summands joined by a `+`.
-    """
-    def __repr__(self):
-        return ' + '.join(repr(s) for s in self)
-
-    __str__ = __repr__
 
 
 def _prepare_inequalities_(inequalities, B):

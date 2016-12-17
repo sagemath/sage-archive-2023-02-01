@@ -4,6 +4,9 @@ Generating Function of Polyhedron
 This module provides :func:`generating_function_of_polyhedron` which
 computes the generating function of the integer points of a polyhedron.
 
+The main function is accessible via
+:meth:`sage.geometry.polyhedron.base.Polyhedron_base.generating_function`
+as well.
 
 Various
 =======
@@ -46,7 +49,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
 
     - ``polyhedron`` -- an instance of
       :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
-      (see also :mod:`sage/geometry/polyhedron/constructor`).
+      (see also :mod:`sage.geometry.polyhedron.constructor`).
 
     - ``split`` -- (default: ``False``) ``False`` computes the generating
       function directly, whereas ``True`` splits the ``polyhedron``
@@ -77,6 +80,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
         sage: from sage.geometry.polyhedron.generating_function import generating_function_of_polyhedron
 
     ::
+
         sage: P2 = (
         ....:   Polyhedron(ieqs=[(0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, -1)]),
         ....:   Polyhedron(ieqs=[(0, -1, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0)]))
@@ -282,6 +286,12 @@ def generating_function_of_polyhedron(polyhedron, split=False,
         0
         [0, 1, 2, 3, 4]: (An equation -1 == 0,)
         0
+
+    .. SEEALSO::
+
+        This function is accessible via
+        :meth:`sage.geometry.polyhedron.base.Polyhedron_base.generating_function`
+        as well.
 
     TESTS::
 

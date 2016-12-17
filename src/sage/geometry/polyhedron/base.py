@@ -4130,13 +4130,13 @@ class Polyhedron_base(Element):
         the polyhedron's orthant with only nonnegative coordinates.
 
         This calls
-        :func:`~sage.geometry.polyhedron.generting_function.generating_function_of_polyhedron`,
+        :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_polyhedron`,
         so have a look at the documentation and examples there.
 
         INPUT:
 
         The following keyword arguments are passed to
-        :func:`~sage.geometry.polyhedron.generting_function.generating_function_of_polyhedron`:
+        :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_polyhedron`:
 
         - ``split`` -- (default: ``False``) ``False`` computes the generating
           function directly, whereas ``True`` splits the ``polyhedron``

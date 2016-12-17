@@ -340,7 +340,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
         else:
             return result
 
-    logger.info('generating_function_of_polyhedron: %s', polyhedron)
+    logger.info('%s', polyhedron)
 
     if split is False:
         result = _generating_function_of_polyhedron_(polyhedron, **kwds)
@@ -405,7 +405,7 @@ def _generating_function_of_polyhedron_(
     import logging
     logger = logging.getLogger(__name__)
 
-    logger.info('polyhedron: %s',
+    logger.info('using polyhedron %s',
                 polyhedron.repr_pretty_Hrepresentation(prefix='b'))
 
     if polyhedron.is_empty():
@@ -435,11 +435,8 @@ def _generating_function_of_polyhedron_(
         raise ValueError('Not all coefficient vectors of the equations '
                          'have the same length.')
 
-    logger.info('generating_function_of_polyhedron: '
-                '%s inequalities', len(inequalities))
-
     mods = generate_mods(equations)
-    logger.info('splitting by moduli %s', mods)
+    logger.debug('splitting by moduli %s', mods)
 
     return tuple(__generating_function_of_polyhedron__(
         indices, inequalities, equations, mod, **kwds) for mod in mods)
@@ -485,6 +482,9 @@ def __generating_function_of_polyhedron__(
         tuple('y{}'.format(k) for k in indices),
         sparse=True)
 
+    logger.debug('preprocessing %s inequalities and %s equations...',
+                 len(inequalities), len(equations))
+
     extra_factor_mod, rules_mod, inequalities, equations = \
         prepare_mod(mod, B, inequalities, equations)
 
@@ -494,14 +494,15 @@ def __generating_function_of_polyhedron__(
     inequalities, extra_factor_inequalities, rules_inequalities = \
         prepare_inequalities(inequalities, B)
 
+    logger.info('%s inequalities left; using Omega...', len(inequalities))
+
     numerator = B(1)
     terms = B.gens()
     L = B
     for i, coeffs in enumerate(inequalities):
         L = LaurentPolynomialRing(L, 'mu{}'.format(i), sparse=True)
         l = L.gen()
-        logger.debug('generating_function_of_polyhedron: '
-                     '%s --> %s', l, pretty_inequality(coeffs))
+        logger.debug('mapping %s --> %s', l, pretty_inequality(coeffs))
         it_coeffs = iter(coeffs)
         numerator *= l**next(it_coeffs)
         assert numerator.parent() == L
@@ -511,8 +512,7 @@ def __generating_function_of_polyhedron__(
     terms = tuple(t for i, t in enumerate(terms)
                   if i not in indices_equations)
 
-    logger.info('generating_function_of_polyhedron: '
-                'terms denominator %s', terms)
+    logger.debug('terms denominator %s', terms)
 
     def decode_factor(factor):
         D = factor.dict()
@@ -521,10 +521,9 @@ def __generating_function_of_polyhedron__(
         return coefficient, exponent
 
     while repr(numerator.parent().gen()).startswith('mu'):
-        logger.info('generating_function_of_polyhedron: '
-                    'applying Omega[%s]...', numerator.parent().gen())
-        logger.info('...on terms denominator %s', terms)
-        logger.info('...(numerator has %s)', numerator.number_of_terms())
+        logger.info('applying Omega[%s]...', numerator.parent().gen())
+        logger.debug('...on terms denominator %s', terms)
+        logger.debug('...(numerator has %s)', numerator.number_of_terms())
 
         decoded_factors, other_factors = \
             partition((decode_factor(factor) for factor in terms),

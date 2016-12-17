@@ -1032,50 +1032,53 @@ def _test_vectors_equal_inferior():
         sig_free(u)
         sig_free(v)
 
-cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
+cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
+                             long backtrack_bound=1000, find_path=False):
     r"""
     Randomized backtracking for finding Hamiltonian cycles and paths.
 
     ALGORITHM:
 
-    A path ``P`` is maintained during the execution of the algorithm. Initially
-    the path will contain an edge of the graph. Every 10 iterations the path is
-    reversed. Every ``reset_bound`` iterations the path will be cleared and the
-    procedure is restarted. Every ``backtrack_bound`` steps we discard the last
-    five vertices and continue with the procedure. The total number of steps in
-    the algorithm is controlled by ``max_iter``. If a Hamiltonian cycle or
-    Hamiltonian path is found it is returned. If the number of steps reaches
-    ``max_iter`` then a longest path is returned. See OUTPUT for more details.
-
+    A path ``P`` is maintained during the execution of the algorithm.
+    Initially the path will contain an edge of the graph. Every 10
+    iterations the path is reversed. Every ``reset_bound`` iterations
+    the path will be cleared and the procedure is restarted. Every
+    ``backtrack_bound`` steps we discard the last five vertices and
+    continue with the procedure. The total number of steps in the
+    algorithm is controlled by ``max_iter``. If a Hamiltonian cycle or
+    Hamiltonian path is found it is returned. If the number of steps
+    reaches ``max_iter`` then a longest path is returned. See OUTPUT
+    for more details.
 
     INPUT:
 
-    - ``G`` - Graph.
+    - ``G`` -- graph
 
-    - ``max_iter`` - Maximum number of iterations.
+    - ``max_iter`` -- maximum number of iterations
 
-    - ``reset_bound`` - Number of iterations before restarting the
-       procedure.
+    - ``reset_bound`` -- number of iterations before restarting the
+       procedure
 
-    - ``backtrack_bound`` - Number of iterations to elapse before
+    - ``backtrack_bound`` -- number of iterations to elapse before
        discarding the last 5 vertices of the path.
 
-    - ``find_path`` - If set to ``True``, will search a Hamiltonian
-       path. If ``False``, will search for a Hamiltonian
-       cycle. Default value is ``False``.
+    - ``find_path`` -- (default: ``False``) if set to ``True``, will
+       search a Hamiltonian path; if ``False``, will search for a
+       Hamiltonian cycle
 
     OUTPUT:
 
-    A pair ``(B,P)``, where ``B`` is a Boolean and ``P`` is a list of vertices.
+    A pair ``(B, P)``, where ``B`` is a Boolean and ``P`` is a list
+    of vertices.
 
-        * If ``B`` is ``True`` and ``find_path`` is ``False``, ``P``
-          represents a Hamiltonian cycle.
+    * If ``B`` is ``True`` and ``find_path`` is ``False``, ``P``
+      represents a Hamiltonian cycle.
 
-        * If ``B`` is ``True`` and ``find_path`` is ``True``, ``P``
-          represents a Hamiltonian path.
+    * If ``B`` is ``True`` and ``find_path`` is ``True``, ``P``
+      represents a Hamiltonian path.
 
-        * If ``B`` is ``False``, then ``P`` represents the longest path
-          found during the execution of the algorithm.
+    * If ``B`` is ``False``, then ``P`` represents the longest path
+      found during the execution of the algorithm.
 
     .. WARNING::
 
@@ -1085,7 +1088,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
     First we try the algorithm in the Dodecahedral graph, which is
     Hamiltonian, so we are able to find a Hamiltonian cycle and a
-    Hamiltonian path ::
+    Hamiltonian path::
 
         sage: from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
         sage: G=graphs.DodecahedralGraph()
@@ -1096,7 +1099,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
     Another test, now in the Möbius-Kantor graph which is also
     Hamiltonian, as in our previous example, we are able to find a
-    Hamiltonian cycle and path ::
+    Hamiltonian cycle and path::
 
         sage: G=graphs.MoebiusKantorGraph()
         sage: fh(G)
@@ -1106,7 +1109,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
     Now, we try the algorithm on a non Hamiltonian graph, the Petersen
     graph.  This graph is known to be hypohamiltonian, so a
-    Hamiltonian path can be found ::
+    Hamiltonian path can be found::
 
         sage: G=graphs.PetersenGraph()
         sage: fh(G)
@@ -1115,7 +1118,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         (True, [7, 2, 1, 0, 5, 8, 6, 9, 4, 3])
 
     We now show the algorithm working on another known hypohamiltonian
-    graph, the generalized Petersen graph with parameters 11 and 2 ::
+    graph, the generalized Petersen graph with parameters 11 and 2::
 
         sage: G=graphs.GeneralizedPetersenGraph(11,2)
         sage: fh(G)
@@ -1124,7 +1127,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         (True, [2, 1, 12, 21, 10, 0, 11, 13, 15, 17, 19, 8, 7, 6, 5, 4, 3, 14, 16, 18, 20, 9])
 
     Finally, an example on a graph which does not have a Hamiltonian
-    path ::
+    path::
 
         sage: G=graphs.HyperStarGraph(5,2)
         sage: fh(G,find_path=False)
@@ -1134,7 +1137,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
     TESTS:
 
-    :trac:`10206` hamiltonian cycle in small (di)graphs::
+    :trac:`10206` -- Hamiltonian cycle in small (di)graphs::
 
         sage: for n in range(3):
         ....:     for G in graphs(n):
@@ -1152,7 +1155,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         order 2 and size 1: (False, [0, 1])
         order 2 and size 2: (False, [0, 1])
 
-    :trac:`10206` -- hamiltonian path in small (di)graphs::
+    :trac:`10206` -- Hamiltonian path in small (di)graphs::
 
         sage: for n in range(3):
         ....:     for G in graphs(n):
@@ -1170,7 +1173,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         order 2 and size 1: (True, [0, 1])
         order 2 and size 2: (True, [0, 1])
 
-    :trac:`10206` -- non connected graphs::
+    :trac:`10206` -- disconnected graphs::
 
         sage: G = graphs.CompleteGraph(4) + Graph(1)
         sage: fh(G, find_path=False)
@@ -1179,34 +1182,38 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         (False, [0, 1, 2, 3])
         
     """
-
     from sage.misc.prandom import randint
     cdef int n = G.order()
-    cdef int m = G.num_edges()
-    cdef int i, j
-
-    # To clean the output when find_path is None or a number
-    find_path = True if find_path > 0 else False
 
     # Easy cases
     if n == 0:
         return False, []
     if n == 1:
         return False, G.vertices()
+
+    # To clean the output when find_path is None or a number
+    find_path = (find_path > 0)
+
     if G.is_clique():
         # We have an hamiltonian path since n >= 2, but we have an hamiltonian
         # cycle only if n >= 3
         return find_path or n >= 3, G.vertices()
 
+    cdef list best_path, p
     if not G.is_connected():
         # The (Di)Graph has no hamiltonian path or cycle. We search for the
         # longest path in its connected components.
-        best_path = list()
+        best_path = []
         for H in G.connected_components_subgraphs():
-            _,p = find_hamiltonian(H, max_iter=max_iter, reset_bound=reset_bound, backtrack_bound=backtrack_bound, find_path=True)
+            _,p = find_hamiltonian(H, max_iter=max_iter, reset_bound=reset_bound,
+                                   backtrack_bound=backtrack_bound, find_path=True)
             if len(p) > len(best_path):
                 best_path = p
         return False, best_path
+
+    # Misc variables used below
+    cdef int i, j
+    cdef int n_available
 
     #Initialize the path.
     cdef MemoryAllocator mem = MemoryAllocator()
@@ -1222,22 +1229,22 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     init_short_digraph(sd, G)
 
     # A list to store the available vertices at each step
-    cdef list available_vertices=[]
+    cdef list available_vertices = []
 
     #We now work towards picking a random edge
     #  First we pick a random vertex u of (out-)degree at least one
-    cdef int u = randint( 0, n-1 )
+    cdef int u = randint(0, n-1)
     while out_degree(sd, u) == 0:
-        u = randint( 0, n-1 )
+        u = randint(0, n-1)
     #  Then we pick at random a neighbor of u
-    cdef int x = randint( 0, out_degree(sd, u)-1 )
+    cdef int x = randint(0, out_degree(sd, u)-1)
     cdef int v = sd.neighbors[u][x]
     # This will be the first edge in the path
     cdef int length = 2
-    path[ 0 ] = u
-    path[ 1 ] = v
-    member[ u ] = True
-    member[ v ] = True
+    path[0] = u
+    path[1] = v
+    member[u] = True
+    member[v] = True
 
     #Initialize all the variables neccesary to start iterating
     cdef bint done = False
@@ -1249,7 +1256,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
     cdef int *longest_path = <int *>mem.allocarray(n, sizeof(int))
     memset(longest_path, -1, n * sizeof(int))
     for i in range(length):
-        longest_path[ i ] = path[ i ]
+        longest_path[i] = path[i]
 
     #Initialize a temporary path for flipping
     cdef int *temp_path = <int *>mem.allocarray(n, sizeof(int))
@@ -1257,16 +1264,17 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
     cdef bint longer = False
     cdef bint good = True
+    cdef bint flag
 
     while not done:
         counter = counter + 1
-        if counter%10 == 0:
+        if counter % 10 == 0:
             #Reverse the path
 
-            for i in range(length/2):
-                t = path[ i ]
-                path[ i ] = path[ length - i - 1]
-                path[ length -i -1 ] = t
+            for i in range(length//2):
+                t = path[i]
+                path[i] = path[length - i - 1]
+                path[length - i - 1] = t
 
         if counter > reset_bound:
             bigcount = bigcount + 1
@@ -1276,68 +1284,68 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
             memset(member, 0, n * sizeof(int))
 
             #  First we pick a random vertex u of (out-)degree at least one
-            u = randint( 0, n-1 )
+            u = randint(0, n-1)
             while out_degree(sd, u) == 0:
-                u = randint( 0, n-1 )
+                u = randint(0, n-1)
             #  Then we pick at random a neighbor of u
-            x = randint( 0, out_degree(sd, u)-1 )
+            x = randint(0, out_degree(sd, u)-1)
             v = sd.neighbors[u][x]
             #  This will be the first edge in the path
             length = 2
-            path[ 0 ] = u
-            path[ 1 ] = v
-            member[ u ] = True
-            member[ v ] = True
+            path[0] = u
+            path[1] = v
+            member[u] = True
+            member[v] = True
 
-        if counter%backtrack_bound == 0:
+        if counter % backtrack_bound == 0:
             for i in range(5):
                 member[ path[length - i - 1] ] = False
             length = length - 5
         longer = False
 
         available_vertices = []
-        u = path[ length-1 ]
+        u = path[length-1]
         for i in range(out_degree(sd, u)):
             v = sd.neighbors[u][i]
-            if not member[ v ]:
-                available_vertices.append( v )
+            if not member[v]:
+                available_vertices.append(v)
 
-        n_available = len( available_vertices )
-        if  n_available > 0:
+        n_available = len(available_vertices)
+        if n_available > 0:
             longer = True
-            x = randint( 0, n_available-1 )
-            path[ length ] = available_vertices[ x ]
+            x = randint(0, n_available-1)
+            path[length] = available_vertices[x]
             length = length + 1
-            member[ available_vertices[ x ] ] = True
+            member[available_vertices[x]] = True
 
         if not longer and length > longest:
 
             for i in range(length):
-                longest_path[ i ] = path[ i ]
+                longest_path[i] = path[i]
 
             longest = length
 
         if not longer:
 
             memset(temp_path, -1, n * sizeof(int))
-            degree = out_degree(sd, path[ length-1 ])
+            degree = out_degree(sd, path[length-1])
             while True:
-                x = randint( 0, degree-1 )
-                u = sd.neighbors[ path[length - 1] ][ x ]
-                if u != path[length - 2]:
+                x = randint(0, degree-1)
+                u = sd.neighbors[ path[length-1] ][x]
+                if u != path[length-2]:
                     break
 
             flag = False
-            j=0
+            j = 0
             for i in range(length):
                 if i > length-j-1:
                     break
                 if flag:
-                    t = path[ i ]
-                    path[ i ] = path[ length - j - 1]
-                    path[ length - j - 1 ] = t
-                    j = j+1
-                if path[ i ] == u:
+                    t = path[i]
+                    path[i] = path[length - j - 1]
+                    path[length - j - 1] = t
+                    j += 1
+                if path[i] == u:
                     flag = True
         if length == n:
             if find_path:
@@ -1345,9 +1353,9 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
             else:
                 done = has_edge(sd, path[n-1], path[0] ) != NULL
 
-        if bigcount*reset_bound > max_iter:
+        if bigcount * reset_bound > max_iter:
             verts = G.vertices()
-            output = [ verts[ longest_path[i] ] for i in range(longest) ]
+            output = [verts[ longest_path[i] ] for i in range(longest)]
             free_short_digraph(sd)
             return (False, output)
     # #
@@ -1359,16 +1367,16 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         u = path[i]
         v = path[i + 1]
         #Graph is simple, so both arcs are present
-        if has_edge(sd, u, v ) == NULL:
+        if has_edge(sd, u, v) == NULL:
             good = False
             break
     if good is False:
-        raise RuntimeError('Vertices %d and %d are consecutive in the cycle but are not adjacent.' % (u, v))
+        raise RuntimeError('vertices %d and %d are consecutive in the cycle but are not adjacent' % (u, v))
     if not find_path and has_edge(sd, path[0], path[n-1] ) == NULL:
-        raise RuntimeError('Vertices %d and %d are not adjacent.' % (path[0], path[n-1]))
+        raise RuntimeError('vertices %d and %d are not adjacent' % (path[0], path[n-1]))
 
     verts = G.vertices()
-    output = [ verts[path[i]] for i in range(length)]
+    output = [verts[path[i]] for i in range(length)]
     free_short_digraph(sd)
 
     return (True, output)

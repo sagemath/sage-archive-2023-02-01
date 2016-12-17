@@ -6829,16 +6829,17 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return g
 
-    def hamiltonian_path(self, s=None, t=None, use_edge_labels=False, algorithm='MILP', solver=None, verbose=0):
+    def hamiltonian_path(self, s=None, t=None, use_edge_labels=False,
+                         algorithm='MILP', solver=None, verbose=0):
         r"""
         Return a Hamiltonian path of the current graph/digraph.
 
-        A path is Hamiltonian if it goes through all the vertices exactly once.
-        Computing a Hamiltonian path being NP-Complete, this algorithm could run
-        for some time depending on the instance.
+        A path is Hamiltonian if it goes through all the vertices exactly
+        once. Computing a Hamiltonian path being NP-Complete, this
+        algorithm could run for some time depending on the instance.
 
-        When ``use_edge_labels == True``, this method returns a minimum weight
-        hamiltonian path.
+        When ``use_edge_labels == True``, this method returns a minimum
+        weight hamiltonian path.
 
         .. SEEALSO::
 
@@ -6847,39 +6848,35 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``s`` (vertex) -- forces the source of the path (the method then
-          returns a hamiltonian path starting at ``s``). The argument is set to
-          ``None`` by default, which means that no constraint is set upon the
-          first vertex in the path.
+        - ``s`` -- vertex (optional); if specified, then forces the source
+          of the path (the method then returns a Hamiltonian path starting
+          at ``s``)
 
-        - ``t`` (vertex) -- forces the destination of the path (the method then
-          returns a hamiltonian path ending at ``t``). The argument is set to
-          ``None`` by default, which means that no constraint is set upon the
-          last vertex in the path.
+        - ``t`` -- vertex (optional); if specified, then forces the
+          destination of the path (the method then returns a Hamiltonian
+          path ending at ``t``)
 
-        - ``use_edge_labels`` (boolean) -- whether the labels on the edges are
-          to be considered as weights (a label set to ``None`` or ``{}`` being
-          considered as a weight of `1`). Set to ``False`` by default.
+        - ``use_edge_labels`` -- boolean (default: ``False``); whether the
+          labels on the edges are to be considered as weights (a label set
+          to ``None`` or ``{}`` being considered as a weight of `1`)
 
-        - ``algorithm`` -- one of ``"MILP"`` (default) or ``"backtrack"``. Two
-          remarks on this respect:
+        - ``algorithm`` -- one of ``"MILP"`` (default) or ``"backtrack"``;
+          two remarks on this respect:
 
-          * While the MILP formulation returns an exact answer, the backtrack
-            algorithm is a randomized heuristic.
+          * While the MILP formulation returns an exact answer, the
+            backtrack algorithm is a randomized heuristic.
 
-          * As the backtrack algorithm does not support edge weighting, setting
+          * The backtrack algorithm does not support edge weighting, so setting
             ``use_edge_labels=True`` will force the use of the MILP algorithm.
 
-        - ``solver`` -- (default: ``None``) Specify the Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
+        - ``solver`` -- (default: ``None``) specify the Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used.
+          For more information on LP solvers and which default solver is
+          used, see the method
           :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
-          verbosity. Set to 0 by default, which means quiet.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity with 0 meaning quiet
 
         OUTPUT:
 
@@ -6890,9 +6887,9 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        The `3\times 3`-grid has an hamiltonian path, an hamiltonian path
+        The `3 \times 3`-grid has an Hamiltonian path, an hamiltonian path
         starting from vertex `(0, 0)` and ending at vertex `(2, 2)`, but no
-        hamiltonian path starting from `(0, 0)` and ending at `(0, 1)`::
+        Hamiltonian path starting from `(0, 0)` and ending at `(0, 1)`::
 
             sage: g = graphs.Grid2dGraph(3, 3)
             sage: g.hamiltonian_path()
@@ -6914,12 +6911,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_path()
             Traceback (most recent call last):
             ...
-            ValueError: the hamiltonian path problem is not well defined for empty and one-element (di)graphs
+            ValueError: the Hamiltonian path problem is not well defined
+             for empty and one-element (di)graphs
             sage: g = Graph(1)
             sage: g.hamiltonian_path()
             Traceback (most recent call last):
             ...
-            ValueError: the hamiltonian path problem is not well defined for empty and one-element (di)graphs
+            ValueError: the Hamiltonian path problem is not well defined
+             for empty and one-element (di)graphs
 
         A non-connected (di)graph has no hamiltonian path::
 
@@ -6933,16 +6932,18 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         if self.order() < 2:
-            raise ValueError('the hamiltonian path problem is not well ' + \
+            raise ValueError('the Hamiltonian path problem is not well ' +
                              'defined for empty and one-element (di)graphs')
+
         if not self.is_connected():
             return (0, None) if use_edge_labels else None
 
         path = self.longest_path(s=s, t=t, use_edge_labels=use_edge_labels,
-                                 algorithm=algorithm, solver=solver, verbose=verbose)
+                                 algorithm=algorithm, solver=solver,
+                                 verbose=verbose)
         if use_edge_labels:
-            return path if path[1].order()==self.order() else (0, None)
-        return path if path.order()==self.order() else None
+            return path if path[1].order() == self.order() else (0, None)
+        return path if path.order() == self.order() else None
 
     def traveling_salesman_problem(self, use_edge_labels = False, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):
         r"""

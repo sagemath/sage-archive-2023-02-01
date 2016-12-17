@@ -151,21 +151,23 @@ void constant::do_print_python_repr(const print_python_repr & c, unsigned level)
 
 bool constant::info(unsigned inf) const
 {
-	if (inf == info_flags::polynomial)
-		return true;
+        if (name == "NaN")
+                return false;
+        if (inf == info_flags::polynomial)
+                return true;
         if (inf == info_flags::inexact)
                 return false;
-	if (inf == info_flags::real)
-		return domain==domain::real or domain==domain::positive ;
-	if (inf==info_flags::positive)
-		return domain == domain::positive;
-	if (inf==info_flags::nonnegative)
-		return domain == domain::positive and evalf(0, nullptr).is_zero();
-	if (inf==info_flags::infinity) {
-		return domain == domain::infinity;
-	}
-	else
-		return inherited::info(inf);
+        if (inf == info_flags::real)
+                return domain==domain::real or domain==domain::positive ;
+        if (inf==info_flags::positive)
+                return domain == domain::positive;
+        if (inf==info_flags::nonnegative)
+                return domain == domain::positive and evalf(0, nullptr).is_zero();
+        if (inf==info_flags::infinity) {
+                return domain == domain::infinity;
+        }
+        else
+                return inherited::info(inf);
 }
 
 ex constant::evalf(int level, PyObject* parent) const

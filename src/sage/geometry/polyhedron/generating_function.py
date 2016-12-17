@@ -503,7 +503,7 @@ def __generating_function_of_polyhedron__(
     for i, coeffs in enumerate(inequalities):
         L = LaurentPolynomialRing(L, 'mu{}'.format(i), sparse=True)
         l = L.gen()
-        logger.debug('mapping %s --> %s', l, pretty_pretty(coeffs, 0))
+        logger.debug('mapping %s --> %s', l, repr_pretty(coeffs, 0))
         it_coeffs = iter(coeffs)
         numerator *= l**next(it_coeffs)
         assert numerator.parent() == L

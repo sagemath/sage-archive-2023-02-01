@@ -214,7 +214,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         elif self.__u.is_zero():
             self.__n = 0
             return
-        # we already catched the infinity and zero cases
+        # we already caught the infinity and zero cases
         cdef long v = <long> self.__u.valuation()
         self.__n += v
         self.__u = self.__u >> v

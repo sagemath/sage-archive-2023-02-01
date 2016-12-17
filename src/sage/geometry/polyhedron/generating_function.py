@@ -471,7 +471,7 @@ def __generating_function_of_polyhedron__(
     import logging
     logger = logging.getLogger(__name__)
 
-    from sage.geometry.polyhedron.representation import repr_pretty
+    from .representation import repr_pretty
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.rings.polynomial.omega import _Omega_
@@ -631,7 +631,7 @@ def _prepare_inequalities_(inequalities, B):
     logger = logging.getLogger(__name__)
 
     from itertools import takewhile
-    from sage.geometry.polyhedron.representation import repr_pretty
+    from .representation import repr_pretty
     from sage.graphs.digraph import DiGraph
     from sage.matrix.constructor import matrix
     from sage.modules.free_module_element import vector

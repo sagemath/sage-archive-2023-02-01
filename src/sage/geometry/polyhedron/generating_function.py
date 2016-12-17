@@ -471,6 +471,7 @@ def __generating_function_of_polyhedron__(
     import logging
     logger = logging.getLogger(__name__)
 
+    from sage.geometry.polyhedron.representation import repr_pretty
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.rings.polynomial.omega import _Omega_
@@ -502,7 +503,7 @@ def __generating_function_of_polyhedron__(
     for i, coeffs in enumerate(inequalities):
         L = LaurentPolynomialRing(L, 'mu{}'.format(i), sparse=True)
         l = L.gen()
-        logger.debug('mapping %s --> %s', l, pretty_inequality(coeffs))
+        logger.debug('mapping %s --> %s', l, pretty_pretty(coeffs, 0))
         it_coeffs = iter(coeffs)
         numerator *= l**next(it_coeffs)
         assert numerator.parent() == L
@@ -550,34 +551,6 @@ def __generating_function_of_polyhedron__(
                          list((1-t, -1) for t in terms),
                          sort=Factorization_sort,
                          simplify=Factorization_simplify)
-
-
-def pretty_inequality(ineq, indices=None):
-    r"""
-    Format the given inequality pretty.
-
-    INPUT:
-
-    - ``ineq`` -- a list or tuple.
-
-    - ``indices`` -- (default: ``None``) a list or tuple.
-
-    OUTPUT:
-
-    A string.
-
-    """
-    from sage.symbolic.ring import SR
-    from sage.modules.free_module_element import vector
-
-    if indices is None:
-        indices = range(len(ineq)-1)
-    vars = vector([1] + list(SR("b{}".format(i)) for i in indices))
-    v = vector(ineq)
-    positive_part = vector([max(c, 0) for c in v])
-    negative_part = - (v - positive_part)
-    assert v == positive_part - negative_part
-    return '{} >= {}'.format(positive_part*vars, negative_part*vars)
 
 
 class Summandization(tuple):
@@ -669,6 +642,7 @@ def prepare_inequalities(inequalities, B):
     logger = logging.getLogger(__name__)
 
     from itertools import takewhile
+    from sage.geometry.polyhedron.representation import repr_pretty
     from sage.graphs.digraph import DiGraph
     from sage.matrix.constructor import matrix
     from sage.modules.free_module_element import vector
@@ -681,7 +655,7 @@ def prepare_inequalities(inequalities, B):
         if all(c >= 0 for c in coeffs):
             logger.debug('generating_function_of_polyhedron: '
                          'skipping %s (all coefficients >= 0)',
-                         pretty_inequality(coeffs))
+                         repr_pretty(coeffs, 0))
             continue
         constant = coeffs[0]
         ones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == 1)
@@ -694,7 +668,7 @@ def prepare_inequalities(inequalities, B):
         elif len(ones) == 1 and len(mones) == 1 and not absgetwo:
             logger.debug('generating_function_of_polyhedron: '
                          'handling %s',
-                         pretty_inequality(coeffs))
+                         repr_pretty(coeffs, 0))
             chain_links[(mones[0], ones[0])] = constant
         else:
             inequalities_filtered.append(coeffs)

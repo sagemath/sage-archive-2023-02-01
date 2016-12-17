@@ -333,7 +333,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         Return the hash of ``self``.
 
-        TESTS:
+        TESTS::
 
             sage: R = LaurentPolynomialRing(QQ, 't')
 

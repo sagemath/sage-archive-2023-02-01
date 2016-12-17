@@ -4124,6 +4124,63 @@ class Polyhedron_base(Element):
         from sage.geometry.lattice_polytope import LatticePolytope
         return LatticePolytope(vertices)
 
+    def generating_function(self, **kwds):
+        r"""
+        Return the generating function of the integer points of
+        the polyhedron's orthant with only nonnegative coordinates.
+
+        This calls
+        :func:`~sage.geometry.polyhedron.generting_function.generating_function_of_polyhedron`,
+        so have a look at the documentation and examples there.
+
+        INPUT:
+
+        The following keyword arguments are passed to
+        :func:`~sage.geometry.polyhedron.generting_function.generating_function_of_polyhedron`:
+
+        - ``split`` -- (default: ``False``) ``False`` computes the generating
+          function directly, whereas ``True`` splits the ``polyhedron``
+          into several small disjoint polyhedra and adds the results.
+          ``split`` may also be a list of disjoint polyhedra.
+
+        - ``result_as_tuple`` -- (default: ``None``) a boolean or ``None``.
+
+        - ``indices`` -- (default: ``None``) a list or tuple. If this
+          is ``None``, this is automatically determined.
+
+        - ``Factorization_sort`` (default: ``False``) and
+          ``Factorization_simplify`` (default: ``True``) -- are passed on to
+          :class:`sage.structure.factorization.Factorization` when creating
+          the result.
+
+        - ``sort_factors`` -- (default: ``False``) a boolean.
+
+        OUTPUT:
+
+        The generating function as a (partial)
+        :class:`~sage.structure.factorization.Factorization`
+        of the result whose factors are laurent polynomials or
+        a tuple of such elements.
+
+        EXAMPLES::
+
+            sage: P2 = (
+            ....:   Polyhedron(ieqs=[(0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, -1)]),
+            ....:   Polyhedron(ieqs=[(0, -1, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0)]))
+            sage: P2[0].generating_function(sort_factors=True)
+            1 * (-y0 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
+            sage: P2[1].generating_function(sort_factors=True)
+            1 * (-y1 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y2 + 1)^-1
+            sage: (P2[0] & P2[1]).Hrepresentation()
+            (An equation (1, 0, -1) x + 0 == 0,
+             An inequality (1, 0, 0) x + 0 >= 0,
+             An inequality (0, 1, 0) x + 0 >= 0)
+            sage: (P2[0] & P2[1]).generating_function(sort_factors=True)
+            1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
+        """
+        from .generating_function import generating_function_of_polyhedron
+        return generating_function_of_polyhedron(self, **kwds)
+
     def _integral_points_PALP(self):
         r"""
         Return the integral points in the polyhedron using PALP.

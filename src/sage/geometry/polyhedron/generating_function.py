@@ -953,7 +953,7 @@ def _compositions_mod_(u, r):
 
         sage: from sage.geometry.polyhedron.generating_function import _compositions_mod_
         sage: Z = Zmod(2)
-        sage: list(compositions_mod((vector([Z(1), Z(1)]),), vector([Z(0)])))
+        sage: list(_compositions_mod_((vector([Z(1)]), vector([Z(1)])), vector([Z(0)])))
         [(0, 0), (1, 1)]
     """
     if not u:

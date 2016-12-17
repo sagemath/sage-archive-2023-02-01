@@ -268,6 +268,88 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         else:
             return mat
 
+
+    def _weak_popov_form_jsrn(self, transformation=False, shifts=None):
+        """
+        """
+        M = self.__copy__()
+        def simple_transformation(i, j, pos):
+            """
+            Perform a simple transformationwith row j on row i, reducing
+            position pos.
+
+            If M[i,pos] has lower degree than M[j,pos], nothing is changed.
+            """
+            pow = M[i,pos].degree() - M[j,pos].degree()
+            if pow < 0:
+                return
+            coeff = -M[i, pos].leading_coefficient() / M[j, pos].leading_coefficient()
+            x = M.base_ring().gen()
+            multiple = x**pow * coeff
+            M.add_multiple_of_row(i, j, multiple)
+
+        if shifts and len(shifts) != M.ncols():
+            raise ValueError("The number of shifts must equal the number of columns")
+
+        if shifts:
+            def LP(v):
+                best = None
+                bestp = None
+                for p in range(0,len(v)):
+                    if not v[p].is_zero():
+                        vpdeg = v[p].degree() + shifts[p]
+                        if vpdeg >= best:
+                            best = vpdeg
+                            bestp = p
+                if best == None:
+                    return -1
+                else:
+                    return bestp
+        else:
+            def LP(v):
+                bestp = 0
+                best = v[0].degree()
+                for p in range(1,len(v)):
+                    vpdeg = v[p].degree()
+                    if vpdeg >= best:
+                        best = vpdeg
+                        bestp = p
+                if best < 0:
+                    return -1
+                else:
+                    return bestp
+
+        # initialise conflicts list and LP map
+        LP_to_row = dict( (i,[]) for i in range(M.ncols()))
+        conflicts = []
+        for i in range(M.nrows()):
+            lp = LP(M.row(i))
+            if lp >= 0:
+                ls = LP_to_row[lp]
+                ls.append(i)
+                if len(ls) > 1:
+                    conflicts.append(lp)
+        
+        # while there is a conflict, do a simple transformation
+        while conflicts:
+            lp = conflicts.pop()
+            ls = LP_to_row[lp]
+            i, j = ls.pop(), ls.pop()
+            if M[i,lp].degree() < M[j, lp].degree():
+                j,i = i,j
+
+            simple_transformation(i, j, lp)
+            ls.append(j)
+            lp_new = LP(M.row(i))
+            if lp_new > -1:
+                ls_new = LP_to_row[lp_new]
+                ls_new.append(i)
+                if len(ls_new) > 1:
+                    conflicts.append(lp_new)
+        return M
+
+
+
     def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
         r"""
         Return a row reduced form of this matrix.

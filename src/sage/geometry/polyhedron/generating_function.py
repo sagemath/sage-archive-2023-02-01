@@ -2,7 +2,7 @@ r"""
 Generating Function of Polyhedron
 
 This module provides :func:`generating_function_of_polyhedron` which
-computes the generating function of an integer valued polyhedron.
+computes the generating function of the integer points of a polyhedron.
 
 
 Various
@@ -387,7 +387,7 @@ def _generating_function_of_polyhedron_(
         polyhedron, indices=None, **kwds):
     r"""
     Helper function for :func:`generating_function_of_polyhedron` which
-    does the actual computation of the generating function.
+    does the mid-level stuff.
 
     TESTS::
 

@@ -321,6 +321,9 @@ cdef class SymbolicRing(CommutativeRing):
 
         Check that :trac:`22068` is fixed::
 
+            sage: _ = var('x')
+            sage: sin(x).subs(x=RR('NaN'))
+            sin(NaN)
             sage: SR(RR('NaN')).is_real()
             False
         """
@@ -344,10 +347,12 @@ cdef class SymbolicRing(CommutativeRing):
                                          unsigned_infinity)
         from sage.structure.factorization import Factorization
 
-        if isinstance(x, (Integer, RealNumber, float, long, complex)):
-            if x == RR('NaN'):
+        if isinstance(x, RealNumber):
+            if x.is_NaN():
                 from sage.symbolic.constants import NaN
                 return NaN
+            GEx_construct_pyobject(exp, x)
+        if isinstance(x, (Integer, float, long, complex)):
             GEx_construct_pyobject(exp, x)
         elif isinstance(x, int):
             GEx_construct_long(&exp, x)

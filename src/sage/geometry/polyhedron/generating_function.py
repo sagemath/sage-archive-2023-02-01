@@ -116,7 +116,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
         ....:     for i in I:
         ....:         result &= i
         ....:     return result
-        sage: for J in subsets(range(len(P3))):  # TODO: check more results
+        sage: for J in subsets(range(len(P3))):
         ....:     if not J:
         ....:         continue
         ....:     P = intersect([P3[j] for j in J])
@@ -662,7 +662,7 @@ def _prepare_inequalities_(inequalities, B):
         absgetwo = tuple(i+1 for i, c in enumerate(coeffs[1:]) if abs(c) >= 2)
         if len(ones) == 1 and not mones and not absgetwo:
             if constant < 0:
-                # This case could be cleverly skipped... (TODO at one point)
+                # This case could be cleverly skipped...
                 inequalities_filtered.append(coeffs)
         elif len(ones) == 1 and len(mones) == 1 and not absgetwo:
             logger.debug('handling %s',

@@ -435,7 +435,7 @@ def _generating_function_of_polyhedron_(
         raise ValueError('Not all coefficient vectors of the equations '
                          'have the same length.')
 
-    mods = generate_mods(equations)
+    mods = _generate_mods_(equations)
     logger.debug('splitting by moduli %s', mods)
 
     return tuple(__generating_function_of_polyhedron__(
@@ -487,13 +487,13 @@ def __generating_function_of_polyhedron__(
                  len(inequalities), len(equations))
 
     extra_factor_mod, rules_mod, inequalities, equations = \
-        prepare_mod(mod, B, inequalities, equations)
+        _prepare_mod_(mod, B, inequalities, equations)
 
     extra_factor_equations, rules_equations, indices_equations = \
-        prepare_equations(equations, B)
+        _prepare_equations_(equations, B)
 
     inequalities, extra_factor_inequalities, rules_inequalities = \
-        prepare_inequalities(inequalities, B)
+        _prepare_inequalities_(inequalities, B)
 
     logger.info('%s inequalities left; using Omega...', len(inequalities))
 
@@ -564,75 +564,75 @@ class Summandization(tuple):
     __str__ = __repr__
 
 
-def prepare_inequalities(inequalities, B):
+def _prepare_inequalities_(inequalities, B):
     r"""
     Split off (simple) inequalities which can be handled better
     without passing them to Omega.
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import prepare_inequalities
+        sage: from sage.geometry.polyhedron.generating_function import _prepare_inequalities_
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
-        sage: prepare_inequalities([(0, -1, 1, 0), (2, -1, -1, 1)], B)
+        sage: _prepare_inequalities_([(0, -1, 1, 0), (2, -1, -1, 1)], B)
         ([(2, -2, -1, 1)], 1, {y2: y2, y1: y1, y0: y0*y1})
-        sage: prepare_inequalities([(-1, -1, 1, 0), (2, -1, -1, 1)], B)
+        sage: _prepare_inequalities_([(-1, -1, 1, 0), (2, -1, -1, 1)], B)
         ([(1, -2, -1, 1)], y1, {y2: y2, y1: y1, y0: y0*y1})
-        sage: prepare_inequalities([(2, -1, 1, 0), (2, -1, -1, 1)], B)
+        sage: _prepare_inequalities_([(2, -1, 1, 0), (2, -1, -1, 1)], B)
         ([(4, -2, -1, 1)], y1^-2, {y2: y2, y1: y1, y0: y0*y1})
 
     TESTS::
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
-        sage: prepare_inequalities([(1, 1, -1, 0), (1, -1, 0, 1),
+        sage: _prepare_inequalities_([(1, 1, -1, 0), (1, -1, 0, 1),
         ....:                       (2, -1, -1, 3)], B)
         ([(-3, 2, 1, 3)], y0^-1*y2^-2, {y2: y2, y1: y0*y1*y2, y0: y0*y2})
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
-        sage: prepare_inequalities([(-1, 1, -1, 0, 0)], B)
+        sage: _prepare_inequalities_([(-1, 1, -1, 0, 0)], B)
         ([], y0, {y3: y3, y2: y2, y1: y0*y1, y0: y0})
-        sage: prepare_inequalities([(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
+        sage: _prepare_inequalities_([(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
         ....:                       (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)], B)
         ([(1, 1, 0, 0, -1)], y0, {y3: y3, y2: y2, y1: y0*y1*y3, y0: y0})
-        sage: prepare_inequalities([(-2, 1, -1, 0, 0)], B)
+        sage: _prepare_inequalities_([(-2, 1, -1, 0, 0)], B)
         ([], y0^2, {y3: y3, y2: y2, y1: y0*y1, y0: y0})
 
-        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
+        sage: _prepare_inequalities_([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
         ....:                       (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)], B)
         ([(1, 0, -1, 1, 1)],
          y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
+        sage: _prepare_inequalities_([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
         ....:                       (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)], B)
         ([(1, 0, 1, -1, 1)],
          y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
+        sage: _prepare_inequalities_([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
         ....:                       (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
         ([(1, 0, -1, 1, 1)],
          y2^3*y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
+        sage: _prepare_inequalities_([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
         ....:                       (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
         ([(1, 0, 1, -1, 1)],
          y2^2*y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        sage: _prepare_inequalities_([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
         ....:                       (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)], B)
         ([(1, 0, -1, 1, 1)],
          y1^2*y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        sage: _prepare_inequalities_([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
         ....:                       (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)], B)
         ([(1, 0, 1, -1, 1)],
          y1^3*y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        sage: _prepare_inequalities_([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
         ....:                       (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
         ([(1, 0, -1, 1, 1)],
          y1^2*y2^3*y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        sage: _prepare_inequalities_([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
         ....:                       (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
         ([(1, 0, 1, -1, 1)],
          y1^3*y2^2*y3^3,
@@ -792,13 +792,13 @@ def prepare_equations(equations, B):
     return factor, rules, tuple(i-1 for i in indices)
 
 
-def generate_mods(equations):
+def _generate_mods_(equations):
     from sage.arith.misc import lcm
     from sage.matrix.constructor import matrix
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ
 
-    TE, TEi, TEin = prepare_equations_transformation(matrix(equations))
+    TE, TEi, TEin = _prepare_equations_transformation_(matrix(equations))
     TEin = TEin[1:]
     if TE.base_ring() == ZZ:
         mods = [{}]
@@ -823,16 +823,16 @@ def generate_mods(equations):
     return mods
 
 
-def prepare_mod(mod, B, *vecs):
+def _prepare_mod_(mod, B, *vecs):
     r"""
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import prepare_mod
+        sage: from sage.geometry.polyhedron.generating_function import _prepare_mod_
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
-        sage: prepare_mod({0: (2, 1)}, B, [(1, -1, 0, 2)])
+        sage: _prepare_mod_({0: (2, 1)}, B, [(1, -1, 0, 2)])
         (y0, {y2: y2, y1: y1, y0: y0^2}, ((0, -2, 0, 2),))
-        sage: prepare_mod({0: (2, 1), 1: (2, 1)}, B,
+        sage: _prepare_mod_({0: (2, 1), 1: (2, 1)}, B,
         ....:             [(0, -1, -1, 2)], [(0, -1, 1, 0)])
         (y0*y1, {y2: y2, y1: y1^2, y0: y0^2},
          ((-2, -2, -2, 2),), ((0, -2, 2, 0),))

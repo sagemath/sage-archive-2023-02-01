@@ -7541,7 +7541,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         ncols = self.ncols()
         nrows = self.nrows()
-        if N.ncols() <> ncols or N.nrows() <> nrows:
+        if N.ncols() != ncols or N.nrows() != nrows:
             if check:
                 return (False, None)
             else:
@@ -13747,7 +13747,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         .. NOTE::
 
-            An efffort has been made to optimize computation of the form,
+            An effort has been made to optimize computation of the form,
             but no such work has been done for the computation of the
             transformation matrix, so for fastest results do not request the
             transformation matrix.

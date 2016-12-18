@@ -656,6 +656,10 @@ REFERENCES:
             submitted, 2012. Preprint:
             http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
 
+.. [GGD2011] \E. Girondo, \G. Gonzalez-Diez, *Introduction to Compact
+             Riemann surfaces and Dessins d'enfant*, (2011)
+             London Mathematical Society, Student Text 79.
+
 .. [GHJV1994] \E. Gamma, R. Helm, R. Johnson, J. Vlissides, *Design
               Patterns: Elements of Reusable Object-Oriented
               Software*. Addison-Wesley (1994). ISBN 0-201-63361-2.
@@ -967,8 +971,11 @@ REFERENCES:
              of three spherical harmonics', Comput. Phys. Commun.,
              Volume 25, pp. 81-85 (1982)
 
-.. [Lee2011] \J. M. Lee, *Introduction to Topological Manifolds*,
-             Springer-Verlag, GTM volume 202, 2011.
+.. [Lee1997] \J. M. Lee, *Riemannian Manifolds*, Springer (New York) (1997);
+             :doi:`10.1007/b98852`
+
+.. [Lee2011] \J. M. Lee, *Introduction to Topological Manifolds*, 2nd ed.,
+             Springer (New York) (2011); :doi:`10.1007/978-1-4419-7940-7`
 
 .. [Lee2013] \J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed.,
              Springer (New York) (2013); :doi:`10.1007/978-1-4419-9982-5`
@@ -1261,6 +1268,9 @@ REFERENCES:
              Math. Soc. Monogr. (N.S.). Oxford University
              Press. (1993).
 
+.. [Rho69] John Rhodes, *Characters and complexity of finite semigroups*
+           \J. Combinatorial Theory, vol 6, 1969
+
 .. [RH2003] \J. Rasch and A. C. H. Yu, 'Efficient Storage Scheme for
             Pre-calculated Wigner 3j, 6j and Gaunt Coefficients',
             SIAM J. Sci. Comput. Volume 25, Issue 4,
@@ -1340,7 +1350,7 @@ REFERENCES:
              :doi:`10.1007/978-1-4684-9322-1`,
              ISBN 978-1-4684-9322-1.
 
-.. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
+.. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 
@@ -1497,6 +1507,10 @@ REFERENCES:
 
 .. [Web2007] James Webb. *Game theory: decisions, interaction and
              Evolution*. Springer Science & Business Media, 2007.
+
+.. [Wei1994] Charles A. Weibel, *An introduction to homological
+             algebra*. Cambridge Studies in Advanced Math., vol. 38,
+             Cambridge Univ. Press, 1994.
 
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.

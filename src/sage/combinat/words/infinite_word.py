@@ -28,7 +28,7 @@ over an alphabet `A`::
 ::
 
     sage: def t(n):
-    ...       return add(Integer(n).digits(base=2)) % 2
+    ....:     return add(Integer(n).digits(base=2)) % 2
     sage: Word(t, alphabet = [0, 1])
     word: 0110100110010110100101100110100110010110...
 

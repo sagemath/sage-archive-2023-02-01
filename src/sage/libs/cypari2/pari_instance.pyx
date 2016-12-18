@@ -510,13 +510,11 @@ cdef class PariInstance(PariInstance_auto):
         # As a simple heuristic, we set the virtual stack to 1/4 of the
         # virtual memory.
 
-        from sage.misc.memory_info import MemoryInfo
-        mem = MemoryInfo()
-
         pari_init_opts(size, maxprime, INIT_DFTm)
-        
-        sizemax = mem.virtual_memory_limit() // 4
 
+        from sage.misc.getusage import virtual_memory_limit
+
+        sizemax = virtual_memory_limit() // 4
         if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
             # Cygwin's mmap is broken for large NORESERVE mmaps (>~ 4GB) See
             # http://trac.sagemath.org/ticket/20463 So we set the max stack

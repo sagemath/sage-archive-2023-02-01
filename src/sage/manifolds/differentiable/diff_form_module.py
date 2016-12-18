@@ -6,7 +6,7 @@ with values on a differentiable manifold `M` via a differentiable map
 `\Phi:\ U \rightarrow M` (possibly `U = M` and `\Phi = \mathrm{Id}_M`)
 is a module over the algebra `C^k(U)` of differentiable scalar fields on `U`.
 It is a free module if and only if `M` is parallelizable. Accordingly,
-two classesimplement `\Lambda^p(U, \Phi)`:
+two classes implement `\Lambda^p(U, \Phi)`:
 
 - :class:`DiffFormModule` for differential forms with values on a generic
   (in practice, not parallelizable) differentiable manifold `M`

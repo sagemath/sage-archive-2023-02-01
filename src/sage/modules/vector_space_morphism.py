@@ -692,7 +692,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     from sage.modules.module import is_VectorSpace
     from sage.modules.free_module import VectorSpace
     from sage.categories.homset import Hom
-    from sage.symbolic.ring import SymbolicRing
+    from sage.symbolic.ring import SR
     from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
     from inspect import isfunction
 
@@ -742,7 +742,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         pass
     elif isinstance(arg2, Vector_callable_symbolic_dense):
         args = arg2.parent().base_ring()._arguments
-        exprs = arg2.change_ring(SymbolicRing())
+        exprs = arg2.change_ring(SR)
         m = len(args)
         n = len(exprs)
         if m != D.degree():

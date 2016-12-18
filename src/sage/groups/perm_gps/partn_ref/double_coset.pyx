@@ -92,11 +92,6 @@ REFERENCE:
 
 include 'data_structures_pyx.pxi' # includes bitsets
 
-cdef inline int cmp(int a, int b):
-    if a < b: return -1
-    elif a == b: return 0
-    else: return 1
-
 # Functions
 
 cdef bint all_children_are_equivalent_trivial(PartitionStack *PS, void *S):
@@ -110,7 +105,7 @@ cdef int compare_perms(int *gamma_1, int *gamma_2, void *S1, void *S2, int degre
     cdef list MS2 = <list> S2
     cdef int i, j
     for i from 0 <= i < degree:
-        j = cmp(MS1[gamma_1[i]], MS2[gamma_2[i]])
+        j = int_cmp(MS1[gamma_1[i]], MS2[gamma_2[i]])
         if j != 0: return j
     return 0
 

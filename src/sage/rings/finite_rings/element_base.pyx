@@ -130,29 +130,50 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         ## applies here.
         return codomain(self.polynomial()(im_gens[0]))
 
-    def minpoly(self,var='x'):
+    def minpoly(self,var='x',algorithm='pari'):
         """
         Returns the minimal polynomial of this element
         (over the corresponding prime subfield).
 
+        INPUT:
+
+        - ``var`` - string (default: 'x')
+
+        - ``algorithm`` - string (default: 'pari')
+
+          - 'pari' -- use pari's minpoly
+
+          - 'matrix' -- return the minpoly computed from the matrix of
+            left multiplication by self
+
         EXAMPLES::
 
+            sage: from sage.rings.finite_rings.element_base import FinitePolyExtElement
             sage: k.<a> = FiniteField(19^2)
             sage: parent(a)
             Finite Field in a of size 19^2
-            sage: b=a**20;p=b.charpoly("x");p
-            x^2 + 15*x + 4
-            sage: factor(p)
-            (x + 17)^2
-            sage: b.minpoly('x')
+            sage: b=a**20
+            sage: p=FinitePolyExtElement.minpoly(b,"x", algorithm="pari")
+            sage: q=FinitePolyExtElement.minpoly(b,"x", algorithm="matrix")
+            sage: q == p
+            True
+            sage: p
             x + 17
         """
-        p=self.charpoly(var);
-        for q in p.factor():
-            if q[0](self)==0:
-                return q[0]
-        # This shouldn't be reached, but you never know!
-        raise ArithmeticError("Could not find the minimal polynomial")
+        if self.polynomial().degree() == 0:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(self.parent().prime_subfield(), var)
+            return R.gen() - self.polynomial()[0]
+
+        if algorithm == 'pari':
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(self.parent().prime_subfield(), var)
+            return R(self._pari_().minpoly('x').lift())
+        elif algorithm == 'matrix':
+            return self._matrix_().minpoly(var)
+        else:
+            raise ValueError("unknown algorithm '%s'" % algorithm)
+
 
         ## We have two names for the same method
         ## for compatibility with sage.matrix
@@ -358,7 +379,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         f = self.polynomial()._pari_with_name(var)
         return 'Mod({0}, {1})'.format(f, g)
 
-    def charpoly(self, var='x', algorithm='matrix'):
+    def charpoly(self, var='x', algorithm='pari'):
         """
         Return the characteristic polynomial of self as a polynomial with given variable.
 
@@ -366,34 +387,39 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         - ``var`` -- string (default: 'x')
 
-        - ``algorithm`` -- string (default: 'matrix')
+        - ``algorithm`` -- string (default: 'pari')
+
+          - 'pari' -- use pari's charpoly
 
           - 'matrix' -- return the charpoly computed from the matrix of
             left multiplication by self
-
-          - 'pari' -- use pari's charpoly routine on polymods, which
-            is not very good except in small cases
 
         The result is not cached.
 
         EXAMPLES::
 
-            sage: k.<a> = GF(19^2)
+            sage: from sage.rings.finite_rings.element_base import FinitePolyExtElement
+            sage: k.<a> = FiniteField(19^2)
             sage: parent(a)
             Finite Field in a of size 19^2
-            sage: a.charpoly('X')
-            X^2 + 18*X + 2
-            sage: a^2 + 18*a + 2
-            0
-            sage: a.charpoly('X', algorithm='pari')
-            X^2 + 18*X + 2
+            sage: b=a**20
+            sage: p=FinitePolyExtElement.charpoly(b,"x", algorithm="pari")
+            sage: q=FinitePolyExtElement.charpoly(b,"x", algorithm="matrix")
+            sage: q == p
+            True
+            sage: p
+            x^2 + 15*x + 4
+            sage: factor(p)
+            (x + 17)^2
+            sage: b.minpoly('x')
+            x + 17
         """
-        if algorithm == 'matrix':
-            return self._matrix_().charpoly(var)
-        elif algorithm == 'pari':
+        if algorithm == 'pari':
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             R = PolynomialRing(self.parent().prime_subfield(), var)
             return R(self._pari_().charpoly('x').lift())
+        elif algorithm == 'matrix':
+            return self._matrix_().charpoly(var)
         else:
             raise ValueError("unknown algorithm '%s'" % algorithm)
 

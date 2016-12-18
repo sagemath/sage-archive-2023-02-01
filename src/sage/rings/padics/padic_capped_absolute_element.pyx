@@ -177,12 +177,28 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
 
          EXAMPLES::
 
-            sage: R = Zp(7,4,'capped-abs')
+            sage: R = Zp(7,10,'capped-abs')
             sage: a = R(8)
             sage: a.residue(1)
-             1
-            sage: a.residue(2)
+            1
+
+        This is different from applying ``% p^n`` which returns an element in
+        the same ring::
+
+            sage: b = a.residue(2); b
             8
+            sage: b.parent()
+            Ring of integers modulo 49
+            sage: c = a % 7^2; c
+            1 + 7 + O(7^8)
+            sage: c.parent()
+            7-adic Ring with capped absolute precision 10
+
+        Note that reduction of ``c`` dropped to the precision of the unit part
+        of ``7^2``, see :meth:`_mod_`::
+
+            sage: R(7^2).unit_part()
+            1 + O(7^8)
 
         TESTS::
 
@@ -192,10 +208,14 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             Traceback (most recent call last):
             ...
             ValueError: cannot reduce modulo a negative power of p.
-            sage: a.residue(5)
+            sage: a.residue(11)
             Traceback (most recent call last):
             ...
             PrecisionError: not enough precision known in order to compute residue.
+
+        .. SEEALSO::
+
+            :meth:`_mod_`
 
         """
         cdef Integer selfvalue, modulus

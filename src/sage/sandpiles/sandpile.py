@@ -87,7 +87,7 @@ Or just::
 
 A picture of the graph::
 
-    sage: S.show()
+    sage: S.show() # long time
 
 The relevant Laplacian matrices::
 
@@ -258,7 +258,7 @@ Distribution of avalanche sizes::
     sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])
     sage: p.axes_labels(['log(N)','log(D(N))'])
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
-    sage: show(p+t,axes_labels=['log(N)','log(D(N))'])
+    sage: show(p+t,axes_labels=['log(N)','log(D(N))']) # long time
 
 Working with sandpile divisors::
 
@@ -388,7 +388,7 @@ class Sandpile(DiGraph):
 
         EXAMPLES::
 
-            sage: Sandpile.help()
+            sage: Sandpile.help() # long time
             For detailed help with any method FOO listed below,
             enter "Sandpile.FOO?" or enter "S.FOO?" for any Sandpile S.
             <BLANKLINE>
@@ -792,7 +792,7 @@ class Sandpile(DiGraph):
         EXAMPLES::
 
             sage: S = sandpiles.House()
-            sage: S.show3d()
+            sage: S.show3d() # long time
         """
 
         if self.is_undirected():
@@ -3773,7 +3773,7 @@ class SandpileConfig(dict):
             sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])
             sage: p.axes_labels(['log(N)','log(D(N))'])
             sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
-            sage: show(p+t,axes_labels=['log(N)','log(D(N))'])
+            sage: show(p+t,axes_labels=['log(N)','log(D(N))']) # long time
 
         .. NOTE::
 
@@ -4117,7 +4117,7 @@ class SandpileConfig(dict):
         .. NOTE::
 
             To define ``c.burst(v)``, if `v` is not the sink, let `c'` be the unique
-            recurrent for which the the stabilization of `c' + v` is `c`.  The
+            recurrent for which the stabilization of `c' + v` is `c`.  The
             burst size is then the amount of sand that goes into the sink during this
             stabilization.  If `v` is the sink, the burst size is defined to be 1.
 
@@ -6636,7 +6636,7 @@ def firing_graph(S, eff):
         sage: S = sandpiles.Cycle(6)
         sage: D = SandpileDivisor(S, [1,1,1,1,2,0])
         sage: eff = D.effective_div()
-        sage: firing_graph(S,eff).show3d(edge_size=.005,vertex_size=0.01)
+        sage: firing_graph(S,eff).show3d(edge_size=.005,vertex_size=0.01) # long time
     """
     g = DiGraph()
     g.add_vertices(range(len(eff)))
@@ -6671,7 +6671,7 @@ def parallel_firing_graph(S, eff):
         sage: S = sandpiles.Cycle(6)
         sage: D = SandpileDivisor(S, [1,1,1,1,2,0])
         sage: eff = D.effective_div()
-        sage: parallel_firing_graph(S,eff).show3d(edge_size=.005,vertex_size=0.01)
+        sage: parallel_firing_graph(S,eff).show3d(edge_size=.005,vertex_size=0.01) # long time
     """
     g = DiGraph()
     g.add_vertices(range(len(eff)))

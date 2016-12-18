@@ -197,34 +197,39 @@ class TangentSpace(FiniteRankFreeModule):
         # Initialization of bases of the tangent space from existing vector
         # frames around the point:
 
-        # dictionary of bases of the tangent vector derived from vector
-        # frames (keys: vector frames)
+        # dictionary of bases of the tangent space derived from vector
+        # frames around the point (keys: vector frames)
         self._frame_bases = {}
         for frame in point.parent()._top_frames:
-            if point in frame._domain:
-                basis = self.basis(symbol=frame._symbol,
-                                   latex_symbol=frame._latex_symbol)
-                # Names of basis vectors set to those of the frame vector
-                # fields:
-                for i,v in enumerate(frame._vec):
-                    basis._vec[i]._name = v._name
-                    basis._vec[i]._latex_name = v._latex_name
-                basis._name = "({})".format(",".join(v._name for v in basis._vec))
-                basis._latex_name = r"\left({}\right)".format(
-                                 ",".join(v._latex_name for v in basis._vec))
-                basis._symbol = basis._name
-                basis._latex_symbol = basis._latex_name
-                # Names of cobasis linear forms set to those of the coframe
-                # 1-forms:
-                coframe = frame.coframe()
-                cobasis = basis.dual_basis()
-                for i,f in enumerate(coframe._form):
-                    cobasis._form[i]._name = f._name
-                    cobasis._form[i]._latex_name = f._latex_name
-                cobasis._name = "({})".format(",".join(f._name for f in cobasis._form))
-                cobasis._latex_name = r"\left({}\right)".format(
-                             ",".join(f._latex_name for f in cobasis._form))
-                self._frame_bases[frame] = basis
+            # the frame is used to construct a basis of the tangent space
+            # only if it is a frame on the current manifold:
+            if frame.destination_map().is_identity():
+                if point in frame._domain:
+                    basis = self.basis(symbol=frame._symbol,
+                                       latex_symbol=frame._latex_symbol)
+                    # Names of basis vectors set to those of the frame vector
+                    # fields:
+                    for i,v in enumerate(frame._vec):
+                        basis._vec[i]._name = v._name
+                        basis._vec[i]._latex_name = v._latex_name
+                    basis._name = "({})".format(
+                                         ",".join(v._name for v in basis._vec))
+                    basis._latex_name = r"\left({}\right)".format(
+                                   ",".join(v._latex_name for v in basis._vec))
+                    basis._symbol = basis._name
+                    basis._latex_symbol = basis._latex_name
+                    # Names of cobasis linear forms set to those of the coframe
+                    # 1-forms:
+                    coframe = frame.coframe()
+                    cobasis = basis.dual_basis()
+                    for i,f in enumerate(coframe._form):
+                        cobasis._form[i]._name = f._name
+                        cobasis._form[i]._latex_name = f._latex_name
+                    cobasis._name = "({})".format(
+                                      ",".join(f._name for f in cobasis._form))
+                    cobasis._latex_name = r"\left({}\right)".format(
+                                ",".join(f._latex_name for f in cobasis._form))
+                    self._frame_bases[frame] = basis
         # The basis induced by the default frame of the manifold subset
         # in which the point has been created is declared the default
         # basis of self:

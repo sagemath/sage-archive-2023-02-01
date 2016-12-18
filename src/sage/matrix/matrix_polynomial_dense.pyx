@@ -1,8 +1,8 @@
 """
 Dense matrices over univariate polynomials over fields
 
-This implementation inherits from Matrix_generic_dense, i.e. it is not
-optimized for speed only some methods were added.
+This implementation inherits from Matrix_generic_dense, i.e., it is not
+optimized for speed but only some methods were added.
 
 AUTHORS:
 
@@ -27,14 +27,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def is_weak_popov(self):
         r"""
-        Return ``True`` if the matrix is in weak Popov form.
+        Return ``True`` if this matrix is in weak Popov form.
 
         OUTPUT:
 
         A matrix over a polynomial ring is in weak Popov form if all
         leading positions are different [MS2003]_. A leading position
-        is the position `i` in a row with the highest degree, for multiple
-        entries with equal but highest degree the maximal `i` is chosen
+        is the position `i` in a row with the largest degree, for multiple
+        entries with largest degrees, the maximal `i` is chosen
         (which is the furthest to the right in the matrix).
 
         EXAMPLES:
@@ -68,7 +68,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: E.is_weak_popov()
             True
 
-        But a matrix with less cols than non zero rows is never in weak
+        But a matrix with less cols than nonzero rows is never in weak
         Popov form. ::
 
             sage: F = matrix(PF,3,2,[x^2,x,x^3+2,x,4,5])
@@ -109,10 +109,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Return a matrix in weak Popov form which is row space-equivalent to
         the input matrix.
 
-        A matrix is in weak Popov form if the leading positions of
-        the non-zero rows are all different. The leading position of a row is
-        the right-most position whose entry has maximal degree of the entries in
-        that row.
+        A matrix is in weak Popov form if the leading positions of the nonzero
+        rows are all different. The leading position of a row is the right-most
+        position whose entry has maximal degree of the entries in that row.
 
         .. WARNING::
 
@@ -146,13 +145,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return self.row_reduced_form(transformation=transformation,
                 ascend=ascend, old_call=old_call)
 
-    def _weak_popov_form(self, transformation=False):
+    def _weak_popov_form(self, transformation=False, shifts=None):
         """
         Return a weak Popov form of this matrix.
 
-        A matrix is in weak Popov form if the leading positions of
-        the non-zero rows are all different. The leading position of a row is
-        the right-most position whose entry has the maximal degree in the row.
+        A matrix is in weak Popov form if the leading positions of the nonzero
+        rows are all different. The leading position of a row is the right-most
+        position whose entry has the maximal degree in the row.
 
         .. WARNING::
 
@@ -161,8 +160,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``transformation`` -- If this is ``True``, the transformation
-          matrix will be returned together with the weak Popov form.
+        - ``transformation`` -- If this is ``True``, the transformation matrix
+          is returned together with the weak Popov form.
+
+        - ``shifts`` -- If this is a tuple of integers of length the number of
+          columns of this matrix, then each integer of the tuple is added to
+          the degree of the polynomial in the corresponding column to determine
+          the leading position of the rows.
 
         ALGORITHM:
 
@@ -216,66 +220,16 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`
         """
-        mat = self.__copy__()
-        R = mat.base_ring()
-        m = mat.nrows()
-        n = mat.ncols()
-        x = R.gen()
+        M = self.__copy__()
+        x = M.base_ring().gen()
 
         if transformation:
             from sage.matrix.constructor import identity_matrix
-            U = identity_matrix(R, m)
+            U = identity_matrix(M.base_ring(), M.nrows())
 
-        retry = True
-        while retry:
-            retry = False
-            pivot_cols = []
-            for i in range(m):
-                j = 0
-                prev_deg = -1
-                col = -1
-                for j in range(n):
-                    curr_deg = mat[i,j].degree()
-                    if curr_deg >= 0 and prev_deg <= curr_deg:
-                        prev_deg = curr_deg
-                        col = j
-                if col < 0: # zero row
-                    pivot_cols.append(col)
-                    continue
-                elif col in pivot_cols: # leading positions collide
-                    r = pivot_cols.index(col)
-                    cr = mat[r,col].leading_coefficient()
-                    dr = mat[r,col].degree()
-                    ci = mat[i,col].leading_coefficient()
-                    di = mat[i,col].degree()
-                    if di >= dr:
-                        q = R(-ci/cr).shift(di-dr)
-                        mat[i] += q * mat[r]
-                        if transformation:
-                            U.add_multiple_of_row(i, r, q)
-                    else:
-                        q = R(-cr/ci).shift(dr-di)
-                        mat[r] += q * mat[i]
-                        if transformation:
-                            U.add_multiple_of_row(r, i, q)
-                    retry = True
-                    break
-                else:
-                    pivot_cols.append(col)
-
-        if transformation:
-            return mat, U
-        else:
-            return mat
-
-
-    def _weak_popov_form_jsrn(self, transformation=False, shifts=None):
-        """
-        """
-        M = self.__copy__()
         def simple_transformation(i, j, pos):
             """
-            Perform a simple transformationwith row j on row i, reducing
+            Perform a simple transformation with row j on row i, reducing
             position pos.
 
             If M[i,pos] has lower degree than M[j,pos], nothing is changed.
@@ -284,9 +238,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             if pow < 0:
                 return
             coeff = -M[i, pos].leading_coefficient() / M[j, pos].leading_coefficient()
-            x = M.base_ring().gen()
+
             multiple = x**pow * coeff
             M.add_multiple_of_row(i, j, multiple)
+            if transformation:
+                U.add_multiple_of_row(i, j, multiple)
 
         if shifts and len(shifts) != M.ncols():
             raise ValueError("The number of shifts must equal the number of columns")
@@ -329,7 +285,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 ls.append(i)
                 if len(ls) > 1:
                     conflicts.append(lp)
-        
+
         # while there is a conflict, do a simple transformation
         while conflicts:
             lp = conflicts.pop()
@@ -346,9 +302,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 ls_new.append(i)
                 if len(ls_new) > 1:
                     conflicts.append(lp_new)
-        return M
 
-
+        if transformation:
+            return M, U
+        else:
+            return M
 
     def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
         r"""
@@ -420,17 +378,21 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [0 0]
             [0 0]
 
-        In the following example, the matrix has more rows than columns. Note also
-        that the output is row reduced but not in weak Popov form (see
-        :meth:`weak_popov_form`).
+        In the following example, the original matrix is already row reduced, but
+        the output is a different matrix. This is because currently this method
+        simply computes a weak Popov form, which is always also a row reduced matrix
+        (see :meth:`weak_popov_form`). This behavior is likely to change when a faster
+        algorithm designed specifically for row reduced form is implemented in Sage.
 
         ::
 
             sage: R.<t> = QQ['t']
-            sage: M = matrix([[t,t,t],[0,0,t]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
+            sage: M = matrix([[t,t,t],[0,0,t]]); M
             [t t t]
             [0 0 t]
+            sage: M.row_reduced_form(transformation=False, old_call=False)
+            [ t  t  t]
+            [-t -t  0]
 
         The last example shows the usage of the transformation parameter.
 
@@ -442,32 +404,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: W,U = A.row_reduced_form(transformation=True,old_call=False);
             sage: W,U
             (
-            [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
-            [                    x^3                   a*x^4], [      0                 1]
+            [          x^2 + a           x^4 + a]  [1 0]
+            [x^3 + a*x^2 + a^2               a^2], [a 1]
             )
             sage: U*W == A
             True
             sage: U.is_invertible()
             True
-
-        NOTES:
-
-        - For consistency with LLL and other algorithms in Sage, we have opted
-          for row operations; however, references such as [Hes2002]_ transpose and use
-          column operations.
-
-        - There are multiple weak Popov forms of a matrix, so one may want to
-          extend this code to produce a Popov form (see section 1.2 of [V]).  The
-          latter is canonical, but more work to produce.
-
-        .. SEEALSO::
-
-            :meth:`is_weak_popov <sage.matrix.matrix0.is_weak_popov>`
-
-        REFERENCES:
-
-        - [Hes2002]_
-        - [Kal1980]_
 
         """
         from sage.matrix.matrix_misc import row_reduced_form
@@ -515,7 +458,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``transformation`` -- (default: ``False``). If this is ``True``,
+        - ``transformation`` -- (default: ``False``) If this is ``True``,
            the transformation matrix is output.
 
         OUTPUT:
@@ -534,99 +477,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
             sage: A._row_reduced_form(transformation=True)
             (
-            [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
-            [                    x^3                   a*x^4], [      0                 1]
+            [          x^2 + a           x^4 + a]  [1 0]
+            [x^3 + a*x^2 + a^2               a^2], [a 1]
             )
         """
-
-        # determine whether M has polynomial or rational function coefficients
-        R = self.base_ring()
-        t = R.gen()
-
-        from sage.matrix.constructor import matrix
-
-        num = self
-        r = [list(v) for v in num.rows()]
-
-        if transformation:
-            N = matrix(num.nrows(), num.nrows(), R(1)).rows()
-
-        rank = 0
-        num_zero = 0
-        if num.is_zero():
-            num_zero = len(r)
-        while rank != len(r) - num_zero:
-            # construct matrix of leading coefficients
-            v = []
-            for w in map(list, r):
-                # calculate degree of row (= max of degree of entries)
-                d = max([e.numerator().degree() for e in w])
-
-                # extract leading coefficients from current row
-                x = []
-                for y in w:
-                    if y.degree() >= d and d >= 0:   x.append(y.coefficients(sparse=False)[d])
-                    else:                            x.append(0)
-                v.append(x)
-            l = matrix(v)
-
-            # count number of zero rows in leading coefficient matrix
-            # because they do *not* contribute interesting relations
-            num_zero = 0
-            for v in l.rows():
-                is_zero = 1
-                for w in v:
-                    if w != 0:
-                        is_zero = 0
-                if is_zero == 1:
-                    num_zero += 1
-
-            # find non-trivial relations among the columns of the
-            # leading coefficient matrix
-            kern = l.kernel().basis()
-            rank = num.nrows() - len(kern)
-
-            # do a row operation if there's a non-trivial relation
-            if not rank == len(r) - num_zero:
-                for rel in kern:
-                    # find the row of num involved in the relation and of
-                    # maximal degree
-                    indices = []
-                    degrees = []
-                    for i in range(len(rel)):
-                        if rel[i] != 0:
-                            indices.append(i)
-                            degrees.append(max([e.degree() for e in r[i]]))
-
-                    # find maximum degree among rows involved in relation
-                    max_deg = max(degrees)
-
-                    # check if relation involves non-zero rows
-                    if max_deg != -1:
-                        i = degrees.index(max_deg)
-                        rel /= rel[indices[i]]
-
-                        for j in range(len(indices)):
-                            if j != i:
-                                # do the row operation
-                                v = []
-                                for k in range(len(r[indices[i]])):
-                                    v.append(r[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * r[indices[j]][k])
-                                r[indices[i]] = v
-
-                                if transformation:
-                                    # If the user asked for it, record the row operation
-                                    v = []
-                                    for k in range(len(N[indices[i]])):
-                                        v.append(N[indices[i]][k] + rel[indices[j]] * t**(max_deg-degrees[j]) * N[indices[j]][k])
-                                    N[indices[i]] = v
-
-                        # remaining relations (if any) are no longer valid,
-                        # so continue onto next step of algorithm
-                        break
-
-        A = matrix(R, r)
-        if transformation:
-            return (A, matrix(N))
-        else:
-            return A
+        return self._weak_popov_form(transformation=transformation)

@@ -7001,7 +7001,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         from sage.misc.superseded import deprecation
         deprecation(16888, "This function currently does *not* compute a weak Popov form, "
-        "but rather a row reduced form. This function will soon be fixed (see Ticket #16742).")
+        "but rather a row reduced form. This method will be removed (see Ticket #21024).")
 
         return self.row_reduced_form(transformation=transformation,
                 ascend=ascend, old_call=old_call)
@@ -7020,15 +7020,15 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
-        - `transformation` - A boolean (default: ``False``). If this is set to
+        - ``transformation`` -- A boolean (default: ``False``). If this is set to
           ``True``, the transformation matrix `U` will be returned as well: this
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
 
-        - `ascend` - Deprecated and has no effect.
+        - ``ascend`` -- Deprecated and has no effect.
 
-        - `old_call` - For backwards compatibility until the old calling
-          convention will be deprecated (default: `True`). If `True`, then
+        - ``old_call`` -- For backwards compatibility until the old calling
+          convention will be deprecated (default: `True`). If ``True``, then
           return `(W,U,d)`, where `U` is as when `transformation = True`, and
           `d` is a list of the degrees of the rows of `W`.
 
@@ -7165,6 +7165,9 @@ cdef class Matrix(matrix1.Matrix):
         from sage.matrix.matrix_misc import row_reduced_form
 
         from sage.misc.superseded import deprecation
+        deprecation(21024, "Row reduced form will be supported only for matrices of "
+                    "polynomials.")
+
         if ascend is not None:
             deprecation(16888,
             "row_reduced_form: The `ascend` argument is deprecated "

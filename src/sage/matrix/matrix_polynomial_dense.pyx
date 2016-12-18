@@ -140,7 +140,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         from sage.misc.superseded import deprecation
         deprecation(16888, "This function currently does *not* compute a weak Popov form, "
-        "but rather a row reduced form. This function will soon be fixed (see Ticket #16742).")
+        "but rather a row reduced form. This function will soon be fixed (see Ticket #21024).")
 
         return self.row_reduced_form(transformation=transformation,
                 ascend=ascend, old_call=old_call)

@@ -28,12 +28,6 @@ def row_iterator(A):
     for i in range(A.nrows()):
         yield A.row(i)
 
-
-def weak_popov_form(M,ascend=True):
-    from sage.misc.superseded import deprecation
-    deprecation(16888, 'You should call row_reduced_form() instead')
-    return row_reduced_form(M)
-
 def row_reduced_form(M,transformation=False):
     """
     This function computes a row reduced form of a matrix over a rational
@@ -65,8 +59,10 @@ def row_reduced_form(M,transformation=False):
         sage: K = FractionField(R)
         sage: import sage.matrix.matrix_misc
         sage: sage.matrix.matrix_misc.row_reduced_form(matrix([[(t-1)^2/t],[(t-1)]]))
-        [(2*t + 1)/t]
-        [          0]
+        doctest:...: DeprecationWarning: Row reduced form will be supported only for matrices of polynomials.
+        See http://trac.sagemath.org/21024 for details.
+        [        0]
+        [(t + 2)/t]
 
     The last example shows the usage of the transformation parameter.
 
@@ -77,8 +73,8 @@ def row_reduced_form(M,transformation=False):
         sage: from sage.matrix.matrix_misc import row_reduced_form
         sage: row_reduced_form(A,transformation=True)
         (
-        [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
-        [                    x^3                   a*x^4], [      0                 1]
+        [          x^2 + a           x^4 + a]  [1 0]
+        [x^3 + a*x^2 + a^2               a^2], [a 1]
         )
 
     NOTES:
@@ -86,6 +82,8 @@ def row_reduced_form(M,transformation=False):
     See docstring for row_reduced_form method of matrices for
     more information.
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21024, "Row reduced form will be supported only for matrices of polynomials.")
 
     # determine whether M has polynomial or rational function coefficients
     R0 = M.base_ring()

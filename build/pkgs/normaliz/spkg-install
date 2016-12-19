@@ -8,7 +8,6 @@ die () {
 [ -n "$SAGE_LOCAL" ] || die 'Error: $SAGE_LOCAL not set. Source sage-env or run this script from `sage -sh`.'
 
 cd src
-patch -p1 < ../patches/no_static_stuff.patch || die "Error: Couldn't apply patch."
 
 export CXXFLAGS="-I$SAGE_LOCAL/include $CXXFLAGS $LDFLAGS"
 cd source

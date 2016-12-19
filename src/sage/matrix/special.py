@@ -2651,7 +2651,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
                         tries += 1
                         # Range for scalar multiples determined experimentally.
                     if max(map(abs,matrix_copy.list())) < upper_bound:
-                    # Continue if the the largest entry after a row operation is within the bound.
+                    # Continue if the largest entry after a row operation is within the bound.
                         matrix=matrix_copy
                         row_index+=1
                         tries = 0

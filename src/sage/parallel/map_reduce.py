@@ -430,7 +430,7 @@ From the point of view of ``V`` and ``T``, here is what happens:
   victim ``V`` and its thief tread ``T``.
 
   + If ``V._todo`` is empty, then ``None`` is answered on
-    ``W._write_task``. The task is immediately signaled to end the the master
+    ``W._write_task``. The task is immediately signaled to end the master
     through :meth:`master._signal_task_done`.
   + Otherwise, a node is removed from the bottom of ``V._todo``. The node is
     sent to ``W`` on ``W._write_task``. The task will be ended by ``W``, that

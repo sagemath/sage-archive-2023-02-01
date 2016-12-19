@@ -147,6 +147,7 @@ from cpython.ref cimport *
 import sage
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object cimport richcmp
 
 ############################################################################
 ###                         Basic clone elements                         ###
@@ -819,7 +820,7 @@ cdef class ClonableArray(ClonableElement):
         return self._hash
 
     # See protocol in comment in sage/structure/element.pyx
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         TESTS::
 
@@ -840,7 +841,7 @@ cdef class ClonableArray(ClonableElement):
             (False, True, True)
         """
         cdef ClonableArray rgt = <ClonableArray>right
-        return cmp(left._list, rgt._list)
+        return richcmp(left._list, rgt._list, op)
 
     cpdef ClonableArray __copy__(self):
         """

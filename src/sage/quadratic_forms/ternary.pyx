@@ -22,7 +22,6 @@ from sage.quadratic_forms.extras import extend_to_primitive
 from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.prandom import randint
 from sage.functions.other import ceil, floor
-from six.moves.builtins import max
 
 
 def red_mfact(a,b):

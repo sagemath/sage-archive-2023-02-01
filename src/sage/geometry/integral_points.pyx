@@ -1266,7 +1266,7 @@ cdef class InequalityCollection:
         INPUT:
 
         - ``i`` -- Integer. The :class:`Inequality_int` to swap to the
-          beginnig of the list of integral inequalities.
+          beginning of the list of integral inequalities.
 
         EXAMPLES::
 

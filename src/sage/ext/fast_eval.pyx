@@ -936,52 +936,6 @@ cdef class FastDoubleFunc:
         return self.cfunc(&sqrt)
 
     ###################################################################
-    #   Basic Comparison
-    ###################################################################
-
-    def _richcmp_(left, right, op):
-        """
-        Compare left and right.
-
-        EXAMPLES::
-
-            sage: from sage.ext.fast_eval import fast_float_arg
-            sage: import operator
-            sage: f = fast_float_arg(0)._richcmp_(2, operator.lt)
-            sage: [f(i) for i in (1..3)]
-            [1.0, 0.0, 0.0]
-            sage: f = fast_float_arg(0)._richcmp_(2, operator.le)
-            sage: [f(i) for i in (1..3)]
-            [1.0, 1.0, 0.0]
-            sage: f = fast_float_arg(0)._richcmp_(2, operator.eq)
-            sage: [f(i) for i in (1..3)]
-            [0.0, 1.0, 0.0]
-            sage: f = fast_float_arg(0)._richcmp_(2, operator.ne)
-            sage: [f(i) for i in (1..3)]
-            [1.0, 0.0, 1.0]
-            sage: f = fast_float_arg(0)._richcmp_(2, operator.ge)
-            sage: [f(i) for i in (1..3)]
-            [0.0, 1.0, 1.0]
-            sage: f = fast_float_arg(0)._richcmp_(2, operator.gt)
-            sage: [f(i) for i in (1..3)]
-            [0.0, 0.0, 1.0]
-        """
-        import operator
-        if op == operator.lt:  #<
-            return binop(left, right, LT)
-        elif op == operator.eq: #==
-            return binop(left, right, EQ)
-        elif op == operator.gt: #>
-            return binop(left, right, GT)
-        elif op == operator.le: #<=
-            return binop(left, right, LE)
-        elif op == operator.ne: #!=
-            return binop(left, right, NE)
-        elif op == operator.ge: #>=
-            return binop(left, right, GE)
-
-
-    ###################################################################
     #   Exponential and log
     ###################################################################
 

@@ -229,15 +229,6 @@ write_pc_file(['f77blas', 'atlas'], 'blas')
 # a custom version of clapack which depends on cblas.
 write_pc_file(['lapack', 'f77blas', 'cblas', 'atlas'], 'lapack')
 
-######################################################################
-### Patch source
-######################################################################
-
-# apply all patches
-for fname in glob.glob(os.path.join(PATCH_DIR,'*.patch')):
-    rc = system_with_flush('patch -p1 -d src/ --input '+os.path.join(PATCH_DIR, fname))
-    assert_success(rc, bad='Applying '+fname+' failed.', good='Applied '+fname+'.')
-
 # add extra architectural defaults
 cp('src/ARCHS/*.tar.bz2', 'src/ATLAS/CONFIG/ARCHS/')
 

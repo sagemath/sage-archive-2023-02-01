@@ -6983,7 +6983,9 @@ cdef class Matrix(matrix1.Matrix):
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
 
-        - ``old_call`` -- Deprecated.
+        - ``old_call`` -- Deprecated. If set to ``True``, the output will be
+          (`W`, `U`, `d`), where `W` is a row reduced form, `U` is the transformation
+          matrix, and `d` is the denomiator of the matrix.
 
         OUTPUT:
 

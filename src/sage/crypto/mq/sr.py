@@ -3312,7 +3312,7 @@ class AllowZeroInversionsContext:
             sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
             sage: sr = mq.SR(1,2,2,4)
             sage: with AllowZeroInversionsContext(sr):
-            ....:  sr.sub_byte(0)
+            ....:     sr.sub_byte(0)
             a^2 + a
         """
         self.sr = sr
@@ -3328,7 +3328,7 @@ class AllowZeroInversionsContext:
             ZeroDivisionError: A zero inversion occurred during an encryption or key schedule.
 
             sage: with AllowZeroInversionsContext(sr):
-            ....:  sr.sub_byte(0)
+            ....:     sr.sub_byte(0)
             a^2 + a
         """
         self.allow_zero_inversions = self.sr._allow_zero_inversions
@@ -3340,7 +3340,7 @@ class AllowZeroInversionsContext:
             sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
             sage: sr = mq.SR(1,2,2,4)
             sage: with AllowZeroInversionsContext(sr):
-            ....:  sr.sub_byte(0)
+            ....:     sr.sub_byte(0)
             a^2 + a
             sage: sr._allow_zero_inversions
             False

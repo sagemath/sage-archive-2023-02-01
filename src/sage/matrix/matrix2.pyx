@@ -6964,48 +6964,6 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def weak_popov_form(self, transformation=None, ascend=None, old_call=True):
-        """
-        Returns a matrix in weak Popov form which is row space-equivalent to
-        the input matrix, if the input is over `k[x]` or `k(x)`.
-
-        A matrix is in weak Popov form if the (row-wise) leading positions of
-        the non-zero rows are all different. The leading position of a row is
-        the right-most position whose entry has maximal degree of the entries in
-        that row.
-
-        .. WARNING::
-
-            This function currently does **not** compute the weak Popov form of a
-            matrix, but rather a row reduced form (which is a slightly weaker
-            requirement). See :meth:`row_reduced_form`.
-
-        INPUT:
-
-        - `transformation` - A boolean (default: `True`). If this is set to
-          ``True``, the transformation matrix `U` will be returned as well: this
-          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
-          where `W` is the output matrix.
-
-          Warning: the default of `transformation` will soon be set to ``False``,
-          see :trac:`16896`. Until then, this function will print a deprecation
-          warning as long as `transformation` was not explicitly set to ``True``
-          or ``False``.
-
-        - `ascend` - Deprecated and has no effect.
-
-        - `old_call` - For backwards compatibility until the old calling
-          convention will be deprecated (default: `True`). If `True`, then
-          return `(W,U,d)`, where `U` is as when `transformation = True`, and
-          `d` is a list of the degrees of the rows of `W`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16888, "This function currently does *not* compute a weak Popov form, "
-        "but rather a row reduced form. This method will be removed (see Ticket #21024).")
-
-        return self.row_reduced_form(transformation=transformation,
-                ascend=ascend, old_call=old_call)
-
     def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
         r"""
         This function computes a row reduced form of a matrix over a rational

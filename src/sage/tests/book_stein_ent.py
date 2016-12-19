@@ -121,10 +121,10 @@ sage: for p in primes(100):
 61 2305843009213693951
 89 618970019642690137449562111
 sage: def is_prime_lucas_lehmer(p):
-....:  s = Mod(4, 2^p - 1)
-....:  for i in range(3, p+1):
-....:      s = s^2 - 2
-....:  return s == 0
+....:     s = Mod(4, 2^p - 1)
+....:     for i in range(3, p+1):
+....:         s = s^2 - 2
+....:     return s == 0
 sage: # Check primality of 2^9941 - 1
 sage: is_prime_lucas_lehmer(9941)
 True
@@ -186,56 +186,56 @@ sage: (g^n)^m
 sage: (g^m)^n
 85771409470770521212346739540
 sage: def rsa(bits):
-....:  # only prove correctness up to 1024 bits
-....:  proof = (bits <= 1024)
-....:  p = next_prime(ZZ.random_element(2**(bits//2 +1)),
-....:              proof=proof)
-....:  q = next_prime(ZZ.random_element(2**(bits//2 +1)),
-....:              proof=proof)
-....:  n = p * q
-....:  phi_n = (p-1) * (q-1)
-....:  while True:
-....:      e = ZZ.random_element(1,phi_n)
-....:      if gcd(e,phi_n) == 1: break
-....:  d = lift(Mod(e,phi_n)^(-1))
-....:  return e, d, n
+....:     # only prove correctness up to 1024 bits
+....:     proof = (bits <= 1024)
+....:     p = next_prime(ZZ.random_element(2**(bits//2 +1)),
+....:                    proof=proof)
+....:     q = next_prime(ZZ.random_element(2**(bits//2 +1)),
+....:                    proof=proof)
+....:     n = p * q
+....:     phi_n = (p-1) * (q-1)
+....:     while True:
+....:         e = ZZ.random_element(1,phi_n)
+....:         if gcd(e,phi_n) == 1: break
+....:     d = lift(Mod(e,phi_n)^(-1))
+....:     return e, d, n
 sage: def encrypt(m,e,n):
-....:  return lift(Mod(m,n)^e)
+....:     return lift(Mod(m,n)^e)
 sage: def decrypt(c,d,n):
-....:  return lift(Mod(c,n)^d)
+....:     return lift(Mod(c,n)^d)
 sage: e,d,n = rsa(20)
 sage: c = encrypt(123, e, n)
 sage: decrypt(c, d, n)
 123
 sage: def encode(s):
-....:  s = str(s)      # make input a string
-....:  return sum(ord(s[i])*256^i for i in range(len(s)))
+....:     s = str(s)      # make input a string
+....:     return sum(ord(s[i])*256^i for i in range(len(s)))
 sage: def decode(n):
-....:  n = Integer(n)  # make input an integer
-....:  v = []
-....:  while n != 0:
-....:      v.append(chr(n % 256))
-....:      n //= 256    # this replaces n by floor(n/256).
-....:  return ''.join(v)
+....:     n = Integer(n)  # make input an integer
+....:     v = []
+....:     while n != 0:
+....:         v.append(chr(n % 256))
+....:         n //= 256    # this replaces n by floor(n/256).
+....:     return ''.join(v)
 sage: m = encode('Run Nikita!'); m
 40354769014714649421968722
 sage: decode(m)
 'Run Nikita!'
 sage: def crack_rsa(n, phi_n):
-....:  R.<x> = PolynomialRing(QQ)
-....:  f = x^2 - (n+1 -phi_n)*x + n
-....:  return [b for b, _ in f.roots()]
+....:     R.<x> = PolynomialRing(QQ)
+....:     f = x^2 - (n+1 -phi_n)*x + n
+....:     return [b for b, _ in f.roots()]
 sage: crack_rsa(31615577110997599711, 31615577098574867424)
 [8850588049, 3572144239]
 sage: def crack_when_pq_close(n):
-....:  t = Integer(ceil(sqrt(n)))
-....:  while True:
-....:     k = t^2 - n
-....:     if k > 0:
-....:        s = Integer(int(round(sqrt(t^2 - n))))
-....:        if s^2 + n == t^2:
-....:           return t+s, t-s
-....:     t += 1
+....:     t = Integer(ceil(sqrt(n)))
+....:     while True:
+....:        k = t^2 - n
+....:        if k > 0:
+....:           s = Integer(int(round(sqrt(t^2 - n))))
+....:           if s^2 + n == t^2:
+....:              return t+s, t-s
+....:        t += 1
 sage: crack_when_pq_close(23360947609)
 (153649, 152041)
 sage: p = next_prime(2^128); p
@@ -245,27 +245,27 @@ sage: crack_when_pq_close(p*q)
 (340282366920938463463374607431768211537,
       340282366920938463463374607431768211507)
 sage: def crack_given_decrypt(n, m):
-....:  n = Integer(n); m = Integer(m);  # some type checking
-....:  # Step 1: divide out powers of 2
-....:  while True:
-....:      if is_odd(m): break
-....:      divide_out = True
-....:      for i in range(5):
+....:     n = Integer(n); m = Integer(m);  # some type checking
+....:     # Step 1: divide out powers of 2
+....:     while True:
+....:         if is_odd(m): break
+....:         divide_out = True
+....:         for i in range(5):
+....:            a = randrange(1,n)
+....:            if gcd(a,n) == 1:
+....:               if Mod(a,n)^(m//2) != 1:
+....:                   divide_out = False
+....:                   break
+....:         if divide_out:
+....:             m = m//2
+....:         else:
+....:             break
+....:     # Step 2: Compute GCD
+....:     while True:
 ....:         a = randrange(1,n)
-....:         if gcd(a,n) == 1:
-....:            if Mod(a,n)^(m//2) != 1:
-....:                divide_out = False
-....:                break
-....:      if divide_out:
-....:          m = m//2
-....:      else:
-....:          break
-....:  # Step 2: Compute GCD
-....:  while True:
-....:      a = randrange(1,n)
-....:      g = gcd(lift(Mod(a, n)^(m//2)) - 1, n)
-....:      if g != 1 and g != n:
-....:          return g
+....:         g = gcd(lift(Mod(a, n)^(m//2)) - 1, n)
+....:         if g != 1 and g != n:
+....:             return g
 sage: n=32295194023343; e=29468811804857; d=11127763319273
 sage: crack_given_decrypt(n, e*d - 1)
 737531
@@ -359,18 +359,18 @@ sage: R.<alpha> = S.quotient(x^2 - 3)
 sage: (2+3*alpha)*(1+2*alpha)
 7*alpha + 7
 sage: def find_sqrt(a, p):
-....:  assert (p-1)%4 == 0
-....:  assert legendre_symbol(a,p) == 1
-....:  S.<x> = PolynomialRing(GF(p))
-....:  R.<alpha> = S.quotient(x^2 - a)
-....:  while True:
-....:      z = GF(p).random_element()
-....:      w = (1 + z*alpha)^((p-1)//2)
-....:      (u, v) = (w[0], w[1])
-....:      if v != 0: break
-....:  if (-u/v)^2 == a: return -u/v
-....:  if ((1-u)/v)^2 == a: return (1-u)/v
-....:  if ((-1-u)/v)^2 == a: return (-1-u)/v
+....:     assert (p-1)%4 == 0
+....:     assert legendre_symbol(a,p) == 1
+....:     S.<x> = PolynomialRing(GF(p))
+....:     R.<alpha> = S.quotient(x^2 - a)
+....:     while True:
+....:         z = GF(p).random_element()
+....:         w = (1 + z*alpha)^((p-1)//2)
+....:         (u, v) = (w[0], w[1])
+....:         if v != 0: break
+....:     if (-u/v)^2 == a: return -u/v
+....:     if ((1-u)/v)^2 == a: return (1-u)/v
+....:     if ((-1-u)/v)^2 == a: return (-1-u)/v
 sage: b = find_sqrt(3,13)
 sage: b                        # random: either 9 or 3
 9
@@ -441,13 +441,13 @@ sage: cf_sqrt_d(389,50)
 sage: cf_sqrt_d(389,100)
 [19; 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 2]
 sage: def newton_root(f, iterates=2, x0=0, prec=53):
-....:  x = RealField(prec)(x0)
-....:  R = PolynomialRing(ZZ,'x')
-....:  f = R(f)
-....:  g = f.derivative()
-....:  for i in range(iterates):
-....:      x = x - f(x)/g(x)
-....:  return x
+....:     x = RealField(prec)(x0)
+....:     R = PolynomialRing(ZZ,'x')
+....:     f = R(f)
+....:     g = f.derivative()
+....:     for i in range(iterates):
+....:         x = x - f(x)/g(x)
+....:     return x
 sage: reset('x')
 sage: a = newton_root(3847*x^2 - 14808904*x + 36527265); a
 2.46815700480740
@@ -458,10 +458,10 @@ sage: c = cf[:12]; c
 sage: c.value()
 9495/3847
 sage: def sum_of_two_squares_naive(n):
-....:  for i in range(int(sqrt(n))):
-....:      if is_square(n - i^2):
-....:          return i, (Integer(n-i^2)).sqrt()
-....:  return "%s is not a sum of two squares"%n
+....:     for i in range(int(sqrt(n))):
+....:         if is_square(n - i^2):
+....:             return i, (Integer(n-i^2)).sqrt()
+....:     return "%s is not a sum of two squares"%n
 sage: sum_of_two_squares_naive(23)
 '23 is not a sum of two squares'
 sage: sum_of_two_squares_naive(389)
@@ -477,15 +477,15 @@ sage: 28^2 + 35^2
 sage: sum_of_two_squares_naive(2*3^4*5*7^2*13)
 (189, 693)
 sage: def sum_of_two_squares(p):
-....:  p = Integer(p)
-....:  assert p%4 == 1, "p must be 1 modulo 4"
-....:  r = Mod(-1,p).sqrt().lift()
-....:  v = continued_fraction(-r/p)
-....:  n = floor(sqrt(p))
-....:  for x in v.convergents():
-....:      c = r*x.denominator() + p*x.numerator()
-....:      if -n <= c and c <= n:
-....:          return (abs(x.denominator()),abs(c))
+....:     p = Integer(p)
+....:     assert p%4 == 1, "p must be 1 modulo 4"
+....:     r = Mod(-1,p).sqrt().lift()
+....:     v = continued_fraction(-r/p)
+....:     n = floor(sqrt(p))
+....:     for x in v.convergents():
+....:         c = r*x.denominator() + p*x.numerator()
+....:         if -n <= c and c <= n:
+....:             return (abs(x.denominator()),abs(c))
 sage: p = next_prime(next_prime(10^10))
 sage: sum_of_two_squares(p)
 (55913, 82908)

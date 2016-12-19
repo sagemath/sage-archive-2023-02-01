@@ -478,7 +478,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     function (via ``def`` or ``lambda``) or a Sage symbolic function.  ::
 
         sage: def g(x):
-        ....:   return vector(QQ, [2*x[0]+x[2], 5*x[1]])
+        ....:     return vector(QQ, [2*x[0]+x[2], 5*x[1]])
         sage: phi = linear_transformation(QQ^3, QQ^2, g)
         sage: phi
         Vector space morphism represented by the matrix:

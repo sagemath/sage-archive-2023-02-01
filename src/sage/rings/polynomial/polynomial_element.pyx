@@ -66,6 +66,8 @@ from sage.misc.latex import latex
 from sage.misc.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
+from sage.structure.sage_object cimport (richcmp, richcmp_not_equal,
+        rich_to_bool, rich_to_bool_sgn)
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
@@ -901,7 +903,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 expr *= x
         return expr
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         Compare the two polynomials self and other.
 
@@ -937,21 +939,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         # Special case constant polynomials
         if d1 <= 0 and d2 <= 0:
-            return cmp(self[0], other[0])
+            return richcmp(self[0], other[0], op)
 
         # For different degrees, compare the degree
         if d1 != d2:
-            if d1 < d2:
-                return -1
-            else:
-                return 1
+            return rich_to_bool_sgn(op, d1 - d2)
 
         cdef Py_ssize_t i
-        cdef int c
         for i in reversed(range(d1+1)):
-            c = cmp(self[i], other[i])
-            if c: return c
-        return 0
+            x = self[i]
+            y = other[i]
+            if x != y:
+                return richcmp_not_equal(x, y, op)
+        return rich_to_bool(op, 0)
 
     def __nonzero__(self):
         """

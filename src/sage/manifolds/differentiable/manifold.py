@@ -234,6 +234,15 @@ Vector fields act on scalar fields::
     sage: w(f) == f.differential()(w)
     True
 
+The value of the vector field at point `p` is a vector tangent to the sphere::
+
+    sage: w.at(p)
+    Tangent vector w at Point p on the 2-dimensional differentiable manifold S^2
+    sage: w.at(p).display()
+    w = d/dx + 2 d/dy
+    sage: w.at(p).parent()
+    Tangent space at Point p on the 2-dimensional differentiable manifold S^2
+
 A 1-form on the sphere::
 
     sage: df = f.differential() ; df
@@ -247,6 +256,18 @@ A 1-form on the sphere::
     sage: df.parent().category()
     Category of modules over Algebra of differentiable scalar fields on the
      2-dimensional differentiable manifold S^2
+
+The value of the 1-form at point `p` is a linear form on the tangent space
+at `p`::
+
+    sage: df.at(p)
+    Linear form df on the Tangent space at Point p on the 2-dimensional
+     differentiable manifold S^2
+    sage: df.at(p).display()
+    df = 1/13 dx + 2/13 dy
+    sage: df.at(p).parent()
+    Dual of the Tangent space at Point p on the 2-dimensional differentiable
+     manifold S^2
 
 
 .. RUBRIC:: Example 2: the Riemann sphere as a differentiable manifold of
@@ -379,6 +400,16 @@ Since `f` is constant, `v(f)` is vanishing::
     on U: z |--> 0
     on V: w |--> 0
 
+The value of the vector field `v` at the point `\infty` is a vector tangent to
+the Riemann sphere::
+
+    sage: v.at(inf)
+    Tangent vector v at Point inf on the 1-dimensional complex manifold C*
+    sage: v.at(inf).display()
+    v = -d/dw
+    sage: v.at(inf).parent()
+    Tangent space at Point inf on the 1-dimensional complex manifold C*
+
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
@@ -410,7 +441,7 @@ from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
-from sage.rings.infinity import infinity
+from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopologicalManifold
@@ -1835,7 +1866,7 @@ class DifferentiableManifold(TopologicalManifold):
             \forall p \in M,\ t(p) \in \mathrm{GL}\left(T_{\Phi(p)} N \right),
 
         where `\mathrm{GL}\left(T_{\Phi(p)} N \right)` is the general linear
-        group of the the tangent space `T_{\Phi(p)} N`.
+        group of the tangent space `T_{\Phi(p)} N`.
 
         The standard case of a field of automorphisms *on* `M` corresponds
         to `N = M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
@@ -2393,3 +2424,401 @@ class DifferentiableManifold(TopologicalManifold):
         """
         return bool(self._covering_frames)
 
+    def tangent_space(self, point):
+        r"""
+        Tangent space to ``self`` at a given point.
+
+        INPUT:
+
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` on the manifold
+
+        OUTPUT:
+
+        - :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`
+          representing the tangent vector space `T_{p} M`, where `M` is the
+          current manifold
+
+        EXAMPLES:
+
+        A tangent space to a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M.point((2, -3), name='p')
+            sage: Tp = M.tangent_space(p); Tp
+            Tangent space at Point p on the 2-dimensional differentiable
+             manifold M
+            sage: Tp.category()
+            Category of finite dimensional vector spaces over Symbolic Ring
+            sage: dim(Tp)
+            2
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`
+            for more examples.
+
+        """
+        from sage.manifolds.point import ManifoldPoint
+        from sage.manifolds.differentiable.tangent_space import TangentSpace
+        if not isinstance(point, ManifoldPoint):
+            raise TypeError("{} is not a manifold point".format(point))
+        if point not in self:
+            raise ValueError("{} is not a point on the {}".format(point, self))
+        return TangentSpace(point)
+
+    def curve(self, coord_expression, param, chart=None,
+              name=None, latex_name=None):
+        r"""
+        Define a differentiable curve in the manifold.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+            for details.
+
+        INPUT:
+
+        - ``coord_expression`` -- either
+
+          - (i) a dictionary whose keys are charts on the manifold and values
+            the coordinate expressions (as lists or tuples) of the curve in
+            the given chart
+          - (ii) a single coordinate expression in a given chart on the
+            manifold, the latter being provided by the argument ``chart``
+
+          in both cases, if the dimension of the manifold is 1, a single
+          coordinate expression can be passed instead of a tuple with
+          a single element
+        - ``param`` -- a tuple of the type ``(t, t_min, t_max)``, where
+
+          * ``t`` is the curve parameter used in ``coord_expression``;
+          * ``t_min`` is its minimal value;
+          * ``t_max`` its maximal value;
+
+          if ``t_min=-Infinity`` and ``t_max=+Infinity``, they can be
+          omitted and ``t`` can be passed for ``param`` instead of the
+          tuple ``(t, t_min, t_max)``
+        - ``chart`` -- (default: ``None``) chart on the manifold used for
+          case (ii) above; if ``None`` the default chart of the manifold is
+          assumed
+        - ``name`` -- (default: ``None``) string; symbol given to the curve
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+          the curve; if none is provided, ``name`` will be used
+
+        OUTPUT:
+
+        - :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+
+        EXAMPLES:
+
+        The lemniscate of Gerono in the 2-dimensional Euclidean plane::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: R.<t> = RealLine()
+            sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c') ; c
+            Curve c in the 2-dimensional differentiable manifold M
+
+        The same definition with the coordinate expression passed as a
+        dictionary::
+
+            sage: c = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi), name='c') ; c
+            Curve c in the 2-dimensional differentiable manifold M
+
+        An example of definition with ``t_min`` and ``t_max`` omitted: a helix
+        in `\RR^3`::
+
+            sage: R3 = Manifold(3, 'R^3')
+            sage: X.<x,y,z> = R3.chart()
+            sage: c = R3.curve([cos(t), sin(t), t], t, name='c') ; c
+            Curve c in the 3-dimensional differentiable manifold R^3
+            sage: c.domain() # check that t is unbounded
+            Real number line R
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+            for more examples, including plots.
+
+        """
+        from sage.manifolds.differentiable.real_line import RealLine
+        if not isinstance(param, (tuple, list)):
+            param = (param, minus_infinity, infinity)
+        elif len(param) != 3:
+            raise ValueError("the argument 'param' must be of the form " +
+                             "(t, t_min, t_max)")
+        t = param[0]
+        t_min = param[1]
+        t_max = param[2]
+        real_field = RealLine(names=(repr(t),))
+        interval = real_field.open_interval(t_min, t_max)
+        curve_set = Hom(interval, self)
+        if not isinstance(coord_expression, dict):
+            # Turn coord_expression into a dictionary:
+            if chart is None:
+                chart = self._def_chart
+            elif chart not in self._atlas:
+                raise ValueError("the {} has not been ".format(chart) +
+                                 "defined on the {}".format(self))
+            if isinstance(coord_expression, (tuple, list)):
+                coord_expression = {chart: coord_expression}
+            else:
+                # case self.dim()=1
+                coord_expression = {chart: (coord_expression,)}
+        return curve_set(coord_expression, name=name, latex_name=latex_name)
+
+    def affine_connection(self, name, latex_name=None):
+        r"""
+        Define an affine connection on the manifold.
+
+        See :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the affine connection
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          affine connection
+
+        OUTPUT:
+
+        - the affine connection, as an instance of
+          :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
+
+        EXAMPLE:
+
+        Affine connection on an open subset of a 3-dimensional smooth manifold::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}')
+            sage: nab = A.affine_connection('nabla', r'\nabla') ; nab
+            Affine connection nabla on the Open subset A of the 3-dimensional
+             differentiable manifold M
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
+            for more examples.
+
+        """
+        from sage.manifolds.differentiable.affine_connection import \
+                                                               AffineConnection
+        return AffineConnection(self, name, latex_name)
+
+    def metric(self, name, signature=None, latex_name=None, dest_map=None):
+        r"""
+        Define a pseudo-Riemannian metric on the manifold.
+
+        A *pseudo-Riemannian metric* is a field of nondegenerate symmetric
+        bilinear forms acting in the tangent spaces. See
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the metric
+        - ``signature`` -- (default: ``None``) signature `S` of the metric as a
+          single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the
+          number of positive terms (resp. number of negative terms) in any
+          diagonal writing of the metric components; if ``signature`` is not
+          provided, `S` is set to the manifold's dimension (Riemannian
+          signature)
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          metric; if ``None``, it is formed from ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow M`, where `U`
+          is the current manifold; if ``None``, the identity map is assumed
+          (case of a metric field *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined pseudo-Riemannian metric.
+
+        EXAMPLE:
+
+        Metric on a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: c_xyz.<x,y,z> = M.chart()
+            sage: g = M.metric('g'); g
+            Riemannian metric g on the 3-dimensional differentiable manifold M
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+            for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        return vmodule.metric(name, signature=signature, latex_name=latex_name)
+
+    def riemannian_metric(self, name, latex_name=None, dest_map=None):
+        r"""
+        Define a Riemannian metric on the manifold.
+
+        A *Riemannian metric* is a field of positive definite symmetric
+        bilinear forms acting in the tangent spaces.
+
+        See
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the metric
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          metric; if ``None``, it is formed from ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow M`, where `U`
+          is the current manifold; if ``None``, the identity map is assumed
+          (case of a metric field *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined Riemannian metric.
+
+        EXAMPLE:
+
+        Metric of the hyperbolic plane `H^2`::
+
+            sage: H2 = Manifold(2, 'H^2', start_index=1)
+            sage: X.<x,y> = H2.chart('x y:(0,+oo)')  # Poincare half-plane coord.
+            sage: g = H2.riemannian_metric('g')
+            sage: g[1,1], g[2,2] = 1/y^2, 1/y^2
+            sage: g
+            Riemannian metric g on the 2-dimensional differentiable manifold H^2
+            sage: g.display()
+            g = y^(-2) dx*dx + y^(-2) dy*dy
+            sage: g.signature()
+            2
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+            for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        dim = vmodule.ambient_domain().dimension()
+        return vmodule.metric(name, signature=dim, latex_name=latex_name)
+
+    def riemann_metric(self, name, latex_name=None, dest_map=None):
+        r"""
+        Deprecated.
+
+        Use :meth:`riemannian_metric` instead.
+
+        EXAMPLE::
+
+            sage: M = Manifold(3, 'M')
+            sage: g = M.riemann_metric('g')
+            doctest:...: DeprecationWarning: Use riemannian_metric() instead.
+            See http://trac.sagemath.org/19209 for details.
+            sage: g
+            Riemannian metric g on the 3-dimensional differentiable manifold M
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(19209, 'Use riemannian_metric() instead.')
+        return self.riemannian_metric(name, latex_name=latex_name,
+                                      dest_map=dest_map)
+
+    def lorentzian_metric(self, name, signature='positive', latex_name=None,
+                          dest_map=None):
+        r"""
+        Define a Lorentzian metric on the manifold.
+
+        A *Lorentzian metric* is a field of nondegenerate symmetric bilinear
+        forms acting in the tangent spaces, with signature `(-,+,\cdots,+)` or
+        `(+,-,\cdots,-)`.
+
+        See
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the metric
+        - ``signature`` -- (default: 'positive') sign of the metric
+          signature:
+
+          * if set to 'positive', the signature is n-2, where n is the
+            manifold's dimension, i.e. `(-,+,\cdots,+)`
+          * if set to 'negative', the signature is -n+2, i.e. `(+,-,\cdots,-)`
+
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          metric; if ``None``, it is formed from ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow M`, where `U`
+          is the current manifold; if ``None``, the identity map is assumed
+          (case of a metric field *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined Lorentzian metric.
+
+        EXAMPLE:
+
+        Metric of Minkowski spacetime::
+
+            sage: M = Manifold(4, 'M')
+            sage: X.<t,x,y,z> = M.chart()
+            sage: g = M.lorentzian_metric('g'); g
+            Lorentzian metric g on the 4-dimensional differentiable manifold M
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
+            sage: g.display()
+            g = -dt*dt + dx*dx + dy*dy + dz*dz
+            sage: g.signature()
+            2
+
+        Choice of a negative signature::
+
+            sage: g = M.lorentzian_metric('g', signature='negative'); g
+            Lorentzian metric g on the 4-dimensional differentiable manifold M
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = 1, -1, -1, -1
+            sage: g.display()
+            g = dt*dt - dx*dx - dy*dy - dz*dz
+            sage: g.signature()
+            -2
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        dim = vmodule.ambient_domain().dimension()
+        if signature=='positive':
+            signat = dim - 2
+        else:
+            signat = 2 - dim
+        return vmodule.metric(name, signature=signat, latex_name=latex_name)
+
+    def lorentz_metric(self, name, signature='positive', latex_name=None,
+                       dest_map=None):
+        r"""
+        Deprecated.
+
+        Use :meth:`lorentzian_metric` instead.
+
+        EXAMPLE::
+
+            sage: M = Manifold(4, 'M')
+            sage: g = M.lorentz_metric('g')
+            doctest:...: DeprecationWarning: Use lorentzian_metric() instead.
+            See http://trac.sagemath.org/19209 for details.
+            sage: g
+            Lorentzian metric g on the 4-dimensional differentiable manifold M
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(19209, 'Use lorentzian_metric() instead.')
+        return self.lorentzian_metric(name, signature=signature,
+                                      latex_name=latex_name, dest_map=dest_map)

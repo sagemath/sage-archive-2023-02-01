@@ -299,7 +299,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 (self.base_ring(), self.variable_name(), None, self.is_sparse()))
 
 
-    def _element_constructor_(self, x=None, check=True, is_gen = False, construct=False, **kwds):
+    def _element_constructor_(self, x=None, check=True, is_gen=False,
+                              construct=False, **kwds):
         r"""
         Convert ``x`` into this univariate polynomial ring,
         possibly non-canonically.
@@ -362,6 +363,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         TESTS:
 
+        Python 3 range is allowed::
+
+            sage: from six.moves import range
+            sage: R = PolynomialRing(ZZ,'x')
+            sage: R(range(4))
+            3*x^3 + 2*x^2 + x
+
         This shows that the issue at :trac:`4106` is fixed::
 
             sage: x = var('x')
@@ -393,8 +401,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x^6 + x^5 + x^4 - x^3 + x^2 - x + 2/5
         """
         C = self.element_class
-        if isinstance(x, list):
-            return C(self, x, check=check, is_gen=False,construct=construct)
+        if isinstance(x, (list, tuple)):
+            return C(self, x, check=check, is_gen=False, construct=construct)
+        if isinstance(x, range):
+            return C(self, list(x), check=check, is_gen=False,
+                     construct=construct)
         if isinstance(x, Element):
             P = x.parent()
             if P is self:
@@ -1622,6 +1633,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             x^100000000000000000000
         """
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
+        import sage.rings.complex_arb
 
         if not element_class:
             if sparse:
@@ -1638,6 +1650,9 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                     element_class = Polynomial_relative_number_field_dense
             elif is_RealField(base_ring):
                 element_class = PolynomialRealDense
+            elif isinstance(base_ring, sage.rings.complex_arb.ComplexBallField):
+                from sage.rings.polynomial.polynomial_complex_arb import Polynomial_complex_arb
+                element_class = Polynomial_complex_arb
             else:
                 element_class = polynomial_element_generic.Polynomial_generic_dense_field
 
@@ -1683,7 +1698,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         These are the coefficients `F_{0,0}, F_{1,1}, \dots, `F_{n,n}`
         in the base ring of ``self`` such that
 
-        .. math::
+        .. MATH::
 
             P_n(x) = \sum_{i=0}^n F_{i,i} \prod_{j=0}^{i-1} (x - x_j)
 

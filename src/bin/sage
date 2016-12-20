@@ -946,7 +946,9 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
         gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     else
-        cygdb "$SAGE_SRC/build" "$SAGE_SRC/sage" \
+        # Location of cython_debug directory
+        cygdb_dir="$SAGE_SRC/build/cythonized"
+        cygdb "$cygdb_dir" "$SAGE_SRC/sage" \
             -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     fi

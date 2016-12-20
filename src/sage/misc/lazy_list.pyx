@@ -271,7 +271,7 @@ def slice_unpickle(master, start, stop, step):
     TESTS::
 
         sage: from sage.misc.lazy_list import slice_unpickle
-        sage: slice_unpickle(range(35), 1, 3, 7) == range(35)[1:3:7]
+        sage: slice_unpickle(list(range(35)), 1, 3, 7) == list(range(35))[1:3:7]
         True
     """
     return master[start:stop:step]
@@ -821,7 +821,8 @@ cdef class lazy_list_generic(object):
 
         We check commutation::
 
-            sage: l = lazy_list(iter(xrange(10000)))
+            sage: from six.moves import range
+            sage: l = lazy_list(iter(range(10000)))
             sage: l1 = l[::2][:3001]
             sage: l2 = l[:6002][::2]
             sage: l1._info()

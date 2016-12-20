@@ -745,9 +745,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.CompleteGraph(2)
             sage: print(g._latex_())
             \begin{tikzpicture}
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-            %
             \definecolor{cv0}{rgb}{0.0,0.0,0.0}
             \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
             \definecolor{clv0}{rgb}{0.0,0.0,0.0}
@@ -4026,6 +4023,10 @@ class GenericGraph(GenericGraph_pyx):
           Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
           2004.
 
+        .. SEEALSO::
+
+          - :meth:`~Graph.is_apex`
+
         INPUT:
 
         - ``kuratowski`` - returns a tuple with boolean as first entry. If the
@@ -6343,7 +6344,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Quite obviously, the max cut of a bipartite graph
         is the number of edges, and the two sets of vertices
-        are the the two sides ::
+        are the two sides ::
 
             sage: g = graphs.CompleteBipartiteGraph(5,6)
             sage: [ value, edges, [ setA, setB ]] = g.max_cut(vertices=True)
@@ -12125,14 +12126,15 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            Because of a past bug (#11735, #11961), the first implementation
-            (algorithm A) of this method sometimes returned as certificates
-            subgraphs which were **not** holes. Since then, this bug has been
-            fixed and the values are now double-checked before being returned,
-            so that the algorithm only returns correct values or raises an
-            exception. In the case where an exception is raised, the user is
-            advised to switch to the other algorithm. And to **please** report
-            the bug :-)
+            Because of a past bug (:trac:`11735`, :trac:`11961`), the
+            first implementation (algorithm A) of this method
+            sometimes returned as certificates subgraphs which were
+            **not** holes. Since then, this bug has been fixed and the
+            values are now double-checked before being returned, so
+            that the algorithm only returns correct values or raises
+            an exception. In the case where an exception is raised,
+            the user is advised to switch to the other algorithm. And
+            to **please** report the bug :-)
 
         EXAMPLES:
 
@@ -12924,7 +12926,7 @@ class GenericGraph(GenericGraph_pyx):
             0
 
         """
-        if implementation == None:
+        if implementation is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed():
                 implementation = 'networkx'
@@ -13055,7 +13057,7 @@ class GenericGraph(GenericGraph_pyx):
             deprecation(17134, "The option 'return_vertex_weights' has been " +
                         "deprecated and is ignored.")
 
-        if implementation == None:
+        if implementation is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed() or weight:
                 implementation = 'networkx'
@@ -13637,7 +13639,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() == 0:
             raise ValueError("This method has no meaning on empty graphs.")
 
-        if algorithm==None and not by_weight:
+        if algorithm is None and not by_weight:
             algorithm = 'iFUB'
         elif algorithm=='BFS':
             algorithm = 'standard'
@@ -15685,7 +15687,7 @@ class GenericGraph(GenericGraph_pyx):
             ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
 
         """
-        if default_weight != None:
+        if default_weight is not None:
             deprecation(18938, "Variable default_weight is deprecated: hence," +
                         " it is ignored. Please, use weight_function, instead.")
 
@@ -18785,7 +18787,6 @@ class GenericGraph(GenericGraph_pyx):
                     edge_size=edge_size, edge_size2=edge_size2, pos3d=pos3d,
                     color_by_label=color_by_label, **kwds).show()
 
-    @cached_method
     def _keys_for_vertices(self):
         """
         Returns a function mapping each vertex to a unique identifier.
@@ -18799,8 +18800,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.Grid2dGraph(5,5)
             sage: g._keys_for_vertices()
             <function get_label at ...>
+
+        We check that :trac:`21916` is fixed::
+
+            sage: g = graphs.PetersenGraph()
+            sage: key = g._keys_for_vertices()
+            sage: g.add_vertex("a")
+            sage: s = g.graphviz_string()
         """
-        import hashlib
         label = dict()
         for i, v in enumerate(self.vertices()):
             label[v] = 'node_{0}'.format(i)
@@ -19514,7 +19521,7 @@ class GenericGraph(GenericGraph_pyx):
         the vector space that is the eigenspace for that eigenvalue,
         when the eigenvectors are placed on the right of the matrix.
 
-        For some graphs, some of the the eigenspaces are described
+        For some graphs, some of the eigenspaces are described
         exactly by vector spaces over a
         :func:`~sage.rings.number_field.number_field.NumberField`.
         For numerical eigenvectors use :meth:`eigenvectors`.

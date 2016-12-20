@@ -28,10 +28,12 @@ REFERENCES:
 
 from libc.math cimport log, ceil
 from libc.string cimport memcpy, memset
+from libc.stdlib cimport rand
 
 include 'sage/data_structures/bitset.pxi'
 
 from sage.libs.gmp.mpz cimport *
+from sage.libs.flint.ulong_extras cimport n_is_prime
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.rings.integer cimport Integer
 from sage.groups.perm_gps.partn_ref2.refinement_generic cimport PartitionRefinement_generic
@@ -603,10 +605,10 @@ cdef list PS_singletons(PartitionStack * part):
 cdef inline bint stacks_are_equivalent(PartitionStack *PS1, PartitionStack *PS2):
     cdef int i, j, depth = min(PS1.depth, PS2.depth)
     for i from 0 <= i < PS1.degree:
-        j = cmp(PS1.levels[i], PS2.levels[i])
-        if j == 0: continue
-        if ( (j < 0 and PS1.levels[i] <= depth and PS2.levels[i] > depth)
-            or (j > 0 and PS2.levels[i] <= depth and PS1.levels[i] > depth) ):
+        if PS1.levels[i] == PS2.levels[i]:
+            continue
+        elif ((PS1.levels[i] <= depth < PS2.levels[i])
+            or (PS2.levels[i] <= depth < PS1.levels[i])):
             return 0
     return 1
 

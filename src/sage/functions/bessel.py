@@ -101,7 +101,7 @@ The main objects which are exported from this module are:
 -  When solving for separable solutions of Laplace's equation in
    spherical coordinates, the radial equation has the form:
 
-   .. math::
+   .. MATH::
 
          x^2 \frac{d^2 y}{dx^2} + 2x \frac{dy}{dx} + [x^2 - n(n+1)]y = 0.
 
@@ -110,11 +110,11 @@ The main objects which are exported from this module are:
    related to the ordinary Bessel functions `J_n` and
    `Y_n` by:
 
-   .. math::
+   .. MATH::
 
          j_n(x) = \sqrt{\frac{\pi}{2x}} J_{n+1/2}(x),
 
-   .. math::
+   .. MATH::
 
          y_n(x) = \sqrt{\frac{\pi}{2x}} Y_{n+1/2}(x) = (-1)^{n+1} \sqrt{\frac{\pi}{2x}} J_{-n-1/2}(x).
 
@@ -575,6 +575,11 @@ class Function_Bessel_Y(BuiltinFunction):
             -sqrt(2)*sqrt(1/(pi*x))*cos(x)
             sage: bessel_Y(-1/2, x)
             sqrt(2)*sqrt(1/(pi*x))*sin(x)
+
+        TESTS::
+
+            sage: bessel_Y(0, 0)
+            -Infinity
         """
         from sage.rings.infinity import infinity, unsigned_infinity
         if not isinstance(x, Expression) and x == 0:
@@ -974,8 +979,13 @@ class Function_Bessel_K(BuiltinFunction):
             sqrt(1/2)*sqrt(pi)*e^(-x)/sqrt(x)
             sage: bessel_K(n, 0)
             bessel_K(n, 0)
+
+        TESTS::
+
+            sage: bessel_K(0, 0)
+            +Infinity
         """
-        from sage.rings.infinity import unsigned_infinity
+        from sage.rings.infinity import infinity, unsigned_infinity
         if not isinstance(x, Expression) and x == 0:
             if n == 0:
                 return infinity
@@ -1441,7 +1451,7 @@ class Function_Hankel1(BuiltinFunction):
 
     DEFINITION:
 
-    .. math::
+    .. MATH::
 
         H_\nu^{(1)}(z) = J_{\nu}(z) + iY_{\nu}(z)
 
@@ -1528,7 +1538,7 @@ class Function_Hankel2(BuiltinFunction):
 
     DEFINITION:
 
-    .. math::
+    .. MATH::
 
         H_\nu^{(2)}(z) = J_{\nu}(z) - iY_{\nu}(z)
 
@@ -1615,7 +1625,7 @@ class SphericalBesselJ(BuiltinFunction):
 
     DEFINITION:
 
-    .. math::
+    .. MATH::
 
         j_n(z) = \sqrt{\frac{\pi}{2z}} \,J_{n + \frac{1}{2}}(z)
 
@@ -1714,7 +1724,7 @@ class SphericalBesselY(BuiltinFunction):
 
     DEFINITION:
 
-    .. math::
+    .. MATH::
 
         y_n(z) = \sqrt{\frac{\pi}{2z}} \,Y_{n + \frac{1}{2}}(z)
 
@@ -1813,7 +1823,7 @@ class SphericalHankel1(BuiltinFunction):
 
     DEFINITION:
 
-    .. math::
+    .. MATH::
 
         h_n^{(1)}(z) = \sqrt{\frac{\pi}{2z}} \,H_{n + \frac{1}{2}}^{(1)}(z)
 
@@ -1909,7 +1919,7 @@ class SphericalHankel2(BuiltinFunction):
 
     DEFINITION:
 
-    .. math::
+    .. MATH::
 
         h_n^{(2)}(z) = \sqrt{\frac{\pi}{2z}} \,H_{n + \frac{1}{2}}^{(2)}(z)
 

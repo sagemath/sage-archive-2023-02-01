@@ -1464,7 +1464,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return CommutativeRingElement.__ne__(self, right)
         return self._MPolynomial_element__element != right._MPolynomial_element__element
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns True if self != 0
 
@@ -1473,6 +1473,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
            This is much faster than actually writing ``self == 0``.
         """
         return self._MPolynomial_element__element.dict()!={}
+
+    __nonzero__ = __bool__
 
     def _floordiv_(self, right):
         r"""

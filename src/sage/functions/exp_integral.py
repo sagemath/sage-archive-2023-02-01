@@ -66,7 +66,7 @@ class Function_exp_integral_e(BuiltinFunction):
     r"""
     The generalized complex exponential integral `E_n(z)` defined by
 
-    .. math::
+    .. MATH::
 
         E_n(z) = \int_1^{\infty} \frac{e^{-z t}}{t^n} \; dt
 
@@ -253,7 +253,7 @@ class Function_exp_integral_e1(BuiltinFunction):
     r"""
     The generalized complex exponential integral `E_1(z)` defined by
 
-    .. math::
+    .. MATH::
 
         E_1(z) = \int_z^\infty \frac{e^{-t}}{t} \; dt
 
@@ -352,7 +352,7 @@ class Function_log_integral(BuiltinFunction):
     r"""
     The logarithmic integral `\operatorname{li}(z)` defined by
 
-    .. math::
+    .. MATH::
 
         \operatorname{li}(x) = \int_0^z \frac{dt}{\ln(t)} = \operatorname{Ei}(\ln(x))
 
@@ -478,7 +478,7 @@ class Function_log_integral_offset(BuiltinFunction):
     The offset logarithmic integral, or Eulerian logarithmic integral,
     `\operatorname{Li}(x)` is defined by
 
-    .. math::
+    .. MATH::
 
         \operatorname{Li}(x) = \int_2^x \frac{dt}{\ln(t)} =
         \operatorname{li}(x)-\operatorname{li}(2)
@@ -493,14 +493,14 @@ class Function_log_integral_offset(BuiltinFunction):
     the lower limit of integration is `2` rather than `0` to avoid the
     singularity at `x = 1` of
 
-    .. math::
+    .. MATH::
 
         \frac{1}{\ln(t)}
 
     See :class:`Function_log_integral` for details of `\operatorname{li}(x)`.
     Thus `\operatorname{Li}(x)` can also be represented by
 
-    .. math::
+    .. MATH::
 
         \operatorname{Li}(x) = \operatorname{li}(x)-\operatorname{li}(2)
 
@@ -518,7 +518,7 @@ class Function_log_integral_offset(BuiltinFunction):
     The function `\operatorname{Li}` is an approximation for the number of
     primes up to `x`. In fact, the famous Riemann Hypothesis is
 
-    .. math::
+    .. MATH::
 
         |\pi(x) - \operatorname{Li}(x)| \leq \sqrt{x} \log(x).
 
@@ -664,7 +664,7 @@ class Function_sin_integral(BuiltinFunction):
     r"""
     The trigonometric integral `\operatorname{Si}(z)` defined by
 
-    .. math::
+    .. MATH::
 
         \operatorname{Si}(z) = \int_0^z \frac{\sin(t)}{t} \; dt,
 
@@ -855,7 +855,7 @@ class Function_cos_integral(BuiltinFunction):
     r"""
     The trigonometric integral `\operatorname{Ci}(z)` defined by
 
-    .. math::
+    .. MATH::
 
         \operatorname{Ci}(z) = \gamma + \log(z) + \int_0^z \frac{\cos(t)-1}{t} \; dt,
 
@@ -991,7 +991,7 @@ class Function_sinh_integral(BuiltinFunction):
     r"""
     The trigonometric integral `\operatorname{Shi}(z)` defined by
 
-    .. math::
+    .. MATH::
 
         \operatorname{Shi}(z) = \int_0^z \frac{\sinh(t)}{t} \; dt,
 
@@ -1142,7 +1142,7 @@ class Function_cosh_integral(BuiltinFunction):
     r"""
     The trigonometric integral `\operatorname{Chi}(z)` defined by
 
-    .. math::
+    .. MATH::
 
         \operatorname{Chi}(z) = \gamma + \log(z) + \int_0^z \frac{\cosh(t)-1}{t} \; dt,
 
@@ -1280,7 +1280,7 @@ class Function_exp_integral(BuiltinFunction):
     r"""
     The generalized complex exponential integral Ei(z) defined by
 
-    .. math::
+    .. MATH::
 
         \operatorname{Ei}(x) = \int_{-\infty}^x \frac{e^t}{t} \; dt
 
@@ -1390,7 +1390,7 @@ def exponential_integral_1(x, n=0):
 
     The exponential integral `E_1(x)` is
 
-    .. math::
+    .. MATH::
 
                       E_1(x) = \int_{x}^{\infty} \frac{e^{-t}}{t} \; dt
 

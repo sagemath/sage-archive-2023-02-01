@@ -82,7 +82,7 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
         sage: PerfectMatchings(2).list()
         [[(1, 2)]]
 
-    .. note::
+    .. NOTE::
 
         If a class is put in this metaclass it automatically becomes a
         new-style class::

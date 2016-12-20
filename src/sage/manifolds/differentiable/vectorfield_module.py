@@ -2,21 +2,22 @@ r"""
 Vector Field Modules
 
 The set of vector fields along a differentiable manifold `U` with values on
-a differentiable manifold `M` via a differentiable map `\Phi: U \rightarrow M`
+a differentiable manifold `M` via a differentiable map `\Phi: U \to M`
 (possibly `U = M` and `\Phi=\mathrm{Id}_M`) is a module over the algebra
-`C^k(U)` of differentiable scalar fields on `U`. It is a free module if
-and only if `M` is parallelizable. Accordingly, two classes are devoted
-to vector field modules:
+`C^k(U)` of differentiable scalar fields on `U`. If `\Phi` is the identity
+map, this module is considered a Lie algebroid under the Lie bracket `[\ ,\ ]`
+(cf. :wikipedia:`Lie_algebroid`). It is a free module if and only if `M` is
+parallelizable. Accordingly, there are two classes for vector field modules:
 
 - :class:`VectorFieldModule` for vector fields with values on a
-  generic (in practice, not parallelizable) differentiable manifold `M`
+  generic (in practice, not parallelizable) differentiable manifold `M`.
 - :class:`VectorFieldFreeModule` for vector fields with values on a
   parallelizable manifold `M`.
 
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
-- Travis Scrimshaw (2016): review tweaks
+- Travis Scrimshaw (2016): structure of Lie algebroid (:trac:`20771`)
 
 REFERENCES:
 
@@ -74,6 +75,16 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     The set `\mathcal{X}(U,\Phi)` is a module over `C^k(U)`, the ring
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
+    Furthermore, it is a Lie algebroid under the Lie bracket (cf.
+    :wikipedia:`Lie_algebroid`)
+
+    .. MATH::
+
+        [X, Y] = X \circ Y - Y \circ X
+
+    over the scalarfields if `\Phi` is the identity map. That is to say
+    the Lie bracket is antisymmetric, bilinear over the base field,
+    satisfies the Jacobi identity, and `[X, fY] = X(f) Y + f[X, Y]`.
 
     The standard case of vector fields *on* a differentiable manifold
     corresponds to `U = M` and `\Phi = \mathrm{Id}_M`; we then denote
@@ -671,8 +682,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.automorphismfield import AutomorphismField
-        if tensor_type == (1,0):
+        from sage.manifolds.differentiable.automorphismfield import \
+                                                              AutomorphismField
+        from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
+        if tensor_type==(1,0):
             return self.element_class(self, name=name, latex_name=latex_name)
         elif tensor_type == (0,1):
             return self.linear_form(name=name, latex_name=latex_name)
@@ -692,6 +705,11 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 return self.tensor_module(*tensor_type).element_class(self,
                                  tensor_type, name=name, latex_name=latex_name,
                                  sym=sym, antisym=antisym)
+        elif tensor_type==(0,2) and specific_type is not None:
+            if issubclass(specific_type, PseudoRiemannianMetric):
+                return self.metric(name, latex_name=latex_name)
+                # NB: the signature is not treated
+        # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
                         tensor_type, name=name, latex_name=latex_name, sym=sym,
                         antisym=antisym)
@@ -872,6 +890,52 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 # (since new components are initialized to zero)
         return elt
 
+    def metric(self, name, signature=None, latex_name=None):
+        r"""
+        Construct a pseudo-Riemannian metric (nondegenerate symmetric bilinear
+        form) on the current vector field module.
+
+        A pseudo-Riemannian metric of the vector field module is actually a
+        field of tangent-space non-degenerate symmetric bilinear forms along
+        the manifold `U` on which the vector field module is defined.
+
+        INPUT:
+
+        - ``name`` -- (string) name given to the metric
+        - ``signature`` -- (integer; default: ``None``) signature `S` of the
+          metric: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number of
+          positive terms (resp. number of negative terms) in any diagonal
+          writing of the metric components; if ``signature`` is not provided,
+          `S` is set to the manifold's dimension (Riemannian signature)
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the metric; if ``None``, it is formed from ``name``
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined pseudo-Riemannian metric.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM.metric('g')
+            Riemannian metric g on the 2-dimensional differentiable manifold M
+            sage: XM.metric('g', signature=0)
+            Lorentzian metric g on the 2-dimensional differentiable manifold M
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+            for more documentation.
+
+        """
+        from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
+        return PseudoRiemannianMetric(self, name, signature=signature,
+                                      latex_name=latex_name)
+
+
 #******************************************************************************
 
 class VectorFieldFreeModule(FiniteRankFreeModule):
@@ -905,6 +969,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     free module over `C^k(U)`, the ring (algebra) of differentiable
     scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
+    In fact, it carries the structure of a finite-dimensional Lie algebroid
+    (cf. :wikipedia:`Lie_algebroid`).
 
     The standard case of vector fields *on* a differentiable manifold
     corresponds to `U=M` and `\Phi = \mathrm{Id}_M`; we then denote
@@ -938,8 +1004,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         Free module X(R^2) of vector fields on the 2-dimensional differentiable
          manifold R^2
         sage: XM.category()
-        Category of finite dimensional modules over Algebra of differentiable
-         scalar fields on the 2-dimensional differentiable manifold R^2
+        Category of finite dimensional modules
+         over Algebra of differentiable scalar fields
+         on the 2-dimensional differentiable manifold R^2
         sage: XM.base_ring() is M.scalar_field_algebra()
         True
 
@@ -977,8 +1044,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
          differentiable manifold I mapped into the 2-dimensional differentiable
          manifold R^2
         sage: XIM.category()
-        Category of finite dimensional modules over Algebra of differentiable
-         scalar fields on the 1-dimensional differentiable manifold I
+        Category of finite dimensional modules
+         over Algebra of differentiable scalar fields
+         on the 1-dimensional differentiable manifold I
 
     The rank of the free module `\mathcal{X}(I,\Phi)` is the dimension
     of the manifold `\RR^2`, namely two::
@@ -1057,8 +1125,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         sage: isinstance(XM, FiniteRankFreeModule)
         True
         sage: XM.category()
-        Category of finite dimensional modules over Algebra of differentiable
-         scalar fields on the 1-dimensional differentiable manifold S^1
+        Category of finite dimensional modules
+         over Algebra of differentiable scalar fields
+         on the 1-dimensional differentiable manifold S^1
         sage: XM.base_ring() is M.scalar_field_algebra()
         True
 
@@ -1129,10 +1198,12 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             name += "," + self._dest_map._name + ")"
             latex_name += "," + self._dest_map._latex_name + r"\right)"
         manif = self._ambient_domain.manifold()
+        cat = Modules(domain.scalar_field_algebra()).FiniteDimensional()
         FiniteRankFreeModule.__init__(self, domain.scalar_field_algebra(),
                                manif._dim, name=name, latex_name=latex_name,
                                start_index=manif._sindex,
-                               output_formatter=DiffScalarField.coord_function)
+                               output_formatter=DiffScalarField.coord_function,
+                               category=cat)
         #
         # Special treatment when self._dest_map != identity:
         # bases of self are created from vector frames of the ambient domain
@@ -1608,6 +1679,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         from sage.manifolds.differentiable.automorphismfield import (AutomorphismField,
                                                                      AutomorphismFieldParal)
+        from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
         if tensor_type == (1,0):
             return self.element_class(self, name=name, latex_name=latex_name)
         elif tensor_type == (0,1):
@@ -1629,6 +1701,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 return self.tensor_module(*tensor_type).element_class(self,
                                  tensor_type, name=name, latex_name=latex_name,
                                  sym=sym, antisym=antisym)
+        elif tensor_type==(0,2) and specific_type is not None:
+            if issubclass(specific_type, PseudoRiemannianMetric):
+                return self.metric(name, latex_name=latex_name)
+                # NB: the signature is not treated
         # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
                         tensor_type, name=name, latex_name=latex_name, sym=sym,
@@ -1763,3 +1839,48 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
     #### End of methods to be redefined by derived classes of FiniteRankFreeModule ####
 
+    def metric(self, name, signature=None, latex_name=None):
+        r"""
+        Construct a pseudo-Riemannian metric (nondegenerate symmetric bilinear
+        form) on the current vector field module.
+
+        A pseudo-Riemannian metric of the vector field module is actually a
+        field of tangent-space non-degenerate symmetric bilinear forms along
+        the manifold `U` on which the vector field module is defined.
+
+        INPUT:
+
+        - ``name`` -- (string) name given to the metric
+        - ``signature`` -- (integer; default: ``None``) signature `S` of the
+          metric: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number of
+          positive terms (resp. number of negative terms) in any diagonal
+          writing of the metric components; if ``signature`` is not provided,
+          `S` is set to the manifold's dimension (Riemannian signature)
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the metric; if ``None``, it is formed from ``name``
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal`
+          representing the defined pseudo-Riemannian metric.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: XM.metric('g')
+            Riemannian metric g on the 2-dimensional differentiable manifold M
+            sage: XM.metric('g', signature=0)
+            Lorentzian metric g on the 2-dimensional differentiable manifold M
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal`
+            for more documentation.
+
+        """
+        from sage.manifolds.differentiable.metric import PseudoRiemannianMetricParal
+        return PseudoRiemannianMetricParal(self, name, signature=signature,
+                                           latex_name=latex_name)

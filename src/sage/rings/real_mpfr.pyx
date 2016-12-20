@@ -134,9 +134,9 @@ import sage.misc.weak_dict
 
 import operator
 
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.gen cimport gen
-from sage.libs.pari.stack cimport new_gen
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
@@ -1353,7 +1353,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(2, rnd="RNDN")(w).str(2)
             '10.'
 
-        .. note::
+        .. NOTE::
 
            A real number is an arbitrary precision mantissa with a
            limited precision exponent. A real number can have three
@@ -3790,18 +3790,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RR(1).__nonzero__()
+            sage: bool(RR(1))
             True
-            sage: RR(0).__nonzero__()
+            sage: bool(RR(0))
             False
-            sage: RR('inf').__nonzero__()
+            sage: bool(RR('inf'))
             True
 
         TESTS:
 
         Check that :trac:`20502` is fixed::
 
-            sage: RR('nan').__nonzero__()
+            sage: bool(RR('nan'))
             True
             sage: RR('nan').is_zero()
             False
@@ -5040,7 +5040,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ::
 
             sage: type(z)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: R(z)
             1.64493406684823
         """

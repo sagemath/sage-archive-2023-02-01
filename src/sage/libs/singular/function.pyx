@@ -79,7 +79,7 @@ from libc.string cimport memcpy
 
 include "cysignals/signals.pxi"
 
-from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport SageObject, richcmp
 
 from sage.rings.integer cimport Integer
 
@@ -1038,7 +1038,7 @@ cdef class LibraryCallHandler(BaseCallHandler):
 
     This class implements calling a library function.
 
-    .. note::
+    .. NOTE::
 
         Do not construct this class directly, use
         :func:`singular_function` instead.
@@ -1079,7 +1079,7 @@ cdef class KernelCallHandler(BaseCallHandler):
 
     This class implements calling a kernel function.
 
-    .. note::
+    .. NOTE::
 
         Do not construct this class directly, use
         :func:`singular_function` instead.
@@ -1447,7 +1447,7 @@ The Singular documentation for '%s' is given below.
         """
         return singular_function, (self._name,)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLE::
 
@@ -1459,11 +1459,16 @@ The Singular documentation for '%s' is given below.
             False
             sage: groebner == 1
             False
+            sage: groebner == None
+            False
         """
-        if not isinstance(other, SingularFunction):
-            return cmp(type(self),type(other))
-        else:
-            return cmp(self._name, (<SingularFunction>other)._name)
+        try:
+            lx = <SingularFunction?>self
+            rx = <SingularFunction?>other
+        except TypeError:
+            return NotImplemented
+        return richcmp(lx._name, rx._name, op)
+
 
 cdef inline call_function(SingularFunction self, tuple args, object R, bint signal_handler=True, attributes=None):
     global currRingHdl

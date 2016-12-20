@@ -4,7 +4,7 @@ Eta-products on modular curves :math:`X_0(N)`
 This package provides a class for representing eta-products, which
 are meromorphic functions on modular curves of the form
 
-.. math::
+.. MATH::
 
     \prod_{d | N} \eta(q^d)^{r_d}
 
@@ -802,7 +802,7 @@ def qexp_eta(ps_ring, prec):
     Return the q-expansion of `\eta(q) / q^{1/24}`, where
     `\eta(q)` is Dedekind's function
 
-    .. math::
+    .. MATH::
 
         \eta(q) = q^{1/24}\prod_{n=1}^\infty (1-q^n),
 
@@ -821,7 +821,7 @@ def qexp_eta(ps_ring, prec):
 
     ALGORITHM: We use the Euler identity
 
-    .. math::
+    .. MATH::
 
          \eta(q) = q^{1/24}( 1 + \sum_{n \ge 1} (-1)^n (q^{n(3n+1)/2} + q^{n(3n-1)/2})
 
@@ -956,7 +956,7 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
     Liable to return meaningless results if qexp_terms isn't at least
     `1 + d*(m_1,m_2)` where
 
-    .. math::
+    .. MATH::
 
        m_i = min(0, {\text degree of the pole of $\eta_i$ at $\infty$})
 

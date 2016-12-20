@@ -1748,7 +1748,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         r"""
         Compute the `e_3` invariant defined by the formula
 
-        .. math::
+        .. MATH::
 
            e_k =\prod_{\ell\mid pN^-}\left(1-\left(\frac{-3}{\ell}\right)\right)\prod_{\ell \| N^+}\left(1+\left(\frac{-3}{\ell}\right)\right)\prod_{\ell^2\mid N^+} \nu_\ell(3)
 
@@ -1770,7 +1770,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         r"""
         Compute the `e_4` invariant defined by the formula
 
-        .. math::
+        .. MATH::
 
            e_k =\prod_{\ell\mid pN^-}\left(1-\left(\frac{-k}{\ell}\right)\right)\prod_{\ell \| N^+}\left(1+\left(\frac{-k}{\ell}\right)\right)\prod_{\ell^2\mid N^+} \nu_\ell(k)
 
@@ -3770,12 +3770,12 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         - ``t`` -- (default : None). The number of additional moments to store. If None, determine
           it automatically from ``prec``, ``U`` and the ``overconvergent`` flag.
 
-        - ``R`` -- (default : None). If specified, coefficent field of the automorphic forms.
-          If not speficied it defaults to the base ring of the distributions ``U``, or to `\QQ_p`
+        - ``R`` -- (default : None). If specified, coefficient field of the automorphic forms.
+          If not specified it defaults to the base ring of the distributions ``U``, or to `\QQ_p`
           with the working precision ``prec``.
 
         - ``overconvergent`` -- Boolean (default = False). If True, will construct overconvergent
-          `p`-adic automorhic forms. Otherwise it constructs the finite dimensional space of
+          `p`-adic automorphic forms. Otherwise it constructs the finite dimensional space of
           `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
 
         EXAMPLES::

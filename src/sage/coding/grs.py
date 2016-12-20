@@ -13,7 +13,7 @@ More generally, given also `n` "column multipliers" `\beta_1, \dots, \beta_n`,
 the corresponding Generalized Reed-Solomon code (GRS code) of dimension `k` is
 the set:
 
-.. math::
+.. MATH::
 
     \{ (\beta_1 f(\alpha_1), \ldots, \beta_n f(\alpha_n)  \mid  f \in F[x], \deg f < k \}
 

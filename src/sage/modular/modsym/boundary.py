@@ -17,13 +17,13 @@ vector space of dimension equal to the number of cusps for `G`. The embedding
 takes `[P, u/v]` to `P(u,v)\cdot [(u,v)]`. We represent the basis vectors by
 pairs `[(u,v)]` with u, v coprime. On `B_k(G)`, we have the relations
 
-.. math::
+.. MATH::
 
      [\gamma \cdot (u,v)] = [(u,v)]
 
 for all `\gamma \in G` and
 
-.. math::
+.. MATH::
 
      [(\lambda u, \lambda v)] = \operatorname{sign}(\lambda)^k [(u,v)]
 

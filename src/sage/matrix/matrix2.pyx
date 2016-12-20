@@ -183,7 +183,7 @@ cdef class Matrix(matrix1.Matrix):
         `B` is a vector then `X` is a vector and if
         `B` is a matrix, then `X` is a matrix.
 
-        .. note::
+        .. NOTE::
 
            In Sage one can also write ``A \backslash  B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
@@ -366,7 +366,7 @@ cdef class Matrix(matrix1.Matrix):
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.pari import pari
+                from sage.libs.cypari2 import pari
                 A = pari(self.lift())
                 b = pari(B).lift()
                 if b.type() == "t_MAT":
@@ -3240,7 +3240,7 @@ cdef class Matrix(matrix1.Matrix):
         format).  Conversely, repeated calls on the same matrix will always
         start from scratch.
 
-        .. note::
+        .. NOTE::
 
             If you want to get the most basic description of a kernel, with a
             minimum of overhead, then ask for the right kernel matrix with
@@ -3832,7 +3832,7 @@ cdef class Matrix(matrix1.Matrix):
         Returns the right kernel of this matrix, as a vector space or
         free module. This is the set of vectors ``x`` such that ``self*x = 0``.
 
-        .. note::
+        .. NOTE::
 
             For the left kernel, use :meth:`left_kernel`.  The method
             :meth:`kernel` is exactly equal to :meth:`left_kernel`.
@@ -3877,7 +3877,7 @@ cdef class Matrix(matrix1.Matrix):
         but with a different basis format, will return the cached result
         with the format from the first computation.
 
-        .. note::
+        .. NOTE::
 
            For more detailed documentation on the selection of algorithms
            used and a more flexible method for computing a basis matrix
@@ -4188,7 +4188,7 @@ cdef class Matrix(matrix1.Matrix):
         Returns the left kernel of this matrix, as a vector space or free module.
         This is the set of vectors ``x`` such that ``x*self = 0``.
 
-        .. note::
+        .. NOTE::
 
             For the right kernel, use :meth:`right_kernel`.  The method
             :meth:`kernel` is exactly equal to :meth:`left_kernel`.
@@ -4233,7 +4233,7 @@ cdef class Matrix(matrix1.Matrix):
         but with a different basis format, will return the cached result
         with the format from the first computation.
 
-        .. note::
+        .. NOTE::
 
            For much more detailed documentation of the various options see
            :meth:`right_kernel`, since this method just computes
@@ -4670,7 +4670,7 @@ cdef class Matrix(matrix1.Matrix):
            be diagonalizable, set this to True, which might speed up the
            algorithm in some cases.
 
-        .. note::
+        .. NOTE::
 
            If the base ring is not a field, the kernel algorithm is
            used.
@@ -6297,7 +6297,7 @@ cdef class Matrix(matrix1.Matrix):
 
         All arguments are passed on to :meth:`echelon_form`.
 
-        .. note::
+        .. NOTE::
 
             Because the matrix is viewed as a matrix over a field,
             every leading coefficient of the returned matrix will be
@@ -6474,7 +6474,7 @@ cdef class Matrix(matrix1.Matrix):
         Transform ``self`` into a matrix in echelon form over the same
         base ring as self.
 
-        .. note::
+        .. NOTE::
 
             This row reduction does not use division if the
             matrix is not over a field (e.g., if the matrix is over
@@ -6614,7 +6614,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         Return the echelon form of self.
 
-        .. note::
+        .. NOTE::
 
             This row reduction does not use division if the
             matrix is not over a field (e.g., if the matrix is over
@@ -6808,7 +6808,7 @@ cdef class Matrix(matrix1.Matrix):
         column space, left kernel and right kernel of ``self``.  See the
         examples below.
 
-        .. note::
+        .. NOTE::
 
             This method returns an echelon form.  If the base ring
             is not a field, no atttempt is made to move to the fraction field.
@@ -7541,7 +7541,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         ncols = self.ncols()
         nrows = self.nrows()
-        if N.ncols() <> ncols or N.nrows() <> nrows:
+        if N.ncols() != ncols or N.nrows() != nrows:
             if check:
                 return (False, None)
             else:
@@ -7747,7 +7747,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         OUTPUT: changes self
 
-        .. note::
+        .. NOTE::
 
            One may also pass a tuple into the first argument which
            will be interpreted as (row_lines, col_lines)
@@ -8147,7 +8147,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         Replace a proportion of the entries of a matrix by random elements,
         leaving the remaining entries unchanged.
 
-        .. note::
+        .. NOTE::
 
            The locations of the entries of the matrix to change are
            determined randomly, with the total number of locations
@@ -9005,7 +9005,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         The results obtained when ``full=True`` are cached,
         hence `Q` and `R` are immutable matrices in this case.
 
-        .. note::
+        .. NOTE::
 
             This is an exact computation, so limited to exact rings.
             Also the base ring needs to have a fraction field implemented
@@ -10253,7 +10253,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         if there is an invertible matrix `S` and a diagonal matrix
         `D` such that
 
-        .. math::
+        .. MATH::
 
             S^{-1}AS = D
 
@@ -10754,7 +10754,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         For a square matrix `A` and a vector `v`, the cyclic subspace
         is spanned by the vectors
 
-        .. math::
+        .. MATH::
 
             \{v, Av, A^2v, A^3v, \dots \}
 
@@ -10892,7 +10892,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         These subspaces are also known as Krylov subspaces.  They are
         spanned by the vectors
 
-        .. math::
+        .. MATH::
 
             \{v, Av, A^2v, A^3v, \dots \}
 
@@ -11170,7 +11170,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         For a matrix `A` the routine returns a lower triangular
         matrix `L` such that,
 
-        .. math::
+        .. MATH::
 
             A = LL^\ast
 
@@ -11494,7 +11494,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         returned as an `m\times m` permutation matrix `P` such
         that
 
-        .. math::
+        .. MATH::
 
             A = PLU
 
@@ -11538,7 +11538,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         it only acts "below the diagonal", as would be predicted
         from a theoretical analysis of the algorithms.
 
-        .. note::
+        .. NOTE::
 
             This is an exact computation, so limited to exact
             rings. If you need numerical results, convert the
@@ -11958,7 +11958,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         matrix is ``D``.  Then, for a symmetric matrix, these items
         are related as:
 
-        .. math::
+        .. MATH::
 
             A = LDL^T
 
@@ -12223,7 +12223,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         For a symmetric matrix, `A`, these will be related by
 
-        .. math::
+        .. MATH::
 
             A = LDL^T
 
@@ -12363,7 +12363,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         symmetric with real entries or Hermitan with complex entries,
         and for every non-zero vector `\vec{x}`
 
-        .. math::
+        .. MATH::
 
             \vec{x}^\ast A\vec{x} > 0
 
@@ -12738,7 +12738,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Returns the transpose of ``self`` after each entry has been converted to its complex conjugate.
 
-        .. note::
+        .. NOTE::
             This function is sometimes known as the "adjoint" of a matrix,
             though there is substantial variation and some confusion with
             the use of that term.
@@ -13056,7 +13056,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Calculate the exponential of this matrix X, which is the matrix
 
-        .. math::
+        .. MATH::
 
            e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
 
@@ -13102,7 +13102,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         where `r` and `s` are the number of rows and
         columns of self, such that the cokernel of self is isomorphic to
 
-        .. math::
+        .. MATH::
 
            R/(d_1) \oplus R/(d_2) \oplus R/(d_k)
 
@@ -13469,7 +13469,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         `A` is the matrix, `U` is the change-of-basis matrix and `Z` is
         the ZigZag form, then
 
-        .. math::
+        .. MATH::
 
             U^{-1}*A*U = Z
 
@@ -13745,9 +13745,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         For output that may be more useful as input to other routines,
         see the helper method :meth:`_zigzag_form`.
 
-        .. note::
+        .. NOTE::
 
-            An efffort has been made to optimize computation of the form,
+            An effort has been made to optimize computation of the form,
             but no such work has been done for the computation of the
             transformation matrix, so for fastest results do not request the
             transformation matrix.

@@ -920,7 +920,7 @@ class Hypergeometric_M(BuiltinFunction):
     `y = M(a,b,z)`, is defined to be the solution to Kummer's differential
     equation
 
-    .. math::
+    .. MATH::
 
              zy'' + (b-z)y' - ay = 0.
 
@@ -1023,7 +1023,7 @@ class Hypergeometric_U(BuiltinFunction):
     `y = U(a,b,z)`, is defined to be the solution to Kummer's differential
     equation
 
-    .. math::
+    .. MATH::
 
              zy'' + (b-z)y' - ay = 0.
 

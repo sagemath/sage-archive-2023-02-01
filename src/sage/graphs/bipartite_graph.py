@@ -113,7 +113,7 @@ class BipartiteGraph(Graph):
     one bipartite graph from another into this category::
 
         sage: P = graphs.PetersenGraph()
-        sage: partition = [range(5), range(5,10)]
+        sage: partition = [list(range(5)), list(range(5,10))]
         sage: B = BipartiteGraph(P, partition)
         Traceback (most recent call last):
         ...
@@ -131,7 +131,7 @@ class BipartiteGraph(Graph):
         sage: B2 = BipartiteGraph(B)
         sage: B == B2
         True
-        sage: B3 = BipartiteGraph(G, [range(4), range(4,7)])
+        sage: B3 = BipartiteGraph(G, [list(range(4)), list(range(4,7))])
         sage: B3
         Bipartite graph on 7 vertices
         sage: B3 == B2
@@ -140,7 +140,7 @@ class BipartiteGraph(Graph):
       ::
 
         sage: G = Graph({0:[], 1:[], 2:[]})
-        sage: part = (range(2), [2])
+        sage: part = (list(range(2)), [2])
         sage: B = BipartiteGraph(G, part)
         sage: B2 = BipartiteGraph(B)
         sage: B == B2
@@ -259,7 +259,7 @@ class BipartiteGraph(Graph):
         EXAMPLE::
 
             sage: P = graphs.PetersenGraph()
-            sage: partition = [range(5), range(5,10)]
+            sage: partition = [list(range(5)), list(range(5,10))]
             sage: B = BipartiteGraph(P, partition, check=False)
         """
         if data is None:
@@ -1104,7 +1104,7 @@ class BipartiteGraph(Graph):
             sage: for order in range(3, 13, 3):
             ....:     num_chks = int(order / 3)
             ....:     num_vars = order - num_chks
-            ....:     partition = (range(num_vars), range(num_vars, num_vars+num_chks))
+            ....:     partition = (list(range(num_vars)), list(range(num_vars, num_vars+num_chks)))
             ....:     for idx in range(100):
             ....:         g = graphs.RandomGNP(order, 0.5)
             ....:         try:
@@ -1168,9 +1168,9 @@ class BipartiteGraph(Graph):
         EXAMPLE::
 
             sage: P = graphs.PetersenGraph()
-            sage: partition = [range(5), range(5,10)]
+            sage: partition = [list(range(5)), list(range(5,10))]
             sage: B = BipartiteGraph(P, partition, check=False)
-            sage: B._BipartiteGraph__edge2idx(2,7,range(5),range(5,10))
+            sage: B._BipartiteGraph__edge2idx(2,7,list(range(5)),list(range(5,10)))
             (2, 2)
         """
         try:

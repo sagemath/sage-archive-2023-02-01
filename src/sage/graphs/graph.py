@@ -1749,6 +1749,252 @@ class Graph(GenericGraph):
                     return (False, cycle)
 
     @doc_index("Graph properties")
+    def is_apex(self):
+        """
+        Test if the graph is apex.
+
+        A graph is apex if it can be made planar by the removal of a single
+        vertex. The deleted vertex is called ``an apex`` of the graph, and a
+        graph may have more than one apex. For instance, in the minimal
+        nonplanar graphs `K_5` or `K_{3,3}`, every vertex is an apex. The apex
+        graphs include graphs that are themselves planar, in which case again
+        every vertex is an apex. The null graph is also counted as an apex graph
+        even though it has no vertex to remove.  If the graph is not connected,
+        we say that it is apex if it has at most one non planar connected
+        component and that this component is apex.  See :wikipedia:`the
+        wikipedia article on Apex graph <Apex_graph>` for more information.
+
+        .. SEEALSO::
+
+          - :meth:`~Graph.apex_vertices`
+          - :meth:`~sage.graphs.generic_graph.GenericGraph.is_planar`
+
+        EXAMPLES:
+
+        `K_5` and `K_{3,3}` are apex graphs, and each of their vertices is an
+        apex::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.is_apex()
+            True
+            sage: G = graphs.CompleteBipartiteGraph(3,3)
+            sage: G.is_apex()
+            True
+
+        The Petersen graph is not apex::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.is_apex()
+            False
+
+        A graph is apex if all its connected components are apex, but at most
+        one is not planar::
+
+            sage: M = graphs.Grid2dGraph(3,3)
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: (M+K5).is_apex()
+            True
+            sage: (M+K5+K5).is_apex()
+            False
+
+        TESTS:
+
+        The null graph is apex::
+
+            sage: G = Graph()
+            sage: G.is_apex()
+            True
+
+        The graph might be mutable or immutable::
+
+            sage: G = Graph(M+K5, immutable=True)
+            sage: G.is_apex()
+            True
+        """
+        # Easy cases: null graph, subgraphs of K_5 and K_3,3
+        if self.order() <= 5 or ( self.order() <= 6 and self.is_bipartite() ):
+            return True
+
+        return len(self.apex_vertices(k=1)) > 0
+
+    @doc_index("Graph properties")
+    def apex_vertices(self, k=None):
+        """
+        Return the list of apex vertices.
+
+        A graph is apex if it can be made planar by the removal of a single
+        vertex. The deleted vertex is called ``an apex`` of the graph, and a
+        graph may have more than one apex. For instance, in the minimal
+        nonplanar graphs `K_5` or `K_{3,3}`, every vertex is an apex. The apex
+        graphs include graphs that are themselves planar, in which case again
+        every vertex is an apex. The null graph is also counted as an apex graph
+        even though it has no vertex to remove.  If the graph is not connected,
+        we say that it is apex if it has at most one non planar connected
+        component and that this component is apex.  See :wikipedia:`the
+        wikipedia article on Apex graph <Apex_graph>` for more information.
+
+        .. SEEALSO::
+
+          - :meth:`~Graph.is_apex`
+          - :meth:`~sage.graphs.generic_graph.GenericGraph.is_planar`
+
+        INPUT:
+
+        - ``k`` -- when set to ``None``, the method returns the list of all apex
+          of the graph, possibly empty if the graph is not apex. When set to a
+          positive integer, the method ends as soon as `k` apex vertices are
+          found.
+
+        OUTPUT:
+
+        By default, the method returns the list of all apex of the graph. When
+        parameter ``k`` is set to a positive integer, the returned list is
+        bounded to `k` apex vertices.
+
+        EXAMPLES:
+
+        `K_5` and `K_{3,3}` are apex graphs, and each of their vertices is an
+        apex::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.apex_vertices()
+            [0, 1, 2, 3, 4]
+            sage: G = graphs.CompleteBipartiteGraph(3,3)
+            sage: G.is_apex()
+            True
+            sage: G.apex_vertices()
+            [0, 1, 2, 3, 4, 5]
+            sage: G.apex_vertices(k=3)
+            [0, 1, 2]
+
+        A `4\\times 4`-grid is apex and each of its vertices is an apex. When
+        adding a universal vertex, the resulting graph is apex and the universal
+        vertex is the unique apex vertex ::
+
+            sage: G = graphs.Grid2dGraph(4,4)
+            sage: G.apex_vertices() == G.vertices()
+            True
+            sage: G.add_edges([('universal',v) for v in G.vertex_iterator()])
+            sage: G.apex_vertices()
+            ['universal']
+
+        The Petersen graph is not apex::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.apex_vertices()
+            []
+
+        A graph is apex if all its connected components are apex, but at most
+        one is not planar::
+
+            sage: M = graphs.Grid2dGraph(3,3)
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: (M+K5).apex_vertices()
+            [9, 10, 11, 12, 13]
+            sage: (M+K5+K5).apex_vertices()
+            []
+
+        Neighbors of an apex of degree 2 are apex::
+
+            sage: G = graphs.Grid2dGraph(5,5)
+            sage: G.add_path([(1,1),'x',(3,3)])
+            sage: G.is_planar()
+            False
+            sage: G.degree('x')
+            2
+            sage: G.apex_vertices()
+            ['x', (2, 2), (3, 3), (1, 1)]
+
+
+        TESTS:
+
+        The null graph is apex although it has no apex vertex::
+
+            sage: G = Graph()
+            sage: G.apex_vertices()
+            []
+
+        Parameter ``k`` cannot be a negative integer::
+
+            sage: G.apex_vertices(k=-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: parameter k must be a non negative integer
+
+        The graph might be mutable or immutable::
+
+            sage: G = Graph(M+K5, immutable=True)
+            sage: G.apex_vertices()
+            [9, 10, 11, 12, 13]
+        """
+        if k is None:
+            k = self.order()
+        elif k < 0 :
+            raise ValueError("parameter k must be a non negative integer")
+
+        # Easy cases: null graph, subgraphs of K_5 and K_3,3
+        if self.order() <= 5 or ( self.order() <= 6 and self.is_bipartite() ):
+            return self.vertices()[:k]
+
+
+        if not self.is_connected():
+            # We search for its non planar connected components. If it has more
+            # than one such component, the graph is not apex. It is apex if
+            # either it has no such component, in which case the graph is
+            # planar, or if its unique non planar component is apex.
+
+            P = [H for H in self.connected_components_subgraphs() if not H.is_planar()]
+            if not P: # The graph is planar
+                return self.vertices()[:k]
+            elif len(P) > 1:
+                return []
+            else:
+                # We proceed with the non planar component
+                H = Graph(P[0].edges(labels=0), immutable=False, loops=False, multiedges=False) if P[0].is_immutable() else P[0]
+
+        elif self.is_planar():
+            # A planar graph is apex.
+            return self.vertices()[:k]
+
+        else:
+            # We make a basic copy of the graph since we will modify it
+            H = Graph(self.edges(labels=0), immutable=False, loops=False, multiedges=False)
+
+
+        # General case: basic implementation
+        #
+        # Test for each vertex if the its removal makes the graph planar.
+        # Obviously, we don't test vertices of degree one. Furthermore, if a
+        # vertex of degree 2 is an apex, its neighbors also are. So we start
+        # with vertices of degree 2.
+        V = sorted([(d,u) for u,d in H.degree(labels=True).iteritems() if d > 1])
+        apex = set()
+        for deg,u in V:
+
+            if u in apex: # True if neighbor of an apex of degree 2
+                if deg == 2:
+                    # We ensure that its neighbors are known apex
+                    apex.update(H.neighbors(u))
+                    if len(apex) >= k:
+                        return list(apex)[:k]
+                continue
+
+            E = H.edges_incident(u, labels=0)
+            H.delete_vertex(u)
+            if H.is_planar():
+                apex.add(u)
+                if deg == 2:
+                    # The neighbors of an apex of degree 2 also are
+                    apex.update(self.neighbors(u))
+
+                if len(apex) >= k:
+                    return list(apex)[:k]
+
+            H.add_edges(E)
+
+        return list(apex)
+
+    @doc_index("Graph properties")
     def is_overfull(self):
         r"""
         Tests whether the current graph is overfull.
@@ -3941,7 +4187,7 @@ class Graph(GenericGraph):
 
         As an optimization problem, it can be expressed as:
 
-        .. math::
+        .. MATH::
 
             \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
             \mbox{Such that : }&\forall v \in G, \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
@@ -4407,7 +4653,7 @@ class Graph(GenericGraph):
         r"""
         Returns an independent set of representatives.
 
-        Given a graph `G` and and a family `F=\{F_i:i\in [1,...,k]\}` of
+        Given a graph `G` and a family `F=\{F_i:i\in [1,...,k]\}` of
         subsets of ``g.vertices()``, an Independent Set of Representatives
         (ISR) is an assignation of a vertex `v_i\in F_i` to each set `F_i`
         such that `v_i != v_j` if `i<j` (they are representatives) and the
@@ -5267,7 +5513,7 @@ class Graph(GenericGraph):
             for v in G:
 
                 # The flow balance depends on whether the vertex v is
-                # a representant of h1 or h2 in G, or a reprensentant
+                # a representant of h1 or h2 in G, or a representant
                 # of none
 
                 p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v] )

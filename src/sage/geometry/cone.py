@@ -638,7 +638,7 @@ class IntegralRayCollection(SageObject,
         TESTS::
 
             sage: from sage.geometry.cone import (
-            ...             IntegralRayCollection)
+            ....:           IntegralRayCollection)
             sage: v = vector([1,0])
             sage: v.set_immutable()
             sage: c = IntegralRayCollection([v], ZZ^2)
@@ -1353,7 +1353,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         TESTS::
 
             sage: from sage.geometry.cone import (
-            ...         ConvexRationalPolyhedralCone)
+            ....:       ConvexRationalPolyhedralCone)
             sage: v1 = vector([1,0])
             sage: v2 = vector([0,1])
             sage: v1.set_immutable()
@@ -1372,7 +1372,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
             sage: TestSuite(ac).run()
             sage: sc = ConvexRationalPolyhedralCone(ambient=ac,
-            ...                         ambient_ray_indices=[1])
+            ....:                       ambient_ray_indices=[1])
             sage: sc.rays()
             (0, 1)
             in Ambient free module of rank 2
@@ -1860,7 +1860,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         First, we create a fan from two cones in the plane::
 
             sage: fan = Fan(cones=[(0,1), (1,2)],
-            ...             rays=[(1,0), (0,1), (-1,0)])
+            ....:           rays=[(1,0), (0,1), (-1,0)])
             sage: cone = fan.generating_cone(0)
             sage: len(cone.adjacent())
             1
@@ -1869,7 +1869,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         same fan, but embedded into the 3-dimensional space::
 
             sage: fan = Fan(cones=[(0,1), (1,2)],
-            ...             rays=[(1,0,0), (0,1,0), (-1,0,0)])
+            ....:           rays=[(1,0,0), (0,1,0), (-1,0,0)])
             sage: cone = fan.generating_cone(0)
             sage: len(cone.adjacent())
             1
@@ -1882,7 +1882,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         Now we add another cone to make the fan 3-dimensional::
 
             sage: fan = Fan(cones=[(0,1), (1,2), (3,)],
-            ...             rays=[(1,0,0), (0,1,0), (-1,0,0), (0,0,1)])
+            ....:           rays=[(1,0,0), (0,1,0), (-1,0,0), (0,0,1)])
             sage: cone = fan.generating_cone(0)
             sage: len(cone.adjacent())
             0
@@ -2264,7 +2264,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         lattice of ``cone`` consists of (appropriate) faces of ``supercone``::
 
             sage: supercone = Cone([(1,2,3,4), (5,6,7,8),
-            ...                     (1,2,4,8), (1,3,9,7)])
+            ....:                   (1,2,4,8), (1,3,9,7)])
             sage: supercone.face_lattice()
             Finite poset containing 16 elements with distinguished linear extension
             sage: supercone.face_lattice().top()
@@ -3835,7 +3835,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (N[0, 1, 1],)
             sage: N = rho.lattice()
             sage: N_sigma == N.span(N_rho.gens() + tuple(q.lift()
-            ...              for q in sigma.relative_quotient(rho).gens()))
+            ....:            for q in sigma.relative_quotient(rho).gens()))
             True
 
         Sign choice in the codimension one case::
@@ -4066,7 +4066,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         simplicial cone (of dimension `d`), the integral points of the
         open parallelotope
 
-        .. math::
+        .. MATH::
 
             par \langle x_1, \dots, x_d \rangle =
             \ZZ^n \cap
@@ -4078,7 +4078,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         are then computed [BK2001]_.
 
-        Finally, the the union of the generators of all simplicial
+        Finally, the union of the generators of all simplicial
         subcones is returned.
         """
         # if the cone is not simplicial, triangulate and run

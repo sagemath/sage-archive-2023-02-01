@@ -1077,8 +1077,8 @@ class Sets(Category_singleton):
 
                 sage: from sage.categories.examples.sets_cat import PrimeNumbers
                 sage: class CCls(PrimeNumbers):
-                ...       def an_element(self):
-                ...           return 18
+                ....:     def an_element(self):
+                ....:         return 18
                 sage: CC = CCls()
                 sage: CC._test_an_element()
                 Traceback (most recent call last):
@@ -1138,8 +1138,8 @@ class Sets(Category_singleton):
                 sage: from sage.categories.examples.sets_cat import PrimeNumbers
                 sage: class Bla(SageObject): pass
                 sage: class CCls(PrimeNumbers):
-                ...       def an_element(self):
-                ...           return Bla()
+                ....:     def an_element(self):
+                ....:         return Bla()
                 sage: CC = CCls()
                 sage: CC._test_elements()
                   Failure in _test_pickling:
@@ -1184,7 +1184,7 @@ class Sets(Category_singleton):
                 sage: eq = P.element_class.__eq__
 
                 sage: P.element_class.__eq__ = (lambda x, y:
-                ...        False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
+                ....:      False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
                 sage: P._test_elements_eq_reflexive()
                 Traceback (most recent call last):
                 ...
@@ -1220,9 +1220,9 @@ class Sets(Category_singleton):
                 sage: eq = P.element_class.__eq__
 
                 sage: def non_sym_eq(x, y):
-                ...      if not y in P:                      return False
-                ...      elif eq(x, P(47)) and eq(y, P(53)): return True
-                ...      else:                               return eq(x, y)
+                ....:    if not y in P:                      return False
+                ....:    elif eq(x, P(47)) and eq(y, P(53)): return True
+                ....:    else:                               return eq(x, y)
                 sage: P.element_class.__eq__ = non_sym_eq
                 sage: P._test_elements_eq_symmetric()
                 Traceback (most recent call last):
@@ -1375,8 +1375,8 @@ class Sets(Category_singleton):
 
                 sage: from sage.categories.examples.sets_cat import *
                 sage: class CCls(PrimeNumbers):
-                ...       def some_elements(self):
-                ...           return [self(17), 32]
+                ....:     def some_elements(self):
+                ....:         return [self(17), 32]
                 sage: CC = CCls()
                 sage: CC._test_some_elements()
                 Traceback (most recent call last):
@@ -2520,7 +2520,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 TESTS::
 
                     sage: class MyParent(Parent):
-                    ...      pass
+                    ....:    pass
                     sage: P = MyParent(category = Sets().WithRealizations())
                     sage: P._realizations
                     []
@@ -2768,7 +2768,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                     sage: from sage.categories.realizations import Realizations
                     sage: class Blah(Parent):
-                    ...       pass
+                    ....:     pass
                     sage: P = Blah(category = Sets.WithRealizations.ParentMethods.Realizations(A))
                     sage: P     # indirect doctest
                     The subset algebra of {1, 2, 3} over Rational Field in the realization Blah

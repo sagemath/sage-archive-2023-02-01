@@ -10,12 +10,12 @@ Base class for sparse matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 cimport cython
 cimport matrix
 cimport matrix0
 from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
+from sage.structure.sage_object cimport richcmp
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
@@ -361,10 +361,10 @@ cdef class Matrix_sparse(matrix.Matrix):
             for ij, x in data.iteritems():
                 self.set_unsafe(ij[0], ij[1], x)
         else:
-            raise RuntimeError("unknown matrix version (=%s)"%version)
+            raise RuntimeError("unknown matrix version (=%s)" % version)
 
-    cpdef int _cmp_(self, right) except -2:
-        return cmp(self._dict(), right._dict())
+    cpdef _richcmp_(self, right, int op):
+        return richcmp(self._dict(), right._dict(), op)
 
     def transpose(self):
         """
@@ -812,12 +812,12 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jason Grout: sparse matrix optimizations
         """
-        if isinstance(rows, range):
+        if isinstance(rows, xrange):
             rows = list(rows)
         elif not isinstance(rows, list):
             raise TypeError("rows must be a list of integers")
 
-        if isinstance(columns, range):
+        if isinstance(columns, xrange):
             columns = list(columns)
         elif not isinstance(columns, list):
             raise TypeError("columns must be a list of integers")

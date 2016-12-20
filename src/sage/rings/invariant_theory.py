@@ -7,7 +7,7 @@ special linear group. That is, we are dealing with polynomials of
 degree `d` in `n` variables. The special linear group `SL(n,\CC)` acts
 on the variables `(x_1,\dots, x_n)` linearly,
 
-.. math::
+.. MATH::
 
     (x_1,\dots, x_n)^t \to A (x_1,\dots, x_n)^t
     ,\qquad
@@ -24,7 +24,7 @@ For example, the binary quadratic `p(x,y) = a x^2 + b x y + c y^2`
 has as its invariant the discriminant `\mathop{disc}(p) = b^2 - 4 a
 c`. This means that for any `SL(2,\CC)` coordinate change
 
-.. math::
+.. MATH::
 
     \begin{pmatrix} x' \\ y' \end{pmatrix}
     =
@@ -870,7 +870,7 @@ class QuadraticForm(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             f(x) = \sum_{0\leq i<n} a_i x_i^2 + \sum_{0\leq j <k<n}
             a_{jk} x_j x_k
@@ -897,7 +897,7 @@ class QuadraticForm(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             f(x) = \sum_{0\leq i<n} a_i x_i^2 + \sum_{0\leq j <k<n}
             2 a_{jk} x_j x_k
@@ -931,7 +931,7 @@ class QuadraticForm(AlgebraicForm):
         This method returns a symmetric matrix `A` such that the
         quadratic `Q` equals
 
-        .. math::
+        .. MATH::
 
             Q(x,y,z,\dots) = (x,y,\dots) A (x,y,\dots)^t
 
@@ -1169,7 +1169,7 @@ class BinaryQuartic(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             f(x) = a_0 x_1^4 + a_1 x_0 x_1^3 + a_2 x_0^2 x_1^2 +
                    a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1199,7 +1199,7 @@ class BinaryQuartic(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                    4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1233,7 +1233,7 @@ class BinaryQuartic(AlgebraicForm):
 
         The Eisenstein D-invariant of the quartic.
 
-        .. math::
+        .. MATH::
 
               f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                       4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1263,7 +1263,7 @@ class BinaryQuartic(AlgebraicForm):
 
         The Eisenstein E-invariant of the quartic.
 
-        .. math::
+        .. MATH::
 
             f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                    4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1293,7 +1293,7 @@ class BinaryQuartic(AlgebraicForm):
 
         The g-covariant of the quartic.
 
-        .. math::
+        .. MATH::
 
               f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                       4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1345,7 +1345,7 @@ class BinaryQuartic(AlgebraicForm):
 
         The h-covariant of the quartic.
 
-        .. math::
+        .. MATH::
 
               f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                       4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1509,7 +1509,7 @@ class TernaryQuadratic(QuadraticForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             p(x,y) =&\;
             a_{20} x^{2} + a_{11} x y + a_{02} y^{2} +
@@ -1537,7 +1537,7 @@ class TernaryQuadratic(QuadraticForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             p(x,y) =&\;
             a_{20} x^{2} + a_{11} x y + a_{02} y^{2} +
@@ -1689,7 +1689,7 @@ class TernaryCubic(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             \begin{split}
               p(x,y) =&\;
@@ -1725,7 +1725,7 @@ class TernaryCubic(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             \begin{split}
               p(x,y) =&\;
@@ -1838,7 +1838,7 @@ class TernaryCubic(AlgebraicForm):
         Given the ternary cubic `f(X,Y,Z)`, this method returns the
         symmetric matrix `A(x,y,z)` defined by
 
-        .. math::
+        .. MATH::
 
             x f_X + y f_Y + z f_Z = (X,Y,Z) \cdot A(x,y,z) \cdot (X,Y,Z)^t
 
@@ -3142,7 +3142,7 @@ can then be queried for invariant and covariants. For example,
         :meth:`~BinaryQuartic.h_covariant`) of degree 3 and order
         6. They are related by a syzygy
 
-        .. math::
+        .. MATH::
 
             j f^3 - g f^2 i + 4 g^3 + h^2 = 0
 
@@ -3231,7 +3231,7 @@ can then be queried for invariant and covariants. For example,
         over the ring of invariants by `U`, `\Theta`, `H`, and `J`,
         with a relation
 
-        .. math::
+        .. MATH::
 
             \begin{split}
               J^2 =& 4 \Theta^3 + T U^2 \Theta^2 +

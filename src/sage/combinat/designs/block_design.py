@@ -803,7 +803,7 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     - ``n`` (integer) -- the Euclidean dimension. The number of points of the
       design is `v=|\GF{q}^n|`.
 
-    - ``d`` (integer) -- the dimension of the (affine) subspaces of `\GF(q)^n`
+    - ``d`` (integer) -- the dimension of the (affine) subspaces of `\GF{q}^n`
       which make up the blocks.
 
     - ``F`` -- a finite field or a prime power.

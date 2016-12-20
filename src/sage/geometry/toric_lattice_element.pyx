@@ -101,6 +101,7 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.structure.coerce_exceptions import CoercionException
 from sage.structure.element cimport Element, Vector
 from sage.rings.integer cimport Integer
+from sage.structure.sage_object cimport richcmp_not_equal, richcmp
 
 
 def is_ToricLatticeElement(x):
@@ -118,7 +119,7 @@ def is_ToricLatticeElement(x):
     EXAMPLES::
 
         sage: from sage.geometry.toric_lattice_element import (
-        ...     is_ToricLatticeElement)
+        ....:   is_ToricLatticeElement)
         sage: is_ToricLatticeElement(1)
         False
         sage: e = ToricLattice(3).an_element()
@@ -154,24 +155,25 @@ cdef class ToricLatticeElement(Vector_integer_dense):
 
         sage: N = ToricLattice(3)
         sage: from sage.geometry.toric_lattice_element import (
-        ...             ToricLatticeElement)
+        ....:           ToricLatticeElement)
         sage: e = ToricLatticeElement(N, [1,2,3])
         sage: e
         N(1, 2, 3)
         sage: TestSuite(e).run()
     """
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
-        Compare ``self`` and ``right``.
+        Compare ``self`` and ``right`` according to the operator ``op``.
 
         INPUT:
 
-        - ``right`` -- anything.
+        - ``right`` -- another ToricLatticeElement
 
         OUTPUT:
 
-        - 0 if ``right`` is an equal element of the same toric lattice as
-          ``self``, 1 or -1 otherwise.
+        boolean
+
+        First compare the ambient toric lattice, then compare the vectors.
 
         TESTS::
 
@@ -179,27 +181,23 @@ cdef class ToricLatticeElement(Vector_integer_dense):
             sage: M = N.dual()
             sage: n = N(1,2,3)
             sage: m = M(1,2,3)
-            sage: cmp(n, m)
-            1
+            sage: n == m
+            False
             sage: n2 = N(1,2,3)
-            sage: cmp(n, n2)
-            0
+            sage: n == n2
+            True
             sage: n is n2
             False
-            sage: n == 1
-            False
         """
-        c = cmp(type(self), type(right))
-        PL = self.parent()
-        PR = right.parent()
-        try:
-            c = cmp(PL.ambient_module(), PR.ambient_module())
-            if c:
-                return c
-        except AttributeError:
-            return cmp(PL, PR)
+        if not is_ToricLatticeElement(right):
+            return NotImplemented
+
+        PL_ambient = self.parent().ambient_module()
+        PR_ambient = right.parent().ambient_module()
+        if PL_ambient != PR_ambient:
+            return richcmp_not_equal(PL_ambient, PR_ambient, op)
         # Now use the real comparison of vectors
-        return self._cmp_(right)
+        return self._richcmp_(right, op)
 
     # For some reason, vectors work just fine without redefining this function
     # from the base class, but if it is not here, we get "unhashable type"...

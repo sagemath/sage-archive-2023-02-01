@@ -4625,8 +4625,8 @@ def simple_factorization_of_modsym_space(M, simple=True):
 
     - ``M`` -- ambient modular symbols space
 
-    - ``simple`` -- boolean (default: True).  If set to False,
-      isogenous simple factors are grouped together.
+    - ``simple`` -- boolean (default: ``True``); if set to ``False``,
+      isogenous simple factors are grouped together
 
     OUTPUT: sequence
 

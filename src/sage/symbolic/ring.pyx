@@ -326,6 +326,12 @@ cdef class SymbolicRing(CommutativeRing):
             sin(NaN)
             sage: SR(RR('NaN')).is_real()
             False
+            sage: sin(x).subs(x=float('NaN'))
+            sin(NaN)
+            sage: SR(float('NaN')).is_real()
+            False
+            sage: sin(x).subs(x=complex('NaN'))
+            sin(NaN)
         """
         cdef GEx exp
         if is_Expression(x):
@@ -352,7 +358,12 @@ cdef class SymbolicRing(CommutativeRing):
                 from sage.symbolic.constants import NaN
                 return NaN
             GEx_construct_pyobject(exp, x)
-        if isinstance(x, (Integer, float, long, complex)):
+        elif isinstance(x, (float, complex)):
+            if not (x == x):
+                from sage.symbolic.constants import NaN
+                return NaN
+            GEx_construct_pyobject(exp, x)
+        elif isinstance(x, (Integer, long)):
             GEx_construct_pyobject(exp, x)
         elif isinstance(x, int):
             GEx_construct_long(&exp, x)

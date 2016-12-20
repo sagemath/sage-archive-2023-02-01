@@ -741,3 +741,23 @@ cdef class LocalGenericElement(CommutativeRingElement):
         return ( (self>>other.valuation())*other.unit_part().inverse_of_unit(),
                  self.parent().zero() )
 
+    def _test_trivial_powers(self, **options):
+        r"""
+        Check that taking trivial powers of elements works as expected.
+
+        EXAMPLES::
+
+            sage: x = Zp(3, 5).zero()
+            sage: x._test_trivial_powers()
+
+        """
+        tester = self._tester(**options)
+
+        x = self**1
+        tester.assertEqual(x, self)
+        tester.assertEqual(x.precision_absolute(), self.precision_absolute())
+
+        z = self**0
+        one = self.parent().one()
+        tester.assertEqual(z, one)
+        tester.assertEqual(z.precision_absolute(), one.precision_absolute())

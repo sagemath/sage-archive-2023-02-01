@@ -1986,6 +1986,8 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: (t0*x).is_real()
             False
+            sage: (2^t0).is_real()
+            True
 
         The following is real, but we cannot deduce that.::
 

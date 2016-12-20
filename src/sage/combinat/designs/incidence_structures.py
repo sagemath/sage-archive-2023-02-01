@@ -902,6 +902,18 @@ class IncidenceStructure(object):
             else:
                 return d
 
+    def rank(self):
+        r"""
+        Return the rank of the hypergraph (the maximum size of a block).
+
+        EXAMPLES::
+
+            sage: h = Hypergraph(8, [[0,1,3],[1,4,5,6],[1,2]])
+            sage: h.rank()
+            4
+        """
+        return max(len(b) for b in self._blocks)
+
     def is_regular(self,r=None):
         r"""
         Test whether the incidence structure is `r`-regular.
@@ -969,7 +981,7 @@ class IncidenceStructure(object):
 
         If ``k`` is defined, a boolean is returned. If ``k`` is set to ``None``
         (default), the method returns either ``False`` or the integer ``k`` such
-        that the incidence structure is `r`-regular.
+        that the incidence structure is `k`-uniform.
 
         .. WARNING::
 
@@ -987,10 +999,10 @@ class IncidenceStructure(object):
 
         TESTS::
 
-            sage: IncidenceStructure([]).is_regular()
+            sage: IncidenceStructure([]).is_uniform()
             Traceback (most recent call last):
             ...
-            ValueError: This incidence structure has no points.
+            ValueError: This incidence structure has no blocks.
         """
         if self.num_blocks() == 0:
             raise ValueError("This incidence structure has no blocks.")

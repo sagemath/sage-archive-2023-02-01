@@ -4617,7 +4617,7 @@ cdef class Expression(CommutativeRingElement):
         cdef dict rdict = {}
         cdef GExListIter itr = mlst.begin()
         cdef GExListIter lstend = mlst.end()
-        while itr.is_not_equal(lstend):
+        while itr != lstend:
             key = new_Expression_from_GEx(self._parent, itr.obj().lhs())
             val = new_Expression_from_GEx(self._parent, itr.obj().rhs())
             rdict[key] = val
@@ -4662,7 +4662,7 @@ cdef class Expression(CommutativeRingElement):
         self._gobj.find(p._gobj, found)
         res = []
         cdef GExListIter itr = found.begin()
-        while itr.is_not_equal(found.end()):
+        while itr != found.end():
             res.append(new_Expression_from_GEx(self._parent, itr.obj()))
             itr.inc()
         res = print_sorted(res)
@@ -5091,7 +5091,7 @@ cdef class Expression(CommutativeRingElement):
         g_list_symbols(self._gobj, sym_set)
         res = []
         cdef GExSetIter itr = sym_set.begin()
-        while itr.is_not_equal(sym_set.end()):
+        while itr != sym_set.end():
             res.append(new_Expression_from_GEx(SR, itr.obj()))
             itr.inc()
         res = print_sorted(res)[::-1]
@@ -6608,7 +6608,7 @@ cdef class Expression(CommutativeRingElement):
                     60*z^4*w^2*x^2*u^5 + 375*z^8*w^3*x*y*u^7 + 150*z^8*w^5*x*y^4*u^6 + \
                     180*z^6*x*y^3*u^5 + 216*z^6*w^3*x^2*y^3*u^6;
             sage: d = e.diff(x)
-            sage: gcd(d,e) / (u^4*z^2) in QQ      # known bug
+            sage: gcd(d,e) / (u^4*z^2) in QQ
             True
         """
         cdef Expression r = self.coerce_in(b)
@@ -6655,9 +6655,9 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: lcm(x^100-y^100, x^10-y^10) / (x^100 - y^100) in [1,-1]
             True
-            sage: l = lcm(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
-            sage: r = 1/21*(21*x^18 - 357*x^13*y + 14*x^13 + 357*x^6 + 9*x^5*y - 6069*x*y - 153*y^2 + 238*x + 6*y)*(21*x^7 + 357*x^6 + 9*x^5*y - 357*x^2*y + 14*x^2 - 6069*x*y - 153*y^2 + 238*x + 6*y)/(3*x^5 - 51*y + 2)
-            sage: l / r in [1,-1]
+            sage: a = expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) )
+            sage: b = expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3) )
+            sage: gcd(a,b) * lcm(a,b) / (a * b) in [1,-1]
             True
 
         The result is not automatically simplified::
@@ -11455,6 +11455,7 @@ cdef class Expression(CommutativeRingElement):
 
                 - ``'giac'`` - (optional) use Giac
 
+                - ``'sympy'`` - use SymPy
 
         EXAMPLES::
 
@@ -11549,7 +11550,7 @@ cdef class Expression(CommutativeRingElement):
 
         Use Giac to perform this summation::
 
-            sage: (sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')).factor()       # optional - giac
+            sage: (sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')).factor()
             pi*(e^(2*pi) + 1)/((e^pi + 1)*(e^pi - 1))
 
         Use Maple as a backend for summation::

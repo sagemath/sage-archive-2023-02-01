@@ -105,7 +105,7 @@ from some Mathematica docs::
     sage: expand(integrate(log(1-x^2), x))
     x*log(-x^2 + 1) - 2*x + log(x + 1) - log(x - 1)
     sage: integrate(log(1-x^2)/x, x)
-    1/2*log(x^2)*log(-x^2 + 1) + 1/2*polylog(2, -x^2 + 1)
+    1/2*log(x^2)*log(-x^2 + 1) + 1/2*dilog(-x^2 + 1)
     sage: integrate(exp(1-x^2),x)
     1/2*sqrt(pi)*erf(x)*e
     sage: integrate(sin(x^2),x)

@@ -170,9 +170,9 @@ class DLXMatrix:
             sage: DLX = DLXMatrix(ones,[4])
             sage: count = 0
             sage: for c in DLX._walknodes(ROOTNODE,RIGHT):
-            ...       count += DLX._nodes[c][COUNT]
-            ...       for d in DLX._walknodes(c,DOWN):
-            ...           count -= 1
+            ....:     count += DLX._nodes[c][COUNT]
+            ....:     for d in DLX._walknodes(c,DOWN):
+            ....:         count -= 1
             sage: count
             0
         """
@@ -207,17 +207,17 @@ class DLXMatrix:
             sage: c = DLX._nodes[ROOTNODE][RIGHT]
             sage: fullcount = 0
             sage: while c != ROOTNODE:
-            ...       fullcount += DLX._nodes[c][COUNT]
-            ...       d = DLX._nodes[c][DOWN]
-            ...       while d != c:
-            ...           bad = DLX._nodes[DLX._nodes[d][DOWN]][UP] != d
-            ...           bad|= DLX._nodes[DLX._nodes[d][UP]][DOWN] != d
-            ...           bad|= DLX._nodes[DLX._nodes[d][LEFT]][RIGHT] != d
-            ...           bad|= DLX._nodes[DLX._nodes[d][RIGHT]][LEFT] != d
-            ...           if bad:
-            ...               raise RuntimeError("Linked list inconsistent.")
-            ...           d = DLX._nodes[d][DOWN]
-            ...       c = DLX._nodes[c][RIGHT]
+            ....:     fullcount += DLX._nodes[c][COUNT]
+            ....:     d = DLX._nodes[c][DOWN]
+            ....:     while d != c:
+            ....:         bad = DLX._nodes[DLX._nodes[d][DOWN]][UP] != d
+            ....:         bad|= DLX._nodes[DLX._nodes[d][UP]][DOWN] != d
+            ....:         bad|= DLX._nodes[DLX._nodes[d][LEFT]][RIGHT] != d
+            ....:         bad|= DLX._nodes[DLX._nodes[d][RIGHT]][LEFT] != d
+            ....:         if bad:
+            ....:             raise RuntimeError("Linked list inconsistent.")
+            ....:         d = DLX._nodes[d][DOWN]
+            ....:     c = DLX._nodes[c][RIGHT]
             sage: fullcount
             6
         """

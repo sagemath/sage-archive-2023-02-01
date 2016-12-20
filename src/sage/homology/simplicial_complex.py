@@ -1605,7 +1605,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def flip_graph(self):
         """
-        If ``self`` is pure, then it returns the the flip graph of ``self``,
+        If ``self`` is pure, then it returns the flip graph of ``self``,
         otherwise, it returns ``None``.
 
         The flip graph of a pure simplicial complex is the (undirected) graph

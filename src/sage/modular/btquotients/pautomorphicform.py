@@ -2193,12 +2193,12 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         - ``t`` -- (default : None). The number of additional moments to store. If None, determine
           it automatically from ``prec``, ``U`` and the ``overconvergent`` flag.
 
-        - ``R`` -- (default : None). If specified, coefficent field of the automorphic forms.
-        If not speficied it defaults to the base ring of the distributions ``U``, or to `Q_p`
+        - ``R`` -- (default : None). If specified, coefficient field of the automorphic forms.
+        If not specified it defaults to the base ring of the distributions ``U``, or to `Q_p`
         with the working precision ``prec``.
 
         - ``overconvergent`` -- Boolean (default = False). If True, will construct overconvergent
-        `p`-adic automorhic forms. Otherwise it constructs the finite dimensional space of
+        `p`-adic automorphic forms. Otherwise it constructs the finite dimensional space of
         `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
 
         EXAMPLES:

@@ -158,8 +158,12 @@ class Posets(object):
             return LatticePoset( ([0], []) )
         if n==1:
             return LatticePoset( ([0,1], [[0,1]]) )
-        return LatticePoset([[Integer(x|(1<<y)) for y in range(0,n) if x&(1<<y)==0] for
-                             x in range(0,2**n)], facade=facade)
+        L = [[Integer(x|(1<<y)) for y in range(0,n) if x&(1<<y)==0] for
+             x in range(0,2**n)]
+        D = DiGraph({v:L[v] for v in range(2**n)})
+        return FiniteLatticePoset(hasse_diagram=D,
+                                  category=FiniteLatticePosets(),
+                                  facade=facade)
 
     @staticmethod
     def ChainPoset(n, facade=None):
@@ -205,8 +209,11 @@ class Posets(object):
             raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
             raise ValueError("number of elements must be non-negative, not {0}".format(n))
-        return LatticePoset((range(n), [[x,x+1] for x in range(n-1)]),
-                            facade=facade)
+        D = DiGraph([range(n), [[x,x+1] for x in range(n-1)]],
+                    format='vertices_and_edges')
+        return FiniteLatticePoset(hasse_diagram=D,
+                                  category=FiniteLatticePosets(),
+                                  facade=facade)
 
     @staticmethod
     def AntichainPoset(n, facade=None):
@@ -276,6 +283,8 @@ class Posets(object):
             sage: P.cover_relations()
             [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
 
+        TESTS:
+
         This is smallest lattice that is not modular::
 
             sage: P.is_modular()
@@ -289,12 +298,10 @@ class Posets(object):
             sage: Posets.DiamondPoset(5).is_distributive()
             False
         """
-        p = LatticePoset([[1,2],[4],[3],[4],[]], facade = facade)
-        p.hasse_diagram()._pos = {0:[2,0],1:[0,2],2:[3,1],3:[3,3],4:[2,4]}
-        return p
+        return LatticePoset([[1,2],[4],[3],[4],[]], facade=facade)
 
     @staticmethod
-    def DiamondPoset(n, facade = None):
+    def DiamondPoset(n, facade=None):
         """
         Return the lattice of rank two containing ``n`` elements.
 
@@ -321,7 +328,10 @@ class Posets(object):
         c = [[n-1] for x in range(n)]
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []
-        return LatticePoset(c, facade = facade)
+        D = DiGraph({v:c[v] for v in range(n)}, format='dict_of_lists')
+        return FiniteLatticePoset(hasse_diagram=D,
+                                  category=FiniteLatticePosets(),
+                                  facade=facade)
 
     @staticmethod
     def DivisorLattice(n, facade=None):
@@ -369,7 +379,7 @@ class Posets(object):
     @staticmethod
     def IntegerCompositions(n):
         """
-        Returns the poset of integer compositions of the integer ``n``.
+        Return the poset of integer compositions of the integer ``n``.
 
         A composition of a positive integer `n` is a list of positive
         integers that sum to `n`. The order is reverse refinement:

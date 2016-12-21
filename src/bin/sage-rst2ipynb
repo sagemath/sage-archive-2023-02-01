@@ -5,6 +5,30 @@ fail () {
     exit 1
 }
 
+help () {
+    cat << EOF
+Usage:
+
+    sage -rst2ipynb <source> [<destination>]
+
+Generates IPython worksheet (.ipynb) from standalone reStructuredText source.
+
+If the destination is not specified, the IPython worksheet is written in the
+standard output.
+
+Examples:
+
+    sage -rst2ipynb file.rst file.ipynb
+
+    sage -rst2ipynb file.rst
+
+Options:
+  -h, --help            show this help message and exit
+EOF
+}
+
+if [ "${1}" = '-h' ] || [ "${1}" = '--help' ] ; then help ; exit 0 ; fi
+
 # tests if dependencies are available
 pandoc -v > /dev/null 2>&1 || fail 'rst2ipnb requires pandoc; please install it on your system.'
 [ $(sage-list-packages installed | grep '^rst2ipynb\.\.\.') ] || fail \
@@ -12,11 +36,11 @@ pandoc -v > /dev/null 2>&1 || fail 'rst2ipnb requires pandoc; please install it 
 
 case  "${#}" in
     (1)
-        rst2ipynb --kernel='sagemath' ${1} ;;
+        rst2ipynb --kernel='sagemath' ${1} 2> /dev/null || help ;;
     (2)
-        rst2ipynb --kernel='sagemath' ${1} -o ${2} ;;
+        rst2ipynb --kernel='sagemath' ${1} -o ${2}  2> /dev/null || help ;;
     (*)
-        fail 'Usage: sage -rst2ipynb input.rst [output.ipynb].' ;;
+        help ;;
 esac
 
 exit 0

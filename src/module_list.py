@@ -44,7 +44,6 @@ givaro_cflags = pkgconfig.cflags('givaro').split()
 # The above cblas should already be in the list thanks to #20646
 gsl_pc = pkgconfig.parse('gsl')
 gsl_libs = gsl_pc['libraries']
-gsl_libs.remove('gslcblas')
 gsl_library_dirs = gsl_pc['library_dirs']
 gsl_include_dirs = gsl_pc['include_dirs']
 

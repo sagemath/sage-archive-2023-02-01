@@ -3474,7 +3474,7 @@ def verify_same(a, b):
         return
 
     if not (a == b):
-        # Verification failed => raise an AsserionError.
+        # Verification failed => raise an AssertionError.
         #
         # There is an important exception: the IEEE-754 standard
         # recommends that NaN != NaN. So this comparison will fail for

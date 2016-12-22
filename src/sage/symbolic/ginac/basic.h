@@ -324,7 +324,6 @@ protected:
 #ifdef PYNAC_HAVE_LIBGIAC
         const giac::polynome to_polynome(ex_int_map& map, exvector& revmap);
 #endif
-        const CanonicalForm to_canonical(ex_int_map& map, exvector& revmap);
 
 	// member variables
 protected:

@@ -74,6 +74,8 @@ class symbol;
 struct symbolhasher;
 using symbolset = std::unordered_set<symbol,symbolhasher>;
 using expairvec = std::vector<std::pair<ex,ex>>;
+using ocvector = std::vector<numeric>;
+using power_ocvector_map = std::map<ex, ocvector, GiNaC::ex_is_less>;
 
 /** Lightweight wrapper for GiNaC's symbolic objects.  It holds a pointer to
  *  the other object in order to do garbage collection by the method of
@@ -213,7 +215,9 @@ public:
 #ifdef PYNAC_HAVE_LIBGIAC
         const giac::polynome to_polynome(ex_int_map& map, exvector& revmap) const;
 #endif
-        const CanonicalForm to_canonical(ex_int_map& map, exvector& revmap) const;
+        const CanonicalForm to_canonical(ex_int_map& map,
+                        power_ocvector_map& pomap, exvector& revmap) const;
+        void collect_powers(power_ocvector_map& pomap) const;
 	ex numer() const;
 	ex denom() const;
 	ex numer_denom() const;

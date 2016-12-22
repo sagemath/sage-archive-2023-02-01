@@ -25,6 +25,7 @@
 #include <factory/factory.h>
 
 #include "upoly.h"
+#include "normal.h"
 #include "basic.h"
 #include "ex.h"
 #include "add.h"
@@ -37,6 +38,7 @@
 #include "pseries.h"
 #include "relational.h"
 #include "symbol.h"
+#include "inifcns.h"
 #include "function.h"
 #include "utils.h"
 #include "fail.h"
@@ -59,42 +61,120 @@ static CanonicalForm replace_with_symbol(const ex& e, ex_int_map& map, exvector&
         // Expression already replaced? Then return the assigned symbol
         auto it = map.find(e);
         if (it != map.end()) {
-//std::cerr<< "found Var("<<it->second<<")\n";
                 return Variable(it->second);
         }
 
         // Otherwise create new symbol and add to dict
         const int index = revmap.size() + 1;
         map.insert(std::make_pair(e, index));
-//std::cerr<<"\n"<<e<<" not found; added as Var("<<index<<")\n";
         revmap.push_back(e);
         return Variable(index);
 }
 
-const CanonicalForm basic::to_canonical(ex_int_map& map, exvector& revmap)
+static symbol symbol_E;
+
+static void add_to_pomap(power_ocvector_map& pomap,
+                const ex& basis, const ex& expo, const numeric& num)
 {
-        throw std::runtime_error("can't happen in basic::to_canonical");
+        auto pow = GiNaC::power(basis, expo);
+        auto f = pomap.find(pow);
+        if (f == pomap.end()) {
+                ocvector vec;
+                vec.push_back(num);
+                pomap[pow] = std::move(vec);
+        }
+        else
+                pomap[pow].push_back(num);
 }
 
-// Convert to Singulat polynomial over ZZ, filling replacement dicts
+void ex::collect_powers(power_ocvector_map& pomap) const
+{
+        if (is_exactly_a<power>(*this)) {
+                const power& the_pow = ex_to<power>(*this);
+                if (is_exactly_a<numeric>(the_pow.op(1))) {
+                        numeric n = ex_to<numeric>(the_pow.op(1));
+                        if (n.is_rational())
+                                add_to_pomap(pomap, the_pow.op(0), _ex1, n);
+                }
+                if (is_exactly_a<mul>(the_pow.op(1))) {
+                        mul m = ex_to<mul>(the_pow.op(1));
+                        numeric oc = ex_to<numeric>(m.overall_coeff);
+                        if (oc.is_rational()) {
+                                m.overall_coeff = _ex1;
+                                ex mm = m.eval();
+                                add_to_pomap(pomap, the_pow.op(0), mm, oc);
+                        }
+                }
+        }
+        else if (is_exactly_a<add>(*this)) {
+                const add& a = ex_to<add>(*this);
+                for (unsigned int i=0; i<a.nops(); i++)
+                        a.op(i).collect_powers(pomap);
+        }
+        else if (is_exactly_a<mul>(*this)) {
+                const mul& m = ex_to<mul>(*this);
+                for (const auto & elem : m.get_sorted_seq())
+                        m.recombine_pair_to_ex(elem).collect_powers(pomap);
+        }
+        else if (is_exactly_a<function>(*this)) {
+                const function& f = ex_to<function>(*this);
+                if (f.get_serial() == exp_SERIAL::serial) {
+                        if (is_exactly_a<numeric>(f.op(0))) {
+                                numeric n = ex_to<numeric>(f.op(0));
+                                if (n.is_rational())
+                                        add_to_pomap(pomap, symbol_E, _ex1, n);
+                        }
+                        if (is_exactly_a<mul>(f.op(0))) {
+                                mul m = ex_to<mul>(f.op(0));
+                                numeric oc = ex_to<numeric>(m.overall_coeff);
+                                if (oc.is_rational()) {
+                                        m.overall_coeff = _ex1;
+                                        ex mm = m.eval();
+                                        add_to_pomap(pomap, symbol_E, mm, oc);
+                                }
+                        }
+                }
+                else
+                        add_to_pomap(pomap, f, _ex1, *_num1_p);
+        }
+        else if (is_exactly_a<constant>(*this)
+                        or is_exactly_a<symbol>(*this))
+                add_to_pomap(pomap, *this, _ex1, *_num1_p);
+}
+
+
+static void transform_powers(power_ocvector_map& pomap)
+{
+        for (auto& it : pomap) {
+                numeric g(*_num1_p);
+                for (const numeric& num : it.second)
+                        g = g.gcd(num);
+                (it.second)[0] = g;
+//std::cerr<<"<"<<it.first<<","<<g<<">\n";
+        }
+}
+
+// Convert to Singular polynomial over QQ, filling replacement dicts
 // TODO: special case numeric mpz_t, int instead of string interface
-const CanonicalForm ex::to_canonical(ex_int_map& map, exvector& revmap) const
+const CanonicalForm ex::to_canonical(ex_int_map& map,
+                power_ocvector_map& pomap,
+                exvector& revmap) const
 {
         if (is_exactly_a<add>(*this))
         {
                 const add& a = ex_to<add>(*this);
                 CanonicalForm p(0);
                 for (const auto& termex : a.seq) {
-                        p = p + a.recombine_pair_to_ex(termex).to_canonical(map, revmap);
+                        p = p + a.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
                 }
-                p = p + a.overall_coeff.to_canonical(map, revmap);
+                p = p + a.overall_coeff.to_canonical(map, pomap, revmap);
                 return p;
         }
         else if (is_exactly_a<numeric>(*this))
         {
                 const numeric& num = ex_to<numeric>(*this);
                 if (num.is_real()) {
-                        if (num.is_integer() or num.is_rational())
+                        if (num.is_rational())
                                 return num2canonical(num);
                         else
                                 return replace_with_symbol(num, map, revmap);
@@ -118,9 +198,9 @@ const CanonicalForm ex::to_canonical(ex_int_map& map, exvector& revmap) const
                 const mul& m = ex_to<mul>(*this);
                 CanonicalForm p(1);
                 for (const auto& termex : m.seq) {
-                        p = p * m.recombine_pair_to_ex(termex).to_canonical(map, revmap);
+                        p = p * m.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
                 }
-                p *= m.overall_coeff.to_canonical(map, revmap);
+                p *= m.overall_coeff.to_canonical(map, pomap, revmap);
                 return p;
         }
         else if (is_exactly_a<power>(*this))
@@ -128,10 +208,30 @@ const CanonicalForm ex::to_canonical(ex_int_map& map, exvector& revmap) const
                 const power& pow = ex_to<power>(*this);
                 if (is_exactly_a<numeric>(pow.exponent)) {
                         numeric expo = ex_to<numeric>(pow.exponent);
-                        if (pow.exponent.info(info_flags::posint))
-                                return ::power(pow.basis.to_canonical(map, revmap), expo.to_int());
-                        else if (pow.exponent.info(info_flags::negint))
-                                return ::power(GiNaC::power(pow.basis, _ex_1).to_canonical(map, revmap), -expo.to_int());
+                        if (expo.is_rational()) {
+                                auto var = replace_with_symbol(pow.basis, map, revmap);
+                                auto it = pomap.find(pow.basis);
+                                if (it == pomap.end())
+                                        throw std::runtime_error("can't happen in ex::to_canonical");
+                                numeric n = expo.div(it->second[0]);
+                                revmap[var.level()-1] = GiNaC::power(it->first, it->second[0]);
+                                return ::power(var, n.to_int());
+                        }
+                }
+                if (is_exactly_a<mul>(pow.exponent)) {
+                        mul m = ex_to<mul>(pow.exponent);
+                        numeric oc = ex_to<numeric>(m.overall_coeff);
+                        if (oc.is_rational()) {
+                                m.overall_coeff = _ex1;
+                                ex mm = m.eval();
+                                auto it = pomap.find(GiNaC::power(pow.basis, mm));
+                                if (it == pomap.end())
+                                        throw std::runtime_error("can't happen in ex::to_canonical");
+                                auto var = replace_with_symbol(it->first, map, revmap);
+                                numeric n = oc.div(it->second[0]);
+                                revmap[var.level()-1] = GiNaC::power(it->first, it->second[0]);
+                                return ::power(var, n.to_int());
+                        }
                 }
                 return replace_with_symbol(*this, map, revmap);
         }
@@ -393,8 +493,12 @@ factored_b:
         exvector revmap;
         On(SW_RATIONAL);
         setCharacteristic(0);
-        CanonicalForm p = a.to_canonical(map, revmap);
-        CanonicalForm q = b.to_canonical(map, revmap);
+        power_ocvector_map pomap;
+        a.collect_powers(pomap);
+        b.collect_powers(pomap);
+        transform_powers(pomap);
+        CanonicalForm p = a.to_canonical(map, pomap, revmap);
+        CanonicalForm q = b.to_canonical(map, pomap, revmap);
         CanonicalForm d = gcd(p, q);
 
 //std::cerr << canonical_to_ex(d, revmap) << '\n';

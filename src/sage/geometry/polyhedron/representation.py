@@ -560,15 +560,15 @@ class Hrepresentation(PolyhedronRepresentation):
 
         INPUT:
 
-        - ``prefix`` -- a string.
+        - ``prefix`` -- a string
 
-        - ``indices`` -- a tuple or other iterable.
+        - ``indices`` -- a tuple or other iterable
 
-        - ``latex`` -- a boolean.
+        - ``latex`` -- a boolean
 
         OUTPUT:
 
-        A string.
+        A string
 
         EXAMPLES::
 
@@ -1416,16 +1416,16 @@ def repr_pretty(coefficients, type, prefix='x', indices=None, latex=False):
 
     INPUT:
 
-    - ``coefficients`` -- a tuple or other iterable.
+    - ``coefficients`` -- a tuple or other iterable
 
     - ``type`` -- either ``0`` (``PolyhedronRepresentation.INEQUALITY``)
-      or ``1`` (``PolyhedronRepresentation.EQUATION``).
+      or ``1`` (``PolyhedronRepresentation.EQUATION``)
 
-    - ``prefix`` -- a string.
+    - ``prefix`` -- a string
 
-    - ``indices`` -- a tuple or other iterable.
+    - ``indices`` -- a tuple or other iterable
 
-    - ``latex`` -- a boolean.
+    - ``latex`` -- a boolean
 
     OUTPUT:
 
@@ -1435,11 +1435,11 @@ def repr_pretty(coefficients, type, prefix='x', indices=None, latex=False):
 
         sage: from sage.geometry.polyhedron.representation import repr_pretty
         sage: from sage.geometry.polyhedron.representation import PolyhedronRepresentation
-        sage: print repr_pretty((0, 1, 0, 0), PolyhedronRepresentation.INEQUALITY)
+        sage: print(repr_pretty((0, 1, 0, 0), PolyhedronRepresentation.INEQUALITY))
         x0 >= 0
-        sage: print repr_pretty((1, 2, 1, 0), PolyhedronRepresentation.INEQUALITY)
+        sage: print(repr_pretty((1, 2, 1, 0), PolyhedronRepresentation.INEQUALITY))
         2*x0 + x1 + 1 >= 0
-        sage: print repr_pretty((1, -1, -1, 1), PolyhedronRepresentation.EQUATION)
+        sage: print(repr_pretty((1, -1, -1, 1), PolyhedronRepresentation.EQUATION))
         x2 + 1 == x0 + x1
     """
     from sage.misc.latex import latex as latex_function

@@ -802,6 +802,12 @@ def _generate_mods_(equations):
     r"""
     Extract the moduli and residue classes implied
     by the equations.
+
+    TESTS::
+
+        sage: from sage.geometry.polyhedron.generating_function import _generate_mods_
+        sage: _generate_mods_([(0, 1, 1, -2)])
+        ({0: (2, 0), 1: (2, 0)}, {0: (2, 1), 1: (2, 1)})
     """
     from sage.arith.misc import lcm
     from sage.matrix.constructor import matrix

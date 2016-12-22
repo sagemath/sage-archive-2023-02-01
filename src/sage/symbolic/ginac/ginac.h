@@ -62,6 +62,7 @@
 #include "operators.h"
 
 #include "assume.h"
+#include "sum.h"
 
 #include "idx.h"
 #include "indexed.h"

@@ -32,6 +32,7 @@ class ex;
 // Collect common factors in sums.
 extern ex collect_common_factors(const ex & e);
 extern ex gcd(const ex & e1, const ex & e2);
+extern bool factor(const ex & the_ex, ex & res_ex);
 
 } // namespace GiNaC
 

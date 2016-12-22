@@ -521,5 +521,69 @@ factored_b:
 }
 #endif //PYNAC_HAVE_LIBGIAC
 
+bool factorpoly(const ex& the_ex, ex& res_prod)
+{
+        if (is_exactly_a<numeric>(the_ex)
+            or is_exactly_a<constant>(the_ex)
+            or is_exactly_a<function>(the_ex)
+            or is_exactly_a<symbol>(the_ex))
+                return false;
+
+        if (is_exactly_a<mul>(the_ex)) {
+                res_prod = _ex1;
+                const mul& m = ex_to<mul>(the_ex);
+                bool all_prime = true;
+                for (const auto & elem : m.get_sorted_seq()) {
+                        ex prod;
+                        ex term = m.recombine_pair_to_ex(elem);
+                        bool res = factor(term, prod);
+                        if (res) {
+                                res_prod = mul(res_prod, prod);
+                                all_prime = false;
+                        }
+                        else
+                                res_prod = mul(res_prod, term);
+                }
+                res_prod = mul(res_prod, m.op(m.nops()));
+                return not all_prime;
+        }
+
+        if (is_exactly_a<power>(the_ex)) {
+                const power& pow = ex_to<power>(the_ex);
+                ex prod;
+                bool res = factor(pow.op(0), prod);
+                if (not res)
+                        return false;
+                res_prod = power(prod, pow.op(1));
+                return true;
+        }
+
+        if (not is_exactly_a<add>(the_ex))
+                throw(std::runtime_error("can't happen in factor"));
+
+
+        exmap repl;
+        ex_int_map map;
+        exvector revmap;
+
+        power_ocvector_map pomap;
+        the_ex.collect_powers(pomap);
+        transform_powers(pomap);
+        CanonicalForm p = the_ex.to_canonical(map, pomap, revmap);
+        CFFList factors = factorize(p);
+
+        if (factors.length() == 1 or factors.isEmpty())
+                return false;
+
+        res_prod = _ex1;
+        for (CFFListIterator iter = factors; iter.hasItem(); iter++) {
+                res_prod = mul(res_prod,
+                                power(canonical_to_ex(iter.getItem().factor(),
+                                                revmap).expand(),
+                                        iter.getItem().exp()));
+        }
+        return true;
+}
+
 } // namespace GiNaC
 

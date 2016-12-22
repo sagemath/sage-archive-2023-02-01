@@ -1006,4 +1006,29 @@ ex gcd(const ex &a, const ex &b)
         return gcdpoly(a, b);
 }
 
+bool factor(const ex& the_ex, ex& res_ex)
+{
+        if (is_exactly_a<numeric>(the_ex)
+            or is_exactly_a<symbol>(the_ex)
+            or is_exactly_a<function>(the_ex)
+            or is_exactly_a<constant>(the_ex)) {
+                res_ex = the_ex;
+                return true;
+        }
+        ex normalized = the_ex.normal(false, false);
+        ex num = normalized.numer();
+        bool nres = factorpoly(num, res_ex);
+        ex den = normalized.denom();
+        ex res_den;
+        bool dres = factorpoly(den, res_den);
+        if (not nres and not dres)
+                return false;
+        if (not nres)
+                res_ex = num;
+        if (not dres)
+                res_den = den;
+        res_ex = res_ex / res_den;
+        return true;
+}
+
 } // namespace GiNaC

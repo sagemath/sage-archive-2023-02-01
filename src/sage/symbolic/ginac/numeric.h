@@ -338,6 +338,7 @@ const numeric psi(const numeric &x);
 const numeric psi(const numeric &n, const numeric &x);
 const numeric factorial(const numeric &n);
 const numeric doublefactorial(const numeric &n);
+const numeric binomial(unsigned long n, unsigned long k);
 const numeric binomial(const numeric &n, const numeric &k);
 const numeric bernoulli(const numeric &n);
 const numeric hypergeometric_pFq(const std::vector<numeric>& a, const std::vector<numeric>& b, const numeric &z, PyObject* parent);

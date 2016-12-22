@@ -2457,6 +2457,12 @@ const numeric numeric::psi(const numeric& y) const {
 }
 
 const numeric numeric::factorial() const {
+        if (t == MPZ) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_fac_ui(bigint, to_long());
+                return bigint;
+        }
         PY_RETURN(py_funcs.py_factorial);
 }
 
@@ -2502,6 +2508,14 @@ const numeric numeric::binomial(const numeric &k) const {
                 throw(std::runtime_error("numeric::binomial(): python function (Expression_to_ex) raised exception"));
         }
         return ex_to<numeric>(eval_result);
+}
+
+const numeric binomial(unsigned long n, unsigned long k)
+{
+        mpz_t bigint;
+        mpz_init(bigint);
+        mpz_bin_uiui(bigint, n, k);
+        return bigint;
 }
 
 const numeric numeric::bernoulli() const {

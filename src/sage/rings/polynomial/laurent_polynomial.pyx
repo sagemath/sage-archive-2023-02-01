@@ -2391,7 +2391,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: R.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = x^3 + y/x
             sage: g = f._symbolic_(SR); g
-            x^3 + y/x
+            (x^4 + y)/x
             sage: g(x=2,y=2)
             9
 

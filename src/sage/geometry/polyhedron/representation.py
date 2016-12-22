@@ -560,15 +560,15 @@ class Hrepresentation(PolyhedronRepresentation):
 
         INPUT:
 
-        - ``prefix`` -- a string.
+        - ``prefix`` -- a string
 
-        - ``indices`` -- a tuple or other iterable.
+        - ``indices`` -- a tuple or other iterable
 
-        - ``latex`` -- a boolean.
+        - ``latex`` -- a boolean
 
         OUTPUT:
 
-        A string.
+        A string
 
         EXAMPLES::
 
@@ -1416,16 +1416,16 @@ def repr_pretty(coefficients, type, prefix='x', indices=None, latex=False):
 
     INPUT:
 
-    - ``coefficients`` -- a tuple or other iterable.
+    - ``coefficients`` -- a tuple or other iterable
 
     - ``type`` -- either ``0`` (``PolyhedronRepresentation.INEQUALITY``)
-      or ``1`` (``PolyhedronRepresentation.EQUATION``).
+      or ``1`` (``PolyhedronRepresentation.EQUATION``)
 
-    - ``prefix`` -- a string.
+    - ``prefix`` -- a string
 
-    - ``indices`` -- a tuple or other iterable.
+    - ``indices`` -- a tuple or other iterable
 
-    - ``latex`` -- a boolean.
+    - ``latex`` -- a boolean
 
     OUTPUT:
 

@@ -1181,17 +1181,17 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``separator`` -- a string.
+        - ``separator`` -- a string
 
         Keyword parameters of
         :meth:`~sage.geometry.polyhedron.representation.Hrepresentation.repr_pretty`
         are passed on:
 
-        - ``prefix`` -- a string.
+        - ``prefix`` -- a string
 
-        - ``indices`` -- a tuple or other iterable.
+        - ``indices`` -- a tuple or other iterable
 
-        - ``latex`` -- a boolean.
+        - ``latex`` -- a boolean
 
         OUTPUT:
 

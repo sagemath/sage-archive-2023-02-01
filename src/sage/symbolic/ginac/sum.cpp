@@ -423,7 +423,7 @@ static matrix solve_system(ex mpoly,
                 const ex& term = a.op(i);
                 int s = -1;
                 int e = 0;
-                numeric coeff(0);
+                ex coeff(_ex0);
                 if (is_exactly_a<mul>(term)) {
                         const mul& m = ex_to<mul>(term);
                         coeff = *_num1_p;
@@ -437,12 +437,13 @@ static matrix solve_system(ex mpoly,
                                         }
                                         auto search = sym_idx.find(sy);
                                         if (search == sym_idx.end())
-                                                throw std::runtime_error("can't happen in solve_system()");
-                                        s = search->second;
+                                                coeff *= sy;
+                                        else
+                                                s = search->second;
                                         continue;
                                 }
                                 if (is_exactly_a<numeric>(mterm)) {
-                                        coeff = ex_to<numeric>(mterm);
+                                        coeff *= ex_to<numeric>(mterm);
                                         continue;
                                 }
                                 if (is_exactly_a<power>(mterm)) {
@@ -473,7 +474,6 @@ static matrix solve_system(ex mpoly,
                         e = expo.to_int();
                         }
                 else if (is_exactly_a<symbol>(term)) {
-                        coeff = *_num1_p;
                         const symbol& sy = ex_to<symbol>(term);
                         if (sy.is_equal(main)) {
                                 e = 1;
@@ -481,8 +481,11 @@ static matrix solve_system(ex mpoly,
                         else {
                                 auto search = sym_idx.find(sy);
                                 if (search == sym_idx.end())
-                                        throw std::runtime_error("can't happen in solve_system()");
-                                s = search->second;
+                                        coeff = sy;
+                                else {
+                                        coeff = *_num1_p;
+                                        s = search->second;
+                                }
                         }
                 }
                 else if (is_exactly_a<numeric>(term)) {
@@ -517,14 +520,18 @@ ex gosper_term(ex e, ex n)
         ex prod;
         bool factored = factorpoly(res.expand(), prod);
         ex C = _ex1;
-        if (factored) {
+std::cerr<<"res,prod: "<<res<<","<<prod<<","<<factored<<"\n";
+std::cerr<<"ABC"<<A<<","<<B<<","<<C<<"\n";
+        if (factored and is_exactly_a<mul>(prod)) {
                 const mul& m = ex_to<mul>(prod);
+std::cerr<<"m: "<<m<<"\n";
                 std::set<int> roots;
                 for (unsigned int i=0; i<m.nops(); i++) {
                         ex f = m.op(i);
                         if (is_exactly_a<numeric>(f))
                                 continue;
                         if (is_exactly_a<numeric>(f.subs(h == 0))) {
+std::cerr<<"f: "<<f<<"\n";
                                 numeric root = get_root(f, h);
                                 if (not root.info(info_flags::integer)
                                     or root < 0)
@@ -533,27 +540,35 @@ ex gosper_term(ex e, ex n)
                         }
                 }
                 for (int root : roots) {
-//std::cerr<<root<<","<<B.subs(n == n+root).expand()<<","<<root<<"\n";
+std::cerr<<root<<","<<A<<","<<B.subs(n == n+root).expand()<<","<<root<<"\n";
                         ex d = gcd(A, B.subs(n == n+ex(root)).expand());
                         A = quo(A, d, n, false);
                         B = quo(B, d.subs(n == n-ex(root)), false);
                         for (long j=1; j<root+1; ++j)
                                 C *= d.subs(n == n-ex(j));
+std::cerr<<"d"<<d<<","<<d.subs(n == n-root).expand()<<","<<C<<"\n";
                 }
         }
         else {
                 if (not is_exactly_a<numeric>(res)
                     and is_exactly_a<numeric>(res.subs(h == 0))) {
-                        numeric root = get_root(res, h);
+                        numeric root;
+                        if (factored and is_exactly_a<power>(prod))
+                                root = get_root(ex_to<power>(prod).op(0), h);
+                        else
+                                root = get_root(res, h);
                         if (root.info(info_flags::integer) and root >= 0) {
+std::cerr<<root<<","<<A<<","<<B.subs(n == n+root).expand()<<","<<root<<"\n";
                                 ex d = gcdpoly(A, B.subs(n == n+root).expand());
                                 A = quo(A, d, n, false);
                                 B = quo(B, d.subs(n == n-root), false);
                                 for (long j=1; j<root.to_long()+1; ++j)
                                         C *= d.subs(n == n-ex(j));
+std::cerr<<"d"<<d<<","<<d.subs(n == n-root).expand()<<","<<C<<"\n";
                         }
                 }
         }
+std::cerr<<"ABC"<<A<<","<<B<<","<<C<<"\n";
         A *= ldq;
         B = B.subs(n == n-1);
         int N = A.degree(n);
@@ -569,16 +584,11 @@ ex gosper_term(ex e, ex n)
         else {
                 D.insert(K - N + 1);
                 ex t = (B.coeff(n,N-1) - A.coeff(n,N-1)) / A.lcoeff(n);
-                if (not is_exactly_a<numeric>(t))
-                        throw std::runtime_error("can't happen in gosper_term()");
-                if (ex_to<numeric>(t).info(info_flags::integer))
-                        D.insert(ex_to<numeric>(t).to_int());
+                if (is_exactly_a<numeric>(t)
+                    and ex_to<numeric>(t).info(info_flags::integer)
+                    and ex_to<numeric>(t) >= *_num0_p)
+                                D.insert(ex_to<numeric>(t).to_int());
         }
-        for (auto it = D.begin(); it != D.end(); /* blank */ )
-                if ( *it < 0 )
-                        D.erase( it++ );
-                else
-                        ++it;
         if (D.empty())
                 throw gosper_domain_error();
         int d = *std::max_element(D.begin(), D.end());
@@ -607,7 +617,8 @@ ex gosper_sum_definite(ex f, ex s, ex a, ex b, int* success)
 {
         try {
                 ex g = gosper_term(f, s);
-                ex t = (f*(g + _ex1)).subs(s==b) - (f*g).subs(s==a);
+std::cerr<<"gosper_term "<<gosper_term<<"\n";
+                ex t = (f*(g + _ex1)).subs(s==b) - (f*g).expand().subs(s==a);
                 *success = 1;
                 ex res;
                 bool changed = factor(t, res);
@@ -625,7 +636,14 @@ ex gosper_sum_definite(ex f, ex s, ex a, ex b, int* success)
 ex gosper_sum_indefinite(ex f, ex s, int* success)
 {
         try {
-                return f*gosper_term(f, s);
+                ex t = f*gosper_term(f, s);
+                *success = 1;
+                ex res;
+                bool changed = factor(t, res);
+                if (changed)
+                        return res;
+                else
+                        return t;
         }
         catch (gosper_domain_error) {
                 *success = 0;

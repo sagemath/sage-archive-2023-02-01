@@ -1594,6 +1594,14 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: parent(a.imag())
             Rational Field
 
+        Check that :trac:`22095` is fixed::
+
+            sage: K.<a> = NumberField(x^2 + x + 1, embedding=CDF.0)
+            sage: a.imag()
+            1/2*sqrt3
+            sage: K3.<sqrt3> = QuadraticField(3)
+            sage: K3.zero()
+            0
         """
         if mpz_sgn(self.D.value) > 0:
             return Rational.__new__(Rational)  # = 0
@@ -1626,7 +1634,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             else:
                 from number_field import QuadraticField
                 K = QuadraticField(negD, 'sqrt%s' % negD)
-            q = K.zero()
+            q = K(0)
             mpz_set(q.denom, self.denom)
             if self.standard_embedding:
                 mpz_set(q.b, self.b)

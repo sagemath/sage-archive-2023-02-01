@@ -140,6 +140,46 @@ class FixedModGeneric(LocalGeneric):
         """
         return 'fixed-mod'
 
+class FloatingPointGeneric(LocalGeneric):
+    def is_floating_point(self):
+        """
+        Returns whether this `p`-adic ring uses a floating point precision model.
+
+        Elements in the floating point model are stored by giving a
+        valuation and a unit part.  Arithmetic is done where the unit
+        part is truncated modulo a fixed power of the uniformizer,
+        stored in the precision cap of the parent.
+
+        EXAMPLES::
+
+            sage: R = ZpFP(5,15)
+            sage: R.is_floating_point()
+            True
+            sage: R(5^7,absprec=9)
+            5^7
+            sage: S = ZpCR(5,15)
+            sage: S.is_floating_point()
+            False
+            sage: S(5^7,absprec=9)
+            5^7 + O(5^9)
+        """
+        return True
+
+    def _prec_type(self):
+        """
+        Returns the precision handling type.
+
+        EXAMPLES::
+
+            sage: ZpFP(5)._prec_type()
+            'floating-point'
+        """
+        return 'floating-point'
+
+class FloatingPointRingGeneric(FloatingPointGeneric):
+    pass
+class FloatingPointFieldGeneric(FloatingPointGeneric):#, sage.rings.ring.Field):
+    pass
 class CappedRelativeRingGeneric(CappedRelativeGeneric):
     pass
 class CappedRelativeFieldGeneric(CappedRelativeGeneric):#, sage.rings.ring.Field):
@@ -246,6 +286,10 @@ class pAdicCappedAbsoluteRingGeneric(pAdicRingGeneric, CappedAbsoluteGeneric):
 class pAdicCappedRelativeRingGeneric(pAdicRingGeneric, CappedRelativeRingGeneric):
     pass
 class pAdicCappedRelativeFieldGeneric(pAdicFieldGeneric, CappedRelativeFieldGeneric):
+    pass
+class pAdicFloatingPointRingGeneric(pAdicRingGeneric, FloatingPointRingGeneric):
+    pass
+class pAdicFloatingPointFieldGeneric(pAdicFieldGeneric, FloatingPointFieldGeneric):
     pass
 
 class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):

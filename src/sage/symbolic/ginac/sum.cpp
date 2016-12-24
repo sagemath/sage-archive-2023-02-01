@@ -407,7 +407,7 @@ static matrix solve_system(ex mpoly,
 {
         mpoly = mpoly.expand();
         if (not is_exactly_a<add>(mpoly))
-                throw std::runtime_error("can't happen in solve_system()");
+                throw gosper_domain_error();
         ex_int_map sym_idx;
         const size_t nc = syms.size(), nr = mpoly.degree(msym) + 1;
         for (size_t i=0; i<nc; ++i)

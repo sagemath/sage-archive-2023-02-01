@@ -336,9 +336,6 @@ ex hypersimp(const ex& e, const ex& k)
         if (not has_suitable_form(gr))
                 throw gosper_domain_error();
 
-//std::cerr<<"g="<<g<<", gr="<<gr<<"\n";
-//std::cerr<<"to_gamma="<<to_gamma(gr)<<"\n";
-//std::cerr<<"simp_gamma="<<simplify_gamma(to_gamma(gr))<<"\n";
         return combine_powers(simplify_gamma(to_gamma(gr)));
 }
 
@@ -409,7 +406,6 @@ static matrix solve_system(ex mpoly,
 // Solve mpoly==0 by converting to a linear system
 {
         mpoly = mpoly.expand();
-//std::cerr<<mpoly<<"\n";
         if (not is_exactly_a<add>(mpoly))
                 throw std::runtime_error("can't happen in solve_system()");
         ex_int_map sym_idx;
@@ -500,7 +496,6 @@ static matrix solve_system(ex mpoly,
         }
         for (size_t i=0; i<nc; ++i)
                 vars(i, 0) = syms[i];
-//std::cerr<<mat<<"---"<<rhs<<"\n";
         matrix res = mat.solve(vars, rhs, solve_algo::automatic);
         return res;
 }
@@ -520,18 +515,14 @@ ex gosper_term(ex e, ex n)
         ex prod;
         bool factored = factorpoly(res.expand(), prod);
         ex C = _ex1;
-std::cerr<<"res,prod: "<<res<<","<<prod<<","<<factored<<"\n";
-std::cerr<<"ABC"<<A<<","<<B<<","<<C<<"\n";
         if (factored and is_exactly_a<mul>(prod)) {
                 const mul& m = ex_to<mul>(prod);
-std::cerr<<"m: "<<m<<"\n";
                 std::set<int> roots;
                 for (unsigned int i=0; i<m.nops(); i++) {
                         ex f = m.op(i);
                         if (is_exactly_a<numeric>(f))
                                 continue;
                         if (is_exactly_a<numeric>(f.subs(h == 0))) {
-std::cerr<<"f: "<<f<<"\n";
                                 numeric root = get_root(f, h);
                                 if (not root.info(info_flags::integer)
                                     or root < 0)
@@ -540,13 +531,11 @@ std::cerr<<"f: "<<f<<"\n";
                         }
                 }
                 for (int root : roots) {
-std::cerr<<root<<","<<A<<","<<B.subs(n == n+root).expand()<<","<<root<<"\n";
                         ex d = gcd(A, B.subs(n == n+ex(root)).expand());
                         A = quo(A, d, n, false);
                         B = quo(B, d.subs(n == n-ex(root)), false);
                         for (long j=1; j<root+1; ++j)
                                 C *= d.subs(n == n-ex(j));
-std::cerr<<"d"<<d<<","<<d.subs(n == n-root).expand()<<","<<C<<"\n";
                 }
         }
         else {
@@ -558,17 +547,14 @@ std::cerr<<"d"<<d<<","<<d.subs(n == n-root).expand()<<","<<C<<"\n";
                         else
                                 root = get_root(res, h);
                         if (root.info(info_flags::integer) and root >= 0) {
-std::cerr<<root<<","<<A<<","<<B.subs(n == n+root).expand()<<","<<root<<"\n";
                                 ex d = gcdpoly(A, B.subs(n == n+root).expand());
                                 A = quo(A, d, n, false);
                                 B = quo(B, d.subs(n == n-root), false);
                                 for (long j=1; j<root.to_long()+1; ++j)
                                         C *= d.subs(n == n-ex(j));
-std::cerr<<"d"<<d<<","<<d.subs(n == n-root).expand()<<","<<C<<"\n";
                         }
                 }
         }
-std::cerr<<"ABC"<<A<<","<<B<<","<<C<<"\n";
         A *= ldq;
         B = B.subs(n == n-1);
         int N = A.degree(n);
@@ -598,8 +584,6 @@ std::cerr<<"ABC"<<A<<","<<B<<","<<C<<"\n";
         ex xshifted = binomial_poly(syms, n);
         ex x = diagonal_poly(syms, n);
         ex H = A*xshifted - B*x -C;
-//std::cerr<<A<<","<<B<<","<<C<<"\n";
-//std::cerr<<H<<","<<x<<","<<xshifted<<"\n";
         auto solution = solve_system(H, syms, n);
         for (size_t i=0; i<solution.rows(); ++i) {
                 ex sym = syms[i];
@@ -617,7 +601,6 @@ ex gosper_sum_definite(ex f, ex s, ex a, ex b, int* success)
 {
         try {
                 ex g = gosper_term(f, s);
-std::cerr<<"gosper_term "<<gosper_term<<"\n";
                 ex t = (f*(g + _ex1)).subs(s==b) - (f*g).expand().subs(s==a);
                 *success = 1;
                 ex res;

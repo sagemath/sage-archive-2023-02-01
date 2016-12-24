@@ -150,7 +150,6 @@ static void transform_powers(power_ocvector_map& pomap)
                 for (const numeric& num : it.second)
                         g = g.gcd(num);
                 (it.second)[0] = g;
-//std::cerr<<"<"<<it.first<<","<<g<<">\n";
         }
 }
 
@@ -318,8 +317,6 @@ static ex canonical_to_ex(const CanonicalForm& f, const exvector& revmap)
 #ifndef PYNAC_HAVE_LIBGIAC
 ex gcdpoly(const ex &a, const ex &b, ex *ca=nullptr, ex *cb=nullptr, bool check_args=true)
 {
-//std::cerr << "gcd(" << a << "," << b << ") = ";
-
         if (a.is_zero())
                 return b;
         if (b.is_zero())
@@ -501,7 +498,6 @@ factored_b:
         CanonicalForm q = b.to_canonical(map, pomap, revmap);
         CanonicalForm d = gcd(p, q);
 
-//std::cerr << canonical_to_ex(d, revmap) << '\n';
         if (ca != nullptr) {
                 CanonicalForm quo;
                 if (fdivides(d, p, quo))

@@ -1,11 +1,11 @@
 r"""
-Generating Function of Polyhedron
+Generating Function of Polyhedron's Integral Points
 
 This module provides :func:`generating_function_of_polyhedron` which
-computes the generating function of the integer points of a polyhedron.
+computes the generating function of the integral points of a polyhedron.
 
 The main function is accessible via
-:meth:`sage.geometry.polyhedron.base.Polyhedron_base.generating_function`
+:meth:`sage.geometry.polyhedron.base.Polyhedron_base.generating_function_of_integral_points`
 as well.
 
 Various

@@ -39,7 +39,7 @@ from __future__ import absolute_import
 from six import iteritems, itervalues
 
 
-def generating_function_of_polyhedron(polyhedron, split=False,
+def generating_function_of_integral_points(polyhedron, split=False,
                                       result_as_tuple=None, **kwds):
     r"""
     Return the generating function of the integer points of
@@ -78,22 +78,22 @@ def generating_function_of_polyhedron(polyhedron, split=False,
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import generating_function_of_polyhedron
+        sage: from sage.geometry.polyhedron.generating_function import generating_function_of_integral_points
 
     ::
 
         sage: P2 = (
         ....:   Polyhedron(ieqs=[(0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, -1)]),
         ....:   Polyhedron(ieqs=[(0, -1, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0)]))
-        sage: generating_function_of_polyhedron(P2[0], sort_factors=True)
+        sage: generating_function_of_integral_points(P2[0], sort_factors=True)
         1 * (-y0 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
-        sage: generating_function_of_polyhedron(P2[1], sort_factors=True)
+        sage: generating_function_of_integral_points(P2[1], sort_factors=True)
         1 * (-y1 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y2 + 1)^-1
         sage: (P2[0] & P2[1]).Hrepresentation()
         (An equation (1, 0, -1) x + 0 == 0,
          An inequality (1, 0, 0) x + 0 >= 0,
          An inequality (0, 1, 0) x + 0 >= 0)
-        sage: generating_function_of_polyhedron(P2[0] & P2[1], sort_factors=True)
+        sage: generating_function_of_integral_points(P2[0] & P2[1], sort_factors=True)
         1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
 
     ::
@@ -126,7 +126,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
         ....:         continue
         ....:     P = intersect([P3[j] for j in J])
         ....:     print('{}: {}'.format(J, P.Hrepresentation()))
-        ....:     print(generating_function_of_polyhedron(P, sort_factors=True))
+        ....:     print(generating_function_of_integral_points(P, sort_factors=True))
         [0]: (An inequality (0, 0, 0, 1) x + 0 >= 0,
               An inequality (0, 0, 1, 0) x + 0 >= 0,
               An inequality (0, 1, 0, -1) x + 0 >= 0,
@@ -296,18 +296,18 @@ def generating_function_of_polyhedron(polyhedron, split=False,
 
     TESTS::
 
-        sage: generating_function_of_polyhedron(
+        sage: generating_function_of_integral_points(
         ....:     Polyhedron(ieqs=[(0, 0, 1, 0, 0), (-1, 1, -1, 0, 0)]),
         ....:     sort_factors=True)
         y0 * (-y0 + 1)^-1 * (-y2 + 1)^-1 * (-y3 + 1)^-1 * (-y0*y1 + 1)^-1
-        sage: generating_function_of_polyhedron(
+        sage: generating_function_of_integral_points(
         ....:     Polyhedron(ieqs=[(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
         ....:                      (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)]),
         ....:     sort_factors=True)
         (-y0^2*y3 + y0*y3 + y0) *
         (-y0 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1
 
-        sage: generating_function_of_polyhedron(
+        sage: generating_function_of_integral_points(
         ....:     Polyhedron(ieqs=[(0, 1, 0, -1, 0, 0), (0, 0, 0, 1, 0, 0)],
         ....:                eqns=[(0, 0, 0, 1, 0, -1), (0, 1, 0, 0, -1, 0),
         ....:                      (0, 1, -1, 0, 0, 0)]),
@@ -316,20 +316,20 @@ def generating_function_of_polyhedron(polyhedron, split=False,
 
     ::
 
-        sage: G = generating_function_of_polyhedron(P2[0], sort_factors=True)
-        sage: S = generating_function_of_polyhedron(P2[0], sort_factors=True,
+        sage: G = generating_function_of_integral_points(P2[0], sort_factors=True)
+        sage: S = generating_function_of_integral_points(P2[0], sort_factors=True,
         ....:                                       split=True)
         sage: sum(S) == G.value()
         True
 
-        sage: G = generating_function_of_polyhedron(P2[1], sort_factors=True)
-        sage: S = generating_function_of_polyhedron(P2[1], sort_factors=True,
+        sage: G = generating_function_of_integral_points(P2[1], sort_factors=True)
+        sage: S = generating_function_of_integral_points(P2[1], sort_factors=True,
         ....:                                       split=True)
         sage: sum(S) == G.value()
         True
 
-        sage: G = generating_function_of_polyhedron(P3[0], sort_factors=True)
-        sage: S = generating_function_of_polyhedron(P3[0], sort_factors=True,
+        sage: G = generating_function_of_integral_points(P3[0], sort_factors=True)
+        sage: S = generating_function_of_integral_points(P3[0], sort_factors=True,
         ....:                                       split=True)
         sage: sum(S) == G.value()
         True
@@ -354,7 +354,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     logger.info('%s', polyhedron)
 
     if split is False:
-        result = _generating_function_of_polyhedron_(polyhedron, **kwds)
+        result = _generating_function_of_integral_points_(polyhedron, **kwds)
         if result_as_tuple:
             return result
         else:
@@ -386,7 +386,7 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     result = []
     for split_polyhedron, pi_log in split:
         logger.info('split polyhedron by %s', pi_log)
-        result.append(_generating_function_of_polyhedron_(
+        result.append(_generating_function_of_integral_points_(
             polyhedron & split_polyhedron, **kwds))
     if not result_as_tuple:
         raise ValueError("Cannot unpack result."
@@ -394,17 +394,17 @@ def generating_function_of_polyhedron(polyhedron, split=False,
     return sum(result, ())
 
 
-def _generating_function_of_polyhedron_(
+def _generating_function_of_integral_points_(
         polyhedron, indices=None, **kwds):
     r"""
-    Helper function for :func:`generating_function_of_polyhedron` which
+    Helper function for :func:`generating_function_of_integral_points` which
     does the mid-level stuff.
 
     TESTS::
 
-        sage: from sage.geometry.polyhedron.generating_function import generating_function_of_polyhedron
+        sage: from sage.geometry.polyhedron.generating_function import generating_function_of_integral_points
 
-        sage: generating_function_of_polyhedron(  # indirect doctest
+        sage: generating_function_of_integral_points(  # indirect doctest
         ....:     Polyhedron(ieqs=[(0, 1, 0, 0), (0, -1, 1, 0)],
         ....:                eqns=[(0, -1, -1, 2)]),
         ....:     result_as_tuple=True, sort_factors=True)
@@ -449,31 +449,31 @@ def _generating_function_of_polyhedron_(
     mods = _generate_mods_(equations)
     logger.debug('splitting by moduli %s', mods)
 
-    return tuple(__generating_function_of_polyhedron__(
+    return tuple(__generating_function_of_integral_points__(
         indices, inequalities, equations, mod, **kwds) for mod in mods)
 
 
-def __generating_function_of_polyhedron__(
+def __generating_function_of_integral_points__(
         indices, inequalities, equations, mod,
         Factorization_sort=False, Factorization_simplify=False,
         sort_factors=False):
     r"""
-    Helper function for :func:`generating_function_of_polyhedron` which
+    Helper function for :func:`generating_function_of_integral_points` which
     does the actual computation of the generating function.
 
     TESTS::
 
-        sage: from sage.geometry.polyhedron.generating_function import __generating_function_of_polyhedron__
+        sage: from sage.geometry.polyhedron.generating_function import __generating_function_of_integral_points__
 
-        sage: __generating_function_of_polyhedron__(
+        sage: __generating_function_of_integral_points__(
         ....:     (0, 2), [(0, 1, 0)], [(1, -1, 2)],
         ....:     {0: (2, 1)}, sort_factors=True)
         y0 * (-y0^2*y2 + 1)^-1
-        sage: __generating_function_of_polyhedron__(
+        sage: __generating_function_of_integral_points__(
         ....:     srange(3), [(0, 1, 0, 0), (0, 0, 1, 0)], [(1, -1, 0, 2)],
         ....:     {0: (2, 1)}, sort_factors=True)
         y0 * (-y1 + 1)^-1 * (-y0^2*y2 + 1)^-1
-        sage: __generating_function_of_polyhedron__(
+        sage: __generating_function_of_integral_points__(
         ....:     srange(3), [(0, 1, 0, 0), (0, -1, 1, 0)], [(0, -1, -1, 2)],
         ....:     {0: (2, 1), 1: (2, 1)}, sort_factors=True)
         (-y0^3*y1^3*y2^3 + y0*y1*y2) *

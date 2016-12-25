@@ -4124,19 +4124,19 @@ class Polyhedron_base(Element):
         from sage.geometry.lattice_polytope import LatticePolytope
         return LatticePolytope(vertices)
 
-    def generating_function(self, **kwds):
+    def generating_function_of_integral_points(self, **kwds):
         r"""
         Return the generating function of the integer points of
         the polyhedron's orthant with only nonnegative coordinates.
 
         This calls
-        :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_polyhedron`,
+        :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_integral_points`,
         so have a look at the documentation and examples there.
 
         INPUT:
 
         The following keyword arguments are passed to
-        :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_polyhedron`:
+        :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_integral_points`:
 
         - ``split`` -- (default: ``False``) ``False`` computes the generating
           function directly, whereas ``True`` splits the ``polyhedron``
@@ -4168,19 +4168,19 @@ class Polyhedron_base(Element):
             sage: P2 = (
             ....:   Polyhedron(ieqs=[(0, 0, 0, 1), (0, 0, 1, 0), (0, 1, 0, -1)]),
             ....:   Polyhedron(ieqs=[(0, -1, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0)]))
-            sage: P2[0].generating_function(sort_factors=True)
+            sage: P2[0].generating_function_of_integral_points(sort_factors=True)
             1 * (-y0 + 1)^-1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
-            sage: P2[1].generating_function(sort_factors=True)
+            sage: P2[1].generating_function_of_integral_points(sort_factors=True)
             1 * (-y1 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y2 + 1)^-1
             sage: (P2[0] & P2[1]).Hrepresentation()
             (An equation (1, 0, -1) x + 0 == 0,
              An inequality (1, 0, 0) x + 0 >= 0,
              An inequality (0, 1, 0) x + 0 >= 0)
-            sage: (P2[0] & P2[1]).generating_function(sort_factors=True)
+            sage: (P2[0] & P2[1]).generating_function_of_integral_points(sort_factors=True)
             1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
         """
-        from .generating_function import generating_function_of_polyhedron
-        return generating_function_of_polyhedron(self, **kwds)
+        from .generating_function import generating_function_of_integral_points
+        return generating_function_of_integral_points(self, **kwds)
 
     def _integral_points_PALP(self):
         r"""

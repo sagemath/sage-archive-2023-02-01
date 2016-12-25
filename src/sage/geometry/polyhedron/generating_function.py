@@ -333,6 +333,24 @@ def generating_function_of_integral_points(polyhedron, split=False,
         ....:                                       split=True)
         sage: sum(S) == G.value()
         True
+
+    ::
+
+        sage: generating_function_of_integral_points(
+        ....:     Polyhedron(ieqs=[(0, 0, 1, 0, 0), (-1, 1, -1, 0, 0)]),
+        ....:     sort_factors=True)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Cannot compute the generating function of
+        polyhedra with negative coordinates.
+        sage: generating_function_of_integral_points(
+        ....:     Polyhedron(ieqs=[(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
+        ....:                      (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)]),
+        ....:     sort_factors=True)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Cannot compute the generating function of
+        polyhedra with negative coordinates.
     """
     import logging
     logger = logging.getLogger(__name__)

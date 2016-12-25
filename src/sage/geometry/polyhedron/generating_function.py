@@ -351,6 +351,13 @@ def generating_function_of_integral_points(polyhedron, split=False,
         else:
             return result
 
+    d = polyhedron.ambient_dim()
+    nonnegative_orthant = Polyhedron(ieqs=[dd*(0,) + (1,) + (d-dd)*(0,)
+                                           for dd in range(1, d+1)])
+    if polyhedron & nonnegative_orthant != polyhedron:
+        raise NotImplementedError('Cannot compute the generating function of '
+                                  'polyhedra with negative coordinates.')
+
     logger.info('%s', polyhedron)
 
     if split is False:
@@ -363,7 +370,6 @@ def generating_function_of_integral_points(polyhedron, split=False,
                                  "(Set 'result_as_tuple=True'.)")
             return result[0]
 
-    d = polyhedron.ambient_dim()
     if d <= 1:
         raise ValueError('Cannot do splitting with only '
                          'dimension {}.'.format(d))

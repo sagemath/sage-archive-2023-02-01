@@ -4129,6 +4129,13 @@ class Polyhedron_base(Element):
         Return the multivariate generating function of the
         integral points of this polyhedron.
 
+        To be precise, this returns
+
+        .. MATH::
+
+            \sum_{(r_0,\dots,r_{d-1}) \in \mathit{polyhedron}\cap \ZZ^d
+            y_0^r_0 \dots y_{d-1}^r_{d-1}.
+
         This calls
         :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_integral_points`,
         so have a look at the documentation and examples there.

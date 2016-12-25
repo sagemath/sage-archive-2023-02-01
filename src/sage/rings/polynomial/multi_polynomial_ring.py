@@ -62,6 +62,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import iteritems
 
 from sage.rings.ring import IntegralDomain
 import sage.rings.fraction_field_element as fraction_field_element
@@ -430,7 +431,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.element().dict()
-                for i, a in D.iteritems():
+                for i, a in iteritems(D):
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
@@ -454,7 +455,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.dict()
-                for i, a in D.iteritems():
+                for i, a in iteritems(D):
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):

@@ -4186,6 +4186,25 @@ class Polyhedron_base(Element):
             sage: (P2[0] & P2[1]).generating_function_of_integral_points(sort_factors=True)
             1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
 
+        The number of integer partitions
+        `1 \leq r_0 \leq r_1 \leq r_2 \leq r_3 \leq r_4`::
+
+            sage: P = Polyhedron(ieqs=[(-1, 1, 0, 0, 0, 0), (0, -1, 1, 0, 0, 0),
+            ....:                      (0, 0, -1, 1, 0, 0), (0, 0, 0, -1, 1, 0),
+            ....:                      (0, 0, 0, 0, -1, 1)])
+            sage: f = P.generating_function_of_integral_points(sort_factors=True); f
+            y0*y1*y2*y3*y4 * (-y4 + 1)^-1 * (-y3*y4 + 1)^-1 * (-y2*y3*y4 + 1)^-1 *
+            (-y1*y2*y3*y4 + 1)^-1 * (-y0*y1*y2*y3*y4 + 1)^-1
+            sage: f = f.value()
+            sage: P.<z> = PowerSeriesRing(ZZ)
+            sage: c = f.subs({y: z for y in f.parent().gens()}); c
+            z^5 + z^6 + 2*z^7 + 3*z^8 + 5*z^9 + 7*z^10 + 10*z^11 + 13*z^12 + 18*z^13 +
+            23*z^14 + 30*z^15 + 37*z^16 + 47*z^17 + 57*z^18 + 70*z^19 + 84*z^20 +
+            101*z^21 + 119*z^22 + 141*z^23 + 164*z^24 + O(z^25)
+            sage: [Partitions(k, length=5).cardinality() for k in range(5,20)] == \
+            ....:     c.truncate().coefficients(sparse=False)[5:20]
+            True
+
         .. SEEALSO::
 
             More examples can be found at

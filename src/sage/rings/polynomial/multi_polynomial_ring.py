@@ -396,6 +396,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: f.sage(locals={'a': a, 'd': d})
             a*d
 
+        Check that :trac:`21999` is fixed::
+
+            sage: R = QQbar['s,t']
+            sage: type(R({(1,2): 3}).coefficients()[0])
+            <class 'sage.rings.qqbar.AlgebraicNumber'>
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         import sage.rings.polynomial.polynomial_element as polynomial_element
@@ -469,6 +474,10 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         elif isinstance(x, PolyDict):
             return MPolynomial_polydict(self, x)
+
+        elif isinstance(x, dict):
+            K = self.base_ring()
+            return MPolynomial_polydict(self, {i: K(a) for i, a in iteritems(x)})
 
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:

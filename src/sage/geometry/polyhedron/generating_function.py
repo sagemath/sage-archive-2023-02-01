@@ -297,12 +297,14 @@ def generating_function_of_integral_points(polyhedron, split=False,
     TESTS::
 
         sage: generating_function_of_integral_points(
-        ....:     Polyhedron(ieqs=[(0, 0, 1, 0, 0), (-1, 1, -1, 0, 0)]),
+        ....:     Polyhedron(ieqs=[(0, 0, 1, 0, 0), (-1, 1, -1, 0, 0),
+        ....:                      (0, 0, 0, 1, 0), (0, 0, 0, 0, 1)]),
         ....:     sort_factors=True)
         y0 * (-y0 + 1)^-1 * (-y2 + 1)^-1 * (-y3 + 1)^-1 * (-y0*y1 + 1)^-1
         sage: generating_function_of_integral_points(
         ....:     Polyhedron(ieqs=[(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
-        ....:                      (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)]),
+        ....:                      (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0),
+        ....:                      (0, 0, 0, 1, 0)]),
         ....:     sort_factors=True)
         (-y0^2*y3 + y0*y3 + y0) *
         (-y0 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1

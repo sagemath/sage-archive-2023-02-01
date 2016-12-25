@@ -100,15 +100,6 @@ if DEVEL:
 if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
     extra_compile_args.append('-fno-tree-copyrename')
 
-#########################################################
-### Generate some Python/Cython sources
-#########################################################
-
-make = os.environ.get("MAKE", 'make')
-make_cmdline = "{} -f generate_py_source.mk SAGE_SRC={}".format(make, sage.env.SAGE_SRC)
-status = subprocess.call(make_cmdline, shell=True)
-if status != 0:
-    raise DistutilsSetupError("{} failed".format(make_cmdline))
 
 #########################################################
 ### Testing related stuff
@@ -347,11 +338,19 @@ def execute_list_of_commands(command_list):
 class sage_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
+        log.info("Generating interpreter sources")
+        self.run_autogen()
         log.warn("Updating Cython code....")
         t = time.time()
         self.run_cython()
         log.warn("Finished Cythonizing, time: %.2f seconds." % (time.time() - t))
         self.copy_extra_files()
+        self.check_flags()
+
+    def run_autogen(self):
+        from sage_setup.autogen import autogen_all
+
+        autogen_all()
 
     def run_cython(self):
         """
@@ -395,7 +394,7 @@ class sage_build_ext(build_ext):
                 # different Cython versions or with different options.
                 # To ensure that this inconsistent state will be fixed,
                 # we remove the version_file now to force a
-                # recythonization the the next time we build Sage.
+                # recythonization the next time we build Sage.
                 os.unlink(version_file)
         except IOError:
             # Most likely, the version_file does not exist
@@ -426,6 +425,32 @@ class sage_build_ext(build_ext):
             )
 
         open(version_file, 'w').write(version_stamp)
+
+    def check_flags(self):
+        """
+        Sanity check the compiler flags used to build the extensions
+        """
+        forbidden = None
+        if os.environ.get("SAGE_FAT_BINARY") == "yes":
+            # When building with SAGE_FAT_BINARY=yes, we should not
+            # enable CPU features which do not exist on every CPU.
+            # Such flags usually come from other libraries adding the
+            # flags to the pkgconfig configuration.  So if you hit these
+            # errors, the problem is most likely with some external
+            # library and not with Sage.
+            import re
+            forbidden = re.compile(r"-march=|-mpcu=|-msse3|-msse4|-mpopcnt|-mavx")
+
+        if forbidden is not None:
+            errors = 0
+            for ext in self.extensions:
+                flags = ext.extra_compile_args
+                for flag in flags:
+                    if forbidden.match(flag):
+                        log.error("%s uses forbidden flag '%s'", ext.name, flag)
+                        errors += 1
+            if errors:
+                raise RuntimeError("forbidden flags used")
 
     def build_extensions(self):
 

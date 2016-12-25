@@ -1069,6 +1069,19 @@ Here are some of the more commonly used variables affecting the build process:
   be moved to a different directory) binaries, you must use
   https://github.com/sagemath/binary-pkg
 
+- :envvar:`SAGE_SUDO` - set this to ``sudo -E`` or to any other
+  command prefix that is necessary to write into a installation
+  hierarchy (:envvar:`SAGE_LOCAL`) owned by root or another user.
+  Note that this command needs to preserve environment variable
+  settings (plain ``sudo`` does not).
+
+  Not all Sage packages currently support :envvar:`SAGE_SUDO`.
+
+  Therefore this environment variable is most useful when a system
+  administrator wishes to install an additional Sage package that
+  supports :envvar:`SAGE_SUDO`, into a root-owned installation
+  hierarchy (:envvar:`SAGE_LOCAL`).
+
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
 
@@ -1250,7 +1263,7 @@ Variables dealing with doctesting:
   ``sage -t --long``.
   If this isn't set, the default is 1800 seconds (30 minutes).
 
-- :envvar:`SAGE_PICKLE_JAR` - if you want to update the the standard pickle
+- :envvar:`SAGE_PICKLE_JAR` - if you want to update the standard pickle
   jar, set this to something non-empty and run the doctest suite.
   See the documentation for the functions :func:`picklejar` and
   :func:`unpickle_all` in

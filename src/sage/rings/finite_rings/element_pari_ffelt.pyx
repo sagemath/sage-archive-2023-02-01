@@ -20,11 +20,11 @@ AUTHORS:
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.paripriv cimport *
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.paripriv cimport *
 from sage.libs.pari.convert_gmp cimport _new_GEN_from_mpz_t
-from sage.libs.pari.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
-from sage.libs.pari.gen cimport gen as pari_gen, objtogen
+from sage.libs.cypari2.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
+from sage.libs.cypari2.gen cimport gen as pari_gen, objtogen
 
 from element_base cimport FinitePolyExtElement
 from integer_mod import IntegerMod_abstract
@@ -684,6 +684,24 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sig_on()
         return self._parent.polynomial_ring()(new_gen(FF_to_FpXQ_i(self.val)))
 
+    def minpoly(self, var='x'):
+        """
+        Return the minimal polynomial of ``self``.
+
+        INPUT:
+
+        - ``var`` -- string (default: 'x'): variable name to use.
+
+        EXAMPLE::
+
+            sage: R.<x> = PolynomialRing(FiniteField(3))
+            sage: F.<a> = FiniteField(3^2, modulus=x^2 + 1, impl='pari_ffelt')
+            sage: a.minpoly('y')
+            y^2 + 1
+        """
+        sig_on()
+        return self._parent.polynomial_ring(var)(new_gen(FF_minpoly(self.val)))
+
     def charpoly(FiniteFieldElement_pari_ffelt self, object var='x'):
         """
         Return the characteristic polynomial of ``self``.
@@ -695,7 +713,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         EXAMPLE::
 
             sage: R.<x> = PolynomialRing(FiniteField(3))
-            sage: F.<a> = FiniteField(3^2, modulus=x^2 + 1)
+            sage: F.<a> = FiniteField(3^2, modulus=x^2 + 1, impl='pari_ffelt')
             sage: a.charpoly('y')
             y^2 + 1
         """

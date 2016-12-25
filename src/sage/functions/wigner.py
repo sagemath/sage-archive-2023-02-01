@@ -108,7 +108,7 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     - invariant under any permutation of the columns (with the
       exception of a sign change where `J=j_1+j_2+j_3`):
 
-      .. math::
+      .. MATH::
 
          \begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
           =\begin{pmatrix} j_3 & j_1 & j_2 \\ m_3 & m_1 & m_2 \end{pmatrix}
@@ -119,7 +119,7 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
 
     - invariant under space inflection, i.e.
 
-      .. math::
+      .. MATH::
 
          \begin{pmatrix} j_1 & j_2 & j_3 \\ m_1 & m_2 & m_3 \end{pmatrix}
          =(-1)^J \begin{pmatrix} j_1 & j_2 & j_3 \\ -m_1 & -m_2 & -m_3 \end{pmatrix}
@@ -236,7 +236,7 @@ def clebsch_gordan(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
     The Clebsch-Gordan coefficient will be evaluated via its relation
     to Wigner 3-`j` symbols:
 
-    .. math::
+    .. MATH::
 
         \langle j_1 m_1 \; j_2 m_2 | j_3 m_3 \rangle
         =(-1)^{j_1-j_2+m_3} \sqrt{2j_3+1}
@@ -334,7 +334,7 @@ def racah(aa, bb, cc, dd, ee, ff, prec=None):
 
     The Racah symbol is related to the Wigner 6-`j` symbol:
 
-    .. math::
+    .. MATH::
 
        \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
        =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4;j_3,j_6)
@@ -432,7 +432,7 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
     The Wigner 6-`j` symbol is related to the Racah symbol but exhibits
     more symmetries as detailed below.
 
-    .. math::
+    .. MATH::
 
        \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
         =(-1)^{j_1+j_2+j_4+j_5} W(j_1,j_2,j_5,j_4;j_3,j_6)
@@ -442,7 +442,7 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
     - Wigner 6-`j` symbols are left invariant under any permutation of
       the columns:
 
-      .. math::
+      .. MATH::
 
          \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
           =\begin{Bmatrix} j_3 & j_1 & j_2 \\ j_6 & j_4 & j_5 \end{Bmatrix}
@@ -454,7 +454,7 @@ def wigner_6j(j_1, j_2, j_3, j_4, j_5, j_6, prec=None):
     - They are invariant under the exchange of the upper and lower
       arguments in each of any two columns, i.e.
 
-      .. math::
+      .. MATH::
 
          \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}
           =\begin{Bmatrix} j_1 & j_5 & j_6 \\ j_4 & j_2 & j_3 \end{Bmatrix}
@@ -565,7 +565,7 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
     The Gaunt coefficient is defined as the integral over three
     spherical harmonics:
 
-    .. math::
+    .. MATH::
 
         Y(l_1,l_2,l_3,m_1,m_2,m_3) \hspace{12em} \\ 
         =\int Y_{l_1,m_1}(\Omega) \
@@ -628,7 +628,7 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
 
     - invariant under any permutation of the columns
 
-      .. math::
+      .. MATH::
 
           Y(l_1,l_2,l_3,m_1,m_2,m_3)
           =Y(l_3,l_1,l_2,m_3,m_1,m_2) \hspace{3em} \\ \hspace{3em}
@@ -639,7 +639,7 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
 
     - invariant under space inflection, i.e.
 
-      .. math::
+      .. MATH::
 
           Y(l_1,l_2,l_3,m_1,m_2,m_3)
           =Y(l_1,l_2,l_3,-m_1,-m_2,-m_3)

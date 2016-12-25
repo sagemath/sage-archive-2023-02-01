@@ -268,7 +268,7 @@ class ModularSymbol(SageObject):
 
         The action of `g` on symbols is by
 
-        .. math::
+        .. MATH::
 
            P(X,Y)\{\alpha, \beta\} \mapsto  P(dX-bY, -cx+aY) \{g(\alpha), g(\beta)\}.
 

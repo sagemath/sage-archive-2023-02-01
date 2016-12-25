@@ -381,7 +381,7 @@ class Function_polylog(GinacFunction):
             sage: polylog(1, x)
             -log(-x + 1)
             sage: polylog(2,x^2+1)
-            polylog(2, x^2 + 1)
+            dilog(x^2 + 1)
 
             sage: f = polylog(4, 1); f
             1/90*pi^4
@@ -522,7 +522,7 @@ class Function_lambert_w(BuiltinFunction):
 
     This function satisfies the equation
 
-    .. math::
+    .. MATH::
 
         z = W_n(z) e^{W_n(z)}
 
@@ -938,7 +938,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
     Harmonic and generalized harmonic number functions,
     defined by:
 
-    .. math::
+    .. MATH::
 
         H_{n}=H_{n,1}=\sum_{k=1}^n\frac1k
         
@@ -946,7 +946,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
     They are also well-defined for complex argument, through:
 
-    .. math::
+    .. MATH::
 
         H_{s}=\int_0^1\frac{1-x^s}{1-x}
 
@@ -1194,7 +1194,7 @@ class Function_harmonic_number(BuiltinFunction):
     r"""
     Harmonic number function, defined by:
 
-    .. math::
+    .. MATH::
 
         H_{n}=H_{n,1}=\sum_{k=1}^n\frac1k
 

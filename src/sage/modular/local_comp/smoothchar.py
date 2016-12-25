@@ -1179,7 +1179,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         r"""
         Find an element generating the quotient
 
-        .. math::
+        .. MATH::
 
             \mathcal{O}_F^\times / \ZZ_p^\times \cdot (1 + p^c \mathcal{O}_F),
 

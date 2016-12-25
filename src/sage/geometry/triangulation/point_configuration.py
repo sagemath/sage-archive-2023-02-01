@@ -523,7 +523,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         TESTS::
 
             sage: p = PointConfiguration([[1,1,1],[-1,1,1],[1,-1,1],[-1,-1,1],[1,1,-1],
-            ...                           [-1,1,-1],[1,-1,-1],[-1,-1,-1],[0,0,0]])
+            ....:                         [-1,1,-1],[1,-1,-1],[-1,-1,-1],[0,0,0]])
             sage: p._repr_()
             'A point configuration in QQ^3 consisting of 9 points. The triangulations
             of this point configuration are assumed to be connected, not necessarily
@@ -642,7 +642,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 line = proc.readline().strip()
             except pexpect.TIMEOUT:
                 if verbose:
-                    print('# Still runnnig ' + str(executable))
+                    print('# Still running ' + str(executable))
                 continue
             if len(line)==0: # EOF
                 break;
@@ -1468,12 +1468,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         TESTS::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: p = PointConfiguration(U.columns())
             sage: len( p.circuits() )    # long time
             218
@@ -1597,12 +1597,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         TESTS::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: pc = PointConfiguration(U.columns())
             sage: pc.lexicographic_triangulation()
             (<1,3,4,7,10,13>, <1,3,4,8,10,13>, <1,3,6,7,10,13>, <1,3,6,8,10,13>,
@@ -1676,7 +1676,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         The distance function used in this method is `d_{aff}(x,y)^2`,
         the square of the usual affine distance function
 
-        .. math::
+        .. MATH::
 
             d_{aff}(x,y) = |x-y|
 
@@ -1713,7 +1713,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         d_{FS}(x,y)^2`, where `d_{FS}` is the Fubini-Study distance of
         projective points. Recall the Fubini-Studi distance function
 
-        .. math::
+        .. MATH::
 
             d_{FS}(x,y) = \arccos \sqrt{ \frac{(x\cdot y)^2}{|x|^2 |y|^2} }
 
@@ -1913,12 +1913,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (<0,1,2>, <0,2,4>, <2,3,4>)
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: p = PointConfiguration(U.columns())
             sage: triangulation = p.placing_triangulation();  triangulation
             (<0,2,3,4,6,7>, <0,2,3,4,6,12>, <0,2,3,4,7,13>, <0,2,3,4,12,13>,

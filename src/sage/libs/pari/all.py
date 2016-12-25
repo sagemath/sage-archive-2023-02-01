@@ -1,4 +1,3 @@
 from __future__ import absolute_import
-from .gen import gen as pari_gen
-from . import pari
-from . import PariError
+from sage.libs.cypari2.gen import gen as pari_gen
+from sage.libs.cypari2 import pari, PariError

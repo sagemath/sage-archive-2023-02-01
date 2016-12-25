@@ -528,6 +528,23 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         return "Free Algebra on {} generators {} over {}".format(
             self.__ngens, self.gens(), self.base_ring())
 
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FreeAlgebra(QQ,3,'x')
+            sage: latex(F)
+            \Bold{Q}\langle x_{0}, x_{1}, x_{2}\rangle
+            sage: F = FreeAlgebra(ZZ['q'], 3, 'a,b,c')
+            sage: latex(F)
+            \Bold{Z}[q]\langle a, b, c\rangle
+        """
+        from sage.misc.latex import latex
+        return "{}\\langle {}\\rangle".format(latex(self.base_ring()),
+                                              ', '.join(self.latex_variable_names()))
+
     def _element_constructor_(self, x):
         """
         Convert ``x`` into ``self``.

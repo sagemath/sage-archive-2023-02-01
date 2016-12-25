@@ -556,11 +556,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: pari(a).type()
             't_COMPLEX'
             sage: type(pari(a))
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: a._pari_()
             2.00000000000000 + 1.00000000000000*I
             sage: type(a._pari_())
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: a = CC(pi)
             sage: pari(a)
             3.14159265358979
@@ -794,7 +794,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __pow__(self, right, modulus):
         r"""
-        Raise ``self`` to the ``right`` expontent.
+        Raise ``self`` to the ``right`` exponent.
 
         This takes `a^b` and compues `\exp(b \log(a))`.
 

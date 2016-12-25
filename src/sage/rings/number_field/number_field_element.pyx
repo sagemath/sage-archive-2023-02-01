@@ -67,7 +67,7 @@ from sage.modules.free_module_element import vector
 from sage.structure.element cimport Element, generic_power_c, FieldElement
 from sage.structure.element import canonical_coercion, parent, coerce_binop
 
-from sage.libs.pari import pari
+from sage.libs.cypari2 import pari
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -2272,17 +2272,15 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES::
 
             sage: m.<b> = CyclotomicField(17)
-            sage: m(0).__nonzero__()
+            sage: bool(m(0))
             False
-            sage: b.__nonzero__()
+            sage: bool(b)
             True
 
-        Nonzero is used by the bool command::
+        ``__bool__`` is used by the bool command::
 
             sage: bool(b + 1)
             True
-            sage: bool(m(0))
-            False
         """
         return not IsZero_ZZX(self.__numerator)
 
@@ -3381,7 +3379,7 @@ cdef class NumberFieldElement(FieldElement):
         -  ``P`` - a prime ideal of the parent of self
 
 
-        .. note::
+        .. NOTE::
 
            The function ``ord()`` is an alias for ``valuation()``.
 
@@ -3905,15 +3903,15 @@ cdef class NumberFieldElement(FieldElement):
         r"""
         The m-th power residue symbol for an element self and proper ideal P.
 
-        .. math:: \left(\frac{\alpha}{\mathbf{P}}\right) \equiv \alpha^{\frac{N(\mathbf{P})-1}{m}} \operatorname{mod} \mathbf{P}
+        .. MATH:: \left(\frac{\alpha}{\mathbf{P}}\right) \equiv \alpha^{\frac{N(\mathbf{P})-1}{m}} \operatorname{mod} \mathbf{P}
 
-        .. note:: accepts m=1, in which case returns 1
+        .. NOTE:: accepts m=1, in which case returns 1
 
-        .. note:: can also be called for an ideal from sage.rings.number_field_ideal.residue_symbol
+        .. NOTE:: can also be called for an ideal from sage.rings.number_field_ideal.residue_symbol
 
-        .. note:: self is coerced into the number field of the ideal P
+        .. NOTE:: self is coerced into the number field of the ideal P
 
-        .. note:: if m=2, self is an integer, and P is an ideal of a number field of absolute degree 1 (i.e. it is a copy of the rationals), then this calls kronecker_symbol, which is implemented using GMP.
+        .. NOTE:: if m=2, self is an integer, and P is an ideal of a number field of absolute degree 1 (i.e. it is a copy of the rationals), then this calls kronecker_symbol, which is implemented using GMP.
 
         INPUT:
 

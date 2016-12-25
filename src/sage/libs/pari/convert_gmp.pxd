@@ -1,5 +1,5 @@
-from .types cimport GEN
-from .gen cimport gen
+from sage.libs.cypari2.types cimport GEN
+from sage.libs.cypari2.gen cimport gen
 from sage.libs.gmp.types cimport mpz_t, mpq_t, mpz_ptr, mpq_ptr
 
 cdef gen new_gen_from_mpz_t(mpz_t value)

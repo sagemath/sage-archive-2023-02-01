@@ -391,7 +391,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             of the extended affine Weyl group admits a unique
             decomposition of the form:
 
-            .. math:: f = d w ,
+            .. MATH:: f = d w ,
 
             where `w` is in the Weyl group, and `d` is a function which
             maps the fundamental alcove to itself. As `d` permutes the
@@ -720,7 +720,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             `y_k` is obtained recursively from `y_{k-1}` by applying the
             following reflection:
 
-            .. math::
+            .. MATH::
 
                   y_k = s_{w_{k-1} \alpha_{i_k}} y_{k-1}
 

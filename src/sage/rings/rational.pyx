@@ -59,8 +59,8 @@ import sage.rings.rational_field
 cimport integer
 from integer cimport Integer
 
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.gen cimport gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
 
 from integer_ring import ZZ
@@ -269,6 +269,27 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
         2/3*sqrt(3)
         sage: t^2
         4/3
+
+    Check if :trac:`15605` is fixed::
+
+        sage: rational_power_parts(-1, -1/3)
+        (1, -1)
+        sage: (-1)^(-1/3)
+        -(-1)^(2/3)
+        sage: 1 / ((-1)^(1/3))
+        -(-1)^(2/3)
+        sage: rational_power_parts(-1, 2/3)
+        (1, -1)
+        sage: (-1)^(2/3)
+        (-1)^(2/3)
+        sage: all(rational_power_parts(-1, i/77) == (1,-1) for i in range(1,9))
+        True
+        sage: (-1)^(1/3)*(-1)^(1/5)
+        (-1)^(8/15)
+        sage: bool((-1)^(2/3) == -1/2 + sqrt(3)/2*I)
+        True
+        sage: all((-1)^(p/q) == cos(p*pi/q) + I * sin(p*pi/q) for p in srange(1,6) for q in srange(1,6))
+        True
     """
     b_negative=False
     if b < 0:
@@ -285,6 +306,8 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
     if c is not None:
         return c, 1
     numer, denom = b.numerator(), b.denominator()
+    if a == -1 and denom > 1:
+        return 1, -1
     if a < factor_limit*factor_limit:
         f = a.factor()
     else:
@@ -2559,9 +2582,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: (-4/17).__nonzero__()
-            True
-            sage: (0/5).__nonzero__()
+            sage: bool(0/5)
             False
             sage: bool(-4/17)
             True
@@ -3512,7 +3533,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m = n._pari_(); m
             9390823/17
             sage: type(m)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: m.type()
             't_FRAC'
         """

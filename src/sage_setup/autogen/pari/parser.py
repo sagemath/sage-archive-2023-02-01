@@ -33,9 +33,10 @@ def sage_src_pari():
 
         sage: from sage_setup.autogen.pari.parser import sage_src_pari
         sage: sage_src_pari()
-        'sage/libs/pari'
+        'sage/libs/cypari2'
     """
-    return os.path.join('sage', 'libs', 'pari')
+    return os.path.join('sage', 'libs', 'cypari2')
+
 
 def pari_share():
     r"""
@@ -49,7 +50,7 @@ def pari_share():
     """
     from subprocess import Popen, PIPE
     gp = Popen(["gp", "-f", "-q"], stdin=PIPE, stdout=PIPE)
-    out = gp.communicate("print(default(datadir))")[0]
+    out = gp.communicate(b"print(default(datadir))")[0]
     datadir = out.strip()
     if not os.path.isdir(datadir):
         raise EnvironmentError("PARI data directory {!r} does not exist".format(datadir))
@@ -80,7 +81,7 @@ def read_pari_desc():
          'prototype': 'Gp',
          'section': 'transcendental'}
     """
-    with open(os.path.join(pari_share(), 'pari.desc')) as f:
+    with open(os.path.join(pari_share(), b'pari.desc')) as f:
         lines = f.readlines()
 
     n = 0

@@ -899,7 +899,7 @@ class GraphPlot(SageObject):
             ....:  y = float(sin(pi/2 + ((2*pi)/5)*i))
             ....:  pos_dict[i] = [x,y]
             ...
-            sage: for i in range(10)[5:]:
+            sage: for i in range(5,10):
             ....:  x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
             ....:  y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
             ....:  pos_dict[i] = [x,y]
@@ -919,7 +919,7 @@ class GraphPlot(SageObject):
                 y = float(sin(pi/2 + ((2*pi)/5)*i))
                 pos_dict[i] = [x,y]
             
-            for i in range(10)[5:]:
+            for i in range(5,10):
                 x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
                 y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
                 pos_dict[i] = [x,y]

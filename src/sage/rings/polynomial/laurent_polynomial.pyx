@@ -13,8 +13,6 @@ from __future__ import print_function
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
-from sage.misc.latex import latex
-import sage.misc.latex
 from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
@@ -274,7 +272,18 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             '\\left(a + b\\right)x'
             sage: latex(y)
             \left(a + b\right)x
+
+        TESTS::
+
+            sage: L.<lambda2> = LaurentPolynomialRing(QQ)
+            sage: latex(L.an_element())
+            \lambda_{2}
+            sage: L.<y2> = LaurentPolynomialRing(QQ)
+            sage: latex(L.an_element())
+            y_{2}
         """
+        from sage.misc.latex import latex
+
         if self.is_zero():
             return "0"
         s = " "
@@ -287,7 +296,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         for n in xrange(m):
             x = v[n]
             e = n + valuation
-            x = sage.misc.latex.latex(x)
+            x = latex(x)
             if x != '0':
                 if not first:
                     s += " + "
@@ -1553,7 +1562,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                                     atomic_coefficients=atomic, sortkey=key)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
@@ -1562,6 +1571,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: latex(a)
             w^{2} z^{-1} + 3
 
+        TESTS::
+
+            sage: L.<lambda2, y2> = LaurentPolynomialRing(QQ)
+            sage: latex(1/lambda2 + y2^(-3))
+            \lambda_{2}^{-1} + y_{2}^{-3}
         """
         if self._prod is None:
             self._compute_polydict()
@@ -1570,7 +1584,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         except AttributeError:
             key = None
         atomic = self.parent().base_ring()._repr_option('element_is_atomic')
-        return self._prod.latex(self.parent().variable_names(),
+        return self._prod.latex(self.parent().latex_variable_names(),
                                 atomic_coefficients=atomic, sortkey=key)
 
     def __invert__(LaurentPolynomial_mpair self):

@@ -342,7 +342,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             return tuple()
         box_min, box_max = self.bounding_box()
         from sage.geometry.integral_points import rectangular_box_points
-        return rectangular_box_points(box_min, box_max, self, count_only=True)
+        return rectangular_box_points(list(box_min), list(box_max), self, count_only=True)
 
     @cached_method
     def integral_points(self):
@@ -410,7 +410,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             return tuple()
         box_min, box_max = self.bounding_box()
         from sage.geometry.integral_points import rectangular_box_points
-        points = rectangular_box_points(box_min, box_max, self)
+        points = rectangular_box_points(list(box_min), list(box_max), self)
         if not self.n_integral_points.is_in_cache():
             self.n_integral_points.set_cache(len(points))
         return points
@@ -446,7 +446,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             return tuple()
         box_min, box_max = self.bounding_box()
         from sage.geometry.integral_points import rectangular_box_points
-        points= rectangular_box_points(box_min, box_max, self, return_saturated=True)
+        points = rectangular_box_points(list(box_min), list(box_max), self,
+                                        return_saturated=True)
         if not self.n_integral_points.is_in_cache():
             self.n_integral_points.set_cache(len(points))
         if not self.integral_points.is_in_cache():

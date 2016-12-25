@@ -3118,7 +3118,7 @@ def binomial(x, m, **kwds):
     r"""
     Return the binomial coefficient
 
-    .. math::
+    .. MATH::
 
         \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
@@ -3126,7 +3126,7 @@ def binomial(x, m, **kwds):
     `x`. We extend this definition to include cases when
     `x-m` is an integer but `m` is not by
 
-    .. math::
+    .. MATH::
 
         \binom{x}{m} = \binom{x}{x-m}
 
@@ -3360,7 +3360,7 @@ def multinomial(*ks):
 
     Returns the integer:
 
-    .. math::
+    .. MATH::
 
            \binom{k_1 + \cdots + k_n}{k_1, \cdots, k_n}
            =\frac{\left(\sum_{i=1}^n k_i\right)!}{\prod_{i=1}^n k_i!}
@@ -4040,7 +4040,7 @@ def continuant(v, n=None):
 
     We verify the identity
 
-    .. math::
+    .. MATH::
 
         K_n(z,z,\cdots,z) = \sum_{k=0}^n \binom{n-k}{k} z^{n-2k}
 

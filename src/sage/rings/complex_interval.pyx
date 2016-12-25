@@ -44,7 +44,7 @@ from __future__ import absolute_import, print_function
 include "cysignals/signals.pxi"
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
 from sage.libs.flint.fmpz cimport *
-from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.cypari2.gen cimport gen as pari_gen
 from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
@@ -1395,20 +1395,18 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: CIF(RIF(0, 0), RIF(0, 0)).__nonzero__()
-            False
             sage: bool(CIF(RIF(0, 0), RIF(0, 0)))
             False
-            sage: CIF(RIF(1), RIF(0)).__nonzero__()
+            sage: bool(CIF(RIF(1), RIF(0)))
             True
-            sage: CIF(RIF(0), RIF(1)).__nonzero__()
+            sage: bool(CIF(RIF(0), RIF(1)))
             True
-            sage: CIF(RIF(1, 2), RIF(0)).__nonzero__()
+            sage: bool(CIF(RIF(1, 2), RIF(0)))
             True
-            sage: CIF(RIF(-1, 1), RIF(-1, 1)).__nonzero__()
+            sage: bool(CIF(RIF(-1, 1), RIF(-1, 1)))
             True
         """
-        return self.real().__nonzero__() or self.imag().__nonzero__()
+        return bool(self.real()) or bool(self.imag())
 
     cpdef _richcmp_(left, right, int op):
         r"""

@@ -47,7 +47,7 @@ def cyclotomic_coeffs(nn, sparse=None):
     This calculates the coefficients of the n-th cyclotomic polynomial
     by using the formula
 
-    .. math::
+    .. MATH::
 
         \\Phi_n(x) = \\prod_{d|n} (1-x^{n/d})^{\\mu(d)}
 

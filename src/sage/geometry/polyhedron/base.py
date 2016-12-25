@@ -4126,8 +4126,8 @@ class Polyhedron_base(Element):
 
     def generating_function_of_integral_points(self, **kwds):
         r"""
-        Return the generating function of the integer points of
-        the polyhedron's orthant with only nonnegative coordinates.
+        Return the multivariate generating function of the
+        integral points of this polyhedron.
 
         This calls
         :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_integral_points`,

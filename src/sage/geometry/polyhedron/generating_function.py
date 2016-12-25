@@ -42,8 +42,8 @@ from six import iteritems, itervalues
 def generating_function_of_integral_points(polyhedron, split=False,
                                       result_as_tuple=None, **kwds):
     r"""
-    Return the generating function of the integer points of
-    the polyhedron's orthant with only nonnegative coordinates.
+    Return the multivariate generating function of the
+    integral points of the polyhedron.
 
     INPUT:
 
@@ -75,6 +75,11 @@ def generating_function_of_integral_points(polyhedron, split=False,
     of the result whose factors are laurent polynomials.
     The result might be a tuple of such factorizations
     (depending on the parameter ``result_as_tuple``) as well.
+
+    .. NOTE::
+
+        At the moment, only polyhedra with nonnegative coordinates
+        (i.e. a polyhedon in the nonnegative orthant) are handeled.
 
     EXAMPLES::
 

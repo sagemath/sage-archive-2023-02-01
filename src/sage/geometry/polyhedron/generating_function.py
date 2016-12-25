@@ -304,7 +304,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
 
         This function is accessible via
         :meth:`sage.geometry.polyhedron.base.Polyhedron_base.generating_function`
-        as well.
+        as well. More examples can be found there.
 
     TESTS::
 

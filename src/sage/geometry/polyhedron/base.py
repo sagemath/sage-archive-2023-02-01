@@ -4185,6 +4185,11 @@ class Polyhedron_base(Element):
              An inequality (0, 1, 0) x + 0 >= 0)
             sage: (P2[0] & P2[1]).generating_function_of_integral_points(sort_factors=True)
             1 * (-y1 + 1)^-1 * (-y0*y2 + 1)^-1
+
+        .. SEEALSO::
+
+            More examples can be found at
+            :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_integral_points`.
         """
         from .generating_function import generating_function_of_integral_points
         return generating_function_of_integral_points(self, **kwds)

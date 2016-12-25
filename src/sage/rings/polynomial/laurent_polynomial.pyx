@@ -2155,6 +2155,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
             sage: x // y
             x*y^-1
+
+        Check that :trac:`21999` is fixed::
+
+            sage: L.<a,b> = LaurentPolynomialRing(QQbar)
+            sage: (a+a*b) // a
+            b + 1
         """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         self._normalize()

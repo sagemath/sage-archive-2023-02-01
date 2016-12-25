@@ -30,7 +30,7 @@ fi
 
 echo "Building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
 
-$MAKE $OPENBLAS_CONFIGURE
+$MAKE libs netlib shared $OPENBLAS_CONFIGURE
 if [ $? -ne 0 ]; then
     echo >&2 "Error building OpenBLAS"
     exit 1

@@ -1596,11 +1596,13 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         Check that :trac:`22095` is fixed::
 
-            sage: K.<a> = NumberField(x^2 + x + 1, embedding=CDF.0)
+            sage: K.<a> = NumberField(x^2 + 2*x + 14, embedding=CC(-1,+3))
+            sage: K13.<sqrt13> = QuadraticField(13)
+            sage: K13.zero()
+            0
             sage: a.imag()
-            1/2*sqrt3
-            sage: K3.<sqrt3> = QuadraticField(3)
-            sage: K3.zero()
+            sqrt13
+            sage: K13.zero()
             0
         """
         if mpz_sgn(self.D.value) > 0:

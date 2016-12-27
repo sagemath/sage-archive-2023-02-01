@@ -665,12 +665,12 @@ class sage_build_ext(build_ext):
                 self.copy_file(src, dst, preserve_mode=False)
 
 #########################################################
-### Generating Interpreter Sources
+### Generating auto-generated Sources
 ### This must be done before discovering and building
-### the python modules.
+### the python modules. See #22094.
 #########################################################
 
-log.info("Generating interpreter sources")
+log.info("Generating auto-generated sources")
 from sage_setup.autogen import autogen_all
 
 autogen_all()

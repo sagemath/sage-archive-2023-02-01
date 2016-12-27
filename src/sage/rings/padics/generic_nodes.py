@@ -27,6 +27,7 @@ from sage.rings.ring import EuclideanDomain, Field
 from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity, SignError
 
 class CappedAbsoluteGeneric(LocalGeneric):
     def is_capped_absolute(self):
@@ -175,6 +176,82 @@ class FloatingPointGeneric(LocalGeneric):
             'floating-point'
         """
         return 'floating-point'
+
+    def _test_distributivity(self, **options):
+        r"""
+        Test the distributivity of `*` on `+` on (not necessarily
+        all) elements of this set.
+
+        p-adic floating point rings only satisfy distributivity
+        up to a precision that depends on the elements.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
+
+        EXAMPLES:
+
+        By default, this method runs the tests only on the
+        elements returned by ``self.some_elements()``::
+
+            sage: R = ZpFP(5,3)
+            sage: R.some_elements()
+            [0, 1, 5, 1 + 3*5 + 3*5^2, 5 + 4*5^2 + 4*5^3]
+            sage: R._test_distributivity()
+
+        However, the elements tested can be customized with the
+        ``elements`` keyword argument::
+
+            sage: R._test_distributivity(elements=[R(0),~R(0),R(42)])
+
+        See the documentation for :class:`TestSuite` for more information.
+        """
+        tester = self._tester(**options)
+        S = tester.some_elements()
+        from sage.misc.misc import some_tuples
+        for x,y,z in some_tuples(S, 3, tester._max_runs):
+            yz_prec = min(y.precision_absolute(), z.precision_absolute())
+            yz_val = (y + z).valuation()
+            try:
+                prec = min(x.valuation() + yz_val + min(x.precision_relative(), yz_prec - yz_val),
+                           x.valuation() + y.valuation() + (x * y).precision_relative(),
+                           x.valuation() + z.valuation() + (x * z).precision_relative())
+            except SignError:
+                pass
+            else:
+                if prec > -infinity:
+                    # only check left distributivity, since multiplication commutative
+                    tester.assert_((x * (y + z)).is_equal_to((x * y) + (x * z),prec))
+
+    def _test_additive_associativity(self, **options):
+        r"""
+        Test associativity for (not necessarily all) elements of this
+        additive semigroup.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
+
+        EXAMPLES:
+
+        By default, this method tests only the elements returned by
+        ``self.some_elements()``::
+
+            sage: R = QpFP(7,3)
+            sage: R._test_additive_associativity()
+
+        However, the elements tested can be customized with the
+        ``elements`` keyword argument::
+
+            sage: R._test_additive_associativity(elements = [R(0), ~R(0), R(42)])
+
+        See the documentation for :class:`TestSuite` for more information.
+        """
+        tester = self._tester(**options)
+        S = tester.some_elements()
+        from sage.misc.misc import some_tuples
+        for x,y,z in some_tuples(S, 3, tester._max_runs):
+            tester.assert_(((x + y) + z).is_equal_to(x + (y + z), min(x.precision_absolute(), y.precision_absolute(), z.precision_absolute())))
 
 class FloatingPointRingGeneric(FloatingPointGeneric):
     pass

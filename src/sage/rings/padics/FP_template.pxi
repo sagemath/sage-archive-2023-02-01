@@ -465,29 +465,27 @@ cdef class FPElement(pAdicTemplateElement):
             7^-1
         """
         # Input should be normalized!
-        cdef FPElement ans, right = _right
+        cdef FPElement right = _right
+        cdef FPElement ans = self._new_c()
+        if ans.prime_pow.in_field == 0:
+            ans._parent = self._parent.fraction_field()
+            ans.prime_pow = ans._parent.prime_pow
         if very_pos_val(self.ordp):
             if very_pos_val(right.ordp):
                 raise ZeroDivisionError("Cannot divide 0 by 0")
-            return self
+            ans._set_exact_zero()
         elif very_neg_val(right.ordp):
             if very_neg_val(self.ordp):
                 raise ZeroDivisionError("Cannot divide infinity by infinity")
-            ans = self._new_c()
             ans._set_exact_zero()
-            return ans
-        elif very_neg_val(self.ordp):
-            return self
-        elif very_pos_val(right.ordp):
-            ans = self._new_c()
+        elif very_neg_val(self.ordp) or very_pos_val(right.ordp):
             ans._set_infinity()
-            return ans
-        ans = self._new_c()
-        ans.ordp = self.ordp - right.ordp
-        if overunderflow(&ans.ordp, ans.unit, ans.prime_pow):
-            return ans
-        cdivunit(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
-        creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+        else:
+            ans.ordp = self.ordp - right.ordp
+            if overunderflow(&ans.ordp, ans.unit, ans.prime_pow):
+                return ans
+            cdivunit(ans.unit, self.unit, right.unit, ans.prime_pow.prec_cap, ans.prime_pow)
+            creduce(ans.unit, ans.unit, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
     def __pow__(FPElement self, _right, dummy): # NOTE: dummy ignored, always use self.prime_pow.prec_cap
@@ -838,7 +836,7 @@ cdef class FPElement(pAdicTemplateElement):
             return False
         elif very_neg_val(right.ordp):
             return False
-        if absprec is None:
+        if absprec is None or absprec is infinity:
             return ((self.ordp == right.ordp) and
                     (ccmp(self.unit, right.unit, self.prime_pow.prec_cap, False, False, self.prime_pow) == 0))
         if not isinstance(absprec, Integer):

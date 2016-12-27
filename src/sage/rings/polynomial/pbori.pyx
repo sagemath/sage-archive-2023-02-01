@@ -548,7 +548,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         ordering given by ``order``.
 
         When ``base_ring`` is not specified, this function returns
-        a ``BooleanPolynomialRing`` isomorphic with ``self``. Otherwise,
+        a ``BooleanPolynomialRing`` isomorphic to ``self``. Otherwise,
         this returns a ``MPolynomialRing``. Each argument above is
         optional.
 

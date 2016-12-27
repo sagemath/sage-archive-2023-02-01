@@ -1107,7 +1107,9 @@ cdef class BooleanFunction(SageObject):
             sage: g.autocorrelation()
             (16, 4, 4, 4, 4, -4, -4, -4, -4, 4, -4, -4, -4, 4, -4, -4)
         """
-        return any(self.is_linear_structure(i) for i in range(1, 1<<self._nvariables))
+        a = self.autocorrelation()
+        nvars = self._nvariables
+        return any(abs(a[i]) == 1<<nvars for i in range(1, 1<<nvars))
 
     def linear_structures(self):
         """
@@ -1130,7 +1132,8 @@ cdef class BooleanFunction(SageObject):
         from sage.modules.free_module import VectorSpace
 
         nvars = self.nvariables()
-        l = [ZZ(i).digits(base=2, padto=nvars) for i in range(1<<nvars) if self.is_linear_structure(i)]
+        a = self.autocorrelation()
+        l = [ZZ(i).digits(base=2, padto=nvars) for i in range(1<<nvars) if abs(a[i]) == 1<<nvars]
         V = VectorSpace(GF(2), nvars)
         return V.subspace(l)
 

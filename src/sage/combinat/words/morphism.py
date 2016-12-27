@@ -755,7 +755,7 @@ class WordMorphism(SageObject):
         TESTS::
 
             sage: for i in range(6):
-            ...     tm('a', i)
+            ....:   tm('a', i)
             ...
             word: a
             word: ab
@@ -2102,7 +2102,7 @@ class WordMorphism(SageObject):
         noted `\varphi\triangleleft\varphi'`, if there exists
         `u \in \Sigma^*` such that
 
-        .. math::
+        .. MATH::
 
             \varphi(\alpha)u = u\varphi'(\alpha),
 

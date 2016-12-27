@@ -504,7 +504,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: type(M.groundset())
             <type 'frozenset'>
             sage: type(M.groundset_list())
-            <type 'list'>
+            <... 'list'>
             sage: sorted(M.groundset_list())
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 

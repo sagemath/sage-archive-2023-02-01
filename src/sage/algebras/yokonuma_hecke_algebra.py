@@ -107,21 +107,13 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [CL13] Maria Chlouveraki and Sofia Lambropoulou.
-       *The Yokonuma-Hecke algebras and the HOMFLYPT polynomial*.
-       (2015) :arxiv:`1204.1871v4`.
+    - [CL2013]_
 
-    .. [CPdA14] Maria Chlouveraki and Loic Poulain d'Andecy.
-       *Representation theory of the Yokonuma-Hecke algebra*.
-       (2014) :arxiv:`1302.6225v2`.
+    - [CPdA2014]_
 
-    .. [ERH15] Jorge Espanoza and Steen Ryom-Hansen.
-       *Cell structures for the Yokonuma-Hecke algebra and the algebra
-       of braids and ties*. (2015) :arxiv:`1506.00715`.
+    - [ERH2015]_
 
-    .. [JPdA15] \N. Jacon and L. Poulain d'Andecy.
-       *An isomorphism theorem for Yokonuma-Hecke algebras and
-       applications to link invariants*. (2015) :arxiv:`1501.06389v3`.
+    - [JPdA15]_
     """
     @staticmethod
     def __classcall_private__(cls, d, n, q=None, R=None):

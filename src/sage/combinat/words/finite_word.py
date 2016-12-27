@@ -534,7 +534,7 @@ class FiniteWord_class(Word_class):
             sage: w.length()
             4
             sage: def f(n):
-            ...     return range(2,12,2)[n]
+            ....:   return range(2,12,2)[n]
             sage: w = Word(f, length=5)
             sage: w.length()
             5
@@ -542,6 +542,91 @@ class FiniteWord_class(Word_class):
         if self._len is None:
             self._len = Integer(sum(1 for _ in self))
         return self._len
+
+    def content(self, n=None):
+        r"""
+        Return content of ``self``.
+
+        INPUT:
+
+        - ``n`` -- (optional) an integer specifying the maximal
+          letter in the alphabet
+
+        OUTPUT:
+
+        - a list where the `i`-th entry indiciates the multiplicity
+          of the `i`-th letter in the alphabet in ``self``
+
+        EXAMPLES::
+
+            sage: w = Word([1,2,4,3,2,2,2])
+            sage: w.content()
+            [1, 4, 1, 1]
+            sage: w = Word([3,1])
+            sage: w.content()
+            [1, 1]
+            sage: w.content(n=3)
+            [1, 0, 1]
+            sage: w = Word([2,4],alphabet=[1,2,3,4])
+            sage: w.content(n=3)
+            [0, 1, 0]
+            sage: w.content()
+            [0, 1, 0, 1]
+        """
+        if n is not None:
+            alphabet = range(1,n+1)
+        elif not self.parent().alphabet().cardinality() == +Infinity:
+            alphabet = self.parent().alphabet()
+        else:
+            alphabet = sorted(self.letters())
+        return [self.count(i) for i in alphabet]
+
+    def is_yamanouchi(self, n=None):
+        r"""
+        Return whether ``self`` is Yamanouchi.
+
+        A word `w` is Yamanouchi if, when read from right to left, it
+        always has weakly more `i`'s than `i+1`'s for all `i` that
+        appear in `w`.
+
+        INPUT:
+
+        - ``n`` -- (optional) an integer specifying the maximal
+          letter in the alphabet
+
+        EXAMPLES::
+
+            sage: w = Word([1,2,4,3,2,2,2])
+            sage: w.is_yamanouchi()
+            False
+            sage: w = Word([2,3,4,3,1,2,1,1,2,1])
+            sage: w.is_yamanouchi()
+            True
+            sage: w = Word([3,1])
+            sage: w.is_yamanouchi(n=3)
+            False
+            sage: w.is_yamanouchi()
+            True
+            sage: w = Word([3,1],alphabet=[1,2,3])
+            sage: w.is_yamanouchi()
+            False
+            sage: w = Word([2,1,1,2])
+            sage: w.is_yamanouchi()
+            False
+        """
+        from sage.combinat.words.word import Word
+        if n is not None:
+            w = Word(self, alphabet=list(range(1,n+1)))
+        elif not self.parent().alphabet().cardinality() == +Infinity:
+            w = self
+        else:
+            w = Word(self, alphabet=sorted(self.letters()))
+        l = w.length()
+        for a in range(l-1,-1,-1):
+            mu = w.parent()(self[a:]).content()
+            if not all(mu[i] >= mu[i+1] for i in range(len(mu)-1)):
+                return False
+        return True
 
     def schuetzenberger_involution(self, n = None):
         """
@@ -2351,9 +2436,8 @@ class FiniteWord_class(Word_class):
             sage: v = Word('abbabaab')
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
-            ...     pal = v[:i].lps(l=pal.length())
-            ...     pal
-            ...
+            ....:   pal = v[:i].lps(l=pal.length())
+            ....:   pal
             word: a
             word: b
             word: bb
@@ -2366,9 +2450,8 @@ class FiniteWord_class(Word_class):
             sage: v = Word('abbabaab')
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
-            ...     pal = v[:i].lps(f=f, l=pal.length())
-            ...     pal
-            ...
+            ....:   pal = v[:i].lps(f=f, l=pal.length())
+            ....:   pal
             word:
             word: ab
             word:

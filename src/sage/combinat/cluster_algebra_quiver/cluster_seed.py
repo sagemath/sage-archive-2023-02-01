@@ -25,7 +25,7 @@ REFERENCES:
    "Cluster Algebras IV: coefficients"
    :arxiv:`0602259`
 
-.. seealso:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
+.. SEEALSO:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
 """
 
 #*****************************************************************************
@@ -1764,11 +1764,8 @@ class ClusterSeed(SageObject):
         else:
             try:    # are c vectors being tracked?
                 exp = self.c_vector(k)
-            except:    # if not try and reconstruct them
-                try:
-                    exp = self.c_matrix().column(k)
-                except:
-                    raise ValueError("Unable to calculate coefficients without c vectors enabled.")
+            except Exception:    # if not try and reconstruct them
+                exp = self.c_matrix().column(k)
 
             return prod( self.y(i)**exp[i] for i in range(self._m) )
 
@@ -2323,7 +2320,7 @@ class ClusterSeed(SageObject):
                     if isinstance(j, Integer):
                         sequence = sequence+"_"+j.str()
                     elif isinstance(j, int):
-                        sequence = sequence+"_"+`j`
+                        sequence = sequence+"_"+repr(j)
                     else:
                         sequence = sequence+"_"+j
 

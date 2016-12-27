@@ -1743,7 +1743,7 @@ class DyckWord_complete(DyckWord):
             sage: DyckWord([1,1,1,0,0,0]).list_parking_functions()
             Permutations of the multi-set [1, 1, 1]
             sage: DyckWord([1,0,1,0,1,0]).list_parking_functions()
-            Permutations of the set [1, 2, 3]
+            Standard permutations of 3
         """
         alist = self.to_area_sequence()
         return Permutations([i - alist[i]+1 for i in range(len(alist))])

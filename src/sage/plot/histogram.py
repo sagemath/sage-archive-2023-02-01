@@ -126,7 +126,7 @@ class Histogram(GraphicPrimitive):
             18
         """
         return {'color': 'The color of the face of the bars or list of colors if multiple data sets are given.',
-                'edgecolor':'The color of the the border of each bar.',
+                'edgecolor':'The color of the border of each bar.',
                 'alpha': 'How transparent the plot is',
                 'hue':'The color of the bars given as a hue.',
                 'fill':'(True or False, default True) Whether to fill the bars',
@@ -207,7 +207,7 @@ def histogram(datalist, **options):
       a histogram is computed in which each bin gives the counts in that
       bin plus all bins for smaller values.  Negative values give
       a reversed direction of accumulation
-    - ``edgecolor`` -- The color of the the border of each bar
+    - ``edgecolor`` -- The color of the border of each bar
     - ``fill`` -- (boolean - default: True) Whether to fill the bars
     - ``hatch`` -- (default: None) symbol to fill the bars with - one of
       "/", "\\", "|", "-", "+", "x", "o", "O", ".", "*", "" (or None)

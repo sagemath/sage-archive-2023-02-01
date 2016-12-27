@@ -138,46 +138,56 @@ See :meth:`~sage.plot.graphics.Graphics.show` for full details.
 Note that the axes will not cross if the data is not on both sides of
 both axes, even if it is quite close::
 
-    sage: plot(x^3,(x,1,10))
+    sage: plot(x^3, (x,1,10))
     Graphics object consisting of 1 graphics primitive
 
 .. PLOT::
 
-    g = plot(x**3,(x,1,10))
+    g = plot(x**3, (x,1,10))
     sphinx_plot(g)
 
 
 When the labels have quite different orders of magnitude or are very
 large, scientific notation (the `e` notation for powers of ten) is used::
 
-    sage: plot(x^2,(x,480,500))  # no scientific notation
+    sage: plot(x^2, (x,480,500))  # no scientific notation
     Graphics object consisting of 1 graphics primitive
 
 .. PLOT::
 
-    g = plot(x**2,(x,480,500))
+    g = plot(x**2, (x,480,500))
     sphinx_plot(g)
 
 ::
 
-    sage: plot(x^2,(x,300,500))  # scientific notation on y-axis
+    sage: plot(x^2, (x,300,500))  # scientific notation on y-axis
     Graphics object consisting of 1 graphics primitive
 
 .. PLOT::
 
-    g = plot(x**2,(x,300,500))
+    g = plot(x**2, (x,300,500))
     sphinx_plot(g)
 
 
 But you can fix your own tick labels, if you know what to expect and
 have a preference::
 
-    sage: plot(x^2,(x,300,500),ticks=[None,50000])
+    sage: plot(x^2, (x,300,500), ticks=[100,50000])
     Graphics object consisting of 1 graphics primitive
 
 .. PLOT::
 
-    g = plot(x**2,(x,300,500),ticks=[None,50000])
+    g = plot(x**2, (x,300,500), ticks=[100,50000])
+    sphinx_plot(g)
+
+To change the ticks on one axis only, use the following notation::
+
+    sage: plot(x^2, (x,300,500), ticks=[None,50000])
+    Graphics object consisting of 1 graphics primitive
+
+.. PLOT::
+
+    g = plot(x**2, (x,300,500), ticks=[None,50000])
     sphinx_plot(g)
 
 You can even have custom tick labels along with custom positioning. ::
@@ -290,8 +300,8 @@ We plot the Riemann zeta function along the critical line and see
 the first few zeros::
 
     sage: i = CDF.0      # define i this way for maximum speed.
-    sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27,rgbcolor=(0.8,0,0))
-    sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27,color=hue(0.7))
+    sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1, 27, rgbcolor=(0.8,0,0))
+    sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1, 27, color=hue(0.7))
     sage: print(p1 + p2)
     Graphics object consisting of 2 graphics primitives
     sage: p1 + p2    # display it
@@ -301,9 +311,9 @@ the first few zeros::
 
     from sage.rings.complex_double import ComplexDoubleElement
     i = ComplexDoubleElement(0,1)      # define i this way for maximum speed.
-    p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27,rgbcolor=(0.8,0,0))
-    p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27,color=hue(0.7))
-    g = p1+p2
+    p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1, 27, rgbcolor=(0.8,0,0))
+    p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1, 27, color=hue(0.7))
+    g = p1 + p2
     sphinx_plot(g)
 
 .. NOTE::
@@ -311,12 +321,12 @@ the first few zeros::
     Not all functions in Sage are symbolic. When plotting non-symbolic functions
     they should be wrapped in ``lambda``::
 
-        sage: plot(lambda x:fibonacci(round(x)),(x,1,10))
+        sage: plot(lambda x:fibonacci(round(x)), (x,1,10))
         Graphics object consisting of 1 graphics primitive
 
 .. PLOT::
 
-    g=plot(lambda x:fibonacci(round(x)),(x,1,10))
+    g=plot(lambda x:fibonacci(round(x)), (x,1,10))
     sphinx_plot(g)
 
 Many concentric circles shrinking toward the origin::
@@ -351,17 +361,17 @@ Here is a pretty graph::
 Another graph::
 
     sage: x = var('x')
-    sage: P = plot(sin(x)/x, -4,4, color='blue') + \
-    ...       plot(x*cos(x), -4,4, color='red') + \
-    ...       plot(tan(x),-4,4, color='green')
+    sage: P = plot(sin(x)/x, -4, 4, color='blue') + \
+    ...       plot(x*cos(x), -4, 4, color='red') + \
+    ...       plot(tan(x), -4, 4, color='green')
     ...
-    sage: P.show(ymin=-pi,ymax=pi)
+    sage: P.show(ymin=-pi, ymax=pi)
 
 .. PLOT::
 
-    g = plot(sin(x)/x, -4,4, color='blue') + \
-        plot(x*cos(x), -4,4, color='red') + \
-        plot(tan(x),-4,4, color='green')
+    g = plot(sin(x)/x, -4, 4, color='blue') + \
+        plot(x*cos(x), -4, 4, color='red') + \
+        plot(tan(x), -4, 4, color='green')
     g.ymin(-pi)
     g.ymax(pi)
     sphinx_plot(g)
@@ -895,7 +905,7 @@ def plot(funcs, *args, **kwds):
 
       - a list or dictionary of colors (valid only if `X` is a list):
         if a dictionary, keys are taken from ``range(len(X))``;
-        the entries/values of the list/dictonary may be any of the options above.
+        the entries/values of the list/dictionary may be any of the options above.
 
       - 'automatic' -- maps to default ('blue') if `X` is a single Sage object; and
         maps to a fixed sequence of regularly spaced colors if `X` is a list.
@@ -2750,6 +2760,9 @@ def list_plot(data, plotjoined=False, **kwargs):
     The ``plotjoined=True`` option tells ``list_plot`` to plot a line
     joining all the data.
 
+    For other keyword options that the ``list_plot`` function can
+    take, refer to :func:`~sage.plot.plot.plot`.
+
     It is possible to pass empty dictionaries, lists, or tuples to
     ``list_plot``. Doing so will plot nothing (returning an empty plot).
 
@@ -2766,13 +2779,13 @@ def list_plot(data, plotjoined=False, **kwargs):
     Here are a bunch of random red points::
 
         sage: r = [(random(),random()) for _ in range(20)]
-        sage: list_plot(r,color='red')
+        sage: list_plot(r, color='red')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         r = [(random(),random()) for _ in range(20)]
-        g = list_plot(r,color='red')
+        g = list_plot(r, color='red')
         sphinx_plot(g)
 
     This gives all the random points joined in a purple line::
@@ -3917,4 +3930,3 @@ from .text import text, Text as GraphicPrimitive_Text
 from .polygon import polygon, Polygon as GraphicPrimitive_Polygon
 from .circle import circle, Circle as GraphicPrimtive_Circle
 from .contour_plot import contour_plot, implicit_plot, ContourPlot as GraphicPrimitive_ContourPlot
-

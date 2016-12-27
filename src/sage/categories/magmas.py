@@ -189,7 +189,7 @@ class Magmas(Category_singleton):
             the name of this axiom is explicit::
 
                 sage: Rings().FinitelyGeneratedAsMagma()
-                Category of finitely generated as magma rings
+                Category of finitely generated as magma enumerated rings
 
             On the other hand, it does not depend on the
             multiplicative structure: for example a group is finitely
@@ -200,10 +200,10 @@ class Magmas(Category_singleton):
                 sage: Semigroups().FinitelyGenerated()
                 Category of finitely generated semigroups
                 sage: Groups().FinitelyGenerated()
-                Category of finitely generated groups
+                Category of finitely generated enumerated groups
 
                 sage: Semigroups().FinitelyGenerated().axioms()
-                frozenset({'Associative', 'FinitelyGeneratedAsMagma'})
+                frozenset({'Associative', 'Enumerated', 'FinitelyGeneratedAsMagma'})
 
             Note that the set of generators may depend on the actual
             category; for example, in a group, one can often use less
@@ -234,7 +234,7 @@ class Magmas(Category_singleton):
                 sage: Semigroups().FinitelyGenerated()
                 Category of finitely generated semigroups
                 sage: Groups().FinitelyGenerated()
-                Category of finitely generated groups
+                Category of finitely generated enumerated groups
 
             An error is raised if this is ambiguous::
 

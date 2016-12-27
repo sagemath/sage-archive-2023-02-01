@@ -397,7 +397,7 @@ def compute_presentation(syms, sign, field, sparse=None):
     #. Create a sparse matrix `A` with `m` columns,
        whose rows encode the relations
 
-       .. math::
+       .. MATH::
 
                           [x_i] + [x_i T] + [x_i T^2] = 0.
 
@@ -531,7 +531,7 @@ def sparse_2term_quotient(rels, n, F):
 
     EXAMPLE: We quotient out by the relations
 
-    .. math::
+    .. MATH::
 
                     3*x0 - x1 = 0,\qquad  x1 + x3 = 0,\qquad   x2 + x3 = 0,\qquad  x4 - x5 = 0
 

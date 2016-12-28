@@ -1065,6 +1065,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F is G
             False
         """
+        from six.moves import range
+        if isinstance(basis_keys, range):
+            basis_keys = tuple(basis_keys)
         if isinstance(basis_keys, (list, tuple)):
             basis_keys = FiniteEnumeratedSet(basis_keys)
         category = ModulesWithBasis(base_ring).or_subcategory(category)

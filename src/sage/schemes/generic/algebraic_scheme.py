@@ -3927,7 +3927,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         Defining s, t, x, y
         sage: import sage.schemes.generic.algebraic_scheme as SCM
         sage: X = SCM.AlgebraicScheme_subscheme_toric(
-        ...         P1xP1, [x*s + y*t, x^3+y^3])
+        ....:       P1xP1, [x*s + y*t, x^3+y^3])
         sage: X
         Closed subscheme of 2-d CPR-Fano toric variety
         covered by 4 affine patches defined by:
@@ -3958,7 +3958,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             Defining s, t, x, y
             sage: import sage.schemes.generic.algebraic_scheme as SCM
             sage: X = SCM.AlgebraicScheme_subscheme_toric(
-            ...         P1xP1, [x*s + y*t, x^3+y^3])
+            ....:       P1xP1, [x*s + y*t, x^3+y^3])
             sage: X
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 4 affine patches defined by:
@@ -4172,7 +4172,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         pull-back of `x^2+y^2-1` ::
 
             sage: lp = LatticePolytope([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)],
-            ...                        lattice=ToricLattice(3))
+            ....:                      lattice=ToricLattice(3))
             sage: X.<x,y,u,v,t> = CPRFanoToricVariety(Delta_polar=lp)
             sage: Y = X.subscheme(x*v+y*u+t)
             sage: cone = Cone([(1,0,0),(1,1,0),(1,1,1),(1,0,1)])
@@ -4446,7 +4446,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         A smooth hypersurface in a compact singular toric variety::
 
             sage: lp = LatticePolytope([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)],
-            ...                        lattice=ToricLattice(3))
+            ....:                      lattice=ToricLattice(3))
             sage: X.<x,y,u,v,t> = CPRFanoToricVariety(Delta_polar=lp)
             sage: Y = X.subscheme(x*v+y*u+t)
             sage: cone = Cone([(1,0,0),(1,1,0),(1,1,1),(1,0,1)])
@@ -4496,7 +4496,7 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
         Defining s, t, x, y
         sage: import sage.schemes.generic.algebraic_scheme as SCM
         sage: X = SCM.AlgebraicScheme_subscheme_toric(
-        ...         P1xP1, [x*s + y*t, x^3+y^3])
+        ....:       P1xP1, [x*s + y*t, x^3+y^3])
         sage: X
         Closed subscheme of 2-d CPR-Fano toric variety
         covered by 4 affine patches defined by:
@@ -4523,7 +4523,7 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
             Defining s, t, x, y
             sage: import sage.schemes.generic.algebraic_scheme as SCM
             sage: X = SCM.AlgebraicScheme_subscheme_toric(
-            ...         P1xP1, [x*s + y*t, x^3+y^3])
+            ....:       P1xP1, [x*s + y*t, x^3+y^3])
             sage: X
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 4 affine patches defined by:

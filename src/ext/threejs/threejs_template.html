@@ -27,6 +27,10 @@
 
     var options = SAGE_OPTIONS;
 
+    // When animations are supported by the viewer, the value 'false'
+    // will be replaced with an option set in Python by the user
+    var animate = false; // options.animate;
+
     var lights = SAGE_LIGHTS;
     for ( var i=0 ; i < lights.length ; i++ ) {
         var light = new THREE.DirectionalLight( 0xdddddd, 1 );
@@ -137,12 +141,14 @@
     camera.lookAt( scene.position );
 
     var controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.addEventListener( 'change', function() { if ( !animate ) render(); } );
 
     window.addEventListener( 'resize', function() {
         
         renderer.setSize( window.innerWidth, window.innerHeight );
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
+        if ( !animate ) render();
         
     } );
     
@@ -215,9 +221,8 @@
 
     function render() {
 
-        requestAnimationFrame( render );
+        if ( animate ) requestAnimationFrame( render );
         renderer.render( scene, camera );
-        controls.update();
 
         for ( var i=0 ; i < scene.children.length ; i++ ) {
             if ( scene.children[i].type === 'Sprite' ) {
@@ -230,6 +235,7 @@
     }
     
     render();
+    if ( !animate ) render();
 
 </script>
 

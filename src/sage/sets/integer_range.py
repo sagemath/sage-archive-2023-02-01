@@ -76,14 +76,14 @@ class IntegerRange(UniqueRepresentation, Parent):
     step)`` is the set whose list of elements is equivalent to the python
     construction ``range(begin, end, step)``::
 
-        sage: list(IntegerRange(4,105,3)) == range(4,105,3)
+        sage: list(IntegerRange(4,105,3)) == list(range(4,105,3))
         True
-        sage: list(IntegerRange(-54,13,12)) == range(-54,13,12)
+        sage: list(IntegerRange(-54,13,12)) == list(range(-54,13,12))
         True
 
     Except for the type of the numbers::
 
-        sage: type(IntegerRange(-54,13,12)[0]), type(range(-54,13,12)[0])
+        sage: type(IntegerRange(-54,13,12)[0]), type(list(range(-54,13,12))[0])
         (<type 'sage.rings.integer.Integer'>, <type 'int'>)
 
     When ``begin`` is finite and ``end`` is +Infinity, ``self`` is the infinite
@@ -142,7 +142,7 @@ class IntegerRange(UniqueRepresentation, Parent):
     be supposed to be included and the ``end`` bound supposed to be excluded::
 
         sage: I = IntegerRange(-100,100,10,0)
-        sage: J = range(-100,100,10)
+        sage: J = list(range(-100,100,10))
         sage: 100 in I
         False
         sage: 100 in J
@@ -181,7 +181,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         ....:     step = Integer(randint(-20,20))
         ....:     if step == 0:
         ....:         step = Integer(1)
-        ....:     assert list(IntegerRange(begin, end, step)) == range(begin, end, step)
+        ....:     assert list(IntegerRange(begin, end, step)) == list(range(begin, end, step))
         sage: # 20 random tests: range and IntegerRange with middle point for finite cases
         sage: for i in range(20):
         ....:     begin = Integer(randint(-300,300))
@@ -195,7 +195,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         ....:     else:
         ....:         TestSuite(I).run()
         ....:         L1 = list(IntegerRange(begin, end, step, I.an_element()))
-        ....:         L2 = range(begin, end, step)
+        ....:         L2 = list(range(begin, end, step))
         ....:         L1.sort()
         ....:         L2.sort()
         ....:         assert L1 == L2

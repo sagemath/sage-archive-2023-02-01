@@ -3768,8 +3768,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
             sage: RR('-100').is_real()
             True
+            sage: RR(NaN).is_real()
+            False
         """
-        return True
+        return not mpfr_nan_p(self.value)
 
     def is_integer(self):
         """

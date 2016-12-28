@@ -1358,9 +1358,9 @@ cdef class ClonableIntArray(ClonableElement):
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: I = IncreasingIntArrays()(range(5))
-            sage: I == range(5)
+            sage: I == list(range(5))
             False
-            sage: list(I) == range(5)  # indirect doctest
+            sage: list(I) == list(range(5))  # indirect doctest
             True
         """
         return iter(self.list())
@@ -1373,12 +1373,12 @@ cdef class ClonableIntArray(ClonableElement):
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: I = IncreasingIntArrays()(range(5))
-            sage: I == range(5)
+            sage: I == list(range(5))
             False
-            sage: I.list() == range(5)
+            sage: I.list() == list(range(5))
             True
             sage: I = IncreasingIntArrays()(range(1000))
-            sage: I.list() == range(1000)
+            sage: I.list() == list(range(1000))
             True
         """
         cdef int i

@@ -68,7 +68,8 @@ public:
 		// To indicate that we want to substitue an index by something that is
 		// is not an index. Without this flag the index value would be
 		// substituted in that case.
-		really_subs_idx = 0x0020
+		really_subs_idx = 0x0020,
+                subs_inside_piecewise = 0x0040
 	};
 };
 

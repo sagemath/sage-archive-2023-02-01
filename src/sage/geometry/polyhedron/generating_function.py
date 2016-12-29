@@ -300,6 +300,12 @@ def generating_function_of_integral_points(polyhedron, split=False,
         [0, 1, 2, 3, 4]: (An equation -1 == 0,)
         0
 
+    ::
+
+        sage: P = Polyhedron(vertices=[[1], [5]])
+        sage: P.generating_function_of_integral_points()
+        y0^5 + y0^4 + y0^3 + y0^2 + y0
+
     .. SEEALSO::
 
         This function is accessible via
@@ -530,7 +536,7 @@ def __generating_function_of_integral_points__(
     B = LaurentPolynomialRing(
         ZZ,
         tuple('y{}'.format(k) for k in indices),
-        sparse=True)
+        len(indices))
 
     logger.info('preprocessing %s inequalities and %s equations...',
                  len(inequalities), len(equations))

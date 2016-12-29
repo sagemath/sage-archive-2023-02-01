@@ -16,6 +16,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import absolute_import
 
 from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.sage_object cimport SageObject
@@ -25,8 +26,8 @@ from sage.matrix.constructor import matrix
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 
-from functions cimport binomial
-from triangulations cimport \
+from .functions cimport binomial
+from .triangulations cimport \
     triangulations_ptr, init_triangulations, next_triangulation, delete_triangulations
 
 
@@ -772,12 +773,12 @@ cdef class PointConfiguration_base(Parent):
         EXAMPLES::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: pc = PointConfiguration(U.columns())
             sage: pc.simplex_to_int([1,3,4,7,10,13])
             1678
@@ -817,12 +818,12 @@ cdef class PointConfiguration_base(Parent):
         EXAMPLES::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: pc = PointConfiguration(U.columns())
             sage: pc.simplex_to_int([1,3,4,7,10,13])
             1678
@@ -1016,10 +1017,6 @@ cdef class ConnectedTriangulationsIterator(SageObject):
             (9, 10)
         """
         t = next_triangulation(self._tp)
-        if len(t)==0:
+        if len(t) == 0:
             raise StopIteration
         return t
-
-
-
-

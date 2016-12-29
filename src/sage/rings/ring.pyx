@@ -108,6 +108,7 @@ cdef class Ring(ParentWithGens):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -119,6 +120,7 @@ cdef class Ring(ParentWithGens):
         running ._test_eq() . . . pass
         running ._test_euclidean_degree() . . . pass
         running ._test_gcd_vs_xgcd() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -1044,7 +1046,8 @@ cdef class Ring(ParentWithGens):
         - ``n`` -- positive integer
 
         - ``all`` -- bool (default: False) - whether to return
-          a list of all primitive `n`-th roots of unity.
+          a list of all primitive `n`-th roots of unity. If True, raise a ``ValueError``
+          if ``self`` is not an integral domain.
 
         OUTPUT:
 
@@ -1092,7 +1095,13 @@ cdef class Ring(ParentWithGens):
             Traceback (most recent call last):
             ...
             ValueError: no 3rd root of unity in Rational Field
+            sage: IntegerModRing(8).zeta(2, all = True)
+            Traceback (most recent call last):
+            ...
+            ValueError: ring is not an integral domain
         """
+        if all and not self.is_integral_domain():
+            raise ValueError("ring is not an integral domain")
         if n == 2:
             if all:
                 return [self(-1)]

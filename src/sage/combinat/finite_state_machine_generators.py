@@ -1285,7 +1285,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_left = base_ring[var](left_side.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial "
                              "in %s." % (left_side.operands()[0], var))
         if polynomial_left in base_ring and is_scalar(right_side):
@@ -1337,7 +1337,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_right = base_ring[var](next_function.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial in %s."
                              % (next_function.operands()[0], var))
         if polynomial_right.degree() != 1:
@@ -1977,7 +1977,7 @@ class TransducerGenerators(object):
              if carry >= 0},
             multiedges=False)
 
-        initial_values_set = set(initial_values.iterkeys())
+        initial_values_set = set(initial_values)
 
         missing_initial_values = required_initial_values.difference(
             initial_values_set)

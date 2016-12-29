@@ -21,8 +21,8 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "FP_template.pxi"
 
-from sage.libs.pari.pari_instance cimport PariInstance
-cdef PariInstance P = sage.libs.pari.pari_instance.pari
+from sage.libs.cypari2.pari_instance cimport pari_instance as pari
+from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
 
 cdef class PowComputer_(PowComputer_base):
@@ -210,14 +210,14 @@ cdef class pAdicFloatingPointElement(FPElement):
             0
         """
         if very_pos_val(self.ordp):
-            return P.new_gen_from_int(0)
+            return pari.zero()
         elif very_neg_val(self.ordp):
             raise ValueError("no analogue of p-adic infinity in pari")
         else:
-            return P.new_gen_from_padic(self.ordp, self.prime_pow.prec_cap,
-                                        self.prime_pow.prime.value,
-                                        self.prime_pow.pow_mpz_t_top(),
-                                        self.unit)
+            return new_gen_from_padic(self.ordp, self.prime_pow.prec_cap,
+                                      self.prime_pow.prime.value,
+                                      self.prime_pow.pow_mpz_t_top(),
+                                      self.unit)
     def _integer_(self, Z=None):
         """
         Returns an integer congruent to this element modulo

@@ -2081,7 +2081,9 @@ CanonicalForm numeric::to_canonical() const
         if (t == MPZ) {
                 if (mpz_fits_sint_p(v._bigint))
                         return CanonicalForm(to_int());
-                return make_cf(mpz_ptr(v._bigint));
+                mpz_t bigint;
+                mpz_init_set(bigint, v._bigint);
+                return make_cf(mpz_ptr(const_cast<__mpz_struct*>(bigint)));
         }
         if (t == MPQ) {
                 mpz_t num, den;

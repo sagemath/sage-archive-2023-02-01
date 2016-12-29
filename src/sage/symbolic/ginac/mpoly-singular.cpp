@@ -154,7 +154,6 @@ static void transform_powers(power_ocvector_map& pomap)
 }
 
 // Convert to Singular polynomial over QQ, filling replacement dicts
-// TODO: special case numeric mpz_t, int instead of string interface
 const CanonicalForm ex::to_canonical(ex_int_map& map,
                 power_ocvector_map& pomap,
                 exvector& revmap) const
@@ -171,7 +170,7 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
         }
         else if (is_exactly_a<numeric>(*this))
         {
-                const numeric& num = ex_to<numeric>(*this);
+                numeric num = ex_to<numeric>(*this);
                 if (num.is_real()) {
                         if (num.is_rational())
                                 return num2canonical(num);
@@ -195,11 +194,11 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
         else if (is_exactly_a<mul>(*this))
         {
                 const mul& m = ex_to<mul>(*this);
-                CanonicalForm p(1);
+                CanonicalForm p = num2canonical(*_num1_p);
                 for (const auto& termex : m.seq) {
                         p = p * m.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
                 }
-                p *= m.overall_coeff.to_canonical(map, pomap, revmap);
+                p = p * m.overall_coeff.to_canonical(map, pomap, revmap);
                 return p;
         }
         else if (is_exactly_a<power>(*this))

@@ -633,7 +633,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     functions with a parameter `t`.  The `k`-split basis has the property that
     `Q'_\lambda[X;t]` expands positively in the `k`-split basis and the
     `k`-split basis conjecturally expands positively in the `k`-Schur functions.
-    The definition can be found in [LLMSSZ]_ p. 81.
+    The definition can be found in [LLMSSZ]_ p. 81.::
 
         sage: ksp3 = SymS3.ksplit()
         sage: ksp3(Qp[2,1,1,1])

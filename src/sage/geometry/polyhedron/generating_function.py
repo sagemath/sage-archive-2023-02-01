@@ -68,6 +68,10 @@ def generating_function_of_integral_points(polyhedron, split=False,
     - ``indices`` -- (default: ``None``) a list or tuple. If this
       is ``None``, this is automatically determined.
 
+    - ``prefix_variable_name`` -- (default: ``'y'``) a string.
+      The variable names of the laurent polynomial ring of the output
+      are this string followed by an integer.
+
     - ``Factorization_sort`` (default: ``False``) and
       ``Factorization_simplify`` (default: ``True``) -- are passed on to
       :class:`sage.structure.factorization.Factorization` when creating
@@ -371,6 +375,23 @@ def generating_function_of_integral_points(polyhedron, split=False,
         ...
         NotImplementedError: Cannot compute the generating function of
         polyhedra with negative coordinates.
+
+    ::
+
+        sage: generating_function_of_integral_points(
+        ....:     Polyhedron(ieqs=[(0, 0, 1, 0), (-1, 1, -1, 1),
+        ....:                      (0, 0, 0, 1), (0, 1, 0, 0)]),
+        ....:     prefix_variable_name='z',
+        ....:     sort_factors=True)
+        (-z0*z1*z2 - z0*z2 + z0 + z2) *
+        (-z0 + 1)^-1 * (-z2 + 1)^-1 * (-z0*z1 + 1)^-1 * (-z1*z2 + 1)^-1
+        sage: generating_function_of_integral_points(
+        ....:     Polyhedron(ieqs=[(0, 0, 1, 0), (-1, 1, -1, 1),
+        ....:                      (0, 0, 0, 1), (0, 1, 0, 0)]),
+        ....:     prefix_variable_name='mu',
+        ....:     sort_factors=True)
+        (-mu0*mu1*mu2 - mu0*mu2 + mu0 + mu2) *
+        (-mu0 + 1)^-1 * (-mu2 + 1)^-1 * (-mu0*mu1 + 1)^-1 * (-mu1*mu2 + 1)^-1
     """
     import logging
     logger = logging.getLogger(__name__)

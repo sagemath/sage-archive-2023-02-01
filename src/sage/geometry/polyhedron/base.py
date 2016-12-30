@@ -4155,6 +4155,10 @@ class Polyhedron_base(Element):
         - ``indices`` -- (default: ``None``) a list or tuple. If this
           is ``None``, this is automatically determined.
 
+        - ``prefix_variable_name`` -- (default: ``'y'``) a string.
+          The variable names of the laurent polynomial ring of the output
+          are this string followed by an integer.
+
         - ``Factorization_sort`` (default: ``False``) and
           ``Factorization_simplify`` (default: ``True``) -- are passed on to
           :class:`sage.structure.factorization.Factorization` when creating

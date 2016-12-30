@@ -499,6 +499,7 @@ def _generating_function_of_integral_points_(
 
 def __generating_function_of_integral_points__(
         indices, inequalities, equations, mod,
+        prefix_variable_name='y',
         Factorization_sort=False, Factorization_simplify=False,
         sort_factors=False):
     r"""
@@ -535,7 +536,7 @@ def __generating_function_of_integral_points__(
 
     B = LaurentPolynomialRing(
         ZZ,
-        tuple('y{}'.format(k) for k in indices),
+        tuple(prefix_variable_name + str(k) for k in indices),
         len(indices))
 
     logger.info('preprocessing %s inequalities and %s equations...',
@@ -555,8 +556,9 @@ def __generating_function_of_integral_points__(
     numerator = B(1)
     terms = B.gens()
     L = B
+    mu = 'mu' if not prefix_variable_name.startswith('mu') else 'nu'
     for i, coeffs in enumerate(inequalities):
-        L = LaurentPolynomialRing(L, 'mu{}'.format(i), sparse=True)
+        L = LaurentPolynomialRing(L, mu + str(i), sparse=True)
         l = L.gen()
         logger.debug('mapping %s --> %s', l, repr_pretty(coeffs, 0))
         it_coeffs = iter(coeffs)
@@ -576,7 +578,7 @@ def __generating_function_of_integral_points__(
         exponent, coefficient = next(iteritems(D))
         return coefficient, exponent
 
-    while repr(numerator.parent().gen()).startswith('mu'):
+    while repr(numerator.parent().gen()).startswith(mu):
         logger.info('applying Omega[%s]...', numerator.parent().gen())
         logger.debug('...on terms denominator %s', terms)
         logger.debug('...(numerator has %s)', numerator.number_of_terms())

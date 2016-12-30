@@ -401,12 +401,22 @@ def generating_function_of_integral_points(polyhedron, split=False,
         ....:     sort_factors=True)
         (-mu0*mu1*mu2 - mu0*mu2 + mu0 + mu2) *
         (-mu0 + 1)^-1 * (-mu2 + 1)^-1 * (-mu0*mu1 + 1)^-1 * (-mu1*mu2 + 1)^-1
+
+    ::
+
+        sage: P = Polyhedron(rays=[(1, sqrt(2)), (0, 1)])
+        sage: P.generating_function_of_integral_points()
+        Traceback (most recent call last):
+        ...
+        TypeError: Base ring Symbolic Ring of the polyhedron is not ZZ or QQ.
     """
     import logging
     logger = logging.getLogger(__name__)
 
     from sage.combinat.permutation import Permutations
     from sage.geometry.polyhedron.constructor import Polyhedron
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.rational_field import QQ
 
     if result_as_tuple is None:
         result_as_tuple = split
@@ -418,6 +428,10 @@ def generating_function_of_integral_points(polyhedron, split=False,
             return (result,)
         else:
             return result
+
+    if polyhedron.base_ring() not in (ZZ, QQ):
+        raise TypeError('Base ring {} of the polyhedron is not '
+                        'ZZ or QQ.'.format(polyhedron.base_ring()))
 
     d = polyhedron.ambient_dim()
     nonnegative_orthant = Polyhedron(ieqs=[dd*(0,) + (1,) + (d-dd)*(0,)

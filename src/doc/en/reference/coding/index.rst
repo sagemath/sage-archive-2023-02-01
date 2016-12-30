@@ -31,6 +31,7 @@ Linear codes and related constructions
    sage/coding/guruswami_sudan/gs_decoder
    sage/coding/guruswami_sudan/interpolation
    sage/coding/guruswami_sudan/utils
+   sage/coding/golay_code
    sage/coding/subfield_subcode
    sage/coding/code_constructions
    sage/coding/punctured_code

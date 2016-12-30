@@ -4150,7 +4150,13 @@ class Polyhedron_base(Element):
           into several small disjoint polyhedra and adds the results.
           ``split`` may also be a list of disjoint polyhedra.
 
-        - ``result_as_tuple`` -- (default: ``None``) a boolean or ``None``.
+        - ``result_as_tuple`` -- (default: ``None``) a boolean or ``None``
+          specifying whether the output is a (partial) factorization
+          (``result_as_tuple=False``) or a sum of such (partial)
+          factorizations (``result_as_tuple=True``). By default
+          (``result_as_tuple=None``), this is automatically determined.
+          If the output is a sum, it is represented as a tuple whose
+          entries are the summands.
 
         - ``indices`` -- (default: ``None``) a list or tuple. If this
           is ``None``, this is automatically determined.

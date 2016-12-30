@@ -460,7 +460,7 @@ def BinaryGolayCode():
     """
     from sage.misc.superseded import deprecation
     from .golay_code import GolayCode
-    deprecation(20787, "codes.TernaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    deprecation(20787, "codes.BinaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
     return GolayCode(GF(2), False)
 
 def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
@@ -736,7 +736,7 @@ def ExtendedTernaryGolayCode():
     """
     from sage.misc.superseded import deprecation
     from .golay_code import GolayCode
-    deprecation(20787, "codes.ExtendedTernayGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    deprecation(20787, "codes.ExtendedTernaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
     return GolayCode(GF(3))
 
 def from_parity_check_matrix(H):
@@ -999,7 +999,7 @@ def TernaryGolayCode():
     """
     from sage.misc.superseded import deprecation
     from .golay_code import GolayCode
-    deprecation(20787, "codes.TernayGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    deprecation(20787, "codes.TernaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
     return GolayCode(GF(3), False)
 
 def ToricCode(P,F):

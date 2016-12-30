@@ -105,8 +105,7 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode(GF(2))
-            sage: C
+            sage: codes.GolayCode(GF(2),extended=True)
             [24, 12, 8] Extended Golay code over Finite Field of size 2
         """
         n = self.length()
@@ -145,7 +144,7 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode(GF(2))
+            sage: C = codes.GolayCode(GF(2), extended=True)
             sage: Cd = C.dual_code(); Cd
             [24, 12, 8] Extended Golay code over Finite Field of size 2
 
@@ -269,7 +268,7 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode(GF(2))
+            sage: C = codes.GolayCode(GF(2), extended=True)
             sage: C.generator_matrix()
             [1 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 1 1 1 0 0 0 1 1]
             [0 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 0 0 1 0 0 1 0]
@@ -343,7 +342,7 @@ class GolayCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.GolayCode(GF(3), False)
+            sage: C = codes.GolayCode(GF(3), extended=False)
             sage: C.parity_check_matrix()
             [1 0 0 0 0 1 2 2 2 1 0]
             [0 1 0 0 0 0 1 2 2 2 1]

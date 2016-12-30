@@ -4170,7 +4170,10 @@ class Polyhedron_base(Element):
           :class:`sage.structure.factorization.Factorization` when creating
           the result.
 
-        - ``sort_factors`` -- (default: ``False``) a boolean.
+        - ``sort_factors`` -- (default: ``False``) a boolean. If set, then
+          the factors of the output are sorted such that the numerator is
+          first and only then all factors of the denominator. It is ensured
+          that the sorting is always the same; use this for doctesting.
 
         OUTPUT:
 

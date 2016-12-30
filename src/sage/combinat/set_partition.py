@@ -419,18 +419,18 @@ class SetPartition(ClonableArray):
         - ``tikz_scale`` -- (default: 1) scale for use with tikz package.
 
         - ``plot`` -- (default: ``) ```` returns the set notation, ``linear``
-        returns a linear plot, ``cyclic`` returns a cyclic plot
+          returns a linear plot, ``cyclic`` returns a cyclic plot
 
         - ``color`` -- (default: black) the arc colors.
 
         - ``fill`` -- (default: False) If True then fills black, else you can
-        pass in a color to alter the fill color. *Only works with cyclic plot*
+          pass in a color to alter the fill color. *Only works with cyclic plot*
 
         - ``show_labels`` -- (default: True) If True shows labels - *only works
-        with plots*
+          with plots*
 
         - ``radius`` -- (default: "1cm") Radius of circle for cyclic plot. *Only
-        works with cyclic plot*
+          works with cyclic plot*
 
         - ``angle`` -- (default: 0) Angle for linear
 
@@ -454,6 +454,7 @@ class SetPartition(ClonableArray):
         Options can be found in set_latex_options()
 
         EXAMPLES::
+
             sage: SP = SetPartition([[1,6], [3,5,4]]); SP.latex_options()
             {'angle': 0,
              'color': 'black',
@@ -462,7 +463,6 @@ class SetPartition(ClonableArray):
              'radius': '1cm',
              'show_labels': True,
              'tikz_scale': 1}
-
         """
         opts = self._latex_options.copy()
         if "tikz_scale" not in opts:
@@ -560,7 +560,7 @@ class SetPartition(ClonableArray):
                     res += " -- cycle;\n"
 
             # If we want line plots
-            if latex_options['plot'] == 'linear' or latex_options['plot'] == 'line' or latex_options['plot'] == 'planar':
+            elif latex_options['plot'] == 'linear' or latex_options['plot'] == 'line' or latex_options['plot'] == 'planar':
                 angle = latex_options['angle']
                 # setup line
                 for k,i in enumerate(base_set):

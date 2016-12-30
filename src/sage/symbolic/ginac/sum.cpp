@@ -412,87 +412,30 @@ static matrix solve_system(ex mpoly,
         const size_t nc = syms.size(), nr = mpoly.degree(msym) + 1;
         for (size_t i=0; i<nc; ++i)
                 sym_idx[syms[i]] = i;
+        exmap zero_syms;
+        for (const auto& sym : syms)
+                zero_syms[sym] = _ex0;
         matrix mat(nr, nc), vars(nc, 1), rhs(nr, 1);
-        const symbol& main = ex_to<symbol>(msym);
-        const add& a = ex_to<add>(mpoly);
-        for (size_t i=0; i<a.nops(); ++i) {
-                const ex& term = a.op(i);
-                int s = -1;
-                int e = 0;
-                ex coeff(_ex0);
-                if (is_exactly_a<mul>(term)) {
-                        const mul& m = ex_to<mul>(term);
-                        coeff = *_num1_p;
-                        for (size_t j=0; j<m.nops(); ++j) {
-                                const ex& mterm = m.op(j);
-                                if (is_exactly_a<symbol>(mterm)) {
-                                        const symbol& sy = ex_to<symbol>(mterm);
-                                        if (sy.is_equal(main)) {
-                                                e = 1;
-                                                continue;
-                                        }
-                                        auto search = sym_idx.find(sy);
-                                        if (search == sym_idx.end())
-                                                coeff *= sy;
-                                        else
-                                                s = search->second;
-                                        continue;
-                                }
-                                if (is_exactly_a<numeric>(mterm)) {
-                                        coeff *= ex_to<numeric>(mterm);
-                                        continue;
-                                }
-                                if (is_exactly_a<power>(mterm)) {
-                                        const power& p = ex_to<power>(mterm);
-                                        if (not p.op(0).is_equal(msym))
-                                                throw std::runtime_error("can't happen in solve_system()");
-                                        if (not is_exactly_a<numeric>(p.op(1)))
-                                                throw std::runtime_error("can't happen in solve_system()");
-                                        const numeric& expo = ex_to<numeric>(p.op(1));
-                                        if (not expo.is_mpz() or expo < 0)
-                                                throw std::runtime_error("can't happen in solve_system()");
-                                        e = expo.to_int();
-                                        continue;
-                                }
-                                throw std::runtime_error("can't happen in solve_system()");
-                        }
-                }
-                else if (is_exactly_a<power>(term)) {
-                        coeff = *_num1_p;
-                        const power& p = ex_to<power>(term);
-                        if (not p.op(0).is_equal(msym))
-                                throw std::runtime_error("can't happen in solve_system()");
-                        if (not is_exactly_a<numeric>(p.op(1)))
-                                throw std::runtime_error("can't happen in solve_system()");
-                        const numeric& expo = ex_to<numeric>(p.op(1));
-                        if (not expo.is_mpz() or expo < 0)
-                                throw std::runtime_error("can't happen in solve_system()");
-                        e = expo.to_int();
-                        }
-                else if (is_exactly_a<symbol>(term)) {
-                        const symbol& sy = ex_to<symbol>(term);
-                        if (sy.is_equal(main)) {
-                                e = 1;
-                        }
-                        else {
-                                auto search = sym_idx.find(sy);
-                                if (search == sym_idx.end())
-                                        coeff = sy;
-                                else {
-                                        coeff = *_num1_p;
-                                        s = search->second;
-                                }
-                        }
-                }
-                else if (is_exactly_a<numeric>(term)) {
-                        coeff = ex_to<numeric>(term);
-                }
-                else
+        expairvec coeffs;
+        mpoly.coefficients(msym, coeffs);
+        for (const auto& pair : coeffs) {
+                const ex& term = pair.first;
+                const ex& expo = pair.second;
+                if (not is_exactly_a<numeric>(expo))
                         throw std::runtime_error("can't happen in solve_system()");
-                if (s >= 0)
+                numeric nume = ex_to<numeric>(expo);
+                if (not nume.is_mpz())
+                        throw std::runtime_error("can't happen in solve_system()");
+                int e = nume.to_int();
+                for (const ex& sym : syms) {
+                        auto search = sym_idx.find(sym);
+                        if (search == sym_idx.end())
+                                throw std::runtime_error("unknown symbol in solve_system()");
+                        ex coeff = term.coeff(sym);
+                        int s = search->second;
                         mat(e, s) = coeff;
-                else
-                        rhs(e, 0) = -coeff;
+                }
+                rhs(e, 0) = -(term.subs(zero_syms));
         }
         for (size_t i=0; i<nc; ++i)
                 vars(i, 0) = syms[i];
@@ -507,7 +450,7 @@ ex gosper_term(ex e, ex n)
         ex den = the_ex.denom().expand();
         ex cn = num.lcoeff(n);
         ex cd = den.lcoeff(n);
-        numeric ldq = ex_to<numeric>(cn) / ex_to<numeric>(cd);
+        ex ldq = cn / cd;
         ex A = num / cn;
         ex B = den / cd;
         symbol h;
@@ -556,7 +499,7 @@ ex gosper_term(ex e, ex n)
                 }
         }
         A *= ldq;
-        B = B.subs(n == n-1);
+        B = B.subs(n == n-1).expand();
         int N = A.degree(n);
         int M = B.degree(n);
         int K = C.degree(n);

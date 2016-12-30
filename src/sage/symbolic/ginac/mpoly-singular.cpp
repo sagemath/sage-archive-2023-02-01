@@ -496,22 +496,22 @@ factored_b:
         CanonicalForm p = a.to_canonical(map, pomap, revmap);
         CanonicalForm q = b.to_canonical(map, pomap, revmap);
         CanonicalForm d = gcd(p, q);
+        ex res = canonical_to_ex(d, revmap);
 
         if (ca != nullptr) {
-                CanonicalForm quo;
-                if (fdivides(d, p, quo))
-                        *ca = canonical_to_ex(quo, revmap);
+                ex quo;
+                if (divide(a, res, quo))
+                        *ca = quo;
                 else
                         throw(std::runtime_error("can't happen in gcdpoly"));
         }
         if (cb != nullptr) {
-                CanonicalForm quo;
-                if (fdivides(d, q, quo))
-                        *cb = canonical_to_ex(quo, revmap);
+                ex quo;
+                if (divide(b, res, quo))
+                        *cb = quo;
                 else
                         throw(std::runtime_error("can't happen in gcdpoly"));
         }
-        ex res = canonical_to_ex(d, revmap);
         return res;
 }
 #endif //PYNAC_HAVE_LIBGIAC

@@ -3126,6 +3126,8 @@ def _build_small_srg_database():
     from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
     from sage.graphs.generators.smallgraphs import SuzukiGraph
     from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
+    from sage.graphs.generators.smallgraphs import U42Graph216
+    from sage.graphs.generators.smallgraphs import U42Graph540
 
     global _small_srg_database
     _small_srg_database = {
@@ -3150,6 +3152,7 @@ def _build_small_srg_database():
         (176, 105,  68, 54): [SRG_176_105_68_54],
         (196,  91,  42, 42): [SRG_196_91_42_42],
         (210,  99,  48, 45): [SRG_210_99_48_45],
+        (216,  40,   4,  8): [U42Graph216],
         (220,  84,  38, 28): [SRG_220_84_38_28],
         (231,  30,   9,  3): [CameronGraph],
         (243, 110,  37, 60): [SRG_243_110_37_60],
@@ -3159,6 +3162,7 @@ def _build_small_srg_database():
         (280, 117, 44,  52): [SRG_280_117_44_52],
         (280, 135,  70, 60): [SRG_280_135_70_60],
         (416, 100,  36, 20): [SRG_416_100_36_20],
+        (540, 187,  58, 68): [U42Graph540],
         (560, 208,  72, 80): [SRG_560_208_72_80],
         (630,  85,  20, 10): [SRG_630_85_20_10],
         (765, 192,  48, 48): [IoninKharaghani765Graph],

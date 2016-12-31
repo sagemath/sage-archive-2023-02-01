@@ -202,7 +202,7 @@ ints and floats, as illustrated:
     sage: s = 'sage'; type(s)      # you can use either single or double quotes
     <type 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
     <type 'tuple'>
     sage: s = int(2006); type(s)
@@ -288,7 +288,7 @@ elements of the list are indexed starting from :math:`0`:
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -404,7 +404,7 @@ used:
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 As another example, basis for vector spaces are immutable
 sequences, since it's important that you don't change them.

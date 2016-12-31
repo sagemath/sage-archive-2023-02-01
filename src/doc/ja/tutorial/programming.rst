@@ -181,7 +181,7 @@ Pythonの組み込み型としては，string(文字列)，list(リスト)，タ
     sage: s = 'sage'; type(s)      # シングルあるいはダブル クォーテーションのどちらも使える
     <type 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
     <type 'tuple'>
     sage: s = int(2006); type(s)
@@ -262,7 +262,7 @@ Sageでは，さらに多様な型が加わる．
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -382,7 +382,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 
 不変性シーケンスの例としては，ベクトル空間の基底系があげられる．

@@ -197,7 +197,7 @@ C и обработан компилятором C.
     sage: s = 'sage'; type(s)      # Вы можете использовать двойные или одинарные кавычки
     <type 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
     <type 'tuple'>
     sage: s = int(2006); type(s)
@@ -280,7 +280,7 @@ C++ и т.д., но в отличие от других алгебраическ
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -390,7 +390,7 @@ Python, сработает нормально.
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 Базис для векторного поля является неизменяемой последовательностью, так
 как очень важно не изменять их. Это показано в следующем примере:

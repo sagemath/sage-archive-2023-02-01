@@ -226,9 +226,9 @@ e floats, como ilustrado:
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # you can use either single or double quotes
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
     <... 'list'>
     sage: s = (1,2,3,4); type(s)

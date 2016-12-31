@@ -209,9 +209,9 @@ Gleitkommazahlen, wie hier zu sehen ist:
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # Sie können einfache oder doppelte Anführungszeichen verwenden
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
     <... 'list'>
     sage: s = (1,2,3,4); type(s)

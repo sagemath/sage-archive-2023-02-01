@@ -177,9 +177,9 @@ Pythonの組み込み型としては，string(文字列)，list(リスト)，タ
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # シングルあるいはダブル クォーテーションのどちらも使える
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
     <... 'list'>
     sage: s = (1,2,3,4); type(s)

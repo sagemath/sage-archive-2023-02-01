@@ -208,9 +208,9 @@ listes, les n-uplets, les entiers et les flottants :
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # guillemets simples ou doubles
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
     <... 'list'>
     sage: s = (1,2,3,4); type(s)

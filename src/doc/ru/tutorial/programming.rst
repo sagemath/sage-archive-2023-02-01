@@ -193,9 +193,9 @@ C и обработан компилятором C.
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # Вы можете использовать двойные или одинарные кавычки
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
     <... 'list'>
     sage: s = (1,2,3,4); type(s)

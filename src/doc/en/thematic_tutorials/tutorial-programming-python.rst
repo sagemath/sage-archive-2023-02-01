@@ -1265,7 +1265,7 @@ You can return multiple values from a function::
 ::
 
     sage: type(g)
-    <type 'function'>
+    <... 'function'>
 
 ::
 

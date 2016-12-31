@@ -204,7 +204,7 @@ ints and floats, as illustrated:
     sage: s = [1,2,3,4]; type(s)
     <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
     <type 'int'>
     sage: s = float(2006); type(s)
@@ -361,7 +361,7 @@ they can't be changed.
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...

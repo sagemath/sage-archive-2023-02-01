@@ -206,9 +206,9 @@ ints and floats, as illustrated:
     sage: s = (1,2,3,4); type(s)
     <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 To this, Sage adds many other types. E.g., vector spaces:
 
@@ -440,7 +440,7 @@ arbitrary objects.
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']

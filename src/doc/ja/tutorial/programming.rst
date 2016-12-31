@@ -185,9 +185,9 @@ Pythonの組み込み型としては，string(文字列)，list(リスト)，タ
     sage: s = (1,2,3,4); type(s)
     <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 Sageでは，さらに多様な型が加わる．
 その一例がベクトル空間である:
@@ -417,7 +417,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']

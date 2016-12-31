@@ -217,9 +217,9 @@ Gleitkommazahlen, wie hier zu sehen ist:
     sage: s = (1,2,3,4); type(s)
     <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 Hierzu fügt Sage noch viele weitere hinzu. Zum Beispiel Vektorräume:
 
@@ -456,7 +456,7 @@ beliebigen Objekten.
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']

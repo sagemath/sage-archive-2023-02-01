@@ -1292,7 +1292,7 @@ in a function::
 
     sage: h(1,2,3,n=4)
     <... 'tuple'> (1, 2, 3)
-    <type 'dict'> {'n': 4}
+    <... 'dict'> {'n': 4}
 
 Let's use the *yield* instruction to make a generator for the
 Fibonacci numbers up to `n`::

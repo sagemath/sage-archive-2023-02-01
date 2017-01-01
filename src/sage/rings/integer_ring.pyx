@@ -363,10 +363,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         TESTS::
 
             sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: cmp(ZZ,ZZ)
-            0
-            sage: cmp(ZZ,QQ)
-            -1
+            sage: ZZ == ZZ
+            True
+            sage: ZZ <= QQ
+            True
         """
         return (<Parent>left)._richcmp(right, op)
 
@@ -382,11 +382,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: IntegerRing_class._cmp_(ZZ,QQ)
             -1
         """
-        if isinstance(right,IntegerRing_class):
+        if isinstance(right, IntegerRing_class):
             return 0
         if isinstance(right, sage.rings.rational_field.RationalField):
             return -1
-        return cmp(type(left), type(right))
+        return -1  # arbitrary
 
     def _repr_(self):
         """

@@ -365,7 +365,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: from sage.rings.integer_ring import IntegerRing_class
             sage: ZZ == ZZ
             True
-            sage: ZZ <= QQ
+            sage: ZZ != QQ
             True
         """
         return (<Parent>left)._richcmp(right, op)
@@ -1378,12 +1378,12 @@ def crt_basis(X, xgcd=None):
 
     Y = []
     # 2. Compute extended GCD's
-    ONE=X[0].parent()(1)
+    ONE = X[0].parent().one()
     for i in range(len(X)):
         p = X[i]
-        others = P//p
-        g,s,t = p.xgcd(others)
+        others = P // p
+        g, s, t = p.xgcd(others)
         if g != ONE:
             raise ArithmeticError("the elements of the list X must be coprime in pairs")
-        Y.append(t*others)
+        Y.append(t * others)
     return Y

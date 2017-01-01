@@ -1,0 +1,17 @@
+Francois Bissey francois.bissey@canterbury.ac.nz
+Fix the src/Makefile in guava for trac #22116
+It is quite surprising that it works on most system without fix.
+
+diff --git a/guava-3.13/src/Makefile b/guava-3.13/src/Makefile
+index 1253a1c..cac5048 100644
+--- a/guava-3.13/src/Makefile
++++ b/guava-3.13/src/Makefile
+@@ -11,7 +11,7 @@ SUBDIRS = leon ctjhai
+ .PHONY: all $(SUBDIRS)
+ 
+ all :	$(FILES)
+-	cd leon make
++	cd leon && $(MAKE)
+ 
+ leonconv: leonconv.c
+ 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o leonconv leonconv.c

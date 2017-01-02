@@ -1983,9 +1983,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. MATH::
 
-            x \le b \Rightarrow x \vee (a \wedge b) = (x \vee a) \wedge b
+            x \vee (a \wedge b) = (x \vee a) \wedge b
 
-        for every elements `x` and `a`. A lattice is modular if every
+        for every element `x \leq b` and `a`. A lattice is modular if every
         element is modular. There are other equivalent definitions, see
         :wikipedia:`Modular_lattice`.
 

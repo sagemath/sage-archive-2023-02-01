@@ -780,7 +780,7 @@ class SwapOperator(SageObject):
 
             sage: from sage.combinat.yang_baxter_graph import SwapOperator
             sage: s = [SwapOperator(i) for i in range(3)]
-            sage: map(hash, s)
+            sage: [hash(t) for t in s]
             [0, 1, 2]
         """
         return hash(self._position)

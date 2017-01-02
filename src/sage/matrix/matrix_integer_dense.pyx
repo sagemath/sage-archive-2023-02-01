@@ -5628,7 +5628,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``b`` -- an element of `\mathbb{Z}` (default:  0)
+        - ``b`` -- an element of `\mathbb{Z}` (default: 0)
 
         OUTPUT:
 

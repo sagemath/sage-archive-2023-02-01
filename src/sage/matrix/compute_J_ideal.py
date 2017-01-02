@@ -18,7 +18,7 @@ that for `t\ge 1`,
 .. MATH::
 
    N_{(p^t)}(B) = \mu_BD[X] + p^tD[X]
-   + \sum_{\substack{s\in\mathcal{S}_p \\ s \le  b(t) }}
+   + \sum_{\substack{s\in\mathcal{S}_p \\ s \le b(t) }}
    p^{\max\{0,t-s\}}\nu_{ps}D[X]
 
 holds where `b(t) = \min\{r\in \mathcal{S}_p \mid r \ge s\}`. The
@@ -69,7 +69,7 @@ The last output means that
 .. MATH::
 
    \{f \in \mathbb{Q}[X] \mid f(B) \in M_3(\mathbb{Z})\} =
-   (x^3 + x^2 - 12x - 20)\mathbb{Q}[X] + \mathbb{Z}[X] +  \frac{1}{4}(x^2 + 3x + 2) \mathbb{Z}[X].
+   (x^3 + x^2 - 12x - 20)\mathbb{Q}[X] + \mathbb{Z}[X] + \frac{1}{4}(x^2 + 3x + 2) \mathbb{Z}[X].
 
 .. TODO::
 
@@ -130,7 +130,7 @@ def lifting(p, t, A, G):
 
     - ``t`` -- a non-negative integer
 
-    - ``A`` -- a `c\times d` matrix  over `D[X]`
+    - ``A`` -- a `c\times d` matrix over `D[X]`
 
     - ``G`` -- a matrix over `D[X]`. The columns of
       `\begin{pmatrix}p^{t-1}I& G\end{pmatrix}` are generators
@@ -564,7 +564,7 @@ class ComputeMinimalPolynomials(SageObject):
         assert (self._A * column % p**t).is_zero(),\
                                  "McCoy column incorrect"
 
-        return  column
+        return column
 
 
     def p_minimal_polynomials(self, p, s_max=None):
@@ -586,7 +586,7 @@ class ComputeMinimalPolynomials(SageObject):
         `\nu_s`, `s\in\mathcal{S}`.
 
         For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is given by
-        `\nu_s` where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.  For
+        `\nu_s` where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`. For
         `t>\max\mathcal{S}`, the minimal polynomial of `B` is also a
         `(p^t)`-minimal polynomial.
 
@@ -804,7 +804,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         INPUT:
 
-        - ``b`` -- an element of `D` (default:  0)
+        - ``b`` -- an element of `D` (default: 0)
 
         OUTPUT:
 

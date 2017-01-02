@@ -50,7 +50,7 @@ EXAMPLES::
     sage: C.prime_candidates()
     [2, 3, 5]
     sage: for t in range(4):
-    ....:     print C.null_ideal(2^t)
+    ....:     print(C.null_ideal(2^t))
     Principal ideal (1) of Univariate Polynomial
     Ring in x over Integer Ring
     Ideal (2, x^2 + x) of Univariate Polynomial
@@ -111,6 +111,9 @@ Classes and Methods
 # (at your option) any later version.
 # http://www.gnu.org/licenses/
 # *****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
+from six import iteritems, iterkeys
 
 import heapq
 
@@ -293,7 +296,7 @@ class ComputeMinimalPolynomials(SageObject):
         sage: C.prime_candidates()
         [2, 3, 5]
         sage: for t in range(4):
-        ....:     print C.null_ideal(2^t)
+        ....:     print(C.null_ideal(2^t))
         Principal ideal (1) of Univariate Polynomial
         Ring in x over Integer Ring
         Ideal (2, x^2 + x) of Univariate Polynomial
@@ -775,7 +778,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         if s_max < t:
             result = {r: polynomial
-                      for r, polynomial in p_min_polys.iteritems()
+                      for r, polynomial in iteritems(p_min_polys)
                       if r < s_max}
             next_t_candidates = list(r for r in p_min_polys if r >= s_max)
             if next_t_candidates:
@@ -833,8 +836,8 @@ class ComputeMinimalPolynomials(SageObject):
                 cofactor = b // p**t
                 p_polynomials = self.p_minimal_polynomials(p, t)
                 generators += [cofactor*p**(t-s)*nu
-                               for s, nu in p_polynomials.iteritems()]
-                if not p_polynomials or max(p_polynomials.iterkeys()) < t:
+                               for s, nu in iteritems(p_polynomials)]
+                if not p_polynomials or max(iterkeys(p_polynomials)) < t:
                     mu_B_coefficients.append(cofactor)
 
             assert all((g(self._B) % b).is_zero() for g in generators), \
@@ -906,4 +909,4 @@ class ComputeMinimalPolynomials(SageObject):
         return (self.mu_B, [self._DX(1)] +
                 [nu/p**s
                  for p in self.prime_candidates()
-                 for s, nu in self.p_minimal_polynomials(p).iteritems()])
+                 for s, nu in iteritems(self.p_minimal_polynomials(p))])

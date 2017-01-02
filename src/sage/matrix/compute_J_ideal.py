@@ -170,7 +170,7 @@ def lifting(p, t, A, G):
         sage: lifting(5, 10, A, G1)
         Traceback (most recent call last):
         ...
-        ValueError: A*G is not zero mod 5^9
+        ValueError: A*G not zero mod 5^9
 
     ALGORITHM:
 
@@ -184,7 +184,7 @@ def lifting(p, t, A, G):
         Traceback (most recent call last):
         ...
         ValueError: [  1   X|]
-        [  X X^2|] does not have full rank
+        [  X X^2|] does not have full rank.
     """
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -200,7 +200,7 @@ def lifting(p, t, A, G):
 
     if not (A*G % p**(t-1)).is_zero():
         raise ValueError(
-            "A*G is not zero mod %s^%s" % (p, t-1))
+            "A*G not zero mod %s^%s" % (p, t-1))
 
 
     R = A*G/p**(t-1)
@@ -219,7 +219,7 @@ def lifting(p, t, A, G):
 
     r = Db.rank()
     if r != c:
-        raise ValueError("{} does not have full rank".format(ARb))
+        raise ValueError("{} does not have full rank.".format(ARb))
 
     T = Tb.change_ring(DX)
 
@@ -320,13 +320,13 @@ class ComputeMinimalPolynomials(SageObject):
             sage: ComputeMinimalPolynomials(matrix([[1, 2]]))
             Traceback (most recent call last):
             ...
-            TypeError: square matrix required.
+            TypeError: square matrix required
         """
         from sage.rings.polynomial.polynomial_ring import polygen
 
         super(ComputeMinimalPolynomials, self).__init__()
         if not B.is_square():
-            raise TypeError("square matrix required.")
+            raise TypeError("square matrix required")
 
         self._B = B
         self._D = B.base_ring()
@@ -378,11 +378,11 @@ class ComputeMinimalPolynomials(SageObject):
             sage: C.find_monic_replacements(2, 3, generators_4, nu_1)
             Traceback (most recent call last):
             ...
-            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] are not in N_{(2^3)}(B)
+            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] not in N_{(2^3)}(B)
             sage: C.find_monic_replacements(2, 2, generators_4, x^2)
             Traceback (most recent call last):
             ...
-            ValueError: x^2 is not in N_{(2^1)}(B)
+            ValueError: x^2 not in N_{(2^1)}(B)
 
         ALGORITHM:
 
@@ -392,11 +392,11 @@ class ComputeMinimalPolynomials(SageObject):
 
         if not all((g(self._B) % p**t).is_zero()
                    for g in pt_generators):
-            raise ValueError("%s are not in N_{(%s^%s)}(B)" %
+            raise ValueError("%s not in N_{(%s^%s)}(B)" %
                              (pt_generators, p, t))
 
         if not (prev_nu(self._B) % p**(t-1)).is_zero():
-            raise ValueError("%s is not in N_{(%s^%s)}(B)" % (prev_nu, p, t-1))
+            raise ValueError("%s not in N_{(%s^%s)}(B)" % (prev_nu, p, t-1))
 
         (X,) = self._DX.gens()
 
@@ -461,11 +461,11 @@ class ComputeMinimalPolynomials(SageObject):
             sage: C.current_nu(2, 3, generators_4, nu_1)
             Traceback (most recent call last):
             ...
-            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] are not in N_{(2^3)}(B)
+            ValueError: [2*x^2 + 2*x, x^2 + 3*x + 2] not in N_{(2^3)}(B)
             sage: C.current_nu(2, 2, generators_4, x^2)
             Traceback (most recent call last):
             ...
-            ValueError: x^2 is not in N_{(2^1)}(B)
+            ValueError: x^2 not in N_{(2^1)}(B)
         """
         import heapq
 
@@ -474,11 +474,11 @@ class ComputeMinimalPolynomials(SageObject):
 
         if not all((g(self._B) % p**t).is_zero()
                    for g in pt_generators):
-            raise ValueError("%s are not in N_{(%s^%s)}(B)" %
+            raise ValueError("%s not in N_{(%s^%s)}(B)" %
                              (pt_generators, p, t))
 
         if not (prev_nu(self._B) % p**(t-1)).is_zero():
-            raise ValueError("%s is not in N_{(%s^%s)}(B)" % (prev_nu, p, t-1))
+            raise ValueError("%s not in N_{(%s^%s)}(B)" % (prev_nu, p, t-1))
 
         generators = self.find_monic_replacements(p, t, pt_generators, prev_nu)
 
@@ -562,7 +562,7 @@ class ComputeMinimalPolynomials(SageObject):
                                   for b in self._A[:, 0].list()])
 
         assert (self._A * column % p**t).is_zero(),\
-                                 "McCoy column is not correct"
+                                 "McCoy column incorrect"
 
         return  column
 

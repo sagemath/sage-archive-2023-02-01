@@ -764,7 +764,7 @@ class ComputeMinimalPolynomials(SageObject):
                 G = G.delete_columns([G.ncols() - 1])
                 del p_min_polys[t-1]
 
-            column = self.mccoy_column(p, t, nu) 
+            column = self.mccoy_column(p, t, nu)
             verbose("corresponding columns for G")
             verbose(column)
 
@@ -846,7 +846,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         if b != 0:
             generators = [self._DX(b)] + generators
-            
+
         return self._DX.ideal(generators)
 
 

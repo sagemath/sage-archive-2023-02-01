@@ -5578,6 +5578,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         mpz_clear(tmp)
         return B
 
+
     def p_minimal_polynomials(self, p, s_max=None):
         r"""
         Compute `(p^s)`-minimal polynomials `\nu_s` of this matrix.
@@ -5621,6 +5622,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
         return ComputeMinimalPolynomials(self).p_minimal_polynomials(p, s_max)
 
+
     def null_ideal(self, b=0):
         r"""
         Return the `(b)`-ideal `N_{(b)}(B)=\{f\in \mathbb{Z}[X] \mid f(B)\in M_n(b\mathbb{Z})\}` where `B`
@@ -5654,6 +5656,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
         return ComputeMinimalPolynomials(self).null_ideal(b)
+
 
     def integer_valued_polynomials(self):
         r"""

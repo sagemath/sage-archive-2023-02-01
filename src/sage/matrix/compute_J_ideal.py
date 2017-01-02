@@ -895,6 +895,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         return [p for (p, t) in factor(T.det())]
 
+
     def integer_valued_polynomials(self):
         r"""
         Determine the generators of the ring of integer valued polynomials on `B`.

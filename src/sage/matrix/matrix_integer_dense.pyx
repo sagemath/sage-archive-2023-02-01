@@ -5580,14 +5580,15 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
     def p_minimal_polynomials(self, p, s_max=None):
         r"""
-        Compute `(p^t)`-minimal polynomials `\nu_t` of this matrix.
+        Compute `(p^s)`-minimal polynomials `\nu_s` of this matrix.
 
         INPUT:
 
         - ``p`` -- a prime in `\mathbb{Z}`
 
-          `(p^t)`-minimal polynomials for ``t <= s_max`` are computed.
         - ``s_max`` -- a positive integer (default: ``None``). If set, only
+          `(p^s)`-minimal polynomials for ``s <= s_max`` are computed
+          (see below for details).
 
         OUTPUT:
 
@@ -5600,11 +5601,11 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         `t>\max\mathcal{S}`, the minimal polynomial of this matrix is also a
         `(p^t)`-minimal polynomial.
 
-        If ``s_max`` is set, only those `\nu_s` with ``s <= s_max``
-        are returned where ``s_max`` is always included even if it is
-        not included in the full set `\mathcal{S}` except when the
-        minimal polynomial of this matrix is also a ``(p^s_max)``-minimal
-        polynomial.
+        Setting ``s_max`` only affects the output if ``s_max`` is at
+        most `\max\mathcal{S}` where `\mathcal{S}` denotes the full
+        set. In that case, only those `\nu_s` with ``s <= s_max`` are
+        returned where ``s_max`` is always included even if it is not
+        included in the full set `\mathcal{S}`.
 
         EXAMPLES::
 

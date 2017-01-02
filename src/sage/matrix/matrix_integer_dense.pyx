@@ -5586,8 +5586,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         - ``p`` -- a prime in `\mathbb{Z}`
 
-        - ``s_max`` -- a positive integer (Default: ``None``). If set, only
           `(p^t)`-minimal polynomials for ``t <= s_max`` are computed.
+        - ``s_max`` -- a positive integer (default: ``None``). If set, only
 
         OUTPUT:
 
@@ -5627,7 +5627,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``b`` -- an element of `\mathbb{Z}` (Default:  0)
+        - ``b`` -- an element of `\mathbb{Z}` (default:  0)
 
         OUTPUT:
 

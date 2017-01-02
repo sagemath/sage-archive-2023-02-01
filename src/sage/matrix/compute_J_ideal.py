@@ -115,14 +115,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from six import iteritems, iterkeys
 
-import heapq
-
-from sage.arith.misc import factor, xgcd
 from sage.matrix.constructor import matrix
-from sage.misc.misc import verbose
-from sage.rings.infinity import Infinity
-from sage.rings.polynomial.polynomial_ring import polygen
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
 
 
@@ -193,6 +186,9 @@ def lifting(p, t, A, G):
         ValueError: [  1   X|]
         [  X X^2|] does not have full rank
     """
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+
     DX = A.parent().base()
     (X,) = DX.gens()
     D = DX.base_ring()
@@ -326,6 +322,8 @@ class ComputeMinimalPolynomials(SageObject):
             ...
             TypeError: square matrix required.
         """
+        from sage.rings.polynomial.polynomial_ring import polygen
+
         super(ComputeMinimalPolynomials, self).__init__()
         if not B.is_square():
             raise TypeError("square matrix required.")
@@ -390,6 +388,8 @@ class ComputeMinimalPolynomials(SageObject):
 
         [HR2016]_, Algorithms 2 and 3.
         """
+        from sage.arith.misc import xgcd
+
         if not all((g(self._B) % p**t).is_zero()
                    for g in pt_generators):
             raise ValueError("%s are not in N_{(%s^%s)}(B)" %
@@ -467,6 +467,11 @@ class ComputeMinimalPolynomials(SageObject):
             ...
             ValueError: x^2 is not in N_{(2^1)}(B)
         """
+        import heapq
+
+        from sage.misc.misc import verbose
+
+
         if not all((g(self._B) % p**t).is_zero()
                    for g in pt_generators):
             raise ValueError("%s are not in N_{(%s^%s)}(B)" %
@@ -728,6 +733,8 @@ class ComputeMinimalPolynomials(SageObject):
 
         [HR2016]_, Algorithm 5.
         """
+        from sage.misc.misc import verbose
+        from sage.rings.infinity import Infinity
 
         deg_mu = self.mu_B.degree()
         if s_max is None:
@@ -826,6 +833,8 @@ class ComputeMinimalPolynomials(SageObject):
             Ideal (6, 2*x^3 + 2*x^2 - 24*x - 40, 3*x^2 + 3*x)
             of Univariate Polynomial Ring in x over Integer Ring
         """
+        from sage.arith.misc import factor
+
         mu_B_coefficients = []
         generators = []
 
@@ -879,6 +888,8 @@ class ComputeMinimalPolynomials(SageObject):
         This means that `3` and `5` were candidates, but actually, `\mu_B` turns
         out to be a `(3)`-minimal polynomial and a `(5)`-minimal polynomial.
         """
+        from sage.arith.misc import factor
+
         F, T = self._B.frobenius(2)
 
         return [p for (p, t) in factor(T.det())]

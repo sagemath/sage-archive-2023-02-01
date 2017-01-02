@@ -669,10 +669,11 @@ class sage_build_ext(build_ext):
 class sage_build(build):
     def run_autogen(self):
         """
-        Generating auto-generated Sources This must be done before discovering
-        and building the python modules. See #22106.
-        """
+        Generate auto-generated sources.
 
+        This must be done before building the python modules,
+        see :trac:`22106`.
+        """
         from sage_setup.autogen import autogen_all
         log.info("Generating auto-generated sources")
         self.distribution.packages += autogen_all()

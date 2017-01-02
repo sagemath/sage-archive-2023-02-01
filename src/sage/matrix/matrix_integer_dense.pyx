@@ -5637,14 +5637,14 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: B.null_ideal()
-            Principal ideal (x^3 + x^2 - 12*x - 20)
-            of Univariate Polynomial Ring in x over Integer Ring
+            Principal ideal (x^3 + x^2 - 12*x - 20) of
+                Univariate Polynomial Ring in x over Integer Ring
             sage: B.null_ideal(8)
-            Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4)
-            of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of
+                Univariate Polynomial Ring in x over Integer Ring
             sage: B.null_ideal(6)
-            Ideal (6, 2*x^3 + 2*x^2 - 24*x - 40, 3*x^2 + 3*x)
-            of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (6, 2*x^3 + 2*x^2 - 24*x - 40, 3*x^2 + 3*x) of
+                Univariate Polynomial Ring in x over Integer Ring
 
         .. SEEALSO::
 

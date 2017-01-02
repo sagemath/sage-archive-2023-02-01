@@ -51,14 +51,14 @@ EXAMPLES::
     [2, 3, 5]
     sage: for t in range(4):
     ....:     print(C.null_ideal(2^t))
-    Principal ideal (1) of Univariate Polynomial
-    Ring in x over Integer Ring
-    Ideal (2, x^2 + x) of Univariate Polynomial
-    Ring in x over Integer Ring
-    Ideal (4, x^2 + 3*x + 2) of Univariate Polynomial
-    Ring in x over Integer Ring
-    Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate Polynomial
-    Ring in x over Integer Ring
+    Principal ideal (1) of
+        Univariate Polynomial Ring in x over Integer Ring
+    Ideal (2, x^2 + x) of
+        Univariate Polynomial Ring in x over Integer Ring
+    Ideal (4, x^2 + 3*x + 2) of
+        Univariate Polynomial Ring in x over Integer Ring
+    Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of
+        Univariate Polynomial Ring in x over Integer Ring
     sage: C.p_minimal_polynomials(2)
     {2: x^2 + 3*x + 2}
     sage: C.integer_valued_polynomials()
@@ -293,14 +293,14 @@ class ComputeMinimalPolynomials(SageObject):
         [2, 3, 5]
         sage: for t in range(4):
         ....:     print(C.null_ideal(2^t))
-        Principal ideal (1) of Univariate Polynomial
-        Ring in x over Integer Ring
-        Ideal (2, x^2 + x) of Univariate Polynomial
-        Ring in x over Integer Ring
-        Ideal (4, x^2 + 3*x + 2) of Univariate Polynomial
-        Ring in x over Integer Ring
-        Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of Univariate
-        Polynomial Ring in x over Integer Ring
+        Principal ideal (1) of
+            Univariate Polynomial Ring in x over Integer Ring
+        Ideal (2, x^2 + x) of
+            Univariate Polynomial Ring in x over Integer Ring
+        Ideal (4, x^2 + 3*x + 2) of
+            Univariate Polynomial Ring in x over Integer Ring
+        Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of
+            Univariate Polynomial Ring in x over Integer Ring
         sage: C.p_minimal_polynomials(2)
         {2: x^2 + 3*x + 2}
         sage: C.integer_valued_polynomials()
@@ -815,23 +815,23 @@ class ComputeMinimalPolynomials(SageObject):
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
             sage: C.null_ideal()
-            Principal ideal (x^3 + x^2 - 12*x - 20)
-            of Univariate Polynomial Ring in x over Integer Ring
+            Principal ideal (x^3 + x^2 - 12*x - 20) of
+                Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(2)
-            Ideal (2, x^2 + x)
-            of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (2, x^2 + x) of
+                Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(4)
-            Ideal (4, x^2 + 3*x + 2)
-            of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (4, x^2 + 3*x + 2) of
+                Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(8)
-            Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4)
-            of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of
+                Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(3)
-            Ideal (3, x^3 + x^2 - 12*x - 20)
-            of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (3, x^3 + x^2 - 12*x - 20) of
+                Univariate Polynomial Ring in x over Integer Ring
             sage: C.null_ideal(6)
-            Ideal (6, 2*x^3 + 2*x^2 - 24*x - 40, 3*x^2 + 3*x)
-            of Univariate Polynomial Ring in x over Integer Ring
+            Ideal (6, 2*x^3 + 2*x^2 - 24*x - 40, 3*x^2 + 3*x) of
+                Univariate Polynomial Ring in x over Integer Ring
         """
         from sage.arith.misc import factor
 

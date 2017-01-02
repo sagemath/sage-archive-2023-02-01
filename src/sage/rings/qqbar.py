@@ -3877,7 +3877,18 @@ class AlgebraicNumber(AlgebraicNumber_base):
             0.6234898018587335? - 0.7818314824680299?*I
             sage: (QQbar.zeta(7)^6)^(1/3) * QQbar.zeta(21)
             1.000000000000000? + 0.?e-18*I
+
+        TESTS::
+
+            sage: QQbar(1)^QQbar(sqrt(2))
+            1
+            sage: QQ(1)^QQbar(sqrt(3))
+            1
+            sage: ZZ(1)^QQbar(sqrt(5))
+            1
         """
+        if self == self.parent().one():
+            return self.parent().one()
         e = QQ._coerce_(e)
         n = e.numerator()
         d = e.denominator()

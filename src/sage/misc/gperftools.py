@@ -38,7 +38,7 @@ import ctypes
 import time
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import find_library
+from sage.misc.compat import find_library
 
 
 libc = None

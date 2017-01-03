@@ -195,8 +195,7 @@ def lifting(p, t, A, G):
         return matrix(DX, d, 0)
 
     if not (A*G % p**(t-1)).is_zero():
-        raise ValueError(
-            "A*G not zero mod %s^%s" % (p, t-1))
+        raise ValueError("A*G not zero mod %s^%s" % (p, t-1))
 
 
     R = A*G/p**(t-1)

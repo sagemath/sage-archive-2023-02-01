@@ -97,6 +97,9 @@ cdef class Group(Parent):
             sage: h == hash(G)
             True
         """
+        if gens is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(22129, "gens keyword has been deprecated. Define a method gens() instead.")
         from sage.categories.groups import Groups
         if category is None:
             category = Groups()
@@ -105,7 +108,7 @@ cdef class Group(Parent):
                 category = (category,)
             if not any(cat.is_subcategory(Groups()) for cat in category):
                 raise ValueError("%s is not a subcategory of %s"%(category, Groups()))
-        Parent.__init__(self, base=base, gens=gens, category=category)
+        Parent.__init__(self, base=base, category=category)
 
     def __contains__(self, x):
         r"""
@@ -279,6 +282,9 @@ cdef class FiniteGroup(Group):
             sage: G.category()
             Category of finite groups
         """
+        if gens is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(22129, "gens keyword has been deprecated. Define a method gens() instead.")
         from sage.categories.finite_groups import FiniteGroups
         if category is None:
             category = FiniteGroups()
@@ -287,7 +293,7 @@ cdef class FiniteGroup(Group):
                 category = (category,)
             if not any(cat.is_subcategory(FiniteGroups()) for cat in category):
                 raise ValueError("%s is not a subcategory of %s"%(category, FiniteGroups()))
-        Parent.__init__(self, base=base, gens=gens, category=category)
+        Parent.__init__(self, base=base, category=category)
 
     def is_finite(self):
         """

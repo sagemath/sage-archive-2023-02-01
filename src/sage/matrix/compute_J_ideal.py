@@ -260,6 +260,17 @@ class ComputeMinimalPolynomials(SageObject):
     r"""
     Create an object for computing `(p^t)`-minimal polynomials and `J`-ideals.
 
+    For an ideal `J` and a square matrix `B` over a principal ideal
+    domain `D`, the `J`-ideal of `B` is defined to be
+    `N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.
+
+    For a prime element `p` of `D` and `t\ge 0`, a `(p^t)`-minimal
+    polynomial of `B` is a monic polynomial `f\in N_{(p^t)}(B)` of
+    minimal degree.
+
+    The characteristic polynomial of `B` is denoted by `\chi_B`; `n`
+    is the size of `B`.
+
     INPUT:
 
     - ``B`` -- a square matrix over a principal ideal domain `D`
@@ -268,15 +279,6 @@ class ComputeMinimalPolynomials(SageObject):
 
     An object which allows to call :meth:`p_minimal_polynomials`,
     :meth:`null_ideal` and :meth:`integer_valued_polynomials`.
-
-    For an ideal `J`, the `J`-ideal of `B` is defined to be
-    `N_J(B) = \{ f\in D[X] \mid f(B) \in M_n(J) \}`.
-
-    For a prime element `p` of `D` and `t\ge 0`, a `(p^t)`-minimal polynomial of
-    `B` is a monic polynomial `f\in N_{(p^t)}(B)` of minimal degree.
-
-    The characteristic polynomial of `B` is denoted by `\chi_B`; `n` is the size
-    of `B`.
 
     EXAMPLES::
 
@@ -565,6 +567,16 @@ class ComputeMinimalPolynomials(SageObject):
         r"""
         Compute `(p^s)`-minimal polynomials `\nu_s` of `B`.
 
+        Compute a finite subset `\mathcal{S}` of the positive
+        integers and `(p^s)`-minimal polynomials
+        `\nu_s` for `s\in\mathcal{S}`.
+
+        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is
+        given by `\nu_s` where
+        `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.
+        For `t>\max\mathcal{S}`, the minimal polynomial of `B` is
+        also a `(p^t)`-minimal polynomial.
+
         INPUT:
 
         - ``p`` -- a prime in `D`
@@ -575,14 +587,9 @@ class ComputeMinimalPolynomials(SageObject):
 
         OUTPUT:
 
-        A dictionary. Keys are a finite subset `\mathcal{S}` of the positive
-        integers, the values are the associated `(p^s)`-minimal polynomials
-        `\nu_s`, `s\in\mathcal{S}`.
-
-        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is given by
-        `\nu_s` where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`. For
-        `t>\max\mathcal{S}`, the minimal polynomial of `B` is also a
-        `(p^t)`-minimal polynomial.
+        A dictionary. Keys are the finite set `\mathcal{S}`, the values
+        are the associated `(p^s)`-minimal polynomials `\nu_s`,
+        `s\in\mathcal{S}`.
 
         Setting ``s_max`` only affects the output if ``s_max`` is at
         most `\max\mathcal{S}` where `\mathcal{S}` denotes the full

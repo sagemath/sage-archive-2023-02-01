@@ -5571,6 +5571,21 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         r"""
         Compute `(p^s)`-minimal polynomials `\nu_s` of this matrix.
 
+        For `s\ge 0`, a `(p^s)`-minimal polynomial of
+        a matrix `B` is a monic polynomial `f\in \mathbb{Z}[X]` of
+        minimal degree such that all entries of `f(B)` are divisible
+        by `p^s`.
+
+        Compute a finite subset `\mathcal{S}` of the positive
+        integers and `(p^s)`-minimal polynomials
+        `\nu_s` for `s\in\mathcal{S}`.
+
+        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is
+        given by `\nu_s` where
+        `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.
+        For `t>\max\mathcal{S}`, the minimal polynomial of `B` is
+        also a `(p^t)`-minimal polynomial.
+
         INPUT:
 
         - ``p`` -- a prime in `\mathbb{Z}`
@@ -5581,19 +5596,9 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         OUTPUT:
 
-        A dictionary. Keys are a finite subset `\mathcal{S}` of the positive
-        integers, the values are the associated `(p^s)`-minimal polynomials
-        `\nu_s`, `s\in\mathcal{S}`.
-
-        For `s\ge 0`, a `(p^s)`-minimal polynomial of
-        a matrix `B` is a monic polynomial `f\in \mathbb{Z}[X]` of
-        minimal degree such that all entries of `f(B)` are divisible
-        by `p^s`.
-
-        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is given by
-        `\nu_s` where `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.  For
-        `t>\max\mathcal{S}`, the minimal polynomial of this matrix is also a
-        `(p^t)`-minimal polynomial.
+        A dictionary. Keys are the finite set `\mathcal{S}`, the
+        values are the associated `(p^s)`-minimal polynomials `\nu_s`,
+        `s\in\mathcal{S}`.
 
         Setting ``s_max`` only affects the output if ``s_max`` is at
         most `\max\mathcal{S}` where `\mathcal{S}` denotes the full

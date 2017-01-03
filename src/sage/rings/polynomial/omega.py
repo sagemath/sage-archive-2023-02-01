@@ -2,7 +2,7 @@ r"""
 MacMahon's Omega Operator
 
 This module implements :func:`MacMahon's Omega Operator <Omega>`
-[MacMahon1915]_, which takes a quotient of laurent polynomials and
+[MacMahon1915]_, which takes a quotient of Laurent polynomials and
 removes all negative exponents in the corresponding power series.
 
 
@@ -64,7 +64,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         \Omega_{\mathrm{op}} \frac{n}{d_1 \dots d_n}
 
     for the numerator `n` and the factors `d_1`, ..., `d_n` of
-    the denominator, all of which are laurent polynomials in ``var``
+    the denominator, all of which are Laurent polynomials in ``var``
     and returns a (partial) factorization of the result.
 
     INPUT:
@@ -72,13 +72,13 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
     - ``var`` -- a variable or a representation string of a variable.
 
     - ``expression`` -- an element of the quotient field of some
-      laurent polynomials. If ``denominator`` is specified, then
-      this laurent polynomial is interpreted as the numerator of the
+      Laurent polynomials. If ``denominator`` is specified, then
+      this Laurent polynomial is interpreted as the numerator of the
       expression.
 
-    - ``denominator`` -- a laurent polynomial or a
+    - ``denominator`` -- a Laurent polynomial or a
       :class:`~sage.structure.factorization.Factorization` (consisting
-      of laurent polynomial factors) or a tuple/list of factors (laurent
+      of Laurent polynomial factors) or a tuple/list of factors (Laurent
       polynomials).
 
     - ``op`` -- (default: ``operator.ge``) an operator.
@@ -91,7 +91,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
     OUTPUT:
 
     A (partial) :class:`~sage.structure.factorization.Factorization`
-    of the result whose factors are laurent polynomials.
+    of the result whose factors are Laurent polynomials.
 
     .. NOTE::
 
@@ -296,9 +296,9 @@ def _Omega_(A, decoded_factors):
     OUTPUT:
 
     A pair representing a quotient as follows: Its first component is the
-    numerator as a laurent polynomial, its second component a factorization
-    of the denominator as a tuple of laurent polynomials, where each
-    laurent polynomial `z` represents a factor `1 - z`.
+    numerator as a Laurent polynomial, its second component a factorization
+    of the denominator as a tuple of Laurent polynomials, where each
+    Laurent polynomial `z` represents a factor `1 - z`.
 
     TESTS:
 
@@ -361,9 +361,9 @@ def Omega_ge(a, exponents):
     OUTPUT:
 
     A pair representing a quotient as follows: Its first component is the
-    numerator as a laurent polynomial, its second component a factorization
-    of the denominator as a tuple of laurent polynomials, where each
-    laurent polynomial `z` represents a factor `1 - z`.
+    numerator as a Laurent polynomial, its second component a factorization
+    of the denominator as a tuple of Laurent polynomials, where each
+    Laurent polynomial `z` represents a factor `1 - z`.
 
     EXAMPLES::
 
@@ -506,15 +506,15 @@ def Omega_numerator(a, x, y, t):
 
     - ``a`` -- an integer.
 
-    - ``x`` and ``y`` -- a tuple of tuples of laurent polynomials. The
+    - ``x`` and ``y`` -- a tuple of tuples of Laurent polynomials. The
       flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
       `y_1,...,y_m`.
 
-    - ``t`` -- a temporary laurent polynomial variable used for substituting.
+    - ``t`` -- a temporary Laurent polynomial variable used for substituting.
 
     OUTPUT:
 
-    A laurent polynomial.
+    A Laurent polynomial.
 
     EXAMPLES::
 
@@ -614,13 +614,13 @@ def _Omega_numerator_P_(a, x, y, t):
 
     - ``a`` -- an integer.
 
-    - ``x`` and ``y`` -- a tuple of laurent polynomials.
+    - ``x`` and ``y`` -- a tuple of Laurent polynomials.
 
-    - ``t`` -- a temporary laurent polynomial variable used for substituting.
+    - ``t`` -- a temporary Laurent polynomial variable used for substituting.
 
     OUTPUT:
 
-    A laurent polynomial.
+    A Laurent polynomial.
 
     TESTS::
 
@@ -681,14 +681,14 @@ def Omega_factors_denominator(x, y):
 
     INPUT:
 
-    - ``x`` and ``y`` -- a tuple of tuples of laurent polynomials. The
+    - ``x`` and ``y`` -- a tuple of tuples of Laurent polynomials. The
       flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
       `y_1,...,y_m`.
 
     OUTPUT:
 
     A factorization of the denominator as
-    a tuple of laurent polynomials.
+    a tuple of Laurent polynomials.
 
     EXAMPLES::
 

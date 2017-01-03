@@ -569,6 +569,9 @@ def Omega_numerator(a, x, y, t):
 
     A Laurent polynomial.
 
+    The output is normalized such that the corresponding denominator
+    (:func:`Omega_factors_denominator`) has constant term `1`.
+
     EXAMPLES::
 
         sage: from sage.rings.polynomial.omega import Omega_numerator, Omega_factors_denominator

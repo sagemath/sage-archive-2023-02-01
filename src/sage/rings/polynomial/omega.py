@@ -197,8 +197,8 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
-    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_univariate
+    from sage.rings.polynomial.laurent_polynomial_ring \
+        import LaurentPolynomialRing, LaurentPolynomialRing_univariate
     from sage.structure.factorization import Factorization
 
     if op != operator.ge:

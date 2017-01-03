@@ -395,10 +395,10 @@ def Omega_ge(a, exponents):
     .. MATH::
 
         \Omega_{\ge} \frac{\mu^a}{
-        (1 - z_1 \mu^{e_1}) \dots (1 - z_n \mu^{e_n})}
+        (1 - z_0 \mu^{e_0}) \dots (1 - z_{n-1} \mu^{e_{n-1}})}
 
     and return its numerator and a factorization of its denominator.
-    Note that `z_1`, ..., `z_n` only appear in the output, but not in the
+    Note that `z_0`, ..., `z_{n-1}` only appear in the output, but not in the
     input.
 
     INPUT:
@@ -413,6 +413,10 @@ def Omega_ge(a, exponents):
     numerator as a Laurent polynomial, its second component a factorization
     of the denominator as a tuple of Laurent polynomials, where each
     Laurent polynomial `z` represents a factor `1 - z`.
+
+    The parents of these Laurent polynomials is always a
+    Laurent polynomial ring in `z_0`, ..., `z_{n-1}` over `\ZZ`, where
+    `n` is the length of ``exponents``.
 
     EXAMPLES::
 

@@ -218,6 +218,11 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         Traceback (most recent call last):
         ...
         ZeroDivisionError: Denominator contains a factor 0.
+
+        sage: MacMahonOmega(mu, 1, [2 - x*mu])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Factor 2 - x*mu is not normalized.
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod

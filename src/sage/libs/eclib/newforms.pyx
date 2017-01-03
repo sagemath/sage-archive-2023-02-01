@@ -46,7 +46,7 @@ cdef class ECModularSymbol:
     For the minus symbols this makes no difference since
     $\{0,\infty\}$ is in the plus space.  Note that to evaluate minus
     symbols the space must be defined with sign 0, which makes both
-    aigns available::
+    signs available::
 
         sage: M = ECModularSymbol(E,0); M
         Modular symbol with sign 0 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
@@ -57,7 +57,7 @@ cdef class ECModularSymbol:
 
     If the ECModularSymbol is created with sign 0 then as well as
     asking for both + and - symbols, we can also obtain both (as a
-    tuple).  Howeverm it is more work to create the full modular
+    tuple).  However it is more work to create the full modular
     symbol space::
 
         sage: E = EllipticCurve('11a1')
@@ -132,7 +132,7 @@ cdef class ECModularSymbol:
 
         - ``E``- an elliptic curve defined over Q
         - ``sign`` (int) -- 0 or +1.  If +1, only plus modular symbols
-           of this sign are availiable.  If 0, modular symbols of both
+           of this sign are available.  If 0, modular symbols of both
            signs are available but the construction is more expensive.
 
         EXAMPLES::

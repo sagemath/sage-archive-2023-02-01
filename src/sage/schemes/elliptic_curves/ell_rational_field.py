@@ -1139,7 +1139,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``use_eclib`` - Deprecated. Use the ``implementation`` parameter instead.
 
-        - ``normalize`` - (default: None); either 'L_ratio', 'period',
+        -  ``normalize`` - (default: None); either 'L_ratio', 'period',
            or 'none' when ``implementation`` is 'sage'; ignored if
            ``implementation`` is ``eclib``.  For 'L_ratio', the
            modular symbol tries to normalize correctly as explained
@@ -1155,7 +1155,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            ``sage`` is chosen, though evaluation of it after computing
            it is no faster.
 
-        - ``implementation`` - either 'eclib' (default) or
+        -  ``implementation`` - either 'eclib' (default) or
            'sage'. Here 'eclib' uses John Cremona's implementation in
            the eclib library, while 'sage' uses an implementation
            in Sage which is often quite a bit slower.
@@ -1167,14 +1167,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         .. note::
 
            The value at a rational number `r` is proportional to the
-           real or imgainary part of the integral of `2 \pi i f(z) dz`
+           real or imaginary part of the integral of `2 \pi i f(z) dz`
            from `\infty` to `r`, where `f` is the newform attached to
            `E`, suitably normalized so that all values of this map
            take values in `\QQ`.
 
            The normalization is such that for sign +1, the value at
            the cusp `r` is equal to the quotient of the real part of
-           `\int_{\infty}^{r}2\pi if(\z)dz` by the least positive
+           `\int_{\infty}^{r}2\pi i f(z)dz` by the least positive
            period of `E`, where `f` is the newform attached to the
            isogeny class of `E`.  This is in contrast to the method
            ``L_ratio`` of ``lseries()``, where the value is also
@@ -1200,6 +1200,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('121b1')
             sage: M = E.modular_symbol(implementation="sage")
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1 and a power of 2
             sage: M(1/7)
             -1/2
 
@@ -5081,7 +5082,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return the Manin constant of this elliptic curve. If `\phi: X_0(N) \to E` is the modular
         parametrization of minimal degree, then the Manin constant `c` is defined to be the rational
-        number `c` such that `\phi^*(\omega_E) = c\cdot \omega_f` where `\omega_E` is a Neron differential and `\omega_f = f(q) dq/q` is the differential on `X_0(N)` corresponding to the
+        number `c` such that `\phi^*(\omega_E) = c\cdot \omega_f` where `\omega_E` is a Néron differential and `\omega_f = f(q) dq/q` is the differential on `X_0(N)` corresponding to the
         newform `f` attached to the isogeny class of `E`.
 
         It is known that the Manin constant is an integer. It is conjectured that in each class there is at least one, more precisely the so-called strong Weil curve or `X_0(N)`-optimal curve, that has Manin constant `1`.

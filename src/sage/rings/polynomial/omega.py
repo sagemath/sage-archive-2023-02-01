@@ -57,7 +57,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
     r"""
     Return `\Omega_{\mathrm{op}}` of ``expression`` with respect to ``var``.
 
-    To be more precise, this calculates
+    To be more precise, calculate
 
     .. MATH::
 
@@ -65,7 +65,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
 
     for the numerator `n` and the factors `d_1`, ..., `d_n` of
     the denominator, all of which are Laurent polynomials in ``var``
-    and returns a (partial) factorization of the result.
+    and return a (partial) factorization of the result.
 
     INPUT:
 
@@ -343,14 +343,14 @@ def Omega_ge(a, exponents):
     r"""
     Return `\Omega_{\ge}` of the expression specified by the input.
 
-    To be more precise, this calculates
+    To be more precise, calculate
 
     .. MATH::
 
         \Omega_{\ge} \frac{\mu^a}{
         (1 - z_1 \mu^{e_1}) \dots (1 - z_n \mu^{e_n})}
 
-    and returns its numerator and a factorization of its denominator.
+    and return its numerator and a factorization of its denominator.
 
     INPUT:
 
@@ -490,7 +490,7 @@ def Omega_numerator(a, x, y, t):
     Return the numerator of `\Omega_{\ge}` of the expression
     specified by the input.
 
-    To be more precise, this calculates
+    To be more precise, calculate
 
     .. MATH::
 
@@ -498,7 +498,7 @@ def Omega_numerator(a, x, y, t):
         (1 - x_1 \mu) \dots (1 - x_n \mu)
         (1 - y_1 / \mu) \dots (1 - y_m / \mu)}
 
-    and returns its numerator.
+    and return its numerator.
 
     This function is meant to be a helper function of :func:`Omega`.
 
@@ -667,7 +667,7 @@ def Omega_factors_denominator(x, y):
     Return the denominator of `\Omega_{\ge}` of the expression
     specified by the input.
 
-    To be more precise, this calculates
+    To be more precise, calculate
 
     .. MATH::
 
@@ -675,7 +675,7 @@ def Omega_factors_denominator(x, y):
         (1 - x_1 \mu) \dots (1 - x_n \mu)
         (1 - y_1 / \mu) \dots (1 - y_m / \mu)}
 
-    and returns a factorization of its denominator.
+    and return a factorization of its denominator.
 
     This function is meant to be a helper function of :func:`Omega`.
 

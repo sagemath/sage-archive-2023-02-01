@@ -223,6 +223,11 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         Traceback (most recent call last):
         ...
         NotImplementedError: Factor 2 - x*mu is not normalized.
+
+        sage: MacMahonOmega(mu, 1, [1 - x*mu - mu^2])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Cannot handle factor 1 - x*mu - mu^2.
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod

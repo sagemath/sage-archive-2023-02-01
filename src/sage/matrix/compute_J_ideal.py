@@ -207,10 +207,10 @@ def lifting(p, t, A, G):
 
     ARb = AR.change_ring(FpX)
     (Db, Sb, Tb) = ARb.smith_form()
-    assert Sb * ARb * Tb == Db
-    assert all(i == j or Db[i, j].is_zero()
-               for i in range(Db.nrows())
-               for j in range(Db.ncols()))
+    #assert Sb * ARb * Tb == Db
+    #assert all(i == j or Db[i, j].is_zero()
+    #           for i in range(Db.nrows())
+    #           for j in range(Db.ncols()))
 
     r = Db.rank()
     if r != c:

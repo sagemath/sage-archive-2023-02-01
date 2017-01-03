@@ -213,6 +213,11 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         Traceback (most recent call last):
         ...
         ValueError: 2*mu is not a variable.
+
+        sage: MacMahonOmega(mu, 1, Factorization([(0, 2)]))
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: Denominator contains a factor 0.
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod

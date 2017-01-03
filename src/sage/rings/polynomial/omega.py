@@ -202,6 +202,12 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         Traceback (most recent call last):
         ...
         NotImplementedError: At the moment, only Omega_ge is implemented.
+
+        sage: MacMahonOmega(mu, 1, Factorization([(1 - x*mu, -1)]))
+        Traceback (most recent call last):
+        ...
+        ValueError: Factorization (-mu*x + 1)^-1 of the denominator
+        contains negative exponents.
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod

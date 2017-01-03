@@ -52,7 +52,7 @@ import operator
 from sage.misc.cachefunc import cached_function
 
 
-def Omega(var, expression, denominator=None, op=operator.ge,
+def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
           Factorization_sort=False, Factorization_simplify=True):
     r"""
     Return `\Omega_{\mathrm{op}}` of ``expression`` with respect to ``var``.
@@ -107,91 +107,91 @@ def Omega(var, expression, denominator=None, op=operator.ge,
 
         sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(ZZ)
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu, 1 - z/mu])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1 * (-x*z + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu])
         (-x*y*z + 1) * (-x + 1)^-1 * (-y + 1)^-1 * (-x*z + 1)^-1 * (-y*z + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^2])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu^2])
         1 * (-x + 1)^-1 * (-x^2*y + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y/mu])
         (x*y + 1) * (-x + 1)^-1 * (-x*y^2 + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu^2])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu^2])
         (-x^2*y*z - x*y^2*z + x*y*z + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-x^2*z + 1)^-1 * (-y^2*z + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^3])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu^3])
         1 * (-x + 1)^-1 * (-x^3*y + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^4])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu^4])
         1 * (-x + 1)^-1 * (-x^4*y + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^3, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^3, 1 - y/mu])
         (x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^3 + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^4, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^4, 1 - y/mu])
         (x*y^3 + x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^4 + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y/mu, 1 - z/mu])
         (x*y*z + x*y + x*z + 1) *
         (-x + 1)^-1 * (-x*y^2 + 1)^-1 * (-x*z^2 + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z/mu])
         (-x*y*z^2 - x*y*z + x*z + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-x*z^2 + 1)^-1 * (-y*z + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu, 1 - w/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu, 1 - w/mu])
         (x*y*z*w^2 + x*y*z*w - x*y*w - x*z*w - y*z*w + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-z + 1)^-1 *
         (-x*w + 1)^-1 * (-y*w + 1)^-1 * (-z*w + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu, 1 - w/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu, 1 - w/mu])
         (x^2*y*z*w + x*y^2*z*w - x*y*z*w - x*y*z - x*y*w + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 *
         (-x*z + 1)^-1 * (-x*w + 1)^-1 * (-y*z + 1)^-1 * (-y*w + 1)^-1
 
-        sage: Omega(mu, mu^-2, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^-2, [1 - x*mu, 1 - y/mu])
         x^2 * (-x + 1)^-1 * (-x*y + 1)^-1
-        sage: Omega(mu, mu^-1, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^-1, [1 - x*mu, 1 - y/mu])
         x * (-x + 1)^-1 * (-x*y + 1)^-1
-        sage: Omega(mu, mu, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu, [1 - x*mu, 1 - y/mu])
         (-x*y + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
-        sage: Omega(mu, mu^2, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y/mu])
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
     TESTS::
 
-        sage: Omega(mu, 1, [1 - x*mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu])
         1 * (-x + 1)^-1
-        sage: Omega(mu, 1, [1 - x/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x/mu])
         1
-        sage: Omega(mu, 0, [1 - x*mu])
+        sage: MacMahonOmega(mu, 0, [1 - x*mu])
         0
-        sage: Omega(mu, L(1), [])
+        sage: MacMahonOmega(mu, L(1), [])
         1
-        sage: Omega(mu, L(0), [])
+        sage: MacMahonOmega(mu, L(0), [])
         0
-        sage: Omega(mu, 2, [])
+        sage: MacMahonOmega(mu, 2, [])
         2
-        sage: Omega(mu, 2*mu, [])
+        sage: MacMahonOmega(mu, 2*mu, [])
         2
-        sage: Omega(mu, 2/mu, [])
+        sage: MacMahonOmega(mu, 2/mu, [])
         0
 
     ::
 
-        sage: Omega(mu, Factorization([(1/mu, 1), (1 - x*mu, -1),
-        ....:                          (1 - y/mu, -2)], unit=2))
+        sage: MacMahonOmega(mu, Factorization([(1/mu, 1), (1 - x*mu, -1),
+        ....:                                  (1 - y/mu, -2)], unit=2))
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
-        sage: Omega(mu, Factorization([(mu, -1), (1 - x*mu, -1),
-        ....:                          (1 - y/mu, -2)], unit=2))
+        sage: MacMahonOmega(mu, Factorization([(mu, -1), (1 - x*mu, -1),
+        ....:                                  (1 - y/mu, -2)], unit=2))
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
-        sage: Omega(mu, Factorization([(mu, -1), (1 - x, -1)]))
+        sage: MacMahonOmega(mu, Factorization([(mu, -1), (1 - x, -1)]))
         0
-        sage: Omega(mu, Factorization([(2, -1)]))
+        sage: MacMahonOmega(mu, Factorization([(2, -1)]))
         1 * 2^-1
 
     ::
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - z, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - z, 1 - y/mu])
         1 * (-z + 1)^-1 * (-x + 1)^-1 * (-x*y + 1)^-1
     """
     from sage.arith.misc import factor

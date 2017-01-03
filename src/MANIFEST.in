@@ -2,12 +2,9 @@ global-include *.c *.cc *.cpp *.h *.hh *.hpp *.inc *.py *.pyx *.pxd *.pxi *.rst 
 
 include MANIFEST.in
 
-include generate_py_source.mk
-
 graft   sage/libs/gap/test
 recursive-include sage
 recursive-exclude sage/ext/interpreters *.c *.h *.pyx *.pxd
-exclude sage/libs/pari/gen.h
 exclude sage/modular/arithgroup/farey_symbol.h
 exclude sage/rings/real_mpfi.h
 exclude sage/symbolic/pynac.h

@@ -84,7 +84,7 @@ from sage.rings.rational_field import is_RationalField, QQ
 from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, isomorphisms
 
 from sage.sets.set import Set
-
+from sage.structure.sage_object import richcmp_not_equal, richcmp
 from sage.misc.cachefunc import cached_function
 
 #
@@ -1237,7 +1237,7 @@ class EllipticCurveIsogeny(Morphism):
 
         return self.__this_hash
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Function that implements comparisons between isogeny objects.
 
@@ -1276,14 +1276,15 @@ class EllipticCurveIsogeny(Morphism):
         # automorphism of its codomain, or any post-isomorphism.
         # Comparing domains, codomains and rational maps seems much
         # safer.
-
-        t = cmp(self.domain(), other.domain())
-        if t: return t
-        t = cmp(self.codomain(), other.codomain())
-        if t: return t
-        return cmp(self.rational_maps(), other.rational_maps())
-
-    __cmp__ = _cmp_
+        lx = self.domain()
+        rx = other.domain()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+        lx = self.codomain()
+        rx = other.codomain()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+        return richcmp(self.rational_maps(), other.rational_maps(), op)
 
     def __neg__(self):
         r"""

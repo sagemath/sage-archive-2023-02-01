@@ -608,6 +608,31 @@ cdef class Element(SageObject):
         from sage.categories.all import Elements
         return Elements(self._parent)
 
+    def _test_new(self, **options):
+        """
+        Check that ``cls.__new__(cls)`` and
+        ``cls.__new__(cls, parent)`` do not crash Python,
+        where ``cls = type(self)`` and ``parent = parent(self)``.
+
+        It is perfectly legal for ``__new__`` to raise ordinary
+        exceptions.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import Element
+            sage: p = Parent()
+            sage: e = Element(p)
+            sage: e._test_new()
+        """
+        cdef type cls = type(self)
+        try:
+            cls.__new__(cls)
+        except Exception:
+            pass
+        try:
+            cls.__new__(cls, self._parent)
+        except Exception:
+            pass
 
     def _test_category(self, **options):
         """
@@ -2391,15 +2416,14 @@ cdef class RingElement(ModuleElement):
             ...
             OverflowError: Exponent overflow (2147483648).
 
-        Another example from :trac:`2956`; this should overflow on x32
-        and succeed on x64::
+        Another example from :trac:`2956` which always overflows
+        with Singular 4::
 
             sage: K.<x,y> = ZZ[]
             sage: (x^12345)^54321
-            x^670592745                                   # 64-bit
-            Traceback (most recent call last):            # 32-bit
-            ...                                           # 32-bit
-            OverflowError: Exponent overflow (670592745). # 32-bit
+            Traceback (most recent call last):
+            ...
+            OverflowError: exponent overflow (670592745)
 
         """
         if dummy is not None:

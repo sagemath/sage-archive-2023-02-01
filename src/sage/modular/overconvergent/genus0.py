@@ -6,8 +6,7 @@ This module implements computations of Hecke operators and `U_p`-eigenfunctions
 on `p`-adic overconvergent modular forms of tame level 1, where `p` is one of
 the primes `\{2, 3, 5, 7, 13\}`, using the algorithms described in [Loe2007]_.
 
-.. [Loe2007] David Loeffler, *Spectral expansions of overconvergent modular functions*,
-   Int. Math. Res. Not 2007 (050).  `Arxiv preprint <http://uk.arxiv.org/abs/math/0701168>`_.
+- [Loe2007]_
 
 AUTHORS:
 
@@ -23,7 +22,7 @@ The Theory
 
 Let `p` be one of the above primes, so `X_0(p)` has genus 0, and let
 
-.. math::
+.. MATH::
 
     f_p = \sqrt[p-1]{\frac{\Delta(pz)}{\Delta(z)}}
 
@@ -33,7 +32,7 @@ Furthermore, if we work over `\CC_p`, the `r`-overconvergent locus on `X_0(p)`
 (or of `X_0(1)`, via the canonical subgroup lifting), corresponds to the
 `p`-adic disc
 
-.. math::
+.. MATH::
 
     |f_p|_p \le p^{\frac{12r}{p-1}}.
 

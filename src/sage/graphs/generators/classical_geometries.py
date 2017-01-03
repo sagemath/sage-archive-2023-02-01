@@ -89,7 +89,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
         from sage.libs.gap.libgap import libgap
         G = _polar_graph(d, q, libgap.SymplecticGroup(d, q))
 
-    elif algorithm == None:    # faster for small (q<4) fields
+    elif algorithm is None:    # faster for small (q<4) fields
         from sage.modules.free_module import VectorSpace
         from sage.schemes.projective.projective_space import ProjectiveSpace
         from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
@@ -132,7 +132,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
 
     INPUT:
 
-    - ``d`` (integer) -- ``d`` must be even if ``sign != None``, and odd
+    - ``d`` (integer) -- ``d`` must be even if ``sign is not None``, and odd
       otherwise.
 
     - ``q`` (integer) -- a power of a prime number, as `F_q` must exist.
@@ -582,7 +582,7 @@ def _polar_graph(m, q, g, intersection_size=None):
     sp = [libgap.Elements(libgap.Basis(x))[0] for x in libgap.Elements(s.Subspaces(1))]
     h = libgap.Set(map(lambda x: libgap.Position(V, x), sp)) # indices of the points in s
     L = libgap.Orbit(gp, h, libgap.OnSets) # orbit on these subspaces
-    if intersection_size == None:
+    if intersection_size is None:
         G = Graph()
         for x in L: # every pair of points in the subspace is adjacent to each other in G
             G.add_edges(combinations(x, 2))
@@ -632,7 +632,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         from sage.libs.gap.libgap import libgap
         G = _polar_graph(m, q**2, libgap.GeneralUnitaryGroup(m, q))
 
-    elif algorithm == None: # slow on large examples
+    elif algorithm is None: # slow on large examples
         from sage.schemes.projective.projective_space import ProjectiveSpace
         from sage.modules.free_module_element import free_module_element as vector
         Fq = FiniteField(q**2, 'a')
@@ -1114,14 +1114,14 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     the graph of `T_2^*(q)^*`, constructed by
     :func:`~sage.graphs.graph_generators.GraphGenerators.T2starGeneralizedQuadrangleGraph`,
     by redefining adjacencies in the way specified by an arbitrary ``hyperoval_matching``
-    of the the points (i.e. partitioning into size two parts) of ``hyperoval`` defining
+    of the points (i.e. partitioning into size two parts) of ``hyperoval`` defining
     `T_2^*(q)^*`.
 
     While [BvL84]_ gives the construction in geometric terms, it can be formulated,
     and is implemented, in graph-theoretic ones, of re-adjusting the edges.
     Namely, `G=T_2^*(q)^*` has a partition
     into `q+2` independent sets `I_k` of size `q^2` each. Each vertex in `I_j` is
-    adajcent to `q` vertices from `I_k`. Each `I_k` is paired to some `I_{k'}`,
+    adjacent to `q` vertices from `I_k`. Each `I_k` is paired to some `I_{k'}`,
     according to ``hyperoval_matching``. One adds edges `(s,t)` for `s,t \in I_k` whenever
     `s` and `t` are adjacent to some `u \in I_{k'}`, and removes all the edges
     between `I_k` and `I_{k'}`.

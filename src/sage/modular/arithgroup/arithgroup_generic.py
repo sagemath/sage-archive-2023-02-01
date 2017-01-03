@@ -258,7 +258,7 @@ class ArithmeticSubgroup(Group):
 
         INPUT:
 
-        - ``G`` - intermediate subgroup (currently not implemented if diffferent
+        - ``G`` - intermediate subgroup (currently not implemented if different
           from SL(2,Z))
 
         - ``on_right`` - boolean (default: True) - if True return right coset

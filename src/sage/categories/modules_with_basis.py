@@ -342,7 +342,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: phi.category_for() # todo: not implemented (ZZ is currently not in Modules(ZZ))
                 Category of modules over Integer Ring
 
-            Or more generaly any ring admitting a coercion map from
+            Or more generally any ring admitting a coercion map from
             the base ring::
 
                 sage: phi = X.module_morphism(on_basis=lambda i: i, codomain=RR )
@@ -453,7 +453,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             invertible elements on its diagonal. This is used to compute
             preimages and to invert the morphism::
 
-                sage: I = range(1,200)
+                sage: I = list(range(1, 200))
                 sage: X = CombinatorialFreeModule(QQ, I); X.rename("X"); x = X.basis()
                 sage: Y = CombinatorialFreeModule(QQ, I); Y.rename("Y"); y = Y.basis()
                 sage: f = Y.sum_of_monomials * divisors

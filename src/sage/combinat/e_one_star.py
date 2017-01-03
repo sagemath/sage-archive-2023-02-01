@@ -1086,7 +1086,7 @@ class Patch(SageObject):
           ``None``, the isometric projection is used by default.
 
         - ``opacity`` - float between ``0`` and ``1`` (optional, default: ``0.75``)
-          opacity of the the face
+          opacity of the face
 
         .. WARNING::
 
@@ -1236,7 +1236,7 @@ class Patch(SageObject):
             sage: P = E(P, 4)
             sage: from sage.misc.latex import latex             #not tested
             sage: latex.add_to_preamble('\\usepackage{tikz}')   #not tested
-            sage: view(P, tightpage=true)                       #not tested
+            sage: view(P)                       #not tested
 
         Plot using shades of gray (useful for article figures)::
 

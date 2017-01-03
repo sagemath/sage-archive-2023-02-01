@@ -91,7 +91,7 @@ tedious. Furthermore, this would require a cumbersome mechanism to
 lookup the appropriate class depending on the desired combination.
 
 Instead, one may use the ability of Python to create new classes
-dynamicaly::
+dynamically::
 
     type("class name", tuple of base classes, dictionary of methods)
 
@@ -370,6 +370,15 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
         sage: sage_getsourcelines(Foo3().bla)
         (['    def bla():...'], ...)
 
+    We check that :trac:`21895` has been resolved::
+
+        sage: C1 = sage.structure.dynamic_class.dynamic_class_internal("C1", (Morphism, UniqueRepresentation))
+        sage: type(C1)
+        <class 'sage.structure.dynamic_class.DynamicInheritComparisonClasscallMetaclass'>
+        sage: C2 = sage.structure.dynamic_class.dynamic_class_internal("C2", (UniqueRepresentation, Morphism))
+        sage: type(C2)
+        <class 'sage.structure.dynamic_class.DynamicInheritComparisonClasscallMetaclass'>
+
     """
     if reduction is None:
         reduction = (dynamic_class, (name, bases, cls, reduction, doccls))
@@ -401,12 +410,22 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     # classes is a known Sage metaclass.  This approach won't scale
     # well if we start using metaclasses seriously in Sage.
     for base in bases:
-        if isinstance(base, InheritComparisonClasscallMetaclass):
-            metaclass = DynamicInheritComparisonClasscallMetaclass
-        elif isinstance(base, ClasscallMetaclass):
-            metaclass = DynamicClasscallMetaclass
-        elif isinstance(base, InheritComparisonMetaclass):
-            metaclass = DynamicInheritComparisonMetaclass
+        if isinstance(base, ClasscallMetaclass):
+            if not issubclass(metaclass, ClasscallMetaclass):
+                if metaclass is DynamicMetaclass:
+                    metaclass = DynamicClasscallMetaclass
+                elif metaclass is DynamicInheritComparisonMetaclass:
+                    metaclass = DynamicInheritComparisonClasscallMetaclass
+                else:
+                    raise NotImplementedError("No subclass of %r known that inherits from ClasscallMetaclass"%(metaclass,))
+        if isinstance(base, InheritComparisonMetaclass):
+            if not issubclass(metaclass, InheritComparisonMetaclass):
+                if metaclass is DynamicMetaclass:
+                    metaclass = DynamicInheritComparisonMetaclass
+                elif metaclass is DynamicClasscallMetaclass:
+                    metaclass = DynamicInheritComparisonClasscallMetaclass
+                else:
+                    raise NotImplementedError("No subclass of %r known that inherits from InheritComparisonMetaclass"%(metaclass,))
     return metaclass(name, bases, methods)
 
 

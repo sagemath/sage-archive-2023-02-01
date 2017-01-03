@@ -5,7 +5,7 @@ Weierstrass `\wp`-function for elliptic curves
 The Weierstrass `\wp` function associated to an elliptic curve over a
 field `k` is a Laurent series of the form
 
-.. math::
+.. MATH::
 
     \wp(z) = \frac{1}{z^2} +  c_2 \cdot z^2 + c_4 \cdot z^4 + \cdots.
 

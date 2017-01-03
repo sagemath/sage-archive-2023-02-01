@@ -1055,11 +1055,11 @@ cdef class Context:
         ::
 
             sage: class MyInt(int):
-            ...       pass
+            ....:     pass
             sage: class MyLong(long):
-            ...       pass
+            ....:     pass
             sage: class MyFloat(float):
-            ...       pass
+            ....:     pass
             sage: mag(MyInt(10)), mag(MyLong(10))
             (4, 4)
 
@@ -2053,7 +2053,7 @@ cdef class mpf(mpf_base):
             sage: import mpmath
             sage: v = mpmath.mpf(2)
             sage: class MyLong(long):
-            ...       pass
+            ....:     pass
             sage: MyLong(v)
             2L
         """

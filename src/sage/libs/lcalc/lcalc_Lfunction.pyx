@@ -56,10 +56,10 @@ cdef class Lfunction:
             sage: Lfunction_from_character(DirichletGroup(5)[1])
             L-function with complex Dirichlet coefficients
         """
-        cdef int i              #for indexing loops
-        cdef Integer tmpi       #for accessing integer values
-        cdef RealNumber tmpr    #for accessing real values
-        cdef ComplexNumber tmpc #for accessing complexe values
+        cdef int i              # for indexing loops
+        cdef Integer tmpi       # for accessing integer values
+        cdef RealNumber tmpr    # for accessing real values
+        cdef ComplexNumber tmpc # for accessing complex values
 
         cdef char *NAME = name
         cdef int what_type = what_type_L
@@ -394,13 +394,13 @@ cdef class Lfunction_I(Lfunction):
     with integer Dirichlet Coefficients. We assume that L-functions
     satisfy the following functional equation.
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = \omega Q^s \overline{\Lambda(1-\bar s)}
 
     where
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
@@ -532,13 +532,13 @@ cdef class Lfunction_D(Lfunction):
     with real Dirichlet coefficients. We assume that L-functions
     satisfy the following functional equation.
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = \omega Q^s \overline{\Lambda(1-\bar s)}
 
     where
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
@@ -671,13 +671,13 @@ cdef class Lfunction_C:
     with complex Dirichlet Coefficients. We assume that L-functions
     satisfy the following functional equation.
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = \omega Q^s \overline{\Lambda(1-\bar s)}
 
     where
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 

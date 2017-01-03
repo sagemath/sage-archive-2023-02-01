@@ -17,6 +17,7 @@ prompt. We use it to reload attached files if they have changed.
 
 import os
 import select
+import errno
 
 from IPython import get_ipython
 from IPython.terminal.pt_inputhooks import register
@@ -31,9 +32,13 @@ def sage_inputhook(context):
     f = context.fileno()
     while True:
         sage.repl.attach.reload_attached_files_if_modified()
-        r, w, e = select.select([f], [], [], TIMEOUT)
-        if f in r:
-            return  # IPython signalled us to stop
+        try:
+            r, w, e = select.select([f], [], [], TIMEOUT)
+            if f in r:
+                return  # IPython signalled us to stop
+        except select.error as e:
+            if e[0] != errno.EINTR:
+                raise
 
 
 register('sage', sage_inputhook)

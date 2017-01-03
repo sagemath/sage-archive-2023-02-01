@@ -1307,7 +1307,7 @@ def mqapply_to_sage(expr):
         sage: c.ecl()
         <ECL: ((MQAPPLY SIMP) (($LI SIMP ARRAY) 2) 3)>
         sage: mqapply_to_sage(c.ecl())
-        polylog(2, 3)
+        dilog(3)
     """
     if caaadr(expr) == max_li:
         return sage.functions.log.polylog(max_to_sr(cadadr(expr)),
@@ -1619,7 +1619,8 @@ def sr_to_max(expr):
             return maxima(expr).ecl()
 
 # This goes from EclObject to SR
-max_to_pynac_table = sage.symbolic.pynac.symbol_table['maxima']
+from sage.libs.pynac.pynac import symbol_table
+max_to_pynac_table = symbol_table['maxima']
 
 
 def max_to_sr(expr):

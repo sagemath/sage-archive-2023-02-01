@@ -344,7 +344,7 @@ class AffinePermutation(ClonableArray):
         Return Grassmannian quotient.
 
         Factors ``self`` into a unique product of a Grassmannian and a finite-type
-        element.  Returns a tuple containing the Grassmannain and finite
+        element.  Returns a tuple containing the Grassmannian and finite
         elements, in order according to side.
 
         INPUT:

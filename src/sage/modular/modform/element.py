@@ -189,7 +189,7 @@ class ModularForm_abstract(ModuleElement):
         """
         Same as ``self.q_expansion(prec)``.
 
-        .. seealso:: :meth:`q_expansion`
+        .. SEEALSO:: :meth:`q_expansion`
 
         EXAMPLES::
 
@@ -410,16 +410,18 @@ class ModularForm_abstract(ModuleElement):
                 vals.append(df[i] / self[i])
             return G(vals)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True if self is nonzero, and False if not.
+        Return ``True`` if ``self`` is nonzero, and ``False`` if not.
 
         EXAMPLES::
 
-            sage: ModularForms(25,6).6.__nonzero__()
+            sage: bool(ModularForms(25,6).6)
             True
         """
         return not self.element().is_zero()
+
+    __nonzero__ = __bool__
 
     def prec(self):
         """
@@ -533,7 +535,7 @@ class ModularForm_abstract(ModuleElement):
         is defined by the following integral over the complex upper
         half-plane, for any `\alpha` in `\Bold{P}^1(\QQ)`:
 
-        .. math::
+        .. MATH::
 
             P_f(M) = 2 \pi i \int_\alpha^{M(\alpha)} f(z) dz.
 
@@ -583,7 +585,7 @@ class ModularForm_abstract(ModuleElement):
 
         ALGORITHM:
 
-        We use the series expression from [Cremona]_, Chapter II,
+        We use the series expression from [Cre1997]_, Chapter II,
         Proposition 2.10.3.  The algorithm sums the first `T` terms of
         this series, where `T` is chosen in such a way that the result
         would approximate `P_f(M)` with an absolute error of at most
@@ -591,11 +593,6 @@ class ModularForm_abstract(ModuleElement):
 
         Since the actual precision is finite, the output is currently
         *not* guaranteed to be correct to ``prec`` bits of precision.
-
-        REFERENCE:
-
-        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
-           Curves.  Cambridge University Press, 1997.
 
         TESTS::
 
@@ -981,7 +978,7 @@ class ModularForm_abstract(ModuleElement):
         r"""
         Compute the Petersson scalar product of f with itself:
 
-        .. math::
+        .. MATH::
 
             \langle f, f \rangle = \int_{\Gamma_0(N) \backslash \mathbb{H}} |f(x + iy)|^2 y^k\, \mathrm{d}x\, \mathrm{d}y.
 
@@ -989,7 +986,7 @@ class ModularForm_abstract(ModuleElement):
         coefficients. The norm is computed as a special value of the symmetric
         square L-function, using the identity
 
-        .. math::
+        .. MATH::
 
             \langle f, f \rangle = \frac{(k-1)! L(\mathrm{Sym}^2 f, k)}{2^{2k-1} \pi^{k+1}}
 
@@ -1329,16 +1326,18 @@ class Newform(ModularForm_abstract):
         """
         return self._defining_modular_symbols().ambient().cuspidal_subspace().new_subspace().decomposition().index(self._defining_modular_symbols())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True, as newforms are never zero.
+        Return ``True``, as newforms are never zero.
 
         EXAMPLES::
 
-            sage: Newforms(14,2)[0].__nonzero__()
+            sage: bool(Newforms(14,2)[0])
             True
         """
         return True
+
+    __nonzero__ = __bool__
 
     def character(self):
         r"""
@@ -1380,14 +1379,14 @@ class Newform(ModularForm_abstract):
         If ``self`` is a newform `f` with character `\epsilon` and
         `q`-expansion
 
-        .. math::
+        .. MATH::
 
             f(q) = \sum_{n=1}^\infty a_n q^n,
 
         then the twist by `\chi` is the unique newform `f\otimes\chi`
         with character `\epsilon\chi^2` and `q`-expansion
 
-        .. math::
+        .. MATH::
 
             (f\otimes\chi)(q) = \sum_{n=1}^\infty b_n q^n
 
@@ -1401,7 +1400,7 @@ class Newform(ModularForm_abstract):
 
         - ``level`` -- (optional) the level `N` of the twisted form.
           By default, the algorithm tries to compute `N` using
-          [Atkin-Li]_, Theorem 3.1.
+          [AL1978]_, Theorem 3.1.
 
         - ``check`` -- (optional) boolean; if ``True`` (default), ensure that
           the space of modular symbols that is computed is genuinely simple and
@@ -1473,7 +1472,7 @@ class Newform(ModularForm_abstract):
             epsilon_chi = G(epsilon) * G(chi)
             N_epsilon_chi = epsilon_chi.conductor()
             for q in N_chi.prime_divisors():
-                # See [Atkin-Li], Theorem 3.1.
+                # See [AL1978], Theorem 3.1.
                 alpha = N_epsilon.valuation(q)
                 beta = N_chi.valuation(q)
                 gamma = N.valuation(q)
@@ -1695,14 +1694,14 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         If ``self`` is a modular form `f` with character `\epsilon`
         and `q`-expansion
 
-        .. math::
+        .. MATH::
 
             f(q) = \sum_{n=0}^\infty a_n q^n,
 
         then the twist by `\chi` is a modular form `f_\chi` with
         character `\epsilon\chi^2` and `q`-expansion
 
-        .. math::
+        .. MATH::
 
             f_\chi(q) = \sum_{n=0}^\infty \chi(n) a_n q^n.
 
@@ -1712,8 +1711,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         - ``level`` -- (optional) the level `N` of the twisted form.
           By default, the algorithm chooses some not necessarily
-          minimal value for `N` using [Atkin-Li]_, Proposition 3.1,
-          (See also [Koblitz]_, Proposition III.3.17, for a simpler
+          minimal value for `N` using [AL1978]_, Proposition 3.1,
+          (See also [Kob1993]_, Proposition III.3.17, for a simpler
           but slightly weaker bound.)
 
         OUTPUT:
@@ -1760,12 +1759,9 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         REFERENCES:
 
-        .. [Atkin-Li] \A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
-           of newforms and pseudo-eigenvalues of `W`-operators.
-           Inventiones math. 48 (1978), 221-243.
+        - [AL1978]_
 
-        .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
-           Modular Forms.  Springer GTM 97, 1993.
+        - [Kob1993]_
 
         AUTHORS:
 
@@ -1787,14 +1783,14 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         constructor = CuspForms if self.is_cuspidal() else ModularForms
         if epsilon is not None:
             if level is None:
-                # See [Atkin-Li], Proposition 3.1.
+                # See [AL1978], Proposition 3.1.
                 level = lcm([N, epsilon.conductor() * Q, Q**2])
             G = DirichletGroup(level, base_ring=R)
             M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
         else:
             from sage.modular.arithgroup.all import Gamma1
             if level is None:
-                # See [Atkin-Li], Proposition 3.1.
+                # See [AL1978], Proposition 3.1.
                 level = lcm([N, Q]) * Q
             M = constructor(Gamma1(level), self.weight(), base_ring=R)
         bound = M.sturm_bound() + 1
@@ -2051,7 +2047,7 @@ class EisensteinSeries(ModularFormElement):
         `\psi` is a primitive character of conductor `M` We have
         `MLt \mid N`, and
 
-        .. math::
+        .. MATH::
 
           E_k(chi,psi,t) =
            c_0 + sum_{m \geq 1}[sum_{n|m} psi(n) * chi(m/n) * n^(k-1)] q^{mt},

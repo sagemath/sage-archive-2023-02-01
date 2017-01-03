@@ -5623,8 +5623,14 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
     def null_ideal(self, b=0):
         r"""
-        Return the `(b)`-ideal `N_{(b)}(B)=\{f\in \ZZ[X] \mid f(B)\in M_n(b\ZZ)\}` where `B`
-        is this matrix.
+        Return the `(b)`-ideal of this matrix.
+
+        Let `B` be a `n \times n` matrix. The *null ideal* modulo `b`,
+        or `(b)`-ideal, is
+
+        .. MATH::
+
+            N_{(b)}(B) = \{f \in \ZZ[X] \mid f(B) \in M_n(b\ZZ)\}.
 
         INPUT:
 

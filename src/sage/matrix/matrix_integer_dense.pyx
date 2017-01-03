@@ -5668,7 +5668,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         .. MATH::
 
-           \{f \in \QQ[X] \mid f(B) \in M_n(\ZZ)\} = \mu_B \QQ[X] + \sum_{g\in P} g \ZZ[X]
+           \{f \in \QQ[X] \mid f(B) \in M_n(\ZZ)\}
+               = \mu_B \QQ[X] + \sum_{g\in P} g \ZZ[X]
 
         where `B` is this matrix.
 

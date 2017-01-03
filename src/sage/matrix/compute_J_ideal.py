@@ -18,8 +18,8 @@ that for `t\ge 1`,
 .. MATH::
 
    N_{(p^t)}(B) = \mu_BD[X] + p^tD[X]
-   + \sum_{\substack{s\in\mathcal{S}_p \\ s \le b(t) }}
-   p^{\max\{0,t-s\}}\nu_{ps}D[X]
+       + \sum_{\substack{s\in\mathcal{S}_p \\ s \le b(t) }}
+           p^{\max\{0,t-s\}}\nu_{ps}D[X]
 
 holds where `b(t) = \min\{r\in \mathcal{S}_p \mid r \ge s\}`. The
 degree of `\nu_{ps}` is strictly increasing in `s\in \mathcal{S}_p` and
@@ -69,7 +69,8 @@ The last output means that
 .. MATH::
 
    \{f \in \QQ[X] \mid f(B) \in M_3(\ZZ)\} =
-   (x^3 + x^2 - 12x - 20)\QQ[X] + \ZZ[X] + \frac{1}{4}(x^2 + 3x + 2) \ZZ[X].
+       (x^3 + x^2 - 12x - 20)\QQ[X] + \ZZ[X]
+       + \frac{1}{4}(x^2 + 3x + 2) \ZZ[X].
 
 .. TODO::
 
@@ -908,7 +909,8 @@ class ComputeMinimalPolynomials(SageObject):
 
         .. MATH::
 
-           \{f \in K[X] \mid f(B) \in M_n(D)\} = \mu_B K[X] + \sum_{g\in P} g D[X]
+           \{f \in K[X] \mid f(B) \in M_n(D)\} = \mu_B K[X]
+               + \sum_{g\in P} g D[X]
 
         where `K` denotes the fraction field of `D`.
 

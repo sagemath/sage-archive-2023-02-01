@@ -570,12 +570,12 @@ class ComputeMinimalPolynomials(SageObject):
 
         Compute a finite subset `\mathcal{S}` of the positive
         integers and `(p^s)`-minimal polynomials
-        `\nu_s` for `s\in\mathcal{S}`.
+        `\nu_s` for `s \in \mathcal{S}`.
 
-        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is
+        For `0 < t \le \max \mathcal{S}`, a `(p^t)`-minimal polynomial is
         given by `\nu_s` where
-        `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.
-        For `t>\max\mathcal{S}`, the minimal polynomial of `B` is
+        `s = \min\{ r \in \mathcal{S} \mid r\ge t \}`.
+        For `t > \max \mathcal{S}`, the minimal polynomial of `B` is
         also a `(p^t)`-minimal polynomial.
 
         INPUT:
@@ -590,7 +590,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         A dictionary. Keys are the finite set `\mathcal{S}`, the values
         are the associated `(p^s)`-minimal polynomials `\nu_s`,
-        `s\in\mathcal{S}`.
+        `s \in \mathcal{S}`.
 
         Setting ``s_max`` only affects the output if ``s_max`` is at
         most `\max\mathcal{S}` where `\mathcal{S}` denotes the full

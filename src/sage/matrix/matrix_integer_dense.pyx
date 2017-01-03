@@ -5571,19 +5571,19 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         r"""
         Compute `(p^s)`-minimal polynomials `\nu_s` of this matrix.
 
-        For `s\ge 0`, a `(p^s)`-minimal polynomial of
-        a matrix `B` is a monic polynomial `f\in \ZZ[X]` of
+        For `s  \ge 0`, a `(p^s)`-minimal polynomial of
+        a matrix `B` is a monic polynomial `f \in \ZZ[X]` of
         minimal degree such that all entries of `f(B)` are divisible
         by `p^s`.
 
         Compute a finite subset `\mathcal{S}` of the positive
         integers and `(p^s)`-minimal polynomials
-        `\nu_s` for `s\in\mathcal{S}`.
+        `\nu_s` for `s \in \mathcal{S}`.
 
-        For `0<t\le \max\mathcal{S}`, a `(p^t)`-minimal polynomial is
+        For `0 < t \le \max \mathcal{S}`, a `(p^t)`-minimal polynomial is
         given by `\nu_s` where
-        `s=\min\{ r\in\mathcal{S}\mid r\ge t\}`.
-        For `t>\max\mathcal{S}`, the minimal polynomial of `B` is
+        `s = \min\{ r \in \mathcal{S} \mid r\ge t \}`.
+        For `t > \max\mathcal{S}`, the minimal polynomial of `B` is
         also a `(p^t)`-minimal polynomial.
 
         INPUT:

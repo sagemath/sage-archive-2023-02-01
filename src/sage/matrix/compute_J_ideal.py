@@ -68,8 +68,8 @@ The last output means that
 
 .. MATH::
 
-   \{f \in \mathbb{Q}[X] \mid f(B) \in M_3(\mathbb{Z})\} =
-   (x^3 + x^2 - 12x - 20)\mathbb{Q}[X] + \mathbb{Z}[X] + \frac{1}{4}(x^2 + 3x + 2) \mathbb{Z}[X].
+   \{f \in \QQ[X] \mid f(B) \in M_3(\ZZ)\} =
+   (x^3 + x^2 - 12x - 20)\QQ[X] + \ZZ[X] + \frac{1}{4}(x^2 + 3x + 2) \ZZ[X].
 
 .. TODO::
 

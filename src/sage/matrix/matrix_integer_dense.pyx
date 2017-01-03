@@ -5572,7 +5572,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         Compute `(p^s)`-minimal polynomials `\nu_s` of this matrix.
 
         For `s\ge 0`, a `(p^s)`-minimal polynomial of
-        a matrix `B` is a monic polynomial `f\in \mathbb{Z}[X]` of
+        a matrix `B` is a monic polynomial `f\in \ZZ[X]` of
         minimal degree such that all entries of `f(B)` are divisible
         by `p^s`.
 
@@ -5588,7 +5588,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``p`` -- a prime in `\mathbb{Z}`
+        - ``p`` -- a prime in `\ZZ`
 
         - ``s_max`` -- a positive integer (default: ``None``); if set, only
           `(p^s)`-minimal polynomials for ``s <= s_max`` are computed
@@ -5623,16 +5623,16 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
     def null_ideal(self, b=0):
         r"""
-        Return the `(b)`-ideal `N_{(b)}(B)=\{f\in \mathbb{Z}[X] \mid f(B)\in M_n(b\mathbb{Z})\}` where `B`
+        Return the `(b)`-ideal `N_{(b)}(B)=\{f\in \ZZ[X] \mid f(B)\in M_n(b\ZZ)\}` where `B`
         is this matrix.
 
         INPUT:
 
-        - ``b`` -- an element of `\mathbb{Z}` (default: 0)
+        - ``b`` -- an element of `\ZZ` (default: 0)
 
         OUTPUT:
 
-        An ideal in `\mathbb{Z}[X]`.
+        An ideal in `\ZZ[X]`.
 
         EXAMPLES::
 
@@ -5663,12 +5663,12 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         OUTPUT:
 
-        A pair ``(mu_B, P)`` where ``P`` is a list of polynomials in `\mathbb{Q}[X]`
+        A pair ``(mu_B, P)`` where ``P`` is a list of polynomials in `\QQ[X]`
         such that
 
         .. MATH::
 
-           \{f \in \mathbb{Q}[X] \mid f(B) \in M_n(\mathbb{Z})\} = \mu_B \mathbb{Q}[X] + \sum_{g\in P} g \mathbb{Z}[X]
+           \{f \in \QQ[X] \mid f(B) \in M_n(\ZZ)\} = \mu_B \QQ[X] + \sum_{g\in P} g \ZZ[X]
 
         where `B` is this matrix.
 

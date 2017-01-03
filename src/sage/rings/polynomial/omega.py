@@ -208,6 +208,11 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         ...
         ValueError: Factorization (-mu*x + 1)^-1 of the denominator
         contains negative exponents.
+
+        sage: MacMahonOmega(2*mu, 1, [1 - x*mu])
+        Traceback (most recent call last):
+        ...
+        ValueError: 2*mu is not a variable.
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod

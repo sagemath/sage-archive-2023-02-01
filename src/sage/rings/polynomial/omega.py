@@ -506,7 +506,7 @@ def Omega_ge(a, exponents):
         r"""
         Substitute ``var^exponent`` by ``var`` in ``expression``.
         """
-        p = tuple(var.dict().popitem()[0]).index(1)
+        p = tuple(var.dict().popitem()[0]).index(1)  # var is the p-th generator
         def subs_e(e):
             e = list(e)
             assert e[p] % exponent == 0

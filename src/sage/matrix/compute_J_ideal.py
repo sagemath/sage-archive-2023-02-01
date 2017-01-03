@@ -252,8 +252,7 @@ def p_part(f, p):
     """
     DX = f.parent()
     (X,) = DX.gens()
-    return sum(c//p * X**i for
-               i, c in enumerate(f.list())
+    return sum(c//p * X**i for i, c in enumerate(f.list())
                if c % p == 0)
 
 

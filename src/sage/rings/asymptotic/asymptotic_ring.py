@@ -1587,6 +1587,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<w> = AsymptoticRing('w^QQbar', QQ)
             sage: w^QQbar(sqrt(2))
+            w^(1.414213562373095?)
         """
         if not self.summands:
             if exponent == 0:

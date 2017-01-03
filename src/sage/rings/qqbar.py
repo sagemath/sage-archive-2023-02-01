@@ -3878,7 +3878,9 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: (QQbar.zeta(7)^6)^(1/3) * QQbar.zeta(21)
             1.000000000000000? + 0.?e-18*I
 
-        TESTS::
+        TESTS:
+
+        :trac:`22120`::
 
             sage: QQbar(1)^QQbar(sqrt(2))
             1

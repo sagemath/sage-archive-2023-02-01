@@ -339,43 +339,6 @@ ex hypersimp(const ex& e, const ex& k)
         return combine_powers(simplify_gamma(to_gamma(gr)));
 }
 
-static numeric get_root(const ex& f, const ex& sym)
-{
-        if (is_exactly_a<symbol>(f)) {
-                if (f.is_equal(sym))
-                        return *_num0_p;
-                else
-                        throw std::runtime_error("can't happen in get_root()");
-        }
-        if (is_exactly_a<power>(f))
-                return get_root((ex_to<power>(f)).op(0), sym);
-        numeric c, t;
-        if (is_exactly_a<add>(f)) {
-                const add& a = ex_to<add>(f);
-                if (a.nops() > 2)
-                        throw std::runtime_error("can't happen in get_root()");
-                const ex& a0 = a.op(0);
-                const ex& a1 = a.op(1);
-                if (is_exactly_a<numeric>(a1) and is_exactly_a<mul>(a0)) {
-                        c = ex_to<numeric>(a1);
-                        mul m = ex_to<mul>(a0);
-                        if (m.nops()>2 or not m.op(0).is_equal(sym)
-                                        or not is_exactly_a<numeric>(m.op(1)))
-                                throw std::runtime_error("can't happen in get_root()");
-                        t = ex_to<numeric>(m.op(1));
-                }
-                else if (is_exactly_a<numeric>(a1) and is_exactly_a<symbol>(a0)) {
-                        c = ex_to<numeric>(a1);
-                        t = *_num1_p;
-                }
-                else
-                        throw std::runtime_error("can't happen in get_root()");
-        }
-        else
-                throw std::runtime_error("can't happen in get_root()");
-        return -c/t;
-}
-
 static ex diagonal_poly(const exvector& syms, const ex& var)
 // Return sum(0<=i<n, sym_i * var^i)
 {
@@ -443,6 +406,31 @@ static matrix solve_system(ex mpoly,
         return res;
 }
 
+static std::set<int> nonneg_integer_roots(const ex& poly, const symbol& v)
+{
+        std::set<int> roots;
+        roots.insert(1);
+        symbolset s = poly.symbols();
+        if (s.size() > 1)
+                return roots;
+        numeric lcm = lcm_of_coefficients_denominators(poly);
+        ex p = multiply_lcm(poly, lcm);
+        p = p.primpart(v);
+        int ldeg = p.ldegree(v);
+        if (ldeg > 0)
+                roots.insert(0);
+        numeric c = ex_to<numeric>(p.coeff(v, ldeg));
+        if (not c.is_integer())
+                throw std::runtime_error("can't happen in nonneg_integer_roots");
+        c.divisors(roots);
+        for (auto it = roots.begin(); it != roots.end(); )
+                if (not poly.subs(v == numeric(*it)).is_zero())
+                        it = roots.erase(it);
+                else
+                        ++it;
+        return std::move(roots);
+}
+
 ex gosper_term(ex e, ex n)
 {
         ex the_ex = hypersimp(e, n);
@@ -453,50 +441,16 @@ ex gosper_term(ex e, ex n)
         ex ldq = cn / cd;
         ex A = num / cn;
         ex B = den / cd;
+        ex C = _ex1;
         symbol h;
         ex res = resultant(A, B.subs(n == n+h), n);
-        ex prod;
-        bool factored = factorpoly(res.expand(), prod);
-        ex C = _ex1;
-        if (factored and is_exactly_a<mul>(prod)) {
-                const mul& m = ex_to<mul>(prod);
-                std::set<int> roots;
-                for (unsigned int i=0; i<m.nops(); i++) {
-                        ex f = m.op(i);
-                        if (is_exactly_a<numeric>(f))
-                                continue;
-                        if (is_exactly_a<numeric>(f.subs(h == 0))) {
-                                numeric root = get_root(f, h);
-                                if (not root.info(info_flags::integer)
-                                    or root < 0)
-                                        continue;
-                                roots.insert(root.to_int());
-                        }
-                }
-                for (int root : roots) {
-                        ex d = gcd(A, B.subs(n == n+ex(root)).expand());
-                        A = quo(A, d, n, false);
-                        B = quo(B, d.subs(n == n-ex(root)), false);
-                        for (long j=1; j<root+1; ++j)
-                                C *= d.subs(n == n-ex(j));
-                }
-        }
-        else {
-                if (not is_exactly_a<numeric>(res)
-                    and is_exactly_a<numeric>(res.subs(h == 0))) {
-                        numeric root;
-                        if (factored and is_exactly_a<power>(prod))
-                                root = get_root(ex_to<power>(prod).op(0), h);
-                        else
-                                root = get_root(res, h);
-                        if (root.info(info_flags::integer) and root >= 0) {
-                                ex d = gcdpoly(A, B.subs(n == n+root).expand());
-                                A = quo(A, d, n, false);
-                                B = quo(B, d.subs(n == n-root), false);
-                                for (long j=1; j<root.to_long()+1; ++j)
-                                        C *= d.subs(n == n-ex(j));
-                        }
-                }
+        std::set<int> roots = nonneg_integer_roots(res, h);
+        for (int root : roots) {
+                ex d = gcd(A, B.subs(n == n+ex(root)).expand());
+                A = quo(A, d, n, false);
+                B = quo(B, d.subs(n == n-ex(root)), false);
+                for (long j=1; j<root+1; ++j)
+                        C *= d.subs(n == n-ex(j));
         }
         A *= ldq;
         B = B.subs(n == n-1).expand();

@@ -345,6 +345,7 @@ void ex::set_domain(unsigned d)
 }
 
 size_t ex::nsymbols() const
+// DON'T USE if you want the number of symbols, instead use symbols().size()
 {
 	int res = 0;
 	if (is_exactly_a<symbol>(*this)) {

@@ -4352,6 +4352,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         -  ``self`` - a matrix over the integers.
 
         - ``solver`` - either ``'iml'`` (default) or ``'flint'``
+
         OUTPUT:
 
 

@@ -2184,7 +2184,7 @@ def cl_maximum_root_first_lambda(cl):
 
     TESTS::
 
-        sage: bnd = cl_maximum_root_first_lambda(map(RIF, [0, 0, 0, 14, 1]))
+        sage: bnd = cl_maximum_root_first_lambda(list(map(RIF, [0, 0, 0, 14, 1])))
         sage: bnd, bnd.parent()
         (0.000000000000000,
         Real Field with 53 bits of precision and rounding RNDU)

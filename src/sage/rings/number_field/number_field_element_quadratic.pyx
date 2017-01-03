@@ -875,7 +875,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l.sort()
             sage: l
             [-2, 2*phi - 5, 6765*phi - 10946, 0, -phi + 2, 2*phi - 1, phi + 3]
-            sage: map(RDF, l)
+            sage: list(map(RDF, l))
             [-2.0, -1.7639320225002102, -6.610696073039435e-05, 0.0, 0.3819660112501051, 2.23606797749979, 4.618033988749895]
 
         ::
@@ -895,7 +895,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l.sort()
             sage: l
             [-1, psi, 0, 6765*psi + 4181, 3*psi + 2]
-            sage: map(RDF, l)
+            sage: list(map(RDF, l))
             [-1.0, -0.6180339887498949, 0.0, 6.610696073039435e-05, 0.1458980337503153]
 
         For a field with no specified embedding the comparison uses the standard
@@ -913,9 +913,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l.sort()
             sage: l
             [i - 3, -2, 2*i - 2, i - 1, 5*i, -3*i + 1, 1, 2*i + 2]
-            sage: map(CDF, l)
+            sage: list(map(CDF, l))
             [-3.0 + 1.0*I, -2.0, -2.0 + 2.0*I, -1.0 + 1.0*I, 5.0*I, 1.0 - 3.0*I, 1.0, 2.0 + 2.0*I]
-            sage: map(CDF, l) == sorted(map(CDF, l))
+            sage: list(map(CDF, l)) == sorted(map(CDF, l))
             True
         """
         cdef NumberFieldElement_quadratic right = <NumberFieldElement_quadratic> _right

@@ -81,7 +81,9 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
       of Laurent polynomial factors) or a tuple/list of factors (Laurent
       polynomials).
 
-    - ``op`` -- (default: ``operator.ge``) an operator.
+    - ``op`` -- (default: ``operator.ge``) an operator
+
+      At the moment only ``operator.ge`` is implemented.
 
     - ``Factorization_sort`` (default: ``False``) and
       ``Factorization_simplify`` (default: ``True``) -- are passed on to
@@ -193,6 +195,13 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
 
         sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - z, 1 - y/mu])
         1 * (-z + 1)^-1 * (-x + 1)^-1 * (-x*y + 1)^-1
+
+    ::
+
+        sage: MacMahonOmega(mu, 1, [1 - x*mu], op=operator.lt)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: At the moment, only Omega_ge is implemented.
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod

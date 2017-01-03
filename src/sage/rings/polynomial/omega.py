@@ -341,7 +341,19 @@ def _Omega_(A, decoded_factors):
 
     ::
 
+        sage: L.<mu, x, y> = LaurentPolynomialRing(ZZ)
+        sage: MacMahonOmega(mu, mu^-2, [1 - x*mu, 1 - y/mu])
+        x^2 * (-x + 1)^-1 * (-x*y + 1)^-1
+
+    internally calls
+    ::
+
         sage: from sage.rings.polynomial.omega import _Omega_
+        sage: _Omega_({-2: 1}, [(x, 1), (y, -1)])
+        (x^2, (x, x*y))
+
+    ::
+
         sage: _Omega_({0: 2, 1: 40, -1: -3}, [])
         (42, ())
         sage: _Omega_({-1: 42}, [])

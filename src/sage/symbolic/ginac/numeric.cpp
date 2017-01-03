@@ -49,6 +49,9 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "flint/fmpz.h"
+#include "flint/fmpz_factor.h"
+
 #include "numeric.h"
 #include "operators.h"
 #include "power.h"
@@ -2660,6 +2663,62 @@ const numeric numeric::lcm(const numeric &b) const {
         }
         
         PY_RETURN2(py_funcs.py_lcm, b);
+}
+
+void numeric::factor(std::vector<std::pair<long, int>>& factors) const
+{
+        if (t == MPQ)
+                return to_bigint().factor(factors);
+        if (t != MPZ)
+                return;
+        if (*this == *_num1_p or *this == *_num_1_p)
+                return;
+        fmpz_t f;
+        fmpz_init(f);
+        mpz_t bigint;
+        mpz_init(bigint);
+        mpz_abs(bigint, v._bigint);
+        fmpz_set_mpz(f, bigint);
+        fmpz_factor_t fs;
+        fmpz_factor_init(fs);
+        fmpz_factor(fs, f);
+        for (slong i=0; i<fs->num; ++i) {
+                fmpz_get_mpz(bigint, fs->p + i);
+                factors.push_back(std::make_pair(mpz_get_si(bigint),
+                                              int(*(fs->exp+i))));
+        }
+        mpz_clear(bigint);
+        fmpz_clear(f);
+        fmpz_factor_clear(fs);
+}
+
+static void setDivisors(long n, int i, std::set<int>& divisors,
+        const std::vector<std::pair<long, int>>& factors)
+// author of this little gem:
+// http://stackoverflow.com/users/3864373/rocky-johnson
+{
+    for (size_t j = i; j<factors.size(); j++) {
+        long x = factors[j].first * n;
+        for (int k = 0; k<factors[j].second; k++) {
+            divisors.insert(x);
+            setDivisors(x, j + 1, divisors, factors);
+            x *= factors[j].first;
+        }
+    }
+}
+
+void numeric::divisors(std::set<int>& divs) const
+{
+        if (t == MPQ)
+                return to_bigint().divisors(divs);
+        if (t != MPZ)
+                return;
+        divs.insert(1);
+        if (*this == *_num1_p or *this == *_num_1_p)
+                return;
+        std::vector<std::pair<long, int>> factors;
+        factor(factors);
+        setDivisors(1, 0, divs, factors);
 }
 
 /** Size in binary notation.  For integers, this is the smallest n >= 0 such

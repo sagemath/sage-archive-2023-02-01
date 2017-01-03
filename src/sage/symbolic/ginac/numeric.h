@@ -56,6 +56,7 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <set>
 
 void ginac_pyinit_Integer(PyObject*);
 void ginac_pyinit_Float(PyObject*);
@@ -277,6 +278,8 @@ public:
 	const numeric iquo(const numeric &b, numeric &r) const;
 	const numeric gcd(const numeric &b) const;
 	const numeric lcm(const numeric &b) const;
+        void factor(std::vector<std::pair<long, int>>& factors) const;
+        void divisors(std::set<int>& divs) const;
 	
 	int int_length() const;
 

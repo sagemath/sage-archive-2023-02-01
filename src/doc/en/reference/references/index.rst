@@ -781,6 +781,10 @@ REFERENCES:
              Introduction to Mathematical
              Cryptography*. Springer, 2008.
 
+.. [HR2016]  Clemens Heuberger and Roswitha Rissner, "Computing
+             `J`-Ideals of a Matrix Over a Principal Ideal Domain",
+             :arxiv:`1611.10308`, 2016.
+
 .. [Hsu1996] Tim Hsu, "Identifying congruence subgroups of the modular
              group", Proc. AMS 124, no. 5, 1351-1359 (1996)
 
@@ -1278,6 +1282,10 @@ REFERENCES:
 
 .. [Rio1958] \J. Riordan, "An Introduction to Combinatorial Analysis",
              Dover Publ. (1958)
+
+.. [Ris2016] Roswitha Rissner, "Null ideals of matrices over residue
+             class rings of principal ideal domains". Linear Algebra
+             Appl., **494** (2016) 44–69. :doi:`10.1016/j.laa.2016.01.004`.
 
 .. [RMA2009] \P. Réal and H. Molina-Abril, *Cell AT-models for digital
              volumes* in Torsello, Escolano, Brun (eds.), Graph-Based

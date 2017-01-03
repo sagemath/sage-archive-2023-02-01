@@ -398,6 +398,8 @@ def Omega_ge(a, exponents):
         (1 - z_1 \mu^{e_1}) \dots (1 - z_n \mu^{e_n})}
 
     and return its numerator and a factorization of its denominator.
+    Note that `z_1`, ..., `z_n` only appear in the output, but not in the
+    input.
 
     INPUT:
 

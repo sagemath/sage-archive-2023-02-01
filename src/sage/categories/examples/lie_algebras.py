@@ -193,7 +193,7 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
             """
             return not self.__eq__(rhs)
 
-        def __nonzero__(self):
+        def __bool__(self):
             """
             Check non-zero.
 
@@ -206,6 +206,8 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
                 False
             """
             return bool(self.value)
+
+        __nonzero__ = __bool__
 
         def _add_(self, rhs):
             """

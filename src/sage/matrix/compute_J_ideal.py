@@ -130,8 +130,8 @@ def lifting(p, t, A, G):
 
     - ``G`` -- a matrix over `D[X]`. The columns of
       `\begin{pmatrix}p^{t-1}I& G\end{pmatrix}` are generators
-      of `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^{t-1}}\}`.
-      Can be set to ``None`` if ``t`` is zero.
+      of `\{ f\in D[X]^d \mid Af \equiv 0\pmod{p^{t-1}}\}`;
+      can be set to ``None`` if ``t`` is zero
 
     OUTPUT:
 
@@ -264,7 +264,7 @@ class ComputeMinimalPolynomials(SageObject):
 
     INPUT:
 
-    - ``B`` -- a square matrix over a principal ideal domain `D`.
+    - ``B`` -- a square matrix over a principal ideal domain `D`
 
     OUTPUT:
 
@@ -308,7 +308,7 @@ class ComputeMinimalPolynomials(SageObject):
 
         INPUT:
 
-        - ``B`` -- a square matrix.
+        - ``B`` -- a square matrix
 
         TESTS::
 
@@ -349,9 +349,9 @@ class ComputeMinimalPolynomials(SageObject):
         - ``t`` -- a non-negative integer
 
         - ``pt_generators`` -- a list `(g_1, \ldots, g_s)` of polynomials in
-          `D[X]` such that `N_{(p^t)}(B) = (g_1, \ldots, g_s) + pN_{(p^{t-1})}(B)`.
+          `D[X]` such that `N_{(p^t)}(B) = (g_1, \ldots, g_s) + pN_{(p^{t-1})}(B)`
 
-        - ``prev_nu`` -- a `(p^{t-1})`-minimal polynomial of `B`.
+        - ``prev_nu`` -- a `(p^{t-1})`-minimal polynomial of `B`
 
         OUTPUT:
 
@@ -429,9 +429,9 @@ class ComputeMinimalPolynomials(SageObject):
         - ``t`` -- a positive integer
 
         - ``pt_generators`` -- a list `(g_1, \ldots, g_s)` of polynomials in
-          `D[X]` such that `N_{(p^t)}(B) = (g_1, \ldots, g_s) + pN_{(p^{t-1})}(B)`.
+          `D[X]` such that `N_{(p^t)}(B) = (g_1, \ldots, g_s) + pN_{(p^{t-1})}(B)`
 
-        - ``prev_nu`` -- a `(p^{t-1})`-minimal polynomial of `B`.
+        - ``prev_nu`` -- a `(p^{t-1})`-minimal polynomial of `B`
 
         OUTPUT:
 
@@ -571,9 +571,9 @@ class ComputeMinimalPolynomials(SageObject):
 
         - ``p`` -- a prime in `D`
 
-        - ``s_max`` -- a positive integer (default: ``None``). If set, only
+        - ``s_max`` -- a positive integer (default: ``None``); if set, only
           `(p^s)`-minimal polynomials for ``s <= s_max`` are computed
-          (see below for details).
+          (see below for details)
 
         OUTPUT:
 

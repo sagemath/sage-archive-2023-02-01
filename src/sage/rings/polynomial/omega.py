@@ -477,18 +477,17 @@ def Omega_ge(a, exponents):
 
     from sage.arith.misc import lcm
     from sage.arith.srange import srange
-    from sage.misc.functional import cyclotomic_polynomial
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-    from sage.rings.rational_field import QQ
+    from sage.rings.number_field.number_field import CyclotomicField
 
     if not exponents or any(e == 0 for e in exponents):
         raise NotImplementedError
 
     rou = sorted(set(abs(e) for e in exponents) - set([1]))
     ellcm = lcm(rou)
-    B = QQ.extension(cyclotomic_polynomial(ellcm), 'zeta')
+    B = CyclotomicField(ellcm, 'zeta')
     zeta = B.gen()
     z_names = tuple('z{}'.format(i) for i in range(len(exponents)))
     L = LaurentPolynomialRing(B, ('t',) + z_names, len(z_names) + 1)

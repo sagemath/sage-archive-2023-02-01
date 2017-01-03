@@ -505,6 +505,9 @@ def Omega_ge(a, exponents):
     def subs_power(expression, var, exponent):
         r"""
         Substitute ``var^exponent`` by ``var`` in ``expression``.
+
+        It is assumed that ``var`` only occurs with exponents
+        divisible by ``exponent``.
         """
         p = tuple(var.dict().popitem()[0]).index(1)  # var is the p-th generator
         def subs_e(e):

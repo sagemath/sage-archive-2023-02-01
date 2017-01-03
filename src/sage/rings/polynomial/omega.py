@@ -502,9 +502,9 @@ def Omega_ge(a, exponents):
     x = tuple(v for e, v in exponents_and_values if e > 0)
     y = tuple(v for e, v in exponents_and_values if e < 0)
 
-    def subs_power(expression, var, exponent, value=None):
+    def subs_power(expression, var, exponent):
         r"""
-        Substitute ``var^exponent`` by ``value`` in ``expression``.
+        Substitute ``var^exponent`` by ``var`` in ``expression``.
         """
         p = tuple(var.dict().popitem()[0]).index(1)
         def subs_e(e):
@@ -514,9 +514,7 @@ def Omega_ge(a, exponents):
             return tuple(e)
         parent = expression.parent()
         result = parent({subs_e(e): c for e, c in iteritems(expression.dict())})
-        if value is None:
-            return result
-        return result.subs({var: value})
+        return result
 
     def de_power(expression):
         expression = Z(expression)

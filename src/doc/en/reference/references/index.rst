@@ -467,6 +467,10 @@ REFERENCES:
              Leçons mathématiques de Bordeaux, vol. 4, pages 259-300,
              Cassini (2011).
 
+.. [deGraaf2000] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
+                 North-Holland Mathemtaical Library. (2000).
+                 Elsevier Science B.V.
+
 .. [Deo1987a] \V. Deodhar, A splitting criterion for the Bruhat
               orderings on Coxeter groups. Comm. Algebra,
               15:1889-1894, 1987.

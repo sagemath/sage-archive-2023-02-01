@@ -497,3 +497,93 @@ class IndexedGenerators(object):
             return left + s + right
         return "%s_{%s}" % (prefix, s)
 
+def standardize_names_index_set(names=None, index_set=None, ngens=None):
+    """
+    Standardize the ``names`` and ``index_set`` for a Lie algebra.
+
+    OUTPUT:
+
+    A pair ``(names_std, index_set_std)``, where ``names_std`` is either
+    ``None`` or a tuple of strings, and where ``index_set_std`` is a finite
+    enumerated set.
+    The purpose of ``index_set_std`` is to index the generators of some object
+    (e.g., the basis of a module); the strings in ``names_std``, when they
+    exist, are used for printing these indices. The ``ngens``
+
+    If ``names`` contains exactly one name ``X`` and ``ngens`` is greater than
+    1, then ``names_std`` are ``Xi`` for ``i`` in ``range(ngens)``.
+
+    TESTS::
+
+        sage: from sage.structure.indexed_generators import standardize_names_index_set
+        sage: standardize_names_index_set('x,y')
+        (('x', 'y'), {'x', 'y'})
+        sage: standardize_names_index_set(['x','y'])
+        (('x', 'y'), {'x', 'y'})
+        sage: standardize_names_index_set(['x','y'], ['a','b'])
+        (('x', 'y'), {'a', 'b'})
+        sage: standardize_names_index_set('x,y', ngens=2)
+        (('x', 'y'), {'x', 'y'})
+        sage: standardize_names_index_set(index_set=['a','b'], ngens=2)
+        (None, {'a', 'b'})
+        sage: standardize_names_index_set('x', ngens=3)
+        (('x0', 'x1', 'x2'), {'x0', 'x1', 'x2'})
+
+        sage: standardize_names_index_set()
+        Traceback (most recent call last):
+        ...
+        ValueError: the index_set, names, or number of generators must be specified
+        sage: standardize_names_index_set(['x'], ['a', 'b'])
+        Traceback (most recent call last):
+        ...
+        ValueError: the number of names must equal the size of the indexing set
+        sage: standardize_names_index_set('x,y', ['a'])
+        Traceback (most recent call last):
+        ...
+        ValueError: the number of names must equal the size of the indexing set
+        sage: standardize_names_index_set('x,y,z', ngens=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the number of names must equal the number of generators
+        sage: standardize_names_index_set(index_set=['a'], ngens=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the size of the indexing set must equal the number of generators
+    """
+    if isinstance(names, str):
+        names = tuple(names.split(','))
+    elif names is not None:
+        names = tuple(names)
+
+    if names is not None and len(names) == 1 and ngens > 1:
+        letter = names[0]
+        names = tuple([letter + str(i) for i in range(ngens)])
+
+    if index_set is None:
+        if names is None:
+            # If neither is specified, we make range(ngens) the index set
+            if ngens is None:
+                raise ValueError("the index_set, names, or number of"
+                                 " generators must be specified")
+            index_set = tuple(range(ngens))
+        else:
+            # If only the names are specified, then we make the indexing set
+            #   be the names
+            index_set = tuple(names)
+
+    if isinstance(index_set, (tuple, list)):
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        index_set = FiniteEnumeratedSet(index_set)
+
+    if names is not None:
+        if len(names) != index_set.cardinality():
+            raise ValueError("the number of names must equal"
+                             " the size of the indexing set")
+        if ngens is not None and len(names) != ngens:
+            raise ValueError("the number of names must equal the number of generators")
+    elif ngens is not None and index_set.cardinality() != ngens:
+        raise ValueError("the size of the indexing set must equal"
+                         " the number of generators")
+
+    return (names, index_set)
+

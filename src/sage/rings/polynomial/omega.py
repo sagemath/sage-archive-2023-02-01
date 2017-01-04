@@ -658,7 +658,7 @@ def Omega_numerator(a, x, y, t):
         result = sum(homogenous_symmetric_function(j, xy)
                      for j in srange(a+1))
     else:
-        result = _Omega_numerator_P_(a, x_flat, y_flat, t).subs({t: x_flat[-1]})
+        result = _Omega_numerator_P_(a, x_flat[:-1], y_flat, t).subs({t: x_flat[-1]})
     L = t.parent()
     result = L(result)
 
@@ -674,9 +674,15 @@ def _Omega_numerator_P_(a, x, y, t):
 
     - ``a`` -- an integer.
 
-    - ``x`` and ``y`` -- a tuple of Laurent polynomials.
+    - ``x`` and ``y`` -- a tuple of Laurent polynomials
 
-    - ``t`` -- a temporary Laurent polynomial variable used for substituting.
+      The tuple ``x`` here is the flattened ``x`` of :func:`Omega_numerator`
+      but without its last entry.
+
+    - ``t`` -- a temporary Laurent polynomial variable
+
+      In the (final) result, ``t`` has to be substituted by the last
+      entry of the flattened ``x`` of :func:`Omega_numerator`.
 
     OUTPUT:
 
@@ -686,7 +692,7 @@ def _Omega_numerator_P_(a, x, y, t):
 
         sage: from sage.rings.polynomial.omega import _Omega_numerator_P_
         sage: L.<x0, x1, y0, y1, t> = LaurentPolynomialRing(ZZ)
-        sage: _Omega_numerator_P_(0, (x0, x1), (y0,), t).subs({t: x1})
+        sage: _Omega_numerator_P_(0, (x0,), (y0,), t).subs({t: x1})
         -x0*x1*y0 + 1
     """
     # This function takes Laurent polynomials as inputs. It would
@@ -705,7 +711,7 @@ def _Omega_numerator_P_(a, x, y, t):
     from sage.misc.misc_c import prod
 
     n = len(x)
-    if n == 1:
+    if n == 0:
         x0 = t
         result = x0**(-a) + \
             (prod(1 - x0*yy for yy in y) *
@@ -714,7 +720,7 @@ def _Omega_numerator_P_(a, x, y, t):
              if a > 0 else 0)
     else:
         Pprev = _Omega_numerator_P_(a, x[:n-1], y, t)
-        x2 = x[n-2]
+        x2 = x[n-1]
         logger.debug('Omega_numerator: P(%s): substituting...', n)
         x1 = t
         p1 = Pprev

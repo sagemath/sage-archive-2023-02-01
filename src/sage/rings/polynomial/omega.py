@@ -2,20 +2,8 @@ r"""
 MacMahon's Omega Operator
 
 This module implements :func:`MacMahon's Omega Operator <Omega>`
-[MacMahon1915]_, which takes a quotient of Laurent polynomials and
+[Mac1915]_, which takes a quotient of Laurent polynomials and
 removes all negative exponents in the corresponding power series.
-
-
-References
-==========
-
-.. [MacMahon1915] Percy A. MacMahon, *Combinatory Analysis*,
-   Cambridge University Press (1915--1916).
-   (Reprinted: Chelsea, New York, 1960)
-
-.. [APR2001] George E. Andrews, Peter Paule, Axel Riese,
-   *MacMahon's partition analysis: the Omega package*,
-   European J. Combin. 22 (2001), no. 7, 887--904.
 
 
 Various
@@ -105,7 +93,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
 
     REFERENCES:
 
-    - [MacMahon1915]_
+    - [Mac1915]_
 
     - [APR2001]_
 

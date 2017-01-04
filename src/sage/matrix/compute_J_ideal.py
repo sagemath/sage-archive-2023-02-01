@@ -76,6 +76,14 @@ The last output means that
 
    Test code over PIDs other than ZZ.
 
+   This requires implementation of
+   :meth:`~sage.matrix.matrix_integer_dense.Matrix_integer_dense.frobenius`
+   over more general domains than ZZ.
+
+   Additionally, :func:`lifting` requires modification or a bug
+   needs fixing, see
+   `AskSage Question 35555 <https://ask.sagemath.org/question/35555/lifting-a-matrix-from-mathbbqyy-1/>`_.
+
 REFERENCES:
 
    [Ris2016]_, [HR2016]_

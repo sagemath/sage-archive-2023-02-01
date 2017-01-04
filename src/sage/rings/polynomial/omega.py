@@ -689,6 +689,15 @@ def _Omega_numerator_P_(a, x, y, t):
         sage: _Omega_numerator_P_(0, (x0, x1), (y0,), t).subs({t: x1})
         -x0*x1*y0 + 1
     """
+    # This function takes Laurent polynomials as inputs. It would
+    # be possible to input only the sizes of ``x`` and ``y`` and
+    # perform a substitution afterwards; in this way caching of this
+    # function would make sense. However, the way it is now allows
+    # automatic collection and simplification of the summands, which
+    # makes it more efficient for higher powers at the input of
+    # :func:`Omega_ge`.
+    # Caching occurs in :func:`Omega_ge`.
+
     import logging
     logger = logging.getLogger(__name__)
 

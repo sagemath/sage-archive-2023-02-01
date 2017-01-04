@@ -559,9 +559,13 @@ def Omega_numerator(a, x, y, t):
 
     - ``a`` -- an integer.
 
-    - ``x`` and ``y`` -- a tuple of tuples of Laurent polynomials. The
+    - ``x`` and ``y`` -- a tuple of tuples of Laurent polynomials
+
+      The
       flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
       `y_1,...,y_m`.
+      The non-flatness of these parameters is to be interface-consistent
+      with :func:`Omega_factors_denominator`.
 
     - ``t`` -- a temporary Laurent polynomial variable used for substituting.
 

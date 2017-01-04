@@ -163,6 +163,29 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y/mu])
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
+    We demonstrate the different allowed input variants::
+
+        sage: MacMahonOmega(mu,
+        ....:     Factorization([(mu, 2), (1 - x*mu, -1), (1 - y/mu, -1)]))
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
+
+        sage: MacMahonOmega(mu, mu^2,
+        ....:     Factorization([(1 - x*mu, 1), (1 - y/mu, 1)]))
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
+
+        sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y/mu])
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
+
+        sage: MacMahonOmega(mu, mu^2, (1 - x*mu)*(1 - y/mu))
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor n
+
+        sage: MacMahonOmega(mu, mu^2 / ((1 - x*mu)*(1 - y/mu)))
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Factor y - mu is not normalized.
+
     TESTS::
 
         sage: MacMahonOmega(mu, 1, [1 - x*mu])

@@ -38,8 +38,8 @@ are cached. It provides the following methods:
 * :meth:`~ComputeMinimalPolynomials.prime_candidates` determines all primes `p`
   where `\mathcal{S}_p` might be non-empty.
 
-* :meth:`~ComputeMinimalPolynomials.integer_valued_polynomials` determines
-  the generators of the ring `\{f \in K[X] \mid f(B) \in M_n(D)\}`
+* :meth:`~ComputeMinimalPolynomials.integer_valued_polynomials_generators`
+  determines the generators of the ring `\{f \in K[X] \mid f(B) \in M_n(D)\}`
   of integer valued polynomials on `B`.
 
 EXAMPLES::
@@ -61,7 +61,7 @@ EXAMPLES::
         Univariate Polynomial Ring in x over Integer Ring
     sage: C.p_minimal_polynomials(2)
     {2: x^2 + 3*x + 2}
-    sage: C.integer_valued_polynomials()
+    sage: C.integer_valued_polynomials_generators()
     (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
 
 The last output means that
@@ -287,7 +287,7 @@ class ComputeMinimalPolynomials(SageObject):
     OUTPUT:
 
     An object which allows to call :meth:`p_minimal_polynomials`,
-    :meth:`null_ideal` and :meth:`integer_valued_polynomials`.
+    :meth:`null_ideal` and :meth:`integer_valued_polynomials_generators`.
 
     EXAMPLES::
 
@@ -308,7 +308,7 @@ class ComputeMinimalPolynomials(SageObject):
             Univariate Polynomial Ring in x over Integer Ring
         sage: C.p_minimal_polynomials(2)
         {2: x^2 + 3*x + 2}
-        sage: C.integer_valued_polynomials()
+        sage: C.integer_valued_polynomials_generators()
         (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
     """
     def __init__(self, B):
@@ -906,7 +906,7 @@ class ComputeMinimalPolynomials(SageObject):
         return [p for (p, t) in factor(T.det())]
 
 
-    def integer_valued_polynomials(self):
+    def integer_valued_polynomials_generators(self):
         r"""
         Determine the generators of the ring of integer valued polynomials on `B`.
 
@@ -927,7 +927,7 @@ class ComputeMinimalPolynomials(SageObject):
             sage: from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
             sage: C = ComputeMinimalPolynomials(B)
-            sage: C.integer_valued_polynomials()
+            sage: C.integer_valued_polynomials_generators()
             (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
         """
         return (self.mu_B, [self._DX(1)] +

@@ -5663,7 +5663,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         return ComputeMinimalPolynomials(self).null_ideal(b)
 
 
-    def integer_valued_polynomials(self):
+    def integer_valued_polynomials_generators(self):
         r"""
         Determine the generators of the ring of integer valued polynomials on this
         matrix.
@@ -5683,16 +5683,16 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         EXAMPLES::
 
             sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
-            sage: B.integer_valued_polynomials()
+            sage: B.integer_valued_polynomials_generators()
             (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
 
         .. SEEALSO::
 
             :mod:`~sage.matrix.compute_J_ideal`,
-            :meth:`~sage.matrix.compute_J_ideal.ComputeMinimalPolynomials.integer_valued_polynomials`
+            :meth:`~sage.matrix.compute_J_ideal.ComputeMinimalPolynomials.integer_valued_polynomials_generators`
         """
         from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
-        return ComputeMinimalPolynomials(self).integer_valued_polynomials()
+        return ComputeMinimalPolynomials(self).integer_valued_polynomials_generators()
 
 
 cdef inline GEN pari_GEN(Matrix_integer_dense B):

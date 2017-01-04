@@ -844,6 +844,8 @@ def partition(items, predicate=bool):
     A pair of iterators; the first contains the elements not satisfying
     the ``predicate``, the second the elements satisfying the ``predicate``.
 
+    ALGORITHM:
+
     Source of the code:
     `http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html
     <http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html>`_

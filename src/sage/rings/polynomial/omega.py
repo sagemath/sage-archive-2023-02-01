@@ -670,6 +670,8 @@ def _Omega_numerator_P_(a, x, y, t):
     r"""
     Helper function for :func:`Omega_numerator`.
 
+    This is an implementation of the function `P` of [APR2001]_.
+
     INPUT:
 
     - ``a`` -- an integer.

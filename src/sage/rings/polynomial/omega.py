@@ -255,6 +255,13 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         Traceback (most recent call last):
         ...
         NotImplementedError: Cannot handle factor 1 - x*mu - mu^2.
+
+    ::
+
+        sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(QQ)
+        sage: MacMahonOmega(mu, 1/mu,
+        ....:     Factorization([(1 - x*mu, 1), (1 - y/mu, 2)], unit=2))
+        1/2*x * (-x + 1)^-1 * (-x*y + 1)^-2
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod
@@ -287,7 +294,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         if not denominator.is_integral():
             raise ValueError('Factorization {} of the denominator '
                              'contains negative exponents.'.format(denominator))
-        numerator *= denominator.unit()
+        numerator *= ZZ(1) / denominator.unit()
         factors_denominator = tuple(factor
                                     for factor, exponent in denominator
                                     for _ in range(exponent))

@@ -876,7 +876,7 @@ def homogenous_symmetric_function(j, x):
 
     OUTPUT:
 
-    A polynomial whose type is determined by the input ``x``.
+    A polynomial of the common parent of all entries of ``x``.
 
     EXAMPLES::
 

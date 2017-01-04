@@ -1058,6 +1058,10 @@ cdef class BooleanFunction(SageObject):
         - ``val`` -- either an integer or a tuple/list of ``GF(2)`` elements
           of length ``self.nvariables()``
 
+        .. SEEALSO::
+            :meth:`has_linear_structure`,
+            :meth:`linear_structures`.
+
         EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
@@ -1070,20 +1074,19 @@ cdef class BooleanFunction(SageObject):
             False
         """
         nvars = self._nvariables
-        i = -1
 
-        if isinstance(val, (int, long, Integer)):
-            i = ZZ(val)
-        elif len(val) == nvars:
+        if isinstance(val, (tuple, list)):
             i = ZZ(val, base=2)
         else:
-            raise TypeError("cannot compute is_linear_structure() using parameter %s" % (val,))
+            i = val
 
         a = self.autocorrelation()
         try:
             return abs(a[i]) == 1<<nvars
         except IndexError:
             return False
+        except TypeError:
+            raise TypeError("cannot compute is_linear_structure() using parameter %s" % (val,))
 
     def has_linear_structure(self):
         """
@@ -1092,6 +1095,10 @@ cdef class BooleanFunction(SageObject):
         An `n`-variable Boolean function `f` has a linear structure if
         there exists a nonzero `a \in \mathbb{F}_2^n` such that
         `f(x \oplus a) \oplus f(x)` is a constant function.
+
+        .. SEEALSO::
+            :meth:`is_linear_structure`,
+            :meth:`linear_structures`.
 
         EXAMPLES::
 
@@ -1115,6 +1122,10 @@ cdef class BooleanFunction(SageObject):
         """
         Return all linear structures of this Boolean function as a vector subspace
         of `\mathbb{F}_2^n`.
+
+        .. SEEALSO::
+            :meth:`is_linear_structure`,
+            :meth:`has_linear_structure`.
 
         EXAMPLES::
 

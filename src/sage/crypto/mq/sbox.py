@@ -1210,6 +1210,10 @@ class SBox(SageObject):
         implies that for all output differences `\beta` of the S-Box
         correspond to input difference `\alpha`, we have `b \cdot \beta = c`.
 
+        .. SEEALSO::
+            :meth:`is_linear_structure`,
+            :meth:`has_linear_structure`.
+
         EXAMPLES::
 
             sage: S = mq.SBox([0,1,3,6,7,4,5,2])
@@ -1233,6 +1237,10 @@ class SBox(SageObject):
         Return ``True`` if there exists a nonzero component function of this
         S-Box that has a linear structure.
 
+        .. SEEALSO::
+            :meth:`is_linear_structure`,
+            :meth:`linear_structures`.
+
         EXAMPLES::
 
             sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
@@ -1252,6 +1260,10 @@ class SBox(SageObject):
           length ``self.m``
         - ``b`` -- either an integer or a tuple of `\GF{2}` elements of
           length ``self.n``
+
+        .. SEEALSO::
+            :meth:`linear_structures`,
+            :meth:`has_linear_structure`.
 
         EXAMPLES::
 

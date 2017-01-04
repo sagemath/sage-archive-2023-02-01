@@ -39,11 +39,10 @@ if sys.platform == 'cygwin':
                 cmd = ['dlltool', '-I', implib]
 
                 p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                          stderr=subprocess.PIPE)
-                p.wait()
+                                          stderr=subprocess.PIPE,
+                                          universal_newlines=True)
+
+                stdout, stderr = p.communicate()
 
                 if p.returncode == 0:
-                    ret = p.stdout.read()
-                    if sys.version_info[0] >= 3:
-                        ret = ret.decode('latin1')
-                    return ret.rstrip()
+                    return stdout.strip()

@@ -145,6 +145,17 @@ static bool has_suitable_form(ex the_ex)
                        and (ex_to<numeric>(oc).is_mpz()
                             or ex_to<numeric>(oc).is_mpq()));
         }
+        if (is_exactly_a<add>(the_ex)) {
+                const add& m = ex_to<add>(the_ex);
+                for (unsigned int i=0; i<m.nops(); i++) {
+                        if (not has_suitable_form(m.op(i)))
+                                return false;
+                }
+                const ex& oc = m.op(m.nops());
+                return (is_exactly_a<numeric>(oc)
+                       and (ex_to<numeric>(oc).is_mpz()
+                            or ex_to<numeric>(oc).is_mpq()));
+        }
         return false;
 }
 
@@ -172,8 +183,14 @@ static ex to_gamma(const ex& the_ex)
                 exvector vec;
                 for (unsigned int i=0; i<m.nops(); i++)
                         vec.push_back(to_gamma(m.op(i)));
-                vec.push_back(m.op(m.nops()));
                 return mul(vec);
+        }
+        if (is_exactly_a<add>(the_ex)) {
+                const add& m = ex_to<add>(the_ex);
+                exvector vec;
+                for (unsigned int i=0; i<m.nops(); i++)
+                        vec.push_back(to_gamma(m.op(i)));
+                return add(vec);
         }
         throw std::runtime_error("can't happen in to_gamma");
 }

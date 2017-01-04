@@ -125,8 +125,7 @@ of several different types of polynomial rings.
 
    You are encouraged to include miscellaneous notes, emails, design
    discussions, etc., in your package.  Make these plain text files
-   (with extension ``.txt``) in a subdirectory called ``notes``.  For
-   example, see ``SAGE_ROOT/src/sage/ext/notes/``.
+   (with extension ``.txt``) in a subdirectory called ``notes``.
 
 If you want to create a new directory in the Sage library
 ``SAGE_ROOT/src/sage`` (say, ``measure_theory``), that directory
@@ -150,6 +149,18 @@ but it is generally better to use the lazy import framework::
 Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::
 
     from sage.measure_theory.all import *
+
+Non-Python Sage source code and supporting files should be placed in appropriate
+subdirectories of ``SAGE_ROOT/src/ext/``. They will then be automatically
+copied to the corresponding subdirectories of ``SAGE_ROOT/local/share/sage/ext/``
+during the build process and can be accessed at runtime using ``SAGE_EXTCODE``.
+For example, if ``file`` is placed in ``SAGE_ROOT/src/ext/directory/`` it can
+be accessed with ::
+
+    from sage.env import SAGE_EXTCODE
+    file = os.path.join(SAGE_EXTCODE, 'directory', 'file')
+
+``SAGE_EXTCODE`` is used because not all distributions have ``SAGE_ROOT``.
 
 
 Learn by copy/paste
@@ -256,7 +267,7 @@ information. You can use the existing functions of Sage as templates.
 
        INPUT:
 
-       - ``p`` -- (default: 2) a positive prime integer.
+       - ``p`` -- (default: 2) a positive prime integer
 
        OUTPUT:
 
@@ -1061,6 +1072,27 @@ same place as the ``.. link`` in the previous example.
 See the files in ``SAGE_ROOT/src/doc/en/tutorial/`` for many
 examples of how to include automated testing in ReST documentation for
 Sage.
+
+
+.. _section-coding-general-whitespace:
+
+General Coding Style Regarding Whitespace
+=========================================
+
+Use spaces instead of tabs for indentation.  The only exception is for
+makefiles, in which tabs have a syntactic meaning different from
+spaces.
+
+Do not add trailing whitespace.
+
+Sage provides editor configuration for Emacs, using the file
+``.dir-locals.el``, to use spaces instead of tabs.  Regarding trailing
+whitespace, see https://www.emacswiki.org/emacs/DeletingWhitespace
+for various solutions.
+
+If you use another editor, we recommend to configure it so you do not
+add tabs to files.
+
 
 .. _chapter-picklejar:
 

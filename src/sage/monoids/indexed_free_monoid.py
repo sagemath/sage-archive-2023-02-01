@@ -21,7 +21,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.structure.sage_object import op_EQ, op_NE, richcmp, rich_to_bool
-from sage.combinat.dict_addition import dict_addition
+import sage.data_structures.blas_dict as blas
 
 from sage.categories.monoids import Monoids
 from sage.categories.poor_man_map import PoorManMap
@@ -530,7 +530,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             F[0]*F[1]^2*F[3]*F[4]
         """
         return self.__class__(self.parent(),
-                              dict_addition([self._monomial, other._monomial]))
+                              blas.add(self._monomial, other._monomial))
 
     def __pow__(self, n):
         """

@@ -4078,7 +4078,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         are then computed [BK2001]_.
 
-        Finally, the the union of the generators of all simplicial
+        Finally, the union of the generators of all simplicial
         subcones is returned.
         """
         # if the cone is not simplicial, triangulate and run

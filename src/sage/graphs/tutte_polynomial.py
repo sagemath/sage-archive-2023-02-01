@@ -152,7 +152,7 @@ def contracted_edge(G, unlabeled_edge):
 def removed_loops(G):
     r"""
     A context manager which removes all the loops in the graph `G`.
-    It yields a list of the the loops, and restores the loops upon
+    It yields a list of the loops, and restores the loops upon
     exiting.
 
     EXAMPLES::

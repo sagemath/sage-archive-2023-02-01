@@ -3768,8 +3768,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
             sage: RR('-100').is_real()
             True
+            sage: RR(NaN).is_real()
+            False
         """
-        return True
+        return not mpfr_nan_p(self.value)
 
     def is_integer(self):
         """
@@ -3790,18 +3792,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RR(1).__nonzero__()
+            sage: bool(RR(1))
             True
-            sage: RR(0).__nonzero__()
+            sage: bool(RR(0))
             False
-            sage: RR('inf').__nonzero__()
+            sage: bool(RR('inf'))
             True
 
         TESTS:
 
         Check that :trac:`20502` is fixed::
 
-            sage: RR('nan').__nonzero__()
+            sage: bool(RR('nan'))
             True
             sage: RR('nan').is_zero()
             False

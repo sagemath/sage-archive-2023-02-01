@@ -4664,7 +4664,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
     def syndrome_table(self):
         r"""
-        Returns the syndrome lookup table of ``self``.
+        Return the syndrome lookup table of ``self``.
 
         EXAMPLES::
 
@@ -4673,23 +4673,15 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D.syndrome_table()
             {(0, 0, 0): (0, 0, 0, 0, 0, 0, 0),
-             (1, 0, 0): (1, 0, 0, 0, 0, 0, 0),
-             (0, 1, 0): (0, 1, 0, 0, 0, 0, 0),
-             (1, 1, 0): (0, 0, 1, 0, 0, 0, 0),
              (0, 0, 1): (0, 0, 0, 1, 0, 0, 0),
-             (1, 0, 1): (0, 0, 0, 0, 1, 0, 0),
+             (0, 1, 0): (0, 1, 0, 0, 0, 0, 0),
              (0, 1, 1): (0, 0, 0, 0, 0, 1, 0),
+             (1, 0, 0): (1, 0, 0, 0, 0, 0, 0),
+             (1, 0, 1): (0, 0, 0, 0, 1, 0, 0),
+             (1, 1, 0): (0, 0, 1, 0, 0, 0, 0),
              (1, 1, 1): (0, 0, 0, 0, 0, 0, 1)}
         """
         return self._lookup_table
-
-
-
-
-
-
-
-
 
 
 class LinearCodeNearestNeighborDecoder(Decoder):

@@ -5886,12 +5886,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: a = E.integral_points([P1,P2,P3], verbose=True)
             Using mw_basis  [(2 : 0 : 1), (3 : -4 : 1), (8 : -22 : 1)]
             e1,e2,e3:  -3.0124303725933... 1.0658205476962... 1.94660982489710
-            Minimal eigenvalue of height pairing matrix:  0.63792081458500...
+            Minimal and maximal eigenvalues of height pairing matrix: 0.637920814585005,2.31982967525725
             x-coords of points on compact component with  -3 <=x<= 1
             [-3, -2, -1, 0, 1]
             x-coords of points on non-compact component with  2 <=x<= 6
             [2, 3, 4]
-            starting search of remaining points using coefficient bound  5
+            starting search of remaining points using coefficient bound 5 and |x| bound 1.53897183921009e25
             x-coords of extra integral points:
             [2, 3, 4, 8, 11, 14, 21, 37, 52, 93, 342, 406, 816]
             Total number of integral points: 18
@@ -5937,6 +5937,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [P[0] for P in EllipticCurve([0,0,0,-468,2592]).integral_points()]
             [-24, -18, -14, -6, -3, 4, 6, 18, 21, 24, 36, 46, 102, 168, 186, 381, 1476, 2034, 67246]
 
+
+        See :trac:`22063`::
+
+            sage: for n in [67,71,74,91]:
+            ....:     assert 4*n^6+4*n^2 in [P[0] for P in EllipticCurve([0,0,0,2,n^2]).integral_points()]
+
+
         .. note::
 
            This function uses the algorithm given in [Co1]_.
@@ -5960,7 +5967,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError("integral_points() can only be called on an integral model")
 
         if mw_base=='auto':
-            mw_base = self.gens()
+            try:
+                mw_base = self.gens()
+            except RuntimeError:
+                raise RuntimeError("Unable to compute Mordell-Weil basis of {}, hence unable to compute integral points.".format(self))
             r = len(mw_base)
         else:
             try:
@@ -6081,9 +6091,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             mu += 1
 
         c1 = (mu + 2.14).exp()
-        c2 = min(M.charpoly ().roots(multiplicities=False))
+        height_pairing_eigs = M.charpoly ().roots(multiplicities=False)
+        c2 = min(height_pairing_eigs)
+        max_eig = max(height_pairing_eigs)
         if verbose:
-            print("Minimal eigenvalue of height pairing matrix: ", c2)
+            print("Minimal and maximal eigenvalues of height pairing matrix: {},{}".format(c2,max_eig))
             sys.stdout.flush()
 
         c3 = (w1**2)*R(b2).abs()/48 + 8
@@ -6191,10 +6203,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             print(L)
             sys.stdout.flush()
 
+        # The CPS bound is better but only implemented for minimal models:
+        try:
+            ht_diff_bnd = self.CPS_height_bound()
+        except RuntimeError:
+            ht_diff_bnd = self.silverman_height_bound()
+        x_bound = (ht_diff_bnd+max_eig*H_q**2).exp()
         if verbose:
-            print('starting search of remaining points using coefficient bound ',H_q)
+            print('starting search of remaining points using coefficient bound {} and |x| bound {}'.format(H_q,x_bound))
             sys.stdout.flush()
-        x_int_points3 = integral_points_with_bounded_mw_coeffs(self,mw_base,H_q)
+        x_int_points3 = integral_points_with_bounded_mw_coeffs(self,mw_base,H_q,x_bound)
         x_int_points = x_int_points.union(x_int_points3)
         if verbose:
             print('x-coords of extra integral points:')
@@ -6387,7 +6405,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if mw_base=='auto':
             if verbose:
                 print("Starting computation of MW basis")
-            mw_base = self.gens(proof=proof)
+            try:
+                mw_base = self.gens(proof=proof)
+            except RuntimeError:
+                raise RuntimeError("Unable to compute Mordell-Weil basis of {}, hence unable to compute integral points.".format(self))
             r = len(mw_base)
             if verbose:
                 print("Finished computation of MW basis; rank is ", r)
@@ -6920,12 +6941,43 @@ def cremona_optimal_curves(conductors):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 
-def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
+def integral_points_with_bounded_mw_coeffs(E, mw_base, N, x_bound):
     r"""
     Returns the set of integers `x` which are
     `x`-coordinates of points on the curve `E` which
     are linear combinations of the generators (basis and torsion
     points) with coefficients bounded by `N`.
+
+    INPUT:
+
+    - ``E`` -  an elliptic curve
+    - ``mw_base`` - a list of points on `E` (generators)
+    - ``N`` - a positive integer (bound on coefficients)
+    - ``x_bound`` - a positive real number (upper bound on size of x-coordinates)
+
+    OUTPUT:
+
+    (list) list of integral points on `E` which are linear combinations
+    of the given points with coefficients bounded by `N` in absolute
+    value.
+
+    TESTS:
+
+    We check that some large integral points in a paper of Zagier are found::
+
+        sage: def t(a,b,x): # indirect doctest
+        ....:       E=EllipticCurve([0,0,0,a,b])
+        ....:       xs = [P[0] for P in E.integral_points()]
+        ....:       return x in xs
+        sage: all([t(a,b,x) for a,b,x in [ (-2,5, 1318), (4,-1, 4321),
+        ....: (0,17, 5234), (11,4, 16833), (-13,37, 60721), (-12,-10, 80327),
+        ....: (-7,22, 484961), (-9,28, 764396), (-13,4, 1056517), (-19,-51,
+        ....: 2955980), (-24,124, 4435710), (-30,133, 5143326), (-37,60,
+        ....: 11975623), (-23,-33, 17454557), (-16,49, 19103002), (27,-62,
+        ....: 28844402), (37,18, 64039202), (2,97, 90086608), (49,-64,
+        ....: 482042404), (-59,74, 7257247018), (94,689, 30841587841),
+        ....: (469,1594, 6327540232326), (1785,0, 275702503440)] ])
+        True
     """
     from sage.groups.generic import multiples
     xs=set()
@@ -6936,7 +6988,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
         """
         Helper function to record x-coord of a point if integral.
         """
-        if not P.is_zero():
+        if P:
             xP = P[0]
             if xP.is_integral():
                 xs.add(xP)
@@ -6956,23 +7008,25 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
             use_t(P)
         return xs
 
-    # Otherwise it is very very much faster to first compute
-    # the linear combinations over RR, and only compute them as
-    # rational points if they are approximately integral.
+    # Otherwise it is very very much faster to first compute the
+    # linear combinations over RR, and only compute them as rational
+    # points if they are approximately integral.  We will use a bit
+    # precision prec such that 2**prec is greater than the upper bound
+    # on the x- and y-coordinates.
 
-    # Note: making eps larger here will dramatically increase
-    # the running time.  If evidence arises that integral
-    # points are being missed, it would be better to increase
-    # the real precision than to increase eps.
-
-    def is_approx_integral(P):
-        r"""
-        Local function, returns True if the real point `P` is approximately integral.
+    def is_approx_integral(rx):
+        r""" Local function. Returns P if the real number `rx` is approximately
+        integral and rounds to a valid integral x-coordinate of an
+        integral point P on E, else 0.
         """
-        eps = 0.0001
-        return (abs(P[0]-P[0].round()))<eps and (abs(P[1]-P[1].round()))<eps
+        try:
+            return E.lift_x(rx.round())
+        except ValueError:
+            return 0
 
-    RR = RealField(100) #(100)
+    prec = (2 * RealField()(x_bound).log(2)).ceil()
+    #print("coeff bound={}, x_bound = {}, using {} bits precision".format(N,x_bound,prec))
+    RR = RealField(prec)
     ER = E.change_ring(RR)
     ER0 = ER(0)
 
@@ -7008,9 +7062,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
         RP = RPi[r-1]
 
         for T, TR in zip(tors_points, tors_points_R):
-            if is_approx_integral(RP + TR):
-                 P = sum([ni[i]*mw_base[i] for i in range(r)],T)
-                 use(P)
+            use(is_approx_integral((RP + TR)[0]))
 
         # increment indices and stored points
         i0 = r-1

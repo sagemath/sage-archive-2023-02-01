@@ -1235,7 +1235,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `(xP,yP)`
         with respect to this period lattice.  If `E` is the elliptic
-        curve and `\sigma:K\to\CC` the embedding, the the returned
+        curve and `\sigma:K\to\CC` the embedding, the returned
         value `z` is such that `z\pmod{L}` maps to `(xP,yP)=\sigma(P)`
         under the standard Weierstrass isomorphism from `\CC/L` to
         `\sigma(E)`.  If ``reduce`` is ``True``, the output is reduced
@@ -1429,7 +1429,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `P` with
         respect to this period lattice.  If `E` is the elliptic curve
-        and `\sigma:K\to\CC` the embedding, the the returned value `z`
+        and `\sigma:K\to\CC` the embedding, the returned value `z`
         is such that `z\pmod{L}` maps to `\sigma(P)` under the
         standard Weierstrass isomorphism from `\CC/L` to `\sigma(E)`.
         If ``reduce`` is ``True``, the output is reduced so that it is

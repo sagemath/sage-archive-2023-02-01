@@ -1551,7 +1551,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     INPUT:
 
     - ``f`` -- symbolic function. Its first argument will be the independent
-      variable. Its output should be de derivatives of the deppendent variables.
+      variable. Its output should be de derivatives of the dependent variables.
 
     - ``ics`` -- a list or tuple with the initial conditions.
 
@@ -1642,7 +1642,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     INPUT:
 
     - ``f`` -- symbolic function. Its first argument will be the independent
-      variable. Its output should be de derivatives of the deppendent variables.
+      variable. Its output should be de derivatives of the dependent variables.
 
     - ``ics`` -- a list or tuple with the initial conditions.
 

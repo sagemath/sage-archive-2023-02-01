@@ -1338,7 +1338,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R = ZZ['x,y']
             sage: singular(R)
             polynomial ring, over a domain, global ordering
-            //   coeff. ring is : integer
+            //   coeff. ring is : ZZ
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -3326,20 +3326,20 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: R.<x,y> = QQ[]
             sage: n=100; f = x^n
             sage: try:
-            ....:   f.subs(x = x^n)
-            ....:   print("no overflow")
+            ....:     f.subs(x = x^n)
+            ....:     print("no overflow")
             ....: except OverflowError:
-            ....:   print "overflow"
+            ....:     print("overflow")
             x^10000
             no overflow
 
             sage: n=1000;
             sage: try:
-            ....:   f = x^n
-            ....:   f.subs(x = x^n)
-            ....:   print("no overflow")
+            ....:     f = x^n
+            ....:     f.subs(x = x^n)
+            ....:     print("no overflow")
             ....: except OverflowError:
-            ....:   print("overflow")
+            ....:     print("overflow")
             overflow
 
         Check that there is no more segmentation fault if the polynomial gets 0

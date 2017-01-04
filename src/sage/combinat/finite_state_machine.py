@@ -3892,7 +3892,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             (1, 0, 1, 1, 0, 1, 0, 1, 1, 0)
             sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
             ....:               automatic_output_type=False))
-            <type 'list'>
+            <... 'list'>
             sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
             ....:               automatic_output_type=True))
             <type 'tuple'>
@@ -10596,7 +10596,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
     def moments_waiting_time(self, test=bool, is_zero=None,
                              expectation_only=False):
-        ur"""
+        r"""
         If this finite state machine acts as a Markov chain, return
         the expectation and variance of the number of steps until
         first writing ``True``.

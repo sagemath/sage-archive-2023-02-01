@@ -658,7 +658,7 @@ def lrskew(outer, inner, weight=None, maxrows=0):
 
         sage: from sage.libs.lrcalc.lrcalc import lrskew
         sage: for st in lrskew([3,2,1],[2]):
-        ...       st.pp()
+        ....:     st.pp()
         .  .  1
         1  1
         2
@@ -670,7 +670,7 @@ def lrskew(outer, inner, weight=None, maxrows=0):
         3
 
         sage: for st in lrskew([3,2,1],[2], maxrows=2):
-        ...       st.pp()
+        ....:     st.pp()
         .  .  1
         1  1
         2

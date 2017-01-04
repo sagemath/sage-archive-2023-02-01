@@ -429,9 +429,6 @@ def import_statements(*objects, **kwds):
         sage: import_statements('FareySymbol')
         from sage.modular.arithgroup.farey_symbol import Farey as FareySymbol
 
-        sage: import_statements('sum')
-        from sage.misc.functional import symbolic_sum as sum
-
         sage: import_statements('power')
         from sage.structure.element import generic_power as power
 

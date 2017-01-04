@@ -539,9 +539,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         return self.scheme()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True if this is not the zero point on the curve.
+        Return ``True`` if this is not the zero point on the curve.
 
         EXAMPLES::
 
@@ -555,6 +555,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             False
         """
         return bool(self[2])
+
+    __nonzero__ = __bool__
 
     def has_finite_order(self):
         """
@@ -2466,7 +2468,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0.0511114082399688...
 
             sage: def naive_height(P):
-            ...       return log(RR(max(abs(P[0].numerator()), abs(P[0].denominator()))))
+            ....:     return log(RR(max(abs(P[0].numerator()), abs(P[0].denominator()))))
             sage: for n in [1..10]:
             ....:     print(naive_height(2^n*P)/4^n)
             0.000000000000000

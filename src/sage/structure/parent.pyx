@@ -115,6 +115,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
 from sage.misc.lazy_format import LazyFormat
+from cpython.object cimport Py_NE
+
 
 from sage.misc.lazy_import import LazyImport
 normalize_names = LazyImport("sage.structure.category_object", "normalize_names", deprecation=19675)
@@ -1206,36 +1208,41 @@ cdef class Parent(category_object.CategoryObject):
             Yes
         """
         return True
-
+    
     cpdef bint _richcmp(left, right, int op) except -2:
         """
         Compare left and right.
+
+        This is called by a few parents through their methods `__richcmp__`.
 
         EXAMPLES::
 
             sage: ZZ < QQ
             True
         """
-        cdef int r
+        if left is right:
+            return rich_to_bool(op, 0)
 
         if not isinstance(right, Parent) or not isinstance(left, Parent):
-            # One is not a parent -- use arbitrary ordering
-            if (<PyObject*>left) < (<PyObject*>right):
-                r = -1
-            elif (<PyObject*>left) > (<PyObject*>right):
-                r = 1
-            else:
-                r = 0
+            # One is not a parent -- not equal and not ordered
+            return op == Py_NE
 
-        else:
-            # Both are parents -- but need *not* have the same type.
-            r = left._cmp_(right)
+        try:
+            return left._richcmp_(right, op)
+        except AttributeError:
+            pass
 
-        assert -1 <= r <= 1
-        return rich_to_bool(op, r)
+        try:
+            return rich_to_bool(op, left._cmp_(right))
+        except AttributeError:
+            pass
+
+        return op == Py_NE
 
     cpdef int _cmp_(left, right) except -2:
-        # Check for Python class defining __cmp__
+        """
+        Check for Python class defining ``__cmp__``
+        """
         try:
             return left.__cmp__(right)
         except AttributeError:

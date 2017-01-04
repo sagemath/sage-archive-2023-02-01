@@ -377,7 +377,7 @@ class Derangements(UniqueRepresentation, Parent):
         r"""
         Counts the number of derangements of a positive integer, a
         list, or a string.  The list or string may contain repeated
-        elements.  If an integer `n` is given, the the value returned
+        elements.  If an integer `n` is given, the value returned
         is the number of derangements of `[1, 2, 3, \ldots, n]`.
 
         For an integer, or a list or string with all elements

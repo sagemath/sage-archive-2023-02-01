@@ -625,6 +625,10 @@ fi
 
 echo "Finished extraction"
 
+cd src
+sage-apply-patches || exit 1
+cd ..
+
 ##################################################################
 # The package has been extracted, prepare for installation
 ##################################################################

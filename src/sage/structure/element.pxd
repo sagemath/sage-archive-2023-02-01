@@ -58,7 +58,7 @@ cpdef inline parent(x):
         <type 'int'>
         sage: L = list(range(10))
         sage: parent(L)
-        <type 'list'>
+        <... 'list'>
     """
     if isinstance(x, Element):
         return (<Element>x)._parent

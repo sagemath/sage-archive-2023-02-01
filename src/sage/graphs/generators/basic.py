@@ -558,7 +558,7 @@ def CompleteMultipartiteGraph(l):
 
         '''
         Produce a layout of the vertices so that vertices in the same
-        vertex set are adjecent and clearly separated from vertices in other
+        vertex set are adjacent and clearly separated from vertices in other
         vertex sets.
 
         This is done by calculating the vertices of an r-gon then

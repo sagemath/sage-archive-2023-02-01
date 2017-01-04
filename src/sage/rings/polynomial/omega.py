@@ -767,6 +767,8 @@ def Omega_factors_denominator(x, y):
     A factorization of the denominator as
     a tuple of Laurent polynomials.
 
+    The output is normalized such that it has constant term `1`.
+
     EXAMPLES::
 
         sage: from sage.rings.polynomial.omega import Omega_factors_denominator

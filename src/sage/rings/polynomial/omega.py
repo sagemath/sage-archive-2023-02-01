@@ -72,7 +72,11 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
     - ``var`` -- a variable or a representation string of a variable.
 
     - ``expression`` -- an element of the quotient field of some
-      Laurent polynomials. If ``denominator`` is specified, then
+      Laurent polynomials or a
+      :class:`~sage.structure.factorization.Factorization`
+      of Laurent polynomials
+
+      If ``denominator`` is specified, then
       this Laurent polynomial is interpreted as the numerator of the
       expression.
 

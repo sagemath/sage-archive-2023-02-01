@@ -769,6 +769,13 @@ def Omega_factors_denominator(x, y):
 
     The output is normalized such that it has constant term `1`.
 
+    .. NOTE::
+
+        The implicit assumption is that the ``x`` and ``y`` are collected in
+        such a way that one entry of ``x`` corresponds to the orbit of
+        some ``x_j`` under multiplication by `d`th roots of unity and that
+        the output is collected in a corresponding way.
+
     EXAMPLES::
 
         sage: from sage.rings.polynomial.omega import Omega_factors_denominator

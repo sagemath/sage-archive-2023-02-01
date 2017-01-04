@@ -865,7 +865,8 @@ def partition(items, predicate=bool):
 
 def homogenous_symmetric_function(j, x):
     r"""
-    Return a complete homogeneous symmetric polynomial.
+    Return a complete homogeneous symmetric polynomial
+    (:wikipedia:`Complete_homogeneous_symmetric_polynomial`).
 
     INPUT:
 

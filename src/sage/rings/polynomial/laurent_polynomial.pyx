@@ -2368,19 +2368,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x + 3*z + 2
             sage: f.subs(z=1)
             x + 2*y + 3
-            sage: f.subs(x=1,y=1,z=1)
+            sage: f.subs(x=1, y=1, z=1)
             6
 
             sage: f = x^-1
             sage: f.subs(x=2)
             1/2
-            sage: f.subs({x:2})
+            sage: f.subs({x: 2})
             1/2
 
             sage: f = x + 2*y + 3*z
-            sage: f.subs({x:1,y:1,z:1})
+            sage: f.subs({x: 1, y: 1, z: 1})
             6
-            sage: f.substitute(x=1,y=1,z=1)
+            sage: f.substitute(x=1, y=1, z=1)
             6
 
         TESTS::

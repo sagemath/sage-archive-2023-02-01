@@ -1,9 +1,28 @@
 r"""
-MacMahon's Omega Operator
+MacMahon's Partition Analysis Omega Operator
 
-This module implements :func:`MacMahon's Omega Operator <Omega>`
+This module implements :func:`MacMahon's Omega Operator <MacMahonOmega>`
 [Mac1915]_, which takes a quotient of Laurent polynomials and
 removes all negative exponents in the corresponding power series.
+
+
+Examples
+========
+
+In the following example, all negative exponents of `\mu` are removed.
+The formula
+
+.. MATH::
+
+    \Omega_{\ge} \frac{1}{(1 - x\mu) (1 - y/\mu)}
+    = \frac{1}{(1 - x) (1 - xy)}
+
+can be calculated and verified by
+::
+
+    sage: L.<mu, x, y> = LaurentPolynomialRing(ZZ)
+    sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu])
+    1 * (-x + 1)^-1 * (-x*y + 1)^-1
 
 
 Various
@@ -57,7 +76,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
 
     INPUT:
 
-    - ``var`` -- a variable or a representation string of a variable.
+    - ``var`` -- a variable or a representation string of a variable
 
     - ``expression`` -- an element of the quotient field of some
       Laurent polynomials or a
@@ -71,7 +90,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
     - ``denominator`` -- a Laurent polynomial or a
       :class:`~sage.structure.factorization.Factorization` (consisting
       of Laurent polynomial factors) or a tuple/list of factors (Laurent
-      polynomials).
+      polynomials)
 
     - ``op`` -- (default: ``operator.ge``) an operator
 
@@ -80,12 +99,12 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
     - ``Factorization_sort`` (default: ``False``) and
       ``Factorization_simplify`` (default: ``True``) -- are passed on to
       :class:`sage.structure.factorization.Factorization` when creating
-      the result.
+      the result
 
     OUTPUT:
 
     A (partial) :class:`~sage.structure.factorization.Factorization`
-    of the result whose factors are Laurent polynomials.
+    of the result whose factors are Laurent polynomials
 
     .. NOTE::
 
@@ -339,16 +358,16 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
 
 def _Omega_(A, decoded_factors):
     r"""
-    Helper function for :func:`Omega` which accesses the low level functions
+    Helper function for :func:`MacMahonOmega` which accesses the low level functions
     and does the substituting.
 
     INPUT:
 
     - ``A`` -- a dictionary mapping `a` to `c` representing a summand
-      `c\mu^a` of the numerator.
+      `c\mu^a` of the numerator
 
     - ``decoded_factors`` -- a tuple or list of pairs `(z, e)` representing
-      a factor `1 - z \mu^e`.
+      a factor `1 - z \mu^e`
 
     OUTPUT:
 
@@ -359,7 +378,7 @@ def _Omega_(A, decoded_factors):
 
     TESTS:
 
-    Extensive testing of this function is done in :func:`Omega`.
+    Extensive testing of this function is done in :func:`MacMahonOmega`.
 
     ::
 
@@ -425,9 +444,9 @@ def Omega_ge(a, exponents):
 
     INPUT:
 
-    - ``a`` -- an integer.
+    - ``a`` -- an integer
 
-    - ``exponents`` -- a tuple of integers.
+    - ``exponents`` -- a tuple of integers
 
     OUTPUT:
 
@@ -575,11 +594,11 @@ def Omega_numerator(a, x, y, t):
 
     and return its numerator.
 
-    This function is meant to be a helper function of :func:`Omega`.
+    This function is meant to be a helper function of :func:`MacMahonOmega`.
 
     INPUT:
 
-    - ``a`` -- an integer.
+    - ``a`` -- an integer
 
     - ``x`` and ``y`` -- a tuple of tuples of Laurent polynomials
 
@@ -589,11 +608,11 @@ def Omega_numerator(a, x, y, t):
       The non-flatness of these parameters is to be interface-consistent
       with :func:`Omega_factors_denominator`.
 
-    - ``t`` -- a temporary Laurent polynomial variable used for substituting.
+    - ``t`` -- a temporary Laurent polynomial variable used for substituting
 
     OUTPUT:
 
-    A Laurent polynomial.
+    A Laurent polynomial
 
     The output is normalized such that the corresponding denominator
     (:func:`Omega_factors_denominator`) has constant term `1`.
@@ -696,7 +715,7 @@ def _Omega_numerator_P_(a, x, y, t):
 
     INPUT:
 
-    - ``a`` -- an integer.
+    - ``a`` -- an integer
 
     - ``x`` and ``y`` -- a tuple of Laurent polynomials
 
@@ -710,7 +729,7 @@ def _Omega_numerator_P_(a, x, y, t):
 
     OUTPUT:
 
-    A Laurent polynomial.
+    A Laurent polynomial
 
     TESTS::
 
@@ -776,18 +795,20 @@ def Omega_factors_denominator(x, y):
 
     and return a factorization of its denominator.
 
-    This function is meant to be a helper function of :func:`Omega`.
+    This function is meant to be a helper function of :func:`MacMahonOmega`.
 
     INPUT:
 
-    - ``x`` and ``y`` -- a tuple of tuples of Laurent polynomials. The
+    - ``x`` and ``y`` -- a tuple of tuples of Laurent polynomials
+
+      The
       flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
       `y_1,...,y_m`.
 
     OUTPUT:
 
     A factorization of the denominator as
-    a tuple of Laurent polynomials.
+    a tuple of Laurent polynomials
 
     The output is normalized such that it has constant term `1`.
 
@@ -857,9 +878,9 @@ def partition(items, predicate=bool):
 
     INPUT:
 
-    - ``item`` -- an iterator.
+    - ``item`` -- an iterator
 
-    - ``predicate`` -- a function.
+    - ``predicate`` -- a function
 
     OUTPUT:
 
@@ -892,13 +913,13 @@ def homogenous_symmetric_function(j, x):
 
     INPUT:
 
-    - ``j`` -- the degree as a nonnegative integer.
+    - ``j`` -- the degree as a nonnegative integer
 
-    - ``x`` -- an iterable of variables.
+    - ``x`` -- an iterable of variables
 
     OUTPUT:
 
-    A polynomial of the common parent of all entries of ``x``.
+    A polynomial of the common parent of all entries of ``x``
 
     EXAMPLES::
 

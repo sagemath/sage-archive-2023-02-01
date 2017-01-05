@@ -573,13 +573,13 @@ def Omega_ge(a, exponents):
                                 for factor in Omega_factors_denominator(x, y))
 
     logger.debug('Omega_ge: preparing numerator')
-    numerator = de_power(Omega_numerator(a, x, y, t))
+    numerator = de_power(_Omega_numerator_(a, x, y, t))
 
     logger.info('Omega_ge: completed')
     return numerator, factors_denominator
 
 
-def Omega_numerator(a, x, y, t):
+def _Omega_numerator_(a, x, y, t):
     r"""
     Return the numerator of `\Omega_{\ge}` of the expression
     specified by the input.
@@ -619,62 +619,62 @@ def Omega_numerator(a, x, y, t):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.omega import Omega_numerator, Omega_factors_denominator
+        sage: from sage.rings.polynomial.omega import _Omega_numerator_, Omega_factors_denominator
 
         sage: L.<x0, x1, x2, x3, y0, y1, t> = LaurentPolynomialRing(ZZ)
-        sage: Omega_numerator(0, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(0, ((x0,),), ((y0,),), t)
         1
-        sage: Omega_numerator(0, ((x0,), (x1,)), ((y0,),), t)
+        sage: _Omega_numerator_(0, ((x0,), (x1,)), ((y0,),), t)
         -x0*x1*y0 + 1
-        sage: Omega_numerator(0, ((x0,),), ((y0,), (y1,)), t)
+        sage: _Omega_numerator_(0, ((x0,),), ((y0,), (y1,)), t)
         1
-        sage: Omega_numerator(0, ((x0,), (x1,), (x2,)), ((y0,),), t)
+        sage: _Omega_numerator_(0, ((x0,), (x1,), (x2,)), ((y0,),), t)
         x0*x1*x2*y0^2 + x0*x1*x2*y0 - x0*x1*y0 - x0*x2*y0 - x1*x2*y0 + 1
-        sage: Omega_numerator(0, ((x0,), (x1,)), ((y0,), (y1,)), t)
+        sage: _Omega_numerator_(0, ((x0,), (x1,)), ((y0,), (y1,)), t)
         x0^2*x1*y0*y1 + x0*x1^2*y0*y1 - x0*x1*y0*y1 - x0*x1*y0 - x0*x1*y1 + 1
 
-        sage: Omega_numerator(-2, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(-2, ((x0,),), ((y0,),), t)
         x0^2
-        sage: Omega_numerator(-1, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(-1, ((x0,),), ((y0,),), t)
         x0
-        sage: Omega_numerator(1, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(1, ((x0,),), ((y0,),), t)
         -x0*y0 + y0 + 1
-        sage: Omega_numerator(2, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(2, ((x0,),), ((y0,),), t)
         -x0*y0^2 - x0*y0 + y0^2 + y0 + 1
 
     TESTS::
 
         sage: Omega_factors_denominator((), ())
         ()
-        sage: Omega_numerator(0, (), (), t)
+        sage: _Omega_numerator_(0, (), (), t)
         1
-        sage: Omega_numerator(+2, (), (), t)
+        sage: _Omega_numerator_(+2, (), (), t)
         1
-        sage: Omega_numerator(-2, (), (), t)
+        sage: _Omega_numerator_(-2, (), (), t)
         0
 
         sage: Omega_factors_denominator(((x0,),), ())
         (-x0 + 1,)
-        sage: Omega_numerator(0, ((x0,),), (), t)
+        sage: _Omega_numerator_(0, ((x0,),), (), t)
         1
-        sage: Omega_numerator(+2, ((x0,),), (), t)
+        sage: _Omega_numerator_(+2, ((x0,),), (), t)
         1
-        sage: Omega_numerator(-2, ((x0,),), (), t)
+        sage: _Omega_numerator_(-2, ((x0,),), (), t)
         x0^2
 
         sage: Omega_factors_denominator((), ((y0,),))
         ()
-        sage: Omega_numerator(0, (), ((y0,),), t)
+        sage: _Omega_numerator_(0, (), ((y0,),), t)
         1
-        sage: Omega_numerator(+2, (), ((y0,),), t)
+        sage: _Omega_numerator_(+2, (), ((y0,),), t)
         y0^2 + y0 + 1
-        sage: Omega_numerator(-2, (), ((y0,),), t)
+        sage: _Omega_numerator_(-2, (), ((y0,),), t)
         0
 
     ::
 
         sage: L.<X, Y, t> = LaurentPolynomialRing(ZZ)
-        sage: Omega_numerator(2, ((X,),), ((Y,),), t)
+        sage: _Omega_numerator_(2, ((X,),), ((Y,),), t)
         -X*Y^2 - X*Y + Y^2 + Y + 1
     """
     from sage.arith.srange import srange
@@ -703,13 +703,13 @@ def Omega_numerator(a, x, y, t):
     L = t.parent()
     result = L(result)
 
-    logger.info('Omega_numerator: %s terms', result.number_of_terms())
+    logger.info('_Omega_numerator_: %s terms', result.number_of_terms())
     return result
 
 
 def _Omega_numerator_P_(a, x, y, t):
     r"""
-    Helper function for :func:`Omega_numerator`.
+    Helper function for :func:`_Omega_numerator_`.
 
     This is an implementation of the function `P` of [APR2001]_.
 
@@ -719,13 +719,13 @@ def _Omega_numerator_P_(a, x, y, t):
 
     - ``x`` and ``y`` -- a tuple of Laurent polynomials
 
-      The tuple ``x`` here is the flattened ``x`` of :func:`Omega_numerator`
+      The tuple ``x`` here is the flattened ``x`` of :func:`_Omega_numerator_`
       but without its last entry.
 
     - ``t`` -- a temporary Laurent polynomial variable
 
       In the (final) result, ``t`` has to be substituted by the last
-      entry of the flattened ``x`` of :func:`Omega_numerator`.
+      entry of the flattened ``x`` of :func:`_Omega_numerator_`.
 
     OUTPUT:
 

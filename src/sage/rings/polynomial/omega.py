@@ -78,14 +78,11 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
 
     - ``var`` -- a variable or a representation string of a variable
 
-    - ``expression`` -- an element of the quotient field of some
-      Laurent polynomials or a
+    - ``expression`` -- a
       :class:`~sage.structure.factorization.Factorization`
-      of Laurent polynomials
-
-      If ``denominator`` is specified, then
-      this Laurent polynomial is interpreted as the numerator of the
-      expression.
+      of Laurent polynomials or, if ``denominator`` is specified,
+      a Laurent polynomial interpreted as the numerator of the
+      expression
 
     - ``denominator`` -- a Laurent polynomial or a
       :class:`~sage.structure.factorization.Factorization` (consisting
@@ -183,15 +180,11 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
         sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y/mu])
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
-        sage: MacMahonOmega(mu, mu^2, (1 - x*mu)*(1 - y/mu))
-        Traceback (most recent call last):
-        ...
-        TypeError: unable to factor n
+        sage: MacMahonOmega(mu, mu^2, (1 - x*mu)*(1 - y/mu))  # not tested because not fully implemented
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
-        sage: MacMahonOmega(mu, mu^2 / ((1 - x*mu)*(1 - y/mu)))
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Factor y - mu is not normalized.
+        sage: MacMahonOmega(mu, mu^2 / ((1 - x*mu)*(1 - y/mu)))  # not tested because not fully implemented
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
     TESTS::
 

@@ -27,8 +27,6 @@
 #include "pynac-config.h"
 #endif
 
-#ifndef PYNAC_HAVE_LIBGIAC
-
 #include "basic.h"
 #include "ex.h"
 #include "mpoly.h"
@@ -54,6 +52,8 @@
 #include <map>
 
 namespace GiNaC {
+
+#ifndef PYNAC_HAVE_LIBGIAC
 
 // If comparing expressions (ex::compare()) is fast, you can set this to 1.
 // Some routines like quo(), rem() and gcd() will then return a quick answer
@@ -708,6 +708,7 @@ ex sqrfree_parfrac(const ex & a, const symbol & x)
 	return red_poly + sum;
 }
 
+#endif // HAVE_LIBGIAC
 
 /** Resultant of two expressions e1,e2 with respect to symbol s.
  *  Method: Compute determinant of Sylvester matrix of e1,e2,s.  */
@@ -748,4 +749,3 @@ ex resultant(const ex & e1, const ex & e2, const ex & s)
 
 } // namespace GiNaC
 
-#endif // HAVE_LIBGIAC

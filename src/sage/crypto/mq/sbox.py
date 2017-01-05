@@ -1211,6 +1211,7 @@ class SBox(SageObject):
         correspond to input difference `\alpha`, we have `b \cdot \beta = c`.
 
         .. SEEALSO::
+
             :meth:`is_linear_structure`,
             :meth:`has_linear_structure`.
 
@@ -1238,6 +1239,7 @@ class SBox(SageObject):
         S-Box that has a linear structure.
 
         .. SEEALSO::
+
             :meth:`is_linear_structure`,
             :meth:`linear_structures`.
 
@@ -1262,6 +1264,7 @@ class SBox(SageObject):
           length ``self.n``
 
         .. SEEALSO::
+
             :meth:`linear_structures`,
             :meth:`has_linear_structure`.
 

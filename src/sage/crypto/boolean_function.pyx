@@ -1059,6 +1059,7 @@ cdef class BooleanFunction(SageObject):
           of length ``self.nvariables()``
 
         .. SEEALSO::
+
             :meth:`has_linear_structure`,
             :meth:`linear_structures`.
 
@@ -1068,15 +1069,28 @@ cdef class BooleanFunction(SageObject):
             sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
             sage: f.is_linear_structure(1)
             True
-            sage: f.is_linear_structure([1, 0, 0, 1])
+            sage: l = [1, 0, 0, 1]
+            sage: f.is_linear_structure(l)
+            True
+            sage: v = vector(GF(2), l)
+            sage: f.is_linear_structure(v)
             True
             sage: f.is_linear_structure(7)
             False
+            sage: f.is_linear_structure(20) #parameter is out of range
+            False
+            sage: f.is_linear_structure('X') #failure case
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot compute is_linear_structure() using parameter X
         """
+        from sage.structure.element import is_Vector
         nvars = self._nvariables
 
         if isinstance(val, (tuple, list)):
             i = ZZ(val, base=2)
+        elif is_Vector(val) and val.base_ring() == GF(2):
+            i = ZZ(val.list(), base=2)
         else:
             i = val
 
@@ -1097,6 +1111,7 @@ cdef class BooleanFunction(SageObject):
         `f(x \oplus a) \oplus f(x)` is a constant function.
 
         .. SEEALSO::
+
             :meth:`is_linear_structure`,
             :meth:`linear_structures`.
 
@@ -1124,6 +1139,7 @@ cdef class BooleanFunction(SageObject):
         of `\mathbb{F}_2^n`.
 
         .. SEEALSO::
+
             :meth:`is_linear_structure`,
             :meth:`has_linear_structure`.
 

@@ -1190,22 +1190,21 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return False
 
         for v in H:
-            if H.out_degree(v) == 1:
-                if H.kappa_dual(v) is None:
-                    if not certificate:
-                        return False
-                    v_ = next(H.neighbor_out_iterator(v))
-                    it = H.neighbor_in_iterator
-                    t1 = set(H.depth_first_search(v_, neighbors = it))
-                    t2 = set(H.depth_first_search(v, neighbors = it))
-                    tmp = sorted(t1.difference(t2))
-                    x = tmp[0]
-                    for y in tmp:
-                        if H.are_incomparable(x, y):
-                            return (False,
-                                    (self._vertex_to_element(v),
-                                     self._vertex_to_element(x),
-                                     self._vertex_to_element(y)))
+            if H.out_degree(v) == 1 and H.kappa_dual(v) is None:
+                if not certificate:
+                    return False
+                v_ = next(H.neighbor_out_iterator(v))
+                it = H.neighbor_in_iterator
+                t1 = set(H.depth_first_search(v_, neighbors = it))
+                t2 = set(H.depth_first_search(v, neighbors = it))
+                tmp = sorted(t1.difference(t2))
+                x = tmp[0]
+                for y in tmp:
+                    if H.are_incomparable(x, y):
+                        return (False,
+                                (self._vertex_to_element(v),
+                                 self._vertex_to_element(x),
+                                 self._vertex_to_element(y)))
         if certificate:
             return (True, None)
         return True

@@ -2342,11 +2342,25 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
     def subs(self, in_dict=None, **kwds):
         """
-        Note that this is a very unsophisticated implementation.
+        Substitute some variables in this Laurent polynomial.
+
+        Variable/value pairs for the substitution may be given
+        as a dictionary or via keyword-value pairs. If both are
+        present, the latter take precedence.
+
+        INPUT:
+
+        - ``in_dict`` -- dictionary (optional)
+
+        - ``**kwargs`` -- keyword arguments
+
+        OUTPUT:
+
+        A Laurent polynomial.
 
         EXAMPLES::
 
-            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: L.<x, y, z> = LaurentPolynomialRing(QQ)
             sage: f = x + 2*y + 3*z
             sage: f.subs(x=1)
             2*y + 3*z + 1
@@ -2375,6 +2389,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: f(q=10)
             x + 2*y + 3*z
 
+            sage: x.subs({x: 2}, x=1)
+            1
         """
         variables = list(self.parent().gens())
         for i in range(0,len(variables)):

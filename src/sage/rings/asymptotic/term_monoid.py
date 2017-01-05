@@ -222,7 +222,13 @@ from __future__ import absolute_import
 # http://www.gnu.org/licenses/
 # *****************************************************************************
 
-import sage
+from sage.misc.superseded import experimental
+from sage.rings.big_oh import O
+from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.factory import UniqueFactory
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+
 
 class ZeroCoefficientError(ValueError):
     pass
@@ -316,7 +322,7 @@ def can_absorb(left, right):
     return left.can_absorb(right) or right.can_absorb(left)
 
 
-class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
+class GenericTerm(MultiplicativeGroupElement):
     r"""
     Base class for asymptotic terms. Mainly the structure and
     several properties of asymptotic terms are handled here.
@@ -1342,8 +1348,7 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
                                   'not implemented '.format(self))
 
 
-class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,
-                        sage.structure.parent.Parent):
+class GenericTermMonoid(UniqueRepresentation, Parent):
     r"""
     Parent for generic asymptotic terms.
 
@@ -1425,12 +1430,12 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         """
         if growth_group is None:
             raise ValueError('No growth group specified.')
-        if not isinstance(growth_group, sage.structure.parent.Parent):
+        if not isinstance(growth_group, Parent):
             raise TypeError('%s is not a valid growth group.' % (growth_group,))
 
         if coefficient_ring is None:
             raise ValueError('No coefficient ring specified.')
-        if not isinstance(coefficient_ring, sage.structure.parent.Parent):
+        if not isinstance(coefficient_ring, Parent):
             raise TypeError('%s is not a valid coefficient ring.' % (coefficient_ring,))
 
         if category is None:
@@ -1442,7 +1447,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             cls, growth_group, coefficient_ring, category)
 
 
-    @sage.misc.superseded.experimental(trac_number=17601)
+    @experimental(trac_number=17601)
     def __init__(self, growth_group, coefficient_ring, category):
         r"""
         See :class:`GenericTermMonoid` for more information.
@@ -2490,7 +2495,7 @@ class OTerm(GenericTerm):
                 return g.Order()
 
         try:
-            return sage.rings.big_oh.O(g)
+            return O(g)
         except (ArithmeticError, TypeError, ValueError) as e:
             from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
@@ -3918,7 +3923,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
                (self.growth_group._repr_short_(), self.coefficient_ring)
 
 
-class TermMonoidFactory(sage.structure.factory.UniqueFactory):
+class TermMonoidFactory(UniqueFactory):
     r"""
     Factory for asymptotic term monoids. It can generate the following
     term monoids:

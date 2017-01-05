@@ -41,6 +41,7 @@ class PlanePartition(ClonableArray):
     - ``PP`` -- a list of lists which represents a tableau.
 
     - ``box_size`` -- a list [A,B,C] of 3 positive integers (default: None)
+      Here A,B,C are the lengths of the box in the x-axis, y-axis, z-axis.
       If this is not given, it is determined by the smallest box bounding ``PP``.
 
     OUTPUT:
@@ -50,7 +51,7 @@ class PlanePartition(ClonableArray):
     EXAMPLES:
 
         sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]]); PP
-        The plane partition [[4, 3, 3, 1], [2, 1, 1], [1, 1]].
+        Plane partition [[4, 3, 3, 1], [2, 1, 1], [1, 1]]
 
     """
     
@@ -58,6 +59,15 @@ class PlanePartition(ClonableArray):
     
     @staticmethod
     def __classcall_private__(cls, PP, box_size=None):
+        """
+        Construct a plane partition with the appropriate parent.
+
+        EXAMPLES::
+
+            sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
+            sage: PP.parent() is PlanePartitions((3,4,4))
+            True
+        """
         if box_size is None:
             box_size = (len(PP), len(PP[0]), PP[0][0])
         return PlanePartitions(box_size)(PP)
@@ -77,10 +87,26 @@ class PlanePartition(ClonableArray):
         self._max_z = parent._box[2]
         
     def check(self):
+        """
+        Check to see that ``self`` is a valid plane partition.
+
+        EXAMPLES::
+
+            sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
+            sage: PP.check()
+        """
         pass
 
     def _repr_(self):
-        return "The plane partition {}.".format(list(self))
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
+            Plane partition [[4, 3, 3, 1], [2, 1, 1], [1, 1]]
+        """
+        return "Plane partition {}".format(list(self))
 
     def to_tableau(self):
         r"""
@@ -160,6 +186,49 @@ class PlanePartition(ClonableArray):
         return L
 
     def _repr_diagram(self, show_box = False):
+        r"""
+        Return a string of the 3D diagram of of the plane partition.
+
+        INPUT:
+
+        ``show_box`` -- boolean (default:False).
+        If True, it also shows the visible tiles on the xy-, yz-, zx-planes.
+
+        OUTPUT:
+
+        A string of the 3D diagram of of the plane partition.
+
+        EXAMPLES::
+
+            sage: print PlanePartition([[4,3,3,1],[2,1,1],[1,1]])._repr_diagram()
+            <BLANKLINE>              
+                 / \       
+                |\ /|      
+                |\|/ \     
+               / \|\ / \   
+              |\ /|\|\ /|  
+             / \|/ \|\|/|  
+            |\ / \ / \|/ \ 
+             \|\ /|\ /|\ /|
+               \|/ \|/ \|/ 
+            <BLANKLINE>  
+            <BLANKLINE>                             
+            <BLANKLINE>              
+            sage: print PlanePartition([[4,3,3,1],[2,1,1],[1,1]])._repr_diagram(True)
+            <BLANKLINE>                             
+                 / \       
+               /|\ /|\     
+             /|/|\|/ \|\   
+            |/|/ \|\ / \|\ 
+            |/|\ /|\|\ /|\|
+            |/ \|/ \|\|/|\|
+            |\ / \ / \|/ \|
+             \|\ /|\ /|\ /|
+               \|/ \|/ \|/ 
+                 \ / \ /   
+                   \ /     
+            <BLANKLINE>              
+        """
         x=self._max_x
         y=self._max_y
         z=self._max_z
@@ -327,7 +396,7 @@ class PlanePartition(ClonableArray):
 
     def show(self, show_box = None, colors = ["white","lightgray","darkgray"]):
         r"""
-        Return a plot of the plane partition.
+        Show a plot of the plane partition.
 
         INPUT:
 
@@ -337,10 +406,10 @@ class PlanePartition(ClonableArray):
         - ``colors`` -- a list [A,B,C] of 3 strings representing colors 
           (default: ["white","lightgray","darkgray"])       
 
-        OUTPUT:
+        EXAMPLES::
 
-        A diagram of the plane partition.
-
+            sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
+            sage: PP.show()
         """
         if show_box is None:
             show_box = False
@@ -381,7 +450,7 @@ class PlanePartition(ClonableArray):
             for c in range(len(self.x_tableau()[r])):
                 if self.x_tableau()[r][c] > 0 or show_box:
                     TP += add_leftside(self.x_tableau()[r][c],r,c)
-        return TP.show(axes=False)
+        TP.show(axes=False)
 
     def complement(self,tableau_only=False):
         r"""
@@ -391,7 +460,7 @@ class PlanePartition(ClonableArray):
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.complement()
-            The plane partition [[4, 4, 3, 3], [4, 3, 3, 2], [3, 1, 1, 0]].
+            Plane partition [[4, 4, 3, 3], [4, 3, 3, 2], [3, 1, 1, 0]]
             sage: PP.complement(True)
             [[4, 4, 3, 3], [4, 3, 3, 2], [3, 1, 1, 0]]
 
@@ -416,7 +485,7 @@ class PlanePartition(ClonableArray):
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: PP.transpose()
-            The plane partition [[4, 2, 1], [3, 1, 1], [3, 1, 0], [1, 0, 0]].
+            Plane partition [[4, 2, 1], [3, 1, 1], [3, 1, 0], [1, 0, 0]]
             sage: PP.transpose(True)
             [[4, 2, 1], [3, 1, 1], [3, 1, 0], [1, 0, 0]]
         """
@@ -613,7 +682,7 @@ class PlanePartitions(UniqueRepresentation,Parent):
 
         sage: P = PlanePartitions((4,3,2))
         sage: P
-        Plane partitions inside a 4 x 3 x 2 box.
+        Plane partitions inside a 4 x 3 x 2 box
         sage: P.cardinality()
         490
     """
@@ -631,9 +700,27 @@ class PlanePartitions(UniqueRepresentation,Parent):
         Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def _repr_(self):
-        return "Plane partitions inside a {} x {} x {} box.".format(self._box[0],self._box[1],self._box[2])
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: PlanePartitions((4,3,2))
+            Plane partitions inside a 4 x 3 x 2 box
+        """
+        return "Plane partitions inside a {} x {} x {} box".format(self._box[0],self._box[1],self._box[2])
 
     def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: list(PlanePartitions((1,2,1)))
+            [Plane partition [[0, 0]],
+             Plane partition [[1, 0]],
+             Plane partition [[1, 1]]]
+        """
         A = self._box[0]
         B = self._box[1]
         C = self._box[2]
@@ -675,12 +762,10 @@ class PlanePartitions(UniqueRepresentation,Parent):
         EXAMPLES::
 
             sage: PlanePartitions((4,3,5)).random_element()
-            The plane partition [[4, 3, 3], [4, 0, 0], [2, 0, 0], [0, 0, 0]].
+            Plane partition [[4, 3, 3], [4, 0, 0], [2, 0, 0], [0, 0, 0]]
         """
         def leq(thing1, thing2):
-            if all(thing1[i] <= thing2[i] for i in range(len(thing1))):
-                return True
-            return False
+            return all(thing1[i] <= thing2[i] for i in range(len(thing1)))
         elem = [(i,j,k) for i in range(self._box[0]) for j in range(self._box[1]) for k in range(self._box[2])]
         myposet = Poset((elem,leq))
         R = myposet.random_order_ideal()

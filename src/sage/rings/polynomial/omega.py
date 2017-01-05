@@ -570,7 +570,7 @@ def Omega_ge(a, exponents):
 
     logger.debug('Omega_ge: preparing denominator')
     factors_denominator = tuple(de_power(1 - factor)
-                                for factor in Omega_factors_denominator(x, y))
+                                for factor in _Omega_factors_denominator_(x, y))
 
     logger.debug('Omega_ge: preparing numerator')
     numerator = de_power(_Omega_numerator_(a, x, y, t))
@@ -606,7 +606,7 @@ def _Omega_numerator_(a, x, y, t):
       flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
       `y_1,...,y_m`.
       The non-flatness of these parameters is to be interface-consistent
-      with :func:`Omega_factors_denominator`.
+      with :func:`_Omega_factors_denominator_`.
 
     - ``t`` -- a temporary Laurent polynomial variable used for substituting
 
@@ -615,11 +615,11 @@ def _Omega_numerator_(a, x, y, t):
     A Laurent polynomial
 
     The output is normalized such that the corresponding denominator
-    (:func:`Omega_factors_denominator`) has constant term `1`.
+    (:func:`_Omega_factors_denominator_`) has constant term `1`.
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.omega import _Omega_numerator_, Omega_factors_denominator
+        sage: from sage.rings.polynomial.omega import _Omega_numerator_, _Omega_factors_denominator_
 
         sage: L.<x0, x1, x2, x3, y0, y1, t> = LaurentPolynomialRing(ZZ)
         sage: _Omega_numerator_(0, ((x0,),), ((y0,),), t)
@@ -644,7 +644,7 @@ def _Omega_numerator_(a, x, y, t):
 
     TESTS::
 
-        sage: Omega_factors_denominator((), ())
+        sage: _Omega_factors_denominator_((), ())
         ()
         sage: _Omega_numerator_(0, (), (), t)
         1
@@ -653,7 +653,7 @@ def _Omega_numerator_(a, x, y, t):
         sage: _Omega_numerator_(-2, (), (), t)
         0
 
-        sage: Omega_factors_denominator(((x0,),), ())
+        sage: _Omega_factors_denominator_(((x0,),), ())
         (-x0 + 1,)
         sage: _Omega_numerator_(0, ((x0,),), (), t)
         1
@@ -662,7 +662,7 @@ def _Omega_numerator_(a, x, y, t):
         sage: _Omega_numerator_(-2, ((x0,),), (), t)
         x0^2
 
-        sage: Omega_factors_denominator((), ((y0,),))
+        sage: _Omega_factors_denominator_((), ((y0,),))
         ()
         sage: _Omega_numerator_(0, (), ((y0,),), t)
         1
@@ -691,7 +691,7 @@ def _Omega_numerator_(a, x, y, t):
     logger.info('Omega_numerator: a=%s, n=%s, m=%s', a, n, m)
 
     if m == 0:
-        result = 1 - (prod(Omega_factors_denominator(x, y)) *
+        result = 1 - (prod(_Omega_factors_denominator_(x, y)) *
                       sum(homogenous_symmetric_function(j, xy)
                           for j in srange(-a))
                       if a < 0 else 0)
@@ -780,7 +780,7 @@ def _Omega_numerator_P_(a, x, y, t):
 
 
 @cached_function
-def Omega_factors_denominator(x, y):
+def _Omega_factors_denominator_(x, y):
     r"""
     Return the denominator of `\Omega_{\ge}` of the expression
     specified by the input.
@@ -821,39 +821,39 @@ def Omega_factors_denominator(x, y):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.omega import Omega_factors_denominator
+        sage: from sage.rings.polynomial.omega import _Omega_factors_denominator_
 
         sage: L.<x0, x1, x2, x3, y0, y1> = LaurentPolynomialRing(ZZ)
-        sage: Omega_factors_denominator(((x0,),), ((y0,),))
+        sage: _Omega_factors_denominator_(((x0,),), ((y0,),))
         (-x0 + 1, -x0*y0 + 1)
-        sage: Omega_factors_denominator(((x0,),), ((y0,), (y1,)))
+        sage: _Omega_factors_denominator_(((x0,),), ((y0,), (y1,)))
         (-x0 + 1, -x0*y0 + 1, -x0*y1 + 1)
-        sage: Omega_factors_denominator(((x0,), (x1,)), ((y0,),))
+        sage: _Omega_factors_denominator_(((x0,), (x1,)), ((y0,),))
         (-x0 + 1, -x1 + 1, -x0*y0 + 1, -x1*y0 + 1)
-        sage: Omega_factors_denominator(((x0,), (x1,), (x2,)), ((y0,),))
+        sage: _Omega_factors_denominator_(((x0,), (x1,), (x2,)), ((y0,),))
         (-x0 + 1, -x1 + 1, -x2 + 1, -x0*y0 + 1, -x1*y0 + 1, -x2*y0 + 1)
-        sage: Omega_factors_denominator(((x0,), (x1,)), ((y0,), (y1,)))
+        sage: _Omega_factors_denominator_(((x0,), (x1,)), ((y0,), (y1,)))
         (-x0 + 1, -x1 + 1, -x0*y0 + 1, -x0*y1 + 1, -x1*y0 + 1, -x1*y1 + 1)
 
     ::
 
         sage: B.<zeta> = ZZ.extension(cyclotomic_polynomial(3))
         sage: L.<x, y> = LaurentPolynomialRing(B)
-        sage: Omega_factors_denominator(((x, -x),), ((y,),))
+        sage: _Omega_factors_denominator_(((x, -x),), ((y,),))
         (-x^2 + 1, -x^2*y^2 + 1)
-        sage: Omega_factors_denominator(((x, -x),), ((y, zeta*y, zeta^2*y),))
+        sage: _Omega_factors_denominator_(((x, -x),), ((y, zeta*y, zeta^2*y),))
         (-x^2 + 1, -x^6*y^6 + 1)
-        sage: Omega_factors_denominator(((x, -x),), ((y, -y),))
+        sage: _Omega_factors_denominator_(((x, -x),), ((y, -y),))
         (-x^2 + 1, -x^2*y^2 + 1, -x^2*y^2 + 1)
 
     TESTS::
 
         sage: L.<x0, y0> = LaurentPolynomialRing(ZZ)
-        sage: Omega_factors_denominator((), ())
+        sage: _Omega_factors_denominator_((), ())
         ()
-        sage: Omega_factors_denominator(((x0,),), ())
+        sage: _Omega_factors_denominator_(((x0,),), ())
         (-x0 + 1,)
-        sage: Omega_factors_denominator((), ((y0,),))
+        sage: _Omega_factors_denominator_((), ((y0,),))
         ()
     """
     import logging

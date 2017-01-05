@@ -1337,9 +1337,9 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: L(1/2)
             1/2
 
-        TESTS::
+        TESTS:
 
-        Check that :trac:`19538` is fixed
+        Check that :trac:`19538` is fixed::
             
             sage: R = LaurentPolynomialRing(QQ,'x2,x0')
             sage: S = LaurentPolynomialRing(QQ,'x',3)

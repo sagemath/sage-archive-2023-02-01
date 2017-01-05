@@ -814,7 +814,7 @@ def Omega_factors_denominator(x, y):
 
     .. NOTE::
 
-        The implicit assumption is that the ``x`` and ``y`` are collected in
+        The assumption is that the ``x`` and ``y`` are collected in
         such a way that one entry of ``x`` corresponds to the orbit of
         some ``x_j`` under multiplication by `d`-th roots of unity and that
         the output is collected in a corresponding way.

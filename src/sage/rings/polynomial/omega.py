@@ -1,5 +1,5 @@
 r"""
-MacMahon's Omega Operator
+MacMahon's Partition Analysis Omega Operator
 
 This module implements :func:`MacMahon's Omega Operator <Omega>`
 [MacMahon1915]_, which takes a quotient of Laurent polynomials and

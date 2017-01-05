@@ -1,7 +1,7 @@
 r"""
 MacMahon's Partition Analysis Omega Operator
 
-This module implements :func:`MacMahon's Omega Operator <Omega>`
+This module implements :func:`MacMahon's Omega Operator <MacMahonOmega>`
 [MacMahon1915]_, which takes a quotient of Laurent polynomials and
 removes all negative exponents in the corresponding power series.
 
@@ -351,7 +351,7 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
 
 def _Omega_(A, decoded_factors):
     r"""
-    Helper function for :func:`Omega` which accesses the low level functions
+    Helper function for :func:`MacMahonOmega` which accesses the low level functions
     and does the substituting.
 
     INPUT:
@@ -371,7 +371,7 @@ def _Omega_(A, decoded_factors):
 
     TESTS:
 
-    Extensive testing of this function is done in :func:`Omega`.
+    Extensive testing of this function is done in :func:`MacMahonOmega`.
 
     ::
 
@@ -587,7 +587,7 @@ def Omega_numerator(a, x, y, t):
 
     and return its numerator.
 
-    This function is meant to be a helper function of :func:`Omega`.
+    This function is meant to be a helper function of :func:`MacMahonOmega`.
 
     INPUT:
 
@@ -788,7 +788,7 @@ def Omega_factors_denominator(x, y):
 
     and return a factorization of its denominator.
 
-    This function is meant to be a helper function of :func:`Omega`.
+    This function is meant to be a helper function of :func:`MacMahonOmega`.
 
     INPUT:
 

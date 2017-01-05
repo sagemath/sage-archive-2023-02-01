@@ -6,6 +6,25 @@ This module implements :func:`MacMahon's Omega Operator <MacMahonOmega>`
 removes all negative exponents in the corresponding power series.
 
 
+Examples
+========
+
+In the following example, all negative exponents of `\mu` are removed.
+The formula
+
+.. MATH::
+
+    \Omega_{\ge} \frac{1}{(1 - x\mu) (1 - y/\mu)}
+    = \frac{1}{(1 - x) (1 - xy)}
+
+can be calculated and verified by
+::
+
+    sage: L.<mu, x, y> = LaurentPolynomialRing(ZZ)
+    sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu])
+    1 * (-x + 1)^-1 * (-x*y + 1)^-1
+
+
 References
 ==========
 

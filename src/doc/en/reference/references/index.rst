@@ -1071,8 +1071,8 @@ REFERENCES:
             (2009), No. 3, p.295-313. :arXiv:`0707.4267`
 
 .. [Mac1915] Percy A. MacMahon, *Combinatory Analysis*,
-   Cambridge University Press (1915--1916).
-   (Reprinted: Chelsea, New York, 1960)
+             Cambridge University Press (1915--1916).
+             (Reprinted: Chelsea, New York, 1960).
 
 .. [MAR2009] \H. Molina-Abril and P. Réal, *Homology computation using
              spanning trees* in Progress in Pattern Recognition, Image

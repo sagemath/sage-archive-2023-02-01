@@ -176,7 +176,7 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		else
 			c.s<<")";
 		c.s << mul_sym;
-	} else if (!num_coeff.is_integer() || !num_coeff.is_equal(*_num1_p)) {
+	} else if (!num_coeff.is_integer() || !num_coeff.is_one()) {
 		if (parenthesis) {
 			if (latex)
 				c.s << "\\left(";
@@ -298,13 +298,13 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 			numeric print_numer = negate ? coeff_numer.mul(*_num_1_p) : coeff_numer;
 			c.s << "\\frac{";
 			if (others.empty()) {
-				if (print_numer.is_integer() && print_numer.is_equal(*_num1_p)){
+				if (print_numer.is_integer() && print_numer.is_one()){
 					c.s<<'1';
 				} else {
 					print_numer.print(c);
 				}
 			} else {
-				if (print_numer.is_integer() && print_numer.is_equal(*_num1_p)){
+				if (print_numer.is_integer() && print_numer.is_one()){
 					mul(others).eval().print(c);
 				} else {
 					mul(print_numer,mul(others).eval()).hold().print(c);
@@ -679,7 +679,7 @@ ex mul::eval(int level) const
 		if (unlikely(is_ex_the_function(i->rest, exp) and
 			     num_coeff.is_integer())) {
 			exp_count++;
-			if (exp_count>1 or not num_coeff.is_equal(*_num1_p) or
+			if (exp_count>1 or not num_coeff.is_one() or
                                 not num_coeff.is_integer())
 				return eval_exponentials();
 		}
@@ -700,8 +700,7 @@ ex mul::eval(int level) const
 		return recombine_pair_to_ex(*(seq.begin()));
 	} else if ((seq_size==1) &&
 	           is_exactly_a<add>((*seq.begin()).rest) &&
-	           ex_to<numeric>((*seq.begin()).coeff).is_integer() &&
-	           ex_to<numeric>((*seq.begin()).coeff).is_equal(*_num1_p)) {
+	           ex_to<numeric>((*seq.begin()).coeff).is_one()) {
 		// *(+(x,y,...);c) -> +(*(x,c),*(y,c),...) (c numeric(), no powers of +())
 		const add & addref = ex_to<add>((*seq.begin()).rest);
 		epvector distrseq;
@@ -749,7 +748,7 @@ ex mul::eval(int level) const
 			// very unlucky event it can even loop forever). Hopefully the main
 			// variable will be the same for all terms in *this
 			const bool unit_normal = lead_coeff.is_pos_integer();
-			if (likely((c == *_num1_p) && ((! canonicalizable) || unit_normal))) {
+			if (likely((c.is_one()) && ((! canonicalizable) || unit_normal))) {
 				++i;
 				continue;
 			}
@@ -765,7 +764,7 @@ ex mul::eval(int level) const
 			}
 
 			if (! unit_normal) {
-				if(unlikely(c.get_parent_char() == 2) && c == *_num1_p) {
+				if(unlikely(c.get_parent_char() == 2) && c.is_one()) {
 					c = *_num_1_p;
 				} else {
 					c = c.mul(*_num_1_p);

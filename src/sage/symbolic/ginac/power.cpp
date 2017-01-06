@@ -681,7 +681,7 @@ ex power::eval(int level) const
                                 if (canonicalizable && (! unit_normal))
                                         icont = icont.mul(*_num_1_p);
 
-                                if (canonicalizable && (icont != *_num1_p)) {
+                                if (canonicalizable and not icont.is_one()) {
                                         const add& addref = ex_to<add>(ebasis);
                                         auto  addp = new add(addref);
                                         addp->setflag(status_flags::dynallocated);
@@ -692,7 +692,7 @@ ex power::eval(int level) const
                                                 elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
 
                                         const numeric c = icont.power(num_exponent);
-                                        if (likely(c != *_num1_p))
+                                        if (likely(not c.is_one()))
                                                 return (new mul(power(*addp, num_exponent), c))->setflag(status_flags::dynallocated);
                                         else
                                                 return power(*addp, num_exponent);
@@ -1399,11 +1399,11 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 					} else if (the_exponent[i] == 1) {
 						// optimized
 						monomial.push_back(expair(r, _ex1));
-						if (c != *_num1_p)
+						if (not c.is_one())
 							factor = factor.mul(c);
 					} else { // general case exponent[i] > 1
 						monomial.push_back(expair(r, the_exponent[i]));
-						if (c != *_num1_p)
+						if (not c.is_one())
 							factor = factor.mul(c.power(the_exponent[i]));
 					}
 				}

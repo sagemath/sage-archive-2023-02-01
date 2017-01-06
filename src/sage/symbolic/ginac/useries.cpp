@@ -455,7 +455,7 @@ void mul::useries(flint_series_t& fp, int order) const
         if (not is_exactly_a<numeric>(ovcoeff))
                 throw std::runtime_error("non-numeric oc encountered");
         numeric oc = ex_to<numeric>(ovcoeff);
-        if (oc.is_equal(*_num1_p))
+        if (oc.is_one())
                 return;
 
         if (oc.is_mpz())

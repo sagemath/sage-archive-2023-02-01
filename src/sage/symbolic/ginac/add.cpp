@@ -206,8 +206,8 @@ void add::do_print_csrc(const print_csrc & c, unsigned level) const
 		c.s << separator;
 		if (elem.coeff.is_equal(_ex1) || elem.coeff.is_equal(_ex_1)) {
 			elem.rest.print(c, precedence());
-		} else if (ex_to<numeric>(elem.coeff).numer().is_equal(*_num1_p) ||
-				 ex_to<numeric>(elem.coeff).numer().is_equal(*_num_1_p))
+		} else if (ex_to<numeric>(elem.coeff).numer().is_one()
+                        or ex_to<numeric>(elem.coeff).numer().is_minus_one())
 		{
 			elem.rest.print(c, precedence());
 			c.s << '/';
@@ -620,7 +620,7 @@ expair add::combine_pair_with_coeff_to_pair(const expair & p,
 	GINAC_ASSERT(is_exactly_a<numeric>(c));
 
 	if (is_exactly_a<numeric>(p.rest)) {
-		GINAC_ASSERT(ex_to<numeric>(p.coeff).is_equal(*_num1_p)); // should be normalized
+		GINAC_ASSERT(ex_to<numeric>(p.coeff).is_one()); // should be normalized
 		return expair(ex_to<numeric>(p.rest).mul_dyn(ex_to<numeric>(c)),_ex1);
 	}
 
@@ -629,7 +629,7 @@ expair add::combine_pair_with_coeff_to_pair(const expair & p,
 
 ex add::recombine_pair_to_ex(const expair & p) const
 {
-	if (ex_to<numeric>(p.coeff).is_equal(*_num1_p))
+	if (ex_to<numeric>(p.coeff).is_one())
 		return p.rest;
 	else
 		return (new mul(p.rest,p.coeff))->setflag(status_flags::dynallocated);

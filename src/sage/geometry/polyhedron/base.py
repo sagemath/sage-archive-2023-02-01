@@ -3584,7 +3584,7 @@ class Polyhedron_base(Element):
             sage: p = polytopes.hypercube(3)
             sage: p_solid = p.render_solid(opacity = .7)
             sage: type(p_solid)
-            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+            <type 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
         """
         proj = self.projection()
         if self.ambient_dim()==3:

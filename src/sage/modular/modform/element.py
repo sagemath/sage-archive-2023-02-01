@@ -1587,13 +1587,13 @@ class Newform(ModularForm_abstract):
 
         ALGORITHM:
 
-        The action is computed using the results of [Atkin-Li]_,
+        The action is computed using the results of [AL1978]_,
         Sections 1 and 2.
 
         .. NOTE::
 
             The definition of the operator `W_d` differs from the one
-            used in [Atkin-Li]_.  On the space of modular forms of
+            used in [AL1978]_.  On the space of modular forms of
             weight `k`, the operator is defined in both cases by a
             weight `k` action of a matrix of the form
 
@@ -1606,19 +1606,19 @@ class Newform(ModularForm_abstract):
 
             - Congruence conditions: in Sage, the matrix is chosen
               to satisfy the conditions `z \equiv 1 \pmod d` and
-              `w \equiv 1 \pmod{N/d}`; in [Atkin-Li]_, the conditions
+              `w \equiv 1 \pmod{N/d}`; in [AL1978]_, the conditions
               are `x \equiv 1 \pmod{N/d}` and `y \equiv 1 \pmod d`.
 
             - Absolute value: due to different definitions of the
               weight `k` action, the pseudo-eigenvalue returned by
               this method has absolute value `d^{k/2 - 1}`, while the
-              pseudo-eigenvalue defined in [Atkin-Li]_ has absolute
+              pseudo-eigenvalue defined in [AL1978]_ has absolute
               value 1.
 
             Consequently, given a newform `f` of weight `k` and
             character `\epsilon`, the pseudo-eigenvalue `w` returned
             by this method and the pseudo-eigenvalue `\lambda_d(f)`
-            defined in [Atkin-Li]_ are related by
+            defined in [AL1978]_ are related by
 
             .. math::
 

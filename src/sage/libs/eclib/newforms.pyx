@@ -41,7 +41,7 @@ cdef class ECModularSymbol:
     We can also switch the base point to the cusp $0$::
 
         sage: [M(1/i, base_at_infinity=False) for i in range(1,11)]
-        [0, 2, 1, -1, -2, -2, -1, 1, 2, 0]
+        [0, -2, -1, 1, 2, 2, 1, -1, -2, 0]
 
     For the minus symbols this makes no difference since
     $\{0,\infty\}$ is in the plus space.  Note that to evaluate minus
@@ -261,7 +261,7 @@ cdef class ECModularSymbol:
             sage: [M(1/i) for i in range(1,11)]
             [2/5, -8/5, -3/5, 7/5, 12/5, 12/5, 7/5, -3/5, -8/5, 2/5]
             sage: [M(1/i, base_at_infinity=False) for i in range(1,11)]
-            [0, 2, 1, -1, -2, -2, -1, 1, 2, 0]
+            [0, -2, -1, 1, 2, 2, 1, -1, -2, 0]
             sage: E = EllipticCurve('37a')
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,11)]

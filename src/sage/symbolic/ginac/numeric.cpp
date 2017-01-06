@@ -538,6 +538,22 @@ const numeric& numeric::operator=(const numeric& x) {
 int numeric::compare_same_type(const numeric& right) const {
         verbose("compare_same_type");
         if (t != right.t) {
+                if (t == MPZ and right.t == MPQ) {
+                        int ret = mpq_cmp_z(right.v._bigrat, v._bigint);
+                        if (ret > 0)
+                                ret = -1;
+                        else if (ret < 0)
+                                ret = 1;
+                        return ret;
+                }
+                else if (t == MPQ and right.t == MPZ) {
+                        int ret = mpq_cmp_z(v._bigrat, right.v._bigint);
+                        if (ret > 0)
+                                ret = 1;
+                        else if (ret < 0)
+                                ret = -1;
+                        return ret;
+                }
                 numeric a, b;
                 coerce(a, b, *this, right);
                 return a.compare_same_type(b);
@@ -1130,6 +1146,37 @@ const numeric numeric::add(const numeric &other) const {
         // Or just a nested switch of switches that covers all
         // combinations of long,double,mpfr,mpz,mpq,mpfc,mpqc.  Yikes.
         if (t != other.t) {
+                if (t == MPZ and other.t == MPQ) {
+                        mpq_t bigrat, tmp;
+                        mpq_init(bigrat);
+                        mpq_init(tmp);
+                        mpz_t bigint;
+                        mpz_init_set(bigint, mpq_denref(other.v._bigrat));
+                        mpq_set_z(tmp, bigint);
+                        mpz_mul(bigint, bigint, v._bigint);
+                        mpz_add(bigint, bigint, mpq_numref(other.v._bigrat));
+                        mpq_set_z(bigrat, bigint);
+                        mpq_div(bigrat, bigrat, tmp);
+                        mpq_clear(tmp);
+                        mpz_clear(bigint);
+                        return bigrat;
+                }
+                else if (t == MPQ and other.t == MPZ) {
+                        mpq_t bigrat, tmp;
+                        mpq_init(bigrat);
+                        mpq_init(tmp);
+                        mpz_t bigint;
+                        mpz_init_set(bigint, mpq_denref(v._bigrat));
+                        mpq_set_z(tmp, bigint);
+                        mpz_mul(bigint, bigint, other.v._bigint);
+                        mpz_add(bigint, bigint, mpq_numref(v._bigrat));
+                        mpq_set_z(bigrat, bigint);
+                        mpq_div(bigrat, bigrat, tmp);
+                        mpq_clear(tmp);
+                        mpz_clear(bigint);
+                        return bigrat;
+                }
+
                 numeric a, b;
                 coerce(a, b, *this, other);
                 return a + b;
@@ -1844,7 +1891,18 @@ bool numeric::is_exact() const {
 
 bool numeric::operator==(const numeric &right) const {
         verbose3("operator==", *this, right);
+
         if (t != right.t) {
+                if (t == MPZ and right.t == MPQ) {
+                        if (mpz_cmp_ui(mpq_denref(right.v._bigrat), 1) != 0)
+                                return false;
+                        return mpz_cmp(v._bigint, mpq_numref(right.v._bigrat)) ==0;
+                }
+                else if (t == MPQ and right.t == MPZ) {
+                        if (mpz_cmp_ui(mpq_denref(v._bigrat), 1) != 0)
+                                return false;
+                        return mpz_cmp(right.v._bigint, mpq_numref(v._bigrat)) ==0;
+                }
                 numeric a, b;
                 coerce(a, b, *this, right);
                 return a == b;
@@ -1866,6 +1924,16 @@ bool numeric::operator==(const numeric &right) const {
 bool numeric::operator!=(const numeric &right) const {
         verbose("operator!=");
         if (t != right.t) {
+                if (t == MPZ and right.t == MPQ) {
+                        if (mpz_cmp_ui(mpq_denref(right.v._bigrat), 1) != 0)
+                                return true;
+                        return mpz_cmp(v._bigint, mpq_numref(right.v._bigrat)) !=0;
+                }
+                else if (t == MPQ and right.t == MPZ) {
+                        if (mpz_cmp_ui(mpq_denref(v._bigrat), 1) != 0)
+                                return true;
+                        return mpz_cmp(right.v._bigint, mpq_numref(v._bigrat)) !=0;
+                }
                 numeric a, b;
                 coerce(a, b, *this, right);
                 return a != b;
@@ -2053,7 +2121,7 @@ const numeric numeric::to_bigint() const {
         switch (t) {
             case MPZ: return *this;
             case MPQ: 
-                if (not denom().is_equal(*_num1_p))
+                if (not denom().is_one())
                     throw std::runtime_error("not integer in numeric::to_mpz_num()");
                 return numer();
             case PYOBJECT:
@@ -2325,8 +2393,8 @@ const numeric numeric::log() const {
 
 // General log
 const numeric numeric::log(const numeric &b) const {
-        if (b == *_num1_p) {
-                if (*this == *_num1_p)
+        if (b.is_one()) {
+                if (is_one())
 		        throw (std::runtime_error("log(1,1) encountered"));
                 else
                         return py_funcs.py_eval_unsigned_infinity();
@@ -2350,8 +2418,8 @@ const numeric numeric::log(const numeric &b) const {
 // Handle special cases here that return MPZ/MPQ
 const numeric numeric::ratlog(const numeric &b, bool& israt) const {
         israt = true;
-        if (b == *_num1_p) {
-                if (*this == *_num1_p)
+        if (b.is_one()) {
+                if (is_one())
 		        throw (std::runtime_error("log(1,1) encountered"));
                 else
                         return py_funcs.py_eval_unsigned_infinity();
@@ -2380,7 +2448,7 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
         }
 
         if (t == MPZ) {
-                if (b.numer() == *_num1_p)
+                if (b.numer().is_one())
                         return -ratlog(b.denom(), israt);
                 else {
                         israt = false;
@@ -2388,7 +2456,7 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
                 }
         }
         if (b.t == MPZ) {
-                if (numer() == *_num1_p)
+                if (numer().is_one())
                         return -denom().ratlog(b, israt);
                 else {
                         israt = false;
@@ -2397,7 +2465,7 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
         }
 
         numeric d = denom().log(b.denom());
-        if (numer() == *_num1_p and b.numer() == *_num1_p)
+        if (numer().is_one() and b.numer().is_one())
                 return d;
         numeric n = numer().log(b.numer());
         if (n == d)
@@ -2705,7 +2773,7 @@ void numeric::factor(std::vector<std::pair<long, int>>& factors) const
                 return to_bigint().factor(factors);
         if (t != MPZ)
                 return;
-        if (*this == *_num1_p or *this == *_num_1_p)
+        if (is_one() or is_minus_one())
                 return;
         fmpz_t f;
         fmpz_init(f);
@@ -2748,7 +2816,7 @@ void numeric::divisors(std::set<int>& divs) const
         if (t != MPZ)
                 return;
         divs.insert(1);
-        if (*this == *_num1_p or *this == *_num_1_p)
+        if (is_one() or is_minus_one())
                 return;
         std::vector<std::pair<long, int>> factors;
         factor(factors);
@@ -2952,7 +3020,7 @@ const numeric acos(const numeric &x) {
 const numeric atan(const numeric &x) {
         if (!x.is_real() &&
                 x.real().is_zero() &&
-                abs(x.imag()).is_equal(*_num1_p))
+                abs(x.imag()).is_one())
                 throw pole_error("atan(): logarithmic pole", 0);
         return x.atan();
 }

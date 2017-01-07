@@ -279,8 +279,8 @@ def skip_TESTS_block(docstring):
         sage: skip_TESTS_block(start + test + refs + test2 + directive).rstrip() == (start + refs + directive).rstrip()
         True
 
-        sage: header = 'Header:\n~~~~~~~~'
-        sage: fake_header = 'Header:\n-=-=-=-=-='
+        sage: header = ' Header:\n ~~~~~~~~'
+        sage: fake_header = ' Header:\n -=-=-=-=-='
         sage: skip_TESTS_block(start + test + header) == start + header
         True
         sage: skip_TESTS_block(start + test + fake_header).rstrip() == start.rstrip()
@@ -306,7 +306,7 @@ def skip_TESTS_block(docstring):
     end_of_block = re.compile('[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
     # header: match a string of hyphens, or other characters which are
     # valid markers for ReST headers: - = ` : ' " ~ _ ^ * + # < >
-    header = re.compile(r'^([-=`:\'"~_^*+#><])\1+[ ]*$')
+    header = re.compile(r'^[ ]*([-=`:\'"~_^*+#><])\1+[ ]*$')
     s = ''
     skip = False
     previous = ''
@@ -336,6 +336,8 @@ def skip_TESTS_block(docstring):
                 s += l
             elif header.match(l):
                 # A line matching header.
+                if l.startswith(indentation + " "):
+                    continue
                 skip = False
                 if previous:
                     s += "\n"

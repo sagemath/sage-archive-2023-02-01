@@ -626,7 +626,7 @@ ex ex::normal(int level, bool noexpand_combined, bool noexpand_numer) const
 	if (!repl.empty())
 		e = e.subs(repl, subs_options::no_pattern);
 
-	// Convert {numerator, denominator} form back to fraction
+        // Convert {numerator, denominator} form back to fraction
         if ((options & normal_options::no_expand_fraction_numer) == 0u)
                 return e.op(0).expand() / e.op(1);
         else

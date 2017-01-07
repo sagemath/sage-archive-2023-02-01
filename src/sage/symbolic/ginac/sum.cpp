@@ -195,105 +195,6 @@ static ex to_gamma(const ex& the_ex)
         throw std::runtime_error("can't happen in to_gamma");
 }
 
-using ex_int_pair = std::pair<ex, int>;
-static void simp_gamma_pair(ex& res, ex_int_pair& np, ex_int_pair& dp,
-                int m, int d)
-{
-        np.second -= m;
-        dp.second -= m;
-        if (d == 0)
-                return;
-        if (d>0) {
-                ex base = dp.first;
-                for (int k=0; k<d; ++k) {
-                        if (m == 1)
-                                res *= base;
-                        else
-                                res *= power(base, m);
-                        base = base + _ex1;
-                }
-        }
-        else {
-                ex base = np.first;
-                for (int k=0; k<-d; ++k) {
-                        res *= power(base, -m);
-                        base = base + _ex1;
-                }
-        }
-}
-
-static ex simplify_gamma(ex the_ex)
-// not a general purpose algorithm because e.g. we know exponents are integer
-{
-        if (not is_exactly_a<mul>(the_ex))
-                return the_ex;
-
-        // The main data struct holds gamma arguments and their exponents
-        std::vector<ex_int_pair> nums, dens;
-        ex res = _ex1;
-        const mul& m = ex_to<mul>(the_ex);
-        for (unsigned int i=0; i<m.nops(); i++) {
-                const ex& term = m.op(i);
-                if (is_exactly_a<function>(term)) {
-                        function f = ex_to<function>(term);
-                        if (f.get_serial() == tgamma_SERIAL::serial) {
-                                nums.push_back({f.op(0), 1});
-                                continue;
-                        }
-                }
-                else if (is_exactly_a<power>(term)) {
-                        const ex& basis = term.op(0);
-                        numeric e = ex_to<numeric>(term.op(1));
-                        if (is_exactly_a<function>(basis)) {
-                                function f = ex_to<function>(basis);
-                                if (f.get_serial() == tgamma_SERIAL::serial) {
-                                        if (e > 0)
-                                                nums.push_back({f.op(0), e.to_int()});
-                                        else
-                                                dens.push_back({f.op(0), -(e.to_int()) });
-                                        continue;
-                                }
-                        }
-                }
-                res = res * term;
-        }
-
-        ex simplified = _ex1;
-        bool anything_changed = true;
-        while (anything_changed) {
-                anything_changed = false;
-                for (auto& np : nums) {
-                        if (np.second == 0)
-                                continue;
-                        for (auto& dp : dens) {
-                                if (dp.second == 0)
-                                        continue;
-                                ex diff = np.first - dp.first;
-                                int imin = std::min(np.second, dp.second);
-                                if (not is_exactly_a<numeric>(diff))
-                                        continue;
-                                numeric dnum = ex_to<numeric>(diff);
-                                if (not dnum.info(info_flags::integer)
-                                    or dnum>numeric(4096)) // arbitrary cutoff
-                                        continue;
-                                int d = dnum.to_int();
-                                simp_gamma_pair(simplified, np, dp, imin, d);
-                                anything_changed = true;
-                        }
-                }
-        }
-        ex remaining_gammas = _ex1;
-        for (const auto& p : nums)
-                if (p.second == 1)
-                        remaining_gammas = remaining_gammas * tgamma(p.first);
-                else if (p.second != 0)
-                        remaining_gammas = remaining_gammas * power(tgamma(p.first), numeric(p.second));
-        for (const auto& p : dens)
-                if (p.second != 0)
-                        remaining_gammas = remaining_gammas * power(tgamma(p.first), numeric(-p.second));
-        return res * simplified * remaining_gammas;
-}
-
 static ex combine_powers(const ex& the_ex)
 {
         if (not is_exactly_a<mul>(the_ex))
@@ -340,6 +241,85 @@ static ex combine_powers(const ex& the_ex)
         return res;
 }
 
+using ex_intset_map = std::map<GiNaC::ex, std::unordered_set<int>, GiNaC::ex_is_less>;
+static void collect_gamma_args(ex the_ex, ex_intset_map& map)
+{
+        if (is_exactly_a<function>(the_ex)) {
+                function f = ex_to<function>(the_ex);
+                if (f.get_serial() == tgamma_SERIAL::serial) {
+                        ex arg = f.op(0).expand();
+                        if (is_exactly_a<numeric>(arg))
+                                return;
+                        ex oc;
+                        if (is_exactly_a<add>(arg)) {
+                                const add& a = ex_to<add>(arg);
+                                oc = a.op(a.nops());
+                                if (not is_exactly_a<numeric>(oc))
+                                        return;
+                                numeric noc = ex_to<numeric>(oc);
+                                if (not noc.is_mpz()) {
+                                        if (not noc.is_mpq())
+                                                return;
+                                        oc = numeric(noc.to_int());
+                                }
+                        }
+                        else
+                                oc = _ex0;
+                        int ioc = ex_to<numeric>(oc).to_int();
+                        auto search = map.find(arg - oc);
+                        if (search != map.end()) {
+                                search->second.insert(ioc);
+                        }
+                        else {
+                                std::unordered_set<int> intset;
+                                intset.insert(ioc);
+                                map[arg-oc] = intset;
+                        }
+                }
+                for (unsigned int i=0; i<f.nops(); i++)
+                        collect_gamma_args(f.op(i), map);
+        }
+        else if (is_exactly_a<power>(the_ex)) {
+                power pow = ex_to<power>(the_ex);
+                collect_gamma_args(pow.op(0), map);
+                collect_gamma_args(pow.op(1), map);
+        }
+        else if (is_a<expairseq>(the_ex)) {
+                const expairseq& epseq = ex_to<expairseq>(the_ex);
+                for (unsigned int i=0; i<epseq.nops(); i++)
+                        collect_gamma_args(epseq.op(i), map);
+        }
+}
+
+ex gamma_normalize(ex the_ex)
+{
+        ex_intset_map map;
+        collect_gamma_args(the_ex, map);
+        exmap submap;
+        for (const auto& p : map) {
+                if (p.second.size() < 2)
+                        continue;
+                int m = *std::min_element(p.second.begin(), p.second.end());
+                for (int oc : p.second) {
+                        if (oc == m)
+                                continue;
+                        ex prod = _ex1;
+                        const ex& base = p.first;
+                        for (int i=m; i<oc; ++i)
+                                prod *= (base + numeric(i));
+                        submap[tgamma(base + numeric(oc)).hold()] = tgamma(base + numeric(m)).hold() * prod;
+                }
+        }
+
+        ex subsed = the_ex.subs(submap).normal(0, true, false);
+        ex res_ex;
+        bool res = factor(subsed, res_ex);
+        if (res)
+                return res_ex;
+        else
+                return subsed;
+}
+
 ex hypersimp(const ex& e, const ex& k)
 // See Algorithm 2.1 in the Koepf reference
 {
@@ -353,7 +333,7 @@ ex hypersimp(const ex& e, const ex& k)
         if (not has_suitable_form(gr))
                 throw gosper_domain_error();
 
-        return combine_powers(simplify_gamma(to_gamma(gr)));
+        return combine_powers(gamma_normalize(to_gamma(gr)));
 }
 
 static ex diagonal_poly(const exvector& syms, const ex& var)
@@ -455,12 +435,18 @@ ex gosper_term(ex e, ex n)
         ex den = the_ex.denom().expand();
         ex cn = num.lcoeff(n);
         ex cd = den.lcoeff(n);
-        ex ldq = cn / cd;
-        ex A = num / cn;
-        ex B = den / cd;
+        ex ldq = (cn / cd).normal(0, true, false);
+        ex A = (num / cn).normal(0, true, false);
+        ex B = (den / cd).normal(0, true, false);
         ex C = _ex1;
         symbol h;
-        ex res = resultant(A, B.subs(n == n+h), n);
+        ex res;
+        try {
+                res = resultant(A, B.subs(n == n+h), n);
+        }
+        catch (std::runtime_error) {
+                throw std::runtime_error("NotImplemented: we cannot solve that at the moment");
+        }
         std::set<int> roots = nonneg_integer_roots(res, h);
         for (int root : roots) {
                 ex d = gcd(A, B.subs(n == n+ex(root)).expand());
@@ -469,7 +455,7 @@ ex gosper_term(ex e, ex n)
                 for (long j=1; j<root+1; ++j)
                         C *= d.subs(n == n-ex(j));
         }
-        A *= ldq;
+        A = (A * ldq).normal(0, true, false);
         B = B.subs(n == n-1).expand();
         int N = A.degree(n);
         int M = B.degree(n);

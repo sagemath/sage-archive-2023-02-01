@@ -398,8 +398,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # todo -- should multiply individual coefficients??
         #         that could be in derived class.
         #         Note that we are guaranteed that right is in the base ring, so this could be fast.
-        if left == 0:
-            return self.parent().zero()
+        if not left:
+            return self._parent.zero()
         return self.parent()(left) * self
 
     cpdef _rmul_(self, RingElement right):
@@ -418,8 +418,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # todo -- Should multiply individual coefficients??
         #         that could be in derived class.
         #         Note that we are guaranteed that right is in the base ring, so this could be fast.
-        if right == 0:
-            return self.parent().zero()
+        if not right:
+            return self._parent.zero()
         return self * self.parent()(right)
 
     def subs(self, *x, **kwds):
@@ -3409,7 +3409,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self
         cdef Py_ssize_t n, degree = self.degree()
         if degree == 0:
-            return self.parent().zero()
+            return self._parent.zero()
         coeffs = self.list()
         return self._new_generic([n*coeffs[n] for n from 1 <= n <= degree])
 
@@ -4366,11 +4366,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         # if other is a constant, then R = 0 and Q = self * other^(deg(self))
         if other in self.parent().base_ring():
-            return (self * other**(self.degree()), self.parent().zero())
+            return (self * other**(self.degree()), self._parent.zero())
 
         R = self
         B = other
-        Q = self.parent().zero()
+        Q = self._parent.zero()
         e = self.degree() - other.degree() + 1
         d = B.leading_coefficient()
 
@@ -6419,7 +6419,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # Late import to avoid cyclic dependencies:
         from sage.rings.power_series_ring import is_PowerSeriesRing
         if self.is_zero():
-            return self.parent().zero()
+            return self._parent.zero()
         n = self.degree()
         base_ring = self.parent().base_ring()
         if (is_MPolynomialRing(base_ring) or

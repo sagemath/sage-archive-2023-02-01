@@ -2758,6 +2758,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.parent()(polynomial_fateman._mul_fateman_mul(self,right))
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.overflowcheck(False)
     def _mul_karatsuba(self, right, K_threshold = None):
         r"""
         Compute the product of two polynomials using the Karatsuba divide
@@ -8993,6 +8996,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.overflowcheck(False)
 cdef do_schoolbook_product(x, y, Py_ssize_t deg):
     """
     Compute the truncated multiplication of two polynomials represented by
@@ -9042,6 +9048,9 @@ cdef do_schoolbook_product(x, y, Py_ssize_t deg):
         coeffs[k] = sum
     return coeffs
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.overflowcheck(False)
 cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
     """
     Multiply two polynomials of different degrees by splitting the one of
@@ -9121,6 +9130,9 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
             output.extend(carry[n-1:])
         return output
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.overflowcheck(False)
 cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssize_t start_r,Py_ssize_t num_elts):
     """
     Core routine for Karatsuba multiplication. This function works for two

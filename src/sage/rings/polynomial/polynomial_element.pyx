@@ -1596,7 +1596,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             implement a generic truncated Karatsuba and use it here.
         """
-        return (self.truncate(n) * right.truncate(n)).truncate(n)
+        cdef Polynomial pol
+        if not self or not right:
+            return self._parent.zero()
+        elif n < self._parent._Karatsuba_threshold:
+            x = self.list()
+            y = right.list()
+            return self._new_generic(do_schoolbook_product(x, y, n))
+        else:
+            pol = self.truncate(n) * right.truncate(n)
+            return pol._inplace_truncate(n)
 
     def multiplication_trunc(self, other, n):
         r"""
@@ -2661,7 +2670,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self._square_generic()
         x = self.list()
         y = right.list()
-        return self._new_generic(do_schoolbook_product(x,y))
+        return self._new_generic(do_schoolbook_product(x, y, -1))
 
     def _square_generic(self):
         x = self.list()
@@ -2912,7 +2921,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if K_threshold is None:
             K_threshold = self._parent._Karatsuba_threshold
         if n <= K_threshold or m <= K_threshold:
-            return self._new_generic(do_schoolbook_product(f,g))
+            return self._new_generic(do_schoolbook_product(f, g, -1))
         if n == m:
             return self._new_generic(do_karatsuba(f,g, K_threshold, 0, 0, n))
         return self._new_generic(do_karatsuba_different_size(f,g, K_threshold))
@@ -8984,13 +8993,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 
-cdef do_schoolbook_product(x, y):
+cdef do_schoolbook_product(x, y, Py_ssize_t deg):
     """
-    Compute the multiplication of two polynomials represented by lists, using
-    the schoolbook algorithm.
+    Compute the truncated multiplication of two polynomials represented by
+    lists, using the schoolbook algorithm.
 
     This is the core of _mul_generic and the code that is used by
     _mul_karatsuba bellow a threshold.
+
+    INPUT:
+
+    - ``x``, ``y``: lists of coefficients
+    - ``deg``: degree at which the output should be truncated,
+      negative values mean not to truncate at all
 
     TESTS:
 
@@ -9005,24 +9020,26 @@ cdef do_schoolbook_product(x, y):
     """
     cdef Py_ssize_t i, k, start, end
     cdef Py_ssize_t d1 = len(x)-1, d2 = len(y)-1
+    if deg < 0 or deg > d1 + d2 + 1:
+        deg = d1 + d2 + 1
     if d1 == -1:
         return x
     elif d2 == -1:
         return y
     elif d1 == 0:
         c = x[0]
-        return [c*a for a in y] # beware of noncommutative rings
+        return [c*a for a in y[:deg]] # beware of noncommutative rings
     elif d2 == 0:
         c = y[0]
-        return [a*c for a in x] # beware of noncommutative rings
-    coeffs = []
-    for k from 0 <= k <= d1+d2:
+        return [a*c for a in x[:deg]] # beware of noncommutative rings
+    coeffs = [None]*deg
+    for k in range(deg):
         start = 0 if k <= d2 else k-d2  # max(0, k-d2)
         end =   k if k <= d1 else d1    # min(k, d1)
         sum = x[start] * y[k-start]
         for i from start < i <= end:
             sum = sum + x[i] * y[k-i]
-        coeffs.append(sum)
+        coeffs[k] = sum
     return coeffs
 
 cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
@@ -9062,7 +9079,7 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
         c = right[0]
         return [a*c for a in left] # beware of noncommutative rings
     if n <= K_threshold or m <= K_threshold:
-        return do_schoolbook_product(left,right)
+        return do_schoolbook_product(left, right, -1)
     if n == m:
         return do_karatsuba(left, right, K_threshold, 0, 0, n)
     if n > m:
@@ -9159,7 +9176,8 @@ cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssi
             d = right[start_r]
             c = right[start_r+1]
             return [b*d, a*d+b*c, a*c]
-        return do_schoolbook_product(left[start_l:start_l+num_elts], right[start_r:start_r+num_elts])
+        return do_schoolbook_product(left[start_l:start_l+num_elts],
+                right[start_r:start_r+num_elts], -1)
     if num_elts == 2:
         # beware of noncommutative rings
         b = left[start_l]

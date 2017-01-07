@@ -240,6 +240,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
         CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
+    cdef Polynomial _new_generic(self, list coeffs):
+        r"""
+        Quickly construct a new polynomial of the same type as self,
+        bypassing the parent's element constructor.
+
+        The new polynomial takes ownership of the coefficient list
+        given on input.
+        """
+        cdef Py_ssize_t n = len(coeffs) - 1
+        while n >= 0 and not coeffs[n]:
+            del coeffs[n]
+            n -= 1
+        return type(self)(self._parent, coeffs, check=False)
+
     def _dict_to_list(self, x, zero):
           if len(x) == 0:
               return []
@@ -282,10 +296,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             high = []
 
         low = [x[i] + y[i] for i in range(min)]
-        return self._parent(low + high)
+        return self._new_generic(low + high)
 
     cpdef _neg_(self):
-        return self._parent([-x for x in self.list()])
+        return self._new_generic([-x for x in self.list()])
 
     cpdef bint is_zero(self):
         r"""
@@ -2647,7 +2661,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self._square_generic()
         x = self.list()
         y = right.list()
-        return self._parent(do_schoolbook_product(x,y))
+        return self._new_generic(do_schoolbook_product(x,y))
 
     def _square_generic(self):
         x = self.list()
@@ -2660,7 +2674,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             coeffs[2*i] = x[i] * x[i]
             for j from 0 <= j < i:
                 coeffs[i+j] += two * x[i] * x[j]
-        return self._parent(coeffs)
+        return self._new_generic(coeffs)
 
     def _mul_fateman(self, right):
         r"""
@@ -2891,17 +2905,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         m = len(g)
         if n == 1:
             c = f[0]
-            return self._parent([c*a for a in g])
+            return self._new_generic([c*a for a in g])
         if m == 1:
             c = g[0]
-            return self._parent([a*c for a in f])
+            return self._new_generic([a*c for a in f])
         if K_threshold is None:
             K_threshold = self._parent._Karatsuba_threshold
         if n <= K_threshold or m <= K_threshold:
-            return self._parent(do_schoolbook_product(f,g))
+            return self._new_generic(do_schoolbook_product(f,g))
         if n == m:
-            return self._parent(do_karatsuba(f,g, K_threshold, 0, 0, n))
-        return self._parent(do_karatsuba_different_size(f,g, K_threshold))
+            return self._new_generic(do_karatsuba(f,g, K_threshold, 0, 0, n))
+        return self._new_generic(do_karatsuba_different_size(f,g, K_threshold))
 
     def base_ring(self):
         """
@@ -3388,7 +3402,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if degree == 0:
             return self.parent().zero()
         coeffs = self.list()
-        return self._parent([n*coeffs[n] for n from 1 <= n <= degree])
+        return self._new_generic([n*coeffs[n] for n from 1 <= n <= degree])
 
     def gradient(self):
         """
@@ -5158,7 +5172,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.degree() < 0:
             return self
         output = [self.base_ring().zero()] * self.degree() + [self.base_ring().one()]
-        return self._parent(output, check=False)
+        return self._new_generic(output)
 
     def lt(self):
         """
@@ -7823,12 +7837,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if n > 0:
             output = [self.base_ring().zero()] * n
             output.extend(self.coefficients(sparse=False))
-            return self._parent(output, check=False)
+            return self._new_generic(output)
         if n < 0:
             if n > self.degree():
-                return self._parent([])
+                return self._new_generic([])
             else:
-                return self._parent(self.coefficients(sparse=False)[-int(n):], check=False)
+                return self._new_generic(self.coefficients(sparse=False)[-int(n):])
 
     def __lshift__(self, k):
         """

@@ -47,7 +47,7 @@ static ex hermite_eval(const ex& n, const ex& x)
                         if (n.info(info_flags::integer)
                                 and n.info(info_flags::odd))
                                 return _ex0;
-                if (is_exactly_a<numeric>(n) and not numx.info(info_flags::crational))
+                if (is_exactly_a<numeric>(n) and numx.info(info_flags::inexact))
                         return hermite_evalf(n, x, nullptr);
         }
 
@@ -124,7 +124,7 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
                 numeric numx = ex_to<numeric>(x);
                 if (is_exactly_a<numeric>(n)
 			and is_exactly_a<numeric>(a)
-			and not numx.info(info_flags::crational))
+			and numx.info(info_flags::inexact))
                         return gegenb_evalf(n, a, x, nullptr);
         }
 

@@ -136,9 +136,10 @@ static ex exp_eval(const ex & x)
 		return x_red.op(0);
 	
 	// exp(float) -> float
-	if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
+	if (is_exactly_a<numeric>(x_red)
+            and x_red.info(info_flags::inexact))
 		return exp(ex_to<numeric>(x_red));
-	
+
 	return exp(x_red).hold();
 }
 
@@ -250,21 +251,23 @@ static ex log_eval(const ex & x)
 {
 	if (is_exactly_a<numeric>(x)) {
 		// log(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::crational)) {
+                        if (x.is_zero())         // log(0) -> infinity
+                                //throw(pole_error("log_eval(): log(0)",0));
+                                return NegInfinity;
+                        if (not x.info(info_flags::inexact) and x.info(info_flags::negative))
+                                return (log(-x)+I*Pi);
+                        if (x.is_equal(_ex1))  // log(1) -> 0
+                                return _ex0;
+                        if (x.is_equal(I))       // log(I) -> Pi*I/2
+                                return (Pi*I*_ex1_2);
+                        if (x.is_equal(-I))      // log(-I) -> -Pi*I/2
+                                return (Pi*I*_ex_1_2);
+                }
+                else if (not x.info(info_flags::inexact))
+                        return log(x).hold();
+                else
 			return log(ex_to<numeric>(x));
-
-		if (x.is_zero())         // log(0) -> infinity
-			//throw(pole_error("log_eval(): log(0)",0));
-			return NegInfinity;
-		if (not x.info(info_flags::inexact) and x.info(info_flags::negative))
-			return (log(-x)+I*Pi);
-		if (x.is_equal(_ex1))  // log(1) -> 0
-			return _ex0;
-		if (x.is_equal(I))       // log(I) -> Pi*I/2
-			return (Pi*I*_ex1_2);
-		if (x.is_equal(-I))      // log(-I) -> -Pi*I/2
-			return (Pi*I*_ex_1_2);
-
 	}
 
 	// log(exp(t)) -> t (if -Pi < t.imag() <= Pi):
@@ -437,8 +440,8 @@ static ex logb_evalf(const ex & x, const ex & base, PyObject* parent)
 
 static ex logb_eval(const ex & x, const ex & base)
 {
-	if (is_exactly_a<numeric>(x) and x.info(info_flags::crational)
-	    and is_exactly_a<numeric>(base) and base.info(info_flags::crational)) {
+	if (is_exactly_a<numeric>(x) and not x.info(info_flags::inexact)
+	    and is_exactly_a<numeric>(base) and not base.info(info_flags::inexact)) {
                 numeric a = ex_to<numeric>(x);
                 numeric b = ex_to<numeric>(base);
                 if (b.info(info_flags::real) and a.info(info_flags::real)) {
@@ -509,7 +512,7 @@ static ex Li2_eval(const ex & x)
 		if (x.is_equal(-I))
 			return power(Pi,_ex2)/_ex_48 - Catalan*I;
 		// Li2(float)
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return Li2(ex_to<numeric>(x));
 	}
 	

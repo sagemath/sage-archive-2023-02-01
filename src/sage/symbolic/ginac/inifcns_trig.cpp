@@ -230,7 +230,7 @@ static ex sin_eval(const ex & x)
 	}
 
 	// sin(float) -> float
-        if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
+        if (is_exactly_a<numeric>(x_red) && x_red.info(info_flags::inexact))
 		return sin(ex_to<numeric>(x_red));
 
 	return sin(x_red).hold();
@@ -445,7 +445,7 @@ static ex cos_eval(const ex & x)
 	}
 
 	// cos(float) -> float
-	if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational))
+	if (is_exactly_a<numeric>(x_red) && x_red.info(info_flags::inexact))
 		return cos(ex_to<numeric>(x_red));
 	
 	return cos(x_red).hold();
@@ -664,7 +664,7 @@ static ex tan_eval(const ex & x)
 	}
 
 	// tan(float) -> float
-	if (is_exactly_a<numeric>(x_red) && !x_red.info(info_flags::crational)) {
+	if (is_exactly_a<numeric>(x_red) && x_red.info(info_flags::inexact)) {
 		return tan(ex_to<numeric>(x_red));
 	}
 	
@@ -776,7 +776,7 @@ static ex cot_eval(const ex & x)
 	}
 
 	// cot(float) -> float
-	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
+	if (is_exactly_a<numeric>(x) && x.info(info_flags::inexact)) {
                 if (ex_to<numeric>(x).is_zero())
                         return UnsignedInfinity;
 		return tan(ex_to<numeric>(x)).inverse();
@@ -922,7 +922,7 @@ static ex sec_eval(const ex & x)
 		return sec(-x);
 
 	// sec(float) -> float
-	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
+	if (is_exactly_a<numeric>(x) && x.info(info_flags::inexact)) {
 		return cos(ex_to<numeric>(x)).inverse();
 	}
 
@@ -1043,7 +1043,7 @@ static ex csc_eval(const ex & x)
 	}
 
 	// csc(float) -> float
-	if (is_exactly_a<numeric>(x) && !x.info(info_flags::crational)) {
+	if (is_exactly_a<numeric>(x) && x.info(info_flags::inexact)) {
                 if (ex_to<numeric>(x).is_zero())
                         return UnsignedInfinity;
 		return sin(ex_to<numeric>(x)).inverse();
@@ -1149,7 +1149,7 @@ static ex asin_eval(const ex & x)
 			return _ex_1_2*Pi;
 
 		// asin(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return asin(ex_to<numeric>(x));
 
 		// asin() is odd
@@ -1230,7 +1230,7 @@ static ex acos_eval(const ex & x)
 			return Pi;
 
 		// acos(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return acos(ex_to<numeric>(x));
 
 		// acos(-x) -> Pi-acos(x)
@@ -1306,7 +1306,7 @@ static ex atan_eval(const ex & x)
 			throw (pole_error("atan_eval(): logarithmic pole",0));
 
 		// atan(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return atan(ex_to<numeric>(x));
 
 		// atan() is odd
@@ -1467,8 +1467,8 @@ static ex atan2_eval(const ex & y, const ex & x)
 	}
 
 	// atan2(float, float) -> float
-	if (is_exactly_a<numeric>(y) && !y.info(info_flags::crational) &&
-	    is_exactly_a<numeric>(x) && !x.info(info_flags::crational))
+	if (is_exactly_a<numeric>(y) && y.info(info_flags::inexact) &&
+	    is_exactly_a<numeric>(x) && x.info(info_flags::inexact))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
 
 	// handle infinities
@@ -1549,7 +1549,7 @@ static ex acot_eval(const ex & x)
 		if (x.is_equal(I) || x.is_equal(-I))
 			throw (pole_error("acot_eval(): logarithmic pole",0));
 
-                if (!x.info(info_flags::crational))
+                if (x.info(info_flags::inexact))
                         return atan(ex_to<numeric>(x).inverse());
 
 		if (x.info(info_flags::negative))
@@ -1611,7 +1611,7 @@ static ex asec_eval(const ex & x)
                         return _ex0;
                 if (num.is_equal(*_num_1_p))
                         return Pi;
-                if (not num.info(info_flags::crational))
+                if (num.info(info_flags::inexact))
                         return acos(num.inverse());
 	}
 
@@ -1675,7 +1675,7 @@ static ex acsc_eval(const ex & x)
                         return Pi/_ex2;
                 if (num.is_equal(*_num_1_p))
                         return -Pi/_ex2;
-                if (not num.info(info_flags::crational))
+                if (num.info(info_flags::inexact))
                         return asin(num.inverse());
         }
 

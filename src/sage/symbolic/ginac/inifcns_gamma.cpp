@@ -70,7 +70,7 @@ static ex lgamma_eval(const ex & x)
 				return Infinity;
 				//throw (pole_error("lgamma_eval(): logarithmic pole",0));
 		}
-		if (!ex_to<numeric>(x).is_crational())
+		if (!ex_to<numeric>(x).is_exact())
 			return lgamma(ex_to<numeric>(x));
 	}
 	
@@ -185,7 +185,7 @@ static ex tgamma_eval(const ex & x)
 				return (pow(*_num_2_p, n).div(doublefactorial(n.mul(*_num2_p).sub(*_num1_p))))*sqrt(Pi);
 			}
 		}
-		if (!ex_to<numeric>(x).is_crational())
+		if (!ex_to<numeric>(x).is_exact())
 			return tgamma_evalf(ex_to<numeric>(x), nullptr);
 	}
 	
@@ -296,7 +296,7 @@ static ex beta_eval(const ex & x, const ex & y)
 		    (nx+ny).is_integer() &&
 		   !(nx+ny).is_positive())
 			 return _ex0;
-		if (not nx.is_crational() or not ny.is_crational())
+		if (not nx.is_exact() or not ny.is_exact())
 			return beta_evalf(x, y, nullptr);
 	}
 	
@@ -419,7 +419,7 @@ static ex psi1_eval(const ex & x)
 				return recur+psi(_ex1_2);
 			}
 		}
-		if (not nx.is_crational())
+		if (not nx.is_exact())
 			return psi(nx);
 	}
 	

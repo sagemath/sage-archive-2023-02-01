@@ -72,7 +72,7 @@ static ex sinh_eval(const ex & x)
 			return _ex0;        
 
 		// sinh(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return sinh(ex_to<numeric>(x));
 
 		// sinh() is odd
@@ -166,7 +166,7 @@ static ex cosh_eval(const ex & x)
 			return _ex1;
 
 		// cosh(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return cosh(ex_to<numeric>(x));
 
 		// cosh() is even
@@ -260,7 +260,7 @@ static ex tanh_eval(const ex & x)
 			return _ex0;
 
 		// tanh(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return tanh(ex_to<numeric>(x));
 
 		// tanh() is odd
@@ -379,7 +379,7 @@ static ex coth_eval(const ex & x)
 			return UnsignedInfinity;
 
 		// coth(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return tanh(ex_to<numeric>(x)).inverse();
 
 		// coth() is odd
@@ -507,7 +507,7 @@ static ex sech_eval(const ex & x)
 			return _ex1;
 
 		// sech(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return cosh(ex_to<numeric>(x)).inverse();
 
 		// sech() is even
@@ -622,7 +622,7 @@ static ex csch_eval(const ex & x)
 			return UnsignedInfinity;
 
 		// csch(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return sinh(ex_to<numeric>(x)).inverse();
 
 		// csch() is odd
@@ -737,7 +737,7 @@ static ex asinh_eval(const ex & x)
 			return _ex0;
 
 		// asinh(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return asinh(ex_to<numeric>(x));
 
 		// asinh() is odd
@@ -814,7 +814,7 @@ static ex acosh_eval(const ex & x)
 			return Pi*I;
 
 		// acosh(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return acosh(ex_to<numeric>(x));
 
 		// acosh(-x) -> Pi*I-acosh(x)
@@ -891,7 +891,7 @@ static ex atanh_eval(const ex & x)
 			return NegInfinity;
 
 		// atanh(float) -> float
-		if (!x.info(info_flags::crational))
+		if (x.info(info_flags::inexact))
 			return atanh(ex_to<numeric>(x));
 
 		// atanh() is odd
@@ -1005,7 +1005,7 @@ static ex acoth_eval(const ex & x)
                 if (x.is_equal(_ex_1))
                         return NegInfinity;
                 //acoth(float) -> float 
-                if (!x.info(info_flags::crational))
+                if (x.info(info_flags::inexact))
                         return atanh(ex_to<numeric>(x).inverse());
                 // acoth() is odd
                 if (x.info(info_flags::negative))
@@ -1077,7 +1077,7 @@ static ex acsch_eval(const ex & x)
                 if (x.is_zero())
                         return Infinity;
                 //acsch(float) -> float 
-                if (!x.info(info_flags::crational))
+                if (x.info(info_flags::inexact))
                         return asinh(ex_to<numeric>(x).inverse());
                 // acsch(-x) -> acsch(-x)
                 if (x.info(info_flags::negative))
@@ -1149,7 +1149,7 @@ static ex asech_eval(const ex & x)
                 if (x.is_equal(_ex_1))
                         return Pi*I;
                 //asech(float) -> float 
-                if (!x.info(info_flags::crational))
+                if (x.info(info_flags::inexact))
                         return acosh(ex_to<numeric>(x).inverse());
                 // asech(-x) -> Pi*I-asech(-x)
                 if (x.info(info_flags::negative))

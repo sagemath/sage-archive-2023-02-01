@@ -157,7 +157,7 @@ static ex zeta1_eval(const ex& m)
 			}
 		}
 		// zeta(float)
-		if (y.info(info_flags::numeric) && !y.info(info_flags::crational)) {
+		if (y.info(info_flags::inexact)) {
 			return zeta(y); // y is numeric
 		}
 	}

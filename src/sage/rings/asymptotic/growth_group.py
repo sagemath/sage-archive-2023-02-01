@@ -807,6 +807,10 @@ def _log_factor_(self, base=None, log_function=None):
     - ``base`` -- the base of the logarithm. If ``None``
       (default value) is used, the natural logarithm is taken.
 
+    - ``log_function`` -- a function. If ``None`` (default value)
+      is used, then the usual
+      :class:`log <sage.functions.log.Function_log>` is taken.
+
     OUTPUT:
 
     A tuple of pairs, where the first entry is a growth
@@ -1328,6 +1332,10 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
+
+        - ``log_function`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -2781,6 +2789,10 @@ class MonomialGrowthElement(GenericGrowthElement):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
+        - ``log_function`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
+
         OUTPUT:
 
         A tuple of pairs, where the first entry is either a growth
@@ -3689,6 +3701,10 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
+
+        - ``log_function`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 

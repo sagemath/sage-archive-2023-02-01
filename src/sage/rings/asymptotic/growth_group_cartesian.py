@@ -1019,6 +1019,10 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             - ``base`` -- the base of the logarithm. If ``None``
               (default value) is used, the natural logarithm is taken.
 
+            - ``log_function`` -- a function. If ``None`` (default value)
+              is used, then the usual
+              :class:`log <sage.functions.log.Function_log>` is taken.
+
             OUTPUT:
 
             A tuple of pairs, where the first entry is either a growth

@@ -773,6 +773,10 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
+        - ``log_function`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
+
         OUTPUT:
 
         A tuple of terms.
@@ -822,6 +826,10 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
 
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
+
+        - ``log_function`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -2282,6 +2290,10 @@ class OTerm(GenericTerm):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
+        - ``log_function`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
+
         OUTPUT:
 
         A tuple of terms.
@@ -2929,6 +2941,10 @@ class TermWithCoefficient(GenericTerm):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
+        - ``log_function`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
+
         OUTPUT:
 
         A tuple of terms.
@@ -3499,6 +3515,10 @@ class ExactTerm(TermWithCoefficient):
 
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
+
+        - ``log_function`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 

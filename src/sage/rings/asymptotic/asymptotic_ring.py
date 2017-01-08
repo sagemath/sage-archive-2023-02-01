@@ -1893,6 +1893,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
           expansion. If ``None`` (default value) is used, the
           default precision of the parent is used.
 
+        - ``log_function`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
+
         OUTPUT:
 
         An asymptotic expansion.

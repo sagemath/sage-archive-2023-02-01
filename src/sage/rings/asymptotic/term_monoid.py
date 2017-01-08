@@ -2965,6 +2965,20 @@ class TermWithCoefficient(GenericTerm):
 
             :meth:`ExactTerm.log_term`,
             :meth:`OTerm.log_term`.
+
+        TESTS::
+
+            sage: L.<log3> = QQ[]
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ'), L)
+            sage: T(3*x^2)._log_coefficient_()
+            (log(3),)
+            sage: log_function=lambda z, base: log3 if z == 3 else log(z)
+            sage: T(3*x^2)._log_coefficient_(log_function=log_function)
+            (log3,)
+            sage: T(3*x^2).log_term()  # indirect doctest
+            (log(3), 2*log(x))
+            sage: T(3*x^2).log_term(log_function=log_function)  # indirect doctest
+            (log3, 2*log(x))
         """
         if self.coefficient.is_one():
             return tuple()

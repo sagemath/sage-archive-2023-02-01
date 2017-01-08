@@ -2818,6 +2818,17 @@ class MonomialGrowthElement(GenericGrowthElement):
             ArithmeticError: When calculating log(exp(x), base=2) a factor
             1/log(2) != 1 appeared, which is not contained in
             Growth Group exp(x)^ZZ * x^ZZ.
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: L.<log2> = ZZ[]
+            sage: G = MonomialGrowthGroup(L, 'x')
+            sage: G(raw_element=log2)._log_factor_(base=2)
+            (('log(x)', log2/log(2)),)
+            sage: G(raw_element=log2)._log_factor_(base=2,
+            ....:       log_function=lambda z: log2 if z == 2 else log(z))
+            (('log(x)', 1),)
         """
         if self.is_one():
             return tuple()
@@ -3723,6 +3734,17 @@ class ExponentialGrowthElement(GenericGrowthElement):
             ...
             ArithmeticError: Cannot build log(4^x, base=2) since x is not in
             Growth Group QQ^x.
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: L.<log2> = ZZ[]
+            sage: G = ExponentialGrowthGroup(L, 'x')
+            sage: G(raw_element=2)._log_factor_()
+            (('x', log(2)),)
+            sage: G(raw_element=2)._log_factor_(
+            ....:       log_function=lambda z, base: log2 if z == 2 else log(z))
+            (('x', log2),)
         """
         if self.is_one():
             return tuple()

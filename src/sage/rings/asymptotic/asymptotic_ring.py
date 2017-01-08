@@ -1929,8 +1929,32 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: log(x-1)
             log(x) - x^(-1) - 1/2*x^(-2) - 1/3*x^(-3) - ... + O(x^(-21))
 
+        The coefficient ring aus automatically extended if needed::
+
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=ZZ, default_prec=3)
+            sage: (49*x^3-1).log()
+            3*log(x) + log(49) - 1/49*x^(-3) - 1/4802*x^(-6) ... + O(x^(-12))
+            sage: _.parent()
+            Asymptotic Ring <x^ZZ * log(x)^ZZ> over Symbolic Ring
+
+        If one wants to avoid this extending to the Symbolic Ring, then
+        the following helps::
+
+            sage: L.<log7> = ZZ[]
+            sage: def log_function(z, base=None):
+            ....:     try:
+            ....:         if ZZ(z).is_power_of(7):
+            ....:             return log(ZZ(z), 7) * log7
+            ....:     except TypeError, ValueError:
+            ....:         pass
+            ....:     return log(z, base)
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=L, default_prec=3)
+            sage: (49*x^3-1).log(log_function=log_function)
+            3*log(x) + 2*log7 - 1/49*x^(-3) - 1/4802*x^(-6) ... + O(x^(-12))
+
         TESTS::
 
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=QQ)
             sage: log(R(1))
             0
             sage: log(R(0))

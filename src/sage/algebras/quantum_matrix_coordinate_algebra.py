@@ -75,7 +75,6 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
         self._n = n
         self._q = q
         if bar is None:
-
             def bar(x):
                 return x.subs(q=~self._q)
         self._bar = bar
@@ -327,8 +326,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: O = algebras.QuantumMatrixCoordinate(4)
-            sage: x = O.an_element()
-            sage: O._bar_on_basis(x.leading_support())
+            sage: O._bar_on_basis(O._indices.an_element())
             (q^-16)*x[1,1]^2*x[1,2]^2*x[1,3]^3
         """
         ret = self.one()
@@ -372,16 +370,20 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
                 sage: O = algebras.QuantumMatrixCoordinate(4)
                 sage: x = O.an_element()
                 sage: x.bar()
-                (q^-16)*x[1,1]^2*x[1,2]^2*x[1,3]^3
+                1 + 2*x[1,1] + (q^-16)*x[1,1]^2*x[1,2]^2*x[1,3]^3 + 3*x[1,2]
                 sage: x = O.an_element() * O.algebra_generators()[2,4]; x
-                x[1,1]^2*x[1,2]^2*x[1,3]^3*x[2,4]
+                x[1,1]^2*x[1,2]^2*x[1,3]^3*x[2,4] + 2*x[1,1]*x[2,4]
+                 + 3*x[1,2]*x[2,4] + x[2,4]
                 sage: xb = x.bar(); xb
                 (q^-16)*x[1,1]^2*x[1,2]^2*x[1,3]^3*x[2,4]
                  + (q^-21-q^-15)*x[1,1]^2*x[1,2]^2*x[1,3]^2*x[1,4]*x[2,3]
                  + (q^-22-q^-18)*x[1,1]^2*x[1,2]*x[1,3]^3*x[1,4]*x[2,2]
                  + (q^-24-q^-20)*x[1,1]*x[1,2]^2*x[1,3]^3*x[1,4]*x[2,1]
-                sage: xb.bar()
-                x[1,1]^2*x[1,2]^2*x[1,3]^3*x[2,4]
+                 + 2*x[1,1]*x[2,4] + 3*x[1,2]*x[2,4]
+                 + (2*q^-1-2*q)*x[1,4]*x[2,1]
+                 + (3*q^-1-3*q)*x[1,4]*x[2,2] + x[2,4]
+                sage: xb.bar() == x
+                True
             """
             P = self.parent()
             return P.sum(P._bar(c) * P._bar_on_basis(m) for m, c in self)
@@ -1000,3 +1002,4 @@ def gcmp(x, y):
         return 1
     # Both must be tuples, so we use the Python cmp
     return cmp(x, y)
+

@@ -797,7 +797,7 @@ def _log_(self, base=None):
 
 # The following function is used in the classes GenericGrowthElement and
 # GenericProduct.Element as a method.
-def _log_factor_(self, base=None):
+def _log_factor_(self, base=None, log_function=None):
     r"""
     Return the logarithm of the factorization of this
     element.
@@ -1319,7 +1319,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     log_factor = _log_factor_
 
 
-    def _log_factor_(self, base=None):
+    def _log_factor_(self, base=None, log_function=None):
         r"""
         Helper method for calculating the logarithm of the factorization
         of this element.
@@ -2771,7 +2771,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         return self.parent()._create_element_in_extension_(self.exponent * exponent)
 
 
-    def _log_factor_(self, base=None):
+    def _log_factor_(self, base=None, log_function=None):
         r"""
         Helper method for calculating the logarithm of the factorization
         of this element.
@@ -3680,7 +3680,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         return self.parent()._create_element_in_extension_(self.base ** exponent)
 
 
-    def _log_factor_(self, base=None):
+    def _log_factor_(self, base=None, log_function=None):
         r"""
         Helper method for calculating the logarithm of the factorization
         of this element.

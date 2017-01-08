@@ -1009,7 +1009,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         log_factor = _log_factor_
 
 
-        def _log_factor_(self, base=None):
+        def _log_factor_(self, base=None, log_function=None):
             r"""
             Helper method for calculating the logarithm of the factorization
             of this element.

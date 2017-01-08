@@ -1880,7 +1880,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                    for element in self.summands.maximal_elements())
 
 
-    def log(self, base=None, precision=None):
+    def log(self, base=None, precision=None, log_function=None):
         r"""
         The logarithm of this asymptotic expansion.
 

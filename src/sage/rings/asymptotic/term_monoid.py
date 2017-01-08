@@ -764,7 +764,7 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
         raise NotImplementedError('Not implemented in abstract base classes')
 
 
-    def log_term(self, base=None):
+    def log_term(self, base=None, log_function=None):
         r"""
         Determine the logarithm of this term.
 
@@ -814,7 +814,7 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
                                   'abstract base class.')
 
 
-    def _log_growth_(self, base=None):
+    def _log_growth_(self, base=None, log_function=None):
         r"""
         Helper function to calculate the logarithm of the growth of this element.
 
@@ -2273,7 +2273,7 @@ class OTerm(GenericTerm):
         return self
 
 
-    def log_term(self, base=None):
+    def log_term(self, base=None, log_function=None):
         r"""
         Determine the logarithm of this O-term.
 
@@ -2920,7 +2920,7 @@ class TermWithCoefficient(GenericTerm):
         return super(TermWithCoefficient, self)._calculate_pow_(exponent, new_coefficient=c)
 
 
-    def _log_coefficient_(self, base=None):
+    def _log_coefficient_(self, base=None, log_function=None):
         r"""
         Helper function to calculate the logarithm of the coefficient of this element.
 
@@ -3491,7 +3491,7 @@ class ExactTerm(TermWithCoefficient):
             return self.parent()(self.growth, coeff_new)
 
 
-    def log_term(self, base=None):
+    def log_term(self, base=None, log_function=None):
         r"""
         Determine the logarithm of this exact term.
 

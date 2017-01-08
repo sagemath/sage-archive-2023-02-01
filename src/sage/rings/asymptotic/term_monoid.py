@@ -851,7 +851,9 @@ class GenericTerm(sage.structure.element.MultiplicativeGroupElement):
             :meth:`OTerm.log_term`.
         """
         return tuple(self.parent()._create_element_in_extension_(g, c)
-                     for g, c in self.growth.log_factor(base=base))
+                     for g, c in
+                     self.growth.log_factor(base=base,
+                                            log_function=log_function))
 
 
     def __le__(self, other):
@@ -2324,7 +2326,7 @@ class OTerm(GenericTerm):
 
             :meth:`ExactTerm.log_term`.
         """
-        return self._log_growth_(base=base)
+        return self._log_growth_(base=base, log_function=log_function)
 
 
     def is_little_o_of_one(self):
@@ -2966,9 +2968,12 @@ class TermWithCoefficient(GenericTerm):
         """
         if self.coefficient.is_one():
             return tuple()
-        from sage.functions.log import log
+        if log_function is None:
+            from sage.functions.log import log
+            log_function = log
         return (self.parent()._create_element_in_extension_(
-            self.parent().growth_group.one(), log(self.coefficient, base=base)),)
+            self.parent().growth_group.one(),
+            log_function(self.coefficient, base=base)),)
 
 
     def _le_(self, other):
@@ -3553,7 +3558,8 @@ class ExactTerm(TermWithCoefficient):
 
             :meth:`OTerm.log_term`.
         """
-        return self._log_coefficient_(base=base) + self._log_growth_(base=base)
+        return self._log_coefficient_(base=base, log_function=log_function) \
+             + self._log_growth_(base=base, log_function=log_function)
 
 
     def is_constant(self):

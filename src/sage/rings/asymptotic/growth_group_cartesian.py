@@ -1048,7 +1048,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             try:
                 return sum(iter(tuple((try_create_growth(g), c)
-                                      for g, c in factor._log_factor_(base=base))
+                                      for g, c in
+                                      factor._log_factor_(base=base,
+                                                          log_function=log_function))
                                 for factor in self.cartesian_factors()
                                 if factor != factor.parent().one()),
                            tuple())

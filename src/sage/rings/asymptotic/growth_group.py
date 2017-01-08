@@ -858,7 +858,7 @@ def _log_factor_(self, base=None, log_function=None):
         sage: (exp(x) * x).log_factor()  # indirect doctest
         ((x, 1), (log(x), 1))
     """
-    log_factor = self._log_factor_(base=base)
+    log_factor = self._log_factor_(base=base, log_function=log_function)
 
     for g, c in log_factor:
         if hasattr(g, 'parent') and \
@@ -2840,8 +2840,10 @@ class MonomialGrowthElement(GenericGrowthElement):
             v = 'log(%s)' % (var,)
 
         if base is not None:
-            from sage.functions.log import log
-            coefficient = coefficient / log(base)
+            if log_function is None:
+                from sage.functions.log import log
+                log_function = log
+            coefficient = coefficient / log_function(base)
         return ((v, coefficient),)
 
 
@@ -3731,8 +3733,10 @@ class ExponentialGrowthElement(GenericGrowthElement):
         elif base is None and str(b) == 'e':
             coefficient = self.parent().base().one()
         else:
-            from sage.functions.log import log
-            coefficient = log(b, base=base)
+            if log_function is None:
+                from sage.functions.log import log
+                log_function = log
+            coefficient = log_function(b, base=base)
 
         return ((str(self.parent()._var_), coefficient),)
 

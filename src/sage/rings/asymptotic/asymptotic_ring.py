@@ -1955,7 +1955,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 return P.zero()
             element = next(self.summands.elements())
             return sum(P._create_element_in_extension_(l, element.parent())
-                       for l in element.log_term(base=base))
+                       for l in element.log_term(base=base,
+                                                 log_function=log_function))
 
         (max_elem, x) = self._main_term_relative_error_()
         geom = -x
@@ -1971,10 +1972,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ratio_start=geom,
             precision=precision)
 
-        result += x.parent()(max_elem).log()
         if base:
-            from sage.functions.log import log
-            result = result / log(base)
+            if log_function is None:
+                from sage.functions.log import log
+                log_function = log
+            result = result / log_function(base)
+
+        result += x.parent()(max_elem).log(base=base, log_function=log_function)
+
         return result
 
 

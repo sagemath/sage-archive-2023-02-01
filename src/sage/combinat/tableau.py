@@ -4748,11 +4748,13 @@ class Tableaux(UniqueRepresentation, Parent):
             Tableaux
             sage: Tableaux(3)
             Tableaux of size 3
+            sage: Tableaux(n=3)
+            Tableaux of size 3
         """
         if args:
             n = args[0]
         elif 'n' in kwargs:
-            n = kwargs[n]
+            n = kwargs['n']
         else:
             n = None
 
@@ -6455,6 +6457,8 @@ class StandardTableaux(SemistandardTableaux):
             Standard tableaux of shape [2, 1]
             sage: StandardTableaux(0)
             Standard tableaux of size 0
+            sage: StandardTableaux(n=3)
+            Standard tableaux of size 3
 
             sage: StandardTableaux(-1)
             Traceback (most recent call last):
@@ -6471,7 +6475,7 @@ class StandardTableaux(SemistandardTableaux):
         if args:
             n = args[0]
         elif 'n' in kwargs:
-            n = kwargs[n]
+            n = kwargs['n']
         else:
             n = None
 

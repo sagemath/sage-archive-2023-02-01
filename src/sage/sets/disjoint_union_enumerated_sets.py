@@ -125,7 +125,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
     We demonstrate the ``keepkey`` option::
 
         sage: Ukeep = DisjointUnionEnumeratedSets(
-        ....:            Family(range(4), Permutations), keepkey=True)
+        ....:            Family(list(range(4)), Permutations), keepkey=True)
         sage: it = iter(Ukeep)
         sage: [next(it) for i in range(6)]
         [(0, []), (1, [1]), (2, [1, 2]), (2, [2, 1]), (3, [1, 2, 3]), (3, [1, 3, 2])]
@@ -135,7 +135,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
     We now demonstrate the ``facade`` option::
 
         sage: UNoFacade = DisjointUnionEnumeratedSets(
-        ....:                Family(range(4), Permutations), facade=False)
+        ....:                Family(list(range(4)), Permutations), facade=False)
         sage: it = iter(UNoFacade)
         sage: [next(it) for i in range(6)]
         [[], [1], [1, 2], [2, 1], [1, 2, 3], [1, 3, 2]]

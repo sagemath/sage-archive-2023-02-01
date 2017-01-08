@@ -13,9 +13,9 @@ import pkgconfig
 
 # CBLAS can be one of multiple implementations
 cblas_pc = pkgconfig.parse('cblas')
-cblas_libs = list(cblas_pc['libraries'])
-cblas_library_dirs = list(cblas_pc['library_dirs'])
-cblas_include_dirs = list(cblas_pc['include_dirs'])
+cblas_libs = cblas_pc['libraries']
+cblas_library_dirs = cblas_pc['library_dirs']
+cblas_include_dirs = cblas_pc['include_dirs']
 
 # TODO: Remove Cygwin hack by installing a suitable cblas.pc
 if os.path.exists('/usr/lib/libblas.dll.a'):
@@ -23,58 +23,60 @@ if os.path.exists('/usr/lib/libblas.dll.a'):
 
 # LAPACK can be one of multiple implementations
 lapack_pc = pkgconfig.parse('lapack')
-lapack_libs = list(lapack_pc['libraries'])
-lapack_library_dirs = list(lapack_pc['library_dirs'])
-lapack_include_dirs = list(lapack_pc['include_dirs'])
+lapack_libs = lapack_pc['libraries']
+lapack_library_dirs = lapack_pc['library_dirs']
+lapack_include_dirs = lapack_pc['include_dirs']
 
 # FFLAS-FFPACK
 fflas_ffpack_pc = pkgconfig.parse('fflas-ffpack')
-fflas_ffpack_libs = list(fflas_ffpack_pc['libraries'])
-fflas_ffpack_library_dirs = list(fflas_ffpack_pc['library_dirs'])
+fflas_ffpack_libs = fflas_ffpack_pc['libraries']
+fflas_ffpack_library_dirs = fflas_ffpack_pc['library_dirs']
 fflas_ffpack_cflags = pkgconfig.cflags('fflas-ffpack').split()
 
 # Givaro
 givaro_pc = pkgconfig.parse('givaro')
-givaro_libs = list(givaro_pc['libraries'])
-givaro_library_dirs = list(givaro_pc['library_dirs'])
+givaro_libs = givaro_pc['libraries']
+givaro_library_dirs = givaro_pc['library_dirs']
 givaro_cflags = pkgconfig.cflags('givaro').split()
 
 # GNU Scientific Library
-# Note we replace the built-in gslcblas with the above cblas
+# Note we remove the built-in gslcblas
+# The above cblas should already be in the list thanks to #20646
 gsl_pc = pkgconfig.parse('gsl')
-gsl_libs = list(gsl_pc['libraries'].difference(['gslcblas']).union(cblas_libs))
-gsl_library_dirs = list(gsl_pc['library_dirs'])
-gsl_include_dirs = list(gsl_pc['include_dirs'])
+gsl_libs = gsl_pc['libraries']
+gsl_libs.remove('gslcblas')
+gsl_library_dirs = gsl_pc['library_dirs']
+gsl_include_dirs = gsl_pc['include_dirs']
 
 # GD image library
 gd_pc = pkgconfig.parse('gdlib')
-gd_libs = list(gd_pc['libraries'])
-gd_library_dirs = list(gd_pc['library_dirs'])
-gd_include_dirs = list(gd_pc['include_dirs'])
+gd_libs = gd_pc['libraries']
+gd_library_dirs = gd_pc['library_dirs']
+gd_include_dirs = gd_pc['include_dirs']
 
 # LinBox
 linbox_pc = pkgconfig.parse('linbox')
-linbox_libs = list(linbox_pc['libraries'])
-linbox_library_dirs = list(linbox_pc['library_dirs'])
+linbox_libs = linbox_pc['libraries']
+linbox_library_dirs = linbox_pc['library_dirs']
 linbox_cflags = pkgconfig.cflags('linbox').split()
 
 # Singular
 singular_pc = pkgconfig.parse('Singular')
-singular_libs = list(singular_pc['libraries'])
-singular_library_dirs = list(singular_pc['library_dirs'])
+singular_libs = singular_pc['libraries']
+singular_library_dirs = singular_pc['library_dirs']
 singular_cflags = pkgconfig.cflags('Singular').split()
 
 # PNG image library
 png_pc = pkgconfig.parse('libpng')
-png_libs = list(png_pc['libraries'])
-png_library_dirs = list(png_pc['library_dirs'])
-png_include_dirs = list(png_pc['include_dirs'])
+png_libs = png_pc['libraries']
+png_library_dirs = png_pc['library_dirs']
+png_include_dirs = png_pc['include_dirs']
 
 # zlib
 zlib_pc = pkgconfig.parse('zlib')
-zlib_libs = list(zlib_pc['libraries'])
-zlib_library_dirs = list(zlib_pc['library_dirs'])
-zlib_include_dirs = list(zlib_pc['include_dirs'])
+zlib_libs = zlib_pc['libraries']
+zlib_library_dirs = zlib_pc['library_dirs']
+zlib_include_dirs = zlib_pc['include_dirs']
 
 
 #########################################################
@@ -104,9 +106,9 @@ aliases = dict(
 #########################################################
 
 m4ri_pc = pkgconfig.parse('m4ri')
-m4ri_libs = list(m4ri_pc['libraries'])
-m4ri_library_dirs = list(m4ri_pc['library_dirs'])
-m4ri_include_dirs = list(m4ri_pc['include_dirs'])
+m4ri_libs = m4ri_pc['libraries']
+m4ri_library_dirs = m4ri_pc['library_dirs']
+m4ri_include_dirs = m4ri_pc['include_dirs']
 
 m4ri_extra_compile_args = pkgconfig.cflags('m4ri').split()
 try:
@@ -1488,6 +1490,10 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polydict',
               sources = ['sage/rings/polynomial/polydict.pyx']),
+
+    Extension('sage.rings.polynomial.polynomial_complex_arb',
+               sources = ['sage/rings/polynomial/polynomial_complex_arb.pyx'],
+               language="c++"),
 
     Extension('sage.rings.polynomial.polynomial_compiled',
                sources = ['sage/rings/polynomial/polynomial_compiled.pyx']),

@@ -407,9 +407,8 @@ cdef class Graphics3d(SageObject):
         surfaces = flatten_list(surfaces)
         surfaces = '[' + ','.join(surfaces) + ']'
 
-        from sage.env import SAGE_SRC
-        filename = os.path.join(SAGE_SRC, 'sage',
-                                'plot', 'plot3d', 'threejs_template.html')
+        from sage.env import SAGE_EXTCODE
+        filename = os.path.join(SAGE_EXTCODE, 'threejs', 'threejs_template.html')
         f = open(filename, 'r')
         html = f.read()
         f.close()

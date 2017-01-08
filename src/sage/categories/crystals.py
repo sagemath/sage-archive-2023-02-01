@@ -809,6 +809,16 @@ class Crystals(Category_singleton):
                 20
                 sage: view(G)  # optional - dot2tex graphviz, not tested (opens external window)
 
+            TESTS:
+
+            We check that infinite crystals raise an error (:trac:`21986`)::
+
+                sage: B = crystals.infinity.Tableaux(['A',2])
+                sage: B.digraph()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite crystal
+
             .. TODO:: Add more tests.
             """
             from sage.graphs.all import DiGraph
@@ -821,6 +831,8 @@ class Crystals(Category_singleton):
 
             # Parse optional arguments
             if subset is None:
+                if self in Crystals().Infinite():
+                    raise NotImplementedError("infinite crystal")
                 subset = self
             if index_set is None:
                 index_set = self.index_set()

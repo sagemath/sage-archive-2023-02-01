@@ -1086,7 +1086,7 @@ class Patch(SageObject):
           ``None``, the isometric projection is used by default.
 
         - ``opacity`` - float between ``0`` and ``1`` (optional, default: ``0.75``)
-          opacity of the the face
+          opacity of the face
 
         .. WARNING::
 

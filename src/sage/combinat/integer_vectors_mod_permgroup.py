@@ -303,15 +303,9 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
 
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
             sage: S.ambient()
-            Integer vectors
+            Integer vectors of length 4
         """
-        ## TODO: Fix me once 'IntegerVectors(length=bla)' will return
-        ## the integer vectors of length bla
-        #return IntegerVectors(length=self.n)
-
-        # (#17927) The previous line was replaced by the following, as
-        # IntegerVectors(length=k) is invalid at the moment.
-        return IntegerVectors()
+        return IntegerVectors(length=self.n)
 
     def lift(self, elt):
         r"""
@@ -803,14 +797,8 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             Integer vectors that sum to 6
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), 6, max_part=12); S.ambient()
             Integer vectors that sum to 6 with constraints: max_part=12
-
-        .. todo::
-
-         Integer vectors should accept ``max_part`` as a single argument, and the following should change::
-
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), max_part=12); S.ambient()
-            Integer vectors
-
+            Integer vectors with constraints: max_part=12
         """
         if self._sum is not None:
             if self._max_part <= -1:
@@ -818,13 +806,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             else:
                 return IntegerVectors(n=self._sum, max_part=self._max_part)
         else:
-            ## Fix me once max_part should be accepted as a single
-            ## argument for integer vectors
-            #return IntegerVectors(max_part=self._max_part)
-
-            # (#17927) The previous line was replaced by the following, as
-            # IntegerVectors(max_part=k) is invalid at the moment.
-            return IntegerVectors()
+            return IntegerVectors(max_part=self._max_part)
 
     def lift(self, elt):
         r"""

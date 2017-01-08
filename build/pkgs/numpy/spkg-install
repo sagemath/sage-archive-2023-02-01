@@ -10,7 +10,7 @@ fi
 
 # Setting CFLAGS to have the option -m64 does not work for Numpy when
 # making 64-bit builds on at least OS X and Solaris. Instead set CC
-# to include the the -m64
+# to include the -m64
 
 if [ -z "$CFLAG64" ] ; then
    CFLAG64=-m64

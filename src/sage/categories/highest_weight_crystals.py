@@ -494,12 +494,13 @@ class HighestWeightCrystals(Category_singleton):
             if subset is not None:
                 return Crystals().parent_class.digraph(self, subset, index_set)
 
+            if self not in Crystals().Finite() and depth is None:
+                raise ValueError("crystals not known to be finite must"
+                                 " specify either the subset or depth")
+
             from sage.graphs.all import DiGraph
             if index_set is None:
                 index_set = self.index_set()
-
-            if self not in Crystals().Finite() and depth is None:
-                depth = 10
 
             rank = 0
             d = {g: {} for g in self.module_generators}

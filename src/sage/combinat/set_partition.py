@@ -411,15 +411,16 @@ class SetPartition(ClonableArray):
         """
         return '{' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + '}'
 
-    def set_latex_options(self, opts):
+    def set_latex_options(self, **kwargs):
         r"""
-        Set the latex options for use in the ``_latex_`` function. The default
-        values are set in the ``__init__`` function.
+        Set the latex options for use in the ``_latex_`` function.
 
         - ``tikz_scale`` -- (default: 1) scale for use with tikz package.
 
-        - ``plot`` -- (default: ``) ```` returns the set notation, ``linear``
-          returns a linear plot, ``cyclic`` returns a cyclic plot
+        - ``plot`` -- (default: ``''``) ``''`` returns the set notation,
+          ``linear`` returns a linear plot, ``cyclic`` returns a cyclic
+          plot.
+
 
         - ``color`` -- (default: black) the arc colors.
 
@@ -434,18 +435,34 @@ class SetPartition(ClonableArray):
 
         - ``angle`` -- (default: 0) Angle for linear
 
-        INPUT:
-
-        - ``opts`` -- a dictionary with a list of latex parameters to change
-
         EXAMPLES::
 
             sage: SP = SetPartition([[1,6], [3,5,4]])
-            sage: SP.set_latex_options({'tikz_scale':2,'plot':'linear', 'fill':True, 'color':'blue', 'angle':45})
-        """
+            sage: SP.set_latex_options(tikz_scale=2,plot='linear',fill=True,color='blue',angle=45)
+            sage: SP.set_latex_options(plot='cyclic')
+            sage: SP.latex_options()
+            {'angle': 45,
+             'color': 'blue',
+             'fill': True,
+             'plot': 'cyclic',
+             'radius': '1cm',
+             'show_labels': True,
+             'tikz_scale': 2}
 
-        for opt in opts:
-            self._latex_options[opt] = opts[opt]
+        """
+        valid_args = ['tikz_scale', 'plot', 'color', 'fill', 'show_labels',
+                      'radius', 'angle']
+
+        for key in kwargs:
+            if key not in valid_args:
+                raise ValueError("unknown keyword argument: %s"%key)
+            if key == 'plot':
+                if kwargs['plot'] != 'cyclic' and kwargs['plot'] != 'linear' and kwargs['plot'] != '':
+                    raise ValueError("plot must be blank, 'cyclic', or 'linear'")
+
+            for opt in kwargs:
+                self._latex_options[opt] = kwargs[opt]
+
     def latex_options(self):
         r"""
         Return the latex options for use in the ``_latex_`` function as a
@@ -480,6 +497,7 @@ class SetPartition(ClonableArray):
         if "angle" not in opts:
             opts['angle'] = 0
         return opts
+
     def _latex_(self):
         r"""
         Return a `\LaTeX` string representation of ``self``.
@@ -490,7 +508,7 @@ class SetPartition(ClonableArray):
             sage: latex(x)
             \{\{1, 2\}, \{3, 4, 5\}\}
             sage: p=SetPartition([['a','c'],['b',1],[20]])
-            sage: p.set_latex_options({'plot':'circle', 'color':'blue', 'angle':45, 'fill':True, 'tikz_scale':2})
+            sage: p.set_latex_options(plot='cyclic', color='blue', angle=45, fill=True, tikz_scale=2)
             sage: latex(p)
             \begin{tikzpicture}[scale=2]
             \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=90:a] (0) at (90:1cm) {};
@@ -521,7 +539,7 @@ class SetPartition(ClonableArray):
             color= latex_options['color']
 
             # If we want cyclic plots
-            if latex_options['plot'] == 'cyclic' or latex_options['plot'] == 'cycle' or latex_options['plot'] == 'circle' or latex_options['plot'] == 'circular':
+            if latex_options['plot'] == 'cyclic':
                 degrees = 360 / cardinality
                 radius = latex_options['radius']
 
@@ -560,7 +578,7 @@ class SetPartition(ClonableArray):
                     res += " -- cycle;\n"
 
             # If we want line plots
-            elif latex_options['plot'] == 'linear' or latex_options['plot'] == 'line' or latex_options['plot'] == 'planar':
+            elif latex_options['plot'] == 'linear':
                 angle = latex_options['angle']
                 # setup line
                 for k,i in enumerate(base_set):
@@ -1126,6 +1144,11 @@ class SetPartition(ClonableArray):
     def plot(self, angle=None, color='black', base_set_dict=None):
         """
         Return a plot of ``self``.
+
+        .. PLOT::
+
+            p=SetPartition([[1,10,11],[2,3,7],[4,5,6],[8,9]])
+            sphinx_plot(p.plot())
 
         INPUT:
 
@@ -1948,7 +1971,6 @@ def cyclic_permutations_of_set_partition(set_part):
          [[1, 4, 3, 2], [5, 7, 6]]]
     """
     return list(cyclic_permutations_of_set_partition_iterator(set_part))
-
 
 def cyclic_permutations_of_set_partition_iterator(set_part):
     """

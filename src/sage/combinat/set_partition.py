@@ -413,27 +413,27 @@ class SetPartition(ClonableArray):
 
     def set_latex_options(self, **kwargs):
         r"""
-        Set the latex options for use in the ``_latex_`` function.
+        Set the latex options for use in the ``_latex_`` function
 
-        - ``tikz_scale`` -- (default: 1) scale for use with tikz package.
+        - ``tikz_scale`` -- (default: 1) scale for use with tikz package
 
         - ``plot`` -- (default: ``''``) ``''`` returns the set notation,
           ``linear`` returns a linear plot, ``cyclic`` returns a cyclic
-          plot.
+          plot
 
 
-        - ``color`` -- (default: black) the arc colors.
+        - ``color`` -- (default: black) the arc colors
 
-        - ``fill`` -- (default: False) If True then fills black, else you can
-          pass in a color to alter the fill color. *Only works with cyclic plot*
+        - ``fill`` -- (default: False) if True then fills black, else you can
+          pass in a color to alter the fill color - *only works with cyclic plot*
 
-        - ``show_labels`` -- (default: True) If True shows labels - *only works
+        - ``show_labels`` -- (default: True) if True shows labels - *only works
           with plots*
 
-        - ``radius`` -- (default: "1cm") Radius of circle for cyclic plot. *Only
+        - ``radius`` -- (default: "1cm") radius of circle for cyclic plot - *Only
           works with cyclic plot*
 
-        - ``angle`` -- (default: 0) Angle for linear
+        - ``angle`` -- (default: 0) angle for linear
 
         EXAMPLES::
 
@@ -748,7 +748,7 @@ class SetPartition(ClonableArray):
 
         INPUT:
 
-        - ``p`` -- A permutation
+        - ``p`` -- a permutation
 
         EXAMPLES::
 
@@ -1152,9 +1152,13 @@ class SetPartition(ClonableArray):
 
         INPUT:
 
-        - ``angle`` -- the angle at which the arcs take off (if angle is negative, the arcs are drawn below the horizontal line)
+        - ``angle`` -- the angle at which the arcs take off (if angle is negative,
+          the arcs are drawn below the horizontal line)
+
         - ``color`` -- color of the arcs
-        - ``base_set_dict`` -- dictionary with keys elements of self.base_set() and values as integer or float
+
+        - ``base_set_dict`` -- dictionary with keys elements of self.base_set()
+          and values as integer or float
 
         EXAMPLES::
 

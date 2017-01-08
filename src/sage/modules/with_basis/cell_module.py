@@ -13,7 +13,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.all import ModulesWithBasis
 from sage.structure.element import Element
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.dict_addition import dict_addition, dict_linear_combination
+from sage.data_structures.blas_dict import linear_combination
 from sage.modules.with_basis.subquotient import QuotientModuleWithBasis
 from sage.sets.family import Family
 
@@ -347,10 +347,10 @@ class CellModule(CombinatorialFreeModule):
                 #scalar = scalar.cellular_involution()
             mc = self._monomial_coefficients
             scalar_mc = scalar.monomial_coefficients(copy=False)
-            D = dict_linear_combination([(P._action_basis(x, k)._monomial_coefficients,
-                                          scalar_mc[x] * mc[k])
-                                         for k in mc for x in scalar_mc],
-                                        factor_on_left=False)
+            D = linear_combination([(P._action_basis(x, k)._monomial_coefficients,
+                                     scalar_mc[x] * mc[k])
+                                    for k in mc for x in scalar_mc],
+                                   factor_on_left=False)
 
             return P._from_dict(D, remove_zeros=False)
 

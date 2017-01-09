@@ -67,12 +67,9 @@ principle be added to :meth:`ClusterAlgebra.mutate_initial`.
 
 REFERENCES:
 
-.. [LLZ2014] Kyungyong Lee, Li Li, Andrei Zelevinsky
-   *Greedy elements in rank 2 cluster algebras*
-   :arxiv:`1208.2391`
-.. [NZ2012] Tomoki Nakanishi and Andrei Zelevinsky
-   *On tropical dualities in cluster algebras*
-   :arXiv:`1101.3736`
+- [FZ2007]_
+- [LLZ2014]_
+- [NZ2012]_
 
 AUTHORS:
 

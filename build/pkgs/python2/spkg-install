@@ -52,6 +52,7 @@ if [ "$UNAME" = Darwin ]; then
         brew_openssl="/usr/local/opt/openssl/include"
         if [ -d "$brew_openssl" ]; then
             export CFLAGS="-I$brew_openssl"
+        fi
     fi
 
     if [ $MACOSX_VERSION -ge 16 ]; then

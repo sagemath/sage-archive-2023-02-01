@@ -457,8 +457,8 @@ pari = pari_instance
 cdef class PariInstance(PariInstance_auto):
     def __init__(self, long size=1000000, unsigned long maxprime=500000):
         """
-        Initialize the PARI system.
-
+        (Re)-Initialize the PARI system.
+        
         INPUT:
 
 
@@ -467,6 +467,26 @@ cdef class PariInstance(PariInstance_auto):
 
         -  ``maxprime`` -- unsigned long, upper limit on a
            precomputed prime number table (default: 500000)
+
+        When the PARI system is already initialized, the PARI stack is only
+        grown if ``size`` is greater than the current stack, and the table
+        of primes is only computed is ``maxprime`` is larger than the current
+        bound.
+
+        EXAMPLES::
+
+            sage: from sage.libs.cypari2.pari_instance import PariInstance
+            sage: pari2 = PariInstance(10^7)
+            PARI stack size set to 10000000 bytes, maximum size set to 7406956544
+            sage: pari2
+            Interface to the PARI C library
+            sage: pari2 is pari
+            False
+            sage: pari2.PARI_ZERO is pari.PARI_ZERO
+            True
+            sage: pari2 = PariInstance(10^6)
+            sage: pari.stacksize(), pari2.stacksize()
+            (10000000, 10000000)
 
         For more information about how precision works in the PARI
         interface, see :mod:`sage.libs.cypari2.pari_instance`.
@@ -493,85 +513,96 @@ cdef class PariInstance(PariInstance_auto):
            you get the error message "not enough precomputed primes",
            increase this parameter.
         """
-        if avma:
-            raise RuntimeError('PARI already initialized.')
+        # If PARI is not already initialized, intialize it
+        if not avma:
+            # PARI has a "real" stack size (parisize) and a "virtual" stack
+            # size (parisizemax). The idea is that the real stack will be
+            # used if possible, but the stack might be increased up to
+            # the complete virtual stack. Therefore, it is not a problem to
+            # set the virtual stack size to a large value. There are two
+            # constraints for the virtual stack size:
+            # 1) on 32-bit systems, even virtual memory can be a scarce
+            #    resource since it is limited by 4GB (of which the kernel
+            #    needs a significant part)
+            # 2) the system should actually be able to handle a stack size
+            #    as large as the complete virtual stack.
+            # As a simple heuristic, we set the virtual stack to 1/4 of the
+            # virtual memory.
 
-        # PARI has a "real" stack size (parisize) and a "virtual" stack
-        # size (parisizemax). The idea is that the real stack will be
-        # used if possible, but the stack might be increased up to
-        # the complete virtual stack. Therefore, it is not a problem to
-        # set the virtual stack size to a large value. There are two
-        # constraints for the virtual stack size:
-        # 1) on 32-bit systems, even virtual memory can be a scarce
-        #    resource since it is limited by 4GB (of which the kernel
-        #    needs a significant part)
-        # 2) the system should actually be able to handle a stack size
-        #    as large as the complete virtual stack.
-        # As a simple heuristic, we set the virtual stack to 1/4 of the
-        # virtual memory.
+            pari_init_opts(size, maxprime, INIT_DFTm)
 
-        pari_init_opts(size, maxprime, INIT_DFTm)
+            from sage.misc.getusage import virtual_memory_limit
 
-        from sage.misc.getusage import virtual_memory_limit
+            sizemax = virtual_memory_limit() // 4
+            if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
+                # Cygwin's mmap is broken for large NORESERVE mmaps (>~ 4GB) See
+                # http://trac.sagemath.org/ticket/20463 So we set the max stack
+                # size to a little below 4GB (putting it right on the margin proves
+                # too fragile)
+                #
+                # The underlying issue is fixed in Cygwin v2.5.2
+                sizemax = min(sizemax, 0xf0000000)
 
-        sizemax = virtual_memory_limit() // 4
-        if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
-            # Cygwin's mmap is broken for large NORESERVE mmaps (>~ 4GB) See
-            # http://trac.sagemath.org/ticket/20463 So we set the max stack
-            # size to a little below 4GB (putting it right on the margin proves
-            # too fragile)
-            #
-            # The underlying issue is fixed in Cygwin v2.5.2
-            sizemax = min(sizemax, 0xf0000000)
+            paristack_setsize(size, sizemax)
 
-        paristack_setsize(size, sizemax)
+            # Disable PARI's stack overflow checking which is incompatible
+            # with multi-threading.
+            pari_stackcheck_init(NULL)
 
-        # Disable PARI's stack overflow checking which is incompatible
-        # with multi-threading.
-        pari_stackcheck_init(NULL)
+            _pari_init_error_handling()
+            _pari_init_closure()
 
-        _pari_init_error_handling()
-        _pari_init_closure()
+            # pari_init_opts() overrides MPIR's memory allocation functions,
+            # so we need to reset them.
+            init_memory_functions()
 
-        # pari_init_opts() overrides MPIR's memory allocation functions,
-        # so we need to reset them.
-        init_memory_functions()
+            # Set printing functions
+            global pariOut, pariErr
 
-        # Set printing functions
-        global pariOut, pariErr
+            pariOut = &sage_pariOut
+            pariOut.putch = sage_putchar
+            pariOut.puts = sage_puts
+            pariOut.flush = sage_flush
 
-        pariOut = &sage_pariOut
-        pariOut.putch = sage_putchar
-        pariOut.puts = sage_puts
-        pariOut.flush = sage_flush
+            # Use 53 bits as default precision
+            self.set_real_precision_bits(53)
 
-        # Use 53 bits as default precision
-        self.set_real_precision_bits(53)
+            # Disable pretty-printing
+            GP_DATA.fmt.prettyp = 0
 
-        # Disable pretty-printing
-        GP_DATA.fmt.prettyp = 0
+            # This causes PARI/GP to use output independent of the terminal
+            # (which is want we want for the PARI library interface).
+            GP_DATA.flags = gpd_TEST
 
-        # This causes PARI/GP to use output independent of the terminal
-        # (which is want we want for the PARI library interface).
-        GP_DATA.flags = gpd_TEST
+            # Ensure that Galois groups are represented in a sane way,
+            # see the polgalois section of the PARI users manual.
+            global new_galois_format
+            new_galois_format = 1
 
-        # Ensure that Galois groups are represented in a sane way,
-        # see the polgalois section of the PARI users manual.
-        global new_galois_format
-        new_galois_format = 1
+            # By default, factor() should prove primality of returned
+            # factors. This not only influences the factor() function, but
+            # also many functions indirectly using factoring.
+            global factor_proven
+            factor_proven = 1
+            
+            # Initialize some constants
+            sig_on()
+            self.PARI_ZERO = new_gen_noclear(gen_0)
+            self.PARI_ONE = new_gen_noclear(gen_1)
+            self.PARI_TWO = new_gen_noclear(gen_2)
+            sig_off()
+        
+        # If PARI is already initialized,
+        else:
+            # Resize stack and precomputed primes table, if needed.
+            if pari_instance.stacksize() < size:
+                pari_instance.allocatemem(size)
+            pari_instance.init_primes(maxprime)
 
-        # By default, factor() should prove primality of returned
-        # factors. This not only influences the factor() function, but
-        # also many functions indirectly using factoring.
-        global factor_proven
-        factor_proven = 1
-
-        # Initialize some constants
-        sig_on()
-        self.PARI_ZERO = new_gen_noclear(gen_0)
-        self.PARI_ONE = new_gen_noclear(gen_1)
-        self.PARI_TWO = new_gen_noclear(gen_2)
-        sig_off()
+            # Copy constants
+            self.PARI_ZERO = pari_instance.PARI_ZERO
+            self.PARI_ONE = pari_instance.PARI_ONE
+            self.PARI_TWO = pari_instance.PARI_TWO
 
     def debugstack(self):
         r"""
@@ -585,7 +616,7 @@ cdef class PariInstance(PariInstance_auto):
             top =  0x60b2c60
             avma = 0x5875c38
             bot =  0x57295e0
-            size = 1000000
+            size = 10000000
         """
         # We deliberately use low-level functions to minimize the
         # chances that something goes wrong here (for example, if we
@@ -597,23 +628,32 @@ cdef class PariInstance(PariInstance_auto):
             <unsigned long>pari_mainstack.rsize)
         fflush(stdout)
 
-    def __dealloc__(self):
+    def _close(self):
         """
         Deallocation of the Pari instance.
 
+        EXAMPLES::
+
+            sage: from sage.libs.cypari2.pari_instance import PariInstance
+            sage: pari2 = PariInstance(10^7)
+            sage: pari2._close()
+            sage: pari2 = PariInstance(10^6)
+            sage: pari.stacksize()
+            1000000
+
         NOTE:
 
-        Usually this deallocation happens only when Sage quits.
-        We do not provide a direct test, since usually there
-        is only one Pari instance, and when artificially creating
-        another instance, C-data are shared.
+        The PariInstance class does not deallocate PARI memory
+        automatically, so that multiple PariInstance objects can
+        coexist.
 
-        The fact that Sage does not crash when quitting is an
-        indirect doctest. See the discussion at :trac:`13741`.
-
+        Call this method at you own risk if you really need to free
+        the memory used by PARI.
         """
+        global avma
         if avma:
             pari_close()
+            avma = 0
 
     def __repr__(self):
         return "Interface to the PARI C library"

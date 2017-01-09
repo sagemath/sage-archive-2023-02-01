@@ -458,8 +458,7 @@ class HighestWeightCrystals(Category_singleton):
 
             - ``index_set`` -- (optional) the index set to draw arrows
 
-            - ``depth`` -- (optional) the depth to draw; if unspecified
-              and an infinite crystal, then defaults to 10
+            - ``depth`` -- the depth to draw; optional only for finite crystals
 
             EXAMPLES::
 

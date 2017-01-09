@@ -4022,7 +4022,7 @@ class ClusterSeed(SageObject):
         rings of the initial cluster and its neighboring clusters.  As
         such, it always contains both the cluster algebra and the
         upper cluster algebra.  This function uses the algorithm from
-        [MM2005]_.
+        [MM2015]_.
 
         When the initial seed is totally coprime (for example, when
         the unfrozen part of the exchange matrix has full rank), the

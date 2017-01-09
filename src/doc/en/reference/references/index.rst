@@ -195,6 +195,10 @@ REFERENCES:
 .. [Ber1991] \C. Berger, "Une version effective du théorème de
              Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
 
+.. [BFZ2005] \A. Berenstein, \S. Fomin, and \A. Zelevinsky, *Cluster
+             algebras. III. Upper bounds and double Bruhat cells*,
+             Duke Math. J. 126 (2005), no. 1, 1–52.
+
 .. [BG1985] \M. Blum and S. Goldwasser. An Efficient Probabilistic
             Public-Key Encryption Scheme Which Hides All Partial
             Information. In *Proceedings of CRYPTO 84 on Advances in
@@ -1019,6 +1023,9 @@ REFERENCES:
 .. [Lin1999] J. van Lint, Introduction to coding theory, 3rd ed.,
              Springer-Verlag GTM, 86, 1999.
 
+.. [LLZ2014] \K. Lee, \L. Li, and \A. Zelevinsky, *Greedy elements in rank 2
+             cluster algebras*, Selecta Math. 20 (2014), 57-82.
+
 .. [LM2006] Vadim Lyubashevsky and Daniele Micciancio. Generalized
             compact knapsacks are collision resistant. ICALP,
             pp. 144--155, Springer, 2006.
@@ -1119,6 +1126,9 @@ REFERENCES:
              Systèmes dynamiques/Dynamical
              Systems. :arxiv:`math/0304469v1`
 
+.. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
+            Int. Math. Res. Not. IMRN, 2015, 3121-3149.
+
 .. [Mon1998] \K. G. Monks, "Change of basis, monomial relations, and
              `P^s_t` bases for the Steenrod algebra," J. Pure
              Appl. Algebra 125 (1998), no. 1-3, 235-260.
@@ -1171,6 +1181,11 @@ REFERENCES:
 .. [Normaliz] Winfried Bruns, Bogdan Ichim, and Christof Soeger,
               Normaliz,
               http://www.mathematik.uni-osnabrueck.de/normaliz/
+
+.. [NZ2012] \T. Nakanishi and \A. Zelevinsky, *On tropical dualities in
+            cluster algebras*, Algebraic groups and quantum groups,
+            Contemp. Math., vol. 565, Amer. Math. Soc.,
+            Providence, RI, 2012, pp.  217-226.
 
 .. _ref-O:
 
@@ -1381,6 +1396,9 @@ REFERENCES:
              Springer-Verlag New York, 1966.
              :doi:`10.1007/978-1-4684-9322-1`,
              ISBN 978-1-4684-9322-1.
+
+.. [Spe2013] \D. Speyer, *An infinitely generated upper cluster algebra*,
+             :arxiv:`1305.6867`.
 
 .. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi

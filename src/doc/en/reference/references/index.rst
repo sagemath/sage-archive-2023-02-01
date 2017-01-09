@@ -180,6 +180,10 @@ REFERENCES:
                  203–218. Springer, 2010. pre-print available at
                  http://eprint.iacr.org/2010/313.pdf
 
+.. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
+   *On Maximal Green Sequences*
+   :arxiv:`1205.2050`
+
 .. [Bee] Robert A. Beezer, *A First Course in Linear Algebra*,
          http://linear.ups.edu/. Accessed 15 July 2010.
 
@@ -630,6 +634,9 @@ REFERENCES:
             solutions of some problems of computational
             algebra". Proceedings of the seventeenth annual ACM
             symposium on Theory of computing. ACM, 1985.
+
+.. [FZ2007] \S. Fomin and \A. Zelevinsky, *Cluster algebras IV. Coefficients*,
+            Compos. Math. 143 (2007), no. 1, 112-164.
 
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.

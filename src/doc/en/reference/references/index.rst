@@ -628,15 +628,15 @@ REFERENCES:
             algebra". Proceedings of the seventeenth annual ACM
             symposium on Theory of computing. ACM, 1985.
 
-.. [FZ2007] \S. Fomin and \A. Zelevinsky, *Cluster algebras IV. Coefficients*,
-            Compos. Math. 143 (2007), no. 1, 112-164.
-
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
 
 .. [FY2004] Eva Maria Feichtner and Sergey Yuzvinsky. *Chow rings of
             toric varieties defined by atomic lattices*. Inventiones
             Mathematicae. **155** (2004), no. 3, pp. 515-536.
+
+.. [FZ2007] \S. Fomin and \A. Zelevinsky, *Cluster algebras IV. Coefficients*,
+            Compos. Math. 143 (2007), no. 1, 112-164.
 
 .. _ref-G:
 

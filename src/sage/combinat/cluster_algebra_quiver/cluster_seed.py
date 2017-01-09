@@ -17,13 +17,9 @@ AUTHORS:
 
 REFERENCES:
 
-.. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
-   *On Maximal Green Sequences*
-   :arxiv:`1205.2050`
+- [FZ2007]_
 
-.. [FZ2007] Sergey Fomin, Andrei Zelevinsky
-   "Cluster Algebras IV: coefficients"
-   :arxiv:`0602259`
+- [BDP2013]_
 
 .. SEEALSO:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
 """

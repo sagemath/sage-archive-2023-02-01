@@ -4027,23 +4027,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # Convert the polynomial we want to factor to PARI
             f = self._pari_with_name()
             try:
-                try:
-                    # Try to compute the PARI nf structure with important=False.
-                    # This will raise RuntimeError if the computation is too
-                    # difficult.  It will raise TypeError if the defining
-                    # polynomial is not integral.
-                    Rpari = R.pari_nf(important=False)
-                except RuntimeError:
-                    # Cannot easily compute the nf structure, use the defining
-                    # polynomial instead.
-                    Rpari = R.pari_polynomial("y")
-                # nffactor() can fail with PariError "precision too low"
-                G = list(Rpari.nffactor(f))
-            except (PariError, TypeError):
-                # Use factornf() which only needs the defining polynomial,
-                # which does not require an integral polynomial and which
-                # has no problems with floating-point precision.
-                G = list(f.factornf(R.pari_polynomial("y")))
+                # Try to compute the PARI nf structure with important=False.
+                # This will raise RuntimeError if the computation is too
+                # difficult.
+                Rpari = R.pari_nf(important=False)
+            except RuntimeError:
+                # Cannot easily compute the nf structure, use the defining
+                # polynomial instead.
+                Rpari = R.pari_polynomial("y")
+            G = list(Rpari.nffactor(f))
             # PARI's nffactor() ignores the unit, _factor_pari_helper()
             # adds back the unit of the factorization.
             return self._factor_pari_helper(G)

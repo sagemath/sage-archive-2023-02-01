@@ -6243,7 +6243,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if sage.arith.all.euler_phi(n).divides(K.absolute_degree()):
             # Factor the n-th cyclotomic polynomial over K.
             f = K.pari_polynomial('y')
-            factors = pari.polcyclo(n).factornf(f).component(1)
+            factors = f.nffactor(pari.polcyclo(n)).component(1)
             roots = [K(-g.polcoeff(0)) for g in factors if g.poldegree() == 1]
             if all:
                 return roots

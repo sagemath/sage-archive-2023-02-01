@@ -1532,8 +1532,6 @@ cdef class gen(gen_auto):
         from sage.libs.pari.convert_sage import gen_to_sage
         return gen_to_sage(self, locals)
 
-    _eval_ = sage
-
     def __long__(gen self):
         """
         Convert ``self`` to a Python ``long``.

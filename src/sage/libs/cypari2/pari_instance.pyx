@@ -458,7 +458,7 @@ cdef class PariInstance(PariInstance_auto):
     def __init__(self, long size=1000000, unsigned long maxprime=500000):
         """
         (Re)-Initialize the PARI system.
-        
+
         INPUT:
 
 
@@ -584,14 +584,14 @@ cdef class PariInstance(PariInstance_auto):
             # also many functions indirectly using factoring.
             global factor_proven
             factor_proven = 1
-            
+
             # Initialize some constants
             sig_on()
             self.PARI_ZERO = new_gen_noclear(gen_0)
             self.PARI_ONE = new_gen_noclear(gen_1)
             self.PARI_TWO = new_gen_noclear(gen_2)
             sig_off()
-        
+
         # If PARI is already initialized,
         else:
             # Resize stack and precomputed primes table, if needed.

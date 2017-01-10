@@ -1114,8 +1114,7 @@ class Projection(SageObject):
         """
         polys = self.polygons
         N = max([-1] + [i for p in polys for i in p]) + 1
-        return polygons3d(self.polygons,
-                          self.coordinates_of(range(N)), **kwds)
+        return polygons3d(polys, self.coordinates_of(range(N)), **kwds)
 
     def render_0d(self, point_opts={}, line_opts={}, polygon_opts={}):
         """

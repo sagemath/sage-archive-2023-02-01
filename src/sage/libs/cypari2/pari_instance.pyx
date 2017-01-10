@@ -629,7 +629,7 @@ cdef class PariInstance(PariInstance_auto):
 
     def _close(self):
         """
-        Deallocation of the Pari instance.
+        Deallocate the PARI library.
 
         EXAMPLES::
 
@@ -640,14 +640,15 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.stacksize()
             1000000
 
-        NOTE:
+        .. NOTE::
 
-        The PariInstance class does not deallocate PARI memory
-        automatically, so that multiple PariInstance objects can
-        coexist.
+            The :class:`PariInstance` class does not deallocate PARI
+            memory automatically, so that multiple :class:`PariInstance`
+            objects can coexist and such that other non-Python libraries
+            can also safely use PARI.
 
-        Call this method at you own risk if you really need to free
-        the memory used by PARI.
+            Call this method at you own risk if you really need to free
+            the memory used by PARI.
         """
         global avma
         if avma:

@@ -2319,7 +2319,7 @@ cdef class LetterWrapped(Element):
         """
         return hash(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Check comparison between ``left`` and ``right`` based on ``op``
 

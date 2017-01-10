@@ -908,7 +908,7 @@ class GpElement(ExpectElement):
             sage: gp(M).sage() == M
             True
         """
-        return pari(str(self)).python()
+        return pari(str(self)).sage()
 
     def is_string(self):
         """

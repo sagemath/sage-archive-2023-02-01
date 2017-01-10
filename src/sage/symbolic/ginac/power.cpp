@@ -307,6 +307,7 @@ bool power::info(unsigned inf) const
 		case info_flags::cinteger_polynomial:
 		case info_flags::rational_polynomial:
 		case info_flags::crational_polynomial:
+                case info_flags::integer:
 			return exponent.info(info_flags::nonnegint) &&
 			       basis.info(inf);
 		case info_flags::rational_function:

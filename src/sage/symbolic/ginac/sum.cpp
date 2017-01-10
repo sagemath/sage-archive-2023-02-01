@@ -159,7 +159,7 @@ static bool has_suitable_form(ex the_ex)
         return false;
 }
 
-static ex to_gamma(const ex& the_ex)
+ex to_gamma(const ex& the_ex)
 {
         if (is_rational_linear(the_ex))
                 return the_ex;

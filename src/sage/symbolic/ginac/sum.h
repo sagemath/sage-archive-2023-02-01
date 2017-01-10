@@ -27,6 +27,8 @@ extern ex hypersimp(ex e, ex symbol);
 extern ex gosper_term(ex the_ex, ex n);
 extern ex gosper_sum_definite(ex the_ex, ex n, ex a, ex b, int* p);
 extern ex gosper_sum_indefinite(ex the_ex, ex n, int* p);
+extern ex gamma_normalize(ex the_ex);
+extern ex to_gamma(const ex& the_ex);
 
 } // namespace GiNaC
 

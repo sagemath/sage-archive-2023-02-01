@@ -1488,14 +1488,9 @@ cdef class gen(gen_auto):
             raise TypeError("Object (=%s) must be of type t_VEC or t_COL." % self)
         return [self[n] for n in range(glength(self.g))]
 
-    def python(self, locals=None):
+    def python(self):
         """
         Return the closest Python equivalent of the given PARI object.
-
-        INPUT:
-
-        - ``locals`` -- optional dictionary used in fallback cases that
-          involve ``eval``
 
         See :func:`~sage.libs.cypari.convert.gen_to_python` for more informations.
 
@@ -1507,7 +1502,7 @@ cdef class gen(gen_auto):
             Fraction(389, 17)
         """
         from .convert import gen_to_python
-        return gen_to_python(self, locals)
+        return gen_to_python(self)
 
     def sage(self, locals=None):
         r"""

@@ -416,17 +416,34 @@ cdef gen new_t_COMPLEX_from_double(double re, double im):
 # Conversion of gen to Python type #
 ####################################
 
-cpdef gen_to_python(gen z, locals=None):
+cpdef gen_to_python(gen z):
     r"""
-    Convert ``z`` to a Python object.
-
-    INPUT:
-
-    - ``z`` - a pari ``gen``
-
-    - ``locals`` - an optional dictionnary of local variables
+    Convert the PARI element ``z`` to a Python object.
 
     OUTPUT:
+
+    - a Python integer for integers (type ``t_INT``)
+
+    - a ``Fraction`` (``fractions`` module) for rationals (type ``t_FRAC``)
+
+    - a ``float`` for real numbers (type ``t_REAL``)
+
+    - a ``complex`` for complex numbers (type ``t_COMPLEX``)
+
+    - a ``list`` for vectors (type ``t_VEC`` or ``t_COL``). The function
+      ``gen_to_python`` is then recursively applied on the entries.
+
+    - a ``list`` of Python integers for small vectors (type ``t_VECSMALL``)
+
+    - a ``list`` of ``list``s for matrices (type ``t_MAT``). The function
+      ``gen_to_python`` is then recursively applied on the entries.
+
+    - the floating point ``inf`` or ``-inf`` for infinities (type ``t_INFINITY``)
+
+    - a string for strings (type ``t_STR``)
+
+    - other PARI types are not supported and the function will raise a
+      ``NotImplementedError``
 
     EXAMPLES::
 
@@ -529,6 +546,10 @@ cpdef gen_to_python(gen z, locals=None):
         sage: gen_to_python(z)
         [[1, 2], [3, 4]]
 
+        sage: z = pari('[[1, 3], [[2]]; 3, [4, [5, 6]]]')
+        sage: gen_to_python(z)
+        [[[1, 3], [[2]]], [3, [4, [5, 6]]]]
+
     Converting strings::
 
         sage: z = pari('"Hello"')
@@ -537,15 +558,23 @@ cpdef gen_to_python(gen z, locals=None):
         sage: type(a)
         <type 'str'>
 
-    Using a dictionary ``locals``::
+    Some currently unsupported types::
 
-        sage: x = pari('x')
-        sage: gen_to_python(x, {'x': 'x'})
-        'x'
-        sage: gen_to_python(x)
+        sage: z = pari('x')
+        sage: z.type()
+        't_POL'
+        sage: gen_to_python(z)
         Traceback (most recent call last):
         ...
-        NameError: name 'x' is not defined
+        NotImplementedError: conversion not implemented for t_POL
+
+        sage: z = pari('12 + O(2^13)')
+        sage: z.type()
+        't_PADIC'
+        sage: gen_to_python(z)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: conversion not implemented for t_PADIC
     """
     cdef GEN g = z.g
     cdef long t = typ(g)
@@ -563,13 +592,13 @@ cpdef gen_to_python(gen z, locals=None):
     elif t == t_COMPLEX:
         return complex(gen_to_python(z.real()), gen_to_python(z.imag()))
     elif t == t_VEC or t == t_COL:
-        return [gen_to_python(x, locals) for x in z.python_list()]
+        return [gen_to_python(x) for x in z.python_list()]
     elif t == t_VECSMALL:
         return z.python_list_small()
     elif t == t_MAT:
         nc = lg(g)-1
         nr = 0 if nc == 0 else lg(gel(g,1))-1
-        return [[gen_to_python(z[i,j], locals) for j in range(nc)] for i in range(nr)]
+        return [[gen_to_python(z[i,j]) for j in range(nc)] for i in range(nr)]
     elif t == t_INFINITY:
         if inf_get_sign(g) >= 0:
             return INFINITY
@@ -577,6 +606,5 @@ cpdef gen_to_python(gen z, locals=None):
             return -INFINITY
     elif t == t_STR:
         return str(z)
-
-    # Fallback to string evaluation
-    return eval(str(z), {}, locals)
+    else:
+        raise NotImplementedError("conversion not implemented for {}".format(z.type()))

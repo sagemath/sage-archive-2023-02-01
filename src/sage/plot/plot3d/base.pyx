@@ -1674,9 +1674,6 @@ end_scene""" % (render_params.antialiasing,
             self.triangulate()
             faces = self.face_list()
 
-        if len(faces[0]) > 3:
-            raise ValueError('not made of triangles')
-
         code = ("facet normal {} {} {}\n"
                 "    outer loop\n"
                 "        vertex {} {} {}\n"
@@ -1685,8 +1682,21 @@ end_scene""" % (render_params.antialiasing,
                 "    endloop\n"
                 "endfacet\n")
 
+        faces_iter = faces.__iter__()
+
+        def chopped_faces_iter():
+            for face in faces_iter:
+                n = len(face)
+                if n == 3:
+                    yield face
+                else:
+                    # naive cut into triangles
+                    v = face[-1]
+                    for i in range(n - 2):
+                        yield [v, face[i], face[i + 1]]
+
         string_list = ["solid {}\n".format(name)]
-        for i, j, k in faces:
+        for i, j, k in chopped_faces_iter():
             ij = RR3(j) - RR3(i)
             ik = RR3(k) - RR3(i)
             n = ij.cross_product(ik)

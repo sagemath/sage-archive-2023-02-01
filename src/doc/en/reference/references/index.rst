@@ -636,7 +636,7 @@ REFERENCES:
             algebra". Proceedings of the seventeenth annual ACM
             symposium on Theory of computing. ACM, 1985.
 
-.. [SFT2012] \A. Felikson, \M. Shapiro, and \P. Tumarkin, *Cluster Algebras of
+.. [FST2012] \A. Felikson, \M. Shapiro, and \P. Tumarkin, *Cluster Algebras of
             Finite Mutation Type Via Unfoldings*, Int Math Res Notices (2012)
             2012 (8): 1768-1804.
 
@@ -1491,8 +1491,8 @@ REFERENCES:
 .. _ref-V:
 
 **V**
-.. [Vat2008] \D. Vatne, *The mutation class of `D_n` quivers*,
-             :arxiv:`0810.4789v1`.
+
+.. [Vat2008] \D. Vatne, *The mutation class of `D_n` quivers*, :arxiv:`0810.4789v1`.
 
 .. [VB1996] \E. Viterbo, E. Biglieri. *Computing the Voronoi Cell of a
             Lattice: The Diamond-Cutting Algorithm*. IEEE Transactions

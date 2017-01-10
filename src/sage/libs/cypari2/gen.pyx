@@ -1522,116 +1522,9 @@ cdef class gen(gen_auto):
 
             sage: f.sage({'x':x, 'y':y})
             2/3*x^3 + x + y - 5/7
-
-        Converting a real number::
-
-            sage: pari.set_real_precision(70)
-            15
-            sage: a = pari('1.234').python(); a
-            1.234000000000000000000000000000000000000000000000000000000000000000000000000
-            sage: a.parent()
-            Real Field with 256 bits of precision
-            sage: pari.set_real_precision(15)
-            70
-            sage: a = pari('1.234').python(); a
-            1.23400000000000000
-            sage: a.parent()
-            Real Field with 64 bits of precision
-
-        For complex numbers, the parent depends on the PARI type::
-
-            sage: a = pari('(3+I)').python(); a
-            i + 3
-            sage: a.parent()
-            Number Field in i with defining polynomial x^2 + 1
-
-            sage: a = pari('2^31-1').python(); a
-            2147483647
-            sage: a.parent()
-            Integer Ring
-
-            sage: a = pari('12/34').python(); a
-            6/17
-            sage: a.parent()
-            Rational Field
-
-            sage: a = pari('(3+I)/2').python(); a
-            1/2*i + 3/2
-            sage: a.parent()
-            Number Field in i with defining polynomial x^2 + 1
-
-            sage: z = pari(CC(1.0+2.0*I)); z
-            1.00000000000000 + 2.00000000000000*I
-            sage: a = z.python(); a
-            1.00000000000000000 + 2.00000000000000000*I
-            sage: a.parent()
-            Complex Field with 64 bits of precision
-
-            sage: I = sqrt(-1)
-            sage: a = pari(1.0 + 2.0*I).python(); a
-            1.00000000000000000 + 2.00000000000000000*I
-            sage: a.parent()
-            Complex Field with 64 bits of precision
-
-        Vectors and matrices::
-
-            sage: a = pari('[1,2,3,4]')
-            sage: a
-            [1, 2, 3, 4]
-            sage: a.type()
-            't_VEC'
-            sage: b = a.python(); b
-            [1, 2, 3, 4]
-            sage: type(b)
-            <... 'list'>
-
-            sage: a = pari('[1,2;3,4]')
-            sage: a.type()
-            't_MAT'
-            sage: b = a.python(); b
-            [1 2]
-            [3 4]
-            sage: b.parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
-
-            sage: a = pari('Vecsmall([1,2,3,4])')
-            sage: a.type()
-            't_VECSMALL'
-            sage: a.python()
-            [1, 2, 3, 4]
-
-        We use the locals dictionary::
-
-            sage: f = pari('(2/3)*x^3 + x - 5/7 + y')
-            sage: x,y=var('x,y')
-            sage: from sage.libs.cypari2.gen import gentoobj
-            sage: gentoobj(f, {'x':x, 'y':y})
-            2/3*x^3 + x + y - 5/7
-            sage: gentoobj(f)
-            Traceback (most recent call last):
-            ...
-            NameError: name 'x' is not defined
-
-        Conversion of p-adics::
-
-            sage: K = Qp(11,5)
-            sage: x = K(11^-10 + 5*11^-7 + 11^-6); x
-            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
-            sage: y = pari(x); y
-            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
-            sage: y.sage()
-            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
-            sage: pari(K(11^-5)).sage()
-            11^-5 + O(11^0)
-
-        Conversion of infinities::
-
-            sage: pari('oo').sage()
-            +Infinity
-            sage: pari('-oo').sage()
-            -Infinity
         """
-        return gentoobj(self, locals)
+        from sage.libs.pari.convert_sage import gen_to_sage
+        return gen_to_sage(self, locals)
 
     sage = _eval_ = python
 
@@ -4779,82 +4672,21 @@ cpdef gen objtogen(s):
     # Simply use the string representation
     return objtogen(str(s))
 
+def gentoobj(gen z, locals={}):
+    r"""
+    TESTS::
 
-cpdef gentoobj(gen z, locals={}):
+        sage: from sage.libs.cypari2.gen import gentoobj
+        sage: gentoobj(pari('1'))
+        doctest:...: DeprecationWarning: gentoobj is deprecated, use gen_to_sage from
+        sage.libs.pari.convert_sage
+        See http://trac.sagemath.org/21808 for details.
+        1
     """
-    Convert a PARI gen to a Sage/Python object.
-
-    See the ``python`` method of :class:`gen` for documentation and
-    examples.
-    """
-    cdef GEN g = z.g
-    cdef long t = typ(g)
-    cdef long tx, ty
-    cdef gen real, imag
-    cdef Py_ssize_t i, j, nr, nc
-
-    if t == t_INT:
-        from sage.rings.integer import Integer
-        return Integer(z)
-    elif t == t_FRAC:
-        from sage.rings.rational import Rational
-        return Rational(z)
-    elif t == t_REAL:
-        from sage.rings.all import RealField
-        prec = prec_words_to_bits(z.precision())
-        return RealField(prec)(z)
-    elif t == t_COMPLEX:
-        real = z.real()
-        imag = z.imag()
-        tx = typ(real.g)
-        ty = typ(imag.g)
-        if tx in [t_INTMOD, t_PADIC] or ty in [t_INTMOD, t_PADIC]:
-            raise NotImplementedError("No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components")
-        if tx == t_REAL or ty == t_REAL:
-            xprec = real.precision()  # will be 0 if exact
-            yprec = imag.precision()  # will be 0 if exact
-            if xprec == 0:
-                prec = prec_words_to_bits(yprec)
-            elif yprec == 0:
-                prec = prec_words_to_bits(xprec)
-            else:
-                prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
-
-            from sage.rings.all import RealField, ComplexField
-            R = RealField(prec)
-            C = ComplexField(prec)
-            return C(R(real), R(imag))
-        else:
-            from sage.rings.all import QuadraticField
-            K = QuadraticField(-1, 'i')
-            return K([gentoobj(real), gentoobj(imag)])
-    elif t == t_VEC or t == t_COL:
-        return [gentoobj(x, locals) for x in z.python_list()]
-    elif t == t_VECSMALL:
-        return z.python_list_small()
-    elif t == t_MAT:
-        nc = lg(g)-1
-        nr = 0 if nc == 0 else lg(gel(g,1))-1
-        L = [gentoobj(z[i,j], locals) for i in range(nr) for j in range(nc)]
-        from sage.matrix.constructor import matrix
-        return matrix(nr, nc, L)
-    elif t == t_PADIC:
-        from sage.rings.integer import Integer
-        from sage.rings.padics.factory import Qp
-        p = z.padicprime()
-        K = Qp(Integer(p), precp(g))
-        return K(z.lift())
-    elif t == t_INFINITY:
-        from sage.rings.infinity import Infinity
-        if inf_get_sign(g) >= 0:
-            return Infinity
-        else:
-            return -Infinity
-    
-    # Fallback (e.g. polynomials): use string representation
-    from sage.misc.sage_eval import sage_eval
-    return sage_eval(str(z), locals=locals)
-
+    from sage.misc.superseded import deprecation
+    deprecation(21808, "gentoobj is deprecated, use gen_to_sage from sage.libs.pari.convert_sage")
+    from sage.libs.pari.convert_sage import gen_to_sage
+    return gen_to_sage(z, locals)
 
 cdef GEN _Vec_append(GEN v, GEN a, long n):
     """

@@ -63,7 +63,7 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
                      cls).__classcall__(cls,
                                         q=q, bar=bar, R=q.parent(), **kwds)
 
-    def __init__(self, gp_indices, n, q, bar, R, category):
+    def __init__(self, gp_indices, n, q, bar, R, category, indices_key=None):
         """
         Initialize ``self``.
 
@@ -78,7 +78,10 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             def bar(x):
                 return x.subs(q=~self._q)
         self._bar = bar
-        indices = IndexedFreeAbelianMonoid(gp_indices)
+        if indices_key is None:
+            indices = IndexedFreeAbelianMonoid(gp_indices)
+        else:
+            indices = IndexedFreeAbelianMonoid(gp_indices, sorting_key=indices_key)
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
 
     def _repr_term(self, m):
@@ -432,7 +435,7 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
 
     .. NOTE::
 
-        The `q` considered here is `q^2` in some references, e.g., [ZZ05]_.
+        The `q` considered here is `q^2` in some references, e.g., [ZZ2005]_.
 
     INPUT:
 
@@ -479,14 +482,8 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
 
     REFERENCES:
 
-    .. [FRT] Faddeev, Reshetikhin and Takhtajan.
-       *Quantization of Lie Groups and Lie Algebras*.
-       Leningrad Math. J. vol. **1** (1990), no. 1.
-
-    .. [ZZ05] Hechun Zhang and R. B. Zhang.
-       *Dual canonical bases for the quantum special linear group
-       and invariant subalgebras*.
-       Lett. Math. Phys. **73** (2005), pp. 165-181. :arxiv:`math/0509651`.
+    - [FRT1990]_
+    - [ZZ2005]_
     """
     @staticmethod
     def __classcall_private__(cls, m, n=None, q=None, bar=None, R=None):
@@ -754,7 +751,9 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
         gp_indices = [(i, j) for i in range(1, n + 1) for j in range(1, n + 1)]
         gp_indices.append('c')
         cat = HopfAlgebras(R.category()).WithBasis()
-        QuantumMatrixCoordinateAlgebra_abstract.__init__(self, gp_indices, n, q, bar, R, cat)
+        QuantumMatrixCoordinateAlgebra_abstract.__init__(self, gp_indices, n, q,
+                                                         bar, R, cat,
+                                                         indices_key=_generator_key)
         names = ['x{}{}'.format(*k) for k in gp_indices[:-1]]
         names.append('c')
         self._assign_names(names)
@@ -972,34 +971,24 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
                       if t != 'c' else T.monomial((I['c'], I['c'])) ** e
                       for t, e in x._sorted_items())
 
-
-def gcmp(x, y):
-    r"""
-    Compare the indices ``x`` and ``y``.
-
-    Helper function for comparison/sorting the generators in
-    :class:`QuantumMatrixCoordinateAlgebra`.
+def _generator_key(t):
+    """
+    Helper function to make ``'c'`` less that all other indices for
+    sorting the monomials in :class:`QuantumGL`.
 
     EXAMPLES::
 
-        sage: from sage.algebras.quantum_matrix_coordinate_algebra import gcmp
-        sage: gcmp('c', (4, 8))
-        -1
-        sage: gcmp((1, 1), 'c')
-        1
-        sage: gcmp('c', 'c')
-        0
-        sage: gcmp((2, 3), (1, 2))
-        1
-        sage: gcmp((2, 3), (2, 4))
-        -1
+        sage: from sage.algebras.quantum_matrix_coordinate_algebra import _generator_key as k
+        sage: k((1,2)) < k('c')
+        False
+        sage: k((1,2)) < k((1,3))
+        True
+        sage: k((1,2)) < k((3,1))
+        True
+        sage: k('c') < k((1,1))
+        True
     """
-    if x == 'c':
-        if y == 'c':
-            return 0
-        return -1
-    if y == 'c':
-        return 1
-    # Both must be tuples, so we use the Python cmp
-    return cmp(x, y)
+    if isinstance(t, tuple):
+        return t
+    return ()
 

@@ -624,6 +624,10 @@ REFERENCES:
             algebra". Proceedings of the seventeenth annual ACM
             symposium on Theory of computing. ACM, 1985.
 
+.. [FRT1990] Faddeev, Reshetikhin and Takhtajan.
+             *Quantization of Lie Groups and Lie Algebras*.
+             Leningrad Math. J. vol. **1** (1990), no. 1.
+
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
 
@@ -1562,5 +1566,11 @@ REFERENCES:
 
 .. [Zor] Anton Zorich, "Generalized Permutation software"
          (http://perso.univ-rennes1.fr/anton.zorich)
+
+.. [ZZ2005] Hechun Zhang and R. B. Zhang.
+            *Dual canonical bases for the quantum special linear group
+            and invariant subalgebras*.
+            Lett. Math. Phys. **73** (2005), pp. 165-181.
+            :arxiv:`math/0509651`.
 
 .. include:: ../footer.txt

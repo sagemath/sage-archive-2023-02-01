@@ -48,7 +48,7 @@ class PlanePartition(ClonableArray):
 
     The plane partition whose tableau representation is ``PP``.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]]); PP
         Plane partition [[4, 3, 3, 1], [2, 1, 1], [1, 1]]
@@ -76,7 +76,7 @@ class PlanePartition(ClonableArray):
         """
         Initialize ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
             sage: TestSuite(PP).run()
@@ -355,7 +355,7 @@ class PlanePartition(ClonableArray):
         OUTPUT:
         A latex code for drawing the plane partition.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PlanePartition([[1]]).latex()
             <BLANKLINE>  
@@ -373,7 +373,7 @@ class PlanePartition(ClonableArray):
         x=self._max_x
         y=self._max_y
         z=self._max_z
-        print "\n\\begin{tikzpicture}"
+        print("\n\\begin{tikzpicture}")
         def add_topside(i,j,k):
             return "\\draw[fill={},shift={{(210:{})}},shift={{(-30:{})}},shift={{(90:{})}}]\n(0,0)--(-30:1)--(0,-1)--(210:1)--(0,0);".format(colors[0],i,j,k)
         def add_leftside(i,j,k):
@@ -392,7 +392,7 @@ class PlanePartition(ClonableArray):
             for c in range(len(self.x_tableau()[r])):
                 if self.x_tableau()[r][c] > 0 or show_box:
                     print add_leftside(self.x_tableau()[r][c],r,c)
-        print "\\end{tikzpicture}\n"
+        print("\\end{tikzpicture}\n")
 
     def show(self, show_box = None, colors = ["white","lightgray","darkgray"]):
         r"""
@@ -691,7 +691,7 @@ class PlanePartitions(UniqueRepresentation,Parent):
         r"""
         Initialize ``self``
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: PP = PlanePartitions((4,3,2))
             sage: TestSuite(PP).run()

@@ -498,7 +498,7 @@ cdef class PariInstance(PariInstance_auto):
         GP_DATA.fmt.prettyp = 0
 
         # This causes PARI/GP to use output independent of the terminal
-        # (which is want we want for the PARI library interface).
+        # (which is what we want for the PARI library interface).
         GP_DATA.flags = gpd_TEST
 
         # Ensure that Galois groups are represented in a sane way,

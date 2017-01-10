@@ -270,6 +270,10 @@ REFERENCES:
             Theory and its Applications, 1 (2015),
             83–96. :arxiv:`1406.5337`
 
+.. [BPRS2009] \J. Bastian, \T. Prellberg, \M. Rubey, \C. Stump, *Counting the
+            number of elements in the mutation classes of `\tilde{A}_n`-quivers*,
+            :arxiv:`0906.0487`
+
 .. [Br1910] Bruckner, "Uber die Ableitung der allgemeinen Polytope und
             die nach Isomorphismus verschiedenen Typen der allgemeinen
             Achtzelle (Oktatope)", Verhand. Konik. Akad. Wetenschap,
@@ -639,6 +643,10 @@ REFERENCES:
             algebra". Proceedings of the seventeenth annual ACM
             symposium on Theory of computing. ACM, 1985.
 
+.. [SFT2012] \A. Felikson, \M. Shapiro, and \P. Tumarkin, *Cluster Algebras of
+            Finite Mutation Type Via Unfoldings*, Int Math Res Notices (2012)
+            2012 (8): 1768-1804.
+
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
 
@@ -884,6 +892,9 @@ REFERENCES:
 .. [Ke1991] \A. Kerber. Algebraic combinatorics via finite group
             actions, 2.2 p. 70. BI-Wissenschaftsverlag,
             Mannheim, 1991.
+
+.. [Ke2008] \B. Keller, *Cluster algebras, quiver representations
+            and triangulated categories*, :arXiv:`0807.1960`.
 
 .. [KL2008] Chris Kurth and Ling Long, "Computations with finite index
             subgroups of `{\rm PSL}_2(\ZZ)` using Farey symbols",
@@ -1140,6 +1151,9 @@ REFERENCES:
 .. [MS2003] \T. Mulders, A. Storjohann, "On lattice reduction for
             polynomial matrices", J. Symbolic Comput. 35 (2003),
             no. 4, 377--401
+
+.. [MS2011] \G. Musiker and \C. Stump, *A compendium on the cluster algebra
+            and quiver package in sage*, :arxiv:`1102.4844`.
 
 .. [MSZ2013] Michael Maschler, Solan Eilon, and Zamir Shmuel. *Game
              Theory*. Cambridge: Cambridge University Press,
@@ -1502,6 +1516,8 @@ REFERENCES:
 .. _ref-V:
 
 **V**
+.. [Vat2008] \D. Vatne, *The mutation class of `D_n` quivers*,
+             :arxiv:`0810.4789v1`.
 
 .. [VB1996] \E. Viterbo, E. Biglieri. *Computing the Voronoi Cell of a
             Lattice: The Diamond-Cutting Algorithm*. IEEE Transactions

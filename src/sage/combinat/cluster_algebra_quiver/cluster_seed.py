@@ -6,7 +6,7 @@ A *cluster seed* is a pair `(B,\mathbf{x})` with `B` being a *skew-symmetrizable
 and with `\mathbf{x}` being an `n`-tuple of *independent elements* in the field of rational functions in `n` variables.
 
 For the compendium on the cluster algebra and quiver package see
-:arxiv:`1102.4844`.
+[MS2011]_.
 
 AUTHORS:
 
@@ -2762,7 +2762,7 @@ class ClusterSeed(SageObject):
 
         This is the initial seed of the associated cluster algebra
         with universal coefficients, as defined in section 12 of
-        :arxiv:`math/0602259`.
+        [FZ2007]_.
 
         This method works only if ``self`` is a bipartite, finite-type seed.
 

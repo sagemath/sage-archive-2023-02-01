@@ -592,12 +592,12 @@ class PeriodLattice_ell(PeriodLattice):
 
         if algorithm=='pari':
             if self.E.base_field() is QQ:
-                periods = self.E.pari_curve().omega(prec).python()
+                periods = self.E.pari_curve().omega(prec).sage()
                 return (R(periods[0]), C(periods[1]))
 
             from sage.libs.pari.all import pari
             E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit()
-            periods = E_pari.omega(prec).python()
+            periods = E_pari.omega(prec).sage()
             return (R(periods[0]), C(periods[1]))
 
         if algorithm!='sage':

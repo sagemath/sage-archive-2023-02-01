@@ -603,30 +603,6 @@ cdef class PariInstance(PariInstance_auto):
         self.PARI_TWO = new_gen_noclear(gen_2)
         sig_off()
 
-    def debugstack(self):
-        r"""
-        Print the internal PARI variables ``top`` (top of stack), ``avma``
-        (available memory address, think of this as the stack pointer),
-        ``bot`` (bottom of stack).
-
-        EXAMPLE::
-
-            sage: pari.debugstack()  # random
-            top =  0x60b2c60
-            avma = 0x5875c38
-            bot =  0x57295e0
-            size = 10000000
-        """
-        # We deliberately use low-level functions to minimize the
-        # chances that something goes wrong here (for example, if we
-        # are out of memory).
-        printf("top =  %p\navma = %p\nbot =  %p\nsize = %lu\n",
-            <void*>pari_mainstack.top,
-            <void*>avma,
-            <void*>pari_mainstack.bot,
-            <unsigned long>pari_mainstack.rsize)
-        fflush(stdout)
-
     def _close(self):
         """
         Deallocate the PARI library.
@@ -654,6 +630,30 @@ cdef class PariInstance(PariInstance_auto):
         if avma:
             pari_close()
             avma = 0
+
+    def debugstack(self):
+        r"""
+        Print the internal PARI variables ``top`` (top of stack), ``avma``
+        (available memory address, think of this as the stack pointer),
+        ``bot`` (bottom of stack).
+
+        EXAMPLE::
+
+            sage: pari.debugstack()  # random
+            top =  0x60b2c60
+            avma = 0x5875c38
+            bot =  0x57295e0
+            size = 1000000
+        """
+        # We deliberately use low-level functions to minimize the
+        # chances that something goes wrong here (for example, if we
+        # are out of memory).
+        printf("top =  %p\navma = %p\nbot =  %p\nsize = %lu\n",
+            <void*>pari_mainstack.top,
+            <void*>avma,
+            <void*>pari_mainstack.bot,
+            <unsigned long>pari_mainstack.rsize)
+        fflush(stdout)
 
     def __repr__(self):
         return "Interface to the PARI C library"

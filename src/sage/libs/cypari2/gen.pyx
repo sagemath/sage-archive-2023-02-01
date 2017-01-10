@@ -4672,22 +4672,6 @@ cpdef gen objtogen(s):
     # Simply use the string representation
     return objtogen(str(s))
 
-def gentoobj(gen z, locals={}):
-    r"""
-    TESTS::
-
-        sage: from sage.libs.cypari2.gen import gentoobj
-        sage: gentoobj(pari('1'))
-        doctest:...: DeprecationWarning: gentoobj is deprecated, use gen_to_sage from
-        sage.libs.pari.convert_sage
-        See http://trac.sagemath.org/21808 for details.
-        1
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(21808, "gentoobj is deprecated, use gen_to_sage from sage.libs.pari.convert_sage")
-    from sage.libs.pari.convert_sage import gen_to_sage
-    return gen_to_sage(z, locals)
-
 cdef GEN _Vec_append(GEN v, GEN a, long n):
     """
     This implements appending zeros (or another constant GEN ``a``) to

@@ -1509,7 +1509,6 @@ cdef class gen(gen_auto):
         from .convert import gen_to_python
         return gen_to_python(self, locals)
 
-    # TODO: this should be moved out of cypari
     def sage(self, locals=None):
         r"""
         Return the closest Sage equivalent of the given PARI object.
@@ -1533,7 +1532,6 @@ cdef class gen(gen_auto):
         from sage.libs.pari.convert_sage import gen_to_sage
         return gen_to_sage(self, locals)
 
-    # TODO: this should be moved out of cypari
     _eval_ = sage
 
     def __long__(gen self):

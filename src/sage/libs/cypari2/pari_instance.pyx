@@ -607,6 +607,9 @@ cdef class PariInstance(PariInstance_auto):
         """
         Deallocate the PARI library.
 
+        If you want to reallocate the PARI library again, construct
+        a new instance of :class:`PariInstance`.
+
         EXAMPLES::
 
             sage: from sage.libs.cypari2.pari_instance import PariInstance
@@ -616,15 +619,16 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.stacksize()
             1000000
 
-        .. NOTE::
+        .. WARNING::
 
-            The :class:`PariInstance` class does not deallocate PARI
-            memory automatically, so that multiple :class:`PariInstance`
-            objects can coexist and such that other non-Python libraries
-            can also safely use PARI.
+            Calling this method is dangerous since any further use of
+            PARI (by this :class:`PariInstance` or another
+            :class:`PariInstance` or even another non-Python library)
+            will result in a segmentation fault after calling
+            ``_close()``.
 
-            Call this method at you own risk if you really need to free
-            the memory used by PARI.
+            For this reason, the :class:`PariInstance` class never
+            deallocates PARI memory automatically.
         """
         global avma
         if avma:

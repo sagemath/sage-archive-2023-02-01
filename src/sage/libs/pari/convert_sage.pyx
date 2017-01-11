@@ -168,13 +168,13 @@ cpdef gen_to_sage(gen z, locals=None):
         sage: a1 = gen_to_sage(z1)
         sage: a2 = gen_to_sage(z2)
         sage: type(a1), type(a2)
-        (<type 'list'>, <type 'list'>)
+        (<... 'list'>, <... 'list'>)
         sage: [parent(b) for b in a1]
         [Integer Ring,
          Real Field with 64 bits of precision,
          Number Field in i with defining polynomial x^2 + 1]
         sage: [parent(b) for b in a2]
-        [Complex Field with 64 bits of precision, <type 'list'>]
+        [Complex Field with 64 bits of precision, <... 'list'>]
 
         sage: z = pari('Vecsmall([1,2,3,4])')
         sage: z.type()
@@ -182,9 +182,9 @@ cpdef gen_to_sage(gen z, locals=None):
         sage: a = gen_to_sage(z); a
         [1, 2, 3, 4]
         sage: type(a)
-        <type 'list'>
+        <... 'list'>
         sage: [parent(b) for b in a]
-        [<type 'int'>, <type 'int'>, <type 'int'>, <type 'int'>]
+        [<... 'int'>, <... 'int'>, <... 'int'>, <... 'int'>]
 
     Matrices::
 

@@ -1636,8 +1636,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             else:
                 from number_field import QuadraticField
                 K = QuadraticField(negD, 'sqrt%s' % negD)
-            q = K(0)
+            q = (<NumberFieldElement_quadratic> K._zero_element)._new()
             mpz_set(q.denom, self.denom)
+            mpz_set_ui(q.a, 0)
             if self.standard_embedding:
                 mpz_set(q.b, self.b)
             else:

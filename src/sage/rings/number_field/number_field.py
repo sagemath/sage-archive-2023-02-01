@@ -6475,8 +6475,8 @@ class NumberField_absolute(NumberField_generic):
         NumberField_generic.__init__(self, polynomial, name, latex_name, check, embedding,
                                      assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         self._element_class = number_field_element.NumberFieldElement_absolute
-        self._zero_element = self(0)
-        self._one_element =  self(1)
+        self._zero_element = self._element_class(self, 0)
+        self._one_element =  self._element_class(self, 1)
 
         self._init_embedding_approx()
 
@@ -10220,6 +10220,8 @@ class NumberField_quadratic(NumberField_absolute):
         """
         if K is ZZ:
             return number_field_element_quadratic.Z_to_quadratic_field_element(self)
+        if K is int:
+            return self._coerce_map_via([ZZ], int) # faster than direct
         if K is QQ:
             return number_field_element_quadratic.Q_to_quadratic_field_element(self)
         return NumberField_absolute._coerce_map_from_(self, K)

@@ -977,7 +977,7 @@ class ClusterQuiver(SageObject):
     def canonical_label( self, certificate=False ):
         """
         Returns the canonical labelling of ``self``, see
-        :meth:`sage.graphs.graph.GenericGraph.canonical_label`.
+        :meth:`sage.graphs.generic_graph.GenericGraph.canonical_label`.
 
         INPUT:
 

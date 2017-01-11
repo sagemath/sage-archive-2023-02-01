@@ -337,7 +337,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R2(-1).is_one()
             False
         """
-        return self.degree() == 0 and self[0].is_one()
+        return self.degree() == 0 and self.get_unsafe(0).is_one()
 
     def plot(self, xmin=None, xmax=None, *args, **kwds):
         """
@@ -862,7 +862,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if coeff != 1:
             expr *= fast_float_constant(coeff)
         for i from d > i >= 0:
-            coeff = self[i]
+            coeff = self.get_unsafe(i)
             if coeff:
                 expr += fast_float_constant(coeff)
             if i > 0:
@@ -910,7 +910,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if coeff != 1:
             expr *= coeff_maker(coeff)
         for i from d > i >= 0:
-            coeff = self[i]
+            coeff = self.get_unsafe(i)
             if coeff:
                 expr += coeff_maker(coeff)
             if i > 0:
@@ -961,7 +961,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         cdef Py_ssize_t i
         for i in reversed(range(d1+1)):
-            x = self[i]
+            x = self.get_unsafe(i)
             y = other[i]
             if x != y:
                 return richcmp_not_equal(x, y, op)
@@ -1052,9 +1052,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Return the `i`-th coefficient of ``self``.
 
-        Used as building block for a generic :meth:`__getitem__`.
+        Used as building block for a generic :meth:`__getitem__`. Should be
+        overridden by Cython subclasses. The default implementation makes it
+        possible to implement concrete subclasses in Python.
         """
-        raise NotImplementedError
+        return self[i]
 
     def __iter__(self):
         """
@@ -1205,7 +1207,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         result = P._coerce_(self[d])
         i = d - 1
         while i >= 0:
-            result = result * a + P._coerce_(self[i])
+            result = result * a + P._coerce_(self.get_unsafe(i))
             i -= 1
         return result
 

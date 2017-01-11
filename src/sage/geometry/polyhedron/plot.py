@@ -10,8 +10,7 @@ Functions for plotting polyhedra
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.rings.all import RDF
 from sage.structure.sage_object import SageObject
@@ -247,7 +246,7 @@ def cyclic_sort_vertices_2d(Vlist):
     adjacency_matrix = Vlist[0].polyhedron().vertex_adjacency_matrix()
 
     # Any object in Vlist has 0,1, or 2 adjacencies. Break into connected chains:
-    chain = [ Vlist.pop() ]
+    chain = [Vlist.pop()]
     while Vlist:
         first_index = chain[0].index()
         last_index = chain[-1].index()
@@ -896,7 +895,7 @@ class Projection(SageObject):
             sage: proj.polygons = Sequence([])
             sage: proj._init_solid_3d(p)
             sage: proj.polygons
-            [[2, 0, 1], [3, 0, 1], [3, 0, 2], [3, 1, 2]]
+            [[1, 0, 2], [3, 0, 1], [2, 0, 3], [3, 1, 2]]
         """
         assert polyhedron.ambient_dim() == 3, "Requires polyhedron in 3d"
 

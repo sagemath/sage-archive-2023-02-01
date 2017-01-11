@@ -1628,7 +1628,7 @@ end_scene""" % (render_params.antialiasing,
 
         .. WARNING::
 
-            This only works for triangulated surfaces!
+            This only works for surfaces, not for general plot objects!
 
         INPUT:
 
@@ -1665,6 +1665,18 @@ end_scene""" % (render_params.antialiasing,
                 endloop
             endfacet
             endsolid triangle
+
+        Now works when faces have more then 3 sides::
+
+            sage: P = polytopes.dodecahedron()
+            sage: Q = P.plot().all[-1]
+            sage: Q.stl_ascii_string().splitlines()[:6]
+            ['solid surface',
+            'facet normal 0.850650808352 -0.0 0.525731112119',
+            '    outer loop',
+            '        vertex 1.2360679775 -0.472135955 0.0',
+            '        vertex 1.2360679775 0.472135955 0.0',
+            '        vertex 0.7639320225 0.7639320225 0.7639320225']
         """
         from sage.modules.free_module import FreeModule
         RR3 = FreeModule(RDF, 3)

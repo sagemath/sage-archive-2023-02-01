@@ -198,6 +198,7 @@ void symbol::set_domain(unsigned d)
                 case domain::positive:
                         iflags.set(info_flags::real, true);
                         iflags.set(info_flags::positive, true);
+                        iflags.set(info_flags::nonnegative, true);
                         break;
                 case domain::integer:
                         if(iflags.get(info_flags::positive)) {
@@ -225,6 +226,8 @@ bool symbol::info(unsigned inf) const
 		case info_flags::expanded:
 			return true;
                 case info_flags::nonzero:
+                        return iflags.get(info_flags::positive)
+                            or iflags.get(info_flags::negative);
                 case info_flags::infinity:
                         return false;
                 default:

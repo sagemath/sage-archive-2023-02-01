@@ -47,7 +47,7 @@ cdef is_FractionField, is_RealField, is_ComplexField
 cdef ZZ, QQ, RR, CC, RDF, CDF
 
 cimport cython
-from cpython.number cimport PyNumber_TrueDivide
+from cpython.number cimport PyNumber_TrueDivide, PyNumber_Check
 
 import operator, copy, re
 
@@ -455,6 +455,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self(*x, **kwds)
     substitute = subs
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def __call__(self, *args, **kwds):
         """
         Evaluate this polynomial.
@@ -478,7 +480,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         depending on the polynomial's degree.
 
         Element classes may define a method called `_evaluate_polynomial` to
-        provide a specific evaluation algorithm for a given argument type.
+        provide an alternative evaluation algorithm for a given argument type.
+        Note that `_evaluated_polynomial` may not always be used: for instance,
+        subclasses dedicated to specific coefficient rings typically do not
+        call it.
 
         EXAMPLES::
 
@@ -580,7 +585,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         The following results in an element of the symbolic ring. ::
 
             sage: f(x=sqrt(2))
-            (y + sqrt(2))*y + sqrt(2)
+            y^2 + sqrt(2)*y + sqrt(2)
 
         ::
 
@@ -687,7 +692,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: zero = GF(2)['x'](0)
             sage: zero(1.).parent() # should raise an error
             Traceback (most recent call last):
-            TypeError: unsupported operand parent(s) for '+': ...
+            ...
+            TypeError: no common canonical parent for objects with parents:
+            'Finite Field of size 2' and 'Real Field with 53 bits of precision'
 
             sage: pol(x, y, x=1)
             Traceback (most recent call last):
@@ -715,70 +722,77 @@ cdef class Polynomial(CommutativeAlgebraElement):
            leading coefficient.
         """
         cdef long i
+        cdef Polynomial pol = self
         cdef long d = self.degree()
-        cdef Polynomial pol
 
-        # Isolate the variable we are interested in, check remaining arguments
+        cst = self._parent._base.zero() if d < 0 else self.get_unsafe(0)
+        a = args[0] if len(args) == 1 else None
+        if kwds or not (isinstance(a, Element) or PyNumber_Check(a)):
+            # slow path
 
-        a = kwds.pop(self.variable_name(), None)
-        if args:
-            if a is not None:
-                raise TypeError("unsupported mix of keyword and positional arguments")
-            if isinstance(args[0], (list, tuple)):
-                if len(args) > 1:
-                    raise TypeError("invalid arguments")
-                args = args[0]
-            a, args = args[0], args[1:]
-        if a is None:
-            a = self._parent.gen()
+            # Isolate the variable we are interested in, check remaining
+            # arguments
 
-        cst = self[0]
-        eval_coeffs = False
-        if args or kwds:
-            try:
-                # Note that we may be calling a different implementation that
-                # is more permissive about its arguments than we are.
-                cst = cst(*args, **kwds)
-                eval_coeffs = True
-            except TypeError:
-                if args: # bwd compat: nonsense *keyword* arguments are okay
-                    raise TypeError("Wrong number of arguments")
+            a = kwds.pop(self.variable_name(), None)
+            if args:
+                if a is not None:
+                    raise TypeError("unsupported mix of keyword and positional arguments")
+                if isinstance(args[0], (list, tuple)):
+                    if len(args) > 1:
+                        raise TypeError("invalid arguments")
+                    args = args[0]
+                a, args = args[0], args[1:]
+            if a is None:
+                a = self._parent.gen()
 
-        # Handle optimized special cases. The is_exact() clause should not be
-        # necessary, but power series and perhaps other inexact rings use
-        # is_zero() in the sense of "is zero up to the precision to which it is
-        # known".
+            eval_coeffs = False
+            if args or kwds:
+                try:
+                    # Note that we may be calling a different implementation that
+                    # is more permissive about its arguments than we are.
+                    cst = cst(*args, **kwds)
+                    eval_coeffs = True
+                except TypeError:
+                    if args: # bwd compat: nonsense *keyword* arguments are okay
+                        raise TypeError("Wrong number of arguments")
 
-        if d <= 0 or (isinstance(a, Element) and a.parent().is_exact()
-                      and a.is_zero()):
-            return cst + parent(a)(0)
+            # Evaluate the coefficients, then fall through to evaluate the
+            # resulting univariate polynomial
 
-        # Evaluate the coefficients
+            if eval_coeffs:
+                pol = pol.map_coefficients(lambda c: c(*args, **kwds),
+                                            new_base_ring=cst.parent())
 
-        if eval_coeffs:
-            pol = self.map_coefficients(lambda c: c(*args, **kwds),
-                                        new_base_ring=cst.parent())
-        else:
-            pol = self
+        # Coerce a once and for all to a parent containing the coefficients.
+        # This can save lots of coercions when the common parent is the
+        # polynomial's base ring (e.g., for evaluations at integers).
 
-        # Evaluate the resulting univariate polynomial
+        if not type(a) is type(cst):
+            cst, aa = coercion_model.canonical_coercion(cst, a)
+            tgt = parent(cst)
+            # Use fast right multiplication actions like matrix × scalar
+            if (isinstance(tgt, type)
+                or (<Parent> tgt).get_action(parent(a), operator.mul) is None):
+                a = aa
 
-        if parent(a) is pol._parent and a.is_gen():
+        if d <= 0 or (isinstance(a, Element)
+                      and a.parent().is_exact() and a.is_zero()):
+            return cst # with the right parent thanks to the above coercion
+        elif parent(a) is pol._parent and a.is_gen():
             return pol
-
-        try:
-            return a._evaluate_polynomial(pol)
-        except (AttributeError, NotImplementedError):
-            pass
+        elif hasattr(a, "_evaluate_polynomial"):
+            try:
+                return a._evaluate_polynomial(pol)
+            except NotImplementedError:
+                pass
 
         if pol._compiled is None:
             if d < 4 or d > 50000:
-                result = pol[d]
+                result = pol.get_unsafe(d)
                 for i in xrange(d - 1, -1, -1):
-                    result = result * a + pol[i]
+                    result = result * a + pol.get_unsafe(i)
                 return result
             pol._compiled = CompiledPolynomialFunction(pol.list())
-
         return pol._compiled.eval(a)
 
     def compose_trunc(self, Polynomial other, long n):

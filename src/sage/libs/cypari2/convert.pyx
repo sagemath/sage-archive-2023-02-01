@@ -75,10 +75,10 @@ cpdef integer_to_gen(x):
         sage: from sage.libs.cypari2.convert import integer_to_gen
         sage: a = integer_to_gen(int(12345)); a; type(a)
         12345
-        <type 'sage.libs.cypari2.gen.gen'>
+        <... 'sage.libs.cypari2.gen.gen'>
         sage: a = integer_to_gen(long(12345)); a; type(a)
         12345
-        <type 'sage.libs.cypari2.gen.gen'>
+        <... 'sage.libs.cypari2.gen.gen'>
         sage: integer_to_gen(float(12345))
         Traceback (most recent call last):
         ...
@@ -114,10 +114,10 @@ cpdef gen_to_integer(gen x):
         sage: from sage.libs.cypari2.convert import gen_to_integer
         sage: a = gen_to_integer(pari("12345")); a; type(a)
         12345
-        <type 'int'>
+        <... 'int'>
         sage: a = gen_to_integer(pari("10^30")); a; type(a)
         1000000000000000000000000000000L
-        <type 'long'>
+        <... 'long'>
         sage: gen_to_integer(pari("19/5"))
         3
         sage: gen_to_integer(pari("1 + 0.0*I"))
@@ -456,11 +456,11 @@ cpdef gen_to_python(gen z):
         sage: a = gen_to_python(z); a
         42
         sage: type(a)
-        <type 'int'>
+        <... 'int'>
 
         sage: a = gen_to_python(pari('3^50'))
         sage: type(a)
-        <type 'long'>
+        <... 'long'>
 
     Converting rational numbers::
 
@@ -478,21 +478,21 @@ cpdef gen_to_python(gen z):
         sage: a = gen_to_python(z); a
         1.2
         sage: type(a)
-        <type 'float'>
+        <... 'float'>
 
         sage: z = pari('oo'); z
         +oo
         sage: a = gen_to_python(z); a
         inf
         sage: type(a)
-        <type 'float'>
+        <... 'float'>
 
         sage: z = pari('-oo'); z
         -oo
         sage: a = gen_to_python(z); a
         -inf
         sage: type(a)
-        <type 'float'>
+        <... 'float'>
 
     Converting complex numbers::
 
@@ -501,7 +501,7 @@ cpdef gen_to_python(gen z):
         sage: a = gen_to_python(z); a
         (1+1j)
         sage: type(a)
-        <type 'complex'>
+        <... 'complex'>
 
         sage: z = pari('2.1 + 3.03*I'); z
         2.10000000000000 + 3.03000000000000*I
@@ -522,23 +522,23 @@ cpdef gen_to_python(gen z):
         sage: a1 = gen_to_python(z1); a1
         [1, 2, 3]
         sage: type(a1)
-        <type 'list'>
+        <... 'list'>
         sage: map(type, a1)
-        [<type 'int'>, <type 'int'>, <type 'int'>]
+        [<... 'int'>, <... 'int'>, <... 'int'>]
 
         sage: a2 = gen_to_python(z2); a2
         [1, 3.4, [-5, 2], inf]
         sage: type(a2)
-        <type 'list'>
+        <... 'list'>
         sage: map(type, a2)
-        [<type 'int'>, <type 'float'>, <type 'list'>, <type 'float'>]
+        [<... 'int'>, <... 'float'>, <... 'list'>, <... 'float'>]
 
         sage: a3 = gen_to_python(z3); a3
         [1, 5.2]
         sage: type(a3)
-        <type 'list'>
+        <... 'list'>
         sage: map(type, a3)
-        [<type 'int'>, <type 'float'>]
+        [<... 'int'>, <... 'float'>]
 
     Converting matrices::
 
@@ -556,7 +556,7 @@ cpdef gen_to_python(gen z):
         sage: a = gen_to_python(z); a
         'Hello'
         sage: type(a)
-        <type 'str'>
+        <... 'str'>
 
     Some currently unsupported types::
 

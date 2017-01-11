@@ -323,7 +323,8 @@ bool power::info(unsigned inf) const
 			return (flags & status_flags::expanded) != 0u;
 		case info_flags::positive:
                         if (exponent.info(info_flags::even))
-                                return basis.info(info_flags::real);
+                                return basis.info(info_flags::real)
+                                   and basis.info(info_flags::nonzero);
                         if (exponent.info(info_flags::odd))
                                 return basis.info(info_flags::positive);
 			return basis.info(info_flags::positive) && exponent.info(info_flags::real);

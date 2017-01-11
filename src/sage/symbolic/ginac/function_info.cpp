@@ -104,7 +104,7 @@ static bool cosh_info(const function& f, unsigned inf)
         switch (inf) {
         case info_flags::positive:
         case info_flags::nonzero:
-                return true;
+                return f.op(0).info(info_flags::real);
         }
         return trig_info(f, inf);
 }
@@ -137,7 +137,7 @@ static bool sech_info(const function& f, unsigned inf)
         switch (inf) {
         case info_flags::positive:
         case info_flags::nonzero:
-                return true;
+                return f.op(0).info(info_flags::real);
         }
         return trig_info(f, inf);
 }
@@ -201,6 +201,8 @@ static bool abs_info(const function& f, unsigned inf)
         case info_flags::integer:
         case info_flags::nonzero:
                 return f.op(0).info(inf);
+        case info_flags::positive:
+                return f.op(0).info(info_flags::nonzero);
         }
         return false;
 }

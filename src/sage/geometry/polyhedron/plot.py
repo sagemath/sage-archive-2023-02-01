@@ -23,7 +23,7 @@ from sage.symbolic.constants import pi
 from sage.structure.sequence import Sequence
 
 from sage.plot.all import Graphics, point2d, line2d, arrow, polygon2d
-from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygon3d
+from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygons3d
 from sage.plot.plot3d.transform import rotate_arbitrary
 
 from .base import is_Polyhedron
@@ -105,6 +105,7 @@ def render_3d(projection, *args, **kwds):
     if is_Polyhedron(projection):
         projection = Projection(projection)
     return projection.render_3d(*args, **kwds)
+
 
 def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projection_direction=None):
     """
@@ -772,7 +773,6 @@ class Projection(SageObject):
         self._init_lines_arrows(polyhedron)
         self._init_solid_3d(polyhedron)
 
-
     def _init_points(self, polyhedron):
         """
         Internal function: Initialize points (works in arbitrary
@@ -790,7 +790,6 @@ class Projection(SageObject):
         """
         for v in polyhedron.vertex_generator():
             self.points.append( self.coord_index_of(v.vector()) )
-
 
     def _init_lines_arrows(self, polyhedron):
         """
@@ -885,8 +884,6 @@ class Projection(SageObject):
 
         polygons = [ self.coord_indices_of(p) for p in polygons ]
         self.polygons.extend(polygons)
-
-
 
     def _init_solid_3d(self, polyhedron):
         """
@@ -1113,10 +1110,11 @@ class Projection(SageObject):
             sage: p = polytopes.hypercube(3).projection()
             sage: p_solid = p.render_solid_3d(opacity = .7)
             sage: type(p_solid)
-            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+            <type 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
         """
-        return sum([ polygon3d(self.coordinates_of(f), **kwds)
-                     for f in self.polygons ])
+        polys = self.polygons
+        N = max([-1] + [i for p in polys for i in p]) + 1
+        return polygons3d(polys, self.coordinates_of(range(N)), **kwds)
 
     def render_0d(self, point_opts={}, line_opts={}, polygon_opts={}):
         """

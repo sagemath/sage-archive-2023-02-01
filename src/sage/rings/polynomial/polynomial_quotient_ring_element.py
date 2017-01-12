@@ -591,9 +591,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __iter__(self):
         return iter(self.list())
 
-    def list(self):
+    def list(self, copy=True):
         """
-        Return list of the elements of self, of length the same as the
+        Return list of the elements of ``self``, of length the same as the
         degree of the quotient polynomial ring.
 
         EXAMPLES::
@@ -605,7 +605,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: (a^10).list()
             [300, -35, -134]
         """
-        v = self._polynomial.list()
+        v = self._polynomial.list(copy=False)
         R = self.parent()
         n = R.degree()
         return v + [R.base_ring()(0)]*(n - len(v))

@@ -14,7 +14,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef long _hash_c(self) except -1
     cpdef constant_coefficient(self)
     cpdef Polynomial _new_constant_poly(self, a, Parent P)
-    cpdef list list(self)
+    cpdef list list(self, bint copy=*)
     cpdef _mul_generic(self, right)
     cdef _square_generic(self)
 
@@ -35,7 +35,7 @@ cdef class Polynomial_generic_dense(Polynomial):
     cdef Polynomial_generic_dense _new_c(self, list coeffs, Parent P)
     cdef list __coeffs
     cdef int __normalize(self) except -1
-    cpdef list list(self, copy=*)
+    cpdef list list(self, bint copy=*)
 
 cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
     pass

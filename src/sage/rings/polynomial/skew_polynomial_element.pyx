@@ -2327,7 +2327,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         except IndexError:
             return self.base_ring().zero()
 
-    cpdef list list(self):
+    cpdef list list(self, bint copy=True):
         r"""
         Return a list of the coefficients of ``self``.
 
@@ -2349,7 +2349,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: a.list()
             [t^2 + 1, 0, t + 1, 0, 1]
         """
-        return list((<SkewPolynomial_generic_dense>self)._coeffs) # This creates a shallow copy
+        if copy:
+            # This creates a shallow copy
+            return list((<SkewPolynomial_generic_dense>self)._coeffs)
+        else:
+            return (<SkewPolynomial_generic_dense>self)._coeffs
 
     cpdef dict dict(self):
         r"""

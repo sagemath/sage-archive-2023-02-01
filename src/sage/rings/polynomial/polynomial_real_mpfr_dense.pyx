@@ -343,7 +343,7 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_set(f._coeffs[i], self._coeffs[i-n], self._base_ring.rnd)
         return f
 
-    cpdef list list(self):
+    cpdef list list(self, bint copy=True):
         """
         EXAMPLES::
 

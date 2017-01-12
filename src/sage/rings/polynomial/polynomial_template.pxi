@@ -189,7 +189,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return make_element, ((<Polynomial_template>self)._parent, (self.list(), False, self.is_gen()))
 
-    cpdef list list(self):
+    cpdef list list(self, bint copy=True):
         """
         EXAMPLE::
 

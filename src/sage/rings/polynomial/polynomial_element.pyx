@@ -267,8 +267,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3*x^3 + 5*x^2 - x + 5
         """
         cdef Py_ssize_t i, min
-        cdef list x = self.list()
-        cdef list y = right.list()
+        cdef list x = self.list(copy=False)
+        cdef list y = right.list(copy=False)
 
         if len(x) > len(y):
             min = len(y)
@@ -284,7 +284,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self._new_generic(low + high)
 
     cpdef _neg_(self):
-        return self._new_generic([-x for x in self.list()])
+        return self._new_generic([-x for x in self.list(copy=False)])
 
     cpdef bint is_zero(self):
         r"""
@@ -1065,7 +1065,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: [y for y in iter(P)]
             [1, 2, 3]
         """
-        return iter(self.list())
+        for i in range(self.degree()+1):
+            yield self.get_unsafe(i)
 
     def _cache_key(self):
         """
@@ -1602,8 +1603,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if not self or not right:
             return self._parent.zero()
         elif n < self._parent._Karatsuba_threshold:
-            x = self.list()
-            y = right.list()
+            x = self.list(copy=False)
+            y = right.list(copy=False)
             return self._new_generic(do_schoolbook_product(x, y, n))
         else:
             pol = self.truncate(n) * right.truncate(n)
@@ -2208,7 +2209,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 if sparse:
                     d = self.dict()
                 else:
-                    c = self.list()
+                    c = self.list(copy=False)
                 while q > 0:
                     q, r = q.quo_rem(p)
                     if r != 0:
@@ -2348,7 +2349,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
-        coeffs = self.list()
+        coeffs = self.list(copy=False)
         for n in reversed(xrange(m)):
             x = coeffs[n]
             if x:
@@ -2422,7 +2423,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             \left(\sqrt{-1}\right) x^{2} + \left(-\sqrt{-1}\right) x
         """
         s = " "
-        coeffs = self.list()
+        coeffs = self.list(copy=False)
         m = len(coeffs)
         if name is None:
             name = self.parent().latex_variable_names()[0]
@@ -2503,7 +2504,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.degree() > 0:
             gen = sib.gen(self.parent())
-            coeffs = self.list()
+            coeffs = self.list(copy=False)
             terms = []
             for i in range(len(coeffs)-1, -1, -1):
                 if i > 0:
@@ -2670,12 +2671,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self is right:
             return self._square_generic()
-        cdef list x = self.list()
-        cdef list y = right.list()
+        cdef list x = self.list(copy=False)
+        cdef list y = right.list(copy=False)
         return self._new_generic(do_schoolbook_product(x, y, -1))
 
     cdef _square_generic(self):
-        cdef list x = self.list()
+        cdef list x = self.list(copy=False)
         cdef Py_ssize_t i, j
         cdef Py_ssize_t d = len(x)-1
         zero = self._parent.base_ring().zero()
@@ -2913,8 +2914,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self
         elif right.is_zero():
             return right
-        cdef list f = self.list()
-        cdef list g = right.list()
+        cdef list f = self.list(copy=False)
+        cdef list g = right.list(copy=False)
         n = len(f)
         m = len(g)
         if n == 1:
@@ -3407,7 +3408,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if var is not None and var != self._parent.gen():
             # call _derivative() recursively on coefficients
-            return self._parent([coeff._derivative(var) for coeff in self.list()])
+            return self._parent([coeff._derivative(var) for coeff in self.list(copy=False)])
 
         # compute formal derivative with respect to generator
         if self.is_zero():
@@ -3415,7 +3416,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef Py_ssize_t n, degree = self.degree()
         if degree == 0:
             return self._parent.zero()
-        coeffs = self.list()
+        coeffs = self.list(copy=False)
         return self._new_generic([n*coeffs[n] for n from 1 <= n <= degree])
 
     def gradient(self):
@@ -5296,7 +5297,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         l = self.list()
         return [i for i in range(len(l)) if l[i] != zero]
 
-    cpdef list list(self):
+    cpdef list list(self, bint copy=True):
         """
         Return a new copy of the list of the underlying elements of ``self``.
 
@@ -9273,7 +9274,7 @@ cdef class Polynomial_generic_dense(Polynomial):
 
         if isinstance(x, Polynomial):
             if (<Element>x)._parent is self._parent:
-                x = list(x.list())
+                x = x.list(copy=True)
             elif R.has_coerce_map_from((<Element>x)._parent):# is R or (<Element>x)._parent == R:
                 try:
                     if x.is_zero():
@@ -9283,7 +9284,7 @@ cdef class Polynomial_generic_dense(Polynomial):
                     pass
                 x = [x]
             else:
-                self.__coeffs = [R(a, **kwds) for a in x.list()]
+                self.__coeffs = [R(a, **kwds) for a in x.list(copy=False)]
                 if check:
                     self.__normalize()
                 return
@@ -9359,7 +9360,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         return make_generic_polynomial, (self._parent, self.__coeffs)
 
     def __nonzero__(self):
-        return len(self.__coeffs) > 0
+        return bool(self.__coeffs)
 
     cdef int __normalize(self) except -1:
         """
@@ -9575,14 +9576,14 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: f.constant_coefficient()
             t
         """
-        if len(self.__coeffs) == 0:
+        if not self.__coeffs:
             return self.base_ring().zero()
         else:
             return self.__coeffs[0]
 
-    cpdef list list(self, copy=True):
+    cpdef list list(self, bint copy=True):
         """
-        Return a new copy of the list of the underlying elements of self.
+        Return a new copy of the list of the underlying elements of ``self``.
 
         EXAMPLES::
 

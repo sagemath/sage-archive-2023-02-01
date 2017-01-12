@@ -297,7 +297,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         return max(self.__poly.degree(), -1)
 
-    cpdef list list(self):
+    cpdef list list(self, bint copy=True):
         """
         Return a new copy of the list of the underlying
         elements of ``self``.
@@ -1180,7 +1180,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         return y
 
 
-    cpdef list list(self):
+    cpdef list list(self, bint copy=True):
         return [self.get_unsafe(n) for n from 0 <= n <= self.degree()]
 
     cdef get_unsafe(self, Py_ssize_t n):

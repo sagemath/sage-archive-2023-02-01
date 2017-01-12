@@ -51,7 +51,7 @@ There are two avenues to prove to the trac server that you are who you
 claim to be. First, to change the ticket web pages you need to log in
 to trac using a username/password. Second, there is public key
 cryptography used by git when copying new source files to the
-repository. This section will show you how to setup both.
+repository. This section will show you how to set up both.
 
 Generating and Uploading your SSH Keys
 --------------------------------------

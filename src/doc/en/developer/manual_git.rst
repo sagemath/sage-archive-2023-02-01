@@ -22,6 +22,15 @@ by running::
     [user@localhost sage]$ git checkout develop
     [user@localhost sage]$ make
 
+.. note::
+
+    If your system supports multiprocessing and you want to use multiple 
+    processors to build Sage, replace the last line above by::
+
+    [user@localhost sage]$ make -jNUM
+
+    to tell the ``make`` program to run ``NUM`` jobs in parallel when building Sage.
+
 .. _section-git-trac:
 
 The Trac Server
@@ -60,7 +69,7 @@ We set up the remote here to perform read-only operations (fetch)
 using the git protocol and write operations (push) using the ssh
 protocol (specified by the ``git@`` part). To use the ssh protocol you
 need to have a trac account and to set up your ssh public key as
-described in :ref:`section-trac-ssh-key`. Authentication is necessary
+described in `Trac authentication through SSH <http://doc.sagemath.org/html/en/developer/trac.html#trac-authentication-through-ssh>`_. Authentication is necessary
 if you want to upload anything to ensure that it really is from you.
 
 If you want to use ssh only, use these commands::
@@ -158,7 +167,7 @@ Getting Changes
 
 A common task during development is to synchronize your local copy of
 the branch with the branch on trac. In particular, assume you
-downloaded somebody else's branch made some suggestions for
+downloaded somebody else's branch and made some suggestions for
 improvements on the trac ticket. Now the original author incorporated
 your suggestions into his branch, and you want to get the added
 changesets to complete your review. Assuming that you originally got

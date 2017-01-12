@@ -449,11 +449,9 @@ cdef void sage_flush():
 
 include 'auto_instance.pxi'
 
-# The unique running Pari instance.
-cdef PariInstance pari_instance = PariInstance()
-pari = pari_instance
+# TODO: this should not be needed
+cdef PariInstance _pari_instance = PariInstance()
 
-@cython.final
 cdef class PariInstance(PariInstance_auto):
     def __cinit__(self):
         r"""
@@ -469,8 +467,9 @@ cdef class PariInstance(PariInstance_auto):
         if avma:
             return
 
-        # Simple minimal defaults for (size, maxprime)
-        pari_init_opts(1000000, 10000, INIT_DFTm)
+        # Take 1MB as minimal stack. Use maxprime=0, which PARI will
+        # internally increase to some small value like 65537.
+        pari_init_opts(1000000, 0, INIT_DFTm)
 
         # Disable PARI's stack overflow checking which is incompatible
         # with multi-threading.
@@ -478,10 +477,6 @@ cdef class PariInstance(PariInstance_auto):
 
         _pari_init_error_handling()
         _pari_init_closure()
-
-        # pari_init_opts() overrides MPIR's memory allocation functions,
-        # so we need to reset them.
-        init_memory_functions()
 
         # Set printing functions
         global pariOut, pariErr
@@ -512,17 +507,22 @@ cdef class PariInstance(PariInstance_auto):
         global factor_proven
         factor_proven = 1
 
-    def __init__(self, size_t size=1000000, unsigned long maxprime=500000):
+    def __init__(self, size_t size=8000000, size_t sizemax=0, unsigned long maxprime=500000):
         """
         (Re)-Initialize the PARI system.
 
         INPUT:
 
-        - ``size`` -- the number of bytes for the initial PARI stack
-          (see note below, default: 1000000)
+        - ``size`` -- (default: 8000000) the number of bytes for the
+          initial PARI stack (see notes below)
 
-        - ``maxprime`` -- upper limit on a precomputed prime number
-          table (default: 500000)
+        - ``sizemax`` -- the maximal number of bytes for the
+          dynamically increasing PARI stack. The default ``0`` means
+          to use the same value as ``size`` (see notes below)
+
+        - ``maxprime`` -- (default: 500000) limit on the primes in the
+          precomputed prime number table which is used for sieving
+          algorithms
 
         When the PARI system is already initialized, the PARI stack is only
         grown if ``size`` is greater than the current stack, and the table
@@ -548,6 +548,16 @@ cdef class PariInstance(PariInstance_auto):
 
         .. NOTE::
 
+            PARI has a "real" stack size (``size``) and a "virtual"
+            stack size (``sizemax``). The idea is that the real stack
+            will be used if possible, but that the stack might be
+            increased up to ``sizemax`` bytes. Therefore, it is not a
+            problem to set ``sizemax`` to a large value. On the other
+            hand, it also makes no sense to set this to a value larger
+            than what your system can handle.
+
+        .. NOTE::
+
            In Sage, the PARI stack is different than in GP or the
            PARI C library. In Sage, instead of the PARI stack
            holding the results of all computations, it *only* holds
@@ -561,36 +571,10 @@ cdef class PariInstance(PariInstance_auto):
            over the way PARI works, but it scales much better and is
            far more robust for large projects.
         """
-        # PARI has a "real" stack size (parisize) and a "virtual" stack
-        # size (parisizemax). The idea is that the real stack will be
-        # used if possible, but the stack might be increased up to
-        # the complete virtual stack. Therefore, it is not a problem to
-        # set the virtual stack size to a large value. There are two
-        # constraints for the virtual stack size:
-        # 1) on 32-bit systems, even virtual memory can be a scarce
-        #    resource since it is limited by 4GB (of which the kernel
-        #    needs a significant part)
-        # 2) the system should actually be able to handle a stack size
-        #    as large as the complete virtual stack.
-        # As a simple heuristic, we set the virtual stack to 1/4 of the
-        # virtual memory.
-
-        from sage.misc.getusage import virtual_memory_limit
-
-        cdef size_t sizemax = virtual_memory_limit() // 4
-        if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
-            # Cygwin's mmap is broken for large NORESERVE mmaps (>~ 4GB) See
-            # http://trac.sagemath.org/ticket/20463 So we set the max stack
-            # size to a little below 4GB (putting it right on the margin proves
-            # too fragile)
-            #
-            # The underlying issue is fixed in Cygwin v2.5.2
-            sizemax = min(sizemax, <size_t>0xf0000000)
-
         # Increase (but don't decrease) size and sizemax to the
         # requested value
         size = max(size, pari_mainstack.rsize)
-        sizemax = max(sizemax, pari_mainstack.vsize)
+        sizemax = max(max(size, pari_mainstack.vsize), sizemax)
         paristack_setsize(size, sizemax)
 
         # Increase the table of primes if needed

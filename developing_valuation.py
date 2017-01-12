@@ -177,27 +177,6 @@ class DevelopingValuation(DiscretePseudoValuation):
             (x, 1)
 
         """
-        qr = [ self._quo_rem_monomial(i) for i in range(f.degree()+1) ]
-        q = [ f[i]*g for i,(g,_) in enumerate(qr) ]
-        r = [ f[i]*h for i,(_,h) in enumerate(qr) ]
-        return sum(q), sum(r)
-
-    @cached_method
-    def _quo_rem_monomial(self, degree):
-        r"""
-        Return the quotient and remainder of `x^\mathrm{degree}` divided by the
-        key polynomial :meth:`phy`.
-
-        EXAMPLES::
-
-            sage: from mac_lane import * # optional: standalone
-            sage: S.<x> = QQ[]
-            sage: v = GaussValuation(S, pAdicValuation(QQ, 2))
-            sage: v._quo_rem_monomial(10)
-            (x^9, 0)
-
-        """
-        f = self.domain().one() << degree
         return f.quo_rem(self.phi())
 
     def newton_polygon(self, f, valuations=None):
@@ -266,7 +245,7 @@ class DevelopingValuation(DiscretePseudoValuation):
             return infinity
 
         ret = infinity
-        for v in self.valuations(f):
+        for v in self.valuations(f, call_error=True):
             if ret is infinity or (v is not infinity and v < ret):
                 # "ret is infinity" is redundant but much faster than < when ret is infinite
                 ret = v

@@ -242,7 +242,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         return self.domain()(self._base_valuation.uniformizer())
 
-    def valuations(self, f, coefficients=None):
+    def valuations(self, f, coefficients=None, call_error=False):
         """
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum f_i\phi^i`.
 
@@ -254,6 +254,10 @@ class GaussValuation_generic(NonFinalInductiveValuation):
           :meth:`coefficients` or ``None`` (default: ``None``); this can be
           used to speed up the computation when the expansion of ``f`` is
           already known from a previous computation.
+
+        - ``call_error` -- whether or not to speed up the computation by
+          assuming that the result is only used to compute the valuation of
+          ``f`` (default: ``False``)
 
         OUTPUT:
 
@@ -272,8 +276,30 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         f = self.domain().coerce(f)
 
-        for c in coefficients or self.coefficients(f):
-            yield self._base_valuation(c)
+        if f.is_constant():
+            yield self._base_valuation(f[0])
+            return
+
+        from sage.rings.all import infinity, QQ
+        if f == self.domain().gen():
+            yield infinity
+            yield QQ(0)
+            return
+
+        if call_error:
+            lowest_valuation = infinity
+        for c in coefficients or f.coefficients(sparse=False):
+            if call_error:
+                if lowest_valuation is not infinity:
+                    v = self._base_valuation.lower_bound(c)
+                    if v is infinity or v >= lowest_valuation:
+                        yield infinity
+                        continue
+            ret = self._base_valuation(c)
+            if call_error:
+                if ret is not infinity and (lowest_valuation is infinity or ret < lowest_valuation):
+                    lowest_valuation = ret
+            yield ret
 
     @cached_method
     def residue_ring(self):
@@ -292,13 +318,19 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         return self.domain().change_ring(self._base_valuation.residue_ring())
 
-    def reduce(self, f):
+    def reduce(self, f, check=True, degree_bound=None):
         """
         Return the reduction of ``f`` modulo this valuation.
 
         INPUT:
 
         - ``f`` -- an integral element of the domain of this valuation
+
+        - ``check`` -- whether or not to check whether ``f`` has non-negative
+          valuation (default: ``True``)
+
+        - ``degree_bound`` -- an a-priori known bound on the degree of the
+          result which can speed up the computation (default: not set)
 
         OUTPUT:
 
@@ -330,10 +362,13 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         f = self.domain().coerce(f)
 
+        if degree_bound is not None:
+            f = f.truncate(degree_bound + 1)
+
         try:
             return f.map_coefficients(self._base_valuation.reduce, self._base_valuation.residue_field())
         except:
-            if not all([v>=0 for v in self.valuations(f)]):
+            if check and not all([v>=0 for v in self.valuations(f)]):
                 raise ValueError("reduction not defined for non-integral elements and %r is not integral over %r"%(f, self))
             raise
 
@@ -686,7 +721,37 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             return GaussValuation(self.domain(), self._base_valuation.scale(scalar))
         return super(GaussValuation_generic, self).scale(scalar)
 
-    def simplify(self, f, error=None):
+    def _relative_size(self, f):
+        r"""
+        Return an estimate on the coefficient size of ``f``.
+
+        The number returned is an estimate on the factor between the number of
+        Bits used by ``f`` and the minimal number of bits used by an element
+        Congruent to ``f``.
+
+        This is used by :meth:`simplify` to decide whether simplification of
+        Coefficients is going to lead to a significant shrinking of the
+        Coefficients of ``f``.
+
+        EXAMPLES:: 
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v._relative_size(x + 1024)
+            11
+
+        For performance reasons, only the constant coefficient is considered.
+        (In common appplications, the constant coefficient shows the most
+        critical coefficient growth)::
+
+            sage: v._relative_size(1024*x + 1)
+            1
+
+        """
+        return self._base_valuation._relative_size(f[0])
+
+    def simplify(self, f, error=None, force=False, size_heuristic_bound=32):
         r"""
         Return a simplified version of ``f``.
 
@@ -694,20 +759,94 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         strictly greater than the valuation of ``f`` (or strictly greater than
         ``error`` if set.)
 
+        INPUT:
+
+        - ``f`` -- an element in the domain of this valuation
+
+        - ``error`` -- a rational, infinity, or ``None`` (default: ``None``),
+          the error allowed to introduce through the simplification
+
+        - ``force`` -- whether or not to simplify ``f`` even if there is
+          heuristically no change in the coefficient size of ``f`` expected
+          (default: ``False``)
+
+        - ``size_heuristic_bound` -- when ``force`` is not set, the expected
+          factor by which the coefficients need to shrink to perform an actual
+          simplification (default: 32)
+
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
-            sage: w = v.augmentation(x^2 + x + u, infinity)
-            sage: w.simplify(x^10/2 + 1)
-            (u + 1)*2^-1 + O(2^4)
+            sage: f = x^10/2 + 1
+            sage: v.simplify(f)
+            (2^-1 + O(2^4))*x^10 + 1 + O(2^5)
 
         """
         f = self.domain().coerce(f)
 
-        if error is None:
-            error = self(f)
+        if not force and self._relative_size(f) < size_heuristic_bound:
+            return f
 
-        return f.map_coefficients(lambda c: self._base_valuation.simplify(c, error))
+        if error is None:
+            error = self.upper_bound(f)
+
+        return f.map_coefficients(lambda c: self._base_valuation.simplify(c, error=error, force=force))
+
+    def lower_bound(self, f):
+        r"""
+        Return an lower bound of this valuation at ``f``.
+
+        Use this method to get an approximation of the valuation of ``f``
+        when speed is more important than accuracy.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v.lower_bound(1024*x + 2)
+            1
+            sage: v(1024*x + 2)
+            1
+
+        """
+        from sage.rings.all import infinity, QQ
+        coefficients = f.coefficients(sparse=True)
+        coefficients.reverse()
+        ret = infinity
+        for c in coefficients:
+            v = self._base_valuation.lower_bound(c)
+            if c is not infinity and (ret is infinity or v < ret):
+                ret = v
+        return ret
+
+    def upper_bound(self, f):
+        r"""
+        Return an upper bound of this valuation at ``f``.
+
+        Use this method to get an approximation of the valuation of ``f``
+        when speed is more important than accuracy.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v.upper_bound(1024*x + 1)
+            10
+            sage: v(1024*x + 1)
+            0
+
+        """
+        f = self.domain().coerce(f)  
+        coefficients = f.coefficients(sparse=True)
+        if not coefficients:
+            from sage.rings.all import infinity
+            return infinity
+        else:
+            return self._base_valuation.upper_bound(coefficients[-1])

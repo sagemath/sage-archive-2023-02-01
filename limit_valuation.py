@@ -203,9 +203,17 @@ class LimitValuation_generic(DiscretePseudoValuation):
         self._initial_approximation = approximation
         self._approximation = approximation
 
-    def reduce(self, f):
+    def reduce(self, f, check=True):
         r"""
         Return the reduction of ``f`` as an element of :meth:`residue_ring`.
+
+        INPUT:
+
+        - ``f`` -- an element in the domain of this valuation of non-negative
+          valuation
+
+        - ``check`` -- whether or not to check that ``f`` has non-negative
+          valuation (default: ``True``)
 
         EXAMPLES::
 
@@ -222,7 +230,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
         """
         f = self.domain().coerce(f)
         self._improve_approximation_for_reduce(f)
-        F = self._approximation.reduce(f)
+        F = self._approximation.reduce(f, check=check)
         return self.residue_ring()(F)
 
     def _call_(self, f):
@@ -391,6 +399,8 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         InfiniteDiscretePseudoValuation.__init__(self, parent)
 
         self._G = G
+        self._next_coefficients = None
+        self._next_valuations = None
 
     def extensions(self, ring):
         r"""
@@ -431,7 +441,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
             sage: v = FunctionFieldValuation(K, 1)
             sage: w = v.extensions(L)[0]; w
-            [ (x - 1)-adic valuation, v(y^2 - x - 1) = +Infinity ]-adic valuation
+            [ (x - 1)-adic valuation, v(y^2 - 2) = 1 ]-adic valuation
             sage: s = w.reduce(y); s
             u1
             sage: w.lift(s) # indirect doctest
@@ -492,9 +502,9 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             # an infinite valuation can not be improved further
             return
 
-        approximations = self._approximation.mac_lane_step(self._G, assume_squarefree=True, assume_equivalence_irreducible=True)
+        approximations = self._approximation.mac_lane_step(self._G, assume_squarefree=True, assume_equivalence_irreducible=True, check=False, principal_part_bound=1, report_degree_bounds_and_caches=True)
         assert(len(approximations)==1)
-        self._approximation = approximations[0]
+        self._approximation, _, _, self._next_coefficients, self._next_valuations = approximations[0]
 
     def _improve_approximation_for_call(self, f):
         r"""
@@ -690,8 +700,8 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: w,ww = v.extensions(L)
             sage: v = FunctionFieldValuation(K, 1)
             sage: v = v.extension(L)
-            sage: u.separating_element([uu,ww,w,v]) # long time
-            ((-8*x^4 - 12*x^2 - 4)/(x^2 - x))*y + (8*x^4 + 8*x^2 + 1)/(x^3 - x^2)
+            sage: u.separating_element([uu,ww,w,v]) # long time, random output
+            ((8*x^4 + 12*x^2 + 4)/(x^2 - x))*y + (8*x^4 + 8*x^2 + 1)/(x^3 - x^2)
 
         The underlying algorithm is quite naive and might not terminate in
         reasonable time. In particular, the order of the arguments sometimes
@@ -755,7 +765,33 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         """
         return self._initial_approximation.element_with_valuation(s)
 
-    def simplify(self, f, error=None):
+    def _relative_size(self, f):
+        r"""
+        Return an estimate on the coefficient size of ``f``.
+
+        The number returned is an estimate on the factor between the number of
+        bits used by ``f`` and the minimal number of bits used by an element
+        congruent to ``f``.
+
+        This is used by :meth:`simplify` to decide whether simplification of
+        coefficients is going to lead to a significant shrinking of the
+        coefficients of ``f``.
+
+        EXAMPLES:: 
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: u = v.extension(L)
+            sage: u._relative_size(1024*t + 1024)
+            11
+
+        """
+        return self._initial_approximation._relative_size(f)
+
+    def simplify(self, f, error=None, force=False):
         r"""
         Return a simplified version of ``f``.
 
@@ -771,17 +807,66 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: L.<t> = K.extension(t^2 + 1)
             sage: v = pAdicValuation(QQ, 2)
             sage: u = v.extension(L)
-            sage: u.simplify(t + 1024)
-            1
+            sage: u.simplify(t + 1024, force=True)
+            t
 
         """
         f = self.domain().coerce(f)
 
-        v = self(f)
+        self._improve_approximation_for_call(f)
         # now _approximation is sufficiently precise to compute a valid
         # simplification of f
 
         if error is None:
-            error = v
+            error = self.upper_bound(f)
 
-        return self._approximation.simplify(f, error)
+        return self._approximation.simplify(f, error, force=force)
+
+    def lower_bound(self, f):
+        r"""
+        Return a lower bound of this valuation at ``x``.
+
+        Use this method to get an approximation of the valuation of ``x``
+        when speed is more important than accuracy.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: u = v.extension(L)
+            sage: u.lower_bound(1024*t + 1024)
+            10
+            sage: u(1024*t + 1024)
+            21/2
+
+        """
+        f = self.domain().coerce(f)
+        return self._approximation.lower_bound(f)
+
+    def upper_bound(self, f):
+        r"""
+        Return an upper bound of this valuation at ``x``.
+
+        Use this method to get an approximation of the valuation of ``x``
+        when speed is more important than accuracy.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: u = v.extension(L)
+            sage: u.upper_bound(1024*t + 1024)
+            21/2
+            sage: u(1024*t + 1024)
+            21/2
+
+        """
+        f = self.domain().coerce(f)
+        self._improve_approximation_for_call(f)
+        return self._approximation.upper_bound(f)

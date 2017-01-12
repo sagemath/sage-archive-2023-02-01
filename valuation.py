@@ -26,6 +26,8 @@ if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__mai
 
 from sage.categories.morphism import Morphism
 
+from sage.misc.cachefunc import cached_method
+
 class DiscretePseudoValuation(Morphism):
     r"""
     Abstract base class for discrete pseudo-valuations, i.e., discrete
@@ -498,9 +500,9 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v0 = GaussValuation(K._ring,pAdicValuation(QQ,3))
             sage: v1 = v0.augmentation(K._ring.gen(),1/3)
             sage: mu0 = FunctionFieldValuation(K, v1)
-            sage: mu0.mac_lane_approximants(F) # long time
-            [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ],
-             [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + 2*x) = 2/3 ]]
+            sage: sorted(mu0.mac_lane_approximants(F), key=str) # long time
+            [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + 2*x) = 2/3 ],
+             [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ]]
 
         Over a complete base field::
 
@@ -543,9 +545,9 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v0.mac_lane_approximants(G)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: v0.mac_lane_approximants(G, required_precision = 10) # long time
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 6139557) = 10 ],
-             [ Gauss valuation induced by 5-adic valuation, v(x + 3626068) = 10 ]]
+            sage: sorted(v0.mac_lane_approximants(G, required_precision = 10), key=str) # long time
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 3626068) = 10 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x + 6139557) = 10 ]]
 
         The same example over the 5-adic numbers. In the quadratic extension
         `\QQ[x]/(x^2+1)`, 5 factors `-(x - 2)(x + 2)`, this behaviour can be
@@ -555,23 +557,23 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v = pAdicValuation(k)
             sage: R.<x>=k[]
             sage: G = x^2 + 1
-            sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ],
-             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ])
-            sage: w1, w2 = v.mac_lane_approximants(G, required_precision = 2); w1,w2 # long time
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + O(5^4))) = 2 ],
-             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + O(5^4))) = 2 ])
+            sage: v1,v2 = v.mac_lane_approximants(G); sorted([v1,v2], key=str)
+            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ]]
+            sage: w1, w2 = v.mac_lane_approximants(G, required_precision = 2); sorted([w1,w2], key=str) # long time
+            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + O(5^4))) = 2 ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + O(5^4))) = 2 ]]
 
         Note how the latter give a better approximation to the factors of `x^2 + 1`::
 
             sage: v1.phi() * v2.phi() - G # optional: integrated
             (5 + O(5^4))*x + 5 + O(5^4)
-            sage: w1.phi() * w2.phi() - G # optional: integrated
+            sage: w1.phi() * w2.phi() - G # optional: integrated, long time
             (5^3 + O(5^4))*x + 5^3 + O(5^4)
 
         In this example, the process stops with a factorization of `x^2 + 1`::
 
-            sage: v.mac_lane_approximants(G, required_precision=infinity) # long time
+            sage: sorted(v.mac_lane_approximants(G, required_precision=infinity), key=str) # long time
             [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
 
@@ -583,9 +585,9 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: v.mac_lane_approximants(G, required_precision=5) # long time
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 2057) = 5 ],
-             [ Gauss valuation induced by 5-adic valuation, v(x + 1068) = 6 ]]
+            sage: sorted(v.mac_lane_approximants(G, required_precision=5), key=str) # long time
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 1068) = 6 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x + 2057) = 5 ]]
 
         Initial versions ran into problems with the trivial residue field
         extensions in this case::
@@ -620,10 +622,10 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: vK(theta) 
             1/3
             sage: G=Delta.change_ring(K) 
-            sage: V=vK.mac_lane_approximants(G); V # long time
-            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 2*theta + 3) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*theta^4 + theta + 3) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*theta^4 + 3*theta + 3) = 5/3 ]]
+            sage: sorted(vK.mac_lane_approximants(G), key=str) # long time
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 3/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + theta^4 + theta^3 + 1) = 5/3 ]]
 
         """
         R = G.parent()
@@ -631,21 +633,10 @@ class DiscreteValuation(DiscretePseudoValuation):
             raise ValueError("G must be defined over the domain of this valuation")
 
         from sage.misc.misc import verbose
-        verbose("Approximants of %r towards %r"%(self, G), level=3)
+        verbose("Approximants of %r on %r towards %r"%(self, self.domain(), G), level=3)
 
         from sage.rings.all import infinity
         from gauss_valuation import GaussValuation
-
-        # Leaves in the computation of the tree of approximants. Each vertex
-        # consists of a tuple (v,ef,p,coeffs,vals) where v is an approximant, i.e., a
-        # valuation, ef is a boolean, p is the parent of this vertex, and
-        # coeffs and vals are cached values. (Only v and ef are relevant,
-        # everything else are caches/debug info.)
-        # The boolean ef denotes whether v already has the final ramification
-        # index E and residue degree F of this approximant.
-        # An edge V -- P represents the relation P.v ≤ V.v (pointwise on the
-        # polynomial ring K[x]) between the valuations.
-        leaves = [ (GaussValuation(R, self), G.degree() == 1, None, None, None) ]
 
         if require_maximal_degree:
             # we can only assert maximality of degrees when E and F are final
@@ -662,36 +653,109 @@ class DiscreteValuation(DiscretePseudoValuation):
                 pass
 
         def is_sufficient(leaf, others):
-            valuation, ef, _, _, _ = leaf
-            if valuation.mu() < required_precision:
+            if leaf.valuation.mu() < required_precision:
                 return False
-            if require_final_EF and not ef:
+            if require_final_EF and not leaf.ef:
                 return False
-            if require_maximal_degree and valuation.phi().degree() != valuation.E()*valuation.F():
+            if require_maximal_degree and leaf.valuation.phi().degree() != leaf.valuation.E()*leaf.valuation.F():
                 return False
             if require_incomparability:
-                if any(valuation <= o for o in others):
+                if any(leaf.valuation <= o.valuation for o in others):
                     return False
             return True
 
-        while True:
-            new_leaves = []
-            for leaf in leaves:
-                v, ef, coefficients, valuations, parent = leaf
-                others = [w for (w,_,_,_,_) in leaves if w != v]
-                if is_sufficient(leaf, others):
-                    new_leaves.append(leaf)
-                else:
-                    augmentations = v.mac_lane_step(G, report_degree_bounds_and_caches=True, coefficients=coefficients, valuations=valuations)
-                    for w, bound, coefficients, valuations in augmentations:
-                        ef = bound == w.E()*w.F()
-                        new_leaves.append((w, ef, coefficients, valuations, leaf))
+        # Leaves in the computation of the tree of approximants. Each vertex
+        # consists of a tuple (v,ef,p,coeffs,vals) where v is an approximant, i.e., a
+        # valuation, ef is a boolean, p is the parent of this vertex, and
+        # coeffs and vals are cached values. (Only v and ef are relevant,
+        # everything else are caches/debug info.)
+        # The boolean ef denotes whether v already has the final ramification
+        # index E and residue degree F of this approximant.
+        # An edge V -- P represents the relation P.v ≤ V.v (pointwise on the
+        # polynomial ring K[x]) between the valuations.
+        class Node(object):
+            def __init__(self, valuation, parent, ef, principal_part_bound, coefficients, valuations):
+                self.valuation = valuation
+                self.parent = parent
+                self.ef = ef
+                self.principal_part_bound = principal_part_bound
+                self.coefficients = coefficients
+                self.valuations = valuations
+                self.forced_leaf = False
+        import mac_lane
+        mac_lane.valuation.Node = Node
 
-            if leaves == new_leaves:
-                break
-            leaves = new_leaves
+        seed = Node(GaussValuation(R,self), None, G.degree() == 1, G.degree(), None, None)
+        seed.forced_leaf = is_sufficient(seed, [])
 
-        return [v for v,_,_,_,_ in leaves]
+        def create_children(node):
+            new_leafs = []
+            if node.forced_leaf:
+                return new_leafs
+            augmentations = node.valuation.mac_lane_step(G, report_degree_bounds_and_caches=True, coefficients=node.coefficients, valuations=node.valuations, check=False, principal_part_bound=node.principal_part_bound)
+            for w, bound, principal_part_bound, coefficients, valuations in augmentations:
+                ef = bound == w.E()*w.F()
+                new_leafs.append(Node(w, node, ef, principal_part_bound, coefficients, valuations))
+            for leaf in new_leafs:
+                if is_sufficient(leaf, [l for l in new_leafs if l is not leaf]):
+                    leaf.forced_leaf = True
+            return new_leafs
+
+        def reduce_tree(v, w):
+            return v + w
+
+        from sage.all import RecursivelyEnumeratedSet
+        tree = RecursivelyEnumeratedSet([seed],
+            successors = create_children,
+            structure = 'forest',
+            enumeration = 'breadth')
+        # this is a tad faster but annoying for profiling / debugging
+        #nodes = tree.map_reduce(
+        #    map_function = lambda x: [x],
+        #    reduce_init = [])
+        from sage.parallel.map_reduce import RESetMapReduce
+        nodes = RESetMapReduce(
+               forest = tree,
+               map_function = lambda x: [x],
+               reduce_init = []).run_serial()
+        leafs = set([node.valuation for node in nodes])
+        for node in nodes:
+            if node.parent is None:
+                continue
+            v = node.parent.valuation
+            if v in leafs:
+                leafs.remove(v)
+
+
+        return list(leafs)
+
+    @cached_method
+    def _pow(self, x, e, error):
+        r"""
+        Return `x^e`.
+
+        This method does not compute the exact value of `x^e` but only an
+        element that differs from the correct result by an error with valuation
+        at least ``error``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = pAdicValuation(QQ, 2)
+            sage: v._pow(2, 2, error=4)
+            4
+            sage: v._pow(2, 1000, error=4)
+            0
+
+        """
+        if e == 0:
+            return self.domain().one()
+        if e == 1:
+            return self.simplify(x, error=error)
+        if e % 2 == 0:
+            return self._pow(self.simplify(x*x, error=error*2/e), e//2, error=error)
+        else:
+            return self.simplify(x*self._pow(x, e-1, error=error*(e-1)/e), error=error)
 
     def mac_lane_approximant(self, G, valuation, approximants = None):
         r"""
@@ -827,10 +891,11 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v.montes_factorization(x^2 + 1)
             x^2 + 1
 
-            sage: v.montes_factorization(x^2 - 1) # not tested, does not terminate
+            sage: v.montes_factorization(x^2 - 1)
+            (x - 1) * (x + 1)
 
-            sage: v.montes_factorization(x^2 - 1, required_precision=10)
-            (x + 1) * (x + 1023)
+            sage: v.montes_factorization(x^2 - 1, required_precision=5)
+            (x + 1) * (x + 31)
 
         REFERENCES:
 

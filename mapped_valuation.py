@@ -407,7 +407,33 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             return self.domain()(self._base_valuation._weakly_separating_element(other._base_valuation))
         super(FiniteExtensionFromInfiniteValuation, self)._weakly_separating_element(other)
 
-    def simplify(self, x, error=None):
+    def _relative_size(self, x):
+        r"""
+        Return an estimate on the coefficient size of ``x``.
+
+        The number returned is an estimate on the factor between the number of
+        Bits used by ``x`` and the minimal number of bits used by an element
+        Congruent to ``x``.
+
+        This is used by :meth:`simplify` to decide whether simplification of
+        Coefficients is going to lead to a significant shrinking of the
+        Coefficients of ``x``.
+
+        EXAMPLES:: 
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: w = v.extension(L)
+            sage: w._relative_size(1024*t + 1024)
+            11
+
+        """
+        return self._base_valuation._relative_size(self._to_base_domain(x))
+
+    def simplify(self, x, error=None, force=False):
         r"""
         Return a simplified version of ``x``.
 
@@ -423,16 +449,65 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: L.<t> = K.extension(t^2 + 1)
             sage: v = pAdicValuation(QQ, 5)
             sage: u,uu = v.extensions(L)
-            sage: u.simplify(125*t + 1)
+            sage: f = 125*t + 1
+            sage: u.simplify(f, error=u(f), force=True)
             1
 
         """
         x = self.domain().coerce(x)
 
         if error is None:
-            error = self(x)
+            error = self.upper_bound(x)
 
-        return self._from_base_domain(self._base_valuation.simplify(self._to_base_domain(x), error))
+        return self._from_base_domain(self._base_valuation.simplify(self._to_base_domain(x), error, force=force))
+
+    def lower_bound(self, x):
+        r"""
+        Return an lower bound of this valuation at ``x``.
+
+        Use this method to get an approximation of the valuation of ``x``
+        when speed is more important than accuracy.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 5)
+            sage: u,uu = v.extensions(L)
+            sage: u.lower_bound(t + 2)
+            0
+            sage: u(t + 2)
+            1
+
+        """
+        x = self.domain().coerce(x)
+        return self._base_valuation.lower_bound(self._to_base_domain(x))
+
+    def upper_bound(self, x):
+        r"""
+        Return an upper bound of this valuation at ``x``.
+
+        Use this method to get an approximation of the valuation of ``x``
+        when speed is more important than accuracy.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 5)
+            sage: u,uu = v.extensions(L)
+            sage: u.upper_bound(t + 2)
+            3
+            sage: u(t + 2)
+            1
+
+        """
+        x = self.domain().coerce(x)
+        return self._base_valuation.upper_bound(self._to_base_domain(x))
 
 
 class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):

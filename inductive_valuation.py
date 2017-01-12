@@ -85,7 +85,7 @@ class InductiveValuation(DevelopingValuation):
             return False
         return self.effective_degree(f, valuations=valuations) == 0
 
-    def equivalence_reciprocal(self, f):
+    def equivalence_reciprocal(self, f, coefficients=None, valuations=None, check=True):
         r"""
         Return an equivalence reciprocal of ``f``.
 
@@ -96,6 +96,15 @@ class InductiveValuation(DevelopingValuation):
 
         - ``f`` -- a polynomial in the domain of this valuation which is an
           :meth:`equivalence_unit`
+
+        - ``coefficients`` -- the coefficients of ``f`` in the :meth:`phi`-adic
+          expansion if known (default: ``None``)
+
+        - ``valuations`` -- the valuations of ``coefficients`` if known
+          (default: ``None``)
+
+        - ``check`` -- whether or not to check the validity of ``f`` (default:
+          ``True``)
 
         EXAMPLES::
 
@@ -117,7 +126,7 @@ class InductiveValuation(DevelopingValuation):
             sage: v = v.augmentation(x^2 + x + u, 1)
             sage: f = 2*x + u
             sage: h = v.equivalence_reciprocal(f); h
-            (u + 1) + (u + 1)*2 + 2^2 + u*2^3 + 2^4 + O(2^5)
+            (u + 1) + O(2^5)
             sage: v.is_equivalent(f*h, 1)
             True
 
@@ -125,7 +134,7 @@ class InductiveValuation(DevelopingValuation):
 
             sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
             sage: h = v.equivalence_reciprocal(f); h
-            (u + 1) + (u + 1)*2 + (u + 1)*2^2 + (u + 1)*2^3 + u*2^4 + O(2^5)
+            (u + 1) + O(2^5)
             sage: v.is_equivalent(f*h, 1)
             True
 
@@ -157,12 +166,34 @@ class InductiveValuation(DevelopingValuation):
             # the xgcd does in general not work, i.e., return 1, unless over a field
             raise NotImplementedError("only implemented for polynomial rings over fields")
 
-        if not self.is_equivalence_unit(f):
-            raise ValueError("f must be an equivalence unit but %r is not"%(f,))
+        if check:
+            if coefficients is None:
+                coefficients = list(self.coefficients(f))
+            if valuations is None:
+                valuations = list(self.valuations(f, coefficients=coefficients))
+            if not self.is_equivalence_unit(f, valuations=valuations):
+                raise ValueError("f must be an equivalence unit but %r is not"%(f,))
 
-        e0 = self.coefficients(f).next()
-        one,g,h = self.phi().xgcd(e0)
-        assert one.is_one()
+        if coefficients is None:
+            e0 = self.coefficients(f).next()
+        else:
+            e0 = coefficients[0]
+        
+        # f is an equivalence unit, its valuation is given by the constant coefficient
+        if valuations is None:
+            vf = self(e0)
+        else:
+            vf = valuations[0]
+
+        e0 = self.simplify(e0, error=vf)
+        s_ = self.equivalence_unit(-vf)
+        residue = self.reduce(e0 * s_)
+        if not isinstance(self, FinalInductiveValuation):
+            assert residue.is_constant()
+            residue = residue[0]
+        h = self.lift(~residue) * s_
+
+        h = self.simplify(h, -vf)
 
         # it might be the case that f*h has non-zero valuation because h has
         # insufficient precision, so we must not assert that here but only
@@ -175,7 +206,6 @@ class InductiveValuation(DevelopingValuation):
         # - we can add anything which times e0 has positive valuation, e.g., we
         # may drop coefficients of positive valuation
         h = h.map_coefficients(lambda c:_lift_to_maximal_precision(c))
-        h = h.parent()([ c if self(e0*c) <= 0 else c.parent().zero() for c in h.coefficients(sparse=False)])
 
         return h
 
@@ -651,13 +681,40 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from augmented_valuation import AugmentedValuation
         return AugmentedValuation(self, phi, mu, check)
 
-    def mac_lane_step(self, G, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None):
+    def mac_lane_step(self, G, principal_part_bound=None, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None, check=True):
         r"""
         Perform an approximation step towards the squarefree monic non-constant
         integral polynomial ``G`` which is not an :meth:`equivalence_unit`.
 
         This performs the individual steps that are used in
         :meth:`mac_lane_approximants`.
+
+        INPUT:
+
+        - ``G`` -- a sqaurefree monic non-constant integral polynomial ``G``
+          which is not an :meth:`equivalence_unit`
+
+        - ``principal_part_bound`` -- an integer or ``None`` (default:
+          ``None``), a bound on the length of the principal part, i.e., the
+          section of negative slope, of the Newton polygon of ``G``
+
+        - ``assume_squarefree`` -- whether or not to assume that ``G`` is
+          squarefree (default: ``False``)
+
+        - ``assume_equivalence_irreducible`` -- whether or not to assume that
+          ``G`` is equivalence irreducible (default: ``False``)
+
+        - ``report_degree_bounds_and_caches`` -- whether or not to include internal state with the returned value (used by :meth:`mac_lane_approximants` to speed up sequential calls)
+
+         - ``coefficients`` -- the coefficients of ``G`` in the
+           :meth:`phi`-adic expansion if known (default: ``None``)
+
+        - ``valauations`` -- the valuations of ``coefficients`` if known
+          (default: ``None``)
+
+        - ``check`` -- whether to check that ``G`` is a squarefree monic
+          non-constant  integral polynomial and not an :meth:`equivalence_unit`
+          (default: ``True``)
 
         TESTS::
 
@@ -680,6 +737,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if G.is_constant():
             raise ValueError("G must not be constant")
 
+        from itertools import islice
         from sage.misc.misc import verbose
         verbose("Augmenting %s towards %s"%(self, G), level=10)
 
@@ -687,17 +745,23 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             raise ValueError("G must be monic")
 
         if coefficients is None:
-            coefficients = list(self.coefficients(G))
+            coefficients = self.coefficients(G)
+            if principal_part_bound:
+                coefficients = islice(coefficients, 0, principal_part_bound + 1, 1)
+            coefficients = list(coefficients)
         if valuations is None:
-            valuations = list(self.valuations(G, coefficients=coefficients))
+            valuations = self.valuations(G, coefficients=coefficients)
+            if principal_part_bound:
+                valuations = islice(valuations, 0, principal_part_bound + 1, 1)
+            valuations = list(valuations)
 
-        if min(valuations) < 0:
+        if check and min(valuations) < 0:
             raise ValueError("G must be integral")
 
-        if self.is_equivalence_unit(G, valuations=valuations):
+        if check and self.is_equivalence_unit(G, valuations=valuations):
             raise ValueError("G must not be an equivalence-unit")
 
-        if not assume_squarefree and not G.is_squarefree():
+        if check and not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
 
         from sage.rings.all import infinity
@@ -705,11 +769,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ret = []
 
-        F = self.equivalence_decomposition(G, assume_not_equivalence_unit=True, coefficients=coefficients, valuations=valuations)
+        F = self.equivalence_decomposition(G, assume_not_equivalence_unit=True, coefficients=coefficients, valuations=valuations, compute_unit=False, degree_bound=principal_part_bound)
         assert len(F), "%s equivalence-decomposes as an equivalence-unit %s"%(G, F)
         if len(F) == 1 and F[0][1] == 1 and F[0][0].degree() == G.degree():
             assert self.is_key(G, assume_equivalence_irreducible=assume_equivalence_irreducible)
-            ret.append((self.augmentation(G, infinity, check=False), G.degree(), None, None))
+            ret.append((self.augmentation(G, infinity, check=False), G.degree(), principal_part_bound, None, None))
         else:
             for phi,e in F:
                 if G == phi:
@@ -722,7 +786,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     prec = min([c.precision_absolute() for c in phi.list()])
                     g = G.map_coefficients(lambda c:c.add_bigoh(prec))
                     assert self.is_key(g)
-                    ret.append((self.augmentation(g, infinity, check=False), g.degree(), None, None))
+                    ret.append((self.augmentation(g, infinity, check=False), g.degree(), principal_part_bound, None, None))
                     assert len(F) == 1
                     break
 
@@ -738,11 +802,20 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     else:
                         continue
 
-                verbose("Determining the augmentation for %s"%phi, level=11)
+                verbose("Determining the augmentation of %s for %s"%(self, phi), level=11)
                 old_mu = self(phi)
                 w = self.augmentation(phi, old_mu, check=False)
-                w_coefficients = list(w.coefficients(G))
-                w_valuations = list(w.valuations(G, coefficients=w_coefficients))
+
+                w_coefficients = w.coefficients(G)
+                if principal_part_bound:
+                    w_coefficients = islice(w_coefficients, 0, principal_part_bound + 1, 1)
+                w_coefficients = [self.simplify(c) for c in w_coefficients]
+
+                w_valuations = w.valuations(G, coefficients=w_coefficients)
+                if principal_part_bound:
+                    w_valuations = islice(w_valuations, 0, principal_part_bound + 1, 1)
+                w_valuations = list(w_valuations)
+
                 NP = w.newton_polygon(G, valuations=w_valuations).principal_part()
                 verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=11)
                 slopes = NP.slopes(repetition=True)
@@ -772,7 +845,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
                     phi = G.parent()(phi)
                     w = self._base_valuation.augmentation(phi, infinity, check=False)
-                    ret.append((w, phi.degree(), None, None))
+                    ret.append((w, phi.degree(), principal_part_bound, None, None))
                     continue
 
                 for i, slope in enumerate(slopes):
@@ -790,12 +863,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
                     from sage.rings.all import ZZ
                     assert (phi.degree() / self.phi().degree()) in ZZ 
-                    degree_bound = multiplicities[slope] * self.phi().degree() * e
-                    ret.append((w, degree_bound, w_coefficients, new_valuations))
+                    degree_bound = multiplicities[slope] * phi.degree()
+                    assert degree_bound <= G.degree()
+                    assert degree_bound >= phi.degree()
+                    ret.append((w, degree_bound, multiplicities[slope], w_coefficients, new_valuations))
 
         assert ret
         if not report_degree_bounds_and_caches:
-            ret = [v for v,_,_,_ in ret]
+            ret = [v for v,_,_,_,_ in ret]
         return ret
 
     def is_key(self, phi, explain=False, assume_equivalence_irreducible=False):
@@ -909,7 +984,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         
         if self.is_gauss_valuation():
             if self(f) == 0:
-                F = self.reduce(f)
+                F = self.reduce(f, check=False)
                 assert not F.is_constant()
                 return F.is_irreducible()
             else:
@@ -935,7 +1010,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                    list(self.valuations(f))[0] == self(f) and \
                    tau.divides(len(list(self.coefficients(f))) - 1)
 
-    def _equivalence_reduction(self, f, coefficients=None, valuations=None):
+    def _equivalence_reduction(self, f, coefficients=None, valuations=None, degree_bound=None):
         r"""
         Helper method for :meth:`is_equivalence_irreducible` and
         :meth:`equivalence_decomposition` which essentially returns the
@@ -982,7 +1057,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         valuation -= self.mu()*phi_divides
 
         R = self.equivalence_unit(-valuation)
-        return valuation, phi_divides, self.reduce(f*R)
+        if degree_bound is not None:
+            R = R.truncate(degree_bound*self.phi().degree() + 1)
+        return valuation, phi_divides, self.reduce(f*R, check=False, degree_bound=degree_bound)
 
     def is_equivalence_irreducible(self, f, coefficients=None, valuations=None):
         r"""
@@ -1030,7 +1107,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if phi_divides > 1:
             return False
 
-    def equivalence_decomposition(self, f, assume_not_equivalence_unit=False, coefficients=None, valuations=None):
+    def equivalence_decomposition(self, f, assume_not_equivalence_unit=False, coefficients=None, valuations=None, compute_unit=True, degree_bound=None):
         r"""
         Return an equivalence decomposition of ``f``, i.e., a polynomial
         `g(x)=e(x)\prod_i \phi_i(x)` with `e(x)` an equivalence unit (see
@@ -1040,6 +1117,21 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         INPUT:
 
         - ``f`` -- a non-zero polynomial in the domain of this valuation
+
+        - ``assume_not_equivalence_unit`` -- whether or not to assume that
+          ``f`` is not an :meth:`equivalence_unit` (default: ``False``)
+
+        - ``coefficients`` -- the coefficients of ``f`` in the :meth:`phi`-adic
+          expansion if known (default: ``None``)
+
+        - ``valuations`` -- the valuations of ``coefficients`` if known
+          (default: ``None``)
+
+        - ``compute_unit`` -- whether or not to compute the unit part of the
+          decomposition (default: ``True``)
+
+        - ``degree_bound`` -- a bound on the degree of the
+          :meth:`_equivalence_reduction` of ``f`` (default: ``None``)
 
         ALGORITHM:
 
@@ -1116,7 +1208,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: V=v1.mac_lane_step(G) # long time
             sage: v2=V[0] # long time
             sage: v2.equivalence_decomposition(G) # long time
-            (x^4 + 4*x^3 + 6*x^2 + 4*x + 2*alpha + 3)^3 * (x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*alpha^4 + alpha + 3)^3 * (x^4 + 4*x^3 + 6*x^2 + 4*x + 1/2*alpha^4 + 3*alpha + 3)^3
+            (1/387420489) * (x^4 + 2*x^2 + alpha^4 + alpha^3 + 1)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha^3 + 5*alpha + 1)^3 * (x^4 + 2*x^2 + 3/2*alpha^4 + alpha^3 + 5*alpha + 1)^3
 
         REFERENCES:
 
@@ -1140,20 +1232,28 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             ret = v.equivalence_decomposition(v.domain()(f))
             return Factorization([(g.change_ring(self.domain().base_ring()),e) for g,e in ret], unit=ret.unit().change_ring(self.domain().base_ring()), sort=False)
 
-        valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations)
+        valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations, degree_bound=degree_bound)
         F = F.factor()
         from sage.misc.misc import verbose
         verbose("%s factors as %s = %s in reduction"%(f, F.prod(), F), level=20)
 
-        R_ = self.equivalence_unit(valuation, reciprocal=True)
-        unit = self.lift(self.residue_ring()(F.unit())) * R_
+        unit = self.domain().one()
+        if compute_unit:
+            R_ = self.equivalence_unit(valuation, reciprocal=True)
+            unit = self.lift(self.residue_ring()(F.unit())) * R_
         F = list(F)
 
-        from sage.misc.all import prod
-        unit *= self.lift(self.residue_ring()(prod([ psi.leading_coefficient()**e for psi,e in F ])))
+        if compute_unit:
+            from sage.misc.all import prod
+            unit *= self.lift(self.residue_ring()(prod([ psi.leading_coefficient()**e for psi,e in F ])))
+
         F = [(self.lift_to_key(psi/psi.leading_coefficient()),e) for psi,e in F]
-        unit *= prod([self.equivalence_unit(-self(g), reciprocal=True)**e for g,e in F])
-        unit = self.simplify(unit)
+
+        if compute_unit:
+            for g,e in F:
+                v_g = self(g)
+                unit *= self._pow(self.equivalence_unit(-v_g, reciprocal=True), e, error=-v_g*e)
+            unit = self.simplify(unit)
 
         if phi_divides:
             for i,(g,e) in enumerate(F):
@@ -1165,8 +1265,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ret = Factorization(F, unit=unit, sort=False)
 
-        assert self.is_equivalent(ret.prod(), f) # this might fail because of leading zeros in inexact rings
-        assert self.is_equivalence_unit(ret.unit())
+        if compute_unit:
+            assert self.is_equivalent(ret.prod(), f) # this might fail because of leading zeros in inexact rings
+            assert self.is_equivalence_unit(ret.unit())
 
         return ret
 
@@ -1206,7 +1307,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             (1 + O(2^10))*x + 2 + O(2^11)
             sage: f = x^3 + 6*x + 4
             sage: F = v.minimal_representative(f); F
-            (2 + 2^2 + O(2^11)) * ((1 + O(2^10))*x + 2 + 2^2 + 2^4 + 2^6 + 2^8 + 2^10 + O(2^11))
+            (2 + 2^2 + O(2^11)) * ((1 + O(2^10))*x + 2 + O(2^11))
             sage: v.is_minimal(F[0][0])
             True
             sage: v.is_equivalent(F.prod(), f)

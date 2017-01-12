@@ -315,6 +315,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             
             """
 
+        @cached_method
         def is_trivial(self):
             r"""
             Return whether this valuation is trivial, i.e., whether it is
@@ -452,7 +453,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             exp = s/self.value_group().gen()
             if exp not in ZZ:
                 raise NotImplementedError("s must be a multiple of %r but %r is not"%(self.value_group().gen(), s))
-            return self.domain()(self.uniformizer() ** ZZ(exp))
+            ret = self.domain()(self.uniformizer() ** ZZ(exp))
+            return self.simplify(ret, error=s)
 
         @abstract_method
         def residue_ring(self):
@@ -919,7 +921,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         x //= self.uniformizer()
                     return x
 
-        def simplify(self, x, error=None):
+        def simplify(self, x, error=None, force=False):
             r"""
             Return a simplified version of ``x``.
 
@@ -931,9 +933,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
                 sage: from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 2)
-                sage: v.simplify(6)
+                sage: v.simplify(6, force=True)
                 2
-                sage: v.simplify(6, error=0)
+                sage: v.simplify(6, error=0, force=True)
                 0
 
             """
@@ -942,6 +944,88 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             if error is not None and self(x) > error:
                 return self.domain().zero()
             return x
+
+        def lower_bound(self, x):
+            r"""
+            Return a lower bound of this valuation at ``x``.
+
+            Use this method to get an approximation of the valuation of ``x``
+            when speed is more important than accuracy.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 2)
+                sage: v.lower_bound(2^10)
+                10
+
+            """
+            return self(x)
+
+        def upper_bound(self, x):
+            r"""
+            Return an upper bound of this valuation at ``x``.
+
+            Use this method to get an approximation of the valuation of ``x``
+            when speed is more important than accuracy.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 2)
+                sage: v.upper_bound(2^10)
+                10
+
+            """
+            return self(x)
+
+        def _relative_size(self, x):
+            r"""
+            Return an estimate on the coefficient size of ``x``.
+
+            The number returned is an estimate on the factor between the number of
+            Bits used by ``x`` and the minimal number of bits used by an element
+            Congruent to ``x``.
+
+            This is used by :meth:`simplify` to decide whether simplification of
+            Coefficients is going to lead to a significant shrinking of the
+            Coefficients of ``x``.
+
+            EXAMPLES:: 
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(Qp(2))
+                sage: v._relative_size(2)
+                1
+
+            Some valuations do not overwrite this method because simplification
+            does not increase the speed of valuations, e.g., some `p`-adic
+            valuations::
+
+                sage: v._relative_size(2**20)
+                1
+
+            """
+            return 1
+
+        def _test_bounds(self, **options):
+            r"""
+            Check that :meth:`lower_bound` and :meth:`upper_bound` work
+            correctly.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 3)
+                sage: v._test_bounds()
+
+            """
+            tester = self._tester(**options)
+
+            X = self.domain().some_elements()
+            for x in tester.some_elements(X):
+                tester.assertGreaterEqual(self.upper_bound(x), self(x))
+                tester.assertLessEqual(self.lower_bound(x), self(x))
 
         def _test_simplify(self, **options):
             r"""

@@ -166,7 +166,7 @@ from inductive_valuation import FinalInductiveValuation, NonFinalInductiveValuat
 from valuation import InfiniteDiscretePseudoValuation, DiscreteValuation
 
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import infinity
+from sage.rings.all import infinity, QQ, ZZ
 from sage.structure.factory import UniqueFactory
 
 class AugmentedValuationFactory(UniqueFactory):
@@ -226,7 +226,6 @@ class AugmentedValuationFactory(UniqueFactory):
                 raise TypeError("base_valuation must be inductive")
 
         phi = base_valuation.domain().coerce(phi)
-        from sage.rings.all import QQ, infinity
         if mu is not infinity:
             mu = QQ(mu)
 
@@ -369,7 +368,11 @@ class AugmentedValuation_base(InductiveValuation):
 
         """
         if reciprocal:
-            ret = self.equivalence_reciprocal(self.equivalence_unit(-s))
+            ret = self._base_valuation.element_with_valuation(s)
+            residue = self.reduce(ret*self._base_valuation.element_with_valuation(-s), check=False)
+            assert residue.is_constant()
+            ret *= self.lift(~(residue[0]))
+            #ret = self.equivalence_reciprocal(self.equivalence_unit(-s))
         else:
             ret = self._base_valuation.element_with_valuation(s)
 
@@ -498,10 +501,11 @@ class AugmentedValuation_base(InductiveValuation):
 
         """
         R = self._base_valuation.equivalence_unit(-self._base_valuation(self._phi))
-        F = self._base_valuation.reduce(self._phi*R).monic()
+        F = self._base_valuation.reduce(self._phi*R, check=False).monic()
         assert F.is_irreducible()
         return F
 
+    @cached_method
     def E(self):
         """
         Return the ramification index of this valuation over its underlying
@@ -527,6 +531,7 @@ class AugmentedValuation_base(InductiveValuation):
             raise NotImplementedError("ramification index is not defined over a trivial Gauss valuation")
         return self.value_group().index(self._base_valuation.value_group()) * self._base_valuation.E()
 
+    @cached_method
     def F(self):
         """
         Return the degree of the residue field extension of this valuation
@@ -548,7 +553,7 @@ class AugmentedValuation_base(InductiveValuation):
             1
 
         """
-        return self.psi().degree() * self._base_valuation.F()
+        return self.phi().degree() // self._base_valuation.E()
 
     def extensions(self, ring):
         r"""
@@ -743,7 +748,6 @@ class AugmentedValuation_base(InductiveValuation):
             [ Gauss valuation induced by 3 * 2-adic valuation, v(x^2 + x + 1) = 3 ]
 
         """
-        from sage.rings.all import QQ
         if scalar in QQ and scalar > 0 and scalar != 1:
             return self._base_valuation.scale(scalar).augmentation(self.phi(), scalar*self._mu)
         return super(AugmentedValuation_base, self).scale(scalar)
@@ -779,7 +783,35 @@ class AugmentedValuation_base(InductiveValuation):
                 # use this name, base can not handle strings, so hopefully,
                 # there are no variable names (such as in QQ or GF(p))
                 return generator
-    
+
+    def _relative_size(self, f):
+        r"""
+        Return an estimate on the coefficient size of ``f``.
+
+        The number returned is an estimate on the factor between the number of
+        bits used by ``f`` and the minimal number of bits used by an element
+        congruent to ``f``.
+
+        This is used by :meth:`simplify` to decide whether simplification of
+        coefficients is going to lead to a significant shrinking of the
+        coefficients of ``f``.
+
+        EXAMPLES:: 
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = QQ[]
+            sage: K.<u> = QQ.extension(u^2 + u+ 1)
+            sage: S.<x> = K[]
+            sage: v = GaussValuation(S, pAdicValuation(K, 2))
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: w._relative_size(x^2 + x + 1)
+            1
+            sage: w._relative_size(1048576*x^2 + 1048576*x + 1048576)
+            21
+
+        """
+        return self._base_valuation._relative_size(f)
+
 
 class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
     r"""
@@ -873,9 +905,19 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
             # extension() implementation.)
             return base
 
-    def reduce(self, f):
+    def reduce(self, f, check=True, degree_bound=None):
         r"""
         Reduce ``f`` module this valuation.
+
+        INPUT:
+
+        - ``f`` -- an element in the domain of this valuation
+
+        - ``check`` -- whether or not to check whether ``f`` has non-negative
+          valuation (default: ``True``)
+
+        - ``degree_bound`` -- an a-priori known bound on the degree of the
+          result which can speed up the computation (default: not set)
 
         OUTPUT:
 
@@ -939,11 +981,12 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         """
         f = self.domain().coerce(f)
 
-        v = self(f)
-        if v < 0:
-            raise ValueError("f must have non-negative valuation")
-        elif v > 0:
-            return self.residue_ring().zero()
+        if check:
+            v = self(f)
+            if v < 0:
+                raise ValueError("f must have non-negative valuation")
+            elif v > 0:
+                return self.residue_ring().zero()
 
         constant_term = self.coefficients(f).next()
         constant_term_reduced = self._base_valuation.reduce(constant_term)
@@ -1120,9 +1163,19 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
             pass
         return base[self.domain().variable_name()]
 
-    def reduce(self, f):
+    def reduce(self, f, check=True, degree_bound=None):
         r"""
         Reduce ``f`` module this valuation.
+
+        INPUT:
+
+        - ``f`` -- an element in the domain of this valuation
+
+        - ``check`` -- whether or not to check whether ``f`` has non-negative
+          valuation (default: ``True``)
+
+        - ``degree_bound`` -- an a-priori known bound on the degree of the
+          result which can speed up the computation (default: not set)
 
         OUTPUT:
 
@@ -1186,27 +1239,43 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         """
         f = self.domain().coerce(f)
 
-        coefficients = list(self.coefficients(f))
-        CV = zip(coefficients, self.valuations(f, coefficients=coefficients))
-        if all([v > 0 for (c,v) in CV]):
+        if self.lower_bound(f) > 0:
             return self.residue_ring().zero()
+
+        tau = self.value_group().index(self._base_valuation.value_group())
+
+        coefficients = self.coefficients(f)
+        if degree_bound is not None:
+            from itertools import islice
+            coefficients = islice(coefficients, 0, tau*degree_bound + 1, 1)
+        coefficients = list(coefficients)
+
+        valuations = []
+
         # rewrite as sum of f_i phi^{i tau}, i.e., drop the coefficients that
         # can have no influence on the reduction
-        tau = self.value_group().index(self._base_valuation.value_group())
-        for i,(c,v) in enumerate(CV):
-            if v < 0:
-                raise ValueError("f must have non-negative valuation")
-            assert v != 0 or i % tau == 0
+        for i,c in enumerate(coefficients):
+            if i % tau != 0:
+                if check:
+                    v = self._base_valuation(c) + i*self._mu
+                    assert v != 0 # this can not happen for an augmented valuation
+                    if v < 0:
+                        raise ValueError("f must not have negative valuation")
+            else:
+                # the validity of the coefficients with i % tau == 0 is checked by
+                # the recursive call to reduce below
+                # replace f_i by f_i Q^{i tau}
+                v = self._base_valuation.lower_bound(c)
+                valuations.append(v)
+                if v is infinity or v > i*self._mu:
+                    coefficients[i] = self.domain().zero()
+                else:
+                    coefficients[i] = c * self._Q(i//tau)
 
-        assert not any([v==0 for i,(c,v) in enumerate(CV) if i % tau != 0])
-        CV = CV[::tau]
-
-        # replace f_i by f_i Q^{i tau}
-        vQ = self._mu * tau
-        CV = [(c*self._Q()**i, v - vQ*i) for i,(c,v) in enumerate(CV)]
+        coefficients = coefficients[::tau]
 
         # recursively reduce the f_i Q^{i tau}
-        C = [self._base_valuation.reduce(c)(self._residue_field_generator()) for c,v in CV]
+        C = [self._base_valuation.reduce(c, check=False)(self._residue_field_generator()) if valuations[i] <= i*self._mu else self._base_valuation.residue_ring().zero() for i,c in enumerate(coefficients)]
 
         # reduce the Q'^i phi^i
         return self.residue_ring()(C)
@@ -1325,7 +1394,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         # now the coefficients correspond to the expansion with (f_iQ^i)(Q^{-1} phi)^i
 
         # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when _Q_reciprocal() is undefined)
-        coeffs = [ (c if i == 0 else c*self._Q_reciprocal()**i).map_coefficients(_lift_to_maximal_precision) for i,c in enumerate(coeffs) ]
+        coeffs = [ (c if i == 0 else c*self._Q_reciprocal(i)).map_coefficients(_lift_to_maximal_precision) for i,c in enumerate(coeffs) ]
 
         RR = self.domain().change_ring(self.domain())
 
@@ -1334,7 +1403,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
         return ret
 
-    def lift_to_key(self, F):
+    def lift_to_key(self, F, check=True):
         """
         Lift the irreducible polynomial ``F`` to a key polynomial.
 
@@ -1342,6 +1411,9 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         - ``F`` -- an irreducible non-constant polynomial in the
           :meth:`residue_ring` of this valuation
+
+        - ``check`` -- whether or not to check correctness of ``F`` (default:
+          ``True``)
 
         OUTPUT:
 
@@ -1365,7 +1437,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
             sage: w = v.augmentation(x^2 + x + u, 1/2)
             sage: y = w.residue_ring().gen()
             sage: f = w.lift_to_key(y + 1); f
-            (1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (1 + u*2 + O(2^10))*x^2 + (u*2 + O(2^11))*x + (u + 1) + u*2 + u*2^2 + u*2^3 + u*2^4 + u*2^5 + u*2^6 + u*2^7 + u*2^8 + u*2^9 + O(2^10)
+            (1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (1 + u*2 + O(2^10))*x^2 + (u*2 + O(2^11))*x + (u + 1) + u*2 + O(2^10)
             sage: w.is_key(f)
             True
 
@@ -1390,22 +1462,23 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         if not self.domain().base_ring() in Fields():
             raise NotImplementedError("only implemented for polynomial rings over fields")
 
-        if self._base_valuation.is_gauss_valuation() and self._mu is infinity:
-            raise TypeError("there are no keys over this valuation")
+        if check:
+            if self._base_valuation.is_gauss_valuation() and self._mu is infinity:
+                raise TypeError("there are no keys over this valuation")
+            if F.is_constant():
+                raise ValueError("F must not be constant")
+            if not F.is_monic():
+                raise ValueError("F must be monic")
+            if not F.is_irreducible():
+                raise ValueError("F must be irreducible")
 
-        if F.is_constant():
-            raise ValueError("F must not be constant")
-        if not F.is_monic():
-            raise ValueError("F must be monic")
-        if not F.is_irreducible():
-            raise ValueError("F must be irreducible")
         if F == F.parent().gen():
             return self.phi()
 
         f = self.lift(F)
         assert self.reduce(f) == F
 
-        f *= self._Q()**F.degree()
+        f *= self._Q(F.degree())
         coefficients = list(self.coefficients(f))
         valuations = list(self.valuations(f, coefficients=coefficients))
         CV = zip(coefficients, valuations)
@@ -1416,16 +1489,16 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         CV[-1] = (CV[-1][0].parent().one(), vf)
         ret = self.domain().change_ring(self.domain())([c for c,v in CV])(self.phi())
-        ret = self.simplify(ret)
+        ret = self.simplify(ret, error=vf, force=True)
         ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
         assert (ret == self.phi()) == (F == F.parent().gen())
         assert self.is_key(ret)
         return ret
 
     @cached_method
-    def _Q(self):
+    def _Q(self, e):
         r"""
-        Return the polynomial `Q` used in the construction to :meth:`reduce` an
+        Return the polynomial `Q^e` used in the construction to :meth:`reduce` an
         element to the :meth:`residue_ring`.
 
         EXAMPLES::
@@ -1435,17 +1508,19 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
 
-            sage: w._Q()
+            sage: w._Q(1)
             2
 
         """
         tau = self.value_group().index(self._base_valuation.value_group())
-        return self.equivalence_unit(self._mu * tau)
+        v = self._mu * tau
+        return self._pow(self.equivalence_unit(v), e, error=v*e)
 
     @cached_method
-    def _Q_reciprocal(self):
+    def _Q_reciprocal(self, e=1):
         r"""
-        Return the :meth:`equivalence_reciprocal` of :meth:`_Q`.
+        Return the :meth:`equivalence_reciprocal` of the ``e``-th power of
+        :meth:`_Q`.
 
         EXAMPLES::
 
@@ -1458,12 +1533,17 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
             1/2
 
         """
-        ret = self.equivalence_reciprocal(self._Q())
+        if e == 1:
+            return self.equivalence_reciprocal(self._Q(1), check=False)
+        
+        tau = self.value_group().index(self._base_valuation.value_group())
+        v = -self._mu * tau
+        ret = self._pow(self._Q_reciprocal(1), e, error=v*e)
 
         assert self.is_equivalence_unit(ret)
         # esentially this checks that the reduction of Q'*phi^tau is the
         # generator of the residue field
-        assert self._base_valuation.reduce(self._Q()*ret)(self._residue_field_generator()).is_one()
+        assert self._base_valuation.reduce(self._Q(e)*ret)(self._residue_field_generator()).is_one()
 
         return ret
 
@@ -1544,7 +1624,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         """
         return self._base_valuation.value_semigroup() + self._mu
 
-    def valuations(self, f, coefficients=None):
+    def valuations(self, f, coefficients=None, call_error=False):
         """
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum_i
         f_i\phi^i`.
@@ -1557,6 +1637,10 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
           :meth:`coefficients` or ``None`` (default: ``None``); this can be
           used to speed up the computation when the expansion of ``f`` is
           already known from a previous computation.
+
+        - ``call_error` -- whether or not to speed up the computation by
+          assuming that the result is only used to compute the valuation of
+          ``f`` (default: ``False``)
 
         OUTPUT:
 
@@ -1580,20 +1664,47 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         """
         f = self.domain().coerce(f)
 
+        if call_error:
+            lowest_valuation = infinity
         for i,c in enumerate(coefficients or self.coefficients(f)):
+            if call_error:
+                if lowest_valuation is not infinity:
+                    v = self._base_valuation.lower_bound(c)
+                    if v is infinity or v >= lowest_valuation:
+                        yield infinity
+                        continue
             v = self._base_valuation(c)
             if v is infinity:
                 yield v
             else:
-                yield v + i*self._mu
+                ret = v + i*self._mu
+                if call_error:
+                    if lowest_valuation is infinity or ret < lowest_valuation:
+                        lowest_valuation = ret
+                yield ret
 
-    def simplify(self, f, error=None):
+    def simplify(self, f, error=None, force=False, size_heuristic_bound=32):
         r"""
         Return a simplified version of ``f``.
 
         Produce an element which differs from ``f`` by an element of valuation
         strictly greater than the valuation of ``f`` (or strictly greater than
         ``error`` if set.)
+
+        INPUT:
+
+        - ``f`` -- an element in the domain of this valuation
+
+        - ``error`` -- a rational, infinity, or ``None`` (default: ``None``),
+          the error allowed to introduce through the simplification
+
+        - ``force`` -- whether or not to simplify ``f`` even if there is
+          heuristically no change in the coefficient size of ``f`` expected
+          (default: ``False``)
+
+        - ``size_heuristic_bound` -- when ``force`` is not set, the expected
+          factor by which the coefficients need to shrink to perform an actual
+          simplification (default: 32)
 
         EXAMPLES::
 
@@ -1602,20 +1713,92 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, 1/2)
-            sage: w.simplify(x^10/2 + 1)
+            sage: w.simplify(x^10/2 + 1, force=True) # not tested - error is incorrect
             (u + 1)*2^-1 + O(2^4)
 
         """
         f = self.domain().coerce(f)
 
-        coefficients = list(self.coefficients(f))
-        if error is None:
-            error = min(self.valuations(f, coefficients=coefficients))
+        if not force and self._relative_size(f) < size_heuristic_bound:
+            return f
 
-        from sage.rings.all import PolynomialRing
-        R = PolynomialRing(f.parent(), 'phi')
-        f = R([self._base_valuation.simplify(c, error=error - i*self._mu) for i,c in enumerate(coefficients)])
-        return f(self.phi())
+        if error is None:
+            error = self.upper_bound(f)
+
+        return self._base_valuation.simplify(f, error=error, force=force)
+
+    def lower_bound(self, f):
+        r"""
+        Return a lower bound of this valuation at ``f``.
+
+        Use this method to get an approximation of the valuation of ``f``
+        when speed is more important than accuracy.
+
+        ALGORITHM:
+
+        The main cost of evaluation is the computation of the
+        :meth:`coefficients` of the :meth:`phi`-adic expansion of ``f`` (which
+        often leads to coefficient bloat.) So unless :meth:`phi` is trivial, we
+        fall back to valuation which this valuation augments since it is
+        guaranteed to be smaller everywhere.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: w.lower_bound(x^2 + x + u)
+            0
+
+        """
+        f = self.domain().coerce(f)
+
+        if self.phi() == self.domain().gen():
+            constant_valuation = self.restriction(f.base_ring())
+            ret = infinity
+            for i,c in enumerate(f.coefficients(sparse=False)):
+                v = constant_valuation.lower_bound(c)
+                if v is infinity:
+                    continue
+                v += i*self._mu
+                if ret is infinity or v < ret:
+                    ret = v
+            return ret
+        else:
+            return self._base_valuation.lower_bound(f)
+
+    def upper_bound(self, f):
+        r"""
+        Return an upper bound of this valuation at ``f``.
+
+        Use this method to get an approximation of the valuation of ``f``
+        when speed is more important than accuracy.
+
+        ALGORITHM:
+
+        Any entry of :meth:`valuations` serves as an upper bound. However,
+        computation of the :meth:`phi`-adic expansion of ``f`` is quite costly.
+        Therefore, we produce an upper bound on the last entry of
+        :meth:`valuations`, namely the valuation of the leading coefficient of
+        ``f`` plus the valuation of the appropriate power of :meth:`phi`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: w.upper_bound(x^2 + x + u)
+            1/2
+
+        """
+        f = self.domain().coerce(f)
+
+        len_coefficients_bound = (QQ(f.degree()) / self.phi().degree()).ceil()
+        return self.restriction(f.base_ring())(f.leading_coefficient()) + len_coefficients_bound * self._mu
 
 
 class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValuation):
@@ -1742,7 +1925,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         """
         return self._base_valuation.value_semigroup()
 
-    def valuations(self, f, coefficients=None):
+    def valuations(self, f, coefficients=None, call_error=False):
         """
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum_i
         f_i\phi^i`.
@@ -1755,6 +1938,10 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
           :meth:`coefficients` or ``None`` (default: ``None``); this can be
           used to speed up the computation when the expansion of ``f`` is
           already known from a previous computation.
+
+        - ``call_error` -- whether or not to speed up the computation by
+          assuming that the result is only used to compute the valuation of
+          ``f`` (default: ``False``)
 
         OUTPUT:
 
@@ -1782,13 +1969,24 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         for i in range(num_infty_coefficients):
             yield infinity
 
-    def simplify(self, f, error=None):
+    def simplify(self, f, error=None, force=False):
         r"""
         Return a simplified version of ``f``.
 
         Produce an element which differs from ``f`` by an element of valuation
         strictly greater than the valuation of ``f`` (or strictly greater than
         ``error`` if set.)
+
+        INPUT:
+
+        - ``f`` -- an element in the domain of this valuation
+
+        - ``error`` -- a rational, infinity, or ``None`` (default: ``None``),
+          the error allowed to introduce through the simplification
+
+        - ``force`` -- whether or not to simplify ``f`` even if there is
+          heuristically no change in the coefficient size of ``f`` expected
+          (default: ``False``)
 
         EXAMPLES::
 
@@ -1797,16 +1995,56 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, infinity)
-            sage: w.simplify(x^10/2 + 1)
+            sage: w.simplify(x^10/2 + 1, force=True) # not tested - error incorrect
             (u + 1)*2^-1 + O(2^4)
 
         """
         f = self.domain().coerce(f)
 
         if error is None:
-            error = self(f)
+            error = self.upper_bound(f)
 
         if error is infinity:
             return f
 
-        return self.domain()(self._base_valuation.simplify(self.coefficients(f).next(), error))
+        return self.domain()(self._base_valuation.simplify(self.coefficients(f).next(), error, force=force))
+
+    def lower_bound(self, f):
+        r"""
+        Return a lower bound of this valuation at ``f``.
+
+        Use this method to get an approximation of the valuation of ``f``
+        when speed is more important than accuracy.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, infinity)
+            sage: w.lower_bound(x^2 + x + u)
+            +Infinity
+
+        """
+        return self._base_valuation.lower_bound(self.coefficients(f).next())
+
+    def upper_bound(self, f):
+        r"""
+        Return an upper bound of this valuation at ``f``.
+
+        Use this method to get an approximation of the valuation of ``f``
+        when speed is more important than accuracy.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<u> = Qq(4, 5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: w = v.augmentation(x^2 + x + u, infinity)
+            sage: w.upper_bound(x^2 + x + u)
+            +Infinity
+
+        """
+        return self._base_valuation.upper_bound(self.coefficients(f).next())

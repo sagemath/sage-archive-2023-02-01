@@ -485,6 +485,22 @@ cdef class gen(gen_auto):
         # stored.
         return new_gen(gel(self.g, 1))
 
+    # Special case: SageMath uses polred(), so mark it as not
+    # obsolete: https://trac.sagemath.org/ticket/22165
+    def polred(self, *args, **kwds):
+        r'''
+        This function is :emphasis:`deprecated`, use :meth:`.polredbest` instead.
+
+        TESTS::
+
+            sage: pari('x^4 + 8').polred(2)
+            [1, x - 1; 1/2*x^2 + 1, x^2 - 2*x + 3; -1/2*x^2 + 1, x^2 - 2*x + 3; 1/2*x^2, x^2 + 2; 1/4*x^3, x^4 + 2]
+        '''
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return super(gen, self).polred(*args, **kwds)
+
     def nf_get_pol(self):
         """
         Returns the defining polynomial of this number field.

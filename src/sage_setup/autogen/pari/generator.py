@@ -205,11 +205,6 @@ class PariFunctionGenerator(object):
             cargs = args[1:]
             f = self.instance_file
 
-        # Special case: SageMath uses polred(), so mark it as not
-        # obsolete: https://trac.sagemath.org/ticket/22165
-        if function == "polred":
-            obsolete = False
-
         self.write_method(function, cname, args, ret, cargs, f,
                 get_rest_doc(function), obsolete)
 

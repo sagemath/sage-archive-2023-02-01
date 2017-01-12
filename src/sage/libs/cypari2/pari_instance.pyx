@@ -274,9 +274,6 @@ from .convert cimport new_gen_from_double
 from .handle_error cimport _pari_init_error_handling
 from .closure cimport _pari_init_closure
 
-from sage.ext.memory import init_memory_functions
-from sage.env import CYGWIN_VERSION
-
 # Default precision (in PARI words) for the PARI library interface,
 # when no explicit precision is given and the inputs are exact.
 cdef long prec = prec_bits_to_words(53)

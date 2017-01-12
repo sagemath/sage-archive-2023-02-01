@@ -919,7 +919,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         unique representation.
 
         For more information see :class:`ReconizableSeriesSpace`
-        and :meth:`__normalize__'.
+        and :meth:`__normalize__`.
 
         TESTS::
 

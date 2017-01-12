@@ -242,7 +242,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     cdef Polynomial _new_generic(self, list coeffs):
         r"""
-        Quickly construct a new polynomial of the same type as self,
+        Quickly construct a new polynomial of the same type as ``self``,
         bypassing the parent's element constructor.
 
         The new polynomial takes ownership of the coefficient list
@@ -1040,7 +1040,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 stop = d
             values = ([self.base_ring().zero()] * start
                       + [self.get_unsafe(i) for i in xrange(start, stop)])
-            return self.parent()(values)
+            return self._new_generic(values)
 
         cdef long k = pyobject_to_long(n)
         if k < 0 or k >= d:
@@ -6506,7 +6506,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             v.reverse()
 
-        return self.parent()(v)
+        return self._new_generic(v)
 
     def roots(self, ring=None, multiplicities=True, algorithm=None, **kwds):
         """
@@ -9721,7 +9721,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         m = len(x)  # deg(self)=m-1
         n = len(y)  # deg(other)=n-1
         if m < n:
-            return self.parent()(0), self
+            return self.parent().zero(), self
 
         quo = list()
         for k from m-n >= k >= 0:

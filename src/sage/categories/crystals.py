@@ -817,7 +817,9 @@ class Crystals(Category_singleton):
                 sage: B.digraph()
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: infinite crystal
+                ValueError: crystals not known to be finite must specify either the subset or depth
+                sage: B.digraph(depth=10)
+                Digraph on 161 vertices
 
             .. TODO:: Add more tests.
             """

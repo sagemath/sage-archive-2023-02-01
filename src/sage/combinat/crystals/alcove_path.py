@@ -200,7 +200,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         ....:         g.delete_edge(e)  #long time
 
         sage: C = crystals.AlcovePaths(['B',3,1],[0,2,0], highest_weight_crystal=False)
-        sage: g2 = C.digraph_fast() #long time
+        sage: g2 = C.digraph() #long time
         sage: g.is_isomorphic(g2, edge_labels = True) #long time
         True
 
@@ -2059,7 +2059,7 @@ def _test_with_lspaths_crystal(cartan_type, weight, depth=10):
         True
     """
     from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
-    G1 = CrystalOfAlcovePaths(cartan_type, weight).digraph_fast(depth)
+    G1 = CrystalOfAlcovePaths(cartan_type, weight).digraph(depth=depth)
     C = CrystalOfLSPaths(cartan_type, weight)
     G2 = C.digraph(subset=C.subcrystal(max_depth=depth, direction='lower'))
 

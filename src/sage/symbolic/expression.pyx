@@ -1993,12 +1993,14 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: gamma(t1).is_real()
             True
-            sage: cosh(t0).is_real()
-            True
             sage: (x^pi).is_real()
             False
             sage: (cos(exp(t0) + log(t1))^t1).is_real()
             True
+            sage: cos(I).is_real()
+            False
+            sage: sin(2 - I).is_real()
+            False
 
         The following is real, but we cannot deduce that.::
 
@@ -2010,6 +2012,8 @@ cdef class Expression(CommutativeRingElement):
             sage: forget()
             sage: assume(x, 'real')
             sage: x.is_real()
+            True
+            sage: cosh(x).is_real()
             True
             sage: forget()
         """
@@ -2042,6 +2046,8 @@ cdef class Expression(CommutativeRingElement):
             sage: assume(x>0)
             sage: x.is_positive()
             True
+            sage: cosh(x).is_positive()
+            True
             sage: f = function('f')(x)
             sage: assume(f>0)
             sage: f.is_positive()
@@ -2072,6 +2078,10 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: gamma(real(x)^2+1).is_positive()
             True
+            sage: cos(I).is_positive()
+            False
+            sage: sin(2 - I).is_positive()
+            False
         """
         return self._gobj.info(info_positive)
 

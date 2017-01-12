@@ -7,7 +7,7 @@ recognizable if it has a linear representation, i.e., there exists
 
 - a nonnegative integer `n`
 
-and there exists
+and there exist
 
 - two vectors `\mathit{left}` and `\mathit{right}` of dimension `n` and
 
@@ -918,7 +918,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         Prepare normalizing the input in order to ensure a
         unique representation.
 
-        For more information see :class:`ReconizableSeriesSpace`
+        For more information see :class:`RecognizableSeriesSpace`
         and :meth:`__normalize__`.
 
         TESTS::

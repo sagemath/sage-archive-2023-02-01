@@ -285,26 +285,26 @@ def lazy_list_formatter(L, name='lazy list',
 
     INPUT:
 
-    - ``L`` -- an iterable object.
+    - ``L`` -- an iterable object
 
     - ``name`` -- (default: ``'lazy list'``) a string appearing
       at first position (i.e., in front of the actual values)
-      in the representation.
+      in the representation
 
     - ``opening_delimiter`` -- (default: ``'['``) a string heading
-      the shown entries.
+      the shown entries
 
     - ``closing_delimiter`` -- (default: ``']'``) a string trailing
       the shown entries
 
     - ``separator`` -- (default: ``', '``) a string appearing between
-      two entries.
+      two entries
 
     - ``more`` -- (default: ``'...'``) a string indicating that
-      not all entries of the list are shown.
+      not all entries of the list are shown
 
     - ``preview`` -- (default: ``3``) an integer specifying the number of
-      elements shown in the representation string.
+      elements shown in the representation string
 
     OUTPUT:
 

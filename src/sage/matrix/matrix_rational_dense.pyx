@@ -1171,7 +1171,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [ 2/27 -4/27  2/27]
             [-1/27  2/27 -1/27]
         """
-        return self.parent()(self._pari_().matadjoint().python())
+        return self.parent()(self._pari_().matadjoint().sage())
 
     def _magma_init_(self, magma):
         """

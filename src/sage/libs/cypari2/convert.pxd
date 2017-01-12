@@ -3,6 +3,7 @@ from .gen cimport gen
 
 cpdef integer_to_gen(x)
 cpdef gen_to_integer(gen x)
+cpdef gen_to_python(gen z)
 
 cdef GEN gtoi(GEN g0) except NULL
 cdef GEN PyLong_AsGEN(x)

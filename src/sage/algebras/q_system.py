@@ -36,11 +36,11 @@ class QSystem(CombinatorialFreeModule):
     r"""
     A Q-system.
 
-    Let `\mathfrak{g}` be a symmetrizable Kac-Moody algebra with index
-    set `I` over a field `k`. Follow the presentation given in [HKOTY99]_,
-    an unrestricted Q-system is a `k`-algebra in infinitely many variables
-    `Q^{(a)}_m`, where `a \in I` and `m \in \ZZ_{>0}`, which satisifies
-    the relations
+    Let `\mathfrak{g}` be a tamely-laced symmetrizable Kac-Moody algebra
+    with index set `I` over a field `k`. Follow the presentation given
+    in [HKOTY99]_, an unrestricted Q-system is a `k`-algebra in infinitely
+    many variables `Q^{(a)}_m`, where `a \in I` and `m \in \ZZ_{>0}`,
+    that satisifies the relations
 
     .. MATH::
 
@@ -53,7 +53,7 @@ class QSystem(CombinatorialFreeModule):
     type, have a solution given by the characters of Kirillov-Reshetikhin
     modules (again without the spectral parameter) for an affine Kac-Moody
     algebra `\widehat{\mathfrak{g}}` with `\mathfrak{g}` as its classical
-    subalgebra.
+    subalgebra. See [KNS2011]_ for more information.
 
     Q-systems have a natural bases given by polynomials of the
     fundamental representations `Q^{(a)}_1`, for `a \in I`. As such, we
@@ -94,8 +94,8 @@ class QSystem(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [HKOTY99] G. Hatayama, A. Kuniba, M. Okado, T. Tagaki, and Y. Yamada.
-       *Remarks on fermionic formula*. Contemp. Math., **248** (1999).
+    - [HKOTY1999]_
+    - [KNS2011]_
     """
     @staticmethod
     def __classcall__(cls, base_ring, cartan_type, level=None):
@@ -110,7 +110,8 @@ class QSystem(CombinatorialFreeModule):
             True
         """
         cartan_type = CartanType(cartan_type)
-        # TODO: Check for tamely laced!!!
+        if not is_tamely_laced(cartan_type):
+            raise ValueError("the Cartan type is not tamely-laced")
         return super(QSystem, cls).__classcall__(cls, base_ring, cartan_type, level)
 
     def __init__(self, base_ring, cartan_type, level):
@@ -461,6 +462,9 @@ class QSystem(CombinatorialFreeModule):
         return cur
 
     class Element(CombinatorialFreeModule.Element):
+        """
+        An element of a Q-system.
+        """
         def _mul_(self, x):
             """
             Return the product of ``self`` and ``x``.
@@ -476,4 +480,44 @@ class QSystem(CombinatorialFreeModule):
             """
             return self.parent().sum_of_terms((tl*tr, cl*cr)
                                               for tl,cl in self for tr,cr in x)
+
+def is_tamely_laced(ct):
+    r"""
+    Check if the Cartan type ``ct`` is tamely-laced.
+
+    A (symmetrizable) Cartan type with index set `I` is *tamely-laced*
+    if `A_{ij} < -1` implies `d_i = -A_{ji} = 1` for all `i,j \in I`,
+    where `(d_i)_{i \in I}` is the diagonal matrix symmetrizing the
+    Cartan matrix `(A_{ij})_{i,j \in I}`.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.q_system import is_tamely_laced
+        sage: all(is_tamely_laced(ct)
+        ....:     for ct in CartanType.samples(crystallographic=True, finite=True))
+        True
+        sage: for ct in CartanType.samples(crystallographic=True, affine=True):
+        ....:     if not is_tamely_laced(ct):
+        ....:         print(ct)
+        ['A', 1, 1]
+        ['BC', 1, 2]
+        ['BC', 5, 2]
+        ['BC', 1, 2]^*
+        ['BC', 5, 2]^*
+        sage: cm = CartanMatrix([[2,-1,0,0],[-3,2,-2,-2],[0,-1,2,-1],[0,-1,-1,2]])
+        sage: is_tamely_laced(cm)
+        True
+    """
+    if ct.is_finite():
+        return True
+
+    if ct.is_affine():
+        return not (ct is CartanType(['A',1,1]) or
+                    (ct.type() == 'BC' or ct.dual().type() == 'BC'))
+
+    cm = ct.cartan_matrix()
+    d = cm.symmetrizer()
+    I = ct.index_set()
+    return all(-cm[j,i] == 1 and d[i] == 1
+               for i in I for j in I if cm[i,j] < -1)
 

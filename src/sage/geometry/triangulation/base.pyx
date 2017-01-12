@@ -420,10 +420,7 @@ cdef class PointConfiguration_base(Parent):
         Special cases::
 
             sage: PointConfiguration([])
-            A point configuration in affine 0-space over None consisting
-            of 0 points. The triangulations of this point configuration
-            are assumed to be connected, not necessarily fine,
-            not necessarily regular.
+            The pointless empty configuration
             sage: PointConfiguration([(1,2,3)])
             A point configuration in affine 3-space over Integer Ring
             consisting of 1 point. The triangulations of this point

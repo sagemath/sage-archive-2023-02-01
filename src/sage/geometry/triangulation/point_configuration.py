@@ -572,6 +572,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             s += '.'
         else:
             s += ', and star with center '+str(self.star_center())+'.'
+        if self.n_points() == 0:
+            s = 'The pointless empty configuration'
         return s
 
 

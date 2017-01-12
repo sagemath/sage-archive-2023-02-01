@@ -1074,7 +1074,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         from sage.rings.polynomial.padics.polynomial_padic import _pari_padic_factorization_to_sage
         return _pari_padic_factorization_to_sage(G, R, self.leading_coefficient())
 
-    def list(self):
+    cpdef list list(self):
         """
         Return a new copy of the list of the underlying
         elements of self.

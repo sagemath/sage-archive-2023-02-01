@@ -340,7 +340,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             self._parent._singular_(singular).set_ring()  # Expensive!
         return singular(self._singular_init_())
 
-    def list(self):
+    cpdef list list(self):
         """
         Returns a list with the coefficients of self.
 

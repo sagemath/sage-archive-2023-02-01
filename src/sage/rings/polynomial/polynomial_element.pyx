@@ -254,21 +254,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             n -= 1
         return type(self)(self._parent, coeffs, check=False)
 
-    def _dict_to_list(self, x, zero):
-          if len(x) == 0:
-              return []
-          n = max(x.keys())
-          if isinstance(n, tuple): # a mpoly dict
-              n = n[0]
-              v = [zero] * (n+1)
-              for i, z in x.iteritems():
-                  v[i[0]] = z
-          else:
-              v = [zero] * (n+1)
-              for i, z in x.iteritems():
-                  v[i] = z
-          return v
-
     cpdef _add_(self, right):
         r"""
         Add two polynomials.
@@ -1613,6 +1598,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             implement a generic truncated Karatsuba and use it here.
         """
         cdef Polynomial pol
+        cdef list x, y
         if not self or not right:
             return self._parent.zero()
         elif n < self._parent._Karatsuba_threshold:
@@ -2625,7 +2611,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return (self.degree() == self.valuation() and
                 self.leading_coefficient()._is_atomic())
 
-    def _mul_generic(self, right):
+    cpdef _mul_generic(self, right):
         """
         Compute the product of self and right using the classical quadratic
         algorithm. This method is the default for inexact rings.
@@ -2684,17 +2670,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self is right:
             return self._square_generic()
-        x = self.list()
-        y = right.list()
+        cdef list x = self.list()
+        cdef list y = right.list()
         return self._new_generic(do_schoolbook_product(x, y, -1))
 
-    def _square_generic(self):
-        x = self.list()
+    cdef _square_generic(self):
+        cdef list x = self.list()
         cdef Py_ssize_t i, j
         cdef Py_ssize_t d = len(x)-1
         zero = self._parent.base_ring().zero()
         two = self._parent.base_ring()(2)
-        coeffs = [zero] * (2 * d + 1)
+        cdef list coeffs = [zero] * (2 * d + 1)
         for i from 0 <= i <= d:
             coeffs[2*i] = x[i] * x[i]
             for j from 0 <= j < i:
@@ -2927,8 +2913,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self
         elif right.is_zero():
             return right
-        f = self.list()
-        g = right.list()
+        cdef list f = self.list()
+        cdef list g = right.list()
         n = len(f)
         m = len(g)
         if n == 1:
@@ -5310,9 +5296,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         l = self.list()
         return [i for i in range(len(l)) if l[i] != zero]
 
-    def list(self):
+    cpdef list list(self):
         """
-        Return a new copy of the list of the underlying elements of self.
+        Return a new copy of the list of the underlying elements of ``self``.
 
         EXAMPLES::
 
@@ -5445,7 +5431,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         - ``m`` - a monomial
 
         OUTPUT:
-            coefficient in base ring
+
+        Coefficient in base ring.
 
         EXAMPLES::
 
@@ -9015,7 +9002,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.overflowcheck(False)
-cdef do_schoolbook_product(x, y, Py_ssize_t deg):
+cdef list do_schoolbook_product(list x, list y, Py_ssize_t deg):
     """
     Compute the truncated multiplication of two polynomials represented by
     lists, using the schoolbook algorithm.
@@ -9067,7 +9054,7 @@ cdef do_schoolbook_product(x, y, Py_ssize_t deg):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.overflowcheck(False)
-cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
+cdef list do_karatsuba_different_size(list left, list right, Py_ssize_t K_threshold):
     """
     Multiply two polynomials of different degrees by splitting the one of
     largest degree in chunks that are multiplied with the other using the
@@ -9149,7 +9136,7 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.overflowcheck(False)
-cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssize_t start_r,Py_ssize_t num_elts):
+cdef list do_karatsuba(list left, list right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssize_t start_r,Py_ssize_t num_elts):
     """
     Core routine for Karatsuba multiplication. This function works for two
     polynomials of the same degree.
@@ -9306,7 +9293,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             return
 
         elif isinstance(x, dict):
-            x = self._dict_to_list(x, R.zero())
+            x = _dict_to_list(x, R.zero())
 
         elif isinstance(x, pari_gen):
             x = [R(w, **kwds) for w in x.list()]
@@ -9551,7 +9538,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             return self._new_c(low + high, self._parent)
 
     cpdef _rmul_(self, RingElement c):
-        if len(self.__coeffs) == 0:
+        if not self.__coeffs:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:
             c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
@@ -9563,7 +9550,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         return res
 
     cpdef _lmul_(self, RingElement c):
-        if len(self.__coeffs) == 0:
+        if not self.__coeffs:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:
             c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
@@ -9593,7 +9580,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self.__coeffs[0]
 
-    def list(self, copy=True):
+    cpdef list list(self, copy=True):
         """
         Return a new copy of the list of the underlying elements of self.
 
@@ -9908,6 +9895,30 @@ cpdef Polynomial generic_power_trunc(Polynomial p, Integer n, long prec):
 
     return power
 
+cpdef list _dict_to_list(dict x, zero):
+    """
+    Convert a dict to a list.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.polynomial_element import _dict_to_list
+        sage: _dict_to_list({3:-1, 0:5}, 0)
+        [5, 0, 0, -1]
+    """
+    if not x:
+        return []
+    n = max(x.keys())
+    cdef list v
+    if isinstance(n, tuple): # a mpoly dict
+        n = n[0]
+        v = [zero] * (n+1)
+        for i, z in x.iteritems():
+            v[i[0]] = z
+    else:
+        v = [zero] * (n+1)
+        for i, z in x.iteritems():
+            v[i] = z
+    return v
 
 cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
     """

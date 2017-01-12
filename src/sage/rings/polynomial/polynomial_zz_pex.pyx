@@ -171,7 +171,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         cdef ZZ_pE_c c_pE = ZZ_pEX_coeff(self.x, i)
         return self._parent._base(ZZ_pE_c_to_list(c_pE))
 
-    def list(self):
+    cpdef list list(self):
         """
         Returs the list of coefficients.
 

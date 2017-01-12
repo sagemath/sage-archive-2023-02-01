@@ -75,6 +75,7 @@ from sage.rings.integer cimport Integer
 from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
+from sage.rings.polynomial.polynomial_element cimport _dict_to_list
 from sage.structure.element import coerce_binop
 from sage.misc.superseded import experimental
 
@@ -2201,7 +2202,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return
 
         elif isinstance(x, dict):
-            x = self._dict_to_list(x, R.zero())
+            x = _dict_to_list(x, R.zero())
 
         elif not isinstance(x, list):
             x = [x]

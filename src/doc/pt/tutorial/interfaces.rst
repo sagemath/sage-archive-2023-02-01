@@ -103,7 +103,7 @@ Primeiro criamos uma lista do PARI a partir de uma lista do Python.
     sage: type(v)
     <type 'sage.libs.cypari2.gen.Gen'>
 
-Cada objeto do PARI é do tipo ``py_pari_gem``. O tipo PARI do objeto
+Cada objeto do PARI é do tipo ``Gen``. O tipo PARI do objeto
 subjacente pode ser obtido usando a função ``type``.
 
 ::
@@ -112,9 +112,9 @@ subjacente pode ser obtido usando a função ``type``.
     't_VEC'
 
 Em PARI, para criar uma curva elíptica digitamos
-``ellinit([1,2,3,4,5])``. Em Sage é similar, exceto que ``ellnint`` é
+``ellinit([1,2,3,4,5])``. Em Sage é similar, exceto que ``ellinit`` é
 um método que pode ser chamado em qualquer objeto do PARI, por
-exemplo, ``t\_VEC v``.
+exemplo, ``t_VEC`` `v`.
 
 ::
 

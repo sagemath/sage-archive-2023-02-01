@@ -100,7 +100,7 @@ Zuerst erstellen wir eine PARI-Liste aus einer Python-Liste.
     sage: type(v)
     <type 'sage.libs.cypari2.gen.Gen'>
 
-Jedes PARI-Objekt ist vom Typ ``py_pari.gen``. Den PARI Typ des vorliegenden
+Jedes PARI-Objekt ist vom Typ ``Gen``. Den PARI Typ des vorliegenden
 Objekts können Sie mit der ``type`` Unterfunktion herausfinden.
 
 .. link
@@ -113,7 +113,7 @@ Objekts können Sie mit der ``type`` Unterfunktion herausfinden.
 Um eine elliptische Kurve in PARI zu erstellen geben Sie
 ``ellinit([1,2,3,4,5])`` ein. Bei Sage ist es ähnlich, nur
 dass ``ellinit`` eine Methode ist, die von jedem PARI-Objekt
-aus aufgerufen werden kann, z.B. unser ``t\_VEC v``.
+aus aufgerufen werden kann, z.B. unser ``t_VEC`` `v`.
 
 .. link
 

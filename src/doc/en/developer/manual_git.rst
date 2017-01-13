@@ -46,7 +46,7 @@ of them as bookmarks. You can then use ``git pull`` to get changes and
 
     [user@localhost sage]$ git <push|pull> trac [ARGS]
 
-.. note::
+.. NOTE::
 
     In the command above we set up the remote to only track the
     ``master`` branch on the trac server (the ``-t master``
@@ -325,7 +325,7 @@ If you don't have a favourite merge tool we suggest you try `meld
 <http://meldmerge.org/>`_ (cross-platform). The result looks like the following
 screenshot.
 
-.. image:: static/meld-screenshot.png
+.. IMAGE:: static/meld-screenshot.png
 
 The middle file is the most recent common parent; on the right is
 Bob's version and on the left is Alice's conflicting version. Clicking

@@ -164,7 +164,7 @@ from sage.libs.gmp.mpq cimport mpq_neg
 from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
-from sage.libs.cypari2.gen cimport objtogen, gen as pari_gen
+from sage.libs.cypari2.gen cimport objtogen, Gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
 from sage.libs.cypari2.stack cimport new_gen
 from sage.libs.flint.ulong_extras cimport *
@@ -5592,7 +5592,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: m = n._pari_(); m
             9390823
             sage: type(m)
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
 
         TESTS::
 

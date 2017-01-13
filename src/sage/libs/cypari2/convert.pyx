@@ -75,10 +75,10 @@ cpdef integer_to_gen(x):
         sage: from sage.libs.cypari2.convert import integer_to_gen
         sage: a = integer_to_gen(int(12345)); a; type(a)
         12345
-        <... 'sage.libs.cypari2.gen.gen'>
+        <... 'sage.libs.cypari2.gen.Gen'>
         sage: a = integer_to_gen(long(12345)); a; type(a)
         12345
-        <... 'sage.libs.cypari2.gen.gen'>
+        <... 'sage.libs.cypari2.gen.Gen'>
         sage: integer_to_gen(float(12345))
         Traceback (most recent call last):
         ...
@@ -99,7 +99,7 @@ cpdef integer_to_gen(x):
         return new_gen(PyLong_AsGEN(x))
     raise TypeError("integer_to_gen() needs an int or long argument, not {}".format(type(x).__name__))
 
-cpdef gen_to_integer(gen x):
+cpdef gen_to_integer(Gen x):
     """
     Convert a PARI ``gen`` to a Python ``int`` or ``long``.
 
@@ -352,7 +352,7 @@ cdef PyLong_FromGEN(GEN g):
 # Other basic types
 ####################################
 
-cdef gen new_t_POL_from_int_star(int* vals, unsigned long length, long varnum):
+cdef Gen new_t_POL_from_int_star(int* vals, unsigned long length, long varnum):
     """
     Note that degree + 1 = length, so that recognizing 0 is easier.
 
@@ -374,7 +374,7 @@ cdef gen new_t_POL_from_int_star(int* vals, unsigned long length, long varnum):
     return new_gen(z)
 
 
-cdef gen new_gen_from_double(double x):
+cdef Gen new_gen_from_double(double x):
     # Pari has an odd concept where it attempts to track the accuracy
     # of floating-point 0; a floating-point zero might be 0.0e-20
     # (meaning roughly that it might represent any number in the
@@ -398,7 +398,7 @@ cdef gen new_gen_from_double(double x):
     return new_gen(g)
 
 
-cdef gen new_t_COMPLEX_from_double(double re, double im):
+cdef Gen new_t_COMPLEX_from_double(double re, double im):
     sig_on()
     cdef GEN g = cgetg(3, t_COMPLEX)
     if re == 0:
@@ -413,10 +413,10 @@ cdef gen new_t_COMPLEX_from_double(double re, double im):
 
 
 ####################################
-# Conversion of gen to Python type #
+# Conversion of Gen to Python type #
 ####################################
 
-cpdef gen_to_python(gen z):
+cpdef gen_to_python(Gen z):
     r"""
     Convert the PARI element ``z`` to a Python object.
 

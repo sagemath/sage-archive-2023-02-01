@@ -48,9 +48,9 @@ EXAMPLES::
 Arithmetic operations cause all arguments to be converted to PARI::
 
     sage: type(pari(1) + 1)
-    <type 'sage.libs.cypari2.gen.gen'>
+    <type 'sage.libs.cypari2.gen.Gen'>
     sage: type(1 + pari(1))
-    <type 'sage.libs.cypari2.gen.gen'>
+    <type 'sage.libs.cypari2.gen.Gen'>
 
 Guide to real precision in the PARI interface
 =============================================
@@ -268,7 +268,7 @@ cimport cython
 
 from .paridecl cimport *
 from .paripriv cimport *
-from .gen cimport gen, objtogen
+from .gen cimport Gen, objtogen
 from .stack cimport new_gen, new_gen_noclear, clear_stack
 from .convert cimport new_gen_from_double
 from .handle_error cimport _pari_init_error_handling
@@ -773,7 +773,7 @@ cdef class Pari(Pari_auto):
 
     def double_to_gen(self, x):
         """
-        Create a new gen with the value of the double x, using Pari's
+        Create a new Gen with the value of the double x, using Pari's
         dbltor.
 
         EXAMPLES::
@@ -799,8 +799,8 @@ cdef class Pari(Pari_auto):
         """
         Create a new complex number, initialized from re and im.
         """
-        cdef gen t0 = self(re)
-        cdef gen t1 = self(im)
+        cdef Gen t0 = self(re)
+        cdef Gen t1 = self(im)
         sig_on()
         return new_gen(mkcomplex(t0.g, t1.g))
 
@@ -830,7 +830,7 @@ cdef class Pari(Pari_auto):
         """
         return objtogen(s)
 
-    cpdef gen zero(self):
+    cpdef Gen zero(self):
         """
         EXAMPLES::
 
@@ -839,7 +839,7 @@ cdef class Pari(Pari_auto):
         """
         return self.PARI_ZERO
 
-    cpdef gen one(self):
+    cpdef Gen one(self):
         """
         EXAMPLES::
 
@@ -851,7 +851,7 @@ cdef class Pari(Pari_auto):
     def new_with_bits_prec(self, s, long precision):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI
-        gen with (at most) precision *bits* of precision.
+        Gen with (at most) precision *bits* of precision.
         """
         cdef unsigned long old_prec
         old_prec = GP_DATA.fmt.sigd
@@ -1100,7 +1100,7 @@ cdef class Pari(Pari_auto):
             sage: pari.primes(3,2)
             []
         """
-        cdef gen t0, t1
+        cdef Gen t0, t1
         if end is None:
             t0 = objtogen(n)
             sig_on()
@@ -1169,7 +1169,7 @@ cdef class Pari(Pari_auto):
             sage: pari.polsubcyclo(8, 3)
             []
         """
-        cdef gen plist
+        cdef Gen plist
         sig_on()
         plist = new_gen(polsubcyclo(n, d, get_var(v)))
         if typ(plist.g) != t_VEC:
@@ -1207,7 +1207,7 @@ cdef class Pari(Pari_auto):
             ...
             PariError: incorrect type in setrand (t_POL)
         """
-        cdef gen t0 = self(seed)
+        cdef Gen t0 = self(seed)
         sig_on()
         setrand(t0.g)
         sig_off()
@@ -1228,7 +1228,7 @@ cdef class Pari(Pari_auto):
             ...
             IndexError: length of entries (=3) must equal n (=2)
         """
-        cdef gen v = self._empty_vector(n)
+        cdef Gen v = self._empty_vector(n)
         if entries is not None:
             if len(entries) != n:
                 raise IndexError("length of entries (=%s) must equal n (=%s)"%\
@@ -1237,8 +1237,8 @@ cdef class Pari(Pari_auto):
                 v[i] = x
         return v
 
-    cdef gen _empty_vector(self, long n):
-        cdef gen v
+    cdef Gen _empty_vector(self, long n):
+        cdef Gen v
         sig_on()
         v = new_gen(zerovec(n))
         return v
@@ -1249,8 +1249,8 @@ cdef class Pari(Pari_auto):
         PARI matrix with given list of entries.
         """
         cdef long i, j, k
-        cdef gen A
-        cdef gen x
+        cdef Gen A
+        cdef Gen x
 
         sig_on()
         A = new_gen(zeromatcopy(m,n))
@@ -1282,7 +1282,7 @@ cdef class Pari(Pari_auto):
             sage: pari.genus2red([-5*x^5, x^3 - 2*x^2 - 2*x + 1])
             [1416875, [2, -1; 5, 4; 2267, 1], x^6 - 240*x^4 - 2550*x^3 - 11400*x^2 - 24100*x - 19855, [[2, [2, [Mod(1, 2)]], []], [5, [1, []], ["[V] page 156", [3]]], [2267, [2, [Mod(432, 2267)]], ["[I{1-0-0}] page 170", []]]]]
         """
-        cdef gen t0 = objtogen(P)
+        cdef Gen t0 = objtogen(P)
         sig_on()
         return new_gen(genus2red(t0.g, NULL))
 
@@ -1309,7 +1309,7 @@ cdef class Pari(Pari_auto):
         if x is None:
             sig_on()
             return new_gen(listcreate())
-        cdef gen t0 = objtogen(x)
+        cdef Gen t0 = objtogen(x)
         sig_on()
         return new_gen(gtolist(t0.g))
 
@@ -1374,9 +1374,9 @@ cdef long get_var(v) except -2:
     if v is None:
         return -1
     cdef long varno
-    if isinstance(v, gen):
+    if isinstance(v, Gen):
         sig_on()
-        varno = gvar((<gen>v).g)
+        varno = gvar((<Gen>v).g)
         sig_off()
         if varno < 0:
             return -1

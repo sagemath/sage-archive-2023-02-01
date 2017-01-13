@@ -2,14 +2,14 @@ from .types cimport *
 cimport cython
 
 
-cdef class gen_auto:
+cdef class Gen_auto:
     cdef GEN g
     cdef pari_sp b
     cdef dict refers_to
 
 @cython.final
-cdef class gen(gen_auto):
+cdef class Gen(Gen_auto):
     pass
 
-cdef gen new_ref(GEN g, gen parent)
-cpdef gen objtogen(s)
+cdef Gen new_ref(GEN g, Gen parent)
+cpdef Gen objtogen(s)

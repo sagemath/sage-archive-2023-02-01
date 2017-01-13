@@ -7016,10 +7016,7 @@ def bdd_affine_perm(A):
 
     For more on bounded affine permutations, see
 
-    ..[KLS] Allen Knutson, Thomas Lam, and David Speyer.
-    Positroid Varieties: Juggling and Geometry
-    Compositio Mathematica, Volume 149, Issue 10, 2013
-    arXiv:1111.3660 [math.AG]
+    - [KLS2013]_
     """
     n = A.ncols()
     z = zero_vector(CC, A.nrows())

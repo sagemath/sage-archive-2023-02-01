@@ -22,14 +22,15 @@ by running::
     [user@localhost sage]$ git checkout develop
     [user@localhost sage]$ make
 
-.. note::
+.. NOTE::
 
-    If your system supports multiprocessing and you want to use multiple 
+    If your system supports multiprocessing and you want to use multiple
     processors to build Sage, replace the last line above by::
 
     [user@localhost sage]$ MAKE='make -jNUM' make
 
-    to tell the ``make`` program to run ``NUM`` jobs in parallel when building Sage.
+    to tell the ``make`` program to run ``NUM`` jobs in parallel when
+    building Sage.
 
 .. _section-git-trac:
 
@@ -55,7 +56,7 @@ of them as bookmarks. You can then use ``git pull`` to get changes and
 
     [user@localhost sage]$ git <push|pull> trac [ARGS]
 
-.. note::
+.. NOTE::
 
     In the command above we set up the remote to only track the
     ``master`` branch on the trac server (the ``-t master``
@@ -69,10 +70,10 @@ We set up the remote here to perform read-only operations (fetch)
 using the git protocol and write operations (push) using the ssh
 protocol (specified by the ``git@`` part). To use the ssh protocol you
 need to have a trac account and to set up your ssh public key as
-described in `Trac authentication through SSH 
-<http://doc.sagemath.org/html/en/developer/trac.html#trac-authentication-through-ssh>`_. 
-Authentication is necessary
-if you want to upload anything to ensure that it really is from you.
+described in `Trac authentication through ssh
+<http://doc.sagemath.org/html/en/developer/trac.html#trac-authentication-through-ssh>`_.
+Authentication is necessary if you want to upload anything to ensure
+that it really is from you.
 
 If you want to use ssh only, use these commands::
 

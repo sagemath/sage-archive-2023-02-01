@@ -351,7 +351,7 @@ trac ticket, enter the ticket number for the stopgap ticket in the "Stopgaps"
 field (see :ref:`section-trac-fields`). Stopgap tickets should be marked as
 blockers.
 
-.. note::
+.. NOTE::
 
     If mathematically valid code causes Sage to raise an error or
     crash, for example, there is no need for a stopgap.  Rather,

@@ -89,14 +89,15 @@ packages of Sage::
 
     [user@localhost sage]$ make
 
-.. note::
+.. NOTE::
 
-    If your system supports multiprocessing and you want to use multiple 
+    If your system supports multiprocessing and you want to use multiple
     processors to build Sage, replace the last line above by::
 
     [user@localhost sage]$ MAKE='make -jNUM' make
 
-    to tell the ``make`` program to run ``NUM`` jobs in parallel when building Sage.
+    to tell the ``make`` program to run ``NUM`` jobs in parallel when
+    building Sage.
 
 .. NOTE::
 
@@ -128,24 +129,22 @@ To begin with, type the command ``git branch``. You will see the following::
 
 The asterisk shows you which branch you are on. Without an argument,
 the ``git branch`` command displays a list of all local branches
-with the current one marked by an asterisk. 
+with the current one marked by an asterisk.
 
-It is easy to create a new branch; first make sure you are on the branch from 
-which you want to branch out. That is, if you are not currently on the 
+It is easy to create a new branch; first make sure you are on the branch from
+which you want to branch out. That is, if you are not currently on the
 ``develop`` branch, type the command ``git checkout develop``::
 
     [user@localhost sage]$ git checkout develop
     Switched to branch 'develop'
     Your branch is up-to-date with 'origin/develop'.
 
-Then use the ``git
-branch`` command to create a new branch, as follows::
+Then use the ``git branch`` command to create a new branch, as follows::
 
     [user@localhost sage]$ git branch last_twin_prime
 
-Also note that ``git
-branch`` creates a new branch, but does not switch to it. For this,
-you have to use ``git checkout``::
+Also note that ``git branch`` creates a new branch, but does not switch
+to it. For this, you have to use ``git checkout``::
 
     [user@localhost sage]$ git checkout last_twin_prime
     Switched to branch 'last_twin_prime'
@@ -158,8 +157,8 @@ Now if you use the command ``git branch``, you will see the following::
       master
 
 Note that unless you explicitly upload ("push") a branch to a remote
-git repository, the branch is a local branch that is only on your computer and not
-visible to anyone else.
+git repository, the branch is a local branch that is only on your computer
+and not visible to anyone else.
 
 To avoid typing the new branch name twice you can use the shortcut
 ``git checkout -b my_new_branch`` to create and switch to the new
@@ -249,15 +248,15 @@ as if you were `installing Sage from scratch
 However, this time only packages which were changed (or which depend
 on a changed package) will be recompiled,
 so it shoud be much faster than compiling Sage
-the first time. 
+the first time.
 
 .. NOTE::
 
-    If you have `pulled a branch from trac 
-    <http://doc.sagemath.org/html/en/developer/manual_git.html#checking-out-tickets>`_, 
-    it may depend on changes to third-party packages, so ``./sage -br`` may fail. 
-    If this happens (and you believe the code in this branch should compile), try 
-    running ``make``.
+    If you have `pulled a branch from trac
+    <http://doc.sagemath.org/html/en/developer/manual_git.html#checking-out-tickets>`_,
+    it may depend on changes to third-party packages, so ``./sage -br``
+    may fail.  If this happens (and you believe the code in this branch
+    should compile), try running ``make``.
 
 Rarely there are conflicts with other packages,
 or with the already-installed older version of the package that you

@@ -29,8 +29,9 @@ you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
 `Download the Sage source code <http://www.sagemath.org/download-source.html>`_
-or get it from the `git repository <https://github.com/sagemath/sage>`_. Note: if you 
-are installing Sage for development, you should rather follow the instructions in 
+or get it from the `git repository <https://github.com/sagemath/sage>`_.
+Note: if you  are installing Sage for development, you should rather follow
+the instructions in
 `The Sage Developer's Guide <http://doc.sagemath.org/html/en/developer/walk_through.html#chapter-walkthrough>`_.
 
 It is also possible to download a

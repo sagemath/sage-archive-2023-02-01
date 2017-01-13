@@ -89,7 +89,7 @@ packages of Sage::
 
     [user@localhost sage]$ make
 
-.. note::
+.. NOTE::
 
     If your system supports multiprocessing and you want to use multiple 
     processors to build Sage, replace the last line above by::

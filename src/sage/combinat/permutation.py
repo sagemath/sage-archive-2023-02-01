@@ -6993,7 +6993,6 @@ def bdd_affine_perm(A):
     r"""
     Return the bounded affine permutation of a matrix.
 
-
     INPUT:
 
     -"A"--a matrix with complex entries.
@@ -7007,6 +7006,7 @@ def bdd_affine_perm(A):
     If column i is the zero vector, then the permutation has a fixed point at i. 
 
     EXAMPLES::
+
         sage: from sage.combinat.permutation import bdd_affine_perm
         sage: A = Matrix(CC,[[1,0,0,0],[0,1,0,0]])
         sage: bdd_affine_perm(A)

@@ -94,7 +94,7 @@ packages of Sage::
     If your system supports multiprocessing and you want to use multiple 
     processors to build Sage, replace the last line above by::
 
-    [user@localhost sage]$ make -jNUM
+    [user@localhost sage]$ MAKE='make -jNUM' make
 
     to tell the ``make`` program to run ``NUM`` jobs in parallel when building Sage.
 
@@ -130,7 +130,9 @@ The asterisk shows you which branch you are on. Without an argument,
 the ``git branch`` command displays a list of all local branches
 with the current one marked by an asterisk. 
 
-It is easy to create a new branch; first make sure you are on the branch from which you want to branch out. That is, if you are not currently on the ``develop`` branch, type the command ``git checkout develop``::
+It is easy to create a new branch; first make sure you are on the branch from 
+which you want to branch out. That is, if you are not currently on the 
+``develop`` branch, type the command ``git checkout develop``::
 
     [user@localhost sage]$ git checkout develop
     Switched to branch 'develop'
@@ -251,7 +253,11 @@ the first time.
 
 .. NOTE::
 
-    If you have `pulled a branch from trac <http://doc.sagemath.org/html/en/developer/manual_git.html#checking-out-tickets>`_, it may depend on changes to third-party packages, so ``./sage -br`` may fail. If this happens (and you believe the code in this branch should compile), try running ``make``.
+    If you have `pulled a branch from trac 
+    <http://doc.sagemath.org/html/en/developer/manual_git.html#checking-out-tickets>`_, 
+    it may depend on changes to third-party packages, so ``./sage -br`` may fail. 
+    If this happens (and you believe the code in this branch should compile), try 
+    running ``make``.
 
 Rarely there are conflicts with other packages,
 or with the already-installed older version of the package that you

@@ -212,6 +212,9 @@ cdef class ECModularSymbol:
         self.nfs.createfromcurve(sign,CR[0])
         sig_off()
 
+    def __dealloc__(self):
+        del self.nfs
+
     def __repr__(self):
         """
         TESTS::

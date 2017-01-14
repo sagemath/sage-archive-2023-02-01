@@ -120,6 +120,35 @@ class DevelopingValuation(DiscretePseudoValuation):
         v = min(valuations)
         return [i for i,w in enumerate(valuations) if w == v][-1]
 
+    @cached_method
+    def _pow(self, x, e, error, effective_degree):
+        r"""
+        Return `x^e`.
+
+        This method does not compute the exact value of `x^e` but only an
+        element that differs from the correct result by an error with valuation
+        at least ``error``. The output is assumed to have at most
+        ``effective_degree``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R = Zp(2,5)
+            sage: S.<x> = R[]
+            sage: v = GaussValuation(S)
+            sage: v._pow(2*x + 1, 10, effective_degree=0, error=5)
+            (1 + O(2^5))
+
+        """
+        if e == 0:
+            return self.domain().one()
+        if e == 1:
+            return self.simplify(x, error=error)
+        if e % 2 == 0:
+            return self._pow(self.simplify(x*x, error=error*2/e, effective_degree=effective_degree*2/e), e//2, error=error, effective_degree=effective_degree)
+        else:
+            return self.simplify(x*self._pow(x, e-1, error=error*(e-1)/e, effective_degree=effective_degree*(e-1)/e), error=error, effective_degree=effective_degree)
+
     def coefficients(self, f):
         r"""
         Return the `\phi`-adic expansion of ``f``.

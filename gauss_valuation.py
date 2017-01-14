@@ -318,7 +318,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         return self.domain().change_ring(self._base_valuation.residue_ring())
 
-    def reduce(self, f, check=True, degree_bound=None):
+    def reduce(self, f, check=True, degree_bound=None, coefficients=None, valuations=None):
         """
         Return the reduction of ``f`` modulo this valuation.
 
@@ -331,6 +331,12 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         - ``degree_bound`` -- an a-priori known bound on the degree of the
           result which can speed up the computation (default: not set)
+
+        - ``coefficients`` -- the coefficients of ``f`` as produced by
+          :meth:`coefficients` or ``None`` (default: ``None``); ignored
+
+        - ``valuations`` -- the valuations of ``coefficients`` or ``None``
+          (default: ``None``); ignored
 
         OUTPUT:
 
@@ -751,7 +757,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         return self._base_valuation._relative_size(f[0])
 
-    def simplify(self, f, error=None, force=False, size_heuristic_bound=32):
+    def simplify(self, f, error=None, force=False, size_heuristic_bound=32, effective_degree=None):
         r"""
         Return a simplified version of ``f``.
 
@@ -770,6 +776,9 @@ class GaussValuation_generic(NonFinalInductiveValuation):
           heuristically no change in the coefficient size of ``f`` expected
           (default: ``False``)
 
+        - ``effective_degree`` -- when set, assume that coefficients beyond
+          ``effective_degree`` can be safely dropped (default: ``None``)
+
         - ``size_heuristic_bound` -- when ``force`` is not set, the expected
           factor by which the coefficients need to shrink to perform an actual
           simplification (default: 32)
@@ -786,6 +795,10 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         """
         f = self.domain().coerce(f)
+
+        if effective_degree is not None:
+            if effective_degree < f.degree():
+                f = f.truncate(effective_degree + 1)
 
         if not force and self._relative_size(f) < size_heuristic_bound:
             return f

@@ -1540,7 +1540,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         """
         tau = self.value_group().index(self._base_valuation.value_group())
         v = self._mu * tau
-        return self._pow(self.equivalence_unit(v), e, error=v*e)
+        return self._pow(self.equivalence_unit(v), e, error=v*e, effective_degree=0)
 
     @cached_method
     def _Q_reciprocal(self, e=1):
@@ -1564,7 +1564,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         
         tau = self.value_group().index(self._base_valuation.value_group())
         v = -self._mu * tau
-        ret = self._pow(self._Q_reciprocal(1), e, error=v*e)
+        ret = self._pow(self._Q_reciprocal(1), e, error=v*e, effective_degree=0)
 
         assert self.is_equivalence_unit(ret)
         # esentially this checks that the reduction of Q'*phi^tau is the
@@ -1709,7 +1709,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
                         lowest_valuation = ret
                 yield ret
 
-    def simplify(self, f, error=None, force=False, size_heuristic_bound=32):
+    def simplify(self, f, error=None, force=False, effective_degree=None, size_heuristic_bound=32):
         r"""
         Return a simplified version of ``f``.
 
@@ -1728,6 +1728,10 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
           heuristically no change in the coefficient size of ``f`` expected
           (default: ``False``)
 
+        - ``effective_degree`` -- when set, assume that coefficients beyond
+          ``effective_degree`` in the :meth:`phi`-adic development can be
+          safely dropped (default: ``None``)
+
         - ``size_heuristic_bound` -- when ``force`` is not set, the expected
           factor by which the coefficients need to shrink to perform an actual
           simplification (default: 32)
@@ -1744,6 +1748,11 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         """
         f = self.domain().coerce(f)
+
+        if effective_degree is not None:
+            if (QQ(f.degree())/self.phi().degree()).ceil() > effective_degree:
+                from itertools import islice
+                f = self.domain().change_ring(self.domain())(list(islice(self.coefficients(f), 0, effective_degree + 1, 1)))(self.phi())
 
         if not force and self._relative_size(f) < size_heuristic_bound:
             return f
@@ -1995,7 +2004,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         for i in range(num_infty_coefficients):
             yield infinity
 
-    def simplify(self, f, error=None, force=False):
+    def simplify(self, f, error=None, force=False, effective_degree=None):
         r"""
         Return a simplified version of ``f``.
 
@@ -2013,6 +2022,9 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         - ``force`` -- whether or not to simplify ``f`` even if there is
           heuristically no change in the coefficient size of ``f`` expected
           (default: ``False``)
+
+        - ``effective_degree`` -- ignored; for compatibility with other
+          ``simplify`` methods
 
         EXAMPLES::
 

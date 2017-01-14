@@ -1054,7 +1054,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
 
         OUTPUT:
 
-        A polynomial in the domain of the valuation with reduction ``F``.
+        A polynomial in the domain of the valuation with reduction ``F``
 
         EXAMPLES::
 
@@ -1334,13 +1334,17 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         assert self.psi()(ret).is_zero()
         return ret
 
-    def lift(self, F):
+    def lift(self, F, report_coefficients=False):
         """
         Return a polynomial which :meth:`reduce`s to ``F``.
 
         INPUT:
 
         - ``F`` -- an element of the :meth:`residue_ring`
+
+        - ``report_coefficients`` -- whether to return the coefficients of the
+          :meth:`phi`-adic expansion or the actual polynomial (default:
+          ``False``, i.e., return the polynomial)
 
         OUTPUT:
 
@@ -1423,6 +1427,9 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when _Q_reciprocal() is undefined)
         coeffs = [ (c if i == 0 else c*self._Q_reciprocal(i)).map_coefficients(_lift_to_maximal_precision) for i,c in enumerate(coeffs) ]
+
+        if report_coefficients:
+            return coeffs
 
         RR = self.domain().change_ring(self.domain())
 

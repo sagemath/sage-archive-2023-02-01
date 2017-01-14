@@ -1510,20 +1510,11 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         if F == F.parent().gen():
             return self.phi()
 
-        f = self.lift(F)
-        assert self.reduce(f) == F
-
-        f *= self._Q(F.degree())
-        coefficients = list(self.coefficients(f))
-        valuations = list(self.valuations(f, coefficients=coefficients))
-        CV = zip(coefficients, valuations)
-        vf = min(valuations)
-        CV = [(c,v) if v==vf else (c.parent().zero(),infinity) for c,v in CV]
-        while CV[-1][1] is infinity:
-            CV.pop()
-
-        CV[-1] = (CV[-1][0].parent().one(), vf)
-        ret = self.domain().change_ring(self.domain())([c for c,v in CV])(self.phi())
+        coefficients = self.lift(F, report_coefficients=True)[:-1]
+        coefficients = [c*self._Q(F.degree()) for c in coefficients] + [self.domain().one()]
+        tau = self.value_group().index(self._base_valuation.value_group())
+        vf = self._mu * tau * F.degree()
+        ret = self.domain().change_ring(self.domain())([c for c in coefficients])(self.phi()**tau)
         ret = self.simplify(ret, error=vf, force=True)
         ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
         assert (ret == self.phi()) == (F == F.parent().gen())

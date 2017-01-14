@@ -809,7 +809,12 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 w_coefficients = w.coefficients(G)
                 if principal_part_bound:
                     w_coefficients = islice(w_coefficients, 0, principal_part_bound + 1, 1)
-                w_coefficients = [self.simplify(c) for c in w_coefficients]
+                # We do not simplify w_coefficients here.
+                # In some cases (in particular when we are quite sure that the
+                # Newton polygon is not going to split,) we can reuse the
+                # coefficients a few times to compute better approximations
+                # without having to recompute them (which is often the most
+                # expnesive step of the whole process.)
 
                 w_valuations = w.valuations(G, coefficients=w_coefficients)
                 if principal_part_bound:
@@ -817,6 +822,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 w_valuations = list(w_valuations)
 
                 NP = w.newton_polygon(G, valuations=w_valuations).principal_part()
+
                 verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=11)
                 slopes = NP.slopes(repetition=True)
                 multiplicities = {slope : len([s for s in slopes if s == slope]) for slope in slopes}

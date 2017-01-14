@@ -809,6 +809,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 w_coefficients = w.coefficients(G)
                 if principal_part_bound:
                     w_coefficients = islice(w_coefficients, 0, principal_part_bound + 1, 1)
+                w_coefficients = list(w_coefficients)
                 # We do not simplify w_coefficients here.
                 # In some cases (in particular when we are quite sure that the
                 # Newton polygon is not going to split,) we can reuse the

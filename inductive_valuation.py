@@ -1060,12 +1060,17 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             from sage.rings.all import PolynomialRing
             R = PolynomialRing(f.parent(), 'phi')
             f = R(coefficients[phi_divides:])(self.phi())
-        valuation -= self.mu()*phi_divides
+        valuations = [v-self.mu()*phi_divides for v in valuations[phi_divides:]]
+        coefficients = coefficients[phi_divides:]
+        valuation = min(valuations)
 
         R = self.equivalence_unit(-valuation)
-        if degree_bound is not None:
-            R = R.truncate(degree_bound*self.phi().degree() + 1)
-        return valuation, phi_divides, self.reduce(f*R, check=False, degree_bound=degree_bound)
+        R = self.coefficients(R).next()
+        fR_valuations = [v-valuation for v in valuations]
+        from sage.rings.all import infinity
+        fR_coefficients = [self.coefficients(c*R).next() if v is not infinity and v == 0 else 0 for c,v in zip(coefficients,fR_valuations)]
+
+        return valuation, phi_divides, self.reduce(f*R, check=False, degree_bound=degree_bound, coefficients=fR_coefficients, valuations=fR_valuations)
 
     def is_equivalence_irreducible(self, f, coefficients=None, valuations=None):
         r"""
@@ -1258,7 +1263,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if compute_unit:
             for g,e in F:
                 v_g = self(g)
-                unit *= self._pow(self.equivalence_unit(-v_g, reciprocal=True), e, error=-v_g*e)
+                unit *= self._pow(self.equivalence_unit(-v_g, reciprocal=True), e, error=-v_g*e, effective_degree=0)
             unit = self.simplify(unit)
 
         if phi_divides:

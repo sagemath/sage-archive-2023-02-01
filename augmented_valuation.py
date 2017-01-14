@@ -1511,7 +1511,14 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
             return self.phi()
 
         coefficients = self.lift(F, report_coefficients=True)[:-1]
-        coefficients = [c*self._Q(F.degree()) for c in coefficients] + [self.domain().one()]
+        coefficients = [c*self._Q(F.degree()) for i,c in enumerate(coefficients)] + [self.domain().one()]
+        if len(coefficients) >= 2:
+            # The second-highest coefficient could %phi spill over into the
+            # highest constant (which is a constant one) so we need to mod it
+            # away.
+            # This can not happen for other coefficients because self._Q() has
+            # degree at most the degree of phi.
+            coefficients[-2] %= self.phi()
         tau = self.value_group().index(self._base_valuation.value_group())
         vf = self._mu * tau * F.degree()
         ret = self.domain().change_ring(self.domain())([c for c in coefficients])(self.phi()**tau)

@@ -905,7 +905,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
             # extension() implementation.)
             return base
 
-    def reduce(self, f, check=True, degree_bound=None):
+    def reduce(self, f, check=True, degree_bound=None, coefficients=None, valuations=None):
         r"""
         Reduce ``f`` module this valuation.
 
@@ -918,6 +918,14 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
 
         - ``degree_bound`` -- an a-priori known bound on the degree of the
           result which can speed up the computation (default: not set)
+
+        - ``coefficients`` -- the coefficients of ``f`` as produced by
+          :meth:`coefficients` or ``None`` (default: ``None``); this can be
+          used to speed up the computation when the expansion of ``f`` is
+          already known from a previous computation.
+
+        - ``valuations`` -- the valuations of ``coefficients`` or ``None``
+          (default: ``None``); ignored
 
         OUTPUT:
 
@@ -988,7 +996,10 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
             elif v > 0:
                 return self.residue_ring().zero()
 
-        constant_term = self.coefficients(f).next()
+        if coefficients is None:
+            constant_term = self.coefficients(f).next()
+        else:
+            constant_term = coefficients[0]
         constant_term_reduced = self._base_valuation.reduce(constant_term)
         return constant_term_reduced(self._residue_field_generator())
 
@@ -1163,7 +1174,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
             pass
         return base[self.domain().variable_name()]
 
-    def reduce(self, f, check=True, degree_bound=None):
+    def reduce(self, f, check=True, degree_bound=None, coefficients=None, valuations=None):
         r"""
         Reduce ``f`` module this valuation.
 
@@ -1176,6 +1187,14 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         - ``degree_bound`` -- an a-priori known bound on the degree of the
           result which can speed up the computation (default: not set)
+
+        - ``coefficients`` -- the coefficients of ``f`` as produced by
+          :meth:`coefficients` or ``None`` (default: ``None``); this can be
+          used to speed up the computation when the expansion of ``f`` is
+          already known from a previous computation.
+
+        - ``valuations`` -- the valuations of ``coefficients`` or ``None``
+          (default: ``None``)
 
         OUTPUT:
 
@@ -1244,13 +1263,16 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         tau = self.value_group().index(self._base_valuation.value_group())
 
-        coefficients = self.coefficients(f)
-        if degree_bound is not None:
-            from itertools import islice
-            coefficients = islice(coefficients, 0, tau*degree_bound + 1, 1)
+        if coefficients is None:
+            coefficients = self.coefficients(f)
+            if degree_bound is not None:
+                from itertools import islice
+                coefficients = islice(coefficients, 0, tau*degree_bound + 1, 1)
         coefficients = list(coefficients)
 
-        valuations = []
+        if valuations is None:
+            valuations = []
+        valuations = valuations[::tau]
 
         # rewrite as sum of f_i phi^{i tau}, i.e., drop the coefficients that
         # can have no influence on the reduction
@@ -1265,17 +1287,23 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
                 # the validity of the coefficients with i % tau == 0 is checked by
                 # the recursive call to reduce below
                 # replace f_i by f_i Q^{i tau}
-                v = self._base_valuation.lower_bound(c)
-                valuations.append(v)
-                if v is infinity or v > i*self._mu:
+                if i//tau >= len(valuations):
+                    # we do not the correct valuation of the coefficient, but
+                    # the computation is faster if we know that the coefficient
+                    # has positive valuation
+                    valuations.append(self._base_valuation.lower_bound(c) + i*self._mu)
+                v = valuations[i//tau]
+                if v is infinity or v > 0:
                     coefficients[i] = self.domain().zero()
+                    valuations[i//tau] = infinity
                 else:
                     coefficients[i] = c * self._Q(i//tau)
+                    valuations[i//tau] -= i*self._mu
 
         coefficients = coefficients[::tau]
 
         # recursively reduce the f_i Q^{i tau}
-        C = [self._base_valuation.reduce(c, check=False)(self._residue_field_generator()) if valuations[i] <= i*self._mu else self._base_valuation.residue_ring().zero() for i,c in enumerate(coefficients)]
+        C = [self._base_valuation.reduce(c, check=False)(self._residue_field_generator()) if valuations[i] is not infinity else self._base_valuation.residue_ring().zero() for i,c in enumerate(coefficients)]
 
         # reduce the Q'^i phi^i
         return self.residue_ring()(C)

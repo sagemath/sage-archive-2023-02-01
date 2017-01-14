@@ -395,7 +395,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         """
         return True
 
-    def mac_lane_approximants(self, G, assume_squarefree=False, require_final_EF=True, required_precision=-1, require_incomparability=False, require_maximal_degree=False):
+    def mac_lane_approximants(self, G, assume_squarefree=False, require_final_EF=True, required_precision=-1, require_incomparability=False, require_maximal_degree=False, algorithm="serial"):
         r"""
         Return approximants on `K[x]` for the extensions of this valuation to
         `L=K[x]/(G)`.
@@ -434,6 +434,9 @@ class DiscreteValuation(DiscretePseudoValuation):
           compute approximate factorizations of ``G``, when set to ``True``,
           the last key polynomial has the same degree as the corresponding
           factor.
+
+        - ``algorithm`` -- one of ``"serial"`` or ``"parallel"`` (default:
+          ``"serial"``); whether or not to parallelize the algorithm
 
         EXAMPLES::
 
@@ -710,14 +713,18 @@ class DiscreteValuation(DiscretePseudoValuation):
             structure = 'forest',
             enumeration = 'breadth')
         # this is a tad faster but annoying for profiling / debugging
-        #nodes = tree.map_reduce(
-        #    map_function = lambda x: [x],
-        #    reduce_init = [])
-        from sage.parallel.map_reduce import RESetMapReduce
-        nodes = RESetMapReduce(
-               forest = tree,
-               map_function = lambda x: [x],
-               reduce_init = []).run_serial()
+        if algorithm == 'parallel':
+            nodes = tree.map_reduce(
+                map_function = lambda x: [x],
+                reduce_init = [])
+        elif algorithm == 'serial':
+            from sage.parallel.map_reduce import RESetMapReduce
+            nodes = RESetMapReduce(
+                   forest = tree,
+                   map_function = lambda x: [x],
+                   reduce_init = []).run_serial()
+        else:
+            raise NotImplementedError(algorithm)
         leafs = set([node.valuation for node in nodes])
         for node in nodes:
             if node.parent is None:

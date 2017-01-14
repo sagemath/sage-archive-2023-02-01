@@ -1203,6 +1203,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
     @staticmethod
     def __classcall__(self, data, **kwargs):
+        r"""
+        Preparse input to make it hashable.
+
+        EXAMPLES::
+
+        sage: A = ClusterAlgebra(['A', 2]); A   # indirect doctest
+        A Cluster Algebra with cluster variables x0, x1 and no coefficients
+         over Integer Ring
+        """
         Q = ClusterQuiver(data)
         for key in kwargs:
             if isinstance(kwargs[key],list):

@@ -806,16 +806,18 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 old_mu = self(phi)
                 w = self.augmentation(phi, old_mu, check=False)
 
+                # we made some experiments here: instead of computing the
+                # coefficients again from scratch, update the coefficients when
+                # phi - self.phi() is a constant.
+                # It turned out to be slightly slower than just recomputing the
+                # coefficients. The main issue with the approach was that we
+                # needed to keep track of all the coefficients and not just of
+                # the coefficients up to principal_part_bound.
+
                 w_coefficients = w.coefficients(G)
                 if principal_part_bound:
                     w_coefficients = islice(w_coefficients, 0, principal_part_bound + 1, 1)
                 w_coefficients = list(w_coefficients)
-                # We do not simplify w_coefficients here.
-                # In some cases (in particular when we are quite sure that the
-                # Newton polygon is not going to split,) we can reuse the
-                # coefficients a few times to compute better approximations
-                # without having to recompute them (which is often the most
-                # expnesive step of the whole process.)
 
                 w_valuations = w.valuations(G, coefficients=w_coefficients)
                 if principal_part_bound:

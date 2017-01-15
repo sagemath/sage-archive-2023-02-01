@@ -1500,11 +1500,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             False
 
         """
-        if isinstance(right, (MPolynomialRing_libsingular, MPolynomialRing_polydict_domain)):
-            return cmp((left.base_ring(), map(str, left.gens()), left.term_order()),
-                       (right.base_ring(), map(str, right.gens()), right.term_order()))
-        else:
-            return cmp(type(left),type(right))
+        if not isinstance(right, (MPolynomialRing_libsingular, MPolynomialRing_polydict_domain)):
+            return -1  # arbitrary
+
+        lx = (left.base_ring(), map(str, left.gens()), left.term_order())
+        rx = (right.base_ring(), map(str, right.gens()), right.term_order())
+        if lx < rx:
+            return -1
+        if lx > rx:
+            return 1
+        return 0
 
     def __reduce__(self):
         """

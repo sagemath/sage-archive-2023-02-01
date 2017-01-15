@@ -10,10 +10,12 @@ cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
 cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
     cpdef ModuleElement __u
     cdef long __n
+    cpdef long number_of_terms(self)
 
 cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
     cdef ETuple _mon
     cdef MPolynomial _poly
     cdef PolyDict _prod
     cdef _new_c(self)
+    cpdef long number_of_terms(self)
 

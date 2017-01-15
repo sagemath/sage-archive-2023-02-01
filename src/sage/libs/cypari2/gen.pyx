@@ -88,8 +88,6 @@ from .pari_instance cimport (pari_instance, prec_bits_to_words, prec_words_to_bi
 from .stack cimport new_gen, new_gen_noclear, clear_stack
 from .closure cimport objtoclosure
 
-from sage.misc.superseded import deprecation, deprecated_function_alias
-
 
 include 'auto_gen.pxi'
 
@@ -486,6 +484,22 @@ cdef class gen(gen_auto):
         # representation of a INTMOD or POLDMOD where the modulus is
         # stored.
         return new_gen(gel(self.g, 1))
+
+    # Special case: SageMath uses polred(), so mark it as not
+    # obsolete: https://trac.sagemath.org/ticket/22165
+    def polred(self, *args, **kwds):
+        r'''
+        This function is :emphasis:`deprecated`, use :meth:`.polredbest` instead.
+
+        TESTS::
+
+            sage: pari('x^4 + 8').polred(2)
+            [1, x - 1; 1/2*x^2 + 1, x^2 - 2*x + 3; -1/2*x^2 + 1, x^2 - 2*x + 3; 1/2*x^2, x^2 + 2; 1/4*x^3, x^4 + 2]
+        '''
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return super(gen, self).polred(*args, **kwds)
 
     def nf_get_pol(self):
         """
@@ -1318,30 +1332,6 @@ cdef class gen(gen_auto):
     def __copy__(gen self):
         sig_on()
         return new_gen(gcopy(self.g))
-
-    def list_str(gen self):
-        """
-        Return str that might correctly evaluate to a Python-list.
-
-        TESTS::
-
-            sage: pari.primes(5).list_str()
-            doctest:...: DeprecationWarning: the method list_str() is deprecated
-            See http://trac.sagemath.org/20219 for details.
-            [2, 3, 5, 7, 11]
-        """
-        deprecation(20219, "the method list_str() is deprecated")
-
-        s = str(self)
-        if s[:4] == "Mat(":
-            s = "[" + s[4:-1] + "]"
-        s = s.replace("~","")
-        if s.find(";") != -1:
-            s = s.replace(";","], [")
-            s = "[" + s + "]"
-            return eval(s)
-        else:
-            return eval(s)
 
     def __hex__(gen self):
         """
@@ -2219,8 +2209,6 @@ cdef class gen(gen_auto):
         sig_on()
         return new_gen(Strtex(x.g))
 
-    printtex = deprecated_function_alias(20219, Strtex)
-
     def Vec(gen x, long n = 0):
         """
         Transform the object `x` into a vector with minimal size `|n|`.
@@ -2680,7 +2668,7 @@ cdef class gen(gen_auto):
         """
         return pari_instance.bernreal(x, precision)
 
-    def besselk(gen nu, x, flag=None, unsigned long precision=0):
+    def besselk(gen nu, x, unsigned long precision=0):
         """
         nu.besselk(x): K-Bessel function (modified Bessel function
         of the second kind) of index nu, which can be complex, and argument
@@ -2714,13 +2702,7 @@ cdef class gen(gen_auto):
 
             sage: pari(2+i).besselk(300)
             3.74224603319728 E-132 + 2.49071062641525 E-134*I
-            sage: pari(2+i).besselk(300, flag=1)
-            doctest:...: DeprecationWarning: The flag argument to besselk() is deprecated and not used anymore
-            See http://trac.sagemath.org/20219 for details.
-            3.74224603319728 E-132 + 2.49071062641525 E-134*I
         """
-        if flag is not None:
-            deprecation(20219, 'The flag argument to besselk() is deprecated and not used anymore')
         cdef gen t0 = objtogen(x)
         sig_on()
         return new_gen(kbessel(nu.g, t0.g, prec_bits_to_words(precision)))
@@ -2842,8 +2824,6 @@ cdef class gen(gen_auto):
         sig_on()
         ans = new_gen_noclear(gsqrtn(x.g, t0.g, &zetan, prec_bits_to_words(precision)))
         return ans, new_gen(zetan)
-
-    phi = deprecated_function_alias(20219, gen_auto.eulerphi)
 
     def ffprimroot(self):
         r"""
@@ -3174,7 +3154,7 @@ cdef class gen(gen_auto):
         model = new_gen(x)
         return model, change
 
-    def elltors(self, flag=None):
+    def elltors(self):
         """
         Return information about the torsion subgroup of the given
         elliptic curve.
@@ -3203,8 +3183,6 @@ cdef class gen(gen_auto):
             sage: e.elltors()
             [12, [6, 2], [[1, 2], [3, -2]]]
         """
-        if flag is not None:
-            deprecation(20219, 'The flag argument to elltors() is deprecated and not used anymore')
         sig_on()
         return new_gen(elltors(self.g))
 
@@ -3369,8 +3347,6 @@ cdef class gen(gen_auto):
         sig_on()
         return new_gen(galoissubfields(self.g, flag, get_var(v)))
 
-    idealintersection = deprecated_function_alias(20219, gen_auto.idealintersect)
-
     def nfeltval(self, x, p):
         """
         Return the valuation of the number field element `x` at the prime `p`.
@@ -3388,8 +3364,6 @@ cdef class gen(gen_auto):
         v = nfval(self.g, t0.g, t1.g)
         sig_off()
         return v
-
-    elementval = deprecated_function_alias(20219, nfeltval)
 
     def nfbasis(self, long flag=0, fa=None):
         """
@@ -3612,8 +3586,6 @@ cdef class gen(gen_auto):
         cdef gen t2 = objtogen(czk)
         sig_on()
         return new_gen(nfeltup(self.g, t0.g, t1.g, t2.g))
-
-    reverse = deprecated_function_alias(20219, gen_auto.polrecip)
 
     def eval(self, *args, **kwds):
         """
@@ -4013,14 +3985,14 @@ cdef class gen(gen_auto):
             sage: pari('[2,1;2,1]').matkerint()
             [1; -2]
             sage: pari('[2,1;2,1]').matkerint(1)
-            doctest:...: DeprecationWarning: The flag argument to matkerint() is deprecated by PARI
-            See http://trac.sagemath.org/18203 for details.
+            doctest:...: DeprecationWarning: the 'flag' argument of the PARI/GP function matkerint is obsolete
             [1; -2]
         """
         if flag:
             # Keep this deprecation warning as long as PARI supports
             # this deprecated flag
-            deprecation(18203, "The flag argument to matkerint() is deprecated by PARI")
+            from warnings import warn
+            warn("the 'flag' argument of the PARI/GP function matkerint is obsolete", DeprecationWarning)
         sig_on()
         return new_gen(matkerint0(self.g, flag))
 
@@ -4070,21 +4042,10 @@ cdef class gen(gen_auto):
             Traceback (most recent call last):
             ...
             PariError: sorry, factor for general polynomials is not yet implemented
-
-        TESTS::
-
-            sage: pari(2^1000+1).factor(limit=0)
-            doctest:...: DeprecationWarning: factor(..., lim=0) is deprecated, use an explicit limit instead
-            See http://trac.sagemath.org/20205 for details.
-            [257, 1; 1601, 1; 25601, 1; 76001, 1; 133842787352016..., 1]
         """
         cdef GEN g
         global factor_proven
         cdef int saved_factor_proven = factor_proven
-
-        if limit == 0:
-            deprecation(20205, "factor(..., lim=0) is deprecated, use an explicit limit instead")
-            limit = maxprime()
 
         try:
             if proof is not None:
@@ -4098,8 +4059,8 @@ cdef class gen(gen_auto):
         finally:
             factor_proven = saved_factor_proven
 
+    # Standard name for SageMath
     multiplicative_order = gen_auto.znorder
-    order = deprecated_function_alias(20219, multiplicative_order)
 
     def __abs__(self):
         return self.abs()
@@ -4384,75 +4345,6 @@ cdef class gen(gen_auto):
         sig_off()
         return
 
-    def allocatemem(gen self, *args):
-        """
-        Deprecated. Use ``pari.allocatemem()`` instead.
-
-        TESTS::
-
-            sage: pari(2^10).allocatemem(2^20)
-            doctest:...: DeprecationWarning: The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.
-            See http://trac.sagemath.org/21553 for details.
-            PARI stack size set to 1024 bytes, maximum size set to 1048576
-        """
-        deprecation(21553, "The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.")
-        if self.type() == 't_INT':
-            return pari_instance.allocatemem(int(self), *args)
-        else:
-            raise TypeError("Incorrect PARI type in allocatemem (%s)" % self.type())
-
-
-    ####################################################################
-    # Functions deprecated by upstream PARI
-    #
-    # NOTE: these should remain in Sage as long as PARI supports them,
-    # do not just delete these methods!
-    ####################################################################
-
-    def bezout(x, y):
-        deprecation(18203, "bezout() is deprecated in PARI, use gcdext() instead (note that the output is in a different order!)")
-        u, v, g = x.gcdext(y)
-        return g, u, v
-
-    def sizedigit(x):
-        """
-        sizedigit(x): Return a quick estimate for the maximal number of
-        decimal digits before the decimal point of any component of x.
-
-        INPUT:
-
-        -  ``x`` - gen
-
-        OUTPUT: Python integer
-
-        EXAMPLES::
-
-            sage: x = pari('10^100')
-            sage: x.Str().length()
-            101
-            sage: x.sizedigit()
-            doctest:...: DeprecationWarning: sizedigit() is deprecated in PARI
-            See http://trac.sagemath.org/18203 for details.
-            101
-
-        Note that digits after the decimal point are ignored::
-
-            sage: x = pari('1.234')
-            sage: x
-            1.23400000000000
-            sage: x.sizedigit()
-            1
-
-        The estimate can be one too big::
-
-            sage: pari('7234.1').sizedigit()
-            4
-            sage: pari('9234.1').sizedigit()
-            5
-        """
-        deprecation(18203, "sizedigit() is deprecated in PARI")
-        return sizedigit(x.g)
-
     def bernvec(x):
         r"""
         Creates a vector containing, as rational numbers, the Bernoulli
@@ -4467,29 +4359,28 @@ cdef class gen(gen_auto):
         EXAMPLES::
 
             sage: pari(8).bernvec()
-            doctest:...: DeprecationWarning: bernvec() is deprecated, use repeated calls to bernfrac() instead
-            See http://trac.sagemath.org/15767 for details.
+            doctest:...: DeprecationWarning: the PARI/GP function bernvec() is obsolete: use repeated calls to bernfrac() instead
             [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
             sage: [pari(2*n).bernfrac() for n in range(9)]
             [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
         """
-        deprecation(15767, 'bernvec() is deprecated, use repeated calls to bernfrac() instead')
+        from warnings import warn
+        warn('the PARI/GP function bernvec() is obsolete: use repeated calls to bernfrac() instead', DeprecationWarning)
         sig_on()
         return new_gen(bernvec(x))
 
-    bezoutres = deprecated_function_alias(18203, gen_auto.polresultantext)
+    def allocatemem(gen self, *args):
+        """
+        Do not use this. Use ``pari.allocatemem()`` instead.
 
-    ellbil = deprecated_function_alias(18203, gen_auto.ellheight)
+        TESTS::
 
-    ellpow = deprecated_function_alias(18203, gen_auto.ellmul)
-
-    def rnfpolred(*args, **kwds):
-        deprecation(18203, "rnfpolred() is deprecated in PARI, port your code to use rnfpolredbest() instead")
-        return gen_auto.rnfpolred(*args, **kwds)
-
-    def rnfpolredabs(*args, **kwds):
-        deprecation(18203, "rnfpolredabs() is deprecated in PARI, port your code to use rnfpolredbest() instead")
-        return gen_auto.rnfpolredabs(*args, **kwds)
+            sage: pari(2^10).allocatemem(2^20)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the method allocatemem() should not be used; use pari.allocatemem() instead
+        """
+        raise NotImplementedError("the method allocatemem() should not be used; use pari.allocatemem() instead")
 
 
 cdef gen new_ref(GEN g, gen parent):

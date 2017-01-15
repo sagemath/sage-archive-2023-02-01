@@ -275,7 +275,6 @@ from .handle_error cimport _pari_init_error_handling
 from .closure cimport _pari_init_closure
 
 from sage.ext.memory import init_memory_functions
-from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.env import CYGWIN_VERSION
 
 # Default precision (in PARI words) for the PARI library interface,
@@ -802,7 +801,6 @@ cdef class PariInstance(PariInstance_auto):
             doctest:warning
             ...
             DeprecationWarning: pari.double_to_gen(x) is deprecated, use pari(x) instead
-            See http://trac.sagemath.org/20241 for details.
             1.00000000000000
             sage: pari.double_to_gen(1e30)
             1.00000000000000 E30
@@ -811,7 +809,9 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.double_to_gen(-sqrt(RDF(2)))
             -1.41421356237310
         """
-        deprecation(20241, "pari.double_to_gen(x) is deprecated, use pari(x) instead")
+        # Deprecated in https://trac.sagemath.org/ticket/20241
+        from warnings import warn
+        warn("pari.double_to_gen(x) is deprecated, use pari(x) instead", DeprecationWarning)
         return new_gen_from_double(x)
 
     def complex(self, re, im):
@@ -1132,14 +1132,6 @@ cdef class PariInstance(PariInstance_auto):
         sig_on()
         return new_gen(primes_interval(t0.g, t1.g))
 
-    def primes_up_to_n(self, n):
-        deprecation(20216, "pari.primes_up_to_n(n) is deprecated, use pari.primes(end=n) instead")
-        return self.primes(end=n)
-
-    prime_list = deprecated_function_alias(20216, primes)
-
-    nth_prime = deprecated_function_alias(20216, PariInstance_auto.prime)
-
     euler = PariInstance_auto.Euler
     pi = PariInstance_auto.Pi
 
@@ -1159,10 +1151,6 @@ cdef class PariInstance(PariInstance_auto):
         """
         sig_on()
         return new_gen(polchebyshev1(n, get_var(v)))
-
-    # Deprecated by upstream PARI: do not remove this deprecated alias
-    # as long as it exists in PARI.
-    poltchebi = deprecated_function_alias(18203, polchebyshev)
 
     def factorial(self, long n):
         """
@@ -1207,8 +1195,6 @@ cdef class PariInstance(PariInstance_auto):
             return self.vector(1, [plist])
         else:
             return plist
-
-    polcyclo_eval = deprecated_function_alias(20217, PariInstance_auto.polcyclo)
 
     def setrand(self, seed):
         """

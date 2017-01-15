@@ -84,7 +84,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             f = parent.polynomial_ring()(f)
 
         # self is that t^n * u:
-        cdef long val
         self.__u = f
         self.__n = n
         self.__normalize()
@@ -204,14 +203,21 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: elt = t^2 + t^4 # indirect doctest
             sage: elt.polynomial_construction()
             (t^2 + 1, 2)
+
+        Check that :trac:`21272` is fixed::
+
+            sage: (t - t).polynomial_construction()
+            (0, 0)
         """
-        from sage.rings.infinity import infinity
-        if self.is_zero():
+        if self.__u[0]:
             return
-        v = self.__u.valuation()
-        if v != 0 and v != infinity:
-            self.__n += v
-            self.__u = self.__u >> v
+        elif self.__u.is_zero():
+            self.__n = 0
+            return
+        # we already caught the infinity and zero cases
+        cdef long v = <long> self.__u.valuation()
+        self.__n += v
+        self.__u = self.__u >> v
 
     def _repr_(self):
         """
@@ -327,14 +333,50 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         Return the hash of ``self``.
 
-        EXAMPLES::
+        TESTS::
+
+            sage: R = LaurentPolynomialRing(QQ, 't')
+
+            sage: assert hash(R.zero()) == 0
+            sage: assert hash(R.one()) == 1
+            sage: assert hash(QQ['t'].gen()) == hash(R.gen())
+
+            sage: for _ in range(20):
+            ....:     p = QQ.random_element()
+            ....:     assert hash(R(p)) == hash(p), "p = {}".format(p)
+
+            sage: S.<t> = QQ[]
+            sage: for _ in range(20):
+            ....:     p = S.random_element()
+            ....:     assert hash(R(p)) == hash(p), "p = {}".format(p)
+            ....:     assert hash(R(t*p)) == hash(t*p), "p = {}".format(p)
+
+        Check that :trac:`21272` is fixed::
 
             sage: R.<t> = LaurentPolynomialRing(QQ)
-            sage: f = -5/t^(10) + t + t^2 - 10/3*t^3
-            sage: hash(f) == hash(f)
+            sage: hash(R.zero()) == hash(t - t)
             True
         """
-        return hash(self.__u) ^ self.__n
+        if self.__n == 0:
+            return hash(self.__u)
+
+        # we reimplement below the hash of polynomials to handle negative
+        # degrees
+        cdef long result = 0
+        cdef long result_mon
+        cdef int i,j
+        cdef long var_hash_name = hash(self.__u._parent._names[0])
+        for i in range(self.__u.degree()+1):
+            result_mon = hash(self.__u[i])
+            if result_mon:
+                j = i + self.__n
+                result_mon = (1000003 * result_mon) ^ var_hash_name
+                if j > 0:
+                    result_mon = (1000003 * result_mon) ^ j
+                elif j < 0:
+                    result_mon = (700005 * result_mon) ^ j
+                result += result_mon
+        return result
 
     def __getitem__(self, i):
         """

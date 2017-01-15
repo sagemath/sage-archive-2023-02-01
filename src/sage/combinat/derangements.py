@@ -341,7 +341,7 @@ class Derangements(UniqueRepresentation, Parent):
             sage: D._fixed_point([5,4,3,2,1])
             True
         """
-        return any([x == y for (x, y) in zip(a, self._set)])
+        return any(x == y for (x, y) in zip(a, self._set))
 
     def _count_der(self, n):
         """
@@ -377,7 +377,7 @@ class Derangements(UniqueRepresentation, Parent):
         r"""
         Counts the number of derangements of a positive integer, a
         list, or a string.  The list or string may contain repeated
-        elements.  If an integer `n` is given, the the value returned
+        elements.  If an integer `n` is given, the value returned
         is the number of derangements of `[1, 2, 3, \ldots, n]`.
 
         For an integer, or a list or string with all elements

@@ -23,6 +23,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
@@ -843,7 +845,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             [[], [2], [2]]
             
         """
-        iset = range(self.ncols());
+        iset = list(range(self.ncols()))
         ret = []
         for l in powerset(iset):
             if not proper or (proper and l != iset):

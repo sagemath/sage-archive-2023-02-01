@@ -696,7 +696,7 @@ def RSHCD_324(e):
     and for the case `\epsilon=-1` from the "twist" `M'` of `M`, using Lemma 11
     in [HX10]_. Namely, it turns out that the matrix
 
-    .. math::
+    .. MATH::
 
         M'=\begin{pmatrix} M_{12} & M_{11}\\ M_{11}^\top & M_{21} \end{pmatrix},
         \quad\text{where}\quad
@@ -728,7 +728,8 @@ def RSHCD_324(e):
 
     .. [CP16] \N. Cohen, D. Pasechnik,
        Implementing Brouwer's database of strongly regular graphs,
-       http://arxiv.org/abs/1601.00181
+       Designs, Codes, and Cryptography, 2016
+       :doi:`10.1007/s10623-016-0264-x`
     """
 
     from sage.graphs.generators.smallgraphs import JankoKharaghaniTonchevGraph as JKTG
@@ -1249,7 +1250,7 @@ def szekeres_difference_set_pair(m, check=True):
         from itertools import product, chain
         assert(len(A)==len(B)==m)
         if m>1:
-            assert(sG==set(map(lambda (x,y): x/y, chain(product(A,A), product(B,B)))))
+            assert(sG==set([xy[0]/xy[1] for xy in chain(product(A,A), product(B,B))]))
         assert(all(F.one()/b+F.one() in sG for b in B))
         assert(not any(F.one()/a-F.one() in sG for a in A))
     return G,A,B

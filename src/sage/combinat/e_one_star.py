@@ -221,7 +221,6 @@ from sage.plot.polygon import polygon
 from sage.plot.line import line
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import LatexExpr
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
 # matplotlib color maps, loaded on-demand
@@ -1087,7 +1086,7 @@ class Patch(SageObject):
           ``None``, the isometric projection is used by default.
 
         - ``opacity`` - float between ``0`` and ``1`` (optional, default: ``0.75``)
-          opacity of the the face
+          opacity of the face
 
         .. WARNING::
 
@@ -1237,7 +1236,7 @@ class Patch(SageObject):
             sage: P = E(P, 4)
             sage: from sage.misc.latex import latex             #not tested
             sage: latex.add_to_preamble('\\usepackage{tikz}')   #not tested
-            sage: view(P, tightpage=true)                       #not tested
+            sage: view(P)                       #not tested
 
         Plot using shades of gray (useful for article figures)::
 

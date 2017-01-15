@@ -27,7 +27,7 @@ Disjoint set of integers from ``0`` to ``n - 1``::
     1
     sage: s.find(5)
     1
-    sage: map(s.find, range(6))
+    sage: list(map(s.find, range(6)))
     [0, 1, 2, 1, 2, 1]
 
 Disjoint set of hashables objects::
@@ -49,7 +49,6 @@ Disjoint set of hashables objects::
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import itervalues
 
 include '../groups/perm_gps/partn_ref/data_structures_pyx.pxi'
 
@@ -163,7 +162,7 @@ cdef class DisjointSet_class(SageObject):
             '{{0}, {1}, {2, 4}, {3}}'
         """
         res = []
-        for l in itervalues(self.root_to_elements_dict()):
+        for l in (<dict?>self.root_to_elements_dict()).itervalues():
             l.sort()
             res.append('{%s}' % ', '.join(repr(u) for u in l))
         res.sort()
@@ -184,7 +183,7 @@ cdef class DisjointSet_class(SageObject):
             sage: sorted(d)
             [['a'], ['b'], ['c']]
         """
-        return itervalues(self.root_to_elements_dict())
+        return (<dict?>self.root_to_elements_dict()).itervalues()
 
     def __richcmp__(self, other, int op):
         r"""

@@ -6,7 +6,7 @@ from six.moves import range
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.combinat.permutation import Permutation, Permutations
+from sage.combinat.permutation import Permutations
 
 from sage.rings.integer_ring import ZZ
 
@@ -323,7 +323,7 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
 
         The pair of twin binary trees `(T_L, T_R)` where `T_L`
         (resp. `T_R`) is obtained by inserting the letters of ``p`` from
-        left to right (resp. right to left) following the the binary search
+        left to right (resp. right to left) following the binary search
         tree insertion algorithm. This is called the *Baxter P-symbol*
         in [Gir12]_ Definition 4.1.
 

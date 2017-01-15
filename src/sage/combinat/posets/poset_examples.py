@@ -1,4 +1,4 @@
-r"""
+"""
 A catalog of posets and lattices.
 
 Some common posets can be accessed through the ``posets.<tab>`` object::
@@ -70,7 +70,8 @@ import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation
 from sage.combinat.posets.posets import Poset, FinitePosets_n
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
-                                           JoinSemilattice)
+                                           JoinSemilattice, FiniteLatticePoset)
+from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.graphs.digraph import DiGraph
 from sage.rings.integer import Integer
 
@@ -98,7 +99,7 @@ class Posets(object):
         sage: Posets(3)
         Posets containing 3 elements
 
-    .. seealso:: :class:`~sage.categories.posets.Posets`, :class:`FinitePosets`, :func:`Poset`
+    .. SEEALSO:: :class:`~sage.categories.posets.Posets`, :class:`FinitePosets`, :func:`Poset`
 
     TESTS::
 
@@ -157,8 +158,12 @@ class Posets(object):
             return LatticePoset( ([0], []) )
         if n==1:
             return LatticePoset( ([0,1], [[0,1]]) )
-        return LatticePoset([[Integer(x|(1<<y)) for y in range(0,n) if x&(1<<y)==0] for
-                             x in range(0,2**n)], facade=facade)
+        L = [[Integer(x|(1<<y)) for y in range(0,n) if x&(1<<y)==0] for
+             x in range(0,2**n)]
+        D = DiGraph({v:L[v] for v in range(2**n)})
+        return FiniteLatticePoset(hasse_diagram=D,
+                                  category=FiniteLatticePosets(),
+                                  facade=facade)
 
     @staticmethod
     def ChainPoset(n, facade=None):
@@ -204,8 +209,11 @@ class Posets(object):
             raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
             raise ValueError("number of elements must be non-negative, not {0}".format(n))
-        return LatticePoset((range(n), [[x,x+1] for x in range(n-1)]),
-                            facade=facade)
+        D = DiGraph([range(n), [[x,x+1] for x in range(n-1)]],
+                    format='vertices_and_edges')
+        return FiniteLatticePoset(hasse_diagram=D,
+                                  category=FiniteLatticePosets(),
+                                  facade=facade)
 
     @staticmethod
     def AntichainPoset(n, facade=None):
@@ -275,6 +283,8 @@ class Posets(object):
             sage: P.cover_relations()
             [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
 
+        TESTS:
+
         This is smallest lattice that is not modular::
 
             sage: P.is_modular()
@@ -288,12 +298,10 @@ class Posets(object):
             sage: Posets.DiamondPoset(5).is_distributive()
             False
         """
-        p = LatticePoset([[1,2],[4],[3],[4],[]], facade = facade)
-        p.hasse_diagram()._pos = {0:[2,0],1:[0,2],2:[3,1],3:[3,3],4:[2,4]}
-        return p
+        return LatticePoset([[1,2],[4],[3],[4],[]], facade=facade)
 
     @staticmethod
-    def DiamondPoset(n, facade = None):
+    def DiamondPoset(n, facade=None):
         """
         Return the lattice of rank two containing ``n`` elements.
 
@@ -320,15 +328,18 @@ class Posets(object):
         c = [[n-1] for x in range(n)]
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []
-        return LatticePoset(c, facade = facade)
+        D = DiGraph({v:c[v] for v in range(n)}, format='dict_of_lists')
+        return FiniteLatticePoset(hasse_diagram=D,
+                                  category=FiniteLatticePosets(),
+                                  facade=facade)
 
     @staticmethod
     def DivisorLattice(n, facade=None):
         """
         Return the divisor lattice of an integer.
 
-        Elements of the lattice are divisors of `n` and
-        `x < y` in the lattice if `x` divides `y`.
+        Elements of the lattice are divisors of `n` and `x < y` in the
+        lattice if `x` divides `y`.
 
         INPUT:
 
@@ -351,22 +362,24 @@ class Posets(object):
         TESTS::
 
             sage: Posets.DivisorLattice(1)
-            Finite lattice containing 1 elements
+            Finite lattice containing 1 elements with distinguished linear extension
         """
-        from sage.arith.misc import divisors
+        from sage.arith.misc import divisors, is_prime
         try:
             n = Integer(n)
         except TypeError:
             raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n <= 0:
             raise ValueError("n must be a positive integer")
-        return LatticePoset( (divisors(n), lambda x, y: y % x == 0),
-                             facade=facade, linear_extension=True)
+        Div_n = divisors(n)
+        hasse = DiGraph([Div_n, lambda a, b: b%a==0 and is_prime(b//a)])
+        return FiniteLatticePoset(hasse, elements=Div_n, facade=facade,
+                                  category=FiniteLatticePosets())
 
     @staticmethod
     def IntegerCompositions(n):
         """
-        Returns the poset of integer compositions of the integer ``n``.
+        Return the poset of integer compositions of the integer ``n``.
 
         A composition of a positive integer `n` is a list of positive
         integers that sum to `n`. The order is reverse refinement:
@@ -519,6 +532,8 @@ class Posets(object):
         `p=1` will return a chain. To create interesting examples,
         keep the probability small, perhaps on the order of `1/n`.
 
+        .. SEEALSO:: :meth:`RandomLattice`
+
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
@@ -592,6 +607,7 @@ class Posets(object):
           * ``None``, no restrictions for lattices to create
           * ``'planar'``, the lattice has an upward planar drawing
           * ``'dismantlable'`` (implicated by ``'planar'``)
+          * ``'distributive'``
 
         OUTPUT:
 
@@ -608,13 +624,15 @@ class Posets(object):
             Results are reproducible in same Sage version only. Underlying
             algorithm may change in future versions.
 
+        .. SEEALSO:: :meth:`RandomPoset`
+
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
             sage: L = Posets.RandomLattice(8, 0.995); L
             Finite lattice containing 8 elements
             sage: L.cover_relations()
-            [[8, 7], [8, 4], [8, 2], ..., [6, 5], [3, 5], [2, 5], [1, 5]]
+            [[7, 6], [7, 3], [7, 1], ..., [5, 4], [2, 4], [1, 4], [0, 4]]
             sage: L = Posets.RandomLattice(10, 0, properties=['dismantlable'])
             sage: L.is_dismantlable()
             True
@@ -649,6 +667,7 @@ class Posets(object):
             sage: Posets.RandomLattice(0, 0.5)
             Finite lattice containing 0 elements
         """
+        from copy import copy
         from sage.misc.prandom import randint
 
         try:
@@ -671,7 +690,7 @@ class Posets(object):
             covers = _random_lattice(n, p)
             covers_dict = {i:covers[i] for i in range(n)}
             D = DiGraph(covers_dict)
-            D.relabel(list(Permutations(n).random_element()))
+            D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D, cover_relations=True)
 
         if isinstance(properties, basestring):
@@ -679,7 +698,7 @@ class Posets(object):
         else:
             properties = set(properties)
 
-        known_properties = set(['planar', 'dismantlable'])
+        known_properties = set(['planar', 'dismantlable', 'distributive'])
         errors = properties.difference(known_properties)
         if errors:
             raise ValueError("unknown value %s for 'properties'" % errors.pop())
@@ -692,16 +711,24 @@ class Posets(object):
         if 'planar' in properties:
             properties.discard('dismantlable')
 
-        # Add here tests for property combinations that are not implemented.
+        # Test property combinations that are not implemented.
+        if 'distributive' in properties and len(properties) > 1:
+            raise NotImplementedError("combining 'distributive' with other properties is not implemented")
 
         if properties == set(['planar']):
             D = _random_planar_lattice(n)
-            D.relabel(list(Permutations(n).random_element()))
+            D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D)
 
         if properties == set(['dismantlable']):
             D = _random_dismantlable_lattice(n)
-            D.relabel(list(Permutations(n).random_element()))
+            D.relabel([i-1 for i in Permutations(n).random_element()])
+            return LatticePoset(D)
+
+        if properties == set(['distributive']):
+            tmp = Poset(_random_distributive_lattice(n)).order_ideals_lattice(as_ideals=False)
+            D = copy(tmp._hasse_diagram)
+            D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D)
 
         raise AssertionError("Bug in RandomLattice().")
@@ -1452,5 +1479,57 @@ def _random_planar_lattice(n):
         if not G2.is_planar():
             G = G1.copy()
     return G
+
+def _random_distributive_lattice(n):
+    """
+    Return a random poset that has `n` antichains.
+
+    INPUT:
+
+    - ``n`` -- number of elements, a non-negative integer
+
+    OUTPUT:
+
+    A random poset (as DiGraph) that has `n` antichains; i.e. a poset
+    that's order ideals lattice has `n` elements.
+
+    EXAMPLES::
+
+        sage: g = sage.combinat.posets.poset_examples._random_distributive_lattice(10)
+        sage: Poset(g).order_ideals_lattice(as_ideals=False).cardinality()
+        10
+
+    ALGORITHM:
+
+    Add elements until there are at least `n` antichains.
+    Remove elements until there are at most `n` antichains.
+    Repeat.
+    """
+    from sage.combinat.posets.hasse_diagram import HasseDiagram
+    from copy import copy
+    from sage.combinat.subset import Subsets
+
+    H = HasseDiagram({0: []})
+    while sum(1 for _ in H.antichains_iterator()) < n:
+        D = copy(H)
+        newcover = Subsets(H).random_element()
+        new_element = H.order()
+        D.add_vertex(new_element)
+        for e in newcover:
+            D.add_edge(e, new_element)
+
+        D = D.transitive_reduction()
+        H = HasseDiagram(D)
+
+        while sum(1 for _ in H.antichains_iterator()) > n:
+            D = copy(H)
+            to_delete = H.random_vertex()
+            for a in D.neighbors_in(to_delete):
+                for b in D.neighbors_out(to_delete):
+                    D.add_edge(a, b)
+            D.delete_vertex(to_delete)
+            D.relabel({z:z-1 for z in range(to_delete+1, D.order()+1)})
+            H = HasseDiagram(D)
+    return D
 
 posets = Posets

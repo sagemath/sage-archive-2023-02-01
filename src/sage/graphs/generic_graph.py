@@ -296,6 +296,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.traveling_salesman_problem` | Solve the traveling salesman problem (TSP)
     :meth:`~GenericGraph.is_hamiltonian` | Test whether the current graph is Hamiltonian.
     :meth:`~GenericGraph.hamiltonian_cycle` | Return a Hamiltonian cycle/circuit of the current graph/digraph
+    :meth:`~GenericGraph.hamiltonian_path` | Return a Hamiltonian path of the current graph/digraph
     :meth:`~GenericGraph.multicommodity_flow` | Solve a multicommodity flow problem.
     :meth:`~GenericGraph.disjoint_routed_paths` | Return a set of disjoint routed paths.
     :meth:`~GenericGraph.dominating_set` | Return a minimum dominating set of the graph
@@ -6827,6 +6828,122 @@ class GenericGraph(GenericGraph_pyx):
             return sum(map(weight, g.edge_labels())), g
         else:
             return g
+
+    def hamiltonian_path(self, s=None, t=None, use_edge_labels=False,
+                         algorithm='MILP', solver=None, verbose=0):
+        r"""
+        Return a Hamiltonian path of the current graph/digraph.
+
+        A path is Hamiltonian if it goes through all the vertices exactly
+        once. Computing a Hamiltonian path being NP-Complete, this
+        algorithm could run for some time depending on the instance.
+
+        When ``use_edge_labels == True``, this method returns a minimum
+        weight hamiltonian path.
+
+        .. SEEALSO::
+
+            - :meth:`~GenericGraph.longest_path`
+            - :meth:`~GenericGraph.hamiltonian_cycle`
+
+        INPUT:
+
+        - ``s`` -- vertex (optional); if specified, then forces the source
+          of the path (the method then returns a Hamiltonian path starting
+          at ``s``)
+
+        - ``t`` -- vertex (optional); if specified, then forces the
+          destination of the path (the method then returns a Hamiltonian
+          path ending at ``t``)
+
+        - ``use_edge_labels`` -- boolean (default: ``False``); whether the
+          labels on the edges are to be considered as weights (a label set
+          to ``None`` or ``{}`` being considered as a weight of `1`)
+
+        - ``algorithm`` -- one of ``"MILP"`` (default) or ``"backtrack"``;
+          two remarks on this respect:
+
+          * While the MILP formulation returns an exact answer, the
+            backtrack algorithm is a randomized heuristic.
+
+          * The backtrack algorithm does not support edge weighting, so setting
+            ``use_edge_labels=True`` will force the use of the MILP algorithm.
+
+        - ``solver`` -- (default: ``None``) specify the Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used.
+          For more information on LP solvers and which default solver is
+          used, see the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity with 0 meaning quiet
+
+        OUTPUT:
+
+        A subgraph of ``self`` corresponding to a (directed if ``self`` is
+        directed) hamiltonian path. If no hamiltonian path is found, return
+        ``None``. If ``use_edge_labels == True``, a pair ``weight, path`` is
+        returned.
+
+        EXAMPLES:
+
+        The `3 \times 3`-grid has an Hamiltonian path, an hamiltonian path
+        starting from vertex `(0, 0)` and ending at vertex `(2, 2)`, but no
+        Hamiltonian path starting from `(0, 0)` and ending at `(0, 1)`::
+
+            sage: g = graphs.Grid2dGraph(3, 3)
+            sage: g.hamiltonian_path()
+            Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices
+            sage: g.hamiltonian_path(s=(0,0), t=(2,2))
+            Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices
+            sage: g.hamiltonian_path(s=(0,0), t=(2,2), use_edge_labels=True)
+            (8, Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices)
+            sage: g.hamiltonian_path(s=(0,0), t=(0,1)) is None
+            True
+            sage: g.hamiltonian_path(s=(0,0), t=(0,1), use_edge_labels=True)
+            (0, None)
+
+        TESTS:
+
+        Empty and one-element graphs::
+
+            sage: g = Graph()
+            sage: g.hamiltonian_path()
+            Traceback (most recent call last):
+            ...
+            ValueError: the Hamiltonian path problem is not well defined
+             for empty and one-element (di)graphs
+            sage: g = Graph(1)
+            sage: g.hamiltonian_path()
+            Traceback (most recent call last):
+            ...
+            ValueError: the Hamiltonian path problem is not well defined
+             for empty and one-element (di)graphs
+
+        A non-connected (di)graph has no hamiltonian path::
+
+            sage: g = Graph(2)
+            sage: g.hamiltonian_path() is None
+            True
+            sage: g.hamiltonian_path(use_edge_labels=True)
+            (0, None)
+            sage: g = DiGraph(2)
+            sage: g.hamiltonian_path() is None
+            True
+        """
+        if self.order() < 2:
+            raise ValueError('the Hamiltonian path problem is not well ' +
+                             'defined for empty and one-element (di)graphs')
+
+        if not self.is_connected():
+            return (0, None) if use_edge_labels else None
+
+        path = self.longest_path(s=s, t=t, use_edge_labels=use_edge_labels,
+                                 algorithm=algorithm, solver=solver,
+                                 verbose=verbose)
+        if use_edge_labels:
+            return path if path[1].order() == self.order() else (0, None)
+        return path if path.order() == self.order() else None
 
     def traveling_salesman_problem(self, use_edge_labels = False, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):
         r"""

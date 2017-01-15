@@ -4352,6 +4352,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         -  ``self`` - a matrix over the integers.
 
         - ``solver`` - either ``'iml'`` (default) or ``'flint'``
+
         OUTPUT:
 
 
@@ -5565,6 +5566,134 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 fmpz_set_mpz(fmpz_mat_entry(B._matrix,j,self._ncols-i-1),tmp)
         mpz_clear(tmp)
         return B
+
+
+    def p_minimal_polynomials(self, p, s_max=None):
+        r"""
+        Compute `(p^s)`-minimal polynomials `\nu_s` of this matrix.
+
+        For `s  \ge 0`, a `(p^s)`-minimal polynomial of
+        a matrix `B` is a monic polynomial `f \in \ZZ[X]` of
+        minimal degree such that all entries of `f(B)` are divisible
+        by `p^s`.
+
+        Compute a finite subset `\mathcal{S}` of the positive
+        integers and `(p^s)`-minimal polynomials
+        `\nu_s` for `s \in \mathcal{S}`.
+
+        For `0 < t \le \max \mathcal{S}`, a `(p^t)`-minimal polynomial is
+        given by `\nu_s` where
+        `s = \min\{ r \in \mathcal{S} \mid r\ge t \}`.
+        For `t > \max\mathcal{S}`, the minimal polynomial of `B` is
+        also a `(p^t)`-minimal polynomial.
+
+        INPUT:
+
+        - ``p`` -- a prime in `\ZZ`
+
+        - ``s_max`` -- a positive integer (default: ``None``); if set, only
+          `(p^s)`-minimal polynomials for ``s <= s_max`` are computed
+          (see below for details)
+
+        OUTPUT:
+
+        A dictionary. Keys are the finite set `\mathcal{S}`, the
+        values are the associated `(p^s)`-minimal polynomials `\nu_s`,
+        `s\in\mathcal{S}`.
+
+        Setting ``s_max`` only affects the output if ``s_max`` is at
+        most `\max\mathcal{S}` where `\mathcal{S}` denotes the full
+        set. In that case, only those `\nu_s` with ``s <= s_max`` are
+        returned where ``s_max`` is always included even if it is not
+        included in the full set `\mathcal{S}`.
+
+        EXAMPLES::
+
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: B.p_minimal_polynomials(2)
+            {2: x^2 + 3*x + 2}
+
+        .. SEEALSO::
+
+            :mod:`~sage.matrix.compute_J_ideal`,
+            :meth:`~sage.matrix.compute_J_ideal.ComputeMinimalPolynomials.p_minimal_polynomials`
+        """
+        from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
+        return ComputeMinimalPolynomials(self).p_minimal_polynomials(p, s_max)
+
+
+    def null_ideal(self, b=0):
+        r"""
+        Return the `(b)`-ideal of this matrix.
+
+        Let `B` be a `n \times n` matrix. The *null ideal* modulo `b`,
+        or `(b)`-ideal, is
+
+        .. MATH::
+
+            N_{(b)}(B) = \{f \in \ZZ[X] \mid f(B) \in M_n(b\ZZ)\}.
+
+        INPUT:
+
+        - ``b`` -- an element of `\ZZ` (default: 0)
+
+        OUTPUT:
+
+        An ideal in `\ZZ[X]`.
+
+        EXAMPLES::
+
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: B.null_ideal()
+            Principal ideal (x^3 + x^2 - 12*x - 20) of
+                Univariate Polynomial Ring in x over Integer Ring
+            sage: B.null_ideal(8)
+            Ideal (8, x^3 + x^2 - 12*x - 20, 2*x^2 + 6*x + 4) of
+                Univariate Polynomial Ring in x over Integer Ring
+            sage: B.null_ideal(6)
+            Ideal (6, 2*x^3 + 2*x^2 - 24*x - 40, 3*x^2 + 3*x) of
+                Univariate Polynomial Ring in x over Integer Ring
+
+        .. SEEALSO::
+
+            :mod:`~sage.matrix.compute_J_ideal`,
+            :meth:`~sage.matrix.compute_J_ideal.ComputeMinimalPolynomials.null_ideal`
+        """
+        from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
+        return ComputeMinimalPolynomials(self).null_ideal(b)
+
+
+    def integer_valued_polynomials_generators(self):
+        r"""
+        Determine the generators of the ring of integer valued polynomials on this
+        matrix.
+
+        OUTPUT:
+
+        A pair ``(mu_B, P)`` where ``P`` is a list of polynomials in `\QQ[X]`
+        such that
+
+        .. MATH::
+
+           \{f \in \QQ[X] \mid f(B) \in M_n(\ZZ)\}
+               = \mu_B \QQ[X] + \sum_{g\in P} g \ZZ[X]
+
+        where `B` is this matrix.
+
+        EXAMPLES::
+
+            sage: B = matrix(ZZ, [[1, 0, 1], [1, -2, -1], [10, 0, 0]])
+            sage: B.integer_valued_polynomials_generators()
+            (x^3 + x^2 - 12*x - 20, [1, 1/4*x^2 + 3/4*x + 1/2])
+
+        .. SEEALSO::
+
+            :mod:`~sage.matrix.compute_J_ideal`,
+            :meth:`~sage.matrix.compute_J_ideal.ComputeMinimalPolynomials.integer_valued_polynomials_generators`
+        """
+        from sage.matrix.compute_J_ideal import ComputeMinimalPolynomials
+        return ComputeMinimalPolynomials(self).integer_valued_polynomials_generators()
+
 
 cdef inline GEN pari_GEN(Matrix_integer_dense B):
     r"""

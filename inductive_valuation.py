@@ -961,7 +961,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: v0 = GaussValuation(R, vp)
             sage: v1 = v0.augmentation(x, 1/4)
             sage: v2 = v1.augmentation(x^4 + 2, 5/4)
-            sage: v2.is_minimal(x^5 + x^4 + 2) # long time
+            sage: v2.is_minimal(x^5 + x^4 + 2)
             False
 
         Polynomials which are equivalent to the key polynomial are minimal if
@@ -1218,10 +1218,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: vp=vp.extension(K)
             sage: v0=GaussValuation(R,vp)
             sage: G=x^36 + 36*x^35 + 630*x^34 + 7144*x^33 + 59055*x^32 + 379688*x^31 +1978792*x^30 + 8604440*x^29 + 31895428*x^28 + 102487784*x^27 + 289310720*x^26 + 725361352*x^25 + 1629938380*x^24 + 3307417800*x^23 + 6098786184*x^22+10273444280*x^21 + 15878121214*x^20 + 22596599536*x^19 + 29695703772*x^18 +36117601976*x^17 + 40722105266*x^16 + 42608585080*x^15 + 41395961848*x^14 +37344435656*x^13 + 31267160756*x^12 + 24271543640*x^11 + 17439809008*x^10 + 11571651608*x^9 + 7066815164*x^8 + 3953912472*x^7 + 2013737432*x^6 + 925014888*x^5 + 378067657*x^4 + 134716588*x^3 + 40441790*x^2 + 9532544*x + 1584151
-            sage: v1=v0.mac_lane_step(G)[0] # long time
-            sage: V=v1.mac_lane_step(G) # long time
-            sage: v2=V[0] # long time
-            sage: v2.equivalence_decomposition(G) # long time
+            sage: v1=v0.mac_lane_step(G)[0]
+            sage: V=v1.mac_lane_step(G)
+            sage: v2=V[0]
+            sage: v2.equivalence_decomposition(G)
             (1/387420489) * (x^4 + 2*x^2 + alpha^4 + alpha^3 + 1)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha^3 + 5*alpha + 1)^3 * (x^4 + 2*x^2 + 3/2*alpha^4 + alpha^3 + 5*alpha + 1)^3
 
         REFERENCES:

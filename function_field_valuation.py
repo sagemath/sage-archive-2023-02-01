@@ -31,7 +31,7 @@ extensions::
     (x - 1)-adic valuation
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
-    sage: w = v.extensions(L); w # long time
+    sage: w = v.extensions(L); w
     [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
      [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
 
@@ -55,7 +55,7 @@ Run test suite over classical places of finite extensions::
     sage: v = FunctionFieldValuation(K, x - 1)
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
-    sage: ws = v.extensions(L) # long time
+    sage: ws = v.extensions(L)
     sage: for w in ws: TestSuite(w).run(max_runs=100) # long time
 
 Run test suite for valuations that do not correspond to a classical place::
@@ -79,7 +79,7 @@ Run test suite for extensions over the infinite place::
     sage: v = FunctionFieldValuation(K, 1/x)
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - 1/(x^2 + 1))
-    sage: w = v.extensions(L) # long time
+    sage: w = v.extensions(L)
     sage: TestSuite(w).run() # long time
 
 Run test suite for a valuation with `v(1/x) > 0` which does not come from a
@@ -543,7 +543,7 @@ class FunctionFieldValuation_base(DiscreteValuation):
             sage: v = FunctionFieldValuation(K, 1/x)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - 1/(x^2 + 1))
-            sage: sorted(v.extensions(L), key=str) # long time
+            sage: sorted(v.extensions(L), key=str)
             [[ Valuation at the infinite place, v(y + 1/x) = 3 ]-adic valuation,
              [ Valuation at the infinite place, v(y - 1/x) = 3 ]-adic valuation]
 

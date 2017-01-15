@@ -188,6 +188,9 @@ REFERENCES:
              Memoirs of the American Mathematical Society, vol. 192
              (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
 
+.. [Ber1991] \C. Berger, "Une version effective du théorème de
+             Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
+
 .. [BG1985] \M. Blum and S. Goldwasser. An Efficient Probabilistic
             Public-Key Encryption Scheme Which Hides All Partial
             Information. In *Proceedings of CRYPTO 84 on Advances in
@@ -856,6 +859,9 @@ REFERENCES:
 .. [Kal1980] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980,
              383--386.
 
+.. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
+             groups*, Ann. Math. (2) 67 (1958), 282-312.
+
 .. [KB1983] \W. Kühnel and T. F. Banchoff, "The 9-vertex complex
             projective plane", Math. Intelligencer 5 (1983), no. 3,
             11-22.
@@ -1083,6 +1089,9 @@ REFERENCES:
 .. [May1964] \J. P. May, "The cohomology of restricted Lie algebras
              and of Hopf algebras; application to the Steenrod
              algebra." Thesis, Princeton Univ., 1964.
+
+.. [May1967] \J. P. May, Simplicial Objects in Algebraic Topology,
+             University of Chicago Press (1967)
 
 .. [McC1978] \K. McCrimmon. *Jordan algebras and their
              applications*. Bull. Amer. Math. Soc. **84** 1978.
@@ -1329,6 +1338,10 @@ REFERENCES:
 .. [Ser1992] \J.-P. Serre : *Lie Algebras and Lie Groups*, 2nd ed.,
              Springer (Berlin) (1992);
              :doi:`10.1007/978-3-540-70634-2`
+
+.. [Ser2010] \F. Sergeraert, *Triangulations of complex projective
+             spaces* in Scientific contributions in honor of Mirian
+             Andrés Gómez, pp 507-519, Univ. La Rioja Serv. Publ., Logroño (2010).
 
 .. [SH1995] \C. P. Schnorr and H. H. Hörner. *Attacking the
             Chor-Rivest Cryptosystem by Improved Lattice

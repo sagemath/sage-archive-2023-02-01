@@ -1457,7 +1457,7 @@ General number fields::
     sage: x = pari('[1, -1, 2]~')
     sage: y = pari('[1, -1, 3]~')
     sage: nf.idealcoprime(x, y)
-    [1, 0, 0]~
+    1
 
     sage: y = pari('[2, -2, 4]~')
     sage: nf.idealcoprime(x, y)
@@ -1489,7 +1489,7 @@ General number fields::
     sage: nf = F._pari_()
     sage: I = pari('[1, -1, 2]~')
     sage: nf.idealstar(I)
-    [[[43, 9, 5; 0, 1, 0; 0, 0, 1], [0]], [42, [42]], Mat([[43, [9, 1, 0]~, 1, 1, [-5, 2, -18; -9, -5, 2; 1, -9, -5]], 1]), [[[[42], [3], [3], [Vecsmall([])], 1]], [[], [], []]], Mat(1)]
+    [[[43, 9, 5; 0, 1, 0; 0, 0, 1], [0]], [42, [42]], Mat([[43, [9, 1, 0]~, 1, 1, [-5, 2, -18; -9, -5, 2; 1, -9, -5]], 1]), [[[[[42], [3], [3], [Vecsmall([])], 1, [43, 9, 5; 0, 1, 0; 0, 0, 1]]]], [[], [], [], Vecsmall([])], Vecsmall([0])], Mat(1)]
 
     sage: x = polygen(QQ)
     sage: K.<a> = NumberField(x^3 - 17)
@@ -1520,7 +1520,7 @@ General number fields::
 
     sage: x = QQ['x'].0; nf = pari(x^2 + 2).nfinit()
     sage: nf.nfgaloisconj()
-    [-x, x]~
+    [x, -x]~
     sage: nf = pari(x^3 + 2).nfinit()
     sage: nf.nfgaloisconj()
     [x]~

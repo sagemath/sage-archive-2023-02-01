@@ -72,7 +72,7 @@ def bdd_norm_pr_gens_iq(K, norm_list):
         sage: bdd_pr_ideals[4]
         [2]
         sage: bdd_pr_ideals[5]
-        [g + 2, g - 2]
+        [-g - 2, -g + 2]
         sage: bdd_pr_ideals[7]
         []
 

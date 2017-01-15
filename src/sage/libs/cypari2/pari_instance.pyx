@@ -936,8 +936,8 @@ cdef class PariInstance(PariInstance_auto):
         take up any space on the PARI stack.  The PARI stack is still
         large because of the computation of ``a``::
 
-            sage: pari.stacksize()
-            16000000
+            sage: pari.stacksize()  # random
+            12500264
 
         Setting a small maximum size makes this fail::
 
@@ -946,7 +946,7 @@ cdef class PariInstance(PariInstance_auto):
             sage: a = pari('2^100000000')
             Traceback (most recent call last):
             ...
-            PariError: _^s: the PARI stack overflows (current size: 4194304; maximum size: 4194304)
+            PariError: _^s: the PARI stack overflows (current size: 1000000; maximum size: 4194304)
             You can use pari.allocatemem() to change the stack size and try again
 
         TESTS:
@@ -957,8 +957,8 @@ cdef class PariInstance(PariInstance_auto):
             sage: pari.allocatemem(1, 2^26)
             PARI stack size set to 1024 bytes, maximum size set to 67108864
             sage: a = pari(2)^100000000
-            sage: pari.stacksize()
-            16777216
+            sage: pari.stacksize()  # random
+            12500024
 
         We do not allow ``sizemax`` less than ``s``::
 

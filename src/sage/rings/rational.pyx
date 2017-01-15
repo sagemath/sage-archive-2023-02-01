@@ -3002,16 +3002,19 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def log(self, m=None, prec=None):
         r"""
-        Return symbolic log by default, unless the logarithm is exact.
-        When precision is given, the RealField
-        approximation to that bit precision is used.
+        Return the log of ``self``.
 
         INPUT:
 
-        --  ``m`` - the base (default: natural log base e)
+        - ``m`` -- the base (default: natural log base e)
 
-        --  ``prec`` - integer (default: None); if None, return
-           symbolic, else to given bits of precision as in RealField
+        - ``prec`` -- integer (optional); the precision in bits
+
+        OUTPUT:
+
+        When ``prec`` is not given, the log as an element in symbolic
+        ring unless the logarithm is exact. Otherwise the log is a
+        :class:`RealField` approximation to ``prec`` bit precision.
 
         EXAMPLES::
 
@@ -3061,7 +3064,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         from sage.functions.log import function_log
         if m is None:
-            return function_log(self,dont_call_method_on_arg=True)
+            return function_log(self, dont_call_method_on_arg=True)
 
         anum = self.numer()
         aden = self.denom()
@@ -3092,9 +3095,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             if lo_ratio == ZZ.one():
                 return -up_ratio
 
-        return function_log(self,dont_call_method_on_arg=True)/\
-               function_log(m,dont_call_method_on_arg=True)
-
+        return (function_log(self, dont_call_method_on_arg=True) /
+                function_log(m, dont_call_method_on_arg=True))
 
     def gamma(self, prec=None):
         """

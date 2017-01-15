@@ -455,76 +455,22 @@ pari = pari_instance
 
 @cython.final
 cdef class PariInstance(PariInstance_auto):
-    def __init__(self, long size=1000000, unsigned long maxprime=500000):
+    def __cinit__(self):
+        r"""
+        (Re)-initialize the PARI library.
+
+        TESTS::
+
+            sage: from sage.libs.cypari2.pari_instance import PariInstance
+            sage: PariInstance.__new__(PariInstance)
+            Interface to the PARI C library
         """
-        Initialize the PARI system.
-
-        INPUT:
-
-
-        -  ``size`` -- long, the number of bytes for the initial
-           PARI stack (see note below)
-
-        -  ``maxprime`` -- unsigned long, upper limit on a
-           precomputed prime number table (default: 500000)
-
-        For more information about how precision works in the PARI
-        interface, see :mod:`sage.libs.cypari2.pari_instance`.
-
-        .. NOTE::
-
-           In Sage, the PARI stack is different than in GP or the
-           PARI C library. In Sage, instead of the PARI stack
-           holding the results of all computations, it *only* holds
-           the results of an individual computation. Each time a new
-           Python/PARI object is computed, it it copied to its own
-           space in the Python heap, and the memory it occupied on the
-           PARI stack is freed. Thus it is not necessary to make the
-           stack very large.
-
-           This design obviously involves some performance penalties
-           over the way PARI works, but it scales much better and is
-           far more robust for large projects.
-
-        .. NOTE::
-
-           If you do not want prime numbers, put ``maxprime=2``, but be
-           careful because many PARI functions require this table. If
-           you get the error message "not enough precomputed primes",
-           increase this parameter.
-        """
+        # PARI is already initialized, nothing to do...
         if avma:
-            raise RuntimeError('PARI already initialized.')
+            return
 
-        # PARI has a "real" stack size (parisize) and a "virtual" stack
-        # size (parisizemax). The idea is that the real stack will be
-        # used if possible, but the stack might be increased up to
-        # the complete virtual stack. Therefore, it is not a problem to
-        # set the virtual stack size to a large value. There are two
-        # constraints for the virtual stack size:
-        # 1) on 32-bit systems, even virtual memory can be a scarce
-        #    resource since it is limited by 4GB (of which the kernel
-        #    needs a significant part)
-        # 2) the system should actually be able to handle a stack size
-        #    as large as the complete virtual stack.
-        # As a simple heuristic, we set the virtual stack to 1/4 of the
-        # virtual memory.
-
-        pari_init_opts(size, maxprime, INIT_DFTm)
-
-        from sage.misc.getusage import virtual_memory_limit
-
-        sizemax = virtual_memory_limit() // 4
-        if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
-            # Cygwin's mmap is broken for large NORESERVE mmaps (>~ 4GB) See
-            # http://trac.sagemath.org/ticket/20463 So we set the max stack
-            # size to a little below 4GB (putting it right on the margin proves
-            # too fragile)
-            #
-            # The underlying issue is fixed in Cygwin v2.5.2
-            sizemax = min(sizemax, 0xf0000000)
-
-        paristack_setsize(size, sizemax)
+        # Simple minimal defaults for (size, maxprime)
+        pari_init_opts(1000000, 10000, INIT_DFTm)
 
         # Disable PARI's stack overflow checking which is incompatible
         # with multi-threading.
@@ -552,7 +498,7 @@ cdef class PariInstance(PariInstance_auto):
         GP_DATA.fmt.prettyp = 0
 
         # This causes PARI/GP to use output independent of the terminal
-        # (which is want we want for the PARI library interface).
+        # (which is what we want for the PARI library interface).
         GP_DATA.flags = gpd_TEST
 
         # Ensure that Galois groups are represented in a sane way,
@@ -566,12 +512,128 @@ cdef class PariInstance(PariInstance_auto):
         global factor_proven
         factor_proven = 1
 
+    def __init__(self, size_t size=1000000, unsigned long maxprime=500000):
+        """
+        (Re)-Initialize the PARI system.
+
+        INPUT:
+
+        - ``size`` -- the number of bytes for the initial PARI stack
+          (see note below, default: 1000000)
+
+        - ``maxprime`` -- upper limit on a precomputed prime number
+          table (default: 500000)
+
+        When the PARI system is already initialized, the PARI stack is only
+        grown if ``size`` is greater than the current stack, and the table
+        of primes is only computed is ``maxprime`` is larger than the current
+        bound.
+
+        EXAMPLES::
+
+            sage: from sage.libs.cypari2.pari_instance import PariInstance
+            sage: pari2 = PariInstance(10^7)
+            sage: pari2
+            Interface to the PARI C library
+            sage: pari2 is pari
+            False
+            sage: pari2.PARI_ZERO == pari.PARI_ZERO
+            True
+            sage: pari2 = PariInstance(10^6)
+            sage: pari.stacksize(), pari2.stacksize()
+            (10000000, 10000000)
+
+        For more information about how precision works in the PARI
+        interface, see :mod:`sage.libs.cypari2.pari_instance`.
+
+        .. NOTE::
+
+           In Sage, the PARI stack is different than in GP or the
+           PARI C library. In Sage, instead of the PARI stack
+           holding the results of all computations, it *only* holds
+           the results of an individual computation. Each time a new
+           Python/PARI object is computed, it it copied to its own
+           space in the Python heap, and the memory it occupied on the
+           PARI stack is freed. Thus it is not necessary to make the
+           stack very large.
+
+           This design obviously involves some performance penalties
+           over the way PARI works, but it scales much better and is
+           far more robust for large projects.
+        """
+        # PARI has a "real" stack size (parisize) and a "virtual" stack
+        # size (parisizemax). The idea is that the real stack will be
+        # used if possible, but the stack might be increased up to
+        # the complete virtual stack. Therefore, it is not a problem to
+        # set the virtual stack size to a large value. There are two
+        # constraints for the virtual stack size:
+        # 1) on 32-bit systems, even virtual memory can be a scarce
+        #    resource since it is limited by 4GB (of which the kernel
+        #    needs a significant part)
+        # 2) the system should actually be able to handle a stack size
+        #    as large as the complete virtual stack.
+        # As a simple heuristic, we set the virtual stack to 1/4 of the
+        # virtual memory.
+
+        from sage.misc.getusage import virtual_memory_limit
+
+        cdef size_t sizemax = virtual_memory_limit() // 4
+        if CYGWIN_VERSION and CYGWIN_VERSION < (2, 5, 2):
+            # Cygwin's mmap is broken for large NORESERVE mmaps (>~ 4GB) See
+            # http://trac.sagemath.org/ticket/20463 So we set the max stack
+            # size to a little below 4GB (putting it right on the margin proves
+            # too fragile)
+            #
+            # The underlying issue is fixed in Cygwin v2.5.2
+            sizemax = min(sizemax, <size_t>0xf0000000)
+
+        # Increase (but don't decrease) size and sizemax to the
+        # requested value
+        size = max(size, pari_mainstack.rsize)
+        sizemax = max(sizemax, pari_mainstack.vsize)
+        paristack_setsize(size, sizemax)
+
+        # Increase the table of primes if needed
+        self.init_primes(maxprime)
+
         # Initialize some constants
         sig_on()
         self.PARI_ZERO = new_gen_noclear(gen_0)
         self.PARI_ONE = new_gen_noclear(gen_1)
         self.PARI_TWO = new_gen_noclear(gen_2)
         sig_off()
+
+    def _close(self):
+        """
+        Deallocate the PARI library.
+
+        If you want to reallocate the PARI library again, construct
+        a new instance of :class:`PariInstance`.
+
+        EXAMPLES::
+
+            sage: from sage.libs.cypari2.pari_instance import PariInstance
+            sage: pari2 = PariInstance(10^7)
+            sage: pari2._close()
+            sage: pari2 = PariInstance(10^6)
+            sage: pari.stacksize()
+            1000000
+
+        .. WARNING::
+
+            Calling this method is dangerous since any further use of
+            PARI (by this :class:`PariInstance` or another
+            :class:`PariInstance` or even another non-Python library)
+            will result in a segmentation fault after calling
+            ``_close()``.
+
+            For this reason, the :class:`PariInstance` class never
+            deallocates PARI memory automatically.
+        """
+        global avma
+        if avma:
+            pari_close()
+            avma = 0
 
     def debugstack(self):
         r"""
@@ -596,24 +658,6 @@ cdef class PariInstance(PariInstance_auto):
             <void*>pari_mainstack.bot,
             <unsigned long>pari_mainstack.rsize)
         fflush(stdout)
-
-    def __dealloc__(self):
-        """
-        Deallocation of the Pari instance.
-
-        NOTE:
-
-        Usually this deallocation happens only when Sage quits.
-        We do not provide a direct test, since usually there
-        is only one Pari instance, and when artificially creating
-        another instance, C-data are shared.
-
-        The fact that Sage does not crash when quitting is an
-        indirect doctest. See the discussion at :trac:`13741`.
-
-        """
-        if avma:
-            pari_close()
 
     def __repr__(self):
         return "Interface to the PARI C library"

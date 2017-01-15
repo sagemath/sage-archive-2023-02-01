@@ -1259,6 +1259,12 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             from sage.misc.all import prod
             unit *= self.lift(self.residue_ring()(prod([ psi.leading_coefficient()**e for psi,e in F ])))
 
+        # A potential speedup that we tried to implement here:
+        # When F factors as T^n - a, then instead of using any lift of T^n - a
+        # we tried to take a lift that approximates well an n-th root of the
+        # constant coefficient of f[0]. Doing so saved a few invocations of
+        # mac_lane_step but in the end made hardly any difference.
+
         F = [(self.lift_to_key(psi/psi.leading_coefficient()),e) for psi,e in F]
 
         if compute_unit:

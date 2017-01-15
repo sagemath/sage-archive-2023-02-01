@@ -1490,7 +1490,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if algorithm == 'pari':
             rank_lead = self.pari_curve().ellanalyticrank()
             if leading_coefficient:
-                return (rings.Integer(rank_lead[0]), rank_lead[1].python())
+                return (rings.Integer(rank_lead[0]), rank_lead[1].sage())
             else:
                 return rings.Integer(self.pari_curve().ellanalyticrank()[0])
         elif algorithm == 'rubinstein':
@@ -3194,7 +3194,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__tamagawa_product
         except AttributeError:
-            self.__tamagawa_product = Integer(self.pari_mincurve().ellglobalred()[2].python())
+            self.__tamagawa_product = Integer(self.pari_mincurve().ellglobalred()[2].sage())
             return self.__tamagawa_product
 
     def real_components(self):
@@ -5559,7 +5559,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             for n in range(1, prec):
                 s += an[n-1]*r
                 r *= r0
-            ans.append(s.python())
+            ans.append(s.sage())
         return ans
 
 

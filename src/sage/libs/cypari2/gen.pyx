@@ -1488,45 +1488,44 @@ cdef class gen(gen_auto):
             raise TypeError("Object (=%s) must be of type t_VEC or t_COL." % self)
         return [self[n] for n in range(glength(self.g))]
 
-    def python(self, locals=None):
+    def python(self):
         """
-        Return the closest Python/Sage equivalent of the given PARI object.
+        Return the closest Python equivalent of the given PARI object.
 
-        INPUT:
-
-        - `z` -- PARI ``gen``
-
-        - `locals` -- optional dictionary used in fallback cases that
-          involve :func:`sage_eval`
-
-        .. NOTE::
-
-            If ``self`` is a real (type ``t_REAL``), then the result
-            will be a RealField element of the equivalent precision;
-            if ``self`` is a complex (type ``t_COMPLEX``), then the
-            result will be a ComplexField element of precision the
-            maximal precision of the real and imaginary parts.
+        See :func:`~sage.libs.cypari.convert.gen_to_python` for more informations.
 
         EXAMPLES::
 
+            sage: pari('1.2').python()
+            1.2
             sage: pari('389/17').python()
-            389/17
+            Fraction(389, 17)
+        """
+        from .convert import gen_to_python
+        return gen_to_python(self)
+
+    def sage(self, locals=None):
+        r"""
+        Return the closest Sage equivalent of the given PARI object.
+
+        INPUT:
+
+        - ``locals`` -- optional dictionary used in fallback cases that
+          involve ``sage_eval``
+
+        See :func:`~sage.libs.pari.convert_sage.gen_to_sage` for more information.
+
+        EXAMPLES::
+
             sage: f = pari('(2/3)*x^3 + x - 5/7 + y'); f
             2/3*x^3 + x + (y - 5/7)
             sage: var('x,y')
             (x, y)
-            sage: f.python({'x':x, 'y':y})
-            2/3*x^3 + x + y - 5/7
-
-        You can also use :meth:`.sage`, which is an alias::
-
             sage: f.sage({'x':x, 'y':y})
             2/3*x^3 + x + y - 5/7
         """
         from sage.libs.pari.convert_sage import gen_to_sage
         return gen_to_sage(self, locals)
-
-    sage = _eval_ = python
 
     def __long__(gen self):
         """

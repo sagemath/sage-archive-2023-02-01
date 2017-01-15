@@ -382,7 +382,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             m = pK.bnfisunit(pari(u)).mattranspose()
 
         # convert column matrix to a list:
-        m = [ZZ(m[0,i].python()) for i in range(m.ncols())]
+        m = [ZZ(m[0,i].sage()) for i in range(m.ncols())]
 
         # NB pari puts the torsion after the fundamental units, before
         # the extra S-units but we have the torsion first:

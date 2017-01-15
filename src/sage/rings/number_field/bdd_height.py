@@ -508,7 +508,7 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
     if LLL:
         cut_fund_unit_logs = column_matrix(fund_unit_logs).delete_rows([r])
         lll_fund_units = []
-        for c in pari(cut_fund_unit_logs).qflll().python().columns():
+        for c in pari(cut_fund_unit_logs).qflll().sage().columns():
             new_unit = 1
             for i in range(r):
                 new_unit *= fund_units[i]**c[i]

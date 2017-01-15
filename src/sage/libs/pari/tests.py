@@ -80,11 +80,11 @@ Constants::
 
     sage: pari.euler()
     0.577215664901533
-    sage: pari.euler(precision=100).python()
+    sage: pari.euler(precision=100).sage()
     0.577215664901532860606512090082...
     sage: pari.pi()
     3.14159265358979
-    sage: pari.pi(precision=100).python()
+    sage: pari.pi(precision=100).sage()
     3.1415926535897932384626433832...
 
 Polynomial functions::
@@ -886,19 +886,19 @@ Quadratic forms::
     sage: A = Matrix(3,3,[1,2,3,2,5,5,3,5,11])
     sage: A.is_positive_definite()
     True
-    sage: pari(A).qfminim(10, 5).python()
+    sage: pari(A).qfminim(10, 5).sage()
     [
              [17 14 15 16 13]
              [-4 -3 -3 -3 -2]
     146, 10, [-3 -3 -3 -3 -3]
     ]
-    sage: pari(A).qfminim().python()
+    sage: pari(A).qfminim().sage()
     [
           [ 5  2  1]
           [-1 -1  0]
     6, 1, [-1  0  0]
     ]
-    sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).python()
+    sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).sage()
     [
                              [ -5 -10  -2  -7   3]
                              [  1   2   1   2   0]

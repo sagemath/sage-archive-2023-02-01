@@ -2220,7 +2220,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             if algorithm == 'linbox':
                 raise ValueError("linbox too broken -- currently Linbox SNF is disabled.")
             if algorithm == 'pari':
-                d = self._pari_().matsnf(0).python()
+                d = self._pari_().matsnf(0).sage()
                 i = d.count(0)
                 d.sort()
                 if i > 0:
@@ -2306,7 +2306,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
            :meth:`elementary_divisors`
         """
-        v = self._pari_().matsnf(1).python()
+        v = self._pari_().matsnf(1).sage()
         if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
         if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
         # need to reverse order of rows of U, columns of V, and both of D.
@@ -2389,7 +2389,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         v = self._pari_().matfrobenius(flag)
         if flag==0:
-            return self.matrix_space()(v.python())
+            return self.matrix_space()(v.sage())
         elif flag==1:
             r = PolynomialRing(self.base_ring(), names=var)
             retr = []
@@ -2397,8 +2397,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 retr.append(eval(str(f).replace("^","**"), {'x':r.gen()}, r.gens_dict()))
             return retr
         elif flag==2:
-            F = matrix_space.MatrixSpace(QQ, self.nrows())(v[0].python())
-            B = matrix_space.MatrixSpace(QQ, self.nrows())(v[1].python())
+            F = matrix_space.MatrixSpace(QQ, self.nrows())(v[0].sage())
+            B = matrix_space.MatrixSpace(QQ, self.nrows())(v[1].sage())
             return F, B
 
     def _right_kernel_matrix(self, **kwds):
@@ -2542,7 +2542,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             K = self._rational_kernel_flint().transpose().saturation(proof=proof)
             format = 'computed-flint-int'
         elif algorithm == 'pari':
-            K = self._pari_().matkerint().mattranspose().python()
+            K = self._pari_().matkerint().mattranspose().sage()
             format = 'computed-pari-int'
         elif algorithm == 'padic':
             proof = kwds.pop('proof', None)
@@ -2569,7 +2569,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             [  6 -12   6]
             [ -3   6  -3]
         """
-        return self.parent()(self._pari_().matadjoint().python())
+        return self.parent()(self._pari_().matadjoint().sage())
 
     def _ntl_(self):
         r"""
@@ -2640,7 +2640,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         except (RuntimeError, ArithmeticError) as msg:
             raise ValueError("not a definite matrix")
         MS = matrix_space.MatrixSpace(ZZ,n)
-        U = MS(U.python())
+        U = MS(U.sage())
         # Fix last column so that det = +1
         if U.det() == -1:
             for i in range(n):

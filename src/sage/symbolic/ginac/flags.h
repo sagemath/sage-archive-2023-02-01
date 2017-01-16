@@ -81,7 +81,8 @@ public:
 		real,
 		positive,
 		infinity,
-		integer
+		integer,
+                even
 	};
 };
 

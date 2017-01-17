@@ -4127,8 +4127,8 @@ class Partition(CombinatorialElement):
 
         #list all of the positions for cells
         #filling each self from the left to the right
-        l = IntegerVectors(k, len(shelf), outer=shelf).list()
-        for iv in l:
+        for iv in IntegerVectors(k, len(shelf), outer=shelf):
+            iv = list(iv) # Make a mutable list
             tmp = conj + [0]*k
             j = 0
             for t in range(len(iv)):

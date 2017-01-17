@@ -1570,7 +1570,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         5-torsion points of `E`::
 
             sage: for x in x_coords:
-            ...       assert X.lift_x(x).order() == 5
+            ....:     assert X.lift_x(x).order() == 5
 
         The roots of the polynomial are the `x`-coordinates of the points `P`
         such that `mP=0` but `2P\not=0`::

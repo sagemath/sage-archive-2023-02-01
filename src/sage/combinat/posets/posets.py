@@ -121,7 +121,8 @@ List of Poset methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if the given list is a chain of the poset.
+    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if elements in the given list are comparable.
+    :meth:`~FinitePoset.is_antichain_of_poset` | Return ``True`` if elements in the given list are incomparable.
     :meth:`~FinitePoset.chains` | Return the chains of the poset.
     :meth:`~FinitePoset.antichains` | Return the antichains of the poset.
     :meth:`~FinitePoset.maximal_chains` | Return the maximal chains of the poset.
@@ -2652,7 +2653,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_chain_of_poset(self, elms, ordered=False):
         """
-        Return ``True`` if `elms` is a chain of the poset, and ``False`` otherwise.
+        Return ``True`` if ``elms`` is a chain of the poset,
+        and ``False`` otherwise.
+
+        Set of elements are a *chain* of a poset if they are comparable
+        to each other.
 
         INPUT:
 
@@ -2706,6 +2711,42 @@ class FinitePoset(UniqueRepresentation, Parent):
             # HasseDiagram.
             sorted_o = sorted(elms, key=self._element_to_vertex)
             return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
+
+    def is_antichain_of_poset(self, elms):
+        """
+        Return ``True`` if ``elms`` is an antichain of the poset
+        and ``False`` otherwise.
+
+        Set of elements are an *antichain* of a poset if they are
+        pairwise incomparable.
+
+        EXAMPLES::
+
+            sage: P = Posets.BooleanLattice(5)
+            sage: P.is_antichain_of_poset([3, 5, 7])
+            False
+            sage: P.is_antichain_of_poset([3, 5, 14])
+            True
+
+        TESTS::
+
+            sage: P = Posets.PentagonPoset()
+            sage: P.is_antichain_of_poset([])
+            True
+            sage: P.is_antichain_of_poset([0])
+            True
+            sage: P.is_antichain_of_poset([1, 2, 1])
+            True
+
+        Check :trac:`19078`::
+
+            sage: P.is_antichain_of_poset([0, 1, 'junk'])
+            Traceback (most recent call last):
+            ...
+            ValueError: element (=junk) not in poset
+        """
+        elms_H = [self._element_to_vertex(e) for e in elms]
+        return self._hasse_diagram.is_antichain_of_poset(elms_H)
 
     def is_connected(self):
         """

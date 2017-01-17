@@ -22,8 +22,8 @@ Nonetheless, garbage collection occurs when the original references are
 overwritten::
 
     sage: for p in prime_range(200):
-    ...     K = GF(p)
-    ...     H = Hom(ZZ, K)
+    ....:   K = GF(p)
+    ....:   H = Hom(ZZ, K)
     ...
     sage: import gc
     sage: _ = gc.collect()
@@ -127,8 +127,8 @@ def Hom(X, Y, category=None, check=True):
     using a weak cache::
 
         sage: for p in prime_range(10^3):
-        ...    K = GF(p)
-        ...    a = K(0)
+        ....:  K = GF(p)
+        ....:  a = K(0)
         sage: import gc
         sage: gc.collect()       # random
         624
@@ -547,10 +547,10 @@ class Homset(Set_generic):
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
             sage: class MyHomset(Homset):
-            ...       def my_function(self, x):
-            ...           return Y(x[0])
-            ...       def _an_element_(self):
-            ...           return sage.categories.morphism.SetMorphism(self, self.my_function)
+            ....:     def my_function(self, x):
+            ....:         return Y(x[0])
+            ....:     def _an_element_(self):
+            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
             ...
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids(), base = ZZ)
@@ -1194,10 +1194,10 @@ class HomsetWithBase(Homset):
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
             sage: class MyHomset(HomsetWithBase):
-            ...       def my_function(self, x):
-            ...           return Y(x[0])
-            ...       def _an_element_(self):
-            ...           return sage.categories.morphism.SetMorphism(self, self.my_function)
+            ....:     def my_function(self, x):
+            ....:         return Y(x[0])
+            ....:     def _an_element_(self):
+            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
             ...
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids())

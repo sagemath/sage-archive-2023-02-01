@@ -338,19 +338,12 @@ def execute_list_of_commands(command_list):
 class sage_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
-        log.info("Generating interpreter sources")
-        self.run_autogen()
         log.warn("Updating Cython code....")
         t = time.time()
         self.run_cython()
         log.warn("Finished Cythonizing, time: %.2f seconds." % (time.time() - t))
         self.copy_extra_files()
         self.check_flags()
-
-    def run_autogen(self):
-        from sage_setup.autogen import autogen_all
-
-        autogen_all()
 
     def run_cython(self):
         """
@@ -671,6 +664,16 @@ class sage_build_ext(build_ext):
             for src in src_files:
                 self.copy_file(src, dst, preserve_mode=False)
 
+#########################################################
+### Generating auto-generated Sources
+### This must be done before discovering and building
+### the python modules. See #22094.
+#########################################################
+
+log.info("Generating auto-generated sources")
+from sage_setup.autogen import autogen_all
+
+autogen_all()
 
 #########################################################
 ### Discovering Sources

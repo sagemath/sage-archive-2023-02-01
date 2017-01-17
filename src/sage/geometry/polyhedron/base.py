@@ -4373,7 +4373,7 @@ class Polyhedron_base(Element):
                 (self.is_simplex() and box_points<1000) or \
                 box_points<threshold:
             from sage.geometry.integral_points import rectangular_box_points
-            return rectangular_box_points(box_min, box_max, self)
+            return rectangular_box_points(list(box_min), list(box_max), self)
 
         # for more complicate polytopes, triangulate & use smith normal form
         from sage.geometry.integral_points import simplex_points

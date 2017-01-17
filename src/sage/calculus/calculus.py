@@ -1787,7 +1787,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     :trac:`8459` fixed::
 
         sage: maxima('3*li[2](u)+8*li[33](exp(u))').sage()
-        8*polylog(33, e^u) + 3*polylog(2, u)
+        3*dilog(u) + 8*polylog(33, e^u)
 
     Check if :trac:`8345` is fixed::
 

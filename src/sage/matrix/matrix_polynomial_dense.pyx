@@ -175,6 +175,22 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [  2   x  11], [0 0 1]
             )
 
+        Shifted weak popov form is computed if ``shifts`` is given::
+
+            sage: PF.<x> = QQ[]
+            sage: A = matrix(PF,3,[x,x^2,x^3,x^2,x^1,0,x^3,x^3,x^3])
+            sage: A.weak_popov_form()
+            [        x       x^2       x^3]
+            [      x^2         x         0]
+            [  x^3 - x x^3 - x^2         0]
+            sage: H,U = A.weak_popov_form(transformation=True, shifts=[16,8,0])
+            sage: H
+            [               x              x^2              x^3]
+            [               0         -x^2 + x       -x^4 + x^3]
+            [               0                0 -x^5 + x^4 + x^3]
+            sage: U * A == H
+            True
+
         .. SEEALSO::
 
             :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`

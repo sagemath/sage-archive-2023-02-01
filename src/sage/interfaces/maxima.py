@@ -161,7 +161,7 @@ http://maxima.sourceforge.net/docs/intromax/intromax.html.
 
     sage: eqn = maxima(['a+b*c=1', 'b-a*c=0', 'a+b=5'])
     sage: s = eqn.solve('[a,b,c]'); s
-    [[a=50/(sqrt(79)*%i+11),b=(5*sqrt(79)*%i+5)/(sqrt(79)*%i+11),c=(sqrt(79)*%i+1)/10],[a=-50/(sqrt(79)*%i-11),b=(5*sqrt(79)*%i-5)/(sqrt(79)*%i-11),c=-(sqrt(79)*%i-1)/10]]
+    [[a=-(sqrt(79)*%i-11)/4,b=(sqrt(79)*%i+9)/4,c=(sqrt(79)*%i+1)/10],[a=(sqrt(79)*%i+11)/4,b=-(sqrt(79)*%i-9)/4,c=-(sqrt(79)*%i-1)/10]]
 
 Here is an example of solving an algebraic equation::
 
@@ -173,7 +173,7 @@ Here is an example of solving an algebraic equation::
 You can even nicely typeset the solution in latex::
 
     sage: latex(s)
-    \left[ \left[ a={{50}\over{\sqrt{79}\,i+11}} , b={{5\,\sqrt{79}\,i+  5}\over{\sqrt{79}\,i+11}} , c={{\sqrt{79}\,i+1}\over{10}} \right]    , \left[ a=-{{50}\over{\sqrt{79}\,i-11}} , b={{5\,\sqrt{79}\,i-5  }\over{\sqrt{79}\,i-11}} , c=-{{\sqrt{79}\,i-1}\over{10}} \right]    \right]
+    \left[ \left[ a=-{{\sqrt{79}\,i-11}\over{4}} , b={{\sqrt{79}\,i+9  }\over{4}} , c={{\sqrt{79}\,i+1}\over{10}} \right]  , \left[ a={{  \sqrt{79}\,i+11}\over{4}} , b=-{{\sqrt{79}\,i-9}\over{4}} , c=-{{  \sqrt{79}\,i-1}\over{10}} \right]  \right]
 
 To have the above appear onscreen via ``xdvi``, type
 ``view(s)``. (TODO: For OS X should create pdf output

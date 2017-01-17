@@ -10718,7 +10718,7 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: solve(sin(x)==1/2, x, to_poly_solve='force')
-            [x == 1/6*pi + 2*pi*z..., x == 5/6*pi + 2*pi*z...]
+            [x == 5/6*pi + 2*pi*z..., x == 1/6*pi + 2*pi*z...]
 
         :trac:`11618` fixed::
 

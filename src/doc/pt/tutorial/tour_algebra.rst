@@ -52,8 +52,7 @@ primeiro, resolvemos o sistemas simbolicamente:
     sage: eq2 = q*y+p*x==-6
     sage: eq3 = q*y^2+p*x^2==24
     sage: solve([eq1,eq2,eq3,p==1],p,q,x,y)
-    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(5)*sqrt(2) - 2/3],
-    [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(5)*sqrt(2) - 2/3]]
+    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(10) - 2/3], [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(10) - 2/3]]
 
 Para obter soluções numéricas aproximadas, podemos usar:
 

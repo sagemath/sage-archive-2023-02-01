@@ -58,13 +58,13 @@ For some infinite sums, a closed expression can be found. By default, "maxima" i
     sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
     -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
 
-Maxima has some flags that affect how the result gets simplified(By default, besselexpand was set to false in Maxima)::
+Maxima has some flags that affect how the result gets simplified (By default, besselexpand is false in Maxima; however in 5.39 this test does not show any difference, as, apparently, another expansion path is used)::
 
     sage: maxima_calculus("besselexpand:false")
     false
     sage: x,n,k = var("x","n","k")
     sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
-    bessel_J(3/2, 2*sqrt(x))/x^(3/4)
+    -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
     sage: maxima_calculus("besselexpand:true")
     true
 

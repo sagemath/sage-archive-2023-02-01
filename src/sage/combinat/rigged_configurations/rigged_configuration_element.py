@@ -1438,14 +1438,14 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['E', 6, 1], [[2,2]])
-            sage: map(lambda x: x.weight(), RC.module_generators)
+            sage: [x.weight() for x in RC.module_generators]
             [-4*Lambda[0] + 2*Lambda[2], -2*Lambda[0] + Lambda[2], 0]
             sage: KR = crystals.KirillovReshetikhin(['E',6,1], 2,2)
-            sage: map(lambda x: x.weight(), KR.module_generators) # long time
+            sage: [x.weight() for x in KR.module_generators]  # long time
             [0, -2*Lambda[0] + Lambda[2], -4*Lambda[0] + 2*Lambda[2]]
 
             sage: RC = RiggedConfigurations(['D', 6, 1], [[4,2]])
-            sage: map(lambda x: x.weight(), RC.module_generators)
+            sage: [x.weight() for x in RC.module_generators]
             [-4*Lambda[0] + 2*Lambda[4], -4*Lambda[0] + Lambda[2] + Lambda[4],
              -2*Lambda[0] + Lambda[4], -4*Lambda[0] + 2*Lambda[2],
              -2*Lambda[0] + Lambda[2], 0]

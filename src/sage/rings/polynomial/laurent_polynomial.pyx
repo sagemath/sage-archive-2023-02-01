@@ -1417,9 +1417,9 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: L(1/2)
             1/2
 
-        TESTS::
+        TESTS:
 
-        Check that :trac:`19538` is fixed
+        Check that :trac:`19538` is fixed::
             
             sage: R = LaurentPolynomialRing(QQ,'x2,x0')
             sage: S = LaurentPolynomialRing(QQ,'x',3)
@@ -2495,11 +2495,25 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
     def subs(self, in_dict=None, **kwds):
         """
-        Note that this is a very unsophisticated implementation.
+        Substitute some variables in this Laurent polynomial.
+
+        Variable/value pairs for the substitution may be given
+        as a dictionary or via keyword-value pairs. If both are
+        present, the latter take precedence.
+
+        INPUT:
+
+        - ``in_dict`` -- dictionary (optional)
+
+        - ``**kwargs`` -- keyword arguments
+
+        OUTPUT:
+
+        A Laurent polynomial.
 
         EXAMPLES::
 
-            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: L.<x, y, z> = LaurentPolynomialRing(QQ)
             sage: f = x + 2*y + 3*z
             sage: f.subs(x=1)
             2*y + 3*z + 1
@@ -2507,19 +2521,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x + 3*z + 2
             sage: f.subs(z=1)
             x + 2*y + 3
-            sage: f.subs(x=1,y=1,z=1)
+            sage: f.subs(x=1, y=1, z=1)
             6
 
             sage: f = x^-1
             sage: f.subs(x=2)
             1/2
-            sage: f.subs({x:2})
+            sage: f.subs({x: 2})
             1/2
 
             sage: f = x + 2*y + 3*z
-            sage: f.subs({x:1,y:1,z:1})
+            sage: f.subs({x: 1, y: 1, z: 1})
             6
-            sage: f.substitute(x=1,y=1,z=1)
+            sage: f.substitute(x=1, y=1, z=1)
             6
 
         TESTS::
@@ -2528,38 +2542,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: f(q=10)
             x + 2*y + 3*z
 
+            sage: x.subs({x: 2}, x=1)
+            1
         """
-        if in_dict is not None and kwds:
-            raise ValueError("you cannot specify both a dictionary and keyword arguments")
-
-        g = self.parent().gens()
-        repr_g = [repr(i) for i in g]
-        vars = []
-
-        if in_dict is None:
-            for i in range(len(g)):
-                if repr_g[i] in kwds:
-                    vars.append(i)
-        else:
-            kwds = {}
-            for i in range(len(g)):
-                if g[i] in in_dict:
-                    kwds[ repr(g[i]) ] = in_dict[ g[i] ]
-                    vars.append(i)
-
-        d = self._dict()
-        out = 0
-        for mon in d:
-            term = d[mon]
-            for i in range(len(mon)):
-                if i in vars:
-                    term *= kwds[repr_g[i]]**mon[i]
-                else:
-                    term *= g[i]**mon[i]
-
-            out += term
-
-        return out
+        variables = list(self.parent().gens())
+        for i in range(0,len(variables)):
+            if str(variables[i]) in kwds:
+                variables[i]=kwds[str(variables[i])]
+            elif in_dict and variables[i] in in_dict:
+                variables[i] = in_dict[variables[i]]
+        return self(tuple(variables))
 
     def _symbolic_(self, R):
         """
@@ -2568,7 +2560,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: R.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = x^3 + y/x
             sage: g = f._symbolic_(SR); g
-            x^3 + y/x
+            (x^4 + y)/x
             sage: g(x=2,y=2)
             9
 

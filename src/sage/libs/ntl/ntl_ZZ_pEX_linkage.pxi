@@ -159,8 +159,11 @@ cdef inline bint celement_equal(ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except
 cdef inline int celement_cmp(ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except -2:
     """
     Not used.
+
+    Comparison is implemented in
+    ``sage/rings/polynomial/polynomial_zz_pex.pyx`` instead.
     """
-    return NotImplementedError
+    raise NotImplementedError
 
 cdef long celement_len(ZZ_pEX_c *a, cparent parent) except -2:
     """

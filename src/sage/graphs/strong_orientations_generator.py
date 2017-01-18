@@ -9,7 +9,8 @@ between each pair of vertices).
 ALGORITHM:
 
 The algorithm is an adaptation of the algorithm published in [CGMRV16]. It runs in `O(m*n)` amortized time
-where `m` is the number of edges and `n` is the number of vertices.
+where `m` is the number of edges and `n` is the number of vertices. The amortized time can be improved to O(m) with a more involved algorithm.
+In order to avoid trivial symetries, the orientation of an arbitrary edge is fixed before the start of the enumeration process.
  
 
 INPUT:
@@ -30,14 +31,18 @@ AUTHORS:
 - Kolja Knauer and Petru Valicov (2017-01-10): initial version
 
 EXAMPLES:
+
+A cycle has one possible (non-symetric) strong orientation::
+
     sage: g = graphs.CycleGraph(4)
     sage: it = g.all_strong_orientations_iterator()
-    for i in range(1): next(it).show()
-    
+    sage: len(list(it))
+    1
+
 TESTS:
 The total number of strong orientations of a graph can be counted using the Tutte polynomial evaluated at points (0,2)::
     sage: g = graphs.PetersenGraph()
-    sage: len(list(g.all_strong_orientations_iterator())) == g.tutte_polynomial()(0,2)/2 # the Tutte polynomial counts also the symetrical orientations
+    sage: len(list(g.all_strong_orientations_iterator())) == int(g.tutte_polynomial()(0,2)/2) # the Tutte polynomial counts also the symetrical orientations
     True
 
 REFERENCE:
@@ -59,11 +64,16 @@ REFERENCE:
 
 
 from sage.graphs.spanning_tree import kruskal
+from sage.graphs.digraph import DiGraph
 
 # MAIN function
 # preprocesses the graph and launches the generation algorithm
 # same idea as for generateStrongOrientations() with the spanning tree version
 def all_strong_orientations_iterator(self):
+    # if the graph is a forest then there is no strong orientation
+    if self.is_forest() :
+        return
+    
     V = self.vertices()
     Dg = DiGraph([self.vertices(), self.edges()])
 
@@ -131,7 +141,7 @@ def core_generation_algorithm(Dg, V, E):
                 del E[i]
                 length -= 1
                 boundEdges.append((u,v))
-                Dg.delete_edge((u,v))	
+                Dg.delete_edge((u,v))
             else :
                 i += 1
             Dg.add_edge((v,u))
@@ -144,11 +154,11 @@ def core_generation_algorithm(Dg, V, E):
         (u,v) = E.pop()
         Dg.delete_edge((v,u))
         for orientation in core_generation_algorithm(Dg, V, E):
-		    yield orientation
+                    yield orientation
         Dg.add_edge((v,u))
         Dg.delete_edge((u,v))
         for orientation in core_generation_algorithm(Dg, V, E):
-		    yield orientation
+                    yield orientation
         Dg.add_edge((u,v))
         E.append((u,v))
     Dg.add_edges(boundEdges)

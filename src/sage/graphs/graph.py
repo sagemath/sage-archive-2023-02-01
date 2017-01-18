@@ -7479,6 +7479,9 @@ Graph.lovasz_theta              = lovasz_theta
 from sage.graphs.partial_cube import is_partial_cube
 Graph.is_partial_cube           = is_partial_cube
 
+from sage.graphs.strong_orientations_generator import all_strong_orientations_iterator
+Graph.all_strong_orientations_iterator    =    all_strong_orientations_iterator
+
 _additional_categories = {
     Graph.is_long_hole_free         : "Graph properties",
     Graph.is_long_antihole_free     : "Graph properties",
@@ -7496,6 +7499,7 @@ _additional_categories = {
     Graph.is_partial_cube           : "Graph properties",
     Graph.tutte_polynomial          : "Algorithmically hard stuff",
     Graph.lovasz_theta              : "Leftovers",
+    Graph.all_strong_orientations_iterator : "orientations"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

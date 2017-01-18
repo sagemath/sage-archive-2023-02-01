@@ -719,9 +719,10 @@ class MaximaLib(MaximaAbstract):
             sage: integrate(sgn(x) - sgn(1-x), x)
             abs(x - 1) + abs(x)
 
-        ::
+        This is a known bug in Sage symbolic limits code, see
+        :trac:`17892` and https://sourceforge.net/p/maxima/bugs/3237/ ::
 
-            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6) # not tested -- known bug, see https://sourceforge.net/p/maxima/bugs/3237/
+            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6) # not tested -- known bug
             log(11) + log(2)
 
         ::

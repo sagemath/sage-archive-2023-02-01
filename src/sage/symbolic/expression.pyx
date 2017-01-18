@@ -10598,8 +10598,9 @@ cdef class Expression(CommutativeRingElement):
             sage: solve(Q*sqrt(Q^2 + 2) - 1, Q)
             [Q == 1/sqrt(Q^2 + 2)]
 
-        The following example is a regression in Maxima 5.39.0,
-        it used to be possible to get 2 solutions here, see
+        The following example is a regression in Maxima 5.39.0.
+        It used to be possible to get one more solution here,
+        namely 1/sqrt(sqrt(2) + 1), see
         https://sourceforge.net/p/maxima/bugs/3276/::
 
             sage: solve(Q*sqrt(Q^2 + 2) - 1, Q, to_poly_solve=True)

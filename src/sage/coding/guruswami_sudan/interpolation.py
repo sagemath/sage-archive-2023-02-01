@@ -377,7 +377,8 @@ def gs_interpolation_lee_osullivan(points, tau, parameters, wy):
         sage: tau = 1
         sage: params = (1, 1)
         sage: wy = 1
-        sage: gs_interpolation_lee_osullivan(points, tau, params, wy)
+        sage: Q = gs_interpolation_lee_osullivan(points, tau, params, wy)
+        sage: Q / Q.lc() # make monic
         x^3*y + 2*x^3 - x^2*y + 5*x^2 + 5*x*y - 5*x + 2*y - 4
     """
     from .utils import apply_shifts, remove_shifts, leading_term
@@ -386,7 +387,7 @@ def gs_interpolation_lee_osullivan(points, tau, parameters, wy):
     M = lee_osullivan_module(points, (s,l), wy)
     shifts = [i * wy for i in range(0,l+1)]
     apply_shifts(M, shifts)
-    Mnew = M.row_reduced_form(transformation=False, old_call=False)
+    Mnew = M.row_reduced_form()
     # Construct Q as the element of the row with the lowest weighted degree
     degs = [(i, leading_term(Mnew.row(i)).degree()) for i in range(0,l+1)]
     best = min(degs, key=lambda i_d: i_d[1])[0]

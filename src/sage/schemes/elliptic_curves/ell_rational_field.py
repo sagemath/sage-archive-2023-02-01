@@ -1212,7 +1212,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
             1
             sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
-            2/5
+            -2
             sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
             Traceback (most recent call last):
             ...
@@ -1230,7 +1230,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
             1/25
             sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
-            2/5
+            -2/25
             sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
             Traceback (most recent call last):
             ...

@@ -299,8 +299,16 @@ bool useries_can_handle(ex the_ex) {
         return (not unhandled_elements_in(the_ex));
 }
 
+class ldegree_error : public std::runtime_error {
+    public:
+        ldegree_error() : std::runtime_error("") {}
+};
+
 // This is practically ex::low_degree() except that some functions
-// return nonzero values.
+// return nonzero values. We use this to determine if in the later
+// series computation the precision may have to be increased. This
+// is the case if we encounter an add in the treewalk. If not we
+// can exactly determine the low degree.
 static int low_series_degree(ex the_ex) {
         static std::unordered_set<unsigned int> funcset {{
                 {sin_SERIAL::serial},
@@ -344,13 +352,7 @@ static int low_series_degree(ex the_ex) {
                 return 0;
         }
         if (is_exactly_a<add>(the_ex)) {
-	        int deg = std::numeric_limits<int>::max();
-                const add& a = ex_to<add>(the_ex);
-                if (not a.op(a.nops()).is_zero())
-                        return 0;
-                for (unsigned int i=0; i<a.nops(); i++)
-                        deg = std::min(deg, low_series_degree(a.op(i)));
-                return deg;
+                throw ldegree_error();
         }
         if (is_exactly_a<mul>(the_ex)) {
                 int deg_sum = 0;
@@ -369,9 +371,14 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
                 // send residues to the old code
                 throw flint_error(); 
         symbol x = ex_to<symbol>(r.lhs());
-        flint_series_t fp;
-        fmpq_poly_set_ui(fp.ft, 0);
-        int ldeg = low_series_degree(the_ex);
+        bool may_extend = false;
+        int ldeg = 0;
+        try {
+                ldeg = low_series_degree(the_ex);
+        }
+        catch (ldegree_error) {
+                may_extend = true;
+        }
 
         epvector epv;
         if (ldeg >= order) {
@@ -379,11 +386,24 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
                 return pseries(r, epv);
         }
 
-        if (ldeg > 0)
+        if (ldeg > 0) {
                 ldeg = 0;
-        the_ex.useries(fp, order - ldeg + 2);
+                may_extend = false;
+        }
+        flint_series_t fp;
+        fmpq_poly_set_ui(fp.ft, 0);
+        int prec = order - ldeg + 2;
+        the_ex.useries(fp, prec);
+        int deg = fmpq_poly_degree(fp.ft);
 
-        for (slong n=0; n<order-ldeg; n++) {
+        // Precision may have been lost when adding terms
+        if (may_extend and deg < prec - fp.offset) {
+                fmpq_poly_set_ui(fp.ft, 0);
+                the_ex.useries(fp, 2*prec - fp.offset - deg);
+        }
+
+        // Fill expair vector
+        for (slong n=0; n<=deg+prec; n++) {
                 if (n + fp.offset >= order)
                         break;
                 fmpq_t c;

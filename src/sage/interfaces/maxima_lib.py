@@ -721,7 +721,7 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
+            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6) # not tested -- known bug, see https://sourceforge.net/p/maxima/bugs/3237/
             log(11) + log(2)
 
         ::

@@ -1641,7 +1641,7 @@ end_scene""" % (render_params.antialiasing,
             sage: x,y,z = var('x,y,z')
             sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
             sage: astl = a.stl_binary()
-            sage: astl.[:40]
+            sage: astl[:40]
             'STL binary file / made by SageMath / ###'
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])

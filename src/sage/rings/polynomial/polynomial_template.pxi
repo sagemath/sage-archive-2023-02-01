@@ -97,7 +97,7 @@ cdef class Polynomial_template(Polynomial):
             1
             sage: P([1,0,1])
             x^2 + 1
-            sage: P(map(GF(2),[1,0,1]))
+            sage: P(list(map(GF(2),[1,0,1])))
             x^2 + 1
         """
         cdef celement *gen

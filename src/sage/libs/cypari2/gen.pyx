@@ -83,13 +83,15 @@ from .paridecl cimport *
 from .paripriv cimport *
 from .convert cimport (integer_to_gen, gen_to_integer,
                        new_gen_from_double, new_t_COMPLEX_from_double)
-from .pari_instance cimport (pari_instance, prec_bits_to_words, prec_words_to_bits,
+from .pari_instance cimport (prec_bits_to_words, prec_words_to_bits,
                              default_bitprec, get_var)
+from .pari_instance cimport _pari_instance as pari_instance
 from .stack cimport new_gen, new_gen_noclear, clear_stack
 from .closure cimport objtoclosure
 
 
 include 'auto_gen.pxi'
+
 
 @cython.final
 cdef class gen(gen_auto):

@@ -243,7 +243,7 @@ Text::
     sage: b = a.sage(); b # optional - lie
     'text'
     sage: type(b) # optional - lie
-    <type 'str'>
+    <... 'str'>
 
 
 LiE can be programmed using the Sage interface as well. Section 5.1.5

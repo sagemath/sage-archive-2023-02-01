@@ -88,7 +88,7 @@ to be able to reason with them, so their type is used instead::
 
     sage: a = int(10)
     sage: parent(a)
-    <type 'int'>
+    <... 'int'>
 
 In fact, under the hood, a special kind of parent "The set of all
 Python objects of type T" is used in these cases.

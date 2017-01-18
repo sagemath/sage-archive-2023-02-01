@@ -208,7 +208,7 @@ and use preview instead?)
     1
     sage: g = maxima('f/sinh(k*x)^4')
     sage: g.taylor('x', 0, 3)
-    x+x^3/6+(3*x^5)/40+(5*x^7)/112+(35*x^9)/1152
+    f/(k^4*x^4)-(2*f)/((3*k^2)*x^2)+(11*f)/45-((62*k^2*f)*x^2)/945
 
 ::
 

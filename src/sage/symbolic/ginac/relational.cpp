@@ -462,39 +462,49 @@ relational::result relational::decide() const
         }
 
 	const ex df = lh-rh;
-//        This will only work when Pynac knows about existing assumptions
-//        if ((not df.info(info_flags::real)) and o!=equal and o!=not_equal)
-//                return result::undecidable;
 	if (!is_exactly_a<numeric>(df)) {
                 switch (o) {
 		case equal:
                         if (df.info(info_flags::nonzero))
                                 return result::False;
+                        else if (df.is_zero())
+                                return result::True;
                         else
                                 return result::notimplemented;
 		case not_equal:
                         if (df.info(info_flags::nonzero))
                                 return result::True;
+                        else if (df.is_zero())
+                                return result::False;
                         else
                                 return result::notimplemented;
                 case less:
                         if ((-df).info(info_flags::positive))
                                 return result::True;
+                        else if(df.info(info_flags::nonnegative))
+                                return result::False;
                         else
                                 return result::notimplemented;
                 case greater:
                         if (df.info(info_flags::positive))
                                 return result::True;
+                        else if(df.is_zero()
+                                        or (-df).info(info_flags::positive))
+                                return result::False;
                         else
                                 return result::notimplemented;
 		case less_or_equal:
                         if (df.is_zero() or (-df).info(info_flags::positive))
                                 return result::True;
+                        else if (df.info(info_flags::positive))
+                                return result::False;
                         else
                                 return result::notimplemented;
 		case greater_or_equal:
                         if (df.is_zero() or df.info(info_flags::positive))
                                 return result::True;
+                        else if(df.info(info_flags::negative))
+                                return result::False;
                         else
                                 return result::notimplemented;
 		default:

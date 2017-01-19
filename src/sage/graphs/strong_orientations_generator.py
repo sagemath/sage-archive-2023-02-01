@@ -99,7 +99,7 @@ def all_strong_orientations_iterator(self):
     # initialization of the first binary word 00...0
     # corresponding to the current orientation of the non-tree edges
     existingAedges = []
-    for i in xrange(0, len(A)):
+    for i in range(0, len(A)):
         existingAedges.append(0)
     
     # Make the edges of the spanning tree double oriented
@@ -113,7 +113,7 @@ def all_strong_orientations_iterator(self):
     # Each of these orientations can be extended to a strong orientation
     # of G by orienting properly the tree-edges
     previousWord = 0
-    for i in xrange(0, 2**(len(A)-1)):
+    for i in range(0, 2**(len(A)-1)):
         word = (i >> 1) ^ i
         bitChanged = word ^ previousWord
         

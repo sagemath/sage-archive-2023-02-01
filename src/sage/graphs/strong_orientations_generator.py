@@ -68,10 +68,9 @@ from sage.graphs.digraph import DiGraph
 
 # MAIN function
 # preprocesses the graph and launches the generation algorithm
-# same idea as for generateStrongOrientations() with the spanning tree version
 def all_strong_orientations_iterator(self):
-    # if the graph is a forest then there is no strong orientation
-    if self.is_forest() :
+    # if the graph is a forest then it cannot be strongly oriented
+    if self.edge_connectivity() <= 1:
         return
     
     V = self.vertices()

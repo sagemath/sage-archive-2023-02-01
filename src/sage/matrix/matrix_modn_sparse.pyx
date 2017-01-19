@@ -102,7 +102,7 @@ cimport sage.structure.element
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 
-from matrix_integer_sparse cimport Matrix_integer_sparse
+from .matrix_integer_sparse cimport Matrix_integer_sparse
 from sage.misc.decorators import rename_keyword
 
 ################

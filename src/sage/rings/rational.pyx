@@ -57,7 +57,7 @@ import sage.misc.misc as misc
 import sage.rings.rational_field
 
 cimport integer
-from integer cimport Integer
+from .integer cimport Integer
 
 from sage.libs.cypari2.paridecl cimport *
 from sage.libs.cypari2.gen cimport gen as pari_gen

@@ -30,8 +30,8 @@ import operator
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.categories.map cimport Map
 
-from complex_double cimport ComplexDoubleElement
-from real_mpfr cimport RealNumber
+from .complex_double cimport ComplexDoubleElement
+from .real_mpfr cimport RealNumber
 
 import sage.misc.misc
 import integer

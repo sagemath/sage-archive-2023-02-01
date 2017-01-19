@@ -193,12 +193,15 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         K = self._parent.base_ring()
         return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i))) for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
-        EXAMPLE::
+        EXAMPLES::
+
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
             sage: (2*a+1)*x # indirect doctest
+            (2*a + 1)*x
+            sage: x*(2*a+1) # indirect doctest
             (2*a + 1)*x
         """
         cdef ntl_ZZ_pE d
@@ -250,7 +253,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         Check that polynomial evaluation works when using logarithmic
         representation of finite field elements (:trac:`16383`)::
 
-            sage: for i in xrange(10):
+            sage: for i in range(10):
             ....:     F = FiniteField(random_prime(15) ** ZZ.random_element(2, 5), 'a', repr='log')
             ....:     b = F.random_element()
             ....:     P = PolynomialRing(F, 'x')

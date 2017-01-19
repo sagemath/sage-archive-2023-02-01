@@ -850,7 +850,7 @@ commutative, i.e. is a finite field. In other words,
 ``DivisionRings().Finite()`` *coincides* with ``Fields().Finite()``::
 
         sage: DivisionRings().Finite()
-        Category of finite fields
+        Category of finite enumerated fields
         sage: DivisionRings().Finite() is Fields().Finite()
         True
 
@@ -1312,7 +1312,7 @@ Other design goals include:
        sage: Rings().Commutative().Finite().NoZeroDivisors()
        Category of finite integral domains
        sage: Rings().Finite().Division()
-       Category of finite fields
+       Category of finite enumerated fields
 
    This will allow for progressively getting rid of all the entries
    like :class:`GradedHopfAlgebrasWithBasis` which are polluting the
@@ -1396,7 +1396,7 @@ and any axiom `A` satisfied by `J`.
 
 The join `J` is naturally computed as a closure in the lattice of
 constructible categories: it starts with the `C_i`'s, gathers the set
-`S` of all the axioms satisfied by them, and repeteadly adds each
+`S` of all the axioms satisfied by them, and repeatedly adds each
 axiom `A` to those categories that do not yet satisfy `A` using
 :meth:`Category._with_axiom`. Due to deduction rules or (extra) super
 categories, new categories or new axioms may appear in the
@@ -1423,7 +1423,7 @@ categories of `J`. In particular, it is a finite process.
     ... so we would have an infinite increasing chain of constructible
     categories.
 
-    It's reasonnable to assume that there is a finite number of axioms
+    It's reasonable to assume that there is a finite number of axioms
     defined in the code. There remains to use this assumption to argue
     that any infinite execution of the algorithm would give rise to
     such an infinite sequence.
@@ -1638,7 +1638,7 @@ TESTS:
     Category of integral domains
 
     sage: DivisionRings().Finite() # Wedderburn's theorem
-    Category of finite fields
+    Category of finite enumerated fields
 
     sage: FiniteMonoids().Algebras(QQ)
     Join of Category of monoid algebras over Rational Field
@@ -1677,7 +1677,7 @@ all_axioms += ("Flying", "Blue",
                "Differentiable", "Smooth", "Analytic", "AlmostComplex",
                "FinitelyGeneratedAsMagma",
                "WellGenerated",
-               "Facade", "Finite", "Infinite",
+               "Facade", "Finite", "Infinite","Enumerated",
                "Complete",
                "FiniteDimensional", "Connected", "WithBasis",
                "Irreducible",

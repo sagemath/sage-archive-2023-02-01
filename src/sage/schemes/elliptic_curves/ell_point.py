@@ -117,6 +117,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import math
 
@@ -130,7 +131,8 @@ from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
-from sage.libs.pari.pari_instance import pari, prec_words_to_bits
+from sage.libs.cypari2.pari_instance import prec_words_to_bits
+from sage.libs.cypari2 import pari
 from sage.structure.sequence import Sequence
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
@@ -138,7 +140,7 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
                                                       SchemeMorphism_point_abelian_variety_field)
 from sage.schemes.generic.morphism import is_SchemeMorphism
 
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 from sage.misc.superseded import deprecated_function_alias
 
 oo = rings.infinity       # infinity
@@ -537,9 +539,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         return self.scheme()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True if this is not the zero point on the curve.
+        Return ``True`` if this is not the zero point on the curve.
 
         EXAMPLES::
 
@@ -553,6 +555,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             False
         """
         return bool(self[2])
+
+    __nonzero__ = __bool__
 
     def has_finite_order(self):
         """
@@ -2464,7 +2468,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0.0511114082399688...
 
             sage: def naive_height(P):
-            ...       return log(RR(max(abs(P[0].numerator()), abs(P[0].denominator()))))
+            ....:     return log(RR(max(abs(P[0].numerator()), abs(P[0].denominator()))))
             sage: for n in [1..10]:
             ....:     print(naive_height(2^n*P)/4^n)
             0.000000000000000

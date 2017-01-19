@@ -1,6 +1,7 @@
 """
 Generic dual bases symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -20,8 +21,8 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.matrix.all import matrix
 import sage.combinat.partition
-from sage.combinat.dict_addition import dict_linear_combination
-import classical
+import sage.data_structures.blas_dict as blas
+from . import classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", basis_name=None, prefix=None):
@@ -262,7 +263,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         """
         Representation of ``self``.
 
-        OUPUT
+        OUTPUT:
 
         - a string description of ``self``
 
@@ -608,7 +609,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
                 # Create the monomial coefficient dictionary from the
                 # the monomial coefficient dictionary of dual
-                dictionary = dict_linear_combination( (to_self_cache[d_part], d_mcs[d_part]) for d_part in d_mcs)
+                dictionary = blas.linear_combination( (to_self_cache[d_part], d_mcs[d_part]) for d_part in d_mcs)
 
             # Initialize self
             self._dual = dual

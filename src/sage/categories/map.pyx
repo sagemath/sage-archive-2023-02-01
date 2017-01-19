@@ -31,6 +31,8 @@ from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
 from sage.structure.element cimport parent_c
+from cpython.object cimport PyObject_RichCompare
+
 
 def unpickle_map(_class, parent, _dict, _slots):
     """
@@ -152,8 +154,7 @@ cdef class Map(Element):
 
             sage: phi = QQ['x']._internal_coerce_map_from(ZZ)
             sage: phi.domain
-            <weakref at ...; to 'sage.rings.integer_ring.IntegerRing_class'
-            at ... (JoinCategory.parent_class)>
+            <weakref at ...; to 'sage.rings.integer_ring.IntegerRing_class' at ...>
             sage: type(phi)
             <type 'sage.categories.map.FormalCompositeMap'>
             sage: psi = copy(phi)   # indirect doctest
@@ -1411,6 +1412,23 @@ cdef class Section(Map):
         """
         return "Section"
 
+    def inverse(self):
+        """
+        Return inverse of ``self``.
+
+        TEST::
+
+            sage: from sage.categories.map import Section
+            sage: R.<x,y> = QQ[]
+            sage: f = R.hom([x+y, x-y], R)
+            sage: sf = Section(f)
+            sage: sf.inverse()
+            Ring endomorphism of Multivariate Polynomial Ring in x, y over Rational Field
+              Defn: x |--> x + y
+                    y |--> x - y
+        """
+        return self._inverse
+
 cdef class FormalCompositeMap(Map):
     """
     Formal composite maps.
@@ -1586,7 +1604,7 @@ cdef class FormalCompositeMap(Map):
         _slots['__list'] = self.__list
         return Map._extra_slots(self, _slots)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         TEST::
 
@@ -1599,11 +1617,17 @@ cdef class FormalCompositeMap(Map):
             sage: m = FormalCompositeMap(H, f, g)
             sage: m == loads(dumps(m))
             True
+
+            sage: m == None
+            False
+            sage: m == 2
+            False
         """
-        c = cmp(type(self), type(other))
-        if c == 0:
-            c = cmp(self.__list, (<FormalCompositeMap>other).__list)
-        return c
+        if type(self) is not type(other):
+            return NotImplemented
+        left = (<FormalCompositeMap>self).__list
+        right = (<FormalCompositeMap>other).__list
+        return PyObject_RichCompare(left, right, op)
 
     def __hash__(self):
         """

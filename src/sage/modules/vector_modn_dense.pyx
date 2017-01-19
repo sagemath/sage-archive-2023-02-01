@@ -153,6 +153,8 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     def __init__(self, parent, x, coerce=True, copy=True):
         cdef Py_ssize_t i
         cdef mod_int a, p
+        if isinstance(x, xrange):
+            x = tuple(x)
         if isinstance(x, (list, tuple)):
             if len(x) != self._degree:
                 raise TypeError("x must be a list of the right length")
@@ -161,7 +163,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
                 p = R.order()
                 for i from 0 <= i < self._degree:
                     a = int(R(x[i]))
-                    self._entries[i] = a%p
+                    self._entries[i] = a % p
             else:
                 for i from 0 <= i < self._degree:
                     self._entries[i] = x[i]
@@ -305,7 +307,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             z._entries[i] = (self._entries[i] * r._entries[i]) % self._p
         return z
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         cdef Vector_modn_dense z
 
         cdef mod_int a = ivalue(left)
@@ -315,9 +317,6 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         for i from 0 <= i < self._degree:
             z._entries[i] = (self._entries[i] * a) % self._p
         return z
-
-    cpdef _lmul_(self, RingElement right):
-        return self._rmul_(right)
 
     cpdef _neg_(self):
         cdef Vector_modn_dense z

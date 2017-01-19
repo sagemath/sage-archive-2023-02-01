@@ -25,6 +25,7 @@ from sage.combinat.sf.sf import SymmetricFunctions
 from sage.rings.all import ZZ
 from functools import cmp_to_key, reduce
 
+
 def transpose_cmp(x, y):
     r"""
     Compare partitions ``x`` and ``y`` in transpose dominance order.
@@ -63,6 +64,7 @@ def transpose_cmp(x, y):
     xexp = x.to_exp()
     yexp = y.to_exp()
     n = min(len(xexp), len(yexp))
+
     def check(m, l):
         s1 = 0
         s2 = 0
@@ -76,7 +78,10 @@ def transpose_cmp(x, y):
         return 1
     if check(yexp, xexp):
         return -1
-    return cmp(x, y)
+    if x < y:
+        return -1
+    return 1
+
 
 class HallAlgebra(CombinatorialFreeModule):
     r"""
@@ -112,7 +117,7 @@ class HallAlgebra(CombinatorialFreeModule):
     the `\lambda`-th Hall-Littlewood `P`-function, and where
     `n(\lambda) = \sum_i (i - 1) \lambda_i`.
 
-    See section 2.3 in [Schiffmann]_, and sections II.2 and III.3
+    See section 2.3 in [Sch2006]_, and sections II.2 and III.3
     in [Macdonald1995]_ (where our `I_{\lambda}` is called `u_{\lambda}`).
 
     EXAMPLES::
@@ -206,11 +211,6 @@ class HallAlgebra(CombinatorialFreeModule):
         sage: e = SymmetricFunctions(R).e()
         sage: e(H[1,1,1])
         (q^-3)*e[3]
-
-    REFERENCES:
-
-    .. [Schiffmann] Oliver Schiffmann. *Lectures on Hall algebras*.
-       :arxiv:`0611617v2`.
     """
     def __init__(self, base_ring, q, prefix='H'):
         """
@@ -464,7 +464,7 @@ class HallAlgebra(CombinatorialFreeModule):
 
             Note that `a_{\lambda}` can be interpreted as the number
             of automorphisms of a certain object in a category
-            corresponding to `\lambda`. See Lemma 2.8 in [Schiffmann]_
+            corresponding to `\lambda`. See Lemma 2.8 in [Sch2006]_
             for details.
 
             EXAMPLES::

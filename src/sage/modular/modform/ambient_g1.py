@@ -33,7 +33,7 @@ TESTS::
     True
 
 
-We check that #10453 is fixed::
+We check that :trac:`10453` is fixed::
 
     sage: CuspForms(Gamma1(11), 2).old_submodule()
     Modular Forms subspace of dimension 0 of Modular Forms space of dimension 10 for Congruence Subgroup Gamma1(11) of weight 2 over Rational Field
@@ -41,6 +41,7 @@ We check that #10453 is fixed::
     Modular Forms subspace of dimension 4 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma1(3) of weight 12 over Rational Field
 
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -54,9 +55,9 @@ import sage.rings.all as rings
 
 import sage.modular.arithgroup.all as arithgroup
 
-import ambient
-import cuspidal_submodule
-import eisenstein_submodule
+from . import ambient
+from . import cuspidal_submodule
+from . import eisenstein_submodule
 
 class ModularFormsAmbient_gH_Q(ambient.ModularFormsAmbient):
     """

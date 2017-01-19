@@ -2,6 +2,7 @@
 Interface to Bill Hart's Quadratic Sieve
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 
@@ -132,7 +133,7 @@ def data_to_list(out, n, time):
 
 from sage.interfaces.sagespawn import SageSpawn
 import pexpect
-import cleaner
+from . import cleaner
 class qsieve_nonblock:
     """
     A non-blocking version of Hart's quadratic sieve.

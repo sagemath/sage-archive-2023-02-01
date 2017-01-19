@@ -1,6 +1,7 @@
+# distutils: language = c++
 # distutils: libraries = flint
 
-from types cimport fmpz_t, fmpz_poly_t
+from .types cimport fmpz_t, fmpz_poly_t
 
 from sage.libs.ntl.ZZ cimport ZZ_c
 from sage.libs.ntl.ZZX cimport ZZX_c

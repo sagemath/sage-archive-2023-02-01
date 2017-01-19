@@ -24,6 +24,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
@@ -31,7 +32,7 @@ from sage.misc.misc import some_tuples
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
 from sage.rings.infinity import infinity
-from local_generic import LocalGeneric
+from .local_generic import LocalGeneric
 from sage.rings.ring import PrincipalIdealDomain
 from sage.rings.integer import Integer
 from sage.rings.padics.padic_printing import pAdicPrinter
@@ -717,7 +718,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         .. SEEALSO::
 
             :class:`TestSuite`
-
         """
         tester = self._tester(**options)
 
@@ -732,6 +732,33 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 except (NotImplementedError, AttributeError):
                     pass
                 tester.assertEqual(y**self.residue_field().order(), y)
+
+    def _test_convert_residue_field(self, **options):
+        r"""
+        Test that conversion of residue field elements back to this ring works.
+
+        INPUT:
+
+         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_convert_residue_field()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+
+        for x in tester.some_elements():
+            if x.valuation() < 0:
+                continue
+            if x.precision_absolute() <= 0:
+                continue
+            y = x.residue()
+            z = self(y)
+            tester.assertEqual(z.residue(), y)
 
     @cached_method
     def _log_unit_part_p(self):
@@ -834,7 +861,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: K.frobenius_endomorphism(6) == Frob
             True
         """
-        from morphism import FrobeniusEndomorphism_padics
+        from .morphism import FrobeniusEndomorphism_padics
         return FrobeniusEndomorphism_padics(self, n)
 
     def _test_elements_eq_transitive(self, **options):

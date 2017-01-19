@@ -104,9 +104,7 @@ from sage.rings.all      import *
 from sage.arith.all      import *
 from sage.matrix.all     import *
 
-# This must come before Calculus -- it initializes the Pynac library.
-import sage.symbolic.pynac
-
+from sage.symbolic.all   import *
 from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
@@ -121,12 +119,9 @@ from sage.sets.all       import *
 from sage.probability.all import *
 from sage.interfaces.all import *
 
-from sage.symbolic.all   import *
-
 from sage.functions.all  import *
 from sage.calculus.all   import *
 
-from sage.server.all     import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *
@@ -327,13 +322,13 @@ def _write_started_file():
 set_random_seed()
 
 import warnings
-warnings.filterwarnings('ignore',
-    '.*_default is deprecated: use @default decorator instead\.')
-warnings.filterwarnings('ignore',
-    module='(.*IPython.*|ipykernel|jupyter_client|jupyter_core|nbformat|notebook)')
-# Why isn't it taken care of by IPython???
-warnings.filterwarnings('ignore', module='storemagic')
 warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
+# Ignore all deprecations from IPython etc.
+warnings.filterwarnings('ignore',
+    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
+# but not those that have OUR deprecation warnings
+warnings.filterwarnings('default',
+    '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()

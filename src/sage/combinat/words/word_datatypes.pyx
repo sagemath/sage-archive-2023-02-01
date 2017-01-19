@@ -80,7 +80,7 @@ cdef class WordDatatype_list(WordDatatype):
         r"""
         Construct a word with a given parent.
 
-        .. note::
+        .. NOTE::
 
            It is slower than WordDatatype_str and WordDatatype_tuple.
 
@@ -196,7 +196,7 @@ cdef class WordDatatype_list(WordDatatype):
         r"""
         Return the length of the word.
 
-        .. note::
+        .. NOTE::
 
            This function will be deprecated in a future version
            of Sage. Use ``self.length()`` instead.
@@ -255,13 +255,13 @@ cdef class WordDatatype_list(WordDatatype):
 
         - ``other`` - word represented by a list
 
-        OUPUT:
+        OUTPUT:
 
         word
 
         EXAMPLES::
 
-            sage: w = Word(range(10))
+            sage: w = Word(list(range(10)))
             sage: w * w
             word: 01234567890123456789
 
@@ -433,7 +433,7 @@ cdef class WordDatatype_str(WordDatatype):
         r"""
         A naive test for testing whether the word contains ``w`` as a factor.
 
-        .. note::
+        .. NOTE::
 
            This just wraps Python's builtin :meth:`__contains__` for :class:`str`.
 
@@ -540,7 +540,7 @@ cdef class WordDatatype_str(WordDatatype):
         r"""
         Return the length of the word.
 
-        .. note::
+        .. NOTE::
 
            This function will be deprecated in a future version
            of Sage. Use ``self.length()`` instead.
@@ -597,7 +597,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         - ``other`` - word represented by an str
 
-        OUPUT:
+        OUTPUT:
 
         word
 
@@ -653,7 +653,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         See also the partition method.
 
-        .. note::
+        .. NOTE::
 
            This just wraps Python's builtin :meth:`str::split` for
            :class:`str`.
@@ -724,7 +724,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         See also the split method.
 
-        .. note::
+        .. NOTE::
 
            This just wraps Python's builtin :meth:`str::partition` for
            :class:`str`.
@@ -1021,7 +1021,7 @@ cdef class WordDatatype_tuple(WordDatatype):
         r"""
         Return the length of the word.
 
-        .. note::
+        .. NOTE::
 
            This function will be deprecated in a future version
            of Sage. Use ``self.length()`` instead.
@@ -1104,7 +1104,7 @@ cdef class WordDatatype_tuple(WordDatatype):
 
         - ``other`` - word represented by a tuple
 
-        OUPUT:
+        OUTPUT:
 
         word
 

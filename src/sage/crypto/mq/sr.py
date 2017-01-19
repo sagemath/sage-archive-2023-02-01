@@ -3,8 +3,8 @@ Small Scale Variants of the AES (SR) Polynomial System Generator
 
 Sage supports polynomial system generation for small scale (and full
 scale) AES variants over `\GF{2}` and `\GF{2^e}`. Also, Sage supports
-both the specification of SR as given in the papers [CMR05]_ and
-[CMR06]_ and a variant of SR* which is equivalent to AES.
+both the specification of SR as given in the papers [CMR2005]_ and
+[CMR2006]_ and a variant of SR* which is equivalent to AES.
 
 SR is a family of parameterizable variants of the AES suitable as a
 framework for comparing different cryptanalytic techniques that can be
@@ -19,7 +19,7 @@ AUTHORS:
 
 - Martin Albrecht (2007-09): initial version
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): (:trac:`3893`) ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 EXAMPLES:
 
@@ -298,20 +298,15 @@ TESTS::
 
 REFERENCES:
 
-.. [CMR05] C\. Cid, S\. Murphy, M\. Robshaw *Small Scale Variants of
-  the AES*\; in Proceedings of Fast Software Encryption 2005\; LNCS
-  3557\; Springer Verlag 2005\; available at
-  http://www.isg.rhul.ac.uk/~sean/smallAES-fse05.pdf
+- [CMR2005]_
 
-.. [CMR06] C\. Cid, S\. Murphy, and M\. Robshaw *Algebraic Aspects of
-  the Advanced Encryption Standard*\; Springer Verlag 2006
+- [CMR2006]_
 
-.. [MR02] S\. Murphy, M\. Robshaw *Essential Algebraic Structure
-  Within the AES*\; in Advances in Cryptology \- CRYPTO 2002\; LNCS
-  2442\; Springer Verlag 2002
+- [MR2002]_
 """
 # python3
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
+from six.moves import range
 
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.rings.integer_ring import ZZ
@@ -327,9 +322,11 @@ from sage.misc.flatten import flatten
 from sage.modules.vector_modn_dense import Vector_modn_dense
 
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-from mpolynomialsystemgenerator import MPolynomialSystemGenerator
+from .mpolynomialsystemgenerator import MPolynomialSystemGenerator
 
 from sage.rings.polynomial.term_order import TermOrder
+from sage.structure.sage_object import richcmp_not_equal, rich_to_bool, op_LT
+
 
 def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
     r"""
@@ -421,6 +418,7 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
         return SR_gf2n(n, r, c, e, star, **kwargs)
     else:
         return SR_gf2(n, r, c, e, star, **kwargs)
+
 
 class SR_generic(MPolynomialSystemGenerator):
     def __init__(self, n=1, r=1, c=1, e=4, star=False, **kwargs):
@@ -651,8 +649,13 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: sr1 == sr2
             False
         """
-        return cmp( (self.n, self.r, self.c, self.e, self._postfix, self._order, self._allow_zero_inversions, self._aes_mode, self._gf2, self._star ),
-                    (other.n, other.r, other.c, other.e, other._postfix, other._order, other._allow_zero_inversions, other._aes_mode, other._gf2, other._star ) )
+        for name in ['n', 'r', 'c', 'e', '_postfix', '_order',
+                     '_allow_zero_inversions', '_aes_mode', '_gf2', '_star']:
+            lx = getattr(self, name)
+            rx = getattr(other, name)
+            if lx != rx:
+                return 1 if richcmp_not_equal(lx, rx, op_LT) else -1
+        return 0
 
     def sub_bytes(self, d):
         r"""
@@ -1808,7 +1811,7 @@ class SR_generic(MPolynomialSystemGenerator):
             names = self.varstrs("k", 0, r*c, e)
 
 
-        for _n in process(xrange(n)):
+        for _n in process(list(range(n))):
             names += self.varstrs("k", _n+1, r*c, e)
             names += self.varstrs("x", _n+1, r*c, e)
             names += self.varstrs("w", _n+1, r*c, e)
@@ -1987,7 +1990,7 @@ class SR_generic(MPolynomialSystemGenerator):
             lin = []
             if c > 1:
                 for q in range(c):
-                    t = range(r*e*(q) , r*e*(q+1) )
+                    t = list(range(r*e*(q) , r*e*(q+1)))
                     Sum += kj.matrix_from_rows(t)
                     lin += (ki.matrix_from_rows(t) + si + Sum).list()
 
@@ -2200,7 +2203,7 @@ class SR_gf2n(SR_generic):
 
     def phi(self, l):
         r"""
-        The operation `\phi` from [MR02]_
+        The operation `\phi` from [MR2002]_
 
         Projects state arrays to their algebraic representation.
 
@@ -2237,7 +2240,7 @@ class SR_gf2n(SR_generic):
 
     def antiphi(self, l):
         """
-        The operation `\phi^{-1}` from [MR02]_ or the inverse of ``self.phi``.
+        The operation `\phi^{-1}` from [MR2002]_ or the inverse of ``self.phi``.
 
         INPUT:
 
@@ -2583,7 +2586,7 @@ class SR_gf2(SR_generic):
 
     def phi(self, l, diffusion_matrix=False):
         r"""
-        The operation `\phi` from [MR02]_
+        The operation `\phi` from [MR2002]_
 
         Given a list/matrix of elements in `\GF{2^e}`, return a
         matching list/matrix of elements in `\GF{2}`.
@@ -2643,7 +2646,7 @@ class SR_gf2(SR_generic):
 
     def antiphi(self, l):
         """
-        The operation `\phi^{-1}` from [MR02]_ or the inverse of ``self.phi``.
+        The operation `\phi^{-1}` from [MR2002]_ or the inverse of ``self.phi``.
 
         INPUT:
 

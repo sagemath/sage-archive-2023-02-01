@@ -604,6 +604,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.env import SAGE_LOCAL
 import pexpect
@@ -615,7 +616,7 @@ from sage.misc.sage_eval import sage_eval
 from sage.repl.preparse import implicit_mul
 from sage.interfaces.tab_completion import ExtraTabCompletion
 
-from expect import Expect, ExpectFunction, AsciiArtString
+from .expect import Expect, ExpectFunction, AsciiArtString
 
 def _qepcad_atoms(formula):
     r"""

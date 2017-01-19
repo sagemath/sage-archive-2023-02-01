@@ -85,15 +85,16 @@ Another colored example::
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
-include "point_c.pxi"
-
 from math import cos, sin
 from sage.rings.all import RDF
 
-from base import RenderParams
+from .base import RenderParams
+from .transform cimport point_c, face_c
 from sage.ext.fast_eval cimport FastDoubleFunc
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
-from sage.ext.fast_eval import fast_float
+
+include "point_c.pxi"
+
 
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
     if point_c_eq(vs[f.vertices[a]], vs[f.vertices[b]]):
@@ -178,13 +179,14 @@ cdef class ParametricSurface(IndexFaceSet):
             f = tuple(f)
         self.f = f
         self.render_grid = domain
+        self._extra_kwds = kwds
         color_data = None
         if 'color' in kwds:
             try:
                 if len(kwds['color']) == 2 and callable(kwds['color'][0]):
                     color_data = kwds['color']
                     kwds.pop('color')
-            except TypeError, AttributeError:
+            except (TypeError, AttributeError):
                 pass
         if color_data is None:
             # case of a global color

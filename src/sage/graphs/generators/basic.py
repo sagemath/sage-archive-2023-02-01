@@ -98,7 +98,7 @@ def ButterflyGraph():
     For more information, see this
     `Wikipedia article on the butterfly graph <http://en.wikipedia.org/wiki/Butterfly_graph>`_.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`GraphGenerators.FriendshipGraph`
 
@@ -478,7 +478,7 @@ def CompleteBipartiteGraph(n1, n2):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
-    Trac ticket #12155::
+    :trac:`12155`::
 
         sage: graphs.CompleteBipartiteGraph(5,6).complement()
         complement(Complete bipartite graph): Graph on 11 vertices
@@ -558,7 +558,7 @@ def CompleteMultipartiteGraph(l):
 
         '''
         Produce a layout of the vertices so that vertices in the same
-        vertex set are adjecent and clearly separated from vertices in other
+        vertex set are adjacent and clearly separated from vertices in other
         vertex sets.
 
         This is done by calculating the vertices of an r-gon then

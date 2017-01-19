@@ -8,17 +8,7 @@ fi
 
 CUR=`pwd`
 
-# Copy over pre-patched files:
-cp patches/main.c src/demosrc &&
-cp patches/Make-arch src/unix &&
-cp patches/Make-config src/unix
-if [ $? -ne 0 ]; then
-    echo "Error copying over patched files."
-    exit 1
-fi
-
-cd src/unix
-
+cd "$CUR/src/unix"
 
 finished()
 {

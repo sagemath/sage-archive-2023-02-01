@@ -160,15 +160,15 @@ class pAdicLseries(SageObject):
         sage: lp == loads(dumps(lp))
         True
     """
-    def __init__(self, E, p, use_eclib=True, normalize='L_ratio'):
+    def __init__(self, E, p, implementation = 'eclib', normalize='L_ratio'):
         r"""
         INPUT:
 
         -  ``E`` - an elliptic curve
         -  ``p`` - a prime of good reduction
-        -  ``use_eclib`` - bool (default:True); whether or not to use
+        -  ``implementation`` - string (default:'eclib'); either 'eclib' to use
            John Cremona's ``eclib`` for the computation of modular
-           symbols
+           symbols or 'sage' to use Sage's own implementation
         -  ``normalize`` - ``'L_ratio'`` (default), ``'period'`` or ``'none'``;
            this is describes the way the modular symbols
            are normalized. See ``modular_symbol`` of
@@ -184,7 +184,9 @@ class pAdicLseries(SageObject):
         self._E = E
         self._p = ZZ(p)
         self._normalize = normalize
-        self._use_eclib = use_eclib
+        if implementation not in ['eclib', 'sage']:
+            raise ValueError("Implementation should be one of 'eclib' or 'sage'")
+        self._implementation = implementation
         if not self._p.is_prime():
             raise ValueError("p (=%s) must be a prime"%p)
         if E.conductor() % (self._p)**2 == 0:
@@ -195,7 +197,7 @@ class pAdicLseries(SageObject):
         except RuntimeError :
             print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
 
-        self._modular_symbol = E.modular_symbol(sign=+1, use_eclib = use_eclib, normalize=normalize)
+        self._modular_symbol = E.modular_symbol(sign=+1, implementation=implementation, normalize=normalize)
 
     def __add_negative_space(self):
         r"""
@@ -212,10 +214,10 @@ class pAdicLseries(SageObject):
         -1/2
 
         """
-        if self._use_eclib:
+        if self._implementation == 'eclib':
             verbose('Currently there is no negative modular symbols in eclib, so we have to fall back on the implementation of modular symbols in sage')
-            # once there is a eclib implementation of -1, this should be changed.
-        self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
+            # once there is a eclib implementation of -1, this should be changed. #10256
+        self._negative_modular_symbol = self._E.modular_symbol(sign=-1, implementation="sage", normalize=self._normalize)
 
     def __cmp__(self,other):
         r"""
@@ -571,7 +573,7 @@ class pAdicLseries(SageObject):
             sage: L = EllipticCurve('389a').padic_lseries(5)
             sage: L.order_of_vanishing()
             2
-            sage: L = EllipticCurve('5077a').padic_lseries(5, use_eclib=True)
+            sage: L = EllipticCurve('5077a').padic_lseries(5, implementation = 'eclib')
             sage: L.order_of_vanishing()
             3
         """
@@ -674,7 +676,7 @@ class pAdicLseries(SageObject):
         except AttributeError:
             self.__series = {}
         except KeyError:
-            for _n, _prec, _D, _eta in self.__series.keys():
+            for _n, _prec, _D, _eta in self.__series:
                 if _n == n and _D == D and _eta == eta and _prec >= prec:
                     return self.__series[(_n,_prec,_D,_eta)].add_bigoh(prec)
         return None

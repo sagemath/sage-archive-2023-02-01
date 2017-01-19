@@ -31,7 +31,7 @@ AUTHORS:
 - Simon Spicer (2013-03): Added code for modular degrees and congruence
   numbers of higher level
 
-- Simon Spicer (2014-08): Added new analytic rank computatation functionality
+- Simon Spicer (2014-08): Added new analytic rank computation functionality
 
 """
 
@@ -49,25 +49,27 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
+from six.moves import range
 
-import constructor
-import BSD
-from   ell_generic import is_EllipticCurve
-import ell_modular_symbols
-from   ell_number_field import EllipticCurve_number_field
-import ell_point
-import ell_tate_curve
-import ell_torsion
-import heegner
-from   gp_simon import simon_two_descent
-from   lseries_ell import Lseries_ell
-import mod5family
-from   modular_parametrization import ModularParameterization
-import padic_lseries
-import padics
+from . import constructor
+from . import BSD
+from   .ell_generic import is_EllipticCurve
+from . import ell_modular_symbols
+from   .ell_number_field import EllipticCurve_number_field
+from . import ell_point
+from . import ell_tate_curve
+from . import ell_torsion
+from . import heegner
+from   .gp_simon import simon_two_descent
+from   .lseries_ell import Lseries_ell
+from . import mod5family
+from   .modular_parametrization import ModularParameterization
+from . import padic_lseries
+from . import padics
 
 from sage.modular.modsym.modsym import ModularSymbols
+from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
 
 from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
@@ -582,7 +584,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.gen'>
             sage: e.type()
             't_VEC'
             sage: e.ellan(10)
@@ -1077,7 +1079,56 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__modular_symbol_space[typ] = M
         return M
 
-    def modular_symbol(self, sign=1, use_eclib = False, normalize = "L_ratio"):
+    def abelian_variety(self):
+        r"""
+        Return self as a modular abelian variety.
+
+        OUTPUT:
+
+        - a modular abelian variety
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a')
+            sage: E.abelian_variety()
+            Abelian variety J0(11) of dimension 1
+
+            sage: E = EllipticCurve('33a')
+            sage: E.abelian_variety()
+            Abelian subvariety of dimension 1 of J0(33)
+        """
+        return self.modular_symbol_space(sign=0).abelian_variety()
+
+    def _modular_symbol_normalize(self, sign, use_eclib, normalize, implementation):
+        r"""
+        Normalize parameters for :meth:`modular_symbol`.
+
+        TESTS::
+
+            sage: E = EllipticCurve('37a1')
+            sage: E.modular_symbol(implementation = 'eclib') is E.modular_symbol(implementation = 'eclib', normalize = 'L_ratio')
+            True
+        """
+        if use_eclib is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(20864, "Use the option 'implementation' instead of 'use_eclib'")
+            if use_eclib:
+                implementation = 'eclib'
+            else:
+                implementation = 'sage'
+        if sign not in [1,-1]:
+            raise ValueError("The sign of a modular symbol must be 1 or -1")
+        sign = ZZ(sign)
+        if normalize is None:
+            normalize = "L_ratio"
+        if normalize not in ["L_ratio", "period", "none"]:
+            raise ValueError("normalize should be one of 'L_ratio', 'period' or 'none'")
+        if implementation not in ["sage", "eclib"]:
+            raise ValueError("Implementation should be one of 'sage' or 'eclib'")
+        return (sign, normalize, implementation)
+
+    @cached_method(key = _modular_symbol_normalize)
+    def modular_symbol(self, sign = +1, use_eclib = None, normalize = None, implementation = 'eclib'):
         r"""
         Return the modular symbol associated to this elliptic curve,
         with given sign and base ring.  This is the map that sends `r/s`
@@ -1096,27 +1147,30 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        -  ``sign`` - 1 (default) or -1
+        -  ``sign`` - +1 (default) or -1.
 
-        -  ``use_eclib`` - (default: False); if True the computation is
-           done with John Cremona's implementation of modular
-           symbols in ``eclib``
+        -  ``use_eclib`` - Deprecated. Use the ``implementation`` parameter instead.
 
         -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio',
            'period', or 'none';
            For 'L_ratio', the modular symbol tries to normalized correctly
            as explained above by comparing it to ``L_ratio`` for the
            curve and some small twists.
-           The normalization 'period' is only available if
-           ``use_eclib=False``. It uses the ``integral_period_map`` for modular
+           The normalization 'period' is only available if the implementation
+           ``sage`` is chosen. It uses the ``integral_period_map`` for modular
            symbols and is known to be equal to the above normalization
            up to the sign and a possible power of 2.
            For 'none', the modular symbol is almost certainly
            not correctly normalized, i.e. all values will be a
            fixed scalar multiple of what they should be.  But
            the initial computation of the modular symbol is
-           much faster if ``use_eclib=False``, though evaluation of
-           it after computing it won't be any faster.
+           much faster in implementation ``sage`` is chosen,
+           though evaluation of it after computing it won't be any faster.
+
+        -  ``implementation`` - either 'eclib' (default) or 'sage'. Here 'eclib' uses
+           John Cremona's implementation in his library eclib; it only works
+           for ``sign`` +1 currently. Instead 'sage' uses the implementation within
+           sage which is often quite a bit slower.
 
         .. SEEALSO::
 
@@ -1124,8 +1178,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         EXAMPLES::
 
-            sage: E=EllipticCurve('37a1')
-            sage: M=E.modular_symbol(); M
+            sage: E = EllipticCurve('37a1')
+            sage: M = E.modular_symbol(); M
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: M(1/2)
             0
@@ -1134,76 +1188,65 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         ::
 
-            sage: E=EllipticCurve('121b1')
-            sage: M=E.modular_symbol()
+            sage: E = EllipticCurve('121b1')
+            sage: M = E.modular_symbol(implementation="sage")
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: M(1/7)
             -1/2
 
         ::
 
-            sage: E=EllipticCurve('11a1')
+            sage: E = EllipticCurve('11a1')
             sage: E.modular_symbol()(0)
             1/5
-            sage: E=EllipticCurve('11a2')
+            sage: E = EllipticCurve('11a2')
             sage: E.modular_symbol()(0)
             1
-            sage: E=EllipticCurve('11a3')
+            sage: E = EllipticCurve('11a3')
             sage: E.modular_symbol()(0)
             1/25
 
         ::
 
-            sage: E=EllipticCurve('11a2')
-            sage: E.modular_symbol(use_eclib=True, normalize='L_ratio')(0)
+            sage: E = EllipticCurve('11a2')
+            sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
             1
-            sage: E.modular_symbol(use_eclib=True, normalize='none')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
             2/5
-            sage: E.modular_symbol(use_eclib=True, normalize='period')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
             Traceback (most recent call last):
             ...
             ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(use_eclib=False, normalize='L_ratio')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='L_ratio')(0)
             1
-            sage: E.modular_symbol(use_eclib=False, normalize='none')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='none')(0)
             1
-            sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='period')(0)
             1
 
         ::
 
-            sage: E=EllipticCurve('11a3')
-            sage: E.modular_symbol(use_eclib=True, normalize='L_ratio')(0)
+            sage: E = EllipticCurve('11a3')
+            sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
             1/25
-            sage: E.modular_symbol(use_eclib=True, normalize='none')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
             2/5
-            sage: E.modular_symbol(use_eclib=True, normalize='period')(0)
+            sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
             Traceback (most recent call last):
             ...
             ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(use_eclib=False, normalize='L_ratio')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='L_ratio')(0)
             1/25
-            sage: E.modular_symbol(use_eclib=False, normalize='none')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='none')(0)
             1
-            sage: E.modular_symbol(use_eclib=False, normalize='period')(0)
+            sage: E.modular_symbol(implementation = 'sage', normalize='period')(0)
             1/25
-            sage: E.modular_symbol(sign=-1, use_eclib=False, normalize='L_ratio')(1/3)
-            1/2
-
-
         """
-        typ = (sign, normalize, use_eclib)
-        try:
-            return self.__modular_symbol[typ]
-        except AttributeError:
-            self.__modular_symbol = {}
-        except KeyError:
-            pass
-        if use_eclib :
+        sign, normalize, implementation = self._modular_symbol_normalize(sign, use_eclib, normalize, implementation)
+        if implementation == 'eclib':
             M = ell_modular_symbols.ModularSymbolECLIB(self, sign, normalize=normalize)
-        else :
+        else: # implementation == 'sage':
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
-        self.__modular_symbol[typ] = M
         return M
 
     def _modsym(self, tau, prec=53):
@@ -1261,18 +1304,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve('19a1')
-            sage: f = E.modular_symbol_numerical(1)  # indirect doctest
-            sage: g = E.modular_symbol(1)
-            sage: f(2), g(2)  # abs tol 1e-14
+            sage: f = E.modular_symbol_numerical(1)
+            sage: g = E.modular_symbol()
+            sage: f(0), g(0)  # abs tol 1e-14
             (0.333333333333330, 1/3)
             sage: f(oo), g(oo)
             (-0.000000000000000, 0)
 
             sage: E = EllipticCurve('79a1')
-            sage: f = E.modular_symbol_numerical(-1)  # indirect doctest
-            sage: g = E.modular_symbol(-1)
-            sage: f(1), g(1)  # abs tol 1e-14
-            (7.60908499689245e-16, 0)
+            sage: f = E.modular_symbol_numerical(-1)
+            sage: g = E.modular_symbol(-1, implementation="sage")
+            sage: f(1/3), g(1/3)  # abs tol 1e-13
+            (1.00000000000001, 1)
             sage: f(oo), g(oo)
             (0.000000000000000, 0)
         """
@@ -1284,6 +1327,47 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             P = lam[1].imag()
             return lambda a: self._modsym(a, prec).imag() / P
 
+
+    def pollack_stevens_modular_symbol(self, sign=0, implementation='eclib'):
+        """
+        Create the modular symbol attached to the elliptic curve,
+        suitable for overconvergent calculations.
+
+        INPUT:
+
+        - ``sign`` -- +1 or -1 or 0 (default), in which case this it
+          is the sum of the two
+
+        - ``implementation`` -- either 'eclib' (default) or 'sage'.
+          This determines classical modular symbols which implementation
+          of the underlying classical  modular symbols is used
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('113a1')
+            sage: symb = E.pollack_stevens_modular_symbol()
+            sage: symb
+            Modular symbol of level 113 with values in Sym^0 Q^2
+            sage: symb.values()
+            [-1/2, 1, -1, 0, 0, 1, 1, -1, 0, -1, 0, 0, 0, 1, -1, 0, 0, 0, 1, 0, 0]
+
+            sage: E = EllipticCurve([0,1])
+            sage: symb = E.pollack_stevens_modular_symbol(+1)
+            sage: symb.values()
+            [-1/6, 1/12, 0, 1/6, 1/12, 1/3, -1/12, 0, -1/6, -1/12, -1/4, -1/6, 1/12]
+        """
+        typ = (sign, implementation)
+        try:
+            return self.__modular_symbol[typ] # Doesn't collide with original implementation because tuple is length two here.
+        except AttributeError:
+            self.__modular_symbol = {}
+        except KeyError:
+            pass
+        M = ps_modsym_from_elliptic_curve(self, sign, implementation=implementation)
+        self.__modular_symbol[typ] = M
+        return M
+
+    _normalize_padic_lseries = padics._normalize_padic_lseries
     padic_lseries = padics.padic_lseries
 
     def newform(self):
@@ -3004,7 +3088,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__tamagawa_number = {}
         if p not in self.__kodaira_type:
             v = self.pari_mincurve().elllocalred(p)
-            from kodaira_symbol import KodairaSymbol
+            from .kodaira_symbol import KodairaSymbol
             self.__kodaira_type[p] = KodairaSymbol(v[1])
             self.__tamagawa_number[p] = Integer(v[3])
         return self.__kodaira_type[p]
@@ -3284,7 +3368,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__lseries
         except AttributeError:
-            from lseries_ell import Lseries_ell
+            from .lseries_ell import Lseries_ell
             self.__lseries = Lseries_ell(self)
             return self.__lseries
 
@@ -3366,9 +3450,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         a = self.anlist(prec)
         eps = self.root_number()
         sqrtN = float(N.sqrt())
+
         def _F(n, t):
             return gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
-        return sum([a[n]*(_F(n,s-1) + eps*_F(n,1-s)) for n in xrange(1,prec+1)])
+        return sum(a[n]*(_F(n,s-1) + eps*_F(n,1-s)) for n in range(1, prec+1))
 
     def is_local_integral_model(self,*p):
         r"""
@@ -4641,7 +4726,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ValueError: 4 is not prime.
 
         """
-        from isogeny_small_degree import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
+        from .isogeny_small_degree import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
 
         if l in [2, 3, 5, 7, 13]:
             return isogenies_prime_degree_genus_0(self, l)
@@ -5162,7 +5247,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__rho
         except AttributeError:
-            from gal_reps import GaloisRepresentation
+            from .gal_reps import GaloisRepresentation
             self.__rho = GaloisRepresentation(self)
         return self.__rho
 
@@ -5458,11 +5543,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],0.000001)
             [0, 0, 0]
         """
-        if not isinstance(points, (list,xrange)):
+        if not isinstance(points, list):
             try:
                 points = list(points)
             except TypeError:
-                return self.eval_modular_form([points],prec)
+                return self.eval_modular_form([points], prec)
         an = self.pari_mincurve().ellan(prec)
         s = 0
         c = pari('2 * Pi * I')
@@ -5471,7 +5556,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             s = pari(0)
             r0 = (c*z).exp()
             r = r0
-            for n in xrange(1,prec):
+            for n in range(1, prec):
                 s += an[n-1]*r
                 r *= r0
             ans.append(s.python())
@@ -5503,7 +5588,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__sha
         except AttributeError:
-            from sha_tate import Sha
+            from .sha_tate import Sha
             self.__sha = Sha(self)
             return self.__sha
 
@@ -5801,12 +5886,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: a = E.integral_points([P1,P2,P3], verbose=True)
             Using mw_basis  [(2 : 0 : 1), (3 : -4 : 1), (8 : -22 : 1)]
             e1,e2,e3:  -3.0124303725933... 1.0658205476962... 1.94660982489710
-            Minimal eigenvalue of height pairing matrix:  0.63792081458500...
+            Minimal and maximal eigenvalues of height pairing matrix: 0.637920814585005,2.31982967525725
             x-coords of points on compact component with  -3 <=x<= 1
             [-3, -2, -1, 0, 1]
             x-coords of points on non-compact component with  2 <=x<= 6
             [2, 3, 4]
-            starting search of remaining points using coefficient bound  5
+            starting search of remaining points using coefficient bound 5 and |x| bound 1.53897183921009e25
             x-coords of extra integral points:
             [2, 3, 4, 8, 11, 14, 21, 37, 52, 93, 342, 406, 816]
             Total number of integral points: 18
@@ -5852,6 +5937,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [P[0] for P in EllipticCurve([0,0,0,-468,2592]).integral_points()]
             [-24, -18, -14, -6, -3, 4, 6, 18, 21, 24, 36, 46, 102, 168, 186, 381, 1476, 2034, 67246]
 
+
+        See :trac:`22063`::
+
+            sage: for n in [67,71,74,91]:
+            ....:     assert 4*n^6+4*n^2 in [P[0] for P in EllipticCurve([0,0,0,2,n^2]).integral_points()]
+
+
         .. note::
 
            This function uses the algorithm given in [Co1]_.
@@ -5875,7 +5967,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError("integral_points() can only be called on an integral model")
 
         if mw_base=='auto':
-            mw_base = self.gens()
+            try:
+                mw_base = self.gens()
+            except RuntimeError:
+                raise RuntimeError("Unable to compute Mordell-Weil basis of {}, hence unable to compute integral points.".format(self))
             r = len(mw_base)
         else:
             try:
@@ -5996,9 +6091,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             mu += 1
 
         c1 = (mu + 2.14).exp()
-        c2 = min(M.charpoly ().roots(multiplicities=False))
+        height_pairing_eigs = M.charpoly ().roots(multiplicities=False)
+        c2 = min(height_pairing_eigs)
+        max_eig = max(height_pairing_eigs)
         if verbose:
-            print("Minimal eigenvalue of height pairing matrix: ", c2)
+            print("Minimal and maximal eigenvalues of height pairing matrix: {},{}".format(c2,max_eig))
             sys.stdout.flush()
 
         c3 = (w1**2)*R(b2).abs()/48 + 8
@@ -6008,7 +6105,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         mw_base_log = [] #contains \Phi(Q_i)
         mod_h_list = []  #contains h_m(Q_i)
         c9_help_list = []
-        for i in range(0,r):
+        for i in range(r):
             mw_base_log.append(mw_base[i].elliptic_logarithm().abs())
             mod_h_list.append(max(mw_base[i].height(),h_E,c7*mw_base_log[i]**2))
             c9_help_list.append((mod_h_list[i]).sqrt()/mw_base_log[i])
@@ -6106,10 +6203,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             print(L)
             sys.stdout.flush()
 
+        # The CPS bound is better but only implemented for minimal models:
+        try:
+            ht_diff_bnd = self.CPS_height_bound()
+        except RuntimeError:
+            ht_diff_bnd = self.silverman_height_bound()
+        x_bound = (ht_diff_bnd+max_eig*H_q**2).exp()
         if verbose:
-            print('starting search of remaining points using coefficient bound ',H_q)
+            print('starting search of remaining points using coefficient bound {} and |x| bound {}'.format(H_q,x_bound))
             sys.stdout.flush()
-        x_int_points3 = integral_points_with_bounded_mw_coeffs(self,mw_base,H_q)
+        x_int_points3 = integral_points_with_bounded_mw_coeffs(self,mw_base,H_q,x_bound)
         x_int_points = x_int_points.union(x_int_points3)
         if verbose:
             print('x-coords of extra integral points:')
@@ -6241,7 +6344,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (5s on sage.math, 2011)
             (4, 72)
 
-        This is curve "7690e1" which failed until \#4805 was fixed::
+        This is curve "7690e1" which failed until :trac:`4805` was fixed::
 
             sage: EllipticCurve([1,1,1,-301,-1821]).S_integral_points([13,2])
             [(-13 : 16 : 1),
@@ -6302,7 +6405,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if mw_base=='auto':
             if verbose:
                 print("Starting computation of MW basis")
-            mw_base = self.gens(proof=proof)
+            try:
+                mw_base = self.gens(proof=proof)
+            except RuntimeError:
+                raise RuntimeError("Unable to compute Mordell-Weil basis of {}, hence unable to compute integral points.".format(self))
             r = len(mw_base)
             if verbose:
                 print("Finished computation of MW basis; rank is ", r)
@@ -6450,7 +6556,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             `q` in `S`. (Such points are not covered by the main part
             of the code).  We know
 
-            .. math::
+            .. MATH::
 
                x=\frac{\xi}{\p_1^{\alpha_1} \cdot \dots \cdot \p_s^{\alpha_s}},\ (gcd(\xi,\p_i)=1),\ p_i \in S
 
@@ -6835,12 +6941,43 @@ def cremona_optimal_curves(conductors):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 
-def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
+def integral_points_with_bounded_mw_coeffs(E, mw_base, N, x_bound):
     r"""
     Returns the set of integers `x` which are
     `x`-coordinates of points on the curve `E` which
     are linear combinations of the generators (basis and torsion
     points) with coefficients bounded by `N`.
+
+    INPUT:
+
+    - ``E`` -  an elliptic curve
+    - ``mw_base`` - a list of points on `E` (generators)
+    - ``N`` - a positive integer (bound on coefficients)
+    - ``x_bound`` - a positive real number (upper bound on size of x-coordinates)
+
+    OUTPUT:
+
+    (list) list of integral points on `E` which are linear combinations
+    of the given points with coefficients bounded by `N` in absolute
+    value.
+
+    TESTS:
+
+    We check that some large integral points in a paper of Zagier are found::
+
+        sage: def t(a,b,x): # indirect doctest
+        ....:       E=EllipticCurve([0,0,0,a,b])
+        ....:       xs = [P[0] for P in E.integral_points()]
+        ....:       return x in xs
+        sage: all([t(a,b,x) for a,b,x in [ (-2,5, 1318), (4,-1, 4321),
+        ....: (0,17, 5234), (11,4, 16833), (-13,37, 60721), (-12,-10, 80327),
+        ....: (-7,22, 484961), (-9,28, 764396), (-13,4, 1056517), (-19,-51,
+        ....: 2955980), (-24,124, 4435710), (-30,133, 5143326), (-37,60,
+        ....: 11975623), (-23,-33, 17454557), (-16,49, 19103002), (27,-62,
+        ....: 28844402), (37,18, 64039202), (2,97, 90086608), (49,-64,
+        ....: 482042404), (-59,74, 7257247018), (94,689, 30841587841),
+        ....: (469,1594, 6327540232326), (1785,0, 275702503440)] ])
+        True
     """
     from sage.groups.generic import multiples
     xs=set()
@@ -6851,7 +6988,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
         """
         Helper function to record x-coord of a point if integral.
         """
-        if not P.is_zero():
+        if P:
             xP = P[0]
             if xP.is_integral():
                 xs.add(xP)
@@ -6871,23 +7008,25 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
             use_t(P)
         return xs
 
-    # Otherwise it is very very much faster to first compute
-    # the linear combinations over RR, and only compute them as
-    # rational points if they are approximately integral.
+    # Otherwise it is very very much faster to first compute the
+    # linear combinations over RR, and only compute them as rational
+    # points if they are approximately integral.  We will use a bit
+    # precision prec such that 2**prec is greater than the upper bound
+    # on the x- and y-coordinates.
 
-    # Note: making eps larger here will dramatically increase
-    # the running time.  If evidence arises that integral
-    # points are being missed, it would be better to increase
-    # the real precision than to increase eps.
-
-    def is_approx_integral(P):
-        r"""
-        Local function, returns True if the real point `P` is approximately integral.
+    def is_approx_integral(rx):
+        r""" Local function. Returns P if the real number `rx` is approximately
+        integral and rounds to a valid integral x-coordinate of an
+        integral point P on E, else 0.
         """
-        eps = 0.0001
-        return (abs(P[0]-P[0].round()))<eps and (abs(P[1]-P[1].round()))<eps
+        try:
+            return E.lift_x(rx.round())
+        except ValueError:
+            return 0
 
-    RR = RealField(100) #(100)
+    prec = (2 * RealField()(x_bound).log(2)).ceil()
+    #print("coeff bound={}, x_bound = {}, using {} bits precision".format(N,x_bound,prec))
+    RR = RealField(prec)
     ER = E.change_ring(RR)
     ER0 = ER(0)
 
@@ -6923,9 +7062,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
         RP = RPi[r-1]
 
         for T, TR in zip(tors_points, tors_points_R):
-            if is_approx_integral(RP + TR):
-                 P = sum([ni[i]*mw_base[i] for i in range(r)],T)
-                 use(P)
+            use(is_approx_integral((RP + TR)[0]))
 
         # increment indices and stored points
         i0 = r-1
@@ -6974,10 +7111,10 @@ def elliptic_curve_congruence_graph(curves):
     G = Graph()
     G.add_vertices([curve.cremona_label() for curve in curves])
     n = len(curves)
-    for i in xrange(n):
+    for i in range(n):
         E = curves[i]
         M = E.conductor()
-        for j in xrange(i):
+        for j in range(i):
             F = curves[j]
             N = F.conductor()
             MN = lcm(M, N)

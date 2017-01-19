@@ -61,7 +61,7 @@ valores 'exactos', en lugar de aproximaciones numéricas. Para obtener una
 aproximación numérica, utilice la función ``n`` o el método
 ``n`` (ámbas tienen un nombre más largo, ``numerical_approx``, y
 la función ``N`` es la misma que ``n``)). Éstas toman argumentos opcionales
-`prec``, que es el número requerido de bits de precisión, y ``digits``,
+``prec``, que es el número requerido de bits de precisión, y ``digits``,
 que es el número requerido de digitos decimales de precisión;
 el número predeterminado es de 53 bits de precisión.
 

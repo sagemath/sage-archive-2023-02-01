@@ -11,6 +11,7 @@ A more convenient notation may be ``R*[a,b,...]`` or ``[a,b,...]*R``.
 If `R` is non-commutative, the former creates a left and the latter
 a right ideal, and ``R*[a,b,...]*R`` creates a two-sided ideal.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -385,7 +386,7 @@ class Ideal_generic(MonoidElement):
         """
         raise NotImplementedError
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if this ideal is not `(0)`.
 
@@ -417,6 +418,8 @@ class Ideal_generic(MonoidElement):
             if not g.is_zero():
                 return True
         return False
+
+    __nonzero__ = __bool__
 
     def base_ring(self):
         r"""
@@ -1248,7 +1251,7 @@ class Ideal_principal(Ideal_generic):
 
         EXAMPLE:
 
-        Comparision with non-principal ideal::
+        Comparison with non-principal ideal::
 
             sage: P.<x, y> = PolynomialRing(ZZ)
             sage: I = P.ideal(x^2)
@@ -1611,7 +1614,7 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
         sage: len(B)
         45
     """
-    from rational_field import RationalField
+    from .rational_field import RationalField
 
     if n:
         if n > R.ngens():
@@ -1660,7 +1663,7 @@ def Katsura(R, n=None, homog=False, singular=singular_default):
         sage: J = sage.rings.ideal.Katsura(Q,1); J
         Ideal (x - 1) of Multivariate Polynomial Ring in x over Rational Field
     """
-    from rational_field import RationalField
+    from .rational_field import RationalField
     if n:
         if n > R.ngens():
             raise ArithmeticError("n must be <= R.ngens().")

@@ -36,9 +36,8 @@ BUILD_LIB_DIR = os.path.join(conf['SPKG_DIR'], 'src', 'ATLAS-lib')
 os.environ['MAKE'] += ' -j1'
 MAKE = os.environ['MAKE']
 
-# SAGE_LOCAL, SAGE_ROOT
+# SAGE_LOCAL
 SAGE_LOCAL = os.environ['SAGE_LOCAL']
-SAGE_ROOT  = os.environ['SAGE_ROOT']
 
 ######################################################################
 ### Some auxiliary functions to facilitate IO and error checking
@@ -76,15 +75,15 @@ def write_pc_file(libs,target):
     if not os.path.isdir(pkgconfigdir):
         os.makedirs(pkgconfigdir)
     libflags='-l%s'%(' -l'.join(libs))
-    pcfile ="""SAGE_ROOT=%s
-prefix=${SAGE_ROOT}/local
+    pcfile ="""SAGE_LOCAL=%s
+prefix=${SAGE_LOCAL}
 libdir=${prefix}/lib
 includedir=${prefix}/include
 Name: %s
 Version: 1.0
 Description: %s for sage, set up by the ATLAS spkg.
 Libs: -L${libdir} %s
-"""%(SAGE_ROOT, target, target, libflags)
+"""%(SAGE_LOCAL, target, target, libflags)
     open(os.path.join(SAGE_LOCAL, 'lib/pkgconfig/%s.pc'%target), 'w').write(pcfile)
 
 
@@ -143,6 +142,7 @@ if 'SAGE_ATLAS_LIB' in os.environ:
 
     paths = [ ATLAS_LIB, os.path.join(ATLAS_LIB, 'lib64'), os.path.join(ATLAS_LIB, 'lib') ]
     ATLAS_LIB = None
+    libraries = []
     for libs in libraries_sets:
         for path in paths:
             if is_atlas_lib_path(path, libs):
@@ -160,7 +160,7 @@ if 'SAGE_ATLAS_LIB' in os.environ:
         print('- or liblapack and libblas;')
         print('you wish to use existing ATLAS libraries.')
         print('For more details, see:')
-        print('http://sagemath.org/doc/installation/source.html#environment-variables')
+        print('http://doc.sagemath.org/html/en/installation/source.html#environment-variables')
         print('Unset SAGE_ATLAS_LIB to build ATLAS from source.')
         print('Then type make.')
         sys.exit(2)
@@ -209,7 +209,7 @@ if 'SAGE_ATLAS_LIB' in os.environ:
     for lib in libraries + libraries_optional:
         symlinkOSlibrary(prefix+lib)
 
-    if 'atlas' in libs:
+    if 'atlas' in libraries:
         write_pc_file(['cblas', 'atlas'], 'cblas')
         write_pc_file(['f77blas', 'atlas'], 'blas')
         # The inclusion of cblas is not a mistake. ATLAS' lapack include
@@ -223,20 +223,11 @@ if 'SAGE_ATLAS_LIB' in os.environ:
 
     sys.exit(0)
 
-write_pc_file(['cblas', 'atlas'], 'cblas')
-write_pc_file(['f77blas', 'atlas'], 'blas')
-# The inclusion of cblas is not a mistake. ATLAS' lapack include
-# a custom version of clapack which depends on cblas.
-write_pc_file(['lapack', 'f77blas', 'cblas', 'atlas'], 'lapack')
-
-######################################################################
-### Patch source
-######################################################################
-
-# apply all patches
-for fname in glob.glob(os.path.join(PATCH_DIR,'*.patch')):
-    rc = system_with_flush('patch -p1 -d src/ATLAS --input '+os.path.join(PATCH_DIR, fname))
-    assert_success(rc, bad='Applying '+fname+' failed.', good='Applied '+fname+'.')
+# Because blas, cblas and lapack libraries are properly linked
+# with no unknown symbols, no extra libraries needs to be given.
+write_pc_file(['cblas'], 'cblas')
+write_pc_file(['f77blas'], 'blas')
+write_pc_file(['lapack'], 'lapack')
 
 # add extra architectural defaults
 cp('src/ARCHS/*.tar.bz2', 'src/ATLAS/CONFIG/ARCHS/')

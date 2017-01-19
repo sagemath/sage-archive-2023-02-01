@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
@@ -20,7 +21,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from padic_extension_generic import pAdicExtensionGeneric
+from .padic_extension_generic import pAdicExtensionGeneric
 from sage.rings.finite_rings.finite_field_constructor import GF
 
 class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
@@ -59,7 +60,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         EXAMPLES::
 
             sage: R.<a> = Zq(125); R #indirect doctest
-            Unramified Extension of 5-adic Ring with capped absolute precision 20 in a defined by (1 + O(5^20))*x^3 + (O(5^20))*x^2 + (3 + O(5^20))*x + (3 + O(5^20))
+            Unramified Extension of 5-adic Ring with capped relative precision 20 in a defined by (1 + O(5^20))*x^3 + (O(5^20))*x^2 + (3 + O(5^20))*x + (3 + O(5^20))
             sage: latex(R) #indirect doctest
             \mathbf{Z}_{5^{3}}
         """

@@ -35,6 +35,7 @@ We compute a suborder, which has index a power of 17 in the maximal order::
     sage: factor(m)
     17^45
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 # This program is free software: you can redistribute it and/or modify
@@ -50,9 +51,9 @@ from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import is_Element
 
-from number_field_element import OrderElement_absolute, OrderElement_relative
+from .number_field_element import OrderElement_absolute, OrderElement_relative
 
-from number_field_element_quadratic import OrderElement_quadratic
+from .number_field_element_quadratic import OrderElement_quadratic
 
 from sage.rings.monomials import monomials
 
@@ -107,7 +108,7 @@ def EquationOrder(f, names, **kwds):
         ...
         ValueError: each generator must be integral
     """
-    from number_field import NumberField
+    from .number_field import NumberField
     R = ZZ['x']
     if isinstance(f, (list, tuple)):
         for g in f:
@@ -576,7 +577,7 @@ class Order(IntegralDomain):
             return self.__free_module
         except AttributeError:
             pass
-        from number_field_ideal import basis_to_module
+        from .number_field_ideal import basis_to_module
         M = basis_to_module(self.basis(), self.number_field())
         self.__free_module = M
         return M
@@ -1108,9 +1109,9 @@ class AbsoluteOrder(Order):
         r"""
         Used in pickling.
 
-        We test that #6462 is fixed. This used to fail because pickling the
-        order also pickled the cached results of the ``basis`` call, which
-        were elements of the order.
+        We test that :trac:`6462` is fixed. This used to fail because
+        pickling the order also pickled the cached results of the
+        ``basis`` call, which were elements of the order.
 
         ::
 
@@ -1465,7 +1466,7 @@ class RelativeOrder(Order):
             sage: S.<y> = OK[]; S
             Univariate Polynomial Ring in y over Maximal Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field
 
-        We test that trac #4193 is also fixed::
+        We test that :trac:`4193` is also fixed::
 
             sage: K1.<a> = NumberField(x^3 - 2)
             sage: R.<y> = PolynomialRing(K1)

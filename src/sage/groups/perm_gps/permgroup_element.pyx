@@ -71,6 +71,7 @@ from sage.interfaces.gap import is_GapElement
 from sage.interfaces.expect import is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
+from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
 
 import operator
 
@@ -424,7 +425,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         We check that :trac:`16678` is fixed::
 
-            sage: Permutations.global_options(display='cycle')
+            sage: Permutations.options.display='cycle'
             sage: p = Permutation((1,2))
             sage: PermutationGroupElement(p)
             (1,2)
@@ -618,7 +619,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         return self.cycles()[i]
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         Compare group elements ``self`` and ``other``.
 
@@ -658,11 +659,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef int i
         cdef PermutationGroupElement right = <PermutationGroupElement>other
         for i in range(self.n):  # Equal parents, so self.n == other.n
-            if self.perm[i] < right.perm[i]:
-                return -1
-            elif self.perm[i] > right.perm[i]:
-                return 1
-        return 0
+            li = self.perm[i]
+            ri = right.perm[i]
+            if li != ri:
+                return richcmp_not_equal(li, ri, op)
+        return rich_to_bool(op, 0)
 
     def __call__(self, i):
         """
@@ -1126,7 +1127,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         ALGORITHM: Only even cycles contribute to the sign, thus
 
-        .. math::
+        .. MATH::
 
             sign(sigma) = (-1)^{\sum_c len(c)-1}
 

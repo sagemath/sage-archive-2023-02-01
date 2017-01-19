@@ -8,8 +8,9 @@ Root system data for (untwisted) type C affine
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
-from cartan_type import CartanType_standard_untwisted_affine
+from .cartan_type import CartanType_standard_untwisted_affine
 class CartanType(CartanType_standard_untwisted_affine):
     def __init__(self, n):
         """
@@ -64,11 +65,11 @@ class CartanType(CartanType_standard_untwisted_affine):
         """
         n = self.n
         if n == 1:
-            import cartan_type
+            from . import cartan_type
             res = cartan_type.CartanType(["A",1,1]).dynkin_diagram()
             res._cartan_type = self
             return res
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         for i in range(1, n):
             g.add_edge(i, i+1)
@@ -120,7 +121,7 @@ class CartanType(CartanType_standard_untwisted_affine):
         if node is None:
             node = self._latex_draw_node
         if self.n == 1:
-            import cartan_type
+            from . import cartan_type
             return cartan_type.CartanType(["A",1,1])._latex_dynkin_diagram(label, node, node_dist)
 
         ret = "\\draw (0, 0.1 cm) -- +(%s cm,0);\n"%node_dist
@@ -159,7 +160,7 @@ class CartanType(CartanType_standard_untwisted_affine):
         if node is None:
             node = self._ascii_art_node
         n = self.n
-        from cartan_type import CartanType
+        from .cartan_type import CartanType
         if n == 1:
             return CartanType(["A",1,1]).ascii_art(label, node)
         ret = node(label(0)) + "=>=" + "---".join(node(label(i)) for i in range(1,n))

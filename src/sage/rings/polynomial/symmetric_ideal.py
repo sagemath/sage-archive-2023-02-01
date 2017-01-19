@@ -521,7 +521,7 @@ class SymmetricIdeal( Ideal_generic ):
             VarList = list(VarList)
             if not VarList:
                 return SymmetricIdeal(PARENT,[0])
-            VarList.sort(cmp=PARENT.varname_cmp, reverse=True)
+            VarList.sort(key=PARENT.varname_key, reverse=True)
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             CommonR = PolynomialRing(self.base_ring(), VarList, order=self.ring()._order)
 
@@ -951,7 +951,7 @@ class SymmetricIdeal( Ideal_generic ):
                             return Sequence([PARENT(1)], PARENT, check=False)
                         VarList = VarList.union([str(X) for X in P.variables()])
                 VarList = list(VarList)
-                VarList.sort(cmp=PARENT.varname_cmp, reverse=True)
+                VarList.sort(key=PARENT.varname_key, reverse=True)
                 CommonR = PolynomialRing(PARENT._base, VarList, order=PARENT._order)
 
             try: # working around one libsingular bug and one libsingular oddity

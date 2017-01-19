@@ -293,6 +293,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                                self.number_of_reflection_hyperplanes(),
                                "the sum of the codegrees should be consistent with the number of reflection hyperplanes")
 
+        @cached_method
         def number_of_reflection_hyperplanes(self):
             r"""
             Return the number of reflection hyperplanes of ``self``.
@@ -322,8 +323,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 15
             """
             from sage.rings.all import ZZ
-            return ZZ.sum(self.codegrees()) + self.rank()
+            return ZZ.sum(codeg+1 for codeg in self.codegrees())
 
+        @cached_method
         def number_of_reflections(self):
             r"""
             Return the number of reflections of ``self``.
@@ -355,8 +357,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 15
             """
             from sage.rings.all import ZZ
-            return ZZ.sum(self.degrees()) - self.rank()
+            return ZZ.sum(deg-1 for deg in self.degrees())
 
+        @cached_method
         def rank(self):
             r"""
             Return the rank of ``self``.
@@ -760,11 +763,6 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                       if ``True``, return instead the `q`-analogue as a
                       polynomial in `q`
 
-                    REFERENCES:
-
-                    .. [STW2016] C. Stump, H. Thomas, N. Williams.
-                       *Cataland II*, in preparation, 2016.
-
                     EXAMPLES::
 
                         sage: W = ColoredPermutations(1,3)
@@ -822,7 +820,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                       if ``True``, return instead the `q`-analogue as a
                       polynomial in `q`
 
-                    See [Arm2006]_ for further information.
+                    See [Ar2006]_ for further information.
 
                     .. NOTE::
 
@@ -830,12 +828,6 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                           Fuss-Catalan number `\frac{1}{mn+1}\binom{(m+1)n}{n}`.
                         - The Fuss-Catalan numbers for `G(r, 1, n)` all
                           coincide for `r > 1`.
-
-                    REFERENCES:
-
-                    .. [Arm2006] D. Armstrong. *Generalized noncrossing
-                       partitions and combinatorics of Coxeter groups*.
-                       Mem. Amer. Math. Soc., 2006.
 
                     EXAMPLES::
 
@@ -893,7 +885,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     where `d_1, \ldots, d_n` are the degrees and where
                     `h` is the Coxeter number.
-                    See [Arm2006]_ for further information.
+                    See [Ar2006]_ for further information.
 
                     INPUT:
 

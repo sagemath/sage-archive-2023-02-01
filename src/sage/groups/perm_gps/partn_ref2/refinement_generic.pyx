@@ -1,7 +1,7 @@
 r"""
 Automorphism groups and canonical labels.
 
-For details see section 3 of [Feu13]_.
+For details see section 3 of [Feu2013]_.
 
 Definitions
 ###########
@@ -169,11 +169,7 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Feu13] Feulner, Thomas, "Eine kanonische Form
-           zur Darstellung aequivalenter Codes --
-           Computergestuetzte Berechnung und ihre Anwendung
-           in der Codierungstheorie, Kryptographie und Geometrie --",
-           Dissertation, University of Bayreuth, 2013.
+- [Feu2013]_
 """
 
 #*****************************************************************************
@@ -184,6 +180,7 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include 'sage/groups/perm_gps/partn_ref/data_structures_pyx.pxi'
 
@@ -897,8 +894,8 @@ cdef class PartitionRefinement_generic:
             latex.add_to_preamble("\\usepackage{tikz-qtree}")
             view(self._latex_debug_string, engine="pdflatex", title=title)
         else:
-            print "sorry, no debug output was written. " + \
-            "Set BACKTRACK_WITHLATEX_DEBUG to True if interested in this information"
+            print("sorry, no debug output was written. " +
+                  "Set BACKTRACK_WITHLATEX_DEBUG to True if interested in this information")
 
     cdef void _init_latex(self):
         r"""

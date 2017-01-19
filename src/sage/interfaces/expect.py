@@ -39,14 +39,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import sys
 import weakref
 import time
 import gc
-import quit
-import cleaner
+from . import quit
+from . import cleaner
 import six
 from random import randrange
 
@@ -1147,12 +1148,14 @@ If this all works, you can then make calls like:
 
         EXAMPLES: We illustrate this function using the R interface::
 
+            sage: r._synchronize()
             sage: r._sendstr('a <- 10;\n')
             sage: r.eval('a')
             '[1] 10'
 
         We illustrate using the singular interface::
 
+            sage: singular._synchronize()
             sage: singular._sendstr('int i = 5;')
             sage: singular('i')
             5
@@ -1209,6 +1212,7 @@ If this all works, you can then make calls like:
 
             sage: R.<x> = QQ[]; f = x^3 + x + 1;  g = x^3 - x - 1; r = f.resultant(g); gap(ZZ); singular(R)
             Integers
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 1
             //        block   1 : ordering lp

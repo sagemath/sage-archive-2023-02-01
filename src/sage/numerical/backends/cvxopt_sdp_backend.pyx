@@ -23,6 +23,8 @@ from __future__ import print_function
 from sage.numerical.sdp import SDPSolverException
 from sage.matrix.all import Matrix
 from cvxopt import solvers
+from .generic_sdp_backend cimport GenericSDPBackend
+
 
 cdef class CVXOPTSDPBackend(GenericSDPBackend):
     cdef list objective_function #c_matrix
@@ -61,7 +63,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
                       "abstol":1e-7,
                       "reltol":1e-6,
                       "feastol":1e-7,
-                      "refinement":0 }
+                      "refinement":1 }
         self.answer = {}
         if maximization:
             self.set_sense(+1)
@@ -240,7 +242,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: p.add_variables(5)
             4
             sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.objective_coefficient(x), range(5))
+            sage: [p.objective_coefficient(x) for x in range(5)]
             [1, 1, 2, 1, 3]
         """
         for i in range(len(coeff)):

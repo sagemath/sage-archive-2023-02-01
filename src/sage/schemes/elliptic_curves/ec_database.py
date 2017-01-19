@@ -65,10 +65,11 @@ See also the functions cremona_curves() and cremona_optimal_curves()
 which enable easy looping through the Cremona elliptic curve database.
 
 """
+from __future__ import absolute_import
 
 import os
 
-from constructor import EllipticCurve
+from .constructor import EllipticCurve
 
 class EllipticCurves:
     def rank(self, rank, tors=0, n=10, labels=False):
@@ -116,9 +117,8 @@ class EllipticCurves:
             ((1, -1, 0, -106384, 13075804), 249649566346838)
 
         """
-        from sage.env import SAGE_SHARE
-        db = os.path.join(SAGE_SHARE,'ellcurves')
-        data = os.path.join(db,'rank%s'%rank)
+        from sage.env import ELLCURVE_DATA_DIR
+        data = os.path.join(ELLCURVE_DATA_DIR, 'rank%s'%rank)
         if not os.path.exists(data):
             return []
         v = []

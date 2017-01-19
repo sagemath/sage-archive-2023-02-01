@@ -32,6 +32,7 @@ Pickling test::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
         factor, gcd, lcm, kronecker_symbol, valuation)
@@ -57,8 +58,8 @@ from sage.modules.free_module_element import vector
 
 from operator import itemgetter
 
-import quaternion_algebra_element
-import quaternion_algebra_cython
+from . import quaternion_algebra_element
+from . import quaternion_algebra_cython
 
 from sage.modular.modsym.p1list import P1List
 
@@ -700,15 +701,6 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             Traceback (most recent call last):
             ...
             NotImplementedError: maximal order only implemented for rational quaternion algebras
-
-
-        REFERENCES:
-
-        .. [Piz1980] \A. Pizer. An Algorithm for Computing Modular Forms
-           on `\Gamma_0(N)`, J. Algebra 64 (1980), 340-390.
-
-        .. [Voi2012] \J. Voight. Identifying the matrix ring: algorithms
-           for quaternion algebras and quadratic forms, to appear.
         """
         try: return self.__maximal_order
         except AttributeError: pass
@@ -1469,7 +1461,7 @@ class QuaternionOrder(Algebra):
         The args and kwds are passed to the random_element method of
         the integer ring, and we return an element of the form
 
-        .. math::
+        .. MATH::
 
             ae_1 + be_2 + ce_3 + de_4
 

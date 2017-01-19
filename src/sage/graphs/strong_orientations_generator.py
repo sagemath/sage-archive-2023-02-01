@@ -15,7 +15,7 @@ Works only for simple graphs (no multiple edges).
 
 INPUT:
 
-- and undirected graph.
+- an undirected graph.
 
 OUTPUT:
 
@@ -133,15 +133,13 @@ def all_strong_orientations_iterator(self):
             yield orientation
 
 
-# Local function to make the code clearer
-# INPUT : directed graph, the set of vertices, the set of undirected edges (these edges are oriented in both ways)
-# Explores all strong orientations by finding bound edges (undirected edges whose orientation is forced)
-# and trying all possible orientations for the other edges. See [CGMRV16] for more details.
 def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
     r"""
     Helper function for the generation of all strong orientations.
 
     Generates all strong orientations of a given partially directed graph (called mixed graph).
+    The algorithm finds bound edges (undirected edges whose orientation is forced) and tries
+    all possible orientations for the other edges. See [CGMRV16] for more details.
 
     INPUT:
 

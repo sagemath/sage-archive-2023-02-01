@@ -1506,7 +1506,7 @@ cdef object py_sin(object x) except +:
         sage: sin(2.*I)
         3.62686040784702*I
         sage: sin(QQbar(I))
-        1.17520119364380*I
+        sin(I)
     """
     try:
         return x.sin()
@@ -1528,7 +1528,7 @@ cdef object py_cos(object x) except +:
         sage: cos(2.*I)
         3.76219569108363
         sage: cos(QQbar(I))
-        1.54308063481524
+        cos(I)
     """
     try:
         return x.cos()

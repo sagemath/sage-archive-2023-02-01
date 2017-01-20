@@ -47,6 +47,7 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         + \sum_{s \in \mathcal{S}} c_s \frac{\langle \alpha^{\vee},
         \alpha_s \rangle \langle \alpha^{\vee}_s, \alpha \rangle}{
         \langle \alpha^{\vee}, \alpha \rangle} s,
+        \end{aligned}
 
     where `w \in W` and `\alpha \in \mathfrak{h}` and
     `\alpha^{\vee} \in \mathfrak{h}^*`.

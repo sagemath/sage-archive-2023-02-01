@@ -74,6 +74,8 @@ cimport cython
 
 from cpython.int cimport PyInt_Check
 from cpython.long cimport PyLong_Check
+from cpython.bytes cimport PyBytes_Check
+from cpython.unicode cimport PyUnicode_Check
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.complex cimport PyComplex_RealAsDouble, PyComplex_ImagAsDouble
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
@@ -4537,15 +4539,15 @@ cpdef Gen objtogen(s):
 
     # Check basic Python types. Start with strings, which are a very
     # common case.
-    if isinstance(s, basestring):
+    # This generates slightly more efficient code than
+    # isinstance(s, (unicode, bytes))
+    if PyUnicode_Check(s) | PyBytes_Check(s):
         sig_on()
         g = gp_read_str(s)
         if g == gnil:
             clear_stack()
             return None
         return new_gen(g)
-    # This generates slightly more efficient code than
-    # isinstance(s, (int, long))
     if PyInt_Check(s) | PyLong_Check(s):
         return integer_to_gen(s)
     if isinstance(s, bool):

@@ -1137,7 +1137,7 @@ def polynomial(ex, base_ring=None, ring=None):
 
     INPUT:
 
-    - ``ex`` -- a symbolic expression.
+    - ``ex`` -- a symbolic expression
 
     - ``base_ring``, ``ring`` -- Either a
       ``base_ring`` or a polynomial ``ring`` can be
@@ -1198,7 +1198,7 @@ def polynomial(ex, base_ring=None, ring=None):
 class LaurentPolynomialConverter(PolynomialConverter):
     def __init__(self, ex, base_ring=None, ring=None):
         """
-        A converter from symbolic expressions to laurent polynomials.
+        A converter from symbolic expressions to Laurent polynomials.
 
         See :func:`laurent_polynomial` for details.
 
@@ -1216,16 +1216,17 @@ class LaurentPolynomialConverter(PolynomialConverter):
 
         if ring is None and base_ring is not None:
             from sage.rings.all import LaurentPolynomialRing
-            self.ring = LaurentPolynomialRing(self.base_ring, names=self.varnames)
+            self.ring = LaurentPolynomialRing(self.base_ring,
+                                              names=self.varnames)
 
 
 def laurent_polynomial(ex, base_ring=None, ring=None):
     """
-    Return a laurent polynomial from the symbolic expression ``ex``.
+    Return a Laurent polynomial from the symbolic expression ``ex``.
 
     INPUT:
 
-    - ``ex`` -- a symbolic expression.
+    - ``ex`` -- a symbolic expression
 
     - ``base_ring``, ``ring`` -- Either a
       ``base_ring`` or a laurent polynomial ``ring`` can be
@@ -1235,7 +1236,7 @@ def laurent_polynomial(ex, base_ring=None, ring=None):
 
     OUTPUT:
 
-    A laurent polynomial.
+    A Laurent polynomial.
 
     EXAMPLES::
 

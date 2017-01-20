@@ -77,6 +77,7 @@ typedef ex (* conjugate_funcp)();
 typedef ex (* real_part_funcp)();
 typedef ex (* imag_part_funcp)();
 typedef ex (* derivative_funcp)();
+typedef ex (* expl_derivative_funcp)();
 typedef ex (* power_funcp)();
 typedef ex (* series_funcp)();
 typedef ex (* subs_funcp)(PyObject* parent);
@@ -107,6 +108,9 @@ typedef ex (* derivative_funcp_1)(const ex &, unsigned);
 typedef ex (* derivative_funcp_2)(const ex &, const ex &, unsigned);
 typedef ex (* derivative_funcp_3)(const ex &, const ex &, const ex &, unsigned);
 typedef ex (* derivative_funcp_6)(const ex &, const ex &, const ex &, const ex &, const ex &, const ex &, unsigned);
+typedef ex (* expl_derivative_funcp_1)(const ex &, const symbol &);
+typedef ex (* expl_derivative_funcp_2)(const ex &, const ex &, const symbol &);
+typedef ex (* expl_derivative_funcp_3)(const ex &, const ex &, const ex &, const symbol &);
 typedef ex (* power_funcp_1)(const ex &, const ex &);
 typedef ex (* power_funcp_2)(const ex &, const ex &, const ex &);
 typedef ex (* power_funcp_3)(const ex &, const ex &, const ex &, const ex &);
@@ -127,6 +131,7 @@ typedef ex (* conjugate_funcp_exvector)(const exvector &);
 typedef ex (* real_part_funcp_exvector)(const exvector &);
 typedef ex (* imag_part_funcp_exvector)(const exvector &);
 typedef ex (* derivative_funcp_exvector)(const exvector &, unsigned);
+typedef ex (* expl_derivative_funcp_exvector)(const exvector &, const symbol &);
 typedef ex (* power_funcp_exvector)(const exvector &, const ex &);
 typedef ex (* series_funcp_exvector)(const exvector &, const relational &, int, unsigned);
 typedef void (* print_funcp_exvector)(const exvector &, const print_context &);
@@ -176,6 +181,10 @@ public:
     function_options & derivative_func(derivative_funcp_2 d);
     function_options & derivative_func(derivative_funcp_3 d);
     function_options & derivative_func(derivative_funcp_6 d);
+
+    function_options & expl_derivative_func(expl_derivative_funcp_1 d);
+    function_options & expl_derivative_func(expl_derivative_funcp_2 d);
+    function_options & expl_derivative_func(expl_derivative_funcp_3 d);
 
     function_options & power_func(power_funcp_1 d);
     function_options & power_func(power_funcp_2 d);
@@ -278,6 +287,7 @@ public:
 	real_part_funcp real_part_f;
 	imag_part_funcp imag_part_f;
 	derivative_funcp derivative_f;
+        expl_derivative_funcp expl_derivative_f;
 	power_funcp power_f;
 	series_funcp series_f;
         subs_funcp subs_f;
@@ -301,6 +311,7 @@ public:
 	bool real_part_use_exvector_args;
 	bool imag_part_use_exvector_args;
 	bool derivative_use_exvector_args;
+        bool expl_derivative_use_exvector_args;
 	bool power_use_exvector_args;
 	bool series_use_exvector_args;
 	bool print_use_exvector_args;
@@ -380,6 +391,7 @@ protected:
 	// non-virtual functions in this class
 protected:
 	ex pderivative(unsigned diff_param) const; // partial differentiation
+        ex expl_derivative(const symbol & s) const; // partial differentiation
 	bool lookup_remember_table(ex & result) const;
 	void store_remember_table(ex const & result) const;
 public:

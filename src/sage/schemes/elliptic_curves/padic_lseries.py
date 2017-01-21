@@ -214,9 +214,6 @@ class pAdicLseries(SageObject):
         -1/2
 
         """
-        if self._implementation == 'eclib':
-            verbose('Currently there is no negative modular symbols in eclib, so we have to fall back on the implementation of modular symbols in sage')
-            # once there is a eclib implementation of -1, this should be changed. #10256
         self._negative_modular_symbol = self._E.modular_symbol(sign=-1, implementation="sage", normalize=self._normalize)
 
     def __cmp__(self,other):
@@ -292,7 +289,7 @@ class pAdicLseries(SageObject):
         This is used to compute this `p`-adic
         L-series.
 
-        Note that the normalisation is not correct at this
+        Note that the normalization is not correct at this
         stage: use ``_quotient_of periods_to_twist`` to correct.
 
         Note also that this function does not check if the condition
@@ -378,7 +375,7 @@ class pAdicLseries(SageObject):
         for the twist. Quadratic twists are only implemented if the sign is
         `+1`.
 
-        Note that the normalisation is not correct at this
+        Note that the normalization is not correct at this
         stage: use  ``_quotient_of periods`` and ``_quotient_of periods_to_twist``
         to correct.
 
@@ -776,7 +773,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         such that `L_p(E,1) = (1-1/\alpha)^2 L(E,1)/\Omega_E`
         where `\alpha` is the unit root of the characteristic
         polynomial of Frobenius on `T_pE` and `\Omega_E` is the
-        Neron period of `E`.
+        Néron period of `E`.
 
         INPUT:
 
@@ -1098,7 +1095,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         such that `L_p(E,1) = (1-1/\alpha)^2 L(E,1)/\Omega_E`
         where `\alpha` is a root of the characteristic
         polynomial of Frobenius on `T_pE` and `\Omega_E` is the
-        Neron period of `E`.
+        Néron period of `E`.
 
         INPUT:
 

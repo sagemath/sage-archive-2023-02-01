@@ -1067,7 +1067,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                  H.out_degree_sequence().count(1)) and
                  self.is_meet_semidistributive() )
 
-    def is_meet_semidistributive(self):
+    def is_meet_semidistributive(self, certificate=False):
         r"""
         Return ``True`` if the lattice is meet-semidistributive, and ``False``
         otherwise.
@@ -1079,6 +1079,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             e \wedge x = e \wedge y \implies
             e \wedge x = e \wedge (x \vee y)
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (e, x, y))`` such that `e \wedge x = e \wedge y`
+          but `e \wedge x \neq e \wedge (x \vee y)`.
+          If ``certificate=False`` return ``True`` or ``False``.
 
         .. SEEALSO::
 
@@ -1093,6 +1105,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L_ = L.dual()
             sage: L_.is_meet_semidistributive()
             False
+            sage: L_.is_meet_semidistributive(certificate=True)
+            (False, (5, 4, 6))
 
         TESTS::
 
@@ -1102,24 +1116,43 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Smallest lattice that fails the quick check::
 
             sage: L = LatticePoset(DiGraph('IY_T@A?CC_@?W?O@??'))
-            sage: L.is_join_semidistributive()
+            sage: L.is_meet_semidistributive()
             False
 
         Confirm that :trac:`21340` is fixed::
 
-            sage: Posets.BooleanLattice(4).is_join_semidistributive()
+            sage: Posets.BooleanLattice(4).is_meet_semidistributive()
             True
         """
         # See http://www.math.hawaii.edu/~ralph/Preprints/algorithms-survey.pdf
         # for explanation of this
         n = self.cardinality()
         if n == 0:
+            if certificate:
+                return (True, None)
             return True
         H = self._hasse_diagram
-        if H.size()*2 > n*_log_2(n):
+        if not certificate and H.size()*2 > n*_log_2(n):
             return False
 
-        return all(H.kappa(v) is not None for v in H if H.in_degree(v) == 1)
+        for v in H:
+            if H.in_degree(v) == 1 and H.kappa(v) is None:
+                if not certificate:
+                    return False
+                v_ = next(H.neighbor_in_iterator(v))
+                t1 = set(H.depth_first_search(v_))
+                t2 = set(H.depth_first_search(v))
+                tmp = sorted(t1.difference(t2), reverse=True)
+                x = tmp[0]
+                for y in tmp:
+                    if H.are_incomparable(x, y):
+                        return (False,
+                                (self._vertex_to_element(v),
+                                 self._vertex_to_element(x),
+                                 self._vertex_to_element(y)))
+        if certificate:
+            return (True, None)
+        return True
 
     def is_join_semidistributive(self):
         r"""

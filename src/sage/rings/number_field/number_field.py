@@ -1703,15 +1703,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
     def _Hom_(self, codomain, cat=None):
         """
-        Return homset of homomorphisms from self to the number field
-        codomain.
+        Return homset of homomorphisms from self to the number field codomain.
 
-        The cat option is currently ignored.
-
-        EXAMPLES: This function is implicitly called by the Hom method or
-        function.
-
-        ::
+        EXAMPLES:
+        
+        This method is implicitly called by :meth:`Hom` and
+        :meth:`sage.categories.homset.Hom`::
 
             sage: K.<i> = NumberField(x^2 + 1); K
             Number Field in i with defining polynomial x^2 + 1
@@ -1724,10 +1721,20 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
            sage: Hom(K, VectorSpace(QQ,3))
            Set of Morphisms from Number Field in i with defining polynomial x^2 + 1 to Vector space of dimension 3 over Rational Field in Category of commutative additive groups
+
+        TESTS:
+
+        Verify that :trac:`22001` has been resolved::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = QQ.extension(x^2 + 1)
+            sage: K.hom([a]).category_for()
+            Category of number fields
+
         """
         if is_NumberFieldHomsetCodomain(codomain):
             from . import morphism
-            return morphism.NumberFieldHomset(self, codomain)
+            return morphism.NumberFieldHomset(self, codomain, category=cat)
         else:
             raise TypeError
 

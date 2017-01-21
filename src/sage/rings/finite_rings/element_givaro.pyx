@@ -68,7 +68,7 @@ import finite_field_constructor as finite_field
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
-from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 
 from sage.structure.parent cimport Parent
 
@@ -427,7 +427,7 @@ cdef class Cache_givaro(SageObject):
             den = e.denom()
             return self.parent(num)/self.parent(den)
 
-        elif isinstance(e, gen):
+        elif isinstance(e, Gen):
             pass # handle this in next if clause
 
         elif isinstance(e, FiniteFieldElement_pari_ffelt) or isinstance(e, FiniteField_ext_pariElement):
@@ -455,9 +455,9 @@ cdef class Cache_givaro(SageObject):
 
         cdef GEN t
         cdef long c
-        if isinstance(e, gen):
+        if isinstance(e, Gen):
             sig_on()
-            t = (<gen>e).g
+            t = (<Gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
             else:

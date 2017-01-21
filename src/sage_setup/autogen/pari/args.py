@@ -186,23 +186,23 @@ class PariArgumentGEN(PariArgumentObject):
         return "GEN"
     def convert_code(self):
         if self.index == 0:
-            # "self" is always of type gen, we skip the conversion
+            # "self" is always of type Gen, we skip the conversion
             s  = "        cdef GEN {tmp} = {name}.g\n"
         elif self.default is None:
             s  = "        {name} = objtogen({name})\n"
-            s += "        cdef GEN {tmp} = (<gen>{name}).g\n"
+            s += "        cdef GEN {tmp} = (<Gen>{name}).g\n"
         elif self.default == "NULL":
             s  = "        cdef GEN {tmp} = {default}\n"
             s += "        if {name} is not None:\n"
             s += "            {name} = objtogen({name})\n"
-            s += "            {tmp} = (<gen>{name}).g\n"
+            s += "            {tmp} = (<Gen>{name}).g\n"
         elif self.default == "0":
             s  = "        cdef GEN {tmp}\n"
             s += "        if {name} is None:\n"
             s += "            {tmp} = gen_0\n"
             s += "        else:\n"
             s += "            {name} = objtogen({name})\n"
-            s += "            {tmp} = (<gen>{name}).g\n"
+            s += "            {tmp} = (<Gen>{name}).g\n"
         else:
             raise ValueError("default value %r for GEN argument %r is not supported" % (self.default, self.name))
         return s.format(name=self.name, tmp=self.tmpname, default=self.default)

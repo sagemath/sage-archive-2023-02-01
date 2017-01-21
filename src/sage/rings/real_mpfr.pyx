@@ -136,7 +136,7 @@ import sage.misc.weak_dict
 import operator
 
 from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 from sage.libs.cypari2.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
@@ -1417,7 +1417,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # Real Numbers are supposed to be immutable.
         cdef RealNumber n, d
         cdef RealField_class parent
-        cdef gen _gen
+        cdef Gen _gen
         parent = self._parent
         if isinstance(x, RealNumber):
             if isinstance(x, RealLiteral):
@@ -1431,7 +1431,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
         elif isinstance(x, Rational):
             mpfr_set_q(self.value, (<Rational>x).value, parent.rnd)
-        elif isinstance(x, gen) and typ((<gen>x).g) == t_REAL:
+        elif isinstance(x, Gen) and typ((<Gen>x).g) == t_REAL:
             _gen = x
             self._set_from_GEN_REAL(_gen.g)
         elif isinstance(x, int):
@@ -5054,7 +5054,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ::
 
             sage: type(z)
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: R(z)
             1.64493406684823
         """

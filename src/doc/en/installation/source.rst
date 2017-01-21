@@ -9,6 +9,9 @@
 Install from Source Code
 ========================
 
+.. contents:: Table of contents
+   :depth: 2
+
 More familiarity with computers may be required to build Sage from
 the `source code <http://en.wikipedia.org/wiki/Source_code>`_.
 If you do have all the :ref:`pre-requisite tools <section-prereqs>`,
@@ -26,14 +29,14 @@ you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
 `Download the Sage source code <http://www.sagemath.org/download-source.html>`_
-or `check it out with git <https://github.com/sagemath/sage>`_ (see also.
-`the developers guide <http://doc.sagemath.org/html/en/developer/manual_git.html#section-git-checkout>`_).
-If you changed your mind, you can also download a
-`binary distribution <http://www.sagemath.org/download.html>`_
-for some operating systems.
+or get it from the `git repository <https://github.com/sagemath/sage>`_.
+Note: if you  are installing Sage for development, you should rather follow
+the instructions in
+`The Sage Developer's Guide <http://doc.sagemath.org/html/en/developer/walk_through.html#chapter-walkthrough>`_.
 
-.. contents:: Table of contents
-   :depth: 2
+It is also possible to download a
+`binary distribution <http://www.sagemath.org/download.html>`_
+for some operating systems, rather than compiling from source.
 
 Supported platforms
 -------------------
@@ -1413,4 +1416,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in July 2016 (Sage 7.3).**
+**This page was last updated in January 2017 (Sage 7.5).**

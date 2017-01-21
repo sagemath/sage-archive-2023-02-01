@@ -20,17 +20,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#*****************************************************************************
-#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
-#                               William Stein <wstein@gmail.com>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
 from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 from sage.structure.element import coerce_binop
@@ -752,3 +741,23 @@ cdef class LocalGenericElement(CommutativeRingElement):
         return ( (self>>other.valuation())*other.unit_part().inverse_of_unit(),
                  self.parent().zero() )
 
+    def _test_trivial_powers(self, **options):
+        r"""
+        Check that taking trivial powers of elements works as expected.
+
+        EXAMPLES::
+
+            sage: x = Zp(3, 5).zero()
+            sage: x._test_trivial_powers()
+
+        """
+        tester = self._tester(**options)
+
+        x = self**1
+        tester.assertEqual(x, self)
+        tester.assertEqual(x.precision_absolute(), self.precision_absolute())
+
+        z = self**0
+        one = self.parent().one()
+        tester.assertEqual(z, one)
+        tester.assertEqual(z.precision_absolute(), one.precision_absolute())

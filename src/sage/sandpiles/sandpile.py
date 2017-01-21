@@ -333,7 +333,7 @@ from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph, graphs, digraphs
-from sage.gsl.probability_distribution import GeneralDiscreteDistribution
+from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
@@ -1557,7 +1557,7 @@ class Sandpile(DiGraph):
         r"""
         The minimal recurrent elements.  If the underlying graph is
         undirected, these are the recurrent elements of least degree.
-        If ``verbose`` is ``False``, the configurations are converted 
+        If ``verbose`` is ``False``, the configurations are converted
         to lists of integers.
 
         INPUT:
@@ -1964,7 +1964,7 @@ class Sandpile(DiGraph):
 
         The vertices 1 and 2 have been swapped::
 
-            sage: T.dict() 
+            sage: T.dict()
             {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {0: 1}}
         """
 

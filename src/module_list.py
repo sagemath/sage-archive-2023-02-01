@@ -209,7 +209,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('*', ['sage/calculus/*.pyx']),
+    Extension('*', ['sage/calculus/**/*.pyx']),
 
     ################################
     ##
@@ -679,6 +679,14 @@ ext_modules = [
     Extension('sage.libs.gap.libgap',
               sources = ["sage/libs/gap/libgap.pyx"],
               libraries = ['gmp', 'gap', 'm']),
+
+    ###################################
+    ##
+    ## sage.libs.gsl
+    ##
+    ###################################
+
+    Extension('*', ["sage/libs/gsl/*.pyx"]),
 
     ###################################
     ##
@@ -1155,6 +1163,14 @@ ext_modules = [
 
     Extension('sage.plot.plot3d.transform',
               sources = ['sage/plot/plot3d/transform.pyx']),
+
+    ################################
+    ##
+    ## sage.probability
+    ##
+    ################################
+
+    Extension('*', ['sage/probability/*.pyx']),
 
     ################################
     ##

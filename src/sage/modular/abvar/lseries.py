@@ -99,9 +99,9 @@ class Lseries_complex(Lseries):
             0.24843186659059968120725033931
 
             sage: L = J0(389)[0].lseries()
-            sage: L(1) # long time (2s)
+            sage: L(1) # long time (2s) abstol 1e-10
             -1.33139759782370e-19
-            sage: L(1, prec=100) # long time (2s)
+            sage: L(1, prec=100) # long time (2s) abstol 1e-20
             6.0129758648142797032650287762e-39
             sage: L.rational_part()
             0
@@ -198,7 +198,7 @@ class Lseries_complex(Lseries):
 
             sage: L = J0(389)[0].lseries(); L
             Complex L-series attached to Simple abelian subvariety 389a(1,389) of dimension 1 of J0(389)
-            sage: L(1) # long time (2s)
+            sage: L(1) # long time (2s) abstol 1e-10
             -1.33139759782370e-19
             sage: L.vanishes_at_1()
             True

@@ -11,7 +11,7 @@ TeX-System "installieren", wobei "installieren" hier eine einzige Datei
 kopieren bedeutet. Siehe hierfür auch :ref:`installation` in diesem
 Tutorial und den Abschnitt "Make SageTeX known to TeX" des `Sage installation guide
 <http://doc.sagemath.org/html/en/installation/index.html>`_ (`dieser Link
-<../installation/index.html>`_ sollte Sie zu einer lokalen Kopie der
+<../../en/installation/index.html>`_ sollte Sie zu einer lokalen Kopie der
 Installationsanleitung führen) um weitere Informationen zu erhalten.
 
 Hier stellen wir ein sehr kurzes Beispiel vor wie man SageTeX nutzt.

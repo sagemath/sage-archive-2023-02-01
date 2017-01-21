@@ -28,7 +28,7 @@ include "cysignals/memory.pxi"
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
 from sage.structure.parent cimport Parent
-from polynomial_element cimport Polynomial
+from .polynomial_element cimport Polynomial
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational

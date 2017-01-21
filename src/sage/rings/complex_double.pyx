@@ -96,7 +96,7 @@ cdef CC = complex_field.ComplexField()
 import real_mpfr
 cdef RR = real_mpfr.RealField()
 
-from real_double cimport RealDoubleElement, double_repr, double_str
+from .real_double cimport RealDoubleElement, double_repr, double_str
 from real_double import RDF
 from sage.rings.integer_ring import ZZ
 

@@ -99,17 +99,17 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
-from matrix_modn_dense_float cimport Matrix_modn_dense_template
-from matrix_modn_dense_float cimport Matrix_modn_dense_float
-from matrix_modn_dense_double cimport Matrix_modn_dense_double
+from .matrix_modn_dense_float cimport Matrix_modn_dense_template
+from .matrix_modn_dense_float cimport Matrix_modn_dense_float
+from .matrix_modn_dense_double cimport Matrix_modn_dense_double
 
-from matrix_mod2_dense import Matrix_mod2_dense
-from matrix_mod2_dense cimport Matrix_mod2_dense
+from .matrix_mod2_dense import Matrix_mod2_dense
+from .matrix_mod2_dense cimport Matrix_mod2_dense
 
 
-from matrix2 import decomp_seq
+from .matrix2 import decomp_seq
 
-from matrix cimport Matrix
+from .matrix cimport Matrix
 
 cimport sage.structure.element
 

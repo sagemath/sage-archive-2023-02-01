@@ -141,8 +141,8 @@ from sage.libs.cypari2.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
-from integer cimport Integer
-from rational cimport Rational
+from .integer cimport Integer
+from .rational cimport Rational
 
 from sage.categories.map cimport Map
 
@@ -150,7 +150,7 @@ cdef ZZ, QQ, RDF
 from integer_ring import ZZ
 from rational_field import QQ
 from real_double import RDF
-from real_double cimport RealDoubleElement
+from .real_double cimport RealDoubleElement
 
 import sage.rings.rational_field
 

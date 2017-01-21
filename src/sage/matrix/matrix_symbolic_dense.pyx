@@ -152,7 +152,7 @@ from sage.rings.polynomial.all import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.factorization import Factorization
 
-from matrix_generic_dense cimport Matrix_generic_dense
+from .matrix_generic_dense cimport Matrix_generic_dense
 cimport matrix
 
 cdef maxima

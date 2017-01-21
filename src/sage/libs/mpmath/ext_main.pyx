@@ -30,7 +30,7 @@ DEF S_INF = 3
 DEF S_NINF = 4
 DEF S_NAN = 5
 
-from ext_impl cimport *
+from .ext_impl cimport *
 
 import mpmath.rational as rationallib
 import mpmath.libmp as libmp

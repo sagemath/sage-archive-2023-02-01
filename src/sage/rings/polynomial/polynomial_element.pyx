@@ -152,7 +152,7 @@ cpdef is_Polynomial(f):
     """
     return isinstance(f, Polynomial)
 
-from polynomial_compiled cimport CompiledPolynomialFunction
+from .polynomial_compiled cimport CompiledPolynomialFunction
 
 from polydict import ETuple
 

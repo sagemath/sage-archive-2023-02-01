@@ -29,7 +29,7 @@ AUTHORS:
   ``pari.desc`` (:trac:`17631` and :trac:`17860`)
 
 - Luca De Feo (2016-09-06): Separate Sage-specific components from
-  generic C-interface in ``PariInstance`` (:trac:`20241`)
+  generic C-interface in ``Pari`` (:trac:`20241`)
 
 EXAMPLES::
 
@@ -123,8 +123,8 @@ Output precision for printing
 Even though PARI reals have a precision, not all significant bits are
 printed by default. The maximum number of digits when printing a PARI
 real can be set using the methods
-:meth:`PariInstance.set_real_precision_bits` or
-:meth:`PariInstance.set_real_precision`.
+:meth:`Pari.set_real_precision_bits` or
+:meth:`Pari.set_real_precision`.
 
 We create a very precise approximation of pi and see how it is printed
 in PARI::
@@ -163,8 +163,8 @@ three kinds of calls:
    ``pari(1.0).sin()``.
 
 In the first case, the relevant precision is the one set by the methods
-:meth:`PariInstance.set_real_precision_bits` or
-:meth:`PariInstance.set_real_precision`::
+:meth:`Pari.set_real_precision_bits` or
+:meth:`Pari.set_real_precision`::
 
     sage: pari.set_real_precision_bits(150)
     sage: pari("sin(1)")
@@ -176,8 +176,8 @@ In the first case, the relevant precision is the one set by the methods
 In the second case, the precision can be given as the argument
 ``precision`` in the function call, with a default of 53 bits.
 The real precision set by
-:meth:`PariInstance.set_real_precision_bits` or
-:meth:`PariInstance.set_real_precision` is irrelevant.
+:meth:`Pari.set_real_precision_bits` or
+:meth:`Pari.set_real_precision` is irrelevant.
 
 In these examples, we convert to Sage to ensure that PARI's real
 precision is not used when printing the numbers. As explained before,
@@ -273,9 +273,6 @@ from .stack cimport new_gen, new_gen_noclear, clear_stack
 from .convert cimport new_gen_from_double
 from .handle_error cimport _pari_init_error_handling
 from .closure cimport _pari_init_closure
-
-from sage.ext.memory import init_memory_functions
-from sage.env import CYGWIN_VERSION
 
 # Default precision (in PARI words) for the PARI library interface,
 # when no explicit precision is given and the inputs are exact.
@@ -449,17 +446,17 @@ cdef void sage_flush():
 include 'auto_instance.pxi'
 
 # TODO: this should not be needed
-cdef PariInstance _pari_instance = PariInstance()
+cdef Pari _pari_instance = Pari()
 
-cdef class PariInstance(PariInstance_auto):
+cdef class Pari(Pari_auto):
     def __cinit__(self):
         r"""
         (Re)-initialize the PARI library.
 
         TESTS::
 
-            sage: from sage.libs.cypari2.pari_instance import PariInstance
-            sage: PariInstance.__new__(PariInstance)
+            sage: from sage.libs.cypari2.pari_instance import Pari
+            sage: Pari.__new__(Pari)
             Interface to the PARI C library
         """
         # PARI is already initialized, nothing to do...
@@ -530,15 +527,15 @@ cdef class PariInstance(PariInstance_auto):
 
         EXAMPLES::
 
-            sage: from sage.libs.cypari2.pari_instance import PariInstance
-            sage: pari2 = PariInstance(10^7)
+            sage: from sage.libs.cypari2.pari_instance import Pari
+            sage: pari2 = Pari(10^7)
             sage: pari2
             Interface to the PARI C library
             sage: pari2 is pari
             False
             sage: pari2.PARI_ZERO == pari.PARI_ZERO
             True
-            sage: pari2 = PariInstance(10^6)
+            sage: pari2 = Pari(10^6)
             sage: pari.stacksize(), pari2.stacksize()
             (10000000, 10000000)
 
@@ -591,26 +588,26 @@ cdef class PariInstance(PariInstance_auto):
         Deallocate the PARI library.
 
         If you want to reallocate the PARI library again, construct
-        a new instance of :class:`PariInstance`.
+        a new instance of :class:`Pari`.
 
         EXAMPLES::
 
-            sage: from sage.libs.cypari2.pari_instance import PariInstance
-            sage: pari2 = PariInstance(10^7)
+            sage: from sage.libs.cypari2.pari_instance import Pari
+            sage: pari2 = Pari(10^7)
             sage: pari2._close()
-            sage: pari2 = PariInstance(10^6)
+            sage: pari2 = Pari(10^6)
             sage: pari.stacksize()
             1000000
 
         .. WARNING::
 
             Calling this method is dangerous since any further use of
-            PARI (by this :class:`PariInstance` or another
-            :class:`PariInstance` or even another non-Python library)
+            PARI (by this :class:`Pari` or another
+            :class:`Pari` or even another non-Python library)
             will result in a segmentation fault after calling
             ``_close()``.
 
-            For this reason, the :class:`PariInstance` class never
+            For this reason, the :class:`Pari` class never
             deallocates PARI memory automatically.
         """
         global avma
@@ -1116,8 +1113,8 @@ cdef class PariInstance(PariInstance_auto):
         sig_on()
         return new_gen(primes_interval(t0.g, t1.g))
 
-    euler = PariInstance_auto.Euler
-    pi = PariInstance_auto.Pi
+    euler = Pari_auto.Euler
+    pi = Pari_auto.Pi
 
     def polchebyshev(self, long n, v=None):
         """

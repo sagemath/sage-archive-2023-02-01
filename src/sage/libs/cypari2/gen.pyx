@@ -1,7 +1,7 @@
 """
 Sage class for PARI's GEN type
 
-See the ``PariInstance`` class for documentation and examples.
+See the ``Pari`` class for documentation and examples.
 
 AUTHORS:
 
@@ -20,7 +20,7 @@ AUTHORS:
 - Jeroen Demeyer (2011-11-12): rewrite various conversion routines
   (:trac:`11611`, :trac:`11854`, :trac:`11952`)
 
-- Peter Bruin (2013-11-17): move PariInstance to a separate file
+- Peter Bruin (2013-11-17): move Pari to a separate file
   (:trac:`15185`)
 
 - Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (:trac:`15767`)
@@ -35,7 +35,7 @@ AUTHORS:
 - Kiran Kedlaya (2016-03-23): implement infinity type
 
 - Luca De Feo (2016-09-06): Separate Sage-specific components from
-  generic C-interface in ``PariInstance`` (:trac:`20241`)
+  generic C-interface in ``Pari`` (:trac:`20241`)
 
 TESTS:
 

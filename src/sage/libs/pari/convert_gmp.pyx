@@ -7,7 +7,7 @@ Utility function to convert PARI ``GEN``s to/from the GMP types
 AUTHORS:
 
 - Luca De Feo (2016-09-06): Separate Sage-specific components from
-  generic C-interface in ``PariInstance`` (:trac:`20241`)
+  generic C-interface in ``Pari`` (:trac:`20241`)
 """
 
 #*****************************************************************************

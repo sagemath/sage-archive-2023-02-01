@@ -161,18 +161,19 @@ AUTHORS:
 - Vincent Delecroix (2015-02): documentation formatting
 """
 
-
-##########################################################################
-#
+#*****************************************************************************
 #       Copyright (C) 2008 Carl Witty <Carl.Witty@gmail.com>
 #                     2015 Vincent Delecroix <20100.delecroix@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-##########################################################################
+#*****************************************************************************
+
 from __future__ import print_function, absolute_import
+
 from six import itervalues
 
 
@@ -3466,23 +3467,27 @@ def verify_same(a, b):
         assert(a.parent() == b.parent())
     else:
         assert(type(a) is type(b))
-    if isinstance(a, float):
-        # The IEEE floating-point standard recommends that NaN != NaN
-        # Sage doesn't do this for RDF or RR, but Python does for floats.
-        # So we need to consider the cases: a is/is not NaN, b is/is not NaN.
-        if not (a == a):
-            # a is a NaN; so confirm that b is a NaN
-            assert not (b == b)
-        else:
-            # a is not NaN.  If b is NaN, then the assertion will fail.
-            assert a == b
-        return
     from sage.rings.real_mpfi import is_RealIntervalFieldElement
     from sage.rings.complex_interval import is_ComplexIntervalFieldElement
     if is_RealIntervalFieldElement(a) or is_ComplexIntervalFieldElement(a):
         assert(cmp(a, b) == 0), "Expected %s == %s" % (a, b)
-    else:
-        assert(a == b), "Expected %s == %s" % (a, b)
+        return
+
+    if not (a == b):
+        # Verification failed => raise an AssertionError.
+        #
+        # There is an important exception: the IEEE-754 standard
+        # recommends that NaN != NaN. So this comparison will fail for
+        # any object involving NaN.
+        #
+        # If this case occurs, then a and b do not compare equal to
+        # itself. In that case, we compare the string representations of
+        # a and b.
+        if not (a == a) and not (b == b):
+            if repr(a) == repr(b):
+                return  # Good!
+        raise AssertionError("Expected %r == %r" % (a, b))
+
 
 def verify_si_answer(x, answer, preparse):
     r"""

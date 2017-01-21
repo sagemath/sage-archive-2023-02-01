@@ -2081,8 +2081,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: c = ComplexNumber(NaN,2)
             sage: c.log()
-            NaN - NaN*I
-
+            NaN + NaN*I
         """
         if mpfr_nan_p(self.__re):
             return ComplexNumber(self._parent,self.real(),self.real())

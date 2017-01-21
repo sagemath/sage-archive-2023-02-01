@@ -498,6 +498,14 @@ Verify that :trac:`10981` is fixed::
     sage: P = 1/(1+x^4)
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
+
+Check that :trac:`22202` is fixed::
+
+    sage: R1.<x> = AA[]; R2.<s> = QQbar[]
+    sage: v = QQbar.polynomial_root(x^2 - x + 1, CIF(0.5, RIF(-0.87, -0.85)))
+    sage: a = QQbar.polynomial_root((-4*v + 2)*s + (v - 1/2), CIF(RIF(0.24, 0.26), RIF(0)))
+    sage: QQ(a)
+    1/4
 """
 
 from __future__ import absolute_import, print_function

@@ -425,6 +425,30 @@ class FinitelyGeneratedMatrixGroup_generic(MatrixGroup_generic):
         """
         return len(self._gens_matrix)
 
+    def __reduce__(self):
+        """
+        Used for pickling.
+
+        TESTS::
+
+            sage: G = MatrixGroup([matrix(CC, [[1,2],[3,4]]),
+            ....:                  matrix(CC, [[1,3],[-1,0]])])
+            sage: loads(dumps(G)) == G
+            True
+
+        Check that :trac:`22128` is fixed::
+
+            sage: R = MatrixSpace(SR, 2)
+            sage: G = MatrixGroup([R([[1, 1], [0, 1]])])
+            sage: G.register_embedding(R)
+            sage: loads(dumps(G))
+            Matrix group over Symbolic Ring with 1 generators (
+            [1 1]
+            [0 1]
+            )
+        """
+        return MatrixGroup, (self._gens_matrix, {'check': False})
+
     def _test_matrix_generators(self, **options):
         """
         EXAMPLES::

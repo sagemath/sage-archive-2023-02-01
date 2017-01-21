@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Compute invariants of quintics and sextics via 'Ueberschiebung'.
 

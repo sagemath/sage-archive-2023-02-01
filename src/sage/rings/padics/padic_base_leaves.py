@@ -188,6 +188,7 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.structure.sage_object import op_LE
 
 from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicCappedRelativeFieldGeneric, \
@@ -243,7 +244,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
 
     def _coerce_map_from_(self, R):
         """
-        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
+        Return ``True`` if there is a coerce map from ``R`` to ``self``.
 
         EXAMPLES::
 
@@ -272,7 +273,8 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
         if isinstance(R, pAdicRingCappedRelative) and R.prime() == self.prime():
             if R.precision_cap() < self.precision_cap():
                 return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif (R.precision_cap() == self.precision_cap() and
+                  self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
     def _repr_(self, do_latex=False):
@@ -378,7 +380,8 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         if isinstance(R, pAdicRingCappedAbsolute) and R.prime() == self.prime():
             if R.precision_cap() < self.precision_cap():
                 return True
-            if R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif (R.precision_cap() == self.precision_cap() and
+                  self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
 class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
@@ -452,7 +455,8 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
         if isinstance(R, pAdicRingFixedMod) and R.prime() == self.prime():
             if R.precision_cap() > self.precision_cap():
                 return True
-            if R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif (R.precision_cap() == self.precision_cap() and
+                  self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
     def _repr_(self, do_latex=False):
@@ -573,7 +577,8 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
         if isinstance(R, pAdicFieldCappedRelative) and R.prime() == self.prime():
             if R.precision_cap() < self.precision_cap():
                 return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif (R.precision_cap() == self.precision_cap() and
+                  self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
     def _repr_(self, do_latex=False):

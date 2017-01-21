@@ -574,6 +574,10 @@ REFERENCES:
             Version
             1.3". 2013. http://www.wolfgang-ehrhardt.de/specialfunctions.pdf.
 
+.. [EM2001] Pavel Etingof and Xiaoguang Ma.
+            *Lecture notes on Cherednik algebras*.
+            http://www-math.mit.edu/~etingof/73509.pdf :arXiv:`1001.0432`.
+
 .. [EP2013] David Einstein, James Propp. *Combinatorial,
             piecewise-linear, and birational homomesy for products of
             two chains*. :arxiv:`1310.5294v1`.
@@ -666,6 +670,10 @@ REFERENCES:
 .. [GGD2011] \E. Girondo, \G. Gonzalez-Diez, *Introduction to Compact
              Riemann surfaces and Dessins d'enfant*, (2011)
              London Mathematical Society, Student Text 79.
+
+.. [GGOR2003] V. Ginzberg, N. Guay, E. Opdam, R. Rouquier.
+              *On the category `\mathcal{O}` for rational Cherednik algebras*.
+              Invent. Math. **154** (2003). :arxiv:`math/0212036`.
 
 .. [GHJV1994] \E. Gamma, R. Helm, R. Johnson, J. Vlissides, *Design
               Patterns: Elements of Reusable Object-Oriented

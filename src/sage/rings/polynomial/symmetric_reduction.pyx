@@ -203,8 +203,7 @@ cdef class SymmetricReductionStrategy:
         # Apparently, for pickling it is needed to update self._lm and
         # self._min_lm before calling dumps...
         R = self._parent
-        self._lm = [R(x) for x in self._lm]
-        # I have no idea why -- but it seems needed
+        self._lm = [R(x) for x in self._lm]  # I have no idea why -- but it seems needed
 
         self._min_lm = R(self._min_lm)
         return (self._lm, self._lengths, self._min_lm,
@@ -476,7 +475,7 @@ cdef class SymmetricReductionStrategy:
         p = p / p.lc()
         if (self._min_lm is None) or (p.lm() < self._min_lm):
             self._min_lm = p.lm()
-        while ((i < l) and (self._lengths[i] < newLength)):
+        while (i < l) and (self._lengths[i] < newLength):
             i += 1
         self._lm.insert(i, p)
         self._lengths.insert(i, newLength)
@@ -490,7 +489,7 @@ cdef class SymmetricReductionStrategy:
         else:
             return
         cdef int j
-        while (i < l):
+        while i < l:
             q = tmpStrategy.reduce(self._lm[i].lm()) + tmpStrategy.reduce(self._lm[i].tail())
             if q._p == 0:
                 self._lm.pop(i)
@@ -503,7 +502,7 @@ cdef class SymmetricReductionStrategy:
                     self._lm.pop(i)
                     self._lengths.pop(i)
                     j = 0
-                    while ((j < i) and (self._lengths[j] < q_len)):
+                    while (j < i) and (self._lengths[j] < q_len):
                         j += 1
                     self._lm.insert(j, q)
                     self._lengths.insert(j, q_len)
@@ -568,11 +567,11 @@ cdef class SymmetricReductionStrategy:
                 print('>')
             return p
         cdef list REDUCTOR
-        while (1):
+        while True:
             REDUCTOR = []
             for q in lml:
                 c, P, w = q.symmetric_cancellation_order(p)
-                if (not (c is None)) and (c <= 0):
+                if (c is not None) and (c <= 0):
                     REDUCTOR = [self(q ** P)]
                     break
             if not REDUCTOR:
@@ -652,7 +651,7 @@ cdef class SymmetricReductionStrategy:
         if not self._lm:
             return p
         OUT = p.parent()(0)
-        while (p._p != 0):
+        while p._p != 0:
             if report is not None:
                 sys.stdout.write('T[%d]' % len(p._p.coefficients()))
                 sys.stdout.flush()

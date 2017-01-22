@@ -3358,7 +3358,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: B3 = Posets.BooleanLattice(3)
             sage: c = B3.congruence([[0,1]])
-            sage: B2 = B3.quotient(c, element_constructor='integers')
+            sage: B2 = B3.quotient(c, element_constructor='integer')
             sage: B2.is_isomorphic(Posets.BooleanLattice(2))
             True
 

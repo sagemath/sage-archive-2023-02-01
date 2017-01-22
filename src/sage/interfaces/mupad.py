@@ -635,7 +635,7 @@ class MupadElement(ExtraTabCompletion, ExpectElement):
             sage: len(mupad([1,2,3])) # indirect doctest # optional - mupad
             3
             sage: type(len(mupad([1,2,3])))              # optional - mupad
-            <type 'int'>
+            <... 'int'>
 
             sage: len(mupad(4))                          # optional - mupad
             1

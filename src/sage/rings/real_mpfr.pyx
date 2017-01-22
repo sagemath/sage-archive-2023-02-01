@@ -2962,7 +2962,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(pi).__int__()
             3
             sage: type(RR(pi).__int__())
-            <type 'int'>
+            <... 'int'>
         """
         if not mpfr_number_p(self.value):
             raise ValueError('Cannot convert infinity or NaN to Python int')

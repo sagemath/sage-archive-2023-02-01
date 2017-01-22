@@ -206,7 +206,7 @@ Sage example in ./domaines.tex, line 532::
     sage: int(5)
     5
     sage: type(int(5))
-    <type 'int'>
+    <... 'int'>
 
 Sage example in ./domaines.tex, line 539::
 

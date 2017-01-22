@@ -671,7 +671,7 @@ class Function_lambert_w(BuiltinFunction):
         either the same as the parent of the input, or a Sage type::
 
             sage: parent(lambert_w(int(0)))
-            <type 'int'>
+            <... 'int'>
             sage: parent(lambert_w(Integer(0)))
             Integer Ring
             sage: parent(lambert_w(e))

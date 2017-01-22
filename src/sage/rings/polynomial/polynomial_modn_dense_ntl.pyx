@@ -641,7 +641,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f.int_list()
             [5, 0, 0, 1]
             sage: [type(a) for a in f.int_list()]
-            [<type 'int'>, <type 'int'>, <type 'int'>, <type 'int'>]
+            [<... 'int'>, <... 'int'>, <... 'int'>, <... 'int'>]
         """
         cdef long i
         return [ zz_p_rep(zz_pX_GetCoeff(self.x, i)) for i from 0 <= i <= zz_pX_deg(self.x) ]

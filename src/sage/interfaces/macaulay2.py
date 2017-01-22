@@ -681,7 +681,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: len(l)                  # optional - macaulay2
             3
             sage: type(_)                 # optional - macaulay2
-            <type 'int'>
+            <... 'int'>
         """
         self._check_valid()
         return int(self.parent()("#%s"%self.name()))

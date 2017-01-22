@@ -162,7 +162,7 @@ cdef class WordDatatype_char(WordDatatype):
             sage: len(w)
             7
             sage: type(len(w))
-            <type 'int'>
+            <... 'int'>
         """
         return self._length
 
@@ -179,7 +179,7 @@ cdef class WordDatatype_char(WordDatatype):
             sage: type(w.length())
             <type 'sage.rings.integer.Integer'>
             sage: type(len(w))
-            <type 'int'>
+            <... 'int'>
         """
         return smallInteger(self._length)
 

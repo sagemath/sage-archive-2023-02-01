@@ -1108,7 +1108,7 @@ class InterfaceElement(Element):
             sage: int(maxima('1'))
             1
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
         """
         return int(repr(self))
 

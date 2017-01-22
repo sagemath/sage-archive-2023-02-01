@@ -1413,7 +1413,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: GenericTermMonoid(int, ZZ)  # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: <type 'int'> is not a valid growth group.
+            TypeError: <... 'int'> is not a valid growth group.
             sage: GenericTermMonoid(G, None)  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -1421,7 +1421,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: GenericTermMonoid(G, int)  # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: <type 'int'> is not a valid coefficient ring.
+            TypeError: <... 'int'> is not a valid coefficient ring.
         """
         if growth_group is None:
             raise ValueError('No growth group specified.')

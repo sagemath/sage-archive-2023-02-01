@@ -121,7 +121,7 @@ from __future__ import print_function
 import copy
 import operator
 import sys
-from sage.structure.sage_object cimport richcmp
+from sage.structure.sage_object cimport richcmp, Py_NE, Py_EQ
 
 
 cdef class SymmetricReductionStrategy:
@@ -248,7 +248,10 @@ cdef class SymmetricReductionStrategy:
             True
         """
         if not isinstance(other, SymmetricReductionStrategy):
-            return NotImplemented
+            if op in [Py_NE, Py_EQ]:
+                return (op == Py_NE)
+            else:
+                return NotImplemented
         cdef SymmetricReductionStrategy left = self
         cdef SymmetricReductionStrategy right = other
         return richcmp((left._parent, left._lm, left._tail),

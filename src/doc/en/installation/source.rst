@@ -901,6 +901,13 @@ Here are some of the more commonly used variables affecting the build process:
   parallel testing: there we use a default of the number of CPU cores, with a
   maximum of 8 and a minimum of 2).
 
+- :envvar:`V` - if set to ``0``, silence the build.  Instead of
+  showing a detailed compilation log, only one line of output is shown
+  at the beginning and at the end of the installation of each Sage
+  package.  To see even less output, use::
+
+    make -s V=0
+
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
   or when installing packages manually,
   run the test suite for each package which has one.
@@ -1250,7 +1257,7 @@ Sage overrides the user's settings of the following variables:
 
 - :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
   matplotlib config directory.
-  Due to incompatibilies in the contents of this directory among different
+  Due to incompatibilities in the contents of this directory among different
   versions of matplotlib, Sage overrides the user's setting, defining it
   instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
   current matplotlib version number.

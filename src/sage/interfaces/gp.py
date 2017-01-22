@@ -239,6 +239,9 @@ class Gp(ExtraTabCompletion, Expect):
 
     def _start(self, alt_message=None, block_during_init=True):
         Expect._start(self, alt_message, block_during_init)
+        # disable memory debugging: those warnings can only confuse our
+        # interface
+        self._eval_line('default(debugmem,0);')
         # disable timer
         self._eval_line('default(timer,0);')
         # disable the break loop, otherwise gp will seem to hang on errors
@@ -908,7 +911,7 @@ class GpElement(ExpectElement):
             sage: gp(M).sage() == M
             True
         """
-        return pari(str(self)).python()
+        return pari(str(self)).sage()
 
     def is_string(self):
         """

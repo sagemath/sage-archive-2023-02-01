@@ -34,7 +34,7 @@ cdef class ECModularSymbol:
         sage: M = ECModularSymbol(E,1); M
         Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         sage: [M(1/i) for i in range(1,11)]
-        [0, 2, 1, -1, -2, -2, -1, 1, 2, 0]
+        [0, -2, -1, 1, 2, 2, 1, -1, -2, 0]
 
     The curve is automatically converted to its minimal model::
 
@@ -140,7 +140,7 @@ cdef class ECModularSymbol:
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,10)]
-            [0, 2, 1, -1, -2, -2, -1, 1, 2]
+            [0, -2, -1, 1, 2, 2, 1, -1, -2]
             sage: E = EllipticCurve('37a')
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,10)]
@@ -148,7 +148,7 @@ cdef class ECModularSymbol:
             sage: E = EllipticCurve('389a')
             sage: M = ECModularSymbol(E)
             sage: [M(1/i) for i in range(1,10)]
-            [0, 0, 0, 0, 4, 0, 2, 0, -2]
+            [0, 0, 0, 0, 2, 0, 1, 0, -1]
 
         TESTS (see :trac:`11211`)::
 
@@ -156,15 +156,15 @@ cdef class ECModularSymbol:
             sage: E = EllipticCurve('11a')
             sage: M = ECModularSymbol(E)
             sage: M(oo)
-            2/5
+            -2/5
             sage: M(7/5)
-            3
+            -3
             sage: M("garbage")
             Traceback (most recent call last):
             ...
             TypeError: unable to convert 'garbage' to a cusp
             sage: M(7/5)
-            3
+            -3
         """
         cdef rational _r
         cdef rational _s

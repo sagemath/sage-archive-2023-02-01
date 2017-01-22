@@ -1212,7 +1212,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
             1
             sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
-            2/5
+            -2
             sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
             Traceback (most recent call last):
             ...
@@ -1230,7 +1230,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
             1/25
             sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
-            2/5
+            -2/25
             sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
             Traceback (most recent call last):
             ...
@@ -1490,7 +1490,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if algorithm == 'pari':
             rank_lead = self.pari_curve().ellanalyticrank()
             if leading_coefficient:
-                return (rings.Integer(rank_lead[0]), rank_lead[1].python())
+                return (rings.Integer(rank_lead[0]), rank_lead[1].sage())
             else:
                 return rings.Integer(self.pari_curve().ellanalyticrank()[0])
         elif algorithm == 'rubinstein':
@@ -1805,7 +1805,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('389a1')
             sage: E._known_points = []  # clear cached points
             sage: E.simon_two_descent()
-            (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
+            (2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: E.simon_two_descent()
             (3, 3, [(1 : 0 : 1), (2 : 0 : 1), (0 : 2 : 1)])
@@ -1829,7 +1829,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (4, 4, [(6 : -1 : 1), (4 : 3 : 1), (5 : -2 : 1), (8 : 7 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
             sage: E.simon_two_descent()  # long time (9s on sage.math, 2011)
-            (5, 5, [(7 : 11 : 1), (-1 : 20 : 1), (0 : 18 : 1), (3 : 11 : 1), (-3 : 23 : 1)])
+            (5, 5, [(5 : 8 : 1), (10 : 23 : 1), (3 : 11 : 1), (-3 : 23 : 1), (0 : 18 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: r, s, G = E.simon_two_descent(); r,s
             (6, 6)
@@ -3194,7 +3194,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__tamagawa_product
         except AttributeError:
-            self.__tamagawa_product = Integer(self.pari_mincurve().ellglobalred()[2].python())
+            self.__tamagawa_product = Integer(self.pari_mincurve().ellglobalred()[2].sage())
             return self.__tamagawa_product
 
     def real_components(self):
@@ -5559,7 +5559,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             for n in range(1, prec):
                 s += an[n-1]*r
                 r *= r0
-            ans.append(s.python())
+            ans.append(s.sage())
         return ans
 
 

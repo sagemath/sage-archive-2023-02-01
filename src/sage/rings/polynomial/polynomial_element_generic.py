@@ -635,7 +635,7 @@ class Polynomial_generic_sparse(Polynomial):
         output.__normalize()
         return output
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare this polynomial with other.
 
@@ -669,40 +669,24 @@ class Polynomial_generic_sparse(Polynomial):
             ....:     qd = Rd.random_element()
             ....:     assert cmp(pd,qd) == cmp(Rs(pd), Rs(qd))
         """
-        d1 = self.__coeffs
-        keys1 = d1.keys()
-        keys1.sort(reverse=True)
+        d1 = self.degree()
+        d2 = other.degree()
 
-        d2 = other.__coeffs
-        keys2 = d2.keys()
-        keys2.sort(reverse=True)
+        # Special case constant polynomials
+        if d1 <= 0 and d2 <= 0:
+            return richcmp(self[0], other[0], op)
 
-        zero = self.base_ring().zero()
+        # For different degrees, compare the degree
+        if d1 != d2:
+            return rich_to_bool_sgn(op, d1 - d2)
 
-        if not keys1 and not keys2: return 0
-        if not keys1: return -1
-        if not keys2: return 1
-
-        c = cmp(keys1[0], keys2[0])
-        if c: return c
-        c = cmp(d1[keys1[0]],d2[keys2[0]])
-        if c: return c
-
-        for k1, k2 in zip(keys1[1:], keys2[1:]):
-            c = cmp(k1, k2)
-            if c > 0:
-                return cmp(d1[k1], zero)
-            elif c < 0:
-                return cmp(zero, d2[k2])
-            c = cmp (d1[k1], d2[k2])
-            if c: return c
-
-        n1 = len(keys1)
-        n2 = len(keys2)
-        c = cmp(n1, n2)
-        if c > 0: return cmp(d1[keys1[n2]], zero)
-        elif c < 0: return cmp(zero, d2[keys2[n1]])
-        return 0
+        degs = set(self.__coeffs) | set(other.__coeffs)
+        for i in sorted(degs, reverse=True):
+            x = self[i]
+            y = other[i]
+            if x != y:
+                return richcmp_not_equal(x, y, op)
+        return rich_to_bool(op, 0)
 
     def shift(self, n):
         r"""
@@ -1403,7 +1387,8 @@ class Polynomial_generic_sparse_cdvf(Polynomial_generic_sparse_cdv, Polynomial_g
 # XXX:  Ensures that the generic polynomials implemented in SAGE via PARI  #
 # until at least until 4.5.0 unpickle correctly as polynomials implemented #
 # via FLINT.                                                               #
-from sage.structure.sage_object import register_unpickle_override
+from sage.structure.sage_object import (register_unpickle_override,
+        richcmp, richcmp_not_equal, rich_to_bool, rich_to_bool_sgn)
 from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
 
 register_unpickle_override( \

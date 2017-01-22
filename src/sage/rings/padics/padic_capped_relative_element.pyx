@@ -24,7 +24,7 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "CR_template.pxi"
 
-from sage.libs.cypari2.pari_instance cimport pari_instance as pari
+from sage.libs.pari import pari
 from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.padics.pow_computer cimport PowComputer_class

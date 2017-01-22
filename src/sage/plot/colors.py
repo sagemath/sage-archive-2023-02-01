@@ -1092,7 +1092,7 @@ class ColorsDict(dict):
             sage: from sage.plot.colors import ColorsDict
             sage: cols = ColorsDict()
             sage: set([(type(c), type(cols[c])) for c in cols])
-            {(<type 'str'>, <class 'sage.plot.colors.Color'>)}
+            {(<... 'str'>, <class 'sage.plot.colors.Color'>)}
             sage: sorted(cols)
             ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', ...]
             sage: len(cols)
@@ -1607,7 +1607,7 @@ class Colormaps(collections.MutableMapping):
             sage: maps
             {...}
             sage: type(repr(maps))
-            <type 'str'>
+            <... 'str'>
         """
         self.load_maps()
         return repr(self.maps)

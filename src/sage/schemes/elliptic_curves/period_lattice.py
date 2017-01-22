@@ -592,12 +592,12 @@ class PeriodLattice_ell(PeriodLattice):
 
         if algorithm=='pari':
             if self.E.base_field() is QQ:
-                periods = self.E.pari_curve().omega(prec).python()
+                periods = self.E.pari_curve().omega(prec).sage()
                 return (R(periods[0]), C(periods[1]))
 
             from sage.libs.pari.all import pari
             E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit()
-            periods = E_pari.omega(prec).python()
+            periods = E_pari.omega(prec).sage()
             return (R(periods[0]), C(periods[1]))
 
         if algorithm!='sage':
@@ -1559,7 +1559,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         TESTS:
 
-        (see :trac:`10026` and :trac:`11767`)::
+        See :trac:`10026` and :trac:`11767`::
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
@@ -1567,7 +1567,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P,Q = T[2]
             sage: embs = K.embeddings(CC)
             sage: Lambda = E.period_lattice(embs[0])
-            sage: Lambda.elliptic_logarithm(P,100)
+            sage: Lambda.elliptic_logarithm(P+3*Q, 100)
             4.7100131126199672766973600998
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2 + x + 5)

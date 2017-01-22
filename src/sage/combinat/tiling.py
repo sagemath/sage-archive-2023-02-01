@@ -379,7 +379,7 @@ def ncube_isometry_group_cosets(n, orientation_preserving=True):
         sage: cosets = ncube_isometry_group_cosets(3, False)
         sage: len(cosets)
         6
-        sage: map(len, cosets)
+        sage: [len(c) for c in cosets]
         [8, 8, 8, 8, 8, 8]
         sage: type(cosets[0][0])
         <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>

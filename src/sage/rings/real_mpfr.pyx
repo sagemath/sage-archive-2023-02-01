@@ -2998,7 +2998,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(pi).__complex__()
             (3.141592653589793+0j)
             sage: type(RR(pi).__complex__())
-            <type 'complex'>
+            <... 'complex'>
         """
 
         return complex(float(self))

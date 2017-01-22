@@ -502,7 +502,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
             sage: M = matroids.named_matroids.Fano()
             sage: type(M.groundset())
-            <type 'frozenset'>
+            <... 'frozenset'>
             sage: type(M.groundset_list())
             <... 'list'>
             sage: sorted(M.groundset_list())

@@ -780,7 +780,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: type(E(3).is_rational())
-            <type 'bool'>
+            <... 'bool'>
         """
         return self._obj.IsRat().sage()
 

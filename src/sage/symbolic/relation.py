@@ -778,7 +778,7 @@ def solve(f, *args, **kwds):
         sage: solve([a+b+a*b == 1], a)
         Traceback (most recent call last):
         ...
-        TypeError: The first argument to solve() should be a symbolic expression or a list of symbolic expressions, cannot handle <type 'bool'>
+        TypeError: The first argument to solve() should be a symbolic expression or a list of symbolic expressions, cannot handle <... 'bool'>
         sage: solve([a, b], (1, a))
         Traceback (most recent call last):
         ...

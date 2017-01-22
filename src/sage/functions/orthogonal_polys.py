@@ -1312,7 +1312,7 @@ class Func_legendre_P(BuiltinFunction):
             from sage.libs.pari.all import pari
             R = PolynomialRing(QQ, 'x')
             pol = R(pari.pollegendre(n))
-            return sum(b * arg ** a for a, b in enumerate(pol))
+            return sum(b * arg**a for a, b in enumerate(pol))
         elif is_PolynomialRing(P):
             from sage.libs.pari.all import pari
             if arg == P.gen():
@@ -1554,7 +1554,7 @@ class Func_legendre_Q(BuiltinFunction):
             help1 = help2
             help2 = help3
 
-        return sum(b * arg ** a for a, b in enumerate(help3))
+        return sum(b * arg**a for a, b in enumerate(help3))
 
     def _derivative_(self, n, x, *args,**kwds):
         """
@@ -1712,7 +1712,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         for i in range(m + n):
             p = p.diff(x)
         ex1 = (1-arg**2)**(QQ(m)/2)/2**n/factorial(ZZ(n))
-        ex2 = sum(b * arg ** a for a, b in enumerate(p))
+        ex2 = sum(b * arg**a for a, b in enumerate(p))
         return (-1)**(m+n)*ex1*ex2
 
     def _derivative_(self, n, m, x, *args,**kwds):
@@ -2222,7 +2222,7 @@ class Func_laguerre(OrthogonalFunction):
                 x = x.pyobject()
             except TypeError:
                 pass
-        return SR(sum(binomial(n, k) * (-1) ** k / factorial(k) * x ** k
+        return SR(sum(binomial(n, k) * (-1)**k / factorial(k) * x**k
                       for k in range(n + 1)))
 
     def _evalf_(self, n, x, **kwds):
@@ -2374,7 +2374,7 @@ class Func_gen_laguerre(OrthogonalFunction):
             sage: gen_laguerre(10, 1, 1+I)
             25189/2100*I + 11792/2835
         """
-        return sum(binomial(n + a, n - k) * (-1) ** k / factorial(k) * x ** k
+        return sum(binomial(n + a, n - k) * (-1)**k / factorial(k) * x**k
                    for k in range(n + 1))
 
     def _evalf_(self, n, a, x, **kwds):

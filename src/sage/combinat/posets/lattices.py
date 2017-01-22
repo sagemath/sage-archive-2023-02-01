@@ -3252,8 +3252,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) Whether to return
-          a certificate if the lattice is not simple.
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate if the lattice is not simple
 
         OUTPUT:
 

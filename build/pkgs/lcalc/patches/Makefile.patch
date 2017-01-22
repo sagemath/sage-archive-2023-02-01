@@ -59,7 +59,8 @@
  
  ifeq ($(OS_NAME),Darwin)
 -    LDFLAGS2 =
-     DYN_OPTION=dynamiclib
+-    DYN_OPTION=dynamiclib
++    DYN_OPTION=dynamiclib -Wl,-headerpad_max_install_names
  else
 -    LDFLAGS1 = -Xlinker -export-dynamic #not sure why pari calls these when linking but on the web I found
 -    #'Libtool provides the `-export-dynamic' link flag (see section Link mode), which does this declaration.

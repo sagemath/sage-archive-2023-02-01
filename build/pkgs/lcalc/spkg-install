@@ -8,17 +8,6 @@ fi
 
 cd src
 
-echo "Now installing lcalc binary, library and header files..."
-rm -fr "$SAGE_LOCAL"/include/libLfunction
-
-cd src   # Now we are in src/src.
-
-$MAKE install INSTALL_DIR="$SAGE_LOCAL"
-
-if [ "$UNAME" = "Darwin" ]; then
-    install_name_tool -id ${SAGE_LOCAL}/lib/libLfunction.dylib "${SAGE_LOCAL}"/lib/libLfunction.dylib
-fi
-
 success() {
     if [ $? -ne 0 ]; then
         echo >&2 "Error building the Lcalc package: '$1'"
@@ -26,4 +15,19 @@ success() {
     fi
 }
 
+echo "Now installing lcalc binary, library and header files..."
+rm -fr "$SAGE_LOCAL"/include/libLfunction
+
+cd src   # Now we are in src/src.
+
+if [ "$UNAME" = "Darwin" ]; then
+    export LDFLAGS="$LDFLAGS -Wl,-headerpad_max_install_names"
+fi
+$MAKE install INSTALL_DIR="$SAGE_LOCAL"
 success "$MAKE install"
+
+if [ "$UNAME" = "Darwin" ]; then
+    install_name_tool -id ${SAGE_LOCAL}/lib/libLfunction.dylib "${SAGE_LOCAL}"/lib/libLfunction.dylib
+    success "install_name_tool"
+fi
+

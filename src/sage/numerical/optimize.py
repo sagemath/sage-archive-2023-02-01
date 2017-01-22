@@ -503,6 +503,15 @@ def linear_program(c,G,h,A=None,b=None,solver=None):
         sage: sol['x']
         (0.999..., 1.000...)
 
+    Here we solve the same problem with 'glpk' interface to 'cvxopt'::
+
+        sage: sol=linear_program(c,G,h,solver='glpk')
+        GLPK Simplex Optimizer...
+        ...
+        OPTIMAL LP SOLUTION FOUND
+        sage: sol['x']
+        (1.0, 1.0)
+
     Next, we maximize `x+y-50` subject to `50x + 24y \leq 2400`,
     `30x + 33y \leq 2100`, `x \geq 45`, and `y \geq 5`::
 

@@ -17,6 +17,7 @@ from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.structure.sage_object cimport richcmp, rich_to_bool
 
 
 cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
@@ -969,7 +970,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         rl = LaurentPolynomial_univariate(self._parent, r, 0)
         return (ql, rl)
 
-    cpdef int _cmp_(self, right_r) except -2:
+    cpdef _richcmp_(self, right_r, int op):
         r"""
         Comparison of ``self`` and ``right_r``.
 
@@ -1011,13 +1012,10 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate>right_r
 
-        zero = self.base_ring()(0)
+        zero = self.base_ring().zero()
 
         if not self and not right:
-            if self.__n < right.__n:
-                return cmp(self.__u[0], zero)
-            elif self.__n > right.__n:
-                return cmp(zero, right.__u[0])
+            return rich_to_bool(op, 0)
 
         # zero pad coefficients on the left, to line them up for comparison
         cdef long n = min(self.__n, right.__n)
@@ -1033,7 +1031,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         elif len(y) < len(x):
             y.extend([zero] * (len(x) - len(y)))
 
-        return cmp(x,y)
+        return richcmp(x, y, op)
 
     def valuation(self, p=None):
         """
@@ -1342,9 +1340,9 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         for t in pf:
             d = LaurentPolynomial_univariate(self._parent, t[0], 0)
             if d.is_unit():
-                u *= d**t[1]
+                u *= d ** t[1]
             else:
-                f.append( (d, t[1]) )
+                f.append((d, t[1]))
 
         return Factorization(f, unit=u)
 
@@ -1420,7 +1418,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         TESTS:
 
         Check that :trac:`19538` is fixed::
-            
+
             sage: R = LaurentPolynomialRing(QQ,'x2,x0')
             sage: S = LaurentPolynomialRing(QQ,'x',3)
             sage: f = S.coerce_map_from(R)
@@ -1437,7 +1435,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         """
         if isinstance(x, LaurentPolynomial_mpair):
             # check if parent contains all the generators of x.parent() for coercions
-            try: 
+            try:
                 inject_dict = dict(enumerate([parent.variable_names().index(v) for v in x.parent().variable_names()]))
                 tmp_x = x.dict()
                 x = dict()
@@ -1446,7 +1444,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 for k in tmp_x.keys():
                     img_k = ETuple(dict([(inject_dict[a],k[a]) for a in xrange(m)]),n)
                     x[img_k] = tmp_x[k]
-            # otherwise just pass along a dict for conversions 
+            # otherwise just pass along a dict for conversions
             except Exception:
                 x = x.dict()
         elif isinstance(x, PolyDict):
@@ -1531,7 +1529,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._parent = self._parent
         return ans
 
-    def _normalize(self, i = None):
+    def _normalize(self, i=None):
         """
         Removes the common monomials from self._poly and stores them in self._mon
 
@@ -1599,7 +1597,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: a = w^2*z^-1+3
             sage: a._compute_polydict()
         """
-        self._prod = PolyDict(self._dict(), force_etuples = False)
+        self._prod = PolyDict(self._dict(), force_etuples=False)
 
     def is_unit(self):
         """
@@ -1805,7 +1803,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if isinstance(n, slice):
             raise TypeError("Multivariate Laurent polynomials are not iterable")
         if not isinstance(n, tuple) or len(n) != self.parent().ngens():
-            raise TypeError("Must have exactly %s inputs"%self.parent().ngens())
+            raise TypeError("Must have exactly %s inputs" %
+                            self.parent().ngens())
         cdef ETuple t = ETuple(n)
         if self._prod is None:
             self._compute_polydict()
@@ -1888,8 +1887,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             self._compute_polydict()
         if (<LaurentPolynomial_mpair>mon)._prod is None:
             mon._compute_polydict()
-        return self.parent().base_ring()( self._prod.monomial_coefficient(
-                        (<LaurentPolynomial_mpair>mon)._prod.dict()) )
+        return self.parent().base_ring()(self._prod.monomial_coefficient(
+                        (<LaurentPolynomial_mpair>mon)._prod.dict()))
 
     def constant_coefficient(self):
         """
@@ -2015,15 +2014,15 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: f.variables(sort=False) #random
             (y, z, x)
         """
-        d = self.dict();
+        d = self.dict()
         g = self.parent().gens()
         nvars = len(g)
         vars = []
         for k in d:
-            vars = union(vars,k.nonzero_positions())
+            vars = union(vars, k.nonzero_positions())
             if len(vars) == nvars:
                 break
-        v = [ g[i] for i in vars]
+        v = [g[i] for i in vars]
         if sort:
             v.sort()
         return tuple(v)
@@ -2316,7 +2315,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                                      mon=ETuple({}, int(self._parent.ngens())))
         return (ql, rl)
 
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -2334,7 +2333,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             self._compute_polydict()
         if (<LaurentPolynomial_mpair>right)._prod is None:
             right._compute_polydict()
-        return cmp(self._prod, (<LaurentPolynomial_mpair>right)._prod)
+        return richcmp(self._prod, (<LaurentPolynomial_mpair>right)._prod, op)
 
     def exponents(self):
         """
@@ -2381,8 +2380,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             raise TypeError("x must be a generator of parent")
         return self._poly.degree(self.parent().polynomial_ring().gens()[i]) + self._mon[i]
 
-
-
     def has_inverse_of(self, i):
         """
         INPUT:
@@ -2428,7 +2425,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: g.has_any_inverse()
             False
         """
-        for m in self._mon.nonzero_values(sort = False):
+        for m in self._mon.nonzero_values(sort=False):
             if m < 0:
                 return True
         return False
@@ -2743,14 +2740,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         g = self.parent().gens()
         for i in self._mon.nonzero_positions():
-            u *= g[i]**self._mon[i]
+            u *= g[i] ** self._mon[i]
 
         f = []
         for t in pf:
             d = t[0].dict()
             if len(d) == 1:  # monomials are units
-                u *= self.parent(d)**t[1]
+                u *= self.parent(d) ** t[1]
             else:
-                f.append( (self.parent(d),t[1]) )
+                f.append((self.parent(d), t[1]))
 
         return Factorization(f, unit=u)

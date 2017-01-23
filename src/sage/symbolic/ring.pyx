@@ -313,7 +313,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR(int)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert <type 'int'> to a symbolic expression
+            TypeError: unable to convert <... 'int'> to a symbolic expression
             sage: r^(1/2)
             Traceback (most recent call last):
             ...

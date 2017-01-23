@@ -1378,7 +1378,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: b.integer_representation()
             5
             sage: type(b.integer_representation())
-            <type 'int'>
+            <... 'int'>
         """
         return self._cache.log_to_int(self.element)
 

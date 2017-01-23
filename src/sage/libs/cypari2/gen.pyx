@@ -162,7 +162,7 @@ cdef class Gen(Gen_auto):
         TESTS::
 
             sage: type(pari('1 + 2.0*I').__hash__())
-            <type 'int'>
+            <... 'int'>
         """
         cdef long h
         sig_on()
@@ -587,7 +587,7 @@ cdef class Gen(Gen_auto):
             [4, 0]
             sage: type(s); type(s[0])
             <... 'list'>
-            <type 'int'>
+            <... 'int'>
             sage: CyclotomicField(15).pari_nf().nf_get_sign()
             [0, 4]
         """
@@ -874,7 +874,7 @@ cdef class Gen(Gen_auto):
             sage: sv[2]
             3
             sage: type(sv[2])
-            <type 'int'>
+            <... 'int'>
             sage: tuple(pari(3/5))
             (3, 5)
             sage: tuple(pari('1 + 5*I'))
@@ -1439,7 +1439,7 @@ cdef class Gen(Gen_auto):
             sage: w
             [1, 2, 3, 10, 102, 10]
             sage: type(w[0])
-            <type 'int'>
+            <... 'int'>
         """
         cdef long n
         if typ(self.g) != t_VECSMALL:
@@ -3008,7 +3008,7 @@ cdef class Gen(Gen_auto):
             sage: type(v)
             <... 'list'>
             sage: type(v[0])
-            <type 'int'>
+            <... 'int'>
         """
         sig_on()
         cdef GEN g = anell(self.g, n)
@@ -3059,7 +3059,7 @@ cdef class Gen(Gen_auto):
             sage: type(v)
             <... 'list'>
             sage: type(v[0])
-            <type 'int'>
+            <... 'int'>
 
         TESTS::
 

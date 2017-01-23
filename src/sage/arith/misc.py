@@ -3219,7 +3219,7 @@ def binomial(x, m, **kwds):
     Test more output types::
 
         sage: type(binomial(5r, 2))
-        <type 'int'>
+        <... 'int'>
         sage: type(binomial(5, 2r))
         <type 'sage.rings.integer.Integer'>
 

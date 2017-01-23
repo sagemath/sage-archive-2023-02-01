@@ -1423,7 +1423,7 @@ class Sets(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 AssertionError: the output of the method cardinality must either
-                be a Sage integer or infinity. Not <type 'int'>.
+                be a Sage integer or infinity. Not <... 'int'>.
             """
             try:
                 cardinality = self.cardinality()

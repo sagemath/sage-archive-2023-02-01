@@ -1038,7 +1038,7 @@ cdef class GapElement(RingElement):
             sage: libgap(False).sage()
             False
             sage: type(_)
-            <type 'bool'>
+            <... 'bool'>
 
             sage: libgap('this is a string').sage()
             'this is a string'
@@ -1190,7 +1190,7 @@ cdef class GapElement_Integer(GapElement):
             sage: int(libgap(3))
             3
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
@@ -1741,7 +1741,7 @@ cdef class GapElement_Boolean(GapElement):
             sage: b.sage()
             True
             sage: type(_)
-            <type 'bool'>
+            <... 'bool'>
 
             sage: libgap.eval('fail')
             fail

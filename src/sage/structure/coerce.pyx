@@ -882,7 +882,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.common_parent(ZZT, QQT, RDF)
             Power Series Ring in T over Real Double Field
             sage: cm.common_parent(4r, 5r)
-            <type 'int'>
+            <... 'int'>
             sage: cm.common_parent(int, float, ZZ)
             <type 'float'>
             sage: real_fields = [RealField(prec) for prec in [10,20..100]]
@@ -1139,7 +1139,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: x, y = cm.canonical_coercion(int(5), complex(3))
             sage: type(x), type(y)
-            (<type 'complex'>, <type 'complex'>)
+            (<... 'complex'>, <... 'complex'>)
 
             sage: class MyClass:
             ...       def _sage_(self):

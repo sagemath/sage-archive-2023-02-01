@@ -1633,7 +1633,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: most_neg_long = int(-sys.maxsize - 1)
             sage: type(most_neg_long), type(-most_neg_long)
-            (<type 'int'>, <type 'long'>)
+            (<... 'int'>, <type 'long'>)
             sage: 0 + most_neg_long == most_neg_long
             True
             sage: 0 - most_neg_long == -most_neg_long
@@ -2009,7 +2009,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(int(3)^2)
             <type 'sage.rings.integer.Integer'>
             sage: type(int(3)^int(2))
-            <type 'int'>
+            <... 'int'>
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
@@ -3296,7 +3296,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: int(-n)
             -920938
             sage: type(n.__int__())
-            <type 'int'>
+            <... 'int'>
             sage: n = 99028390823409823904823098490238409823490820938
             sage: int(n)
             99028390823409823904823098490238409823490820938L
@@ -3361,7 +3361,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n._rpy_()
             100
             sage: type(n._rpy_())
-            <type 'int'>
+            <... 'int'>
         """
         return self.__int__()
 

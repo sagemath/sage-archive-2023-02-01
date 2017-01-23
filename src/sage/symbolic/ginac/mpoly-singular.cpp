@@ -557,7 +557,6 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
                 throw(std::runtime_error("can't happen in factor"));
 
 
-        exmap repl;
         ex_int_map map;
         exvector revmap;
 
@@ -578,6 +577,28 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
                                         iter.getItem().exp()));
         }
         return true;
+}
+
+ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
+{
+        ex_int_map map;
+        exvector revmap;
+        On(SW_RATIONAL);
+        setCharacteristic(0);
+        power_ocvector_map pomap;
+        ee1.collect_powers(pomap);
+        ee2.collect_powers(pomap);
+        transform_powers(pomap);
+        CanonicalForm p = ee1.to_canonical(map, pomap, revmap);
+        CanonicalForm q = ee2.to_canonical(map, pomap, revmap);
+        Variable v;
+        auto it = map.find(s);
+        if (it != map.end())
+                v = it->second;
+        else
+                v = Variable(int(revmap.size() + 1));
+        CanonicalForm d = ::resultant(p, q, v);
+        return canonical_to_ex(d, revmap);
 }
 
 } // namespace GiNaC

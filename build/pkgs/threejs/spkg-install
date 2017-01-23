@@ -10,5 +10,6 @@ fi
 # Copy files
 TARGET="${SAGE_SHARE}/threejs"
 rm -rf "${TARGET}"
-cp -r 'src' "${TARGET}"
+mkdir "${TARGET}"
+cp -r 'src/three.min.js' 'src/OrbitControls.js' "${TARGET}"
 

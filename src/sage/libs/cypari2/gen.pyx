@@ -3641,7 +3641,7 @@ cdef class gen(gen_auto):
             sage: pari('1/x + O(x^2)').eval(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: substituting 0 in Laurent series with negative valuation
+            PariError: impossible inverse in gsubst: 0
             sage: pari('1/x + O(x^2)').eval(pari('O(x^3)'))
             Traceback (most recent call last):
             ...
@@ -3649,7 +3649,7 @@ cdef class gen(gen_auto):
             sage: pari('O(x^0)').eval(0)
             Traceback (most recent call last):
             ...
-            PariError: domain error in polcoeff: t_SER = O(x^0)
+            PariError: forbidden substitution t_SER , t_INT
 
         Evaluating multivariate polynomials::
 
@@ -3766,20 +3766,6 @@ cdef class gen(gen_auto):
             if t == t_POL or t == t_RFRAC:
                 return new_gen(poleval(self.g, t0.g))
             else:  # t == t_SER
-                if isexactzero(t0.g):
-                    # Work around the fact that PARI currently doesn't
-                    # support substituting exact 0 in a power series.
-                    # We don't try to imitate this when using keyword
-                    # arguments, and hope this will be fixed in a
-                    # future PARI version.
-                    if valp(self.g) < 0:
-                        sig_off()
-                        raise ZeroDivisionError('substituting 0 in Laurent series with negative valuation')
-                    elif valp(self.g) == 0:
-                        return new_gen(polcoeff0(self.g, 0, -1))
-                    else:
-                        sig_off()
-                        return pari_instance.PARI_ZERO
                 return new_gen(gsubst(self.g, varn(self.g), t0.g))
 
         # Call substvec() using **kwds

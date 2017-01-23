@@ -1,6 +1,6 @@
 r"""
-Returns an iterator over all strong orientations of self.
-
+This module implements an algorithm for generating all strong orientations
+of an undirected graph. It is an adaptation of the algorithm published in [CGMRV16]_.
 
 A strong orientation of a graph is an orientation of its edges such that
 that the obtained digraph is strongly connected (i.e. there exist a directed path
@@ -8,63 +8,25 @@ between each pair of vertices).
 
 ALGORITHM:
 
-The algorithm is an adaptation of the one published in [CGMRV16]. It runs in `O(m*n)` amortized time
-where `m` is the number of edges and `n` is the number of vertices. The amortized time can be improved to O(m) with a more involved method.
-In order to avoid trivial symetries, the orientation of an arbitrary edge is fixed before the start of the enumeration process.
-Works only for simple graphs (no multiple edges).
-
-INPUT:
-
-- an undirected graph.
-
-OUTPUT:
-
-- an iterator which will produce all strong orientations of the input graph.
+It runs in `O(m*n)` amortized time, where `m` is the number of edges and
+`n` is the number of vertices. The amortized time can be improved to O(m)
+with a more involved method.
+In order to avoid trivial symetries, the orientation of an arbitrary edge
+is fixed before the start of the enumeration process.
 
 NOTE:
 
-In order to avoid symetries an orientation of an arbitrary edge is fixed.
-
+Works only for simple graphs (no multiple edges).
 
 AUTHORS:
 
 - Kolja Knauer and Petru Valicov (2017-01-10): initial version
 
-EXAMPLES:
-
-A cycle has one possible (non-symetric) strong orientation::
-
-    sage: g = graphs.CycleGraph(4)
-    sage: it = g.all_strong_orientations_iterator()
-    sage: len(list(it))
-    1
-
-    A tree cannot be strongly oriented::
-
-    sage: g=graphs.RandomTree(100)
-    sage: len(list(g.all_strong_orientations_iterator()))
-    0
-
-    Neither can be a disconnected graph::
-
-    sage: g=graphs.CompleteGraph(6)
-    sage: g.add_vertex(7)
-    sage: len(list(g.all_strong_orientations_iterator()))
-    0
-
-TESTS:
-
-The total number of strong orientations of a graph can be counted using the Tutte polynomial evaluated at points (0,2)::
-
-    sage: g = graphs.PetersenGraph()
-    sage: len(list(g.all_strong_orientations_iterator())) == int(g.tutte_polynomial()(0,2)/2) # the Tutte polynomial counts also the symetrical orientations
-    True
-
 REFERENCE:
 
-- [CGMRV16] A. Conte, R. Grossi, A. Marino, R. Rizzi, L. Versari, Directing Road Networks by Listing Strong Orientations. 
-*Combinatorial Algorithms: Proceedings of 27th International Workshop, IWOCA 2016*, August 17-19, 2016, pages 83--95
-
+.. [CGMRV16] A. Conte, R. Grossi, A. Marino, R. Rizzi, L. Versari,
+  "Directing Road Networks by Listing Strong Orientations.",
+  Combinatorial Algorithms: Proceedings of 27th International Workshop, IWOCA 2016, August 17-19, 2016, pages 83--95
 """
 
 #*****************************************************************************
@@ -81,9 +43,59 @@ REFERENCE:
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.digraph import DiGraph
 
-# MAIN function
-# preprocesses the graph and launches the generation algorithm
 def all_strong_orientations_iterator(self):
+
+    r"""
+    Returns an iterator over all strong orientations of self.
+    First preprocesses the graph and generates a spanning tree.
+    Then every orientation of the non-tree edges can be extended to a strong orientation
+    by orienting properly the spanning tree. Therefore, this function generates
+    all partial orientations of the non-tree edges and then launches
+    the generation algorithm described in [CGMRV16]_.
+
+    INPUT:
+
+    - an undirected graph.
+
+    OUTPUT:
+
+    - an iterator which will produce all strong orientations of this graph.
+
+    NOTE:
+
+    In order to avoid symetries an orientation of an arbitrary edge is fixed.
+
+    EXAMPLES::
+
+    A cycle has one possible (non-symetric) strong orientation::
+
+        sage: g = graphs.CycleGraph(4)
+        sage: it = g.all_strong_orientations_iterator()
+        sage: len(list(it))
+        1
+
+        A tree cannot be strongly oriented::
+
+        sage: g=graphs.RandomTree(100)
+        sage: len(list(g.all_strong_orientations_iterator()))
+        0
+
+        Neither can be a disconnected graph::
+
+        sage: g=graphs.CompleteGraph(6)
+        sage: g.add_vertex(7)
+        sage: len(list(g.all_strong_orientations_iterator()))
+        0
+
+    TESTS:
+
+    The total number of strong orientations of a graph can be counted using the Tutte polynomial evaluated at points (0,2)::
+
+        sage: g = graphs.PetersenGraph()
+        sage: len(list(g.all_strong_orientations_iterator())) == int(g.tutte_polynomial()(0,2)/2) # the Tutte polynomial counts also the symetrical orientations
+        True
+
+    """
     # if the graph has a bridge or is disconnected, then it cannot be strongly oriented
     if self.edge_connectivity() <=1 :
         return
@@ -102,7 +114,7 @@ def all_strong_orientations_iterator(self):
     for i in range(0, len(A)):
         existingAedges.append(0)
     
-    # Make the edges of the spanning tree double oriented
+    # Make the edges of the spanning tree doubly oriented
     for e in treeEdges :
         if Dg.has_edge(e) :
             Dg.add_edge(e[1], e[0])
@@ -138,8 +150,9 @@ def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
     Helper function for the generation of all strong orientations.
 
     Generates all strong orientations of a given partially directed graph (called mixed graph).
-    The algorithm finds bound edges (undirected edges whose orientation is forced) and tries
-    all possible orientations for the other edges. See [CGMRV16] for more details.
+    The algorithm finds bound edges (undirected edges whose orientation is forced)
+    and tries all possible orientations for the other edges.
+    See [CGMRV16]_ for more details.
 
     INPUT:
 

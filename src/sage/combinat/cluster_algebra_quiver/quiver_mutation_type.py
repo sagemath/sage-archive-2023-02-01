@@ -300,9 +300,7 @@ Background on generalized Cartan types can be found at
 
         :wikipedia:`Generalized_Cartan_matrix`
 
-For the compendium on the cluster algebra and quiver package in Sage see
-
-        :arxiv:`1102.4844`
+For the compendium on the cluster algebra and quiver package in Sage see [MS2011]_
 
 A `B`-matrix is a skew-symmetrizable `( n \times n )`-matrix `M`.
 I.e., there exists an invertible diagonal matrix `D` such that `DM` is
@@ -405,7 +403,7 @@ REFERENCES:
 
 - A good reference for the skew-symmetrizable elliptic diagrams is
   "Cluster algebras of finite mutation type via unfolding" by
-  A. Felikson, M. Shapiro, and P. Tumarkin, :arxiv:`1006.4276v4`.
+  A. Felikson, M. Shapiro, and P. Tumarkin, [FST2012]_.
 
 EXAMPLES:
 

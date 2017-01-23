@@ -12,4 +12,5 @@ cdef class Gen(Gen_auto):
     pass
 
 cdef Gen new_ref(GEN g, Gen parent)
+cdef Gen list_of_Gens_to_Gen(list s)
 cpdef Gen objtogen(s)

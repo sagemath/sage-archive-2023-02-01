@@ -49,9 +49,9 @@ cdef class PowerSeries_poly(PowerSeries):
                 pass
             elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
-            elif isinstance(f, PowerSeries_poly):
-                prec = (<PowerSeries_poly>f)._prec
-                f = R((<PowerSeries_poly>f).__f)
+            elif isinstance(f, PowerSeries):  # not only PowerSeries_poly
+                prec = (<PowerSeries>f)._prec
+                f = R(f.polynomial())
             else:
                 if f:
                     f = R(f, check=check)

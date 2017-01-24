@@ -176,6 +176,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_interval` | Check whether self is an interval graph
     :meth:`~GenericGraph.is_gallai_tree` | Return whether the current graph is a Gallai tree.
     :meth:`~GenericGraph.is_clique` | Test whether a set of vertices is a clique
+    :meth:`~GenericGraph.is_cycle` | Test whether self is a (directed) cycle graph.
     :meth:`~GenericGraph.is_independent_set` | Test whether a set of vertices is an independent set
     :meth:`~GenericGraph.is_transitively_reduced` | Test whether the digraph is transitively reduced.
     :meth:`~GenericGraph.is_equitable` | Check whether the given partition is equitable with respect to self.
@@ -12849,6 +12850,59 @@ class GenericGraph(GenericGraph_pyx):
 
             n=subgraph.order()
             return subgraph.size()==n*(n-1)/2
+
+    def is_cycle(self, directed_cycle=False):
+        r"""
+        Test whether ``self`` is a (directed) cycle graph.
+
+        A cycle graph consists of a single cycle connected all its vertices in a
+        closed chain. A cycle graph of order `n` is a connected regular graph
+        with size `n` and degree 2. See :wikipedia:`Cycle_graph` for more
+        details.
+
+        INPUT:
+
+        - ``directed_cycle`` -- (default ``False``) If set to ``False``, only
+          consider the underlying undirected simple graph. If set to ``True``
+          and the graph is directed, only return ``True`` if ``self`` is a
+          directed cycle graph (i.e., a circuit).
+
+        EXAMPLES::
+    
+            sage: G = graphs.PetersenGraph()
+            sage: G.is_cycle()
+            False
+            sage: G = graphs.CycleGraph(5)
+            sage: G.is_cycle()
+            True
+            sage: G.allow_multiple_edges(True)
+            sage: G.add_edges(G.edges())
+            sage: G.is_cycle()
+            False
+            sage: Graph().is_cycle()
+            False
+            sage: D = digraphs.Circuit(4)
+            sage: D.is_cycle(directed_cycle = True)
+            True
+            sage: D.delete_edge(0,1)
+            sage: D.add_edge(1, 0)
+            sage: D.is_cycle(directed_cycle = True)
+            False
+            sage: D.is_cycle(directed_cycle = False)
+            True
+        """
+        g = self
+        if g._directed:
+            if directed_cycle:
+                if g.order() < 1:
+                    return False
+                return all(d == 1 for d in g.out_degree_iterator()) and g.is_strongly_connected()
+            else:
+                g = self.to_simple()
+
+        if g.order() < 3:
+            return False
+        return g.is_regular(k=2) and g.is_connected()
 
     def is_independent_set(self, vertices=None):
         """

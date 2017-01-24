@@ -7,7 +7,7 @@ recognizable if it has a linear representation, i.e., there exists
 
 - a nonnegative integer `n`
 
-and there exists
+and there exist
 
 - two vectors `\mathit{left}` and `\mathit{right}` of dimension `n` and
 
@@ -72,6 +72,7 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import experimental
@@ -647,7 +648,7 @@ class RecognizableSeries(Element):
              not self[self.parent().indices()()])
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return whether this recognizable series is nonzero.
 
@@ -685,6 +686,9 @@ class RecognizableSeries(Element):
             if M.is_trivial_zero():
                 return False
         return True
+
+
+    __nonzero__ = __bool__
 
 
     def transposed(self):
@@ -743,7 +747,8 @@ class RecognizableSeries(Element):
 
         EXAMPLES::
 
-            sage: from itertools import islice, izip
+            sage: from itertools import islice
+            sage: from six.moves import zip
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
 
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
@@ -759,7 +764,7 @@ class RecognizableSeries(Element):
             [6 1], [-6  5], (1, 0), (0, 1)
             )
             sage: all(c == d and v == w
-            ....:     for (c, v), (d, w) in islice(izip(iter(S), iter(M)), 20))
+            ....:     for (c, v), (d, w) in islice(zip(iter(S), iter(M)), 20))
             True
 
             sage: S = Rec((Matrix([[2, 0], [1, 1]]), Matrix([[2, 0], [2, 1]])),
@@ -771,7 +776,7 @@ class RecognizableSeries(Element):
             sage: M.mu[0], M.mu[1], M.left, M.right
             ([2], [2], (1), (1))
             sage: all(c == d and v == w
-            ....:     for (c, v), (d, w) in islice(izip(iter(S), iter(M)), 20))
+            ....:     for (c, v), (d, w) in islice(zip(iter(S), iter(M)), 20))
             True
         """
         return self._minimized_right_()._minimized_left_()
@@ -951,8 +956,8 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         Prepare normalizing the input in order to ensure a
         unique representation.
 
-        For more information see :class:`ReconizableSeriesSpace`
-        and :meth:`__normalize__'.
+        For more information see :class:`RecognizableSeriesSpace`
+        and :meth:`__normalize__`.
 
         TESTS::
 

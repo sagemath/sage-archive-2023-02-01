@@ -33,6 +33,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 # System imports
 import sys
@@ -75,6 +76,7 @@ from sage.misc.all import lazy_attribute
 
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
+from sage.categories.enumerated_sets import EnumeratedSets
 
 _Rings = Rings()
 _Fields = Fields()
@@ -118,11 +120,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
-        Category of infinite modules over (euclidean domains
-             and infinite enumerated sets and metric spaces)
+        Category of infinite enumerated modules over
+         (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(ZZ,10,10).category()
-        Category of infinite algebras over (euclidean domains
-             and infinite enumerated sets and metric spaces)
+        Category of infinite enumerated algebras over
+         (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(QQ,10).category()
         Category of infinite algebras over (quotient fields and metric spaces)
 
@@ -323,6 +325,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         elif is_finite is False:
             category = category.Infinite()
 
+        if base_ring in EnumeratedSets:
+            category = category.Enumerated()
+
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
 
@@ -478,13 +483,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             sage: x = polygen(QQ)
             sage: for R in [ZZ, QQ, RealField(100), ComplexField(100), RDF, CDF,
-            ...             SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'),
-            ...             NumberField(x^3+2,'a'), CyclotomicField(4),
-            ...             PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
-            ...       A = MatrixSpace(R,60,30,sparse=False)(0)
-            ...       B = A.augment(A)
-            ...       A = MatrixSpace(R,60,30,sparse=True)(0)
-            ...       B = A.augment(A)
+            ....:           SR, GF(2), GF(11), GF(2^8,'a'), GF(3^19,'a'),
+            ....:           NumberField(x^3+2,'a'), CyclotomicField(4),
+            ....:           PolynomialRing(QQ,'x'), PolynomialRing(CC,2,'x')]:
+            ....:     A = MatrixSpace(R,60,30,sparse=False)(0)
+            ....:     B = A.augment(A)
+            ....:     A = MatrixSpace(R,60,30,sparse=True)(0)
+            ....:     B = A.augment(A)
 
         Check that :trac:`13012` is fixed::
 
@@ -964,7 +969,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MS[2]
             Traceback (most recent call last):
             ...
-            NotImplementedError: since it is infinite, cannot list Full MatrixSpace of 7 by 7 dense matrices over Rational Field
+            AttributeError: 'MatrixSpace_with_category' object has no attribute 'list'
         """
         if isinstance(x, (int, long, integer.Integer)):
             return self.list()[x]
@@ -1151,8 +1156,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if self.__nrows != self.__ncols:
             raise TypeError("identity matrix must be square")
         A = self.zero_matrix().__copy__()
-        for i in xrange(self.__nrows):
-            A[i,i] = 1
+        for i in range(self.__nrows):
+            A[i, i] = 1
         A.set_immutable()
         return A
 
@@ -1311,9 +1316,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [1 2]
             [3 4]
 
-        Note that the last "flip" cannot be performed if ``x`` is a matrix, no
-        matter what is ``rows`` (it used to be possible but was fixed by
-        Trac 10793)::
+        Note that the last "flip" cannot be performed if ``x`` is a
+        matrix, no matter what is ``rows`` (it used to be possible but
+        was fixed by :trac:`10793`)::
 
             sage: projection = matrix(ZZ,[[1,0,0],[0,1,0]])
             sage: projection
@@ -1438,7 +1443,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ArithmeticSubgroupElement
         if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):
             return self(x.matrix(), copy=False)
-        if isinstance(x, (types.GeneratorType, xrange)):
+        if isinstance(x, (types.GeneratorType,)):
             x = list(x)
         if not sparse and isinstance(x, dict):
             x = dict_to_list(x, m, n)
@@ -1628,6 +1633,83 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             Z.randomize(density=density, nonzero=kwds.pop('nonzero', True), \
                 *args, **kwds)
         return Z
+
+    def some_elements(self):
+        r"""
+        Return some elements of this matrix space.
+
+        See :class:`TestSuite` for a typical use case.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(ZZ, 2, 2)
+            sage: tuple(M.some_elements())
+            (
+            [1 0]  [1 1]  [ 0  1]  [-2  3]  [-4  5]  [-6  7]  [-8  9]  [-10  11]
+            [0 0], [1 1], [-1  2], [-3  4], [-5  6], [-7  8], [-9 10], [-11  12],
+            <BLANKLINE>
+            [-12  13]  [-14  15]  [-16  17]  [-18  19]  [-20  21]  [-22  23]
+            [-13  14], [-15  16], [-17  18], [-19  20], [-21  22], [-23  24],
+            <BLANKLINE>
+            [-24  25]  [-26  27]  [-28  29]  [-30  31]  [-32  33]  [-34  35]
+            [-25  26], [-27  28], [-29  30], [-31  32], [-33  34], [-35  36],
+            <BLANKLINE>
+            [-36  37]  [-38  39]  [-40  41]  [-42  43]  [-44  45]  [-46  47]
+            [-37  38], [-39  40], [-41  42], [-43  44], [-45  46], [-47  48],
+            <BLANKLINE>
+            [-48  49]
+            [-49  50]
+            )
+
+            sage: M = MatrixSpace(QQ, 2, 3)
+            sage: tuple(M.some_elements())
+            (
+            [1 0 0]  [1/2 1/2 1/2]  [ 1/2 -1/2    2]  [  -1   42  2/3]
+            [0 0 0], [1/2 1/2 1/2], [  -2    0    1], [-2/3  3/2 -3/2],
+            <BLANKLINE>
+            [ 4/5 -4/5  5/4]  [ 7/6 -7/6  8/9]  [ 10/11 -10/11  11/10]
+            [-5/4  6/7 -6/7], [-8/9  9/8 -9/8], [-11/10  12/13 -12/13],
+            <BLANKLINE>
+            [ 13/12 -13/12  14/15]  [ 16/17 -16/17  17/16]
+            [-14/15  15/14 -15/14], [-17/16  18/19 -18/19],
+            <BLANKLINE>
+            [  19/18  -19/18  20/441]  [ 22/529 -22/529  529/22]
+            [-20/441  441/20 -441/20], [-529/22  24/625 -24/625],
+            <BLANKLINE>
+            [ 625/24 -625/24  26/729]  [ 28/841 -28/841  841/28]
+            [-26/729  729/26 -729/26], [-841/28  30/961 -30/961],
+            <BLANKLINE>
+            [  961/30  -961/30  32/1089]  [ 34/1225 -34/1225  1225/34]
+            [-32/1089  1089/32 -1089/32], [-1225/34  36/1369 -36/1369],
+            <BLANKLINE>
+            [ 1369/36 -1369/36  38/1521]  [ 40/68921 -40/68921  68921/40]
+            [-38/1521  1521/38 -1521/38], [-68921/40  42/79507 -42/79507],
+            <BLANKLINE>
+            [ 79507/42 -79507/42  44/91125]
+            [-44/91125  91125/44 -91125/44]
+            )
+
+            sage: M = MatrixSpace(SR, 2, 2)
+            sage: tuple(M.some_elements())
+            (
+            [1 0]  [some_variable some_variable]
+            [0 0], [some_variable some_variable]
+            )
+        """
+        from itertools import islice
+        yield self.an_element()
+        yield self.base().an_element() * sum(self.gens())
+        some_elements_base = iter(self.base().some_elements())
+        n = self.dimension()
+        while True:
+            L = list(islice(some_elements_base, n))
+            if len(L) != n:
+                return
+            yield self(L)
 
     def _magma_init_(self, magma):
         r"""

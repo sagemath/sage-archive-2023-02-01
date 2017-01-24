@@ -985,11 +985,11 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             The number returned is an estimate on the factor between the number of
             Bits used by ``x`` and the minimal number of bits used by an element
-            Congruent to ``x``.
+            congruent to ``x``.
 
             This is used by :meth:`simplify` to decide whether simplification of
-            Coefficients is going to lead to a significant shrinking of the
-            Coefficients of ``x``.
+            coefficients is going to lead to a significant shrinking of the
+            coefficients of ``x``.
 
             EXAMPLES:: 
 

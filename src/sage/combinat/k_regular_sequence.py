@@ -93,9 +93,10 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from sage.combinat.recognizable_series import RecognizableSeries
-from sage.combinat.recognizable_series import RecognizableSeriesSpace
+from .recognizable_series import RecognizableSeries
+from .recognizable_series import RecognizableSeriesSpace
 from sage.misc.cachefunc import cached_method
 from six import iteritems
 

@@ -2,6 +2,7 @@ Francois Bissey francois.bissey@canterbury.ac.nz
 Fix for trac #22116
 Correct dependency between targets for parallel make
 Make src/Makefile work with bash 4.4
+adopted by upstream github.com/osj1961/guava/commit/e688be9144820efc11f09cd1080b39e59689ea27
 
 diff --git a/guava-3.13/Makefile.in b/guava-3.13/Makefile.in
 index 46e97f3..d5f2b98 100644

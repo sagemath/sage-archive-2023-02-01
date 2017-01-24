@@ -1760,6 +1760,7 @@ class Graph(GenericGraph):
 
             - :meth:`~GenericGraph.is_connected`
             - :meth:`~GenericGraph.blocks_and_cut_vertices`
+            - :meth:`~GenericGraph.blocks_and_cuts_tree`
             - :wikipedia:`Biconnected_graph`
 
         EXAMPLES::

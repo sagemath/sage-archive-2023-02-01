@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
+#include <cstdlib>
 
 #include "inifcns.h"
 #include "ex.h"
@@ -403,25 +404,87 @@ static matrix solve_system(ex mpoly,
         return res;
 }
 
-static std::set<int> nonneg_integer_roots(const ex& poly, const symbol& v)
+#define NCHECKS 3
+
+static bool check_root(const matrix& M,
+                int root, const symbolset& sy, const ex& v)
 {
+std::cerr<<"check "<<root<<"\n";
+        const int msize = M.rows();
+        matrix A(msize, msize);
+        exmap map;
+        map[v] = ex(numeric(root));
+        std::srand(std::time(0));
+        for (int i=0; i<NCHECKS; ++i) {
+                for (const auto s : sy)
+                        if (not v.is_equal(s))
+                                map[s] = numeric((std::rand()%9)+1);
+                for (int l = 0; l<msize; ++l)
+                        for (int k = 0; k<msize; ++k) {
+                                const ex r = M(k,l);
+                                if (r.is_zero())
+                                        A(k,l) = _ex0;
+                                else
+                                        A(k,l) = r.subs(map);
+                        }
+                if (not A.determinant().is_zero()) {
+std::cerr<<"FAIL\n";
+                        return false;
+                }
+        }
+std::cerr<<"PASS\n";
+        return true;
+}
+
+static std::set<int> resultant_roots(const ex& ee1, const ex& ee2,
+                const ex& s, const symbol& v)
+{
+std::cerr<<"rr "<<ee1<<","<<ee2<<","<<s<<","<<v<<"\n";
+	const int h1 = ee1.degree(s);
+	const int l1 = ee1.ldegree(s);
+	const int h2 = ee2.degree(s);
+	const int l2 = ee2.ldegree(s);
+        symbolset s1 = ee1.symbols();
+        const symbolset& s2 = ee2.symbols();
+        s1.insert(s2.begin(), s2.end());
+
+	const int msize = h1 + h2;
+	matrix M(msize, msize), C(msize, msize);
+
+	for (int l = h1; l >= l1; --l) {
+		const ex e = ee1.coeff(s, l);
+                ex c = e.coeff(v, e.ldegree(v));
+                if (is_exactly_a<add>(c))
+                        c = c.op(c.nops());
+                else if (not is_exactly_a<numeric>(c))
+                        c = _ex0;
+		for (int k = 0; k < h2; ++k) {
+			M(k, k+h1-l) = e;
+                        C(k, k+h1-l) = c;
+                }
+	}
+	for (int l = h2; l >= l2; --l) {
+		const ex e = ee2.coeff(s, l);
+                ex c = e.coeff(v, e.ldegree(v));
+                if (is_exactly_a<add>(c))
+                        c = c.op(c.nops());
+                else if (not is_exactly_a<numeric>(c))
+                        c = _ex0;
+		for (int k = 0; k < h1; ++k) {
+			M(k+h2, k+h2-l) = e;
+                        C(k+h2, k+h2-l) = c;
+                }
+	}
+
         std::set<int> roots;
+        roots.insert(0);
         roots.insert(1);
-        symbolset s = poly.symbols();
-        if (s.size() > 1)
-                return roots;
-        numeric lcm = lcm_of_coefficients_denominators(poly);
-        ex p = multiply_lcm(poly, lcm);
-        p = p.primpart(v);
-        int ldeg = p.ldegree(v);
-        if (ldeg > 0)
-                roots.insert(0);
-        numeric c = ex_to<numeric>(p.coeff(v, ldeg));
-        if (not c.is_integer())
-                throw std::runtime_error("can't happen in nonneg_integer_roots");
+        numeric c = ex_to<numeric>(C.determinant());
+std::cerr<<"Cdet "<<c<<"\n";
+std::cerr<<"Mdet "<<M.determinant()<<"\n";
         c.divisors(roots);
         for (auto it = roots.begin(); it != roots.end(); )
-                if (not poly.subs(v == numeric(*it)).is_zero())
+                if (check_root(M, *it, s1, v))
                         it = roots.erase(it);
                 else
                         ++it;
@@ -442,14 +505,8 @@ ex gosper_term(ex e, ex n)
         ex B = (den / cd).normal(0, true, false);
         ex C = _ex1;
         symbol h;
-        ex res;
-        try {
-                res = resultant(A, B.subs(n == n+h), n);
-        }
-        catch (std::runtime_error) {
-                throw std::runtime_error("NotImplemented: we cannot solve that at the moment");
-        }
-        std::set<int> roots = nonneg_integer_roots(res, h);
+        std::set<int> roots = resultant_roots(A,
+                        B.subs(n == n+h).expand(), n, h);
         for (int root : roots) {
                 ex d = gcd(A, B.subs(n == n+ex(root)).expand());
                 A = quo(A, d, n, false);

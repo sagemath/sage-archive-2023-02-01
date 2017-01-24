@@ -131,7 +131,7 @@ def pad_right(T, length, zero=0):
         sage: pad_right([1,2,3], 10)
         [1, 2, 3, 0, 0, 0, 0, 0, 0, 0]
     """
-    return T + type(T)(zero for _ in xrange(length - len(T)))
+    return T + type(T)(zero for _ in range(length - len(T)))
 
 
 class kRegularSequence(RecognizableSeries):

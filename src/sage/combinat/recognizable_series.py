@@ -713,7 +713,8 @@ class RecognizableSeries(Element):
 
         EXAMPLES::
 
-            sage: from itertools import islice, izip
+            sage: from itertools import islice
+            sage: from six.moves import zip
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
 
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
@@ -729,7 +730,7 @@ class RecognizableSeries(Element):
             [6 1], [-6  5], (1, 0), (0, 1)
             )
             sage: all(c == d and v == w
-            ....:     for (c, v), (d, w) in islice(izip(iter(S), iter(M)), 20))
+            ....:     for (c, v), (d, w) in islice(zip(iter(S), iter(M)), 20))
             True
 
             sage: S = Rec((Matrix([[2, 0], [1, 1]]), Matrix([[2, 0], [2, 1]])),
@@ -741,7 +742,7 @@ class RecognizableSeries(Element):
             sage: M.mu[0], M.mu[1], M.left, M.right
             ([2], [2], (1), (1))
             sage: all(c == d and v == w
-            ....:     for (c, v), (d, w) in islice(izip(iter(S), iter(M)), 20))
+            ....:     for (c, v), (d, w) in islice(zip(iter(S), iter(M)), 20))
             True
         """
         return self._minimized_right_()._minimized_left_()

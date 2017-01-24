@@ -614,7 +614,7 @@ class RecognizableSeries(Element):
              not self[self.parent().indices()()])
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return whether this recognizable series is nonzero.
 
@@ -652,6 +652,9 @@ class RecognizableSeries(Element):
             if M.is_trivial_zero():
                 return False
         return True
+
+
+    __nonzero__ = __bool__
 
 
     def transposed(self):

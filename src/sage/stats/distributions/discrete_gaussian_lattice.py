@@ -392,7 +392,8 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             [0 0 1]
 
         """
-        return u"Discrete Gaussian sampler with σ = %f, c=%s over lattice with basis\n\n%s" % (self._sigma, self._c, self.B)
+        # beware of unicode character in ascii string !
+        return "Discrete Gaussian sampler with σ = %f, c=%s over lattice with basis\n\n%s" % (self._sigma, self._c, self.B)
 
     def _call_in_lattice(self):
         r"""

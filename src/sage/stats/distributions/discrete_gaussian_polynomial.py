@@ -128,4 +128,5 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
             sage: DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 3.0)
             Discrete Gaussian sampler for polynomials of degree < 8 with σ=3.000000 in each component
         """
-        return u"Discrete Gaussian sampler for polynomials of degree < %d with σ=%f in each component" % (self.n, self.D.sigma)
+        # beware of unicode character in ascii string !
+        return "Discrete Gaussian sampler for polynomials of degree < %d with σ=%f in each component" % (self.n, self.D.sigma)

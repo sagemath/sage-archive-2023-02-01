@@ -93,9 +93,10 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from sage.combinat.recognizable_series import RecognizableSeries
-from sage.combinat.recognizable_series import RecognizableSeriesSpace
+from .recognizable_series import RecognizableSeries
+from .recognizable_series import RecognizableSeriesSpace
 from sage.misc.cachefunc import cached_method
 from six import iteritems
 
@@ -130,7 +131,7 @@ def pad_right(T, length, zero=0):
         sage: pad_right([1,2,3], 10)
         [1, 2, 3, 0, 0, 0, 0, 0, 0, 0]
     """
-    return T + type(T)(zero for _ in xrange(length - len(T)))
+    return T + type(T)(zero for _ in range(length - len(T)))
 
 
 class kRegularSequence(RecognizableSeries):

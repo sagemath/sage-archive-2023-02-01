@@ -169,7 +169,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
     def power(self):
         """
-        Return the smallest integer `n` such that this endormorphism
+        Return the smallest integer `n` such that this endomorphism
         is the `n`-th power of the absolute (arithmetic) Frobenius.
 
         EXAMPLES::

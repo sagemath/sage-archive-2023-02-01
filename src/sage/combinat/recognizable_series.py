@@ -73,6 +73,7 @@ Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six import iteritems
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import experimental
@@ -333,7 +334,7 @@ class RecognizableSeries(Element):
             return m
 
         if isinstance(mu, dict):
-            mu = dict((a, immutable(M)) for a, M in mu.iteritems())
+            mu = dict((a, immutable(M)) for a, M in iteritems(mu))
         mu = Family(mu)
 
         if not mu.is_finite():

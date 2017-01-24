@@ -408,6 +408,28 @@ factored_b:
         return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
 }
 
+ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
+{
+        // Conversion necessary to count needed symbols beforehand
+        exmap repl;
+        ex poly_a = ee1.to_rational(repl);
+        ex poly_b = ee2.to_rational(repl);
+
+        symbolset s1 = poly_a.symbols();
+        const symbolset& s2 = poly_b.symbols();
+        s1.insert(s2.begin(), s2.end());
+        s1.insert(ex_to<symbol>(s));
+        the_dimension = s1.size();
+
+        ex_int_map map;
+        exvector revmap;
+
+        giac::polynome p = poly_a.to_polynome(map, revmap);
+        giac::polynome q = poly_b.to_polynome(map, revmap);
+        giac::polynome d = giac::resultant(p, q);
+        return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
+}
+
 } // namespace GiNaC
 
 #endif // HAVE_LIBGIAC

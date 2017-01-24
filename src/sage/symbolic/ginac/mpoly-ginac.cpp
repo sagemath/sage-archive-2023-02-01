@@ -711,32 +711,5 @@ ex sqrfree_parfrac(const ex & a, const symbol & x)
 
 #endif // HAVE_LIBGIAC
 
-ex resultant(const ex & e1, const ex & e2, const ex & s)
-{
-	const ex ee1 = e1.expand();
-	const ex ee2 = e2.expand();
-	if (!ee1.info(info_flags::polynomial) ||
-	    !ee2.info(info_flags::polynomial)) {
-                ex res, f1, f2;
-                bool changed = factor(ee1, res);
-                if (changed)
-                        f1 = res;
-                else
-                        f1 = ee1;
-                changed = factor(ee2, res);
-                if (changed)
-                        f2 = res;
-                else
-                        f2 = ee1;
-                ex den1 = f1.denom();
-                ex den2 = f2.denom();
-                if (not den1.is_equal(_ex1) and den1.is_equal(den2))
-                        return resultant(f1.numer(), f2.numer(), s);
-		throw(std::runtime_error("resultant(): arguments must be polynomials"));
-        }
-
-        return resultantpoly(ee1, ee2, s);
-}
-
 } // namespace GiNaC
 

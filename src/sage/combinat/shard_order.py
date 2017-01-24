@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Shard intersection order
 
 This file builds a combinatorial version of the shard intersection

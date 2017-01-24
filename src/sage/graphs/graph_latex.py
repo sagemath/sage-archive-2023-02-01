@@ -68,9 +68,6 @@ To use this image in a LaTeX document, you could of course just copy and save th
     sage: check_tkz_graph()  # random - depends on TeX installation
     sage: latex(H)
     \begin{tikzpicture}
-    %
-    \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-    %
     \definecolor{cv0}{rgb}{0.0,0.502,0.0}
     \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
     \definecolor{clv0}{rgb}{1.0,0.0,0.0}
@@ -184,7 +181,6 @@ This example illustrates switching between the built-in styles when using the tk
     sage: check_tkz_graph()  # random - depends on TeX installation
     sage: latex(g)
     \begin{tikzpicture}
-    ...
     \GraphInit[vstyle=Classic]
     ...
     \end{tikzpicture}
@@ -198,7 +194,6 @@ This example illustrates switching between the built-in styles when using the tk
     LaTeX options for Petersen graph: {'tkz_style': 'Art'}
     sage: latex(g)
     \begin{tikzpicture}
-    ...
     \GraphInit[vstyle=Art]
     ...
     \end{tikzpicture}
@@ -278,9 +273,6 @@ choices. ::
     sage: check_tkz_graph()  # random - depends on TeX installation
     sage: print(latex(G))
     \begin{tikzpicture}
-    %
-    \useasboundingbox (0,0) rectangle (4.0in,4.0in);
-    %
     \definecolor{cv0}{rgb}{0.8,0.8,0.8}
     \definecolor{cfv0}{rgb}{0.0,0.0,1.0}
     \definecolor{clv0}{rgb}{0.0,0.5,0.0}
@@ -423,7 +415,7 @@ def have_tkz_graph():
 
 @cached_function
 def setup_latex_preamble():
-    """
+    r"""
     Adds appropriate ``\usepackage{...}``, and other instructions to
     the latex preamble for the packages that are needed for processing
     graphs(``tikz``, ``tkz-graph``, ``tkz-berge``), if available
@@ -524,7 +516,8 @@ class GraphLatex(SageObject):
             'loop_placement': (3.0, 'NO'),
             'loop_placements': {},
             'color_by_label' : False,
-            'rankdir': 'down'
+            'rankdir': 'down',
+            'subgraph_clusters': []
             }
 
     def __init__(self, graph, **options):
@@ -587,7 +580,7 @@ class GraphLatex(SageObject):
         """
         return "LaTeX options for %s: %s"%(self._graph, self._options)
 
-    def set_option(self, option_name, option_value = None):
+    def set_option(self, option_name, option_value=None):
         r"""
         Sets, modifies, clears a LaTeX
         option for controlling the rendering of a graph.
@@ -855,6 +848,11 @@ class GraphLatex(SageObject):
         - ``color_by_label`` - a boolean (default: False). Colors the
           edges according to their labels
 
+        - ``subgraph_clusters`` -- (default: []) a list of lists of vertices,
+          if supported by the layout engine, nodes belonging to the same
+          cluster subgraph are drawn together, with the entire drawing
+          of the cluster contained within a bounding rectangle.
+
         OUTPUT:
 
         There are none.  Success happens silently.
@@ -893,13 +891,12 @@ class GraphLatex(SageObject):
            - clean out remaining pgf files from older version
            - run texhash
 
-
         TESTS:
 
         These test all of the options and one example of each allowable
         proper input.  They should all execute silently. ::
 
-            sage: G=Graph()
+            sage: G = Graph()
             sage: G.add_edge((0,1))
             sage: opts = G.latex_options()
             sage: opts.set_option('tkz_style', 'Custom')
@@ -946,6 +943,7 @@ class GraphLatex(SageObject):
             sage: opts.set_option('edge_label_placements', {(0,1):0.75})
             sage: opts.set_option('loop_placement', (3.0, 'NO'))
             sage: opts.set_option('loop_placements', {0:(5.7,'WE')})
+            sage: opts.set_option('subgraph_clusters', [[0,1]])
 
         These test some of the logic of possible failures.  Some tests,
         such as inputs of colors, are handled by somewhat general sections
@@ -1282,9 +1280,6 @@ class GraphLatex(SageObject):
             sage: opts = g.latex_options()
             sage: print(opts.latex())
             \begin{tikzpicture}
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-            %
             \definecolor{cv0}{rgb}{0.0,0.0,0.0}
             \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
             \definecolor{clv0}{rgb}{0.0,0.0,0.0}
@@ -1364,7 +1359,7 @@ class GraphLatex(SageObject):
                 autosize = True,
                 crop = True,
                 figonly = 'True',
-                prog=self.get_option('prog'))
+                prog=self.get_option('prog')).strip()
         # usepdflatex = True, debug = True)
 
     def tkz_picture(self):
@@ -1401,10 +1396,7 @@ class GraphLatex(SageObject):
             sage: g.set_latex_options(tkz_style='Art')
             sage: print(opts.tkz_picture())
             \begin{tikzpicture}
-            %
             \GraphInit[vstyle=Art]
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
             %
             \Vertex[L=\hbox{$0$},x=2.5cm,y=5.0cm]{v0}
             \Vertex[L=\hbox{$1$},x=0.0cm,y=0.0cm]{v1}
@@ -1426,9 +1418,6 @@ class GraphLatex(SageObject):
             sage: g.set_latex_options(tkz_style='Custom')
             sage: print(opts.tkz_picture())
             \begin{tikzpicture}
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-            %
             \definecolor{cv0}{rgb}{0.0,0.0,0.0}
             \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
             \definecolor{clv0}{rgb}{0.0,0.0,0.0}
@@ -1637,7 +1626,7 @@ class GraphLatex(SageObject):
         # or use this type of extra information if they are switched off
         vertex_labels = self.get_option('vertex_labels')
 
-        # We collect options for vertices, default values and and for-some-vertices information
+        # We collect options for vertices, default values and for-some-vertices information
         # These are combined into dictionaries on a per-vertex basis, for all vertices
         # This only applies for a custom style
         #
@@ -1848,14 +1837,10 @@ class GraphLatex(SageObject):
         # s is the eventual tkz string
         # Everything should now be in place
         # We build a list and then concatenate it as the return value
-        s = ['\\begin{tikzpicture}\n%\n']
+        s = ['\\begin{tikzpicture}\n']
 
         if not customized:
             s+=['\\GraphInit[vstyle=', style, ']\n%\n']
-
-        # Specify the bounding box for the latex result
-        # If too big, then the latex paper size may need to be expanded
-        s+=['\\useasboundingbox (0,0) rectangle (', str(round(scale*graphic_size[0],4)), units, ',', str(round(scale*graphic_size[1],4)), units, ');\n%\n']
 
         # Internal strings representing colors are defined here in custom style
         if customized:

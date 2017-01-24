@@ -59,7 +59,7 @@ $\text{Sq}(s)=\text{Sq}(s_1, s_2, ...)$; it returns as output a
 dictionary whose keys are tuples $t=(t_1, t_2, ...)$ of non-negative
 integers, and for each tuple the associated value is the coefficient
 of $\text{Sq}(t)$ in the product formula.  (Since we are working mod 2,
-this coefficient is 1 -- if it is zero, the the element is omitted from
+this coefficient is 1 -- if it is zero, the element is omitted from
 the dictionary altogether).
 
 .. rubric:: Milnor multiplication, odd primes

@@ -138,13 +138,13 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             Here is a more complete example::
 
                 sage: class TestParent(Parent):
-                ...     def __init__(self):
-                ...         Parent.__init__(self, category=FiniteEnumeratedSets())
-                ...     def __iter__(self):
-                ...         yield 1
-                ...         return
-                ...     def cardinality(self, dummy_arg):
-                ...         return 1 # we don't want to change the semantics of cardinality()
+                ....:   def __init__(self):
+                ....:       Parent.__init__(self, category=FiniteEnumeratedSets())
+                ....:   def __iter__(self):
+                ....:       yield 1
+                ....:       return
+                ....:   def cardinality(self, dummy_arg):
+                ....:       return 1 # we don't want to change the semantics of cardinality()
                 sage: P = TestParent()
                 sage: P.cardinality(-1)
                 1
@@ -558,8 +558,8 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
                 sage: from sage.categories.examples.finite_enumerated_sets import Example
                 sage: class CCls(Example):
-                ...       def cardinality(self):
-                ...           return 4
+                ....:     def cardinality(self):
+                ....:         return 4
                 sage: CC = CCls()
                 sage: CC._test_enumerated_set_iter_cardinality()
                 Traceback (most recent call last):

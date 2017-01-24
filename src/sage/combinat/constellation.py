@@ -1715,7 +1715,7 @@ def perms_canonical_labels(p, e=None):
         [[1, 2, 3, 0], [0, 3, 2, 1], [2, 1, 0, 3]]
 
         sage: S = SymmetricGroup(range(4))
-        sage: [~S(m) * S(u) * S(m) for u in l0] == map(S, l)
+        sage: [~S(m) * S(u) * S(m) for u in l0] == list(map(S, l))
         True
 
         sage: perms_canonical_labels([])

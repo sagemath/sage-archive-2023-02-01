@@ -1465,15 +1465,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: rt2 = sqrt(pari('2.0'))
             sage: rt2
             1.41421356237310
-            sage: rt2.python()
+            sage: rt2.sage()
             1.41421356237309505
-            sage: rt2.python().prec()
+            sage: rt2.sage().prec()
             64
-            sage: pari(rt2.python()) == rt2
+            sage: pari(rt2.sage()) == rt2
             True
             sage: for i in range(100, 200):
-            ....:     assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
-            sage: (-3.1415)._pari_().python()
+            ....:     assert(sqrt(pari(i)) == pari(sqrt(pari(i)).sage()))
+            sage: (-3.1415)._pari_().sage()
             -3.14150000000000000
         """
         cdef int sgn
@@ -3064,15 +3064,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -1.23456700000000
             sage: RR(2.0).sqrt()._pari_()
             1.41421356237310
-            sage: RR(2.0).sqrt()._pari_().python()
+            sage: RR(2.0).sqrt()._pari_().sage()
             1.41421356237309515
-            sage: RR(2.0).sqrt()._pari_().python().prec()
+            sage: RR(2.0).sqrt()._pari_().sage().prec()
             64
-            sage: RealField(70)(pi)._pari_().python().prec()
+            sage: RealField(70)(pi)._pari_().sage().prec()
             96                                         # 32-bit
             128                                        # 64-bit
             sage: for i in range(100, 200):
-            ....:     assert(RR(i).sqrt() == RR(i).sqrt()._pari_().python())
+            ....:     assert(RR(i).sqrt() == RR(i).sqrt()._pari_().sage())
 
         TESTS:
 
@@ -3768,8 +3768,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
             sage: RR('-100').is_real()
             True
+            sage: RR(NaN).is_real()
+            False
         """
-        return True
+        return not mpfr_nan_p(self.value)
 
     def is_integer(self):
         """
@@ -5025,9 +5027,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: z = pari(2).zeta(precision=53); z
             1.64493406684823
-            sage: pari(2).zeta(precision=128).python().prec()
+            sage: pari(2).zeta(precision=128).sage().prec()
             128
-            sage: pari(2).zeta(precision=65).python().prec()
+            sage: pari(2).zeta(precision=65).sage().prec()
             128                                                # 64-bit
             96                                                 # 32-bit
 

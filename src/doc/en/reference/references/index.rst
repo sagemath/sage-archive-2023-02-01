@@ -188,6 +188,9 @@ REFERENCES:
              Memoirs of the American Mathematical Society, vol. 192
              (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
 
+.. [Ber1991] \C. Berger, "Une version effective du théorème de
+             Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
+
 .. [BG1985] \M. Blum and S. Goldwasser. An Efficient Probabilistic
             Public-Key Encryption Scheme Which Hides All Partial
             Information. In *Proceedings of CRYPTO 84 on Advances in
@@ -450,6 +453,10 @@ REFERENCES:
              manifolds", J. Indian Inst. Sci. 87 (2007), no. 4,
              429-449.
 
+.. [Dav1997] B.A. Davey, H.A. Priestley,
+             *Introduction to Lattices and Order*,
+             Cambridge University Press, 1997.
+
 .. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
               Lyubashevsky. *Lattice Signatures and Bimodal
               Gaussians*; in Advances in Cryptology – CRYPTO 2013;
@@ -656,6 +663,10 @@ REFERENCES:
             submitted, 2012. Preprint:
             http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
 
+.. [GGD2011] \E. Girondo, \G. Gonzalez-Diez, *Introduction to Compact
+             Riemann surfaces and Dessins d'enfant*, (2011)
+             London Mathematical Society, Student Text 79.
+
 .. [GHJV1994] \E. Gamma, R. Helm, R. Johnson, J. Vlissides, *Design
               Patterns: Elements of Reusable Object-Oriented
               Software*. Addison-Wesley (1994). ISBN 0-201-63361-2.
@@ -777,6 +788,10 @@ REFERENCES:
              Introduction to Mathematical
              Cryptography*. Springer, 2008.
 
+.. [HR2016]  Clemens Heuberger and Roswitha Rissner, "Computing
+             `J`-Ideals of a Matrix Over a Principal Ideal Domain",
+             :arxiv:`1611.10308`, 2016.
+
 .. [Hsu1996] Tim Hsu, "Identifying congruence subgroups of the modular
              group", Proc. AMS 124, no. 5, 1351-1359 (1996)
 
@@ -847,6 +862,9 @@ REFERENCES:
 
 .. [Kal1980] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980,
              383--386.
+
+.. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
+             groups*, Ann. Math. (2) 67 (1958), 282-312.
 
 .. [KB1983] \W. Kühnel and T. F. Banchoff, "The 9-vertex complex
             projective plane", Math. Intelligencer 5 (1983), no. 3,
@@ -1076,6 +1094,9 @@ REFERENCES:
              and of Hopf algebras; application to the Steenrod
              algebra." Thesis, Princeton Univ., 1964.
 
+.. [May1967] \J. P. May, Simplicial Objects in Algebraic Topology,
+             University of Chicago Press (1967)
+
 .. [McC1978] \K. McCrimmon. *Jordan algebras and their
              applications*. Bull. Amer. Math. Soc. **84** 1978.
 
@@ -1275,6 +1296,10 @@ REFERENCES:
 .. [Rio1958] \J. Riordan, "An Introduction to Combinatorial Analysis",
              Dover Publ. (1958)
 
+.. [Ris2016] Roswitha Rissner, "Null ideals of matrices over residue
+             class rings of principal ideal domains". Linear Algebra
+             Appl., **494** (2016) 44–69. :doi:`10.1016/j.laa.2016.01.004`.
+
 .. [RMA2009] \P. Réal and H. Molina-Abril, *Cell AT-models for digital
              volumes* in Torsello, Escolano, Brun (eds.), Graph-Based
              Representations in Pattern Recognition, Lecture Notes in
@@ -1322,6 +1347,10 @@ REFERENCES:
              Springer (Berlin) (1992);
              :doi:`10.1007/978-3-540-70634-2`
 
+.. [Ser2010] \F. Sergeraert, *Triangulations of complex projective
+             spaces* in Scientific contributions in honor of Mirian
+             Andrés Gómez, pp 507-519, Univ. La Rioja Serv. Publ., Logroño (2010).
+
 .. [SH1995] \C. P. Schnorr and H. H. Hörner. *Attacking the
             Chor-Rivest Cryptosystem by Improved Lattice
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
@@ -1346,7 +1375,7 @@ REFERENCES:
              :doi:`10.1007/978-1-4684-9322-1`,
              ISBN 978-1-4684-9322-1.
 
-.. [SS1992] \M. A. Shtan'ko and and M. I. Shtogrin, "Embedding cubic
+.. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 
@@ -1503,6 +1532,10 @@ REFERENCES:
 
 .. [Web2007] James Webb. *Game theory: decisions, interaction and
              Evolution*. Springer Science & Business Media, 2007.
+
+.. [Wei1994] Charles A. Weibel, *An introduction to homological
+             algebra*. Cambridge Studies in Advanced Math., vol. 38,
+             Cambridge Univ. Press, 1994.
 
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.

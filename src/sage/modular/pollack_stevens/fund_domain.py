@@ -815,7 +815,7 @@ class ManinRelations(PollackStevensModularDomain):
             ## interior path on either of the last two cusps
 
             for s in range(r + 2, len(cusps)):
-            ## s is in the index of the cusp on the the right of the path
+            ## s is in the index of the cusp on the right of the path
                 cusp1 = cusps[r]
                 cusp2 = cusps[s]
                 if self.is_unimodular_path(cusp1, cusp2):

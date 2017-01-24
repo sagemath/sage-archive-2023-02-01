@@ -30,7 +30,7 @@ cdef int two_squares_c(uint_fast32_t n, uint_fast32_t res[2]):
     r"""
     Return ``1`` if ``n`` is a sum of two squares and ``0`` otherwise.
 
-    If ``1`` is returned, the the value of ``res[0]`` and ``res[1]`` are set to the
+    If ``1`` is returned, the value of ``res[0]`` and ``res[1]`` are set to the
     lexicographically smallest solution of `a^2 + b^2 = n`.
     """
     cdef uint_fast32_t fac,i,ii,j,jj,nn

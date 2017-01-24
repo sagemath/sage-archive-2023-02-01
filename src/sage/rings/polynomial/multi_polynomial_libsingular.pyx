@@ -1338,7 +1338,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R = ZZ['x,y']
             sage: singular(R)
             polynomial ring, over a domain, global ordering
-            //   coeff. ring is : integer
+            //   coeff. ring is : ZZ
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -1500,11 +1500,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             False
 
         """
-        if isinstance(right, (MPolynomialRing_libsingular, MPolynomialRing_polydict_domain)):
-            return cmp((left.base_ring(), map(str, left.gens()), left.term_order()),
-                       (right.base_ring(), map(str, right.gens()), right.term_order()))
-        else:
-            return cmp(type(left),type(right))
+        if not isinstance(right, (MPolynomialRing_libsingular, MPolynomialRing_polydict_domain)):
+            return -1  # arbitrary
+
+        lx = (left.base_ring(), map(str, left.gens()), left.term_order())
+        rx = (right.base_ring(), map(str, right.gens()), right.term_order())
+        if lx < rx:
+            return -1
+        if lx > rx:
+            return 1
+        return 0
 
     def __reduce__(self):
         """
@@ -2921,6 +2926,38 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
         return pd
 
+    cpdef long number_of_terms(self):
+        """
+        Return the number of non-zero coefficients of this polynomial.
+
+        This is also called weight, :meth:`hamming_weight` or sparsity.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = ZZ[]
+            sage: f = x^3 - y
+            sage: f.number_of_terms()
+            2
+            sage: R(0).number_of_terms()
+            0
+            sage: f = (x+y)^100
+            sage: f.number_of_terms()
+            101
+
+        The method :meth:`hamming_weight` is an alias::
+
+            sage: f.hamming_weight()
+            101
+        """
+        cdef long w = 0
+        p = self._poly
+        while p:
+            p = pNext(p)
+            w += 1
+        return w
+
+    hamming_weight = number_of_terms
+
     cdef long _hash_c(self) except -1:
         """
         See ``self.__hash__``
@@ -3294,20 +3331,20 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: R.<x,y> = QQ[]
             sage: n=100; f = x^n
             sage: try:
-            ....:   f.subs(x = x^n)
-            ....:   print("no overflow")
+            ....:     f.subs(x = x^n)
+            ....:     print("no overflow")
             ....: except OverflowError:
-            ....:   print "overflow"
+            ....:     print("overflow")
             x^10000
             no overflow
 
             sage: n=1000;
             sage: try:
-            ....:   f = x^n
-            ....:   f.subs(x = x^n)
-            ....:   print("no overflow")
+            ....:     f = x^n
+            ....:     f.subs(x = x^n)
+            ....:     print("no overflow")
             ....: except OverflowError:
-            ....:   print("overflow")
+            ....:     print("overflow")
             overflow
 
         Check that there is no more segmentation fault if the polynomial gets 0

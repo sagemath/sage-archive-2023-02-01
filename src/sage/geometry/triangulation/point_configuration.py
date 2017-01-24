@@ -642,7 +642,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 line = proc.readline().strip()
             except pexpect.TIMEOUT:
                 if verbose:
-                    print('# Still runnnig ' + str(executable))
+                    print('# Still running ' + str(executable))
                 continue
             if len(line)==0: # EOF
                 break;

@@ -45,31 +45,31 @@ Now we create a more complicated variety to demonstrate divisors of different
 types::
 
     sage: F = Fan(cones=[(0,1,2,3), (0,1,4)],
-    ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
+    ....:     rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
     sage: X = ToricVariety(F)
     sage: QQ_Cartier = X.divisor([2,2,1,1,1])
     sage: Cartier = 2 * QQ_Cartier
     sage: Weil = X.divisor([1,1,1,0,0])
     sage: QQ_Weil = 1/2 * Weil
     sage: [QQ_Weil.is_QQ_Weil(),
-    ...    QQ_Weil.is_Weil(),
-    ...    QQ_Weil.is_QQ_Cartier(),
-    ...    QQ_Weil.is_Cartier()]
+    ....:  QQ_Weil.is_Weil(),
+    ....:  QQ_Weil.is_QQ_Cartier(),
+    ....:  QQ_Weil.is_Cartier()]
     [True, False, False, False]
     sage: [Weil.is_QQ_Weil(),
-    ...    Weil.is_Weil(),
-    ...    Weil.is_QQ_Cartier(),
-    ...    Weil.is_Cartier()]
+    ....:  Weil.is_Weil(),
+    ....:  Weil.is_QQ_Cartier(),
+    ....:  Weil.is_Cartier()]
     [True, True, False, False]
     sage: [QQ_Cartier.is_QQ_Weil(),
-    ...    QQ_Cartier.is_Weil(),
-    ...    QQ_Cartier.is_QQ_Cartier(),
-    ...    QQ_Cartier.is_Cartier()]
+    ....:  QQ_Cartier.is_Weil(),
+    ....:  QQ_Cartier.is_QQ_Cartier(),
+    ....:  QQ_Cartier.is_Cartier()]
     [True, True, True, False]
     sage: [Cartier.is_QQ_Weil(),
-    ...    Cartier.is_Weil(),
-    ...    Cartier.is_QQ_Cartier(),
-    ...    Cartier.is_Cartier()]
+    ....:  Cartier.is_Weil(),
+    ....:  Cartier.is_QQ_Cartier(),
+    ....:  Cartier.is_Cartier()]
     [True, True, True, True]
 
 The toric (`\QQ`-Weil) divisors on a toric variety `X` modulo linear
@@ -794,7 +794,7 @@ class ToricDivisor_generic(Divisor_generic):
         EXAMPLES::
 
             sage: F = Fan(cones=[(0,1,2,3), (0,1,4)],
-            ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
+            ....:     rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
             sage: X = ToricVariety(F)
             sage: square_cone = X.fan().cone_containing(0,1,2,3)
             sage: triangle_cone = X.fan().cone_containing(0,1,4)
@@ -1000,7 +1000,7 @@ class ToricDivisor_generic(Divisor_generic):
         EXAMPLES::
 
             sage: F = Fan(cones=[(0,1,2,3), (0,1,4)],
-            ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
+            ....:     rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
             sage: X = ToricVariety(F)
             sage: square_cone = X.fan().cone_containing(0,1,2,3)
             sage: triangle_cone = X.fan().cone_containing(0,1,4)
@@ -1300,7 +1300,7 @@ class ToricDivisor_generic(Divisor_generic):
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: D = F2.divisor(3)
             sage: D.polyhedron().Vrepresentation()
@@ -1608,10 +1608,10 @@ class ToricDivisor_generic(Divisor_generic):
         A more complicated example to test that :trac:`10731` is fixed::
 
             sage: cell24 = Polyhedron(vertices=[
-            ...    (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
-            ...    (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
-            ...    (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
-            ...    (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1)])
+            ....:  (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
+            ....:  (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
+            ....:  (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
+            ....:  (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1)])
             sage: X = ToricVariety(FaceFan(cell24.lattice_polytope()))  # long time
             sage: D = -X.divisor(0)       # long time
             sage: D.cohomology(dim=True)  # long time
@@ -1763,7 +1763,7 @@ class ToricDivisor_generic(Divisor_generic):
         Example 9.1.7 of Cox, Little, Schenck: "Toric Varieties" [CLS]_::
 
             sage: F = Fan(cones=[(0,1), (1,2), (2,3), (3,4), (4,5), (5,0)],
-            ...           rays=[(1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)])
+            ....:         rays=[(1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)])
             sage: dP6 = ToricVariety(F)
             sage: D3 = dP6.divisor(2)
             sage: D5 = dP6.divisor(4)
@@ -1869,7 +1869,7 @@ class ToricDivisor_generic(Divisor_generic):
         EXAMPLES::
 
             sage: F = Fan(cones=[(0,1), (1,2), (2,3), (3,4), (4,5), (5,0)],
-            ...           rays=[(1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)])
+            ....:         rays=[(1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)])
             sage: dP6 = ToricVariety(F)
             sage: D3 = dP6.divisor(2)
             sage: D5 = dP6.divisor(4)

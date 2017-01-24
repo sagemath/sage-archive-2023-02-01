@@ -100,15 +100,6 @@ if DEVEL:
 if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
     extra_compile_args.append('-fno-tree-copyrename')
 
-#########################################################
-### Generate some Python/Cython sources
-#########################################################
-
-make = os.environ.get("MAKE", 'make')
-make_cmdline = "{} -f generate_py_source.mk SAGE_SRC={}".format(make, sage.env.SAGE_SRC)
-status = subprocess.call(make_cmdline, shell=True)
-if status != 0:
-    raise DistutilsSetupError("{} failed".format(make_cmdline))
 
 #########################################################
 ### Testing related stuff
@@ -396,7 +387,7 @@ class sage_build_ext(build_ext):
                 # different Cython versions or with different options.
                 # To ensure that this inconsistent state will be fixed,
                 # we remove the version_file now to force a
-                # recythonization the the next time we build Sage.
+                # recythonization the next time we build Sage.
                 os.unlink(version_file)
         except IOError:
             # Most likely, the version_file does not exist
@@ -673,6 +664,16 @@ class sage_build_ext(build_ext):
             for src in src_files:
                 self.copy_file(src, dst, preserve_mode=False)
 
+#########################################################
+### Generating auto-generated Sources
+### This must be done before discovering and building
+### the python modules. See #22094.
+#########################################################
+
+log.info("Generating auto-generated sources")
+from sage_setup.autogen import autogen_all
+
+autogen_all()
 
 #########################################################
 ### Discovering Sources

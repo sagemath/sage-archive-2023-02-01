@@ -996,7 +996,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             sage: [(1, 3, 6), (2, 4), (5,)] in PerfectMatchings(6)
             False
             sage: [('a', 'b'), ('a', 'c')] in PerfectMatchings(
-            ...        ('a', 'b', 'c', 'd'))
+            ....:      ('a', 'b', 'c', 'd'))
             False
         """
         if not isinstance(x, PerfectMatching):

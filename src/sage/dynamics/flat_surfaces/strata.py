@@ -18,7 +18,7 @@ transformations and linear involutions) in [Zor2008]_ and is implemented for
 Abelian stratum at different level (approximately one for each component):
 
 - for connected stratum :meth:`~ConnectedComponentOfAbelianStratum.representative`
-- for hyperellitic component :meth:`~HypConnectedComponentOfAbelianStratum.representative`
+- for hyperelliptic component :meth:`~HypConnectedComponentOfAbelianStratum.representative`
 - for non hyperelliptic component, the algorithm is the same as for connected
   component
 - for odd component :meth:`~OddConnectedComponentOfAbelianStratum.representative`
@@ -241,7 +241,6 @@ from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 from sage.combinat.partition import Partitions
 
 from sage.rings.integer import Integer
-from sage.rings.rational import Rational
 
 
 def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
@@ -1390,21 +1389,17 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             sage: c2_hyp != c2_odd
             True
             sage: c1 == True
-            Traceback (most recent call last):
-            ...
-            TypeError: other must be a connected component
+            False
         """
-        if not isinstance(other, CCA):
-            raise TypeError("other must be a connected component")
+        if not isinstance(other, CCA) or type(self) != type(other):
+            return NotImplemented
 
-        if type(self) is type(other):
-            if self._parent._zeroes > other._parent._zeroes:
-                return 1
-            elif self._parent._zeroes < other._parent._zeroes:
-                return -1
-            return 0
+        if self._parent._zeroes < other._parent._zeroes:
+            return 1
+        elif self._parent._zeroes > other._parent._zeroes:
+            return -1
+        return 0
 
-        return cmp(type(self), type(other))
 
 CCA = ConnectedComponentOfAbelianStratum
 

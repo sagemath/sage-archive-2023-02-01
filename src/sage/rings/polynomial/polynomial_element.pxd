@@ -25,6 +25,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef _inplace_truncate(self, long n)
 
     cdef get_unsafe(self, Py_ssize_t i)
+    cpdef long number_of_terms(self)
 
 cdef class Polynomial_generic_dense(Polynomial):
     cdef Polynomial_generic_dense _new_c(self, list coeffs, Parent P)

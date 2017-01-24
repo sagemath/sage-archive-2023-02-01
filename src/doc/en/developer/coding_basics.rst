@@ -802,8 +802,8 @@ written.
 
 .. _section-further_conventions:
 
-Special Markup to Influence Tests
----------------------------------
+Special Markup to Influence Doctests
+------------------------------------
 
 Overly complicated output in the example code can be shortened
 by an ellipsis marker ``...``::
@@ -997,8 +997,8 @@ further development on Sage.
 
 .. _chapter-testing:
 
-Running Automated Tests
-=======================
+Running Automated Doctests
+==========================
 
 This section describes Sage's automated testing of test files of the
 following types: ``.py``, ``.pyx``, ``.sage``, ``.rst``. Briefly, use

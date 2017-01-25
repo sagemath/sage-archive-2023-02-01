@@ -1451,7 +1451,7 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``labels`` -- (default: ``True``) if ``False``, each bridge is a tuple
-          `(u, v)` of vertices.
+          `(u, v)` of vertices
 
         EXAMPLES::
 

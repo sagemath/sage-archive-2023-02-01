@@ -271,22 +271,22 @@ cdef class PowerSeries_pari(PowerSeries):
             return self._prec
         return self.g.valuation(self._parent.variable_name())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True if ``self`` is nonzero, and False otherwise.
 
         EXAMPLES::
 
             sage: R.<t> = PowerSeriesRing(GF(11), implementation='pari')
-            sage: (1 + t + O(t^18)).__nonzero__()
+            sage: bool(1 + t + O(t^18))
             True
-            sage: R(0).__nonzero__()
+            sage: bool(R(0))
             False
-            sage: O(t^18).__nonzero__()
+            sage: bool(O(t^18))
             False
 
         """
-        return self.g.__nonzero__()
+        return bool(self.g)
 
     def __call__(self, *x, **kwds):
         """
@@ -668,7 +668,7 @@ cdef class PowerSeries_pari(PowerSeries):
             g = g.truncate()
         if typ(g.g) == t_POL and varn(g.g) == vn:
             # t_POL has 2 codewords.  Use new_ref instead of g[i] for speed.
-            return [R(new_ref(gel(g.g, i), g)) for i in xrange(2, lg(g.g))]
+            return [R(new_ref(gel(g.g, i), g)) for i in range(2, lg(g.g))]
         else:
             return [R(g)]
 
@@ -725,9 +725,9 @@ cdef class PowerSeries_pari(PowerSeries):
         if typ(g.g) == t_POL and varn(g.g) == get_var(self._parent.variable_name()):
             l = lg(g.g) - 2  # t_POL has 2 codewords
             if n <= l:
-                return [R(new_ref(gel(g.g, i + 2), g)) for i in xrange(n)]
+                return [R(new_ref(gel(g.g, i + 2), g)) for i in range(n)]
             else:
-                return ([R(new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
+                return ([R(new_ref(gel(g.g, i + 2), g)) for i in range(l)]
                         + [R.zero()] * (n - l))
         elif typ(g.g) == t_SER and varn(g.g) == get_var(self._parent.variable_name()):
             l = lg(g.g) - 2  # t_SER has 2 codewords
@@ -736,10 +736,10 @@ cdef class PowerSeries_pari(PowerSeries):
                 return [R.zero()] * n
             elif n <= l + m:
                 return ([R.zero()] * m
-                        + [R(new_ref(gel(g.g, i + 2), g)) for i in xrange(n - m)])
+                        + [R(new_ref(gel(g.g, i + 2), g)) for i in range(n - m)])
             else:
                 return ([R.zero()] * m
-                        + [R(new_ref(gel(g.g, i + 2), g)) for i in xrange(l)]
+                        + [R(new_ref(gel(g.g, i + 2), g)) for i in range(l)]
                         + [R.zero()] * (n - l - m))
         else:
             return [R(g)] + [R.zero()] * (n - 1)

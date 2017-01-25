@@ -336,6 +336,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__gens[True] = [self.point(x, check=True) for x in gens]
         self.__gens[True].sort()
 
+    def lmfdb_page(self):
+        r"""
+        Open the LMFDB web page of the elliptic curve in a browser.
+
+        See http://www.lmfdb.org
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('5077a1')
+            sage: E.lmfdb_page()  # optional -- webbrowser
+        """
+        import webbrowser
+        lmfdb_url = 'http://www.lmfdb.org/EllipticCurve/Q/{}'
+        if hasattr(self, "_lmfdb_label") and self._lmfdb_label:
+            url = lmfdb_url.format(self._lmfdb_label)
+        else:
+            url = lmfdb_url.format(self.cremona_label())
+        webbrowser.open(url)
 
     def is_p_integral(self, p):
         r"""

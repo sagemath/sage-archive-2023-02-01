@@ -907,12 +907,12 @@ class Function_arctan2(GinacFunction):
 
             sage: atan2(0,0)
             NaN
+            sage: atan2(0,0).n()
+            NaN
             sage: atan2(0,0,hold=True)
             arctan2(0, 0)
             sage: atan2(0,0,hold=True).n()
-            Traceback (most recent call last):
-            ...
-            ValueError: arctan2(0,0) undefined
+            NaN
 
         Check if :trac:`10062` is fixed, this was caused by
         ``(I*I).is_positive()`` returning ``True``::

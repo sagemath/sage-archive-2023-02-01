@@ -566,7 +566,7 @@ def unpickle_intlist_v1(v, Py_ssize_t n):
         sage: v = stats.IntList([1,2,3])
         sage: s = v.__reduce__()[1][0]
         sage: type(s)
-        <type 'str'>
+        <... 'str'>
         sage: sage.stats.intlist.unpickle_intlist_v1(s, 3)
         [1, 2, 3]
         sage: sage.stats.intlist.unpickle_intlist_v1(s+s,6)

@@ -107,7 +107,7 @@ class PariFunctionGenerator(object):
             return False
         return True
 
-    def handle_pari_function(self, function, cname="", prototype="", help="", doc="", **kwds):
+    def handle_pari_function(self, function, cname="", prototype="", help="", obsolete=None, **kwds):
         r"""
         Handle one PARI function: decide whether or not to add the
         function to Sage, in which file (as method of :class:`gen` or
@@ -124,7 +124,6 @@ class PariFunctionGenerator(object):
             sage: G.handle_pari_function("bnfinit",
             ....:     cname="bnfinit0", prototype="GD0,L,DGp",
             ....:     help=r"bnfinit(P,{flag=0},{tech=[]}): compute...",
-            ....:     doc=r"Doc: initializes a \var{bnf} structure",
             ....:     **{"class":"basic", "section":"number_fields"})
                 def bnfinit(P, long flag=0, tech=None, long precision=0):
                     ...
@@ -141,7 +140,6 @@ class PariFunctionGenerator(object):
             sage: G.handle_pari_function("ellmodulareqn",
             ....:     cname="ellmodulareqn", prototype="LDnDn",
             ....:     help=r"ellmodulareqn(N,{x},{y}): return...",
-            ....:     doc=r"return a vector [\kbd{eqn},$t$] where \kbd{eqn} is...",
             ....:     **{"class":"basic", "section":"elliptic_curves"})
                 def ellmodulareqn(self, long N, x=None, y=None):
                     ...
@@ -161,17 +159,33 @@ class PariFunctionGenerator(object):
             ....:     doc=r"reseeds the random number generator...",
             ....:     **{"class":"basic", "section":"programming/specific"})
                 def setrand(n):
-                    r...
+                    r'''
                     Reseeds the random number generator using the seed :math:`n`. No value is
                     returned. The seed is either a technical array output by :literal:`getrand`, or a
                     small positive integer, used to generate deterministically a suitable state
                     array. For instance, running a randomized computation starting by
                     :literal:`setrand(1)` twice will generate the exact same output.
-                    ...
+                    '''
                     cdef GEN _n = n.g
                     sig_on()
                     setrand(_n)
                     clear_stack()
+            <BLANKLINE>
+            sage: G.handle_pari_function("bernvec",
+            ....:     cname="bernvec", prototype="L",
+            ....:     help="bernvec(x): this routine is obsolete, use bernfrac repeatedly.",
+            ....:     obsolete="2007-03-30",
+            ....:     **{"class":"basic", "section":"transcendental"})
+                def bernvec(self, long x):
+                    r'''
+                    This routine is obsolete, kept for backward compatibility only.
+                    '''
+                    from warnings import warn
+                    warn('the PARI/GP function bernvec is obsolete (2007-03-30)', DeprecationWarning)
+                    cdef PariInstance pari_instance = <PariInstance>self
+                    sig_on()
+                    cdef GEN _ret = bernvec(x)
+                    return new_gen(_ret)
             <BLANKLINE>
         """
         try:
@@ -192,9 +206,9 @@ class PariFunctionGenerator(object):
             f = self.instance_file
 
         self.write_method(function, cname, args, ret, cargs, f,
-                get_rest_doc(function))
+                get_rest_doc(function), obsolete)
 
-    def write_method(self, function, cname, args, ret, cargs, file, doc):
+    def write_method(self, function, cname, args, ret, cargs, file, doc, obsolete):
         """
         Write Cython code with a method to call one PARI function.
 
@@ -212,6 +226,9 @@ class PariFunctionGenerator(object):
         - ``file`` -- a file object where the code should be written to
 
         - ``doc`` -- the docstring for the method
+
+        - ``obsolete`` -- if ``True``, a deprecation warning will be
+          given whenever this method is called
         """
         doc = doc.replace("\n", "\n        ")  # Indent doc
         doc = doc.encode("utf-8")
@@ -220,7 +237,15 @@ class PariFunctionGenerator(object):
         callargs = ", ".join(a.call_code() for a in cargs)
 
         s = "    def {function}({protoargs}):\n"
-        s += '        r"""\n        {doc}\n        """\n'
+        if doc:
+            # Use triple single quotes to make it easier to doctest
+            # this within triply double quoted docstrings.
+            s += "        r'''\n        {doc}\n        '''\n"
+        # Warning for obsolete functions
+        if obsolete:
+            s += "        from warnings import warn\n"
+            s += "        warn('the PARI/GP function {function} is obsolete ({obsolete})', DeprecationWarning)\n"
+        # Warning for undocumented arguments
         for a in args:
             s += a.deprecation_warning_code(function)
         for a in args:
@@ -229,8 +254,8 @@ class PariFunctionGenerator(object):
         s += ret.assign_code("{cname}({callargs})")
         s += ret.return_code()
 
-        s = s.format(function=function, protoargs=protoargs, cname=cname, callargs=callargs, doc=doc)
-        print (s, file=file)
+        s = s.format(function=function, protoargs=protoargs, cname=cname, callargs=callargs, doc=doc, obsolete=obsolete)
+        print(s, file=file)
 
     def __call__(self):
         """

@@ -106,6 +106,7 @@ objects like operation tables (e.g. the multiplication table of a group).
    sage/matrix/matrix_window
    sage/matrix/misc
    sage/matrix/symplectic_basis
+   sage/matrix/compute_J_ideal
 
    sage/matrix/benchmark
 

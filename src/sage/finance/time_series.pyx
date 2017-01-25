@@ -2573,7 +2573,7 @@ def unpickle_time_series_v1(v, Py_ssize_t n):
         sage: v = finance.TimeSeries([1,2,3])
         sage: s = v.__reduce__()[1][0]
         sage: type(s)
-        <type 'str'>
+        <... 'str'>
         sage: sage.finance.time_series.unpickle_time_series_v1(s,3)
         [1.0000, 2.0000, 3.0000]
         sage: sage.finance.time_series.unpickle_time_series_v1(s+s,6)

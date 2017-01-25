@@ -47,6 +47,7 @@ from __future__ import absolute_import
 from sage.structure.category_object import normalize_names
 from sage.structure.element import is_Element
 from sage.rings.ring import is_Ring
+from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import _single_variate as _single_variate_poly
 from sage.rings.polynomial.polynomial_ring_constructor import _multi_variate as _multi_variate_poly
@@ -475,6 +476,41 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             return self.__generators[i]
 
 
+    def variable_names_recursive(self, depth=infinity):
+        r"""
+        Return the list of variable names of this ring and its base rings,
+        as if it were a single multi-variate laurent polynomial.
+
+        INPUT:
+
+        - ``depth`` -- an integer or :mod:`Infinity <sage.rings.infinity>`.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: T = LaurentPolynomialRing(QQ, 'x')
+            sage: S = LaurentPolynomialRing(T, 'y')
+            sage: R = LaurentPolynomialRing(S, 'z')
+            sage: R.variable_names_recursive()
+            ('x', 'y', 'z')
+            sage: R.variable_names_recursive(2)
+            ('y', 'z')
+        """
+        if depth <= 0:
+            return ()
+        elif depth == 1:
+            return self.variable_names()
+        else:
+            my_vars = self.variable_names()
+            try:
+               return self.base_ring().variable_names_recursive(depth - len(my_vars)) + my_vars
+            except AttributeError:
+                return my_vars
+
+
     def is_integral_domain(self, proof = True):
         """
         Returns True if self is an integral domain.
@@ -829,7 +865,20 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             sage: L = LaurentPolynomialRing(QQ, 'x')
             sage: L(1/2)
             1/2
+
+            sage: L(x + 3/x)
+            3*x^-1 + x
+
+        TESTS::
+
+            sage: L(exp(x))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert e^x to a rational
         """
+        from sage.symbolic.expression import Expression
+        if isinstance(x, Expression):
+            return x.laurent_polynomial(ring=self)
         return LaurentPolynomial_univariate(self, x)
 
     def __reduce__(self):
@@ -869,7 +918,23 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             sage: L = LaurentPolynomialRing(QQ,2,'x')
             sage: L(1/2)
             1/2
+
+            sage: M = LaurentPolynomialRing(QQ, 'x, y')
+            sage: var('x, y')
+            (x, y)
+            sage: M(x/y + 3/x)
+            x*y^-1 + 3*x^-1
+
+        TESTS::
+
+            sage: M(exp(x))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert e^x to a rational
         """
+        from sage.symbolic.expression import Expression
+        if isinstance(x, Expression):
+            return x.laurent_polynomial(ring=self)
         return LaurentPolynomial_mpair(self, x)
 
     def __reduce__(self):

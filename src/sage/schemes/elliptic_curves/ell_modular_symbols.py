@@ -253,10 +253,10 @@ class ModularSymbol(SageObject):
             1
             sage: m = EllipticCurve('11a2').modular_symbol()
             sage: m._scaling
-            5/2
+            -1/2
             sage: m = EllipticCurve('11a3').modular_symbol()
             sage: m._scaling
-            1/10
+            -1/2
             sage: m = EllipticCurve('11a1').modular_symbol(implementation="sage")
             sage: m._scaling
             1/5
@@ -274,7 +274,7 @@ class ModularSymbol(SageObject):
             -1
             sage: m = EllipticCurve('389a1').modular_symbol()
             sage: m._scaling
-            -1/2
+            -1
             sage: m = EllipticCurve('389a1').modular_symbol(implementation="sage")
             sage: m._scaling
             2
@@ -434,7 +434,7 @@ class ModularSymbol(SageObject):
             sage: E = EllipticCurve('19a2')
             sage: m = E.modular_symbol(sign=+1)
             sage: m._scaling
-            3/2
+            -1/2
             sage: m.__scale_by_periods_only__()
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: m._scaling
@@ -503,20 +503,20 @@ class ModularSymbolECLIB(ModularSymbol):
             sage: M(0)
             0
             sage: M(1/7)
-            -2
+            -1
 
             sage: M = EllipticCurve('121d1').modular_symbol(implementation="eclib")
             sage: M(0)
             2
             sage: M = EllipticCurve('121d1').modular_symbol(implementation="eclib",normalize='none')
             sage: M(0)
-            8
+            -4
 
             sage: E = EllipticCurve('15a1')
             sage: [C.modular_symbol(implementation="eclib",normalize='L_ratio')(0) for C in E.isogeny_class()]
             [1/4, 1/8, 1/4, 1/2, 1/8, 1/16, 1/2, 1]
             sage: [C.modular_symbol(implementation="eclib",normalize='none')(0) for C in E.isogeny_class()]
-            [1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4]
+            [-1/4, -1/8, -1/2, -1/2, -1/8, -1/8, -1, -1]
 
         Currently, the interface for negative modular symbols in eclib is not yet written::
 

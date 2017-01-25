@@ -105,14 +105,12 @@ def all_strong_orientations_iterator(self):
 
     # compute an arbitrary spanning tree of the undirected graph
     te = kruskal(self)
-    treeEdges = [(edge[0],edge[1]) for edge in self.edges() if edge in te]
+    treeEdges = [(u,v) for u,v,_ in te]
     A = [edge for edge in self.edges(labels=False) if edge not in treeEdges]
     
     # initialization of the first binary word 00...0
     # corresponding to the current orientation of the non-tree edges
-    existingAedges = []
-    for i in range(0, len(A)):
-        existingAedges.append(0)
+    existingAedges = [0]*len(A)
     
     # Make the edges of the spanning tree doubly oriented
     for e in treeEdges :
@@ -131,7 +129,8 @@ def all_strong_orientations_iterator(self):
         
         bit = 0
         while bitChanged > 1 :
-            bitChanged >>= 1; bit += 1;
+            bitChanged >>= 1;
+            bit += 1;
 
         previousWord = word;
         if existingAedges[bit] == 0 :
@@ -199,7 +198,7 @@ def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
     
     # if true the obtained orientation is strong
     if not E :
-        yield Dg
+        yield Dg.copy()
         
     else :
         (u,v) = E.pop()

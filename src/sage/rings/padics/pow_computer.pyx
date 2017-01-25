@@ -35,6 +35,7 @@ AUTHORS:
 import weakref
 from sage.rings.infinity import infinity
 from sage.libs.gmp.mpz cimport *
+from sage.structure.sage_object cimport richcmp_not_equal, richcmp
 
 from sage.ext.stdsage cimport PY_NEW
 include "cysignals/signals.pxi"
@@ -93,7 +94,7 @@ cdef class PowComputer_class(SageObject):
         self.prec_cap = prec_cap
         self.ram_prec_cap = ram_prec_cap
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compares self to other
 
@@ -111,30 +112,28 @@ cdef class PowComputer_class(SageObject):
             sage: P is Q
             True
         """
-        a = cmp(type(self), type(other))
+        if not isinstance(other, PowComputer_class):
+            pass
+
         cdef PowComputer_class o
-        if a == 0:
-            o = <PowComputer_class>other
-            if self.prime < o.prime:
-                return -1
-            elif self.prime > o.prime:
-                return 1
-            elif self.prec_cap < o.prec_cap:
-                return -1
-            elif self.prec_cap > o.prec_cap:
-                return 1
-            elif self.cache_limit < o.cache_limit:
-                return -1
-            elif self.cache_limit > o.cache_limit:
-                return 1
-            elif self.in_field < o.in_field:
-                return -1
-            elif self.in_field > o.in_field:
-                return 1
-            else:
-                return 0
-        else:
-            return cmp(type(self), type(other))
+        o = <PowComputer_class>other
+
+        lx = self.prime
+        rx = other.prime
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.prec_cap
+        rx = other.prec_cap
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.cache_limit
+        rx = other.cache_limit
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self.in_field, o.in_field, op)
 
     cdef Integer pow_Integer(self, long n):
         """

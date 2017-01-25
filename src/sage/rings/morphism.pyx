@@ -1146,7 +1146,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         _slots['__im_gens'] = self.__im_gens
         return RingHomomorphism._extra_slots(self, _slots)
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         r"""
         EXAMPLES:
 
@@ -1173,10 +1173,8 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         ::
 
             sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
-            sage: cmp(f,g)             # indirect doctest
-            1
-            sage: cmp(g,f)
-            -1
+            sage: f == g             # indirect doctest
+            False
 
         EXAMPLES:
 
@@ -1203,8 +1201,11 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             True
         """
         if not isinstance(other, RingHomomorphism_im_gens):
-            return cmp(type(self), type(other))
-        return cmp(self.__im_gens, (<RingHomomorphism_im_gens>other).__im_gens)
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+
+        return richcmp(self.__im_gens, (<RingHomomorphism_im_gens>other).__im_gens, op)
 
     def __hash__(self):
         """
@@ -1444,7 +1445,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         _slots['__underlying'] = self.__underlying
         return RingHomomorphism._extra_slots(self, _slots)
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         r"""
         EXAMPLES:
 
@@ -1470,10 +1471,8 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
             sage: S.<z> = R[]
             sage: fS = S.hom(f,S); gS = S.hom(g,S)
-            sage: cmp(fS,gS)   # indirect doctest
-            1
-            sage: cmp(gS,fS)   # indirect doctest
-            -1
+            sage: fS != gS   # indirect doctest
+            True
 
         EXAMPLES:
 
@@ -1496,8 +1495,10 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             True
         """
         if not isinstance(other, RingHomomorphism_from_base):
-            return cmp(type(self), type(other))
-        return cmp(self.__underlying, (<RingHomomorphism_from_base>other).__underlying)
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+        return richcmp(self.__underlying, (<RingHomomorphism_from_base>other).__underlying, op)
 
     def _repr_defn(self):
         """

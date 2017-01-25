@@ -40,11 +40,10 @@ givaro_library_dirs = givaro_pc['library_dirs']
 givaro_cflags = pkgconfig.cflags('givaro').split()
 
 # GNU Scientific Library
-# Note we remove the built-in gslcblas
+# The default gslcblas is removed in the gsl spkg - not need to remove it.
 # The above cblas should already be in the list thanks to #20646
 gsl_pc = pkgconfig.parse('gsl')
 gsl_libs = gsl_pc['libraries']
-gsl_libs.remove('gslcblas')
 gsl_library_dirs = gsl_pc['library_dirs']
 gsl_include_dirs = gsl_pc['include_dirs']
 

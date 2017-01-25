@@ -1855,7 +1855,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: (-1 + t + O(t^10)).log()
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.rings.rational.Rational' object has no attribute 'log'
+            ArithmeticError: constant term of power series is not 1
 
             sage: R.<t> = PowerSeriesRing(RR)
             sage: (2+t).log().exp()
@@ -1868,7 +1868,7 @@ cdef class PowerSeries(AlgebraElement):
         const_off = zero
 
         if not self[0].is_one():
-            if self.base_ring() in _Fields:
+            if self.base_ring() in _Fields and self[0] > 0:
                 const_off = self[0].log()
             else:
                 raise ArithmeticError("constant term of power series is not 1")

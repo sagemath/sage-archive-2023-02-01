@@ -229,7 +229,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
 
         sage: BarFoo = dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (3,)))
         sage: type(BarFoo).__reduce__(BarFoo)
-        (<type 'str'>, (3,))
+        (<... 'str'>, (3,))
         sage: loads(dumps(BarFoo))
         '3'
 
@@ -271,7 +271,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     first class::
 
         sage: dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (2,)), cache="ignore_reduction")._reduction
-        (<type 'str'>, (3,))
+        (<... 'str'>, (3,))
 
     .. WARNING::
 

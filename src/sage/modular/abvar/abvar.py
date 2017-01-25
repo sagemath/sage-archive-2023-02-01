@@ -4592,14 +4592,11 @@ def factor_new_space(M):
 
 def factor_modsym_space_new_factors(M):
     """
-    Given an ambient modular symbols space, return complete
-    factorization of it.
+    Return the factorizations of all the new subspaces of `M`.
 
     INPUT:
 
-
-    -  ``M`` - modular symbols space
-
+    - ``M`` -- ambient modular symbols space
 
     OUTPUT: list of decompositions corresponding to each new space.
 
@@ -4622,16 +4619,14 @@ def factor_modsym_space_new_factors(M):
 
 def simple_factorization_of_modsym_space(M, simple=True):
     """
-    Return factorization of `M`. If simple is False, return
-    powers of simples.
+    Return the canonical factorization of `M` into (simple) subspaces.
 
     INPUT:
 
+    - ``M`` -- ambient modular symbols space
 
-    -  ``M`` - modular symbols space
-
-    -  ``simple`` - bool (default: True)
-
+    - ``simple`` -- boolean (default: ``True``); if set to ``False``,
+      isogenous simple factors are grouped together
 
     OUTPUT: sequence
 
@@ -4649,14 +4644,24 @@ def simple_factorization_of_modsym_space(M, simple=True):
         (11, 0, None, Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field),
         (33, 0, None, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field)
         ]
+
+    TESTS:
+
+    Check that :trac:`21799` is fixed::
+
+        sage: JH(28, [15]).decomposition()
+        [
+        Simple abelian subvariety 14aGH[15](1,28) of dimension 1 of JH(28,[15]),
+        Simple abelian subvariety 14aGH[15](2,28) of dimension 1 of JH(28,[15]),
+        Simple abelian subvariety 28aGH[15](1,28) of dimension 2 of JH(28,[15])
+        ]
     """
     D = []
-    N = M.level()
     for G in factor_modsym_space_new_factors(M):
         if len(G) > 0:
             # Compute the matrices of the degeneracy maps up.
-            T = divisors(N//G[0].level())
-            degen = [G[0].ambient_module().degeneracy_map(N, t).matrix() for t in T]
+            T = (M.level() // G[0].level()).divisors()
+            degen = [G[0].ambient_module().degeneracy_map(M, t).matrix() for t in T]
             # Construct a matrix with rows the basis for all the factors
             # stacked on top of each other.  We just multiply this by each
             # degeneracy matrix to get the basis for the images of the

@@ -1749,7 +1749,7 @@ class MagmaFunctionElement(FunctionElement):
             sage: type(V.M)                                      # optional - magma
             <class 'sage.interfaces.magma.MagmaFunctionElement'>
             sage: type(V.M.__repr__())                           # optional - magma
-            <type 'str'>
+            <... 'str'>
 
         Displaying a non-attribute function works as above.
 

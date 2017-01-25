@@ -1619,7 +1619,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         also :oeis:`A001181`). We check this in small cases::
 
             sage: [len([(u,v) for u in BinaryTrees(n) for v in BinaryTrees(n)
-            ....:       if map(lambda x:1-x, u.canopee()) == v.canopee()])
+            ....:       if [1 - x for x in u.canopee()] == v.canopee()])
             ....:    for n in range(1, 5)]
             [1, 2, 6, 22]
 

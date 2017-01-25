@@ -83,15 +83,15 @@ from .paridecl cimport *
 from .paripriv cimport *
 from .convert cimport (integer_to_gen, gen_to_integer,
                        new_gen_from_double, new_t_COMPLEX_from_double)
-from .pari_instance cimport (pari_instance, prec_bits_to_words, prec_words_to_bits,
+from .pari_instance cimport (prec_bits_to_words, prec_words_to_bits,
                              default_bitprec, get_var)
+from .pari_instance cimport _pari_instance as pari_instance
 from .stack cimport new_gen, new_gen_noclear, clear_stack
 from .closure cimport objtoclosure
 
-from sage.misc.superseded import deprecation, deprecated_function_alias
-
 
 include 'auto_gen.pxi'
+
 
 @cython.final
 cdef class gen(gen_auto):
@@ -486,6 +486,22 @@ cdef class gen(gen_auto):
         # representation of a INTMOD or POLDMOD where the modulus is
         # stored.
         return new_gen(gel(self.g, 1))
+
+    # Special case: SageMath uses polred(), so mark it as not
+    # obsolete: https://trac.sagemath.org/ticket/22165
+    def polred(self, *args, **kwds):
+        r'''
+        This function is :emphasis:`deprecated`, use :meth:`.polredbest` instead.
+
+        TESTS::
+
+            sage: pari('x^4 + 8').polred(2)
+            [1, x - 1; 1/2*x^2 + 1, x^2 - 2*x + 3; -1/2*x^2 + 1, x^2 - 2*x + 3; 1/2*x^2, x^2 + 2; 1/4*x^3, x^4 + 2]
+        '''
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return super(gen, self).polred(*args, **kwds)
 
     def nf_get_pol(self):
         """
@@ -1319,30 +1335,6 @@ cdef class gen(gen_auto):
         sig_on()
         return new_gen(gcopy(self.g))
 
-    def list_str(gen self):
-        """
-        Return str that might correctly evaluate to a Python-list.
-
-        TESTS::
-
-            sage: pari.primes(5).list_str()
-            doctest:...: DeprecationWarning: the method list_str() is deprecated
-            See http://trac.sagemath.org/20219 for details.
-            [2, 3, 5, 7, 11]
-        """
-        deprecation(20219, "the method list_str() is deprecated")
-
-        s = str(self)
-        if s[:4] == "Mat(":
-            s = "[" + s[4:-1] + "]"
-        s = s.replace("~","")
-        if s.find(";") != -1:
-            s = s.replace(";","], [")
-            s = "[" + s + "]"
-            return eval(s)
-        else:
-            return eval(s)
-
     def __hex__(gen self):
         """
         Return the hexadecimal digits of self in lower case.
@@ -1488,152 +1480,44 @@ cdef class gen(gen_auto):
             raise TypeError("Object (=%s) must be of type t_VEC or t_COL." % self)
         return [self[n] for n in range(glength(self.g))]
 
-    def python(self, locals=None):
+    def python(self):
         """
-        Return the closest Python/Sage equivalent of the given PARI object.
+        Return the closest Python equivalent of the given PARI object.
 
-        INPUT:
-
-        - `z` -- PARI ``gen``
-
-        - `locals` -- optional dictionary used in fallback cases that
-          involve :func:`sage_eval`
-
-        .. NOTE::
-
-            If ``self`` is a real (type ``t_REAL``), then the result
-            will be a RealField element of the equivalent precision;
-            if ``self`` is a complex (type ``t_COMPLEX``), then the
-            result will be a ComplexField element of precision the
-            maximal precision of the real and imaginary parts.
+        See :func:`~sage.libs.cypari.convert.gen_to_python` for more informations.
 
         EXAMPLES::
 
+            sage: pari('1.2').python()
+            1.2
             sage: pari('389/17').python()
-            389/17
+            Fraction(389, 17)
+        """
+        from .convert import gen_to_python
+        return gen_to_python(self)
+
+    def sage(self, locals=None):
+        r"""
+        Return the closest Sage equivalent of the given PARI object.
+
+        INPUT:
+
+        - ``locals`` -- optional dictionary used in fallback cases that
+          involve ``sage_eval``
+
+        See :func:`~sage.libs.pari.convert_sage.gen_to_sage` for more information.
+
+        EXAMPLES::
+
             sage: f = pari('(2/3)*x^3 + x - 5/7 + y'); f
             2/3*x^3 + x + (y - 5/7)
             sage: var('x,y')
             (x, y)
-            sage: f.python({'x':x, 'y':y})
-            2/3*x^3 + x + y - 5/7
-
-        You can also use :meth:`.sage`, which is an alias::
-
             sage: f.sage({'x':x, 'y':y})
             2/3*x^3 + x + y - 5/7
-
-        Converting a real number::
-
-            sage: pari.set_real_precision(70)
-            15
-            sage: a = pari('1.234').python(); a
-            1.234000000000000000000000000000000000000000000000000000000000000000000000000
-            sage: a.parent()
-            Real Field with 256 bits of precision
-            sage: pari.set_real_precision(15)
-            70
-            sage: a = pari('1.234').python(); a
-            1.23400000000000000
-            sage: a.parent()
-            Real Field with 64 bits of precision
-
-        For complex numbers, the parent depends on the PARI type::
-
-            sage: a = pari('(3+I)').python(); a
-            i + 3
-            sage: a.parent()
-            Number Field in i with defining polynomial x^2 + 1
-
-            sage: a = pari('2^31-1').python(); a
-            2147483647
-            sage: a.parent()
-            Integer Ring
-
-            sage: a = pari('12/34').python(); a
-            6/17
-            sage: a.parent()
-            Rational Field
-
-            sage: a = pari('(3+I)/2').python(); a
-            1/2*i + 3/2
-            sage: a.parent()
-            Number Field in i with defining polynomial x^2 + 1
-
-            sage: z = pari(CC(1.0+2.0*I)); z
-            1.00000000000000 + 2.00000000000000*I
-            sage: a = z.python(); a
-            1.00000000000000000 + 2.00000000000000000*I
-            sage: a.parent()
-            Complex Field with 64 bits of precision
-
-            sage: I = sqrt(-1)
-            sage: a = pari(1.0 + 2.0*I).python(); a
-            1.00000000000000000 + 2.00000000000000000*I
-            sage: a.parent()
-            Complex Field with 64 bits of precision
-
-        Vectors and matrices::
-
-            sage: a = pari('[1,2,3,4]')
-            sage: a
-            [1, 2, 3, 4]
-            sage: a.type()
-            't_VEC'
-            sage: b = a.python(); b
-            [1, 2, 3, 4]
-            sage: type(b)
-            <... 'list'>
-
-            sage: a = pari('[1,2;3,4]')
-            sage: a.type()
-            't_MAT'
-            sage: b = a.python(); b
-            [1 2]
-            [3 4]
-            sage: b.parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
-
-            sage: a = pari('Vecsmall([1,2,3,4])')
-            sage: a.type()
-            't_VECSMALL'
-            sage: a.python()
-            [1, 2, 3, 4]
-
-        We use the locals dictionary::
-
-            sage: f = pari('(2/3)*x^3 + x - 5/7 + y')
-            sage: x,y=var('x,y')
-            sage: from sage.libs.cypari2.gen import gentoobj
-            sage: gentoobj(f, {'x':x, 'y':y})
-            2/3*x^3 + x + y - 5/7
-            sage: gentoobj(f)
-            Traceback (most recent call last):
-            ...
-            NameError: name 'x' is not defined
-
-        Conversion of p-adics::
-
-            sage: K = Qp(11,5)
-            sage: x = K(11^-10 + 5*11^-7 + 11^-6); x
-            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
-            sage: y = pari(x); y
-            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
-            sage: y.sage()
-            11^-10 + 5*11^-7 + 11^-6 + O(11^-5)
-            sage: pari(K(11^-5)).sage()
-            11^-5 + O(11^0)
-
-        Conversion of infinities::
-
-            sage: pari('oo').sage()
-            +Infinity
-            sage: pari('-oo').sage()
-            -Infinity
         """
-        return gentoobj(self, locals)
-
-    sage = _eval_ = python
+        from sage.libs.pari.convert_sage import gen_to_sage
+        return gen_to_sage(self, locals)
 
     def __long__(gen self):
         """
@@ -2327,8 +2211,6 @@ cdef class gen(gen_auto):
         sig_on()
         return new_gen(Strtex(x.g))
 
-    printtex = deprecated_function_alias(20219, Strtex)
-
     def Vec(gen x, long n = 0):
         """
         Transform the object `x` into a vector with minimal size `|n|`.
@@ -2788,7 +2670,7 @@ cdef class gen(gen_auto):
         """
         return pari_instance.bernreal(x, precision)
 
-    def besselk(gen nu, x, flag=None, unsigned long precision=0):
+    def besselk(gen nu, x, unsigned long precision=0):
         """
         nu.besselk(x): K-Bessel function (modified Bessel function
         of the second kind) of index nu, which can be complex, and argument
@@ -2822,13 +2704,7 @@ cdef class gen(gen_auto):
 
             sage: pari(2+i).besselk(300)
             3.74224603319728 E-132 + 2.49071062641525 E-134*I
-            sage: pari(2+i).besselk(300, flag=1)
-            doctest:...: DeprecationWarning: The flag argument to besselk() is deprecated and not used anymore
-            See http://trac.sagemath.org/20219 for details.
-            3.74224603319728 E-132 + 2.49071062641525 E-134*I
         """
-        if flag is not None:
-            deprecation(20219, 'The flag argument to besselk() is deprecated and not used anymore')
         cdef gen t0 = objtogen(x)
         sig_on()
         return new_gen(kbessel(nu.g, t0.g, prec_bits_to_words(precision)))
@@ -2950,8 +2826,6 @@ cdef class gen(gen_auto):
         sig_on()
         ans = new_gen_noclear(gsqrtn(x.g, t0.g, &zetan, prec_bits_to_words(precision)))
         return ans, new_gen(zetan)
-
-    phi = deprecated_function_alias(20219, gen_auto.eulerphi)
 
     def ffprimroot(self):
         r"""
@@ -3282,7 +3156,7 @@ cdef class gen(gen_auto):
         model = new_gen(x)
         return model, change
 
-    def elltors(self, flag=None):
+    def elltors(self):
         """
         Return information about the torsion subgroup of the given
         elliptic curve.
@@ -3311,8 +3185,6 @@ cdef class gen(gen_auto):
             sage: e.elltors()
             [12, [6, 2], [[1, 2], [3, -2]]]
         """
-        if flag is not None:
-            deprecation(20219, 'The flag argument to elltors() is deprecated and not used anymore')
         sig_on()
         return new_gen(elltors(self.g))
 
@@ -3477,8 +3349,6 @@ cdef class gen(gen_auto):
         sig_on()
         return new_gen(galoissubfields(self.g, flag, get_var(v)))
 
-    idealintersection = deprecated_function_alias(20219, gen_auto.idealintersect)
-
     def nfeltval(self, x, p):
         """
         Return the valuation of the number field element `x` at the prime `p`.
@@ -3496,8 +3366,6 @@ cdef class gen(gen_auto):
         v = nfval(self.g, t0.g, t1.g)
         sig_off()
         return v
-
-    elementval = deprecated_function_alias(20219, nfeltval)
 
     def nfbasis(self, long flag=0, fa=None):
         """
@@ -3720,8 +3588,6 @@ cdef class gen(gen_auto):
         cdef gen t2 = objtogen(czk)
         sig_on()
         return new_gen(nfeltup(self.g, t0.g, t1.g, t2.g))
-
-    reverse = deprecated_function_alias(20219, gen_auto.polrecip)
 
     def eval(self, *args, **kwds):
         """
@@ -4121,14 +3987,14 @@ cdef class gen(gen_auto):
             sage: pari('[2,1;2,1]').matkerint()
             [1; -2]
             sage: pari('[2,1;2,1]').matkerint(1)
-            doctest:...: DeprecationWarning: The flag argument to matkerint() is deprecated by PARI
-            See http://trac.sagemath.org/18203 for details.
+            doctest:...: DeprecationWarning: the 'flag' argument of the PARI/GP function matkerint is obsolete
             [1; -2]
         """
         if flag:
             # Keep this deprecation warning as long as PARI supports
             # this deprecated flag
-            deprecation(18203, "The flag argument to matkerint() is deprecated by PARI")
+            from warnings import warn
+            warn("the 'flag' argument of the PARI/GP function matkerint is obsolete", DeprecationWarning)
         sig_on()
         return new_gen(matkerint0(self.g, flag))
 
@@ -4178,21 +4044,10 @@ cdef class gen(gen_auto):
             Traceback (most recent call last):
             ...
             PariError: sorry, factor for general polynomials is not yet implemented
-
-        TESTS::
-
-            sage: pari(2^1000+1).factor(limit=0)
-            doctest:...: DeprecationWarning: factor(..., lim=0) is deprecated, use an explicit limit instead
-            See http://trac.sagemath.org/20205 for details.
-            [257, 1; 1601, 1; 25601, 1; 76001, 1; 133842787352016..., 1]
         """
         cdef GEN g
         global factor_proven
         cdef int saved_factor_proven = factor_proven
-
-        if limit == 0:
-            deprecation(20205, "factor(..., lim=0) is deprecated, use an explicit limit instead")
-            limit = maxprime()
 
         try:
             if proof is not None:
@@ -4206,8 +4061,8 @@ cdef class gen(gen_auto):
         finally:
             factor_proven = saved_factor_proven
 
+    # Standard name for SageMath
     multiplicative_order = gen_auto.znorder
-    order = deprecated_function_alias(20219, multiplicative_order)
 
     def __abs__(self):
         return self.abs()
@@ -4492,75 +4347,6 @@ cdef class gen(gen_auto):
         sig_off()
         return
 
-    def allocatemem(gen self, *args):
-        """
-        Deprecated. Use ``pari.allocatemem()`` instead.
-
-        TESTS::
-
-            sage: pari(2^10).allocatemem(2^20)
-            doctest:...: DeprecationWarning: The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.
-            See http://trac.sagemath.org/21553 for details.
-            PARI stack size set to 1024 bytes, maximum size set to 1048576
-        """
-        deprecation(21553, "The method allocatemem() is deprecated. Use ``pari.allocatemem()`` instead.")
-        if self.type() == 't_INT':
-            return pari_instance.allocatemem(int(self), *args)
-        else:
-            raise TypeError("Incorrect PARI type in allocatemem (%s)" % self.type())
-
-
-    ####################################################################
-    # Functions deprecated by upstream PARI
-    #
-    # NOTE: these should remain in Sage as long as PARI supports them,
-    # do not just delete these methods!
-    ####################################################################
-
-    def bezout(x, y):
-        deprecation(18203, "bezout() is deprecated in PARI, use gcdext() instead (note that the output is in a different order!)")
-        u, v, g = x.gcdext(y)
-        return g, u, v
-
-    def sizedigit(x):
-        """
-        sizedigit(x): Return a quick estimate for the maximal number of
-        decimal digits before the decimal point of any component of x.
-
-        INPUT:
-
-        -  ``x`` - gen
-
-        OUTPUT: Python integer
-
-        EXAMPLES::
-
-            sage: x = pari('10^100')
-            sage: x.Str().length()
-            101
-            sage: x.sizedigit()
-            doctest:...: DeprecationWarning: sizedigit() is deprecated in PARI
-            See http://trac.sagemath.org/18203 for details.
-            101
-
-        Note that digits after the decimal point are ignored::
-
-            sage: x = pari('1.234')
-            sage: x
-            1.23400000000000
-            sage: x.sizedigit()
-            1
-
-        The estimate can be one too big::
-
-            sage: pari('7234.1').sizedigit()
-            4
-            sage: pari('9234.1').sizedigit()
-            5
-        """
-        deprecation(18203, "sizedigit() is deprecated in PARI")
-        return sizedigit(x.g)
-
     def bernvec(x):
         r"""
         Creates a vector containing, as rational numbers, the Bernoulli
@@ -4575,29 +4361,28 @@ cdef class gen(gen_auto):
         EXAMPLES::
 
             sage: pari(8).bernvec()
-            doctest:...: DeprecationWarning: bernvec() is deprecated, use repeated calls to bernfrac() instead
-            See http://trac.sagemath.org/15767 for details.
+            doctest:...: DeprecationWarning: the PARI/GP function bernvec() is obsolete: use repeated calls to bernfrac() instead
             [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
             sage: [pari(2*n).bernfrac() for n in range(9)]
             [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
         """
-        deprecation(15767, 'bernvec() is deprecated, use repeated calls to bernfrac() instead')
+        from warnings import warn
+        warn('the PARI/GP function bernvec() is obsolete: use repeated calls to bernfrac() instead', DeprecationWarning)
         sig_on()
         return new_gen(bernvec(x))
 
-    bezoutres = deprecated_function_alias(18203, gen_auto.polresultantext)
+    def allocatemem(gen self, *args):
+        """
+        Do not use this. Use ``pari.allocatemem()`` instead.
 
-    ellbil = deprecated_function_alias(18203, gen_auto.ellheight)
+        TESTS::
 
-    ellpow = deprecated_function_alias(18203, gen_auto.ellmul)
-
-    def rnfpolred(*args, **kwds):
-        deprecation(18203, "rnfpolred() is deprecated in PARI, port your code to use rnfpolredbest() instead")
-        return gen_auto.rnfpolred(*args, **kwds)
-
-    def rnfpolredabs(*args, **kwds):
-        deprecation(18203, "rnfpolredabs() is deprecated in PARI, port your code to use rnfpolredbest() instead")
-        return gen_auto.rnfpolredabs(*args, **kwds)
+            sage: pari(2^10).allocatemem(2^20)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the method allocatemem() should not be used; use pari.allocatemem() instead
+        """
+        raise NotImplementedError("the method allocatemem() should not be used; use pari.allocatemem() instead")
 
 
 cdef gen new_ref(GEN g, gen parent):
@@ -4778,83 +4563,6 @@ cpdef gen objtogen(s):
 
     # Simply use the string representation
     return objtogen(str(s))
-
-
-cpdef gentoobj(gen z, locals={}):
-    """
-    Convert a PARI gen to a Sage/Python object.
-
-    See the ``python`` method of :class:`gen` for documentation and
-    examples.
-    """
-    cdef GEN g = z.g
-    cdef long t = typ(g)
-    cdef long tx, ty
-    cdef gen real, imag
-    cdef Py_ssize_t i, j, nr, nc
-
-    if t == t_INT:
-        from sage.rings.integer import Integer
-        return Integer(z)
-    elif t == t_FRAC:
-        from sage.rings.rational import Rational
-        return Rational(z)
-    elif t == t_REAL:
-        from sage.rings.all import RealField
-        prec = prec_words_to_bits(z.precision())
-        return RealField(prec)(z)
-    elif t == t_COMPLEX:
-        real = z.real()
-        imag = z.imag()
-        tx = typ(real.g)
-        ty = typ(imag.g)
-        if tx in [t_INTMOD, t_PADIC] or ty in [t_INTMOD, t_PADIC]:
-            raise NotImplementedError("No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components")
-        if tx == t_REAL or ty == t_REAL:
-            xprec = real.precision()  # will be 0 if exact
-            yprec = imag.precision()  # will be 0 if exact
-            if xprec == 0:
-                prec = prec_words_to_bits(yprec)
-            elif yprec == 0:
-                prec = prec_words_to_bits(xprec)
-            else:
-                prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
-
-            from sage.rings.all import RealField, ComplexField
-            R = RealField(prec)
-            C = ComplexField(prec)
-            return C(R(real), R(imag))
-        else:
-            from sage.rings.all import QuadraticField
-            K = QuadraticField(-1, 'i')
-            return K([gentoobj(real), gentoobj(imag)])
-    elif t == t_VEC or t == t_COL:
-        return [gentoobj(x, locals) for x in z.python_list()]
-    elif t == t_VECSMALL:
-        return z.python_list_small()
-    elif t == t_MAT:
-        nc = lg(g)-1
-        nr = 0 if nc == 0 else lg(gel(g,1))-1
-        L = [gentoobj(z[i,j], locals) for i in range(nr) for j in range(nc)]
-        from sage.matrix.constructor import matrix
-        return matrix(nr, nc, L)
-    elif t == t_PADIC:
-        from sage.rings.integer import Integer
-        from sage.rings.padics.factory import Qp
-        p = z.padicprime()
-        K = Qp(Integer(p), precp(g))
-        return K(z.lift())
-    elif t == t_INFINITY:
-        from sage.rings.infinity import Infinity
-        if inf_get_sign(g) >= 0:
-            return Infinity
-        else:
-            return -Infinity
-    
-    # Fallback (e.g. polynomials): use string representation
-    from sage.misc.sage_eval import sage_eval
-    return sage_eval(str(z), locals=locals)
-
 
 cdef GEN _Vec_append(GEN v, GEN a, long n):
     """

@@ -1243,13 +1243,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: t = log(10); t
             log(10)
-            sage: t._convert({'parent':QQ})
+            sage: t._convert({'parent':ZZ})
             2.30258509299405
 
         ::
 
             sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert({'parent':QQ})
-            0.331368631904900/log(287/50/x^0.900000000000000)^2
+            1/16*log(10)^2/log(287/50/x^0.900000000000000)^2
             sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert({'parent':CC})
             0.331368631904900/log(5.74000000000000/x^0.900000000000000)^2
 
@@ -6384,6 +6384,33 @@ cdef class Expression(CommutativeRingElement):
         """
         from sage.symbolic.expression_conversions import polynomial
         return polynomial(self, base_ring=base_ring, ring=ring)
+
+    def laurent_polynomial(self, base_ring=None, ring=None):
+        r"""
+        Return this symbolic expression as an laurent polynomial
+        over the given base ring, if possible.
+
+        INPUT:
+
+        -  ``base_ring`` - (optional) the base ring for the polynomial
+
+        -  ``ring`` - (optional) the parent for the polynomial
+
+        You can specify either the base ring (``base_ring``) you want
+        the output laurent polynomial to be over, or you can specify the full
+        laurent polynomial ring (``ring``) you want the output laurent
+        polynomial to be an element of.
+
+        EXAMPLES::
+
+            sage: f = x^2 -2/3/x + 1
+            sage: f.laurent_polynomial(QQ)
+            -2/3*x^-1 + 1 + x^2
+            sage: f.laurent_polynomial(GF(19))
+            12*x^-1 + 1 + x^2
+        """
+        from sage.symbolic.expression_conversions import laurent_polynomial
+        return laurent_polynomial(self, base_ring=base_ring, ring=ring)
 
     def _polynomial_(self, R):
         """

@@ -159,7 +159,7 @@ REFERENCES:
 
 .. [Nze2007] Janvier Nzeutchap.
    *Binary Search Tree insertion, the Hypoplactic insertion, and Dual Graded Graphs*.
-   arXiv:0705.2689 (2007)
+   :arXiv:`0705.2689` (2007)
 
 """
 from sage.structure.sage_object import SageObject

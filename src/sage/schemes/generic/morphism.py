@@ -1478,7 +1478,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: P.<x,y> = ProjectiveSpace(R, 1)
             sage: H = End(P)
             sage: f = H([x^2 + c*y^2,y^2])
-            sage: f.specialization(dict({c:1}))
+            sage: f.specialization({c:1})
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field
                   Defn: Defined on coordinates by sending (x : y) to
                         (x^2 + y^2 : y^2)
@@ -1510,7 +1510,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: X = P.subscheme([x - c*y])
             sage: H = End(X)
             sage: f = H([x^2, c*y^2])
-            sage: f.specialization(dict({c:2}))
+            sage: f.specialization({c:2})
             Scheme endomorphism of Closed subscheme of Projective Space of dimension 1 over Rational Field defined by:
                   x - 2*y
                   Defn: Defined on coordinates by sending (x : y) to
@@ -1934,7 +1934,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: R.<c> = PolynomialRing(QQ)
             sage: P.<x,y> = ProjectiveSpace(R, 1)
             sage: Q = P([c,1])
-            sage: Q.specialization(dict({c:1}))
+            sage: Q.specialization({c:1})
             (1 : 1)
 
             ::
@@ -1960,12 +1960,22 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: P.<x,y> = ProjectiveSpace(R, 1)
             sage: X = P.subscheme([x - c*y])
             sage: Q = X([c, 1])
-            sage: Q2 = Q.specialization(dict({c:2})); Q2
+            sage: Q2 = Q.specialization({c:2}); Q2
             (2 : 1)
             sage: Q2.codomain()
             Closed subscheme of Projective Space of dimension 1 over Rational Field defined by:
                   x - 2*y
 
+        ::
+
+            sage: R.<l> = PolynomialRing(QQ)
+            sage: S.<k,j> = PolynomialRing(R)
+            sage: K.<a,b,c,d> = S[]
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: Q = P([a^2,b^2])
+            sage: Q.specialization({a:2})
+            (4 : b^2)
         """
         if D is None:
             if phi is None:
@@ -1979,4 +1989,5 @@ class SchemeMorphism_point(SchemeMorphism):
                 ambient = ambient.specialization(phi=phi)
             else:
                 ambient = ambient.change_ring(phi.codomain().base_ring())
-        return ambient([phi(t) for t in self])
+        psi = ambient.ambient_space().coordinate_ring().hom([0 for i in range(ambient.ambient_space().ngens())], ambient.base_ring())
+        return ambient([psi(phi(t)) for t in self])

@@ -185,6 +185,11 @@ class FlatteningMorphism(Morphism):
              sage: f._call_(p)
              x^2*s + x*s + y*t + t + 1
          """
+         #If we are just specializing a univariate polynomial, then
+         #the flattening morphism is the identity
+        if self.codomain().ngens()==1:
+            return p
+
         p = {(): p}
 
         for ring in self._intermediate_rings:
@@ -368,7 +373,7 @@ class SpecializationMorphism(Morphism):
         sage: R.<c> = PolynomialRing(QQ)
         sage: S.<z> = PolynomialRing(R)
         sage: from sage.rings.polynomial.flatten import SpecializationMorphism
-        sage: xi = SpecializationMorphism(S, dict({c:0})); xi
+        sage: xi = SpecializationMorphism(S, {c:0}); xi
         Specialization morphism:
               From: Univariate Polynomial Ring in z over Univariate Polynomial Ring in c over Rational Field
               To:   Univariate Polynomial Ring in z over Rational Field
@@ -411,7 +416,7 @@ class SpecializationMorphism(Morphism):
             sage: R.<a,b,c> = PolynomialRing(ZZ)
             sage: S.<x,y,z> = PolynomialRing(R)
             sage: from sage.rings.polynomial.flatten import SpecializationMorphism
-            sage: xi = SpecializationMorphism(S, dict({a:1/2}))
+            sage: xi = SpecializationMorphism(S, {a:1/2})
             Traceback (most recent call last):
             ...
             ValueError: values must be in base ring
@@ -434,15 +439,20 @@ class SpecializationMorphism(Morphism):
         old_vars = []
         ring = domain
         while is_PolynomialRing(ring) or is_MPolynomialRing(ring):
-            old_vars.append(ring.gens())
+            old_vars.append([ring.gens(), is_MPolynomialRing(ring)])
             ring = ring.base_ring()
-        new_vars = [[t for t in v if t not in newD.keys()] for v in old_vars]
+        new_vars = [[[t for t in v if t not in newD.keys()], b] for v,b in old_vars]
         new_vars.reverse()
+        old_vars.reverse()
         R = ring.base_ring()
         new_gens=[]
         for i in range(len(new_vars)):
-            if new_vars[i] != []:
-                R = PolynomialRing(R, new_vars[i])
+            if new_vars[i][0] != []:
+                #check to see if it should be multi or univariate
+                if not new_vars[i][1] or (len(new_vars[i][0])==1 and len(old_vars[i][0])>1):
+                    R = PolynomialRing(R, new_vars[i][0])
+                else:
+                    R = PolynomialRing(R, new_vars[i][0], len(new_vars[i][0]))
                 new_gens.extend(list(R.gens()))
         old_gens = [t for v in new_vars for t in v]
 

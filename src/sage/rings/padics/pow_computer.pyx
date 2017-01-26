@@ -36,6 +36,7 @@ import weakref
 from sage.rings.infinity import infinity
 from sage.libs.gmp.mpz cimport *
 from sage.structure.sage_object cimport richcmp_not_equal, richcmp
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.ext.stdsage cimport PY_NEW
 include "cysignals/signals.pxi"
@@ -113,27 +114,29 @@ cdef class PowComputer_class(SageObject):
             True
         """
         if not isinstance(other, PowComputer_class):
-            pass
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
 
-        cdef PowComputer_class o
-        o = <PowComputer_class>other
+        cdef PowComputer_class s = self
+        cdef PowComputer_class o = other
 
-        lx = self.prime
-        rx = other.prime
+        lx = s.prime
+        rx = o.prime
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
 
-        lx = self.prec_cap
-        rx = other.prec_cap
+        lx = s.prec_cap
+        rx = o.prec_cap
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
 
-        lx = self.cache_limit
-        rx = other.cache_limit
+        lx = s.cache_limit
+        rx = o.cache_limit
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
 
-        return richcmp(self.in_field, o.in_field, op)
+        return richcmp(s.in_field, o.in_field, op)
 
     cdef Integer pow_Integer(self, long n):
         """

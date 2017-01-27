@@ -6084,11 +6084,11 @@ cdef class RegularMatroid(LinearMatroid):
         OUTPUT:
 
         - a dictionary, if the hypergraphs are isomorphic; ``None`` otherwise.
-        
+
         TESTS:
-        
+
         Check that :trac:`22263` was fixed::
-        
+
             sage: m1 = Matroid(graph='H?ABC~}')
             sage: m2 = Matroid(graph='H?ACNr}')
             sage: m1.is_isomorphic(m2)

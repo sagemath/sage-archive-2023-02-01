@@ -191,7 +191,7 @@ class DoubleCosetReduction(SageObject):
         """
         return "Double coset data (%s, %s, %s)"%(self.sign(), list(self.gamma), self.label)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Return self == other
 
@@ -204,34 +204,25 @@ class DoubleCosetReduction(SageObject):
             sage: d1 == d1
             True
         """
-        c = cmp(self._parent, other._parent)
-        if c:
-            return c
-        c = cmp(self.parity, other.parity)
-        if c:
-            return c
-        c = cmp(self._num_edges, other._num_edges)
-        if c:
-            return c
-        c = cmp(self.label, other.label)
-        if c:
-            return c
-        c = cmp(self.gamma, other.gamma)
-        if c:
-            return c
-        c = cmp(self.x, other.x)
-        if c:
-            return c
-        c = cmp(self.power, other.power)
-        if c:
-            return c
-        c = cmp(self._t_prec, other._t_prec)
-        if c:
-            return c
-        c = cmp(self._igamma_prec, other._igamma_prec)
-        if c:
-            return c
-        return 0
+        if self._parent != other._parent:
+            return False
+        if self.parity != other.parity:
+            return False
+        if self._num_edges != other._num_edges:
+            return False
+        if self.label != other.label:
+            return False
+        if self.gamma != other.gamma:
+            return False
+        if self.x != other.x:
+            return False
+        if self.power != other.power:
+            return False
+        if self._t_prec != other._t_prec:
+            return False
+        if self._igamma_prec != other._igamma_prec:
+            return False
+        return True
 
     def sign(self):
         r"""
@@ -1173,7 +1164,7 @@ class Vertex(SageObject):
         """
         return "Vertex of Bruhat-Tits tree for p = %s" % (self.p)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Returns self == other
 
@@ -1184,25 +1175,19 @@ class Vertex(SageObject):
             sage: v1 == v1
             True
         """
-        c = cmp(self.p, other.p)
-        if c:
-            return c
-        c = cmp(self.label, other.label)
-        if c:
-            return c
-        c = cmp(self.rep, other.rep)
-        if c:
-            return c
-        c = cmp(self.determinant, other.determinant)
-        if c:
-            return c
-        c = cmp(self.valuation, other.valuation)
-        if c:
-            return c
-        c = cmp(self.parity, other.parity)
-        if c:
-            return c
-        return 0
+        if self.p != other.p:
+            return False
+        if self.label != other.label:
+            return False
+        if self.rep != other.rep:
+            return False
+        if self.determinant != other.determinant:
+            return False
+        if self.valuation != other.valuation:
+            return False
+        if self.parity != other.parity:
+            return False
+        return True
 
 
 class Edge(SageObject):
@@ -1295,7 +1280,7 @@ class Edge(SageObject):
         """
         return "Edge of Bruhat-Tits tree for p =  %s" % (self.p)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Return self == other
 
@@ -1308,37 +1293,27 @@ class Edge(SageObject):
             sage: e1 == e1
             True
         """
-        c = cmp(self.p, other.p)
-        if c:
-            return c
-        c = cmp(self.label, other.label)
-        if c:
-            return c
-        c = cmp(self.rep, other.rep)
-        if c:
-            return c
-        c = cmp(self.origin, other.origin)
-        if c:
-            return c
-        c = cmp(self.target, other.target)
-        if c:
-            return c
-        c = cmp(self.links, other.links)
-        if c:
-            return c
-        c = cmp(self.opposite, other.opposite)
-        if c:
-            return c
-        c = cmp(self.determinant, other.determinant)
-        if c:
-            return c
-        c = cmp(self.valuation, other.valuation)
-        if c:
-            return c
-        c = cmp(self.parity, other.parity)
-        if c:
-            return c
-        return 0
+        if self.p != other.p:
+            return False
+        if self.label != other.label:
+            return False
+        if self.rep != other.rep:
+            return False
+        if self.origin != other.origin:
+            return False
+        if self.target != other.target:
+            return False
+        if self.links != other.links:
+            return False
+        if self.opposite != other.opposite:
+            return False
+        if self.determinant != other.determinant:
+            return False
+        if self.valuation != other.valuation:
+            return False
+        if self.parity != other.parity:
+            return False
+        return True
 
 
 class BruhatTitsQuotient(SageObject, UniqueRepresentation):
@@ -1544,14 +1519,13 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         """
         if self._p != other._p:
             return False
-        elif self._Nminus != other._Nminus:
+        if self._Nminus != other._Nminus:
             return False
-        elif self._Nplus != other._Nplus:
+        if self._Nplus != other._Nplus:
             return False
-        elif self._character != other._character:
+        if self._character != other._character:
             return False
-        else:
-            return True
+        return True
 
     def _latex_(self):
         r"""

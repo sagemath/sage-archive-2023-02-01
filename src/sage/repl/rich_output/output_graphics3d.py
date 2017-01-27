@@ -159,7 +159,7 @@ class OutputSceneCanvas3d(OutputBase):
             sage: rich_output.canvas3d
             buffer containing 649 bytes
             sage: rich_output.canvas3d.get()
-            "[{vertices:[{x:1,y:1,z:1},...{x:1,y:-1,z:-1}],faces:[[0,1,2,3]],color:'008000'}]"
+            '[{"vertices":[{"x":1,"y":1,"z":1},...{"x":1,"y":-1,"z":-1}],"faces":[[0,1,2,3]],"color":"008000"}]'
         """
         from sage.env import SAGE_EXTCODE
         filename = os.path.join(

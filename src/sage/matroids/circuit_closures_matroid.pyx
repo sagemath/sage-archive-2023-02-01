@@ -372,7 +372,7 @@ cdef class CircuitClosuresMatroid(Matroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 

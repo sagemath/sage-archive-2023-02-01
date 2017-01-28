@@ -1059,14 +1059,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def __iter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = PolynomialRing(ZZ, 'x')([1,2,3])
             sage: [y for y in iter(P)]
             [1, 2, 3]
         """
-        for i in range(self.degree()+1):
-            yield self.get_unsafe(i)
+        return iter(self.list(copy=False))
 
     def _cache_key(self):
         """

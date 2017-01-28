@@ -1,4 +1,4 @@
-"""
+r"""
 Power series implemented using PARI
 
 EXAMPLES:
@@ -34,24 +34,24 @@ implementation for power series over `k`::
     sage: type(x)
     <type 'sage.rings.power_series_pari.PowerSeries_pari'>
 
-WARNING:
+.. WARNING::
 
-Because this implementation uses the PARI interface, the PARI variable
-ordering must be respected in the sense that the variable name of the
-power series ring must have higher priority than any variable names
-occurring in the base ring::
+    Because this implementation uses the PARI interface, the PARI variable
+    ordering must be respected in the sense that the variable name of the
+    power series ring must have higher priority than any variable names
+    occurring in the base ring::
 
-    sage: R.<y> = QQ[]
-    sage: S.<x> = PowerSeriesRing(R, implementation='pari'); S
-    Power Series Ring in x over Univariate Polynomial Ring in y over Rational Field
+        sage: R.<y> = QQ[]
+        sage: S.<x> = PowerSeriesRing(R, implementation='pari'); S
+        Power Series Ring in x over Univariate Polynomial Ring in y over Rational Field
 
-Reversing the variable ordering leads to errors::
+    Reversing the variable ordering leads to errors::
 
-    sage: R.<x> = QQ[]
-    sage: S.<y> = PowerSeriesRing(R, implementation='pari')
-    Traceback (most recent call last):
-    ...
-    PariError: incorrect priority in gtopoly: variable x <= y
+        sage: R.<x> = QQ[]
+        sage: S.<y> = PowerSeriesRing(R, implementation='pari')
+        Traceback (most recent call last):
+        ...
+        PariError: incorrect priority in gtopoly: variable x <= y
 
 AUTHORS:
 
@@ -62,11 +62,14 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2013-2017 Peter Bruin <P.J.Bruin@math.leidenuniv.nl>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from __future__ import absolute_import, division, print_function
 
 from sage.libs.cypari2.gen cimport Gen as pari_gen, new_ref
 from sage.libs.cypari2.pari_instance cimport get_var
@@ -76,10 +79,10 @@ from sage.libs.pari.all import pari
 from sage.misc.superseded import deprecated_function_alias
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
-from power_series_ring_element cimport PowerSeries
+from sage.rings.power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, RingElement
 from sage.structure.parent cimport Parent
-from infinity import infinity
+from sage.rings.infinity import infinity
 
 
 cdef PowerSeries_pari construct_from_pari(parent, pari_gen g):
@@ -90,6 +93,7 @@ cdef PowerSeries_pari construct_from_pari(parent, pari_gen g):
     The resulting series has the same precision as `g`, unless `g` is
     a rational function, in which case the default precision of
     ``parent`` is used.
+
     """
     cdef long t = typ(g.g)
     v = parent.variable_name()
@@ -108,30 +112,32 @@ cdef PowerSeries_pari construct_from_pari(parent, pari_gen g):
 
 
 cdef class PowerSeries_pari(PowerSeries):
-    """
-    A power series.
+    r"""
+    A power series implemented using PARI.
+
+    INPUT:
+
+    - ``parent`` -- the power series ring to use as the parent
+
+    - ``f`` -- object from which to construct a power series
+
+    - ``prec`` -- (default: infinity) precision of the element
+      to be constructed
+
+    - ``check`` -- ignored, but accepted for compatibility with
+      :class:`~sage.rings.power_series_poly.PowerSeries_poly`
 
     """
     def __init__(self, parent, f=0, prec=infinity, check=None):
         """
-        INPUT:
+        Initialize ``self``.
 
-        - ``parent`` -- the power series ring to use as the parent
-
-        - ``f`` -- object from which to construct a power series
-
-        - ``prec`` -- precision of the element to be constructed
-          (default: infinity)
-
-        - ``check`` -- ignored, but accepted for compatibility with
-          :class:`~sage.rings.power_series_poly.PowerSeries_poly`.
-
-        TEST::
+        TESTS::
 
             sage: R.<q> = PowerSeriesRing(CC, implementation='pari')
-            sage: loads(q.dumps()) == q
-            True
             sage: TestSuite(q).run()
+            sage: f = q - q^3 + O(q^10)
+            sage: TestSuite(f).run()
 
         """
         cdef Parent f_parent
@@ -200,7 +206,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         Return a hash of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: R.<t> = PowerSeriesRing(ZZ, implementation='pari')
             sage: hash(t^2 + 1) == hash(pari(t^2 + 1))
@@ -217,7 +223,9 @@ cdef class PowerSeries_pari(PowerSeries):
 
             sage: A.<z> = PowerSeriesRing(RR, implementation='pari')
             sage: f = z - z^3 + O(z^10)
-            sage: f == loads(dumps(f)) # indirect doctest
+            sage: z == loads(dumps(z))
+            True
+            sage: f == loads(dumps(f))
             True
 
         """
@@ -227,7 +235,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         Convert ``self`` to a PARI object.
 
-        TEST::
+        TESTS::
 
             sage: R.<t> = PowerSeriesRing(GF(7), implementation='pari')
             sage: (3 - t^3 + O(t^5))._pari_()
@@ -240,7 +248,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         Convert ``self`` to a polynomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = PowerSeriesRing(GF(7), implementation='pari')
             sage: f = 3 - t^3 + O(t^5)
@@ -273,7 +281,7 @@ cdef class PowerSeries_pari(PowerSeries):
 
     def __bool__(self):
         """
-        Return True if ``self`` is nonzero, and False otherwise.
+        Return ``True`` if ``self`` is nonzero, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -305,16 +313,16 @@ cdef class PowerSeries_pari(PowerSeries):
             sage: f(f)(f) == f(f(f))
             True
 
-        The following demonstrates that the problems raised in :trac:`3979`
-        and :trac:`5367` are solved::
+        The following demonstrates that the problems raised in
+        :trac:`3979` and :trac:`5367` are solved::
 
             sage: [f(t^2 + O(t^n)) for n in [9, 10, 11]]
             [t^4 + t^6 + O(t^11), t^4 + t^6 + O(t^12), t^4 + t^6 + O(t^12)]
             sage: f(t^2)
             t^4 + t^6 + O(t^12)
 
-        It is possible to substitute a series for which only the precision
-        is defined::
+        It is possible to substitute a series for which only
+        the precision is defined::
 
             sage: f(O(t^5))
             O(t^10)
@@ -349,7 +357,9 @@ cdef class PowerSeries_pari(PowerSeries):
             sage: ff(100 + O(2^7))
             Traceback (most recent call last):
             ...
-            TypeError: no common canonical parent for objects with parents: '5-adic Ring with capped relative precision 20' and '2-adic Ring with capped relative precision 20'
+            TypeError: no common canonical parent for objects with parents:
+             '5-adic Ring with capped relative precision 20' and
+             '2-adic Ring with capped relative precision 20'
 
         The argument must have valuation at least 1, unless the series
         is actually a polynomial::
@@ -441,17 +451,17 @@ cdef class PowerSeries_pari(PowerSeries):
         else:
             raise ValueError('cannot substitute %s in %s' % (a, self))
 
-        if len(kwds) == 0:
+        if not kwds:
             return Q(self.g(a))
         else:
             kwds[P.variable_name()] = a
             return Q(self.g(**kwds))
 
     def __getitem__(self, n):
-        """
-        Return the `n`-th coefficient of self.
+        r"""
+        Return the ``n``-th coefficient of ``self``.
 
-        If `n` is a slice object, this returns a power series of the
+        If ``n`` is a slice object, this returns a power series of the
         same precision, whose coefficients are the same as ``self``
         for those indices in the slice, and 0 otherwise.
 
@@ -489,21 +499,21 @@ cdef class PowerSeries_pari(PowerSeries):
         if isinstance(n, slice):
             return PowerSeries_pari(self._parent, self.polynomial()[n],
                                     prec=self._prec)
-        elif n < 0:
+        if n < 0:
             return self.base_ring().zero()
+
+        t = typ(self.g.g)
+        if t == t_POL or t == t_SER:
+            h = self.g[n]
         else:
-            t = typ(self.g.g)
-            if t == t_POL or t == t_SER:
-                h = self.g[n]
-            else:
-                h = self.g
-            return self.base_ring()(h)
+            h = self.g
+        return self.base_ring()(h)
 
     def __invert__(self):
         """
         Return the multiplicative inverse of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: R.<t> = PowerSeriesRing(QQ, default_prec=6, implementation='pari')
             sage: ~(R(1-t))
@@ -519,7 +529,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         Return the negative of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: R.<t> = PowerSeriesRing(QQ, implementation='pari')
             sage: f = t + 17/5*t^3 + 2*t^4 + O(t^5)
@@ -569,7 +579,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         Subtraction of power series.
 
-        TEST::
+        TESTS::
 
             sage: k.<w> = ZZ[]
             sage: R.<t> = PowerSeriesRing(k, implementation='pari')
@@ -583,7 +593,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         Multiplication of power series.
 
-        TEST::
+        TESTS::
 
             sage: k.<w> = PowerSeriesRing(ZZ, implementation='pari')
             sage: (1+17*w+15*w^3+O(w^5))*(19*w^10+O(w^12))
@@ -596,7 +606,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         Right multiplication by a scalar.
 
-        TEST::
+        TESTS::
 
             sage: R.<t> = PowerSeriesRing(GF(7), implementation='pari')
             sage: f = t + 3*t^4 + O(t^11)
@@ -610,7 +620,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         Left multiplication by a scalar.
 
-        TEST::
+        TESTS::
 
             sage: R.<t> = PowerSeriesRing(GF(11), implementation='pari')
             sage: f = 1 + 3*t^4 + O(t^120)
@@ -624,7 +634,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         Division of power series.
 
-        TEST::
+        TESTS::
 
             sage: R.<t> = PowerSeriesRing(GF(11), default_prec=8, implementation='pari')
             sage: f = t/(1 - t); f
@@ -682,10 +692,10 @@ cdef class PowerSeries_pari(PowerSeries):
 
         INPUT:
 
-        - ``n`` - (optional) a non-negative integer.  If `n` is not
-           given, it will be taken to be the precision of self, unless
-           this is +Infinity, in which case we just return
-           ``self.list()``.
+        - ``n`` -- a non-negative integer (optional); if `n` is not
+           given, it will be taken to be the precision of ``self`,
+           unless this is ``+Infinity``, in which case we just
+           return ``self.list()``
 
         EXAMPLES::
 
@@ -764,13 +774,13 @@ cdef class PowerSeries_pari(PowerSeries):
 
     def _derivative(self, var=None):
         """
-        Return the derivative of ``self`` with respect to the variable
-        ``var``.
+        Return the derivative of ``self`` with respect to the
+        variable ``var``.
 
         If ``var`` is ``None``, the variable of the power series ring
         is used.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`derivative()`
 
@@ -844,7 +854,7 @@ cdef class PowerSeries_pari(PowerSeries):
         return construct_from_pari(self._parent, self.g.intformal(var))
 
     def reverse(self, precision=None):
-        """
+        r"""
         Return the reverse of ``self``.
 
         The reverse of a power series `f` is the power series `g` such
@@ -911,7 +921,10 @@ cdef class PowerSeries_pari(PowerSeries):
 
             sage: R.<x> = PowerSeriesRing(QQ, default_prec=20, implementation='pari')
             sage: (x - x^2).reverse()  # get some Catalan numbers
-            x + x^2 + 2*x^3 + 5*x^4 + 14*x^5 + 42*x^6 + 132*x^7 + 429*x^8 + 1430*x^9 + 4862*x^10 + 16796*x^11 + 58786*x^12 + 208012*x^13 + 742900*x^14 + 2674440*x^15 + 9694845*x^16 + 35357670*x^17 + 129644790*x^18 + 477638700*x^19 + O(x^20)
+            x + x^2 + 2*x^3 + 5*x^4 + 14*x^5 + 42*x^6 + 132*x^7 + 429*x^8
+             + 1430*x^9 + 4862*x^10 + 16796*x^11 + 58786*x^12 + 208012*x^13
+             + 742900*x^14 + 2674440*x^15 + 9694845*x^16 + 35357670*x^17
+             + 129644790*x^18 + 477638700*x^19 + O(x^20)
             sage: (x - x^2).reverse(precision=3)
             x + x^2 + O(x^3)
 
@@ -936,4 +949,3 @@ cdef class PowerSeries_pari(PowerSeries):
             f = self
         return PowerSeries_pari(self._parent, f.g.serreverse(), precision)
 
-    reversion = deprecated_function_alias(17724, reverse)

@@ -1051,8 +1051,6 @@ cdef class PowerSeries_poly(PowerSeries):
         g = g.add_bigoh(out_prec)
         return PowerSeries_poly(out_parent, g, out_prec, check=False)
 
-    reversion = deprecated_function_alias(17724, reverse)
-
     def pade(self, m, n):
         r"""
         Returns the Padé approximant of ``self`` of index `(m, n)`.

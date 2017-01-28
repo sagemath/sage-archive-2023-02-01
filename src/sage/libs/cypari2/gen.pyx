@@ -1,3 +1,6 @@
+# Use sys.getdefaultencoding() to convert Unicode strings to <char*>
+#
+# cython: c_string_encoding=default
 """
 Sage class for PARI's GEN type
 
@@ -69,9 +72,10 @@ from __future__ import absolute_import, division, print_function
 import types
 cimport cython
 
-from cpython.string cimport PyString_AsString
 from cpython.int cimport PyInt_Check
 from cpython.long cimport PyLong_Check
+from cpython.bytes cimport PyBytes_Check
+from cpython.unicode cimport PyUnicode_Check
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.complex cimport PyComplex_RealAsDouble, PyComplex_ImagAsDouble
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
@@ -459,8 +463,7 @@ cdef class Gen(Gen_auto):
             ...
             PariError: not a function in function call
         """
-        cdef str s = "_." + attr
-        cdef char *t = PyString_AsString(s)
+        t = "_." + attr
         sig_on()
         return new_gen(closure_callgen1(strtofunction(t), self.g))
 
@@ -4439,6 +4442,13 @@ cpdef Gen objtogen(s):
         (1.20000000000000, 't_REAL', 4)  # 32-bit
         (1.20000000000000, 't_REAL', 3)  # 64-bit
 
+    Unicode and bytes work fine::
+
+        sage: pari(b"zeta(3)")
+        1.20205690315959
+        sage: pari(u"zeta(3)")
+        1.20205690315959
+
     But we can change this precision::
 
         sage: pari.set_real_precision(35)  # precision in decimal digits
@@ -4515,15 +4525,15 @@ cpdef Gen objtogen(s):
 
     # Check basic Python types. Start with strings, which are a very
     # common case.
-    if isinstance(s, str):
+    # This generates slightly more efficient code than
+    # isinstance(s, (unicode, bytes))
+    if PyUnicode_Check(s) | PyBytes_Check(s):
         sig_on()
-        g = gp_read_str(PyString_AsString(s))
+        g = gp_read_str(s)
         if g == gnil:
             clear_stack()
             return None
         return new_gen(g)
-    # This generates slightly more efficient code than
-    # isinstance(s, (int, long))
     if PyInt_Check(s) | PyLong_Check(s):
         return integer_to_gen(s)
     if isinstance(s, bool):

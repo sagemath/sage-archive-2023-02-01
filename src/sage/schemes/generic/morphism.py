@@ -103,6 +103,7 @@ from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
 from sage.categories.morphism import Morphism
+from copy import copy
 
 coercion_model = get_coercion_model()
 
@@ -1804,11 +1805,14 @@ class SchemeMorphism_point(SchemeMorphism):
 
         EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
-            sage: Q=P(152,113)
-            sage: copy(Q) is Q
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: Q = P(152, 113)
+            sage: Q2 = copy(Q)
+            sage: Q2 is Q
             False
-            sage: copy(Q) == Q
+            sage: Q2._coords is Q._coords
+            False
+            sage: Q2 == Q
             True
         """
-        return(self._codomain.point(self._coords, check=False))
+        return(self._codomain.point(copy(self._coords), check=False))

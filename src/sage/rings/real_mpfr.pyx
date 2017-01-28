@@ -1,4 +1,4 @@
-"""
+r"""
 Arbitrary Precision Real Numbers
 
 AUTHORS:
@@ -1863,7 +1863,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             ValueError: base (=63) must be an integer between 2 and 62
         """
         if base < 2 or base > 62:
-            raise ValueError("base (=%s) must be an integer between 2 and 62"%base)
+            raise ValueError("base (=%s) must be an integer between 2 and 62" % base)
         if mpfr_nan_p(self.value):
             if base >= 24:
                 return "@NaN@"
@@ -1933,10 +1933,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if no_sci is True and ( abs(exponent-1) >=6 ):
             no_sci = False
 
-        if no_sci==False:
+        if no_sci is False:
             if t[0] == "-":
-                return "-%s.%s%s%s"%(t[1:2], t[2:], e, exponent-1)
-            return "%s.%s%s%s"%(t[0], t[1:], e, exponent-1)
+                return "-%s.%s%s%s" % (t[1:2], t[2:], e, exponent-1)
+            return "%s.%s%s%s" % (t[0], t[1:], e, exponent-1)
 
         lpad = ''
 
@@ -1953,7 +1953,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         w = t[n:]
 
         if len(w) > 0 and '.' not in z:
-            z = z + ".%s"%w
+            z = z + ".%s" % w
         elif exponent > 0:
             z = z + '0'*(n-len(t))
         if '.' not in z:
@@ -2374,7 +2374,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x
         if n > sys.maxsize:
-            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxsize))
+            raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         x = self._new()
         mpfr_mul_2ui(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x

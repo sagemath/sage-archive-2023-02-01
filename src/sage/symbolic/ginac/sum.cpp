@@ -312,7 +312,7 @@ ex gamma_normalize(ex the_ex)
                 }
         }
 
-        ex subsed = the_ex.subs(submap).normal(0, true, false);
+        ex subsed = the_ex.subs(submap);
         ex res_ex;
         bool res = factor(subsed, res_ex);
         if (res)
@@ -409,7 +409,6 @@ static matrix solve_system(ex mpoly,
 static bool check_root(const matrix& M,
                 int root, const symbolset& sy, const ex& v)
 {
-std::cerr<<"check "<<root<<"\n";
         const int msize = M.rows();
         matrix A(msize, msize);
         exmap map;
@@ -428,18 +427,15 @@ std::cerr<<"check "<<root<<"\n";
                                         A(k,l) = r.subs(map);
                         }
                 if (not A.determinant().is_zero()) {
-std::cerr<<"FAIL\n";
                         return false;
                 }
         }
-std::cerr<<"PASS\n";
         return true;
 }
 
 static std::set<int> resultant_roots(const ex& ee1, const ex& ee2,
                 const ex& s, const symbol& v)
 {
-std::cerr<<"rr "<<ee1<<","<<ee2<<","<<s<<","<<v<<"\n";
 	const int h1 = ee1.degree(s);
 	const int l1 = ee1.ldegree(s);
 	const int h2 = ee2.degree(s);
@@ -479,12 +475,10 @@ std::cerr<<"rr "<<ee1<<","<<ee2<<","<<s<<","<<v<<"\n";
         std::set<int> roots;
         roots.insert(0);
         roots.insert(1);
-        numeric c = ex_to<numeric>(C.determinant());
-std::cerr<<"Cdet "<<c<<"\n";
-std::cerr<<"Mdet "<<M.determinant()<<"\n";
+        numeric c = ex_to<numeric>(C.determinant()).numer();
         c.divisors(roots);
         for (auto it = roots.begin(); it != roots.end(); )
-                if (check_root(M, *it, s1, v))
+                if (not check_root(M, *it, s1, v))
                         it = roots.erase(it);
                 else
                         ++it;

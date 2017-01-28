@@ -1015,10 +1015,10 @@ bool factor(const ex& the_ex, ex& res_ex)
                 res_ex = the_ex;
                 return true;
         }
-        ex normalized = the_ex.normal(false, false);
-        ex num = normalized.numer();
+        ex normalized = the_ex.numer_denom();
+        ex num = normalized.op(0);
         bool nres = factorpoly(num, res_ex);
-        ex den = normalized.denom();
+        ex den = normalized.op(1);
         ex res_den;
         bool dres = factorpoly(den, res_den);
         if (not nres and not dres)

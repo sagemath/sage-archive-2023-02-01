@@ -1,4 +1,4 @@
-r"""
+"""
 Arbitrary Precision Real Numbers
 
 AUTHORS:
@@ -3631,29 +3631,27 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # d > max_denominator because we return early (before we
         # get here) if d <= max_denominator.)
 
-        low = a/b
-        high = e/f
+        low = a / b
+        high = e / f
 
-        cdef int compare = cmp(target - low, high - target)
-
-        if compare > 0:
+        D0 = target - low
+        D1 = high - target
+        if D1 < D0:
             result = high
-        elif compare < 0:
+        elif D0 < D1:
             result = low
         else:
-            compare = cmp(b, f)
-            if compare > 0:
+            if f < b:
                 result = high
-            elif compare < 0:
+            elif b < f:
                 result = low
             else:
-                compare = cmp(a, e)
-                if compare > 0:
+                if e < a:
                     result = high
                 else:
                     result = low
 
-        result = fl + result
+        result += fl
 
         if sgn < 0:
             return -result

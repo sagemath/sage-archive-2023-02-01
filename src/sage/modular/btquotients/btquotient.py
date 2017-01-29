@@ -224,6 +224,21 @@ class DoubleCosetReduction(SageObject):
             return False
         return True
 
+    def __ne__(self, other):
+        """
+        Return self != other
+
+        TESTS::
+
+            sage: from sage.modular.btquotients.btquotient import DoubleCosetReduction
+            sage: Y = BruhatTitsQuotient(5, 13)
+            sage: x = Matrix(ZZ,2,2,[123,153,1231,1231])
+            sage: d1 = DoubleCosetReduction(Y,x)
+            sage: d1 != d1
+            False
+        """
+        return not self.__eq__(other)
+
     def sign(self):
         r"""
         The direction of the edge.
@@ -1079,6 +1094,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
                     E.extend(self.subdivide([e], level))
         return E
 
+
 class Vertex(SageObject):
     r"""
     This is a structure to represent vertices of quotients of the
@@ -1166,7 +1182,7 @@ class Vertex(SageObject):
 
     def __eq__(self, other):
         """
-        Returns self == other
+        Return self == other
 
         TESTS::
 
@@ -1188,6 +1204,19 @@ class Vertex(SageObject):
         if self.parity != other.parity:
             return False
         return True
+
+    def __ne__(self, other):
+        """
+        Return self != other
+
+        TESTS::
+
+            sage: from sage.modular.btquotients.btquotient import Vertex
+            sage: v1 = Vertex(7,0,Matrix(ZZ,2,2,[1,2,3,18]))
+            sage: v1 != v1
+            False
+        """
+        return not self.__eq__(other)
 
 
 class Edge(SageObject):
@@ -1314,6 +1343,21 @@ class Edge(SageObject):
         if self.parity != other.parity:
             return False
         return True
+
+    def __ne__(self, other):
+        """
+        Return self != other
+
+        TESTS::
+
+            sage: from sage.modular.btquotients.btquotient import Edge,Vertex
+            sage: v1 = Vertex(7,0,Matrix(ZZ,2,2,[1,2,3,18]))
+            sage: v2 = Vertex(7,0,Matrix(ZZ,2,2,[3,2,1,18]))
+            sage: e1 = Edge(7,0,Matrix(ZZ,2,2,[1,2,3,18]),v1,v2)
+            sage: e1 != e1
+            False
+        """
+        return not self.__eq__(other)
 
 
 class BruhatTitsQuotient(SageObject, UniqueRepresentation):
@@ -1526,6 +1570,19 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if self._character != other._character:
             return False
         return True
+
+    def __ne__(self, other):
+        r"""
+        Compare self with other.
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,13)
+            sage: Y = BruhatTitsQuotient(p = 5, Nminus = 13, Nplus=1,seed = 1231)
+            sage: X != Y
+            False
+        """
+        return not self.__eq__(other)
 
     def _latex_(self):
         r"""

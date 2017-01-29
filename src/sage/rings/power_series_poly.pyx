@@ -4,11 +4,12 @@ Power Series Methods
 
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
+from __future__ import absolute_import
 from __future__ import print_function
 
 from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from infinity import infinity, is_Infinite
+from .infinity import infinity, is_Infinite
 from sage.libs.all import PariError
 from sage.misc.superseded import deprecated_function_alias
 

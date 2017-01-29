@@ -100,7 +100,7 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-
+from __future__ import absolute_import
 
 from sage.rings.integer cimport Integer
 
@@ -610,7 +610,7 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
         """
         if self._degree_fixed == 1:
             k = FiniteField(self.domain().characteristic())
-            from hom_prime_finite_field import FiniteFieldHomomorphism_prime
+            from .hom_prime_finite_field import FiniteFieldHomomorphism_prime
             f = FiniteFieldHomomorphism_prime(Hom(k, self.domain()))
         else:
             k = FiniteField(self.domain().characteristic()**self._degree_fixed,

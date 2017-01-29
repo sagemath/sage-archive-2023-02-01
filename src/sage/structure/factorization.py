@@ -189,6 +189,7 @@ from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 
+
 class Factorization(SageObject):
     """
     A formal factorization of an object.
@@ -290,26 +291,27 @@ class Factorization(SageObject):
             (Ambient free module of rank 2 over the principal ideal domain Integer Ring)^5 *
             (Ambient free module of rank 3 over the principal ideal domain Integer Ring)^2
         """
-        if not isinstance(x, list):
-            raise TypeError("x must be a list")
-        for i in range(len(x)):
-            t = x[i]
+        if not isinstance(x, (list, tuple)):
+            try:
+                x = list(x)
+            except TypeError:
+                raise TypeError("x must be a list")
+        for i, t in enumerate(x):
             if not (isinstance(t, tuple) and len(t) == 2):
                 raise TypeError("x must be a list of pairs (p, e) with e an integer")
-            if not isinstance(t[1],(int, long, Integer)):
-                try:
-                    x[i]= (t[0], Integer(t[1]))
-                except TypeError:
-                    raise TypeError("exponents of factors must be integers")
+            try:
+                x[i] = (t[0], Integer(t[1]))
+            except TypeError:
+                raise TypeError("exponents of factors must be integers")
 
         try:
             self.__universe = Sequence(t[0] for t in x).universe()
         except TypeError:
             self.__universe = None
 
-        self.__x = [ (t[0],int(t[1])) for t in x]
+        self.__x = [(t[0], int(t[1])) for t in x]
         if unit is None:
-            if len(x) > 0:
+            if x:
                 try:
                     unit = self.__universe(1)
                 except (AttributeError, TypeError):

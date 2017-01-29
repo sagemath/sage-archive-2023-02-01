@@ -8,6 +8,7 @@ Crystals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
+from builtins import zip
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -1960,7 +1961,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         elif isinstance(on_gens, (list, tuple)):
             if len(self._gens) != len(on_gens):
                 raise ValueError("invalid generator images")
-            d = {x: y for x,y in zip(self._gens, on_gens)}
+            d = {x: y for x, y in zip(self._gens, on_gens)}
             f = lambda x: d[x]
         else:
             f = on_gens
@@ -1990,7 +1991,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             [[[3]], [[2]], [[1]]] |--> None
         """
         return '\n'.join(['{} |--> {}'.format(mg, im)
-                          for mg,im in zip(self._gens, self.im_gens())])
+                          for mg, im in zip(self._gens, self.im_gens())])
 
     def _check(self):
         """
@@ -2059,7 +2060,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         """
         mg, ef, indices = self.to_module_generator(x)
         cur = self._on_gens(mg)
-        for op,i in reversed(zip(ef, indices)):
+        for op, i in reversed(list(zip(ef, indices))):
             if cur is None:
                 return None
 

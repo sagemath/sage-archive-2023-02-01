@@ -210,7 +210,7 @@ class Factorization(SageObject):
         sage: F = Factorization([(x,1/3)])
         Traceback (most recent call last):
         ...
-        TypeError: exponents of factors must be integers
+        TypeError: no conversion of this rational to integer
     """
     def __init__(self, x, unit=None, cr=False, sort=True, simplify=True):
         """
@@ -254,7 +254,7 @@ class Factorization(SageObject):
             sage: Factorization([(2,3), (5, 'x')])
             Traceback (most recent call last):
             ...
-            TypeError: exponents of factors must be integers
+            TypeError: unable to convert 'x' to an integer
 
         We create a factorization that puts newlines after each multiply sign
         when printing.  This is mainly useful when the primes are large::
@@ -291,18 +291,7 @@ class Factorization(SageObject):
             (Ambient free module of rank 2 over the principal ideal domain Integer Ring)^5 *
             (Ambient free module of rank 3 over the principal ideal domain Integer Ring)^2
         """
-        if not isinstance(x, (list, tuple)):
-            try:
-                x = list(x)
-            except TypeError:
-                raise TypeError("x must be a list")
-        for i, t in enumerate(x):
-            if not (isinstance(t, tuple) and len(t) == 2):
-                raise TypeError("x must be a list of pairs (p, e) with e an integer")
-            try:
-                x[i] = (t[0], Integer(t[1]))
-            except TypeError:
-                raise TypeError("exponents of factors must be integers")
+        x = [(p, Integer(e)) for (p, e) in x]
 
         try:
             self.__universe = Sequence(t[0] for t in x).universe()

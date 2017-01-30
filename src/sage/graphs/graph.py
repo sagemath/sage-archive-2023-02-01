@@ -1758,9 +1758,9 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            - :meth:`~GenericGraph.is_connected`
-            - :meth:`~GenericGraph.blocks_and_cut_vertices`
-            - :meth:`~GenericGraph.blocks_and_cuts_tree`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.is_connected`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cuts_tree`
             - :wikipedia:`Biconnected_graph`
 
         EXAMPLES::

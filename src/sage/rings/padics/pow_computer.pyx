@@ -95,9 +95,9 @@ cdef class PowComputer_class(SageObject):
         self.prec_cap = prec_cap
         self.ram_prec_cap = ram_prec_cap
 
-    def __richcmp__(self, other, op):
+    def __richcmp__(self, other, int op):
         """
-        Compares self to other
+        Compares ``self`` to ``other``.
 
         EXAMPLES::
 

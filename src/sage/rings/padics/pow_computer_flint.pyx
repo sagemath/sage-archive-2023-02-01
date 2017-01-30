@@ -345,6 +345,8 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
 
         if fmpz_poly_equal(s.modulus, o.modulus):
             return (op == Py_EQ)
+        if op != Py_NE:
+            return NotImplemented
         # return cmp(self.polynomial(), other.polynomial())
         return False
 

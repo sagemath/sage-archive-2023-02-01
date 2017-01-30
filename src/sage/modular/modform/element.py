@@ -511,7 +511,7 @@ class ModularForm_abstract(ModuleElement):
             return f
 
     def atkin_lehner_eigenvalue(self, d=None, embedding=None):
-        r"""
+        """
         Return the eigenvalue of the Atkin-Lehner operator `W_d`
         acting on ``self``.
 
@@ -998,7 +998,7 @@ class ModularForm_abstract(ModuleElement):
     cuspform_lseries = deprecated_function_alias(16917, lseries)
 
     def symsquare_lseries(self, chi=None, embedding=0, prec=53):
-        """
+        r"""
         Compute the symmetric square L-series of this modular form, twisted by
         the character `\chi`.
 
@@ -1420,7 +1420,7 @@ class Newform(ModularForm_abstract):
         return S(self.q_expansion(S.sturm_bound()))
 
     def is_cuspidal(self):
-        r"""
+        """
         Return True. For compatibility with elements of modular forms spaces.
 
         EXAMPLE::
@@ -1447,12 +1447,13 @@ class Newform(ModularForm_abstract):
 
     @cached_method
     def modsym_eigenspace(self, sign=0):
-        r"""
-        Returns a submodule of dimension 1 or 2 of the ambient space of the
-        sign 0 modular symbols space associated to self, base-extended to the
-        Hecke eigenvalue field, which is an eigenspace for the Hecke operators
-        with the same eigenvalues as this newform, *and* is an eigenspace for
-        the star involution of the appropriate sign if the sign is not 0.
+        """
+        Return a submodule of dimension 1 or 2 of the ambient space of
+        the sign 0 modular symbols space associated to ``self``,
+        base-extended to the Hecke eigenvalue field, which is an
+        eigenspace for the Hecke operators with the same eigenvalues
+        as this newform, *and* is an eigenspace for the star
+        involution of the appropriate sign if the sign is not 0.
 
         EXAMPLES::
 
@@ -1575,10 +1576,10 @@ class Newform(ModularForm_abstract):
 
         OUTPUT:
 
-        A pair `(w, f^*)` where `f^*` is a :class:`Newform` and `w` is a scalar
-        such that `W_Q f = w f^*`.  The parent of `w` is the codomain of
-        ``embedding`` if specified, otherwise it is (a suitable extension of)
-        the coefficient field of `f`.
+        A pair `(w, f^*)` where `f^*` is a :class:`Newform` and `w` is
+        a scalar such that `W_Q f = w f^*`.  The parent of `w` is the
+        codomain of ``embedding`` if specified, otherwise it is (a
+        suitable extension of) the coefficient field of `f`.
 
         .. NOTE::
 
@@ -1627,7 +1628,7 @@ class Newform(ModularForm_abstract):
         return Q**(self.weight() - 2) * eta * g / a_Q, f_star
 
     def _atkin_lehner_action_from_modsym(self, d, embedding=None):
-        r"""
+        """
         Return the result of the Atkin-Lehner operator `W_d` on
         ``self``, using the action of `W_d` on modular symbols.
 
@@ -1642,10 +1643,10 @@ class Newform(ModularForm_abstract):
 
         OUTPUT:
 
-        A pair `(w, f^*)` where `f^*` is a :class:`Newform` and `w` is a scalar
-        such that `W_d f = w f^*`.  The parent of `w` is the codomain of
-        ``embedding`` if specified, otherwise it is (a suitable extension of)
-        the coefficient field of `f`.
+        A pair `(w, f^*)` where `f^*` is a :class:`Newform` and `w` is
+        a scalar such that `W_d f = w f^*`.  The parent of `w` is the
+        codomain of ``embedding`` if specified, otherwise it is (a
+        suitable extension of) the coefficient field of `f`.
 
         .. NOTE::
 
@@ -1673,7 +1674,7 @@ class Newform(ModularForm_abstract):
         return w, self
 
     def atkin_lehner_action(self, d, embedding=None):
-        r"""
+        """
         Return the result of the Atkin-Lehner operator `W_d` on
         ``self``.
 

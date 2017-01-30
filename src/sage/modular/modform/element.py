@@ -881,6 +881,15 @@ class ModularForm_abstract(ModuleElement):
             See http://trac.sagemath.org/19668 for details.
             L-series associated to the cusp form q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6), a1=1.41421356237310
 
+        An example with a non-real coefficient field (`\QQ(\zeta_3)`
+        in this case)::
+
+            sage: f = Newforms(Gamma1(13), 2, names='a')[0]
+            sage: f.lseries(embedding=0)(1)
+            0.298115272465799 - 0.0402203326076734*I
+            sage: f.lseries(embedding=1)(1)
+            0.298115272465799 + 0.0402203326076732*I
+
         We compute with the L-series of the Eisenstein series `E_4`::
 
             sage: f = ModularForms(1,4).0
@@ -949,7 +958,7 @@ class ModularForm_abstract(ModuleElement):
         # key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
         N = self.level()
-        e = C.gen()**l * C(N)**(1 - QQ(l)/2) * self.atkin_lehner_eigenvalue(N, embedding=emb)
+        e = C.gen()**l * C(N)**(1 - QQ(l)/2) * self.atkin_lehner_action(N, embedding=emb)[0]
 
         if self.is_cuspidal():
             poles = []  # cuspidal
@@ -965,16 +974,17 @@ class ModularForm_abstract(ModuleElement):
         # Find out how many coefficients of the Dirichlet series are needed
         # in order to compute to the required precision
         num_coeffs = L.num_coeffs()
-        coeffs = self.q_expansion(num_coeffs+1).padded_list()
+        coeffs = self.q_expansion(num_coeffs+1).padded_list()[1:]
 
         # renormalize so that coefficient of q is 1
-        b = coeffs[1]
+        b = coeffs[0]
         if b != 1:
             invb = 1/b
             coeffs = (invb*c for c in coeffs)
 
-        s = 'coeff = %s;' % [emb(_) for _ in coeffs]
-        L.init_coeffs('coeff[k+1]',pari_precode = s,
+        v = [emb(c) for c in coeffs]
+        w = [c.conjugate() for c in v]
+        L.init_coeffs(v=v, w=w,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
         L.check_functional_equation()

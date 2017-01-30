@@ -477,8 +477,8 @@ Sage's master **BIBLIOGRAPHY** file
   that the letter (``C.`` in the example above) will not be
   interpreted as a list enumerator.
 
-  For more about citations, see the `Sphinx/ReST markup for citations
-  <http://sphinx.pocoo.org/rest.html#citations>`_.
+  For more about citations, see the `Sphinx/reST markup for citations
+  <http://www.sphinx-doc.org/rest.html#citations>`_.
 
 Template
 ^^^^^^^^
@@ -1044,13 +1044,13 @@ write for the documentation and have them work.
 For more information, see :ref:`chapter-doctesting`.
 
 
-Testing ReST Documentation
+Testing reST Documentation
 --------------------------
 
 Run ``sage -t <filename.rst>`` to test the examples in verbatim
-environments in ReST documentation.
+environments in reST documentation.
 
-Of course in ReST files, one often inserts explanatory texts between
+Of course in reST files, one often inserts explanatory texts between
 different verbatim environments. To link together verbatim
 environments, use the ``.. link`` comment. For example::
 
@@ -1079,7 +1079,7 @@ have that example skipped when testing the file.  This goes in the
 same place as the ``.. link`` in the previous example.
 
 See the files in ``SAGE_ROOT/src/doc/en/tutorial/`` for many
-examples of how to include automated testing in ReST documentation for
+examples of how to include automated testing in reST documentation for
 Sage.
 
 

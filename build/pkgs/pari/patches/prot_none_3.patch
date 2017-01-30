@@ -1,0 +1,59 @@
+commit 845c0adf2be189702825a60304b79f21831cc7e0
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Wed Jan 18 13:45:39 2017 +0000
+
+    Reset avma before calling parivstack_reset
+
+diff --git a/doc/usersch5.tex b/doc/usersch5.tex
+index 58c7d04..6dc868c 100644
+--- a/doc/usersch5.tex
++++ b/doc/usersch5.tex
+@@ -193,9 +193,12 @@ at most \kbd{parisizemax}. The stack content is not affected
+ by this operation.
+ 
+ \fun{void}{parivstack_reset}{void}
+-resets the current stack to its default size \kbd{parisize},
+-destroying its content. Used to recover memory after a
+-computation that enlarged the stack.
++resets the current stack to its default size \kbd{parisize}. This is
++used to recover memory after a computation that enlarged the stack.
++This function destroys the content of the enlarged stack (between
++the old and the new bottom of the stack).
++Before calling this function, you must ensure that \kbd{avma} lies
++within the new smaller stack.
+ 
+ \fun{void}{paristack_newrsize}{ulong newsize}
+ \emph{(does not return)}. Library version of
+diff --git a/src/gp/gp.c b/src/gp/gp.c
+index deaeec7..3463a2d 100644
+--- a/src/gp/gp.c
++++ b/src/gp/gp.c
+@@ -360,7 +360,6 @@ gp_main_loop(long ismain)
+       if (ismain) continue;
+       pop_buffer(); return z;
+     }
+-    avma = av;
+     if (ismain)
+     {
+       reset_ctrlc();
+@@ -384,6 +383,7 @@ gp_main_loop(long ismain)
+     if (GP_DATA->simplify) z = simplify_shallow(z);
+     pari_add_hist(z, t);
+     if (z != gnil && ! is_silent(b->buf) ) gp_output(z);
++    avma = av;
+     parivstack_reset();
+   }
+ }
+diff --git a/src/language/init.c b/src/language/init.c
+index 64783be..6c69c8e 100644
+--- a/src/language/init.c
++++ b/src/language/init.c
+@@ -786,6 +786,8 @@ void
+ parivstack_reset(void)
+ {
+   pari_mainstack_setsize(pari_mainstack, pari_mainstack->rsize);
++  if (avma < pari_mainstack->bot)
++    pari_err_BUG("parivstack_reset [avma < bot]");
+ }
+ 
+ /* Enlarge the stack if needed such that the unused portion of the stack

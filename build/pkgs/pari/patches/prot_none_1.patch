@@ -1,4 +1,4 @@
-commit 9caeaf8307f33069744fca275112ab7c9492a78f
+commit f7d82845952ec92a5c3fa6f1b8b42236f9d80c21
 Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
 Date:   Tue Nov 22 13:39:20 2016 +0100
 
@@ -27,10 +27,10 @@ index 87d93cf..fa79053 100644
    return 0;
  }
 diff --git a/src/language/init.c b/src/language/init.c
-index a079cdf..d7543d8 100644
+index 1524531..c7a90f0 100644
 --- a/src/language/init.c
 +++ b/src/language/init.c
-@@ -622,14 +622,11 @@ pari_add_defaults_module(entree *ep)
+@@ -579,14 +579,11 @@ pari_add_defaults_module(entree *ep)
  #ifndef MAP_ANONYMOUS
  #define MAP_ANONYMOUS MAP_ANON
  #endif
@@ -46,15 +46,17 @@ index a079cdf..d7543d8 100644
    return (b == MAP_FAILED) ? NULL: b;
  }
  
-@@ -639,10 +636,56 @@ pari_mainstack_mfree(void *s, size_t size)
+@@ -596,10 +593,58 @@ pari_mainstack_mfree(void *s, size_t size)
    munmap(s, size);
  }
  
 +/* Completely discard the memory mapped between the addresses "from"
 + * and "to" (which must be page-aligned).
 + *
-+ * We use mmap() with PROT_NONE, which means that the memory is
-+ * completely freed and that the kernel should not commit memory for it.
++ * We use mmap() with PROT_NONE, which means that the underlying memory
++ * is freed and that the kernel should not commit memory for it. We
++ * still keep the mapping such that we can change the flags to
++ * PROT_READ|PROT_WRITE later.
 + *
 + * NOTE: remapping with MAP_FIXED and PROT_NONE is not the same as
 + * calling mprotect(..., PROT_NONE) because the latter will keep the
@@ -105,7 +107,7 @@ index a079cdf..d7543d8 100644
  }
  
  #else
-@@ -657,7 +700,18 @@ static void
+@@ -614,7 +659,18 @@ static void
  pari_mainstack_mfree(void *s, size_t size) { (void) size; free(s); }
  
  static void
@@ -125,7 +127,7 @@ index a079cdf..d7543d8 100644
  
  #endif
  
-@@ -686,9 +740,12 @@ pari_mainstack_alloc(struct pari_mainstack *st, size_t rsize, size_t vsize)
+@@ -643,9 +699,12 @@ pari_mainstack_alloc(struct pari_mainstack *st, size_t rsize, size_t vsize)
    }
    st->vsize = vsize ? s: 0;
    st->rsize = minuu(rsize, s);
@@ -140,7 +142,7 @@ index a079cdf..d7543d8 100644
    st->memused = 0;
  }
  
-@@ -697,7 +754,7 @@ pari_mainstack_free(struct pari_mainstack *st)
+@@ -654,7 +713,7 @@ pari_mainstack_free(struct pari_mainstack *st)
  {
    pari_mainstack_mfree((void*)st->vbot, st->vsize ? st->vsize : fix_size(st->rsize));
    st->top = st->bot = st->vbot = 0;
@@ -149,7 +151,7 @@ index a079cdf..d7543d8 100644
  }
  
  static void
-@@ -762,31 +819,47 @@ paristack_newrsize(ulong newsize)
+@@ -719,31 +778,47 @@ paristack_newrsize(ulong newsize)
  void
  paristack_resize(ulong newsize)
  {

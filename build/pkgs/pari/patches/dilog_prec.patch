@@ -1,0 +1,20 @@
+commit 8a3e9d2babeec411a46c6454d8b2406b267f3380
+Author: Karim Belabas <Karim.Belabas@math.u-bordeaux1.fr>
+Date:   Mon Feb 13 09:18:43 2017 +0100
+
+    41- polylog(x) used realprecision accuracy instead of precision(x) [#1895]
+
+diff --git a/src/basemath/trans3.c b/src/basemath/trans3.c
+index 33ba45f..6202688 100644
+--- a/src/basemath/trans3.c
++++ b/src/basemath/trans3.c
+@@ -2385,7 +2385,8 @@ polylog(long m, GEN x, long prec)
+     return gerepileupto(av, gneg(glog(gsub(gen_1,x), prec)));
+   }
+ 
+-  l = precision(x); if (!l) l = prec;
++  l = precision(x);
++  if (!l) l = prec; else prec = l;
+   res = cgetc(l); av = avma;
+   x = gtofp(x, l+EXTRAPRECWORD);
+   e = gexpo(gnorm(x));

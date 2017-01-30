@@ -234,6 +234,7 @@ all constituents coerce.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 import six
 from sage.rings.ring import CommutativeRing
@@ -686,7 +687,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         # some basic data
         self._order = order
-        self._name_dict = dict([(names[i],i) for i in xrange(len(names))])
+        self._name_dict = dict([(names[i], i) for i in range(len(names))])
         from sage.categories.commutative_algebras import CommutativeAlgebras
         CommutativeRing.__init__(self, R, category=CommutativeAlgebras(R))
 

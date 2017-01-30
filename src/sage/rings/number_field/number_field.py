@@ -92,6 +92,7 @@ We do some arithmetic in a tower of relative number fields::
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
+from six.moves import range
 
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
@@ -1669,7 +1670,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if len(x) != self.relative_degree():
                 raise ValueError("Length must be equal to the degree of this number field")
             result = x[0]
-            for i in xrange(1,self.relative_degree()):
+            for i in range(1, self.relative_degree()):
                 result += x[i]*self.gen(0)**i
             return result
         return self._coerce_non_number_field_element_in(x)
@@ -1702,15 +1703,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
     def _Hom_(self, codomain, cat=None):
         """
-        Return homset of homomorphisms from self to the number field
-        codomain.
+        Return homset of homomorphisms from self to the number field codomain.
 
-        The cat option is currently ignored.
-
-        EXAMPLES: This function is implicitly called by the Hom method or
-        function.
-
-        ::
+        EXAMPLES:
+        
+        This method is implicitly called by :meth:`Hom` and
+        :meth:`sage.categories.homset.Hom`::
 
             sage: K.<i> = NumberField(x^2 + 1); K
             Number Field in i with defining polynomial x^2 + 1
@@ -1723,10 +1721,20 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
            sage: Hom(K, VectorSpace(QQ,3))
            Set of Morphisms from Number Field in i with defining polynomial x^2 + 1 to Vector space of dimension 3 over Rational Field in Category of commutative additive groups
+
+        TESTS:
+
+        Verify that :trac:`22001` has been resolved::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = QQ.extension(x^2 + 1)
+            sage: K.hom([a]).category_for()
+            Category of number fields
+
         """
         if is_NumberFieldHomsetCodomain(codomain):
             from . import morphism
-            return morphism.NumberFieldHomset(self, codomain)
+            return morphism.NumberFieldHomset(self, codomain, category=cat)
         else:
             raise TypeError
 
@@ -2906,7 +2914,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         hnf_ideals = self.pari_nf().ideallist(bound)
         d = {}
-        for i in xrange(bound):
+        for i in range(bound):
             d[i+1] = [self.ideal(hnf) for hnf in hnf_ideals[i]]
         return d
 
@@ -3452,7 +3460,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         OUTPUT:
 
         The PARI number field obtained by calling the PARI function
-        ``nfinit()`` with ``self.pari_polynomial('y')`` as argument.
+        :pari:`nfinit` with ``self.pari_polynomial('y')`` as argument.
 
         .. NOTE::
 
@@ -3867,8 +3875,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = QuadraticField(-3)
             sage: K.unit_group()
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
-            sage: K.S_units([])
-            [-1/2*a + 1/2]
+            sage: K.S_units([])  # random
+            [1/2*a + 1/2]
             sage: K.S_units([])[0].multiplicative_order()
             6
 
@@ -3939,14 +3947,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^3 - 381 * x + 127)
             sage: K._S_class_group_and_units(tuple(K.primes_above(13)))
-            ([-7/13*a^2 - 140/13*a + 36/13,
-              14/13*a^2 + 267/13*a - 85/13,
-              7/13*a^2 + 127/13*a - 49/13,
+            ([2/13*a^2 + 1/13*a - 677/13,
+              1/13*a^2 + 7/13*a - 332/13,
+              -1/13*a^2 + 6/13*a + 345/13,
               -1,
-              1/13*a^2 - 19/13*a + 6/13,
+              2/13*a^2 + 1/13*a - 755/13,
               1/13*a^2 - 19/13*a - 7/13],
-             [(Fractional ideal (11, a - 2), 2),
-              (Fractional ideal (19, 1/13*a^2 - 45/13*a - 332/13), 2)])
+             [(Fractional ideal (11, a - 2), 2), (Fractional ideal (19, a + 7), 2)])
 
         Number fields defined by non-monic and non-integral
         polynomials are supported (:trac:`252`)::
@@ -4024,7 +4031,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         units modulo `m`-th powers and the `m`-torsion in the
         `S`-class group:
 
-        .. math::
+        .. MATH::
 
             1                                    \longrightarrow
             O_{K,S}^\times / (O_{K,S}^\times)^m  \longrightarrow
@@ -4065,13 +4072,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.selmer_group([P2], 2)
             [2, -1]
             sage: K.selmer_group((P2,P3), 4)
-            [2, a + 1, -1]
+            [2, -a - 1, -1]
             sage: K.selmer_group((P2,P3), 4, orders=True)
-            ([2, a + 1, -1], [4, 4, 2])
+            ([2, -a - 1, -1], [4, 4, 2])
             sage: K.selmer_group([P2], 3)
             [2]
             sage: K.selmer_group([P2, P3], 3)
-            [2, a + 1]
+            [2, -a - 1]
             sage: K.selmer_group([P2, P3, K.ideal(a)], 3)  # random signs
             [2, a + 1, a]
 
@@ -4092,14 +4099,21 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: P3 = K.ideal(3, a+1)
             sage: P5 = K.ideal(a)
             sage: S = K.selmer_group([P2, P3, P5], 3)
-            sage: S == [2, a + 1, a] or S == [2, a + 1, -a]
+            sage: S in ([2, a + 1, a], [2, a + 1, -a], [2, -a - 1, a], [2, -a - 1, -a]) or S
             True
 
         Verify that :trac:`14489` is fixed::
 
             sage: K.<a> = NumberField(x^3 - 381 * x + 127)
             sage: K.selmer_group(K.primes_above(13), 2)
-            [-7/13*a^2 - 140/13*a + 36/13, 14/13*a^2 + 267/13*a - 85/13, 7/13*a^2 + 127/13*a - 49/13, -1, 1/13*a^2 - 19/13*a + 6/13, 1/13*a^2 - 19/13*a - 7/13, 2/13*a^2 + 53/13*a - 92/13, 10/13*a^2 + 44/13*a - 4555/13]
+            [2/13*a^2 + 1/13*a - 677/13,
+             1/13*a^2 + 7/13*a - 332/13,
+             -1/13*a^2 + 6/13*a + 345/13,
+             -1,
+             2/13*a^2 + 1/13*a - 755/13,
+             1/13*a^2 - 19/13*a - 7/13,
+             2/13*a^2 + 53/13*a - 92/13,
+             2/13*a^2 + 40/13*a - 27/13]
 
         Verify that :trac:`16708` is fixed::
 
@@ -4181,7 +4195,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: list(K.selmer_group_iterator([K.ideal(2, -a+1)], 2))
             [1, -1, 2, -2]
             sage: list(K.selmer_group_iterator([K.ideal(2, -a+1), K.ideal(3, a+1)], 2))
-            [1, -1, a + 1, -a - 1, 2, -2, 2*a + 2, -2*a - 2]
+            [1, -1, -a - 1, a + 1, 2, -2, -2*a - 2, 2*a + 2]
 
         Examples over `\QQ` (as a number field)::
 
@@ -4677,7 +4691,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: b = [1, 2*a, 3*a^2]
             sage: T = K.trace_dual_basis(b); T
             [4/31*a^2 - 6/31*a + 13/31, -9/62*a^2 - 1/31*a - 3/31, 2/31*a^2 - 3/31*a + 4/93]
-            sage: [(b[i]*T[j]).trace() for i in xrange(3) for j in xrange(3)]
+            sage: [(b[i]*T[j]).trace() for i in range(3) for j in range(3)]
             [1, 0, 0, 0, 1, 0, 0, 0, 1]
         """
         if not len(b) == self.degree():
@@ -4685,7 +4699,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         M = self.trace_pairing(b)
         if not M.is_invertible():
             raise ValueError('Not a basis of the number field.')
-        return [sum([v[i]*b[i] for i in xrange(len(b))]) for v in M.inverse()]
+        return [sum([v[i]*b[i] for i in range(len(b))]) for v in M.inverse()]
 
     def elements_of_norm(self, n, proof=None):
         """
@@ -4709,7 +4723,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.elements_of_norm(3)
             []
             sage: K.elements_of_norm(50)
-            [-7*a + 1, -5*a - 5, 7*a + 1]
+            [-7*a + 1, 5*a - 5, 7*a + 1]
 
         TESTS:
 
@@ -5265,7 +5279,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                                      for i in range(d)]
         else:
             M = self.Minkowski_embedding(self.integral_basis(), prec=prec)
-            T = pari(M).qflll().python()
+            T = pari(M).qflll().sage()
             self.__reduced_basis = [ self(v.list()) for v in T.columns() ]
             if prec is None:
                 ## this is the default choice for Minkowski_embedding
@@ -5581,7 +5595,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         Return the defining polynomial of this number field.
 
         This is exactly the same as
-        ``self.defining_polynomal()``.
+        ``self.defining_polynomial()``.
 
         EXAMPLES::
 
@@ -5594,7 +5608,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return the defining polynomial of this number field.
 
-        This is exactly the same as ``self.polynomal()``.
+        This is exactly the same as ``self.polynomial()``.
 
         EXAMPLES::
 
@@ -5890,7 +5904,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
             sage: K = NumberField(A, 'a')
             sage: K.units()
-            (7/275*a^3 - 1/11*a^2 + 9/11*a + 2,)
+            (1/275*a^3 + 4/55*a^2 - 5/11*a + 3,)
 
         For big number fields, provably computing the unit group can
         take a very long time.  In this case, one can ask for the
@@ -5975,8 +5989,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Unit group with structure C10 x Z of Number Field in a with defining polynomial x^4 - 10*x^3 + 100*x^2 - 375*x + 1375
             sage: U.gens()
             (u0, u1)
-            sage: U.gens_values()
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 7/275*a^3 - 1/11*a^2 + 9/11*a + 2]
+            sage: U.gens_values()  # random
+            [-1/275*a^3 + 7/55*a^2 - 6/11*a + 4, 1/275*a^3 + 4/55*a^2 - 5/11*a + 3]
             sage: U.invariants()
             (10, 0)
             sage: [u.multiplicative_order() for u in U.gens()]
@@ -6045,8 +6059,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             S-unit group with structure C10 x Z x Z x Z of Number Field in a with defining polynomial x^4 - 10*x^3 + 100*x^2 - 375*x + 1375 with S = (Fractional ideal (5, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5), Fractional ideal (11, 1/275*a^3 + 4/55*a^2 - 5/11*a + 9))
             sage: U.gens()
             (u0, u1, u2, u3)
-            sage: U.gens_values()
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 7/275*a^3 - 1/11*a^2 + 9/11*a + 2, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6]
+            sage: U.gens_values()  # random
+            [-1/275*a^3 + 7/55*a^2 - 6/11*a + 4, 1/275*a^3 + 4/55*a^2 - 5/11*a + 3, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6]
             sage: U.invariants()
             (10, 0, 0, 0)
             sage: [u.multiplicative_order() for u in U.gens()]
@@ -6236,7 +6250,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if sage.arith.all.euler_phi(n).divides(K.absolute_degree()):
             # Factor the n-th cyclotomic polynomial over K.
             f = K.pari_polynomial('y')
-            factors = pari.polcyclo(n).factornf(f).component(1)
+            factors = f.nffactor(pari.polcyclo(n)).component(1)
             roots = [K(-g.polcoeff(0)) for g in factors if g.poldegree() == 1]
             if all:
                 return roots
@@ -6290,18 +6304,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         OUTPUT: a primitive root of unity. No guarantee is made about
         which primitive root of unity this returns, not even for
-        cyclotomic fields.
+        cyclotomic fields. Repeated calls of this function may return
+        a different value.
 
         .. note::
 
            We do not create the full unit group since that can be
            expensive, but we do use it if it is already known.
-
-        ALGORITHM:
-
-        We use the PARI function ``nfrootsof1`` in all cases. This is
-        required (even for cyclotomic fields) in order to be consistent
-        with the full unit group, which is also computed by PARI.
 
         EXAMPLES::
 
@@ -6343,12 +6352,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         Check for :trac:`15027`. We use a new variable name::
 
-            sage: K.<f> = QuadraticField(-3)
+            sage: K.<f> = NumberField(x^2 + x + 1)
             sage: K.primitive_root_of_unity()
-            -1/2*f + 1/2
+            f + 1
             sage: UK = K.unit_group()
             sage: K.primitive_root_of_unity()
-            -1/2*f + 1/2
+            f + 1
 
         Number fields defined by non-monic and non-integral
         polynomials are supported (:trac:`252`)::
@@ -7856,7 +7865,7 @@ class NumberField_absolute(NumberField_generic):
         real part). Here `(r,s)` is the signature of self. Then the
         Minkowski embedding is given by
 
-        .. math::
+        .. MATH::
 
             x \mapsto ( \sigma_1(x), \dots,
                      \sigma_r(x), \sqrt{2}\Re(\sigma_{r+1}(x)),
@@ -7932,7 +7941,7 @@ class NumberField_absolute(NumberField_generic):
         into RealField(prec) and ComplexField(prec) (or RDF, CDF if
         prec=53). One can also use ``prec=infinity``, which returns embeddings
         into the field `\overline{\QQ}` of algebraic numbers (or its subfield
-        `\mathbb{A}` of algebraic reals); this permits exact computatation, but
+        `\mathbb{A}` of algebraic reals); this permits exact computation, but
         can be extremely slow.
 
         There is an optional flag all_complex, which defaults to False. If
@@ -9556,7 +9565,7 @@ class NumberField_cyclotomic(NumberField_absolute):
                 #    3. Return self.__zeta to the power r.
                 y = K(self.zeta(m))
                 z = y
-                for r in xrange(y.multiplicative_order()):
+                for r in range(y.multiplicative_order()):
                     if z == x:
                         return self.zeta(m)**(r+1)
                     z *= y
@@ -9933,7 +9942,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             z = pari(self.gen())
             a = pari(1)
             B = []
-            for n in xrange(self.degree()):
+            for n in range(self.degree()):
                 B.append(a.lift())
                 a *= z
             self._integral_basis_dict[tuple()] = pari(B)

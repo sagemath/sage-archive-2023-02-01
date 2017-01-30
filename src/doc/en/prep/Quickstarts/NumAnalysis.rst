@@ -282,7 +282,7 @@ Scipy (included in Sage) has a lot of numerical algorithms.  See `the
 Scipy docs <http://docs.scipy.org/doc/scipy/reference/>`_.
 
 Mpmath is also included in Sage, and contains a huge amount of numerical
-stuff.  See `the mpmath codebase <http://code.google.com/p/mpmath/>`_.
+stuff.  See `the mpmath codebase <https://github.com/fredrik-johansson/mpmath/>`_.
 
 The `Decimal python module
 <http://docs.python.org/library/decimal.html>`_ has also been useful for

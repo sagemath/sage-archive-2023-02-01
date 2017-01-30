@@ -1169,7 +1169,7 @@ class SignedPermutations(ColoredPermutations):
 #        """
 #        Return a string representation of ``self``.
 #        """
-#        return "Even signed permtuations of {}".format(self._n)
+#        return "Even signed permutations of {}".format(self._n)
 #
 #    def __iter__(self):
 #        """

@@ -193,7 +193,7 @@ class TernaryQF(SageObject):
         """
         Evaluate this ternary quadratic form Q on a vector of 3 elements, or matrix of elements in Z, with 3 rows. If a vector is given then the output will be an integer Q(`v`), but if a matrix is given the output will be a ternary quadratic form if the matrix has 3 columns, or a quadratic form if not. The quadratic form in matrix notation will be:
 
-        .. math::
+        .. MATH::
                 Q' = v^t * Q * v.
 
         EXAMPLES::

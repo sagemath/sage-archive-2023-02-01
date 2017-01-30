@@ -1413,7 +1413,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: GenericTermMonoid(int, ZZ)  # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: <type 'int'> is not a valid growth group.
+            TypeError: <... 'int'> is not a valid growth group.
             sage: GenericTermMonoid(G, None)  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -1421,7 +1421,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: GenericTermMonoid(G, int)  # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: <type 'int'> is not a valid coefficient ring.
+            TypeError: <... 'int'> is not a valid coefficient ring.
         """
         if growth_group is None:
             raise ValueError('No growth group specified.')
@@ -3992,6 +3992,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -4000,6 +4001,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -4017,6 +4019,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -4025,6 +4028,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass

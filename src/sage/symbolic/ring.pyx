@@ -13,7 +13,7 @@ The symbolic ring
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .ginac cimport *
+from sage.libs.pynac.pynac cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber
@@ -32,16 +32,25 @@ cdef class SymbolicRing(CommutativeRing):
     """
     Symbolic Ring, parent object for all symbolic expressions.
     """
-    def __init__(self):
+    def __init__(self, base_ring = None):
         """
         Initialize the Symbolic Ring.
 
         EXAMPLES::
 
-            sage: sage.symbolic.ring.SymbolicRing()
+            sage: SR
             Symbolic Ring
+
+        TESTS::
+
+            sage: isinstance(SR, sage.symbolic.ring.SymbolicRing)
+            True
+            sage: TestSuite(SR).run()
+
         """
-        CommutativeRing.__init__(self, self)
+        if base_ring is None:
+            base_ring = self
+        CommutativeRing.__init__(self, base_ring)
         self._populate_coercion_lists_(convert_method_name='_symbolic_')
         self.symbols = {}
 
@@ -53,15 +62,6 @@ cdef class SymbolicRing(CommutativeRing):
            True
         """
         return the_SymbolicRing, tuple([])
-
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: hash(SR)   #random
-            139682705593888
-        """
-        return hash(SymbolicRing)
 
     def _repr_(self):
         """
@@ -313,11 +313,25 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR(int)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert <type 'int'> to a symbolic expression
+            TypeError: unable to convert <... 'int'> to a symbolic expression
             sage: r^(1/2)
             Traceback (most recent call last):
             ...
             TypeError: unable to convert R Interpreter to a symbolic expression
+
+        Check that :trac:`22068` is fixed::
+
+            sage: _ = var('x')
+            sage: sin(x).subs(x=RR('NaN'))
+            sin(NaN)
+            sage: SR(RR('NaN')).is_real()
+            False
+            sage: sin(x).subs(x=float('NaN'))
+            sin(NaN)
+            sage: SR(float('NaN')).is_real()
+            False
+            sage: sin(x).subs(x=complex('NaN'))
+            sin(NaN)
         """
         cdef GEx exp
         if is_Expression(x):
@@ -339,7 +353,17 @@ cdef class SymbolicRing(CommutativeRing):
                                          unsigned_infinity)
         from sage.structure.factorization import Factorization
 
-        if isinstance(x, (Integer, RealNumber, float, long, complex)):
+        if isinstance(x, RealNumber):
+            if x.is_NaN():
+                from sage.symbolic.constants import NaN
+                return NaN
+            GEx_construct_pyobject(exp, x)
+        elif isinstance(x, (float, complex)):
+            if not (x == x):
+                from sage.symbolic.constants import NaN
+                return NaN
+            GEx_construct_pyobject(exp, x)
+        elif isinstance(x, (Integer, long)):
             GEx_construct_pyobject(exp, x)
         elif isinstance(x, int):
             GEx_construct_long(&exp, x)
@@ -476,25 +500,13 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: latex(SR.wild(0))
             \$0
+
+        Check that :trac:`21455` is fixed::
+
+            sage: coth(SR.wild(0))
+            coth($0)
         """
         return new_Expression_from_GEx(self, g_wild(n))
-
-    def __cmp__(self, other):
-        """
-        Compare two symbolic expression rings. They are equal if and only
-        if they have the same type. Otherwise their types are compared.
-
-        EXAMPLES::
-
-            sage: from sage.symbolic.ring import SymbolicRing
-            sage: cmp(SR, RR) #random
-            1
-            sage: cmp(RR, SymbolicRing()) #random
-            -1
-            sage: cmp(SR, SymbolicRing())
-            0
-        """
-        return cmp(type(self), type(other))
 
     def __contains__(self, x):
         r"""
@@ -1068,7 +1080,7 @@ cdef class NumpyToSRMorphism(Morphism):
             sage: NumpyToSRMorphism(str)
             Traceback (most recent call last):
             ...
-            TypeError: <type 'str'> is not a numpy number type
+            TypeError: <... 'str'> is not a numpy number type
         """
         Morphism.__init__(self, numpy_type, SR)
 

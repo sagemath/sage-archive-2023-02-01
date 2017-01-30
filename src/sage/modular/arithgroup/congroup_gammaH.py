@@ -717,13 +717,13 @@ class GammaH_class(CongruenceSubgroup):
         Two cusps `u_1/v_1` and `u_2/v_2` are equivalent modulo `\Gamma_H(N)`
         if and only if
 
-        .. math::
+        .. MATH::
 
             v_1 =  h v_2 \bmod N\quad \text{and}\quad u_1 =  h^{-1} u_2 \bmod {\rm gcd}(v_1,N)
 
         or
 
-        .. math::
+        .. MATH::
 
             v_1 = -h v_2 \bmod N\quad \text{and}\quad u_1 = -h^{-1} u_2 \bmod {\rm gcd}(v_1,N)
 

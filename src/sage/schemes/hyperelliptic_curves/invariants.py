@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Compute invariants of quintics and sextics via 'Ueberschiebung'.
 
@@ -57,7 +57,7 @@ def differential_operator(f, g, k):
 
     This is defined by Mestre on p 315 [M]_:
 
-    .. math::
+    .. MATH::
 
         (f g)_k = \frac{(m - k)! (n - k)!}{m! n!} \left(
         \frac{\partial f}{\partial x} \frac{\partial g}{\partial y} -
@@ -125,7 +125,7 @@ def Ueberschiebung(f, g, k):
 
     This is defined by Mestre on page 315 [M]_:
 
-    .. math::
+    .. MATH::
 
         (f g)_k = \frac{(m - k)! (n - k)!}{m! n!} \left(
         \frac{\partial f}{\partial x} \frac{\partial g}{\partial y} -
@@ -353,7 +353,7 @@ def absolute_igusa_invariants_wamelen(f):
     The following example can be checked against van Wamelen's paper::
 
         sage: i1, i2, i3 = absolute_igusa_invariants_wamelen(-x^5 + 3*x^4 + 2*x^3 - 6*x^2 - 3*x + 1)
-        sage: map(factor, (i1, i2, i3))
+        sage: list(map(factor, (i1, i2, i3)))
         [2^7 * 3^15, 2^5 * 3^11 * 5, 2^4 * 3^9 * 31]
 
     TESTS::
@@ -393,9 +393,9 @@ def absolute_igusa_invariants_kohel(f):
     The following example can be checked against Kohel's database [K]_ ::
 
         sage: i1, i2, i3 = absolute_igusa_invariants_kohel(-x^5 + 3*x^4 + 2*x^3 - 6*x^2 - 3*x + 1)
-        sage: map(factor, (i1, i2, i3))
+        sage: list(map(factor, (i1, i2, i3)))
         [2^2 * 3^5 * 5 * 31, 2^5 * 3^11 * 5, 2^4 * 3^9 * 31]
-        sage: map(factor, (150660, 28343520, 9762768))
+        sage: list(map(factor, (150660, 28343520, 9762768)))
         [2^2 * 3^5 * 5 * 31, 2^5 * 3^11 * 5, 2^4 * 3^9 * 31]
 
     TESTS::

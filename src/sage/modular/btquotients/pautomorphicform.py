@@ -1605,13 +1605,13 @@ class pAdicAutomorphicFormElement(ModuleElement):
                 return c
         return 0
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Tell whether the form is zero or not.
 
         OUTPUT:
 
-        Boolean. True if self is zero, False otherwise.
+        Boolean. ``True`` if self is zero, ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1619,13 +1619,15 @@ class pAdicAutomorphicFormElement(ModuleElement):
             sage: H = X.harmonic_cocycles(4,prec = 20)
             sage: A = X.padic_automorphic_forms(4,prec = 20)
             sage: v1 = A(H.basis()[1])
-            sage: v1.__nonzero__()
+            sage: bool(v1)
             True
             sage: v2 = v1-v1
-            sage: v2.__nonzero__()
+            sage: bool(v2)
             False
         """
-        return any([not o.is_zero() for o in self._value])
+        return any(not o.is_zero() for o in self._value)
+
+    __nonzero__ = __bool__
 
     def __getitem__(self, e1):
         r"""
@@ -2191,12 +2193,12 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         - ``t`` -- (default : None). The number of additional moments to store. If None, determine
           it automatically from ``prec``, ``U`` and the ``overconvergent`` flag.
 
-        - ``R`` -- (default : None). If specified, coefficent field of the automorphic forms.
-        If not speficied it defaults to the base ring of the distributions ``U``, or to `Q_p`
+        - ``R`` -- (default : None). If specified, coefficient field of the automorphic forms.
+        If not specified it defaults to the base ring of the distributions ``U``, or to `Q_p`
         with the working precision ``prec``.
 
         - ``overconvergent`` -- Boolean (default = False). If True, will construct overconvergent
-        `p`-adic automorhic forms. Otherwise it constructs the finite dimensional space of
+        `p`-adic automorphic forms. Otherwise it constructs the finite dimensional space of
         `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
 
         EXAMPLES:

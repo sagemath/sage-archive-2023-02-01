@@ -64,13 +64,10 @@ from sage.categories.fields import Fields
 
 from sage.modules.free_module_element import vector
 
-from sage.libs.pari.all import pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance
-
 from sage.structure.element cimport Element, generic_power_c, FieldElement
 from sage.structure.element import canonical_coercion, parent, coerce_binop
 
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+from sage.libs.pari import pari
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -1160,6 +1157,55 @@ cdef class NumberFieldElement(FieldElement):
             upp = a.upper().ceil()
         return low
 
+    def round(self):
+        r"""
+        Return the round (nearest integer) of this number field element.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p = x**7 - 5*x**2 + x + 1
+            sage: a_AA = AA.polynomial_root(p, RIF(1,2))
+            sage: K.<a> = NumberField(p, embedding=a_AA)
+            sage: b = a**5 + a/2 - 1/7
+            sage: RR(b)
+            4.13444473767055
+            sage: b.round()
+            4
+            sage: (-b).round()
+            -4
+            sage: (b+1/2).round()
+            5
+            sage: (-b-1/2).round()
+            -5
+
+        This function always succeeds even if a tremendous precision is needed::
+
+            sage: c = b - 5678322907931/1225243417356 + 3
+            sage: c.round()
+            3
+            sage: RIF(c).unique_round()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique round (nearest integer)
+
+        If the number field is not embedded, this function is valid only if the
+        element is rational::
+
+            sage: p = x**5 - 3
+            sage: K.<a> = NumberField(p)
+            sage: [K(k/3).round() for k in range(-3,4)]
+            [-1, -1, 0, 0, 0, 1, 1]
+            sage: a.round()
+            Traceback (most recent call last):
+            ...
+            TypeError: floor not uniquely defined since no real embedding is specified
+        """
+        if ZZX_deg(self.__numerator) <= 0:
+            return self._rational_().round()
+
+        return (self + QQ((1,2))).floor()
+
     def abs(self, prec=None, i=None):
         r"""Return the absolute value of this element.
 
@@ -1610,7 +1656,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: t[0].norm(K)
             -a
             sage: t = K(3)._rnfisnorm(L); t
-            ((a^2 + 1)*b^3 - b^2 - a*b - a^2, -3*a^2 + 3*a - 3)
+            (-b^3 - a*b^2 - a^2*b + 1, 3*a^2 - 3*a + 6)
             sage: t[0].norm(K)*t[1]
             3
 
@@ -2275,17 +2321,15 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES::
 
             sage: m.<b> = CyclotomicField(17)
-            sage: m(0).__nonzero__()
+            sage: bool(m(0))
             False
-            sage: b.__nonzero__()
+            sage: bool(b)
             True
 
-        Nonzero is used by the bool command::
+        ``__bool__`` is used by the bool command::
 
             sage: bool(b + 1)
             True
-            sage: bool(m(0))
-            False
         """
         return not IsZero_ZZX(self.__numerator)
 
@@ -3384,7 +3428,7 @@ cdef class NumberFieldElement(FieldElement):
         -  ``P`` - a prime ideal of the parent of self
 
 
-        .. note::
+        .. NOTE::
 
            The function ``ord()`` is an alias for ``valuation()``.
 
@@ -3683,7 +3727,7 @@ cdef class NumberFieldElement(FieldElement):
         The numerator ideal of a number field element `a` is the ideal of
         the ring of integers `R` obtained by intersecting `aR` with `R`.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`denominator_ideal`
 
@@ -3714,7 +3758,7 @@ cdef class NumberFieldElement(FieldElement):
         integral ideal consisting of all elements of the ring of
         integers `R` whose product with `a` is also in `R`.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`numerator_ideal`
 
@@ -3908,15 +3952,15 @@ cdef class NumberFieldElement(FieldElement):
         r"""
         The m-th power residue symbol for an element self and proper ideal P.
 
-        .. math:: \left(\frac{\alpha}{\mathbf{P}}\right) \equiv \alpha^{\frac{N(\mathbf{P})-1}{m}} \operatorname{mod} \mathbf{P}
+        .. MATH:: \left(\frac{\alpha}{\mathbf{P}}\right) \equiv \alpha^{\frac{N(\mathbf{P})-1}{m}} \operatorname{mod} \mathbf{P}
 
-        .. note:: accepts m=1, in which case returns 1
+        .. NOTE:: accepts m=1, in which case returns 1
 
-        .. note:: can also be called for an ideal from sage.rings.number_field_ideal.residue_symbol
+        .. NOTE:: can also be called for an ideal from sage.rings.number_field_ideal.residue_symbol
 
-        .. note:: self is coerced into the number field of the ideal P
+        .. NOTE:: self is coerced into the number field of the ideal P
 
-        .. note:: if m=2, self is an integer, and P is an ideal of a number field of absolute degree 1 (i.e. it is a copy of the rationals), then this calls kronecker_symbol, which is implemented using GMP.
+        .. NOTE:: if m=2, self is an integer, and P is an ideal of a number field of absolute degree 1 (i.e. it is a copy of the rationals), then this calls kronecker_symbol, which is implemented using GMP.
 
         INPUT:
 
@@ -5064,9 +5108,16 @@ class CoordinateFunction:
             raise TypeError("Cannot coerce element into this number field")
         return self.__W.coordinates(self.__to_V(self.__K(x)))
 
-    def __cmp__(self, other):
-        r"""
+    def __eq__(self, other):
+        """
+        Test equality
+
         EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: c = (a + 2).coordinates_in_terms_of_powers()
+            sage: c == (a - 3).coordinates_in_terms_of_powers()
+            False
 
             sage: K.<a> = NumberField(x^4 + 1)
             sage: f = (a + 1).coordinates_in_terms_of_powers()
@@ -5077,8 +5128,23 @@ class CoordinateFunction:
             sage: f == NumberField(x^2 + 3,'b').gen().coordinates_in_terms_of_powers()
             False
         """
-        return cmp(self.__class__, other.__class__) or cmp(self.__K, other.__K) or cmp(self.__alpha, other.__alpha)
+        if not isinstance(other, CoordinateFunction):
+            return False
 
+        return self.__K == other.__K and self.__alpha ==  other.__alpha
+
+    def __ne__(self, other):
+        """
+        Test inequality
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: c = (a + 2).coordinates_in_terms_of_powers()
+            sage: c != (a - 3).coordinates_in_terms_of_powers()
+            True
+        """
+        return not self.__eq__(other)
 
 
 #################

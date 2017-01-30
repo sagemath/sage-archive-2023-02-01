@@ -218,7 +218,7 @@ Vectors::
     sage: b = a.sage(); b # optional - lie
     [1, 2, 3]
     sage: type(b) # optional - lie
-    <type 'list'>
+    <... 'list'>
 
 Matrices::
 
@@ -243,7 +243,7 @@ Text::
     sage: b = a.sage(); b # optional - lie
     'text'
     sage: type(b) # optional - lie
-    <type 'str'>
+    <... 'str'>
 
 
 LiE can be programmed using the Sage interface as well. Section 5.1.5

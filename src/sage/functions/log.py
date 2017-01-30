@@ -1,5 +1,5 @@
 """
-Logarithmic functions
+Logarithmic Functions
 
 AUTHORS:
 
@@ -138,7 +138,7 @@ class Function_exp(GinacFunction):
             +Infinity
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
-                                   conversions=dict(maxima='exp'))
+                                   conversions=dict(maxima='exp', fricas='exp'))
 
 exp = Function_exp()
 
@@ -221,7 +221,7 @@ class Function_log(GinacFunction):
             3.141592653589793j
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
-                               conversions=dict(maxima='log'))
+                               conversions=dict(maxima='log', fricas='log'))
 
     def __call__(self, *args, **kwds):
         """
@@ -381,7 +381,7 @@ class Function_polylog(GinacFunction):
             sage: polylog(1, x)
             -log(-x + 1)
             sage: polylog(2,x^2+1)
-            polylog(2, x^2 + 1)
+            dilog(x^2 + 1)
 
             sage: f = polylog(4, 1); f
             1/90*pi^4
@@ -423,9 +423,9 @@ class Function_polylog(GinacFunction):
             sage: polylog(2.0, 1)
             1.64493406684823
             sage: polylog(2, 1.0)
-            NaN - NaN*I
+            NaN + NaN*I
             sage: polylog(2.0, 1.0)
-            NaN - NaN*I
+            NaN + NaN*I
         """
         GinacFunction.__init__(self, "polylog", nargs=2)
 
@@ -522,7 +522,7 @@ class Function_lambert_w(BuiltinFunction):
 
     This function satisfies the equation
 
-    .. math::
+    .. MATH::
 
         z = W_n(z) e^{W_n(z)}
 
@@ -671,7 +671,7 @@ class Function_lambert_w(BuiltinFunction):
         either the same as the parent of the input, or a Sage type::
 
             sage: parent(lambert_w(int(0)))
-            <type 'int'>
+            <... 'int'>
             sage: parent(lambert_w(Integer(0)))
             Integer Ring
             sage: parent(lambert_w(e))
@@ -938,15 +938,15 @@ class Function_harmonic_number_generalized(BuiltinFunction):
     Harmonic and generalized harmonic number functions,
     defined by:
 
-    .. math::
+    .. MATH::
 
-        H_{n}=H_{n,1}=\sum_{k=1}^n\frac1k
+        H_{n}=H_{n,1}=\sum_{k=1}^n\frac{1}{k}
         
-        H_{n,m}=\sum_{k=1}^n\frac1{k^m}
+        H_{n,m}=\sum_{k=1}^n\frac{1}{k^m}
 
     They are also well-defined for complex argument, through:
 
-    .. math::
+    .. MATH::
 
         H_{s}=\int_0^1\frac{1-x^s}{1-x}
 
@@ -961,7 +961,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
     REFERENCES:
 
-    - :wikipedia:`/Harmonic_number`
+    - :wikipedia:`Harmonic_number`
 
     EXAMPLES:
 
@@ -1185,7 +1185,7 @@ harmonic_number = Function_harmonic_number_generalized()
 
 def _swap_harmonic(a,b): return harmonic_number(b,a)
 
-from sage.symbolic.pynac import register_symbol
+from sage.libs.pynac.pynac import register_symbol
 
 register_symbol(_swap_harmonic,{'maxima':'gen_harmonic_number'})
 register_symbol(_swap_harmonic,{'maple':'harmonic'})
@@ -1194,7 +1194,7 @@ class Function_harmonic_number(BuiltinFunction):
     r"""
     Harmonic number function, defined by:
 
-    .. math::
+    .. MATH::
 
         H_{n}=H_{n,1}=\sum_{k=1}^n\frac1k
 

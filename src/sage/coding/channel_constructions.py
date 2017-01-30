@@ -723,7 +723,7 @@ class QarySymmetricChannel(Channel):
         self._epsilon = epsilon
         try:
             self.transmit_unsafe(space.random_element())
-        except:
+        except Exception:
             raise ValueError("space has to be of the form Sigma^n, where Sigma has a random_element() method")
 
     def __repr__(self):

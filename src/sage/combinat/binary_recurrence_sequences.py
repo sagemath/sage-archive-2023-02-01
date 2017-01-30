@@ -950,7 +950,7 @@ def _next_good_prime(p, R, qq, patience, qqold):
 
                     N = _goodness(R._ell, R, p)
 
-                    #proceed only if R._ell statisfies the goodness requirements
+                    #proceed only if R._ell satisfies the goodness requirements
                     if qqold < N <= qq:
                         return R._ell
 
@@ -964,8 +964,7 @@ def _next_good_prime(p, R, qq, patience, qqold):
         return False
 
 
-def _is_p_power_mod(a,p,N):
-
+def _is_p_power_mod(a, p, N):
     """
     Determine if ``a`` is a ``p`` th power modulo ``N``.
 

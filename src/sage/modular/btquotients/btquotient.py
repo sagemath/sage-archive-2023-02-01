@@ -659,7 +659,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         """
         try:
             return self._edges_leaving_origin
-        except:
+        except AttributeError:
             p = self._p
             self._edges_leaving_origin = [self.edge(self._Mat_22([0, -1, p, 0]))]
             self._edges_leaving_origin.extend([self.edge(self._Mat_22([p, i, 0, 1])) for i in range(p)])
@@ -1748,7 +1748,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         r"""
         Compute the `e_3` invariant defined by the formula
 
-        .. math::
+        .. MATH::
 
            e_k =\prod_{\ell\mid pN^-}\left(1-\left(\frac{-3}{\ell}\right)\right)\prod_{\ell \| N^+}\left(1+\left(\frac{-3}{\ell}\right)\right)\prod_{\ell^2\mid N^+} \nu_\ell(3)
 
@@ -1770,7 +1770,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         r"""
         Compute the `e_4` invariant defined by the formula
 
-        .. math::
+        .. MATH::
 
            e_k =\prod_{\ell\mid pN^-}\left(1-\left(\frac{-k}{\ell}\right)\right)\prod_{\ell \| N^+}\left(1+\left(\frac{-k}{\ell}\right)\right)\prod_{\ell^2\mid N^+} \nu_\ell(k)
 
@@ -2445,7 +2445,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if exact is True:
             try:
                 return self._Iota_exact
-            except:
+            except AttributeError:
                 raise RuntimeError('Exact splitting not available.')
         else:
             if prec is None:
@@ -2843,11 +2843,11 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         """
         OM = self.get_eichler_order_quadmatrix()
         v = pari('qfminim(%s,2,0, flag = 2)' % (OM._pari_()))
-        n_units = Integer(v[0].python() / 2)
+        n_units = Integer(v[0].sage() / 2)
         v = pari('qfminim(%s,2,%s, flag = 2)' % ((OM._pari_()), n_units))
         O_units = []
         for jj in range(n_units):
-            vec = Matrix(ZZ, 4, 1, [v[2][ii, jj].python() for ii in range(4)])
+            vec = Matrix(ZZ, 4, 1, [v[2][ii, jj].sage() for ii in range(4)])
             O_units.append(vec)
         return O_units
 
@@ -3223,7 +3223,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         n_units = len(self.get_units_of_order())
         ## Using PARI to get the shortest vector in the lattice (via LLL)
         ## We used to pass qfminim flag = 2
-        mat = pari('qfminim(%s,,%s,flag = 2)' % (A._pari_(), 2 * n_units))[2].python().transpose()
+        mat = pari('qfminim(%s,,%s,flag = 2)' % (A._pari_(), 2 * n_units))[2].sage().transpose()
         n_vecs = mat.nrows()
         stabs = []
         for jj in range(n_vecs):
@@ -3289,7 +3289,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if not self._use_magma or len(self._extra_level) == 0:
             return E * vec, True
         m = ZZ(twom / 2)
-        mat = pari('qfminim(%s,,%s,flag = %s)' % (A._pari_(), 1000, flag))[2].python().transpose()
+        mat = pari('qfminim(%s,,%s,flag = %s)' % (A._pari_(), 1000, flag))[2].sage().transpose()
         n_vecs = mat.nrows()
         p = self._p
         pinv = Zmod(self._character.modulus())(p) ** -1
@@ -3311,7 +3311,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         Bruhat-Tits tree are equivalent under the arithmetic group in
         question. The computation boils down to an application of the
         LLL short-vector algorithm to a particular lattice; for
-        details see [FM]_.
+        details see [FM2014]_.
 
         INPUT:
 
@@ -3343,7 +3343,6 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: X._are_equivalent(M1,M2, as_edges=True)
             sage: X._are_equivalent(M1,M2) == False
             False
-
         """
         try:
             return self._cached_equivalent[(v1, v2, as_edges)]
@@ -3358,7 +3357,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)
         ## Using PARI to get the shortest vector in the lattice (via LLL)
-        vec = pari('qfminim(%s,,1,flag = 2)' % (A._pari_()))[2].python()
+        vec = pari('qfminim(%s,,1,flag = 2)' % (A._pari_()))[2].sage()
 
         vect = vec.transpose()
         nrd = Integer((vect * A * vec)[0, 0] / 2)
@@ -3771,12 +3770,12 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         - ``t`` -- (default : None). The number of additional moments to store. If None, determine
           it automatically from ``prec``, ``U`` and the ``overconvergent`` flag.
 
-        - ``R`` -- (default : None). If specified, coefficent field of the automorphic forms.
-          If not speficied it defaults to the base ring of the distributions ``U``, or to `\QQ_p`
+        - ``R`` -- (default : None). If specified, coefficient field of the automorphic forms.
+          If not specified it defaults to the base ring of the distributions ``U``, or to `\QQ_p`
           with the working precision ``prec``.
 
         - ``overconvergent`` -- Boolean (default = False). If True, will construct overconvergent
-          `p`-adic automorhic forms. Otherwise it constructs the finite dimensional space of
+          `p`-adic automorphic forms. Otherwise it constructs the finite dimensional space of
           `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
 
         EXAMPLES::

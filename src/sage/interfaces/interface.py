@@ -733,6 +733,7 @@ class InterfaceElement(Element):
             PolynomialRing( Rationals, ["x"] )
             sage: S = singular.ring(0, ('x'))
             sage: loads(dumps(S))
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 1
             //        block   1 : ordering lp
@@ -1107,7 +1108,7 @@ class InterfaceElement(Element):
             sage: int(maxima('1'))
             1
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
         """
         return int(repr(self))
 
@@ -1117,7 +1118,7 @@ class InterfaceElement(Element):
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -1127,6 +1128,8 @@ class InterfaceElement(Element):
             True
         """
         return self.bool()
+
+    __nonzero__ = __bool__
 
     def __long__(self):
         """

@@ -21,7 +21,7 @@ $(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.46.4 $(SAGE_LOCAL)/bin/makeinfo
 ########################################################################
 
 # Extract sources from git repository serially
-autoconf-2.13.rc1/.tarball-version: 
+autoconf-2.13.rc1/.tarball-version:
 	( cd $(SRC)/autoconf && git archive --format=tar --prefix=autoconf-2.13.rc1/ autoconf-2-13-rc1 ) | tar xf -
 	echo 2.13.rc1 >autoconf-2.13.rc1/.tarball-version
 

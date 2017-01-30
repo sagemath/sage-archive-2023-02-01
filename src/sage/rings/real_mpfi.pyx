@@ -252,11 +252,11 @@ cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
 
 cimport real_mpfr
-from real_mpfr cimport RealField_class, RealNumber, RealField
+from .real_mpfr cimport RealField_class, RealNumber, RealField
 from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDZ, MPFR_RNDU, MPFR_RNDD, MPFR_RNDA
 
-from integer cimport Integer
-from real_double cimport RealDoubleElement
+from .integer cimport Integer
+from .real_double cimport RealDoubleElement
 
 import sage.rings.complex_field
 import sage.rings.infinity
@@ -426,7 +426,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
     ::
 
         sage: def check(x):
-        ...       return (x, x.lower() == x.upper())
+        ....:     return (x, x.lower() == x.upper())
         sage: check(RIF(pi))
         (3.141592653589794?, False)
         sage: check(RIF(RR(pi)))
@@ -3737,15 +3737,15 @@ cdef class RealIntervalFieldElement(RingElement):
 
         EXAMPLES::
 
-            sage: RIF(0).__nonzero__()
+            sage: bool(RIF(0))
             False
-            sage: RIF(1).__nonzero__()
+            sage: bool(RIF(1))
             True
-            sage: RIF(1, 2).__nonzero__()
+            sage: bool(RIF(1, 2))
             True
-            sage: RIF(0, 1).__nonzero__()
+            sage: bool(RIF(0, 1))
             True
-            sage: RIF(-1, 1).__nonzero__()
+            sage: bool(RIF(-1, 1))
             True
         """
         return not (mpfr_zero_p(&self.value.left) and mpfr_zero_p(&self.value.right))
@@ -5245,11 +5245,11 @@ def RealInterval(s, upper=None, int base=10, int pad=0, min_prec=53):
 
         sage: ks = 5*10**5, 10**6
         sage: for k in ks:
-        ...      try:
-        ...          z = RealInterval("1." + "1"*k)
-        ...          assert len(str(z))-4 >= k
-        ...      except TypeError:
-        ...          pass
+        ....:    try:
+        ....:        z = RealInterval("1." + "1"*k)
+        ....:        assert len(str(z))-4 >= k
+        ....:    except TypeError:
+        ....:        pass
 
     """
     if not isinstance(s, str):

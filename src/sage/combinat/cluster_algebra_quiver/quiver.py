@@ -19,16 +19,14 @@ positive integers) such that the matrix `M = (m_{ab})` with
     (in our sense of this word) with an edge from `a` to `b` labelled
     by the pair `(i,-i)`.
 
-For the compendium on the cluster algebra and quiver package see ::
-
-    http://arxiv.org/abs/1102.4844.
+For the compendium on the cluster algebra and quiver package see [MS2011]_
 
 AUTHORS:
 
 - Gregg Musiker
 - Christian Stump
 
-.. seealso:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`.
+.. SEEALSO:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`.
 """
 #*****************************************************************************
 #       Copyright (C) 2011 Gregg Musiker <musiker@math.mit.edu>
@@ -834,8 +832,7 @@ class ClusterQuiver(SageObject):
             sage: Q.mutation_type() # long time
             ['X', 6]
 
-        examples from page 8 of Keller's article "Cluster algebras, quiver representations
-        and triangulated categories" (arXiv:0807.1960)::
+        examples from page 8 of [Ke2008]_::
 
             sage: dg = DiGraph(); dg.add_edges([(9,0),(9,4),(4,6),(6,7),(7,8),(8,3),(3,5),(5,6),(8,1),(2,3)])
             sage: ClusterQuiver( dg ).mutation_type() # long time
@@ -980,7 +977,7 @@ class ClusterQuiver(SageObject):
     def canonical_label( self, certificate=False ):
         """
         Returns the canonical labelling of ``self``, see
-        :meth:`sage.graphs.graph.GenericGraph.canonical_label`.
+        :meth:`sage.graphs.generic_graph.GenericGraph.canonical_label`.
 
         INPUT:
 

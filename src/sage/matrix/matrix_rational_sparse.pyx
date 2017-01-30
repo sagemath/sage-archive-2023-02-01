@@ -31,7 +31,7 @@ from cpython.sequence cimport *
 
 from sage.rings.rational cimport Rational
 from sage.rings.integer  cimport Integer
-from matrix cimport Matrix
+from .matrix cimport Matrix
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -43,8 +43,8 @@ cimport sage.structure.element
 
 import sage.matrix.matrix_space
 
-from matrix_integer_sparse cimport Matrix_integer_sparse
-from matrix_rational_dense cimport Matrix_rational_dense
+from .matrix_integer_sparse cimport Matrix_integer_sparse
+from .matrix_rational_dense cimport Matrix_rational_dense
 
 from sage.misc.misc import verbose
 
@@ -777,11 +777,11 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         EXAMPLES::
 
             sage: A = matrix(QQ, [
-            ...                   [1, 0, 1, -3, 1],
-            ...                   [-5, 1, 0, 7, -3],
-            ...                   [0, -1, -4, 6, -2],
-            ...                   [4, -1, 0, -6, 2]],
-            ...               sparse=True)
+            ....:                 [1, 0, 1, -3, 1],
+            ....:                 [-5, 1, 0, 7, -3],
+            ....:                 [0, -1, -4, 6, -2],
+            ....:                 [4, -1, 0, -6, 2]],
+            ....:             sparse=True)
             sage: result = A._right_kernel_matrix()
             sage: result[0]
             'computed-iml-rational'

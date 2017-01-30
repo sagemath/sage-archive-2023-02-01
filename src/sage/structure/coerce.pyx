@@ -403,7 +403,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
 
-        .. note::
+        .. NOTE::
 
             In practice 4 would be a really bad number to choose, but
             it makes the hashing deterministic.
@@ -735,7 +735,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Univariate Polynomial Ring in x over Rational Field
             Univariate Polynomial Ring in x over Rational Field
 
-        .. note::
+        .. NOTE::
 
            This function is accurate only in so far as analyse is kept
            in sync with the :meth:`bin_op` and
@@ -882,7 +882,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.common_parent(ZZT, QQT, RDF)
             Power Series Ring in T over Real Double Field
             sage: cm.common_parent(4r, 5r)
-            <type 'int'>
+            <... 'int'>
             sage: cm.common_parent(int, float, ZZ)
             <type 'float'>
             sage: real_fields = [RealField(prec) for prec in [10,20..100]]
@@ -976,7 +976,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         - ``op`` - a python function taking 2 arguments
 
-          .. note::
+          .. NOTE::
 
              op is often an arithmetic operation, but need not be so.
 
@@ -1139,7 +1139,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: x, y = cm.canonical_coercion(int(5), complex(3))
             sage: type(x), type(y)
-            (<type 'complex'>, <type 'complex'>)
+            (<... 'complex'>, <... 'complex'>)
 
             sage: class MyClass:
             ...       def _sage_(self):
@@ -1909,11 +1909,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             RuntimeError: There is a bug in the coercion code in Sage.
             Both x (='f(a)') and y (='g(b)') are supposed to have identical parents but they don't.
-            In fact, x has parent '<type 'str'>'
-            whereas y has parent '<type 'str'>'
-            Original elements 'a' (parent <type 'str'>) and 'b' (parent <type 'str'>) and maps
-            <type 'str'> 'f'
-            <type 'str'> 'g'
+            In fact, x has parent '<... 'str'>'
+            whereas y has parent '<... 'str'>'
+            Original elements 'a' (parent <... 'str'>) and 'b' (parent <... 'str'>) and maps
+            <... 'str'> 'f'
+            <... 'str'> 'g'
         """
         raise RuntimeError("""There is a bug in the coercion code in Sage.
 Both x (=%r) and y (=%r) are supposed to have identical parents but they don't.

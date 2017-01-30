@@ -651,7 +651,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         r"""
         Returns a special node of the Dynkin diagram
 
-        .. seealso:: :meth:`~sage.combinat.root_system.CartanType_affine.special_node`
+        .. SEEALSO:: :meth:`~sage.combinat.root_system.CartanType_affine.special_node`
 
         It is obtained by relabelling of the special node of the non
         relabelled Dynkin diagram.

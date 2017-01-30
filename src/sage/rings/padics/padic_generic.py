@@ -38,6 +38,7 @@ from sage.rings.integer import Integer
 from sage.rings.padics.padic_printing import pAdicPrinter
 from sage.rings.padics.precision_error import PrecisionError
 from sage.misc.cachefunc import cached_method
+from sage.structure.sage_object import richcmp_not_equal
 
 
 class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
@@ -144,9 +145,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return [self.gen()]
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Returns 0 if self == other, and 1 or -1 otherwise.
+        Return 0 if self == other, and 1 or -1 otherwise.
 
         We consider two p-adic rings or fields to be equal if they are
         equal mathematically, and also have the same precision cap and
@@ -164,25 +165,28 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R is S
             True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        if self.prime() < other.prime():
-            return -1
-        elif self.prime() > other.prime():
-            return 1
+        if not isinstance(other, pAdicGeneric):
+            return NotImplemented
+
+        lx = self.prime()
+        rx = other.prime()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         try:
-            if self.halting_parameter() < other.halting_parameter():
-                return -1
-            elif self.halting_parameter() > other.halting_parameter():
-                return 1
+            lx = self.halting_parameter()
+            rx = other.halting_parameter()
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
         except AttributeError:
             pass
-        if self.precision_cap() < other.precision_cap():
-            return -1
-        elif self.precision_cap() > other.precision_cap():
-            return 1
-        return self._printer.cmp_modes(other._printer)
+
+        lx = self.precision_cap()
+        rx = other.precision_cap()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return self._printer.richcmp_modes(other._printer, op)
 
     #def ngens(self):
     #    return 1
@@ -718,7 +722,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         .. SEEALSO::
 
             :class:`TestSuite`
-
         """
         tester = self._tester(**options)
 
@@ -733,6 +736,33 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 except (NotImplementedError, AttributeError):
                     pass
                 tester.assertEqual(y**self.residue_field().order(), y)
+
+    def _test_convert_residue_field(self, **options):
+        r"""
+        Test that conversion of residue field elements back to this ring works.
+
+        INPUT:
+
+         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_convert_residue_field()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+
+        for x in tester.some_elements():
+            if x.valuation() < 0:
+                continue
+            if x.precision_absolute() <= 0:
+                continue
+            y = x.residue()
+            z = self(y)
+            tester.assertEqual(z.residue(), y)
 
     @cached_method
     def _log_unit_part_p(self):

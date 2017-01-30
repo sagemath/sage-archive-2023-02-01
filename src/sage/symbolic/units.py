@@ -1063,7 +1063,7 @@ class Units(ExtraTabCompletion):
         EXAMPLES::
 
             sage: type(units.__getstate__()[0])
-            <type 'str'>
+            <... 'str'>
             sage: type(units.__getstate__()[1])
             <type 'dict'>
             sage: loads(dumps(units)) == units

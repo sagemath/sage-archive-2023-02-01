@@ -33,8 +33,8 @@ def _apply_function(func, list):
 
         sage: from sage.combinat.species.stream import _apply_function
         sage: def square(l):
-        ...       l.append(l[-1]^2)
-        ...       return l[-1]
+        ....:     l.append(l[-1]^2)
+        ....:     return l[-1]
         ...
         sage: l = [2]
         sage: g = _apply_function(square, l)
@@ -229,12 +229,12 @@ class Stream_class(SageObject):
             sage: from builtins import zip
             sage: fib = Stream()
             sage: def g():
-            ...          yield 1
-            ...          yield 1
-            ...          n = 0
-            ...          while True:
-            ...              yield fib[n] + fib[n+1]
-            ...              n += 1
+            ....:        yield 1
+            ....:        yield 1
+            ....:        n = 0
+            ....:        while True:
+            ....:            yield fib[n] + fib[n+1]
+            ....:            n += 1
 
         ::
 

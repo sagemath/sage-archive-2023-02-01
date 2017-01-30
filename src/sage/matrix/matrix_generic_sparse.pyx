@@ -241,7 +241,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             #
             #  and this is bad since:
             #
-            #    sage: map(type,m.dict().keys()[0])
+            #    sage: list(map(type,m.dict().keys()[0]))
             #    [<type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>,
             #     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>]
             #

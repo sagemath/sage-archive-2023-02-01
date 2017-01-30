@@ -43,7 +43,6 @@ with ``delete()``.
 Functions
 ---------
 """
-from six import itervalues
 
 include "cysignals/signals.pxi"
 
@@ -221,7 +220,7 @@ cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
 
     else:
         clust_of_v = {v:g[0].clustering_coeff(v) for v in vertices}
-        return [(sum(itervalues(clust_of_v)) / len(clust_of_v)), clust_of_v]
+        return [(sum(clust_of_v.itervalues()) / len(clust_of_v)), clust_of_v]
 
 
 cpdef clustering_coeff(g, vertices = None):
@@ -579,7 +578,7 @@ cpdef min_spanning_tree(g,
     The edges of a minimum spanning tree of ``g``, if one exists, otherwise
     the empty list.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
 

@@ -31,19 +31,7 @@ BUILD=`pwd`/build
 # SageMath.  See trac #21047.
 export M4="$SAGE_LOCAL/bin/m4"
 
-########################################################################
-# Apply patch(es)
-########################################################################
-
-cd src
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+cd "$SRC"
 
 ########################################################################
 # Remove old installed versions

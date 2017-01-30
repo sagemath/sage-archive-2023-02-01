@@ -1,3 +1,8 @@
+# distutils: extra_compile_args = LINBOX_CFLAGS
+# distutils: libraries = LINBOX_LIBRARIES
+# distutils: library_dirs = LINBOX_LIBDIR
+# distutils: language = c++
+
 r"""
 Linbox interface
 """

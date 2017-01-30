@@ -160,7 +160,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
     (that is, `S_n`-invariant elements of `R\langle x_1, x_2, \ldots, x_n \rangle`).
 
     This ring is implemented as a Hopf algebra whose basis elements are
-    indexed by set parititions.
+    indexed by set partitions.
 
     Let `A = \{A_1, A_2, \ldots, A_r\}` be a set partition of the integers
     `\{ 1, 2, \ldots, k \}`.  A monomial basis element indexed by `A`
@@ -580,7 +580,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                 sage: S = SetPartition([[1,2,3], [4,5]])
                 sage: AB = SetPartition([[1], [2,3], [4], [5]])
                 sage: L = sorted(filter(lambda x: S.inf(x) == AB, SetPartitions(5)), key=str)
-                sage: map(list, L) == map(list, sorted(m.product_on_basis(A, B).support(), key=str))
+                sage: list(map(list, L)) == list(map(list, sorted(m.product_on_basis(A, B).support(), key=str)))
                 True
             """
             if not A:

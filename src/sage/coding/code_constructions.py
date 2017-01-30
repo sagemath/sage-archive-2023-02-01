@@ -13,7 +13,11 @@ Sage now does have rich representations.
 All codes available here can be accessed through the ``codes`` object::
 
     sage: codes.BinaryGolayCode()
-    Linear code of length 23, dimension 12 over Finite Field of size 2
+    [23, 12] linear code over GF(2)
+
+REFERENCES:
+
+- [HP2003]_
 
 AUTHOR:
 
@@ -52,7 +56,7 @@ from .linear_code import LinearCode
 from sage.modules.free_module import span
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence, Sequence_generic
-from sage.arith.all import GCD, LCM, divisors, quadratic_residues
+from sage.arith.all import GCD, LCM, divisors, quadratic_residues, gcd
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -153,12 +157,12 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
         sage: i2_sqrd = (i2^2).quo_rem(x^n-1)[1]
         sage: i2_sqrd  == i2
         True
-        sage: C1 = codes.CyclicCodeFromGeneratingPolynomial(n,i1)
-        sage: C2 = codes.CyclicCodeFromGeneratingPolynomial(n,1-i2)
-        sage: C1.dual_code() == C2
+        sage: C1 = codes.CyclicCode(length = n, generator_pol = gcd(i1, x^n - 1))
+        sage: C2 = codes.CyclicCode(length = n, generator_pol = gcd(1-i2, x^n - 1))
+        sage: C1.dual_code().systematic_generator_matrix() == C2.systematic_generator_matrix()
         True
 
-    This is a special case of Theorem 6.4.3 in [HP]_.
+    This is a special case of Theorem 6.4.3 in [HP2003]_.
     """
     R = IntegerModRing(n)
     S1 = set(R(x) for x in S1)
@@ -358,7 +362,7 @@ def walsh_matrix(m0):
         [0 0 1 1 0 0 1 1]
         [0 1 0 1 0 1 0 1]
         sage: C = LinearCode(walsh_matrix(4)); C
-        Linear code of length 16, dimension 4 over Finite Field of size 2
+        [16, 4] linear code over GF(2)
         sage: C.spectrum()
         [1, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -414,22 +418,22 @@ def BCHCode(n,delta,F,b=0):
         sage: f = x^(8)-1
         sage: g.divides(f)
         True
-        sage: C = codes.CyclicCode(8,g); C
-        Linear code of length 8, dimension 4 over Finite Field of size 3
+        sage: C = codes.CyclicCode(generator_pol = g, length = 8); C
+        [8, 4] Cyclic Code over GF(3)
         sage: C.minimum_distance()
         4
-        sage: C = codes.BCHCode(8,3,GF(3),1); C
-        Linear code of length 8, dimension 4 over Finite Field of size 3
+        sage: C = codes.BCHCode(8, 3, GF(3), 1); C
+        [8, 4] Cyclic Code over GF(3)
         sage: C.minimum_distance()
         4
-        sage: C = codes.BCHCode(8,3,GF(3)); C
-        Linear code of length 8, dimension 5 over Finite Field of size 3
+        sage: C = codes.BCHCode(8, 3, GF(3)); C
+        [8, 5] Cyclic Code over GF(3)
         sage: C.minimum_distance()
         3
         sage: C = codes.BCHCode(26, 5, GF(5), b=1); C
-        Linear code of length 26, dimension 10 over Finite Field of size 5
-
+        [26, 10] Cyclic Code over GF(5)
     """
+    from sage.coding.cyclic_code import CyclicCode
     q = F.order()
     R = IntegerModRing(n)
     m = R(q).multiplicative_order()
@@ -446,7 +450,7 @@ def BCHCode(n,delta,F,b=0):
 
     if not(g.divides(x**n-1)):
         raise ValueError("BCH codes does not exist with the given input.")
-    return CyclicCodeFromGeneratingPolynomial(n,g)
+    return CyclicCode(generator_pol = g, length = n)
 
 
 def BinaryGolayCode():
@@ -461,7 +465,7 @@ def BinaryGolayCode():
 
         sage: C = codes.BinaryGolayCode()
         sage: C
-        Linear code of length 23, dimension 12 over Finite Field of size 2
+        [23, 12] linear code over GF(2)
         sage: C.minimum_distance()
         7
         sage: C.minimum_distance(algorithm='gap') # long time, check d=7
@@ -489,7 +493,6 @@ def BinaryGolayCode():
     V = span(B, F)
     return LinearCode(V, d=7)
 
-
 def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
     r"""
     If g is a polynomial over GF(q) which divides `x^n-1` then
@@ -508,15 +511,18 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         sage: P.<x> = PolynomialRing(GF(3),"x")
         sage: g = x-1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(4,g); C
-        Linear code of length 4, dimension 3 over Finite Field of size 3
+        doctest:...
+        DeprecationWarning: codes.CyclicCodeFromGeneratingPolynomial is now deprecated. Please use codes.CyclicCode instead.
+        See http://trac.sagemath.org/20100 for details.
+        [4, 3] Cyclic Code over GF(3)
         sage: P.<x> = PolynomialRing(GF(4,"a"),"x")
         sage: g = x^3+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(9,g); C
-        Linear code of length 9, dimension 6 over Finite Field in a of size 2^2
+        [9, 6] Cyclic Code over GF(4)
         sage: P.<x> = PolynomialRing(GF(2),"x")
         sage: g = x^3+x+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(7,g); C
-        Linear code of length 7, dimension 4 over Finite Field of size 2
+        [7, 4] Cyclic Code over GF(2)
         sage: C.generator_matrix()
         [1 1 0 1 0 0 0]
         [0 1 1 0 1 0 0]
@@ -524,55 +530,15 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         [0 0 0 1 1 0 1]
         sage: g = x+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(4,g); C
-        Linear code of length 4, dimension 3 over Finite Field of size 2
-        sage: C.generator_matrix()
-        [1 1 0 0]
-        [0 1 1 0]
-        [0 0 1 1]
-
-    On the other hand, CyclicCodeFromPolynomial(4,x) will produce a
-    ValueError including a traceback error message: "`x` must
-    divide `x^4 - 1`". You will also get a ValueError if you
-    type
-
-    ::
-
-        sage: P.<x> = PolynomialRing(GF(4,"a"),"x")
-        sage: g = x^2+1
-
-    followed by CyclicCodeFromGeneratingPolynomial(6,g). You will also
-    get a ValueError if you type
-
-    ::
-
-        sage: P.<x> = PolynomialRing(GF(3),"x")
-        sage: g = x^2-1
-        sage: C = codes.CyclicCodeFromGeneratingPolynomial(5,g); C
-        Linear code of length 5, dimension 4 over Finite Field of size 3
-
-    followed by C = CyclicCodeFromGeneratingPolynomial(5,g,False), with
-    a traceback message including "`x^2 + 2` must divide
-    `x^5 - 1`".
+        Traceback (most recent call last):
+        ...
+        ValueError: Only cyclic codes whose length and field order are coprimes are implemented.
     """
-    P = g.parent()
-    x = P.gen()
-    F = g.base_ring()
-    p = F.characteristic()
-    if not(ignore) and p.divides(n):
-        raise ValueError('The characteristic %s must not divide %s'%(p,n))
-    if not(ignore) and not(g.divides(x**n-1)):
-        raise ValueError('%s must divide x^%s - 1'%(g,n))
-    gn = GCD([g,x**n-1])
-    d = gn.degree()
-    coeffs = Sequence(gn.list())
-    r1 = Sequence(coeffs+[0]*(n - d - 1))
-    Sn = SymmetricGroup(n)
-    s = Sn.gens()[0] # assumes 1st gen of S_n is (1,2,...,n)
-    rows = [permutation_action(s**(-i),r1) for i in range(n-d)]
-    MS = MatrixSpace(F,n-d,n)
-    return LinearCode(MS(rows))
+    from sage.misc.superseded import deprecation
+    from sage.coding.cyclic_code import CyclicCode
+    deprecation(20100, "codes.CyclicCodeFromGeneratingPolynomial is now deprecated. Please use codes.CyclicCode instead.")
+    return CyclicCode(length = n, generator_pol = g)
 
-CyclicCode = CyclicCodeFromGeneratingPolynomial
 
 def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
     r"""
@@ -588,25 +554,24 @@ def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
 
         sage: P.<x> = PolynomialRing(GF(3),"x")
         sage: C = codes.CyclicCodeFromCheckPolynomial(4,x + 1); C
-        Linear code of length 4, dimension 1 over Finite Field of size 3
+        doctest:...
+        DeprecationWarning: codes.CyclicCodeFromCheckPolynomial is now deprecated. Please use codes.CyclicCode instead.
+        See http://trac.sagemath.org/20100 for details.
+        [4, 1] Cyclic Code over GF(3)
         sage: C = codes.CyclicCodeFromCheckPolynomial(4,x^3 + x^2 + x + 1); C
-        Linear code of length 4, dimension 3 over Finite Field of size 3
+        [4, 3] Cyclic Code over GF(3)
         sage: C.generator_matrix()
         [2 1 0 0]
         [0 2 1 0]
         [0 0 2 1]
     """
+    from sage.misc.superseded import deprecation
+    from sage.coding.cyclic_code import CyclicCode
+    deprecation(20100, "codes.CyclicCodeFromCheckPolynomial is now deprecated. Please use codes.CyclicCode instead.")
     P = h.parent()
     x = P.gen()
-    d = h.degree()
-    F = h.base_ring()
-    p = F.characteristic()
-    if not(ignore) and p.divides(n):
-        raise ValueError('The characteristic %s must not divide %s'%(p,n))
-    if not(h.divides(x**n-1)):
-        raise ValueError('%s must divide x^%s - 1'%(h,n))
     g = P((x**n-1)/h)
-    return CyclicCodeFromGeneratingPolynomial(n,g)
+    return CyclicCode(length = n, generator_pol = g)
 
 def DuadicCodeEvenPair(F,S1,S2):
     r"""
@@ -630,9 +595,10 @@ def DuadicCodeEvenPair(F,S1,S2):
         sage: _is_a_splitting(S1,S2,11)
         True
         sage: codes.DuadicCodeEvenPair(GF(q),S1,S2)
-        (Linear code of length 11, dimension 5 over Finite Field of size 3,
-         Linear code of length 11, dimension 5 over Finite Field of size 3)
+        ([11, 5] Cyclic Code over GF(3),
+         [11, 5] Cyclic Code over GF(3))
     """
+    from sage.coding.cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
@@ -649,8 +615,8 @@ def DuadicCodeEvenPair(F,S1,S2):
     x = P2.gen()
     gg1 = P2([_lift2smallest_field(c)[0] for c in g1.coefficients(sparse=False)])
     gg2 = P2([_lift2smallest_field(c)[0] for c in g2.coefficients(sparse=False)])
-    C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)
-    C2 = CyclicCodeFromGeneratingPolynomial(n,gg2)
+    C1 = CyclicCode(length = n, generator_pol = gg1)
+    C2 = CyclicCode(length = n, generator_pol = gg2)
     return C1,C2
 
 def DuadicCodeOddPair(F,S1,S2):
@@ -674,11 +640,12 @@ def DuadicCodeOddPair(F,S1,S2):
         sage: _is_a_splitting(S1,S2,11)
         True
         sage: codes.DuadicCodeOddPair(GF(q),S1,S2)
-        (Linear code of length 11, dimension 6 over Finite Field of size 3,
-         Linear code of length 11, dimension 6 over Finite Field of size 3)
+        ([11, 6] Cyclic Code over GF(3),
+         [11, 6] Cyclic Code over GF(3))
 
-    This is consistent with Theorem 6.1.3 in [HP]_.
+    This is consistent with Theorem 6.1.3 in [HP2003]_.
     """
+    from sage.coding.cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
@@ -698,8 +665,10 @@ def DuadicCodeOddPair(F,S1,S2):
     coeffs2 = [_lift2smallest_field(c)[0] for c in (g2+j).coefficients(sparse=False)]
     gg1 = P2(coeffs1)
     gg2 = P2(coeffs2)
-    C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)
-    C2 = CyclicCodeFromGeneratingPolynomial(n,gg2)
+    gg1 = gcd(gg1, x**n - 1)
+    gg2 = gcd(gg2, x**n - 1)
+    C1 = CyclicCode(length = n, generator_pol = gg1)
+    C2 = CyclicCode(length = n, generator_pol = gg2)
     return C1,C2
 
 
@@ -712,7 +681,7 @@ def ExtendedBinaryGolayCode():
 
         sage: C = codes.ExtendedBinaryGolayCode()
         sage: C
-        Linear code of length 24, dimension 12 over Finite Field of size 2
+        [24, 12] linear code over GF(2)
         sage: C.minimum_distance()
         8
         sage: C.minimum_distance(algorithm='gap') # long time, check d=8
@@ -745,7 +714,7 @@ def ExtendedQuadraticResidueCode(n,F):
     The extended quadratic residue code (or XQR code) is obtained from
     a QR code by adding a check bit to the last coordinate. (These
     codes have very remarkable properties such as large automorphism
-    groups and duality properties - see [HP]_, Section 6.6.3-6.6.4.)
+    groups and duality properties - see [HP2003]_, Section 6.6.3-6.6.4.)
 
     INPUT:
 
@@ -763,12 +732,12 @@ def ExtendedQuadraticResidueCode(n,F):
         sage: C1 = codes.QuadraticResidueCode(7,GF(2))
         sage: C2 = C1.extended_code()
         sage: C3 = codes.ExtendedQuadraticResidueCode(7,GF(2)); C3
-        Extended code coming from Linear code of length 7, dimension 4 over Finite Field of size 2
+        Extension of [7, 4] Cyclic Code over GF(2)
         sage: C2 == C3
         True
         sage: C = codes.ExtendedQuadraticResidueCode(17,GF(2))
         sage: C
-        Extended code coming from Linear code of length 17, dimension 9 over Finite Field of size 2
+        Extension of [17, 9] Cyclic Code over GF(2)
         sage: C3 = codes.QuadraticResidueCodeOddPair(7,GF(2))[0]
         sage: C3x = C3.extended_code()
         sage: C4 = codes.ExtendedQuadraticResidueCode(7,GF(2))
@@ -791,7 +760,7 @@ def ExtendedTernaryGolayCode():
 
         sage: C = codes.ExtendedTernaryGolayCode()
         sage: C
-        Linear code of length 12, dimension 6 over Finite Field of size 3
+        [12, 6] linear code over GF(3)
         sage: C.minimum_distance()
         6
         sage: C.minimum_distance(algorithm='gap') # long time, check d=6
@@ -822,13 +791,13 @@ def from_parity_check_matrix(H):
     EXAMPLES::
     
         sage: C = codes.HammingCode(GF(2), 3); C
-        [7, 4] Hamming Code over Finite Field of size 2
+        [7, 4] Hamming Code over GF(2)
         sage: H = C.parity_check_matrix(); H
         [1 0 1 0 1 0 1]
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
         sage: C2 = codes.from_parity_check_matrix(H); C2
-        Linear code of length 7, dimension 4 over Finite Field of size 2
+        [7, 4] linear code over GF(2)
         sage: C2.systematic_generator_matrix() == C.systematic_generator_matrix()
         True
     """
@@ -864,10 +833,10 @@ def QuadraticResidueCode(n,F):
 
         sage: C = codes.QuadraticResidueCode(7,GF(2))
         sage: C
-        Linear code of length 7, dimension 4 over Finite Field of size 2
+        [7, 4] Cyclic Code over GF(2)
         sage: C = codes.QuadraticResidueCode(17,GF(2))
         sage: C
-        Linear code of length 17, dimension 9 over Finite Field of size 2
+        [17, 9] Cyclic Code over GF(2)
         sage: C1 = codes.QuadraticResidueCodeOddPair(7,GF(2))[0]
         sage: C2 = codes.QuadraticResidueCode(7,GF(2))
         sage: C1 == C2
@@ -888,7 +857,7 @@ def QuadraticResidueCodeEvenPair(n,F):
     Quadratic residue codes of a given odd prime length and base ring
     either don't exist at all or occur as 4-tuples - a pair of
     "odd-like" codes and a pair of "even-like" codes. If `n > 2` is prime
-    then (Theorem 6.6.2 in [HP]_) a QR code exists over `GF(q)` iff q is a
+    then (Theorem 6.6.2 in [HP2003]_) a QR code exists over `GF(q)` iff q is a
     quadratic residue mod `n`.
 
     They are constructed as "even-like" duadic codes associated the
@@ -897,15 +866,15 @@ def QuadraticResidueCodeEvenPair(n,F):
 
     EXAMPLES::
 
-        sage: codes.QuadraticResidueCodeEvenPair(17,GF(13))
-        (Linear code of length 17, dimension 8 over Finite Field of size 13,
-         Linear code of length 17, dimension 8 over Finite Field of size 13)
-        sage: codes.QuadraticResidueCodeEvenPair(17,GF(2))
-        (Linear code of length 17, dimension 8 over Finite Field of size 2,
-         Linear code of length 17, dimension 8 over Finite Field of size 2)
+        sage: codes.QuadraticResidueCodeEvenPair(17, GF(13))
+        ([17, 8] Cyclic Code over GF(13),
+         [17, 8] Cyclic Code over GF(13))
+        sage: codes.QuadraticResidueCodeEvenPair(17, GF(2))
+        ([17, 8] Cyclic Code over GF(2),
+         [17, 8] Cyclic Code over GF(2))
         sage: codes.QuadraticResidueCodeEvenPair(13,GF(9,"z"))
-        (Linear code of length 13, dimension 6 over Finite Field in z of size 3^2,
-         Linear code of length 13, dimension 6 over Finite Field in z of size 3^2)
+        ([13, 6] Cyclic Code over GF(9),
+         [13, 6] Cyclic Code over GF(9))
         sage: C1,C2 = codes.QuadraticResidueCodeEvenPair(7,GF(2))
         sage: C1.is_self_orthogonal()
         True
@@ -913,10 +882,10 @@ def QuadraticResidueCodeEvenPair(n,F):
         True
         sage: C3 = codes.QuadraticResidueCodeOddPair(17,GF(2))[0]
         sage: C4 = codes.QuadraticResidueCodeEvenPair(17,GF(2))[1]
-        sage: C3 == C4.dual_code()
+        sage: C3.systematic_generator_matrix() == C4.dual_code().systematic_generator_matrix()
         True
 
-    This is consistent with Theorem 6.6.9 and Exercise 365 in [HP]_.
+    This is consistent with Theorem 6.6.9 and Exercise 365 in [HP2003]_.
 
     TESTS::
 
@@ -952,7 +921,7 @@ def QuadraticResidueCodeOddPair(n,F):
     Quadratic residue codes of a given odd prime length and base ring
     either don't exist at all or occur as 4-tuples - a pair of
     "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
-    then (Theorem 6.6.2 in [HP]_) a QR code exists over GF(q) iff q is a
+    then (Theorem 6.6.2 in [HP2003]_) a QR code exists over GF(q) iff q is a
     quadratic residue mod n.
 
     They are constructed as "odd-like" duadic codes associated the
@@ -961,28 +930,28 @@ def QuadraticResidueCodeOddPair(n,F):
 
     EXAMPLES::
 
-        sage: codes.QuadraticResidueCodeOddPair(17,GF(13))
-        (Linear code of length 17, dimension 9 over Finite Field of size 13,
-         Linear code of length 17, dimension 9 over Finite Field of size 13)
-        sage: codes.QuadraticResidueCodeOddPair(17,GF(2))
-        (Linear code of length 17, dimension 9 over Finite Field of size 2,
-         Linear code of length 17, dimension 9 over Finite Field of size 2)
-        sage: codes.QuadraticResidueCodeOddPair(13,GF(9,"z"))
-        (Linear code of length 13, dimension 7 over Finite Field in z of size 3^2,
-         Linear code of length 13, dimension 7 over Finite Field in z of size 3^2)
-        sage: C1 = codes.QuadraticResidueCodeOddPair(17,GF(2))[1]
+        sage: codes.QuadraticResidueCodeOddPair(17, GF(13))
+        ([17, 9] Cyclic Code over GF(13),
+         [17, 9] Cyclic Code over GF(13))
+        sage: codes.QuadraticResidueCodeOddPair(17, GF(2))
+        ([17, 9] Cyclic Code over GF(2),
+         [17, 9] Cyclic Code over GF(2))
+        sage: codes.QuadraticResidueCodeOddPair(13, GF(9,"z"))
+        ([13, 7] Cyclic Code over GF(9),
+         [13, 7] Cyclic Code over GF(9))
+        sage: C1 = codes.QuadraticResidueCodeOddPair(17, GF(2))[1]
         sage: C1x = C1.extended_code()
-        sage: C2 = codes.QuadraticResidueCodeOddPair(17,GF(2))[0]
+        sage: C2 = codes.QuadraticResidueCodeOddPair(17, GF(2))[0]
         sage: C2x = C2.extended_code()
         sage: C2x.spectrum(); C1x.spectrum()
         [1, 0, 0, 0, 0, 0, 102, 0, 153, 0, 153, 0, 102, 0, 0, 0, 0, 0, 1]
         [1, 0, 0, 0, 0, 0, 102, 0, 153, 0, 153, 0, 102, 0, 0, 0, 0, 0, 1]
-        sage: C3 = codes.QuadraticResidueCodeOddPair(7,GF(2))[0]
+        sage: C3 = codes.QuadraticResidueCodeOddPair(7, GF(2))[0]
         sage: C3x = C3.extended_code()
         sage: C3x.spectrum()
         [1, 0, 0, 0, 14, 0, 0, 0, 1]
 
-    This is consistent with Theorem 6.6.14 in [HP]_.
+    This is consistent with Theorem 6.6.14 in [HP2003]_.
 
     TESTS::
 
@@ -1021,7 +990,7 @@ def random_linear_code(F, length, dimension):
 
         sage: C = codes.random_linear_code(GF(2), 10, 3)
         sage: C
-        Linear code of length 10, dimension 3 over Finite Field of size 2
+        [10, 3] linear code over GF(2)
         sage: C.generator_matrix().rank()
         3
     """
@@ -1040,7 +1009,7 @@ def RandomLinearCode(n, k, F):
         doctest:...: DeprecationWarning: codes.RandomLinearCode(n, k, F) is deprecated. Please use codes.random_linear_code(F, n, k) instead
         See http://trac.sagemath.org/21165 for details.
         sage: C
-        Linear code of length 10, dimension 3 over Finite Field of size 2
+        [10, 3] linear code over GF(2)
         sage: C.generator_matrix().rank()
         3
     """
@@ -1075,7 +1044,7 @@ def TernaryGolayCode():
 
         sage: C = codes.TernaryGolayCode()
         sage: C
-        Linear code of length 11, dimension 6 over Finite Field of size 3
+        [11, 6] linear code over GF(3)
         sage: C.minimum_distance()
         5
         sage: C.minimum_distance(algorithm='gap') # long time, check d=5
@@ -1105,7 +1074,7 @@ def ToricCode(P,F):
     The associated toric code `C` is the evaluation code which
     is the image of the evaluation map
 
-    .. math::
+    .. MATH::
 
         \mathrm{eval_T} : V \rightarrow F^n,
 
@@ -1115,7 +1084,7 @@ def ToricCode(P,F):
     `x^e = x_1^{e_1}...x_d^{e_d}`), where
     `eval_T (f(x)) = (f(t_1),...,f(t_n))`, and where
     `T=\{t_1,...,t_n\}`. This function returns the toric
-    codes discussed in [J]_.
+    codes discussed in [Joy2004]_.
 
     INPUT:
 
@@ -1133,17 +1102,17 @@ def ToricCode(P,F):
 
          sage: C = codes.ToricCode([[0,0],[1,0],[2,0],[0,1],[1,1]],GF(7))
          sage: C
-         Linear code of length 36, dimension 5 over Finite Field of size 7
+         [36, 5] linear code over GF(7)
          sage: C.minimum_distance()
          24
          sage: C = codes.ToricCode([[-2,-2],[-1,-2],[-1,-1],[-1,0],[0,-1],[0,0],[0,1],[1,-1],[1,0]],GF(5))
          sage: C
-         Linear code of length 16, dimension 9 over Finite Field of size 5
+         [16, 9] linear code over GF(5)
          sage: C.minimum_distance()
          6
          sage: C = codes.ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8,"a"))
          sage: C
-         Linear code of length 49, dimension 11 over Finite Field in a of size 2^3
+         [49, 11] linear code over GF(8)
 
     This is in fact a [49,11,28] code over GF(8). If you type next
     ``C.minimum_distance()`` and wait overnight (!), you
@@ -1152,11 +1121,6 @@ def ToricCode(P,F):
     AUTHOR:
 
     - David Joyner (07-2006)
-
-    REFERENCES:
-
-    .. [J] \D. Joyner, Toric codes over finite fields, Applicable
-       Algebra in Engineering, Communication and Computing, 15, (2004), p. 63-79.
     """
     from sage.combinat.all import Tuples
     mset = [x for x in F if x!=0]
@@ -1183,9 +1147,9 @@ def WalshCode(m):
     EXAMPLES::
 
         sage: C = codes.WalshCode(4); C
-        Linear code of length 16, dimension 4 over Finite Field of size 2
+        [16, 4] linear code over GF(2)
         sage: C = codes.WalshCode(3); C
-        Linear code of length 8, dimension 3 over Finite Field of size 2
+        [8, 3] linear code over GF(2)
         sage: C.spectrum()
         [1, 0, 0, 0, 7, 0, 0, 0, 0]
         sage: C.minimum_distance()

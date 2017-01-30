@@ -82,7 +82,7 @@ combinatorial functions:
 
 -  gaussian_binomial the gaussian binomial
 
-.. math::
+.. MATH::
 
              \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}                              {(1-q)(1-q^2)\cdots (1-q^r)}.
 
@@ -1088,7 +1088,7 @@ class CombinatorialObject(SageObject):
             sage: c + [4]
             [1, 2, 3, 4]
             sage: type(_)
-            <type 'list'>
+            <... 'list'>
         """
         return self._list + other
 
@@ -1112,7 +1112,7 @@ class CombinatorialObject(SageObject):
             self._hash = hash(str(self._list))
         return self._hash
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is non-zero.
 
@@ -1158,6 +1158,8 @@ class CombinatorialObject(SageObject):
         """
         return bool(self._list)
 
+    __nonzero__ = __bool__
+
     def __len__(self):
         """
         EXAMPLES::
@@ -1180,7 +1182,7 @@ class CombinatorialObject(SageObject):
             sage: c[1:]
             [2, 3]
             sage: type(_)
-            <type 'list'>
+            <... 'list'>
         """
         return self._list[key]
 
@@ -1491,7 +1493,7 @@ class CombinatorialClass(Parent):
             sage: p5 = Partitions(5)
             sage: a = [2,2,1]
             sage: type(a)
-            <type 'list'>
+            <... 'list'>
             sage: a = p5(a)
             sage: type(a)
             <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>

@@ -15,7 +15,8 @@ pre-built binaries.
 
 Assumptions: You have a computer with at least 2 GB of free
 disk space and the operating system is Linux (32-bit or 64-bit) or
-OS X (10.4 or later).
+OS X (10.4 or later). An SSL library (OpenSSL recommended) is
+installed in your operating system.
 
 Highly Recommended: It is highly recommended that you have LaTeX
 installed.  If you want to view animations, you should install either

@@ -288,7 +288,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
         # Should ensure that 'a' is a scalar
         return self.parent()(a * self.element())
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         General comparison method for ``HarmonicCocycles``
 
@@ -305,11 +305,26 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: 2*v1 == v2-v1
             True
         """
-        for e in range(self._nE):
-            c = cmp(self._F[e], other._F[e])
-            if c:
-                return c
-        return 0
+        return all(self._F[e] == other._F[e] for e in range(self._nE))
+
+    def __ne__(self, other):
+        r"""
+        General comparison method for ``HarmonicCocycles``
+
+        INPUT:
+
+        - ``other`` - Another harmonic cocycle
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(11,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
+            sage: v1 = H.basis()[0]
+            sage: v2 = 3*v1 # indirect doctest
+            sage: 2*v1 != v2-v1
+            False
+        """
+        return not self.__eq__(other)
 
     def _repr_(self):
         r"""
@@ -322,7 +337,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: H.basis()[0] # indirect doctest
             Harmonic cocycle with values in Sym^0 Q_5^2
         """
-        return 'Harmonic cocycle with values in %s' % (self.parent()._U)
+        return 'Harmonic cocycle with values in %s' % self.parent()._U
 
     def monomial_coefficients(self):
         r"""
@@ -973,7 +988,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             return True
         return False
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Test whether two BruhatTitsHarmonicCocycle spaces are equal.
 
@@ -993,16 +1008,31 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: H1 == H2
             True
         """
-        res = cmp(self.base_ring(), other.base_ring())
-        if res:
-            return res
-        res = cmp(self._X, other._X)
-        if res:
-            return res
-        res = cmp(self._k, other._k)
-        if res:
-            return res
-        return 0
+        return (self.base_ring() == other.base_ring() and
+                self._X == other._X and
+                self._k == other._k)
+
+    def __ne__(self, other):
+        r"""
+        Test whether two BruhatTitsHarmonicCocycle spaces are not equal.
+
+        INPUT:
+
+        - ``other`` - a BruhatTitsHarmonicCocycles class.
+
+        OUTPUT:
+
+        A boolean value
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.harmonic_cocycles(2,prec=10)
+            sage: H2 = X.harmonic_cocycles(2,prec=10)
+            sage: H1 != H2
+            False
+        """
+        return not self.__eq__(other)
 
     def _element_constructor_(self, x):
         r"""
@@ -1581,7 +1611,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
                for e in range(self._num_generators)]
         return self.parent()(vec)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Test for equality of pAdicAutomorphicForm elements
 
@@ -1599,11 +1629,28 @@ class pAdicAutomorphicFormElement(ModuleElement):
             sage: 2*v1 == v2-v1 # indirect doctest
             True
         """
-        for e in range(self._num_generators):
-            c = cmp(self._value[e], other._value[e])
-            if c:
-                return c
-        return 0
+        return all(self._value[e] == other._value[e]
+                   for e in range(self._num_generators))
+
+    def __ne__(self, other):
+        r"""
+        Test for equality of pAdicAutomorphicForm elements
+
+        INPUT:
+
+        - ``other`` - Another `p`-automorphic form
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,23)
+            sage: H = X.harmonic_cocycles(2,prec=10)
+            sage: A = X.padic_automorphic_forms(2,prec=10)
+            sage: v1 = A(H.basis()[0])
+            sage: v2 = 3*v1
+            sage: 2*v1 == v2-v1 # indirect doctest
+            True
+        """
+        return not self.__eq__(other)
 
     def __bool__(self):
         """
@@ -2305,7 +2352,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         """
         return self.element_class(self, [self._U(0) for o in self._list])
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Test whether two pAdicAutomorphicForm spaces are equal.
 
@@ -2325,16 +2372,31 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             sage: H1 == H2
             True
         """
-        res = cmp(self.base_ring(), other.base_ring())
-        if res:
-            return res
-        res = cmp(self._source, other._source)
-        if res:
-            return res
-        res = cmp(self._U, other._U)
-        if res:
-            return res
-        return 0
+        return (self.base_ring() == other.base_ring() and
+                self._source == other._source and
+                self._U == other._U)
+
+    def __ne__(self, other):
+        r"""
+        Test whether two pAdicAutomorphicForm spaces are not equal.
+
+        INPUT:
+
+        - ``other`` - another space of `p`-automorphic forms.
+
+        OUTPUT:
+
+        A boolean value
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.padic_automorphic_forms(2,prec = 10)
+            sage: H2 = X.padic_automorphic_forms(2,prec = 10)
+            sage: H1 == H2
+            True
+        """
+        return not self.__eq__(other)
 
     def _repr_(self):
         r"""

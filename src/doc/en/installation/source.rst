@@ -22,7 +22,7 @@ although the procedure is fully automated and should need no human
 intervention.
 
 Building Sage from the source code has the major advantage that your install
-will be optimised for your particular computer and should therefore offer
+will be optimized for your particular computer and should therefore offer
 better performance and compatibility than a binary install.
 Moreover, it offers you full development capabilities:
 you can change absolutely any part of Sage or the programs on which it depends,
@@ -114,7 +114,7 @@ has proved that :
      least GnuTLS).
 
    * Sage's ``-pip`` facility (used to install some Sage packages) is
-     disabled when Sage is compiled agaonst those libraries.
+     disabled when Sage is compiled against those libraries.
 
 Furthermore, the Sage license mention that the ``hashlib`` library
 (used in Sage) uses OpenSSL.
@@ -337,7 +337,7 @@ Make sure you have C, C++, and Fortran compilers installed!
 
 Building all of Sage with Clang is currently not supported, see :trac:`12426`.
 
-If you are interested in working on support for commerical compilers from
+If you are interested in working on support for commercial compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
 `IBM <http://www-01.ibm.com/software/awdtools/xlcpp/>`_,
 `Intel <http://software.intel.com/en-us/articles/intel-compilers/>`_,
@@ -354,7 +354,7 @@ Recommended programs
 
 The following programs are recommended.
 They are not strictly required at build time or at run time,
-but provide additional capablities:
+but provide additional capabilities:
 
 - **dvipng**.
 - **ffmpeg**.
@@ -572,7 +572,7 @@ Running Sage from a directory with spaces in its name will also fail.
    we appreciate everything.)
 
    See :ref:`section_make` for some targets for the ``make`` command,
-   :ref:`section_envvar` for additional informatio on useful environment
+   :ref:`section_envvar` for additional information on useful environment
    variables used by Sage,
    and :ref:`section_notebook_ssl` for additional instruction on how to build
    the notebook with SSL support.
@@ -1277,7 +1277,7 @@ Sage overrides the user's settings of the following variables:
 
 - :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
   matplotlib config directory.
-  Due to incompatibilies in the contents of this directory among different
+  Due to incompatibilities in the contents of this directory among different
   versions of matplotlib, Sage overrides the user's setting, defining it
   instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
   current matplotlib version number.

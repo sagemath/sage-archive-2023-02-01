@@ -207,7 +207,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
         HeckeModuleElement.__init__(self, _parent, None)
         self._parent = _parent
         assert type(vec) is list
-        assert all([v.parent() is _parent._U for v in vec])
+        assert all(v.parent() is _parent._U for v in vec)
         self._R = _parent._U.base_ring()
         self._wt = _parent._k
         self._nE = len(_parent._E)
@@ -385,7 +385,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
         if self == 0:
             return Infinity
         else:
-            return min([self._F[e].valuation() for e in range(self._nE)])
+            return min(self._F[e].valuation() for e in range(self._nE))
 
     def _compute_element(self):
         r"""

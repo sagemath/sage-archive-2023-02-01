@@ -978,7 +978,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         INPUT:
 
-        - ``other`` - a BruhatTitsHarmonicCocycles class.
+        - ``other`` -- a BruhatTitsHarmonicCocycles class.
 
         OUTPUT:
 
@@ -1005,7 +1005,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         INPUT:
 
-        - ``other`` - a BruhatTitsHarmonicCocycles class.
+        - ``other`` -- a BruhatTitsHarmonicCocycles class.
 
         OUTPUT:
 
@@ -2331,7 +2331,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``other`` - another space of `p`-automorphic forms.
+        - ``other`` -- another space of `p`-automorphic forms.
 
         OUTPUT:
 
@@ -2358,7 +2358,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``other`` - another space of `p`-automorphic forms.
+        - ``other`` -- another space of `p`-automorphic forms.
 
         OUTPUT:
 

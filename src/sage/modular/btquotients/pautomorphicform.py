@@ -18,28 +18,23 @@ looking at [FM]_ for information on how these are implemented in this code.
 
 EXAMPLES:
 
-Create a quotient of the Bruhat-Tits tree
-::
+Create a quotient of the Bruhat-Tits tree::
 
     sage: X = BruhatTitsQuotient(13,11)
 
-Declare the corresponding space of harmonic cocycles
-::
+Declare the corresponding space of harmonic cocycles::
 
     sage: H = X.harmonic_cocycles(2,prec=5)
 
-And the space of `p`-adic automorphic forms
-::
+And the space of `p`-adic automorphic forms::
 
     sage: A = X.padic_automorphic_forms(2,prec=5,overconvergent=True)
 
-Harmonic cocycles, unlike `p`-adic automorphic forms, can be used to compute a basis.
-::
+Harmonic cocycles, unlike `p`-adic automorphic forms, can be used to compute a basis::
 
     sage: a = H.gen(0)
 
-This can then be lifted to an overconvergent `p`-adic modular form.
-::
+This can then be lifted to an overconvergent `p`-adic modular form::
 
     sage: A.lift(a) # long time
     p-adic automorphic form of cohomological weight 0
@@ -56,6 +51,8 @@ from builtins import zip
 
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import op_EQ, op_NE
+
 from sage.matrix.matrix_space import MatrixSpace
 from sage.structure.element import ModuleElement
 from sage.modules.module import Module
@@ -288,7 +285,7 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
         # Should ensure that 'a' is a scalar
         return self.parent()(a * self.element())
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         General comparison method for ``HarmonicCocycles``
 
@@ -305,26 +302,11 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: 2*v1 == v2-v1
             True
         """
-        return all(self._F[e] == other._F[e] for e in range(self._nE))
+        if op not in [op_EQ, op_NE]:
+            return NotImplemented
 
-    def __ne__(self, other):
-        r"""
-        General comparison method for ``HarmonicCocycles``
-
-        INPUT:
-
-        - ``other`` - Another harmonic cocycle
-
-        EXAMPLES::
-
-            sage: X = BruhatTitsQuotient(11,23)
-            sage: H = X.harmonic_cocycles(2,prec=10)
-            sage: v1 = H.basis()[0]
-            sage: v2 = 3*v1 # indirect doctest
-            sage: 2*v1 != v2-v1
-            False
-        """
-        return not self.__eq__(other)
+        if all(self._F[e] == other._F[e] for e in range(self._nE)):
+            return op == op_EQ
 
     def _repr_(self):
         r"""
@@ -1008,6 +990,9 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: H1 == H2
             True
         """
+        if not isinstance(other, BruhatTitsHarmonicCocycles):
+            return False
+
         return (self.base_ring() == other.base_ring() and
                 self._X == other._X and
                 self._k == other._k)
@@ -1611,7 +1596,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
                for e in range(self._num_generators)]
         return self.parent()(vec)
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Test for equality of pAdicAutomorphicForm elements
 
@@ -1629,28 +1614,12 @@ class pAdicAutomorphicFormElement(ModuleElement):
             sage: 2*v1 == v2-v1 # indirect doctest
             True
         """
-        return all(self._value[e] == other._value[e]
-                   for e in range(self._num_generators))
+        if op not in [op_EQ, op_NE]:
+            return NotImplemented
 
-    def __ne__(self, other):
-        r"""
-        Test for equality of pAdicAutomorphicForm elements
-
-        INPUT:
-
-        - ``other`` - Another `p`-automorphic form
-
-        EXAMPLES::
-
-            sage: X = BruhatTitsQuotient(5,23)
-            sage: H = X.harmonic_cocycles(2,prec=10)
-            sage: A = X.padic_automorphic_forms(2,prec=10)
-            sage: v1 = A(H.basis()[0])
-            sage: v2 = 3*v1
-            sage: 2*v1 == v2-v1 # indirect doctest
-            True
-        """
-        return not self.__eq__(other)
+        if all(self._value[e] == other._value[e]
+               for e in range(self._num_generators)):
+            return op == op_EQ
 
     def __bool__(self):
         """
@@ -2372,6 +2341,9 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             sage: H1 == H2
             True
         """
+        if not isinstance(other, pAdicAutomorphicForms):
+            return False
+
         return (self.base_ring() == other.base_ring() and
                 self._source == other._source and
                 self._U == other._U)

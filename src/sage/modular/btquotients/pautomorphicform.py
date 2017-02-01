@@ -109,7 +109,7 @@ class _btquot_adjuster(Sigma0ActionAdjuster):
             (3, 1, 2, 0)
         """
         a, b, c, d = g.list()
-        return tuple([d, b, c, a])
+        return (d, b, c, a)
 
 
 def eval_dist_at_powseries(phi, f):
@@ -305,8 +305,10 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
         if op not in [op_EQ, op_NE]:
             return NotImplemented
 
-        if all(self._F[e] == other._F[e] for e in range(self._nE)):
-            return op == op_EQ
+        b = all(self._F[e] == other._F[e] for e in range(self._nE))
+        if op == op_EQ:
+            return b
+        return not b
 
     def _repr_(self):
         r"""
@@ -1617,9 +1619,11 @@ class pAdicAutomorphicFormElement(ModuleElement):
         if op not in [op_EQ, op_NE]:
             return NotImplemented
 
-        if all(self._value[e] == other._value[e]
-               for e in range(self._num_generators)):
-            return op == op_EQ
+        b = all(self._value[e] == other._value[e]
+                for e in range(self._num_generators))
+        if op == op_EQ:
+            return b
+        return not b
 
     def __bool__(self):
         """
@@ -1764,8 +1768,8 @@ class pAdicAutomorphicFormElement(ModuleElement):
             sage: (17*a).valuation()
             1
         """
-        return min([self._value[e].valuation()
-                    for e in range(self._num_generators)])
+        return min(self._value[e].valuation()
+                   for e in range(self._num_generators))
 
     def _improve(self, hc):
         r"""
@@ -2062,8 +2066,8 @@ class pAdicAutomorphicFormElement(ModuleElement):
                 V = [v.derivative(y) for v in V] + [k / (y - zbar) * v
                                                     for v in V]
                 k += 2
-            return sum([self.integrate(subst(v), center, level, method)
-                        for v in V])
+            return sum(self.integrate(subst(v), center, level, method)
+                       for v in V)
         if z is None:
             return F
 
@@ -2572,7 +2576,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             Si = S[ii]
             x = self._U(F[ii])
 
-            if any([v[2] for v in Si]):
+            if any(v[2] for v in Si):
                 newFi = self._U(0)
                 s = QQ(0)
                 m = M[ii]

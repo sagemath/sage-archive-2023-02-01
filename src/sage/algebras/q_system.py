@@ -38,7 +38,7 @@ class QSystem(CombinatorialFreeModule):
 
     Let `\mathfrak{g}` be a tamely-laced symmetrizable Kac-Moody algebra
     with index set `I` over a field `k`. Follow the presentation given
-    in [HKOTY99]_, an unrestricted Q-system is a `k`-algebra in infinitely
+    in [HKOTY1999]_, an unrestricted Q-system is a `k`-algebra in infinitely
     many variables `Q^{(a)}_m`, where `a \in I` and `m \in \ZZ_{>0}`,
     that satisifies the relations
 
@@ -198,9 +198,9 @@ class QSystem(CombinatorialFreeModule):
 
             sage: Q = QSystem(QQ, ['A',4])
             sage: ascii_art(Q.an_element())
-                                 2        2        3
-                    (1)   (  (1))  (  (2))  (  (3))        (2)
-            1 + 2*Q1    + (Q1   ) *(Q1   ) *(Q1   )  + 3*Q1
+                               2       2       3
+                   (1)   ( (1))  ( (2))  ( (3))       (2)
+            1 + 2*Q1   + (Q1  ) *(Q1  ) *(Q1  )  + 3*Q1
         """
         from sage.typeset.ascii_art import AsciiArt
         if t == self.one_basis():
@@ -213,7 +213,7 @@ class QSystem(CombinatorialFreeModule):
             else:
                 first = False
             a,m = k
-            var = AsciiArt([" "*(len(str(m))+1) + "({})".format(a),
+            var = AsciiArt([" ({})".format(a),
                             "Q{}".format(m)],
                            baseline=0)
             #print var
@@ -233,8 +233,7 @@ class QSystem(CombinatorialFreeModule):
 
             sage: Q = QSystem(QQ, ['A',4])
             sage: unicode_art(Q.an_element())
-                                 2        2        3
-            1 + 2*Q₁⁽¹⁾ + (Q₁⁽¹⁾) ·(Q₁⁽²⁾) ·(Q₁⁽³⁾)  + 3*Q₁⁽²⁾
+            1 + 2*Q₁⁽¹⁾ + (Q₁⁽¹⁾)²(Q₁⁽²⁾)²(Q₁⁽³⁾)³ + 3*Q₁⁽²⁾
         """
         from sage.typeset.unicode_art import UnicodeArt
         if t == self.one_basis():
@@ -250,18 +249,12 @@ class QSystem(CombinatorialFreeModule):
             return u''.join(subs[i] for i in str(x))
 
         ret = UnicodeArt("")
-        first = True
         for k, exp in t._sorted_items():
-            if not first:
-                ret += UnicodeArt([u'·'], baseline=0)
-            else:
-                first = False
             a,m = k
             var = UnicodeArt([u"Q" + to_sub(m) + u'⁽' + to_super(a) + u'⁾'], baseline=0)
             if exp > 1:
-                var = (UnicodeArt(['('], baseline=0) + var
-                       + UnicodeArt([')'], baseline=0))
-                var = UnicodeArt([" "*len(var) + str(exp)], baseline=-1) * var
+                var = (UnicodeArt([u'('], baseline=0) + var
+                       + UnicodeArt([u')' + to_super(exp)], baseline=0))
             ret += var
         return ret
 
@@ -358,18 +351,6 @@ class QSystem(CombinatorialFreeModule):
             +Infinity
         """
         return infinity
-
-    # TODO: Once T-systems are implemented
-    #def _coerce_map_from_(self, M):
-    #    """
-    #    Return a morphism if there is a coercion map from ``M``
-    #    into ``self``.
-    #    """
-    #    if isinstance(M, TSystem):
-    #        if (M.cartan_type() == self.cartan_type()
-    #            and self.base_ring().has_coerce_map_from(M.base_ring())):
-    #            return M.module_morphism(M.restriction_on_basis, codomain=self)
-    #    return super(QSystem._BasisAbstract, self)._coerce_map_from_(M)
 
     def Q(self, a, m):
         r"""

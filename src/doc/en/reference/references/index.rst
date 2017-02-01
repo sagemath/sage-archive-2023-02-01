@@ -925,8 +925,8 @@ REFERENCES:
             (1963).
 
 .. [KNS2011] Atsuo Kuniba and Tomoki Nakanishi and Junji Suzuki,
-             `T`*-systems and* `Y`*-systems in integrable systems*.
-             J. Phys. A, **44** (2011), no. 10.
+             `T`-*systems and* `Y`-*systems in integrable systems*.
+             \J. Phys. A, **44** (2011), no. 10.
 
 .. [KnotAtlas] The Knot atlas. http://katlas.org/wiki/Main_Page
 

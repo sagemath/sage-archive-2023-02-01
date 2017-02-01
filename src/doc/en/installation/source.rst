@@ -908,6 +908,8 @@ Here are some of the more commonly used variables affecting the build process:
 
     make -s V=0
 
+  (Note that the above uses the syntax of setting a Makefile variable.)
+
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
   or when installing packages manually,
   run the test suite for each package which has one.

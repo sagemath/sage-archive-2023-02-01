@@ -16,6 +16,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 from libc.math cimport sqrt
@@ -23,8 +24,8 @@ from libc.math cimport sqrt
 
 include "cysignals/signals.pxi"
 
-cimport integer
-import integer
+cimport sage.rings.integer as integer
+from . import integer
 
 cdef int two_squares_c(uint_fast32_t n, uint_fast32_t res[2]):
     r"""

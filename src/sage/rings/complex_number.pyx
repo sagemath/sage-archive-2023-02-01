@@ -22,6 +22,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 import math
@@ -34,8 +35,8 @@ from .complex_double cimport ComplexDoubleElement
 from .real_mpfr cimport RealNumber
 
 import sage.misc.misc
-import integer
-import infinity
+import sage.rings.integer as integer
+import sage.rings.infinity as infinity
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 from sage.rings.integer_ring import ZZ
@@ -2092,7 +2093,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if base is None:
             return ComplexNumber(self._parent, rho.log(), theta)
         else:
-            from real_mpfr import RealField
+            from .real_mpfr import RealField
             return ComplexNumber(self._parent, rho.log()/RealNumber(RealField(self.prec()),base).log(), theta/RealNumber(RealField(self.prec()),base).log())
 
     def additive_order(self):
@@ -2356,7 +2357,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             Infinity
         """
         if mpfr_zero_p(self.__im) and mpfr_cmp_ui(self.__re, 1) == 0:
-            import infinity
             return infinity.unsigned_infinity
         return self._parent(self._pari_().zeta())
 

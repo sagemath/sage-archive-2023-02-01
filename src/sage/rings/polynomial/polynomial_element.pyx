@@ -41,6 +41,7 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 cdef is_FractionField, is_RealField, is_ComplexField
@@ -53,7 +54,7 @@ import operator, copy, re
 
 import sage.rings.rational
 import sage.rings.integer
-import polynomial_ring
+from . import polynomial_ring
 import sage.rings.integer_ring
 import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
@@ -99,7 +100,7 @@ from sage.misc.derivative import multi_derivative
 from sage.arith.all import (sort_complex_numbers_for_display,
         power_mod, lcm, is_prime)
 
-import polynomial_fateman
+from . import polynomial_fateman
 
 from sage.rings.ideal import is_Ideal
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -154,7 +155,7 @@ cpdef is_Polynomial(f):
 
 from .polynomial_compiled cimport CompiledPolynomialFunction
 
-from polydict import ETuple
+from .polydict import ETuple
 
 cdef object is_AlgebraicRealField
 cdef object is_AlgebraicField

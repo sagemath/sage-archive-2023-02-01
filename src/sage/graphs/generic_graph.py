@@ -176,6 +176,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_interval` | Check whether self is an interval graph
     :meth:`~GenericGraph.is_gallai_tree` | Return whether the current graph is a Gallai tree.
     :meth:`~GenericGraph.is_clique` | Test whether a set of vertices is a clique
+    :meth:`~GenericGraph.is_cycle` | Test whether self is a (directed) cycle graph.
     :meth:`~GenericGraph.is_independent_set` | Test whether a set of vertices is an independent set
     :meth:`~GenericGraph.is_transitively_reduced` | Test whether the digraph is transitively reduced.
     :meth:`~GenericGraph.is_equitable` | Check whether the given partition is equitable with respect to self.
@@ -12849,6 +12850,84 @@ class GenericGraph(GenericGraph_pyx):
 
             n=subgraph.order()
             return subgraph.size()==n*(n-1)/2
+
+    def is_cycle(self, directed_cycle=True):
+        r"""
+        Test whether ``self`` is a (directed) cycle graph.
+
+        We follow the definition provided in [BM2008]_ for undirected graphs. A
+        cycle on three or more vertices is a simple graph whose vertices can be
+        arranged in a cyclic order so that two vertices are adjacent if they are
+        consecutive in the order, and not adjacent otherwise. A cycle on a
+        vertex consists of a single vertex provided with a loop and a cycle with
+        two vertices consists of two vertices connected by a pair of parallel
+        edges. In other words, an undirected graph is a cycle if it is 2-regular
+        and connected. The empty graph is not a cycle.
+
+        For directed graphs, a directed cycle, or circuit, on two or more
+        vertices is a strongly connected directed graph without loops nor
+        multiple edges with has many arcs as vertices. A circuit on a vertex
+        consists of a single vertex provided with a loop.
+
+        INPUT:
+
+        - ``directed_cycle`` -- (default ``True``) If set to ``True`` and the
+          graph is directed, only return ``True`` if ``self`` is a directed
+          cycle graph (i.e., a circuit). If set to ``False``, we ignore the
+          direction of edges and so opposite arcs become multiple (parallel)
+          edges. This parameter is ignored for undirected graphs.
+
+        EXAMPLES::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.is_cycle()
+            False
+            sage: graphs.CycleGraph(5).is_cycle()
+            True
+            sage: Graph([(0,1)]).is_cycle()
+            False
+            sage: Graph([(0,1), (0,1)], multiedges=True).is_cycle()
+            True
+            sage: Graph([(0,1), (0,1), (0,1)], multiedges=True).is_cycle()
+            False
+            sage: Graph().is_cycle()
+            False
+            sage: G = Graph(); G.allow_loops(True); G.add_edge(0,0)
+            sage: G.is_cycle()
+            True
+            sage: digraphs.Circuit(3).is_cycle()
+            True
+            sage: digraphs.Circuit(2).is_cycle()
+            True
+            sage: digraphs.Circuit(2).is_cycle(directed_cycle = False)
+            True
+            sage: D = DiGraph( graphs.CycleGraph(3) )
+            sage: D.is_cycle()
+            False
+            sage: D.is_cycle(directed_cycle = False)
+            False
+            sage: D.edges(labels = False)
+            [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
+        """
+        if not self.order():
+            # The empty graph is not a cycle
+            return False
+        elif self.order() == 1:
+            # A (di)graph of order one is a cycle if it has a single loop
+            return self.size() == 1
+
+        g = self
+        if g._directed:
+            if directed_cycle:
+                return g.order() == g.size() and g.is_strongly_connected()
+            else:
+                # We make a copy of self ignoring the direction of edges
+                from sage.graphs.graph import Graph
+                g = Graph(multiedges = True)
+                g.allow_loops(True)
+                g.add_edges(self.edges(labels=False))
+
+        return g.is_regular(k=2) and g.is_connected()
 
     def is_independent_set(self, vertices=None):
         """

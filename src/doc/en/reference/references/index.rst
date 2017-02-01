@@ -243,6 +243,9 @@ REFERENCES:
             (arxiv:0710.5614) to appear in Ergodic Theory and
             Dynamical Systems.
 
+.. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
+            244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
+
 .. [BM2003] Bazzi and Mitter, {\it Some constructions of codes from
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).

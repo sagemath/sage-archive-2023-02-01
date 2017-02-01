@@ -22,7 +22,7 @@ although the procedure is fully automated and should need no human
 intervention.
 
 Building Sage from the source code has the major advantage that your install
-will be optimised for your particular computer and should therefore offer
+will be optimized for your particular computer and should therefore offer
 better performance and compatibility than a binary install.
 Moreover, it offers you full development capabilities:
 you can change absolutely any part of Sage or the programs on which it depends,
@@ -100,6 +100,33 @@ computer:
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
 - **python**: Python >= 2.6.
+
+
+Libraries
+^^^^^^^^^
+
+Some Sage components (and among them, most notably, Python) *"use the
+OpenSSL library for added performance if made available by the
+operating system"* (literal quote from the Python license). Testing
+has proved that :
+
+   * Sage can be successfully built against other SSL libraries (at
+     least GnuTLS).
+
+   * Sage's ``-pip`` facility (used to install some Sage packages) is
+     disabled when Sage is compiled against those libraries.
+
+Furthermore, the Sage license mention that the ``hashlib`` library
+(used in Sage) uses OpenSSL.
+
+Therefore, the OpenSSL library is recommended. However, Sage's license
+seems to clash with OpenSSL license, which makes the distribution of
+OpenSSL along with Sage sources dubious. However, there is no problem
+for Sage using a systemwide-installed OpenSSL library.
+
+In any case, you must install systemwide your chosen library and its
+development files.
+
 
 Fortran and compiler suites
 ###########################
@@ -189,21 +216,25 @@ you would use
 `apt-get <http://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
 
      # debian
-     sudo apt-get install binutils gcc make m4 perl tar git
+     sudo apt-get install binutils gcc make m4 perl tar git openssl libssl-dev
 
      # redhat
-     sudo yum install binutils gcc make m4 perl tar git perl-ExtUtils-MakeMaker
+     sudo yum install binutils gcc make m4 perl tar git \
+     perl-ExtUtils-MakeMaker openssl openssl-devel
      
 to install all general requirements, or, if you don't want Sage to build its
 own GCC::
 
      # debian
-     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar git
+     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar \
+     git openssl libssl-dev
 
      # redhat
-     sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl tar git perl-ExtUtils-MakeMaker
+     sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl \
+     tar git perl-ExtUtils-MakeMaker openssl openssl-devel
      
-(This was tested on Ubuntu 12.04.2.)
+(These examples suppose that you choose to use a systemwide OpenSSL
+library. This was tested on Ubuntu 12.04.2.)
 On other Linux systems, you might use
 `rpm <http://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
 `yum <http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
@@ -306,7 +337,7 @@ Make sure you have C, C++, and Fortran compilers installed!
 
 Building all of Sage with Clang is currently not supported, see :trac:`12426`.
 
-If you are interested in working on support for commerical compilers from
+If you are interested in working on support for commercial compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
 `IBM <http://www-01.ibm.com/software/awdtools/xlcpp/>`_,
 `Intel <http://software.intel.com/en-us/articles/intel-compilers/>`_,
@@ -323,7 +354,7 @@ Recommended programs
 
 The following programs are recommended.
 They are not strictly required at build time or at run time,
-but provide additional capablities:
+but provide additional capabilities:
 
 - **dvipng**.
 - **ffmpeg**.
@@ -370,19 +401,15 @@ or to use `OpenID <http://en.wikipedia.org/wiki/OpenID>`_ authentication,
 you need to follow specific installation steps described in
 :ref:`section_notebook_ssl`.
 
-Although all necessary components are provided through Sage optional packages,
-i.e. you can install a local version of `OpenSSL <http://www.openssl.org>`_
-by using Sage's **openssl** package and running ``sage -i openssl`` as suggested
-in :ref:`section_notebook_ssl` (this requires an Internet connection),
-you might prefer to install OpenSSL and the OpenSSL development headers
-globally on your system.
-
-On Linux systems, those are usually provided by the **libssl** and
-**libssl-dev** packages and can be installed using::
-
-    sudo apt-get install libssl libssl-dev
-
-or similar commands.
+Although all necessary components are provided through Sage optional
+packages, i.e., even if you choose not to install a systemwide version
+of OpenSSL, you can install a local (Sage_specific) version of
+`OpenSSL <http://www.openssl.org>`_ by using Sage's **openssl**
+package and running ``sage -i openssl`` as suggested in
+:ref:`section_notebook_ssl` (this requires an Internet
+connection). Alternatively, you might prefer to install OpenSSL and
+the OpenSSL development headers globally on your system, as described
+above.
 
 Finally, if you intend to distribute the notebook load onto several Sage
 servers, you will surely want to setup an
@@ -545,7 +572,7 @@ Running Sage from a directory with spaces in its name will also fail.
    we appreciate everything.)
 
    See :ref:`section_make` for some targets for the ``make`` command,
-   :ref:`section_envvar` for additional informatio on useful environment
+   :ref:`section_envvar` for additional information on useful environment
    variables used by Sage,
    and :ref:`section_notebook_ssl` for additional instruction on how to build
    the notebook with SSL support.
@@ -1250,7 +1277,7 @@ Sage overrides the user's settings of the following variables:
 
 - :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
   matplotlib config directory.
-  Due to incompatibilies in the contents of this directory among different
+  Due to incompatibilities in the contents of this directory among different
   versions of matplotlib, Sage overrides the user's setting, defining it
   instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
   current matplotlib version number.
@@ -1416,4 +1443,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in January 2017 (Sage 7.5).**
+**This page was last updated in January 2017 (for Sage 7.6).**

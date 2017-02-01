@@ -1092,6 +1092,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return True
         return False
 
+    @cached_method
     def is_exact(self):
         return self.base_ring().is_exact()
 

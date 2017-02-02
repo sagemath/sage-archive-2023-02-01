@@ -20,6 +20,7 @@ TESTS::
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import absolute_import
 
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
@@ -606,8 +607,8 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         - height_guess -- integer or None
         - proof -- boolean (default: True)
         """
-        import misc
-        cdef Matrix E = misc.matrix_rational_echelon_form_multimodular(self,
+        from .misc import matrix_rational_echelon_form_multimodular
+        cdef Matrix E = matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
         E._parent = self._parent
         return E

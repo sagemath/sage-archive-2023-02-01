@@ -9,7 +9,7 @@ from __future__ import print_function
 from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
-from sage.libs.all import PariError
+from sage.libs.all import pari_gen, PariError
 from sage.misc.superseded import deprecated_function_alias
 
 cdef class PowerSeries_poly(PowerSeries):
@@ -32,6 +32,16 @@ cdef class PowerSeries_poly(PowerSeries):
             1/27 + 1/27*t^3 + O(t^5)
             sage: a*b
             1 + O(t^5)
+
+        Check that :trac:`22216` is fixed::
+
+            sage: R.<T> = PowerSeriesRing(QQ)
+            sage: R(pari('1 + O(T)'))
+            1 + O(T)
+            sage: R(pari('1/T + O(T)'))
+            Traceback (most recent call last):
+            ...
+            ValueError: series has negative valuation
         """
         R = parent._poly_ring()
         if isinstance(f, Element):
@@ -47,6 +57,12 @@ cdef class PowerSeries_poly(PowerSeries):
                     f = R(f, check=check)
                 else:
                     f = R(None)
+        elif isinstance(f, pari_gen) and f.type() == 't_SER':
+            if f._valp() < 0:
+                raise ValueError('series has negative valuation')
+            if prec is infinity:
+                prec = f.length() + f._valp()
+            f = R(f.truncate())
         else:
             if f:
                 f = R(f, check=check)

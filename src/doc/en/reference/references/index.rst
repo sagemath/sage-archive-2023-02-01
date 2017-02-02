@@ -1152,7 +1152,11 @@ REFERENCES:
              `P^s_t` bases for the Steenrod algebra," J. Pure
              Appl. Algebra 125 (1998), no. 1-3, 235-260.
 
-.. [MR2002] S\. Murphy, M\. Robshaw *Essential Algebraic Structure
+.. [MR1989] \G. Melançon and C. Reutenauer.
+            *Lyndon words, free algebras and shuffles*,
+            Can. J. Math., Vol. XLI, No. 4, 1989, pp. 577-591.
+
+.. [MR2002] \S. Murphy, M. Robshaw *Essential Algebraic Structure
             Within the AES*\; in Advances in Cryptology \- CRYPTO
             2002\; LNCS 2442\; Springer Verlag 2002
 

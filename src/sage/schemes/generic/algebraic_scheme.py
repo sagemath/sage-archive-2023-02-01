@@ -1761,6 +1761,52 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             self.__weil_restriction = X
         return X
 
+    def specialization(self, D=None, phi=None):
+        r"""
+        Specialization of this subscheme.
+
+        Given a family of maps defined over a polynomial ring. A specialization
+        is a particular member of that family. The specialization can be specified either
+        by a dictionary or a :class:`SpecializationMorphism`.
+
+        INPUT:
+
+        - ``D`` -- dictionary (optional)
+
+        - ``phi`` -- SpecializationMorphism (optional)
+
+        OUTPUT: :class:`SchemeMorphism_polynomial`
+
+        EXAMPLES::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: X = P.subscheme([x^2 + c*y^2])
+            sage: X.specialization(dict({c:2}))
+            Closed subscheme of Projective Space of dimension 1 over Rational Field defined by:
+                  x^2 + 2*y^2
+
+        ::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: S.<a,b> = R[]
+            sage: P.<x,y,z> = AffineSpace(S,3)
+            sage: X = P.subscheme([x^2+a*c*y^2 - b*z^2])
+            sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+            sage: phi = SpecializationMorphism(P.coordinate_ring(),dict({c:2,a:1}))
+            sage: X.specialization(phi=phi)
+            Closed subscheme of Affine Space of dimension 3 over Univariate Polynomial Ring in b over Rational Field defined by:
+                  x^2 + 2*y^2 + (-b)*z^2
+        """
+        if D is None:
+            if phi is None:
+                raise ValueError("either the dictionary or the specialization must be provided")
+        else:
+            from sage.rings.polynomial.flatten import SpecializationMorphism
+            phi = SpecializationMorphism(self.ambient_space().coordinate_ring(),D)
+        amb = self.ambient_space().change_ring(phi.codomain().base_ring())
+        return amb.subscheme([phi(g) for g in self.defining_polynomials()])
+
 #*******************************************************************
 # Affine varieties
 #*******************************************************************

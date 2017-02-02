@@ -610,7 +610,7 @@ def CPRFanoToricVariety(Delta=None,
         # subdivision of the face fan of Delta_polar
         if check:
             facet_sets = [frozenset(facet.ambient_point_indices())
-                          for facet in Delta_polar.facets_lp()]
+                          for facet in Delta_polar.facets()]
             for chart in charts:
                 is_bad = True
                 for fset in facet_sets:

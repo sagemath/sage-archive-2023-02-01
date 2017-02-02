@@ -68,7 +68,7 @@ there whenever you need to update the ``git-trac`` command.
 Git and Trac Configuration
 ==========================
 
-.. note::
+.. NOTE::
 
     * `trac <http://trac.sagemath.org>`_ uses username/password for
       authentication.
@@ -107,7 +107,7 @@ any changes. You may have to add your private key to your authentication agent::
 
     [user@localhost sage]$ ssh-add
 
-.. note::
+.. NOTE::
 
    The ``git trac config`` command will automatically add a ``trac``
    remote git repository to your list of remotes if necessary.
@@ -158,7 +158,7 @@ explicitly. See ``git trac create -h`` for details. This new branch is
 automatically checked out for you with the *local branch* name
 ``t/12345/last_twin_prime``.
 
-.. note::
+.. NOTE::
 
     Only some trac fields are filled in automatically. See
     :ref:`section-trac-fields` for what trac fields are available and
@@ -342,7 +342,7 @@ for merging is easy::
 This creates a new "merge" commit, joining your current branch and
 ``other_branch``.
 
-.. warning::
+.. WARNING::
 
     You should avoid merging branches both ways. Once A merged B and B
     merged A, there is no way to distinguish commits that were

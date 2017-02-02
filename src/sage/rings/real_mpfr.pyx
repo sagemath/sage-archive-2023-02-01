@@ -1863,7 +1863,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             ValueError: base (=63) must be an integer between 2 and 62
         """
         if base < 2 or base > 62:
-            raise ValueError("base (=%s) must be an integer between 2 and 62"%base)
+            raise ValueError("base (=%s) must be an integer between 2 and 62" % base)
         if mpfr_nan_p(self.value):
             if base >= 24:
                 return "@NaN@"
@@ -1933,10 +1933,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if no_sci is True and ( abs(exponent-1) >=6 ):
             no_sci = False
 
-        if no_sci==False:
+        if no_sci is False:
             if t[0] == "-":
-                return "-%s.%s%s%s"%(t[1:2], t[2:], e, exponent-1)
-            return "%s.%s%s%s"%(t[0], t[1:], e, exponent-1)
+                return "-%s.%s%s%s" % (t[1:2], t[2:], e, exponent-1)
+            return "%s.%s%s%s" % (t[0], t[1:], e, exponent-1)
 
         lpad = ''
 
@@ -1953,7 +1953,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         w = t[n:]
 
         if len(w) > 0 and '.' not in z:
-            z = z + ".%s"%w
+            z = z + ".%s" % w
         elif exponent > 0:
             z = z + '0'*(n-len(t))
         if '.' not in z:
@@ -2374,7 +2374,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x
         if n > sys.maxsize:
-            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxsize))
+            raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         x = self._new()
         mpfr_mul_2ui(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -3631,29 +3631,27 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # d > max_denominator because we return early (before we
         # get here) if d <= max_denominator.)
 
-        low = a/b
-        high = e/f
+        low = a / b
+        high = e / f
 
-        cdef int compare = cmp(target - low, high - target)
-
-        if compare > 0:
+        D0 = target - low
+        D1 = high - target
+        if D1 < D0:
             result = high
-        elif compare < 0:
+        elif D0 < D1:
             result = low
         else:
-            compare = cmp(b, f)
-            if compare > 0:
+            if f < b:
                 result = high
-            elif compare < 0:
+            elif b < f:
                 result = low
             else:
-                compare = cmp(a, e)
-                if compare > 0:
+                if e < a:
                     result = high
                 else:
                     result = low
 
-        result = fl + result
+        result += fl
 
         if sgn < 0:
             return -result

@@ -817,7 +817,10 @@ class Crystals(Category_singleton):
                 sage: B.digraph()
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: infinite crystal
+                NotImplementedError: crystals not known to be finite
+                 must specify either the subset or depth
+                sage: B.digraph(depth=10)
+                Digraph on 161 vertices
 
             .. TODO:: Add more tests.
             """
@@ -831,8 +834,9 @@ class Crystals(Category_singleton):
 
             # Parse optional arguments
             if subset is None:
-                if self in Crystals().Infinite():
-                    raise NotImplementedError("infinite crystal")
+                if self not in Crystals().Finite():
+                    raise NotImplementedError("crystals not known to be finite"
+                                              " must specify the subset")
                 subset = self
             if index_set is None:
                 index_set = self.index_set()

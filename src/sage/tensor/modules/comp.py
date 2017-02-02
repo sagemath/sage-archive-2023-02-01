@@ -3829,7 +3829,7 @@ class CompWithSym(Components):
         Indices on a 2-dimensional space::
 
             sage: from sage.tensor.modules.comp import Components, CompWithSym, \
-            ...    CompFullySym, CompFullyAntiSym
+            ....:  CompFullySym, CompFullyAntiSym
             sage: V = VectorSpace(QQ, 2)
             sage: c = CompFullySym(QQ, V.basis(), 2)
             sage: list(c.non_redundant_index_generator())
@@ -4247,7 +4247,7 @@ class CompWithSym(Components):
         Antisymmetrization of 3-indices components on a 3-dimensional space::
 
             sage: from sage.tensor.modules.comp import Components, CompWithSym, \
-            ...    CompFullySym, CompFullyAntiSym
+            ....:  CompFullySym, CompFullyAntiSym
             sage: V = VectorSpace(QQ, 3)
             sage: a = Components(QQ, V.basis(), 1)
             sage: a[:] = (-2,1,3)

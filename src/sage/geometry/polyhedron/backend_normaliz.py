@@ -297,7 +297,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],  # indirect doctest # optional - pynormaliz
-            ...                  backend='normaliz')
+            ....:                backend='normaliz')
             sage: set(p.Hrepresentation())                                 # optional - pynormaliz
             {An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,
@@ -330,7 +330,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/2), (2,0), (4,5/6)],  # indirect doctest # optional - pynormaliz
-            ...                  backend='normaliz')
+            ....:                backend='normaliz')
             sage: set(p.Hrepresentation())                                 # optional - pynormaliz
             {An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,

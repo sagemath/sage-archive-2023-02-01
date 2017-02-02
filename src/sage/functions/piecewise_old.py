@@ -1147,9 +1147,9 @@ class PiecewisePolynomial:
             sage: f = piecewise([[(-1,0), f1],[(0,1), f2]])
             sage: p = f.plot(legend_label='$f(x)$')
             sage: lines = [
-            ...     line
-            ...     for line in p._objects
-            ...     if line.options()['legend_label'] is not None ]
+            ....:   line
+            ....:   for line in p._objects
+            ....:   if line.options()['legend_label'] is not None ]
             sage: len(lines)
             1
         """

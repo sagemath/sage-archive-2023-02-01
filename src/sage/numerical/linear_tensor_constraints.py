@@ -95,7 +95,7 @@ def LinearTensorConstraintsParent(linear_functions_parent):
         sage: from sage.numerical.linear_functions import LinearFunctionsParent
         sage: from sage.numerical.linear_tensor import LinearTensorParent
         sage: from sage.numerical.linear_tensor_constraints import \
-        ...       LinearTensorConstraintsParent, LinearTensorConstraintsParent
+        ....:     LinearTensorConstraintsParent, LinearTensorConstraintsParent
         sage: LF = LinearFunctionsParent(QQ)
         sage: LT = LinearTensorParent(QQ^2, LF)
         sage: LinearTensorConstraintsParent(LT)

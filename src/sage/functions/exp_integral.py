@@ -1176,7 +1176,7 @@ class Function_cosh_integral(BuiltinFunction):
     numerical integration::
 
         sage: N(euler_gamma + log(3.0) + integrate((cosh(x)-1)/x, x, 0, 3.0) -
-        ...     cosh_integral(3.0)) < 1e-14
+        ....:   cosh_integral(3.0)) < 1e-14
         True
 
     Arbitrary precision and complex arguments are handled::

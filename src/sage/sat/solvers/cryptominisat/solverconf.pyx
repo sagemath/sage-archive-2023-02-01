@@ -82,8 +82,8 @@ cdef class SolverConf(object):
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: for i in range(100):                                  # optional - cryptominisat
-            ...      s = SolverConf()
-            ...      del s
+            ....:    s = SolverConf()
+            ....:    del s
 
         """
         del self._conf

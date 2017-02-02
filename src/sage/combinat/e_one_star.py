@@ -352,15 +352,19 @@ class Face(SageObject):
         """
         v1 = self.vector()
         v2 = other.vector()
-        t1 = self.type()
-        t2 = other.type()
-
         if v1 < v2:
             return -1
         elif v1 > v2:
             return 1
-        else:
-            return cmp(t1, t2)
+
+        t1 = self.type()
+        t2 = other.type()
+        if t1 < t2:
+            return -1
+        elif t1 > t2:
+            return 1
+
+        return 0
 
     def __hash__(self):
         r"""

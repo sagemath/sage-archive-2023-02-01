@@ -41,7 +41,7 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
@@ -56,14 +56,14 @@ from sage.misc.long cimport pyobject_to_long
 import sage.misc.misc as misc
 import sage.rings.rational_field
 
-cimport integer
+cimport sage.rings.integer as integer
 from .integer cimport Integer
 
 from sage.libs.cypari2.paridecl cimport *
 from sage.libs.cypari2.gen cimport Gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
 
-from integer_ring import ZZ
+from .integer_ring import ZZ
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.coerce cimport is_numpy_type

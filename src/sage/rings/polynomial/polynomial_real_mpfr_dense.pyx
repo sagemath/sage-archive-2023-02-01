@@ -21,6 +21,7 @@ Check that operations with numpy elements work well (see :trac:`18076` and
     sage: numpy.float32('1.5') * x
     1.50000000000000*x
 """
+from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"

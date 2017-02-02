@@ -239,6 +239,7 @@ Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 import math # for log
@@ -256,7 +257,7 @@ cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.structure.sage_object cimport richcmp
 
-cimport real_mpfr
+cimport sage.rings.real_mpfr as real_mpfr
 from .real_mpfr cimport RealField_class, RealNumber, RealField
 from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDZ, MPFR_RNDU, MPFR_RNDD, MPFR_RNDA
 

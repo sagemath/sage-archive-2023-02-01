@@ -3317,35 +3317,37 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         S = [[self._element_to_vertex(e) for e in s] for s in S]
         cong = self._hasse_diagram.congruence(S)
         return SetPartition([[self._vertex_to_element(v) for v in s]
-                            for s in cong])
+                             for s in cong])
 
     def quotient(self, congruence, element_constructor='tuple'):
         r"""
         Return the quotient lattice by ``congruence``.
 
-        ``congruence`` is expected to be a valid congruence of the
-        lattice. This is *not* checked.
-
         Let `L` be a lattice and `\Theta` be a congruence of `L` with
         congurence classes `\Theta_1, \Theta_2, \ldots`. The quotient
-        lattice `L/\Theta` is the lattice with `\Theta_1, \Theta_2, \ldots`
-        as elements and meet and join given by original lattice; that is,
-        if `e_1 \in \Theta_1`, `e_2 \in \Theta_2` and `e_3 \in \Theta_3`,
-        and `e_1 \vee e_2 = e_3` in `L`, then
-        `\Theta_1 \vee \Theta_2 = \Theta_3` in `L/\Theta` and same for meets.
+        lattice `L/\Theta` is the lattice with elements
+        `\{\Theta_1, \Theta_2, \ldots\}` and meet and join given by the
+        original lattice. Explicitly, if `e_1 \in \Theta_1` and
+        `e_2 \in \Theta_2`, such that `e_1 \vee e_2 \in \Theta_3` then
+        `\Theta_1 \vee \Theta_2 = \Theta_3` in `L/\Theta` and similarly
+        for meets.
 
         INPUT:
 
-        - ``congruence``, a list of list -- a congruence
+        - ``congruence`` -- list of lists; a congruence
 
-        - ``element_constructor``, a string describing elements of the
-          resulting lattice:
+        - ``element_constructor`` -- string; the elements of the resulting
+          lattice and can be one of the following:
 
-          * ``'tuple'``: elements are tuples of elements of the original
+          * ``'tuple'`` - elements are tuples of elements of the original
             lattice
-          * ``'lattice'``: elements are sublattices of the original lattice
-          * ``'integer'``: return a lattice on integers isomorphic to
-            the quotient lattice
+          * ``'lattice'`` - elements are sublattices of the original lattice
+          * ``'integer'`` - elements are labeled by integers
+
+        .. WARNING::
+
+            ``congruence`` is expected to be a valid congruence of the
+            lattice. This is *not* checked.
 
         .. SEEALSO:: :meth:`congruence`
 

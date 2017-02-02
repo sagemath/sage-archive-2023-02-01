@@ -928,6 +928,15 @@ Here are some of the more commonly used variables affecting the build process:
   parallel testing: there we use a default of the number of CPU cores, with a
   maximum of 8 and a minimum of 2).
 
+- :envvar:`V` - if set to ``0``, silence the build.  Instead of
+  showing a detailed compilation log, only one line of output is shown
+  at the beginning and at the end of the installation of each Sage
+  package.  To see even less output, use::
+
+    make -s V=0
+
+  (Note that the above uses the syntax of setting a Makefile variable.)
+
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
   or when installing packages manually,
   run the test suite for each package which has one.

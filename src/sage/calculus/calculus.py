@@ -1512,30 +1512,6 @@ def at(ex, *args, **kwds):
     return ex.subs(**kwds)
 
 
-#############################################3333
-def var_cmp(x,y):
-    """
-    Return comparison of the two variables x and y, which is just the
-    comparison of the underlying string representations of the
-    variables. This is used internally by the Calculus package.
-
-    INPUT:
-
-    - ``x, y`` - symbolic variables
-
-    OUTPUT: Python integer; either -1, 0, or 1.
-
-    EXAMPLES::
-
-        sage: sage.calculus.calculus.var_cmp(x,x)
-        0
-        sage: sage.calculus.calculus.var_cmp(x,var('z'))
-        -1
-        sage: sage.calculus.calculus.var_cmp(x,var('a'))
-        1
-    """
-    return cmp(repr(x), repr(y))
-
 def dummy_limit(*args):
     """
     This function is called to create formal wrappers of limits that

@@ -1425,6 +1425,170 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return A.subscheme(self.defining_ideal().intersection(other.defining_ideal()))
 
+    def __pow__(self, m):
+        """
+        Return the Cartesian power of this space.
+
+        INPUT: ``m`` -- integer.
+
+        OUTPUT: subscheme of product of ambient spaces.
+
+        EXAMPLES::
+
+        sage: P2.<y0,y1,y2> = ProjectiveSpace(ZZ, 2)
+        sage: Z = P2.subscheme([y0^2 - y1*y2, y2])
+        sage: Z**3
+        Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 over
+        Integer Ring defined by:
+          x0^2 - x1*x2,
+          x2,
+          x3^2 - x4*x5,
+          x5,
+          x6^2 - x7*x8,
+          x8
+
+        ::
+
+        sage: A2.<x,y> = AffineSpace(QQ, 2)
+        sage: V = A2.subscheme([x^2-y, x-1])
+        sage: V**4
+        Closed subscheme of Affine Space of dimension 8 over Rational Field
+        defined by:
+          x0^2 - x1,
+          x0 - 1,
+          x2^2 - x3,
+          x2 - 1,
+          x4^2 - x5,
+          x4 - 1,
+          x6^2 - x7,
+          x6 - 1
+
+        ::
+
+        sage: T.<x0,x1,x2,x3,x4,x5> = ProductProjectiveSpaces([2,2], ZZ)
+        sage: X = T.subscheme([x0*x4 - x1*x3])
+        sage: X^2
+        Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 x P^2
+        over Integer Ring defined by:
+          -x1*x3 + x0*x4,
+          -x7*x9 + x6*x10
+
+        ::
+
+        sage: E = EllipticCurve([0,0,0,0,1])
+        sage: E^2
+        Closed subscheme of Product of projective spaces P^2 x P^2 over Rational
+        Field defined by:
+          -x0^3 + x1^2*x2 - x2^3,
+          -x3^3 + x4^2*x5 - x5^3
+        """
+        AS = self.ambient_space().__pow__(m)
+        CR = AS.coordinate_ring()
+        n = self.ambient_space().coordinate_ring().ngens()
+
+        polys = []
+        for i in range(m):
+            phi = self.ambient_space().coordinate_ring().hom(list(CR.gens()[n*i : n*(i+1)]), CR)
+            polys.extend([phi(t) for t in self.defining_polynomials()])
+        return AS.subscheme(polys)
+
+    def __mul__(self, right):
+        r"""
+        Create the product of subschemes.
+
+        INPUT: ``right`` - a subscheme of similar type.
+
+        OUTPUT: a subscheme of a the product of the ambient spaces.
+
+        EXAMPLES::
+
+            sage: S = ProductProjectiveSpaces([1,2,1], ZZ, 't')
+            sage: T = ProductProjectiveSpaces([2,2], ZZ, 'x')
+            sage: T.inject_variables()
+            Defining x0, x1, x2, x3, x4, x5
+            sage: X = T.subscheme([x0*x4 - x1*x3])
+            sage: X*S
+            Closed subscheme of Product of projective spaces P^2 x P^2 x P^1 x P^2 x
+            P^1 over Integer Ring defined by:
+              -x1*x3 + x0*x4
+
+        ::
+
+            sage: S = ProjectiveSpace(ZZ, 2, 't')
+            sage: T.<x0,x1,x2,x3> = ProjectiveSpace(ZZ, 3)
+            sage: X = T.subscheme([x0*x2 - x1*x3])
+            sage: X*S
+            Closed subscheme of Product of projective spaces P^3 x P^2
+            over Integer Ring defined by:
+              x0*x2 - x1*x3
+
+        ::
+
+            sage: A2 = AffineSpace(ZZ, 2, 't')
+            sage: A3.<x0,x1,x2> = AffineSpace(ZZ, 3)
+            sage: X = A3.subscheme([x0*x2 - x1])
+            sage: X*A2
+            Closed subscheme of Affine Space of dimension 5 over Integer Ring
+            defined by:
+              x0*x2 - x1
+
+        ::
+
+            sage: T.<x0,x1,x2,x3,x4,x5> = ProductProjectiveSpaces([2,2], ZZ)
+            sage: X = T.subscheme([x0*x4 - x1*x3])
+            sage: X*X
+            Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 x P^2
+            over Integer Ring defined by:
+              -x1*x3 + x0*x4,
+              -x7*x9 + x6*x10
+
+        ::
+
+            sage: P1.<z0,z1> = ProjectiveSpace(ZZ, 1)
+            sage: Y = P1.subscheme([z0 - z1])
+            sage: T.<x0,x1,x2,x3,x4,x5> = ProductProjectiveSpaces([2,2], ZZ)
+            sage: X = T.subscheme([x0*x4 - x1*x3])
+            sage: X*Y
+            Closed subscheme of Product of projective spaces P^2 x P^2 x P^1 over
+            Integer Ring defined by:
+              -x1*x3 + x0*x4,
+              z0 - z1
+
+        ::
+
+            sage: A3.<x0,x1,x2> = AffineSpace(ZZ, 3)
+            sage: X = A3.subscheme([x0*x2 - x1])
+            sage: P1.<u,v>=ProjectiveSpace(ZZ,1)
+            sage: Y = P1.subscheme([u-v])
+            sage: X*Y
+            Traceback (most recent call last):
+            ...
+            TypeError: Projective Space of dimension 1 over Integer Ring must be an affine space or affine subscheme
+            sage: Y*X
+            Traceback (most recent call last):
+            ...
+            TypeError: Affine Space of dimension 3 over Integer Ring must be a projective space, product of projective spaces, or subscheme
+            sage: PP.<a,b,c,d>=ProductProjectiveSpaces(ZZ, [1,1])
+            sage: Z = PP.subscheme([a*d-b*c])
+            sage: X*Z
+            Traceback (most recent call last):
+            ...
+            TypeError: Product of projective spaces P^1 x P^1 over Integer Ring must be an affine space or affine subscheme
+            sage: Z*X
+            Traceback (most recent call last):
+            ...
+            TypeError: Affine Space of dimension 3 over Integer Ring must be a projective space, product of projective spaces, or subscheme
+        """
+        #This will catch any ambient space mistmatches
+        AS = self.ambient_space()*right.ambient_space()
+        CR = AS.coordinate_ring()
+        n = self.ambient_space().coordinate_ring().ngens()
+
+        phi = self.ambient_space().coordinate_ring().hom(list(CR.gens()[:n]), CR)
+        psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
+        return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
+
+
     __add__ = union
 
     def intersection(self, other):

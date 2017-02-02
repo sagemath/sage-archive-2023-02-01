@@ -482,6 +482,67 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             raise ValueError("m must be an integer")
         return AffineSpace(self.dimension_relative() * mm, self.base_ring())
 
+    def __mul__(self, right):
+        r"""
+        Create the product of affine spaces.
+
+        INPUT:
+
+        - ``right`` - an affine space or subscheme.
+
+        OUTPUT: an affine space.= or subscheme.
+
+        EXAMPLES::
+
+            sage: A1 = AffineSpace(QQ, 1, 'x')
+            sage: A2 = AffineSpace(QQ, 2, 'y')
+            sage: A3 = A1*A2; A3
+            Affine Space of dimension 3 over Rational Field
+            sage: A3.variable_names()
+            ('x', 'y0', 'y1')
+
+            ::
+
+            sage: A2 = AffineSpace(ZZ, 2, 't')
+            sage: A3 = AffineSpace(ZZ, 3, 'x')
+            sage: A3.inject_variables()
+            Defining x0, x1, x2
+            sage: X = A3.subscheme([x0*x2 - x1])
+            sage: A2*X
+            Closed subscheme of Affine Space of dimension 5 over Integer Ring defined by:
+              x0*x2 - x1
+
+        ::
+
+            sage: S = ProjectiveSpace(QQ, 3, 'x')
+            sage: T = AffineSpace(2, QQ, 'y')
+            sage: T*S
+            Traceback (most recent call last):
+            ...
+            TypeError: Projective Space of dimension 3 over Rational Field
+            must be an affine space or affine subscheme
+        """
+        if self.base_ring() != right.base_ring():
+            raise ValueError ('Must have the same base ring')
+
+        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+
+        if isinstance(right, AffineSpace_generic):
+            if self is right:
+                return self.__pow__(2)
+            return AffineSpace(self.dimension_relative() + right.dimension_relative(),\
+                    self.base_ring(), self.variable_names() + right.variable_names())
+        elif isinstance(right, AlgebraicScheme_subscheme):
+            AS = self*right.ambient_space()
+            CR = AS.coordinate_ring()
+            n = self.ambient_space().coordinate_ring().ngens()
+
+            phi = self.ambient_space().coordinate_ring().hom(list(CR.gens()[:n]), CR)
+            psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
+            return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
+        else:
+            raise TypeError('%s must be an affine space or affine subscheme'%right)
+
     def change_ring(self, R):
         r"""
         Return an affine space over ring ``R`` and otherwise the same as this space.

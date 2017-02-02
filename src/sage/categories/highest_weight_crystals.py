@@ -545,7 +545,7 @@ class HighestWeightCrystals(Category_singleton):
 
             for all `1 \leq m \leq k`.
 
-            For connected componenets isomorphic to `B(\lambda)` or
+            For connected components isomorphic to `B(\lambda)` or
             `B(\infty)`, if `w = w_0` is the longest element of the
             Weyl group, then the path determined by the string
             parametrization terminates at the highest weight vector.
@@ -597,6 +597,20 @@ class HighestWeightCrystals(Category_singleton):
                 [5, 13, 11, 15, 4, 4]
                 sage: b.string_parameters([1,2,1,2,1,2])
                 [7, 12, 15, 8, 10, 0]
+
+            ::
+
+                sage: C = crystals.Tableaux(['C',2], shape=[2,1])
+                sage: mg = C.highest_weight_vector()
+                sage: lw = C.lowest_weight_vectors()[0]
+                sage: lw.string_parameters([1,2,1,2])
+                [1, 2, 3, 1]
+                sage: lw.string_parameters([2,1,2,1])
+                [1, 3, 2, 1]
+                sage: lw.e_string([2,1,1,1,2,2,1]) == mg
+                True
+                sage: lw.e_string([1,2,2,1,1,1,2]) == mg
+                True
 
             TESTS::
 

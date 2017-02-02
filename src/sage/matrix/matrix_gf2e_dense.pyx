@@ -74,10 +74,11 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
 
-cimport matrix_dense
+cimport sage.matrix.matrix_dense as matrix_dense
 from sage.structure.element cimport Matrix, Vector
 from sage.structure.element cimport ModuleElement, Element, RingElement
 

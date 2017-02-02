@@ -99,11 +99,12 @@ TODO:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
 
-cimport matrix_dense
+cimport sage.matrix.matrix_dense as matrix_dense
 from libc.stdio cimport *
 from sage.structure.element cimport (Matrix, Vector, parent_c,
                                      ModuleElement, Element)

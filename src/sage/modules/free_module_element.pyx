@@ -413,7 +413,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     a possible input.  ::
 
         sage: type(i^2 for i in range(3))
-        <type 'generator'>
+        <... 'generator'>
         sage: v = vector(i^2 for i in range(3)); v
         (0, 1, 4)
 
@@ -1010,7 +1010,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: vector([1, 1/2, QQ['x'].0]).numpy(dtype=float)
             Traceback (most recent call last):
             ...
-            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <type 'float'>: setting an array element with a sequence.
+            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <... 'float'>: setting an array element with a sequence.
         """
         from numpy import array
         try:

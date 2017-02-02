@@ -21437,7 +21437,7 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
         sage: type(T)
         <class 'sage.plot.plot3d.tachyon.Tachyon'>
         sage: type(p)
-        <type 'dict'>
+        <... 'dict'>
     """
     assert pos3d is not None
     from math import sqrt

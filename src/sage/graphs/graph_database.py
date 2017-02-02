@@ -904,7 +904,7 @@ class GraphDatabase(SQLDatabase):
             sage: G = GraphDatabase()
             sage: f = G._gen_interact_func(display=['graph6'], num_vertices=3)
             sage: type(f)
-            <type 'function'>
+            <... 'function'>
             sage: interact(f)
             <html>...
         """

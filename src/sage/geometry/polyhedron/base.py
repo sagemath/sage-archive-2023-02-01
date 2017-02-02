@@ -1491,7 +1491,7 @@ class Polyhedron_base(Element):
             ....: except StopIteration: print("STOP")
             STOP
             sage: type(v_gen)
-            <type 'generator'>
+            <... 'generator'>
             sage: [ v for v in triangle.vertex_generator() ]
             [A vertex at (0, 1), A vertex at (1, 0), A vertex at (1, 1)]
         """

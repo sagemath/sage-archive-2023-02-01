@@ -1934,7 +1934,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: type(P.cover_relations_iterator())
-            <type 'generator'>
+            <... 'generator'>
             sage: [z for z in P.cover_relations_iterator()]
             [[1, 2], [0, 2], [2, 3], [3, 4]]
         """
@@ -2069,7 +2069,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: it = P.relations_iterator()
             sage: type(it)
-            <type 'generator'>
+            <... 'generator'>
             sage: next(it), next(it)
             ([1, 1], [1, 2])
 
@@ -3314,7 +3314,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[]})
             sage: type(P.upper_covers_iterator(0))
-            <type 'generator'>
+            <... 'generator'>
         """
         for e in self._hasse_diagram.neighbor_out_iterator(self._element_to_vertex(x)):
             yield self._vertex_to_element(e)
@@ -3345,7 +3345,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[]})
             sage: l0 = P.lower_covers_iterator(3)
             sage: type(l0)
-            <type 'generator'>
+            <... 'generator'>
             sage: next(l0)
             2
         """

@@ -2935,7 +2935,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(pi).__float__()
             3.141592653589793
             sage: type(RR(pi).__float__())
-            <type 'float'>
+            <... 'float'>
         """
         return mpfr_get_d(self.value, (<RealField_class>self._parent).rnd)
 
@@ -2950,7 +2950,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: n._rpy_()
             2.0
             sage: type(n._rpy_())
-            <type 'float'>
+            <... 'float'>
         """
         return self.__float__()
 

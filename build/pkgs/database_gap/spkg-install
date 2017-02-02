@@ -54,6 +54,3 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "Installed tomlib database."
-
-sage -c "gap_reset_workspace()"
-

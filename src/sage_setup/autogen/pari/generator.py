@@ -181,7 +181,6 @@ class PariFunctionGenerator(object):
                     '''
                     from warnings import warn
                     warn('the PARI/GP function bernvec is obsolete (2007-03-30)', DeprecationWarning)
-                    cdef Pari pari_instance = <Pari>self
                     sig_on()
                     cdef GEN _ret = bernvec(x)
                     return new_gen(_ret)

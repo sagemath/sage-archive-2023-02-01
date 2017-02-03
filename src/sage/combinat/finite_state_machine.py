@@ -3895,7 +3895,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             <... 'list'>
             sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
             ....:               automatic_output_type=True))
-            <type 'tuple'>
+            <... 'tuple'>
         """
         if len(args) == 0:
             raise TypeError("Called with too few arguments.")

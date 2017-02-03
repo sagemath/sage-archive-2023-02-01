@@ -3346,7 +3346,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__float__()
             -57.0
             sage: type(n.__float__())
-            <type 'float'>
+            <... 'float'>
         """
         return mpz_get_d_nearest(self.value)
 

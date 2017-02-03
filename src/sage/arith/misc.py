@@ -3212,7 +3212,7 @@ def binomial(x, m, **kwds):
         sage: a = binomial(float(1001), float(1)); a
         1001.0
         sage: type(a)
-        <type 'float'>
+        <... 'float'>
         sage: binomial(float(1000), 1001)
         0.0
 
@@ -3224,7 +3224,7 @@ def binomial(x, m, **kwds):
         <type 'sage.rings.integer.Integer'>
 
         sage: type(binomial(5.0r, 2))
-        <type 'float'>
+        <... 'float'>
 
         sage: type(binomial(5/1, 2))
         <type 'sage.rings.rational.Rational'>

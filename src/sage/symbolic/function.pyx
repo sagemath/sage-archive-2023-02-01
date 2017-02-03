@@ -381,7 +381,7 @@ cdef class Function(SageObject):
         Return types for non-exact input depends on the input type::
 
             sage: type(exp(float(0)))
-            <type 'float'>
+            <... 'float'>
             sage: exp(RR(0)).parent()
             Real Field with 53 bits of precision
 

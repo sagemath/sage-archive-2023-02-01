@@ -168,7 +168,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: a = s([2,1])+2*s([3,2])
             sage: d = a.monomial_coefficients()
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: d[ Partition([2,1]) ]
             1
             sage: d[ Partition([3,2]) ]
@@ -1912,7 +1912,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         The basis of T is indexed by tuples of basis indices of F and G::
 
             sage: T.basis().keys()
-            Image of Cartesian product of {1, 2}, {3, 4} by <type 'tuple'>
+            Image of Cartesian product of {1, 2}, {3, 4} by <... 'tuple'>
             sage: T.basis().keys().list()
             [(1, 3), (1, 4), (2, 3), (2, 4)]
 

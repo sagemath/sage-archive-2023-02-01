@@ -165,7 +165,7 @@ from sage.misc.latex import latex
 from sage.rings.all import ZZ, RR, RDF, CDF
 from sage.functions.other import real, imag, log_gamma
 from sage.symbolic.constants import pi
-from sage.symbolic.function import BuiltinFunction, is_inexact
+from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.calculus.calculus import maxima
 from sage.structure.element import parent

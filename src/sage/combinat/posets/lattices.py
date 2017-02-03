@@ -135,6 +135,8 @@ from sage.combinat.posets.elements import (LatticePosetElement,
                                            JoinSemilatticeElement)
 from sage.combinat.posets.hasse_diagram import LatticeError
 
+from sage.misc.decorators import rename_keyword
+
 ####################################################################################
 
 def MeetSemilattice(data=None, *args, **options):
@@ -2677,7 +2679,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return [LatticePoset(self.subposet(map(self._vertex_to_element, elms)))
                 for elms in self._hasse_diagram.sublattices_iterator(set(), 0)]
 
-    def sublattices_lattice(self, element_constructor='lattice'):
+    @rename_keyword(deprecation=22225, element_constructor='labels')
+    def sublattices_lattice(self, labels='lattice'):
         """
         Return the lattice of sublattices.
 
@@ -2688,7 +2691,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``element_constructor`` -- string; can be one of the following:
+        - ``labels`` -- string; can be one of the following:
 
           * ``'lattice'`` (default) elements of the lattice will be
             lattices that correspond to sublattices of the original lattice
@@ -2701,7 +2704,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         EXAMPLES::
 
             sage: D4 = Posets.DiamondPoset(4)
-            sage: sll = D4.sublattices_lattice(element_constructor='tuple')
+            sage: sll = D4.sublattices_lattice(labels='tuple')
             sage: sll.coatoms()  # = maximal sublattices of the original lattice
             [(0, 1, 3), (0, 2, 3)]
 
@@ -2717,18 +2720,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             Finite lattice containing 1 elements
 
             sage: C3 = Posets.ChainPoset(3)
-            sage: sll = C3.sublattices_lattice(element_constructor='integer')
+            sage: sll = C3.sublattices_lattice(labels='integer')
             sage: sll.is_isomorphic(Posets.BooleanLattice(3))
             True
         """
-        if element_constructor not in ['lattice', 'tuple', 'integer']:
-            raise ValueError("element_constructor must be one of 'lattice', 'tuple' or 'integer'")
+        if labels not in ['lattice', 'tuple', 'integer']:
+            raise ValueError("labels must be one of 'lattice', 'tuple' or 'integer'")
         sublats = [frozenset(x) for x in self._hasse_diagram.sublattices_iterator(set(), 0)]
         L = LatticePoset( [sublats, lambda a, b: a != b and a.issubset(b)] )
-        if element_constructor == 'integer':
+        if labels == 'integer':
             return L.canonical_label()
         L = L.relabel(lambda x: tuple(self._vertex_to_element(y) for y in x))
-        if element_constructor == 'lattice':
+        if labels == 'lattice':
             return L.relabel(lambda x: self.sublattice(x))
         return L
 
@@ -3319,7 +3322,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return SetPartition([[self._vertex_to_element(v) for v in s]
                              for s in cong])
 
-    def quotient(self, congruence, element_constructor='tuple'):
+    def quotient(self, congruence, labels='tuple'):
         r"""
         Return the quotient lattice by ``congruence``.
 
@@ -3336,7 +3339,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         - ``congruence`` -- list of lists; a congruence
 
-        - ``element_constructor`` -- string; the elements of the resulting
+        - ``labels`` -- string; the elements of the resulting
           lattice and can be one of the following:
 
           * ``'tuple'`` - elements are tuples of elements of the original
@@ -3359,13 +3362,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             Finite lattice containing 2 elements
             sage: I.top()
             (2, 3, 4)
-            sage: I = L.quotient(c, element_constructor='lattice')
+            sage: I = L.quotient(c, labels='lattice')
             sage: I.top()
             Finite lattice containing 3 elements
 
             sage: B3 = Posets.BooleanLattice(3)
             sage: c = B3.congruence([[0,1]])
-            sage: B2 = B3.quotient(c, element_constructor='integer')
+            sage: B2 = B3.quotient(c, labels='integer')
             sage: B2.is_isomorphic(Posets.BooleanLattice(2))
             True
 
@@ -3379,19 +3382,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.quotient(L.congruence([[1]])).is_isomorphic(L)
             True
         """
-        if element_constructor not in ['lattice', 'tuple', 'integer']:
-            raise ValueError("element_constructor must be one of 'lattice', 'tuple' or 'integer'")
+        if labels not in ['lattice', 'tuple', 'integer']:
+            raise ValueError("labels must be one of 'lattice', 'tuple' or 'integer'")
 
         parts_H = [sorted([self._element_to_vertex(e) for e in part]) for
                    part in congruence]
         minimal_vertices = [part[0] for part in parts_H]
         H = self._hasse_diagram.transitive_closure().subgraph(minimal_vertices).transitive_reduction()
-        if element_constructor == 'integer':
+        if labels == 'integer':
             H.relabel(range(len(minimal_vertices)))
             return LatticePoset(H)
         part_dict = {m[0]:[self._vertex_to_element(x) for x in m] for m
                      in parts_H}
-        if element_constructor == 'tuple':
+        if labels == 'tuple':
             H.relabel(lambda m: tuple(part_dict[m]))
             return LatticePoset(H)
         maximal_vertices = [max(part) for part in parts_H]

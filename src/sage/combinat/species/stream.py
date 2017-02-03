@@ -10,6 +10,9 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse12.html.
 import types
 from sage.structure.sage_object import SageObject
 
+import six
+
+
 def _integers_from(n):
     """
     Returns a generator for the integers starting at n.
@@ -133,7 +136,7 @@ class Stream_class(SageObject):
 
         ::
 
-            sage: list(sorted(s.__dict__.iteritems()))
+            sage: list(sorted(six.iteritems(s.__dict__)))
             [('_constant', 4),
              ('_gen', None),
              ('_last_index', 0),
@@ -143,7 +146,7 @@ class Stream_class(SageObject):
         ::
 
             sage: s = Stream(ZZ)
-            sage: list(sorted(s.__dict__.iteritems()))
+            sage: list(sorted(six.iteritems(s.__dict__)))
             [('_constant', None),
              ('_gen', <generator object at 0x...>),
              ('_last_index', -1),

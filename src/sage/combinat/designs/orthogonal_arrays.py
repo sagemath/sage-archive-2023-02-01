@@ -58,6 +58,7 @@ Functions
 from __future__ import print_function, absolute_import
 
 from builtins import zip
+import six
 from six import itervalues
 from six.moves import range
 
@@ -1375,7 +1376,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
 
     # From a quasi-difference matrix
     elif number_of_holes==1 and any(uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1 for (nn,lmbda,mu,uu),(kk,_) in QDM.get((n,1),{}).iteritems()):
-        for (nn,lmbda,mu,uu),(kk,f) in QDM[n,1].iteritems():
+        for (nn,lmbda,mu,uu),(kk,f) in six.iteritems(QDM[n,1]):
             if uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1:
                 break
         G,M = f()
@@ -1806,8 +1807,8 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
 
     # A cache for addition in G
     G_sum = [[0]*Gn for _ in range(Gn)]
-    for x,i in G_to_int.iteritems():
-        for xx,ii in G_to_int.iteritems():
+    for x,i in six.iteritems(G_to_int):
+        for xx,ii in six.iteritems(G_to_int):
             G_sum[i][ii] = G_to_int[x+xx]
 
     # Convert M to integers

@@ -280,6 +280,7 @@ We use the lexicographic ordering::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+import six
 from six.moves import range
 
 from sage.interfaces.all import gap
@@ -3199,7 +3200,7 @@ class Partition(CombinatorialElement):
             1
         """
         size = prod(i ** mi * factorial(mi)
-                    for i, mi in self.to_exp_dict().iteritems())
+                    for i, mi in six.iteritems(self.to_exp_dict()))
         if t or q:
             size *= prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
                          for j in self)

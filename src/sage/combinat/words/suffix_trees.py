@@ -11,6 +11,7 @@ Suffix Tries and Suffix Trees
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 from six import iteritems
 
 from sage.structure.sage_object import SageObject
@@ -278,7 +279,7 @@ class SuffixTrie(SageObject):
             sage: w = Words([0,1])([0,1,0,1,1])
             sage: t = SuffixTrie(w)
             sage: [t.transition_function(u,letter) == v \
-                    for ((u,letter),v) in t._transition_function.iteritems()] \
+                    for ((u,letter),v) in six.iteritems(t._transition_function)] \
                     == [True] * len(t._transition_function)
             True
         """

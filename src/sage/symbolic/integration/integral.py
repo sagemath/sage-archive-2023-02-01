@@ -764,6 +764,14 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(cos(w+T) / (1+c*cos(T))^2, T, 0, 2*pi)
         2*pi*sqrt(-c^2 + 1)*c*cos(w)/(c^4 - 2*c^2 + 1)
 
+    Check that :trac:`13733` is fixed::
+
+        sage: a = integral(log(cot(x)-1),x,0,pi/4); a  # long time (about 6 s)
+        -1/4*pi*log(2) - 1/2*I*dilog(I + 1) + 1/2*I*dilog(-I + 1) + 1/2*I*dilog(1/2*I + 1/2) - 1/2*I*dilog(-1/2*I + 1/2)
+        sage: N(a)  # long time
+        0.272198261287950
+        sage: N(pi*log(2)/8)
+        0.272198261287950
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

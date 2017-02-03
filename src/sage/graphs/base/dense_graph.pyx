@@ -631,7 +631,7 @@ def _test_adjacency_sequence_out():
 # Dense Graph Backend
 ###########################################
 
-from c_graph cimport CGraphBackend
+from .c_graph cimport CGraphBackend
 
 cdef class DenseGraphBackend(CGraphBackend):
     """

@@ -5,4 +5,4 @@ cd src
 # pip can install itself!
 # need to use --upgrade or else pip, which is importing itself, will think
 # itself is already installed
-python -m pip install --verbose --no-index --upgrade .
+python -m pip install --verbose --no-index --upgrade --isolated .

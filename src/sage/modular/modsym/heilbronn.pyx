@@ -36,7 +36,7 @@ import  p1list
 cdef p1list.export export
 export = p1list.export()
 
-from apply cimport Apply
+from .apply cimport Apply
 cdef Apply PolyApply= Apply()
 
 from sage.rings.integer cimport Integer

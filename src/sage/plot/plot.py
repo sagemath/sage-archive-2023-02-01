@@ -362,9 +362,8 @@ Another graph::
 
     sage: x = var('x')
     sage: P = plot(sin(x)/x, -4, 4, color='blue') + \
-    ...       plot(x*cos(x), -4, 4, color='red') + \
-    ...       plot(tan(x), -4, 4, color='green')
-    ...
+    ....:     plot(x*cos(x), -4, 4, color='red') + \
+    ....:     plot(tan(x), -4, 4, color='green')
     sage: P.show(ymin=-pi, ymax=pi)
 
 .. PLOT::

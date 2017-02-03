@@ -3,9 +3,7 @@ mutation_class
 
 This file contains helper functions for compute the mutation class of a cluster algebra or quiver.
 
-For the compendium on the cluster algebra and quiver package see
-
-        http://arxiv.org/abs/1102.4844
+For the compendium on the cluster algebra and quiver package see [MS2011]_
 
 AUTHORS:
 

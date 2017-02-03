@@ -97,7 +97,7 @@ which is some 40-digit hexadecimal number (the SHA1 hash). Then use
     ...
     [user@localhost sage]$ git reset --hard eafae
 
-.. warning::
+.. WARNING::
 
     Any *uncommitted* changes will be lost!
 

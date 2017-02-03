@@ -115,7 +115,7 @@ def block_stabilizer(G, B):
         sage: block_stabilizer(C, [C((0,0)),C((2,0)),C((0,1)),C((2,1))])
         [(0, 0), (2, 0)]
 
-        sage: b = map(Zmod(45),[1, 3, 7, 10, 22, 25, 30, 35, 37, 38, 44])
+        sage: b = list(map(Zmod(45),[1, 3, 7, 10, 22, 25, 30, 35, 37, 38, 44]))
         sage: block_stabilizer(Zmod(45),b)
         [0]
     """

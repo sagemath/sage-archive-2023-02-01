@@ -565,7 +565,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
             if  box_points<threshold:
                 from sage.geometry.integral_points import rectangular_box_points
-                return rectangular_box_points(box_min, box_max, self)
+                return rectangular_box_points(list(box_min), list(box_max), self)
         # Compute with normaliz
         points = []
         cone = self._normaliz_cone

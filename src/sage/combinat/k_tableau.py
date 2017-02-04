@@ -1828,8 +1828,6 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
         if len(t) > 0:
             if isinstance(t[0], list) or isinstance(t[0], tuple):
                 w_tuple = tuple(W.from_reduced_word(p) for p in t)
-            elif t[0] not in W:
-                raise ValueError("The input must be a list of reduced words or Weyl group elements")
             else:
                 w_tuple = tuple(W(r) for r in t)
         else:

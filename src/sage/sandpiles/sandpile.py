@@ -324,7 +324,7 @@ from copy import deepcopy
 from inspect import getdoc
 import os  # CHECK: possibly unnecessary after removing 4ti2-dependent methods
 from sage.calculus.functional import derivative
-from sage.combinat.integer_vector import IntegerVectors
+from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
 from sage.combinat.parking_functions import ParkingFunctions
 from sage.combinat.set_partition import SetPartitions
 from sage.combinat.vector_partition import IntegerVectorsIterator
@@ -333,7 +333,7 @@ from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph, graphs, digraphs
-from sage.gsl.probability_distribution import GeneralDiscreteDistribution
+from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
@@ -1557,7 +1557,7 @@ class Sandpile(DiGraph):
         r"""
         The minimal recurrent elements.  If the underlying graph is
         undirected, these are the recurrent elements of least degree.
-        If ``verbose`` is ``False``, the configurations are converted 
+        If ``verbose`` is ``False``, the configurations are converted
         to lists of integers.
 
         INPUT:
@@ -1964,7 +1964,7 @@ class Sandpile(DiGraph):
 
         The vertices 1 and 2 have been swapped::
 
-            sage: T.dict() 
+            sage: T.dict()
             {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {0: 1}}
         """
 
@@ -4117,7 +4117,7 @@ class SandpileConfig(dict):
         .. NOTE::
 
             To define ``c.burst(v)``, if `v` is not the sink, let `c'` be the unique
-            recurrent for which the the stabilization of `c' + v` is `c`.  The
+            recurrent for which the stabilization of `c' + v` is `c`.  The
             burst size is then the amount of sand that goes into the sink during this
             stabilization.  If `v` is the sink, the burst size is defined to be 1.
 
@@ -5508,10 +5508,9 @@ class SandpileDivisor(dict):
         else:
             rk = -1
             while True:
-                IV = IntegerVectors(rk+1,S.num_verts())
-                for e in IV:
-                    E = SandpileDivisor(S,e)
-                    if (self - E).effective_div()==[]:
+                for e in integer_vectors_nk_fast_iter(rk+1,S.num_verts()):
+                    E = SandpileDivisor(S, e)
+                    if (self - E).effective_div() == []:
                         self._rank = rk
                         self._rank_witness = E
                         return

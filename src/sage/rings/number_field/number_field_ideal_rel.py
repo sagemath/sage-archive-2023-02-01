@@ -506,7 +506,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: I = K.ideal(3, c)
             sage: J = I.ideal_below(); J
-            Fractional ideal (b)
+            Fractional ideal (-b)
             sage: J.number_field() == F
             True
 
@@ -535,12 +535,12 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
 
             sage: K.<a, b> = QQ.extension([x^2 + 11, x^2 - 5])
             sage: K.factor(5)
-            (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 3/4))^2 * (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 7/4))^2
+            (Fractional ideal (5, (-1/4*b - 1/4)*a + 1/4*b - 3/4))^2 * (Fractional ideal (5, (-1/4*b - 1/4)*a + 1/4*b - 7/4))^2
             sage: K.ideal(5).factor()
-            (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 3/4))^2 * (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 7/4))^2
+            (Fractional ideal (5, (-1/4*b - 1/4)*a + 1/4*b - 3/4))^2 * (Fractional ideal (5, (-1/4*b - 1/4)*a + 1/4*b - 7/4))^2
             sage: K.ideal(5).prime_factors()
-            [Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 3/4),
-             Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 7/4)]
+            [Fractional ideal (5, (-1/4*b - 1/4)*a + 1/4*b - 3/4),
+             Fractional ideal (5, (-1/4*b - 1/4)*a + 1/4*b - 7/4)]
 
             sage: PQ.<X> = QQ[]
             sage: F.<a, b> = NumberFieldTower([X^2 - 2, X^2 - 3])

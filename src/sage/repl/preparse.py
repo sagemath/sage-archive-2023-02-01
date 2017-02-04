@@ -87,9 +87,9 @@ Raw and hex work correctly::
     sage: type(0xa1)
     <type 'sage.rings.integer.Integer'>
     sage: type(0xa1r)
-    <type 'int'>
+    <... 'int'>
     sage: type(0Xa1R)
-    <type 'int'>
+    <... 'int'>
 
 In Sage, methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error)::
@@ -159,7 +159,7 @@ We create a raw integer::
     sage: a
     393939
     sage: type(a)
-    <type 'int'>
+    <... 'int'>
 
 We create a raw float::
 

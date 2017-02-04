@@ -1009,7 +1009,7 @@ def chord_and_tangent(F, P):
 
         sage: F(p2)
         0
-        sage: map(type, p2)
+        sage: list(map(type, p2))
         [<type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>]

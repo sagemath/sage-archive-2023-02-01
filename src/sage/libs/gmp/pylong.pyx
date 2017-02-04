@@ -27,7 +27,7 @@ AUTHORS:
 
 from cpython.int cimport PyInt_FromLong
 from cpython.long cimport PyLong_FromLong
-from mpz cimport *
+from .mpz cimport *
 
 # Unused bits in every PyLong digit
 cdef size_t PyLong_nails = 8*sizeof(digit) - PyLong_SHIFT

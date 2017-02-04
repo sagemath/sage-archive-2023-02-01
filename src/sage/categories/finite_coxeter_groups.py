@@ -267,7 +267,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             return LatticePoset([self, shard_comparison])
 
         def bhz_poset(self):
-            """
+            r"""
             Return the Bergeron-Hohlweg-Zabrocki partial order on the Coxeter
             group.
 

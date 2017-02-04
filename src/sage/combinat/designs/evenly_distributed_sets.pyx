@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Evenly distributed sets in finite fields
 

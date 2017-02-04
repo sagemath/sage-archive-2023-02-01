@@ -407,7 +407,7 @@ class RealBallField(UniqueRepresentation, Field):
 
         TESTS::
 
-            sage: RealBallField(53) is RealBallField()
+            sage: RealBallField(53) is RealBallField() is RBF
             True
         """
         return super(RealBallField, cls).__classcall__(cls, precision, category)
@@ -448,9 +448,10 @@ class RealBallField(UniqueRepresentation, Field):
                 base_ring=self,
                 category=category or sage.categories.fields.Fields().Infinite())
         self._prec = precision
-        from sage.rings.qqbar import AA
+        # The coercion from QQbar is handled in _coerce_map_from_ to prevent
+        # import loops leading to silent UniqueRepresentation failures.
         from sage.rings.real_lazy import RLF
-        self._populate_coercion_lists_([ZZ, QQ, AA, RLF])
+        self._populate_coercion_lists_([ZZ, QQ, RLF])
 
     def _repr_(self):
         r"""
@@ -499,6 +500,9 @@ class RealBallField(UniqueRepresentation, Field):
             emb = other.coerce_embedding()
             if emb is not None:
                 return self.has_coerce_map_from(emb.codomain())
+        from sage.rings.qqbar import AA
+        if other is AA:
+            return True
 
     def _element_constructor_(self, mid=None, rad=None):
         """

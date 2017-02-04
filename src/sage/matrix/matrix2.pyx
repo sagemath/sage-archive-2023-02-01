@@ -16,6 +16,19 @@ TESTS::
 
     sage: m = matrix(ZZ['x'], 2, 3, [1..6])
     sage: TestSuite(m).run()
+
+Check that a pair consisting of a matrix and its echelon form is
+pickled correctly (this used to give a wrong answer due to a Python
+bug, see :trac:`17527`)::
+
+    sage: K.<x> = FractionField(QQ['x'])
+    sage: m = Matrix([[1], [x]])
+    sage: t = (m, m.echelon_form())
+    sage: loads(dumps(t))
+    (
+    [1]  [1]
+    [x], [0]
+    )
 """
 
 #*****************************************************************************
@@ -34,7 +47,8 @@ include "cysignals/signals.pxi"
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
-from sage.structure.element import is_Vector
+from sage.structure.element import (is_Vector, get_coercion_model)
+from sage.structure.element cimport have_same_parent
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -55,6 +69,7 @@ import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.matrix_misc import permanental_minor_polynomial
+
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
@@ -366,7 +381,7 @@ cdef class Matrix(matrix1.Matrix):
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.cypari2 import pari
+                from sage.libs.pari import pari
                 A = pari(self.lift())
                 b = pari(B).lift()
                 if b.type() == "t_MAT":
@@ -10421,45 +10436,84 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
     def is_similar(self, other, transformation=False):
         r"""
-        Returns ``True`` if ``self`` and ``other`` are similar,
+        Return ``True`` if ``self`` and ``other`` are similar,
         i.e. related by a change-of-basis matrix.
 
         INPUT:
 
-        - ``other`` - a matrix, which should be square, and of the same size
-          as ``self``, where the entries of the matrix have a fraction field
-          equal to that of ``self``.  Inexact rings are not supported.
+        - ``other`` -- a matrix, which should be square, and of the same size
+          as ``self``.
 
-        - ``transformation`` - default: ``False`` - if ``True``, the output
-          will include the change-of-basis matrix.  See below for an exact
-          description.
+        - ``transformation`` -- default: ``False`` - if ``True``, the output
+          may include the change-of-basis matrix (also known as the similarity
+          transformation). See below for an exact description.
 
         OUTPUT:
 
-        Two matrices, $A$ and $B$ are similar if there is an invertible
-        matrix $S$ such that $A=S^{-1}BS$.  $S$ can be interpreted as a
-        change-of-basis matrix if $A$ and $B$ are viewed as matrix
-        representations of the same linear transformation.
+        Two matrices, `A` and `B` are similar if they are square
+        matrices of the same size and there is an invertible matrix
+        `S` such that `A=S^{-1}BS`. `S` can be interpreted as a
+        change-of-basis matrix if `A` and `B` are viewed as matrix
+        representations of the same linear transformation from a vector space
+        to itself.
 
         When ``transformation=False`` this method will return ``True`` if
-        such a matrix $S$ exists, otherwise it will return ``False``.  When
-        ``transformation=True`` the method returns a pair.  The first part
+        such a matrix `S` exists, otherwise it will return ``False``.  When
+        ``transformation=True`` the method returns a pair. The first part
         of the pair is ``True`` or ``False`` depending on if the matrices
-        are similar and the second part is the change-of-basis matrix, or
-        ``None`` should it not exist.
+        are similar. The second part of the pair is the change-of-basis
+        matrix when the matrices are similar and ``None`` when the matrices
+        are not similar.
 
-        When the transformation matrix is requested, it will satisfy
-        ``self = S.inverse()*other*S``.
+        When a similarity transformation matrix ``S``  is requested,
+        it will satisfy ``self = S.inverse()*other*S``.
 
-        If the base rings for any of the matrices is the integers, the
-        rationals, or the field of algebraic numbers (``QQbar``), then the
-        matrices are converted to have ``QQbar`` as their base ring prior
-        to checking the equality of the base rings.
+        .. RUBRIC:: rings and coefficients
 
-        It is possible for this routine to fail over most fields, even when
-        the matrices are similar.  However, since the field of algebraic
-        numbers is algebraically closed, the routine will always produce
-        a result for matrices with rational entries.
+        Inexact rings are not supported. Only rings having a
+        fraction field can be used as coefficients.
+
+        The base rings for the matrices are promoted to a common
+        field for the similarity check using rational form over this field.
+
+        If the fraction fields of both matrices are the same, this
+        field is used. Otherwise, if the fraction fields are only
+        related by a canonical coercion, the common coercion field
+        is used.
+
+        In all cases, the result is about similarity over a common field.
+
+        .. RUBRIC:: similarity transformation
+
+        For computation of the similarity transformation, the
+        matrices are first checked to be similar over their common
+        field.
+
+        In this case, a similarity transformation is then
+        searched for over the common field. If this fails, the
+        matrices are promoted to the algebraic closure of their
+        common field (whenever it is available) and a similarity
+        transformation is looked for over the algebraic closure.
+
+        For example, matrices over the rationals
+        may be promoted to the field of algebraic numbers (``QQbar``)
+        for computation of the similarity transformation.
+
+        .. WARNING::
+
+            When the two matrices are similar, this routine may
+            fail to find the similarity transformation.  A technical
+            explanation follows.
+
+        The similarity check is accomplished with rational form, which
+        will be successful for any pair of matrices over the same field.
+        However, the computation of rational form does not provide a
+        transformation. So we instead compute Jordan form, which does
+        provide a transformation.  But Jordan form will require that
+        the eigenvalues of the matrix can be represented within Sage,
+        requiring the existence of the appropriate extension field.
+        When this is not possible, a ``RuntimeError`` is raised, as
+        demonstrated in an example below.
 
         EXAMPLES:
 
@@ -10527,9 +10581,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Similarity is an equivalence relation, so this routine computes
         a representative of the equivalence class for each matrix, the
-        Jordan form, as provided by :meth:`jordan_form`.  The matrices
+        rational form, as provided by :meth:`rational_form`.  The matrices
         below have identical eigenvalues (as evidenced by equal
-        characteristic polynomials), but slightly different Jordan forms,
+        characteristic polynomials), but slightly different rational forms,
         and hence are not similar.  ::
 
             sage: A = matrix(QQ, [[ 19, -7, -29],
@@ -10540,33 +10594,30 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ....:                 [-14, -21,  18]])
             sage: A.charpoly() == B.charpoly()
             True
-            sage: A.jordan_form()
-            [-3| 0  0]
+            sage: A.rational_form()
+            [  0   0 -48]
+            [  1   0   8]
+            [  0   1   5]
+            sage: B.rational_form()
+            [ 4| 0  0]
             [--+-----]
-            [ 0| 4  1]
-            [ 0| 0  4]
-            sage: B.jordan_form()
-            [-3| 0| 0]
-            [--+--+--]
-            [ 0| 4| 0]
-            [--+--+--]
-            [ 0| 0| 4]
+            [ 0| 0 12]
+            [ 0| 1  1]
             sage: A.is_similar(B)
             False
 
-        Obtaining the Jordan form requires computing the eigenvalues of
-        the matrix, which may not lie in the field used for entries of
-        the matrix.  So the routine first checks the characteristic
-        polynomials - if they are unequal, then the matrices cannot be
-        similar. However, when the characteristic polynomials are equal,
-        we must examine the Jordan form. In this case, the method may fail,
-        EVEN when the matrices are similar.  This is not the case for
-        matrices over the integers, rationals or algebraic numbers,
-        since the computations are done in the algebraically closed
-        field of algebraic numbers.
-
-        Here is an example where the similarity is obvious, but the
-        routine fails to compute a result.  ::
+        Obtaining the transformation between two similar matrices
+        requires the Jordan form, which requires computing the
+        eigenvalues of the matrix, which may not lie in the field
+        used for entries of the matrix.  In this unfortunate case,
+        the computation of the transformation may fail with a
+        ``RuntimeError``, EVEN when the matrices are similar.  This
+        is not the case for matrices over the integers, rationals
+        or algebraic numbers, since the computations are done in
+        the algebraically closed field of algebraic numbers.
+        Here is an example where the similarity is obvious by
+        design, but we are not able to resurrect a similarity
+        transformation.  ::
 
             sage: F.<a> = FiniteField(7^2)
             sage: C = matrix(F,[[  a + 2, 5*a + 4],
@@ -10575,48 +10626,77 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ....:                [1, 0]])
             sage: D = S.inverse()*C*S
             sage: C.is_similar(D)
+            True
+            sage: C.is_similar(D, transformation=True)
             Traceback (most recent call last):
             ...
-            ValueError: unable to compute Jordan canonical form for a matrix
+            RuntimeError: unable to compute transformation for similar matrices
             sage: C.jordan_form()
             Traceback (most recent call last):
             ...
-            RuntimeError: Some eigenvalue does not exist in Finite Field in a of size 7^2.
+            RuntimeError: Some eigenvalue does not exist in
+            Finite Field in a of size 7^2.
 
-        Inexact rings and fields are also not supported.  ::
+        An example over a finite field of prime order, which uses the
+        algebraic closure of this field to find the change-of-basis
+        matrix::
+
+            sage: cox = posets.TamariLattice(3).coxeter_transformation()
+            sage: M = cox.change_ring(GF(3))
+            sage: M.is_similar(M**3, True)  # long time
+            (
+                  [1 0 0 0 0]
+                  [0 1 1 0 2]
+                  [0 0 0 0 1]
+                  [1 2 0 2 1]
+            True, [0 0 1 0 0]
+            )
+
+        Inexact rings and fields are not supported.  ::
 
             sage: A = matrix(CDF, 2, 2, range(4))
             sage: B = copy(A)
             sage: A.is_similar(B)
             Traceback (most recent call last):
             ...
-            ValueError: unable to compute Jordan canonical form for a matrix
+            TypeError: matrix entries must come from an exact field,
+            not Complex Double Field
 
-        Rectangular matrices and mismatched sizes return quickly.  ::
+        Base rings for the matrices need to have a fraction field. So
+        in particular, the ring needs to be at least an integral domain.  ::
 
-            sage: A = matrix(3, 2, range(6))
-            sage: B = copy(A)
-            sage: A.is_similar(B)
-            False
-            sage: A = matrix(2, 2, range(4))
-            sage: B = matrix(3, 3, range(9))
-            sage: A.is_similar(B, transformation=True)
-            (False, None)
+            sage: Z6 = Integers(6)
+            sage: A = matrix(Z6, 2, 2, range(4))
+            sage: A.is_similar(A)
+            Traceback (most recent call last):
+            ...
+            ValueError: base ring of a matrix needs a fraction field,
+            maybe the ring is not an integral domain
 
-        If the fraction fields of the entries are unequal, it is an error,
-        except in the case when the rationals gets promoted to the
-        algebraic numbers.  ::
+        If the fraction fields of the entries are unequal and do not
+        coerce in a common field, it is an error.  ::
 
-            sage: A = matrix(ZZ, 2, 2, range(4))
+            sage: A = matrix(GF(3), 2, 2, range(4))
             sage: B = matrix(GF(2), 2, 2, range(4))
             sage: A.is_similar(B, transformation=True)
             Traceback (most recent call last):
             ...
-            TypeError: matrices need to have entries with identical fraction fields, not Algebraic Field and Finite Field of size 2
+            TypeError: no common canonical parent for objects with parents:
+            'Full MatrixSpace of 2 by 2 dense matrices over Finite Field
+            of size 3' and
+            'Full MatrixSpace of 2 by 2 dense matrices over Finite Field
+            of size 2'
+
+        A matrix over the integers and a matrix over the algebraic
+        numbers will be compared over the algebraic numbers (by coercion
+        of ``QQ`` in ``QQbar``).  ::
+
             sage: A = matrix(ZZ, 2, 2, range(4))
             sage: B = matrix(QQbar, 2, 2, range(4))
             sage: A.is_similar(B)
             True
+
+        TESTS:
 
         Inputs are checked.  ::
 
@@ -10629,66 +10709,83 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.is_similar(B, transformation='junk')
             Traceback (most recent call last):
             ...
-            ValueError: transformation keyword must be True or False, not junk
+            ValueError: transformation keyword must be True or False
+
+        Mismatched sizes raise an error::
+
+            sage: A = matrix(2, 2, range(4))
+            sage: B = matrix(3, 3, range(9))
+            sage: A.is_similar(B, transformation=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrices do not have the same size
+
+        Rectangular matrices and mismatched sizes raise an error::
+
+            sage: A = matrix(3, 2, range(6))
+            sage: B = copy(A)
+            sage: A.is_similar(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: similarity only makes sense for square matrices
+
+        AUTHOR:
+
+        - Rob Beezer (2011-03-15, 2015-05-25)
         """
-        import sage.matrix.matrix
-        import sage.rings.qqbar
-        if not sage.matrix.matrix.is_Matrix(other):
+        from sage.matrix.matrix import is_Matrix
+
+        if not is_Matrix(other):
             raise TypeError('similarity requires a matrix as an argument, not {0}'.format(other))
         if transformation not in [True, False]:
-            raise ValueError('transformation keyword must be True or False, not {0}'.format(transformation))
-        # easy false situations
+            raise ValueError('transformation keyword must be True or False')
         if not self.is_square() or not other.is_square():
-            if transformation:
-                return (False, None)
-            else:
-                return False
+            raise ValueError('similarity only makes sense for square matrices')
         if self.nrows() != other.nrows():
-            if transformation:
-                return (False, None)
-            else:
-                return False
+            raise ValueError('matrices do not have the same size')
+
         # convert to fraction fields for base rings
-        A = self.matrix_over_field()
-        B = other.matrix_over_field()
-        # move rationals to algebraically closed algebraic numbers
-        if A.base_ring() == QQ:
-            A = A.change_ring(sage.rings.qqbar.QQbar)
-        if B.base_ring() == QQ:
-            B = B.change_ring(sage.rings.qqbar.QQbar)
-        # require identical base fields
-        if A.base_ring() != B.base_ring():
-            raise TypeError('matrices need to have entries with identical fraction fields, not {0} and {1}'.format(A.base_ring(), B.base_ring()))
-        # unequal characteristic polynomials implies not similar
-        # and avoids any problems with eigenvalues not in the base field
-        if A.charpoly() != B.charpoly():
-            if transformation:
-                return (False, None)
-            else:
-                return False
-        # now more precisely compare Jordan form, and optionally get transformations
         try:
-            if transformation:
-                JA, SA = A.jordan_form(transformation=True)
-            else:
-                JA = A.jordan_form(transformation=False)
-        except Exception:
-            raise ValueError('unable to compute Jordan canonical form for a matrix')
-        try:
-            if transformation:
-                JB, SB = B.jordan_form(transformation=True)
-            else:
-                JB = B.jordan_form(transformation=False)
-        except Exception:
-            raise ValueError('unable to compute Jordan canonical form for a matrix')
-        similar = (JA == JB)
-        transform = None
-        if similar and transformation:
-            transform = SB*SA.inverse()
-        if transformation:
-            return (similar, transform)
-        else:
+            A = self.matrix_over_field()
+            B = other.matrix_over_field()
+        except TypeError:
+            mesg = "base ring of a matrix needs a fraction field, "
+            mesg += "maybe the ring is not an integral domain"
+            raise ValueError(mesg)
+        if not have_same_parent(A, B):
+            cm = get_coercion_model()
+            A, B = cm.canonical_coercion(A, B)
+        # base rings are equal now, via above check
+
+        similar = (A.rational_form() == B.rational_form())
+        if not transformation:
             return similar
+        elif not similar:
+            return (False, None)
+        else:
+            # rational form routine does not provide transformation
+            # so if possible, get transformations to Jordan form
+
+            # first try to look for Jordan forms over the fraction field
+            try:
+                _, SA = A.jordan_form(transformation=True)
+                _, SB = B.jordan_form(transformation=True)
+                return (True, SB * SA.inverse())
+            except (ValueError, RuntimeError):
+                pass
+
+            # now move to the algebraic closure
+            # so as to contain potential complex eigenvalues
+            try:
+                ring = A.base_ring()
+                closure = ring.algebraic_closure()
+                A = A.change_ring(closure)
+                B = B.change_ring(closure)
+                _, SA = A.jordan_form(transformation=True)
+                _, SB = B.jordan_form(transformation=True)
+                return (True, SB * SA.inverse())
+            except (ValueError, RuntimeError, NotImplementedError):
+                raise RuntimeError('unable to compute transformation for similar matrices')
 
     def symplectic_form(self):
         r"""
@@ -13446,7 +13543,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         return left_mat, a, pivs
 
-    def _zigzag_form(self, basis=True):
+    def _zigzag_form(self, bint basis=True):
         r"""
         Helper method for computation of ZigZag form.
 
@@ -13541,23 +13638,22 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         - Rob Beezer (2011-06-09)
         """
-        import sage.matrix.constructor
         cdef Py_ssize_t n, s, c, i, j, k
 
         n = self._ncols
         R = self.base_ring()
-        zero = R(0)
-        one = R(1)
-        cdef Matrix Z
-        Z = self.__copy__()
-        polys = []    # coefficients for polynomials of companion matrices
-        corners = []  # zero or one in corner of off-diagonal blocks
+        zero = R.zero()
+        one = R.one()
+        cdef Matrix Z = self.__copy__()
+        cdef list polys = []    # coefficients for polynomials of companion matrices
+        cdef list corners = []  # zero or one in corner of off-diagonal blocks
         if basis:
+            import sage.matrix.constructor
             U = sage.matrix.constructor.identity_matrix(R, n) # transformation matrix
         # parity switch, True iff working on transpose
         # if False, mimic row operations only on U
         # if True,  mimic column operations only on U
-        trans = False
+        cdef bint trans = False, zigging
         s = 0  # index of top row of current block
         c = 0  # index of current row of current block
         while s < n:
@@ -13566,7 +13662,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             while zigging:  # zigging means we are building a block
                 nonzero = -1
                 for i in range(c+1, n):
-                    if Z[i, c] != 0:
+                    if Z.get_unsafe(i,c):
                         nonzero = i
                         break
                 zigging = (nonzero != -1)
@@ -13580,19 +13676,19 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                             U.swap_rows(nonzero, c+1)
 
                     # create a subdiagonal entry 1
-                    scale = Z[c+1, c]
+                    scale = Z.get_unsafe(c+1, c)
                     Z.rescale_row(c+1, 1/scale)
                     Z.rescale_col(c+1, scale)
                     if basis:
                         if trans:
                             U.rescale_col(c+1, scale)
                         else:
-                            U.rescale_row(c+1, 1/scale)
+                            U.rescale_row(c+1, ~scale)
 
                     # clear column throughout the block,and in all rows below
                     for i in range(s, n):
                         if i != c+1:
-                            scale = Z[i, c]
+                            scale = Z.get_unsafe(i, c)
                             Z.add_multiple_of_row(i, c+1, -scale)
                             Z.add_multiple_of_column(c+1, i, scale)
                             if basis:
@@ -13610,10 +13706,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             # (inclusive), use it to clear entries to the right
             # but first record polynomial for block just built
             # this is the full monic polynomial, with correct coefficients
-            p = []
-            for i in range(s, c+1):
-                p.append(-Z[i, c])
-            p.append(R(1))
+            p = [-Z.get_unsafe(i,c) for i in range(s,c+1)]
+            p.append(one)
             polys.append(p)
 
             # use new unit columns (i) to clear rows to right (j)
@@ -13621,7 +13715,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             # it is important that the loop on  i  goes in reverse
             for i in range(c-1, s-1, -1):
                 for j in range(c+1, n):
-                    scale = Z[i+1, j]
+                    scale = Z.get_unsafe(i+1, j)
                     # Effectively: Z.add_multiple_of_column(j, i, -scale)
                     Z.set_unsafe(i+1, j, zero)
                     # row j leads with zeros, up to, and including column c
@@ -13640,7 +13734,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             nonzero = -1
             # locate a nonzero entry in row  s
             for j in range(c+1, n):
-                if Z[s, j] != 0:
+                if Z.get_unsafe(s, j):
                     nonzero = j
                     break
             if (nonzero != -1):
@@ -13653,16 +13747,16 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                             U.swap_columns(c+1, nonzero)
                         else:
                             U.swap_rows(c+1, nonzero)
-                scale = Z[s, c+1]
-                Z.rescale_col(c+1, 1/scale)
+                scale = Z.get_unsafe(s, c+1)
+                Z.rescale_col(c+1, ~scale)
                 Z.rescale_row(c+1, scale)
                 if basis:
                     if trans:
-                        U.rescale_col(c+1, 1/scale)
+                        U.rescale_col(c+1, ~scale)
                     else:
                         U.rescale_row(c+1, scale)
                 for j in range(c+2, n):
-                    scale = Z[s, j]
+                    scale = Z.get_unsafe(s, j)
                     # exploiting leading zeros does not seem too beneficial here
                     Z.add_multiple_of_column(j, c+1, -scale)
                     Z.add_multiple_of_row(c+1, j, scale)
@@ -13674,7 +13768,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             # maybe move this closer to where we know which it is
             if c < n-1:
-                corners.append(Z[s, c+1])
+                corners.append(Z.get_unsafe(s, c+1))
             # reset indices for constructing next block
             # transpose all elements, this is a zig or a zag
             c = c+1
@@ -13747,7 +13841,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         .. NOTE::
 
-            An efffort has been made to optimize computation of the form,
+            An effort has been made to optimize computation of the form,
             but no such work has been done for the computation of the
             transformation matrix, so for fastest results do not request the
             transformation matrix.
@@ -14349,22 +14443,22 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             raise ValueError("'subdivide' keyword must be True or False, not {0}".format(subdivide))
 
         _, polys, corners = self._zigzag_form(basis=False)
-        k = len(polys)
+        cdef Py_ssize_t k = len(polys), j, i
         F = sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing(R, 'x')
-        C = [F(p) for p in polys]
-        B = [(b == 1) for b in corners]
+        cdef list C = [F(p) for p in polys]
+        cdef list B = [b.is_one() for b in corners]
         B.append(False)  # no last block, so no corner
 
         if B[0]:
-            V = [F(1)]
+            V = [F.one()]
         else:
-            V = [F(0)]
+            V = [F.zero()]
 
         for j in range(1, k):
-            V[j-1] = gcd([V[j-1],C[j],C[j-1]])
+            V[j-1] = gcd([V[j-1], C[j], C[j-1]])
             for i in range(j-2, -1, -1):
                 V[i] = gcd([V[i], V[i+1], C[i]])
-            m = F(-1)
+            m = -F.one()
             for i in range(j):
                 g = gcd(m*V[i], C[i])
                 q, _ = C[i].quo_rem(g)
@@ -14372,22 +14466,22 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 if B[j]:
                     _, V[i] = m.quo_rem(C[i])
                 else:
-                    V[i] = F(0)
+                    V[i] = F.zero()
                 m = m * q
             C[j] = m * C[j]
             if B[j]:
                 V.append(m)
             else:
-                V.append(F(0))
+                V.append(F.zero())
 
         # Leading constant polynomials in C are size zero blocks, so toss them
         # Massage remainder to have leading coefficient 1
-        while (len(C) > 0) and C[0].degree() == 0:
-            C.remove(C[0])
+        while C and not C[0].degree():
+            del C[0]
         for i in range(len(C)):
-            unit = C[i].list()[-1]
-            if unit != R(1):
-                C[i] = (1/unit)*C[i]
+            unit = C[i].leading_coefficient()
+            if not unit.is_one():
+                C[i] = ~unit*C[i]
 
         if format == 'invariants':
             inv = []

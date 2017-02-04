@@ -1525,6 +1525,69 @@ class ChainComplex_class(Parent):
             data[-d] = self.differential()[d]
         return ChainComplex(data, degree=-deg)
 
+    def shift(self, n=1):
+        """
+        Shift this chain complex `n` times.
+
+        INPUT:
+
+        - ``n`` -- an integer (optional, default 1)
+
+        The *shift* operation is also sometimes called *translation* or
+        *suspension*.
+
+        To shift a chain complex by `n`, shift its entries up by `n`
+        (if it is a chain complex) or down by `n` (if it is a cochain
+        complex); that is, shifting by 1 always shifts in the opposite
+        direction of the differential. In symbols, if `C` is a chain
+        complex and `C[n]` is its `n`-th shift, then `C[n]_j =
+        C_{j-n}`. The differential in the shift `C[n]` is obtained by
+        multiplying each differential in `C` by `(-1)^n`.
+
+        Caveat: different sources use different conventions for
+        shifting: what we call `C[n]` might be called `C[-n]` in some
+        places. See for example.
+        https://ncatlab.org/nlab/show/suspension+of+a+chain+complex
+        (which uses `C[n]` as we do but acknowledges `C[-n]`) or 1.2.8
+        in [Wei1994]_ (which uses `C[-n]`).
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1).chain_complex()
+            sage: S1.shift(1).differential(2) == -S1.differential(1)
+            True
+            sage: S1.shift(2).differential(3) == S1.differential(1)
+            True
+            sage: S1.shift(3).homology(4)
+            Z
+
+        For cochain complexes, shifting goes in the other
+        direction. Topologically, this makes sense if we grade the
+        cochain complex for a space negatively::
+
+            sage: T = simplicial_complexes.Torus()
+            sage: co_T = T.chain_complex()._flip_()
+            sage: co_T.homology()
+            {-2: Z, -1: Z x Z, 0: Z}
+            sage: co_T.degree_of_differential()
+            1
+            sage: co_T.shift(2).homology()
+            {-4: Z, -3: Z x Z, -2: Z}
+
+        You can achieve the same result by tensoring (on the left, to
+        get the signs right) with a rank one free module in degree
+        ``-n * deg``, if ``deg`` is the degree of the differential::
+
+            sage: C = ChainComplex({-2: matrix(ZZ, 0, 1)})
+            sage: C.tensor(co_T).homology()
+            {-4: Z, -3: Z x Z, -2: Z}
+        """
+        deg = self.degree_of_differential()
+        shift = n * deg
+        sgn = (-1)**n
+        return ChainComplex({k-shift: sgn * self._diff[k] for k in self._diff},
+                            degree_of_differential=deg)
+
     def _chomp_repr_(self):
         r"""
         String representation of ``self`` suitable for use by the CHomP

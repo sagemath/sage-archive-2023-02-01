@@ -160,9 +160,9 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
 
         if self.__K is RationalField():
             G = self.__E.pari_curve().elltors()
-            order = G[0].python()
-            structure = G[1].python()
-            gens = G[2].python()
+            order = G[0].sage()
+            structure = G[1].sage()
+            gens = G[2].sage()
 
             self.__torsion_gens = [ self.__E(P) for P in gens ]
             from sage.groups.additive_abelian.additive_abelian_group import cover_and_relations_from_invariants

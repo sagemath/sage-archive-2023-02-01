@@ -149,7 +149,7 @@ cpdef inline bint rich_to_bool(int op, int c):
     return (bits >> (shift & 31)) & 1
 
 
-cpdef inline bint rich_to_bool_sgn(int op, int c):
+cpdef inline bint rich_to_bool_sgn(int op, Py_ssize_t c):
     """
     Same as ``rich_to_bool``, but allow any `c < 0` and `c > 0`
     instead of only `-1` and `1`.

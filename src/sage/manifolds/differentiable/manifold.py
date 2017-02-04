@@ -1866,7 +1866,7 @@ class DifferentiableManifold(TopologicalManifold):
             \forall p \in M,\ t(p) \in \mathrm{GL}\left(T_{\Phi(p)} N \right),
 
         where `\mathrm{GL}\left(T_{\Phi(p)} N \right)` is the general linear
-        group of the the tangent space `T_{\Phi(p)} N`.
+        group of the tangent space `T_{\Phi(p)} N`.
 
         The standard case of a field of automorphisms *on* `M` corresponds
         to `N = M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`

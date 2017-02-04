@@ -67,7 +67,7 @@ class Function_erf(BuiltinFunction):
     REFERENCES:
 
     - http://en.wikipedia.org/wiki/Error_function
-    - http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#error-functions
+    - http://mpmath.org/doc/current/functions/expintegrals.html#error-functions
 
     TESTS:
 

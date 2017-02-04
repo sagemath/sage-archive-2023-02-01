@@ -1441,15 +1441,17 @@ class Graph(GenericGraph):
         return False
 
     @doc_index("Connectivity, orientations, trees")
-    def bridges(self):
+    def bridges(self, labels=True):
         r"""
         Returns a list of the bridges (or cut edges).
 
         A bridge is an edge so that deleting it disconnects the graph.
+        A disconnected graph has no bridge.
 
-        .. NOTE::
+        INPUT:
 
-            This method assumes the graph is connected.
+        - ``labels`` -- (default: ``True``) if ``False``, each bridge is a tuple
+          `(u, v)` of vertices
 
         EXAMPLES::
 
@@ -1460,11 +1462,28 @@ class Graph(GenericGraph):
              sage: g.bridges()
              [(1, 10, None)]
         """
-        gs = self.strong_orientation()
-        bridges = []
-        for scc in gs.strongly_connected_components():
-            bridges.extend(gs.edge_boundary(scc))
-        return bridges
+        # Small graphs and disconnected graphs have no bridge
+        if self.order() < 2 or not self.is_connected():
+            return []
+
+        B,C = self.blocks_and_cut_vertices()
+
+        # A graph without cut-vertex has no bridge
+        if not C:
+            return []
+
+        # A block of size 2 is a bridge, unless the vertices are connected with
+        # multiple edges.
+        ME = set(self.multiple_edges(labels=False))
+        my_bridges = []
+        for b in B:
+            if len(b) == 2 and not tuple(b) in ME:
+                if labels:
+                    my_bridges.append((b[0], b[1], self.edge_label(b[0], b[1])))
+                else:
+                    my_bridges.append(tuple(b))
+
+        return my_bridges
 
     @doc_index("Connectivity, orientations, trees")
     def spanning_trees(self):
@@ -4173,11 +4192,13 @@ class Graph(GenericGraph):
         return ret
 
     @doc_index("Leftovers")
-    def matching(self, value_only=False, algorithm="Edmonds", use_edge_labels=True, solver=None, verbose=0):
+    def matching(self, value_only=False, algorithm="Edmonds",
+                 use_edge_labels=False, solver=None, verbose=0):
         r"""
-        Returns a maximum weighted matching of the graph
-        represented by the list of its edges. For more information, see the
-        `Wikipedia article on matchings
+        Return a maximum weighted matching of the graph
+        represented by the list of its edges.
+
+        For more information, see the `Wikipedia article on matchings
         <http://en.wikipedia.org/wiki/Matching_%28graph_theory%29>`_.
 
         Given a graph `G` such that each edge `e` has a weight `w_e`,
@@ -4190,14 +4211,15 @@ class Graph(GenericGraph):
         .. MATH::
 
             \mbox{Maximize : }&\sum_{e\in G.edges()} w_e b_e\\
-            \mbox{Such that : }&\forall v \in G, \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
+            \mbox{Such that : }&\forall v \in G,
+            \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
             &\forall x\in G, b_x\mbox{ is a binary variable}
 
         INPUT:
 
-        - ``value_only`` -- boolean (default: ``False``). When set to
+        - ``value_only`` -- boolean (default: ``False``); when set to
           ``True``, only the cardinal (or the weight) of the matching is
-          returned.
+          returned
 
         - ``algorithm`` -- string (default: ``"Edmonds"``)
 
@@ -4207,22 +4229,23 @@ class Graph(GenericGraph):
 
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
-          - When set to ``True``, computes a weighted matching where each edge
-            is weighted by its label. (If an edge has no label, `1` is assumed.)
+          - when set to ``True``, computes a weighted matching where each edge
+            is weighted by its label (if an edge has no label, `1` is assumed)
 
-          - When set to ``False``, each edge has weight `1`.
+          - when set to ``False``, each edge has weight `1`
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
+          solver to be used; if set to ``None``, the default one is used
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
-          verbosity. Set to 0 by default, which means quiet.
-          Only useful when ``algorithm == "LP"``.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity: set to 0 by default, which means quiet
+          (only useful when ``algorithm == "LP"``)
+
+        For more information on LP solvers and which default solver is
+        used, see the method
+        :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+        of the class :class:`MixedIntegerLinearProgram
+        <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         ALGORITHM:
 
@@ -4236,18 +4259,38 @@ class Graph(GenericGraph):
 
            sage: g = graphs.PappusGraph()
            sage: g.matching(value_only=True)
-           9.0
+           9
 
         Same test with the Linear Program formulation::
 
            sage: g = graphs.PappusGraph()
            sage: g.matching(algorithm="LP", value_only=True)
-           9.0
+           9
 
         .. PLOT::
 
             g = graphs.PappusGraph()
             sphinx_plot(g.plot(edge_colors={"red":g.matching()}))
+
+        TESTS:
+
+        When ``use_edge_labels`` is set to ``False``,
+        with Edmonds' algorithm and LP formulation::
+
+            sage: g = Graph([(0,1,0), (1,2,999), (2,3,-5)])
+            sage: g.matching()
+            [(0, 1, 0), (2, 3, -5)]
+            sage: g.matching(algorithm="LP")
+            [(0, 1, 0), (2, 3, -5)]
+
+        When ``use_edge_labels`` is set to ``True``,
+        with Edmonds' algorithm and LP formulation::
+
+            sage: g = Graph([(0,1,0), (1,2,999), (2,3,-5)])
+            sage: g.matching(use_edge_labels=True)
+            [(1, 2, 999)]
+            sage: g.matching(algorithm="LP", use_edge_labels=True)
+            [(1, 2, 999)]
 
         TESTS:
 
@@ -4266,17 +4309,18 @@ class Graph(GenericGraph):
 
         if algorithm == "Edmonds":
             import networkx
+            g = networkx.Graph()
             if use_edge_labels:
-                g = networkx.Graph()
-                for u, v, l in self.edges():
+                for u, v, l in self.edge_iterator():
                     g.add_edge(u, v, attr_dict={"weight": weight(l)})
             else:
-                g = self.networkx_graph(copy=False)
+                for u, v in self.edge_iterator(labels=False):
+                    g.add_edge(u, v)
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
                     return sum(weight(self.edge_label(u, v))
-                                for u, v in d.iteritems()) * 0.5
+                               for u, v in d.iteritems()) / Integer(2)
                 else:
                     return Integer(len(d) // 2)
             else:
@@ -4290,9 +4334,14 @@ class Graph(GenericGraph):
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
             b = p.new_variable(binary = True)
-            p.set_objective(
-                p.sum(weight(w) * b[min(u, v),max(u, v)]
-                     for u, v, w in g.edges()))
+            if use_edge_labels:
+                p.set_objective(
+                    p.sum(weight(w) * b[min(u, v),max(u, v)]
+                         for u, v, w in g.edge_iterator()))
+            else:
+                p.set_objective(
+                    p.sum(b[min(u, v),max(u, v)]
+                         for u, v in g.edge_iterator(labels=False)))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
@@ -4308,7 +4357,7 @@ class Graph(GenericGraph):
                 p.solve(log=verbose)
                 b = p.get_values(b)
                 return [(u, v, w) for u, v, w in g.edges()
-                        if b[min(u, v),max(u, v)] == 1]
+                        if b[min(u, v), max(u, v)] == 1]
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
@@ -4523,7 +4572,7 @@ class Graph(GenericGraph):
 
             # Computing a matching of maximum weight...
 
-            matching = g.matching()
+            matching = g.matching(use_edge_labels=True)
 
             # If the maximum matching has weight at most 1, we are done !
             if sum((x[2] for x in matching)) <= 1:
@@ -4653,7 +4702,7 @@ class Graph(GenericGraph):
         r"""
         Returns an independent set of representatives.
 
-        Given a graph `G` and and a family `F=\{F_i:i\in [1,...,k]\}` of
+        Given a graph `G` and a family `F=\{F_i:i\in [1,...,k]\}` of
         subsets of ``g.vertices()``, an Independent Set of Representatives
         (ISR) is an assignation of a vertex `v_i\in F_i` to each set `F_i`
         such that `v_i != v_j` if `i<j` (they are representatives) and the
@@ -5513,7 +5562,7 @@ class Graph(GenericGraph):
             for v in G:
 
                 # The flow balance depends on whether the vertex v is
-                # a representant of h1 or h2 in G, or a reprensentant
+                # a representant of h1 or h2 in G, or a representant
                 # of none
 
                 p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v] )
@@ -7448,6 +7497,9 @@ Graph.chromatic_polynomial      = types.MethodType(sage.graphs.chrompoly.chromat
 import sage.graphs.graph_decompositions.rankwidth
 Graph.rank_decomposition        = types.MethodType(sage.graphs.graph_decompositions.rankwidth.rank_decomposition, None, Graph)
 
+import sage.graphs.graph_decompositions.vertex_separation
+Graph.pathwidth                 = types.MethodType(sage.graphs.graph_decompositions.vertex_separation.pathwidth, None, Graph)
+
 import sage.graphs.matchpoly
 Graph.matching_polynomial       = types.MethodType(sage.graphs.matchpoly.matching_polynomial, None, Graph)
 
@@ -7486,6 +7538,7 @@ _additional_categories = {
     Graph.is_asteroidal_triple_free : "Graph properties",
     Graph.chromatic_polynomial      : "Algorithmically hard stuff",
     Graph.rank_decomposition        : "Algorithmically hard stuff",
+    Graph.pathwidth                 : "Algorithmically hard stuff",
     Graph.matching_polynomial       : "Algorithmically hard stuff",
     Graph.cliques_maximum           : "Clique-related methods",
     Graph.random_spanning_tree      : "Connectivity, orientations, trees",

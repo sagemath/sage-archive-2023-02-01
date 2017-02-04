@@ -1438,14 +1438,14 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['E', 6, 1], [[2,2]])
-            sage: map(lambda x: x.weight(), RC.module_generators)
+            sage: [x.weight() for x in RC.module_generators]
             [-4*Lambda[0] + 2*Lambda[2], -2*Lambda[0] + Lambda[2], 0]
             sage: KR = crystals.KirillovReshetikhin(['E',6,1], 2,2)
-            sage: map(lambda x: x.weight(), KR.module_generators) # long time
+            sage: [x.weight() for x in KR.module_generators]  # long time
             [0, -2*Lambda[0] + Lambda[2], -4*Lambda[0] + 2*Lambda[2]]
 
             sage: RC = RiggedConfigurations(['D', 6, 1], [[4,2]])
-            sage: map(lambda x: x.weight(), RC.module_generators)
+            sage: [x.weight() for x in RC.module_generators]
             [-4*Lambda[0] + 2*Lambda[4], -4*Lambda[0] + Lambda[2] + Lambda[4],
              -2*Lambda[0] + Lambda[4], -4*Lambda[0] + 2*Lambda[2],
              -2*Lambda[0] + Lambda[2], 0]
@@ -1590,7 +1590,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         as follows::
 
             sage: ret, G = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(build_graph=True)
-            sage: view(G, tightpage=True) # not tested
+            sage: view(G) # not tested
         """
         from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
         bij = RCToKRTBijection(self)
@@ -1644,7 +1644,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         as follows::
 
             sage: ret, G = elt.to_tensor_product_of_kirillov_reshetikhin_crystals(build_graph=True)
-            sage: view(G, tightpage=True) # not tested
+            sage: view(G) # not tested
         """
         if build_graph:
             kr_tab, G = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps, build_graph)
@@ -1792,8 +1792,9 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         if P.dims[0][1] != 1:
             rc = self.left_split()
         bij = RCToKRTBijection(rc)
-        bij.cur_dims[0][0] -= 1 # This takes care of the indexing
-        b = bij.next_state(bij.cur_dims[0][0])
+        ht = bij.cur_dims[0][0]
+        bij.cur_dims[0][0] = bij._next_index(ht)
+        b = bij.next_state(ht)
         if bij.cur_dims[0][0] == 0:
             bij.cur_dims.pop(0)
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations

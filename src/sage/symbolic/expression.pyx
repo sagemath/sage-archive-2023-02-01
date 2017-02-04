@@ -1243,13 +1243,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: t = log(10); t
             log(10)
-            sage: t._convert({'parent':QQ})
+            sage: t._convert({'parent':ZZ})
             2.30258509299405
 
         ::
 
             sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert({'parent':QQ})
-            0.331368631904900/log(287/50/x^0.900000000000000)^2
+            1/16*log(10)^2/log(287/50/x^0.900000000000000)^2
             sage: (0.25 / (log(5.74 /x^0.9, 10))^2 / 4)._convert({'parent':CC})
             0.331368631904900/log(5.74000000000000/x^0.900000000000000)^2
 
@@ -1513,11 +1513,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: x, y = var("x y")
             sage: t = hash(x); type(t)
-            <type 'int'>
+            <... 'int'>
             sage: t = hash(x^y); type(t)
-            <type 'int'>
+            <... 'int'>
             sage: type(hash(x+y))
-            <type 'int'>
+            <... 'int'>
             sage: d = {x+y: 5}
             sage: d
             {x + y: 5}
@@ -1565,13 +1565,13 @@ cdef class Expression(CommutativeRingElement):
             sage: f = function('f')(*X)
             sage: hashes=set()
             sage: for length in range(1,max_order+1):  # long time (4s on sage.math, 2012)
-            ...       for s in UnorderedTuples(X, length):
-            ...           deriv = f.diff(*s)
-            ...           h = hash(deriv)
-            ...           if h in hashes:
-            ...               print("deriv: %s, hash:%s" % (deriv, h))
-            ...           else:
-            ...               hashes.add(n)
+            ....:     for s in UnorderedTuples(X, length):
+            ....:         deriv = f.diff(*s)
+            ....:         h = hash(deriv)
+            ....:         if h in hashes:
+            ....:             print("deriv: %s, hash:%s" % (deriv, h))
+            ....:         else:
+            ....:             hashes.add(n)
 
         Check whether `oo` keeps its hash in `SR` (:trac:`19928`)::
 
@@ -4614,7 +4614,7 @@ cdef class Expression(CommutativeRingElement):
         cdef dict rdict = {}
         cdef GExListIter itr = mlst.begin()
         cdef GExListIter lstend = mlst.end()
-        while itr.is_not_equal(lstend):
+        while itr != lstend:
             key = new_Expression_from_GEx(self._parent, itr.obj().lhs())
             val = new_Expression_from_GEx(self._parent, itr.obj().rhs())
             rdict[key] = val
@@ -4659,7 +4659,7 @@ cdef class Expression(CommutativeRingElement):
         self._gobj.find(p._gobj, found)
         res = []
         cdef GExListIter itr = found.begin()
-        while itr.is_not_equal(found.end()):
+        while itr != found.end():
             res.append(new_Expression_from_GEx(self._parent, itr.obj()))
             itr.inc()
         res = print_sorted(res)
@@ -5088,7 +5088,7 @@ cdef class Expression(CommutativeRingElement):
         g_list_symbols(self._gobj, sym_set)
         res = []
         cdef GExSetIter itr = sym_set.begin()
-        while itr.is_not_equal(sym_set.end()):
+        while itr != sym_set.end():
             res.append(new_Expression_from_GEx(SR, itr.obj()))
             itr.inc()
         res = print_sorted(res)[::-1]
@@ -6385,6 +6385,33 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.expression_conversions import polynomial
         return polynomial(self, base_ring=base_ring, ring=ring)
 
+    def laurent_polynomial(self, base_ring=None, ring=None):
+        r"""
+        Return this symbolic expression as an laurent polynomial
+        over the given base ring, if possible.
+
+        INPUT:
+
+        -  ``base_ring`` - (optional) the base ring for the polynomial
+
+        -  ``ring`` - (optional) the parent for the polynomial
+
+        You can specify either the base ring (``base_ring``) you want
+        the output laurent polynomial to be over, or you can specify the full
+        laurent polynomial ring (``ring``) you want the output laurent
+        polynomial to be an element of.
+
+        EXAMPLES::
+
+            sage: f = x^2 -2/3/x + 1
+            sage: f.laurent_polynomial(QQ)
+            -2/3*x^-1 + 1 + x^2
+            sage: f.laurent_polynomial(GF(19))
+            12*x^-1 + 1 + x^2
+        """
+        from sage.symbolic.expression_conversions import laurent_polynomial
+        return laurent_polynomial(self, base_ring=base_ring, ring=ring)
+
     def _polynomial_(self, R):
         """
         Coerce this symbolic expression to a polynomial in `R`.
@@ -6605,7 +6632,7 @@ cdef class Expression(CommutativeRingElement):
                     60*z^4*w^2*x^2*u^5 + 375*z^8*w^3*x*y*u^7 + 150*z^8*w^5*x*y^4*u^6 + \
                     180*z^6*x*y^3*u^5 + 216*z^6*w^3*x^2*y^3*u^6;
             sage: d = e.diff(x)
-            sage: gcd(d,e) / (u^4*z^2) in QQ      # known bug
+            sage: gcd(d,e) / (u^4*z^2) in QQ
             True
         """
         cdef Expression r = self.coerce_in(b)
@@ -6652,9 +6679,9 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: lcm(x^100-y^100, x^10-y^10) / (x^100 - y^100) in [1,-1]
             True
-            sage: l = lcm(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
-            sage: r = 1/21*(21*x^18 - 357*x^13*y + 14*x^13 + 357*x^6 + 9*x^5*y - 6069*x*y - 153*y^2 + 238*x + 6*y)*(21*x^7 + 357*x^6 + 9*x^5*y - 357*x^2*y + 14*x^2 - 6069*x*y - 153*y^2 + 238*x + 6*y)/(3*x^5 - 51*y + 2)
-            sage: l / r in [1,-1]
+            sage: a = expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) )
+            sage: b = expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3) )
+            sage: gcd(a,b) * lcm(a,b) / (a * b) in [1,-1]
             True
 
         The result is not automatically simplified::
@@ -10597,8 +10624,14 @@ cdef class Expression(CommutativeRingElement):
             Q
             sage: solve(Q*sqrt(Q^2 + 2) - 1, Q)
             [Q == 1/sqrt(Q^2 + 2)]
+
+        The following example is a regression in Maxima 5.39.0.
+        It used to be possible to get one more solution here,
+        namely 1/sqrt(sqrt(2) + 1), see
+        https://sourceforge.net/p/maxima/bugs/3276/::
+
             sage: solve(Q*sqrt(Q^2 + 2) - 1, Q, to_poly_solve=True)
-            [Q == 1/sqrt(-sqrt(2) + 1), Q == 1/sqrt(sqrt(2) + 1)]
+            [Q == -sqrt(-sqrt(2) - 1)]
 
         In some cases there may be infinitely many solutions indexed
         by a dummy variable.  If it begins with ``z``, it is implicitly
@@ -10718,7 +10751,7 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: solve(sin(x)==1/2, x, to_poly_solve='force')
-            [x == 1/6*pi + 2*pi*z..., x == 5/6*pi + 2*pi*z...]
+            [x == 5/6*pi + 2*pi*z..., x == 1/6*pi + 2*pi*z...]
 
         :trac:`11618` fixed::
 
@@ -11452,6 +11485,7 @@ cdef class Expression(CommutativeRingElement):
 
                 - ``'giac'`` - (optional) use Giac
 
+                - ``'sympy'`` - use SymPy
 
         EXAMPLES::
 
@@ -11546,7 +11580,7 @@ cdef class Expression(CommutativeRingElement):
 
         Use Giac to perform this summation::
 
-            sage: (sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')).factor()       # optional - giac
+            sage: (sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')).factor()
             pi*(e^(2*pi) + 1)/((e^pi + 1)*(e^pi - 1))
 
         Use Maple as a backend for summation::
@@ -11572,14 +11606,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (n,k,j)=var('n,k,j')
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
-            -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
+            -(-1)^(-j)*sum((-1)^k*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
             sage: assume(j>-1)
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
             1
             sage: forget()
             sage: assume(n>=j)
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
-            -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
+            -(-1)^(-j)*sum((-1)^k*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
             sage: forget()
             sage: assume(j==-1)
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
@@ -11587,7 +11621,7 @@ cdef class Expression(CommutativeRingElement):
             sage: forget()
             sage: assume(j<-1)
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
-            -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
+            -(-1)^(-j)*sum((-1)^k*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
             sage: forget()
 
         Check that :trac:`16176` is fixed::

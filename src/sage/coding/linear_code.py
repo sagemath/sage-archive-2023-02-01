@@ -2155,8 +2155,8 @@ class AbstractLinearCode(Module):
 
             sage: P.<x> = PolynomialRing(GF(2),"x")
             sage: g = x^3+x+1
-            sage: C1 = codes.CyclicCodeFromGeneratingPolynomial(7,g); C1
-            [7, 4] linear code over GF(2)
+            sage: C1 = codes.CyclicCode(length = 7, generator_pol = g); C1
+            [7, 4] Cyclic Code over GF(2)
             sage: C2 = codes.HammingCode(GF(2), 3); C2
             [7, 4] Hamming Code over GF(2)
             sage: C1.is_permutation_equivalent(C2)
@@ -4664,7 +4664,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
     def syndrome_table(self):
         r"""
-        Returns the syndrome lookup table of ``self``.
+        Return the syndrome lookup table of ``self``.
 
         EXAMPLES::
 
@@ -4673,23 +4673,15 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
             sage: D.syndrome_table()
             {(0, 0, 0): (0, 0, 0, 0, 0, 0, 0),
-             (1, 0, 0): (1, 0, 0, 0, 0, 0, 0),
-             (0, 1, 0): (0, 1, 0, 0, 0, 0, 0),
-             (1, 1, 0): (0, 0, 1, 0, 0, 0, 0),
              (0, 0, 1): (0, 0, 0, 1, 0, 0, 0),
-             (1, 0, 1): (0, 0, 0, 0, 1, 0, 0),
+             (0, 1, 0): (0, 1, 0, 0, 0, 0, 0),
              (0, 1, 1): (0, 0, 0, 0, 0, 1, 0),
+             (1, 0, 0): (1, 0, 0, 0, 0, 0, 0),
+             (1, 0, 1): (0, 0, 0, 0, 1, 0, 0),
+             (1, 1, 0): (0, 0, 1, 0, 0, 0, 0),
              (1, 1, 1): (0, 0, 0, 0, 0, 0, 1)}
         """
         return self._lookup_table
-
-
-
-
-
-
-
-
 
 
 class LinearCodeNearestNeighborDecoder(Decoder):

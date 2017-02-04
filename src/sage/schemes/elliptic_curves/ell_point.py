@@ -131,8 +131,8 @@ from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
+from sage.libs.pari import pari
 from sage.libs.cypari2.pari_instance import prec_words_to_bits
-from sage.libs.cypari2 import pari
 from sage.structure.sequence import Sequence
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
@@ -2468,7 +2468,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0.0511114082399688...
 
             sage: def naive_height(P):
-            ...       return log(RR(max(abs(P[0].numerator()), abs(P[0].denominator()))))
+            ....:     return log(RR(max(abs(P[0].numerator()), abs(P[0].denominator()))))
             sage: for n in [1..10]:
             ....:     print(naive_height(2^n*P)/4^n)
             0.000000000000000

@@ -94,6 +94,7 @@ cdef extern from "eclib/oldforms.h":
     pass
 
 from libcpp.vector cimport vector
+from libcpp.pair cimport pair
 
 cdef extern from "eclib/newforms.h":
     cdef cppclass newforms:
@@ -108,8 +109,11 @@ cdef extern from "eclib/newforms.h":
 
         void createfromcurve(int sign, CurveRed CR)
         void display()
-        rational plus_modular_symbol(rational r)
-        rational minus_modular_symbol(rational r)
+        # Here i is the index of the relevant newform in the space,
+        # which for us will always be 0:
+        rational plus_modular_symbol(rational r, int i, int base_at_infinity)
+        rational minus_modular_symbol(rational r, int i, int base_at_infinity)
+        pair[rational,rational] full_modular_symbol(rational r, int i, int base_at_infinity)
 
     cdef cppclass newform:
         newforms* nf

@@ -281,7 +281,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Some more types of ODE's::
 
         sage: desolve(x*diff(y,x)^2-(1+x*y)*diff(y,x)+y==0,y,contrib_ode=True,show_method=True)
-        [[y(x) == _C*e^x, y(x) == _C + log(x)], 'factor']
+        [[y(x) == _C + log(x), y(x) == _C*e^x], 'factor']
 
     ::
 
@@ -1551,7 +1551,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     INPUT:
 
     - ``f`` -- symbolic function. Its first argument will be the independent
-      variable. Its output should be de derivatives of the deppendent variables.
+      variable. Its output should be de derivatives of the dependent variables.
 
     - ``ics`` -- a list or tuple with the initial conditions.
 
@@ -1642,7 +1642,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     INPUT:
 
     - ``f`` -- symbolic function. Its first argument will be the independent
-      variable. Its output should be de derivatives of the deppendent variables.
+      variable. Its output should be de derivatives of the dependent variables.
 
     - ``ics`` -- a list or tuple with the initial conditions.
 

@@ -225,7 +225,7 @@ class RegularCrystals(Category_singleton):
             - ``reduced_word`` -- a reduced word of the Weyl group of the
               same type as the underlying crystal
             - ``only_support`` -- (default: ``True``) only include arrows
-              corresponding the the support of ``reduced_word``
+              corresponding to the support of ``reduced_word``
 
             OUTPUT:
 

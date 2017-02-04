@@ -121,7 +121,8 @@ List of Poset methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if the given list is a chain of the poset.
+    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if elements in the given list are comparable.
+    :meth:`~FinitePoset.is_antichain_of_poset` | Return ``True`` if elements in the given list are incomparable.
     :meth:`~FinitePoset.chains` | Return the chains of the poset.
     :meth:`~FinitePoset.antichains` | Return the antichains of the poset.
     :meth:`~FinitePoset.maximal_chains` | Return the maximal chains of the poset.
@@ -518,7 +519,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
         sage: d,c,b,a = list(P)
         sage: type(a)
-        <type 'str'>
+        <... 'str'>
 
     Of course, those strings are not aware of `P`. So to compare two
     such strings, one needs to query `P`::
@@ -551,7 +552,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
             sage: G = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: type(G.vertices()[0])
-            <type 'int'>
+            <... 'int'>
 
         This is worked around by systematically converting back the
         vertices of a poset to :class:`Integer`'s if they are
@@ -605,7 +606,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: type(hash(P))
-        <type 'int'>
+        <... 'int'>
 
     Bad input::
 
@@ -1273,7 +1274,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: H.edges()
             [(1, 3, None), (1, 5, None), (3, 15, None), (5, 15, None)]
             sage: H.set_latex_options(format="dot2tex")   # optional - dot2tex
-            sage: view(H, tight_page=True)  # optional - dot2tex, not tested (opens external window)
+            sage: view(H)  # optional - dot2tex, not tested (opens external window)
         """
         G = DiGraph(self._hasse_diagram).relabel(self._list, inplace=False)
         from sage.graphs.dot2tex_utils import have_dot2tex
@@ -1847,22 +1848,30 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def level_sets(self):
         """
-        Return a list ``l`` such that ``l[i]`` is the set of minimal
-        elements of the poset obtained from ``self`` by removing the
+        Return elements grouped by maximal number of cover relations
+        from a minimal element.
+
+        This returns a list of lists ``l`` such that ``l[i]`` is the
+        set of minimal elements of the poset obtained by removing the
         elements in ``l[0], l[1], ..., l[i-1]``. (In particular,
         ``l[0]`` is the set of minimal elements of ``self``.)
+
+        Every level is an antichain of the poset.
+
+        .. SEEALSO::
+
+            :meth:`dilworth_decomposition` to return elements grouped
+            to chains.
 
         EXAMPLES::
 
             sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
-            sage: [len(x) for x in P.level_sets()]
-            [1, 2, 1]
-
-        ::
+            sage: P.level_sets()
+            [[0], [1, 2], [3]]
 
             sage: Q = Poset({0:[1,2], 1:[3], 2:[4], 3:[4]})
-            sage: [len(x) for x in Q.level_sets()]
-            [1, 2, 1, 1]
+            sage: Q.level_sets()
+            [[0], [1, 2], [3], [4]]
         """
         return [[self._vertex_to_element(_) for _ in level] for level in
                 self._hasse_diagram.level_sets()]
@@ -2644,7 +2653,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_chain_of_poset(self, elms, ordered=False):
         """
-        Return ``True`` if `elms` is a chain of the poset, and ``False`` otherwise.
+        Return ``True`` if ``elms`` is a chain of the poset,
+        and ``False`` otherwise.
+
+        Set of elements are a *chain* of a poset if they are comparable
+        to each other.
 
         INPUT:
 
@@ -2698,6 +2711,42 @@ class FinitePoset(UniqueRepresentation, Parent):
             # HasseDiagram.
             sorted_o = sorted(elms, key=self._element_to_vertex)
             return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
+
+    def is_antichain_of_poset(self, elms):
+        """
+        Return ``True`` if ``elms`` is an antichain of the poset
+        and ``False`` otherwise.
+
+        Set of elements are an *antichain* of a poset if they are
+        pairwise incomparable.
+
+        EXAMPLES::
+
+            sage: P = Posets.BooleanLattice(5)
+            sage: P.is_antichain_of_poset([3, 5, 7])
+            False
+            sage: P.is_antichain_of_poset([3, 5, 14])
+            True
+
+        TESTS::
+
+            sage: P = Posets.PentagonPoset()
+            sage: P.is_antichain_of_poset([])
+            True
+            sage: P.is_antichain_of_poset([0])
+            True
+            sage: P.is_antichain_of_poset([1, 2, 1])
+            True
+
+        Check :trac:`19078`::
+
+            sage: P.is_antichain_of_poset([0, 1, 'junk'])
+            Traceback (most recent call last):
+            ...
+            ValueError: element (=junk) not in poset
+        """
+        elms_H = [self._element_to_vertex(e) for e in elms]
+        return self._hasse_diagram.is_antichain_of_poset(elms_H)
 
     def is_connected(self):
         """
@@ -3849,7 +3898,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`width` -- return the width of the poset.
+            :meth:`level_sets` to return elements grouped to antichains.
 
         ALGORITHM:
 
@@ -4829,7 +4878,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``algorithm``, a string or ``None`` -- a parameter forwarded
+        - ``algorithm`` -- string (optional); a parameter forwarded
           to underlying graph function to select the algorithm to use
 
         .. SEEALSO::
@@ -4916,13 +4965,20 @@ class FinitePoset(UniqueRepresentation, Parent):
         We check that this works for facade posets too::
 
             sage: P = Poset((divisors(12), attrcall("divides")), facade=True)
-            sage: Q = P.with_linear_extension([1,3,2,6,4,12])
+            sage: Q = P.with_linear_extension([1,3,2,6,4,12]); Q
+            Finite poset containing 6 elements with distinguished linear extension
             sage: list(Q)
             [1, 3, 2, 6, 4, 12]
             sage: Q.cover_relations()
             [[1, 3], [1, 2], [3, 6], [2, 6], [2, 4], [6, 12], [4, 12]]
             sage: sorted(Q.cover_relations()) == sorted(P.cover_relations())
             True
+
+        (Semi)lattice remains (semi)lattice with new linear extension::
+
+            sage: L = LatticePoset(P)
+            sage: Q = L.with_linear_extension([1,3,2,6,4,12]); Q
+            Finite lattice containing 6 elements with distinguished linear extension
 
         .. NOTE::
 
@@ -4932,7 +4988,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         new_vertices = [self._element_to_vertex(element) for element in linear_extension]
         vertex_relabeling = dict(zip(new_vertices, linear_extension))
-        return FinitePoset(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
+        # Hack to get the actual class, not the categorified class
+        constructor = self.__class__.__base__
+        return constructor(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
                            elements=linear_extension,
                            category=self.category(),
                            facade=self._is_facade)
@@ -4995,7 +5053,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.subposet(["a","b","x"])
             Traceback (most recent call last):
             ...
-            ValueError: <type 'str'> is not an element of this poset
+            ValueError: <... 'str'> is not an element of this poset
             sage: P.subposet(3)
             Traceback (most recent call last):
             ...
@@ -6830,6 +6888,10 @@ class FinitePoset(UniqueRepresentation, Parent):
     def incidence_algebra(self, R, prefix='I'):
         r"""
         Return the incidence algebra of ``self`` over ``R``.
+
+        OUTPUT:
+
+        An instance of :class:`sage.combinat.posets.incidence_algebras.IncidenceAlgebra`.
 
         EXAMPLES::
 

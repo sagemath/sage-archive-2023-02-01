@@ -865,9 +865,8 @@ class EnumeratedSets(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: class broken(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...
+                ....:  def __init__(self):
+                ....:      Parent.__init__(self, category = EnumeratedSets())
                 sage: broken().random_element()
                 Traceback (most recent call last):
                 ...
@@ -934,11 +933,11 @@ class EnumeratedSets(CategoryWithAxiom):
 
                 sage: from sage.categories.examples.finite_enumerated_sets import Example
                 sage: class CCls(Example):
-                ...       def __contains__(self, obj):
-                ...           if obj == 3:
-                ...               return False
-                ...           else:
-                ...               return obj in C
+                ....:     def __contains__(self, obj):
+                ....:         if obj == 3:
+                ....:             return False
+                ....:         else:
+                ....:             return obj in C
                 sage: CC = CCls()
                 sage: CC._test_enumerated_set_contains()
                 Traceback (most recent call last):
@@ -974,8 +973,8 @@ class EnumeratedSets(CategoryWithAxiom):
 
                 sage: from sage.categories.examples.finite_enumerated_sets import Example
                 sage: class CCls(Example):
-                ...       def list(self):
-                ...           return [1,2,3,4]
+                ....:     def list(self):
+                ....:         return [1,2,3,4]
                 sage: CC = CCls()
                 sage: CC._test_enumerated_set_iter_list()
                 Traceback (most recent call last):
@@ -987,8 +986,8 @@ class EnumeratedSets(CategoryWithAxiom):
             test::
 
                 sage: class CCls(Example):
-                ...       def list(self):
-                ...           return [1,2,3]
+                ....:     def list(self):
+                ....:         return [1,2,3]
                 sage: CC = CCls()
                 sage: CC._test_enumerated_set_iter_list(verbose=True,max_runs=2)
                 Enumerated set too big; skipping test; increase tester._max_runs

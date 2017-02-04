@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Word morphisms/substitutions
 
@@ -755,7 +755,7 @@ class WordMorphism(SageObject):
         TESTS::
 
             sage: for i in range(6):
-            ...     tm('a', i)
+            ....:   tm('a', i)
             ...
             word: a
             word: ab

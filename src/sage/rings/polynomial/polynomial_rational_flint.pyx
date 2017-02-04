@@ -31,7 +31,7 @@ from sage.libs.flint.fmpq_poly cimport *
 
 from sage.interfaces.all import singular as singular_default
 
-from sage.libs.cypari2.gen import gen as pari_gen
+from sage.libs.cypari2.gen import Gen as pari_gen
 
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.integer_ring import ZZ
@@ -611,7 +611,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.reverse(I)
             Traceback (most recent call last):
             ...
-            ValueError: cannot convert I + 1 to int
+            ValueError: can not convert complex algebraic number to real interval
 
         We check that this specialized implementation is compatible with the
         generic one::

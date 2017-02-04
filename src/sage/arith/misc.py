@@ -2190,10 +2190,6 @@ def rational_reconstruction(a, m, algorithm='fast'):
     """
     if algorithm == 'fast':
         return ZZ(a).rational_reconstruction(m)
-    elif algorithm == 'python':
-        from sage.misc.superseded import deprecation
-        deprecation(17180, 'The %r algorithm for rational_reconstruction is deprecated' % algorithm)
-        return ZZ(a).rational_reconstruction(m)
     else:
         raise ValueError("unknown algorithm %r" % algorithm)
 

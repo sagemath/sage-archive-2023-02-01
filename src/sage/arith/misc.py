@@ -465,7 +465,7 @@ def is_prime(n):
     except (AttributeError, NotImplementedError):
         return ZZ(n).is_prime()
 
-def is_pseudoprime(n, flag=None):
+def is_pseudoprime(n):
     r"""
     Test whether ``n`` is a pseudo-prime
 
@@ -495,22 +495,10 @@ def is_pseudoprime(n, flag=None):
         False
         sage: is_pseudoprime(-2)
         False
-
-    TESTS:
-
-    Deprecation warning from :trac:`16878`::
-
-        sage: is_pseudoprime(127, flag=0)
-        doctest:...: DeprecationWarning: the keyword 'flag' is deprecated and no longer used
-        See http://trac.sagemath.org/16878 for details.
-        True
     """
-    if flag is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(16878, "the keyword 'flag' is deprecated and no longer used")
     return ZZ(n).is_pseudoprime()
 
-def is_prime_power(n, flag=None, get_data=False):
+def is_prime_power(n, get_data=False):
     r"""
     Test whether ``n`` is a positive power of a prime number
 
@@ -568,9 +556,6 @@ def is_prime_power(n, flag=None, get_data=False):
         ...
         TypeError: unable to convert 'foo' to an integer
     """
-    if flag is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(16878, "the keyword 'flag' is deprecated and no longer used")
     return ZZ(n).is_prime_power(get_data=get_data)
 
 def is_pseudoprime_power(n, get_data=False):
@@ -617,26 +602,6 @@ def is_pseudoprime_power(n, get_data=False):
         (15, 0)
     """
     return ZZ(n).is_prime_power(proof=False, get_data=get_data)
-
-def is_pseudoprime_small_power(n, bound=None, get_data=False):
-    """
-    Deprecated version of ``is_pseudoprime_power``.
-
-    EXAMPLES::
-
-        sage: is_pseudoprime_small_power(1234)
-        doctest:...: DeprecationWarning: the function is_pseudoprime_small_power() is deprecated, use is_pseudoprime_power() instead.
-        See http://trac.sagemath.org/16878 for details.
-        False
-        sage: is_pseudoprime_small_power(3^1024, get_data=True)
-        [(3, 1024)]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(16878, "the function is_pseudoprime_small_power() is deprecated, use is_pseudoprime_power() instead.")
-    if get_data:
-        return [ZZ(n).is_prime_power(proof=False, get_data=True)]
-    else:
-        return ZZ(n).is_prime_power(proof=False)
 
 
 def valuation(m, *args, **kwds):

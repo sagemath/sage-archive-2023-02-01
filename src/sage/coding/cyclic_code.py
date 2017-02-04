@@ -443,7 +443,8 @@ class CyclicCode(AbstractLinearCode):
                 alpha = primitive_root
             else:
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map=True)
-                FE = RelativeFiniteFieldExtension(Fsplit, F, embedding=F_to_Fsplit)
+                FE = RelativeFiniteFieldExtension(Fsplit, F,
+                                                  embedding=F_to_Fsplit)
                 alpha = Fsplit.zeta(n)
 
             Rsplit = Fsplit['xx']
@@ -465,7 +466,7 @@ class CyclicCode(AbstractLinearCode):
             self._polynomial_ring = R
             self._generator_polynomial = g
             self._dimension = n - g.degree()
-            super(CyclicCode, self).__init__(F, n, "Vector", "Syndrome")
+            super(CyclicCode, self).__init__(F, n, "Vector", "SurroundingBCH")
 
         else:
             raise AttributeError("You must provide either a code, or a list of powers and the length and the field, or a generator polynomial and the code length")
@@ -754,7 +755,22 @@ class CyclicCode(AbstractLinearCode):
             sage: C.bch_bound(True)
             (4, (2, 12))
         """
-        return bch_bound(n=self.length(), D=self.defining_set(), arithmetic=arithmetic)
+        return bch_bound(self.length(), self.defining_set(), arithmetic)
+
+    @cached_method
+    def surrounding_bch_code(self):
+        r"""
+        Returns the surrounding BCH code of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: C.surrounding_bch_code()
+            [15, 12] BCH Code over Finite Field in a of size 2^4 with x^3 + a^2*x^2 + a*x + a^3 + a^2 + a + 1 as generator polynomial
+        """
+        from bch import BCHCode
+        delta, params = self.bch_bound(arithmetic = True, bch_parameters = True)
+        return BCHCode(self.base_field(), self.length(), delta, offset=params[0], jump_size=params[1])
 
 
 class CyclicCodePolynomialEncoder(Encoder):
@@ -1130,9 +1146,150 @@ class CyclicCodeVectorEncoder(Encoder):
         return self.code().base_ring() ** self.code().dimension()
 
 
+
+
+
+
+
+
+class CyclicCodeSurroundingBCHDecoder(Decoder):
+    r"""
+    A decoder which decodes through the surrounding BCH code of the cyclic code.
+
+    INPUT:
+
+    - ``code`` -- The associated code of this decoder.
+
+    - ``**kwargs`` -- All extra arguments are forwarded to the BCH decoder
+
+    EXAMPLES::
+
+        sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+        sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
+        sage: D
+        Decoder through the surrounding BCH code of the [15, 10] Cyclic Code over Finite Field in a of size 2^4 with x^5 + (a^3 + a^2 + a)*x^4 + x^3 + (a^3 + 1)*x^2 + (a^2 + 1)*x + a^2 + a + 1 as generator polynomial
+    """
+    def __init__(self, code, **kwargs):
+        r"""
+
+        EXAMPLES::
+
+            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
+            sage: D
+            Decoder through the surrounding BCH code of the [15, 10] Cyclic Code over Finite Field in a of size 2^4 with x^5 + (a^3 + a^2 + a)*x^4 + x^3 + (a^3 + 1)*x^2 + (a^2 + 1)*x + a^2 + a + 1 as generator polynomial
+        """
+        self._bch_code = code.surrounding_bch_code()
+        self._bch_decoder = self._bch_code.decoder(**kwargs)
+        self._decoder_type = copy(self._decoder_type)
+        self._decoder_type.remove("dynamic")
+        self._decoder_type = self._bch_decoder.decoder_type()
+        super(CyclicCodeSurroundingBCHDecoder, self).__init__(code, code.ambient_space(), "Vector")
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between CyclicCodeSurroundingBCHDecoder objects.
+
+        EXAMPLES::
+
+            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: D1 = C.decoder()
+            sage: D2 = C.decoder()
+            sage: D1 == D2
+            True
+        """
+        return isinstance(other, CyclicCodeSurroundingBCHDecoder) \
+                and self.code() == other.code()\
+                and self.bch_decoder() == other.bch_decoder()
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
+            sage: D
+            Decoder through the surrounding BCH code of the [15, 10] Cyclic Code over Finite Field in a of size 2^4 with x^5 + (a^3 + a^2 + a)*x^4 + x^3 + (a^3 + 1)*x^2 + (a^2 + 1)*x + a^2 + a + 1 as generator polynomial
+        """
+        return "Decoder through the surrounding BCH code of the %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
+            sage: latex(D)
+            \textnormal{Decoder through the surrounding BCH code of the }[15, 10] \textnormal{ Cyclic Code over } \Bold{F}_{2^{4}} \textnormal{ with } x^{5} + \left(a^{3} + a^{2} + a\right) x^{4} + x^{3} + \left(a^{3} + 1\right) x^{2} + \left(a^{2} + 1\right) x + a^{2} + a + 1 \textnormal{ as generator polynomial}
+        """
+        return "\\textnormal{Decoder through the surrounding BCH code of the }%s"\
+                % self.code()._latex_()
+
+    def bch_code(self):
+        r"""
+        Returns the surrounding BCH code of :meth:`sage.coding.encoder.Encoder.code`.
+
+        EXAMPLES::
+
+            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
+            sage: D.bch_code()
+            [15, 12] BCH Code over Finite Field in a of size 2^4 with x^3 + a^2*x^2 + a*x + a^3 + a^2 + a + 1 as generator polynomial
+        """
+        return self._bch_code
+
+    def bch_decoder(self):
+        r"""
+        Returns the decoder that will be used over the surrounding BCH code.
+
+        EXAMPLES::
+
+            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
+            sage: D.bch_decoder()
+            Decoder through the underlying GRS code of [15, 12] BCH Code over Finite Field in a of size 2^4 with x^3 + a^2*x^2 + a*x + a^3 + a^2 + a + 1 as generator polynomial
+        """
+        return self._bch_decoder
+
+    def decode_to_code(self, y):
+        r"""
+        Decodes ``r`` to an element in :meth:`sage.coding.encoder.Encoder.code`.
+
+        EXAMPLES::
+
+            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: a = GF(16, 'a').gen()
+            sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
+            sage: y = vector(GF(16, 'a'), [0, a^3, a^3 + a^2 + a, 1, a^2 + 1, a^3 + a^2 + 1, a^3 + a^2 + a, a^3 + a^2 + a, a^2 + a, a^2 + 1, a^2 + a + 1, a^3 + 1, a^2, a^3 + a, a^3 + a])
+            sage: D.decode_to_code(y) in C
+            True
+        """
+        return self.bch_code().decode_to_code(y)
+
+    def decoding_radius(self):
+        r"""
+        Returns maximal number of errors that ``self`` can decode.
+
+        EXAMPLES::
+
+            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
+            sage: D.decoding_radius()
+            1
+        """
+        return (self.code().bch_bound(arithmetic = True) - 1) // 2
+
+
 ####################### registration ###############################
 
 CyclicCode._registered_encoders["Polynomial"] = CyclicCodePolynomialEncoder
 CyclicCode._registered_encoders["Vector"] = CyclicCodeVectorEncoder
 CyclicCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
 CyclicCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+
+CyclicCode._registered_decoders["SurroundingBCH"] = CyclicCodeSurroundingBCHDecoder
+CyclicCodeSurroundingBCHDecoder._decoder_type = {"dynamic"}

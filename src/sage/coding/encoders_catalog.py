@@ -14,14 +14,14 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
 - :class:`grs.GRSEvaluationVectorEncoder <sage.coding.grs.GRSEvaluationVectorEncoder>`
 - :class:`grs.GRSEvaluationPolynomialEncoder <sage.coding.grs.GRSEvaluationPolynomialEncoder>`
 
+**Extended code encoders**
+
+- :class:`extended_code.ExtendedCodeExtendedMatrixEncoder <sage.coding.extended_code.ExtendedCodeExtendedMatrixEncoder>`
+
 **Cyclic code encoders**
 
 - :func:`cyclic_code.CyclicCodePolynomialEncoder <sage.coding.cyclic_code.CyclicCodePolynomialEncoder>`
 - :func:`cyclic_code.CyclicCodeVectorEncoder <sage.coding.cyclic_code.CyclicCodeVectorEncoder>`
-
-**Extended code encoders**
-
-- :class:`extended_code.ExtendedCodeExtendedMatrixEncoder <sage.coding.extended_code.ExtendedCodeExtendedMatrixEncoder>`
 
 **Punctured code encoders**
 

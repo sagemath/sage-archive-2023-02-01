@@ -24,6 +24,14 @@ ield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
 
 - :class:`extended_code.ExtendedCodeOriginalCodeDecoder <sage.coding.extended_code.ExtendedCodeOriginalCodeDecoder>`
 
+**Cyclic code decoder**
+
+- :class:`cyclic_code.CyclicCodeSurroundingBCHDecoder <sage.coding.cyclic_code.CyclicCodeSurroundingBCHDecoder>`
+
+**BCH code decoder**
+
+- :class:`bch.BCHUnderlyingGRSDecoder <sage.coding.bch.BCHUnderlyingGRSDecoder>`
+
 **Punctured codes decoders**
 
 - :class:`punctured_code.PuncturedCodeOriginalCodeDecoder <sage.coding.punctured_code.PuncturedCodeOriginalCodeDecoder>`
@@ -45,16 +53,15 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)
-from .punctured_code import PuncturedCodeOriginalCodeDecoder
+from .linear_code import (LinearCodeSyndromeDecoder,
+                          LinearCodeNearestNeighborDecoder)
+from .bch import BCHUnderlyingGRSDecoder
+from .cyclic_code import CyclicCodeSurroundingBCHDecoder
 from .grs import (GRSBerlekampWelchDecoder,
-                 GRSGaoDecoder,
-                 GRSKeyEquationSyndromeDecoder,
-                 GRSErrorErasureDecoder)
+                  GRSGaoDecoder,
+                  GRSKeyEquationSyndromeDecoder,
+                  GRSErrorErasureDecoder)
 from .guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
 from .extended_code import ExtendedCodeOriginalCodeDecoder
+from .punctured_code import PuncturedCodeOriginalCodeDecoder
 from .subfield_subcode import SubfieldSubcodeOriginalCodeDecoder
-from .grs import (GRSBerlekampWelchDecoder,
-                 GRSGaoDecoder,
-                 GRSKeyEquationSyndromeDecoder,
-                 GRSErrorErasureDecoder)

@@ -22,19 +22,24 @@ from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import as _lazy_import
 
 from .linear_code import LinearCode
-from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
-                                CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
-                                DuadicCodeOddPair, ExtendedBinaryGolayCode,
-                                ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                from_parity_check_matrix,
-                                LinearCodeFromCheckMatrix, #deprecated
-                                QuadraticResidueCode, QuadraticResidueCodeEvenPair,
-                                QuadraticResidueCodeOddPair,
-                                random_linear_code,
-                                RandomLinearCode, #deprecated
-                                ReedSolomonCode, TernaryGolayCode,
-                                ToricCode, WalshCode)
+from .code_constructions import (BCHCode, BinaryGolayCode,
+                                 CyclicCodeFromGeneratingPolynomial,
+                                 CyclicCodeFromCheckPolynomial,
+                                 DuadicCodeEvenPair,
+                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
+                                 ExtendedQuadraticResidueCode,
+                                 ExtendedTernaryGolayCode,
+                                 from_parity_check_matrix,
+                                 LinearCodeFromCheckMatrix, #deprecated
+                                 QuadraticResidueCode,
+                                 QuadraticResidueCodeEvenPair,
+                                 QuadraticResidueCodeOddPair,
+                                 random_linear_code,
+                                 RandomLinearCode, #deprecated
+                                 ReedSolomonCode, TernaryGolayCode,
+                                 ToricCode, WalshCode)
 
+from .cyclic_code import CyclicCode
 from .grs import GeneralizedReedSolomonCode
 from .reed_muller_code import ReedMullerCode, BinaryReedMullerCode
 from .extended_code import ExtendedCode
@@ -42,7 +47,7 @@ from .subfield_subcode import SubfieldSubcode
 
 from .guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
-from .cyclic_code import CyclicCode
+
 from .hamming_code import HammingCode
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders

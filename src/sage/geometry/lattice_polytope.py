@@ -4056,15 +4056,15 @@ class NefPartition(SageObject,
     intersection") gives decomposition of the vertex set of `\nabla^\circ`::
 
         sage: np.dual()
-        Nef-partition {4, 5, 6} U {1, 3} U {0, 2, 7}
+        Nef-partition {0, 1, 2} U {3, 4} U {5, 6, 7}
         sage: np.nabla_polar().vertices()
-        N( 1,  1,  0),
-        N( 0,  0,  1),
-        N( 0,  1,  0),
-        N( 0,  0, -1),
         N(-1, -1,  0),
         N( 0, -1,  0),
         N(-1,  0,  0),
+        N( 0,  0,  1),
+        N( 0,  0, -1),
+        N( 1,  1,  0),
+        N( 0,  1,  0),
         N( 1,  0,  0)
         in 3-d lattice N
 
@@ -4377,13 +4377,13 @@ class NefPartition(SageObject,
             in 3-d lattice N]
             sage: np.nabla_polar().vertices()
             N( 1, -1,  0),
-            N( 0,  1,  1),
             N( 1,  0,  0),
+            N(-1, -1,  0),
+            N(-1,  0,  0),
+            N( 0,  1,  1),
             N( 0,  0,  1),
             N( 0,  0, -1),
-            N(-1, -1,  0),
-            N( 0,  1, -1),
-            N(-1,  0,  0)
+            N( 0,  1, -1)
             in 3-d lattice N
         """
         return self.dual().nablas()
@@ -4508,14 +4508,14 @@ class NefPartition(SageObject,
             M(-1, 0, 0)
             in 3-d lattice M
             sage: np.nabla().vertices()
+            M(-1,  0,  1),
             M( 1,  0,  1),
+            M( 0,  1,  1),
+            M(-1, -1,  0),
+            M(-1,  0, -1),
             M( 1, -1,  0),
             M( 1,  0, -1),
-            M( 0,  1,  1),
-            M( 0,  1, -1),
-            M(-1,  0,  1),
-            M(-1, -1,  0),
-            M(-1,  0, -1)
+            M( 0,  1, -1)
             in 3-d lattice M
         """
         if i is None:
@@ -4542,13 +4542,13 @@ class NefPartition(SageObject,
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: np.nabla_polar().vertices()
             N( 1, -1,  0),
-            N( 0,  1,  1),
             N( 1,  0,  0),
+            N(-1, -1,  0),
+            N(-1,  0,  0),
+            N( 0,  1,  1),
             N( 0,  0,  1),
             N( 0,  0, -1),
-            N(-1, -1,  0),
-            N( 0,  1, -1),
-            N(-1,  0,  0)
+            N( 0,  1, -1)
             in 3-d lattice N
             sage: np.nabla_polar() is np.dual().Delta_polar()
             True

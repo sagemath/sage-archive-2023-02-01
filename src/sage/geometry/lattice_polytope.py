@@ -4388,6 +4388,7 @@ class NefPartition(SageObject,
         """
         return self.dual().nablas()
 
+    @cached_method
     def dual(self):
         r"""
         Return the dual nef-partition.
@@ -4402,6 +4403,12 @@ class NefPartition(SageObject,
 
         See Proposition 3.19 in [BN2008]_.
 
+        .. NOTE::
+        
+            Automatically constructed dual nef-partitions will be ordered, i.e.
+            vertex partition of `\nabla` will look like
+            `\{0, 1, 2\} \sqcup \{3, 4, 5, 6\} \sqcup \{7, 8\}`.
+
         EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
@@ -4409,28 +4416,33 @@ class NefPartition(SageObject,
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: np.dual()
-            Nef-partition {0, 2, 5, 7} U {1, 3, 4, 6}
+            Nef-partition {0, 1, 2, 3} U {4, 5, 6, 7}
             sage: np.dual().Delta() is np.nabla()
             True
             sage: np.dual().nabla(0) is np.Delta(0)
             True
         """
-        try:
-            return self._dual
-        except AttributeError:
-            # Delta and nabla are interchanged compared to [BN2008]_.
-            nabla_polar = self.nabla_polar()
-            n = nabla_polar.nvertices()
-            vertex_to_part = [-1] * n
-            for i in range(self._nparts):
-                A = nabla_polar.vertices().matrix()*self.nabla(i).vertices()
-                for j in range(n):
-                    if min(A[j]) == -1:
-                        vertex_to_part[j] = i
-            self._dual = NefPartition(vertex_to_part, nabla_polar)
-            self._dual._dual = self
-            self._dual._nabla = self.Delta() # For vertex order consistency
-            return self._dual
+        # Delta and nabla are interchanged compared to [BN2008]_.
+        # The order of vertices of this nabla_polar will be adjusted.
+        nabla_polar = LatticePolytope(
+            reduce(minkowski_sum,
+                   (nabla.vertices() for nabla in self.nablas())),
+            lattice=self._Delta_polar.lattice()).polar()
+        vertex_to_part = []
+        nabla_polar_vertices = []
+        for i in range(self._nparts):
+            A = nabla_polar.vertices().matrix() * self.nabla(i).vertices()
+            for j, row in enumerate(A):
+                if min(row) == -1:
+                    vertex_to_part.append(i)
+                    nabla_polar_vertices.append(nabla_polar.vertex(j))
+        # Make dual look "ordered", like {0,1,2} U {3,4,5,6} U {7,8}.
+        nabla_polar = LatticePolytope(nabla_polar_vertices,
+                                      compute_vertices=False)
+        # If self is a valid nef-partition, the dual is as well.
+        dual = NefPartition(vertex_to_part, nabla_polar, check=False)
+        dual.dual.set_cache(self)
+        return dual
 
     def hodge_numbers(self):
         r"""
@@ -4507,15 +4519,7 @@ class NefPartition(SageObject,
             in 3-d lattice M
         """
         if i is None:
-            try:
-                return self._nabla
-            except AttributeError:
-                vertices = reduce(minkowski_sum, (nabla._vertices
-                                                  for nabla in self.nablas()))
-                self._nabla = LatticePolytope(vertices,
-                                        lattice=self.Delta_polar().lattice(),
-                                        compute_vertices=False)
-                return self._nabla
+            return self.dual().Delta()
         else:
             return self.nablas()[i]
 

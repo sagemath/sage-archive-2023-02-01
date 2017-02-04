@@ -592,6 +592,50 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
         ParentLibGAP.__init__(self, libgap_group, ambient=ambient)
         MatrixGroup_generic.__init__(self, degree, base_ring, category=category)
 
+    def __iter__(self):
+        """
+        Iterate over the elements of the group.
+
+        This method overrides the matrix group enumerator in GAP which
+        does not (and often just cannot) work for infinite groups.
+
+        TESTS:
+
+        infinite groups can be dealt with::
+
+            sage: import itertools
+            sage: W = WeylGroup(["A",3,1])
+            sage: list(itertools.islice(W, 4))
+            [
+            [1 0 0 0]  [-1  1  0  1]  [ 1  0  0  0]  [ 1  0  0  0]
+            [0 1 0 0]  [ 0  1  0  0]  [ 1 -1  1  0]  [ 0  1  0  0]
+            [0 0 1 0]  [ 0  0  1  0]  [ 0  0  1  0]  [ 0  1 -1  1]
+            [0 0 0 1], [ 0  0  0  1], [ 0  0  0  1], [ 0  0  0  1]
+            ]
+
+        and finite groups, too::
+
+            sage: G=GL(6,5)
+            sage: list(itertools.islice(G,4))
+            [
+            [1 0 0 0 0 0]  [4 0 0 0 0 1]  [0 4 0 0 0 0]  [0 4 0 0 0 0]
+            [0 1 0 0 0 0]  [4 0 0 0 0 0]  [0 0 4 0 0 0]  [0 0 4 0 0 0]
+            [0 0 1 0 0 0]  [0 4 0 0 0 0]  [0 0 0 4 0 0]  [0 0 0 4 0 0]
+            [0 0 0 1 0 0]  [0 0 4 0 0 0]  [0 0 0 0 4 0]  [0 0 0 0 4 0]
+            [0 0 0 0 1 0]  [0 0 0 4 0 0]  [0 0 0 0 0 4]  [0 0 0 0 0 4]
+            [0 0 0 0 0 1], [0 0 0 0 4 0], [1 4 0 0 0 0], [2 4 0 0 0 0]
+            ]
+        """
+        if not self.is_finite():
+            # use implementation from category framework
+            for g in super(Group, self).__iter__():
+                yield g
+            return
+        # Use the standard GAP iterator for finite groups
+        for g in super(MatrixGroup_gap, self).__iter__():
+            yield g
+        return
+
     def _check_matrix(self, x_sage, x_gap):
         """
         Check whether the matrix ``x`` defines a group element.

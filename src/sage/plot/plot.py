@@ -2402,14 +2402,6 @@ def _plot(funcs, xrange, parametric=False,
     else:
         G += line(data, legend_label=legend_label, **options)
 
-    # Label?
-    if label:
-        from sage.misc.superseded import deprecation
-        deprecation(4342, "Consider using legend_label instead")
-        label = '  '+str(label)
-        G += text(label, data[-1], horizontal_alignment='left',
-                  vertical_alignment='center')
-
     return G
 
 

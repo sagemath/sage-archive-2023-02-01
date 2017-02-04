@@ -21,7 +21,7 @@ class FiniteFields(CategoryWithAxiom):
     EXAMPLES::
 
         sage: K = FiniteFields(); K
-        Category of finite fields
+        Category of finite enumerated fields
 
     A finite field is a finite monoid with the structure of a field;
     it is currently assumed to be enumerated::
@@ -101,7 +101,7 @@ class FiniteFields(CategoryWithAxiom):
     #        sage: C = FiniteFields().element_class; C
     #        <type 'sage.rings.finite_rings.element_base.FiniteFieldElement'>
     #        sage: type(C)
-    #        <type 'type'>
+    #        <... 'type'>
     #    """
     #    from sage.rings.finite_rings.element_base import FiniteFieldElement
     #    return FiniteFieldElement

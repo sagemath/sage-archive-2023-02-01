@@ -779,7 +779,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return hash(str(self))
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return whether this asymptotic expansion is not identically zero.
 
@@ -803,6 +803,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         """
         return bool(self._summands_)
 
+    __nonzero__ = __bool__
 
     def __eq__(self, other):
         r"""
@@ -957,11 +958,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         """
         if len(self.summands) != len(other.summands):
             return False
-        from itertools import izip
+        from builtins import zip
         return all(s == o for s, o in
-                   izip(self.summands.elements_topological(),
-                        other.summands.elements_topological()))
-
+                   zip(self.summands.elements_topological(),
+                       other.summands.elements_topological()))
 
     def _simplify_(self):
         r"""
@@ -1219,8 +1219,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                         term_other in other.summands.elements()),
                    self.parent().zero())
 
-
-    def _rmul_(self, other):
+    def _lmul_(self, other):
         r"""
         Multiply this asymptotic expansion by an element ``other`` of its
         coefficient ring.
@@ -1246,10 +1245,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         E = TermMonoid('exact', asymptotic_ring=self.parent())
         e = E(self.parent().growth_group.one(), coefficient=other)
         return self._mul_term_(e)
-
-
-    _lmul_ = _rmul_
-
 
     def _div_(self, other):
         r"""
@@ -1588,6 +1583,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             2^n
             sage: e.parent()
             Asymptotic Ring <QQ^n * n^QQ> over Symbolic Ring
+
+        :trac:`22120`::
+
+            sage: A.<w> = AsymptoticRing('w^QQbar', QQ)
+            sage: w^QQbar(sqrt(2))
+            w^(1.414213562373095?)
         """
         if not self.summands:
             if exponent == 0:

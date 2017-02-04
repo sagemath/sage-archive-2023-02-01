@@ -666,8 +666,9 @@ class FormsSpace_abstract(FormsRing_abstract):
     def weight_parameters(self):
         r"""
         Check whether ``self`` has a valid weight and multiplier.
+
         If not then an exception is raised. Otherwise the two weight
-        paramters corresponding to the weight and multiplier of ``self``
+        parameters corresponding to the weight and multiplier of ``self``
         are returned.
 
         The weight parameters are e.g. used to calculate dimensions
@@ -2055,7 +2056,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         (min_exp, order_1) = self._canonical_min_exp(min_exp1, order_1)
 
         if (min_exp != min_exp1):
-            raise ValueError("Due to the behavior at infinity the given laurent series cannot possibly be an element of {}".format(self))
+            raise ValueError("Due to the behavior at infinity the given Laurent series cannot possibly be an element of {}".format(self))
 
         # if a q_basis is available we can construct the form much faster
         if (self.q_basis.is_in_cache(min_exp=min_exp, order_1=order_1)):
@@ -2309,7 +2310,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         series_prec = laurent_series.prec()
 
         # If the coefficients already coerce to our coefficient ring
-        # and are in polynomial form we simply return the laurent series
+        # and are in polynomial form we simply return the Laurent series
         if (is_PolynomialRing(base_ring.base())):
             if (self.coeff_ring().has_coerce_map_from(base_ring)):
                 return laurent_series

@@ -126,7 +126,7 @@ cdef class LinearTensor(ModuleElement):
 
     def coefficient(self, x):
         r"""
-        Return one of the the coefficients.
+        Return one of the coefficients.
 
         INPUT:
 
@@ -331,9 +331,9 @@ cdef class LinearTensor(ModuleElement):
             result[key] = self._f.get(key, 0) - coeff
         return self.parent()(result)
 
-    cpdef _rmul_(self, RingElement b):
+    cpdef _lmul_(self, RingElement b):
         r"""
-        Return right multiplication by scalar.
+        Return multiplication by scalar.
 
         INPUT:
 

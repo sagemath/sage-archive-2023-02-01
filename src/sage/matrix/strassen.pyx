@@ -13,9 +13,9 @@ multiplication algorithms.
 #
 #                  http://www.gnu.org/licenses/
 ################################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-from matrix_window cimport MatrixWindow
+from .matrix_window cimport MatrixWindow
 
 include "cysignals/signals.pxi"
 
@@ -603,7 +603,7 @@ class int_range:
             sage: I.intervals()
             [(4, 3), (20, 4)]
             sage: type(I.intervals())
-            <type 'list'>
+            <... 'list'>
         """
         return self._intervals
 

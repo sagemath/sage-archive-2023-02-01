@@ -169,7 +169,7 @@ cdef class interval_bernstein_polynomial:
     The Bernstein basis of degree n over the region [a .. b] is the
     set of polynomials
 
-    .. math::
+    .. MATH::
 
       \binom{n}{k} (x-a)^k (b-x)^{n-k} / (b-a)^n
 
@@ -1260,13 +1260,13 @@ def intvec_to_doublevec(Vector_integer_dense b, long err):
     B = [b1, ..., bn], lower and upper error bounds F1 and F2, and
     a scaling factor d, such that
 
-    .. math::
+    .. MATH::
 
        (bk + F1) * 2^d \le ak
 
     and
 
-    .. math::
+    .. MATH::
 
         ak + E \le (bk + F2) * 2^d
 
@@ -2184,7 +2184,7 @@ def cl_maximum_root_first_lambda(cl):
 
     TESTS::
 
-        sage: bnd = cl_maximum_root_first_lambda(map(RIF, [0, 0, 0, 14, 1]))
+        sage: bnd = cl_maximum_root_first_lambda(list(map(RIF, [0, 0, 0, 14, 1])))
         sage: bnd, bnd.parent()
         (0.000000000000000,
         Real Field with 53 bits of precision and rounding RNDU)

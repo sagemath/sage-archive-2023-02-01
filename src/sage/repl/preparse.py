@@ -87,9 +87,9 @@ Raw and hex work correctly::
     sage: type(0xa1)
     <type 'sage.rings.integer.Integer'>
     sage: type(0xa1r)
-    <type 'int'>
+    <... 'int'>
     sage: type(0Xa1R)
-    <type 'int'>
+    <... 'int'>
 
 In Sage, methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error)::
@@ -159,7 +159,7 @@ We create a raw integer::
     sage: a
     393939
     sage: type(a)
-    <type 'int'>
+    <... 'int'>
 
 We create a raw float::
 
@@ -1377,10 +1377,11 @@ def _strip_quotes(s):
 
 
 def handle_encoding_declaration(contents, out):
-    r"""Find a PEP 263-style Python encoding declaration in the first or
-    second line of `contents`. If found, output it to `out` and return
-    `contents` without the encoding line; otherwise output a default
-    UTF-8 declaration and return `contents`.
+    r"""
+    Find a PEP 263-style Python encoding declaration in the first or
+    second line of ``contents``. If found, output it to ``out`` and return
+    ``contents`` without the encoding line; otherwise output a default
+    UTF-8 declaration and return ``contents``.
 
     EXAMPLES::
 

@@ -57,7 +57,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
         sage: import sage.schemes.elliptic_curves.gp_simon
         sage: E=EllipticCurve('389a1')
         sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
-        (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
+        (2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)])
 
     TESTS::
 
@@ -94,7 +94,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
 
     K = E.base_ring()
     K_orig = K
-    # The following is to correct the bug at \#5204: the gp script
+    # The following is to correct the bug at #5204: the gp script
     # fails when K is a number field whose generator is called 'x'.
     # It also deals with relative number fields.
     E_orig = E

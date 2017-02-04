@@ -57,19 +57,19 @@ import sage.misc.misc as misc
 import sage.rings.rational_field
 
 cimport integer
-from integer cimport Integer
+from .integer cimport Integer
 
-import sage.libs.pari.pari_instance
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz, INTFRAC_to_mpq
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.gen cimport Gen as pari_gen
+from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
 
 from integer_ring import ZZ
-from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
 from sage.structure.element import bin_op, coerce_binop
+from sage.structure.parent cimport Parent
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
@@ -143,8 +143,7 @@ cdef Rational_sub_(Rational self, Rational other):
 
     return x
 
-cdef object the_rational_ring
-the_rational_ring = sage.rings.rational_field.Q
+cdef Parent the_rational_ring = sage.rings.rational_field.Q
 
 # make sure zero/one elements are set
 cdef set_zero_one_elements():
@@ -157,12 +156,13 @@ set_zero_one_elements()
 cpdef Integer integer_rational_power(Integer a, Rational b):
     """
     Compute `a^b` as an integer, if it is integral, or return ``None``.
-    The positive real root is taken for even denominators.
+
+    The nonnegative real root is taken for even denominators.
 
     INPUT:
 
     - a -- an ``Integer``
-    - b -- a positive ``Rational``
+    - b -- a nonnegative ``Rational``
 
     OUTPUT:
 
@@ -197,18 +197,26 @@ cpdef Integer integer_rational_power(Integer a, Rational b):
         True
         sage: integer_rational_power(-1, 9/8) is None
         True
+
+    TESTS (:trac:`11228`)::
+
+        sage: integer_rational_power(-10, QQ(2))
+        100
+        sage: integer_rational_power(0, QQ(0))
+        1
     """
     cdef Integer z = <Integer>PY_NEW(Integer)
     if mpz_sgn(mpq_numref(b.value)) < 0:
         raise ValueError("Only positive exponents supported.")
     cdef int sgn = mpz_sgn(a.value)
     cdef bint exact
-    if sgn == 0:
-        pass # z is 0
-    elif sgn < 0:
-        return None
-    elif mpz_cmp_ui(a.value, 1) == 0:
+    if (mpz_cmp_ui(a.value, 1) == 0 or
+          mpz_cmp_ui(mpq_numref(b.value), 0) == 0):
         mpz_set_ui(z.value, 1)
+    elif sgn == 0:
+        pass # z is 0
+    elif sgn < 0 and mpz_cmp_ui(mpq_denref(b.value), 1):
+        return None
     else:
         if (not mpz_fits_ulong_p(mpq_numref(b.value))
             or not mpz_fits_ulong_p(mpq_denref(b.value))):
@@ -261,6 +269,27 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
         2/3*sqrt(3)
         sage: t^2
         4/3
+
+    Check if :trac:`15605` is fixed::
+
+        sage: rational_power_parts(-1, -1/3)
+        (1, -1)
+        sage: (-1)^(-1/3)
+        -(-1)^(2/3)
+        sage: 1 / ((-1)^(1/3))
+        -(-1)^(2/3)
+        sage: rational_power_parts(-1, 2/3)
+        (1, -1)
+        sage: (-1)^(2/3)
+        (-1)^(2/3)
+        sage: all(rational_power_parts(-1, i/77) == (1,-1) for i in range(1,9))
+        True
+        sage: (-1)^(1/3)*(-1)^(1/5)
+        (-1)^(8/15)
+        sage: bool((-1)^(2/3) == -1/2 + sqrt(3)/2*I)
+        True
+        sage: all((-1)^(p/q) == cos(p*pi/q) + I * sin(p*pi/q) for p in srange(1,6) for q in srange(1,6))
+        True
     """
     b_negative=False
     if b < 0:
@@ -277,6 +306,8 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
     if c is not None:
         return c, 1
     numer, denom = b.numerator(), b.denominator()
+    if a == -1 and denom > 1:
+        return 1, -1
     if a < factor_limit*factor_limit:
         f = a.factor()
     else:
@@ -1304,7 +1335,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _bnfisnorm(self, K, proof=True, extra_primes=0):
         r"""
-        This gives the output of the PARI function bnfisnorm.
+        This gives the output of the PARI function :pari:`bnfisnorm`.
 
         Tries to tell whether the rational number ``self`` is the norm of some
         element `y` in ``K``. Returns a pair `(a, b)` where
@@ -2551,9 +2582,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: (-4/17).__nonzero__()
-            True
-            sage: (0/5).__nonzero__()
+            sage: bool(0/5)
             False
             sage: bool(-4/17)
             True
@@ -2970,6 +2999,104 @@ cdef class Rational(sage.structure.element.FieldElement):
         if self.is_zero():
             raise ArithmeticError("Support of 0 not defined.")
         return sage.arith.all.prime_factors(self)
+
+    def log(self, m=None, prec=None):
+        r"""
+        Return the log of ``self``.
+
+        INPUT:
+
+        - ``m`` -- the base (default: natural log base e)
+
+        - ``prec`` -- integer (optional); the precision in bits
+
+        OUTPUT:
+
+        When ``prec`` is not given, the log as an element in symbolic
+        ring unless the logarithm is exact. Otherwise the log is a
+        :class:`RealField` approximation to ``prec`` bit precision.
+
+        EXAMPLES::
+
+            sage: (124/345).log(5)
+            log(124/345)/log(5)
+            sage: (124/345).log(5,100)
+            -0.63578895682825611710391773754
+            sage: log(QQ(125))
+            log(125)
+            sage: log(QQ(125), 5)
+            3
+            sage: log(QQ(125), 3)
+            log(125)/log(3)
+            sage: QQ(8).log(1/2)
+            -3
+            sage: (1/8).log(1/2)
+            3
+            sage: (1/2).log(1/8)
+            1/3
+            sage: (1/2).log(8)
+            -1/3
+            sage: (16/81).log(8/27)
+            4/3
+            sage: (8/27).log(16/81)
+            3/4
+            sage: log(27/8, 16/81)
+            -3/4
+            sage: log(16/81, 27/8)
+            -4/3
+            sage: (125/8).log(5/2)
+            3
+            sage: (125/8).log(5/2,prec=53)
+            3.00000000000000
+        """
+        if self.denom() == ZZ.one():
+            return ZZ(self.numer()).log(m, prec)
+        if mpz_sgn(mpq_numref(self.value)) < 0:
+            from sage.symbolic.all import SR
+            return SR(self).log()
+        if m <= 0 and m is not None:
+            raise ValueError("log base must be positive")
+        if prec:
+            from sage.rings.real_mpfr import RealField
+            if m is None:
+                return RealField(prec)(self).log()
+            return RealField(prec)(self).log(m)
+
+        from sage.functions.log import function_log
+        if m is None:
+            return function_log(self, dont_call_method_on_arg=True)
+
+        anum = self.numer()
+        aden = self.denom()
+        mrat = Rational(m)
+        bnum = mrat.numer()
+        bden = mrat.denom()
+
+        anp = anum.perfect_power()
+        bnp = bnum.perfect_power()
+        adp = aden.perfect_power()
+        bdp = bden.perfect_power()
+        if (anp[0] == bnp[0] and adp[0] == bdp[0]):
+            nu_ratio = Rational((anp[1], bnp[1]))
+            de_ratio = Rational((adp[1], bdp[1]))
+            if nu_ratio == de_ratio:
+                return nu_ratio
+            if nu_ratio == ZZ.one():
+                return de_ratio
+            if de_ratio == ZZ.one():
+                return nu_ratio
+        elif (anp[0] == bdp[0] and adp[0] == bnp[0]):
+            up_ratio = Rational((anp[1], bdp[1]))
+            lo_ratio = Rational((adp[1], bnp[1]))
+            if up_ratio == lo_ratio:
+                return -up_ratio
+            if up_ratio == ZZ.one():
+                return -lo_ratio
+            if lo_ratio == ZZ.one():
+                return -up_ratio
+
+        return (function_log(self, dont_call_method_on_arg=True) /
+                function_log(m, dont_call_method_on_arg=True))
 
     def gamma(self, prec=None):
         """
@@ -3504,12 +3631,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m = n._pari_(); m
             9390823/17
             sage: type(m)
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: m.type()
             't_FRAC'
         """
-        cdef PariInstance P = sage.libs.pari.pari_instance.pari
-        return P.new_gen_from_mpq_t(self.value)
+        return new_gen_from_mpq_t(self.value)
 
     def _interface_init_(self, I=None):
         """

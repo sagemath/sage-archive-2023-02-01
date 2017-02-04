@@ -635,7 +635,7 @@ class MupadElement(ExtraTabCompletion, ExpectElement):
             sage: len(mupad([1,2,3])) # indirect doctest # optional - mupad
             3
             sage: type(len(mupad([1,2,3])))              # optional - mupad
-            <type 'int'>
+            <... 'int'>
 
             sage: len(mupad(4))                          # optional - mupad
             1
@@ -643,7 +643,7 @@ class MupadElement(ExtraTabCompletion, ExpectElement):
         Implementing this is necessary for using MuPAD's lists as
         standard containers::
 
-            sage: map(ZZ, list(mupad([1,2,3])))          # optional - mupad
+            sage: list(map(ZZ, list(mupad([1,2,3]))))    # optional - mupad
             [1, 2, 3]
 
             sage: [int(x) for x in mupad([1,2,3]) ]      # optional - mupad

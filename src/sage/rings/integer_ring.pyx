@@ -135,7 +135,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     ``0o`` are interpreted as octal::
 
         sage: parent('37')
-        <type 'str'>
+        <... 'str'>
         sage: parent(Z('37'))
         Integer Ring
         sage: Z('0x10')
@@ -358,15 +358,15 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __richcmp__(left, right, int op):
         """
-        Rich comparsion of ``left`` and ``right``.
+        Rich comparison of ``left`` and ``right``.
 
         TESTS::
 
             sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: cmp(ZZ,ZZ)
-            0
-            sage: cmp(ZZ,QQ)
-            -1
+            sage: ZZ == ZZ
+            True
+            sage: ZZ != QQ
+            True
         """
         return (<Parent>left)._richcmp(right, op)
 
@@ -382,11 +382,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: IntegerRing_class._cmp_(ZZ,QQ)
             -1
         """
-        if isinstance(right,IntegerRing_class):
+        if isinstance(right, IntegerRing_class):
             return 0
         if isinstance(right, sage.rings.rational_field.RationalField):
             return -1
-        return cmp(type(left), type(right))
+        return -1  # arbitrary
 
     def _repr_(self):
         """
@@ -749,8 +749,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: from collections import defaultdict
             sage: d = defaultdict(lambda: 0)
             sage: for _ in range(1000):
-            ...       samp = ZZ.random_element()
-            ...       d[samp] = d[samp] + 1
+            ....:     samp = ZZ.random_element()
+            ....:     d[samp] = d[samp] + 1
 
             sage: sorted(d.items())
             [(-1955, 1), (-1026, 1), (-357, 1), (-248, 1), (-145, 1), (-81, 1), (-80, 1), (-79, 1), (-75, 1), (-69, 1), (-68, 1), (-63, 2), (-61, 1), (-57, 1), (-50, 1), (-37, 1), (-35, 1), (-33, 1), (-29, 2), (-27, 1), (-25, 1), (-23, 2), (-22, 3), (-20, 1), (-19, 1), (-18, 1), (-16, 4), (-15, 3), (-14, 1), (-13, 2), (-12, 2), (-11, 2), (-10, 7), (-9, 3), (-8, 3), (-7, 7), (-6, 8), (-5, 13), (-4, 24), (-3, 34), (-2, 75), (-1, 206), (0, 208), (1, 189), (2, 63), (3, 35), (4, 13), (5, 11), (6, 10), (7, 4), (8, 3), (10, 1), (11, 1), (12, 1), (13, 1), (14, 1), (16, 3), (18, 2), (19, 1), (26, 2), (27, 1), (28, 2), (29, 1), (30, 1), (32, 1), (33, 2), (35, 1), (37, 1), (39, 1), (41, 1), (42, 1), (52, 1), (91, 1), (94, 1), (106, 1), (111, 1), (113, 2), (132, 1), (134, 1), (232, 1), (240, 1), (2133, 1), (3636, 1)]
@@ -1378,12 +1378,12 @@ def crt_basis(X, xgcd=None):
 
     Y = []
     # 2. Compute extended GCD's
-    ONE=X[0].parent()(1)
+    ONE = X[0].parent().one()
     for i in range(len(X)):
         p = X[i]
-        others = P//p
-        g,s,t = p.xgcd(others)
+        others = P // p
+        g, s, t = p.xgcd(others)
         if g != ONE:
             raise ArithmeticError("the elements of the list X must be coprime in pairs")
-        Y.append(t*others)
+        Y.append(t * others)
     return Y

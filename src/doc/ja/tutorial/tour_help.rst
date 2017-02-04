@@ -60,7 +60,7 @@ Sageには充実したドキュメントが組込まれていて，(例えば)�
             0.69314718055994530941723212145817656807   # 同じく64ビット
     sage: sudoku?
     File:        sage/local/lib/python2.5/site-packages/sage/games/sudoku.py
-    Type:        <type 'function'>
+    Type:        <... 'function'>
     Definition:  sudoku(A)
     Docstring:
 

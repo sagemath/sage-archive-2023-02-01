@@ -17,6 +17,7 @@ Polynomial Template for C/C++ Library Interfaces
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, Element, RingElement
 from sage.structure.element import coerce_binop, bin_op
+from sage.structure.sage_object cimport rich_to_bool
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer cimport Integer
 from sage.libs.all import pari_gen
@@ -96,7 +97,7 @@ cdef class Polynomial_template(Polynomial):
             1
             sage: P([1,0,1])
             x^2 + 1
-            sage: P(map(GF(2),[1,0,1]))
+            sage: P(list(map(GF(2),[1,0,1])))
             x^2 + 1
         """
         cdef celement *gen
@@ -274,7 +275,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(-pari(self)) == r)
         return r
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
         EXAMPLES::
 
@@ -295,18 +296,8 @@ cdef class Polynomial_template(Polynomial):
             2*y^2 + 2*y + 2
             sage: (-2^81)*u
             3*y^2 + 3*y + 3
-        """
-        cdef type T = type(self)
-        cdef Polynomial_template r = <Polynomial_template>T.__new__(T)
-        celement_construct(&r.x, (<Polynomial_template>self)._cparent)
-        r._parent = (<Polynomial_template>self)._parent
-        r._cparent = (<Polynomial_template>self)._cparent
-        celement_mul_scalar(&r.x, &(<Polynomial_template>self).x, left, (<Polynomial_template>self)._cparent)
-        return r
 
-    cpdef _lmul_(self, RingElement right):
-        """
-        EXAMPLES::
+        ::
 
             sage: P.<x> = GF(2)[]
             sage: t = x^2 + x + 1
@@ -322,8 +313,13 @@ cdef class Polynomial_template(Polynomial):
             sage: u*5
             0
         """
-        # all currently implemented rings are commutative
-        return self._rmul_(right)
+        cdef type T = type(self)
+        cdef Polynomial_template r = <Polynomial_template>T.__new__(T)
+        celement_construct(&r.x, (<Polynomial_template>self)._cparent)
+        r._parent = (<Polynomial_template>self)._parent
+        r._cparent = (<Polynomial_template>self)._cparent
+        celement_mul_scalar(&r.x, &(<Polynomial_template>self).x, left, (<Polynomial_template>self)._cparent)
+        return r
 
     cpdef _mul_(self, right):
         """
@@ -534,7 +530,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return not celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         EXAMPLE::
 
@@ -546,7 +542,9 @@ cdef class Polynomial_template(Polynomial):
             sage: x > 1
             True
         """
-        return celement_cmp(&(<Polynomial_template>left).x, &(<Polynomial_template>right).x, (<Polynomial_template>left)._cparent)
+        cdef int c
+        c = celement_cmp(&self.x, &(<Polynomial_template>other).x, self._cparent)
+        return rich_to_bool(op, c)
 
     def __hash__(self):
         """

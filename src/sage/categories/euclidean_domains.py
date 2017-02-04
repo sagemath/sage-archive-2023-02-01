@@ -83,11 +83,7 @@ class EuclideanDomains(Category_singleton):
             ALGORITHM:
 
             Naive implementation of the algorithm described in Section 4.8 of
-            Bach & Shallit [BachShallit1996]_.
-
-            .. [BachShallit1996] Eric Bach, Jeffrey Shallit.
-                *Algorithmic Number Theory, Vol. 1: Efficient Algorithms*.
-                MIT Press, 1996. ISBN 978-0262024051.
+            Bach & Shallit [BS1996]_.
 
             EXAMPLES::
 
@@ -101,6 +97,14 @@ class EuclideanDomains(Category_singleton):
                 ....:     (x+1)^3*(x+2)^3*(x+3), (x+1)*(x+2)*(x+3),
                 ....:     (x+1)*(x+2)*(x+4)])
                 [x + 3, x + 4, x^2 + 3*x + 2]
+
+            TESTS::
+
+                sage: R.<x> = QQ[]
+                sage: QQ.gcd_free_basis([x+1,x+2])
+                Traceback (most recent call last):
+                ...
+                TypeError: unable to convert x + 1 to an element of Rational Field
             """
             def refine(a, b):
                 g = a.gcd(b)
@@ -233,17 +237,13 @@ class EuclideanDomains(Category_singleton):
 
             ALGORITHM:
 
-            Algorithm 3.2.1 in [Coh1996]_.
-
-            REFERENCES:
-
-            .. [Coh1996] Henri Cohen. *A Course in Computational Algebraic
-               Number Theory*. Springer, 1996.
+            Algorithm 3.2.1 in [Coh1993]_.
 
             EXAMPLES::
 
-                sage: EuclideanDomains().ElementMethods().gcd(6,4)
-                2
+                sage: R.<x> = PolynomialRing(QQ, sparse=True)
+                sage: EuclideanDomains().element_class.gcd(x,x+1)
+                -1
             """
             A = self
             B = other
@@ -263,7 +263,9 @@ class EuclideanDomains(Category_singleton):
 
             - ``other`` -- an element in the same euclidean domain
 
-            OUTPUT
+            OUTPUT:
+
+            a pair of elements
 
             EXAMPLES::
 

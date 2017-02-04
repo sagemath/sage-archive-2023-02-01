@@ -28,7 +28,7 @@ include "cysignals/memory.pxi"
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
 from sage.structure.parent cimport Parent
-from polynomial_element cimport Polynomial
+from .polynomial_element cimport Polynomial
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
@@ -441,9 +441,6 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_set(f._coeffs[i], left._coeffs[i], rnd)
         f._normalize()
         return f
-
-    cpdef _rmul_(self, RingElement c):
-        return self._lmul_(c)
 
     cpdef _lmul_(self, RingElement c):
         """

@@ -9,6 +9,9 @@
 Install from Source Code
 ========================
 
+.. contents:: Table of contents
+   :depth: 2
+
 More familiarity with computers may be required to build Sage from
 the `source code <http://en.wikipedia.org/wiki/Source_code>`_.
 If you do have all the :ref:`pre-requisite tools <section-prereqs>`,
@@ -26,14 +29,14 @@ you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
 `Download the Sage source code <http://www.sagemath.org/download-source.html>`_
-or `check it out with git <https://github.com/sagemath/sage>`_ (see also.
-`the developers guide <http://doc.sagemath.org/html/en/developer/manual_git.html#section-git-checkout>`_).
-If you changed your mind, you can also download a
-`binary distribution <http://www.sagemath.org/download.html>`_
-for some operating systems.
+or get it from the `git repository <https://github.com/sagemath/sage>`_.
+Note: if you  are installing Sage for development, you should rather follow
+the instructions in
+`The Sage Developer's Guide <http://doc.sagemath.org/html/en/developer/walk_through.html#chapter-walkthrough>`_.
 
-.. contents:: Table of contents
-   :depth: 2
+It is also possible to download a
+`binary distribution <http://www.sagemath.org/download.html>`_
+for some operating systems, rather than compiling from source.
 
 Supported platforms
 -------------------
@@ -1069,6 +1072,19 @@ Here are some of the more commonly used variables affecting the build process:
   be moved to a different directory) binaries, you must use
   https://github.com/sagemath/binary-pkg
 
+- :envvar:`SAGE_SUDO` - set this to ``sudo -E`` or to any other
+  command prefix that is necessary to write into a installation
+  hierarchy (:envvar:`SAGE_LOCAL`) owned by root or another user.
+  Note that this command needs to preserve environment variable
+  settings (plain ``sudo`` does not).
+
+  Not all Sage packages currently support :envvar:`SAGE_SUDO`.
+
+  Therefore this environment variable is most useful when a system
+  administrator wishes to install an additional Sage package that
+  supports :envvar:`SAGE_SUDO`, into a root-owned installation
+  hierarchy (:envvar:`SAGE_LOCAL`).
+
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
 
@@ -1230,13 +1246,6 @@ Sage uses the following environment variables when it runs:
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 
-- :envvar:`SAGE_CBLAS` - used in the file
-  :file:`SAGE_ROOT/src/sage/misc/cython.py`.
-  Set this to the base name of the BLAS library file on your system if you want
-  to override the default setting.
-  That is, if the relevant file is called :file:`libcblas_new.so` or
-  :file:`libcblas_new.dylib`, then set this to ``cblas_new``.
-
 Sage overrides the user's settings of the following variables:
 
 - :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
@@ -1257,7 +1266,7 @@ Variables dealing with doctesting:
   ``sage -t --long``.
   If this isn't set, the default is 1800 seconds (30 minutes).
 
-- :envvar:`SAGE_PICKLE_JAR` - if you want to update the the standard pickle
+- :envvar:`SAGE_PICKLE_JAR` - if you want to update the standard pickle
   jar, set this to something non-empty and run the doctest suite.
   See the documentation for the functions :func:`picklejar` and
   :func:`unpickle_all` in
@@ -1407,4 +1416,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in July 2016 (Sage 7.3).**
+**This page was last updated in January 2017 (Sage 7.5).**

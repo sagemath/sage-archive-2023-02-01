@@ -250,6 +250,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
               running ._test_eq() . . . pass
+              running ._test_new() . . . pass
               running ._test_nonzero_equal() . . . pass
               running ._test_not_implemented_methods() . . . pass
               running ._test_pickling() . . . pass
@@ -259,6 +260,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
             running ._test_elements_eq_transitive() . . . pass
             running ._test_elements_neq() . . . pass
             running ._test_eq() . . . pass
+            running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -833,7 +835,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         if not D:
             return self.zero()
         cdef int l
-        for e in D.iterkeys():
+        for e in D:
             l = len(e)
             break
         cdef dict out = {}

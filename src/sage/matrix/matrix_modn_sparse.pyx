@@ -74,16 +74,19 @@ TESTS::
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
 include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
-include 'sage/modules/vector_modn_sparse_c.pxi'
+
+from sage.modules.vector_modn_sparse cimport *
+
 from cpython.sequence cimport *
 
-cimport matrix
-cimport matrix_sparse
-cimport matrix_dense
+cimport sage.matrix.matrix as matrix
+cimport sage.matrix.matrix_sparse as matrix_sparse
+cimport sage.matrix.matrix_dense as matrix_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose
@@ -97,10 +100,10 @@ from sage.structure.element import is_Vector
 
 cimport sage.structure.element
 
-include 'sage/modules/binary_search.pxi'
-include 'sage/modules/vector_integer_sparse_h.pxi'
-include 'sage/modules/vector_integer_sparse_c.pxi'
-from matrix_integer_sparse cimport Matrix_integer_sparse
+from sage.data_structures.binary_search cimport *
+from sage.modules.vector_integer_sparse cimport *
+
+from .matrix_integer_sparse cimport Matrix_integer_sparse
 from sage.misc.decorators import rename_keyword
 
 ################
@@ -766,7 +769,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
           Crimea, Ukraine, 22-27 sept. 2002, Springer-Verlag,
           http://perso.ens-lyon.fr/gilles.villard/BIBLIOGRAPHIE/POSTSCRIPT/rankjgd.ps
 
-        .. note::
+        .. NOTE::
 
            For very sparse matrices Gaussian elimination is faster
            because it barly has anything to do. If the fill in needs to
@@ -797,7 +800,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         `B` is a vector then `X` is a vector and if
         `B` is a matrix, then `X` is a matrix.
 
-        .. note::
+        .. NOTE::
 
            In Sage one can also write ``A  B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the

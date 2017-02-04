@@ -196,7 +196,7 @@ cdef class IntList:
             sage: type(a[5:-2])
             <type 'sage.stats.intlist.IntList'>
             sage: type(a[5])
-            <type 'int'>
+            <... 'int'>
         """
         cdef Py_ssize_t start, stop, step, j
         cdef IntList t
@@ -313,7 +313,7 @@ cdef class IntList:
             sage: list(a) == a.list()
             True
             sage: type(a.list()[0])
-            <type 'int'>
+            <... 'int'>
         """
         cdef Py_ssize_t i
         return [self._values[i] for i in range(self._length)]
@@ -566,7 +566,7 @@ def unpickle_intlist_v1(v, Py_ssize_t n):
         sage: v = stats.IntList([1,2,3])
         sage: s = v.__reduce__()[1][0]
         sage: type(s)
-        <type 'str'>
+        <... 'str'>
         sage: sage.stats.intlist.unpickle_intlist_v1(s, 3)
         [1, 2, 3]
         sage: sage.stats.intlist.unpickle_intlist_v1(s+s,6)

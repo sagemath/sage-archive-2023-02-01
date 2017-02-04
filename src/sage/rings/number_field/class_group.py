@@ -411,7 +411,7 @@ class ClassGroup(AbelianGroupWithValues_class):
         sage: G = K.class_group(); G
         Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
         sage: G.category()
-        Category of finite commutative groups
+        Category of finite enumerated commutative groups
 
     Note the distinction between abstract generators, their ideal, and
     exponents::
@@ -470,7 +470,7 @@ class ClassGroup(AbelianGroupWithValues_class):
             sage: CK = K.class_group()
             sage: CL = L.class_group()
             sage: [CL(I).exponents() for I in CK]
-            [(0,), (2,), (4,)]
+            [(0,), (4,), (2,)]
         """
         if isinstance(args[0], FractionalIdealClass):
             return self.element_class(self, None, self._number_field.ideal(args[0].ideal()))

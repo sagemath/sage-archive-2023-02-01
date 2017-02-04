@@ -111,7 +111,7 @@ cdef libGAP_Obj make_gap_integer(sage_int) except NULL:
 
     - ``sage_int`` -- a Sage integer.
 
-    OUTPUT
+    OUTPUT:
 
     The integer as a GAP ``Obj``.
 
@@ -134,7 +134,7 @@ cdef libGAP_Obj make_gap_string(sage_string) except NULL:
 
     - ``sage_string`` -- a Sage integer.
 
-    OUTPUT
+    OUTPUT:
 
     The string as a GAP ``Obj``.
 
@@ -372,7 +372,7 @@ cdef class GapElement(RingElement):
 
             sage: pre_refcount = libgap.count_GAP_objects()
             sage: def f():
-            ...       local_variable = libgap.eval('"This is a new string"')
+            ....:     local_variable = libgap.eval('"This is a new string"')
             sage: f()
             sage: f()
             sage: f()
@@ -1038,12 +1038,12 @@ cdef class GapElement(RingElement):
             sage: libgap(False).sage()
             False
             sage: type(_)
-            <type 'bool'>
+            <... 'bool'>
 
             sage: libgap('this is a string').sage()
             'this is a string'
             sage: type(_)
-            <type 'str'>
+            <... 'str'>
         """
         if self.value is NULL:
             return None
@@ -1190,7 +1190,7 @@ cdef class GapElement_Integer(GapElement):
             sage: int(libgap(3))
             3
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
@@ -1741,7 +1741,7 @@ cdef class GapElement_Boolean(GapElement):
             sage: b.sage()
             True
             sage: type(_)
-            <type 'bool'>
+            <... 'bool'>
 
             sage: libgap.eval('fail')
             fail
@@ -1835,7 +1835,7 @@ cdef class GapElement_String(GapElement):
             sage: s.sage()
             'string'
             sage: type(_)
-            <type 'str'>
+            <... 'str'>
         """
         libgap_enter()
         s = libGAP_CSTR_STRING(self.value)
@@ -1993,7 +1993,8 @@ cdef class GapElement_Function(GapElement):
             ....:         pass
 
             sage: libgap_exec = libgap.eval("Exec")
-            sage: libgap_exec('echo hello from the shell > /dev/null')
+            sage: libgap_exec('echo hello from the shell')
+            hello from the shell
         """
         cdef libGAP_Obj result = NULL
         cdef libGAP_Obj arg_list
@@ -2214,7 +2215,7 @@ cdef class GapElement_List(GapElement):
         sage: list(lst)
         [(), (1,3), (1,2,3), (2,3), (1,3,2), (1,2)]
         sage: type(_)
-        <type 'list'>
+        <... 'list'>
 
     Range checking is performed::
 

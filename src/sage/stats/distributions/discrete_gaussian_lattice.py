@@ -22,7 +22,6 @@ EXAMPLES::
   ((3, 0, -5, 0, -1, -3, 3, 3, -7, 2), (4, 0, 1, -2, -4, -4, 4, 0, 1, -4), (-3, 0, 4, 5, 0, 1, 3, 2, 0, -1))
 
 """
-from __future__ import absolute_import
 #******************************************************************************
 #
 #                        DGS - Discrete Gaussian Samplers
@@ -54,6 +53,8 @@ from __future__ import absolute_import
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
+from __future__ import absolute_import
+from six.moves import range
 
 from sage.functions.log import exp
 from sage.functions.other import ceil
@@ -63,6 +64,7 @@ from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import vector
+
 
 def _iter_vectors(n, lower, upper, step=None):
     r"""
@@ -85,23 +87,24 @@ def _iter_vectors(n, lower, upper, step=None):
     """
     if step is None:
         if ZZ(lower) >= ZZ(upper):
-            raise ValueError("Expected lower < uppper, but got %d >= %d"%(lower, upper))
+            raise ValueError("Expected lower < uppper, but got %d >= %d" % (lower, upper))
         if ZZ(n) <= 0:
-            raise ValueError("Expected n>0 but got %d <= 0"%(n))
+            raise ValueError("Expected n>0 but got %d <= 0" % n)
         step = n
 
     assert(step > 0)
     if step == 1:
-        for x in xrange(lower, upper):
+        for x in range(lower, upper):
             v = vector(ZZ, n)
             v[0] = x
             yield v
         return
     else:
         for x in range(lower, upper):
-            for v in _iter_vectors(n, lower, upper, step-1):
-                v[step-1] = x
+            for v in _iter_vectors(n, lower, upper, step - 1):
+                v[step - 1] = x
                 yield v
+
 
 class DiscreteGaussianDistributionLatticeSampler(SageObject):
     r"""
@@ -138,9 +141,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
     REFERENCES:
 
-    .. [GPV08] Craig Gentry, Chris Peikert, Vinod Vaikuntanathan. *How to Use a
-               Short Basis: Trapdoors for Hard Lattices and New Cryptographic
-               Constructions*. STOC 2008. http://www.cc.gatech.edu/~cpeikert/pubs/trap_lattice.pdf
+    - [GPV2008]_
 
     .. automethod:: __init__
     .. automethod:: __call__
@@ -204,7 +205,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             sage: c = D._normalisation_factor_zz(); c
             15.528...
 
-            sage: l = [D() for _ in xrange(m)]
+            sage: l = [D() for _ in range(m)]
             sage: v = vector(ZZ, n, (0, 0, 0))
             sage: l.count(v), ZZ(round(m*f(v)/c))
             (57, 64)
@@ -216,7 +217,8 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         f = self.f
         n = self.B.ncols()
         sigma = self._sigma
-        return sum(f(x) for x in _iter_vectors(n, -ceil(tau*sigma), ceil(tau*sigma)))
+        return sum(f(x) for x in _iter_vectors(n, -ceil(tau * sigma),
+                                               ceil(tau * sigma)))
 
     def __init__(self, B, sigma=1, c=None, precision=None):
         r"""
@@ -244,7 +246,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             sage: c = D._normalisation_factor_zz(); c
             56.2162803067524
 
-            sage: l = [D() for _ in xrange(m)]
+            sage: l = [D() for _ in range(m)]
             sage: v = vector(ZZ, n, (-3,-3))
             sage: l.count(v), ZZ(round(m*f(v)/c))
             (39, 33)
@@ -292,7 +294,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         self._c = c
 
-        self.f = lambda x: exp(-(vector(ZZ, B.ncols(), x)-c).norm()**2/(2*self._sigma**2))
+        self.f = lambda x: exp(-(vector(ZZ, B.ncols(), x) - c).norm() ** 2 / (2 * self._sigma ** 2))
 
         # deal with trivial case first, it is common
         if self._G == 1 and self._c == 0:
@@ -303,12 +305,12 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             return
 
         w = B.solve_left(c)
-        if w in ZZ**B.nrows():
+        if w in ZZ ** B.nrows():
             self._c_in_lattice = True
             D = []
             for i in range(self.B.nrows()):
-                sigma_ = self._sigma/self._G[i].norm()
-                D.append( DiscreteGaussianDistributionIntegerSampler(sigma=sigma_) )
+                sigma_ = self._sigma / self._G[i].norm()
+                D.append(DiscreteGaussianDistributionIntegerSampler(sigma=sigma_))
             self.D = tuple(D)
             self.VS = FreeModule(ZZ, B.nrows())
         else:
@@ -341,7 +343,8 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
     @property
     def sigma(self):
-        r"""Gaussian parameter `σ`.
+        r"""
+        Gaussian parameter `σ`.
 
         Samples from this sampler will have expected norm `\sqrt{n}σ` where `n`
         is the dimension of the lattice.
@@ -352,7 +355,6 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1,0,0))
             sage: D.sigma
             3.00000000000000
-
         """
         return self._sigma
 
@@ -390,7 +392,8 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             [0 0 1]
 
         """
-        return "Discrete Gaussian sampler with σ = %f, c=%s over lattice with basis\n\n%s"%(self._sigma, self._c, self.B)
+        # beware of unicode character in ascii string !
+        return "Discrete Gaussian sampler with σ = %f, c=%s over lattice with basis\n\n%s" % (self._sigma, self._c, self.B)
 
     def _call_in_lattice(self):
         r"""
@@ -409,7 +412,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
            Do not call this method directly, call :func:`DiscreteGaussianDistributionLatticeSampler.__call__` instead.
         """
         w = self.VS([d() for d in self.D], check=False)
-        return w*self.B + self._c
+        return w * self.B + self._c
 
     def _call(self):
         """
@@ -432,12 +435,12 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         m = self.B.nrows()
 
-        for i in range(m)[::-1]:
+        for i in range(m - 1, -1, -1):
             b_ = self._G[i]
             c_ = c.dot_product(b_) / b_.dot_product(b_)
-            sigma_ = sigma/b_.norm()
+            sigma_ = sigma / b_.norm()
             assert(sigma_ > 0)
             z = DiscreteGaussianDistributionIntegerSampler(sigma=sigma_, c=c_, algorithm="uniform+online")()
-            c = c - z*B[i]
-            v = v + z*B[i]
+            c = c - z * B[i]
+            v = v + z * B[i]
         return v

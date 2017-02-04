@@ -37,6 +37,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
+from sage.libs.mpfi cimport mpfi_set_z, mpfi_set_q, mpfi_sqrt, mpfi_add_z, mpfi_mul_z, mpfi_div_z, mpfi_neg
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -49,6 +50,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.categories.morphism cimport Morphism
 from sage.rings.number_field.number_field_element import _inverse_mod_generic
+from sage.rings.real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class
 
 import number_field
 
@@ -509,6 +511,60 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         (<NumberFieldElement_absolute>x)._reduce_c_()
         return x
 
+    def _real_mpfi_(self, RealIntervalField_class R):
+        r"""
+        Conversion to a real interval field
+
+        TESTS::
+
+            sage: K1 = QuadraticField(2)
+            sage: RIF(K1.gen())
+            1.414213562373095?
+            sage: RIF(K1(1/5))
+            0.2000000000000000?
+            sage: RIF(3/5*K1.gen() + 1/5)
+            1.048528137423857?
+
+            sage: K2 = QuadraticField(2, embedding=-RLF(2).sqrt())
+            sage: RIF(K2.gen())
+            -1.414213562373095?
+
+            sage: K3 = QuadraticField(-1)
+            sage: RIF(K3.gen())
+            Traceback (most recent call last):
+            ...
+            ValueError: can not convert complex algebraic number to real interval
+            sage: RIF(K3(2))
+            2
+
+        Check that :trac:`21979` is fixed::
+
+            sage: a = QuadraticField(5).gen()
+            sage: u = -573147844013817084101/2*a + 1281597540372340914251/2
+            sage: RealIntervalField(128)(u)
+            0.?e-17
+            sage: RealIntervalField(128)(u).is_zero()
+            False
+        """
+        cdef RealIntervalFieldElement ans = R._new()
+
+        if mpz_cmp_ui(self.b, 0):
+            if mpz_cmp_ui(self.D.value, 0) < 0:
+                raise ValueError("can not convert complex algebraic number to real interval")
+            mpfi_set_z(ans.value, self.D.value)
+            mpfi_sqrt(ans.value, ans.value)
+            if not self.standard_embedding:
+                mpfi_neg(ans.value, ans.value)
+            mpfi_mul_z(ans.value, ans.value, self.b)
+
+            mpfi_add_z(ans.value, ans.value, self.a)
+
+        else:
+            mpfi_set_z(ans.value, self.a)
+
+        mpfi_div_z(ans.value, ans.value, self.denom)
+        return ans
+
     def parts(self):
         """
         This function returns a pair of rationals `a` and `b` such that self `=
@@ -675,7 +731,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
             sage: K1 = NumberField(x^2 - 2, 'a', embedding=RR(1.4))
             sage: K2 = NumberField(x^2 - 2, 'a', embedding=RR(-1.4))
-            sage: for _ in xrange(500):
+            sage: for _ in range(500):
             ....:     for K in K1, K2:
             ....:         a = K.random_element()
             ....:         b = K.random_element()
@@ -690,7 +746,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
             sage: K1 = NumberField(x^2 + 2, 'a', embedding=CC(0,1))
             sage: K2 = NumberField(x^2 + 2, 'a', embedding=CC(0,-1))
-            sage: for _ in xrange(500):
+            sage: for _ in range(500):
             ....:     for K in K1, K2:
             ....:         a = K.random_element()
             ....:         b = K.random_element()
@@ -819,7 +875,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l.sort()
             sage: l
             [-2, 2*phi - 5, 6765*phi - 10946, 0, -phi + 2, 2*phi - 1, phi + 3]
-            sage: map(RDF, l)
+            sage: list(map(RDF, l))
             [-2.0, -1.7639320225002102, -6.610696073039435e-05, 0.0, 0.3819660112501051, 2.23606797749979, 4.618033988749895]
 
         ::
@@ -839,7 +895,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l.sort()
             sage: l
             [-1, psi, 0, 6765*psi + 4181, 3*psi + 2]
-            sage: map(RDF, l)
+            sage: list(map(RDF, l))
             [-1.0, -0.6180339887498949, 0.0, 6.610696073039435e-05, 0.1458980337503153]
 
         For a field with no specified embedding the comparison uses the standard
@@ -857,9 +913,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l.sort()
             sage: l
             [i - 3, -2, 2*i - 2, i - 1, 5*i, -3*i + 1, 1, 2*i + 2]
-            sage: map(CDF, l)
+            sage: list(map(CDF, l))
             [-3.0 + 1.0*I, -2.0, -2.0 + 2.0*I, -1.0 + 1.0*I, 5.0*I, 1.0 - 3.0*I, 1.0, 2.0 + 2.0*I]
-            sage: map(CDF, l) == sorted(map(CDF, l))
+            sage: list(map(CDF, l)) == sorted(map(CDF, l))
             True
         """
         cdef NumberFieldElement_quadratic right = <NumberFieldElement_quadratic> _right
@@ -922,7 +978,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: cf.n()
             1.41421356237310
             sage: sqrt2.n()
-            1.41421356237310
+            1.41421356237309
             sage: cf.value()
             sqrt2
 
@@ -1538,19 +1594,28 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: parent(a.imag())
             Rational Field
 
+        Check that :trac:`22095` is fixed::
+
+            sage: K.<a> = NumberField(x^2 + 2*x + 14, embedding=CC(-1,+3))
+            sage: K13.<sqrt13> = QuadraticField(13)
+            sage: K13.zero()
+            0
+            sage: a.imag()
+            sqrt13
+            sage: K13.zero()
+            0
         """
         if mpz_sgn(self.D.value) > 0:
             return Rational.__new__(Rational)  # = 0
-        embedding =  self._parent.coerce_embedding()
-        cdef Integer negD = -self.D
+        cdef Integer negD = <Integer>Integer.__new__(Integer)
+        mpz_neg(negD.value, self.D.value)
         cdef NumberFieldElement_quadratic q = <NumberFieldElement_quadratic>self._new()
         mpz_set_ui(q.b, 1)
         mpz_set_ui(q.denom, 1)
-        from sage.rings.complex_double import CDF
         cdef Rational res
-        if mpz_cmp_ui(negD.value, 1) == 0 or negD.is_square():
+        if mpz_cmp_ui(negD.value, 1) == 0 or mpz_perfect_square_p(negD.value):
             # D = -1 is the most common case we'll see here
-            if embedding is None:
+            if self._parent._embedding is None:
                 raise ValueError("Embedding must be specified.")
             res = <Rational>Rational.__new__(Rational)
             if mpz_cmp_ui(negD.value, 1) == 0:
@@ -1565,14 +1630,15 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return res
         else:
             # avoid circular import
-            if embedding is None:
+            if self._parent._embedding is None:
                 from number_field import NumberField
                 K = NumberField(QQ['x'].gen()**2 - negD, 'sqrt%s' % negD)
             else:
                 from number_field import QuadraticField
                 K = QuadraticField(negD, 'sqrt%s' % negD)
-            q = K(0)
+            q = (<NumberFieldElement_quadratic> K._zero_element)._new()
             mpz_set(q.denom, self.denom)
+            mpz_set_ui(q.a, 0)
             if self.standard_embedding:
                 mpz_set(q.b, self.b)
             else:
@@ -1893,7 +1959,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K2.<sqrt2> = QuadraticField(2)
             sage: K3.<sqrt3> = QuadraticField(3)
             sage: K5.<sqrt5> = QuadraticField(5)
-            sage: for _ in xrange(100):
+            sage: for _ in range(100):
             ....:    a = QQ.random_element(1000,20)
             ....:    b = QQ.random_element(1000,20)
             ....:    assert floor(a+b*sqrt(2.)) == floor(a+b*sqrt2)
@@ -1957,7 +2023,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K2.<sqrt2> = QuadraticField(2)
             sage: K3.<sqrt3> = QuadraticField(3)
             sage: K5.<sqrt5> = QuadraticField(5)
-            sage: for _ in xrange(100):
+            sage: for _ in range(100):
             ....:    a = QQ.random_element(1000,20)
             ....:    b = QQ.random_element(1000,20)
             ....:    assert ceil(a+b*sqrt(2.)) == ceil(a+b*sqrt2)
@@ -1974,6 +2040,47 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return x
         return x+1
 
+    def round(self):
+        r"""
+        Returns the round (nearest integer).
+
+        EXAMPLES::
+
+            sage: K.<sqrt7> = QuadraticField(7, name='sqrt7')
+            sage: sqrt7.round()
+            3
+            sage: (-sqrt7).round()
+            -3
+            sage: (12/313*sqrt7 - 1745917/2902921).round()
+            0
+            sage: (12/313*sqrt7 - 1745918/2902921).round()
+            -1
+
+        TESTS::
+
+            sage: K2.<sqrt2> = QuadraticField(2)
+            sage: K3.<sqrt3> = QuadraticField(3)
+            sage: K5.<sqrt5> = QuadraticField(5)
+            sage: for _ in range(100):
+            ....:    a = QQ.random_element(1000,20)
+            ....:    b = QQ.random_element(1000,20)
+            ....:    assert round(a) == round(K2(a)), a
+            ....:    assert round(a) == round(K3(a)), a
+            ....:    assert round(a) == round(K5(a)), a
+            ....:    assert round(a+b*sqrt(2.)) == round(a+b*sqrt2), (a, b)
+            ....:    assert round(a+b*sqrt(3.)) == round(a+b*sqrt3), (a, b)
+            ....:    assert round(a+b*sqrt(5.)) == round(a+b*sqrt5), (a, b)
+        """
+        n = self.floor()
+        test = 2 * (self - n).abs()
+        if test < 1:
+            return n
+        elif test > 1:
+            return n + 1
+        elif self > 0:
+            return n + 1
+        else:
+            return n
 
 cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
     """

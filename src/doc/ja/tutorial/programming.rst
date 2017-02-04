@@ -177,17 +177,17 @@ Pythonの組み込み型としては，string(文字列)，list(リスト)，タ
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # シングルあるいはダブル クォーテーションのどちらも使える
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 Sageでは，さらに多様な型が加わる．
 その一例がベクトル空間である:
@@ -262,7 +262,7 @@ Sageでは，さらに多様な型が加わる．
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -340,7 +340,7 @@ SageのIntegerクラスが使えるのは言うまでもない(Rationalクラス
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...
@@ -382,7 +382,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 
 不変性シーケンスの例としては，ベクトル空間の基底系があげられる．
@@ -417,7 +417,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']
@@ -507,11 +507,11 @@ Pythonには集合(set)型が組込まれている．
 ::
 
     sage: v = (n^2 for n in xrange(10000000))
-    sage: v.next()
+    sage: next(v)
     0
-    sage: v.next()
+    sage: next(v)
     1
-    sage: v.next()
+    sage: next(v)
     4
 
 今度は，素数 :math:`p` から :math:`4p+1` の形の素数に関するイテレータを作り，最初の数個を見てみることにする．
@@ -522,11 +522,11 @@ Pythonには集合(set)型が組込まれている．
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w         # 次の行の 0xb0853d6c はランダムに生成された16進数
     <generator object <genexpr> at ...>
-    sage: w.next()
+    sage: next(w)
     13
-    sage: w.next()
+    sage: next(w)
     29
-    sage: w.next()
+    sage: next(w)
     53
 
 有限体，整数など，ある種の環にはイテレータが付随している:
@@ -536,11 +536,11 @@ Pythonには集合(set)型が組込まれている．
     sage: [x for x in GF(7)]
     [0, 1, 2, 3, 4, 5, 6]
     sage: W = ((x,y) for x in ZZ for y in ZZ)
-    sage: W.next()
+    sage: next(W)
     (0, 0)
-    sage: W.next()
+    sage: next(W)
     (0, 1)
-    sage: W.next()
+    sage: next(W)
     (0, -1)
 
 

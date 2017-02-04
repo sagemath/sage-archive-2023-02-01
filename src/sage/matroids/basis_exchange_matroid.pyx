@@ -37,12 +37,16 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 include 'sage/data_structures/bitset.pxi'
 
-from matroid cimport Matroid
-from set_system cimport SetSystem
+from .matroid cimport Matroid
+from .set_system cimport SetSystem
+
 from copy import copy
 from itertools import combinations, permutations
+
 
 cdef class BasisExchangeMatroid(Matroid):
     r"""
@@ -144,7 +148,7 @@ cdef class BasisExchangeMatroid(Matroid):
         general, methods of ``BasisExchangeMatroid`` having a name starting
         with two underscores deal with such encoded subsets.
 
-        A second task of this initializer is to store the rank and intialize
+        A second task of this initializer is to store the rank and initialize
         the 'current' basis.
 
         EXAMPLES::
@@ -498,9 +502,9 @@ cdef class BasisExchangeMatroid(Matroid):
 
             sage: M = matroids.named_matroids.Fano()
             sage: type(M.groundset())
-            <type 'frozenset'>
+            <... 'frozenset'>
             sage: type(M.groundset_list())
-            <type 'list'>
+            <... 'list'>
             sage: sorted(M.groundset_list())
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
@@ -1945,7 +1949,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
     cpdef _weak_invariant(self):
         """
-        Return an isomophism invariant of the matroid.
+        Return an isomorphism invariant of the matroid.
 
         Compared to BasisExchangeMatroid._strong_invariant() this invariant
         distinguishes less frequently between nonisomorphic matroids but takes
@@ -1990,7 +1994,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
     cpdef _strong_invariant(self):
         """
-        Return an isomophism invariant of the matroid.
+        Return an isomorphism invariant of the matroid.
 
         Compared to BasisExchangeMatroid._weak_invariant() this invariant
         distinguishes more frequently between nonisomorphic matroids but takes
@@ -2064,7 +2068,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: PM = M._heuristic_partition()
             sage: PN = N._heuristic_partition()
             sage: morphism = {}
-            sage: for i in xrange(len(M)): morphism[min(PM[i])]=min(PN[i])
+            sage: for i in range(len(M)): morphism[min(PM[i])] = min(PN[i])
             sage: M._is_isomorphism(N, morphism)
             True
         """
@@ -2256,7 +2260,7 @@ cdef class BasisExchangeMatroid(Matroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 

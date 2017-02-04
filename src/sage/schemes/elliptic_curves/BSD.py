@@ -382,7 +382,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: S = E.sha(); S
         Tate-Shafarevich group for the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: def foo(use_database):
-        ...    return 4
+        ....:  return 4
         sage: S.an = foo
         sage: E.prove_BSD()
         Traceback (most recent call last):
@@ -439,7 +439,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
 
     TESTS:
 
-    This was fixed by trac #8184 and #7575::
+    This was fixed by :trac:`8184` and :trac:`7575`::
 
         sage: EllipticCurve('438e1').prove_BSD(verbosity=1)
         p = 2: True by 2-descent...

@@ -161,18 +161,20 @@ AUTHORS:
 - Vincent Delecroix (2015-02): documentation formatting
 """
 
-
-##########################################################################
-#
+#*****************************************************************************
 #       Copyright (C) 2008 Carl Witty <Carl.Witty@gmail.com>
 #                     2015 Vincent Delecroix <20100.delecroix@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-##########################################################################
-from __future__ import print_function
+#*****************************************************************************
+
+from __future__ import print_function, absolute_import
+
+from six import itervalues
 
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
@@ -982,19 +984,19 @@ class SageInputBuilder:
 
 
             sage: def test_setup(use_gens=True, preparse=True):
-            ...       sib = SageInputBuilder(preparse=preparse)
-            ...       gen_names=('foo', 'bar')
-            ...       parent = "some parent"
-            ...       normal_sie = sib.name('make_a_parent')(names=gen_names)
-            ...       if use_gens:
-            ...           gens_sie = sib.name('make_a_parent')()
-            ...       else:
-            ...           gens_sie = None
-            ...       name = 'the_thing'
-            ...       result = sib.parent_with_gens(parent, normal_sie,
-            ...                                     gen_names, name,
-            ...                                     gens_syntax=gens_sie)
-            ...       return sib, result
+            ....:     sib = SageInputBuilder(preparse=preparse)
+            ....:     gen_names=('foo', 'bar')
+            ....:     parent = "some parent"
+            ....:     normal_sie = sib.name('make_a_parent')(names=gen_names)
+            ....:     if use_gens:
+            ....:         gens_sie = sib.name('make_a_parent')()
+            ....:     else:
+            ....:         gens_sie = None
+            ....:     name = 'the_thing'
+            ....:     result = sib.parent_with_gens(parent, normal_sie,
+            ....:                                   gen_names, name,
+            ....:                                   gens_syntax=gens_sie)
+            ....:     return sib, result
 
             sage: sib, par_sie = test_setup()
             sage: sib.result(par_sie)
@@ -1667,8 +1669,8 @@ class SageInputExpression(object):
             sage: sie = sib(3)
 
             sage: for v in (sie, sie+7, sie/5):
-            ...       v._sie_prepare(sif)
-            ...       v._sie_format(sif)
+            ....:     v._sie_prepare(sif)
+            ....:     v._sie_format(sif)
             ('3', 42)
             ('3 + 7', 24)
             ('3/5', 26)
@@ -1912,7 +1914,7 @@ class SIE_call(SageInputExpression):
         """
         refs = self._sie_args[:]
         refs.append(self._sie_func)
-        refs.extend(self._sie_kwargs.itervalues())
+        refs.extend(itervalues(self._sie_kwargs))
         return refs
 
     def _sie_format(self, sif):
@@ -2224,9 +2226,9 @@ class SIE_tuple(SageInputExpression):
             sage: sib = SageInputBuilder()
             sage: sif = SageInputFormatter()
             sage: for v in ((), (1,), (1,2), [], [1], [1,2]):
-            ...        sie = sib(v)
-            ...        sie._sie_prepare(sif)
-            ...        sie._sie_format(sif)
+            ....:      sie = sib(v)
+            ....:      sie._sie_prepare(sif)
+            ....:      sie._sie_format(sif)
             ('()', 42)
             ('(1,)', 42)
             ('(1, 2)', 42)
@@ -2420,8 +2422,8 @@ class SIE_binary(SageInputExpression):
             sage: x = sib.name('x')
             sage: y = sib.name('y')
             sage: for v in (x+y, x*y, x**y):
-            ...       v._sie_prepare(sif)
-            ...       v._sie_format(sif)
+            ....:     v._sie_prepare(sif)
+            ....:     v._sie_format(sif)
             ('x + y', 24)
             ('x*y', 26)
             ('x^y', 32)
@@ -2636,10 +2638,10 @@ class SIE_unary(SageInputExpression):
             sage: v = -x
 
             sage: def mk_CC(b):
-            ...       if b._sie_is_negation():
-            ...           return -sib.name('CC')(b._sie_operand)
-            ...       else:
-            ...           return sib.name('CC')(b)
+            ....:     if b._sie_is_negation():
+            ....:         return -sib.name('CC')(b._sie_operand)
+            ....:     else:
+            ....:         return sib.name('CC')(b)
 
             sage: mk_CC(x)
             {call: {atomic:CC}({atomic:x})}
@@ -2661,8 +2663,8 @@ class SIE_gens_constructor(SageInputExpression):
         sage: sib = SageInputBuilder()
         sage: qq = sib.name('QQ')
         sage: sib.parent_with_gens("some parent", qq['x'],
-        ...                        ('x',), 'QQx',
-        ...                        gens_syntax=sib.empty_subscript(qq))
+        ....:                      ('x',), 'QQx',
+        ....:                      gens_syntax=sib.empty_subscript(qq))
         {constr_parent: {subscr: {atomic:QQ}[{atomic:'x'}]} with gens: ('x',)}
     """
 
@@ -2689,8 +2691,8 @@ class SIE_gens_constructor(SageInputExpression):
             sage: sib = SageInputBuilder()
             sage: qq = sib.name('QQ')
             sage: sib.parent_with_gens("some parent", qq['x'],
-            ...                        ('x',), 'QQx',
-            ...                        gens_syntax=sib.empty_subscript(qq))
+            ....:                      ('x',), 'QQx',
+            ....:                      gens_syntax=sib.empty_subscript(qq))
             {constr_parent: {subscr: {atomic:QQ}[{atomic:'x'}]} with gens: ('x',)}
         """
         super(SIE_gens_constructor, self).__init__(sib)
@@ -2712,8 +2714,8 @@ class SIE_gens_constructor(SageInputExpression):
             sage: sib = SageInputBuilder()
             sage: qq = sib.name('QQ')
             sage: sib.parent_with_gens("some parent", qq['x'],
-            ...                        ('x',), 'QQx',
-            ...                        gens_syntax=sib.empty_subscript(qq))
+            ....:                      ('x',), 'QQx',
+            ....:                      gens_syntax=sib.empty_subscript(qq))
             {constr_parent: {subscr: {atomic:QQ}[{atomic:'x'}]} with gens: ('x',)}
         """
         return "{constr_parent: %s with gens: %s}" % (repr(self._sie_constr), self._sie_gen_names)
@@ -2730,8 +2732,8 @@ class SIE_gens_constructor(SageInputExpression):
             sage: sib = SageInputBuilder()
             sage: qq = sib.name('QQ')
             sage: gc = sib.parent_with_gens("some parent", qq['x'],
-            ...                             ('x',), 'QQx',
-            ...                             gens_syntax=sib.empty_subscript(qq))
+            ....:                           ('x',), 'QQx',
+            ....:                           gens_syntax=sib.empty_subscript(qq))
             sage: gc._sie_referenced()
             [{subscr: {atomic:QQ}[{atomic:'x'}]}]
         """
@@ -2755,8 +2757,8 @@ class SIE_gens_constructor(SageInputExpression):
             sage: sif = SageInputFormatter()
             sage: qq = sib.name('QQ')
             sage: gc = sib.parent_with_gens("some parent", qq['x'],
-            ...                             ('x',), 'QQx',
-            ...                             gens_syntax=sib.empty_subscript(qq))
+            ....:                           ('x',), 'QQx',
+            ....:                           gens_syntax=sib.empty_subscript(qq))
             sage: gc._sie_assign_gens
             False
             sage: gc._sie_gens_referenced(sif)
@@ -2781,8 +2783,8 @@ class SIE_gens_constructor(SageInputExpression):
             sage: sif = SageInputFormatter()
             sage: qq = sib.name('QQ')
             sage: gc = sib.parent_with_gens("some parent", qq['x'],
-            ...                             ('x',), 'QQx',
-            ...                             gens_syntax=sib.empty_subscript(qq))
+            ....:                           ('x',), 'QQx',
+            ....:                           gens_syntax=sib.empty_subscript(qq))
             sage: gc._sie_gens_referenced(sif)
             sage: gc._sie_prepare(sif)
             sage: gc._sie_add_command(sif)
@@ -2862,8 +2864,8 @@ class SIE_gens_constructor(SageInputExpression):
             sage: sif = SageInputFormatter()
             sage: qq = sib.name('QQ')
             sage: gc = sib.parent_with_gens("some parent", qq['x'],
-            ...                             ('x',), 'QQx',
-            ...                             gens_syntax=sib.empty_subscript(qq))
+            ....:                           ('x',), 'QQx',
+            ....:                           gens_syntax=sib.empty_subscript(qq))
             sage: gc._sie_gens_referenced(sif)
             sage: gc._sie_prepare(sif)
             sage: gc._sie_format(sif)
@@ -3465,23 +3467,27 @@ def verify_same(a, b):
         assert(a.parent() == b.parent())
     else:
         assert(type(a) is type(b))
-    if isinstance(a, float):
-        # The IEEE floating-point standard recommends that NaN != NaN
-        # Sage doesn't do this for RDF or RR, but Python does for floats.
-        # So we need to consider the cases: a is/is not NaN, b is/is not NaN.
-        if not (a == a):
-            # a is a NaN; so confirm that b is a NaN
-            assert not (b == b)
-        else:
-            # a is not NaN.  If b is NaN, then the assertion will fail.
-            assert a == b
-        return
     from sage.rings.real_mpfi import is_RealIntervalFieldElement
     from sage.rings.complex_interval import is_ComplexIntervalFieldElement
     if is_RealIntervalFieldElement(a) or is_ComplexIntervalFieldElement(a):
         assert(cmp(a, b) == 0), "Expected %s == %s" % (a, b)
-    else:
-        assert(a == b), "Expected %s == %s" % (a, b)
+        return
+
+    if not (a == b):
+        # Verification failed => raise an AssertionError.
+        #
+        # There is an important exception: the IEEE-754 standard
+        # recommends that NaN != NaN. So this comparison will fail for
+        # any object involving NaN.
+        #
+        # If this case occurs, then a and b do not compare equal to
+        # itself. In that case, we compare the string representations of
+        # a and b.
+        if not (a == a) and not (b == b):
+            if repr(a) == repr(b):
+                return  # Good!
+        raise AssertionError("Expected %r == %r" % (a, b))
+
 
 def verify_si_answer(x, answer, preparse):
     r"""

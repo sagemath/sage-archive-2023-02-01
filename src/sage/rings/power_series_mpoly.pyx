@@ -1,7 +1,7 @@
 # NOT ready to be used -- possibly should be deleted.
 
 
-from power_series_ring_element cimport PowerSeries
+from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
 from sage.libs.all import PariError

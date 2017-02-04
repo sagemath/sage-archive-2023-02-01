@@ -11,9 +11,10 @@ echo "[build_ext]" > src/setup.cfg
 echo "library_dirs = $SAGE_LOCAL/lib/" >> src/setup.cfg
 echo "include_dirs = $SAGE_LOCAL/include/" >> src/setup.cfg
 
+echo "[configure]" >> src/setup.cfg
+echo "zmq = $SAGE_LOCAL" >> src/setup.cfg
+
 cd src
 
 # Configure and install
-python setup.py configure --zmq="$SAGE_LOCAL"
-python setup.py install
-
+$PIP_INSTALL .

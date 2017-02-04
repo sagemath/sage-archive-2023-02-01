@@ -37,7 +37,7 @@ from __future__ import print_function
 from sage.misc.misc import repr_lincomb
 from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.combinat.free_module import CombinatorialFreeModuleElement
-from sage.algebras.algebra_element import AlgebraElement
+from sage.structure.element import AlgebraElement
 
 # We need to have AlgebraElement first to avoid a segfault...
 class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
@@ -275,7 +275,8 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
             sage: F.<x,y,z> = FreeAlgebra(ZZ, 3)
             sage: p = x^2*y + 3*y*x + 2
             sage: p.to_pbw_basis()
-            2*PBW[1] + 3*PBW[y]*PBW[x] + PBW[x^2*y] + PBW[x*y]*PBW[x] + PBW[y]*PBW[x]^2
+            2*PBW[1] + 3*PBW[y]*PBW[x] + PBW[x^2*y]
+             + 2*PBW[x*y]*PBW[x] + PBW[y]*PBW[x]^2
         """
         return self.parent().pbw_element(self)
 

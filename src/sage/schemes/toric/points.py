@@ -405,7 +405,7 @@ class NaiveFinitePointEnumerator(object):
 
         Iterator over points.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: ni = toric_varieties.P2(base_ring=GF(2)).point_set()._naive_enumerator()
             sage: list(ni)
@@ -634,7 +634,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             sage: ffe = point_set._finite_field_enumerator()
             sage: ffe.rescalings()
             ((1, 1, 1), (1, 4, 4), (4, 2, 3), (4, 3, 2))
-            sage: map(ffe.log, ffe.rescalings())
+            sage: list(map(ffe.log, ffe.rescalings()))
             [(0, 0, 0), (0, 2, 2), (2, 1, 3), (2, 3, 1)]
             sage: ffe.rescaling_log_generators()
             ((2, 3, 1),)
@@ -707,7 +707,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
 
         Iterator over points.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: point_set = toric_varieties.P2(base_ring=GF(2)).point_set()
             sage: ffe = point_set._finite_field_enumerator()

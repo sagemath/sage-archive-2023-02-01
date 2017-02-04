@@ -22,15 +22,14 @@
 #    2006-01: initial version (based on code by William Stein)
 #
 ##############################################################################
-
 include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
-from ntl_GF2E cimport ntl_GF2E
-from ntl_GF2EContext import ntl_GF2EContext
-from ntl_GF2EContext cimport ntl_GF2EContext_class
+from .ntl_GF2E cimport ntl_GF2E
+from .ntl_GF2EContext import ntl_GF2EContext
+from .ntl_GF2EContext cimport ntl_GF2EContext_class
 from sage.rings.integer cimport Integer
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -469,7 +468,7 @@ cdef class ntl_mat_GF2E(object):
         EXAMPLES::
 
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
-            sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in xrange(2*2)])
+            sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in range(2*2)])
             sage: ntl.GF2XHexOutput(0)
             sage: m.list()
             [[1 1 0 0 1 0 1 1], [1 1 1 0 1 1 1], [0 1 1 1 1 0 0 1], [0 1 0 1 1 1]]

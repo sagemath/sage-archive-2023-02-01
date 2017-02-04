@@ -57,7 +57,7 @@ def load_or_compute(name, function):
         True
         sage: from sage.libs.gap.saved_workspace import workspace
         sage: workspace(name='globals')
-        ('...', False)
+        ('...', True)
     """
     filename, up_to_date = workspace(name=name)
     if up_to_date:

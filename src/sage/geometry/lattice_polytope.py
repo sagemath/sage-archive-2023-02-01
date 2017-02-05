@@ -519,9 +519,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if ambient is None:
             self._ambient = self
-            self._vertices = points
             if compute_vertices:
-                self._compute_dim(compute_vertices=True)
+                P = C_Polyhedron(Generator_System(
+                    [PPL_point(Linear_Expression(p, 0)) for p in points]))
+                P.set_immutable()
+                self._PPL.set_cache(P)
+                vertices = P.minimized_generators()
+                if len(vertices) != len(points):
+                    M = points.module()
+                    points = tuple(M(v.coefficients()) for v in vertices)
+                    for p in points:
+                        p.set_immutable()
+                    points = PointCollection(points, M)
+            self._vertices = points
             self._ambient_vertex_indices = tuple(range(self.nvertices()))
             self._ambient_facet_indices = ()
         else:
@@ -655,32 +665,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         self.__dict__.update(state)
 
-    def _compute_dim(self, compute_vertices):
+    def _compute_dim(self):
         r"""
-        Compute the dimension of this polytope and its vertices, if necessary.
-
-        If ``compute_vertices`` is ``True``, then ``self._vertices`` should
-        contain points whose convex hull will be computed and placed back into
-        ``self._vertices``.
+        Compute the dimension of this polytope.
 
         If the dimension of this polytope is not equal to its ambient dimension,
         auxiliary polytope will be created and stored for using PALP commands.
 
         TESTS::
 
-            sage: p = LatticePolytope(([1], [2], [3]), compute_vertices=False)
-            sage: p.vertices() # wrong, since these were not vertices
-            M(1),
-            M(2),
-            M(3)
-            in 1-d lattice M
+            sage: p = LatticePolytope(([1], [2], [3]))
             sage: hasattr(p, "_dim")
             False
-            sage: p._compute_dim(compute_vertices=True)
-            sage: p.vertices()
-            M(1),
-            M(3)
-            in 1-d lattice M
+            sage: p._compute_dim()
             sage: p._dim
             1
         """
@@ -691,47 +688,29 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if not points:  # the empty lattice polytope
             self._dim = -1
             return
-        if compute_vertices and len(points) != len(points.set()):
-            points = []
-            for point in self._vertices:
-                if not point in points:
-                    points.append(point)
-            # Still may not be vertices, but don't have repetitions.
-            self._vertices = PointCollection(points, N)
         p0 = points[0]
         points = [point - p0 for point in points]
         H = N.submodule(points)
         self._dim = H.rank()
-        if self._dim == 0:
-            self._vertices = PointCollection((p0, ), N)
-        elif self._dim == self.lattice_dim():
-            if compute_vertices:
-                points = [N(_) for _ in read_palp_matrix(self.poly_x("v")).columns()]
-                for point in points:
-                    point.set_immutable()
-                self._vertices = PointCollection(points, N)
-        else:
-            # Setup auxiliary polytope and maps
-            H = H.saturation()
-            H_points = [H.coordinates(point) for point in points]
-            H_polytope = LatticePolytope(H_points, compute_vertices=True)
-            self._sublattice = H
-            self._sublattice_polytope = H_polytope
-            self._embedding_matrix = H.basis_matrix().transpose()
-            self._shift_vector = p0
-            if compute_vertices:
-                self._vertices = self._embed(H_polytope._vertices)
-            # In order to use facet normals obtained from subpolytopes, we
-            # need the following (see Trac #9188).
-            M = self._embedding_matrix
-            # Basis for the ambient space with spanned subspace in front
-            basis = M.columns() + M.integer_kernel().basis()
-            # Let's represent it as columns of a matrix
-            basis = matrix(basis).transpose()
-            # Absolute value helps to keep normals "inner"
-            self._dual_embedding_scale = abs(basis.det())
-            dualbasis = matrix(ZZ, self._dual_embedding_scale * basis.inverse())
-            self._dual_embedding_matrix = dualbasis.submatrix(0,0,M.ncols())
+        # Setup auxiliary polytope and maps
+        H = H.saturation()
+        H_points = [H.coordinates(point) for point in points]
+        H_polytope = LatticePolytope(H_points, compute_vertices=True)
+        self._sublattice = H
+        self._sublattice_polytope = H_polytope
+        self._embedding_matrix = H.basis_matrix().transpose()
+        self._shift_vector = p0
+        # In order to use facet normals obtained from subpolytopes, we
+        # need the following (see Trac #9188).
+        M = self._embedding_matrix
+        # Basis for the ambient space with spanned subspace in front
+        basis = M.columns() + M.integer_kernel().basis()
+        # Let's represent it as columns of a matrix
+        basis = matrix(basis).transpose()
+        # Absolute value helps to keep normals "inner"
+        self._dual_embedding_scale = abs(basis.det())
+        dualbasis = matrix(ZZ, self._dual_embedding_scale * basis.inverse())
+        self._dual_embedding_matrix = dualbasis.submatrix(0,0,M.ncols())
 
     def _compute_facets(self):
         r"""
@@ -1615,7 +1594,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             3
         """
         if not hasattr(self, "_dim"):
-            self._compute_dim(compute_vertices=False)
+            self._compute_dim()
         return self._dim
 
     def distances(self, point=None):

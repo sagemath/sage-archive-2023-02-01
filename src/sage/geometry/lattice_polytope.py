@@ -103,28 +103,29 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from sage.arith.all import gcd, lcm
 from sage.combinat.posets.posets import FinitePoset
+from sage.env import POLYTOPE_DATA_DIR
 from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
 from sage.geometry.point_collection import PointCollection, is_PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import DiGraph, Graph
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.libs.ppl import C_Polyhedron, Generator_System, Linear_Expression,\
+    point as PPL_point
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
-from sage.env import POLYTOPE_DATA_DIR
-from sage.modules.all import vector, span
 from sage.misc.superseded import deprecated_function_alias
+from sage.modules.all import vector
+from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
 from sage.plot.plot3d.shapes2 import text3d
 from sage.rings.all import Integer, ZZ, QQ
-from sage.arith.all import gcd, lcm
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sage_object import SageObject
-from sage.numerical.mip import MixedIntegerLinearProgram
-
 
 from copy import copy
 import collections
@@ -907,6 +908,43 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                      "Output:", result]
             raise ValueError("\n".join(lines))
         return result
+
+    @cached_method
+    def _PPL(self):
+        r"""
+        Return the Parma Polyhedra Library (PPL) representation of ``self``.
+
+        OUTPUT:
+
+        - :class:`~sage.libs.ppl.C_Polyhedron`
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.cross_polytope(3)
+            sage: o._PPL()
+            A 3-dimensional polyhedron in QQ^3
+            defined as the convex hull of 6 points
+            sage: o._PPL().minimized_generators()
+            Generator_System {point(-1/1, 0/1, 0/1),
+                              point(0/1, -1/1, 0/1),
+                              point(0/1, 0/1, -1/1),
+                              point(0/1, 0/1, 1/1),
+                              point(0/1, 1/1, 0/1),
+                              point(1/1, 0/1, 0/1)}
+            sage: o._PPL().minimized_constraints()
+            Constraint_System {x0-x1-x2+1>=0,
+                               x0+x1-x2+1>=0,
+                               x0+x1+x2+1>=0,
+                               x0-x1+x2+1>=0,
+                               -x0-x1+x2+1>=0,
+                               -x0-x1-x2+1>=0,
+                               -x0+x1-x2+1>=0,
+                               -x0+x1+x2+1>=0}
+        """
+        P = C_Polyhedron(Generator_System(
+            [PPL_point(Linear_Expression(v, 0)) for v in self.vertices()]))
+        P.set_immutable()
+        return P
 
     def _pullback(self, data):
         r"""

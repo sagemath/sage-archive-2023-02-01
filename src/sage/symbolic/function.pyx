@@ -395,7 +395,7 @@ cdef class Function(SageObject):
             ...
             TypeError: cannot coerce arguments: ...
             sage: exp(QQbar(I))
-            0.540302305868140 + 0.841470984807897*I
+            e^I
 
         For functions with single argument, if coercion fails we try to call
         a method with the name of the function on the object::

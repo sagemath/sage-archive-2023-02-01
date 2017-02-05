@@ -55,5 +55,5 @@ if [ $? -ne 0 ]; then
 fi
 echo "Installed tomlib database."
 
-sage -c "gap_reset_workspace()"
+# sage -c "gap_reset_workspace()"
 

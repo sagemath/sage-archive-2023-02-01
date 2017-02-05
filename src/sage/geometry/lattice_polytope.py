@@ -4030,6 +4030,27 @@ class NefPartition(SageObject,
         &=
         \mathrm{Conv} \left(\Delta_0, \Delta_1, \dots, \Delta_{k-1}\right).
 
+    One can also interpret the duality of nef-partitions as the duality of the
+    associated cones. Below $\overline{M} = M \times \ZZ^k$ and
+    $\overline{N} = N \times \ZZ^k$ are dual lattices.
+
+    The **Cayley polytope** $P \subset \overline{M}_\RR$ of a nef-partition is
+    given by $P = \mathrm{Conv}(\Delta_0 \times e_0, \Delta_1 \times e_1,
+    \ldots, \Delta_{k-1} \times e_{k-1})$, where $\{e_i\}_{i=0}^{k-1}$ is the
+    standard basis of $\ZZ^k$. The **dual Cayley polytope**
+    $P^* \subset \overline{N}_\RR$ is the Cayley polytope of the dual
+    nef-partition.
+    
+    The **Cayley cone** $C \subset \overline{M}_\RR$ of a nef-partition is the
+    cone spanned by its Cayley polytope. The **dual Cayley cone**
+    $C^\vee \subset \overline{M}_\RR$ is the usual dual cone of $C$. It turns
+    out, that $C^\vee$ is spanned by $P^*$.
+   
+    It is also possible to go back from the Cayley cone to the Cayley polytope,
+    since $C$ is a reflexive Gorenstein cone supported by $P$: primitive
+    integral ray generators of $C$ are contained in an affine hyperplane and
+    coincide with vertices of $P$.
+
     See Section 4.3.1 in [CK1999]_ and references therein for further details, or
     [BN2008]_ for a purely combinatorial approach.
 

@@ -4620,18 +4620,21 @@ class NefPartition(SageObject,
         """
         return self._nparts
 
-    def part(self, i):
+    def part(self, i, all_points=False):
         r"""
         Return the ``i``-th part of ``self``.
 
         INPUT:
 
-        - ``i`` -- an integer.
+        - ``i`` -- an integer
+        
+        - ``all_points`` -- (default: False) whether to list all lattice points
+          or just vertices
 
         OUTPUT:
 
-        - a tuple of integers, indices of vertices of $\Delta^\circ$ belonging
-          to $V_i$.
+        - a tuple of integers, indices of vertices (or all lattice points) of
+          $\Delta^\circ$ belonging to $V_i$.
 
         See :class:`nef-partition <NefPartition>` class documentation for
         definitions and notation.
@@ -4644,17 +4647,29 @@ class NefPartition(SageObject,
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: np.part(0)
             (0, 1, 3)
+            sage: np.part(0, all_points=True)
+            (0, 1, 3)
+            sage: np.dual().part(0)
+            (0, 1, 2, 3)
+            sage: np.dual().part(0, all_points=True)
+            (0, 1, 2, 3, 8)
         """
-        return self.parts()[i]
+        return self.parts(all_points)[i]
 
-    def parts(self):
+    @cached_method
+    def parts(self, all_points=False):
         r"""
         Return all parts of ``self``.
+
+        INPUT:
+
+        - ``all_points`` -- (default: False) whether to list all lattice points
+          or just vertices
 
         OUTPUT:
 
         - a tuple of tuples of integers. The $i$-th tuple contains indices of
-          vertices of $\Delta^\circ$ belonging to $V_i$.
+          vertices (or all lattice points) of $\Delta^\circ$ belonging to $V_i$
 
         See :class:`nef-partition <NefPartition>` class documentation for
         definitions and notation.
@@ -4667,17 +4682,22 @@ class NefPartition(SageObject,
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: np.parts()
             ((0, 1, 3), (2, 4, 5))
+            sage: np.parts(all_points=True)
+            ((0, 1, 3), (2, 4, 5))
+            sage: np.dual().parts()
+            ((0, 1, 2, 3), (4, 5, 6, 7))
+            sage: np.dual().parts(all_points=True)
+            ((0, 1, 2, 3, 8), (4, 5, 6, 7, 10))
         """
-        try:
-            return self._parts
-        except AttributeError:
-            parts = []
-            for part in range(self._nparts):
-                parts.append([])
+        parts = [[] for _ in range(self._nparts)]
+        if all_points:
+            for point in range(self._Delta_polar.npoints()):
+                if point != self._Delta_polar.origin():
+                    parts[self.part_of_point(point)].append(point)
+        else:
             for vertex, part in enumerate(self._vertex_to_part):
                 parts[part].append(vertex)
-            self._parts = tuple(tuple(part) for part in parts)
-            return self._parts
+        return tuple(tuple(part) for part in parts)
 
     def part_of(self, i):
         r"""
@@ -4708,6 +4728,7 @@ class NefPartition(SageObject,
         """
         return self._vertex_to_part[i]
 
+    @cached_method
     def part_of_point(self, i):
         r"""
         Return the index of the part containing the ``i``-th point.
@@ -4767,23 +4788,18 @@ class NefPartition(SageObject,
             ....:    if p.origin() != n and np.part_of_point(n) == 1]
             [0, 3, 4, 6, 10, 12]
         """
-        try:
-            ptp = self._point_to_part
-        except AttributeError:
-            ptp = [-1] * self._Delta_polar.npoints()
-            for v, part in enumerate(self._vertex_to_part):
-                ptp[v] = part
-            self._point_to_part = ptp
-        if ptp[i] > 0:
-            return ptp[i]
+        if i < self._Delta_polar.nvertices():
+            return self.part_of(i)
         if i == self._Delta_polar.origin():
             raise ValueError("the origin belongs to all parts!")
         point = self._Delta_polar.point(i)
         for part, nabla in enumerate(self.nablas()):
-            if min(nabla.distances(point)) >= 0:
-                ptp[i] = part
-                break
-        return ptp[i]
+            try:
+                if min(nabla.distances(point)) >= 0:
+                    return part
+            except ArithmeticError:
+                # point is not even in the affine subspace of nabla
+                continue
 
 
 _palp_dimension = None

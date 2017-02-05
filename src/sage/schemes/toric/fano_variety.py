@@ -1598,6 +1598,39 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
         self._monomial_points = tuple(monomial_points)
         super(NefCompleteIntersection, self).__init__(P_Delta, polynomials)
 
+    def cohomology_class(self):
+        r"""
+        Return the class of ``self`` in the ambient space cohomology ring.
+        
+        OUTPUT:
+        
+        - a :class:`cohomology class
+          <sage.schemes.generic.toric_variety.CohomologyClass>`.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.cross_polytope(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: X = CPRFanoToricVariety(Delta_polar=o)
+            sage: CI = X.nef_complete_intersection(np)
+            sage: CI
+            Closed subscheme of 3-d CPR-Fano toric variety
+            covered by 8 affine patches defined by:
+              a1*z0^2*z1 + a4*z0*z1*z3 + a3*z1*z3^2
+              + a0*z0^2*z4 + a5*z0*z3*z4 + a2*z3^2*z4,
+              b0*z1*z2^2 + b1*z2^2*z4 + b4*z1*z2*z5
+              + b5*z2*z4*z5 + b3*z1*z5^2 + b2*z4*z5^2
+            sage: CI.cohomology_class()
+            [2*z3*z4 + 4*z3*z5 + 2*z4*z5]
+        """
+        X = self.ambient_space()
+        H = X.cohomology_ring()
+        return prod(sum(H.gen(X._point_to_ray[point])
+                    for point in part if point in X._coordinate_points)
+               for part in self.nef_partition().parts(all_points=True))
+    
     def nef_partition(self):
         r"""
         Return the nef-partition associated to ``self``.

@@ -615,11 +615,6 @@ class KleberTree(UniqueRepresentation, Parent):
         """
         Parent.__init__(self, category=FiniteEnumeratedSets())
 
-        if classical_ct.rank() >= 7:
-            self._child_itr = self._children_iter
-        else:
-            self._child_itr = self._children_iter_vector
-
         self._cartan_type = cartan_type
         self.B = B
         self._classical_ct = classical_ct
@@ -724,6 +719,12 @@ class KleberTree(UniqueRepresentation, Parent):
         depth = 1
         growth = True
 
+        # self._has_normaliz is set by _children_iter
+        if self._classical_ct.rank() >= 7 or self._has_normaliz:
+            child_itr = self._children_iter
+        else:
+            child_itr = self._children_iter_vector
+
         while growth:
             growth = False
             depth += 1
@@ -738,12 +739,12 @@ class KleberTree(UniqueRepresentation, Parent):
                             x.weight += L[a][i] * weight_basis[I[a]]
 
                     if x in leaves:
-                        for new_child in self._child_itr(x):
+                        for new_child in child_itr(x):
                             if not self._prune(new_child, depth):
                                 new_children.append(new_child)
             else:
                 for x in leaves:
-                    for new_child in self._child_itr(x):
+                    for new_child in child_itr(x):
                         if not self._prune(new_child, depth):
                             new_children.append(new_child)
 
@@ -817,13 +818,20 @@ class KleberTree(UniqueRepresentation, Parent):
                 v[0] = c
                 v[i+1] = 1
                 ieqs.append(v)
-        poly = Polyhedron(ieqs=ieqs)
+
+        try:
+            poly = Polyhedron(ieqs=ieqs, backend='normaliz')
+            self._has_normaliz = True
+        except ImportError:
+            poly = Polyhedron(ieqs=ieqs)
+            self._has_normaliz = False
 
         # Build the nodes from the polytope
         # Sort for a consistent ordering (it is typically a small list)
         for pt in sorted(poly.integral_points(), reverse=True):
-            up_root = Q._from_dict({I[i]: -val for i,val in enumerate(pt) if val != 0}, remove_zeros=False, )
-            wt = node.weight + sum(val*P.simple_root(I[i]) for i,val in enumerate(pt))
+            up_root = Q._from_dict({I[i]: -val for i,val in enumerate(pt) if val != 0},
+                                   remove_zeros=False)
+            wt = node.weight + sum(val * P.simple_root(I[i]) for i,val in enumerate(pt))
             yield KleberTreeNode(self, wt, up_root, node)
 
     def _children_iter_vector(self, node):

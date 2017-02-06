@@ -39,18 +39,6 @@ AUTHORS:
 
 - Luca De Feo (2016-09-06): Separate Sage-specific components from
   generic C-interface in ``Pari`` (:trac:`20241`)
-
-TESTS:
-
-Before :trac:`15654`, this used to take a very long time.
-Now it takes much less than a second::
-
-    sage: pari.allocatemem(200000)
-    PARI stack size set to 200000 bytes, maximum size set to ...
-    sage: x = polygen(ZpFM(3,10))
-    sage: pol = ((x-1)^50 + x)
-    sage: pari(pol).poldisc()
-    2*3 + 3^4 + 2*3^6 + 3^7 + 2*3^8 + 2*3^9 + O(3^10)
 """
 
 #*****************************************************************************
@@ -179,7 +167,7 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES:
 
-        A PARI vector becomes a Sage list::
+        A PARI vector becomes a Python list::
 
             sage: L = pari("vector(10,i,i^2)").list()
             sage: L
@@ -189,7 +177,7 @@ cdef class Gen(Gen_auto):
             sage: type(L[0])
             <type 'sage.libs.cypari2.gen.Gen'>
 
-        For polynomials, list() behaves as for ordinary Sage polynomials::
+        For polynomials, list() returns the list of coefficients::
 
             sage: pol = pari("x^3 + 5/3*x"); pol.list()
             [0, 5/3, 0, 1]
@@ -197,25 +185,16 @@ cdef class Gen(Gen_auto):
         For power series or Laurent series, we get all coefficients starting
         from the lowest degree term.  This includes trailing zeros::
 
-            sage: R.<x> = LaurentSeriesRing(QQ)
-            sage: s = x^2 + O(x^8)
-            sage: s.list()
-            [1]
-            sage: pari(s).list()
+            sage: pari('x^2 + O(x^8)').list()
             [1, 0, 0, 0, 0, 0]
-            sage: s = x^-2 + O(x^0)
-            sage: s.list()
-            [1]
-            sage: pari(s).list()
+            sage: pari('x^-2 + O(x^0)').list()
             [1, 0]
 
         For matrices, we get a list of columns::
 
-            sage: M = matrix(ZZ,3,2,[1,4,2,5,3,6]); M
-            [1 4]
-            [2 5]
-            [3 6]
-            sage: pari(M).list()
+            sage: M = pari.matrix(3,2,[1,4,2,5,3,6]); M
+            [1, 4; 2, 5; 3, 6]
+            sage: M.list()
             [[1, 2, 3]~, [4, 5, 6]~]
 
         For "scalar" types, we get a 1-element list containing ``self``::
@@ -251,9 +230,9 @@ cdef class Gen(Gen_auto):
             21
             sage: pari("x^3+x^2+x+1") + pari("x^2")
             x^3 + 2*x^2 + x + 1
-            sage: RR("2e20") + pari("1e20")
+            sage: 2e20 + pari("1e20")
             3.00000000000000 E20
-            sage: int(-2) + pari(3)
+            sage: -2 + pari(3)
             1
         """
         cdef Gen t0, t1
@@ -275,9 +254,9 @@ cdef class Gen(Gen_auto):
             9
             sage: pari("x^3+x^2+x+1") - pari("x^2")
             x^3 + x + 1
-            sage: RR("2e20") - pari("1e20")
+            sage: 2e20 - pari("1e20")
             1.00000000000000 E20
-            sage: int(-2) - pari(3)
+            sage: -2 - pari(3)
             -5
         """
         cdef Gen t0, t1
@@ -347,9 +326,9 @@ cdef class Gen(Gen_auto):
             3
             sage: pari("x^3+x^2+x+1") % pari("x^2")
             x + 1
-            sage: pari(-2) % int(3)
+            sage: pari(-2) % 3
             1
-            sage: int(-2) % pari(3)
+            sage: -2 % pari(3)
             1
         """
         cdef Gen t0, t1
@@ -368,15 +347,15 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: pari(5) ^ pari(3)
+            sage: pari(5) ** pari(3)
             125
-            sage: pari("x-1") ^ 3
+            sage: pari("x-1") ** 3
             x^3 - 3*x^2 + 3*x - 1
             sage: pow(pari(5), pari(28), int(29))
             Mod(1, 29)
-            sage: int(2) ^ pari(-5)
+            sage: int(2) ** pari(-5)
             1/32
-            sage: pari(2) ^ int(-5)
+            sage: pari(2) ** -5
             1/32
         """
         cdef Gen t0, t1
@@ -409,7 +388,7 @@ cdef class Gen(Gen_auto):
             1/8*x
             sage: pari(1.0) >> 100
             7.88860905221012 E-31
-            sage: int(33) >> pari(2)
+            sage: 33 >> pari(2)
             8
         """
         cdef Gen t0 = objtogen(self)
@@ -430,7 +409,7 @@ cdef class Gen(Gen_auto):
             8*x
             sage: pari(1.0) << 100
             1.26765060022823 E30
-            sage: int(33) << pari(2)
+            sage: 33 << pari(2)
             132
         """
         cdef Gen t0 = objtogen(self)
@@ -516,31 +495,19 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
-            sage: pari(K).nf_get_pol()
-            y^4 - 4*y^2 + 1
-            sage: bnr = pari("K = bnfinit(x^4 - 4*x^2 + 1); bnrinit(K, 2*x)")
-            sage: bnr.nf_get_pol()
+            sage: x = pari('x')
+            sage: K = (x**4 - 4*x**2 + 1).nfinit()
+            sage: K.nf_get_pol()
             x^4 - 4*x^2 + 1
 
         For relative number fields, this returns the relative
         polynomial. However, beware that ``pari(L)`` returns an absolute
         number field::
 
-            sage: L.<b> = K.extension(x^2 - 5)
-            sage: pari(L).nf_get_pol()        # Absolute
-            y^8 - 28*y^6 + 208*y^4 - 408*y^2 + 36
-            sage: L.pari_rnf().nf_get_pol()   # Relative
-            x^2 - 5
-
-        TESTS::
-
-            sage: x = polygen(QQ)
-            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
-            sage: K.pari_nf().nf_get_pol()
-            y^4 - 4*y^2 + 1
-            sage: K.pari_bnf().nf_get_pol()
-            y^4 - 4*y^2 + 1
+            sage: y = pari.varhigher('y')
+            sage: L = K.rnfinit(y^2 - 5)
+            sage: L.nf_get_pol()
+            y^2 - 5
 
         An error is raised for invalid input::
 
@@ -564,8 +531,9 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
-            sage: pari(K).nf_get_diff()
+            sage: x = pari('x')
+            sage: K = (x**4 - 4*x**2 + 1).nfinit()
+            sage: K.nf_get_diff()
             [12, 0, 0, 0; 0, 12, 8, 0; 0, 0, 4, 0; 0, 0, 0, 4]
         """
         sig_on()
@@ -584,13 +552,14 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
-            sage: s = K.pari_nf().nf_get_sign(); s
+            sage: x = pari('x')
+            sage: K = (x**4 - 4*x**2 + 1).nfinit()
+            sage: s = K.nf_get_sign(); s
             [4, 0]
             sage: type(s); type(s[0])
             <... 'list'>
             <... 'int'>
-            sage: CyclotomicField(15).pari_nf().nf_get_sign()
+            sage: pari.polcyclo(15).nfinit().nf_get_sign()
             [0, 4]
         """
         cdef long r1
@@ -615,9 +584,10 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
-            sage: pari(K).nf_get_zk()
-            [1, y, y^3 - 4*y, y^2 - 2]
+            sage: x = pari('x')
+            sage: K = (x**4 - 4*x**2 + 1).nfinit()
+            sage: K.nf_get_zk()
+            [1, x, x^3 - 4*x, x^2 - 2]
         """
         sig_on()
         return new_gen(member_zk(self.g))
@@ -628,8 +598,9 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<a> = QuadraticField(-65)
-            sage: K.pari_bnf().bnf_get_no()
+            sage: x = pari('x')
+            sage: K = (x**2 + 65).bnfinit()
+            sage: K.bnf_get_no()
             8
         """
         sig_on()
@@ -644,8 +615,9 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<a> = QuadraticField(-65)
-            sage: K.pari_bnf().bnf_get_cyc()
+            sage: x = pari('x')
+            sage: K = (x**2 + 65).bnfinit()
+            sage: K.bnf_get_cyc()
             [4, 2]
         """
         sig_on()
@@ -660,11 +632,10 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<a> = QuadraticField(-65)
-            sage: G = K.pari_bnf().bnf_get_gen(); G
+            sage: x = pari('x')
+            sage: K = (x**2 + 65).bnfinit()
+            sage: G = K.bnf_get_gen(); G
             [[3, 2; 0, 1], [2, 1; 0, 1]]
-            sage: [K.ideal(J) for J in G]
-            [Fractional ideal (3, a + 2), Fractional ideal (2, a + 1)]
         """
         sig_on()
         return new_gen(bnf_get_gen(self.g))
@@ -677,8 +648,9 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
-            sage: K.pari_bnf().bnf_get_reg()
+            sage: x = pari('x')
+            sage: K = (x**4 - 4*x**2 + 1).bnfinit()
+            sage: K.bnf_get_reg()
             2.66089858019037...
         """
         sig_on()
@@ -693,14 +665,15 @@ cdef class Gen(Gen_auto):
         Returns the prime of `\ZZ` lying below this prime ideal.
 
         NOTE: ``self`` must be a PARI prime ideal (as returned by
-        ``idealfactor`` for example).
+        ``idealprimedec`` for example).
 
         EXAMPLES::
 
-            sage: K.<i> = QuadraticField(-1)
-            sage: F = pari(K).idealfactor(K.ideal(5)); F
-            [[5, [-2, 1]~, 1, 1, [2, -1; 1, 2]], 1; [5, [2, 1]~, 1, 1, [-2, -1; 1, -2]], 1]
-            sage: F[0,0].pr_get_p()
+            sage: i = pari('i')
+            sage: K = (i**2 + 1).nfinit()
+            sage: F = K.idealprimedec(5); F
+            [[5, [-2, 1]~, 1, 1, [2, -1; 1, 2]], [5, [2, 1]~, 1, 1, [-2, -1; 1, -2]]]
+            sage: F[0].pr_get_p()
             5
         """
         sig_on()
@@ -711,16 +684,17 @@ cdef class Gen(Gen_auto):
         Returns the ramification index (over `\QQ`) of this prime ideal.
 
         NOTE: ``self`` must be a PARI prime ideal (as returned by
-        ``idealfactor`` for example).
+        ``idealprimedec`` for example).
 
         EXAMPLES::
 
-            sage: K.<i> = QuadraticField(-1)
-            sage: pari(K).idealfactor(K.ideal(2))[0,0].pr_get_e()
+            sage: i = pari('i')
+            sage: K = (i**2 + 1).nfinit()
+            sage: K.idealprimedec(2)[0].pr_get_e()
             2
-            sage: pari(K).idealfactor(K.ideal(3))[0,0].pr_get_e()
+            sage: K.idealprimedec(3)[0].pr_get_e()
             1
-            sage: pari(K).idealfactor(K.ideal(5))[0,0].pr_get_e()
+            sage: K.idealprimedec(5)[0].pr_get_e()
             1
         """
         cdef long e
@@ -734,16 +708,17 @@ cdef class Gen(Gen_auto):
         Returns the residue class degree (over `\QQ`) of this prime ideal.
 
         NOTE: ``self`` must be a PARI prime ideal (as returned by
-        ``idealfactor`` for example).
+        ``idealprimedec`` for example).
 
         EXAMPLES::
 
-            sage: K.<i> = QuadraticField(-1)
-            sage: pari(K).idealfactor(K.ideal(2))[0,0].pr_get_f()
+            sage: i = pari('i')
+            sage: K = (i**2 + 1).nfinit()
+            sage: K.idealprimedec(2)[0].pr_get_f()
             1
-            sage: pari(K).idealfactor(K.ideal(3))[0,0].pr_get_f()
+            sage: K.idealprimedec(3)[0].pr_get_f()
             2
-            sage: pari(K).idealfactor(K.ideal(5))[0,0].pr_get_f()
+            sage: K.idealprimedec(5)[0].pr_get_f()
             1
         """
         cdef long f
@@ -758,20 +733,18 @@ cdef class Gen(Gen_auto):
         first generator is ``self.pr_get_p()``.
 
         NOTE: ``self`` must be a PARI prime ideal (as returned by
-        ``idealfactor`` for example).
+        ``idealprimedec`` for example).
 
         EXAMPLES::
 
-            sage: K.<i> = QuadraticField(-1)
-            sage: g = pari(K).idealfactor(K.ideal(2))[0,0].pr_get_gen(); g; K(g)
+            sage: i = pari('i')
+            sage: K = (i**2 + 1).nfinit()
+            sage: g = K.idealprimedec(2)[0].pr_get_gen(); g
             [1, 1]~
-            i + 1
-            sage: g = pari(K).idealfactor(K.ideal(3))[0,0].pr_get_gen(); g; K(g)
+            sage: g = K.idealprimedec(3)[0].pr_get_gen(); g
             [3, 0]~
-            3
-            sage: g = pari(K).idealfactor(K.ideal(5))[0,0].pr_get_gen(); g; K(g)
+            sage: g = K.idealprimedec(5)[0].pr_get_gen(); g
             [-2, 1]~
-            i - 2
         """
         sig_on()
         return new_gen(pr_get_gen(self.g))
@@ -786,8 +759,9 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<i> = QuadraticField(-1)
-            sage: J = pari(K).idealstar(K.ideal(4*i + 2))
+            sage: i = pari('i')
+            sage: K = (i**2 + 1).bnfinit()
+            sage: J = K.idealstar(4*i + 2)
             sage: J.bid_get_cyc()
             [4, 2]
         """
@@ -804,15 +778,16 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K.<i> = QuadraticField(-1)
-            sage: J = pari(K).idealstar(K.ideal(4*i + 2), 2)
+            sage: i = pari('i')
+            sage: K = (i**2 + 1).bnfinit()
+            sage: J = K.idealstar(4*i + 2, 2)
             sage: J.bid_get_gen()
             [7, [-2, -1]~]
 
         We get an exception if we do not supply ``flag = 2`` to
         ``idealstar``::
 
-            sage: J = pari(K).idealstar(K.ideal(3))
+            sage: J = K.idealstar(3)
             sage: J.bid_get_gen()
             Traceback (most recent call last):
             ...
@@ -877,7 +852,7 @@ cdef class Gen(Gen_auto):
             3
             sage: type(sv[2])
             <... 'int'>
-            sage: tuple(pari(3/5))
+            sage: tuple(pari('3/5'))
             (3, 5)
             sage: tuple(pari('1 + 5*I'))
             (1, 5)
@@ -1073,7 +1048,7 @@ cdef class Gen(Gen_auto):
             [54321, 10, -20]
             sage: v = pari([[[[0,1],2],3],4]) ; v[0][0][0][1] = 12 ; v
             [[[[0, 12], 2], 3], 4]
-            sage: m = pari(matrix(2,2,range(4))) ; l = pari([5,6]) ; n = pari(matrix(2,2,[7,8,9,0])) ; m[1,0] = l ; l[1] = n ; m[1,0][1][1,1] = 1111 ; m
+            sage: m = pari.matrix(2,2,range(4)) ; l = pari([5,6]) ; n = pari.matrix(2,2,[7,8,9,0]) ; m[1,0] = l ; l[1] = n ; m[1,0][1][1,1] = 1111 ; m
             [0, 1; [5, [7, 8; 9, 1111]], 3]
             sage: m = pari("[[1,2;3,4],5,6]") ; m[0][1,1] = 11 ; m
             [[1, 2; 3, 11], 5, 6]
@@ -1235,9 +1210,9 @@ cdef class Gen(Gen_auto):
 
         Check that :trac:`16127` has been fixed::
 
-            sage: pari(1/2) < pari(1/3)
+            sage: pari('1/2') < pari('1/3')
             False
-            sage: pari(1) < pari(1/2)
+            sage: pari(1) < pari('1/2')
             False
 
             sage: pari('O(x)') == 0
@@ -1302,15 +1277,15 @@ cdef class Gen(Gen_auto):
 
         Beware when comparing rationals or reals::
 
-            sage: cmp(pari(2/3), pari(2/5))
+            sage: cmp(pari('2/3'), pari('2/5'))
             -1
-            sage: two = RealField(256)(2)._pari_()
+            sage: two = pari(2)
             sage: cmp(two, pari(1.0))
-            1
+            -1
             sage: cmp(two, pari(2.0))
-            1
+            -1
             sage: cmp(two, pari(3.0))
-            1
+            -1
 
         Since :trac:`17026`, different elements with the same string
         representation can be distinguished by ``cmp()``::
@@ -1414,18 +1389,18 @@ cdef class Gen(Gen_auto):
             123456789012345678901234567890L
             sage: int(pari(-123456789012345678901234567890))
             -123456789012345678901234567890L
-            sage: int(pari(2^31-1))
+            sage: int(pari(2**31-1))
             2147483647
-            sage: int(pari(-2^31))
+            sage: int(pari(-2**31))
             -2147483648
             sage: int(pari("Pol(10)"))
             10
             sage: int(pari("Mod(2, 7)"))
             2
-            sage: int(pari(RealField(63)(2^63-1)))
+            sage: int(pari(2**63-1))
             9223372036854775807L  # 32-bit
             9223372036854775807   # 64-bit
-            sage: int(pari(RealField(63)(2^63+2)))
+            sage: int(pari(2**63+2))
             9223372036854775810L
         """
         return gen_to_integer(self)
@@ -1563,9 +1538,9 @@ cdef class Gen(Gen_auto):
             123456789012345678901234567890L
             sage: long(pari(-123456789012345678901234567890))
             -123456789012345678901234567890L
-            sage: long(pari(2^31-1))
+            sage: long(pari(2**31-1))
             2147483647L
-            sage: long(pari(-2^31))
+            sage: long(pari(-2**31))
             -2147483648L
             sage: long(pari("Pol(10)"))
             10L
@@ -1595,7 +1570,7 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: g = pari(-1.0)^(1/5); g
+            sage: g = pari(-1.0)**(0.2); g
             0.809016994374947 + 0.587785252292473*I
             sage: g.__complex__()
             (0.8090169943749475+0.5877852522924731j)
@@ -1604,7 +1579,7 @@ cdef class Gen(Gen_auto):
 
         ::
 
-            sage: g = pari(Integers(5)(3)); g
+            sage: g = pari('Mod(3,5)'); g
             Mod(3, 5)
             sage: complex(g)
             Traceback (most recent call last):
@@ -1682,7 +1657,7 @@ cdef class Gen(Gen_auto):
             False
             sage: pari("0.0 + 0.0*I").gequal0()
             True
-            sage: pari(GF(3^20,'t')(0)).gequal0()
+            sage: (pari('ffgen(3^20)')*0).gequal0()
             True
         """
         sig_on()
@@ -1749,7 +1724,7 @@ cdef class Gen(Gen_auto):
             False
             sage: n.isprime(2)
             False
-            sage: n = pari(2^31-1)
+            sage: n = pari(2**31-1)
             sage: n.isprime(1)
             (True, [2, 3, 1; 3, 5, 1; 7, 3, 1; 11, 3, 1; 31, 2, 1; 151, 3, 1; 331, 3, 1])
         """
@@ -1886,7 +1861,7 @@ cdef class Gen(Gen_auto):
             (1, 17)
             sage: pari(18).isprimepower()
             (0, 18)
-            sage: pari(3^12345).isprimepower()
+            sage: pari(3**12345).isprimepower()
             (12345, 3)
         """
         cdef GEN x
@@ -1920,10 +1895,10 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: pari(3^12345).ispseudoprimepower()
+            sage: pari(3**12345).ispseudoprimepower()
             (12345, 3)
-            sage: p = pari(2^1500 + 1465)         # next_prime(2^1500)
-            sage: (p^11).ispseudoprimepower()[0]  # very fast
+            sage: p = pari(2**1500 + 1465)         # nextprime(2^1500)
+            sage: (p**11).ispseudoprimepower()[0]  # very fast
             11
         """
         cdef GEN x
@@ -1955,8 +1930,8 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: pari([1, -5/3, 8.0]).vecmin()
-            -5/3
+            sage: pari([-1, 5/3, -8.0]).vecmin()
+            -8.00000000000000
         """
         sig_on()
         return new_gen(vecmin(x.g))
@@ -1984,8 +1959,8 @@ cdef class Gen(Gen_auto):
             [1, 2, 3, 4]~
             sage: pari('[1,2; 3,4]').Col()
             [[1, 2], [3, 4]]~
-            sage: pari('"Sage"').Col()
-            ["S", "a", "g", "e"]~
+            sage: pari('"CyPari"').Col()
+            ["C", "y", "P", "a", "r", "i"]~
             sage: pari('x + 3*x^3').Col()
             [3, 0, 1, 0]~
             sage: pari('x + 3*x^3 + O(x^5)').Col()
@@ -2104,7 +2079,7 @@ cdef class Gen(Gen_auto):
 
             sage: pari(2).Ser()
             2 + O(x^16)
-            sage: pari(Mod(0, 7)).Ser()
+            sage: pari('Mod(0, 7)').Ser()
             Mod(0, 7)*x^15 + O(x^16)
 
             sage: x = pari([1, 2, 3, 4, 5])
@@ -2194,8 +2169,8 @@ cdef class Gen(Gen_auto):
 
             sage: pari('"~/subdir"').Strexpand()     # random
             "/home/johndoe/subdir"
-            sage: pari('"$SAGE_LOCAL"').Strexpand()  # random
-            "/usr/local/sage/local"
+            sage: pari('"$SHELL"').Strexpand()  # random
+            "/bin/bash"
 
         TESTS::
 
@@ -2266,8 +2241,8 @@ cdef class Gen(Gen_auto):
             [1, 2, 3]
             sage: pari('[1, 2; 3, 4]').Vec()
             [[1, 3]~, [2, 4]~]
-            sage: pari('"Sage"').Vec()
-            ["S", "a", "g", "e"]
+            sage: pari('"CyPari"').Vec()
+            ["C", "y", "P", "a", "r", "i"]
             sage: pari('2*x^2 + 3*x^3 + O(x^5)').Vec()
             [2, 3, 0]
             sage: pari('2*x^-2 + 3*x^3 + O(x^5)').Vec()
@@ -2327,8 +2302,8 @@ cdef class Gen(Gen_auto):
             [3, 2, 1]
             sage: pari('[1, 2; 3, 4]').Vecrev()
             [[2, 4]~, [1, 3]~]
-            sage: pari('"Sage"').Vecrev()
-            ["e", "g", "a", "S"]
+            sage: pari('"CyPari"').Vecrev()
+            ["i", "r", "a", "P", "y", "C"]
 
         We demonstate the `n` argument::
 
@@ -2363,8 +2338,8 @@ cdef class Gen(Gen_auto):
 
             sage: pari([1,2,3]).Vecsmall()
             Vecsmall([1, 2, 3])
-            sage: pari('"Sage"').Vecsmall()
-            Vecsmall([83, 97, 103, 101])
+            sage: pari('"CyPari"').Vecsmall()
+            Vecsmall([67, 121, 80, 97, 114, 105])
             sage: pari(1234).Vecsmall()
             Vecsmall([1234])
             sage: pari('x^2 + 2*x + 3').Vecsmall()
@@ -2441,9 +2416,7 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: K = Qp(11,5)
-            sage: x = K(11^-10 + 5*11^-7 + 11^-6)
-            sage: y = pari(x)
+            sage: y = pari('11^-10 + 5*11^-7 + 11^-6 + O(11)')
             sage: y.padicprime()
             11
             sage: y.padicprime().type()
@@ -2549,7 +2522,7 @@ cdef class Gen(Gen_auto):
             sage: pari('10^100').sizeword()
             13      # 32-bit
             8       # 64-bit
-            sage: pari(RDF(1.0)).sizeword()
+            sage: pari(1.0).sizeword()
             4       # 32-bit
             3       # 64-bit
             sage: pari('x').sizeword()
@@ -2720,18 +2693,17 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: C.<i> = ComplexField()
-            sage: pari(2+i).besselk(3)
+            sage: pari(complex(2, 1)).besselk(3)
             0.0455907718407551 + 0.0289192946582081*I
 
         ::
 
-            sage: pari(2+i).besselk(-3)
+            sage: pari(complex(2, 1)).besselk(-3)
             -4.34870874986752 - 5.38744882697109*I
 
         ::
 
-            sage: pari(2+i).besselk(300)
+            sage: pari(complex(2, 1)).besselk(300)
             3.74224603319728 E-132 + 2.49071062641525 E-134*I
         """
         cdef Gen t0 = objtogen(x)
@@ -2842,12 +2814,12 @@ cdef class Gen(Gen_auto):
             0.309016994374947 + 0.951056516295154*I
             sage: s
             1.14869835499704
-            sage: s^5
+            sage: s**5
             2.00000000000000
-            sage: z^5
+            sage: z**5
             1.00000000000000 - 2.710505431 E-20*I       # 32-bit
             1.00000000000000 - 2.71050543121376 E-20*I  # 64-bit
-            sage: (s*z)^5
+            sage: (s*z)**5
             2.00000000000000 + 0.E-19*I
         """
         cdef GEN zetan
@@ -2872,9 +2844,7 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: x = polygen(GF(3))
-            sage: k.<a> = GF(9, modulus=x^2+1)
-            sage: b = pari(a).ffprimroot()
+            sage: b = pari(9).ffgen().ffprimroot()
             sage: b  # random
             a + 1
             sage: b.fforder()
@@ -2971,7 +2941,7 @@ cdef class Gen(Gen_auto):
 
             sage: pari(3).Zn_issquare(4)
             False
-            sage: pari(4).Zn_issquare(30.factor())
+            sage: pari(4).Zn_issquare(pari(30).factor())
             True
 
         """
@@ -2998,7 +2968,7 @@ cdef class Gen(Gen_auto):
             Traceback (most recent call last):
             ...
             ValueError: 3 is not a square modulo 4
-            sage: pari(4).Zn_sqrt(30.factor())
+            sage: pari(4).Zn_sqrt(pari(30).factor())
             22
 
         """
@@ -3277,10 +3247,10 @@ cdef class Gen(Gen_auto):
         TESTS::
 
             sage: K = pari('y^2 + 1').nfinit()
-            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
+            sage: rnfeq = K._nf_rnfeq('x^2 + 2')
             sage: f_abs = rnfeq[0]; f_abs
             x^4 + 6*x^2 + 1
-            sage: x_rel = rnfeq._eltabstorel(x); x_rel
+            sage: x_rel = rnfeq._eltabstorel('x'); x_rel
             Mod(x + Mod(-y, y^2 + 1), x^2 + 2)
             sage: f_abs(x_rel)
             Mod(0, x^2 + 2)
@@ -3306,8 +3276,8 @@ cdef class Gen(Gen_auto):
         TESTS::
 
             sage: K = pari('y^2 + 1').nfinit()
-            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
-            sage: rnfeq._eltabstorel_lift(x)
+            sage: rnfeq = K._nf_rnfeq('x^2 + 2')
+            sage: rnfeq._eltabstorel_lift('x')
             x + Mod(-y, y^2 + 1)
 
         """
@@ -3331,8 +3301,8 @@ cdef class Gen(Gen_auto):
         TESTS::
 
             sage: K = pari('y^2 + 1').nfinit()
-            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
-            sage: rnfeq._eltreltoabs(x)
+            sage: rnfeq = K._nf_rnfeq('x^2 + 2')
+            sage: rnfeq._eltreltoabs('x')
             1/2*x^3 + 7/2*x
             sage: rnfeq._eltreltoabs('y')
             1/2*x^3 + 5/2*x
@@ -3367,10 +3337,10 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: G = pari(x^6 + 108).galoisinit()
+            sage: G = pari('x^6 + 108').galoisinit()
             sage: G.galoissubfields(flag=1)
             [x, x^2 + 972, x^3 + 54, x^3 + 864, x^3 - 54, x^6 + 108]
-            sage: G = pari(x^4 + 1).galoisinit()
+            sage: G = pari('x^4 + 1').galoisinit()
             sage: G.galoissubfields(flag=2, v='z')[3]
             [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
@@ -3433,13 +3403,13 @@ cdef class Gen(Gen_auto):
         discriminant (-4 * `p`^2 * `q` in the example below) has a big square
         factor::
 
-            sage: p = next_prime(10^10); q = next_prime(p)
-            sage: x = polygen(QQ); f = x^2 + p^2*q
+            sage: p = pari(10**10).nextprime(); q = (p+1).nextprime()
+            sage: x = pari('x'); f = x**2 + p**2*q
             sage: pari(f).nfbasis(1)   # Wrong result
             [1, x]
             sage: pari(f).nfbasis()    # Correct result
             [1, 1/10000000019*x]
-            sage: pari(f).nfbasis(fa=10^6)   # Check primes up to 10^6: wrong result
+            sage: pari(f).nfbasis(fa=10**6)   # Check primes up to 10^6: wrong result
             [1, x]
             sage: pari(f).nfbasis(fa="[2,2; %s,2]"%p)    # Correct result and faster
             [1, 1/10000000019*x]
@@ -3465,15 +3435,15 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: F = NumberField(x^3-2,'alpha')
-            sage: F._pari_()[0].nfbasis_d()
-            ([1, y, y^2], -108)
+            sage: F = pari('x^3 - 2').nfinit()
+            sage: F[0].nfbasis_d()
+            ([1, x, x^2], -108)
 
         ::
 
-            sage: G = NumberField(x^5-11,'beta')
-            sage: G._pari_()[0].nfbasis_d()
-            ([1, y, y^2, y^3, y^4], 45753125)
+            sage: G = pari('x^5 - 11').nfinit()
+            sage: G[0].nfbasis_d()
+            ([1, x, x^2, x^3, x^4], 45753125)
 
         ::
 
@@ -3512,17 +3482,15 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: x = polygen(QQ)
-            sage: K.<a> = NumberField(x^3 - 17)
-            sage: Kpari = K.pari_nf()
-            sage: Kpari.getattr('zk')
-            [1, 1/3*y^2 - 1/3*y + 1/3, y]
-            sage: Kpari.nfbasistoalg_lift(42)
+            sage: K = pari('x^3 - 17').nfinit()
+            sage: K.nf_get_zk()
+            [1, 1/3*x^2 - 1/3*x + 1/3, x]
+            sage: K.nfbasistoalg_lift(42)
             42
-            sage: Kpari.nfbasistoalg_lift("[3/2, -5, 0]~")
-            -5/3*y^2 + 5/3*y - 1/6
-            sage: Kpari.getattr('zk') * pari("[3/2, -5, 0]~")
-            -5/3*y^2 + 5/3*y - 1/6
+            sage: K.nfbasistoalg_lift("[3/2, -5, 0]~")
+            -5/3*x^2 + 5/3*x - 1/6
+            sage: K.nf_get_zk() * pari("[3/2, -5, 0]~")
+            -5/3*x^2 + 5/3*x - 1/6
         """
         cdef Gen t0 = objtogen(x)
         sig_on()
@@ -3547,7 +3515,7 @@ cdef class Gen(Gen_auto):
         TESTS::
 
             sage: K = pari('y^2 + 1').nfinit()
-            sage: K._nf_rnfeq(x^2 + 2)
+            sage: K._nf_rnfeq('x^2 + 2')
             [x^4 + 6*x^2 + 1, 1/2*x^3 + 5/2*x, -1, y^2 + 1, x^2 + 2]
 
         """
@@ -3572,7 +3540,7 @@ cdef class Gen(Gen_auto):
 
         TESTS::
 
-            sage: nf = pari('nfinit(y^2 - 2)')
+            sage: nf = pari('y^2 - 2').nfinit()
             sage: nf._nf_nfzk(nf._nf_rnfeq('x^2 - 3'))
             ([2, -x^3 + 9*x], 1/2)
 
@@ -3641,7 +3609,7 @@ cdef class Gen(Gen_auto):
             sage: f = pari('x^2 + 1')
             sage: f.type()
             't_POL'
-            sage: f.eval(I)
+            sage: f.eval(pari('I'))
             0
             sage: f.eval(x=2)
             5
@@ -3656,7 +3624,7 @@ cdef class Gen(Gen_auto):
         Evaluating power series::
 
             sage: f = pari('1 + x + x^3 + O(x^7)')
-            sage: f(2*pari('y')^2)
+            sage: f(2*pari('y')**2)
             1 + 2*y^2 + 8*y^6 + O(y^14)
 
         Substituting zero is sometimes possible, and trying to do so
@@ -3751,12 +3719,11 @@ cdef class Gen(Gen_auto):
         Using keyword arguments, we can substitute in more complicated
         objects, for example a number field::
 
-            sage: K.<a> = NumberField(x^2 + 1)
-            sage: nf = K._pari_()
+            sage: nf = pari('x^2 + 1').nfinit()
             sage: nf
-            [y^2 + 1, [0, 1], -4, 1, [Mat([1, 0.E-38 + 1.00000000000000*I]), [1, 1.00000000000000; 1, -1.00000000000000], [1, 1; 1, -1], [2, 0; 0, -2], [2, 0; 0, 2], [1, 0; 0, -1], [1, [0, -1; 1, 0]], []], [0.E-38 + 1.00000000000000*I], [1, y], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, 0]]
-            sage: nf(y='x')
-            [x^2 + 1, [0, 1], -4, 1, [Mat([1, 0.E-38 + 1.00000000000000*I]), [1, 1.00000000000000; 1, -1.00000000000000], [1, 1; 1, -1], [2, 0; 0, -2], [2, 0; 0, 2], [1, 0; 0, -1], [1, [0, -1; 1, 0]], []], [0.E-38 + 1.00000000000000*I], [1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, 0]]
+            [x^2 + 1, [0, 1], -4, 1, [Mat([1, 0.E-38 + 1.00000000000000*I]), [1, 1.00000000000000; 1, -1.00000000000000], [1, 1; 1, -1], [2, 0; 0, -2], [2, 0; 0, 2], [1, 0; 0, -1], [1, [0, -1; 1, 0]], [2]], [0.E-38 + 1.00000000000000*I], [1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, 0]]
+            sage: nf(x='y')
+            [y^2 + 1, [0, 1], -4, 1, [Mat([1, 0.E-38 + 1.00000000000000*I]), [1, 1.00000000000000; 1, -1.00000000000000], [1, 1; 1, -1], [2, 0; 0, -2], [2, 0; 0, 2], [1, 0; 0, -1], [1, [0, -1; 1, 0]], [2]], [0.E-38 + 1.00000000000000*I], [1, y], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, 0]]
         """
         cdef long t = typ(self.g)
         cdef Gen t0
@@ -3817,8 +3784,7 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: R.<x> = GF(3)[]
-            sage: f = (x^2 + x + 1)._pari_()
+            sage: f = pari('Mod(x^2 + x + 1, 3)')
             sage: f.type()
             't_POL'
             sage: f(2)
@@ -3858,8 +3824,7 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: x = polygen(QQ)
-            sage: pol = (x^2 - 1)^2
+            sage: pol = pari('x^2 - 1')**2
             sage: pari(pol).factorpadic(5)
             [(1 + O(5^20))*x + (1 + O(5^20)), 2; (1 + O(5^20))*x + (4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + O(5^20)), 2]
             sage: pari(pol).factorpadic(5,3)
@@ -4034,16 +3999,16 @@ cdef class Gen(Gen_auto):
 
             sage: pari('x^10-1').factor()
             [x - 1, 1; x + 1, 1; x^4 - x^3 + x^2 - x + 1, 1; x^4 + x^3 + x^2 + x + 1, 1]
-            sage: pari(2^100-1).factor()
+            sage: pari(2**100-1).factor()
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
-            sage: pari(2^100-1).factor(proof=True)
+            sage: pari(2**100-1).factor(proof=True)
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
-            sage: pari(2^100-1).factor(proof=False)
+            sage: pari(2**100-1).factor(proof=False)
             [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
 
         We illustrate setting a limit::
 
-            sage: pari(next_prime(10^50)*next_prime(10^60)*next_prime(10^4)).factor(10^5)
+            sage: pari(pari(10**50).nextprime()*pari(10**60).nextprime()*pari(10**4).nextprime()).factor(10**5)
             [10007, 1; 100000000000000000000000000000000000000000000000151000000000700000000000000000000000000000000000000000000001057, 1]
 
         Setting a limit is invalid when factoring polynomials::
@@ -4097,7 +4062,7 @@ cdef class Gen(Gen_auto):
             2
             sage: pari(2).nextprime(add_one = 1)
             3
-            sage: pari(2^100).nextprime()
+            sage: pari(2**100).nextprime()
             1267650600228229401496703205653
         """
         sig_on()
@@ -4163,29 +4128,27 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: x = polygen(QQ)
-            sage: K = NumberField(x^2 + 5, 'a')
+            sage: K = pari('y^2 + 5').nfinit()
 
         We can substitute in a PARI ``nf`` structure::
 
-            sage: Kpari = K.pari_nf()
-            sage: Kpari.nf_get_pol()
+            sage: K.nf_get_pol()
             y^2 + 5
-            sage: Lpari = Kpari.nf_subst('a')
-            sage: Lpari.nf_get_pol()
+            sage: L = K.nf_subst('a')
+            sage: L.nf_get_pol()
             a^2 + 5
 
         We can also substitute in a PARI ``bnf`` structure::
 
-            sage: Kpari = K.pari_bnf()
-            sage: Kpari.nf_get_pol()
+            sage: K = pari('y^2 + 5').bnfinit()
+            sage: K.nf_get_pol()
             y^2 + 5
-            sage: Kpari.bnf_get_cyc()  # Structure of class group
+            sage: K.bnf_get_cyc()  # Structure of class group
             [2]
-            sage: Lpari = Kpari.nf_subst('a')
-            sage: Lpari.nf_get_pol()
+            sage: L = K.nf_subst('a')
+            sage: L.nf_get_pol()
             a^2 + 5
-            sage: Lpari.bnf_get_cyc()  # We still have a bnf after substituting
+            sage: L.bnf_get_cyc()  # We still have a bnf after substituting
             [2]
         """
         cdef Gen t0 = objtogen(z)
@@ -4305,10 +4268,9 @@ cdef class Gen(Gen_auto):
 
         Compute P(1+i), where i = sqrt(-1)::
 
-            sage: C.<i> = ComplexField()
-            sage: E.ellwp(pari(1+i))
+            sage: E.ellwp(pari(complex(1, 1)))
             -1.11510682565555 + 2.33419052307470*I
-            sage: E.ellwp(1+i)
+            sage: E.ellwp(complex(1, 1))
             -1.11510682565555 + 2.33419052307470*I
 
         The series expansion, to the default `O(z^20)` precision::
@@ -4324,7 +4286,7 @@ cdef class Gen(Gen_auto):
         Next we use the version where the input is generators for a
         lattice::
 
-            sage: pari([1.2692, 0.63 + 1.45*i]).ellwp(1)
+            sage: pari([1.2692, complex(0.63, 1.45)]).ellwp(1)
             13.9656146936689 + 0.000644829272810...*I
 
         With flag=1, compute the pair P(z) and P'(z)::
@@ -4393,7 +4355,7 @@ cdef class Gen(Gen_auto):
 
         TESTS::
 
-            sage: pari(2^10).allocatemem(2^20)
+            sage: pari(2**10).allocatemem(2**20)
             Traceback (most recent call last):
             ...
             NotImplementedError: the method allocatemem() should not be used; use pari.allocatemem() instead
@@ -4446,7 +4408,7 @@ cdef Gen list_of_Gens_to_Gen(list s):
         sage: from sage.libs.cypari2.gen import objtogen
         sage: objtogen(range(10))
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        sage: objtogen(i^2 for i in range(5))
+        sage: objtogen(i**2 for i in range(5))
         [0, 1, 4, 9, 16]
         sage: objtogen([pari("Mod(x, x^2+1)")])
         [Mod(x, x^2 + 1)]
@@ -4474,20 +4436,17 @@ cpdef Gen objtogen(s):
 
     EXAMPLES::
 
+        sage: pari(0)
+        0
         sage: pari([2,3,5])
         [2, 3, 5]
-        sage: pari(Matrix(2,2,range(4)))
-        [0, 1; 2, 3]
-        sage: pari(x^2-3)
-        x^2 - 3
 
     ::
 
         sage: a = pari(1); a, a.type()
         (1, 't_INT')
-        sage: a = pari(1/2); a, a.type()
-        (1/2, 't_FRAC')
-        sage: a = pari(1/2); a, a.type()
+        sage: from fractions import Fraction
+        sage: a = pari(Fraction('1/2')); a, a.type()
         (1/2, 't_FRAC')
 
     Conversion from reals uses the real's own precision::
@@ -4522,24 +4481,6 @@ cpdef Gen objtogen(s):
 
         sage: pari.set_real_precision(15)
         35
-
-    Conversion from matrices and vectors is supported::
-
-        sage: a = pari(matrix(2,3,[1,2,3,4,5,6])); a, a.type()
-        ([1, 2, 3; 4, 5, 6], 't_MAT')
-        sage: v = vector([1.2, 3.4, 5.6])
-        sage: pari(v)
-        [1.20000000000000, 3.40000000000000, 5.60000000000000]
-
-    Some more exotic examples::
-
-        sage: K.<a> = NumberField(x^3 - 2)
-        sage: pari(K)
-        [y^3 - 2, [1, 1], -108, 1, [[1, 1.25992104989487, 1.58740105196820; 1, -0.629960524947437 + 1.09112363597172*I, -0.793700525984100 - 1.37472963699860*I], [1, 1.25992104989487, 1.58740105196820; 1, 0.461163111024285, -2.16843016298270; 1, -1.72108416091916, 0.581029111014503], [1, 1, 2; 1, 0, -2; 1, -2, 1], [3, 0, 0; 0, 0, 6; 0, 6, 0], [6, 0, 0; 0, 6, 0; 0, 0, 3], [2, 0, 0; 0, 0, 1; 0, 1, 0], [2, [0, 0, 2; 1, 0, 0; 0, 1, 0]], []], [1.25992104989487, -0.629960524947437 + 1.09112363597172*I], [1, y, y^2], [1, 0, 0; 0, 1, 0; 0, 0, 1], [1, 0, 0, 0, 0, 2, 0, 2, 0; 0, 1, 0, 1, 0, 0, 0, 0, 2; 0, 0, 1, 0, 1, 0, 1, 0, 0]]
-
-        sage: E = EllipticCurve('37a1')
-        sage: pari(E)
-        [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [0, 0, 0, 0, 0, 0, 0, 0]]
 
     Conversion from basic Python types::
 

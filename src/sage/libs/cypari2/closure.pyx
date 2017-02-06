@@ -13,7 +13,7 @@ EXAMPLES::
     sage: f()
     42
 
-    sage: cube = pari(lambda i: i^3)
+    sage: cube = pari(lambda i: i**3)
     sage: cube.apply(range(10))
     [0, 1, 8, 27, 64, 125, 216, 343, 512, 729]
 """

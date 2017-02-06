@@ -232,7 +232,7 @@ Check that ``default()`` works properly::
     sage: pari.default("debug")
     0
     sage: pari.default("debug", 3)
-    sage: pari(2^67+1).factor()
+    sage: pari(2**67+1).factor()
     IFAC: cracking composite
             49191317529892137643
     IFAC: factor 6713103182899
@@ -246,7 +246,7 @@ Check that ``default()`` works properly::
     IFAC: found 2 large prime (power) factors.
     [3, 1; 7327657, 1; 6713103182899, 1]
     sage: pari.default("debug", 0)
-    sage: pari(2^67+1).factor()
+    sage: pari(2**67+1).factor()
     [3, 1; 7327657, 1; 6713103182899, 1]
 """
 
@@ -526,14 +526,14 @@ cdef class Pari(Pari_auto):
         EXAMPLES::
 
             sage: from sage.libs.cypari2.pari_instance import Pari
-            sage: pari2 = Pari(10^7)
+            sage: pari2 = Pari(10**7)
             sage: pari2
             Interface to the PARI C library
             sage: pari2 is pari
             False
             sage: pari2.PARI_ZERO == pari.PARI_ZERO
             True
-            sage: pari2 = Pari(10^6)
+            sage: pari2 = Pari(10**6)
             sage: pari.stacksize(), pari2.stacksize()
             (10000000, 10000000)
 
@@ -552,8 +552,8 @@ cdef class Pari(Pari_auto):
 
         .. NOTE::
 
-           In Sage, the PARI stack is different than in GP or the
-           PARI C library. In Sage, instead of the PARI stack
+           In CyPari2, the PARI stack is different than in GP or the
+           PARI C library. In CyPari2, instead of the PARI stack
            holding the results of all computations, it *only* holds
            the results of an individual computation. Each time a new
            Python/PARI object is computed, it it copied to its own
@@ -591,9 +591,9 @@ cdef class Pari(Pari_auto):
         EXAMPLES::
 
             sage: from sage.libs.cypari2.pari_instance import Pari
-            sage: pari2 = Pari(10^7)
+            sage: pari2 = Pari(10**7)
             sage: pari2._close()
-            sage: pari2 = Pari(10^6)
+            sage: pari2 = Pari(10**6)
             sage: pari.stacksize()
             1000000
 
@@ -716,7 +716,7 @@ cdef class Pari(Pari_auto):
         printing. It is the number of digits *IN DECIMAL* in which real
         numbers are printed. It also determines the precision of objects
         created by parsing strings (e.g. pari('1.2')), which is *not* the
-        normal way of creating new pari objects in Sage. It has *no*
+        normal way of creating new PARI objects in CyPari2. It has *no*
         effect on the precision of computations within the pari library.
 
         Returns the previous PARI real precision.
@@ -745,7 +745,7 @@ cdef class Pari(Pari_auto):
         printing. It is the number of digits *IN DECIMAL* in which real
         numbers are printed. It also determines the precision of objects
         created by parsing strings (e.g. pari('1.2')), which is *not* the
-        normal way of creating new pari objects in Sage. It has *no*
+        normal way of creating new PARI objects in CyPari2. It has *no*
         effect on the precision of computations within the pari library.
 
         .. seealso:: :meth:`get_real_precision_bits` to get the
@@ -785,7 +785,8 @@ cdef class Pari(Pari_auto):
             1.00000000000000 E30
             sage: pari.double_to_gen(0)
             0.E-15
-            sage: pari.double_to_gen(-sqrt(RDF(2)))
+            sage: import math
+            sage: pari.double_to_gen(-math.sqrt(2))
             -1.41421356237310
         """
         # Deprecated in https://trac.sagemath.org/ticket/20241
@@ -808,19 +809,15 @@ cdef class Pari(Pari_auto):
 
         EXAMPLES::
 
+            sage: pari(0)
+            0
             sage: pari([2,3,5])
             [2, 3, 5]
-            sage: pari(Matrix(2,2,range(4)))
-            [0, 1; 2, 3]
-            sage: pari(x^2-3)
-            x^2 - 3
 
         ::
 
             sage: a = pari(1); a, a.type()
             (1, 't_INT')
-            sage: a = pari(1/2); a, a.type()
-            (1/2, 't_FRAC')
             sage: a = pari(1/2); a, a.type()
             (1/2, 't_FRAC')
 
@@ -881,7 +878,7 @@ cdef class Pari(Pari_auto):
 
             sage: pari.stacksize()
             1000000
-            sage: pari.allocatemem(2^18, silent=True)
+            sage: pari.allocatemem(2**18, silent=True)
             sage: pari.stacksize()
             262144
         """
@@ -902,7 +899,7 @@ cdef class Pari(Pari_auto):
 
         EXAMPLES::
 
-            sage: pari.allocatemem(2^18, 2^26, silent=True)
+            sage: pari.allocatemem(2**18, 2**26, silent=True)
             sage: pari.stacksizemax()
             67108864
         """
@@ -941,13 +938,13 @@ cdef class Pari(Pari_auto):
 
         EXAMPLES::
 
-            sage: pari.allocatemem(10^7)
+            sage: pari.allocatemem(10**7)
             PARI stack size set to 10000000 bytes, maximum size set to 67108864
             sage: pari.allocatemem()  # Double the current size
             PARI stack size set to 20000000 bytes, maximum size set to 67108864
             sage: pari.stacksize()
             20000000
-            sage: pari.allocatemem(10^6)
+            sage: pari.allocatemem(10**6)
             PARI stack size set to 1000000 bytes, maximum size set to 67108864
 
         The following computation will automatically increase the PARI
@@ -964,7 +961,7 @@ cdef class Pari(Pari_auto):
 
         Setting a small maximum size makes this fail::
 
-            sage: pari.allocatemem(10^6, 2^22)
+            sage: pari.allocatemem(10**6, 2**22)
             PARI stack size set to 1000000 bytes, maximum size set to 4194304
             sage: a = pari('2^100000000')
             Traceback (most recent call last):
@@ -977,15 +974,15 @@ cdef class Pari(Pari_auto):
         Do the same without using the string interface and starting
         from a very small stack size::
 
-            sage: pari.allocatemem(1, 2^26)
+            sage: pari.allocatemem(1, 2**26)
             PARI stack size set to 1024 bytes, maximum size set to 67108864
-            sage: a = pari(2)^100000000
+            sage: a = pari(2)**100000000
             sage: pari.stacksize()  # random
             12500024
 
         We do not allow ``sizemax`` less than ``s``::
 
-            sage: pari.allocatemem(10^7, 10^6)
+            sage: pari.allocatemem(10**7, 10**6)
             Traceback (most recent call last):
             ...
             ValueError: the maximum size (10000000) should be at least the stack size (1000000)
@@ -1026,7 +1023,7 @@ cdef class Pari(Pari_auto):
 
         We make sure that ticket :trac:`11741` has been fixed::
 
-            sage: pari.init_primes(2^30)
+            sage: pari.init_primes(2**30)
             Traceback (most recent call last):
             ...
             ValueError: Cannot compute primes beyond 436273290
@@ -1082,7 +1079,7 @@ cdef class Pari(Pari_auto):
             [11, 13, 17, 19, 23, 29]
             sage: pari.primes(end=29)
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: pari.primes(10^30, 10^30 + 100)
+            sage: pari.primes(10**30, 10**30 + 100)
             [1000000000000000000000000000057, 1000000000000000000000000000099]
 
         TESTS::
@@ -1245,6 +1242,11 @@ cdef class Pari(Pari_auto):
         """
         matrix(long m, long n, entries=None): Create and return the m x n
         PARI matrix with given list of entries.
+
+        EXAMPLES::
+
+            sage: pari.matrix(3,3,range(9))
+            [0, 1, 2; 3, 4, 5; 6, 7, 8]
         """
         cdef long i, j, k
         cdef Gen A
@@ -1276,8 +1278,8 @@ cdef class Pari(Pari_auto):
 
         EXAMPLES::
 
-            sage: x = polygen(QQ)
-            sage: pari.genus2red([-5*x^5, x^3 - 2*x^2 - 2*x + 1])
+            sage: x = pari('x')
+            sage: pari.genus2red([-5*x**5, x**3 - 2*x**2 - 2*x + 1])
             [1416875, [2, -1; 5, 4; 2267, 1], x^6 - 240*x^4 - 2550*x^3 - 11400*x^2 - 24100*x - 19855, [[2, [2, [Mod(1, 2)]], []], [5, [1, []], ["[V] page 156", [3]]], [2267, [2, [Mod(432, 2267)]], ["[I{1-0-0}] page 170", []]]]]
         """
         cdef Gen t0 = objtogen(P)
@@ -1357,17 +1359,6 @@ cdef long get_var(v) except -2:
         Traceback (most recent call last):
         ...
         PariError: incorrect priority in gtopoly: variable x <= xx
-
-    TESTS:
-
-    The following example caused Sage to crash before
-    :trac:`20630`::
-
-        sage: R.<theta> = QQ[]
-        sage: K.<a> = NumberField(theta^2 + 1)
-        sage: K.galois_group(type='pari')
-        Galois group PARI group [2, -1, 1, "S2"] of degree 2 of the Number Field in a with defining polynomial theta^2 + 1
-
     """
     if v is None:
         return -1

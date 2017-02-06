@@ -36,6 +36,7 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
 #*****************************************************************************
 #       Copyright (C) 2009 David Joyner <wdjoyner@gmail.com>
 #                     2015 David Lucas <david.lucas@inria.fr>
+#                     2016 Tania Richmond <tania.richmond@univ-tln.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your preference).
@@ -54,3 +55,4 @@ _lazy_import('sage.coding.reed_muller_code', ['ReedMullerVectorEncoder', 'ReedMu
 _lazy_import('sage.coding.extended_code', 'ExtendedCodeExtendedMatrixEncoder')
 _lazy_import('sage.coding.punctured_code', 'PuncturedCodePuncturedMatrixEncoder')
 _lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcodeParityCheckEncoder')
+_lazy_import('sage.coding.parity_check_code', ['ParityCheckCodeGeneratorMatrixEncoder','ParityCheckCodeStraightforwardEncoder'])

@@ -269,10 +269,7 @@ class PSModularSymbolElement(ModuleElement):
         b = all(self._map[g] == other._map[g]
                 for g in self.parent().source().gens())
 
-        if op == op_EQ:
-            return b
-
-        return not b
+        return b == (op == op_EQ)
 
     def _add_(self, right):
         """

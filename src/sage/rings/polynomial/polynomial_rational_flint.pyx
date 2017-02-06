@@ -340,9 +340,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             self._parent._singular_(singular).set_ring()  # Expensive!
         return singular(self._singular_init_())
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
-        Returns a list with the coefficients of self.
+        Return a list with the coefficients of ``self``.
 
         EXAMPLES::
 
@@ -355,7 +355,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             []
         """
         cdef unsigned long length = fmpq_poly_length(self.__poly)
-        return [self[n] for n in range(length)]
+        return [self.get_unsafe(n) for n in range(length)]
 
     ###########################################################################
     # Basis access                                                            #

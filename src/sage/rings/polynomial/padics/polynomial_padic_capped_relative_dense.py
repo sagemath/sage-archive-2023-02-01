@@ -294,7 +294,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         return self._poly.parent()([(0 if (c is infinity) else (one << (n * c))) for c in self._valaddeds] + \
                                    [(0 if (c is infinity) else (one << (n * c))) for c in self._relprecs[len(self._valaddeds):]])
 
-    def list(self):
+    def list(self, copy=True):
         """
         Return a list of coefficients of ``self``.
 
@@ -319,7 +319,10 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         """
         if self._list is None:
             self._comp_list()
-        return list(self._list)
+        if copy:
+            return list(self._list)
+        else:
+            return self._list
 
     def lift(self):
         """

@@ -28,7 +28,7 @@ include "cysignals/memory.pxi"
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
 from sage.structure.parent cimport Parent
-from .polynomial_element cimport Polynomial
+from .polynomial_element cimport Polynomial, _dict_to_list
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
@@ -122,7 +122,7 @@ cdef class PolynomialRealDense(Polynomial):
         elif isinstance(x, (int, float, Integer, Rational, RealNumber)):
             x = [x]
         elif isinstance(x, dict):
-            x = self._dict_to_list(x,self._base_ring.zero())
+            x = _dict_to_list(x, self._base_ring.zero())
         elif isinstance(x, pari_gen):
             x = [self._base_ring(w) for w in x.list()]
         elif not isinstance(x, list):
@@ -343,7 +343,7 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_set(f._coeffs[i], self._coeffs[i-n], self._base_ring.rnd)
         return f
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
         EXAMPLES::
 

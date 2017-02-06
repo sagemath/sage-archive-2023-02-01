@@ -75,6 +75,7 @@ from sage.rings.integer cimport Integer
 from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
+from sage.rings.polynomial.polynomial_element cimport _dict_to_list
 from sage.structure.element import coerce_binop
 from sage.misc.superseded import experimental
 
@@ -2201,7 +2202,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return
 
         elif isinstance(x, dict):
-            x = self._dict_to_list(x, R.zero())
+            x = _dict_to_list(x, R.zero())
 
         elif not isinstance(x, list):
             x = [x]
@@ -2326,7 +2327,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         except IndexError:
             return self.base_ring().zero()
 
-    cpdef list list(self):
+    cpdef list list(self, bint copy=True):
         r"""
         Return a list of the coefficients of ``self``.
 
@@ -2348,7 +2349,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: a.list()
             [t^2 + 1, 0, t + 1, 0, 1]
         """
-        return list((<SkewPolynomial_generic_dense>self)._coeffs) # This creates a shallow copy
+        if copy:
+            # This creates a shallow copy
+            return list((<SkewPolynomial_generic_dense>self)._coeffs)
+        else:
+            return (<SkewPolynomial_generic_dense>self)._coeffs
 
     cpdef dict dict(self):
         r"""

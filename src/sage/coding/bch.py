@@ -82,12 +82,15 @@ class BCHCode(CyclicCode):
 
         sage: C = codes.BCHCode(GF(2), 15, 7, offset = 1)
         sage: C
-        [15, 5] BCH Code over Finite Field of size 2 with x^10 + x^8 + x^5 + x^4 + x^2 + x + 1 as generator polynomial
+        [15, 5] BCH Code over GF(2) with designed distance 7
+        sage: C.generator_polynomial()
+        x^10 + x^8 + x^5 + x^4 + x^2 + x + 1
 
-        sage: C = codes.BCHCode(GF(2), 15, 4, offset = 1, jump_size = 3)
+        sage: C = codes.BCHCode(GF(2), 15, 4, offset = 1, jump_size = 8)
         sage: C
-        [15, 7] BCH Code over Finite Field of size 2 with x^8 + x^7 + x^5 + x^4 + x^3 + x + 1
-        as generator polynomial
+        [15, 7] BCH Code over GF(2) with designed distance 4
+        sage: C.generator_polynomial()
+        x^8 + x^7 + x^6 + x^4 + 1
     """
 
     def __init__(self, base_field, length, designed_distance, primitive_root=None, offset=0, jump_size=1, b=0):
@@ -111,7 +114,7 @@ class BCHCode(CyclicCode):
             offset = b
         if not base_field in Fields or not base_field.is_finite():
             raise ValueError("base_field has to be a finite field")
-        
+
         q = base_field.cardinality()
         s = Zmod(length)(q).multiplicative_order()
         if gcd(jump_size, q ** s - 1) != 1:
@@ -157,11 +160,11 @@ class BCHCode(CyclicCode):
 
             sage: C = codes.BCHCode(GF(2), 15, 7, offset = 1)
             sage: C
-            [15, 5] BCH Code over Finite Field of size 2 with x^10 + x^8 + x^5 + x^4 + x^2 + x + 1 as generator polynomial
+            [15, 5] BCH Code over GF(2) with designed distance 7
         """
-        return "[%s, %s] BCH Code over %s with %s as generator polynomial"\
-                % (self.length(), self.dimension(),\
-                self.base_field(), self.generator_polynomial())
+        return "[%s, %s] BCH Code over GF(%s) with designed distance %d"\
+                % (self.length(), self.dimension(),
+                   self.base_field().cardinality(), self.designed_distance())
 
     def _latex_(self):
         r"""
@@ -171,11 +174,11 @@ class BCHCode(CyclicCode):
 
             sage: C = codes.BCHCode(GF(2), 15, 7, offset = 1)
             sage: latex(C)
-            [15, 5] \textnormal{ BCH Code over } \Bold{F}_{2} \textnormal{ with } x^{10} + x^{8} + x^{5} + x^{4} + x^{2} + x + 1 \textnormal{ as generator polynomial}
+            [15, 5] \textnormal{ BCH Code over } \Bold{F}_{2} \textnormal{ with designed distance } 7
         """
-        return "[%s, %s] \\textnormal{ BCH Code over } %s \\textnormal{ with } %s \\textnormal{ as generator polynomial}"\
-                % (self.length(), self.dimension(),\
-                self.base_field()._latex_(), self.generator_polynomial()._latex_())
+        return "[%s, %s] \\textnormal{ BCH Code over } %s \\textnormal{ with designed distance } %s"\
+                % (self.length(), self.dimension(),
+                self.base_field()._latex_(), self.designed_distance())
 
     def jump_size(self):
         r"""
@@ -220,9 +223,9 @@ class BCHCode(CyclicCode):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 2, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(GF(2), 15, 3)
             sage: C.bch_to_grs()
-            [15, 13, 3] Generalized Reed-Solomon Code over Finite Field in z4 of size 2^4
+            [15, 13, 3] Generalized Reed-Solomon Code over GF(16)
         """
         l = self.jump_size()
         b = self.offset()
@@ -264,7 +267,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D
-            Decoder through the underlying GRS code of [15, 11] BCH Code over Finite Field in a of size 2^2 with x^4 + a*x^3 + a as generator polynomial
+            Decoder through the underlying GRS code of [15, 11] BCH Code over GF(4) with designed distance 3
         """
 
         self._grs_code = code.bch_to_grs()
@@ -283,7 +286,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D
-            Decoder through the underlying GRS code of [15, 11] BCH Code over Finite Field in a of size 2^2 with x^4 + a*x^3 + a as generator polynomial
+            Decoder through the underlying GRS code of [15, 11] BCH Code over GF(4) with designed distance 3
         """
         return "Decoder through the underlying GRS code of %s" % self.code()
 
@@ -296,7 +299,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: latex(D)
-            \textnormal{Decoder through the underlying GRS code of } [15, 11] \textnormal{ BCH Code over } \Bold{F}_{2^{2}} \textnormal{ with } x^{4} + a x^{3} + a \textnormal{ as generator polynomial}
+            \textnormal{Decoder through the underlying GRS code of } [15, 11] \textnormal{ BCH Code over } \Bold{F}_{2^{2}} \textnormal{ with designed distance } 3
         """
         return "\\textnormal{Decoder through the underlying GRS code of } %s" % (self.code()._latex_())
 
@@ -307,10 +310,10 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 2, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(GF(2), 15, 3)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D.grs_code()
-            [15, 13, 3] Generalized Reed-Solomon Code over Finite Field in z4 of size 2^4
+            [15, 13, 3] Generalized Reed-Solomon Code over GF(16)
         """
         return self._grs_code
 
@@ -323,7 +326,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D.grs_decoder()
-            Key equation decoder for [15, 13, 3] Generalized Reed-Solomon Code over Finite Field in z4 of size 2^4
+            Key equation decoder for [15, 13, 3] Generalized Reed-Solomon Code over GF(16)
         """
         return self._grs_decoder
 
@@ -333,25 +336,24 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: F = GF(4, 'a')
-            sage: a = F.gen()
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(GF(2), 15, 3)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
-            sage: c = vector(F, [0, a, 1, a, 0, 1, 1, 1, a, 0, 0, a + 1, a, 0, 1])
-            sage: D.bch_word_to_grs(c)
-            (0, z4^2 + z4, 1, z4^2 + z4, 0, 1, 1, 1, z4^2 + z4, 0, 0, z4^2 + z4 + 1, z4^2 + z4, 0, 1)
+            sage: c = C.random_element()
+            sage: y = D.bch_word_to_grs(c)
+            sage: y.parent()
+            Vector space of dimension 15 over Finite Field in z4 of size 2^4
+            sage: y in D.grs_code()
+            True
         """
         C = self.code()
-        if hasattr(self.code(), "_field_embedding"):
-            mapping = self.code()._field_embedding.embedding()
-            a = [mapping(i) for i in c]
-            return vector(a)
-        else:
-            return c
+        mapping = self.code().field_embedding().embedding()
+        a = [mapping(i) for i in c]
+        return vector(a)
 
     def grs_word_to_bch(self, c):
         r"""
-        Returns ``c`` converted as a codeword of :meth:`sage.coding.decoder.Decoder.code`.
+        Returns ``c`` converted as a codeword of
+        :meth:`sage.coding.decoder.Decoder.code`.
 
         EXAMPLES::
 
@@ -365,13 +367,9 @@ class BCHUnderlyingGRSDecoder(Decoder):
             (0, a, 1, a, 0, 1, 1, 1, a, 0, 0, a + 1, a, 0, 1)
         """
         C = self.code()
-        if hasattr(self.code(), "_field_embedding"):
-            FE = C._field_embedding
-            a = []
-            for i in c:
-                a.append(FE.cast_into_relative_field(i))
-            return vector(a)
-        return c
+        FE = C.field_embedding()
+        a = map(FE.cast_into_relative_field, c)
+        return vector(a)
 
     def decode_to_code(self, y):
         r"""
@@ -413,7 +411,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: D.decoding_radius()
             1
         """
-        return (self.code().bch_bound(arithmetic = True) - 1) // 2
+        return (self.code().bch_bound(arithmetic=True)[0] - 1) // 2
 
 ####################### registration ###############################
 

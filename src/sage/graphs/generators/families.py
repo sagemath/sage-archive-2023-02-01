@@ -305,6 +305,17 @@ def BarbellGraph(n1, n2):
 
     TESTS:
 
+        sage: n1, n2 = randint(3, 100), randint(0, 100)
+        sage: g = graphs.BarbellGraph(n1, n2)
+        sage: g.num_verts() == 2 * n1 + n2
+        True
+        sage: g.num_edges() == 2 * binomial(n1, 2) + n2 + 1
+        True
+        sage: g.is_connected()
+        True
+        sage: g.girth() == 3
+        True
+
     The input ``n1`` must be `\geq 2`::
 
         sage: graphs.BarbellGraph(1, randint(0, 10^6))
@@ -399,6 +410,19 @@ def LollipopGraph(n1, n2):
         ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
+
+    TESTS:
+
+        sage: n1, n2 = randint(3, 100), randint(0, 100)
+        sage: g = graphs.LollipopGraph(n1, n2)
+        sage: g.num_verts() == n1 + n2
+        True
+        sage: g.num_edges() == binomial(n1, 2) + n2
+        True
+        sage: g.is_connected()
+        True
+        sage: g.girth() == 3
+        True
     """
     pos_dict = {}
 

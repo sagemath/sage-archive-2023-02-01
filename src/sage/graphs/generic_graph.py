@@ -3280,9 +3280,21 @@ class GenericGraph(GenericGraph_pyx):
             [2, 2, 2, 2, 2, 1, 1, 1, 1, 1]
             sage: o.out_degree()
             [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
+
+        TESTS::
+
+            sage: E0 = Graph(); E4 = Graph(4)  # See trac #21741
+            sage: E0.eulerian_orientation()
+            Digraph on 0 vertices
+            sage: E4.eulerian_orientation()
+            Digraph on 4 vertices
         """
-        g=copy(self)
         from sage.graphs.digraph import DiGraph
+
+        if self.size() == 0:
+            return DiGraph(self.order())
+
+        g=copy(self)
         d=DiGraph()
         d.add_vertices(g.vertex_iterator())
 
@@ -3682,7 +3694,13 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: float() argument must be a string or a number
+
+            sage: graphs.EmptyGraph().min_spanning_tree()
+            []
         """
+        if self.order() == 0:
+            return []
+
         if weight_function is None:
             if self.weighted():
                 weight_function = lambda e:e[2]
@@ -6361,9 +6379,18 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.max_cut()
            12
 
+        TESTS::
+
+            sage: graphs.EmptyGraph().max_cut()
+            Traceback (most recent call last):
+            ...
+            ValueError: max cut is not defined for the empty graph
         """
         self._scream_if_not_simple(allow_loops=True)
         g=self
+
+        if self.order() == 0:
+            raise ValueError("max cut is not defined for the empty graph")
 
         if vertices:
             value_only=False
@@ -7114,20 +7141,16 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = DiGraph(multiedges=True, loops=True)
             sage: G.is_hamiltonian()
-            Traceback (most recent call last):
-            ...
-            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
+            False
             sage: G.add_vertex(0)
             sage: G.is_hamiltonian()
-            Traceback (most recent call last):
-            ...
-            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
+            False
             sage: G.add_edge(0,0,1)
             sage: G.add_edge(0,0,2)
             sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
             Traceback (most recent call last):
             ...
-            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
+            EmptySetError: the given graph is not Hamiltonian
             sage: G.add_vertex(1)
             sage: G.is_hamiltonian()
             False
@@ -7176,9 +7199,7 @@ class GenericGraph(GenericGraph_pyx):
         ########################
 
         if self.order() < 2:
-            raise ValueError("The traveling salesman problem (or finding "+
-                 "Hamiltonian cycle) is not well defined for graphs with "+
-                 "less than 2 vertices")
+            raise EmptySetError("the given graph is not Hamiltonian")
 
         #####################
         # 2-vertices graphs #
@@ -7565,6 +7586,9 @@ class GenericGraph(GenericGraph_pyx):
             (True, ['010', '110', '100', '000', '001', '101', '111', '011'])
 
         """
+        if self.order() < 2:
+            raise ValueError("the traveling salesman problem is not defined for empty or one-element graph")
+
         if algorithm=='tsp':
             from sage.numerical.mip import MIPSolverException
 
@@ -9537,7 +9561,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: v = g.random_vertex()
             sage: v in g
             True
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().random_vertex()
+            Traceback (most recent call last):
+            ...
+            ValueError: can't get a random vertex from the empty graph
         """
+        if self.order() == 0:
+            raise ValueError("can't get a random vertex from the empty graph")
         from sage.misc.prandom import randint
         it = self.vertex_iterator(**kwds)
         for i in range(0, randint(0, self.order() - 1)):
@@ -9609,7 +9642,17 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.random_edge()
             (3, 4, None)
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().random_edge()
+            Traceback (most recent call last):
+            ...
+            ValueError: can't get a random edge from a graph without edges
         """
+        if self.size() == 0:
+            raise ValueError("can't get a random edge from a graph without edges")
+
         from sage.misc.prandom import randint
         it = self.edge_iterator(**kwds)
         for i in range(0, randint(0, self.size() - 1)):
@@ -11201,7 +11244,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.average_degree() == 2*g.size()/g.order()
             True
         """
-
         return 2*Integer(self.size())/Integer(self.order())
 
     def degree_histogram(self):
@@ -13167,6 +13209,11 @@ class GenericGraph(GenericGraph_pyx):
             ....:     if max(coeffs_v) - min(coeffs_v) > 1E-12:
             ....:         print("Error for v=",v)
             ....:         print("min=",min(coeffs_v),"max=",max(coeffs_v))
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().clustering_coeff()
+            {}
         """
         from sage.rings.integer import Integer
         if return_vertex_weights is not None:
@@ -13195,6 +13242,9 @@ class GenericGraph(GenericGraph_pyx):
 
         if (implementation in ['sparse_copy','dense_copy'] and nodes is not None):
             raise ValueError("'sparse_copy','dense_copy' do not support 'nodes' different from 'None'")
+
+        if self.order() == 0:
+            return {}
 
         def coeff_from_triangle_count(v,count):
             dv = self.degree(v)
@@ -13650,10 +13700,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.radius()
             Traceback (most recent call last):
             ...
-            ValueError: This method has no meaning on empty graphs.
+            ValueError: radius is not defined for the empty graph
         """
         if self.order() == 0:
-            raise ValueError("This method has no meaning on empty graphs.")
+            raise ValueError("radius is not defined for the empty graph")
 
         return min(self.eccentricity(by_weight=by_weight,
                                      weight_function=weight_function,
@@ -13743,20 +13793,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.diameter()
             Traceback (most recent call last):
             ...
-            ValueError: This method has no meaning on empty graphs.
+            ValueError: diameter is not defined for the empty graph
             sage: g = Graph([(1,2,{'weight':1})])
             sage: g.diameter(algorithm='iFUB', weight_function=lambda e:e[2]['weight'])
             Traceback (most recent call last):
             ...
             ValueError: Algorithm 'iFUB' does not work on weighted graphs.
         """
+        if self.order() == 0:
+            raise ValueError("diameter is not defined for the empty graph")
+
         if weight_function is not None:
             by_weight = True
 
-        if self.order() == 0:
-            raise ValueError("This method has no meaning on empty graphs.")
-
-        if algorithm is None and not by_weight:
+        if algorithm==None and not by_weight:
             algorithm = 'iFUB'
         elif algorithm=='BFS':
             algorithm = 'standard'
@@ -16005,11 +16055,16 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: BFS algorithm does not work on weighted graphs.
+
+            sage: graphs.EmptyGraph().wiener_index()
+            Traceback (most recent call last):
+            ...
+            ValueError: Wiener index is not defined for empty or one-element graph
         """
         by_weight = by_weight or (weight_function is not None)
 
         if self.order() < 2:
-            raise ValueError("The graph must have at least two vertices for this value to be defined")
+            raise ValueError("Wiener index is not defined for empty or one-element graph")
 
         if algorithm=='BFS' or (algorithm is None and not by_weight):
             if by_weight:
@@ -16106,8 +16161,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.average_distance()
             Traceback (most recent call last):
             ...
-            ValueError: The graph must have at least two vertices for this value to be defined
+            ValueError: average distance is not defined for empty or one-element graph
         """
+        if self.order() < 2:
+            raise ValueError("average distance is not defined for empty or one-element graph")
         return 2 * self.wiener_index() / (self.order()*(self.order()-1))
 
     def szeged_index(self):
@@ -21258,6 +21315,8 @@ class GenericGraph(GenericGraph_pyx):
         containing said boolean and the requested data. If the graph is not
         a Cayley graph, each of the data will be ``None``.
 
+        The empty graph is defined be not a Cayley graph.
+
         .. NOTE::
 
             For this routine to work on all graphs, the optional packages
@@ -21343,7 +21402,21 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.CompleteBipartiteGraph(50, 50).is_cayley()
             True
 
+        TESTS::
+
+            sage: graphs.EmptyGraph().is_cayley()
+            False
+            sage: graphs.EmptyGraph().is_cayley(return_group = True,
+            ....:                               mapping = False,
+            ....:                               generators = True)
+            (False, False, False)
         """
+        if self.order() == 0:
+            n = return_group + mapping + generators
+            if n == 0:
+                return False
+            return tuple([False] * (n+1))
+
         compute_map = mapping or generators
         certificate = return_group or compute_map
         c, G, map, genset = False, None, None, None

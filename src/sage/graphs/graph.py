@@ -1589,14 +1589,16 @@ class Graph(GenericGraph):
         """
         Tests if the graph is a tree
 
+        The empty graph is defined to be not a tree.
+
         INPUT:
 
         - ``certificate`` (boolean) -- whether to return a certificate. The
           method only returns boolean answers when ``certificate = False``
           (default). When it is set to ``True``, it either answers ``(True,
           None)`` when the graph is a tree and ``(False, cycle)`` when it
-          contains a cycle. It returns ``(False, None)`` when the graph is not
-          connected.
+          contains a cycle. It returns ``(False, None)`` when the graph is
+          empty or not connected.
 
         - ``output`` (``'vertex'`` (default) or ``'edge'``) -- whether the
           certificate is given as a list of vertices or a list of
@@ -1610,11 +1612,6 @@ class Graph(GenericGraph):
 
             sage: all(T.is_tree() for T in graphs.trees(15))
             True
-
-        The empty graph is not considered to be a tree::
-
-            sage: graphs.EmptyGraph().is_tree()
-            False
 
         With certificates::
 
@@ -1654,14 +1651,18 @@ class Graph(GenericGraph):
             sage: g.add_cycle(cycle)
             sage: g.size()
             10
+
+        The empty graph::
+
+            sage: graphs.EmptyGraph().is_tree()
+            False
+            sage: graphs.EmptyGraph().is_tree(certificate=True)
+            (False, None)
         """
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
-        if self.order() == 0:
-            return False
-
-        if not self.is_connected():
+        if self.order() == 0 or not self.is_connected():
             return (False, None) if certificate else False
 
         if certificate:
@@ -2442,7 +2443,15 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
+
+        Check the empty graph::
+
+            sage: graphs.EmptyGraph().is_triangle_free()
+            True
         """
+        if self.order() == 0:
+            return True
+
         if algorithm=='bitset':
             from sage.data_structures.bitset import Bitset
             N = self.num_verts()
@@ -3201,7 +3210,7 @@ class Graph(GenericGraph):
                 self.is_vertex_transitive())
 
     @doc_index("Connectivity, orientations, trees")
-    def degree_constrained_subgraph(self, bounds=None, solver=None, verbose=0):
+    def degree_constrained_subgraph(self, bounds, solver=None, verbose=0):
         r"""
         Returns a degree-constrained subgraph.
 
@@ -3265,9 +3274,7 @@ class Graph(GenericGraph):
 
         reorder = lambda x,y: (x,y) if x<y else (y,x)
 
-        if bounds is None:
-            raise ValueError("The `bounds` keyword can not be equal to None")
-        elif isinstance(bounds,dict):
+        if isinstance(bounds,dict):
             f_bounds = lambda x: bounds[x]
         else:
             f_bounds = bounds
@@ -6840,6 +6847,11 @@ class Graph(GenericGraph):
           Computer Science Review
           vol 4, number 1, pages 41--59, 2010
           http://www.lirmm.fr/~paul/md-survey.pdf
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().modular_decomposition() # optional -- modular_decomposition
+            ()
         """
         try:
             from sage.graphs.modular_decomposition import modular_decomposition
@@ -6851,6 +6863,9 @@ class Graph(GenericGraph):
         from sage.misc.stopgap import stopgap
         stopgap("Graph.modular_decomposition is known to return wrong results",13744)
 
+        if self.order() == 0:
+            return tuple()
+        
         D = modular_decomposition(self)
 
         id_label = dict(enumerate(self.vertices()))
@@ -6886,7 +6901,14 @@ class Graph(GenericGraph):
 
             sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime() # optional - modular_decomposition
             False
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().is_prime()
+            True
         """
+        if self.order() == 0:
+            return True
 
         D = self.modular_decomposition()
 
@@ -7062,7 +7084,12 @@ class Graph(GenericGraph):
             sage: from itertools import combinations
             sage: for u,v in combinations(G,2):
             ....:     assert T.flow(u,v,use_edge_labels=True) == G.flow(u,v,use_edge_labels=True)
+
+            sage: graphs.EmptyGraph().gomory_hu_tree()
+            Graph on 0 vertices
         """
+        if self.order() == 0:
+            return Graph()
         if not self.is_connected():
             g = Graph()
             for cc in self.connected_components_subgraphs():

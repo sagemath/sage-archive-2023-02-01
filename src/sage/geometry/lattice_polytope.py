@@ -257,10 +257,10 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
         sage: p
         2-d lattice polytope in 3-d lattice M
         sage: p.vertices()
-        M( 1,  0, 0),
-        M( 0,  1, 0),
         M(-1,  0, 0),
-        M( 0, -1, 0)
+        M( 0, -1, 0),
+        M( 1,  0, 0),
+        M( 0,  1, 0)
         in 3-d lattice M
 
     An empty lattice polytope can be considered as well::
@@ -781,7 +781,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: m[1, 1] = 1
             sage: p = o.affine_transform(m)
             sage: p._embed((0,0))
-            M(1, 0, 0)
+            M(-1, 0, 0)
         """
         if self.lattice_dim() == self.dim():
             return data
@@ -947,7 +947,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: m[1, 1] = 1
             sage: p = o.affine_transform(m)
             sage: p._pullback((0, 0, 0))
-            [-1, 0]
+            [1, 0]
         """
         if self.lattice_dim() == self.dim():
             return data
@@ -4112,12 +4112,12 @@ class NefPartition(SageObject,
         sage: np.dual().Delta_polar() is np.nabla_polar()
         True
         sage: np.Delta(1).vertices()
-        N(0, 0,  1),
-        N(0, 0, -1)
+        N(0, 0, -1),
+        N(0, 0,  1)
         in 3-d lattice N
         sage: np.dual().nabla(1).vertices()
-        N(0, 0,  1),
-        N(0, 0, -1)
+        N(0, 0, -1),
+        N(0, 0,  1)
         in 3-d lattice N
 
     Instead of constructing nef-partitions directly, you can request all 2-part
@@ -4342,10 +4342,10 @@ class NefPartition(SageObject,
             N( 1,  1, -1)
             in 3-d lattice N
             sage: np.Delta(0).vertices()
-            N( 1, -1, 0),
-            N( 1,  0, 0),
             N(-1, -1, 0),
-            N(-1,  0, 0)
+            N(-1,  0, 0),
+            N( 1,  0, 0),
+            N( 1, -1, 0)
             in 3-d lattice N
         """
         if i is None:
@@ -4403,16 +4403,16 @@ class NefPartition(SageObject,
             N( 1,  1, -1)
             in 3-d lattice N
             sage: [Delta_i.vertices() for Delta_i in np.Deltas()]
-            [N( 1, -1, 0),
-            N( 1,  0, 0),
-            N(-1, -1, 0),
-            N(-1,  0, 0)
-            in 3-d lattice N,
-            N(0, 1,  1),
-            N(0, 0,  1),
-            N(0, 0, -1),
-            N(0, 1, -1)
-            in 3-d lattice N]
+            [N(-1, -1, 0),
+             N(-1,  0, 0),
+             N( 1,  0, 0),
+             N( 1, -1, 0)
+             in 3-d lattice N,
+             N(0, 0, -1),
+             N(0, 1,  1),
+             N(0, 0,  1),
+             N(0, 1, -1)
+             in 3-d lattice N]
             sage: np.nabla_polar().vertices()
             N( 1, -1,  0),
             N( 1,  0,  0),
@@ -4541,9 +4541,9 @@ class NefPartition(SageObject,
             M( 0,  0, -1)
             in 3-d lattice M
             sage: np.nabla(0).vertices()
+            M(-1, 0, 0),
             M( 1, 0, 0),
-            M( 0, 1, 0),
-            M(-1, 0, 0)
+            M( 0, 1, 0)
             in 3-d lattice M
             sage: np.nabla().vertices()
             M(-1,  0,  1),
@@ -4619,14 +4619,14 @@ class NefPartition(SageObject,
             M( 0,  0, -1)
             in 3-d lattice M
             sage: [nabla_i.vertices() for nabla_i in np.nablas()]
-            [M( 1, 0, 0),
-            M( 0, 1, 0),
-            M(-1, 0, 0)
-            in 3-d lattice M,
-            M(0,  0,  1),
-            M(0, -1,  0),
-            M(0,  0, -1)
-            in 3-d lattice M]
+            [M(-1, 0, 0),
+             M( 1, 0, 0),
+             M( 0, 1, 0)
+             in 3-d lattice M,
+             M(0, -1,  0),
+             M(0,  0, -1),
+             M(0,  0,  1)
+             in 3-d lattice M]
         """
         try:
             return self._nablas
@@ -5652,10 +5652,10 @@ def set_palp_dimension(d):
 
     EXAMPLES:
 
-    By default, it is not possible to create the 7-dimensional simplex with
-    vertices at the basis of the 8-dimensional space::
+    Let's try to work with a 7-dimensional polytope::
 
-        sage: LatticePolytope(identity_matrix(8))
+        sage: p = lattice_polytope.cross_polytope(7)
+        sage: p._palp("poly.x -fv")
         Traceback (most recent call last):
         ...
         ValueError: Error executing 'poly.x -fv' for the given polytope!
@@ -5665,8 +5665,8 @@ def set_palp_dimension(d):
     However, we can work with this polytope by changing PALP dimension to 11::
 
         sage: lattice_polytope.set_palp_dimension(11)
-        sage: LatticePolytope(identity_matrix(8))
-        7-d lattice polytope in 8-d lattice M
+        sage: p._palp("poly.x -fv")
+        '7 14  Vertices of P...'
 
     Let's go back to default settings::
 

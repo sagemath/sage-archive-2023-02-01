@@ -1,13 +1,16 @@
 r"""
 BCH Code
 
-Let `F = GF(q)` and `\Phi` be the splitting field of
-`x^{n} - 1` over`F`, with `n` a positive integer.
-Let `\alpha` be an element of multiplicative order `n` in `\Phi`.
+Let `F = GF(q)` and `\Phi` be the splitting field of `x^{n} - 1` over `F`,
+with `n` a positive integer. Let also `\alpha` be an element of multiplicative
+order `n` in `\Phi`. Finally, let `b, \delta, \ell` be integers such that
+`0 \le b \leq n`, `2 \le \delta \leq n` and `\alpha^\ell` generates the
+multiplicative group `\Phi^{\times}`.
 
-A BCH code consists of all codewords `c(x) \in F_{n}[x]` such that
-`c(\alpha^{a}) = 0`, for `a = b, b + l, b + 2\times l, \dots, b + (\delta - 2) \times l`,
-with `b`, `\delta` integers such that `b < \delta` and `0 < \delta \leq n`.
+A BCH code over `F` with designed distance `\delta` is a cyclic code whose
+codewords `c(x) \in F[x]` satisfy `c(\alpha^{a}) = 0`, for all integers `a` in
+the arithmetic sequence
+`b, b + \ell, b + 2 \times \ell, \dots, b + (\delta - 2) \times \ell`.
 
 TESTS:
 
@@ -25,29 +28,28 @@ interferes with doctests::
     Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
+#                     2017 Julien Lavauzelle <julien.lavauzelle@inria.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
-from .linear_code import AbstractLinearCode
 from .cyclic_code import CyclicCode
 from .grs import GeneralizedReedSolomonCode
-from .encoder import Encoder
 from .decoder import Decoder, DecodingError
 from sage.modules.free_module_element import vector
 from sage.misc.misc_c import prod
-from sage.rings.integer import Integer
 from sage.categories.fields import Fields
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import gcd
 from sage.rings.all import Zmod
 from copy import copy
+
 
 class BCHCode(CyclicCode):
     r"""
@@ -61,11 +63,11 @@ class BCHCode(CyclicCode):
 
     - ``designed_distance`` -- the resulting minimum distance of the code
 
-    - ``primitive_root`` -- (default: ``None``) the primitive root to use when 
-      creating the set of roots for the generating polynomial over the splitting
-      field. It has to be of multiplicative order ``length`` over this field.
-      If the splitting field is not ``field``, it also has to be a polynomial in
-      ``zx``, where ``x`` is the degree of the extension field.
+    - ``primitive_root`` -- (default: ``None``) the primitive root to use when
+      creating the set of roots for the generating polynomial over the
+      splitting field. It has to be of multiplicative order ``length`` over
+      this field. If the splitting field is not ``field``, it also has to be a
+      polynomial in ``zx``, where ``x`` is the degree of the extension field.
       For instance, over ``GF(16)``, it has to be a polynomial in ``z4``.
 
     - ``offset`` -- (default: ``0``) the first element in the defining set
@@ -93,7 +95,8 @@ class BCHCode(CyclicCode):
         x^8 + x^7 + x^6 + x^4 + 1
     """
 
-    def __init__(self, base_field, length, designed_distance, primitive_root=None, offset=0, jump_size=1, b=0):
+    def __init__(self, base_field, length, designed_distance,
+                 primitive_root=None, offset=0, jump_size=1, b=0):
         """
         TESTS:
 
@@ -112,7 +115,7 @@ class BCHCode(CyclicCode):
             deprecation(20335, "codes.BCHCode(n, designed_distance, F, b=0) is now deprecated. Please use the new signature instead.")
             (length, designed_distance, base_field) = (base_field, length, designed_distance)
             offset = b
-        if not base_field in Fields or not base_field.is_finite():
+        if base_field not in Fields or not base_field.is_finite():
             raise ValueError("base_field has to be a finite field")
 
         q = base_field.cardinality()
@@ -121,11 +124,12 @@ class BCHCode(CyclicCode):
             raise ValueError("jump_size must be coprime with the order of "
                              "the multicative group of the splitting field")
 
-        D = [ (offset + jump_size * i) % length
-              for i in range(designed_distance - 1) ]
+        D = [(offset + jump_size * i) % length
+             for i in range(designed_distance - 1)]
 
         try:
-            super(BCHCode, self).__init__(field = base_field, length = length, D = D, primitive_root = primitive_root)
+            super(BCHCode, self).__init__(field=base_field, length=length,
+                                          D=D, primitive_root=primitive_root)
         except ValueError, e:
             raise e
         self._default_decoder_name = "UnderlyingGRS"
@@ -146,11 +150,11 @@ class BCHCode(CyclicCode):
             sage: C1 == C2
             True
         """
-        return isinstance(other, BCHCode) \
-                and self.length() == other.length() \
-                and self.jump_size() == other.jump_size() \
-                and self.offset() == self.offset()\
-                and self.primitive_root() == self.primitive_root()
+        return (isinstance(other, BCHCode) and
+                self.length() == other.length() and
+                self.jump_size() == other.jump_size() and
+                self.offset() == self.offset() and
+                self.primitive_root() == self.primitive_root())
 
     def _repr_(self):
         r"""
@@ -176,13 +180,14 @@ class BCHCode(CyclicCode):
             sage: latex(C)
             [15, 5] \textnormal{ BCH Code over } \Bold{F}_{2} \textnormal{ with designed distance } 7
         """
-        return "[%s, %s] \\textnormal{ BCH Code over } %s \\textnormal{ with designed distance } %s"\
+        return ("[%s, %s] \\textnormal{ BCH Code over } %s \\textnormal{ with designed distance } %s"
                 % (self.length(), self.dimension(),
-                self.base_field()._latex_(), self.designed_distance())
+                self.base_field()._latex_(), self.designed_distance()))
 
     def jump_size(self):
         r"""
-        Returns the jump size between two consecutive elements of the defining set of ``self``.
+        Returns the jump size between two consecutive elements of the defining
+        set of ``self``.
 
         EXAMPLES::
 
@@ -236,8 +241,8 @@ class BCHCode(CyclicCode):
         alpha = self.primitive_root()
         alpha_l = alpha ** l
         alpha_b = alpha ** b
-        evals = [ alpha_l ** i for i in range(n) ]
-        pcm = [ alpha_b ** i for i in range(n) ]
+        evals = [alpha_l ** i for i in range(n)]
+        pcm = [alpha_b ** i for i in range(n)]
 
         multipliers_product = [1/prod([evals[i] - evals[h] for h in range(n) if h != i]) for i in range(n)]
         column_multipliers = [multipliers_product[i]/pcm[i] for i in range(n)]
@@ -248,23 +253,25 @@ class BCHCode(CyclicCode):
 class BCHUnderlyingGRSDecoder(Decoder):
     r"""
     A decoder which decodes through the underlying
-    :class:`sage.coding.grs.GeneralizedReedSolomonCode` code of the provided BCH code.
+    :class:`sage.coding.grs.GeneralizedReedSolomonCode` code of the provided
+    BCH code.
 
     INPUT:
 
     - ``code`` -- The associated code of this decoder.
 
-    - ``grs_decoder`` -- The string name of the decoder to use over the underlying GRS code
+    - ``grs_decoder`` -- The string name of the decoder to use over the
+      underlying GRS code
 
     - ``**kwargs`` -- All extra arguments are forwarded to the GRS decoder
     """
 
-    def __init__(self, code, grs_decoder = "KeyEquationSyndrome", **kwargs):
+    def __init__(self, code, grs_decoder="KeyEquationSyndrome", **kwargs):
         r"""
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D
             Decoder through the underlying GRS code of [15, 11] BCH Code over GF(4) with designed distance 3
@@ -275,7 +282,8 @@ class BCHUnderlyingGRSDecoder(Decoder):
         self._decoder_type = copy(self._decoder_type)
         self._decoder_type.remove("dynamic")
         self._decoder_type = self._grs_decoder.decoder_type()
-        super(BCHUnderlyingGRSDecoder, self).__init__(code, code.ambient_space(), "Vector")
+        super(BCHUnderlyingGRSDecoder, self).__init__(
+            code, code.ambient_space(), "Vector")
 
     def _repr_(self):
         r"""
@@ -283,7 +291,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D
             Decoder through the underlying GRS code of [15, 11] BCH Code over GF(4) with designed distance 3
@@ -296,17 +304,18 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: latex(D)
             \textnormal{Decoder through the underlying GRS code of } [15, 11] \textnormal{ BCH Code over } \Bold{F}_{2^{2}} \textnormal{ with designed distance } 3
         """
-        return "\\textnormal{Decoder through the underlying GRS code of } %s" % (self.code()._latex_())
+        return ("\\textnormal{Decoder through the underlying GRS code of } %s"
+                % self.code()._latex_())
 
     def grs_code(self):
         r"""
-        Returns the underlying GRS code of :meth:`sage.coding.decoder.Decoder.code`.
-
+        Returns the underlying GRS code of
+        :meth:`sage.coding.decoder.Decoder.code`.
 
         EXAMPLES::
 
@@ -323,7 +332,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D.grs_decoder()
             Key equation decoder for [15, 13, 3] Generalized Reed-Solomon Code over GF(16)
@@ -345,7 +354,6 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: y in D.grs_code()
             True
         """
-        C = self.code()
         mapping = self.code().field_embedding().embedding()
         a = [mapping(i) for i in c]
         return vector(a)
@@ -357,7 +365,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: Cgrs = D.grs_code()
             sage: Fgrs = Cgrs.base_field()
@@ -373,13 +381,13 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
     def decode_to_code(self, y):
         r"""
-        Decodes ``y`` to an element in :meth:`sage.coding.decoder.Decoder.code`.
+        Decodes ``y`` to a codeword in :meth:`sage.coding.decoder.Decoder.code`.
 
         EXAMPLES::
 
             sage: F = GF(4, 'a')
             sage: a = F.gen()
-            sage: C = codes.BCHCode(F, 15, 3, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(F, 15, 3, jump_size=2, offset=1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: y = vector(F, [a, a + 1, 1, a + 1, 1, a, a + 1, a + 1, 0, 1, a + 1, 1, 1, 1, a])
             sage: D.decode_to_code(y)
@@ -406,12 +414,13 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size = 2, offset = 1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D.decoding_radius()
             1
         """
         return (self.code().bch_bound(arithmetic=True)[0] - 1) // 2
+
 
 ####################### registration ###############################
 

@@ -44,7 +44,7 @@ interferes with doctests::
     Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
 #                     2016 Julien Lavauzelle <julien.lavauzelle@inria.fr>
 #
@@ -53,7 +53,7 @@ interferes with doctests::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from .linear_code import (AbstractLinearCode,
                           LinearCodeSyndromeDecoder,
@@ -75,24 +75,26 @@ def find_generator_polynomial(code, check=True):
     Returns a possible generator polynomial for ``code``.
 
     If the code is cyclic, the generator polynomial is the gcd of all the
-    polynomial forms of the codewords. Conversely, if this gcd exactly generates
-    the code ``code``, then ``code`` is cyclic.
+    polynomial forms of the codewords. Conversely, if this gcd exactly
+    generates the code ``code``, then ``code`` is cyclic.
 
-    If ``check`` is set to ``True``, then it also checks that the code is indeed
-    cyclic. Otherwise it doesn't.
+    If ``check`` is set to ``True``, then it also checks that the code is
+    indeed cyclic. Otherwise it doesn't.
 
     INPUT:
 
     - ``code`` -- a linear code
 
+    - ``check`` -- whether the cyclicity should be checked
+
     OUTPUT:
 
-    - the generator polynomial (if the code is cyclic).
+    - the generator polynomial of ``code`` (if the code is cyclic).
 
     EXAMPLES::
 
         sage: from sage.coding.cyclic_code import find_generator_polynomial
-        sage: C = codes.GeneralizedReedSolomonCode(GF(2^3, 'a').list()[1:2^3], 2^2)
+        sage: C = codes.GeneralizedReedSolomonCode(GF(8, 'a').list()[1:], 4)
         sage: find_generator_polynomial(C)
         x^3 + (a^2 + 1)*x^2 + a*x + a^2 + 1
     """
@@ -142,12 +144,13 @@ def _to_complete_list(poly, length):
 
 def bch_bound(n, D, arithmetic=False):
     r"""
-    Returns the BCH bound obtained for a cyclic code of length ``n`` and defining set ``D``.
+    Returns the BCH bound obtained for a cyclic code of length ``n`` and
+    defining set ``D``.
 
-    Considering a cyclic code `C`, with defining set `D`, length `n`, and minimum
+    Consider a cyclic code `C`, with defining set `D`, length `n`, and minimum
     distance `d`. We have the following bound, called BCH bound, on `d`:
-    `d \geq \delta + 1`, where `\delta` is the length of the longest arithmetic sequence
-    (modulo `n`) of elements in `D`.
+    `d \geq \delta + 1`, where `\delta` is the length of the longest arithmetic
+    sequence (modulo `n`) of elements in `D`.
 
     That is, if `\exists c, \gcd(c,n) = 1` such that
     `\{l, l+c, \dots, l + (\delta - 1) \times c\} \subseteq D`,
@@ -158,9 +161,11 @@ def bch_bound(n, D, arithmetic=False):
 
     .. NOTE::
 
-        As this is a specific use case of the BCH bound, it is *not* available if the global namespace.
-        Call it by using ``sage.coding.cyclic_code.bch_bound``. You can also load it into the global
-        namespace by typing ``from sage.coding.cyclic_code import bch_bound``.
+        As this is a specific use case of the BCH bound, it is *not* available
+        in the global namespace.
+        Call it by using ``sage.coding.cyclic_code.bch_bound``. You can also
+        load it into the global namespace by typing
+        ``from sage.coding.cyclic_code import bch_bound``.
 
     INPUT:
 
@@ -174,7 +179,8 @@ def bch_bound(n, D, arithmetic=False):
     OUTPUT:
 
     - ``(delta + 1, (l, c))`` -- such that ``delta + 1`` is the BCH bound, and
-      ``l, c`` are the parameters of the largest arithmetic sequence (see below)
+      ``l, c`` are the parameters of the longest arithmetic sequence
+      (see below)
 
     EXAMPLES::
 
@@ -207,7 +213,8 @@ def bch_bound(n, D, arithmetic=False):
         try:
             isD[d] = 1
         except IndexError:
-            raise ValueError("%s must contains integers between 0 and %s" % (D, n - 1))
+            raise ValueError("%s must contains integers between 0 and %s" %
+                             (D, n - 1))
     if 0 not in isD:
         return (n + 1, (1, 0))
 
@@ -215,7 +222,8 @@ def bch_bound(n, D, arithmetic=False):
         one_len, offset = longest_streak(1)
         return (one_len + 1, (1, offset))
     else:
-        longest_streak_list = [(longest_streak(step), step) for step in range(1, n // 2 + 1)
+        longest_streak_list = [(longest_streak(step), step)
+                               for step in range(1, n // 2 + 1)
                                if gcd(step, n) == 1]
         (max_len, offset), step = max(longest_streak_list)
         return (max_len + 1, (step, offset))
@@ -225,18 +233,19 @@ class CyclicCode(AbstractLinearCode):
     r"""
     Representation of a cyclic code.
 
-    We propose three different ways to create a new CyclicCode, either by providing:
+    We propose three different ways to create a new CyclicCode, either by
+    providing:
 
     - the generator polynomial and the length (1)
-    - an existing linear code. In that case, a generator polynomial will be computed
-       from the provided linear code's parameters (2)
+    - an existing linear code. In that case, a generator polynomial will be
+      computed from the provided linear code's parameters (2)
     - (a subset of) the defining set of the cyclic code (3)
 
-    For now, only single-root cyclic codes are implemented. That is, only cyclic
-    codes such that its length `n` and field order `q` are coprimes.
+    For now, only single-root cyclic codes are implemented. That is, only
+    cyclic codes such that its length `n` and field order `q` are coprimes.
 
-    Depending on which behaviour you want, you need to specify the names of the arguments to
-    CyclicCode. See EXAMPLES section below for details.
+    Depending on which behaviour you want, you need to specify the names of the
+    arguments to CyclicCode. See EXAMPLES section below for details.
 
     INPUT:
 
@@ -263,8 +272,8 @@ class CyclicCode(AbstractLinearCode):
       the splitting field which contains the roots of the generator polynomial.
       It has to be of multiplicative order ``length`` over this field.
       If the splitting field is not ``field``, it also have to be a polynomial
-      in ``zx``, where ``x`` is the degree of the extension over the prime field.
-      For instance, over ``GF(16)``, it has to be a polynomial in ``z4``.
+      in ``zx``, where ``x`` is the degree of the extension over the prime
+      field. For instance, over ``GF(16)``, it must be a polynomial in ``z4``.
 
     EXAMPLES:
 
@@ -282,7 +291,7 @@ class CyclicCode(AbstractLinearCode):
     extract a generator polynomial (see :meth:`find_generator_polynomial`
     for details)::
 
-        sage: C = codes.GeneralizedReedSolomonCode(GF(2 ** 3, 'a').list()[1:2 ** 3], 2 ** 2)
+        sage: C = codes.GeneralizedReedSolomonCode(GF(8, 'a').list()[1:], 4)
         sage: Cc = codes.CyclicCode(code = C)
         sage: Cc
         [7, 4] Cyclic Code over GF(8)
@@ -300,7 +309,8 @@ class CyclicCode(AbstractLinearCode):
     _registered_encoders = {}
     _registered_decoders = {}
 
-    def __init__(self, generator_pol=None, length=None, code=None, check=True, D=None, field=None, primitive_root=None):
+    def __init__(self, generator_pol=None, length=None, code=None, check=True,
+                 D=None, field=None, primitive_root=None):
         r"""
         TESTS:
 
@@ -320,7 +330,7 @@ class CyclicCode(AbstractLinearCode):
             sage: F.<x> = RR[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C = codes.CyclicCode(generator_pol=g, length=n)
             Traceback (most recent call last):
             ...
             ValueError: The generator polynomial must be defined over a finite field.
@@ -331,7 +341,7 @@ class CyclicCode(AbstractLinearCode):
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 2 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C = codes.CyclicCode(generator_pol=g, length=n)
             Traceback (most recent call last):
             ...
             ValueError: Provided polynomial must divide x^n - 1, where n is the provided length.
@@ -341,7 +351,7 @@ class CyclicCode(AbstractLinearCode):
 
             sage: G = matrix(GF(2), [[1, 1, 1], [0, 1, 1]])
             sage: C = codes.LinearCode(G)
-            sage: Cc = codes.CyclicCode(code = C)
+            sage: Cc = codes.CyclicCode(code=C)
             Traceback (most recent call last):
             ...
             ValueError: The code is not cyclic.
@@ -354,17 +364,17 @@ class CyclicCode(AbstractLinearCode):
             sage: n = 15
             sage: Dset = [1, 2, 4, 8]
             sage: alpha = GF(3).one()
-            sage: Cc = codes.CyclicCode(D = Dset, field = F, length = n, primitive_root = alpha)
+            sage: Cc = codes.CyclicCode(D=Dset, field=F, length=n, primitive_root=alpha)
             Traceback (most recent call last):
             ...
             ValueError: primitive_root must belong to an extension of the base field.
             sage: alpha = GF(16).one()
-            sage: Cc = codes.CyclicCode(D = Dset, field = F, length = n, primitive_root = alpha)
+            sage: Cc = codes.CyclicCode(D=Dset, field=F, length=n, primitive_root=alpha)
             Traceback (most recent call last):
             ...
             ValueError: primitive_root must be a primitive n-th root of unity.
             sage: alpha = GF(32).gen()
-            sage: Cc = codes.CyclicCode(D = Dset, field = F, length = n, primitive_root = alpha)
+            sage: Cc = codes.CyclicCode(D=Dset, field=F, length=n, primitive_root=alpha)
             Traceback (most recent call last):
             ...
             ValueError: primitive_root must be a primitive n-th root of unity.
@@ -413,7 +423,8 @@ class CyclicCode(AbstractLinearCode):
             self._polynomial_ring = g.parent()
             self._generator_polynomial = g
             self._dimension = code.dimension()
-            super(CyclicCode, self).__init__(code.base_ring(), n, "Vector", "Syndrome")
+            super(CyclicCode, self).__init__(code.base_ring(), n,
+                                             "Vector", "Syndrome")
 
         # Case (3) : a defining set, a length and a field are provided
         elif (D is not None and length is not None and field is not None and
@@ -472,18 +483,24 @@ class CyclicCode(AbstractLinearCode):
             super(CyclicCode, self).__init__(F, n, "Vector", "SurroundingBCH")
 
         else:
-            raise AttributeError("You must provide either a code, or a list of powers and the length and the field, or a generator polynomial and the code length")
+            raise AttributeError("You must provide either a code, or a list "
+                                 "of powers and the length and the field, or "
+                                 "a generator polynomial and the code length")
 
     def __contains__(self, word):
         r"""
         Returns ``True`` if ``word`` belongs to ``self``, ``False`` otherwise.
+
+        INPUT:
+
+        - ``word`` -- the word to test
 
         EXAMPLES::
 
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C = codes.CyclicCode(generator_pol=g, length=n)
             sage: c = vector(GF(2), (1, 1, 1, 0, 0, 1, 0))
             sage: c in C
             True
@@ -496,13 +513,17 @@ class CyclicCode(AbstractLinearCode):
         r"""
         Tests equality between CyclicCode objects.
 
+        INPUT:
+
+        - ``other`` -- the code to test
+
         EXAMPLES::
 
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
-            sage: C1 = codes.CyclicCode(generator_pol = g, length = n)
-            sage: C2 = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C1 = codes.CyclicCode(generator_pol=g, length=n)
+            sage: C2 = codes.CyclicCode(generator_pol=g, length=n)
             sage: C1 == C2
             True
         """
@@ -523,7 +544,7 @@ class CyclicCode(AbstractLinearCode):
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C = codes.CyclicCode(generator_pol=g, length=n)
             sage: C
             [7, 4] Cyclic Code over GF(2)
         """
@@ -540,7 +561,7 @@ class CyclicCode(AbstractLinearCode):
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C = codes.CyclicCode(generator_pol=g, length=n)
             sage: latex(C)
             [7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2}
         """
@@ -557,7 +578,7 @@ class CyclicCode(AbstractLinearCode):
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C = codes.CyclicCode(generator_pol=g, length=n)
             sage: C.generator_polynomial()
             x^3 + x + 1
         """
@@ -572,21 +593,25 @@ class CyclicCode(AbstractLinearCode):
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C = codes.CyclicCode(generator_pol=g, length=n)
             sage: C.field_embedding()
             Relative field extension between Finite Field in z3 of size 2^3 and Finite Field of size 2
-        
         """
         if not(hasattr(self, "_field_embedding")):
             self.defining_set()
         return self._field_embedding
-        
-    
+
     def defining_set(self, primitive_root=None):
         r"""
-        Returns the set of powers of the root of ``self``'s generator polynomial
-        over the extension field. It depends on the choice of the primitive
-        root of the splitting field.
+        Returns the set of exponents of the roots of ``self``'s generator
+        polynomial over the extension field. Of course, it depends on the
+        choice of the primitive root of the splitting field.
+
+
+        INPUT:
+
+        - ``primitive_root`` (optional) -- a primitive root of the extension
+          field
 
         EXAMPLES:
 
@@ -594,41 +619,40 @@ class CyclicCode(AbstractLinearCode):
 
             sage: F = GF(16, 'a')
             sage: n = 15
-            sage: C = codes.CyclicCode(length = n, field = F, D = [1,2])
+            sage: C = codes.CyclicCode(length=n, field=F, D=[1,2])
             sage: C.defining_set()
             [1, 2]
 
-        If the defining set was provided by the user, it might have been expanded
-        at construction time. In this case, the expanded defining set will be
-        returned::
+        If the defining set was provided by the user, it might have been
+        expanded at construction time. In this case, the expanded defining set
+        will be returned::
 
-            sage: C = codes.CyclicCode(length = 13, field = F, D = [1, 2])
+            sage: C = codes.CyclicCode(length=13, field=F, D=[1, 2])
             sage: C.defining_set()
             [1, 2, 3, 5, 6, 9]
 
         If a generator polynomial was passed at construction time,
         the defining set is computed using this polynomial::
 
-            sage: F.<x> = GF(8, 'a')[]
+            sage: R.<x> = F[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C = codes.CyclicCode(generator_pol=g, length=n)
             sage: C.defining_set()
             [1, 2, 4]
 
         Both operations give the same result::
 
-            sage: C1 = codes.CyclicCode(length = n, field = GF(8, 'a'), D = [1, 2, 4])
+            sage: C1 = codes.CyclicCode(length=n, field=F, D=[1, 2, 4])
             sage: C1.generator_polynomial() == g
             True
 
         Another one, in a reversed order::
 
-            sage: F = GF(16, 'a')
             sage: n = 13
-            sage: C1 = codes.CyclicCode(length = n, field = F, D = [1, 2])
+            sage: C1 = codes.CyclicCode(length=n, field=F, D=[1, 2])
             sage: g = C1.generator_polynomial()
-            sage: C2 = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C2 = codes.CyclicCode(generator_pol=g, length=n)
             sage: C1.defining_set() == C2.defining_set()
             True
         """
@@ -684,7 +708,7 @@ class CyclicCode(AbstractLinearCode):
             sage: F.<x> = GF(2)[]
             sage: n = 7
             sage: g = x ** 3 + x + 1
-            sage: C = codes.CyclicCode(generator_pol = g, length = n)
+            sage: C = codes.CyclicCode(generator_pol=g, length=n)
             sage: C.primitive_root()
             z3
 
@@ -706,9 +730,8 @@ class CyclicCode(AbstractLinearCode):
         r"""
         Returns the check polynomial of ``self``.
 
-        Let `C` be a cyclic code of length `n` and `g` its
-        generator polynomial.
-        The following: `h = \frac{x^n - 1}{g(x)}` is called `C`'s
+        Let `C` be a cyclic code of length `n` and `g` its generator
+        polynomial. The following: `h = \frac{x^n - 1}{g(x)}` is called `C`'s
         check polynomial.
 
         EXAMPLES::
@@ -803,7 +826,7 @@ class CyclicCode(AbstractLinearCode):
             True
         """
         from .bch import BCHCode
-        delta, params = self.bch_bound(arithmetic = True)
+        delta, params = self.bch_bound(arithmetic=True)
         return BCHCode(self.base_field(), self.length(), delta,
                        offset=params[1], jump_size=params[0])
 
@@ -898,7 +921,8 @@ class CyclicCodePolynomialEncoder(Encoder):
             sage: latex(E)
             \textnormal{Polynomial-style encoder for }[7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2}
         """
-        return "\\textnormal{Polynomial-style encoder for }%s" % self.code()._latex_()
+        return ("\\textnormal{Polynomial-style encoder for }%s" %
+                self.code()._latex_())
 
     def encode(self, p):
         r"""
@@ -988,7 +1012,8 @@ class CyclicCodeVectorEncoder(Encoder):
     This codeword can be seen as a polynomial over `F[x]`, as follows:
     `P_m = \Sigma_{i=0}^{k-1} m_i \times x^i`.
 
-    To encode `m`, this encoder does the following multiplication: `P_m \times g`.
+    To encode `m`, this encoder does the following multiplication:
+    `P_m \times g`.
 
     INPUT:
 
@@ -1071,7 +1096,8 @@ class CyclicCodeVectorEncoder(Encoder):
             sage: latex(E)
             \textnormal{Vector-style encoder for }[7, 4] \textnormal{ Cyclic Code over } \Bold{F}_{2}
         """
-        return "\\textnormal{Vector-style encoder for }%s" % self.code()._latex_()
+        return ("\\textnormal{Vector-style encoder for }%s" %
+                self.code()._latex_())
 
     def encode(self, m):
         r"""
@@ -1079,11 +1105,11 @@ class CyclicCodeVectorEncoder(Encoder):
 
         INPUT:
 
-        - ``m`` -- A element from ``self``'s message space
+        - ``m`` -- an element from ``self``'s message space
 
         OUTPUT:
 
-        - A codeword in associated code of ``self``
+        - A codeword in the associated code of ``self``
 
         EXAMPLES::
 
@@ -1181,15 +1207,10 @@ class CyclicCodeVectorEncoder(Encoder):
         return self.code().base_ring() ** self.code().dimension()
 
 
-
-
-
-
-
-
 class CyclicCodeSurroundingBCHDecoder(Decoder):
     r"""
-    A decoder which decodes through the surrounding BCH code of the cyclic code.
+    A decoder which decodes through the surrounding BCH code of the cyclic
+    code.
 
     INPUT:
 
@@ -1199,7 +1220,7 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
 
     EXAMPLES::
 
-        sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+        sage: C = codes.CyclicCode(field=GF(16), length=15, D=[14, 1, 2, 11, 12])
         sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
         sage: D
         Decoder through the surrounding BCH code of the [15, 10] Cyclic Code over GF(16)
@@ -1209,7 +1230,7 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: C = codes.CyclicCode(field=GF(16), length=15, D=[14, 1, 2, 11, 12])
             sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
             sage: D
             Decoder through the surrounding BCH code of the [15, 10] Cyclic Code over GF(16)
@@ -1219,7 +1240,8 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
         self._decoder_type = copy(self._decoder_type)
         self._decoder_type.remove("dynamic")
         self._decoder_type = self._bch_decoder.decoder_type()
-        super(CyclicCodeSurroundingBCHDecoder, self).__init__(code, code.ambient_space(), "Vector")
+        super(CyclicCodeSurroundingBCHDecoder, self).__init__(
+            code, code.ambient_space(), "Vector")
 
     def __eq__(self, other):
         r"""
@@ -1227,15 +1249,15 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: C = codes.CyclicCode(field=GF(16), length=15, D=[14, 1, 2, 11, 12])
             sage: D1 = C.decoder()
             sage: D2 = C.decoder()
             sage: D1 == D2
             True
         """
-        return isinstance(other, CyclicCodeSurroundingBCHDecoder) \
-                and self.code() == other.code()\
-                and self.bch_decoder() == other.bch_decoder()
+        return (isinstance(other, CyclicCodeSurroundingBCHDecoder) and
+                self.code() == other.code() and
+                self.bch_decoder() == other.bch_decoder())
 
     def _repr_(self):
         r"""
@@ -1243,12 +1265,13 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: C = codes.CyclicCode(field=GF(16), length=15, D=[14, 1, 2, 11, 12])
             sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
             sage: D
             Decoder through the surrounding BCH code of the [15, 10] Cyclic Code over GF(16)
         """
-        return "Decoder through the surrounding BCH code of the %s" % self.code()
+        return ("Decoder through the surrounding BCH code of the %s" %
+                self.code())
 
     def _latex_(self):
         r"""
@@ -1256,21 +1279,22 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: C = codes.CyclicCode(field=GF(16), length=15, D=[14, 1, 2, 11, 12])
             sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
             sage: latex(D)
             \textnormal{Decoder through the surrounding BCH code of the }[15, 10] \textnormal{ Cyclic Code over } \Bold{F}_{2^{4}}
         """
-        return "\\textnormal{Decoder through the surrounding BCH code of the }%s"\
-                % self.code()._latex_()
+        return ("\\textnormal{Decoder through the surrounding BCH code of "
+                "the }%s" % self.code()._latex_())
 
     def bch_code(self):
         r"""
-        Returns the surrounding BCH code of :meth:`sage.coding.encoder.Encoder.code`.
+        Returns the surrounding BCH code of
+        :meth:`sage.coding.encoder.Encoder.code`.
 
         EXAMPLES::
 
-            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: C = codes.CyclicCode(field=GF(16), length=15, D=[14, 1, 2, 11, 12])
             sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
             sage: D.bch_code()
             [15, 12] BCH Code over GF(16) with designed distance 4
@@ -1283,7 +1307,7 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: C = codes.CyclicCode(field=GF(16), length=15, D=[14, 1, 2, 11, 12])
             sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
             sage: D.bch_decoder()
             Decoder through the underlying GRS code of [15, 12] BCH Code over GF(16) with designed distance 4
@@ -1296,10 +1320,11 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
-            sage: a = GF(16, 'a').gen()
+            sage: F = GF(16, 'a')
+            sage: C = codes.CyclicCode(field=F, length=15, D=[14, 1, 2, 11, 12])
+            sage: a = F.gen()
             sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
-            sage: y = vector(GF(16, 'a'), [0, a^3, a^3 + a^2 + a, 1, a^2 + 1, a^3 + a^2 + 1, a^3 + a^2 + a, a^3 + a^2 + a, a^2 + a, a^2 + 1, a^2 + a + 1, a^3 + 1, a^2, a^3 + a, a^3 + a])
+            sage: y = vector(F, [0, a^3, a^3 + a^2 + a, 1, a^2 + 1, a^3 + a^2 + 1, a^3 + a^2 + a, a^3 + a^2 + a, a^2 + a, a^2 + 1, a^2 + a + 1, a^3 + 1, a^2, a^3 + a, a^3 + a])
             sage: D.decode_to_code(y) in C
             True
         """
@@ -1311,7 +1336,7 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
+            sage: C = codes.CyclicCode(field=GF(16), length=15, D=[14, 1, 2, 11, 12])
             sage: D = codes.decoders.CyclicCodeSurroundingBCHDecoder(C)
             sage: D.decoding_radius()
             1

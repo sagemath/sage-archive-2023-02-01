@@ -582,10 +582,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if isinstance(R, QuotientRing_generic):
             phi = R._internal_coerce_map_from(self.domain().ambient_space().coordinate_ring())
             for i in range(self.codomain().ambient_space().dimension_relative() + 1):
-                self._polys[i] = phi(self._polys[i] * t).lift()
+                new_polys = [phi(u*t).lift() for u in self]
         else:
             for i in range(self.codomain().ambient_space().dimension_relative() + 1):
-                self._polys[i] = R(self._polys[i] * t)
+                new_polys = [R(u*t) for u in self]
+        self._polys = tuple(new_polys)
 
     def normalize_coordinates(self):
         """
@@ -1438,7 +1439,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
 
         R = self.coordinate_ring()
-        F = self._polys
+        F = list(self._polys)
         defpolys = list(self.domain().defining_polynomials())
         if R.base_ring().is_field():
             F.extend(defpolys)
@@ -1536,7 +1537,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 pass
         #Otherwise, use Macaulay
         R = F[0].parent()
-        res = R.macaulay_resultant(F._polys)
+        res = R.macaulay_resultant(list(F._polys))
         return res #Coercion here is not necessary as it is already done in Macaulay Resultant
 
     @cached_method
@@ -2286,8 +2287,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             R = self(Q, False)
             g = gcd(R._coords)
             R.scale_by(1 / g)
+            R_list = list(R)
             for index in range(N + 1):
-                R._coords[index] = R._coords[index] % (p ** k)
+                R_list[index] = R_list[index] % (p ** k)
+            R._coords = tuple(R_list)
             index = N
             while R[index] % p == 0:
                 index -= 1
@@ -3833,13 +3836,15 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                         S = newT.nth_iterate(fp, n, normalize = False).change_ring(QQ, check = False)
                         T.scale_by(1 / T[qindex])
                         S.scale_by(1 / S[qindex])
+                        newS = list(S)
                         for i in range(N + 1):
-                            S._coords[i] = S._coords[i] - T._coords[i]
-                            if S[i] % (p ** k) != 0 and i != N:
+                            newS[i] = S[i] - T[i]
+                            if newS[i] % (p ** k) != 0 and i != N:
                                 bad = 1
                                 break
                         if bad == 1:
                             break
+                        S = PS.point(newS, False)
                         S.scale_by(-1 / p ** k)
                         vecs = [Zmod(p ** k)(S._coords[iS]) for iS in range(N + 1)]
                         vecs.pop(qindex)
@@ -3848,11 +3853,13 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                         [newS.append(QQ(newvecs[i])) for i in range(qindex)]
                         newS.append(0)
                         [newS.append(QQ(newvecs[i])) for i in range(qindex, N)]
+                        for i in range(N + 1):
+                            newS[i] = newS[i] % (p ** k)
                         S = PS.point(newS, False) #don't check for [0,...,0]
+                        newT = list(T)
                         for i in range(N + 1):
-                            S._coords[i] = S._coords[i] % (p ** k)
-                        for i in range(N + 1):
-                            T._coords[i] += S._coords[i] * (p ** k)
+                            newT[i] += S[i] * (p ** k)
+                        T = PS.point(newT, False)
                         T.normalize_coordinates()
                         #Hensel gives us 2k for the newprecision
                         k = min(2 * k, L)
@@ -3866,12 +3873,13 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                         if shifts is None:
                             shifts = xmrange([p for i in range(N)])
                         for shift in shifts:
-                            newT = T.change_ring(RQ, check = False)
+                            newT = [RQ(t) for t in T]  #T.change_ring(RQ, check = False)
                             shiftindex = 0
                             for i in range(N + 1):
                                 if i != qindex:
-                                    newT._coords[i] = newT[i] + shift[shiftindex] * p ** k
+                                    newT[i] = newT[i] + shift[shiftindex] * p ** k
                                     shiftindex += 1
+                            newT = fp.domain().point(newT, check=False)
                             TT = fp.nth_iterate(newT, n, normalize = False)
                             if TT == newT:
                                 if first == 0:

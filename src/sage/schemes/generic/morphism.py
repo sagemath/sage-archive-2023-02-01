@@ -956,7 +956,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 except (TypeError, AttributeError):
                     raise TypeError("polys (=%s) must be elements of %s"%(polys, source_ring))
             polys = Sequence(polys)
-        self._polys = polys
+        self._polys = tuple(polys)
         SchemeMorphism.__init__(self, parent)
 
     def defining_polynomials(self):
@@ -974,7 +974,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: A.<x,y> = AffineSpace(R)
             sage: H = A.Hom(A)
             sage: H([x^3+y, 1-x-y]).defining_polynomials()
-            [x^3 + y, -x - y + 1]
+            (x^3 + y, -x - y + 1)
         """
         return self._polys
 
@@ -1810,9 +1810,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: Q2 = copy(Q)
             sage: Q2 is Q
             False
-            sage: Q2._coords is Q._coords
-            False
             sage: Q2 == Q
             True
         """
-        return(self._codomain.point(copy(self._coords), check=False))
+        return(self._codomain.point(self._coords, check=False))

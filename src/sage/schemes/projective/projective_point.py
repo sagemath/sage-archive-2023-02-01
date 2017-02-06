@@ -165,7 +165,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             X.extended_codomain()._check_satisfies_equations(v)
 
-        self._coords = v
+        self._coords = tuple(v)
 
     def __eq__(self, right):
         """
@@ -454,10 +454,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         R = self.codomain().base_ring()
         if isinstance(R, QuotientRing_generic):
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
-                self._coords[i] = R(self._coords[i].lift()*t)
+                new_coords = [R(u.lift()*t) for u in self]
         else:
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
-                self._coords[i] = R(self._coords[i]*t)
+                new_coords = [R(u*t) for u in self]
+        self._coords = tuple(new_coords)
 
     def normalize_coordinates(self):
         """
@@ -1602,7 +1603,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
             X.extended_codomain()._check_satisfies_equations(v)
 
-        self._coords = v
+        self._coords = tuple(v)
 
     def __hash__(self):
         """

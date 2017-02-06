@@ -105,7 +105,7 @@ include "cysignals/memory.pxi"
 
 cimport matrix_dense
 from libc.stdio cimport *
-from sage.structure.element cimport (Matrix, Vector, parent_c,
+from sage.structure.element cimport (Matrix, Vector,
                                      ModuleElement, Element)
 from sage.modules.free_module_element cimport FreeModuleElement
 from sage.libs.gmp.random cimport *

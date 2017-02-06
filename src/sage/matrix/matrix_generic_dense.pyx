@@ -11,7 +11,7 @@ import matrix_dense
 
 cimport matrix
 
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent as parent_c
 
 cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     r"""

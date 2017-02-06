@@ -171,7 +171,7 @@ from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.structure.factory import UniqueFactory
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent
 from sage.structure.sage_object cimport richcmp, richcmp_not_equal
 
 
@@ -545,7 +545,7 @@ class ResidueField_generic(Field):
             4
         """
         K = OK = self.p.ring()
-        R = parent_c(x)
+        R = parent(x)
         if OK.is_field():
             OK = OK.ring_of_integers()
         else:

@@ -35,16 +35,18 @@ interferes with doctests::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import AbstractLinearCode
-from cyclic_code import CyclicCode
-from grs import GeneralizedReedSolomonCode
-from encoder import Encoder
-from decoder import Decoder, DecodingError
+from .linear_code import AbstractLinearCode
+from .cyclic_code import CyclicCode
+from .grs import GeneralizedReedSolomonCode
+from .encoder import Encoder
+from .decoder import Decoder, DecodingError
 from sage.modules.free_module_element import vector
 from sage.misc.misc_c import prod
 from sage.rings.integer import Integer
 from sage.categories.fields import Fields
 from sage.rings.integer_ring import ZZ
+from sage.arith.all import gcd
+from sage.rings.all import Zmod
 from copy import copy
 
 class BCHCode(CyclicCode):
@@ -59,19 +61,22 @@ class BCHCode(CyclicCode):
 
     - ``designed_distance`` -- the resulting minimum distance of the code
 
-    - ``primitive_element`` -- (default: ``None``) the primitive element
-      to use when creating the set of roots for the generating polynomial
-      over the splitting field. It has to be of multiplicative order ``length`` over this
-      field. If the splitting field is not ``field``, it also have to be a polynomial in ``zx``,
-      where ``x`` is the degree of the extension field. For instance,
-      over ``GF(16)``, it has to be a polynomial in ``z4``.
+    - ``primitive_root`` -- (default: ``None``) the primitive root to use when 
+      creating the set of roots for the generating polynomial over the splitting
+      field. It has to be of multiplicative order ``length`` over this field.
+      If the splitting field is not ``field``, it also has to be a polynomial in
+      ``zx``, where ``x`` is the degree of the extension field.
+      For instance, over ``GF(16)``, it has to be a polynomial in ``z4``.
 
-    - ``offset`` -- (default: ``0``) the first element to add in the defining set
+    - ``offset`` -- (default: ``0``) the first element in the defining set
 
-    - ``jump_size`` -- (default: ``1``) the jump size between two elements of the defining set
+    - ``jump_size`` -- (default: ``1``) the jump size between two elements of
+      the defining set. It must be coprime with the multiplicative order of
+      ``primitive_root``.
 
-    - ``b`` -- (default: ``0``) is exactly the same as ``offset``. It is only here
-      for retro-compatibility purposes with the old signature of `BCHCode` and will be removed soon.
+    - ``b`` -- (default: ``0``) is exactly the same as ``offset``. It is only
+      here for retro-compatibility purposes with the old signature of `BCHCode`
+      and will be removed soon.
 
     EXAMPLES::
 
@@ -85,12 +90,12 @@ class BCHCode(CyclicCode):
         as generator polynomial
     """
 
-    def __init__(self, base_field, length, designed_distance, primitive_element = None, offset = 0, jump_size = 1, b = 0):
+    def __init__(self, base_field, length, designed_distance, primitive_root=None, offset=0, jump_size=1, b=0):
         """
         TESTS:
 
-        ``designed_distance`` must be between 2 and ``length`` (inclusive), otherwise an exception
-        will be raised::
+        ``designed_distance`` must be between 2 and ``length`` (inclusive),
+        otherwise an exception is raised::
 
             sage: C = codes.BCHCode(GF(2), 15, 16)
             Traceback (most recent call last):
@@ -106,17 +111,18 @@ class BCHCode(CyclicCode):
             offset = b
         if not base_field in Fields or not base_field.is_finite():
             raise ValueError("base_field has to be a finite field")
-        elif not base_field.is_finite():
-            raise ValueError("base_field has to be a finite field")
+        
+        q = base_field.cardinality()
+        s = Zmod(length)(q).multiplicative_order()
+        if gcd(jump_size, q ** s - 1) != 1:
+            raise ValueError("jump_size must be coprime with the order of "
+                             "the multicative group of the splitting field")
 
-        D = []
-        point = copy(offset)
-        for i in range(0, designed_distance - 1):
-            D.append(point)
-            point = (point + jump_size) % length
+        D = [ (offset + jump_size * i) % length
+              for i in range(designed_distance - 1) ]
 
         try:
-            super(BCHCode, self).__init__(field = base_field, length = length, D = D, primitive_element = primitive_element)
+            super(BCHCode, self).__init__(field = base_field, length = length, D = D, primitive_root = primitive_root)
         except ValueError, e:
             raise e
         self._default_decoder_name = "UnderlyingGRS"
@@ -141,7 +147,7 @@ class BCHCode(CyclicCode):
                 and self.length() == other.length() \
                 and self.jump_size() == other.jump_size() \
                 and self.offset() == self.offset()\
-                and self.primitive_element() == self.primitive_element()
+                and self.primitive_root() == self.primitive_root()
 
     def _repr_(self):
         r"""
@@ -196,6 +202,18 @@ class BCHCode(CyclicCode):
         """
         return self._offset
 
+    def designed_distance(self):
+        r"""
+        Returns the designed distance of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.BCHCode(GF(2), 15, 4, offset = 1)
+            sage: C.designed_distance()
+            4
+        """
+        return self._designed_distance
+
     def bch_to_grs(self):
         r"""
         Returns the underlying GRS code from which ``self`` was derived.
@@ -207,20 +225,18 @@ class BCHCode(CyclicCode):
             [15, 13, 3] Generalized Reed-Solomon Code over Finite Field in z4 of size 2^4
         """
         l = self.jump_size()
-        alpha = self.primitive_element()
         b = self.offset()
         n = self.length()
+        designed_distance = self.designed_distance()
+        grs_dim = n - designed_distance + 1
 
-        grs_dim = n - self.bch_bound(arithmetic = True) + 1
-        evals = []
-        pcm = []
-        for i in range(1, n + 1):
-            evals.append(alpha ** (l * (i - 1)))
-            pcm.append(alpha ** (b * (i - 1)))
+        alpha = self.primitive_root()
+        alpha_l = alpha ** l
+        alpha_b = alpha ** b
+        evals = [ alpha_l ** i for i in range(n) ]
+        pcm = [ alpha_b ** i for i in range(n) ]
 
-
-        multipliers_product = [1/prod([evals[i] - evals[h] for h in range(len(evals)) if h != i])
-                    for i in range(len(evals))]
+        multipliers_product = [1/prod([evals[i] - evals[h] for h in range(n) if h != i]) for i in range(n)]
         column_multipliers = [multipliers_product[i]/pcm[i] for i in range(n)]
 
         return GeneralizedReedSolomonCode(evals, grs_dim, column_multipliers)

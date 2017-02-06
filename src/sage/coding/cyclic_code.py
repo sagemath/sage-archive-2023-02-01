@@ -59,6 +59,8 @@ from .linear_code import (AbstractLinearCode,
                           LinearCodeSyndromeDecoder,
                           LinearCodeNearestNeighborDecoder)
 from .encoder import Encoder
+from .decoder import Decoder
+from copy import copy
 from sage.rings.integer import Integer
 from sage.arith.all import gcd
 from sage.modules.free_module_element import vector
@@ -764,13 +766,18 @@ class CyclicCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.CyclicCode(field = GF(16, 'a'), length = 15, D = [14, 1, 2, 11, 12])
-            sage: C.surrounding_bch_code()
-            [15, 12] BCH Code over Finite Field in a of size 2^4 with x^3 + a^2*x^2 + a*x + a^3 + a^2 + a + 1 as generator polynomial
+            sage: C = codes.CyclicCode(field=GF(2), length=63, D=[1, 7, 17])
+            sage: C.dimension()
+            45
+            sage: CC = C.surrounding_bch_code()
+            sage: CC
+            [63, 51] BCH Code over Finite Field of size 2 with x^12 + x^10 + x^6 + x + 1 as generator polynomial
+            sage: all(r in CC for r in C.generator_matrix())
+            True
         """
-        from bch import BCHCode
-        delta, params = self.bch_bound(arithmetic = True, bch_parameters = True)
-        return BCHCode(self.base_field(), self.length(), delta, offset=params[0], jump_size=params[1])
+        from .bch import BCHCode
+        delta, params = self.bch_bound(arithmetic = True)
+        return BCHCode(self.base_field(), self.length(), delta, offset=params[1], jump_size=params[0])
 
 
 class CyclicCodePolynomialEncoder(Encoder):

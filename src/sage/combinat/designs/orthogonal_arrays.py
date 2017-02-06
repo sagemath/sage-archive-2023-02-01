@@ -1377,8 +1377,8 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
     elif (number_of_holes == 1 and
           any(uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1
               for (nn,lmbda,mu,uu),(kk,_) in iteritems(QDM.get((n,1),{})))):
-        for (nn,lmbda,mu,uu),(kk,f) in iteritems(QDM[n,1])):
-            if uu == sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1:
+        for (nn,lmbda,mu,uu),(kk,f) in iteritems(QDM[n,1]):
+            if uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1:
                 break
         G,M = f()
         OA  = OA_from_quasi_difference_matrix(M,G,fill_hole=False)

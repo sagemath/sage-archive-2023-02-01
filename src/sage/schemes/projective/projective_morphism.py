@@ -3800,12 +3800,12 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             R = RealField()
             #compute the maximum p-adic precision needed to conclusively determine
             #if the rational point exists
-            L = R((R(2 ** (N / 2 + 1) * sqrt(N + 1) * B ** 2).log()) / R(p).log() + 1).trunc()
+            L = R((R(2 ** (N/2 + 1) * sqrt(N+1) * B**2).log()) / R(p).log() + 1).trunc()
 
             points = []
             for i in range(len(points_modp)):
                 #[point mod p, period, current p-adic precision]
-                points.append([points_modp[i][0].change_ring(QQ, check = False), points_modp[i][1], 1])
+                points.append([points_modp[i][0].change_ring(QQ, check=False), points_modp[i][1], 1])
             good_points = []
             #shifts is used in non-Hensel lifting
             shifts = None
@@ -3823,30 +3823,30 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 bad = 0
                 #stop where we reach the needed precision or the point is bad
                 while k < L and bad == 0:
-                    l = self._multipliermod(T, n, p, 2 * k)
+                    l = self._multipliermod(T, n, p, 2*k)
                     l -= l.parent().one() #f^n(x) - x
-                    lp = l.change_ring(Zmod(p ** k))
+                    lp = l.change_ring(Zmod(p**k))
                     ldet = lp.determinant()
                     # if the matrix is invertible then we can Hensel lift
                     if ldet % p != 0:
-                        RQ = ZZ.quo(p ** (2 * k))
+                        RQ = ZZ.quo(p**(2*k))
                         T.clear_denominators()
-                        newT = T.change_ring(RQ, check = False)
-                        fp = self.change_ring(RQ, check = False)
-                        S = newT.nth_iterate(fp, n, normalize = False).change_ring(QQ, check = False)
+                        newT = T.change_ring(RQ, check=False)
+                        fp = self.change_ring(RQ, check=False)
+                        S = newT.nth_iterate(fp, n, normalize=False).change_ring(QQ, check=False)
                         T.scale_by(1 / T[qindex])
                         S.scale_by(1 / S[qindex])
                         newS = list(S)
                         for i in range(N + 1):
                             newS[i] = S[i] - T[i]
-                            if newS[i] % (p ** k) != 0 and i != N:
+                            if newS[i] % (p**k) != 0 and i != N:
                                 bad = 1
                                 break
                         if bad == 1:
                             break
                         S = PS.point(newS, False)
-                        S.scale_by(-1 / p ** k)
-                        vecs = [Zmod(p ** k)(S._coords[iS]) for iS in range(N + 1)]
+                        S.scale_by(-1 / p**k)
+                        vecs = [Zmod(p**k)(S._coords[iS]) for iS in range(N + 1)]
                         vecs.pop(qindex)
                         newvecs = list((lp.inverse()) * vector(vecs)) #l.inverse should be mod p^k!!
                         newS = []
@@ -3854,22 +3854,22 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                         newS.append(0)
                         [newS.append(QQ(newvecs[i])) for i in range(qindex, N)]
                         for i in range(N + 1):
-                            newS[i] = newS[i] % (p ** k)
+                            newS[i] = newS[i] % (p**k)
                         S = PS.point(newS, False) #don't check for [0,...,0]
                         newT = list(T)
                         for i in range(N + 1):
-                            newT[i] += S[i] * (p ** k)
+                            newT[i] += S[i] * (p**k)
                         T = PS.point(newT, False)
                         T.normalize_coordinates()
                         #Hensel gives us 2k for the newprecision
-                        k = min(2 * k, L)
+                        k = min(2*k, L)
                     else:
                         #we are unable to Hensel Lift so must try all possible lifts
                         #to the next precision (k+1)
                         first = 0
                         newq = []
-                        RQ = Zmod(p ** (k + 1))
-                        fp = self.change_ring(RQ, check = False)
+                        RQ = Zmod(p**(k+1))
+                        fp = self.change_ring(RQ, check=False)
                         if shifts is None:
                             shifts = xmrange([p for i in range(N)])
                         for shift in shifts:
@@ -3877,18 +3877,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                             shiftindex = 0
                             for i in range(N + 1):
                                 if i != qindex:
-                                    newT[i] = newT[i] + shift[shiftindex] * p ** k
+                                    newT[i] = newT[i] + shift[shiftindex] * p**k
                                     shiftindex += 1
                             newT = fp.domain().point(newT, check=False)
-                            TT = fp.nth_iterate(newT, n, normalize = False)
+                            TT = fp.nth_iterate(newT, n, normalize=False)
                             if TT == newT:
                                 if first == 0:
-                                    newq.append(newT.change_ring(QQ, check = False))
+                                    newq.append(newT.change_ring(QQ, check=False))
                                     newq.append(n)
                                     newq.append(k + 1)
                                     first = 1
                                 else:
-                                    points.append([newT.change_ring(QQ, check = False), n, k + 1])
+                                    points.append([newT.change_ring(QQ, check=False), n, k+1])
                         if newq == []:
                             bad = 1
                             break
@@ -3903,8 +3903,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                     T.clear_denominators()
                     for i in range(N + 1):
                         M[0, i] = T[i]
-                        M[i + 1, i] = p ** L
-                    M[N + 1, N] = p ** L
+                        M[i+1, i] = p**L
+                    M[N+1, N] = p**L
                     M = M.LLL()
                     Q = []
                     [Q.append(M[1, i]) for i in range(N + 1)]
@@ -3922,10 +3922,10 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                         newP = copy(P)
                         k = 1
                         done = False
-                        while done == False and k <= n:
+                        while not done and k <= n:
                               newP = self(newP)
                               if newP == P:
-                                  if ([P, k] in good_points) == False:
+                                  if not ([P, k] in good_points):
                                       good_points.append([newP, k])
                                   done = True
                               k += 1

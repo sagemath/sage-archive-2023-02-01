@@ -103,7 +103,6 @@ from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
 from sage.categories.morphism import Morphism
-from copy import copy
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 coercion_model = get_coercion_model()

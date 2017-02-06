@@ -18,6 +18,8 @@ from sage.rings.infinity import Infinity
 from sage.rings.ring import CommutativeRing
 from sage.categories.homset import Hom
 from sage.structure.element cimport Element
+from sage.structure.sage_object cimport (richcmp, rich_to_bool,
+                                         richcmp_not_equal)
 
 from sage.rings.morphism cimport RingHomomorphism
 from padic_generic import pAdicGeneric
@@ -169,7 +171,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
     def power(self):
         """
-        Return the smallest integer `n` such that this endormorphism
+        Return the smallest integer `n` such that this endomorphism
         is the `n`-th power of the absolute (arithmetic) Frobenius.
 
         EXAMPLES::
@@ -292,22 +294,31 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         codomain = self.codomain()
         return hash((domain,codomain,('Frob',self._power)))
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare left and right
         """ 
-        if left is right: return 0
-        domain = left.domain()
-        c = cmp(domain,right.domain())
-        if c: return c
-        c = cmp(left.codomain(),right.codomain())
-        if c: return c
+        if left is right:
+            return rich_to_bool(op, 0)
+        l_domain = left.domain()
+        r_domain = right.domain()
+        if l_domain != r_domain:
+            return richcmp_not_equal(l_domain, r_domain, op)
+
+        l_codomain = left.codomain()
+        r_codomain = right.codomain()
+        if l_codomain != r_codomain:
+            return richcmp_not_equal(l_codomain, r_codomain, op)
+
         if isinstance(right, FrobeniusEndomorphism_padics):
-            return cmp(left._power, (<FrobeniusEndomorphism_padics>right)._power)
+            return richcmp(left._power, (<FrobeniusEndomorphism_padics>right)._power, op)
+
         try:
-            gens = domain.gens()
-            for x in gens:
-                c = cmp(left(x),right(x))
-                if c: return c
+            for x in l_domain.gens():
+                lx = left(x)
+                rx = right(x)
+                if lx != rx:
+                    return richcmp_not_equal(lx, rx, op)
+            return rich_to_bool(op, 0)
         except (AttributeError, NotImplementedError):
             raise NotImplementedError

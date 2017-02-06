@@ -58,13 +58,13 @@ For some infinite sums, a closed expression can be found. By default, "maxima" i
     sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
     -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
 
-Maxima has some flags that affect how the result gets simplified(By default, besselexpand was set to false in Maxima)::
+Maxima has some flags that affect how the result gets simplified (By default, besselexpand is false in Maxima; however in 5.39 this test does not show any difference, as, apparently, another expansion path is used)::
 
     sage: maxima_calculus("besselexpand:false")
     false
     sage: x,n,k = var("x","n","k")
     sage: sum((-x)^n/(factorial(n)*factorial(n+3/2)),n,0,oo)
-    bessel_J(3/2, 2*sqrt(x))/x^(3/4)
+    -1/2*(2*x*cos(2*sqrt(x)) - sqrt(x)*sin(2*sqrt(x)))/(sqrt(pi)*x^2)
     sage: maxima_calculus("besselexpand:true")
     true
 
@@ -719,9 +719,10 @@ class MaximaLib(MaximaAbstract):
             sage: integrate(sgn(x) - sgn(1-x), x)
             abs(x - 1) + abs(x)
 
-        ::
+        This is a known bug in Sage symbolic limits code, see
+        :trac:`17892` and https://sourceforge.net/p/maxima/bugs/3237/ ::
 
-            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
+            sage: integrate(1 / (1 + abs(x-5)), x, -5, 6) # not tested -- known bug
             log(11) + log(2)
 
         ::
@@ -1087,7 +1088,7 @@ class MaximaLibElement(MaximaAbstractElement):
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: sol = maxima_lib(sin(x) == 0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == pi*z54]]
+            [[x == pi*z...]]
         """
         if options.find("use_grobner=true") != -1:
             cmd=EclObject([[max_to_poly_solve], self.ecl(), sr_to_max(vars),

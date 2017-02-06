@@ -8811,6 +8811,38 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     raise ValueError("not a %s power"%m.ordinal_str())
             raise ValueError("not a %s power"%m.ordinal_str())
 
+    def specialization(self, D=None, phi=None):
+        r"""
+        Specialization of this polynomial.
+
+        Given a family of polynomials defined over a polynomial ring. A specialization
+        is a particular member of that family. The specialization can be specified either
+        by a dictionary or a :class:`SpecializationMorphism`.
+
+        INPUT:
+
+        - ``D`` -- dictionary (optional)
+
+        - ``phi`` -- SpecializationMorphism (optional)
+
+        OUTPUT: a new polynomial
+
+        EXAMPLES::
+
+            sage: R.<c> = PolynomialRing(ZZ)
+            sage: S.<z> = PolynomialRing(R)
+            sage: F = c*z^2 + c^2
+            sage: F.specialization(dict({c:2}))
+            2*z^2 + 4
+        """
+        if D is None:
+            if phi is None:
+                raise ValueError("either the dictionary or the specialization must be provided")
+        else:
+            from sage.rings.polynomial.flatten import SpecializationMorphism
+            phi = SpecializationMorphism(self.parent(),D)
+        return phi(self)
+
     def _log_series(self, long n):
         r"""
         Return the power series expansion of logarithm of this polynomial,
@@ -8966,6 +8998,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -1/3*x^3 + x
         """
         raise NotImplementedError
+
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

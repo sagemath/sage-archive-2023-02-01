@@ -1,3 +1,6 @@
+# Use sys.getdefaultencoding() to convert Unicode strings to <char*>
+#
+# cython: c_string_encoding=default
 """
 Sage class for PARI's GEN type
 
@@ -69,9 +72,10 @@ from __future__ import absolute_import, division, print_function
 import types
 cimport cython
 
-from cpython.string cimport PyString_AsString
 from cpython.int cimport PyInt_Check
 from cpython.long cimport PyLong_Check
+from cpython.bytes cimport PyBytes_Check
+from cpython.unicode cimport PyUnicode_Check
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.complex cimport PyComplex_RealAsDouble, PyComplex_ImagAsDouble
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
@@ -459,8 +463,7 @@ cdef class Gen(Gen_auto):
             ...
             PariError: not a function in function call
         """
-        cdef str s = "_." + attr
-        cdef char *t = PyString_AsString(s)
+        t = "_." + attr
         sig_on()
         return new_gen(closure_callgen1(strtofunction(t), self.g))
 
@@ -3640,7 +3643,7 @@ cdef class Gen(Gen_auto):
             sage: pari('1/x + O(x^2)').eval(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: substituting 0 in Laurent series with negative valuation
+            PariError: impossible inverse in gsubst: 0
             sage: pari('1/x + O(x^2)').eval(pari('O(x^3)'))
             Traceback (most recent call last):
             ...
@@ -3648,7 +3651,7 @@ cdef class Gen(Gen_auto):
             sage: pari('O(x^0)').eval(0)
             Traceback (most recent call last):
             ...
-            PariError: domain error in polcoeff: t_SER = O(x^0)
+            PariError: forbidden substitution t_SER , t_INT
 
         Evaluating multivariate polynomials::
 
@@ -3765,20 +3768,6 @@ cdef class Gen(Gen_auto):
             if t == t_POL or t == t_RFRAC:
                 return new_gen(poleval(self.g, t0.g))
             else:  # t == t_SER
-                if isexactzero(t0.g):
-                    # Work around the fact that PARI currently doesn't
-                    # support substituting exact 0 in a power series.
-                    # We don't try to imitate this when using keyword
-                    # arguments, and hope this will be fixed in a
-                    # future PARI version.
-                    if valp(self.g) < 0:
-                        sig_off()
-                        raise ZeroDivisionError('substituting 0 in Laurent series with negative valuation')
-                    elif valp(self.g) == 0:
-                        return new_gen(polcoeff0(self.g, 0, -1))
-                    else:
-                        sig_off()
-                        return pari_instance.PARI_ZERO
                 return new_gen(gsubst(self.g, varn(self.g), t0.g))
 
         # Call substvec() using **kwds
@@ -4453,6 +4442,13 @@ cpdef Gen objtogen(s):
         (1.20000000000000, 't_REAL', 4)  # 32-bit
         (1.20000000000000, 't_REAL', 3)  # 64-bit
 
+    Unicode and bytes work fine::
+
+        sage: pari(b"zeta(3)")
+        1.20205690315959
+        sage: pari(u"zeta(3)")
+        1.20205690315959
+
     But we can change this precision::
 
         sage: pari.set_real_precision(35)  # precision in decimal digits
@@ -4529,15 +4525,15 @@ cpdef Gen objtogen(s):
 
     # Check basic Python types. Start with strings, which are a very
     # common case.
-    if isinstance(s, str):
+    # This generates slightly more efficient code than
+    # isinstance(s, (unicode, bytes))
+    if PyUnicode_Check(s) | PyBytes_Check(s):
         sig_on()
-        g = gp_read_str(PyString_AsString(s))
+        g = gp_read_str(s)
         if g == gnil:
             clear_stack()
             return None
         return new_gen(g)
-    # This generates slightly more efficient code than
-    # isinstance(s, (int, long))
     if PyInt_Check(s) | PyLong_Check(s):
         return integer_to_gen(s)
     if isinstance(s, bool):

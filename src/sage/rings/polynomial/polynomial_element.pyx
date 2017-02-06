@@ -464,11 +464,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         :class:`~sage.rings.polynomial.polynomial_compiled.CompiledPolynomialFunction`
         depending on the polynomial's degree.
 
-        Element classes may define a method called `_evaluate_polynomial` to
-        provide an alternative evaluation algorithm for a given argument type.
-        Note that `_evaluated_polynomial` may not always be used: for instance,
-        subclasses dedicated to specific coefficient rings typically do not
-        call it.
+        Element classes may define a method called ``_evaluate_polynomial``
+        to provide an alternative evaluation algorithm for a given argument
+        type. Note that ``_evaluated_polynomial`` may not always be used:
+        for instance, subclasses dedicated to specific coefficient rings
+        typically do not call it.
 
         EXAMPLES::
 
@@ -686,6 +686,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             TypeError: Wrong number of arguments
 
+        Check that :trac:`22317` is fixed::
+
+            sage: R = ZZ['x']['y']['z']
+            sage: d = R.gens_dict_recursive()
+            sage: p = d['x'] * d['z']
+            sage: p(x=QQ(0))
+            0
+
         AUTHORS:
 
         -  David Joyner (2005-04-10)
@@ -759,6 +767,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if (isinstance(tgt, type)
                 or (<Parent> tgt).get_action(parent(a), operator.mul) is None):
                 a = aa
+
+        d = min(d, pol.degree())
 
         if d <= 0 or (isinstance(a, Element)
                       and a.parent().is_exact() and a.is_zero()):
@@ -3585,7 +3595,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             {0: 13, 1: -1/7, 3: 1}
         """
         X = {}
-        Y = self.list()
+        Y = self.list(copy=False)
         for i in xrange(len(Y)):
             c = Y[i]
             if c:
@@ -8181,10 +8191,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
     # alias hamming_weight for number_of_terms:
     hamming_weight = number_of_terms
 
-    def map_coefficients(self, f, new_base_ring = None):
+    def map_coefficients(self, f, new_base_ring=None):
         """
         Returns the polynomial obtained by applying ``f`` to the non-zero
-        coefficients of self.
+        coefficients of ``self``.
 
         If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
         polynomial will be defined over the codomain of ``f``. Otherwise, the
@@ -8242,7 +8252,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             R = R.change_ring(new_base_ring)
         elif isinstance(f, Map):
             R = R.change_ring(f.codomain())
-        return R(dict([(k,f(v)) for (k,v) in self.dict().items()]))
+        return R({k: f(v) for (k,v) in self.dict().items()})
 
     def is_cyclotomic(self, certificate=False, algorithm="pari"):
         r"""

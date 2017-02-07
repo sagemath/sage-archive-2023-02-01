@@ -233,9 +233,9 @@ class Encoder(SageObject):
             )
         """
         info_set = self.code().information_set()
-        Gt = self.generator_matrix().matrix_from_columns(info_set)
-        M = (Gt.inverse(), info_set)
-        M.set_immutable()
+        Gtinv = self.generator_matrix().matrix_from_columns(info_set).inverse()
+        Gtinv.set_immutable()
+        M = (Gtinv, info_set)
         return M
 
     def unencode_nocheck(self, c):

@@ -1672,6 +1672,8 @@ class AbstractLinearCode(Module):
             sage: word = vector((0, 1, 1, 0))
             sage: C.encode(word)
             (1, 1, 0, 0, 1, 1, 0)
+            sage: C(word)
+            (1, 1, 0, 0, 1, 1, 0)
 
         It is possible to manually choose the encoder amongst the list of the available ones::
 

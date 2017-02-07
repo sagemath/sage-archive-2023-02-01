@@ -201,6 +201,7 @@ class ParityCheckCodeGeneratorMatrixEncoder(LinearCodeGeneratorMatrixEncoder):
         field = self.code().base_field()
         G = identity_matrix(field, k)
         G = G.augment(vector(field, [-field.one()] * k))
+        G.set_immutable()
         return G
 
 

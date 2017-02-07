@@ -403,6 +403,12 @@ class AbstractLinearCode(Module):
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
 
+    - Add the following two lines on the class level::
+
+          _registered_encoders = {}
+          _registered_decoders = {}
+
+
     - fill the dictionary of its encoders in ``sage.coding.__init__.py`` file. Example:
       I want to link the encoder ``MyEncoderClass`` to ``MyNewCodeClass``
       under the name ``MyEncoderName``.

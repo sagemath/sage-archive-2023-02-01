@@ -980,7 +980,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         TESTS::
 
             sage: F = AbelianGroup(3, [2], names='abc')
-            sage: map(type, F.gens_orders())
+            sage: list(map(type, F.gens_orders()))
             [<type 'sage.rings.integer.Integer'>,
              <type 'sage.rings.integer.Integer'>,
              <type 'sage.rings.integer.Integer'>]
@@ -1028,7 +1028,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         TESTS::
 
             sage: F = AbelianGroup(3, [2], names='abc')
-            sage: map(type, F.gens_orders())
+            sage: list(map(type, F.gens_orders()))
             [<type 'sage.rings.integer.Integer'>,
              <type 'sage.rings.integer.Integer'>,
              <type 'sage.rings.integer.Integer'>]

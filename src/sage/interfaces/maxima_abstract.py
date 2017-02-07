@@ -426,7 +426,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.35.1'
+            '5.39.0'
         """
         return maxima_version()
 
@@ -845,7 +845,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             sage: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'])
             y=%k1*%e^x+%k2*%e^-x+3*x
             sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'])
-            y=(%c-3*(-x-1)*%e^-x)*%e^x
+            y=(%c-3*((-x)-1)*%e^-x)*%e^x
             sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
             y=-%e^-1*(5*%e^x-3*%e*x-3*%e)
         """
@@ -1572,7 +1572,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         ::
 
             sage: f = maxima('exp(x^2)').integral('x',0,1); f
-            -sqrt(%pi)*%i*erf(%i)/2
+            -(sqrt(%pi)*%i*erf(%i))/2 
             sage: f.numer()
             1.46265174590718...
         """
@@ -1759,7 +1759,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             sage: y,d = var('y,d')
             sage: f = function('f')
             sage: latex(maxima(derivative(f(x*y), x)))
-            \left(\left.{{{\it \partial}}\over{{\it \partial}\,  {\it t_0}}}\,f\left({\it t_0}\right)  \right|_{\left[ {\it t_0}={\it x}\,  {\it y} \right] }\right)\,{\it y}
+            \left(\left.{{{\it \partial}}\over{{\it \partial}\,  {\it t_0}}}\,f\left({\it t_0}\right)  \right|_{{\it t_0}={\it x}\,  {\it y}}\right)\,{\it y}
             sage: latex(maxima(derivative(f(x,y,d), d,x,x,y)))
             {{{\it \partial}^4}\over{{\it \partial}\,{\it d}\,  {\it \partial}\,{\it x}^2\,{\it \partial}\,  {\it y}}}\,f\left({\it x} ,  {\it y} , {\it d}\right)
             sage: latex(maxima(d/(d-2)))
@@ -2213,7 +2213,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.35.1'
+        '5.39.0'
     """
     return os.popen('maxima --version').read().split()[-1]
 

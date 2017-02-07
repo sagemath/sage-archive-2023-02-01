@@ -285,7 +285,7 @@ cdef object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExV
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)
         len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>,
-          <type 'int'>,        # 64-bit
+          <... 'int'>,        # 64-bit
           <type 'long'>,       # 32-bit
           <type 'sage.symbolic.expression.Expression'>]
         x
@@ -1793,7 +1793,7 @@ cdef object py_atan2(object x, object y) except +:
         sage: plot(real(sqrt(x - 1.*I)), (x,0,1))
         Graphics object consisting of 1 graphics primitive
     """
-    from sage.symbolic.constants import pi
+    from sage.symbolic.constants import pi, NaN
     parent = parent_c(x)
     if parent is float and parent_c(y) is not float:
         parent = RR
@@ -1814,7 +1814,7 @@ cdef object py_atan2(object x, object y) except +:
         if x > 0:
             return 0
         elif x == 0:
-            raise ValueError("arctan2(0,0) undefined")
+            return parent(NaN)
         else:
             return pi_n
 

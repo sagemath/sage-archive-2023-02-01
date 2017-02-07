@@ -226,17 +226,17 @@ e floats, como ilustrado:
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # you can use either single or double quotes
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 Além disso, o Sage acrescenta vários outros tipos. Por exemplo,
 espaços vetoriais:
@@ -317,7 +317,7 @@ computacional), os elementos da lista são indexados a partir do
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -388,7 +388,7 @@ vez criadas elas não podem ser alteradas.
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...   
@@ -431,7 +431,7 @@ lugar que listas são usadas.
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 Como um outro exemplo, bases para espaços vetoriais são sequências
 imutáveis, pois é importante que elas não sejam modificadas.
@@ -466,7 +466,7 @@ para detalhes).
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']

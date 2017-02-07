@@ -327,7 +327,7 @@ class SuffixTrie(SageObject):
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words("cao")("cacao")
             sage: t = SuffixTrie(w)
-            sage: map(t.suffix_link, range(13))
+            sage: list(map(t.suffix_link, range(13)))
             [-1, 0, 3, 0, 5, 1, 7, 2, 9, 10, 11, 12, 0]
             sage: t.suffix_link(0)
             -1
@@ -1160,7 +1160,7 @@ class ImplicitSuffixTree(SageObject):
             sage: t = ImplicitSuffixTree(Word("cacao"))
             sage: t.number_of_factors()
             13
-            sage: map(t.number_of_factors, range(10))
+            sage: list(map(t.number_of_factors, range(10)))
             [1, 3, 3, 3, 2, 1, 0, 0, 0, 0]
 
         ::
@@ -1183,7 +1183,7 @@ class ImplicitSuffixTree(SageObject):
             sage: blueberry = ImplicitSuffixTree(Word("blueberry"))
             sage: blueberry.number_of_factors()
             43
-            sage: map(blueberry.number_of_factors, range(10))
+            sage: list(map(blueberry.number_of_factors, range(10)))
             [1, 6, 8, 7, 6, 5, 4, 3, 2, 1]
         """
         if n is None:

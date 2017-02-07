@@ -1628,7 +1628,7 @@ end_scene""" % (render_params.antialiasing,
 
         .. WARNING::
 
-            This only works for triangulated surfaces!
+            This only works for surfaces, not for general plot objects!
 
         INPUT:
 
@@ -1665,6 +1665,18 @@ end_scene""" % (render_params.antialiasing,
                 endloop
             endfacet
             endsolid triangle
+
+        Now works when faces have more then 3 sides::
+
+            sage: P = polytopes.dodecahedron()
+            sage: Q = P.plot().all[-1]
+            sage: Q.stl_ascii_string().splitlines()[:6]
+            ['solid surface',
+            'facet normal 0.850650808352 -0.0 0.525731112119',
+            '    outer loop',
+            '        vertex 1.2360679775 -0.472135955 0.0',
+            '        vertex 1.2360679775 0.472135955 0.0',
+            '        vertex 0.7639320225 0.7639320225 0.7639320225']
         """
         from sage.modules.free_module import FreeModule
         RR3 = FreeModule(RDF, 3)
@@ -1674,9 +1686,6 @@ end_scene""" % (render_params.antialiasing,
             self.triangulate()
             faces = self.face_list()
 
-        if len(faces[0]) > 3:
-            raise ValueError('not made of triangles')
-
         code = ("facet normal {} {} {}\n"
                 "    outer loop\n"
                 "        vertex {} {} {}\n"
@@ -1685,8 +1694,21 @@ end_scene""" % (render_params.antialiasing,
                 "    endloop\n"
                 "endfacet\n")
 
+        faces_iter = faces.__iter__()
+
+        def chopped_faces_iter():
+            for face in faces_iter:
+                n = len(face)
+                if n == 3:
+                    yield face
+                else:
+                    # naive cut into triangles
+                    v = face[-1]
+                    for i in range(n - 2):
+                        yield [v, face[i], face[i + 1]]
+
         string_list = ["solid {}\n".format(name)]
-        for i, j, k in faces:
+        for i, j, k in chopped_faces_iter():
             ij = RR3(j) - RR3(i)
             ik = RR3(k) - RR3(i)
             n = ij.cross_product(ik)

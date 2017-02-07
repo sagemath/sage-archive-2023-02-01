@@ -14,9 +14,18 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
 - :class:`grs.GRSEvaluationVectorEncoder <sage.coding.grs.GRSEvaluationVectorEncoder>`
 - :class:`grs.GRSEvaluationPolynomialEncoder <sage.coding.grs.GRSEvaluationPolynomialEncoder>`
 
+**Cyclic code encoders**
+
+- :func:`cyclic_code.CyclicCodePolynomialEncoder <sage.coding.cyclic_code.CyclicCodePolynomialEncoder>`
+- :func:`cyclic_code.CyclicCodeVectorEncoder <sage.coding.cyclic_code.CyclicCodeVectorEncoder>`
+
 **Extended code encoders**
 
 - :class:`extended_code.ExtendedCodeExtendedMatrixEncoder <sage.coding.extended_code.ExtendedCodeExtendedMatrixEncoder>`
+
+**Punctured code encoders**
+
+- :class:`punctured_code.PuncturedCodePuncturedMatrixEncoder <sage.punctured_code.PuncturedCodePuncturedMatrixEncoder>`
 
 .. NOTE::
 
@@ -39,6 +48,8 @@ _lazy_import('sage.coding.linear_code', ['LinearCodeGeneratorMatrixEncoder',
                                          'LinearCodeParityCheckEncoder',
                                          'LinearCodeSystematicEncoder'])
 _lazy_import('sage.coding.grs', ['GRSEvaluationVectorEncoder', 'GRSEvaluationPolynomialEncoder'])
+_lazy_import('sage.coding.cyclic_code', ['CyclicCodePolynomialEncoder',
+                                         'CyclicCodeVectorEncoder'])
 _lazy_import('sage.coding.reed_muller_code', ['ReedMullerVectorEncoder', 'ReedMullerPolynomialEncoder'])
 _lazy_import('sage.coding.extended_code', 'ExtendedCodeExtendedMatrixEncoder')
 _lazy_import('sage.coding.punctured_code', 'PuncturedCodePuncturedMatrixEncoder')

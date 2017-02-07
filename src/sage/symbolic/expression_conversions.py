@@ -533,7 +533,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=exp(x)); a
             D[0](f)(e^x)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=%e^_SAGE_VAR_x])
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),_SAGE_VAR_t0=%e^_SAGE_VAR_x)
             sage: bool(b.sage() == a)
             True
 
@@ -542,7 +542,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=4); a
             D[0](f)(4)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4])
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -562,7 +562,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4); a
             D[0](f)(4, y)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=_SAGE_VAR_y])
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_y),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -571,7 +571,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4).subs(y=8); a
             D[0](f)(4, 8)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=8])
+            %at('diff('f(_SAGE_VAR_t0,8),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -963,6 +963,10 @@ def algebraic(ex, field):
 class PolynomialConverter(Converter):
     def __init__(self, ex, base_ring=None, ring=None):
         """
+        A converter from symbolic expressions to polynomials.
+
+        See :func:`polynomial` for details.
+
         EXAMPLES::
 
             sage: from sage.symbolic.expression_conversions import PolynomialConverter
@@ -989,8 +993,6 @@ class PolynomialConverter(Converter):
             Traceback (most recent call last):
             ...
             TypeError: y is not a variable of Univariate Polynomial Ring in x over Rational Field
-
-
         """
         if not (ring is None or base_ring is None):
             raise TypeError("either base_ring or ring must be specified, but not both")
@@ -1131,10 +1133,21 @@ class PolynomialConverter(Converter):
 
 def polynomial(ex, base_ring=None, ring=None):
     """
-    Returns a polynomial from the symbolic expression *ex*.  Either a
-    base ring *base_ring* or a polynomial ring *ring* can be specified
-    for the parent of result.  If just a base ring is given, then the variables
-    of the base ring will be the variables of the expression *ex*.
+    Return a polynomial from the symbolic expression ``ex``.
+
+    INPUT:
+
+    - ``ex`` -- a symbolic expression.
+
+    - ``base_ring``, ``ring`` -- Either a
+      ``base_ring`` or a polynomial ``ring`` can be
+      specified for the parent of result.
+      If just a ``base_ring`` is given, then the variables
+      of the ``base_ring`` will be the variables of the expression ``ex``.
+
+    OUTPUT:
+
+    A polynomial.
 
     EXAMPLES::
 
@@ -1180,6 +1193,74 @@ def polynomial(ex, base_ring=None, ring=None):
     converter = PolynomialConverter(ex, base_ring=base_ring, ring=ring)
     res = converter()
     return converter.ring(res)
+
+
+class LaurentPolynomialConverter(PolynomialConverter):
+    def __init__(self, ex, base_ring=None, ring=None):
+        """
+        A converter from symbolic expressions to laurent polynomials.
+
+        See :func:`laurent_polynomial` for details.
+
+        TESTS::
+
+            sage: from sage.symbolic.expression_conversions import LaurentPolynomialConverter
+            sage: x, y = var('x,y')
+            sage: p = LaurentPolynomialConverter(x+1/y, base_ring=QQ)
+            sage: p.base_ring
+            Rational Field
+            sage: p.ring
+            Multivariate Laurent Polynomial Ring in x, y over Rational Field
+        """
+        super(LaurentPolynomialConverter, self).__init__(ex, base_ring, ring)
+
+        if ring is None and base_ring is not None:
+            from sage.rings.all import LaurentPolynomialRing
+            self.ring = LaurentPolynomialRing(self.base_ring, names=self.varnames)
+
+
+def laurent_polynomial(ex, base_ring=None, ring=None):
+    """
+    Return a laurent polynomial from the symbolic expression ``ex``.
+
+    INPUT:
+
+    - ``ex`` -- a symbolic expression.
+
+    - ``base_ring``, ``ring`` -- Either a
+      ``base_ring`` or a laurent polynomial ``ring`` can be
+      specified for the parent of result.
+      If just a ``base_ring`` is given, then the variables
+      of the ``base_ring`` will be the variables of the expression ``ex``.
+
+    OUTPUT:
+
+    A laurent polynomial.
+
+    EXAMPLES::
+
+         sage: from sage.symbolic.expression_conversions import laurent_polynomial
+         sage: f = x^2 + 2/x
+         sage: laurent_polynomial(f, base_ring=QQ)
+         2*x^-1 + x^2
+         sage: _.parent()
+         Univariate Laurent Polynomial Ring in x over Rational Field
+
+         sage: laurent_polynomial(f, ring=LaurentPolynomialRing(QQ, 'x, y'))
+         x^2 + 2*x^-1
+         sage: _.parent()
+         Multivariate Laurent Polynomial Ring in x, y over Rational Field
+
+         sage: x, y = var('x, y')
+         sage: laurent_polynomial(x + 1/y^2, ring=LaurentPolynomialRing(QQ, 'x, y'))
+         x + y^-2
+         sage: _.parent()
+         Multivariate Laurent Polynomial Ring in x, y over Rational Field
+    """
+    converter = LaurentPolynomialConverter(ex, base_ring=base_ring, ring=ring)
+    res = converter()
+    return converter.ring(res)
+
 
 ##############
 # Fast Float #

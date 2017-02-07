@@ -629,6 +629,18 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         ks6[3, 3, 1, 1] + ks6[4, 2, 1, 1] + (t+1)*ks6[4, 3, 1] + t*ks6[4, 4]
         + ks6[5, 1, 1, 1] + ks6[5, 2, 1] + t*ks6[5, 3] + ks6[6, 1, 1]
 
+    The `k`-split basis is a second basis of the ring spanned by the `k`-Schur
+    functions with a parameter `t`.  The `k`-split basis has the property that
+    `Q'_\lambda[X;t]` expands positively in the `k`-split basis and the
+    `k`-split basis conjecturally expands positively in the `k`-Schur functions.
+    The definition can be found in [LLMSSZ]_ p. 81.::
+
+        sage: ksp3 = SymS3.ksplit()
+        sage: ksp3(Qp[2,1,1,1])
+        ksp3[2, 1, 1, 1] + t^2*ksp3[2, 2, 1] + (t^3+t^2)*ksp3[3, 1, 1] + t^4*ksp3[3, 2]
+        sage: [ks(ksp3(la)) for la in ksp3(Qp[2,1,1,1]).support()]
+        [ks3[2, 2, 1], ks3[2, 1, 1, 1] + t*ks3[2, 2, 1], ks3[3, 2], ks3[3, 1, 1]]
+
     .. rubric:: dual `k`-Schur functions
 
     The dual space to the subspace spanned by the `k`-Schur functions is most naturally
@@ -1502,6 +1514,26 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             s[2, 2, 1] + t*s[3, 2]
         """
         return self.kBoundedSubspace(k, t=t).kschur()
+
+    def ksplit(self, k, t ='t'):
+        r"""
+        Returns the `k`-split basis of the `k`-bounded subspace.
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: ksp = Sym.ksplit(3,1)
+            sage: ksp[2]*ksp[2]
+            ksp3[2, 2] + ksp3[3, 1]
+            sage: ksp[2,1,1].lift()
+            s[2, 1, 1] + s[2, 2] + s[3, 1]
+
+            sage: Sym = SymmetricFunctions(QQ['t'])
+            sage: ksp = Sym.ksplit(3)
+            sage: ksp[2,1,1].lift()
+            s[2, 1, 1] + t*s[2, 2] + t*s[3, 1]
+        """
+        return self.kBoundedSubspace(k, t=t).ksplit()
 
     def khomogeneous(self, k):
         r"""

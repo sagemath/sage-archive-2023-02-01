@@ -1089,8 +1089,8 @@ class Cusp(Element):
             sage: G=Gamma1(48)
             sage: C=G.cusps()
             sage: for i in Integers(48).unit_gens():
-            ...     C_permuted = [G.reduce_cusp(c.galois_action(i,48)) for c in C]
-            ...     assert len(set(C_permuted))==len(C)
+            ....:   C_permuted = [G.reduce_cusp(c.galois_action(i,48)) for c in C]
+            ....:   assert len(set(C_permuted))==len(C)
 
         We test that Gamma1(19) has 9 rational cusps and check that :trac:`8998`
         is fixed. ::

@@ -851,7 +851,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-CC.0/3*y^2, y^2])
             sage: f.dynatomic_polynomial(2)
-            0.666666666666667*x^2 + 0.333333333333333*y^2
+            2.00000000000000*x^2 + 0.999999999999999*y^2
 
         ::
 

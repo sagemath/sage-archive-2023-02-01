@@ -252,11 +252,11 @@ cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
 
 cimport real_mpfr
-from real_mpfr cimport RealField_class, RealNumber, RealField
+from .real_mpfr cimport RealField_class, RealNumber, RealField
 from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDZ, MPFR_RNDU, MPFR_RNDD, MPFR_RNDA
 
-from integer cimport Integer
-from real_double cimport RealDoubleElement
+from .integer cimport Integer
+from .real_double cimport RealDoubleElement
 
 import sage.rings.complex_field
 import sage.rings.infinity

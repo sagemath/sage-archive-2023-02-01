@@ -23,7 +23,7 @@ AUTHORS:
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
 from sage.libs.gsl.all cimport *
-import sage.gsl.interpolation
+import sage.calculus.interpolation
 
 
 cdef class PyFunctionWrapper:
@@ -32,11 +32,8 @@ cdef class PyFunctionWrapper:
     cdef object the_parameters
     cdef int y_n
 
-
-
     cdef set_yn(self,x):
         self.y_n = x
-
 
 cdef class ode_system:
     cdef int  c_j(self,double t, double *y, double *dfdy,double *dfdt): #void *params):
@@ -45,15 +42,13 @@ cdef class ode_system:
     cdef int c_f(self,double t, double* y, double* dydt):  #void *params):
         return 0
 
-
-
-
 cdef int c_jac_compiled(double t, double *y, double *dfdy,double *dfdt, void * params):
     cdef int status
     cdef ode_system wrapper
     wrapper = <ode_system> params
     status = wrapper.c_j(t,y,dfdy,dfdt)    #Could add parameters
     return status
+
 cdef int c_f_compiled(double t, double *y, double *dydt, void *params):
     cdef int status
     cdef ode_system wrapper
@@ -62,7 +57,6 @@ cdef int c_f_compiled(double t, double *y, double *dydt, void *params):
     return status
 
 cdef int c_jac(double t,double *y,double *dfdy,double *dfdt,void *params):
-
     cdef int i
     cdef int j
     cdef int y_n
@@ -110,9 +104,6 @@ cdef int c_f(double t,double* y, double* dydt,void *params):
         return GSL_SUCCESS
     except Exception:
         return -1
-
-
-
 
 class ode_solver(object):
     r"""
@@ -307,11 +298,11 @@ class ode_solver(object):
     .. code-block:: cython
 
           %cython
-          cimport sage.gsl.ode
-          import sage.gsl.ode
+          cimport sage.calculus.ode
+          import sage.calculus.ode
           from sage.libs.gsl.all cimport *
 
-          cdef class van_der_pol(sage.gsl.ode.ode_system):
+          cdef class van_der_pol(sage.calculus.ode.ode_system):
               cdef int c_f(self,double t, double *y,double *dydt):
                   dydt[0]=y[1]
                   dydt[1]=-y[0]-1000*y[1]*(y[0]*y[0]-1)
@@ -360,7 +351,7 @@ class ode_solver(object):
 
     def interpolate_solution(self,i=0):
         pts = [(t,y[i]) for t,y in self.solution]
-        return sage.gsl.interpolation.spline(pts)
+        return sage.calculus.interpolation.spline(pts)
 
     def plot_solution(self, i=0, filename=None, interpolate=False, **kwds):
         r"""

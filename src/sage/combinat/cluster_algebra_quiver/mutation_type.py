@@ -2,9 +2,7 @@ r"""
 This file contains helper functions for detecting the mutation type of
 a cluster algebra or quiver.
 
-For the compendium on the cluster algebra and quiver package see
-
-:arxiv:`1102.4844`
+For the compendium on the cluster algebra and quiver package see [MS2011]_
 
 AUTHORS:
 
@@ -792,8 +790,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
 
     For all other types (including affine D), outputs 'unknown'
 
-    See :arxiv:`0906.0487` (by Bastian, Prellberg, Rubey, and Stump)
-    and :arxiv:`0810.4789v1` (by Vatne) for theoretical details.
+    See [BPRS2009]_ and [Vat2008]_ (by Vatne) for theoretical details.
 
     .. TODO::
 

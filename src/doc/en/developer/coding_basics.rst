@@ -402,8 +402,8 @@ information. You can use the existing functions of Sage as templates.
 
   Note the trailing underscores which makes the citations into hyperlinks. See
   below for more about the master bibliography file. For more about citations,
-  see the `Sphinx/ReST markup for citations
-  <http://sphinx.pocoo.org/rest.html#citations>`_. For links to trac tickets or
+  see the `Sphinx/reST markup for citations
+  <http://www.sphinx-doc.org/rest.html#citations>`_. For links to trac tickets or
   wikipedia, see :ref:`chapter-sage_manuals_links`.
 
 - A **TESTS** block (highly recommended).
@@ -425,16 +425,25 @@ information. You can use the existing functions of Sage as templates.
   of indentation as "TESTS") matching one of the following:
 
   - a line which starts with whitespace and then a Sphinx directive
-    of the form ".. foo:", optionally followed by other text.
+    of the form ".. FOO:", optionally followed by other text.
 
   - a line which starts with whitespace and then text of the form
     "UPPERCASE:", optionally followed by other text.
 
-  - lines which look like a ReST header: one line containing
+  - lines which look like a reST header: one line containing
     anything, followed by a line consisting only of whitespace,
     followed by a string of hyphens, equal signs, or other
-    characters which are valid markers for ReST headers:
+    characters which are valid markers for reST headers:
     ``- = ` : ' " ~ _ ^ * + # < >``.
+
+Sage documentation style
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+  All Sage documentation is written in reStructuredText (reST) and is
+  processed by Sphinx: see http://www.sphinx-doc.org/rest.html for an
+  introduction. Sage's style is for all reST and Sphinx directives
+  (like ``.. WARNING::``, ``.. NOTE::``, ``.. MATH::``, etc.) to be
+  written in uppercase. Lines should be shorter than 80 characters.
 
 Sage's master **BIBLIOGRAPHY** file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -468,8 +477,8 @@ Sage's master **BIBLIOGRAPHY** file
   that the letter (``C.`` in the example above) will not be
   interpreted as a list enumerator.
 
-  For more about citations, see the `Sphinx/ReST markup for citations
-  <http://sphinx.pocoo.org/rest.html#citations>`_.
+  For more about citations, see the `Sphinx/reST markup for citations
+  <http://www.sphinx-doc.org/rest.html#citations>`_.
 
 Template
 ^^^^^^^^
@@ -802,8 +811,8 @@ written.
 
 .. _section-further_conventions:
 
-Special Markup to Influence Tests
----------------------------------
+Special Markup to Influence Doctests
+------------------------------------
 
 Overly complicated output in the example code can be shortened
 by an ellipsis marker ``...``::
@@ -997,8 +1006,8 @@ further development on Sage.
 
 .. _chapter-testing:
 
-Running Automated Tests
-=======================
+Running Automated Doctests
+==========================
 
 This section describes Sage's automated testing of test files of the
 following types: ``.py``, ``.pyx``, ``.sage``, ``.rst``. Briefly, use
@@ -1035,13 +1044,13 @@ write for the documentation and have them work.
 For more information, see :ref:`chapter-doctesting`.
 
 
-Testing ReST Documentation
+Testing reST Documentation
 --------------------------
 
 Run ``sage -t <filename.rst>`` to test the examples in verbatim
-environments in ReST documentation.
+environments in reST documentation.
 
-Of course in ReST files, one often inserts explanatory texts between
+Of course in reST files, one often inserts explanatory texts between
 different verbatim environments. To link together verbatim
 environments, use the ``.. link`` comment. For example::
 
@@ -1070,7 +1079,7 @@ have that example skipped when testing the file.  This goes in the
 same place as the ``.. link`` in the previous example.
 
 See the files in ``SAGE_ROOT/src/doc/en/tutorial/`` for many
-examples of how to include automated testing in ReST documentation for
+examples of how to include automated testing in reST documentation for
 Sage.
 
 

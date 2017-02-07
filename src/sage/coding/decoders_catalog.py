@@ -9,8 +9,8 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
 
 **Subfield subcode decoder**
-
-- :class:`subfield_subcode.SubfieldSubcodeOriginalCodeDecoder <sage.coding.subfield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
+- :class:`subfield_subcode.SubfieldSubcodeOriginalCodeDecoder <sage.coding.subf
+ield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
 
 **Generalized Reed-Solomon code decoders**
 

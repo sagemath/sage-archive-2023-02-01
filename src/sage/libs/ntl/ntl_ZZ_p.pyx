@@ -327,7 +327,7 @@ cdef class ntl_ZZ_p(object):
             sage: x.__int__()
             3
             sage: type(x.__int__())
-            <type 'int'>
+            <... 'int'>
         """
         return self.get_as_int()
 
@@ -352,7 +352,7 @@ cdef class ntl_ZZ_p(object):
             sage: i
             2
             sage: type(i)
-            <type 'int'>
+            <... 'int'>
         """
         self.c.restore_c()
         return self.get_as_int()

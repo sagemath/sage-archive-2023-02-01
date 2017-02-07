@@ -213,7 +213,7 @@ replacements are made:
       sage: a
       393939
       sage: type(a)
-      <type 'int'>
+      <... 'int'>
       sage: b = 393939
       sage: type(b)
       <type 'sage.rings.integer.Integer'>

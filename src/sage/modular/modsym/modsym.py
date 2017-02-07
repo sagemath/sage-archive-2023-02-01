@@ -300,7 +300,7 @@ def ModularSymbols(group  = 1,
 
         sage: ModularSymbols_clear_cache()
         sage: def custom_init(M):
-        ...       M.customize='hi'
+        ....:     M.customize='hi'
         sage: M = ModularSymbols(1,12, custom_init=custom_init)
         sage: M.customize
         'hi'
@@ -308,7 +308,7 @@ def ModularSymbols(group  = 1,
     We illustrate the relation between custom_init and use_cache::
 
         sage: def custom_init(M):
-        ...       M.customize='hi2'
+        ....:     M.customize='hi2'
         sage: M = ModularSymbols(1,12, custom_init=custom_init)
         sage: M.customize
         'hi'

@@ -122,20 +122,16 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         rows are all different. The leading position of a row is the right-most
         position whose entry has the maximal degree in the row.
 
-        .. WARNING::
-
-            This method will replace the current :meth:`weak_popov_form` when
-            the current one is removed after deprecation period.
-
         INPUT:
 
-        - ``transformation`` -- If this is ``True``, the transformation matrix
-          is returned together with the weak Popov form.
+        - ``transformation`` -- (default: ``False``) If ``True``, the
+          transformation matrix is returned together with the weak Popov form.
 
-        - ``shifts`` -- If this is a tuple of integers of length the number of
-          columns of this matrix, then each integer of the tuple is added to
-          the degree of the polynomial in the corresponding column to determine
-          the leading position of the rows.
+        - ``shifts`` -- (default: ``None``) A tuple or list of integers
+          `s_1,\ldots,s_n`, where `n` is the column dimension this matrix. If
+          given, a "shifted weak Popov form" is computed, i.e. such that the
+          matrix `A \mathrm{diag}(x^{s_1},\ldots,x^{s_n})` is in weak Popov
+          form, where `\math{diag}` denotes a diagonal matrix..
 
         ALGORITHM:
 
@@ -145,7 +141,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: F.<a> = GF(2^4,'a')
             sage: PF.<x> = F[]
-            sage: A = matrix(PF,[[1,a*x^17+1],[0,a*x^11+a^2*x^7+1]])
+            sage: A = matrix(PF,[[1,  a*x^17 + 1 ],
+                                 [0,  a*x^11 + a^2*x^7 + 1 ]])
             sage: M, U = A.weak_popov_form(transformation=True)
             sage: U * A == M
             True
@@ -164,31 +161,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [0 0 0]
             [0 0 0]
 
-        Matrices in weak popov form will just be returned untouched::
-
-            sage: F.<a> = GF(17,'a')
-            sage: PF.<x> = F[]
-            sage: C = matrix(PF,[[1,7,x],[x^2,x,4],[2,x,11]]); C
-            [  1   7   x]
-            [x^2   x   4]
-            [  2   x  11]
-            sage: D = C.weak_popov_form()
-            sage: D == C
-            True
-
-        And the transformation matrix will be the identity matrix::
-
-            sage: C.weak_popov_form(transformation=True)
-            (
-            [  1   7   x]  [1 0 0]
-            [x^2   x   4]  [0 1 0]
-            [  2   x  11], [0 0 1]
-            )
-
         Shifted weak popov form is computed if ``shifts`` is given::
 
             sage: PF.<x> = QQ[]
-            sage: A = matrix(PF,3,[x,x^2,x^3,x^2,x^1,0,x^3,x^3,x^3])
+            sage: A = matrix(PF,3,[x,   x^2, x^3,
+                                   x^2, x^1, 0,
+                                   x^3, x^3, x^3])
             sage: A.weak_popov_form()
             [        x       x^2       x^3]
             [      x^2         x         0]

@@ -234,7 +234,9 @@ class Encoder(SageObject):
         """
         info_set = self.code().information_set()
         Gt = self.generator_matrix().matrix_from_columns(info_set)
-        return (Gt.inverse(), info_set)
+        M = (Gt.inverse(), info_set)
+        M.set_immutable()
+        return M
 
     def unencode_nocheck(self, c):
         r"""

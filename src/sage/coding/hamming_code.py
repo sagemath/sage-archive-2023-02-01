@@ -26,6 +26,7 @@ from .linear_code import (AbstractLinearCode,
                          LinearCodeParityCheckEncoder)
 from sage.matrix.matrix_space import MatrixSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
+from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.ring import Field
 from copy import copy
@@ -125,6 +126,7 @@ class HammingCode(AbstractLinearCode):
                 % (self.length(), self.dimension(), self.base_field()._latex_())
 
 
+    @cached_method
     def parity_check_matrix(self):
         r"""
         Returns a parity check matrix of ``self``.
@@ -153,7 +155,7 @@ class HammingCode(AbstractLinearCode):
 
         H = MS(PFn).transpose()
         H = H[::-1, :]
-
+        H.set_immutable()
         return H
 
     def minimum_distance(self):

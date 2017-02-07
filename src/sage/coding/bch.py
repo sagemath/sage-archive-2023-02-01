@@ -61,14 +61,14 @@ class BCHCode(CyclicCode):
 
     - ``length`` -- the length of the code
 
-    - ``designed_distance`` -- the resulting minimum distance of the code
+    - ``designed_distance`` -- the designed minimum distance of the code
 
     - ``primitive_root`` -- (default: ``None``) the primitive root to use when
       creating the set of roots for the generating polynomial over the
       splitting field. It has to be of multiplicative order ``length`` over
       this field. If the splitting field is not ``field``, it also has to be a
       polynomial in ``zx``, where ``x`` is the degree of the extension field.
-      For instance, over ``GF(16)``, it has to be a polynomial in ``z4``.
+      For instance, over `GF(16)`, it has to be a polynomial in ``z4``.
 
     - ``offset`` -- (default: ``1``) the first element in the defining set
 
@@ -77,12 +77,12 @@ class BCHCode(CyclicCode):
       ``primitive_root``.
 
     - ``b`` -- (default: ``0``) is exactly the same as ``offset``. It is only
-      here for retro-compatibility purposes with the old signature of `BCHCode`
-      and will be removed soon.
+      here for retro-compatibility purposes with the old signature of
+      :meth:`codes.BCHCode` and will be removed soon.
 
     EXAMPLES:
 
-    As explained below, BCH codes can be built through various parameters::
+    As explained above, BCH codes can be built through various parameters::
 
         sage: C = codes.BCHCode(GF(2), 15, 7, offset=1)
         sage: C
@@ -151,11 +151,8 @@ class BCHCode(CyclicCode):
         D = [(offset + jump_size * i) % length
              for i in range(designed_distance - 1)]
 
-        try:
-            super(BCHCode, self).__init__(field=base_field, length=length,
-                                          D=D, primitive_root=primitive_root)
-        except ValueError, e:
-            raise e
+        super(BCHCode, self).__init__(field=base_field, length=length,
+                                      D=D, primitive_root=primitive_root)
         self._default_decoder_name = "UnderlyingGRS"
         self._jump_size = jump_size
         self._offset = offset
@@ -338,8 +335,39 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
     def grs_code(self):
         r"""
-        Returns the underlying GRS code of
-        :meth:`sage.coding.decoder.Decoder.code`.
+        Returns the underlying GRS code of :meth:`sage.coding.decoder.Decoder.code`.
+
+        .. NOTE::
+
+            Let us explain what is the underlying GRS code of a BCH code of
+            length `n` over `F` with parameters `b, \delta, \ell`. Let
+            `c \in F^n` and `\alpha` a primitive root of the splitting field.
+            We know:
+
+            .. MATH::
+
+                \begin{aligned}
+                c \in \mathrm{BCH} &\iff \forall j \in \{0,\dots,\delta-2\},\, \sum_{i=0}^{n-1} c_i (\alpha^{b + \ell j})^i \\
+                & \iff H c = 0 \text{ where } H = A \times D \text{ with: } \\
+                A = &\, \begin{pmatrix}
+                      1 & \dots & 1 \\
+                      ~ & ~ & ~ \\
+                      (\alpha^{0 \times \ell})^{\delta-2} & \dots & (\alpha^{(n-1) \ell})^{\delta-2}
+                \end{pmatrix} \quad \text{ and } \quad
+                D = \begin{pmatrix}
+                      1 & 0        & \dots  & 0 \\
+                      0 & \alpha^b & ~      & ~ \\
+                      \dots &          & \dots & 0 \\
+                      0 & \dots    & 0      & \alpha^{b(n-1)} \end{pmatrix}
+                \end{aligned}
+
+            Said differently `c` is orthogonal to the GRS code of dimension
+            `\delta - 1` with evaluation points
+            `\{1 = \alpha^{0 \times \ell}, \dots, \alpha^{(n-1) \ell} \}`
+            and associated multipliers
+            `\{1 = \alpha^{0 \times b}, \dots, \alpha^{(n-1) b} \}`.
+            The underlying GRS code (a GRS code which contains the BCH code)
+            can be deduced from it by duality.
 
         EXAMPLES::
 
@@ -384,8 +412,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
     def grs_word_to_bch(self, c):
         r"""
-        Returns ``c`` converted as a codeword of
-        :meth:`sage.coding.decoder.Decoder.code`.
+        Returns ``c`` converted as a codeword of :meth:`sage.coding.decoder.Decoder.code`.
 
         EXAMPLES::
 
@@ -419,8 +446,8 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: D.decode_to_code(y) in C
             True
         
-        We check it still works when, while list-decoding, the GRS decoder output words which
-        does not lie in the BCH code::
+        We check that it still works when, while list-decoding, the GRS decoder
+        output some words which do not lie in the BCH code::
 
             sage: C = codes.BCHCode(GF(2), 31, 15)
             sage: C

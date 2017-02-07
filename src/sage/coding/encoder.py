@@ -184,7 +184,7 @@ class Encoder(SageObject):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = C.encoder("EvaluationPolynomial")
             sage: p = x^2 + 3*x + 10
-            sage: E.encode(p)
+            sage: E(p)
             (10, 3, 9, 6, 5, 6, 9, 3, 10, 8)
         """
         return self.encode(m)

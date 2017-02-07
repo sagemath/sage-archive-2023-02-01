@@ -274,7 +274,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         else:
             return M
 
-    def row_reduced_form(self, transformation=None):
+    def row_reduced_form(self, transformation=None, shifts=None):
         r"""
         Return a row reduced form of this matrix.
 
@@ -293,6 +293,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           transformation matrix `U` will be returned as well: this is an
           invertible matrix over `k[x]` such that ``self`` equals `UW`, where
           `W` is the output matrix.
+
+        - ``shifts`` -- (default: ``None``) A tuple or list of integers
+          `s_1,\ldots,s_n`, where `n` is the column dimension this matrix. If
+          given, a "shifted row reduced form" is computed, i.e. such that the
+          matrix `A \mathrm{diag}(x^{s_1},\ldots,x^{s_n})` is row reduced, where
+          `\math{diag}` denotes a diagonal matrix..
 
         OUTPUT:
 
@@ -365,4 +371,4 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
         """
-        return self.weak_popov_form(transformation)
+        return self.weak_popov_form(transformation, shifts)

@@ -54,6 +54,8 @@ from __future__ import absolute_import
 
 from sage.misc.lazy_import import lazy_import as _lazy_import
 
+_lazy_import('sage.coding.bch',                        'BCHUnderlyingGRSDecoder')
+_lazy_import('sage.coding.cyclic_code',                'CyclicCodeSurroundingBCHDecoder')
 _lazy_import('sage.coding.extended_code',              'ExtendedCodeOriginalCodeDecoder')
 _lazy_import('sage.coding.grs',                       ['GRSBerlekampWelchDecoder',
                                                        'GRSErrorErasureDecoder',

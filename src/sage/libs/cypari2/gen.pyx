@@ -1444,18 +1444,16 @@ cdef class Gen(Gen_auto):
             >>> L = [0, 1, 2, 3, 4]
             >>> L[i]
             2
+            >>> print(index(pari("2^100")))
+            1267650600228229401496703205376
             >>> index(pari("2.5"))
             Traceback (most recent call last):
             ...
-            PariError: incorrect type in coercion to integer (t_REAL)
+            TypeError: cannot coerce 2.50000000000000 (type t_REAL) to integer
         """
-        sig_on()
-        cdef GEN g = self.g
-        if typ(g) != t_INT:
-            pari_err(e_TYPE, b"coercion to integer", g)
-        cdef long s = itos(g)
-        clear_stack()
-        return s
+        if typ(self.g) != t_INT:
+            raise TypeError(f"cannot coerce {self!r} (type {self.type()}) to integer")
+        return gen_to_integer(self)
 
     def python_list_small(self):
         """

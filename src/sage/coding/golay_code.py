@@ -53,6 +53,28 @@ class GolayCode(AbstractLinearCode):
 
         sage: codes.GolayCode(GF(2), False)
         [23, 12, 7]  Golay code over Finite Field of size 2
+
+    TESTS:
+
+        sage: G = codes.GolayCode(GF(2),False)
+        sage: G0 = codes.GolayCode(GF(2),True)
+        sage: G0prime = G.extended_code()
+        sage: G0.generator_matrix() * G0prime.parity_check_matrix().transpose() == 0
+        True
+
+        sage: G0perp = G0.dual_code()
+        sage: G0.generator_matrix() * G0perp.generator_matrix().transpose() == 0
+        True
+
+        sage: G = codes.GolayCode(GF(3),False)
+        sage: G0 = codes.GolayCode(GF(3),True)
+        sage: G0prime = G.extended_code()
+        sage: G0.generator_matrix() * G0prime.parity_check_matrix().transpose() == 0
+        True
+
+        sage: G0perp = G0.dual_code()
+        sage: G0.generator_matrix() * G0perp.generator_matrix().transpose() == 0
+        True
     """
 
     _registered_encoders = {}

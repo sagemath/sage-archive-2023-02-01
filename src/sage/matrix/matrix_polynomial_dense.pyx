@@ -182,6 +182,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: U * A == H
             True
 
+        AUTHOR:
+
+        - Johan Rosenkilde (2017-02-07)
+
         .. SEEALSO::
 
             :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`

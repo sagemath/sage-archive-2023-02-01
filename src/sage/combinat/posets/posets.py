@@ -1692,6 +1692,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - Options to change overall look:
 
+          * ``figsize`` (default: 8) - size of the whole plot
           * ``title`` - a title for the plot
           * ``fontsize`` - fontsize for the title
           * ``border`` (default: False) - whether to draw a border over the

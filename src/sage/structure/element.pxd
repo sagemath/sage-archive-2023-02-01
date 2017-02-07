@@ -242,6 +242,9 @@ cdef class AlgebraElement(RingElement):
 cdef class CommutativeAlgebraElement(CommutativeRingElement):
     pass
 
+cdef class AlgebraFMElement(CommutativeAlgebraElement):
+    cdef Element _element
+
 cdef class InfinityElement(RingElement):
     pass
 
@@ -282,3 +285,4 @@ cdef class CoercionModel:
 cdef CoercionModel coercion_model
 
 cdef generic_power_c(a, nn, one)
+

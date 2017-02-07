@@ -155,3 +155,6 @@ from .asymptotic.all import *
 
 # Register classes in numbers abc
 from . import numbers_abc
+
+# Extensions
+from sage.rings.algebra_from_morphism_constructor import RingExtension

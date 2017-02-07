@@ -36,7 +36,7 @@ class QuadraticFormLocalRepresentationConditions():
         sage: Q4.is_locally_universal_at_all_places()
         False
         sage: L = [m  for m in range(-5, 100)  if Q4.is_locally_represented_number(m)]
-        sage: L == range(100)
+        sage: L == list(range(100))
         True
 
     ::

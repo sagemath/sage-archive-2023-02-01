@@ -4431,6 +4431,18 @@ class LinearCodeSyndromeDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: maximum_error_weight has to be less than code's length minus its dimension
+
+        The Syndrome Decoder of a Hamming code should have types
+        ``minimum-distance`` and ``always-succeed`` (see :trac:`20898`)::
+
+            sage: C = codes.HammingCode(GF(5), 3)
+            sage: D = C.decoder("Syndrome")
+            sage: C.minimum_distance()
+            3
+            sage: D.maximum_error_weight()
+            1
+            sage: D.decoder_type()
+            {'always-succeed', 'complete', 'hard-decision', 'minimum-distance', 'unique'}
         """
         n_minus_k = code.length() - code.dimension()
         if maximum_error_weight == None:

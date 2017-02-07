@@ -6964,7 +6964,7 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def row_reduced_form(self, transformation=None, old_call=None):
+    def row_reduced_form(self, transformation=None):
         r"""
         This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, where `k` is a field.
@@ -6983,10 +6983,6 @@ cdef class Matrix(matrix1.Matrix):
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
 
-        - ``old_call`` -- Deprecated. If set to ``True``, the output will be
-          (`W`, `U`, `d`), where `W` is a row reduced form, `U` is the transformation
-          matrix, and `d` is the denomiator of the matrix.
-
         OUTPUT:
 
         - `W` - a matrix over the same ring as `self` (i.e. either `k(x)` or
@@ -7004,7 +7000,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2/t],[(t-1)]])
             sage: M.row_reduced_form()
-            doctest:...: DeprecationWarning: Row reduced form will be supported only for matrices of polynomials.
+            doctest:...: DeprecationWarning: Row reduced form will soon be supported only for matrices of polynomials.
             See http://trac.sagemath.org/21024 for details.
             [        0]
             [(t + 2)/t]
@@ -7108,7 +7104,7 @@ cdef class Matrix(matrix1.Matrix):
         NOTES:
 
          - For consistency with LLL and other algorithms in Sage, we have opted
-           for row operations; however, references such as [Hes2002]_ transpose and use
+           for row operations; however, some references e.g. [Hes2002]_ transpose and use
            column operations.
 
         REFERENCES:
@@ -7118,26 +7114,12 @@ cdef class Matrix(matrix1.Matrix):
 
         """
         from sage.misc.superseded import deprecation
-        deprecation(21024, "Row reduced form will be supported only for matrices of polynomials.")
+        # When deprecation period runs out, this method should simply be removed from this class.
+        # matrix_polynomial_dense already has the replacement row_reduced_form method.
+        # The function matrix_misc.row_reduced_form should then probably just be removed.
+        deprecation(21024, "Row reduced form will soon be supported only for matrices of univariate polynomials.")
 
         from sage.matrix.matrix_misc import row_reduced_form
-
-        if old_call == True:
-            deprecation(16896, "Argument `old_call` is deprecated.")
-            W,U = row_reduced_form(self, transformation=True)
-            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            if is_PolynomialRing(W.base_ring()):
-                row_deg = lambda r: max([e.degree() for e in r])
-            else:
-                row_deg = lambda r: max([e.numerator().degree() - e.denominator().degree() for e in r])
-            d = []
-            from sage.rings.all import infinity
-            for r in W.rows():
-                d.append(row_deg(r))
-                if d[-1] < 0:
-                    d[-1] = -infinity
-            return (W,U,d)
-
         return row_reduced_form(self, transformation)
 
     ##########################################################################

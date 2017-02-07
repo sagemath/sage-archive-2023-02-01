@@ -42,8 +42,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Popov form::
 
             sage: PF = PolynomialRing(GF(2^12,'a'),'x')
-            sage: A = matrix(PF,3,[x,   x^2, x^3,
-                                   x^2, x^2, x^2,
+            sage: A = matrix(PF,3,[x,   x^2, x^3,\
+                                   x^2, x^2, x^2,\
                                    x^3, x^2, x    ])
             sage: A.is_weak_popov()
             False
@@ -51,8 +51,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         If a matrix has different leading positions, it is in weak Popov
         form::
 
-            sage: B = matrix(PF,3,[1,    1,  x^3,
-                                   x^2,  1,  1,
+            sage: B = matrix(PF,3,[1,    1,  x^3,\
+                                   x^2,  1,  1,\
                                    1,x^  2,  1  ])
             sage: B.is_weak_popov()
             True
@@ -60,7 +60,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Weak Popov form is not restricted to square matrices::
 
             sage: PF = PolynomialRing(GF(7),'x')
-            sage: D = matrix(PF,2,4,[x^2+1, 1, 2, x,
+            sage: D = matrix(PF,2,4,[x^2+1, 1, 2, x,\
                                      3*x+2, 0, 0, 0 ])
             sage: D.is_weak_popov()
             False
@@ -68,9 +68,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Even a matrix with more rows than columns can still be in weak Popov
         form::
 
-            sage: E = matrix(PF,4,2,[4*x^3+x, x^2+5*x+2,
-                                     0,       0,
-                                     4,       x,
+            sage: E = matrix(PF,4,2,[4*x^3+x, x^2+5*x+2,\
+                                     0,       0,\
+                                     4,       x,\
                                      0,       0         ])
             sage: E.is_weak_popov()
             True
@@ -78,8 +78,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         A matrix with fewer columns than non-zero rows is never in weak
         Popov form::
 
-            sage: F = matrix(PF,3,2,[x^2,   x,
-                                     x^3+2, x,
+            sage: F = matrix(PF,3,2,[x^2,   x,\
+                                     x^3+2, x,\
                                      4,     5])
             sage: F.is_weak_popov()
             False
@@ -88,7 +88,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         Verify tie breaking by selecting right-most index::
 
-            sage: F = matrix(PF,2,2,[x^2, x^2,
+            sage: F = matrix(PF,2,2,[x^2, x^2,\
                                      x,   5   ])
             sage: F.is_weak_popov()
             True
@@ -144,7 +144,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: F.<a> = GF(2^4,'a')
             sage: PF.<x> = F[]
-            sage: A = matrix(PF,[[1,  a*x^17 + 1 ],
+            sage: A = matrix(PF,[[1,  a*x^17 + 1 ],\
                                  [0,  a*x^11 + a^2*x^7 + 1 ]])
             sage: M, U = A.weak_popov_form(transformation=True)
             sage: U * A == M
@@ -167,8 +167,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Shifted weak popov form is computed if ``shifts`` is given::
 
             sage: PF.<x> = QQ[]
-            sage: A = matrix(PF,3,[x,   x^2, x^3,
-                                   x^2, x^1, 0,
+            sage: A = matrix(PF,3,[x,   x^2, x^3,\
+                                   x^2, x^1, 0,\
                                    x^3, x^3, x^3])
             sage: A.weak_popov_form()
             [        x       x^2       x^3]

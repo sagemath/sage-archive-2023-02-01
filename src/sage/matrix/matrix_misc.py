@@ -59,7 +59,7 @@ def row_reduced_form(M,transformation=False):
         sage: K = FractionField(R)
         sage: import sage.matrix.matrix_misc
         sage: sage.matrix.matrix_misc.row_reduced_form(matrix([[(t-1)^2/t],[(t-1)]]))
-        doctest:...: DeprecationWarning: Row reduced form will be supported only for matrices of polynomials.
+        doctest:...: DeprecationWarning: Row reduced form will soon be supported only for matrices of polynomials.
         See http://trac.sagemath.org/21024 for details.
         [        0]
         [(t + 2)/t]
@@ -83,7 +83,7 @@ def row_reduced_form(M,transformation=False):
     more information.
     """
     from sage.misc.superseded import deprecation
-    deprecation(21024, "Row reduced form will be supported only for matrices of polynomials.")
+    deprecation(21024, "Row reduced form will soon be supported only for matrices of polynomials.")
 
     # determine whether M has polynomial or rational function coefficients
     R0 = M.base_ring()
@@ -112,9 +112,9 @@ def row_reduced_form(M,transformation=False):
         num = M
 
     if transformation:
-        A, N = num._row_reduced_form(transformation=True)
+        A, N = num.row_reduced_form(transformation=True)
     else:
-        A = num._row_reduced_form(transformation=False)
+        A = num.row_reduced_form(transformation=False)
 
     if not is_PolynomialRing(R0):
         A = ~den * A

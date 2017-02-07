@@ -27,59 +27,69 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def is_weak_popov(self):
         r"""
-        Return ``True`` if this matrix is in weak Popov form.
+        Return ``True`` if the matrix is in weak Popov form.
 
         OUTPUT:
 
         A matrix over a polynomial ring is in weak Popov form if all
         leading positions are different [MS2003]_. A leading position
-        is the position `i` in a row with the largest degree, for multiple
-        entries with largest degrees, the maximal `i` is chosen
-        (which is the furthest to the right in the matrix).
+        is the position `i` in a row with the highest degree; in case of tie,
+        the maximal `i` is used (i.e. furthest to the right).
 
         EXAMPLES:
 
         A matrix with the same leading position in two rows is not in weak
-        Popov form. ::
+        Popov form::
 
             sage: PF = PolynomialRing(GF(2^12,'a'),'x')
-            sage: A = matrix(PF,3,[x,x^2,x^3,x^2,x^2,x^2,x^3,x^2,x])
+            sage: A = matrix(PF,3,[x,   x^2, x^3,
+                                   x^2, x^2, x^2,
+                                   x^3, x^2, x    ])
             sage: A.is_weak_popov()
             False
 
         If a matrix has different leading positions, it is in weak Popov
-        form. ::
+        form::
 
-            sage: B = matrix(PF,3,[1,1,x^3,x^2,1,1,1,x^2,1])
+            sage: B = matrix(PF,3,[1,    1,  x^3,
+                                   x^2,  1,  1,
+                                   1,x^  2,  1  ])
             sage: B.is_weak_popov()
             True
 
-        Weak Popov form is not restricted to square matrices. ::
+        Weak Popov form is not restricted to square matrices::
 
             sage: PF = PolynomialRing(GF(7),'x')
-            sage: D = matrix(PF,2,4,[x^2+1,1,2,x,3*x+2,0,0,0])
+            sage: D = matrix(PF,2,4,[x^2+1, 1, 2, x,
+                                     3*x+2, 0, 0, 0 ])
             sage: D.is_weak_popov()
             False
 
-        Even a matrix with more rows than cols can still be in weak Popov
-        form. ::
+        Even a matrix with more rows than columns can still be in weak Popov
+        form::
 
-            sage: E = matrix(PF,4,2,[4*x^3+x,x^2+5*x+2,0,0,4,x,0,0])
+            sage: E = matrix(PF,4,2,[4*x^3+x, x^2+5*x+2,
+                                     0,       0,
+                                     4,       x,
+                                     0,       0         ])
             sage: E.is_weak_popov()
             True
 
-        But a matrix with less cols than nonzero rows is never in weak
-        Popov form. ::
+        A matrix with fewer columns than non-zero rows is never in weak
+        Popov form::
 
-            sage: F = matrix(PF,3,2,[x^2,x,x^3+2,x,4,5])
+            sage: F = matrix(PF,3,2,[x^2,   x,
+                                     x^3+2, x,
+                                     4,     5])
             sage: F.is_weak_popov()
             False
 
         TESTS:
 
-        A matrix to check if really the rightmost value is taken. ::
+        Verify tie breaking by selecting right-most index::
 
-            sage: F = matrix(PF,2,2,[x^2,x^2,x,5])
+            sage: F = matrix(PF,2,2,[x^2, x^2,
+                                     x,   5   ])
             sage: F.is_weak_popov()
             True
 

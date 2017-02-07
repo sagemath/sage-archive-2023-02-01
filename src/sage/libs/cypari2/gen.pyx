@@ -1399,7 +1399,7 @@ cdef class Gen(Gen_auto):
         """
         Convert ``self`` to a Python integer.
 
-        If the number is too large to fit into a Pyhon ``int``, a
+        If the number is too large to fit into a Python ``int``, a
         Python ``long`` is returned instead.
 
         EXAMPLES::
@@ -1429,6 +1429,33 @@ cdef class Gen(Gen_auto):
             9223372036854775810L
         """
         return gen_to_integer(self)
+
+    def __index__(self):
+        """
+        Coerce ``self`` (which must be a :class:`Gen` of type
+        ``t_INT``) to a Python integer.
+
+        EXAMPLES::
+
+            >>> from operator import index
+            >>> i = pari(2)
+            >>> index(i)
+            2
+            >>> L = [0, 1, 2, 3, 4]
+            >>> L[i]
+            2
+            >>> index(pari("2.5"))
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in coercion to integer (t_REAL)
+        """
+        sig_on()
+        cdef GEN g = self.g
+        if typ(g) != t_INT:
+            pari_err(e_TYPE, b"coercion to integer", g)
+        cdef long s = itos(g)
+        clear_stack()
+        return s
 
     def python_list_small(self):
         """

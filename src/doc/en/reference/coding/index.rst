@@ -35,8 +35,6 @@ Code constructions
 .. toctree::
    :maxdepth: 1
 
-   sage/coding/binary_code
-   sage/coding/cyclic_code
    sage/coding/linear_code
 
 The named code families below are represented in Sage by their own classes,
@@ -49,6 +47,7 @@ allowing specialised implementations of e.g. decoding or computation of properti
    sage/coding/hamming_code
    sage/coding/parity_check_code
    sage/coding/reed_muller_code
+   sage/coding/cyclic_code
 
 In contrast, for some code families Sage can only construct their generator
 matrix and has no other a priori knowledge on them:

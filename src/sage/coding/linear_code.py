@@ -4595,7 +4595,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         # Update decoder types depending on whether we are decoding beyond d/2
         if self._code_minimum_distance:
             if self._maximum_error_weight == (self._code_minimum_distance-1)//2:
-                self._decoder_type = self._decoder_type.union({"minimum-distance","always-succeed"})
+                self._decoder_type.update({"minimum-distance","always-succeed"})
             else:
                 # then t > (d-1)/2
                 self._decoder_type.add("might-error")

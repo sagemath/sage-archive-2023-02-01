@@ -716,9 +716,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         cdef long i
         cdef Polynomial pol = self
-        cdef long d = self.degree()
+        cdef long d
 
-        cst = self._parent._base.zero() if d < 0 else self.get_unsafe(0)
+        cst = self._parent._base.zero() if self.degree() < 0 else self.get_unsafe(0)
         a = args[0] if len(args) == 1 else None
         if kwds or not (isinstance(a, Element) or PyNumber_Check(a)):
             # slow path
@@ -768,7 +768,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 or (<Parent> tgt).get_action(parent(a), operator.mul) is None):
                 a = aa
 
-        d = min(d, pol.degree())
+        d = pol.degree()
 
         if d <= 0 or (isinstance(a, Element)
                       and a.parent().is_exact() and a.is_zero()):

@@ -105,12 +105,13 @@ class BCHCode(CyclicCode):
         sage: codes.CyclicCode(code=R) == codes.CyclicCode(code=C)
         True
 
-    The `\delta = 1` case (trivial full code) also works::
-
+    The `\delta = 15` case (trivial full code) also works::
+        sage: C = codes.BCHCode(GF(16), 15, 1)
+        sage: C.dimension()
+        15
         sage: C = codes.BCHCode(GF(16), 15, 15)
-        sage: C.dimension() == 1
-        True
-
+        sage: C.dimension()
+        1
     """
 
     def __init__(self, base_field, length, designed_distance,

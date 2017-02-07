@@ -51,11 +51,58 @@ class Decoder(SageObject):
     @classmethod
     def decoder_type(cls):
         r"""
-        Returns the set of types of ``self``. These types describe the nature of ``self``
-        and its decoding algorithm.
+        Returns the set of types of ``self``.
 
         This method can be called on both an uninstantiated decoder class,
         or on an instance of a decoder class.
+
+        The types of a decoder are a set of labels commonly associated with
+        decoders which describe the nature and behaviour of the decoding
+        algorithm. It should be considered as an informal descriptor but
+        can be coarsely relied upon for e.g. program logic.
+        and its decoding algorithm.
+
+        The following are the most common types and a brief definition:
+
+        +-----------------------------+----------------------------------------+
+        |       Decoder type          |                 Definition             |
+        +=============================+========================================+
+        |       always-succeed        | Always return a closest codeword if    |
+        |                             | the number of errors is up to the      |
+        |                             | decoding radius.                       |
+        +-----------------------------+----------------------------------------+
+        |       bounded-distance      | The ``minimum_distance()`` method of   |
+        |                             | the decoder gives a bound on how many  |
+        |                             | errors the decoder can correct.        |
+        +-----------------------------+----------------------------------------+
+        |       complete              | Can decode every word in the ambient   |
+        |                             | space of the code.                     |
+        +-----------------------------+----------------------------------------+
+        |       dynamic               | Some of the decoder's types will only  |
+        |                             | be determined at construction time     |
+        |                             | (depends on the parameters).           |
+        +-----------------------------+----------------------------------------+
+        |   half-minimum-distance     | The decoder corrects up to half the    |
+        |                             | minimum distance, or a specific lower  |
+        |                             | bound thereof.                         |
+        +-----------------------------+----------------------------------------+
+        |       hard-decision         | The decoder has no information on      |
+        |                             | which positions are more likely to be  |
+        |                             | in error or not.                       |
+        +-----------------------------+----------------------------------------+
+        |       list-decoder          | The decoder outputs a list of likely   |
+        |                             | codewords, instead of just a single    |
+        |                             | codeword.                              |
+        +-----------------------------+----------------------------------------+
+        |       might-fail            | Might fail at returning anything at    |
+        |                             | all.                                   |
+        +-----------------------------+----------------------------------------+
+        |       soft-decision         | As part of the input, the decoder gets |
+        |                             | reliability information on which       |
+        |                             | positions are more likely to be in     |
+        |                             | error                                  |
+        +-----------------------------+----------------------------------------+
+
 
         EXAMPLES:
 

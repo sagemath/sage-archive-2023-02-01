@@ -7421,7 +7421,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 aM.append(aN)
         # We construct line l:
         for l in range(1, nrows - 1):
-            if not S == range(first_row[0] + ncols, first_row[0], -1):
+            if not S == list(xrange(first_row[0] + ncols, first_row[0], -1)):
                 # Sort each row with respect to S for the first matrix in X = MS
                 X = copy(MS)
                 SM = [sorted([(S[j], X[0][k][j]) for j in range(ncols)], reverse=True)
@@ -11976,7 +11976,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 M = self.change_ring(F)
             m, n = M._nrows, M._ncols
             d = min(m, n)
-            perm = range(m)
+            perm = list(xrange(m))
             zero = F(0)
             for k in range(d):
                 max_location = -1
@@ -14889,7 +14889,7 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
     cdef Py_ssize_t j, temp
 
     x = []               # initialize T1
-    c = range(t)
+    c = list(xrange(t))
     if t == n:
         x.append(c)
         return x

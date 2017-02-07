@@ -875,7 +875,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                     if ind < 0 or ind >= nrows:
                         raise IndexError("matrix index out of range")
             elif isinstance(row_index, slice):
-                row_list = range(*row_index.indices(nrows))
+                row_list = list(xrange(*row_index.indices(nrows)))
             else:
                 if not PyIndex_Check(row_index):
                     raise TypeError("index must be an integer")
@@ -907,7 +907,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                     if ind < 0 or ind >= ncols:
                         raise IndexError("matrix index out of range")
             elif isinstance(col_index, slice):
-                col_list =  range(*col_index.indices(ncols))
+                col_list =  list(xrange(*col_index.indices(ncols)))
             else:
                 if not PyIndex_Check(col_index):
                     raise TypeError("index must be an integer")
@@ -959,7 +959,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                     raise IndexError("matrix index out of range")
             r = self.matrix_from_rows(row_list)
         elif isinstance(row_index, slice):
-            row_list = range(*row_index.indices(nrows))
+            row_list = list(xrange(*row_index.indices(nrows)))
             r = self.matrix_from_rows(row_list)
         else:
             if not PyIndex_Check(row_index):
@@ -3451,7 +3451,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
         """
         cdef dict d = {}
-        cdef list queue = range( self._ncols )
+        cdef list queue = list(xrange( self._ncols))
         cdef int l, sign, i, j
 
         if skew:

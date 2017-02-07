@@ -110,19 +110,17 @@ class Decoder(SageObject):
 
     def _instance_decoder_type(self):
         r"""
-        Returns the set if types of ``self``.
-        These types describe the nature of ``self`` and its decoding algorithm.
+        This doc-string will be overridden at instantiation by that of
+        `Decoder.decoder_type`.
 
-        This method is used as a copy of :meth:`decoder_type` when instantiating a
-        class, so the returned set of types will be the one specific to the instance,
-        and no longer the one for the uninstantiated class.
+        EXAMPLES:
 
-        EXAMPLES::
+        Test to satisfy the doc-testing framework::
 
             sage: G = Matrix(GF(2), [[1, 0, 0, 1], [0, 1, 1, 1]])
             sage: C = LinearCode(G)
             sage: D = C.decoder()
-            sage: D._instance_decoder_type()
+            sage: D.decoder_type() #indirect doctest
             {'complete', 'hard-decision', 'might-error', 'unique'}
         """
         return self._decoder_type
@@ -355,6 +353,8 @@ class Decoder(SageObject):
             1
         """
         raise NotImplementedError
+
+Decoder._instance_decoder_type.__func__.__doc__ = Decoder.decoder_type.im_func.__doc__
 
 class DecodingError(Exception):
     r"""

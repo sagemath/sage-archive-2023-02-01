@@ -631,8 +631,7 @@ class AbstractLinearCode(Module):
         ...
         RuntimeError: Please override _repr_ in the implementation of <class '__main__.MyCode_with_category'>
         """
-        raise RuntimeError("Please override _repr_ in the implementation of %s"
-                 % self.parent())
+        raise RuntimeError("Please override _repr_ in the implementation of {}".format(self.parent()))
 
     def _latex_(self):
         r"""
@@ -677,8 +676,7 @@ class AbstractLinearCode(Module):
         ...
         RuntimeError: Please override _latex_ in the implementation of <class '__main__.MyCode_with_category'>
         """
-        raise RuntimeError("Please override _latex_ in the implementation of %s"
-                 % self.parent())
+        raise RuntimeError("Please override _latex_ in the implementation of {}".format(self.parent()))
 
     def _an_element_(self):
         r"""

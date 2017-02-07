@@ -76,7 +76,7 @@ def krawtchouk(n, q, l, x, check=True):
         -1
         sage: codes.bounds.krawtchouk(int(3),int(2),int(3),int(3),check=False)
         -1.0
-        sage: codes.bounds.kravchuk(24,2,5,4)
+        sage: codes.bounds.krawtchouk(24,2,5,4)
         2224
 
     other unusual inputs ::
@@ -147,7 +147,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     for i in range(1,d):
         p.add_constraint(A[i]==0)
     for j in range(1,n+1):
-        rhs = sum([Krawtchouk(n,q,j,r,check=False)*A[r] for r in range(n+1)])
+        rhs = sum([krawtchouk(n,q,j,r,check=False)*A[r] for r in range(n+1)])
         p.add_constraint(0*A[0] <= rhs)
         if j >= d_star:
           p.add_constraint(0*A[0] <= rhs)

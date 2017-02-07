@@ -47,6 +47,7 @@ allowing specialised implementations of e.g. decoding or computation of properti
 
    sage/coding/grs
    sage/coding/hamming_code
+   sage/coding/parity_check_code
    sage/coding/reed_muller_code
 
 In contrast, for some code families Sage can only construct their generator

@@ -4,7 +4,7 @@ BCH Code
 Let `F = GF(q)` and `\Phi` be the splitting field of `x^{n} - 1` over `F`,
 with `n` a positive integer. Let also `\alpha` be an element of multiplicative
 order `n` in `\Phi`. Finally, let `b, \delta, \ell` be integers such that
-`0 \le b \leq n`, `2 \le \delta \leq n` and `\alpha^\ell` generates the
+`0 \le b \le n`, `1 \le \delta \le n` and `\alpha^\ell` generates the
 multiplicative group `\Phi^{\times}`.
 
 A BCH code over `F` with designed distance `\delta` is a cyclic code whose
@@ -70,7 +70,7 @@ class BCHCode(CyclicCode):
       polynomial in ``zx``, where ``x`` is the degree of the extension field.
       For instance, over ``GF(16)``, it has to be a polynomial in ``z4``.
 
-    - ``offset`` -- (default: ``0``) the first element in the defining set
+    - ``offset`` -- (default: ``1``) the first element in the defining set
 
     - ``jump_size`` -- (default: ``1``) the jump size between two elements of
       the defining set. It must be coprime with the multiplicative order of
@@ -80,23 +80,41 @@ class BCHCode(CyclicCode):
       here for retro-compatibility purposes with the old signature of `BCHCode`
       and will be removed soon.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: C = codes.BCHCode(GF(2), 15, 7, offset = 1)
+    As explained below, BCH codes can be built through various parameters::
+
+        sage: C = codes.BCHCode(GF(2), 15, 7, offset=1)
         sage: C
         [15, 5] BCH Code over GF(2) with designed distance 7
         sage: C.generator_polynomial()
         x^10 + x^8 + x^5 + x^4 + x^2 + x + 1
 
-        sage: C = codes.BCHCode(GF(2), 15, 4, offset = 1, jump_size = 8)
+        sage: C = codes.BCHCode(GF(2), 15, 4, offset=1, jump_size=8)
         sage: C
         [15, 7] BCH Code over GF(2) with designed distance 4
         sage: C.generator_polynomial()
         x^8 + x^7 + x^6 + x^4 + 1
+
+    BCH codes are cyclic, and can be interfaced into the CyclicCode class.
+    The smallest GRS code which contains a given BCH code can also be computed,
+    and these two codes may be equal::
+
+        sage: C = codes.BCHCode(GF(16), 15, 7)
+        sage: R = C.bch_to_grs()
+        sage: codes.CyclicCode(code=R) == codes.CyclicCode(code=C)
+        True
+
+    The `\delta = 1` case (trivial full code) also works::
+
+        sage: C = codes.BCHCode(GF(16), 15, 15)
+        sage: C.dimension() == 1
+        True
+
     """
 
     def __init__(self, base_field, length, designed_distance,
-                 primitive_root=None, offset=0, jump_size=1, b=0):
+                 primitive_root=None, offset=1, jump_size=1, b=0):
         """
         TESTS:
 
@@ -106,10 +124,10 @@ class BCHCode(CyclicCode):
             sage: C = codes.BCHCode(GF(2), 15, 16)
             Traceback (most recent call last):
             ...
-            ValueError: designed_distance must belong to [2, n]
+            ValueError: designed_distance must belong to [1, n]
         """
-        if not (designed_distance <= length and designed_distance > 1):
-            raise ValueError("designed_distance must belong to [2, n]")
+        if not (designed_distance <= length and designed_distance > 0):
+            raise ValueError("designed_distance must belong to [1, n]")
         if base_field in ZZ and designed_distance in Fields:
             from sage.misc.superseded import deprecation
             deprecation(20335, "codes.BCHCode(n, designed_distance, F, b=0) is now deprecated. Please use the new signature instead.")
@@ -153,8 +171,8 @@ class BCHCode(CyclicCode):
         return (isinstance(other, BCHCode) and
                 self.length() == other.length() and
                 self.jump_size() == other.jump_size() and
-                self.offset() == self.offset() and
-                self.primitive_root() == self.primitive_root())
+                self.offset() == other.offset() and
+                self.primitive_root() == other.primitive_root())
 
     def _repr_(self):
         r"""
@@ -162,13 +180,13 @@ class BCHCode(CyclicCode):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 7, offset = 1)
+            sage: C = codes.BCHCode(GF(2), 15, 7)
             sage: C
             [15, 5] BCH Code over GF(2) with designed distance 7
         """
-        return "[%s, %s] BCH Code over GF(%s) with designed distance %d"\
+        return ("[%s, %s] BCH Code over GF(%s) with designed distance %d"
                 % (self.length(), self.dimension(),
-                   self.base_field().cardinality(), self.designed_distance())
+                   self.base_field().cardinality(), self.designed_distance()))
 
     def _latex_(self):
         r"""
@@ -176,7 +194,7 @@ class BCHCode(CyclicCode):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 7, offset = 1)
+            sage: C = codes.BCHCode(GF(2), 15, 7)
             sage: latex(C)
             [15, 5] \textnormal{ BCH Code over } \Bold{F}_{2} \textnormal{ with designed distance } 7
         """
@@ -216,7 +234,7 @@ class BCHCode(CyclicCode):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(2), 15, 4, offset = 1)
+            sage: C = codes.BCHCode(GF(2), 15, 4)
             sage: C.designed_distance()
             4
         """
@@ -229,8 +247,11 @@ class BCHCode(CyclicCode):
         EXAMPLES::
 
             sage: C = codes.BCHCode(GF(2), 15, 3)
-            sage: C.bch_to_grs()
-            [15, 13, 3] Generalized Reed-Solomon Code over GF(16)
+            sage: RS = C.bch_to_grs()
+            sage: RS
+            [15, 13, 3] Reed-Solomon Code over GF(16)
+            sage: C.generator_matrix() * RS.parity_check_matrix().transpose() == 0
+            True
         """
         l = self.jump_size()
         b = self.offset()
@@ -271,12 +292,11 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D
             Decoder through the underlying GRS code of [15, 11] BCH Code over GF(4) with designed distance 3
         """
-
         self._grs_code = code.bch_to_grs()
         self._grs_decoder = self._grs_code.decoder(grs_decoder, **kwargs)
         self._decoder_type = copy(self._decoder_type)
@@ -291,7 +311,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D
             Decoder through the underlying GRS code of [15, 11] BCH Code over GF(4) with designed distance 3
@@ -304,7 +324,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: latex(D)
             \textnormal{Decoder through the underlying GRS code of } [15, 11] \textnormal{ BCH Code over } \Bold{F}_{2^{2}} \textnormal{ with designed distance } 3
@@ -322,7 +342,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: C = codes.BCHCode(GF(2), 15, 3)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D.grs_code()
-            [15, 13, 3] Generalized Reed-Solomon Code over GF(16)
+            [15, 13, 3] Reed-Solomon Code over GF(16)
         """
         return self._grs_code
 
@@ -332,7 +352,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D.grs_decoder()
             Key equation decoder for [15, 13, 3] Generalized Reed-Solomon Code over GF(16)
@@ -365,7 +385,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: Cgrs = D.grs_code()
             sage: Fgrs = Cgrs.base_field()
@@ -387,7 +407,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
             sage: F = GF(4, 'a')
             sage: a = F.gen()
-            sage: C = codes.BCHCode(F, 15, 3, jump_size=2, offset=1)
+            sage: C = codes.BCHCode(F, 15, 3, jump_size=2)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: y = vector(F, [a, a + 1, 1, a + 1, 1, a, a + 1, a + 1, 0, 1, a + 1, 1, 1, 1, a])
             sage: D.decode_to_code(y)
@@ -414,7 +434,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2, offset=1)
+            sage: C = codes.BCHCode(GF(4, 'a'), 15, 3, jump_size=2)
             sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C)
             sage: D.decoding_radius()
             1

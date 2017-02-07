@@ -152,13 +152,13 @@ def _degree_of_vector(v, shifts=None):
 
     EXAMPLES::
 
-    sage: from sage.coding.guruswami_sudan.utils import _degree_of_vector
-    sage: F.<x> = GF(7)[]
-    sage: v = vector(F, [0, 1, x, x^2])
-    sage: _degree_of_vector(v)
-    2
-    sage: _degree_of_vector(v, shifts=[10, 1, 0, -3])
-    1
+        sage: from sage.coding.guruswami_sudan.utils import _degree_of_vector
+        sage: F.<x> = GF(7)[]
+        sage: v = vector(F, [0, 1, x, x^2])
+        sage: _degree_of_vector(v)
+        2
+        sage: _degree_of_vector(v, shifts=[10, 1, 0, -3])
+        1
     """
     if not shifts:
         return max( vi.degree() for vi in v )

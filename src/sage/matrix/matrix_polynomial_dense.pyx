@@ -122,6 +122,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         rows are all different. The leading position of a row is the right-most
         position whose entry has the maximal degree in the row.
 
+        The weak Popov form is non-canonical, so an input matrix have many weak
+        Popov forms.
+
         INPUT:
 
         - ``transformation`` -- (default: ``False``) If ``True``, the
@@ -271,34 +274,33 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         else:
             return M
 
-    def row_reduced_form(self, transformation=None, old_call=None):
+    def row_reduced_form(self, transformation=None):
         r"""
         Return a row reduced form of this matrix.
 
-        A matrix `M` is row reduced if the leading term matrix has the same rank
-        as `M`. The leading term matrix of a polynomial matrix `M_0` is the matrix
-        over `k` whose `(i,j)`'th entry is the `x^{d_i}` coefficient of `M_0[i,j]`,
-        where `d_i` is the greatest degree among polynomials in the `i`'th row of `M_0`.
+        A matrix `M` is row reduced if the (row-wise) leading term matrix has
+        the same rank as `M`. The (row-wise) leading term matrix of a polynomial
+        matrix `M` is the matrix over `k` whose `(i,j)`'th entry is the
+        `x^{d_i}` coefficient of `M[i,j]`, where `d_i` is the greatest degree
+        among polynomials in the `i`'th row of `M_0`.
+
+        A row reduced form is non-canonical so a given matrix has many row
+        reduced forms.
 
         INPUT:
 
-        - ``transformation`` -- (default: ``False``). If this is set to
-          ``True``, the transformation matrix `U` will be returned as well: this
-          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
-          where `W` is the output matrix.
-
-        - ``old_call`` -- Deprecated. If set to ``True``, the output will be
-          (`W`, `U`, `d`), where `W` is a row reduced form, `U` is the transformation
-          matrix, and `d` is the denomiator of the matrix.
+        - ``transformation`` -- (default: ``False``). If this ``True``, the
+          transformation matrix `U` will be returned as well: this is an
+          invertible matrix over `k[x]` such that ``self`` equals `UW`, where
+          `W` is the output matrix.
 
         OUTPUT:
 
-        - `W` -- row reduced form of this matrix.
+        - `W` -- a row reduced form of this matrix.
 
         EXAMPLES::
 
             sage: R.<t> = GF(3)['t']
-            sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2],[(t-1)]])
             sage: M.row_reduced_form()
             [    0]
@@ -306,9 +308,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         If the matrix is an `n \times 1` matrix with at least one non-zero entry,
         `W` has a single non-zero entry and that entry is a scalar multiple of
-        the greatest-common-divisor of the entries of the matrix.
-
-        ::
+        the greatest-common-divisor of the entries of the matrix::
 
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
             sage: output1 = M1.row_reduced_form()
@@ -318,9 +318,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [t]
 
         The following is the first half of example 5 in [Hes2002]_ *except* that we
-        have transposed the matrix; [Hes2002]_ uses column operations and we use row.
-
-        ::
+        have transposed the matrix; [Hes2002]_ uses column operations and we use row::
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
@@ -328,9 +326,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [      t    -t^2]
             [t^2 - 2       t]
 
-        The next example demonstrates what happens when the matrix is a zero matrix.
-
-        ::
+        The next example demonstrates what happens when the matrix is a zero matrix::
 
             sage: R.<t> = GF(5)['t']
             sage: M = matrix(R, 2, [0,0,0,0])
@@ -342,9 +338,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         the output is a different matrix. This is because currently this method
         simply computes a weak Popov form, which is always also a row reduced matrix
         (see :meth:`weak_popov_form`). This behavior is likely to change when a faster
-        algorithm designed specifically for row reduced form is implemented in Sage.
-
-        ::
+        algorithm designed specifically for row reduced form is implemented in Sage::
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t,t,t],[0,0,t]]); M
@@ -354,9 +348,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [ t  t  t]
             [-t -t  0]
 
-        The last example shows the usage of the transformation parameter.
-
-        ::
+        The last example shows the usage of the transformation parameter::
 
             sage: Fq.<a> = GF(2^3)
             sage: Fx.<x> = Fq[]
@@ -372,50 +364,5 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: U.is_invertible()
             True
 
-        """
-        if old_call == True:
-            from sage.misc.superseded import deprecation
-            deprecation(16888, "Argument `old_call` is deprecated")
-
-            W, U = self._row_reduced_form(transformation)
-            row_deg = lambda r: max([e.degree() for e in r])
-            d = []
-            from sage.rings.all import infinity
-            for r in W.rows():
-                d.append(row_deg(r))
-                if d[-1] < 0:
-                    d[-1] = -infinity
-            return (W,U,d)
-
-        return self._row_reduced_form(transformation)
-
-    def _row_reduced_form(self, transformation=False):
-        """
-        Return a row reduced form of this matrix.
-
-        INPUT:
-
-        - ``transformation`` -- (default: ``False``) If this is ``True``,
-           the transformation matrix is output.
-
-        OUTPUT:
-
-        If ``transformation`` is ``True``, this function will output matrices ``W`` and ``N`` such that
-
-        1. `W` -- a row reduced form of this matrix `M`.
-        2. `N` -- a unimodular matrix satisfying `N * W = M`.
-
-        If ``transformation`` is ``False``, the output is just `W`.
-
-        EXAMPLES::
-
-            sage: Fq.<a> = GF(2^3)
-            sage: Fx.<x> = Fq[]
-            sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
-            sage: A._row_reduced_form(transformation=True)
-            (
-            [          x^2 + a           x^4 + a]  [1 0]
-            [x^3 + a*x^2 + a^2               a^2], [a 1]
-            )
         """
         return self.weak_popov_form(transformation)

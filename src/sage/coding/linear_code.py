@@ -1550,13 +1550,37 @@ class AbstractLinearCode(Module):
             sage: C = LinearCode(G)
             sage: C.dimension()
             2
+
+        TESTS:
+
+        Check that :trac:`21156` is fixed::
+
+            sage: from sage.coding.linear_code import AbstractLinearCode
+            sage: from sage.coding.encoder import Encoder
+            sage: class MonkeyCode(AbstractLinearCode):
+            ....:     def __init__(self):
+            ....:         super(MonkeyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+            ....:
+            sage: class MonkeyEncoder(Encoder):
+            ....:     def __init__(self, code):
+            ....:         super(MonkeyEncoder, self).__init__(C)
+            ....:     @cached_method
+            ....:     def generator_matrix(self):
+            ....:         G = identity_matrix(GF(5), 5).augment(matrix(GF(5), 5, 7))
+            ....:         return G
+            ....:
+            sage: MonkeyCode._registered_encoders["Monkey"] = MonkeyEncoder
+            sage: C = MonkeyCode()
+            sage: C.dimension()
+            5
+            sage: _ = MonkeyCode._registered_encoders.pop("Monkey") # remove dummy registered encoder
         """
         try:
             return self._dimension
         except AttributeError:
             dimension = self.generator_matrix().nrows()
             self._dimension = dimension
-            return self.dimension
+            return self._dimension
 
     def direct_sum(self, other):
         """

@@ -118,7 +118,7 @@ class BCHCode(CyclicCode):
         """
         TESTS:
 
-        ``designed_distance`` must be between 2 and ``length`` (inclusive),
+        ``designed_distance`` must be between 1 and ``length`` (inclusive),
         otherwise an exception is raised::
 
             sage: C = codes.BCHCode(GF(2), 15, 16)

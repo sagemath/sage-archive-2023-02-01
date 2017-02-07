@@ -105,10 +105,15 @@ class BCHCode(CyclicCode):
         sage: codes.CyclicCode(code=R) == codes.CyclicCode(code=C)
         True
 
-    The `\delta = 15` case (trivial full code) also works::
+    The `\delta = 15, 1` cases (trivial codes) also work::
+
         sage: C = codes.BCHCode(GF(16), 15, 1)
         sage: C.dimension()
         15
+        sage: C.defining_set()
+        []
+        sage: C.generator_polynomial()
+        1
         sage: C = codes.BCHCode(GF(16), 15, 15)
         sage: C.dimension()
         1

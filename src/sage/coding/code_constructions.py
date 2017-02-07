@@ -5,7 +5,7 @@ This file contains a variety of constructions which builds the generator matrix
 of special (or random) linear codes and wraps them in a
 :class:`sage.coding.linear_code.LinearCode` object. These constructions are
 therefore not rich objects such as
-:class:`sage.coding.grs.GeneralizedReedSolomonCodes`.
+:class:`sage.coding.grs.GeneralizedReedSolomonCode`.
 
 For deprecation reasons, this file also contains some constructions for which
 Sage now does have rich representations.

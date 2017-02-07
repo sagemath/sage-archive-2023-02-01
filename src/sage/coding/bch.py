@@ -305,9 +305,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
         """
         self._grs_code = code.bch_to_grs()
         self._grs_decoder = self._grs_code.decoder(grs_decoder, **kwargs)
-        self._decoder_type = copy(self._decoder_type)
-        self._decoder_type.remove("dynamic")
-        self._decoder_type = self._grs_decoder.decoder_type()
+        self._decoder_type = copy(self._grs_decoder.decoder_type())
         super(BCHUnderlyingGRSDecoder, self).__init__(
             code, code.ambient_space(), "Vector")
 
@@ -381,7 +379,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             True
         """
         mapping = self.code().field_embedding().embedding()
-        a = [mapping(i) for i in c]
+        a = map(mapping, c)
         return vector(a)
 
     def grs_word_to_bch(self, c):
@@ -420,17 +418,36 @@ class BCHUnderlyingGRSDecoder(Decoder):
             (a, a + 1, 1, a + 1, 1, a, a + 1, a + 1, 0, 1, a + 1, 1, 1, 1, a)
             sage: D.decode_to_code(y) in C
             True
+        
+        We check it still works when, while list-decoding, the GRS decoder output words which
+        does not lie in the BCH code::
+
+            sage: C = codes.BCHCode(GF(2), 31, 15)
+            sage: C
+            [31, 6] BCH Code over GF(2) with designed distance 15
+            sage: D = codes.decoders.BCHUnderlyingGRSDecoder(C, "GuruswamiSudan", tau=8)
+            sage: Dgrs = D.grs_decoder()
+            sage: c = vector(GF(2), [1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0])
+            sage: y = vector(GF(2), [1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0])
+            sage: print (c in C and (c-y).hamming_weight() == 8)
+            True
+            sage: Dgrs.decode_to_code(y)
+            [(1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0), (1, z5^3 + z5^2 + z5 + 1, z5^4 + z5^2 + z5, z5^4 + z5^3 + z5^2 + 1, 0, 0, z5^4 + z5 + 1, 1, z5^4 + z5^2 + z5, 0, 1, z5^4 + z5, 1, 0, 1, 1, 1, 0, 0, z5^4 + z5^3 + 1, 1, 0, 1, 1, 1, 1, z5^4 + z5^3 + z5 + 1, 1, 1, 0, 0)]
+            sage: D.decode_to_code(y) == [c]
+            True
         """
         D = self.grs_decoder()
         ygrs = self.bch_word_to_grs(y)
-        try:
-            cgrs = D.decode_to_code(ygrs)
-        except DecodingError, e:
-            raise e
+        cgrs = D.decode_to_code(ygrs)
         if "list-decoder" in D.decoder_type():
             l = []
             for c in cgrs:
-                l.append(self.grs_word_to_bch(c))
+                try:
+                    c_bch = self.grs_word_to_bch(c)
+                    if c_bch in self.code():
+                        l.append(c_bch)
+                except ValueError, e:
+                    pass
             return l
         return self.grs_word_to_bch(cgrs)
 
@@ -445,7 +462,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
             sage: D.decoding_radius()
             1
         """
-        return (self.code().bch_bound(arithmetic=True)[0] - 1) // 2
+        return self.grs_decoder().decoding_radius()
 
 
 ####################### registration ###############################

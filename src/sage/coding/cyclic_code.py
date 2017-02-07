@@ -1237,9 +1237,7 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
         """
         self._bch_code = code.surrounding_bch_code()
         self._bch_decoder = self._bch_code.decoder(**kwargs)
-        self._decoder_type = copy(self._decoder_type)
-        self._decoder_type.remove("dynamic")
-        self._decoder_type = self._bch_decoder.decoder_type()
+        self._decoder_type = copy(self._bch_decoder.decoder_type())
         super(CyclicCodeSurroundingBCHDecoder, self).__init__(
             code, code.ambient_space(), "Vector")
 
@@ -1341,7 +1339,7 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
             sage: D.decoding_radius()
             1
         """
-        return (self.code().bch_bound(arithmetic=True)[0] - 1) // 2
+        return self._bch_decoder.decoding_radius()
 
 
 ####################### registration ###############################

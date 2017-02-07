@@ -462,7 +462,6 @@ def BinaryGolayCode():
     from .golay_code import GolayCode
     deprecation(20787, "codes.BinaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
     return GolayCode(GF(2), False)
->>>>>>> 44a25be9e37bd1d4b8d33f1b85bd02626de35a14
 
 def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
     r"""

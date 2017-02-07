@@ -7232,7 +7232,7 @@ class GenericGraph(GenericGraph_pyx):
                         answer = answer.copy(immutable = True)
                     return answer
 
-            raise EmptySetError("The given graph is not Hamiltonian")
+            raise EmptySetError("the given graph is not Hamiltonian")
 
         ################################
         # Quick checks of connectivity #
@@ -7245,12 +7245,12 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
             if not self.is_strongly_connected():
-                raise EmptySetError("The given graph is not Hamiltonian")
+                raise EmptySetError("the given graph is not Hamiltonian")
 
         else:
             # Checks whether the graph is 2-connected
             if not self.strong_orientation().is_strongly_connected():
-                raise EmptySetError("The given graph is not Hamiltonian")
+                raise EmptySetError("the given graph is not Hamiltonian")
 
         ############################
         # Deal with multiple edges #
@@ -21315,7 +21315,7 @@ class GenericGraph(GenericGraph_pyx):
         containing said boolean and the requested data. If the graph is not
         a Cayley graph, each of the data will be ``None``.
 
-        The empty graph is defined be not a Cayley graph.
+        The empty graph is defined to be not a Cayley graph.
 
         .. NOTE::
 

@@ -590,7 +590,7 @@ class AbstractLinearCode(Module):
 
     def _repr_(self):
         r"""
-        Returns an error message requiring to override ``_repr_`` in ``self``.
+        Return an error message requiring to override ``_repr_`` in ``self``.
 
         As one has to implement specific representation methods (`_repr_` and `_latex_`)
         when writing a new code class which inherits from :class:`AbstractLinearCode`,
@@ -636,7 +636,7 @@ class AbstractLinearCode(Module):
 
     def _latex_(self):
         r"""
-        Returns an error message requiring to override ``_latex_`` in ``self``.
+        Return an error message requiring to override ``_latex_`` in ``self``.
 
         As one has to implement specific representation methods (`_repr_` and `_latex_`)
         when writing a new code class which inherits from :class:`AbstractLinearCode`,

@@ -305,10 +305,6 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     C = LinearCode(G)
     return C._minimum_weight_codeword(algorithm)
 
-# min_wt_vec_gap = deprecated_function_alias(
-#     21165, AbstractLinearCode._gap_minimal_weight_codeword)
-
-
 
 class AbstractLinearCode(Module):
     """

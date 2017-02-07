@@ -1617,6 +1617,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: L(gap(tau)^3)     # indirect doctest
             2
 
+        Check that :trac:`22202` is fixed::
+
+            sage: y = QQ['y'].gen()
+            sage: R = QQ.extension(y^2-2,'a')['x']
+            sage: R("a*x").factor()
+            (a) * x
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             K = x.parent()

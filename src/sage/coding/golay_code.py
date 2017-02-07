@@ -217,6 +217,15 @@ class GolayCode(AbstractLinearCode):
             sage: C = codes.GolayCode(GF(2))
             sage: C.covering_radius()
             4
+            sage: C = codes.GolayCode(GF(2),False)
+            sage: C.covering_radius()
+            3
+            sage: C = codes.GolayCode(GF(3))
+            sage: C.covering_radius()
+            3
+            sage: C = codes.GolayCode(GF(3),False)
+            sage: C.covering_radius()
+            2
         """
         n = self.length()
         if n == 23:

@@ -1551,7 +1551,12 @@ class AbstractLinearCode(Module):
             sage: C.dimension()
             2
         """
-        return self._dimension
+        try:
+            return self._dimension
+        except AttributeError:
+            dimension = self.generator_matrix().nrows()
+            self._dimension = dimension
+            return self.dimension
 
     def direct_sum(self, other):
         """

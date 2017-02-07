@@ -254,6 +254,7 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
+import six
 from six.moves import range
 from six import itervalues
 
@@ -3010,7 +3011,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             # We create the digraphs of all color classes
             linear_extensions = [hasse_diagram.copy() for i in range(k)]
-            for ((u,v),i),x in p.get_values(b).iteritems():
+            for ((u,v),i),x in six.iteritems(p.get_values(b)):
                 if x == 1:
                     linear_extensions[i].add_edge(u,v)
 
@@ -4932,7 +4933,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         canonical_label = self._hasse_diagram.canonical_label(certificate=True,
                                                               algorithm=algorithm)[1]
-        canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}
+        canonical_label = {self._elements[v]:i for v,i in six.iteritems(canonical_label)}
         return self.relabel(canonical_label)
 
     def with_linear_extension(self, linear_extension):

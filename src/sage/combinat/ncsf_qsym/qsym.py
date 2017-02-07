@@ -86,6 +86,9 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 
+import six
+
+
 class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     .. rubric:: The Hopf algebra of quasisymmetric functions.
@@ -674,7 +677,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         assert self.base_ring() == f.base_ring()
         exponent_coefficient = f.dict()
         z = {}
-        for (e, c) in exponent_coefficient.iteritems():
+        for (e, c) in six.iteritems(exponent_coefficient):
             I = Compositions()([ei for ei in e if ei > 0])
             if I not in z:
                 z[I] = c

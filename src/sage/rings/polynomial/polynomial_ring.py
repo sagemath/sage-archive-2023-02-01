@@ -2270,6 +2270,11 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             1 loop, best of 3: 454 ms per loop
             sage: %timeit _alekhnovich(R, p, 20, dc_threshold = 4) # not tested
             1 loop, best of 3: 519 ms per loop
+
+        AUTHORS:
+
+        - Johan Rosenkilde (2015) -- Original implementation
+        - Bruno Grenet (August 2016) -- Incorporation into SageMath and polishing
         """
         def alekh_rec(p, k, degree_bound, lvl):
             r"""
@@ -2330,7 +2335,6 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         if precision is None:
             roots = []
             for hi,_ in mod_roots:
-                #his = _alekhnovich_powers(hi, len(Q))
                 if p(hi).is_zero():
                     roots.append(hi)
             return roots
@@ -2345,8 +2349,8 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         - ``p`` -- the polynomial whose roots are computed
         - ``ring`` -- the ring to find roots (default is the base ring of ``p``)
-        - ``multiplicities`` -- bool (default: True): currently, only roots
-          without multiplicities are computed.
+        - ``multiplicities`` -- bool (default: True): currently, roots are only
+          computed without their multiplicities.
         - ``algorithm`` -- the algorithm to use: either ``"Alekhnovich"`` (default)
           or ``"Roth-Ruckenstein"``
         - ``degree_bound``-- if not ``None``, return only roots of degree at

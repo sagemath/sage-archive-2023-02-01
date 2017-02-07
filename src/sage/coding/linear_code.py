@@ -1558,6 +1558,8 @@ class AbstractLinearCode(Module):
             sage: from sage.coding.linear_code import AbstractLinearCode
             sage: from sage.coding.encoder import Encoder
             sage: class MonkeyCode(AbstractLinearCode):
+            ....:     _registered_encoders = {}
+            ....:     _registered_decoders = {}
             ....:     def __init__(self):
             ....:         super(MonkeyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
             ....:
@@ -1573,7 +1575,6 @@ class AbstractLinearCode(Module):
             sage: C = MonkeyCode()
             sage: C.dimension()
             5
-            sage: _ = MonkeyCode._registered_encoders.pop("Monkey") # remove dummy registered encoder
         """
         try:
             return self._dimension

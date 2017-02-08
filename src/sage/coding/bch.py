@@ -344,30 +344,38 @@ class BCHUnderlyingGRSDecoder(Decoder):
             `c \in F^n` and `\alpha` a primitive root of the splitting field.
             We know:
 
+
             .. MATH::
 
                 \begin{aligned}
-                c \in \mathrm{BCH} &\iff \forall j \in \{0,\dots,\delta-2\},\, \sum_{i=0}^{n-1} c_i (\alpha^{b + \ell j})^i \\
-                & \iff H c = 0 \text{ where } H = A \times D \text{ with: } \\
+                c \in \mathrm{BCH} &\iff \sum_{i=0}^{n-1} c_i (\alpha^{b + \ell j})^i =0, \quad j=0,\dots,\delta-2\\
+                & \iff H c = 0
+                \end{aligned}
+
+
+            where `H = A \times D` with:
+
+            .. MATH::
+
+                \begin{aligned}
                 A = &\, \begin{pmatrix}
                       1 & \dots & 1 \\
                       ~ & ~ & ~ \\
                       (\alpha^{0 \times \ell})^{\delta-2} & \dots & (\alpha^{(n-1) \ell})^{\delta-2}
-                \end{pmatrix} \quad \text{ and } \quad
-                D = \begin{pmatrix}
+                \end{pmatrix}\\
+                D =&\, \begin{pmatrix}
                       1 & 0        & \dots  & 0 \\
                       0 & \alpha^b & ~      & ~ \\
                       \dots &          & \dots & 0 \\
                       0 & \dots    & 0      & \alpha^{b(n-1)} \end{pmatrix}
                 \end{aligned}
 
-            Said differently `c` is orthogonal to the GRS code of dimension
+            The BCH code is orthogonal to the GRS code `C'` of dimension
             `\delta - 1` with evaluation points
             `\{1 = \alpha^{0 \times \ell}, \dots, \alpha^{(n-1) \ell} \}`
             and associated multipliers
             `\{1 = \alpha^{0 \times b}, \dots, \alpha^{(n-1) b} \}`.
-            The underlying GRS code (a GRS code which contains the BCH code)
-            can be deduced from it by duality.
+            The underlying GRS code is the dual code of `C'`.
 
         EXAMPLES::
 

@@ -417,6 +417,7 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+import six
 from six.moves import range
 
 from copy import copy
@@ -1986,7 +1987,7 @@ class Graph(GenericGraph):
         # Obviously, we don't test vertices of degree one. Furthermore, if a
         # vertex of degree 2 is an apex, its neighbors also are. So we start
         # with vertices of degree 2.
-        V = sorted([(d,u) for u,d in H.degree(labels=True).iteritems() if d > 1])
+        V = sorted([(d,u) for u,d in six.iteritems(H.degree(labels=True)) if d > 1])
         apex = set()
         for deg,u in V:
 
@@ -3825,7 +3826,7 @@ class Graph(GenericGraph):
         left = set([])
         right = set([])
 
-        for u,s in color.iteritems():
+        for u,s in six.iteritems(color):
             if s:
                 left.add(u)
             else:
@@ -4320,12 +4321,12 @@ class Graph(GenericGraph):
             if value_only:
                 if use_edge_labels:
                     return sum(weight(self.edge_label(u, v))
-                               for u, v in d.iteritems()) / Integer(2)
+                               for u, v in six.iteritems(d)) / Integer(2)
                 else:
                     return Integer(len(d) // 2)
             else:
                 return [(u, v, self.edge_label(u, v))
-                        for u, v in d.iteritems() if u < v]
+                        for u, v in six.iteritems(d) if u < v]
 
         elif algorithm == "LP":
             from sage.numerical.mip import MixedIntegerLinearProgram
@@ -4690,7 +4691,7 @@ class Graph(GenericGraph):
         # setting the minimum to 1/(10 * size of the whole graph )
         # should be safe :-)
         m = 1/(10 *Integer(g.order()))
-        g_mad = g.subgraph([v for v,l in p.get_values(d).iteritems() if l>m ])
+        g_mad = g.subgraph([v for v,l in six.iteritems(p.get_values(d)) if l>m ])
 
         if value_only:
             return g_mad.average_degree()

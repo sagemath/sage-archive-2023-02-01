@@ -16,6 +16,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+import six
 from six.moves import range
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -155,13 +156,13 @@ def HarriesGraph(embedding=1):
                   20: 14, 22: 56, 62: 42}
 
         # Position for the vertices from the first copy
-        for v, i in g_to_p.iteritems():
+        for v, i in six.iteritems(g_to_p):
             gpos[v] = ppos[i]
 
         # Position for the vertices in the second copy. Moves the first,
         # too.
         offset = 3.5
-        for v, i in g_to_g.iteritems():
+        for v, i in six.iteritems(g_to_g):
             x, y = gpos[i]
             gpos[v] = (x + offset*0.5, y)
             gpos[i] = (x - offset*0.5, y)
@@ -3564,7 +3565,7 @@ def LjubljanaGraph(embedding=1):
         # The vertices of each 8-set are plotted on a circle, and the
         # circles are slowly shifted to obtain a symmetric drawing.
 
-        for i, (u, vertices) in enumerate(d.iteritems()):
+        for i, (u, vertices) in enumerate(six.iteritems(d)):
             _circle_embedding(g, vertices, center=dh[u], radius=.1,
                     shift=8.*i/14)
 
@@ -4930,7 +4931,7 @@ def JankoKharaghaniGraph(v):
               for R in W]
         D = (D+matrix.block(D2))/2
 
-    return Graph([e for e,v in D.dict().iteritems() if v == 1],
+    return Graph([e for e,v in six.iteritems(D.dict()) if v == 1],
                  multiedges=False,
                  name="Janko-Kharaghani")
 
@@ -5128,7 +5129,7 @@ def IoninKharaghani765Graph():
         for i in range(4):
             L[i,phi[i](p)].add(p)
 
-    L = {k:frozenset(v) for k,v in L.iteritems()}
+    L = {k:frozenset(v) for k,v in six.iteritems(L)}
 
     # Defining pi
     pi = {L[i,j]:L[i,(j+1)%3] for (i,j) in L}

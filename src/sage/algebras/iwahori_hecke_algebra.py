@@ -77,7 +77,7 @@ def normalized_laurent_polynomial(R, p):
         u + v^-1 + u^-1
     """
     try:
-        return R({k: R._base(c) for k, c in p.dict().iteritems()})
+        return R({k: R._base(c) for k, c in six.iteritems(p.dict())})
     except (AttributeError, TypeError):
         return R(p)
 
@@ -2669,5 +2669,9 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             return (-1)**w.length()*self.realization_of().Cp().to_T_basis(w).hash_involution()
 
 from sage.structure.sage_object import register_unpickle_override
+
+import six
+
+
 register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
                            'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra)

@@ -1501,7 +1501,7 @@ def at(ex, *args, **kwds):
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
-    kwds={ (k[10:] if k[:10] == "_SAGE_VAR_" else k):v for k,v in kwds.iteritems()}
+    kwds={ (k[10:] if k[:10] == "_SAGE_VAR_" else k):v for k,v in six.iteritems(kwds)}
     if len(args) == 1 and isinstance(args[0],list):
         for c in args[0]:
             kwds[str(c.lhs())]=c.rhs()
@@ -1739,6 +1739,9 @@ symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
             'e':'_e', 'i':'_i', 'I':'_I'}
 
 import re
+
+import six
+
 
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
@@ -1982,7 +1985,7 @@ def maxima_options(**kwds):
         sage: sage.calculus.calculus.maxima_options(an_option=True, another=False, foo='bar')
         'an_option=true,foo=bar,another=false'
     """
-    return ','.join(['%s=%s'%(key,mapped_opts(val)) for key, val in kwds.iteritems()])
+    return ','.join(['%s=%s'%(key,mapped_opts(val)) for key, val in six.iteritems(kwds)])
 
 
 # Parser for symbolic ring elements

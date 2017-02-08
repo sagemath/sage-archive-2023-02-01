@@ -13217,7 +13217,8 @@ class GenericGraph(GenericGraph_pyx):
             return {v:coeff_from_triangle_count(v,count)
                     for v,count in iteritems(triangles_count(self))}
 
-    def cluster_transitivity(self):        r"""
+    def cluster_transitivity(self):
+        r"""
         Returns the transitivity (fraction of transitive triangles) of the
         graph.
 

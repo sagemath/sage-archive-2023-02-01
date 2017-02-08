@@ -139,7 +139,7 @@ Functions
 ---------
 """
 from __future__ import print_function
-from six.moves import iteritems
+from six import iteritems
 
 
 def is_line_graph(g, certificate = False):

@@ -114,7 +114,7 @@ Methods and functions
 #                         http://www.gnu.org/licenses/                         #
 ################################################################################
 from __future__ import print_function
-from six.moves import iteritems
+from six import iteritems
 
 # Constants, to make the code more readable
 

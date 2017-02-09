@@ -1,6 +1,7 @@
 r"""
 This module implements an algorithm for generating all strong orientations of
-an undirected graph. It is an adaptation of the algorithm published in [CGMRV16]_.
+an undirected graph.
+It is an adaptation of the algorithm published in [CGMRV16]_.
 
 A strong orientation of a graph is an orientation of its edges such that
 the obtained digraph is strongly connected (i.e. there exist a directed path
@@ -44,8 +45,7 @@ REFERENCE:
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.digraph import DiGraph
 
-def all_strong_orientations_iterator(self):
-
+def strong_orientations_iterator(self):
     r"""
     Returns an iterator over all strong orientations of self.
 
@@ -73,21 +73,21 @@ def all_strong_orientations_iterator(self):
     A cycle has one possible (non-symetric) strong orientation::
 
         sage: g = graphs.CycleGraph(4)
-        sage: it = g.all_strong_orientations_iterator()
+        sage: it = g.strong_orientations_iterator()
         sage: len(list(it))
         1
 
         A tree cannot be strongly oriented::
 
         sage: g = graphs.RandomTree(100)
-        sage: len(list(g.all_strong_orientations_iterator()))
+        sage: len(list(g.strong_orientations_iterator()))
         0
 
         Neither can be a disconnected graph::
 
         sage: g = graphs.CompleteGraph(6)
         sage: g.add_vertex(7)
-        sage: len(list(g.all_strong_orientations_iterator()))
+        sage: len(list(g.strong_orientations_iterator()))
         0
 
     TESTS:
@@ -96,13 +96,14 @@ def all_strong_orientations_iterator(self):
     the Tutte polynomial evaluated at points (0,2)::
 
         sage: g = graphs.PetersenGraph()
-        sage: nr1 = len(list(g.all_strong_orientations_iterator()))
+        sage: nr1 = len(list(g.strong_orientations_iterator()))
         sage: nr2 = g.tutte_polynomial()(0,2)
         sage: nr1 == nr2/2 # The Tutte polynomial counts also the symetrical orientations
         True
 
     """
-    # if the graph has a bridge or is disconnected, then it cannot be strongly oriented
+    # if the graph has a bridge or is disconnected,
+    # then it cannot be strongly oriented
     if not self.is_biconnected() :
         return
     

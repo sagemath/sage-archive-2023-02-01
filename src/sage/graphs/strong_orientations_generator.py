@@ -1,9 +1,9 @@
 r"""
-This module implements an algorithm for generating all strong orientations
-of an undirected graph. It is an adaptation of the algorithm published in [CGMRV16]_.
+This module implements an algorithm for generating all strong orientations of
+an undirected graph. It is an adaptation of the algorithm published in [CGMRV16]_.
 
 A strong orientation of a graph is an orientation of its edges such that
-that the obtained digraph is strongly connected (i.e. there exist a directed path
+the obtained digraph is strongly connected (i.e. there exist a directed path
 between each pair of vertices).
 
 ALGORITHM:
@@ -26,7 +26,8 @@ REFERENCE:
 
 .. [CGMRV16] A. Conte, R. Grossi, A. Marino, R. Rizzi, L. Versari,
   "Directing Road Networks by Listing Strong Orientations.",
-  Combinatorial Algorithms: Proceedings of 27th International Workshop, IWOCA 2016, August 17-19, 2016, pages 83--95
+  Combinatorial Algorithms: Proceedings of 27th International Workshop,
+  IWOCA 2016, August 17-19, 2016, pages 83--95
 """
 
 #*****************************************************************************
@@ -47,10 +48,12 @@ def all_strong_orientations_iterator(self):
 
     r"""
     Returns an iterator over all strong orientations of self.
+
     First preprocesses the graph and generates a spanning tree.
-    Then every orientation of the non-tree edges can be extended to a strong orientation
-    by orienting properly the spanning tree. Therefore, this function generates
-    all partial orientations of the non-tree edges and then launches
+    Then every orientation of the non-tree edges can be extended to at least
+    one new strong orientation by orienting properly the edges of the spanning
+    tree (this property is proved in [CGMRV16]_). Therefore, this function
+    generates all partial orientations of the non-tree edges and then launches
     the generation algorithm described in [CGMRV16]_.
 
     INPUT:
@@ -76,23 +79,26 @@ def all_strong_orientations_iterator(self):
 
         A tree cannot be strongly oriented::
 
-        sage: g=graphs.RandomTree(100)
+        sage: g = graphs.RandomTree(100)
         sage: len(list(g.all_strong_orientations_iterator()))
         0
 
         Neither can be a disconnected graph::
 
-        sage: g=graphs.CompleteGraph(6)
+        sage: g = graphs.CompleteGraph(6)
         sage: g.add_vertex(7)
         sage: len(list(g.all_strong_orientations_iterator()))
         0
 
     TESTS:
 
-    The total number of strong orientations of a graph can be counted using the Tutte polynomial evaluated at points (0,2)::
+    The total number of strong orientations of a graph can be counted using
+    the Tutte polynomial evaluated at points (0,2)::
 
         sage: g = graphs.PetersenGraph()
-        sage: len(list(g.all_strong_orientations_iterator())) == int(g.tutte_polynomial()(0,2)/2) # the Tutte polynomial counts also the symetrical orientations
+        sage: nr1 = len(list(g.all_strong_orientations_iterator()))
+        sage: nr2 = g.tutte_polynomial()(0,2)
+        sage: nr1 == nr2/2 # The Tutte polynomial counts also the symetrical orientations
         True
 
     """
@@ -101,7 +107,7 @@ def all_strong_orientations_iterator(self):
         return
     
     V = self.vertices()
-    Dg = DiGraph([self.vertices(), self.edges()])
+    Dg = DiGraph([self.vertices(), self.edges()], pos=self.get_pos())
 
     # compute an arbitrary spanning tree of the undirected graph
     te = kruskal(self)
@@ -140,36 +146,38 @@ def all_strong_orientations_iterator(self):
             Dg.reverse_edge(A[bit][1], A[bit][0])
             existingAedges[bit] = 0
         # launch the algorithm for enumeration of the solutions
-        for orientation in _all_strong_orientations_of_a_mixed_graph(Dg, V, treeEdges):
-            yield orientation
+        for sol in _all_strong_orientations_of_a_mixed_graph(Dg, V, treeEdges):
+            yield sol
 
 
 def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
     r"""
     Helper function for the generation of all strong orientations.
 
-    Generates all strong orientations of a given partially directed graph (called mixed graph).
-    The algorithm finds bound edges (undirected edges whose orientation is forced)
-    and tries all possible orientations for the other edges.
-    See [CGMRV16]_ for more details.
+    Generates all strong orientations of a given partially directed graph
+    (also called mixed graph). The algorithm finds bound edges i.e undirected
+    edges whose orientation is forced and tries all possible orientations for
+    the other edges. See [CGMRV16]_ for more details.
 
     INPUT:
 
-    - Dg -- the partially directed graph. The undirected edges are doubly oriented.
+    - Dg -- the mixed graph. The undirected edges are doubly oriented.
     - V -- the set of vertices
-    - E -- the set of undirected edges (these edges are oriented in both ways). No labels are allowed.
+    - E -- the set of undirected edges (these edges are oriented in both ways).
+      No labels are allowed.
 
     OUTPUT:
 
-    - an iterator which will produce all strong orientations of the input partially directed graph.
+    - an iterator which will produce all strong orientations of the input
+      partially directed graph.
 
     EXAMPLES::
 
         sage: from sage.graphs.strong_orientations_generator import _all_strong_orientations_of_a_mixed_graph
-        sage: g=graphs.CycleGraph(5)
+        sage: g = graphs.CycleGraph(5)
         sage: Dg = DiGraph(g) # all edges of g will be doubly oriented
-        sage: it = _all_strong_orientations_of_a_mixed_graph(Dg,g.vertices(),g.edges(labels=False))
-        sage: len(list(it)) # there are two possible orientations of this multigraph
+        sage: it = _all_strong_orientations_of_a_mixed_graph(Dg, g.vertices(), g.edges(labels=False))
+        sage: len(list(it)) # there are two orientations of this multigraph
         2
     """
     length = len(E)
@@ -177,7 +185,7 @@ def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
     boundEdges = []
     while i < length :
         (u,v) = E[i];
-        Dg.delete_edge((u,v))
+        Dg.delete_edge(u,v)
         if not (v in Dg.depth_first_search(u)) :
             del E[i]
             length -= 1
@@ -191,7 +199,7 @@ def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
                 del E[i]
                 length -= 1
                 boundEdges.append((u,v))
-                Dg.delete_edge((u,v))
+                Dg.delete_edge(u,v)
             else :
                 i += 1
             Dg.add_edge((v,u))
@@ -204,12 +212,12 @@ def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
         (u,v) = E.pop()
         Dg.delete_edge((v,u))
         for orientation in _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
-                    yield orientation
+            yield orientation
         Dg.add_edge((v,u))
-        Dg.delete_edge((u,v))
+        Dg.delete_edge(u,v)
         for orientation in _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
-                    yield orientation
-        Dg.add_edge((u,v))
+            yield orientation
+        Dg.add_edge(u,v)
         E.append((u,v))
     Dg.add_edges(boundEdges)
     E.extend(boundEdges)

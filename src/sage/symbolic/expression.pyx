@@ -5343,7 +5343,7 @@ cdef class Expression(CommutativeRingElement):
         """
         EXAMPLES::
 
-            sage: a = range(10)
+            sage: a = list(range(10))
             sage: a[:SR(5)]
             [0, 1, 2, 3, 4]
         """
@@ -11072,7 +11072,7 @@ cdef class Expression(CommutativeRingElement):
             solutions = [tuple(s._sage_() for s in sol) for sol in solutions]
         if x is None:
             wanted_vars = ex.variables()
-            var_idx = range(len(ex.variables()))
+            var_idx = list(xrange(len(ex.variables())))
         else:
             if isinstance(x, (list, tuple)):
                 wanted_vars = x
@@ -11080,7 +11080,7 @@ cdef class Expression(CommutativeRingElement):
                 wanted_vars = [x]
             var_idx = [ex.variables().index(v) for v in wanted_vars]
 
-        if solution_dict == False:
+        if solution_dict is False:
             if len(wanted_vars) == 1:
                 ret = sorted([sol[var_idx[0]] for sol in solutions])
             else:

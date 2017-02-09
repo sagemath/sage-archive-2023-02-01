@@ -1,4 +1,6 @@
 """
+Interface between Sage and PARI
+
 Guide to real precision in the PARI interface
 =============================================
 

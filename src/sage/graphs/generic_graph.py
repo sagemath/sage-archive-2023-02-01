@@ -4905,6 +4905,10 @@ class GenericGraph(GenericGraph_pyx):
         Indicates whether the (di)graph is connected. Note that in a graph,
         path connected is equivalent to connected.
 
+        .. SEEALSO::
+
+            - :meth:`~Graph.is_biconnected`
+
         EXAMPLES::
 
             sage: G = Graph( { 0 : [1, 2], 1 : [2], 3 : [4, 5], 4 : [5] } )
@@ -5054,7 +5058,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            :meth:`blocks_and_cuts_tree`
+            - :meth:`blocks_and_cuts_tree`
+            - :meth:`~Graph.is_biconnected`
 
         EXAMPLES::
 
@@ -5208,7 +5213,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            :meth:`blocks_and_cut_vertices`
+            - :meth:`blocks_and_cut_vertices`
+            - :meth:`~Graph.is_biconnected`
 
         EXAMPLES::
 

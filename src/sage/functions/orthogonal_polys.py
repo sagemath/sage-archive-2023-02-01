@@ -311,7 +311,6 @@ from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_field import is_ComplexField
-from sage.calculus.calculus import maxima
 
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
@@ -319,44 +318,6 @@ from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
 from sage.functions.other import factorial, binomial
 from sage.structure.all import parent
-
-_done = False
-def _init():
-    """
-    Internal function which checks if Maxima has loaded the
-    "orthopoly" package.  All functions using this in this
-    file should call this function first.
-
-    TEST:
-
-    The global starts ``False``::
-
-        sage: sage.functions.orthogonal_polys._done
-        False
-
-    Then after using one of these functions, it changes::
-
-        sage: from sage.functions.orthogonal_polys import laguerre
-        sage: laguerre(2,x)
-        1/2*x^2 - 2*x + 1
-        sage: sage.functions.orthogonal_polys._done
-        False
-
-
-    Note that because here we use a Pynac variable ``x``,
-    the representation of the function is different from
-    its actual doctest, where a polynomial indeterminate
-    ``x`` is used.
-    """
-    global _done
-    if _done:
-        return
-    maxima.eval('load("orthopoly");')
-    # TODO -- make it possible to use the intervals returned
-    # instead of just discarding this info!
-    maxima.eval('orthopoly_returns_intervals:false;')
-    _done = True
-
 
 class OrthogonalFunction(BuiltinFunction):
     """

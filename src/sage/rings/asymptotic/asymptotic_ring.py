@@ -2513,7 +2513,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         # update with rules
         if isinstance(rules, dict):
-            for k, v in rules.iteritems():
+            for k, v in six.iteritems(rules):
                 if not isinstance(k, str) and k not in gens:
                     raise TypeError('Cannot substitute %s in %s '
                                     'since it is neither an '
@@ -2562,7 +2562,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             from .misc import combine_exceptions
             rules = '{' + ', '.join(
                 '%s: %s' % (k, v)
-                for k, v in sorted(locals.iteritems(),
+                for k, v in sorted(six.iteritems(locals),
                                    key=lambda k: str(k[0]))
                 if not k.startswith('_') and
                 not any(k == str(g) and v is g for g in gens)) + '}'
@@ -4315,6 +4315,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
 
 from sage.categories.pushout import ConstructionFunctor
+
+import six
+
+
 class AsymptoticRingFunctor(ConstructionFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`

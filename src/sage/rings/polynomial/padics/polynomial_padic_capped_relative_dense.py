@@ -21,6 +21,7 @@ import sage.rings.padics.precision_error as precision_error
 import sage.rings.fraction_field_element as fraction_field_element
 import copy
 from sage.structure.element import coerce_binop
+import six
 
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZX
@@ -110,7 +111,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             zero = parentbr.zero()
             n = max(x.keys()) if x else 0
             v = [zero] * (n + 1)
-            for i, z in x.iteritems():
+            for i, z in six.iteritems(x):
                 v[i] = z
             x = v
         elif isinstance(x, pari_gen):

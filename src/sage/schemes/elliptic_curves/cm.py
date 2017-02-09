@@ -32,6 +32,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
 from sage.interfaces.all import magma
 from sage.rings.all import (Integer,
@@ -254,10 +255,10 @@ def cm_j_invariants_and_orders(K, proof=None):
     # polynomial F(x) with a root in K.  If F(x) has a root alpha in K,
     # then F is the minimal polynomial of alpha in K, so the degree of
     # F(x) is at most [K:QQ].
-    dlist = sum([v for h,v in discriminants_with_bounded_class_number(K.degree(), proof=proof).iteritems()], [])
+    dlist = sum([v for h, v in iteritems(discriminants_with_bounded_class_number(K.degree(), proof=proof))], [])
 
-    return [(D,f,j) for D, f in dlist
-             for j in hilbert_class_polynomial(D*f*f).roots(K, multiplicities=False)]
+    return [(D, f, j) for D, f in dlist
+            for j in hilbert_class_polynomial(D*f*f).roots(K, multiplicities=False)]
 
 
 @cached_function

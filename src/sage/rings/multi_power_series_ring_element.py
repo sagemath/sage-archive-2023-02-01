@@ -163,6 +163,7 @@ from sage.rings.power_series_ring import is_PowerSeriesRing
 
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import Zmod
+import six
 
 from sage.rings.infinity import infinity, is_Infinite
 
@@ -522,7 +523,7 @@ class MPowerSeries(PowerSeries):
             return self
 
         y = 0
-        for (m,c) in self.dict().iteritems():
+        for (m,c) in six.iteritems(self.dict()):
                 y += c*prod([x[i]**m[i] for i in range(n) if m[i] != 0])
         if self.prec() == infinity:
             return y
@@ -1204,7 +1205,7 @@ class MPowerSeries(PowerSeries):
             sage: g = f^2 + f - 2; g
             3*s + 3*t + s^2 + 5*s*t + t^2 + O(s, t)^3
             sage: cd = g.coefficients()
-            sage: g2 = sum(k*v for (k,v) in cd.iteritems()); g2
+            sage: g2 = sum(k*v for (k,v) in six.iteritems(cd)); g2
             3*s + 3*t + s^2 + 5*s*t + t^2
             sage: g2 == g.truncate()
             True
@@ -1280,7 +1281,7 @@ class MPowerSeries(PowerSeries):
             -x^3*y^12*z^21 - 1/4*y^3*z^36 + 1/2*x^21*y^15*z^6 + 2/3*y^18*z^24 + O(x, y, z)^45
         """
         cd = self.coefficients()
-        Vs = sum(v*k**n for (k,v) in cd.iteritems())
+        Vs = sum(v*k**n for (k,v) in six.iteritems(cd))
         return Vs.add_bigoh(self.prec()*n)
 
     def prec(self):
@@ -1706,7 +1707,7 @@ class MPowerSeries(PowerSeries):
         xxe = xx.exponents()[0]
         pos = [i for i, c in enumerate(xxe) if c != 0][0]  # get the position of the variable
         res = {mon.eadd(xxe): R(co / (mon[pos]+1))
-               for mon, co in self.dict().iteritems()}
+               for mon, co in six.iteritems(self.dict())}
         return P( res ).add_bigoh(self.prec()+1)
 
     def ogf(self):

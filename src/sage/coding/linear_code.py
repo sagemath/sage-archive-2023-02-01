@@ -326,6 +326,12 @@ class AbstractLinearCode(Module):
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
 
+    - Add the following two lines on the class level::
+
+          _registered_encoders = {}
+          _registered_decoders = {}
+
+
     - fill the dictionary of its encoders in ``sage.coding.__init__.py`` file. Example:
       I want to link the encoder ``MyEncoderClass`` to ``MyNewCodeClass``
       under the name ``MyEncoderName``.
@@ -1554,8 +1560,38 @@ class AbstractLinearCode(Module):
             sage: C = LinearCode(G)
             sage: C.dimension()
             2
+
+        TESTS:
+
+        Check that :trac:`21156` is fixed::
+
+            sage: from sage.coding.linear_code import AbstractLinearCode
+            sage: from sage.coding.encoder import Encoder
+            sage: class MonkeyCode(AbstractLinearCode):
+            ....:     _registered_encoders = {}
+            ....:     _registered_decoders = {}
+            ....:     def __init__(self):
+            ....:         super(MonkeyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+            ....:
+            sage: class MonkeyEncoder(Encoder):
+            ....:     def __init__(self, code):
+            ....:         super(MonkeyEncoder, self).__init__(C)
+            ....:     @cached_method
+            ....:     def generator_matrix(self):
+            ....:         G = identity_matrix(GF(5), 5).augment(matrix(GF(5), 5, 7))
+            ....:         return G
+            ....:
+            sage: MonkeyCode._registered_encoders["Monkey"] = MonkeyEncoder
+            sage: C = MonkeyCode()
+            sage: C.dimension()
+            5
         """
-        return self._dimension
+        try:
+            return self._dimension
+        except AttributeError:
+            dimension = self.generator_matrix().nrows()
+            self._dimension = dimension
+            return self._dimension
 
     def direct_sum(self, other):
         """

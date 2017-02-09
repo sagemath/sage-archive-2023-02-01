@@ -2224,7 +2224,7 @@ class Polyhedron_base(Element):
         A :class:`hyperplane arrangement
         <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
         consisting of the hyperplanes defined by the
-        :meth:`~sage.geometric.hyperplane_arragement.arrangement.HyperplaneArrangementElement.Hrepresentation`.
+        :meth:`~sage.geometric.hyperplane_arrangement.arrangement.HyperplaneArrangementElement.Hrepresentation`.
         If the polytope is full-dimensional, this is the hyperplane
         arrangement spanned by the facets of the polyhedron.
 
@@ -3616,7 +3616,7 @@ class Polyhedron_base(Element):
             sage: p = polytopes.hypercube(3)
             sage: p_solid = p.render_solid(opacity = .7)
             sage: type(p_solid)
-            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+            <type 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
         """
         proj = self.projection()
         if self.ambient_dim()==3:
@@ -4350,6 +4350,17 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             RuntimeError: LattE integrale failed (exit code 1) to execute count --cdd /dev/stdin, see error message above
+
+        TESTS:
+
+        We check that :trac:`21491` is fixed::
+
+            sage: P = Polyhedron(ieqs=[], eqns=[[-10,0,1],[-10,1,0]])
+            sage: P.integral_points_count() # optional - latte_int
+            1
+            sage: P = Polyhedron(ieqs=[], eqns=[[-11,0,2],[-10,1,0]])
+            sage: P.integral_points_count() # optional - latte_int
+            0
         """
         if self.is_empty():
             return 0
@@ -4381,7 +4392,13 @@ class Polyhedron_base(Element):
                 err = ":\n" + err
             raise RuntimeError("LattE integrale failed (exit code {}) to execute {}".format(ret_code, ' '.join(args)) + err.strip())
 
-        return Integer(ans.splitlines()[-1])
+        try:
+            return Integer(ans.splitlines()[-1])
+        except IndexError:
+            # opening a file is slow (30e-6s), so we read the file
+            # numOfLatticePoints only in case of a IndexError above
+            with open(SAGE_TMP+'/numOfLatticePoints', 'r') as f:
+                return Integer(f.read())
 
     def integral_points(self, threshold=100000):
         r"""
@@ -4490,7 +4507,7 @@ class Polyhedron_base(Element):
                 (self.is_simplex() and box_points<1000) or \
                 box_points<threshold:
             from sage.geometry.integral_points import rectangular_box_points
-            return rectangular_box_points(box_min, box_max, self)
+            return rectangular_box_points(list(box_min), list(box_max), self)
 
         # for more complicate polytopes, triangulate & use smith normal form
         from sage.geometry.integral_points import simplex_points

@@ -509,7 +509,7 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
 
     def power(self):
         """
-        Return an integer `n` such that this endormorphism
+        Return an integer `n` such that this endomorphism
         is the `n`-th power of the absolute (arithmetic)
         Frobenius.
 

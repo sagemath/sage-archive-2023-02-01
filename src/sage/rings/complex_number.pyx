@@ -30,8 +30,8 @@ import operator
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.categories.map cimport Map
 
-from complex_double cimport ComplexDoubleElement
-from real_mpfr cimport RealNumber
+from .complex_double cimport ComplexDoubleElement
+from .real_mpfr cimport RealNumber
 
 import sage.misc.misc
 import integer
@@ -556,11 +556,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: pari(a).type()
             't_COMPLEX'
             sage: type(pari(a))
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: a._pari_()
             2.00000000000000 + 1.00000000000000*I
             sage: type(a._pari_())
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: a = CC(pi)
             sage: pari(a)
             3.14159265358979
@@ -794,7 +794,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __pow__(self, right, modulus):
         r"""
-        Raise ``self`` to the ``right`` expontent.
+        Raise ``self`` to the ``right`` exponent.
 
         This takes `a^b` and compues `\exp(b \log(a))`.
 
@@ -1116,7 +1116,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: complex(a)
             (2+1j)
             sage: type(complex(a))
-            <type 'complex'>
+            <... 'complex'>
             sage: a.__complex__()
             (2+1j)
         """
@@ -2081,8 +2081,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: c = ComplexNumber(NaN,2)
             sage: c.log()
-            NaN - NaN*I
-
+            NaN + NaN*I
         """
         if mpfr_nan_p(self.__re):
             return ComplexNumber(self._parent,self.real(),self.real())

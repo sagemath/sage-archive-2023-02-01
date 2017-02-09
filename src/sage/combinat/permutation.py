@@ -1341,7 +1341,7 @@ class Permutation(CombinatorialElement):
             sage: p(2)
             1
             sage: p = Permutation([5,2,1,6,3,7,4])
-            sage: map(p, range(1,8))
+            sage: list(map(p, range(1,8)))
             [5, 2, 1, 6, 3, 7, 4]
 
         TESTS::
@@ -6158,11 +6158,11 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         EXAMPLES::
 
             sage: SP3 = Permutations(3)
-            sage: l = map(SP3.unrank, range(6))
+            sage: l = list(map(SP3.unrank, range(6)))
             sage: l == SP3.list()
             True
             sage: SP0 = Permutations(0)
-            sage: l = map(SP0.unrank, range(1))
+            sage: l = list(map(SP0.unrank, range(1)))
             sage: l == SP0.list()
             True
         """
@@ -6186,10 +6186,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             4
 
             sage: SP3 = Permutations(3)
-            sage: map(SP3.rank, SP3)
+            sage: list(map(SP3.rank, SP3))
             [0, 1, 2, 3, 4, 5]
             sage: SP0 = Permutations(0)
-            sage: map(SP0.rank, SP0)
+            sage: list(map(SP0.rank, SP0))
             [0]
         """
         if p is None:
@@ -7792,9 +7792,9 @@ class CyclicPermutations(Permutations_mset):
              [[1, 1, 1], [1, 1, 1]]
         """
         if distinct:
-            content = [1]*len(self.mset)
+            content = [1] * len(self.mset)
         else:
-            content = [0]*len(self.mset)
+            content = [0] * len(self.mset)
             index_list = map(self.mset.index, self.mset)
             for i in index_list:
                 content[i] += 1

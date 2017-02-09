@@ -1,21 +1,28 @@
 r"""
-MacMahon's Omega Operator
+MacMahon's Partition Analysis Omega Operator
 
-This module implements :func:`MacMahon's Omega Operator <Omega>`
-[MacMahon1915]_, which takes a quotient of laurent polynomials and
+This module implements :func:`MacMahon's Omega Operator <MacMahonOmega>`
+[Mac1915]_, which takes a quotient of Laurent polynomials and
 removes all negative exponents in the corresponding power series.
 
 
-References
-==========
+Examples
+========
 
-.. [MacMahon1915] Percy A. MacMahon, *Combinatory Analysis*,
-   Cambridge University Press (1915--1916).
-   (Reprinted: Chelsea, New York, 1960)
+In the following example, all negative exponents of `\mu` are removed.
+The formula
 
-.. [APR2001] George E. Andrews, Peter Paule, Axel Riese,
-   *MacMahon's partition analysis: the Omega package*,
-   European J. Combin. 22 (2001), no. 7, 887--904.
+.. MATH::
+
+    \Omega_{\ge} \frac{1}{(1 - x\mu) (1 - y/\mu)}
+    = \frac{1}{(1 - x) (1 - xy)}
+
+can be calculated and verified by
+::
+
+    sage: L.<mu, x, y> = LaurentPolynomialRing(ZZ)
+    sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu])
+    1 * (-x + 1)^-1 * (-x*y + 1)^-1
 
 
 Various
@@ -52,46 +59,49 @@ import operator
 from sage.misc.cachefunc import cached_function
 
 
-def Omega(var, expression, denominator=None, op=operator.ge,
+def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
           Factorization_sort=False, Factorization_simplify=True):
     r"""
     Return `\Omega_{\mathrm{op}}` of ``expression`` with respect to ``var``.
 
-    To be more precise, this calculates
+    To be more precise, calculate
 
     .. MATH::
 
         \Omega_{\mathrm{op}} \frac{n}{d_1 \dots d_n}
 
     for the numerator `n` and the factors `d_1`, ..., `d_n` of
-    the denominator, all of which are laurent polynomials in ``var``
-    and returns a (partial) factorization of the result.
+    the denominator, all of which are Laurent polynomials in ``var``
+    and return a (partial) factorization of the result.
 
     INPUT:
 
-    - ``var`` -- a variable or a representation string of a variable.
+    - ``var`` -- a variable or a representation string of a variable
 
-    - ``expression`` -- an element of the quotient field of some
-      laurent polynomials. If ``denominator`` is specified, then
-      this laurent polynomial is interpreted as the numerator of the
-      expression.
+    - ``expression`` -- a
+      :class:`~sage.structure.factorization.Factorization`
+      of Laurent polynomials or, if ``denominator`` is specified,
+      a Laurent polynomial interpreted as the numerator of the
+      expression
 
-    - ``denominator`` -- a laurent polynomial or a
+    - ``denominator`` -- a Laurent polynomial or a
       :class:`~sage.structure.factorization.Factorization` (consisting
-      of laurent polynomial factors) or a tuple/list of factors (laurent
-      polynomials).
+      of Laurent polynomial factors) or a tuple/list of factors (Laurent
+      polynomials)
 
-    - ``op`` -- (default: ``operator.ge``) an operator.
+    - ``op`` -- (default: ``operator.ge``) an operator
+
+      At the moment only ``operator.ge`` is implemented.
 
     - ``Factorization_sort`` (default: ``False``) and
       ``Factorization_simplify`` (default: ``True``) -- are passed on to
       :class:`sage.structure.factorization.Factorization` when creating
-      the result.
+      the result
 
     OUTPUT:
 
     A (partial) :class:`~sage.structure.factorization.Factorization`
-    of the result whose factors are laurent polynomials.
+    of the result whose factors are Laurent polynomials
 
     .. NOTE::
 
@@ -99,7 +109,7 @@ def Omega(var, expression, denominator=None, op=operator.ge,
 
     REFERENCES:
 
-    - [MacMahon1915]_
+    - [Mac1915]_
 
     - [APR2001]_
 
@@ -107,98 +117,157 @@ def Omega(var, expression, denominator=None, op=operator.ge,
 
         sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(ZZ)
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu, 1 - z/mu])
         1 * (-x + 1)^-1 * (-x*y + 1)^-1 * (-x*z + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu])
         (-x*y*z + 1) * (-x + 1)^-1 * (-y + 1)^-1 * (-x*z + 1)^-1 * (-y*z + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^2])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu^2])
         1 * (-x + 1)^-1 * (-x^2*y + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y/mu])
         (x*y + 1) * (-x + 1)^-1 * (-x*y^2 + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu^2])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu^2])
         (-x^2*y*z - x*y^2*z + x*y*z + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-x^2*z + 1)^-1 * (-y^2*z + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^3])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu^3])
         1 * (-x + 1)^-1 * (-x^3*y + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y/mu^4])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y/mu^4])
         1 * (-x + 1)^-1 * (-x^4*y + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^3, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^3, 1 - y/mu])
         (x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^3 + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^4, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^4, 1 - y/mu])
         (x*y^3 + x*y^2 + x*y + 1) * (-x + 1)^-1 * (-x*y^4 + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y/mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y/mu, 1 - z/mu])
         (x*y*z + x*y + x*z + 1) *
         (-x + 1)^-1 * (-x*y^2 + 1)^-1 * (-x*z^2 + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu^2, 1 - y*mu, 1 - z/mu])
         (-x*y*z^2 - x*y*z + x*z + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-x*z^2 + 1)^-1 * (-y*z + 1)^-1
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu, 1 - w/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z*mu, 1 - w/mu])
         (x*y*z*w^2 + x*y*z*w - x*y*w - x*z*w - y*z*w + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 * (-z + 1)^-1 *
         (-x*w + 1)^-1 * (-y*w + 1)^-1 * (-z*w + 1)^-1
-        sage: Omega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu, 1 - w/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - y*mu, 1 - z/mu, 1 - w/mu])
         (x^2*y*z*w + x*y^2*z*w - x*y*z*w - x*y*z - x*y*w + 1) *
         (-x + 1)^-1 * (-y + 1)^-1 *
         (-x*z + 1)^-1 * (-x*w + 1)^-1 * (-y*z + 1)^-1 * (-y*w + 1)^-1
 
-        sage: Omega(mu, mu^-2, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^-2, [1 - x*mu, 1 - y/mu])
         x^2 * (-x + 1)^-1 * (-x*y + 1)^-1
-        sage: Omega(mu, mu^-1, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^-1, [1 - x*mu, 1 - y/mu])
         x * (-x + 1)^-1 * (-x*y + 1)^-1
-        sage: Omega(mu, mu, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu, [1 - x*mu, 1 - y/mu])
         (-x*y + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
-        sage: Omega(mu, mu^2, [1 - x*mu, 1 - y/mu])
+        sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y/mu])
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
+
+    We demonstrate the different allowed input variants::
+
+        sage: MacMahonOmega(mu,
+        ....:     Factorization([(mu, 2), (1 - x*mu, -1), (1 - y/mu, -1)]))
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
+
+        sage: MacMahonOmega(mu, mu^2,
+        ....:     Factorization([(1 - x*mu, 1), (1 - y/mu, 1)]))
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
+
+        sage: MacMahonOmega(mu, mu^2, [1 - x*mu, 1 - y/mu])
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
+
+        sage: MacMahonOmega(mu, mu^2, (1 - x*mu)*(1 - y/mu))  # not tested because not fully implemented
+        (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
+
+        sage: MacMahonOmega(mu, mu^2 / ((1 - x*mu)*(1 - y/mu)))  # not tested because not fully implemented
         (-x*y^2 - x*y + y^2 + y + 1) * (-x + 1)^-1 * (-x*y + 1)^-1
 
     TESTS::
 
-        sage: Omega(mu, 1, [1 - x*mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu])
         1 * (-x + 1)^-1
-        sage: Omega(mu, 1, [1 - x/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x/mu])
         1
-        sage: Omega(mu, 0, [1 - x*mu])
+        sage: MacMahonOmega(mu, 0, [1 - x*mu])
         0
-        sage: Omega(mu, L(1), [])
+        sage: MacMahonOmega(mu, L(1), [])
         1
-        sage: Omega(mu, L(0), [])
+        sage: MacMahonOmega(mu, L(0), [])
         0
-        sage: Omega(mu, 2, [])
+        sage: MacMahonOmega(mu, 2, [])
         2
-        sage: Omega(mu, 2*mu, [])
+        sage: MacMahonOmega(mu, 2*mu, [])
         2
-        sage: Omega(mu, 2/mu, [])
+        sage: MacMahonOmega(mu, 2/mu, [])
         0
 
     ::
 
-        sage: Omega(mu, Factorization([(1/mu, 1), (1 - x*mu, -1),
-        ....:                          (1 - y/mu, -2)], unit=2))
+        sage: MacMahonOmega(mu, Factorization([(1/mu, 1), (1 - x*mu, -1),
+        ....:                                  (1 - y/mu, -2)], unit=2))
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
-        sage: Omega(mu, Factorization([(mu, -1), (1 - x*mu, -1),
-        ....:                          (1 - y/mu, -2)], unit=2))
+        sage: MacMahonOmega(mu, Factorization([(mu, -1), (1 - x*mu, -1),
+        ....:                                  (1 - y/mu, -2)], unit=2))
         2*x * (-x + 1)^-1 * (-x*y + 1)^-2
-        sage: Omega(mu, Factorization([(mu, -1), (1 - x, -1)]))
+        sage: MacMahonOmega(mu, Factorization([(mu, -1), (1 - x, -1)]))
         0
-        sage: Omega(mu, Factorization([(2, -1)]))
+        sage: MacMahonOmega(mu, Factorization([(2, -1)]))
         1 * 2^-1
 
     ::
 
-        sage: Omega(mu, 1, [1 - x*mu, 1 - z, 1 - y/mu])
+        sage: MacMahonOmega(mu, 1, [1 - x*mu, 1 - z, 1 - y/mu])
         1 * (-z + 1)^-1 * (-x + 1)^-1 * (-x*y + 1)^-1
+
+    ::
+
+        sage: MacMahonOmega(mu, 1, [1 - x*mu], op=operator.lt)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: At the moment, only Omega_ge is implemented.
+
+        sage: MacMahonOmega(mu, 1, Factorization([(1 - x*mu, -1)]))
+        Traceback (most recent call last):
+        ...
+        ValueError: Factorization (-mu*x + 1)^-1 of the denominator
+        contains negative exponents.
+
+        sage: MacMahonOmega(2*mu, 1, [1 - x*mu])
+        Traceback (most recent call last):
+        ...
+        ValueError: 2*mu is not a variable.
+
+        sage: MacMahonOmega(mu, 1, Factorization([(0, 2)]))
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: Denominator contains a factor 0.
+
+        sage: MacMahonOmega(mu, 1, [2 - x*mu])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Factor 2 - x*mu is not normalized.
+
+        sage: MacMahonOmega(mu, 1, [1 - x*mu - mu^2])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Cannot handle factor 1 - x*mu - mu^2.
+
+    ::
+
+        sage: L.<mu, x, y, z, w> = LaurentPolynomialRing(QQ)
+        sage: MacMahonOmega(mu, 1/mu,
+        ....:     Factorization([(1 - x*mu, 1), (1 - y/mu, 2)], unit=2))
+        1/2*x * (-x + 1)^-1 * (-x*y + 1)^-2
     """
     from sage.arith.misc import factor
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
-    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_univariate
+    from sage.rings.polynomial.laurent_polynomial_ring \
+        import LaurentPolynomialRing, LaurentPolynomialRing_univariate
     from sage.structure.factorization import Factorization
 
     if op != operator.ge:
@@ -225,7 +294,7 @@ def Omega(var, expression, denominator=None, op=operator.ge,
         if not denominator.is_integral():
             raise ValueError('Factorization {} of the denominator '
                              'contains negative exponents.'.format(denominator))
-        numerator *= denominator.unit()
+        numerator *= ZZ(1) / denominator.unit()
         factors_denominator = tuple(factor
                                     for factor, exponent in denominator
                                     for _ in range(exponent))
@@ -282,31 +351,43 @@ def Omega(var, expression, denominator=None, op=operator.ge,
 
 def _Omega_(A, decoded_factors):
     r"""
-    Helper function for :func:`Omega` which accesses the low level functions
+    Helper function for :func:`MacMahonOmega` which accesses the low level functions
     and does the substituting.
 
     INPUT:
 
     - ``A`` -- a dictionary mapping `a` to `c` representing a summand
-      `c\mu^a` of the numerator.
+      `c\mu^a` of the numerator
 
     - ``decoded_factors`` -- a tuple or list of pairs `(z, e)` representing
-      a factor `1 - z \mu^e`.
+      a factor `1 - z \mu^e`
 
     OUTPUT:
 
     A pair representing a quotient as follows: Its first component is the
-    numerator as a laurent polynomial, its second component a factorization
-    of the denominator as a tuple of laurent polynomials, where each
-    laurent polynomial `z` represents a factor `1 - z`.
+    numerator as a Laurent polynomial, its second component a factorization
+    of the denominator as a tuple of Laurent polynomials, where each
+    Laurent polynomial `z` represents a factor `1 - z`.
 
     TESTS:
 
-    Extensive testing of this function is done in :func:`Omega`.
+    Extensive testing of this function is done in :func:`MacMahonOmega`.
 
     ::
 
+        sage: L.<mu, x, y> = LaurentPolynomialRing(ZZ)
+        sage: MacMahonOmega(mu, mu^-2, [1 - x*mu, 1 - y/mu])
+        x^2 * (-x + 1)^-1 * (-x*y + 1)^-1
+
+    internally calls
+    ::
+
         sage: from sage.rings.polynomial.omega import _Omega_
+        sage: _Omega_({-2: 1}, [(x, 1), (y, -1)])
+        (x^2, (x, x*y))
+
+    ::
+
         sage: _Omega_({0: 2, 1: 40, -1: -3}, [])
         (42, ())
         sage: _Omega_({-1: 42}, [])
@@ -343,27 +424,33 @@ def Omega_ge(a, exponents):
     r"""
     Return `\Omega_{\ge}` of the expression specified by the input.
 
-    To be more precise, this calculates
+    To be more precise, calculate
 
     .. MATH::
 
         \Omega_{\ge} \frac{\mu^a}{
-        (1 - z_1 \mu^{e_1}) \dots (1 - z_n \mu^{e_n})}
+        (1 - z_0 \mu^{e_0}) \dots (1 - z_{n-1} \mu^{e_{n-1}})}
 
-    and returns its numerator and a factorization of its denominator.
+    and return its numerator and a factorization of its denominator.
+    Note that `z_0`, ..., `z_{n-1}` only appear in the output, but not in the
+    input.
 
     INPUT:
 
-    - ``a`` -- an integer.
+    - ``a`` -- an integer
 
-    - ``exponents`` -- a tuple of integers.
+    - ``exponents`` -- a tuple of integers
 
     OUTPUT:
 
     A pair representing a quotient as follows: Its first component is the
-    numerator as a laurent polynomial, its second component a factorization
-    of the denominator as a tuple of laurent polynomials, where each
-    laurent polynomial `z` represents a factor `1 - z`.
+    numerator as a Laurent polynomial, its second component a factorization
+    of the denominator as a tuple of Laurent polynomials, where each
+    Laurent polynomial `z` represents a factor `1 - z`.
+
+    The parents of these Laurent polynomials is always a
+    Laurent polynomial ring in `z_0`, ..., `z_{n-1}` over `\ZZ`, where
+    `n` is the length of ``exponents``.
 
     EXAMPLES::
 
@@ -424,18 +511,17 @@ def Omega_ge(a, exponents):
 
     from sage.arith.misc import lcm
     from sage.arith.srange import srange
-    from sage.misc.functional import cyclotomic_polynomial
     from sage.misc.misc_c import prod
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-    from sage.rings.rational_field import QQ
+    from sage.rings.number_field.number_field import CyclotomicField
 
     if not exponents or any(e == 0 for e in exponents):
         raise NotImplementedError
 
     rou = sorted(set(abs(e) for e in exponents) - set([1]))
     ellcm = lcm(rou)
-    B = QQ.extension(cyclotomic_polynomial(ellcm), 'zeta')
+    B = CyclotomicField(ellcm, 'zeta')
     zeta = B.gen()
     z_names = tuple('z{}'.format(i) for i in range(len(exponents)))
     L = LaurentPolynomialRing(B, ('t',) + z_names, len(z_names) + 1)
@@ -450,11 +536,14 @@ def Omega_ge(a, exponents):
     x = tuple(v for e, v in exponents_and_values if e > 0)
     y = tuple(v for e, v in exponents_and_values if e < 0)
 
-    def subs_power(expression, var, exponent, value=None):
+    def subs_power(expression, var, exponent):
         r"""
-        Substitute ``var^exponent`` by ``value`` in ``expression``.
+        Substitute ``var^exponent`` by ``var`` in ``expression``.
+
+        It is assumed that ``var`` only occurs with exponents
+        divisible by ``exponent``.
         """
-        p = tuple(var.dict().popitem()[0]).index(1)
+        p = tuple(var.dict().popitem()[0]).index(1)  # var is the p-th generator
         def subs_e(e):
             e = list(e)
             assert e[p] % exponent == 0
@@ -462,9 +551,7 @@ def Omega_ge(a, exponents):
             return tuple(e)
         parent = expression.parent()
         result = parent({subs_e(e): c for e, c in iteritems(expression.dict())})
-        if value is None:
-            return result
-        return result.subs({var: value})
+        return result
 
     def de_power(expression):
         expression = Z(expression)
@@ -476,21 +563,21 @@ def Omega_ge(a, exponents):
 
     logger.debug('Omega_ge: preparing denominator')
     factors_denominator = tuple(de_power(1 - factor)
-                                for factor in Omega_factors_denominator(x, y))
+                                for factor in _Omega_factors_denominator_(x, y))
 
     logger.debug('Omega_ge: preparing numerator')
-    numerator = de_power(Omega_numerator(a, x, y, t))
+    numerator = de_power(_Omega_numerator_(a, x, y, t))
 
     logger.info('Omega_ge: completed')
     return numerator, factors_denominator
 
 
-def Omega_numerator(a, x, y, t):
+def _Omega_numerator_(a, x, y, t):
     r"""
     Return the numerator of `\Omega_{\ge}` of the expression
     specified by the input.
 
-    To be more precise, this calculates
+    To be more precise, calculate
 
     .. MATH::
 
@@ -498,82 +585,89 @@ def Omega_numerator(a, x, y, t):
         (1 - x_1 \mu) \dots (1 - x_n \mu)
         (1 - y_1 / \mu) \dots (1 - y_m / \mu)}
 
-    and returns its numerator.
+    and return its numerator.
 
-    This function is meant to be a helper function of :func:`Omega`.
+    This function is meant to be a helper function of :func:`MacMahonOmega`.
 
     INPUT:
 
-    - ``a`` -- an integer.
+    - ``a`` -- an integer
 
-    - ``x`` and ``y`` -- a tuple of tuples of laurent polynomials. The
+    - ``x`` and ``y`` -- a tuple of tuples of Laurent polynomials
+
+      The
       flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
       `y_1,...,y_m`.
+      The non-flatness of these parameters is to be interface-consistent
+      with :func:`_Omega_factors_denominator_`.
 
-    - ``t`` -- a temporary laurent polynomial variable used for substituting.
+    - ``t`` -- a temporary Laurent polynomial variable used for substituting
 
     OUTPUT:
 
-    A laurent polynomial.
+    A Laurent polynomial
+
+    The output is normalized such that the corresponding denominator
+    (:func:`_Omega_factors_denominator_`) has constant term `1`.
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.omega import Omega_numerator, Omega_factors_denominator
+        sage: from sage.rings.polynomial.omega import _Omega_numerator_, _Omega_factors_denominator_
 
         sage: L.<x0, x1, x2, x3, y0, y1, t> = LaurentPolynomialRing(ZZ)
-        sage: Omega_numerator(0, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(0, ((x0,),), ((y0,),), t)
         1
-        sage: Omega_numerator(0, ((x0,), (x1,)), ((y0,),), t)
+        sage: _Omega_numerator_(0, ((x0,), (x1,)), ((y0,),), t)
         -x0*x1*y0 + 1
-        sage: Omega_numerator(0, ((x0,),), ((y0,), (y1,)), t)
+        sage: _Omega_numerator_(0, ((x0,),), ((y0,), (y1,)), t)
         1
-        sage: Omega_numerator(0, ((x0,), (x1,), (x2,)), ((y0,),), t)
+        sage: _Omega_numerator_(0, ((x0,), (x1,), (x2,)), ((y0,),), t)
         x0*x1*x2*y0^2 + x0*x1*x2*y0 - x0*x1*y0 - x0*x2*y0 - x1*x2*y0 + 1
-        sage: Omega_numerator(0, ((x0,), (x1,)), ((y0,), (y1,)), t)
+        sage: _Omega_numerator_(0, ((x0,), (x1,)), ((y0,), (y1,)), t)
         x0^2*x1*y0*y1 + x0*x1^2*y0*y1 - x0*x1*y0*y1 - x0*x1*y0 - x0*x1*y1 + 1
 
-        sage: Omega_numerator(-2, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(-2, ((x0,),), ((y0,),), t)
         x0^2
-        sage: Omega_numerator(-1, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(-1, ((x0,),), ((y0,),), t)
         x0
-        sage: Omega_numerator(1, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(1, ((x0,),), ((y0,),), t)
         -x0*y0 + y0 + 1
-        sage: Omega_numerator(2, ((x0,),), ((y0,),), t)
+        sage: _Omega_numerator_(2, ((x0,),), ((y0,),), t)
         -x0*y0^2 - x0*y0 + y0^2 + y0 + 1
 
     TESTS::
 
-        sage: Omega_factors_denominator((), ())
+        sage: _Omega_factors_denominator_((), ())
         ()
-        sage: Omega_numerator(0, (), (), t)
+        sage: _Omega_numerator_(0, (), (), t)
         1
-        sage: Omega_numerator(+2, (), (), t)
+        sage: _Omega_numerator_(+2, (), (), t)
         1
-        sage: Omega_numerator(-2, (), (), t)
+        sage: _Omega_numerator_(-2, (), (), t)
         0
 
-        sage: Omega_factors_denominator(((x0,),), ())
+        sage: _Omega_factors_denominator_(((x0,),), ())
         (-x0 + 1,)
-        sage: Omega_numerator(0, ((x0,),), (), t)
+        sage: _Omega_numerator_(0, ((x0,),), (), t)
         1
-        sage: Omega_numerator(+2, ((x0,),), (), t)
+        sage: _Omega_numerator_(+2, ((x0,),), (), t)
         1
-        sage: Omega_numerator(-2, ((x0,),), (), t)
+        sage: _Omega_numerator_(-2, ((x0,),), (), t)
         x0^2
 
-        sage: Omega_factors_denominator((), ((y0,),))
+        sage: _Omega_factors_denominator_((), ((y0,),))
         ()
-        sage: Omega_numerator(0, (), ((y0,),), t)
+        sage: _Omega_numerator_(0, (), ((y0,),), t)
         1
-        sage: Omega_numerator(+2, (), ((y0,),), t)
+        sage: _Omega_numerator_(+2, (), ((y0,),), t)
         y0^2 + y0 + 1
-        sage: Omega_numerator(-2, (), ((y0,),), t)
+        sage: _Omega_numerator_(-2, (), ((y0,),), t)
         0
 
     ::
 
         sage: L.<X, Y, t> = LaurentPolynomialRing(ZZ)
-        sage: Omega_numerator(2, ((X,),), ((Y,),), t)
+        sage: _Omega_numerator_(2, ((X,),), ((Y,),), t)
         -X*Y^2 - X*Y + Y^2 + Y + 1
     """
     from sage.arith.srange import srange
@@ -590,7 +684,7 @@ def Omega_numerator(a, x, y, t):
     logger.info('Omega_numerator: a=%s, n=%s, m=%s', a, n, m)
 
     if m == 0:
-        result = 1 - (prod(Omega_factors_denominator(x, y)) *
+        result = 1 - (prod(_Omega_factors_denominator_(x, y)) *
                       sum(homogenous_symmetric_function(j, xy)
                           for j in srange(-a))
                       if a < 0 else 0)
@@ -598,37 +692,54 @@ def Omega_numerator(a, x, y, t):
         result = sum(homogenous_symmetric_function(j, xy)
                      for j in srange(a+1))
     else:
-        result = _Omega_numerator_P_(a, x_flat, y_flat, t).subs({t: x_flat[-1]})
+        result = _Omega_numerator_P_(a, x_flat[:-1], y_flat, t).subs({t: x_flat[-1]})
     L = t.parent()
     result = L(result)
 
-    logger.info('Omega_numerator: %s terms', result.number_of_terms())
+    logger.info('_Omega_numerator_: %s terms', result.number_of_terms())
     return result
 
 
 def _Omega_numerator_P_(a, x, y, t):
     r"""
-    Helper function for :func:`Omega_numerator`.
+    Helper function for :func:`_Omega_numerator_`.
+
+    This is an implementation of the function `P` of [APR2001]_.
 
     INPUT:
 
-    - ``a`` -- an integer.
+    - ``a`` -- an integer
 
-    - ``x`` and ``y`` -- a tuple of laurent polynomials.
+    - ``x`` and ``y`` -- a tuple of Laurent polynomials
 
-    - ``t`` -- a temporary laurent polynomial variable used for substituting.
+      The tuple ``x`` here is the flattened ``x`` of :func:`_Omega_numerator_`
+      but without its last entry.
+
+    - ``t`` -- a temporary Laurent polynomial variable
+
+      In the (final) result, ``t`` has to be substituted by the last
+      entry of the flattened ``x`` of :func:`_Omega_numerator_`.
 
     OUTPUT:
 
-    A laurent polynomial.
+    A Laurent polynomial
 
     TESTS::
 
         sage: from sage.rings.polynomial.omega import _Omega_numerator_P_
         sage: L.<x0, x1, y0, y1, t> = LaurentPolynomialRing(ZZ)
-        sage: _Omega_numerator_P_(0, (x0, x1), (y0,), t).subs({t: x1})
+        sage: _Omega_numerator_P_(0, (x0,), (y0,), t).subs({t: x1})
         -x0*x1*y0 + 1
     """
+    # This function takes Laurent polynomials as inputs. It would
+    # be possible to input only the sizes of ``x`` and ``y`` and
+    # perform a substitution afterwards; in this way caching of this
+    # function would make sense. However, the way it is now allows
+    # automatic collection and simplification of the summands, which
+    # makes it more efficient for higher powers at the input of
+    # :func:`Omega_ge`.
+    # Caching occurs in :func:`Omega_ge`.
+
     import logging
     logger = logging.getLogger(__name__)
 
@@ -636,7 +747,7 @@ def _Omega_numerator_P_(a, x, y, t):
     from sage.misc.misc_c import prod
 
     n = len(x)
-    if n == 1:
+    if n == 0:
         x0 = t
         result = x0**(-a) + \
             (prod(1 - x0*yy for yy in y) *
@@ -645,7 +756,7 @@ def _Omega_numerator_P_(a, x, y, t):
              if a > 0 else 0)
     else:
         Pprev = _Omega_numerator_P_(a, x[:n-1], y, t)
-        x2 = x[n-2]
+        x2 = x[n-1]
         logger.debug('Omega_numerator: P(%s): substituting...', n)
         x1 = t
         p1 = Pprev
@@ -662,12 +773,12 @@ def _Omega_numerator_P_(a, x, y, t):
 
 
 @cached_function
-def Omega_factors_denominator(x, y):
+def _Omega_factors_denominator_(x, y):
     r"""
     Return the denominator of `\Omega_{\ge}` of the expression
     specified by the input.
 
-    To be more precise, this calculates
+    To be more precise, calculate
 
     .. MATH::
 
@@ -675,56 +786,67 @@ def Omega_factors_denominator(x, y):
         (1 - x_1 \mu) \dots (1 - x_n \mu)
         (1 - y_1 / \mu) \dots (1 - y_m / \mu)}
 
-    and returns a factorization of its denominator.
+    and return a factorization of its denominator.
 
-    This function is meant to be a helper function of :func:`Omega`.
+    This function is meant to be a helper function of :func:`MacMahonOmega`.
 
     INPUT:
 
-    - ``x`` and ``y`` -- a tuple of tuples of laurent polynomials. The
+    - ``x`` and ``y`` -- a tuple of tuples of Laurent polynomials
+
+      The
       flattened ``x`` contains `x_1,...,x_n`, the flattened ``y`` the
       `y_1,...,y_m`.
 
     OUTPUT:
 
     A factorization of the denominator as
-    a tuple of laurent polynomials.
+    a tuple of Laurent polynomials
+
+    The output is normalized such that it has constant term `1`.
+
+    .. NOTE::
+
+        The assumption is that the ``x`` and ``y`` are collected in
+        such a way that one entry of ``x`` corresponds to the orbit of
+        some ``x_j`` under multiplication by `d`-th roots of unity and that
+        the output is collected in a corresponding way.
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.omega import Omega_factors_denominator
+        sage: from sage.rings.polynomial.omega import _Omega_factors_denominator_
 
         sage: L.<x0, x1, x2, x3, y0, y1> = LaurentPolynomialRing(ZZ)
-        sage: Omega_factors_denominator(((x0,),), ((y0,),))
+        sage: _Omega_factors_denominator_(((x0,),), ((y0,),))
         (-x0 + 1, -x0*y0 + 1)
-        sage: Omega_factors_denominator(((x0,),), ((y0,), (y1,)))
+        sage: _Omega_factors_denominator_(((x0,),), ((y0,), (y1,)))
         (-x0 + 1, -x0*y0 + 1, -x0*y1 + 1)
-        sage: Omega_factors_denominator(((x0,), (x1,)), ((y0,),))
+        sage: _Omega_factors_denominator_(((x0,), (x1,)), ((y0,),))
         (-x0 + 1, -x1 + 1, -x0*y0 + 1, -x1*y0 + 1)
-        sage: Omega_factors_denominator(((x0,), (x1,), (x2,)), ((y0,),))
+        sage: _Omega_factors_denominator_(((x0,), (x1,), (x2,)), ((y0,),))
         (-x0 + 1, -x1 + 1, -x2 + 1, -x0*y0 + 1, -x1*y0 + 1, -x2*y0 + 1)
-        sage: Omega_factors_denominator(((x0,), (x1,)), ((y0,), (y1,)))
+        sage: _Omega_factors_denominator_(((x0,), (x1,)), ((y0,), (y1,)))
         (-x0 + 1, -x1 + 1, -x0*y0 + 1, -x0*y1 + 1, -x1*y0 + 1, -x1*y1 + 1)
 
     ::
 
         sage: B.<zeta> = ZZ.extension(cyclotomic_polynomial(3))
         sage: L.<x, y> = LaurentPolynomialRing(B)
-        sage: Omega_factors_denominator(((x, -x),), ((y,),))
+        sage: _Omega_factors_denominator_(((x, -x),), ((y,),))
         (-x^2 + 1, -x^2*y^2 + 1)
-        sage: Omega_factors_denominator(((x, -x),), ((y, zeta*y, zeta^2*y),))
+        sage: _Omega_factors_denominator_(((x, -x),), ((y, zeta*y, zeta^2*y),))
         (-x^2 + 1, -x^6*y^6 + 1)
-        sage: Omega_factors_denominator(((x, -x),), ((y, -y),))
+        sage: _Omega_factors_denominator_(((x, -x),), ((y, -y),))
         (-x^2 + 1, -x^2*y^2 + 1, -x^2*y^2 + 1)
 
     TESTS::
 
         sage: L.<x0, y0> = LaurentPolynomialRing(ZZ)
-        sage: Omega_factors_denominator((), ())
+        sage: _Omega_factors_denominator_((), ())
         ()
-        sage: Omega_factors_denominator(((x0,),), ())
+        sage: _Omega_factors_denominator_(((x0,),), ())
         (-x0 + 1,)
-        sage: Omega_factors_denominator((), ((y0,),))
+        sage: _Omega_factors_denominator_((), ((y0,),))
         ()
     """
     import logging
@@ -749,14 +871,16 @@ def partition(items, predicate=bool):
 
     INPUT:
 
-    - ``item`` -- an iterator.
+    - ``item`` -- an iterator
 
-    - ``predicate`` -- a function.
+    - ``predicate`` -- a function
 
     OUTPUT:
 
     A pair of iterators; the first contains the elements not satisfying
     the ``predicate``, the second the elements satisfying the ``predicate``.
+
+    ALGORITHM:
 
     Source of the code:
     `http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html
@@ -777,17 +901,18 @@ def partition(items, predicate=bool):
 
 def homogenous_symmetric_function(j, x):
     r"""
-    Return a complete homogeneous symmetric polynomial.
+    Return a complete homogeneous symmetric polynomial
+    (:wikipedia:`Complete_homogeneous_symmetric_polynomial`).
 
     INPUT:
 
-    - ``j`` -- the degree as a nonnegative integer.
+    - ``j`` -- the degree as a nonnegative integer
 
-    - ``x`` -- an iterable of variables.
+    - ``x`` -- an iterable of variables
 
     OUTPUT:
 
-    A polynomial whose type is determined by the input ``x``.
+    A polynomial of the common parent of all entries of ``x``
 
     EXAMPLES::
 

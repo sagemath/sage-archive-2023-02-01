@@ -2392,7 +2392,7 @@ def random_rref_matrix(parent, num_pivots):
     Billy Wonderly (2010-07)
     """
 
-    import sage.gsl.probability_distribution as pd
+    import sage.probability.probability_distribution as pd
     from sage.misc.prandom import randint
 
     try:
@@ -2651,7 +2651,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
                         tries += 1
                         # Range for scalar multiples determined experimentally.
                     if max(map(abs,matrix_copy.list())) < upper_bound:
-                    # Continue if the the largest entry after a row operation is within the bound.
+                    # Continue if the largest entry after a row operation is within the bound.
                         matrix=matrix_copy
                         row_index+=1
                         tries = 0
@@ -2833,7 +2833,7 @@ def random_subspaces_matrix(parent, rank=None):
     Billy Wonderly (2010-07)
     """
 
-    import sage.gsl.probability_distribution as pd
+    import sage.probability.probability_distribution as pd
 
     ring = parent.base_ring()
     rows = parent.nrows()

@@ -451,6 +451,8 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
 
       - ``'giac'`` - (optional) use Giac
 
+      - ``'sympy'`` - use SymPy
+
     - ``hold`` - (default: ``False``) if ``True`` don't evaluate
 
     EXAMPLES::
@@ -551,8 +553,24 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
 
     An example of this summation with Giac::
 
-        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')           # optional - giac
+        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')
         (pi*e^(2*pi) - pi*e^(-2*pi))/(e^(2*pi) + e^(-2*pi) - 2)
+
+    SymPy can't solve that summation::
+
+        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'sympy')
+        Traceback (most recent call last):
+        ...
+        AttributeError: Unable to convert SymPy result (=Sum(1/(k**2 + 1),
+        (k, -oo, oo))) into Sage
+
+    SymPy and Maxima 5.39.0 can do the following (see
+    :trac:`22005`)::
+
+        sage: sum(1/((2*n+1)^2-4)^2, n, 0, Infinity, algorithm='sympy')
+        1/64*pi^2
+        sage: sum(1/((2*n+1)^2-4)^2, n, 0, Infinity)
+        1/64*pi^2
 
     Use Maple as a backend for summation::
 
@@ -631,6 +649,16 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % sum)
         return result.sage()
+
+    elif algorithm == 'sympy':
+        expression,v,a,b = [expr._sympy_() for expr in (expression, v, a, b)]
+        from sympy import summation
+        result = summation(expression, (v, a, b))
+        try:
+            return result._sage_()
+        except AttributeError:
+            raise AttributeError("Unable to convert SymPy result (={}) into"
+                    " Sage".format(result))
 
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
@@ -1759,7 +1787,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     :trac:`8459` fixed::
 
         sage: maxima('3*li[2](u)+8*li[33](exp(u))').sage()
-        8*polylog(33, e^u) + 3*polylog(2, u)
+        3*dilog(u) + 8*polylog(33, e^u)
 
     Check if :trac:`8345` is fixed::
 

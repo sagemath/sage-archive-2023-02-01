@@ -122,7 +122,6 @@ from sage.interfaces.all import *
 from sage.functions.all  import *
 from sage.calculus.all   import *
 
-from sage.server.all     import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *
@@ -145,8 +144,6 @@ from sage.dynamics.all   import *
 from sage.homology.all   import *
 
 from sage.quadratic_forms.all import *
-
-from sage.gsl.all        import *
 
 from sage.games.all      import *
 

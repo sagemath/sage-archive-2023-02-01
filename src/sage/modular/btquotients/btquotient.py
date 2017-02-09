@@ -2843,11 +2843,11 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         """
         OM = self.get_eichler_order_quadmatrix()
         v = pari('qfminim(%s,2,0, flag = 2)' % (OM._pari_()))
-        n_units = Integer(v[0].python() / 2)
+        n_units = Integer(v[0].sage() / 2)
         v = pari('qfminim(%s,2,%s, flag = 2)' % ((OM._pari_()), n_units))
         O_units = []
         for jj in range(n_units):
-            vec = Matrix(ZZ, 4, 1, [v[2][ii, jj].python() for ii in range(4)])
+            vec = Matrix(ZZ, 4, 1, [v[2][ii, jj].sage() for ii in range(4)])
             O_units.append(vec)
         return O_units
 
@@ -3223,7 +3223,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         n_units = len(self.get_units_of_order())
         ## Using PARI to get the shortest vector in the lattice (via LLL)
         ## We used to pass qfminim flag = 2
-        mat = pari('qfminim(%s,,%s,flag = 2)' % (A._pari_(), 2 * n_units))[2].python().transpose()
+        mat = pari('qfminim(%s,,%s,flag = 2)' % (A._pari_(), 2 * n_units))[2].sage().transpose()
         n_vecs = mat.nrows()
         stabs = []
         for jj in range(n_vecs):
@@ -3289,7 +3289,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if not self._use_magma or len(self._extra_level) == 0:
             return E * vec, True
         m = ZZ(twom / 2)
-        mat = pari('qfminim(%s,,%s,flag = %s)' % (A._pari_(), 1000, flag))[2].python().transpose()
+        mat = pari('qfminim(%s,,%s,flag = %s)' % (A._pari_(), 1000, flag))[2].sage().transpose()
         n_vecs = mat.nrows()
         p = self._p
         pinv = Zmod(self._character.modulus())(p) ** -1
@@ -3357,7 +3357,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)
         ## Using PARI to get the shortest vector in the lattice (via LLL)
-        vec = pari('qfminim(%s,,1,flag = 2)' % (A._pari_()))[2].python()
+        vec = pari('qfminim(%s,,1,flag = 2)' % (A._pari_()))[2].sage()
 
         vect = vec.transpose()
         nrd = Integer((vect * A * vec)[0, 0] / 2)
@@ -3770,12 +3770,12 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         - ``t`` -- (default : None). The number of additional moments to store. If None, determine
           it automatically from ``prec``, ``U`` and the ``overconvergent`` flag.
 
-        - ``R`` -- (default : None). If specified, coefficent field of the automorphic forms.
-          If not speficied it defaults to the base ring of the distributions ``U``, or to `\QQ_p`
+        - ``R`` -- (default : None). If specified, coefficient field of the automorphic forms.
+          If not specified it defaults to the base ring of the distributions ``U``, or to `\QQ_p`
           with the working precision ``prec``.
 
         - ``overconvergent`` -- Boolean (default = False). If True, will construct overconvergent
-          `p`-adic automorhic forms. Otherwise it constructs the finite dimensional space of
+          `p`-adic automorphic forms. Otherwise it constructs the finite dimensional space of
           `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
 
         EXAMPLES::

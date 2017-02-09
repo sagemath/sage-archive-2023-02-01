@@ -909,7 +909,7 @@ cdef inline uint32_t simple_BFS(uint32_t n,
     Perform a breadth first search (BFS) using the same method as in
     sage.graphs.distances_all_pairs.all_pairs_shortest_path_BFS
 
-    Furthermore, the method returns the the eccentricity of the source which is
+    Furthermore, the method returns the eccentricity of the source which is
     either the last computed distance when all vertices are seen, or a very
     large number (UINT32_MAX) when the graph is not connected.
 

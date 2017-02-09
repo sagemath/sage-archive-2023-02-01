@@ -305,8 +305,7 @@ REFERENCES:
 - [MR2002]_
 """
 # python3
-from __future__ import division, print_function
-from __future__ import absolute_import
+from __future__ import division, print_function, absolute_import
 from six.moves import range
 
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
@@ -326,6 +325,8 @@ from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 from .mpolynomialsystemgenerator import MPolynomialSystemGenerator
 
 from sage.rings.polynomial.term_order import TermOrder
+from sage.structure.sage_object import richcmp_not_equal, rich_to_bool, op_LT
+
 
 def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
     r"""
@@ -417,6 +418,7 @@ def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
         return SR_gf2n(n, r, c, e, star, **kwargs)
     else:
         return SR_gf2(n, r, c, e, star, **kwargs)
+
 
 class SR_generic(MPolynomialSystemGenerator):
     def __init__(self, n=1, r=1, c=1, e=4, star=False, **kwargs):
@@ -647,8 +649,13 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: sr1 == sr2
             False
         """
-        return cmp( (self.n, self.r, self.c, self.e, self._postfix, self._order, self._allow_zero_inversions, self._aes_mode, self._gf2, self._star ),
-                    (other.n, other.r, other.c, other.e, other._postfix, other._order, other._allow_zero_inversions, other._aes_mode, other._gf2, other._star ) )
+        for name in ['n', 'r', 'c', 'e', '_postfix', '_order',
+                     '_allow_zero_inversions', '_aes_mode', '_gf2', '_star']:
+            lx = getattr(self, name)
+            rx = getattr(other, name)
+            if lx != rx:
+                return 1 if richcmp_not_equal(lx, rx, op_LT) else -1
+        return 0
 
     def sub_bytes(self, d):
         r"""
@@ -1140,7 +1147,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: sr = mq.SR(10, 4, 4, 8, star=True, allow_zero_inversions=True)
             sage: ki = sr.state_array()
             sage: for i in range(10):
-            ...  ki = sr.key_schedule(ki, i+1)
+            ....:     ki = sr.key_schedule(ki, i+1)
             sage: print(sr.hex_str_matrix(ki))
             B4 3E 23 6F
             EF 92 E9 8F
@@ -3312,7 +3319,7 @@ class AllowZeroInversionsContext:
             sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
             sage: sr = mq.SR(1,2,2,4)
             sage: with AllowZeroInversionsContext(sr):
-            ...    sr.sub_byte(0)
+            ....:     sr.sub_byte(0)
             a^2 + a
         """
         self.sr = sr
@@ -3328,7 +3335,7 @@ class AllowZeroInversionsContext:
             ZeroDivisionError: A zero inversion occurred during an encryption or key schedule.
 
             sage: with AllowZeroInversionsContext(sr):
-            ...    sr.sub_byte(0)
+            ....:     sr.sub_byte(0)
             a^2 + a
         """
         self.allow_zero_inversions = self.sr._allow_zero_inversions
@@ -3340,7 +3347,7 @@ class AllowZeroInversionsContext:
             sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
             sage: sr = mq.SR(1,2,2,4)
             sage: with AllowZeroInversionsContext(sr):
-            ...    sr.sub_byte(0)
+            ....:     sr.sub_byte(0)
             a^2 + a
             sage: sr._allow_zero_inversions
             False

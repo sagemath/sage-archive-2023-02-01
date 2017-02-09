@@ -215,9 +215,9 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         sage: VS = VectorSpace(GF(2),10^3)
         sage: import gc
         sage: for i in range(10):
-        ...      v = VS.random_element()
-        ...      del v
-        ...      _ = gc.collect()
+        ....:     v = VS.random_element()
+        ....:     del v
+        ....:     _ = gc.collect()
         """
         if self._entries:
             mzd_free(self._entries)

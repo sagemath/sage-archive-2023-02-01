@@ -364,9 +364,9 @@ class RiggedPartition(CombinatorialObject):
 
         INPUT:
 
-        - ``row`` -- The row to remove the cell from
+        - ``row`` -- the row to remove the cell from
 
-        - ``num_cells`` -- (Default: 1) The number of cells to remove
+        - ``num_cells`` -- (default: 1) the number of cells to remove
 
         OUTPUT:
 
@@ -380,7 +380,7 @@ class RiggedPartition(CombinatorialObject):
             sage: RP.remove_cell(0)
             0
             sage: RP
-             0[ ]0
+             None[ ]None
             -1[ ]-1
             <BLANKLINE>
         """
@@ -398,6 +398,8 @@ class RiggedPartition(CombinatorialObject):
         if row + 1 == len(self._list):
             # If we are at the end, just do a simple remove
             self._list[row] = block_len
+            self.vacancy_numbers[row] = None
+            self.rigging[row] = None
             return row
 
         for i in range(row + 1, len(self._list)):
@@ -405,6 +407,8 @@ class RiggedPartition(CombinatorialObject):
                 if i == row + 1:
                     # If the next row is a block change, just reduce by num_cells
                     self._list[row] = block_len
+                    self.vacancy_numbers[row] = None
+                    self.rigging[row] = None
                     return row
 
                 # Otherwise we need to "move" the row

@@ -56,7 +56,7 @@ class AmbientSpace(CombinatorialFreeModule):
 
         sage: types = CartanType.samples(crystallographic = True)+[CartanType(["A",2],["C",5])]
         sage: for e in [ct.root_system().ambient_space() for ct in types]:
-        ...            TestSuite(e).run()
+        ....:          TestSuite(e).run()
     """
     def __init__(self, root_system, base_ring):
         """

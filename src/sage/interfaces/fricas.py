@@ -891,7 +891,7 @@ class FriCASElement(ExpectElement):
         P = self._check_valid()
         return P.new(self._name + "::Boolean").sage()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check whether the expression is different from zero.
 
@@ -901,7 +901,9 @@ class FriCASElement(ExpectElement):
             True
         """
         P = self._check_valid()
-        return not P.new("zero?(%s)" %self._name).sage()
+        return not P.new("zero?(%s)" % self._name).sage()
+
+    __nonzero__ = __bool__
 
     def __long__(self):
         """

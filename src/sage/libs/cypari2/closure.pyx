@@ -117,7 +117,7 @@ cdef void _pari_init_closure():
     global ep_call_python
     ep_call_python = install(<void*>call_python, "call_python", "DGDGDGDGDGU")
 
-cpdef gen objtoclosure(f):
+cpdef Gen objtoclosure(f):
     """
     Convert a Python function (more generally, any callable) to a PARI
     ``t_CLOSURE``.
@@ -171,6 +171,6 @@ cpdef gen objtoclosure(f):
     # Convert f to a t_INT containing the address of f
     cdef GEN f_int = utoi(<ulong><PyObject*>f)
     # Create a t_CLOSURE which calls call_python() with py_func equal to f
-    cdef gen c = new_gen(snm_closure(ep_call_python, mkvec(f_int)))
+    cdef Gen c = new_gen(snm_closure(ep_call_python, mkvec(f_int)))
     c.refers_to = {0:f}  # c needs to keep a reference to f
     return c

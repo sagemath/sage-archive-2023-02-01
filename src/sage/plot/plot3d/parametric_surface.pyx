@@ -179,6 +179,7 @@ cdef class ParametricSurface(IndexFaceSet):
             f = tuple(f)
         self.f = f
         self.render_grid = domain
+        self._extra_kwds = kwds
         color_data = None
         if 'color' in kwds:
             try:

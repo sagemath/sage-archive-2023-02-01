@@ -143,17 +143,14 @@ and repeat this command every time that we change the file simple.py. However, i
 
 every change applied to the file simple.py will be automatically updated in Sage.
 
-Can I use Sage with Python 3.x?
-"""""""""""""""""""""""""""""""
+Can I use SageMath with Python 3.x?
+"""""""""""""""""""""""""""""""""""
 
-Currently, no. Sage depends on the
-`SciPy <http://www.scipy.org>`_
-stack of Python numerical and scientific packages. As of 2010, SciPy
-still uses Python 2.x. So until SciPy is ported to run with Python
-3.x and
-`Cython <http://www.cython.org>`_
-supports Python 3.x, Sage will continue to use Python 2.x.
+Currently, no (November 2016). Work in progress aims to allow this in
+the not-so-far future. Until this task is completed, SageMath will continue
+to use Python 2.x.
 
+See :trac:`15530` for tracking the current progress.
 
 I'm seeing an error about "Permission denied" on a file called "sage-flags.txt".
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -181,9 +178,7 @@ it probably means that you compiled/installed Sage as one user, but
 have not run it to let it generate the ``sage-flags.txt`` file. Just
 run Sage one time as whatever user installed it and this problem
 should go away. This would also be easy to fix by having Sage run once
-as part of the install process; see
-`trac ticket #6375 <http://trac.sagemath.org/sage_trac/ticket/6375>`_
-for this fix.
+as part of the install process; see :trac:`6375` for this fix.
 
 
 I downloaded a Sage binary and it crashes on startup with "Illegal instruction". What can I do?

@@ -111,17 +111,6 @@ fi
 
 cd src
 
-# Apply patches.  See SPKG.txt for information about what each patch
-# does.
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
 if [ "$UNAME" = "Darwin" ]; then
     # Fixing install_name(s)
     sed -i -e 's:\"-install_name :\"-install_name ${libdir}/R/lib/:' configure

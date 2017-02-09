@@ -318,7 +318,7 @@ class FreeGroupElement(ElementLibGAP):
         TESTS::
 
             sage: type(a.Tietze())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: type(a.Tietze()[0])
             <type 'sage.rings.integer.Integer'>
         """

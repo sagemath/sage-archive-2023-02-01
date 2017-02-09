@@ -2930,16 +2930,24 @@ class Link(object):
                 headshort = (c2[0].index(e) % 2 == 0)
             a = deepcopy(im[0][0])
             b = deepcopy(im[-1][0])
+
+            def delta(u, v):
+                if u < v:
+                    return -gap
+                if u > v:
+                    return gap
+                return 0
+
             if tailshort:
-                im[0][0][0][0] += cmp(a[1][0], im[0][0][0][0]) * gap
-                im[0][0][0][1] += cmp(a[1][1], im[0][0][0][1]) * gap
+                im[0][0][0][0] += delta(a[1][0], im[0][0][0][0])
+                im[0][0][0][1] += delta(a[1][1], im[0][0][0][1])
             if headshort:
-                im[-1][0][1][0] -= cmp(b[1][0], im[-1][0][0][0]) * gap
-                im[-1][0][1][1] -= cmp(b[1][1], im[-1][0][0][1]) * gap
+                im[-1][0][1][0] -= delta(b[1][0], im[-1][0][0][0])
+                im[-1][0][1][1] -= delta(b[1][1], im[-1][0][0][1])
             l = line([], **kwargs)
             c = 0
             p = im[0][0][0]
-            if len(im) == 4 and max([x[1] for x in im]) == 1:
+            if len(im) == 4 and max(x[1] for x in im) == 1:
                 l = bezier_path([[im[0][0][0], im[0][0][1], im[-1][0][0], im[-1][0][1]]], **kwargs)
                 p = im[-1][0][1]
             else:

@@ -28,6 +28,7 @@ Representations of the Symmetric Group
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+import six
 from six.moves import range
 
 from sage.symbolic.ring import SR
@@ -569,7 +570,7 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
              (2, 0, 1, -1, 0): (2, 4, 1, 3, 5)}
         """
         word_dict = {}
-        for (v,t) in self._tableau_dict.iteritems():
+        for (v,t) in six.iteritems(self._tableau_dict):
             word_dict[v] = sum(reversed(t), ())
         return word_dict
 

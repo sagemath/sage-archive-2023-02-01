@@ -243,6 +243,9 @@ REFERENCES:
             (arxiv:0710.5614) to appear in Ergodic Theory and
             Dynamical Systems.
 
+.. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
+            244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
+
 .. [BM2003] Bazzi and Mitter, {\it Some constructions of codes from
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).
@@ -784,6 +787,9 @@ REFERENCES:
 .. [HJ2004] Tom Hoeholdt and Joern Justesen, A Course In
             Error-Correcting Codes, EMS, 2004
 
+.. [HKOTY1999] \G. Hatayama, A. Kuniba, M. Okado, T. Tagaki, and Y. Yamada,
+               *Remarks on fermionic formula*. Contemp. Math., **248** (1999).
+
 .. [HKP2010] \T. J. Haines, R. E. Kottwitz, A. Prasad, Iwahori-Hecke
              Algebras, J. Ramanujan Math. Soc., 25 (2010),
              113--145. :arxiv:`0309168v3` :mathscinet:`MR2642451`
@@ -920,6 +926,10 @@ REFERENCES:
 .. [KN1963] \S. Kobayashi & K. Nomizu : *Foundations of Differential
             Geometry*, vol. 1, Interscience Publishers (New York)
             (1963).
+
+.. [KNS2011] Atsuo Kuniba and Tomoki Nakanishi and Junji Suzuki,
+             `T`-*systems and* `Y`-*systems in integrable systems*.
+             \J. Phys. A, **44** (2011), no. 10.
 
 .. [KnotAtlas] The Knot atlas. http://katlas.org/wiki/Main_Page
 

@@ -790,6 +790,10 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         r"""
         Transforms the polynomial ``p`` into a codeword of :meth:`code`.
 
+        One can use the following shortcut to encode a word with an encoder ``E``::
+
+            E(word)
+
         INPUT:
 
         - ``p`` -- A polynomial from the message space of ``self`` of degree

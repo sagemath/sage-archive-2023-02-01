@@ -2474,7 +2474,7 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
             sage: H.points() is H.points()
             True
             sage: type(H.points())
-            <type 'tuple'>
+            <... 'tuple'>
         """
         if beta is None:
             SDN = self.betas()

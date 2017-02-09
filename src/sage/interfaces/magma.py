@@ -932,7 +932,7 @@ class Magma(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: type(magma.cputime())         # optional - magma
-            <type 'float'>
+            <... 'float'>
             sage: magma.cputime()                # random, optional - magma
             1.9399999999999999
             sage: t = magma.cputime()            # optional - magma
@@ -1966,7 +1966,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: z = m.sage(); z               # optional - magma
             (1, 2, (3,))
             sage: type(z)                       # optional - magma
-            <type 'tuple'>
+            <... 'tuple'>
 
         Sequences get converted to lists::
 

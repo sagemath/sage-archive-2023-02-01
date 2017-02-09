@@ -24,7 +24,7 @@ def timestamp():
         sage: timestamp()   # random output
         1406642467.25684
         sage: type(timestamp())
-        <type 'float'>
+        <... 'float'>
     """
     libgap_dir = os.path.dirname(__file__)
     files = glob.glob(os.path.join(libgap_dir, '*'))

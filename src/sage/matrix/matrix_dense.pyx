@@ -7,11 +7,12 @@ TESTS::
     sage: m = matrix(R,2,[0,a,b,b^2])
     sage: TestSuite(m).run()
 """
+from __future__ import absolute_import
 from __future__ import print_function
 
-cimport matrix
+cimport sage.matrix.matrix as matrix
 
-from   sage.structure.element    cimport Element, RingElement
+from sage.structure.element cimport Element, RingElement
 from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
 import sage.matrix.matrix_space
 import sage.structure.sequence

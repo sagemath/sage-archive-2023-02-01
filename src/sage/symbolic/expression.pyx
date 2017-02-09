@@ -4354,7 +4354,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x,y = var('x,y', domain='real')
             sage: p,q = var('p,q', domain='positive')
             sage: (c/2*(5*(3*a*b*x*y*p*q)^2)^(7/2*c)).expand()
-            1/2*45^(7/2*c)*(a^2*b^2)^(7/2*c)*c*p^(7*c)*q^(7*c)*(x^2)^(7/2*c)*(y^2)^(7/2*c)
+            1/2*45^(7/2*c)*(a^2*b^2*x^2*y^2)^(7/2*c)*c*p^(7*c)*q^(7*c)
             sage: ((-(-a*x*p)^3*(b*y*p)^3)^(c/2)).expand()
             (a^3*b^3*x^3*y^3)^(1/2*c)*p^(3*c)
             sage: x,y,p,q = var('x,y,p,q', domain='complex')
@@ -5206,14 +5206,14 @@ cdef class Expression(CommutativeRingElement):
             sage: t._unpack_operands()
             (1, 2, x, x + 1, x + 2)
             sage: type(t._unpack_operands())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: list(map(type, t._unpack_operands()))
             [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
             sage: u = SR._force_pyobject((t, x^2))
             sage: u._unpack_operands()
             ((1, 2, x, x + 1, x + 2), x^2)
             sage: type(u._unpack_operands()[0])
-            <type 'tuple'>
+            <... 'tuple'>
         """
         from sage.libs.pynac.pynac import unpack_operands
         return unpack_operands(self)
@@ -5290,7 +5290,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (x >= y).operator()
             <built-in function ge>
             sage: SR._force_pyobject( (x, x + 1, x + 2) ).operator()
-            <type 'tuple'>
+            <... 'tuple'>
         """
         cdef operators o
         cdef unsigned serial
@@ -11271,7 +11271,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ff(1.0)
             1.4142135623730951
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
         """
         from sage.symbolic.expression_conversions import fast_float
         return fast_float(self, *vars)

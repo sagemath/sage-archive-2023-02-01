@@ -60,7 +60,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
             sage: Qp=pAdicField(13)
             sage: E=EllipticCurve(Qp,[1,1])
             sage: type(E.frobenius())
-            <type 'function'>
+            <... 'function'>
             sage: point=E(0,1)
             sage: E.frobenius(point)
             (0 : 1 + O(13^20) : 1 + O(13^20))

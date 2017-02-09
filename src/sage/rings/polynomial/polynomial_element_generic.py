@@ -481,7 +481,7 @@ class Polynomial_generic_sparse(Polynomial):
         else:
             x[n] = value
 
-    def list(self):
+    def list(self, copy=True):
         """
         Return a new copy of the list of the underlying
         elements of ``self``.
@@ -493,7 +493,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.list()
             [0, 17, 15, 0, 0, 13]
         """
-        zero = self.base_ring()(0)
+        zero = self.base_ring().zero()
         v = [zero] * (self.degree()+1)
         for n, x in self.__coeffs.iteritems():
             v[n] = x

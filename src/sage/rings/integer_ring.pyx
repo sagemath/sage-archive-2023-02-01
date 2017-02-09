@@ -42,6 +42,7 @@ other types will also coerce to the integers, when it makes sense.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 include "sage/ext/cdefs.pxi"
@@ -68,10 +69,10 @@ from sage.misc.misc_c import prod
 from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 from sage.libs.ntl.convert cimport ZZ_to_mpz
 
-cimport integer
-cimport rational
+cimport sage.rings.integer as integer
+cimport sage.rings.rational as rational
 
-import ring
+from . import ring
 
 arith = None
 cdef void late_import():

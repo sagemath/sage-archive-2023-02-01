@@ -1199,20 +1199,6 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(f(x), x = pi/4)
         Infinity
 
-    Check that we give deprecation warnings for 'above' and 'below',
-    :trac:`9200`::
-
-        sage: limit(1/x, x=0, dir='above')
-        doctest:...: DeprecationWarning: the keyword
-        'above' is deprecated. Please use 'right' or '+' instead.
-        See http://trac.sagemath.org/9200 for details.
-        +Infinity
-        sage: limit(1/x, x=0, dir='below')
-        doctest:...: DeprecationWarning: the keyword
-        'below' is deprecated. Please use 'left' or '-' instead.
-        See http://trac.sagemath.org/9200 for details.
-        -Infinity
-
     Check that :trac:`12708` is fixed::
 
         sage: limit(tanh(x),x=0)
@@ -1246,15 +1232,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     if algorithm == 'maxima':
         if dir is None:
             l = maxima.sr_limit(ex, v, a)
-        elif dir in ['plus', '+', 'right', 'above']:
-            if dir == 'above':
-                from sage.misc.superseded import deprecation
-                deprecation(9200, "the keyword 'above' is deprecated. Please use 'right' or '+' instead.")
+        elif dir in ['plus', '+', 'right']:
             l = maxima.sr_limit(ex, v, a, 'plus')
-        elif dir in ['minus', '-', 'left', 'below']:
-            if dir == 'below':
-                from sage.misc.superseded import deprecation
-                deprecation(9200, "the keyword 'below' is deprecated. Please use 'left' or '-' instead.")
+        elif dir in ['minus', '-', 'left']:
             l = maxima.sr_limit(ex, v, a, 'minus')
     elif algorithm == 'maxima_taylor':
         if dir is None:
@@ -1511,30 +1491,6 @@ def at(ex, *args, **kwds):
 
     return ex.subs(**kwds)
 
-
-#############################################3333
-def var_cmp(x,y):
-    """
-    Return comparison of the two variables x and y, which is just the
-    comparison of the underlying string representations of the
-    variables. This is used internally by the Calculus package.
-
-    INPUT:
-
-    - ``x, y`` - symbolic variables
-
-    OUTPUT: Python integer; either -1, 0, or 1.
-
-    EXAMPLES::
-
-        sage: sage.calculus.calculus.var_cmp(x,x)
-        0
-        sage: sage.calculus.calculus.var_cmp(x,var('z'))
-        -1
-        sage: sage.calculus.calculus.var_cmp(x,var('a'))
-        1
-    """
-    return cmp(repr(x), repr(y))
 
 def dummy_limit(*args):
     """

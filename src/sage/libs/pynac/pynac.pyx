@@ -25,7 +25,7 @@ from sage.libs.gsl.complex cimport *
 from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
-from sage.structure.element cimport Element, parent_c
+from sage.structure.element cimport Element, parent as parent_c
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational

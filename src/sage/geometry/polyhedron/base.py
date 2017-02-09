@@ -3069,15 +3069,15 @@ class Polyhedron_base(Element):
                 normal_vectors.append(facet.A())
 
         if linear_coefficients is not None:
-            normal_vector = sum([linear_coefficients[i]*normal_vectors[i] for i
-                                 in range(len(normal_vectors))])
+            normal_vector = sum(linear_coefficients[i]*normal_vectors[i] for i
+                                 in range(len(normal_vectors)))
         else:
             normal_vector = sum(normal_vectors)
 
         B = - normal_vector * (face_vertices[0].vector())
 
-        linear_evaluation = set([-normal_vector * (v.vector()) for v in
-            self.vertices()])
+        linear_evaluation = set(-normal_vector * (v.vector()) for v in
+            self.vertices())
 
         if B == max(linear_evaluation):
             C = max(linear_evaluation.difference(set([B])))

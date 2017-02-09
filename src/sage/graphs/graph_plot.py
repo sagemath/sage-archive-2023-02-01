@@ -163,8 +163,10 @@ graphplot_options.update(
                         '(larger and white).',
                     'graph_border': 'Whether or not to draw a frame around the graph.'})
 
+from six import iteritems
+
 _PLOT_OPTIONS_TABLE = ""
-for key, value in six.iteritems(graphplot_options):
+for key, value in iteritems(graphplot_options):
     _PLOT_OPTIONS_TABLE += "    ``"+str(key)+"`` | "+str(value)+"\n"
 __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 
@@ -250,7 +252,7 @@ class GraphPlot(SageObject):
 
         """
         # Setting the default values if needed
-        for k,value in six.iteritems(DEFAULT_PLOT_OPTIONS):
+        for k, value in iteritems(DEFAULT_PLOT_OPTIONS):
             if k not in options:
                 options[k] = value
         self._plot_components = {}
@@ -343,7 +345,8 @@ class GraphPlot(SageObject):
         """
         self._pos = self._graph.layout(**self._options)
         # make sure the positions are floats (trac #10124)
-        self._pos = dict((k,(float(v[0]), float(v[1]))) for k,v in six.iteritems(self._pos))
+        self._pos = dict((k, (float(v[0]), float(v[1])))
+                         for k, v in iteritems(self._pos))
 
     def set_vertices(self, **vertex_options):
         """
@@ -867,7 +870,7 @@ class GraphPlot(SageObject):
 
         """
         # Setting the default values if needed
-        for k,value in six.iteritems(DEFAULT_SHOW_OPTIONS):
+        for k, value in iteritems(DEFAULT_SHOW_OPTIONS):
             if k not in kwds:
                 kwds[k] = value
 

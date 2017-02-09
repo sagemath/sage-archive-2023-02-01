@@ -1865,7 +1865,7 @@ class Func_jacobi_P(OrthogonalFunction):
         """
         OrthogonalFunction.__init__(self, "jacobi_P", nargs=4, latex_name=r"P",
                 conversions={'maxima':'jacobi_p', 'mathematica':'JacobiP',
-                    'maple':'JacobiP', 'sympy':'jacobi'})
+                             'maple':'JacobiP', 'sympy':'jacobi'})
 
     def _eval_(self, n, a, b, x):
         """

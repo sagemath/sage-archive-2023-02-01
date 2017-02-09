@@ -501,6 +501,17 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             Field
               Defn: Defined on coordinates by sending (x0 : x1) to
                     (x0*x1 : 1/2*x0^2 + x0*x1 + 3/2*x1^2)
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQbar, 1)
+            sage: H = End(A)
+            sage: f = H([2*z / (z^2+2*z+3)])
+            sage: f.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic
+            Field
+                Defn: Defined on coordinates by sending (x0 : x1) to
+                    (x0*x1 : 1/2*x0^2 + x0*x1 + 3/2*x1^2)
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n, (tuple, list)):
@@ -539,7 +550,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
             F = [S(f/gc) for f in F]
-        except (AttributeError, ValueError): #no gcd
+        except (AttributeError, ValueError, NotImplementedError): #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])
         F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]
@@ -629,6 +640,15 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([z^2+3/z+1/7])
             sage: f.dynatomic_polynomial(1).parent()
             Multivariate Polynomial Ring in z over Rational Field
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: A.<z> = AffineSpace(R,1)
+            sage: H = End(A)
+            sage: f = H([z^2 + c])
+            sage: f.dynatomic_polynomial([0,1]).parent()
+            Multivariate Polynomial Ring in z over Univariate Polynomial Ring in c over Rational Field
         """
         if self.domain() != self.codomain():
             raise TypeError("must have same domain and codomain to iterate")
@@ -639,6 +659,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             raise TypeError("does not make sense in dimension >1")
         F = self.homogenize(1).dynatomic_polynomial(period)
         S = self.domain().coordinate_ring()
+
         if S(F.denominator()).degree() == 0:
             R = F.parent()
             phi = R.hom([S.gen(0), 1], S)

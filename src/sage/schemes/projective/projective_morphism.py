@@ -851,7 +851,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-CC.0/3*y^2, y^2])
             sage: f.dynatomic_polynomial(2)
-            2.00000000000000*x^2 + 0.999999999999999*y^2
+            (x^4*y + (-0.666666666666667*I)*x^2*y^3 - x*y^4 + (-0.111111111111111 - 0.333333333333333*I)*y^5)/(x^2*y - x*y^2 + (-0.333333333333333*I)*y^3)
 
         ::
 
@@ -947,7 +947,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if m != 0:
             fm = self.nth_iterate_map(m)
             fm1 = self.nth_iterate_map(m - 1)
-            PHI = PHI(fm._polys)/ PHI(fm1._polys)
+            try:
+                QR= PHI(fm._polys).quo_rem(PHI(fm1._polys))
+                if QR[1]==0:
+                    PHI=QR[0]
+            except (TypeError, NotImplementedError): # something Singular can't handle
+                PHI=PHI(fm._polys)/PHI(fm1._polys)
         try:
             QR = PHI.numerator().quo_rem(PHI.denominator())
             if not QR[1]:
@@ -961,9 +966,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             BR = self.domain().base_ring().base_ring()
             if not (is_pAdicRing(BR) or is_pAdicField(BR)):
                 try:
-                    PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
-                    # do it again to divide out by denominators of coefficients
-                    PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
+                    QR2 = PHI.numerator()._maxima_().divide(PHI.denominator())
+                    if not QR2[1].sage():
+                        # do it again to divide out by denominators of coefficients
+                        PHI = QR2[0].sage()
+                        PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
                     if not is_FractionFieldElement(PHI):
                         from sage.symbolic.expression_conversions import polynomial
                         PHI = polynomial(PHI, ring=self.coordinate_ring())

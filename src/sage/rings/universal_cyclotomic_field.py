@@ -281,7 +281,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: UCF = UniversalCyclotomicField()
-            sage: map(bool, [UCF.zero(), UCF.one(), UCF.gen(3), UCF.gen(5) + UCF.gen(5,3)])
+            sage: list(map(bool, [UCF.zero(), UCF.one(), UCF.gen(3), UCF.gen(5) + UCF.gen(5,3)]))
             [False, True, True, True]
         """
         return bool(self._obj)
@@ -680,10 +680,10 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: UCF = UniversalCyclotomicField()
             sage: l = [UCF.gen(3), UCF.gen(3)+1, UCF.gen(5), UCF.gen(5,2),
             ....:      UCF.gen(4), 2*UCF.gen(4), UCF.gen(5)-22/3]
-            sage: lQQbar = map(QQbar,l)
+            sage: lQQbar = list(map(QQbar,l))
             sage: lQQbar.sort()
             sage: l.sort()
-            sage: lQQbar == map(QQbar,l)
+            sage: lQQbar == list(map(QQbar,l))
             True
 
             sage: for i in range(len(l)):
@@ -780,7 +780,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: type(E(3).is_rational())
-            <type 'bool'>
+            <... 'bool'>
         """
         return self._obj.IsRat().sage()
 

@@ -290,7 +290,7 @@ cdef class ntl_ZZ_pX(object):
             sage: i
             13
             sage: type(i)
-            <type 'int'>
+            <... 'int'>
             sage: x._getitem_as_int_doctest(15)
             0
         """

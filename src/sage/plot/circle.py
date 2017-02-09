@@ -287,10 +287,10 @@ def circle(center, radius, **options):
         sage: step=6; ocur=1/5; paths=16;
         sage: PI = math.pi    # numerical for speed -- fine for graphics
         sage: for r in range(1,paths+1):
-        ...       for x,y in [((r+ocur)*math.cos(n), (r+ocur)*math.sin(n)) for n in srange(0, 2*PI+PI/step, PI/step)]:
-        ...           g += circle((x,y), ocur, rgbcolor=hue(r/paths))
-        ...       rnext = (r+1)^2
-        ...       ocur = (rnext-r)-ocur
+        ....:     for x,y in [((r+ocur)*math.cos(n), (r+ocur)*math.sin(n)) for n in srange(0, 2*PI+PI/step, PI/step)]:
+        ....:         g += circle((x,y), ocur, rgbcolor=hue(r/paths))
+        ....:     rnext = (r+1)^2
+        ....:     ocur = (rnext-r)-ocur
         ...
         sage: g.show(xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
 

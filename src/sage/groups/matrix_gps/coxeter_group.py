@@ -38,7 +38,7 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.misc.cachefunc import cached_method
 
 
-class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
+class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_generic):
     r"""
     A Coxeter group represented as a matrix group.
 

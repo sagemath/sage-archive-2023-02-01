@@ -50,9 +50,9 @@ class Benchmark:
         sage: from sage.tests.benchmark import Benchmark
         sage: B = Benchmark()
         sage: def python():
-        ...    t = cputime()
-        ...    n = 2+2
-        ...    return cputime(t)
+        ....:     t = cputime()
+        ....:     n = 2+2
+        ....:     return cputime(t)
         sage: B.python = python
         sage: B.run(systems=['python'])
         sage.tests.benchmark.Benchmark instance

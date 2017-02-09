@@ -17,7 +17,7 @@ New BSD License
 
 == Upstream Contact ==
 
-* https://code.google.com/p/planarity/
+* https://github.com/graph-algorithms/edge-addition-planarity-suite/
 
 * John Boyer <John.Boyer.PhD@gmail.com>
 

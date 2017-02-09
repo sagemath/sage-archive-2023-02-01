@@ -62,7 +62,7 @@ Beispiel) gefolgt von einem Fragezeichen eingegeben wird:
             0.69314718055994530941723212145817656807   # 64-bit
     sage: sudoku?
     File:        sage/local/lib/python2.5/site-packages/sage/games/sudoku.py
-    Type:        <type 'function'>
+    Type:        <... 'function'>
     Definition:  sudoku(A)
     Docstring:
 

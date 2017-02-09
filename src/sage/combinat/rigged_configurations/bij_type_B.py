@@ -617,16 +617,16 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                 if build_graph:
                     y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                     self._graph.append([self._graph[-1][1], (y, len(self._graph)), '2x'])
-        
+
                 # Perform the type A_{2n-1}^{(2)} bijection
-        
+
                 # Iterate over each column
                 for dummy_var in range(dim[1]):
                     # Split off a new column if necessary
                     if bij.cur_dims[0][1] > 1:
                         bij.cur_dims[0][1] -= 1
                         bij.cur_dims.insert(0, [dim[0], 1])
-        
+
                         # Perform the corresponding splitting map on rigged configurations
                         # All it does is update the vacancy numbers on the RC side
                         for a in range(self.n):
@@ -635,8 +635,8 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                         if build_graph:
                             y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                             self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
-        
-                    while bij.cur_dims[0][0] > 0:
+
+                    while bij.cur_dims[0][0]: # > 0:
                         if verbose:
                             print("====================")
                             print(repr(RC(*bij.cur_partitions, use_vacancy_numbers=True)))
@@ -644,8 +644,9 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                             print(ret_crystal_path)
                             print("--------------------\n")
 
-                        bij.cur_dims[0][0] -= 1 # This takes care of the indexing
-                        b = bij.next_state(bij.cur_dims[0][0])
+                        ht = bij.cur_dims[0][0]
+                        bij.cur_dims[0][0] = bij._next_index(ht)
+                        b = bij.next_state(ht)
                         # Make sure we have a crystal letter
                         ret_crystal_path[-1].append(letters(b)) # Append the rank
 
@@ -706,7 +707,7 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                             y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                             self._graph.append([self._graph[-1][1], (y, len(self._graph)), '2x'])
 
-                    while self.cur_dims[0][0] > 0:
+                    while self.cur_dims[0][0]: #> 0:
                         if verbose:
                             print("====================")
                             print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))

@@ -10,9 +10,10 @@ Highest Weight Crystals
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
-from sage.categories.crystals import Crystals, CrystalHomset, \
-    CrystalMorphismByGenerators
+from sage.categories.crystals import (Crystals, CrystalHomset,
+                                      CrystalMorphismByGenerators)
 from sage.categories.tensor import TensorProductsCategory
+from sage.graphs.dot2tex_utils import have_dot2tex
 
 class HighestWeightCrystals(Category_singleton):
     """
@@ -445,6 +446,85 @@ class HighestWeightCrystals(Category_singleton):
             if Y not in Crystals():
                 raise TypeError("{} is not a crystal".format(Y))
             return HighestWeightCrystalHomset(self, Y, category=category, **options)
+
+        def digraph(self, subset=None, index_set=None, depth=None):
+            """
+            Return the DiGraph associated to ``self``.
+
+            INPUT:
+
+            - ``subset`` -- (optional) a subset of vertices for
+              which the digraph should be constructed
+
+            - ``index_set`` -- (optional) the index set to draw arrows
+
+            - ``depth`` -- the depth to draw; optional only for finite crystals
+
+            EXAMPLES::
+
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: T.digraph()
+                Digraph on 8 vertices
+                sage: S = T.subcrystal(max_depth=2)
+                sage: len(S)
+                5
+                sage: G = T.digraph(subset=list(S))
+                sage: G.is_isomorphic(T.digraph(depth=2), edge_labels=True)
+                True
+
+            TESTS:
+
+            The following example demonstrates the speed improvement.
+            The speedup in non-affine types is small however::
+
+                sage: depth = 5
+                sage: C = crystals.AlcovePaths(['A',2,1], [1,1,0])
+                sage: general_digraph = Crystals().parent_class.digraph
+                sage: S = C.subcrystal(max_depth=depth, direction='lower')
+                sage: %timeit C.digraph(depth=depth) # not tested
+                10 loops, best of 3: 48.9 ms per loop
+                sage: %timeit general_digraph(C, subset=S) # not tested
+                10 loops, best of 3: 96.5 ms per loop
+                sage: G1 = C.digraph(depth=depth)
+                sage: G2 = general_digraph(C, subset=S)
+                sage: G1.is_isomorphic(G2, edge_labels=True)
+                True
+            """
+            if subset is not None:
+                return Crystals().parent_class.digraph(self, subset, index_set)
+
+            if self not in Crystals().Finite() and depth is None:
+                raise NotImplementedError("crystals not known to be finite must"
+                                          " specify either the subset or depth")
+
+            from sage.graphs.all import DiGraph
+            if index_set is None:
+                index_set = self.index_set()
+
+            rank = 0
+            d = {g: {} for g in self.module_generators}
+            visited = set(d.keys())
+
+            while depth is None or rank < depth:
+                recently_visited = set()
+                for x in visited:
+                    d.setdefault(x, {}) # does nothing if there's a default
+                    for i in index_set:
+                        xfi = x.f(i)
+                        if xfi is not None:
+                            d[x][xfi] = i
+                            recently_visited.add(xfi)
+                if not recently_visited: # No new nodes, nothing more to do
+                    break
+                rank += 1
+                visited = recently_visited
+
+            G = DiGraph(d)
+            if have_dot2tex():
+                G.set_latex_options(format="dot2tex",
+                                    edge_labels=True,
+                                    color_by_label=self.cartan_type()._index_set_coloring)
+            return G
 
     class ElementMethods:
         pass

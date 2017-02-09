@@ -84,16 +84,16 @@ def require_mutable(f):
 
         sage: from sage.structure.mutability import require_mutable, require_immutable
         sage: class A:
-        ...    def __init__(self, val):
-        ...        self._m = val
-        ...    @require_mutable
-        ...    def change(self, new_val):
-        ...        'change self'
-        ...        self._m = new_val
-        ...    @require_immutable
-        ...    def __hash__(self):
-        ...        'implement hash'
-        ...        return hash(self._m)
+        ....:  def __init__(self, val):
+        ....:      self._m = val
+        ....:  @require_mutable
+        ....:  def change(self, new_val):
+        ....:      'change self'
+        ....:      self._m = new_val
+        ....:  @require_immutable
+        ....:  def __hash__(self):
+        ....:      'implement hash'
+        ....:      return hash(self._m)
         sage: a = A(5)
         sage: a.change(6)
         sage: hash(a)
@@ -130,16 +130,16 @@ def require_immutable(f):
 
         sage: from sage.structure.mutability import require_mutable, require_immutable
         sage: class A:
-        ...    def __init__(self, val):
-        ...        self._m = val
-        ...    @require_mutable
-        ...    def change(self, new_val):
-        ...        'change self'
-        ...        self._m = new_val
-        ...    @require_immutable
-        ...    def __hash__(self):
-        ...        'implement hash'
-        ...        return hash(self._m)
+        ....:  def __init__(self, val):
+        ....:      self._m = val
+        ....:  @require_mutable
+        ....:  def change(self, new_val):
+        ....:      'change self'
+        ....:      self._m = new_val
+        ....:  @require_immutable
+        ....:  def __hash__(self):
+        ....:      'implement hash'
+        ....:      return hash(self._m)
         sage: a = A(5)
         sage: a.change(6)
         sage: hash(a)   # indirect doctest

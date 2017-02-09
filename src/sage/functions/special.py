@@ -184,9 +184,9 @@ class SphericalHarmonic(BuiltinFunction):
 
         sage: x, y = var('x, y')
         sage: spherical_harmonic(3, 2, x, y)
-        15/4*sqrt(7/30)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
+        1/8*sqrt(30)*sqrt(7)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
         sage: spherical_harmonic(3, 2, 1, 2)
-        15/4*sqrt(7/30)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
+        1/8*sqrt(30)*sqrt(7)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
         sage: spherical_harmonic(3 + I, 2., 1, 2)
         -0.351154337307488 - 0.415562233975369*I
         sage: latex(spherical_harmonic(3, 2, x, y, hold=True))
@@ -221,17 +221,29 @@ class SphericalHarmonic(BuiltinFunction):
             sage: spherical_harmonic(1/2, 2, x, y)
             spherical_harmonic(1/2, 2, x, y)
             sage: spherical_harmonic(3, 2, x, y)
-            15/4*sqrt(7/30)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
+            1/8*sqrt(30)*sqrt(7)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
             sage: spherical_harmonic(3, 2, 1, 2)
-            15/4*sqrt(7/30)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
+            1/8*sqrt(30)*sqrt(7)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
             sage: spherical_harmonic(3 + I, 2., 1, 2)
             -0.351154337307488 - 0.415562233975369*I
+
+        Check that :trac:`20939` is fixed::
+
+            sage: spherical_harmonic(3,2,1,2*pi/3)
+            -1/240*sqrt(30)*(15*I*sqrt(7)*sqrt(3)
+             + 15*sqrt(7))*cos(1)*sin(1)^2/sqrt(pi)
         """
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
                 return ZZ(0)
-            return maxima("spherical_harmonic({},{},{},{})".format(
-                ZZ(n), ZZ(m), maxima(theta), maxima(phi))).sage()
+            if m == 0 and theta.is_zero():
+                return sqrt((2*n+1)/4/pi)
+            from sage.arith.misc import factorial
+            from sage.functions.trig import cos
+            from sage.functions.orthogonal_polys import gen_legendre_P
+            return (sqrt(factorial(n-m) * (2*n+1) / (4*pi * factorial(n+m))) *
+                    exp(I*m*phi) * gen_legendre_P(n, m, cos(theta)) *
+                    (-1)**m).simplify_trig()
 
     def _evalf_(self, n, m, theta, phi, parent, **kwds):
         r"""

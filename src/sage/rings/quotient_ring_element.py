@@ -442,7 +442,7 @@ class QuotientRingElement(RingElement):
             sage: K = R.quotient(x^2 - y^3).fraction_field()
             sage: L.<t> = FunctionField(QQ)
             sage: f = K.hom((t^3, t^2))
-            sage: map(f, K.gens())
+            sage: list(map(f, K.gens()))
             [t^3, t^2]
             sage: xbar, ybar = K.gens()
             sage: f(1/ybar)
@@ -465,7 +465,7 @@ class QuotientRingElement(RingElement):
             sage: int(S(-3))                # indirect doctest
             -3
             sage: type(int(S(-3)))
-            <type 'int'>
+            <... 'int'>
             sage: int(a)
             Traceback (most recent call last):
             ...

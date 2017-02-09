@@ -832,7 +832,7 @@ class Set_object_enumerated(Set_object):
             sage: X.set()
             {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: type(X.set())
-            <type 'set'>
+            <... 'set'>
             sage: type(X)
             <class 'sage.sets.set.Set_object_enumerated_with_category'>
         """
@@ -860,7 +860,7 @@ class Set_object_enumerated(Set_object):
             -1390224788            # 32-bit
              561411537695332972    # 64-bit
             sage: type(s)
-            <type 'frozenset'>
+            <... 'frozenset'>
         """
         return frozenset(self.object())
 

@@ -2189,7 +2189,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: def f(a,b):
                     ....:     return sum(a.coefficients()) * sum(b.coefficients())
                     sage: type(f(A.zero(), B.zero()))
-                    <type 'int'>
+                    <... 'int'>
 
                 Which would be wrong and break this method::
 

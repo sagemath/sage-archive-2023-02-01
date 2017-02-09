@@ -66,6 +66,8 @@ from sage.misc.latex import latex
 from sage.misc.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
+from sage.structure.sage_object cimport (richcmp, richcmp_not_equal,
+        rich_to_bool, rich_to_bool_sgn)
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
@@ -150,7 +152,7 @@ cpdef is_Polynomial(f):
     """
     return isinstance(f, Polynomial)
 
-from polynomial_compiled cimport CompiledPolynomialFunction
+from .polynomial_compiled cimport CompiledPolynomialFunction
 
 from polydict import ETuple
 
@@ -901,7 +903,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 expr *= x
         return expr
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         Compare the two polynomials self and other.
 
@@ -937,21 +939,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         # Special case constant polynomials
         if d1 <= 0 and d2 <= 0:
-            return cmp(self[0], other[0])
+            return richcmp(self[0], other[0], op)
 
         # For different degrees, compare the degree
         if d1 != d2:
-            if d1 < d2:
-                return -1
-            else:
-                return 1
+            return rich_to_bool_sgn(op, d1 - d2)
 
         cdef Py_ssize_t i
-        cdef int c
         for i in reversed(range(d1+1)):
-            c = cmp(self[i], other[i])
-            if c: return c
-        return 0
+            x = self[i]
+            y = other[i]
+            if x != y:
+                return richcmp_not_equal(x, y, op)
+        return rich_to_bool(op, 0)
 
     def __nonzero__(self):
         """
@@ -4027,23 +4027,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # Convert the polynomial we want to factor to PARI
             f = self._pari_with_name()
             try:
-                try:
-                    # Try to compute the PARI nf structure with important=False.
-                    # This will raise RuntimeError if the computation is too
-                    # difficult.  It will raise TypeError if the defining
-                    # polynomial is not integral.
-                    Rpari = R.pari_nf(important=False)
-                except RuntimeError:
-                    # Cannot easily compute the nf structure, use the defining
-                    # polynomial instead.
-                    Rpari = R.pari_polynomial("y")
-                # nffactor() can fail with PariError "precision too low"
-                G = list(Rpari.nffactor(f))
-            except (PariError, TypeError):
-                # Use factornf() which only needs the defining polynomial,
-                # which does not require an integral polynomial and which
-                # has no problems with floating-point precision.
-                G = list(f.factornf(R.pari_polynomial("y")))
+                # Try to compute the PARI nf structure with important=False.
+                # This will raise RuntimeError if the computation is too
+                # difficult.
+                Rpari = R.pari_nf(important=False)
+            except RuntimeError:
+                # Cannot easily compute the nf structure, use the defining
+                # polynomial instead.
+                Rpari = R.pari_polynomial("y")
+            G = list(Rpari.nffactor(f))
             # PARI's nffactor() ignores the unit, _factor_pari_helper()
             # adds back the unit of the factorization.
             return self._factor_pari_helper(G)
@@ -8819,6 +8811,38 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     raise ValueError("not a %s power"%m.ordinal_str())
             raise ValueError("not a %s power"%m.ordinal_str())
 
+    def specialization(self, D=None, phi=None):
+        r"""
+        Specialization of this polynomial.
+
+        Given a family of polynomials defined over a polynomial ring. A specialization
+        is a particular member of that family. The specialization can be specified either
+        by a dictionary or a :class:`SpecializationMorphism`.
+
+        INPUT:
+
+        - ``D`` -- dictionary (optional)
+
+        - ``phi`` -- SpecializationMorphism (optional)
+
+        OUTPUT: a new polynomial
+
+        EXAMPLES::
+
+            sage: R.<c> = PolynomialRing(ZZ)
+            sage: S.<z> = PolynomialRing(R)
+            sage: F = c*z^2 + c^2
+            sage: F.specialization(dict({c:2}))
+            2*z^2 + 4
+        """
+        if D is None:
+            if phi is None:
+                raise ValueError("either the dictionary or the specialization must be provided")
+        else:
+            from sage.rings.polynomial.flatten import SpecializationMorphism
+            phi = SpecializationMorphism(self.parent(),D)
+        return phi(self)
+
     def _log_series(self, long n):
         r"""
         Return the power series expansion of logarithm of this polynomial,
@@ -8974,6 +8998,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -1/3*x^3 + x
         """
         raise NotImplementedError
+
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

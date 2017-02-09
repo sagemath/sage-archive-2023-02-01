@@ -1147,7 +1147,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: sr = mq.SR(10, 4, 4, 8, star=True, allow_zero_inversions=True)
             sage: ki = sr.state_array()
             sage: for i in range(10):
-            ...  ki = sr.key_schedule(ki, i+1)
+            ....:     ki = sr.key_schedule(ki, i+1)
             sage: print(sr.hex_str_matrix(ki))
             B4 3E 23 6F
             EF 92 E9 8F
@@ -3319,7 +3319,7 @@ class AllowZeroInversionsContext:
             sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
             sage: sr = mq.SR(1,2,2,4)
             sage: with AllowZeroInversionsContext(sr):
-            ...    sr.sub_byte(0)
+            ....:     sr.sub_byte(0)
             a^2 + a
         """
         self.sr = sr
@@ -3335,7 +3335,7 @@ class AllowZeroInversionsContext:
             ZeroDivisionError: A zero inversion occurred during an encryption or key schedule.
 
             sage: with AllowZeroInversionsContext(sr):
-            ...    sr.sub_byte(0)
+            ....:     sr.sub_byte(0)
             a^2 + a
         """
         self.allow_zero_inversions = self.sr._allow_zero_inversions
@@ -3347,7 +3347,7 @@ class AllowZeroInversionsContext:
             sage: from sage.crypto.mq.sr import AllowZeroInversionsContext
             sage: sr = mq.SR(1,2,2,4)
             sage: with AllowZeroInversionsContext(sr):
-            ...    sr.sub_byte(0)
+            ....:     sr.sub_byte(0)
             a^2 + a
             sage: sr._allow_zero_inversions
             False

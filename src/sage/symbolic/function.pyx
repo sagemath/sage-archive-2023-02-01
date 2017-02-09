@@ -19,7 +19,7 @@ from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent_c
-from expression cimport new_Expression_from_GEx, Expression
+from .expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type, is_mpmath_type
@@ -418,10 +418,10 @@ cdef class Function(SageObject):
             (0, Integer Ring)
             sage: out = sin(int(0))
             sage: (out, parent(out))
-            (0, <type 'int'>)
+            (0, <... 'int'>)
             sage: out = arctan2(int(0), float(1))
             sage: (out, parent(out))
-            (0, <type 'int'>)
+            (0, <... 'int'>)
             sage: out = arctan2(int(0), RR(1))
             sage: (out, parent(out))
             (0, Integer Ring)

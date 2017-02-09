@@ -136,7 +136,7 @@ class PolyhedronFace(SageObject):
         TESTS::
 
             sage: P = Polyhedron([[0,0],[0,1],[23,3],[9,12]])
-            sage: map(hash, P.faces(1))  # random
+            sage: list(map(hash, P.faces(1)))  # random
             [2377119663630407734,
              2377136578164722109,
              5966674064902575359,

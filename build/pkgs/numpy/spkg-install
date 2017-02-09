@@ -49,7 +49,9 @@ rm -rf "$SAGE_LOCAL/lib/python/site-packages/numpy"
 # Program around a bug in SciPY's distutils.
 unset CFLAGS
 
-python setup.py install \
+python setup.py \
+        --no-user-cfg \
+       install \
        --single-version-externally-managed \
        --record /dev/null \
        ${NUMPY_FCONFIG}

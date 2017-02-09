@@ -15,7 +15,9 @@
 # --no-deps          : Don't install runtime dependencies from PyPI.
 # --no-index         : Don't look at the package index.
 #                      This also disables pip's version self-check.
-pip_install_flags="--ignore-installed --verbose --no-deps --no-index"
+# --isolated         : Don't read configuration files such as
+#                      ~/.pydistutils.cfg
+pip_install_flags="--ignore-installed --verbose --no-deps --no-index --isolated"
 
 # Consume any additional pip install arguments except the last one
 while [ $# -gt 1 ]; do

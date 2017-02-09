@@ -1108,7 +1108,7 @@ class InterfaceElement(Element):
             sage: int(maxima('1'))
             1
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
         """
         return int(repr(self))
 
@@ -1118,7 +1118,7 @@ class InterfaceElement(Element):
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -1128,6 +1128,8 @@ class InterfaceElement(Element):
             True
         """
         return self.bool()
+
+    __nonzero__ = __bool__
 
     def __long__(self):
         """
@@ -1290,9 +1292,9 @@ class InterfaceElement(Element):
         The Maxima variable ``x`` is different from the Sage symbolic variable::
 
             sage: (f+maxima.cos(x))
-            cos(_SAGE_VAR_x)+sin(x)
+            sin(x)+cos(_SAGE_VAR_x)
             sage: (f+maxima.cos(y))
-            cos(_SAGE_VAR_y)+sin(x)
+            sin(x)+cos(_SAGE_VAR_y)
 
         Note that you may get unexpected results when calling symbolic expressions
         and not explicitly giving the variables::

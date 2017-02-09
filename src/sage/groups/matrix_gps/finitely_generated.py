@@ -305,6 +305,34 @@ def MatrixGroup(*gens, **kwds):
 ###################################################################
 
 class FinitelyGeneratedMatrixGroup_generic(MatrixGroup_generic):
+    """
+    TESTS::
+
+        sage: m1 = matrix(SR, [[1,2],[3,4]])
+        sage: m2 = matrix(SR, [[1,3],[-1,0]])
+        sage: MatrixGroup(m1) == MatrixGroup(m1)
+        True
+        sage: MatrixGroup(m1) == MatrixGroup(m1.change_ring(QQ))
+        False
+        sage: MatrixGroup(m1) == MatrixGroup(m2)
+        False
+        sage: MatrixGroup(m1, m2) == MatrixGroup(m2, m1)
+        False
+
+        sage: m1 = matrix(QQ, [[1,2],[3,4]])
+        sage: m2 = matrix(QQ, [[1,3],[-1,0]])
+        sage: MatrixGroup(m1) == MatrixGroup(m1)
+        True
+        sage: MatrixGroup(m1) == MatrixGroup(m2)
+        False
+        sage: MatrixGroup(m1, m2) == MatrixGroup(m2, m1)
+        False
+
+        sage: G = GL(2, GF(3))
+        sage: H = G.as_matrix_group()
+        sage: H == G, G == H
+        (True, True)
+    """
 
     def __init__(self, degree, base_ring, generator_matrices, category=None):
         """
@@ -330,28 +358,6 @@ class FinitelyGeneratedMatrixGroup_generic(MatrixGroup_generic):
         """
         self._gens_matrix = generator_matrices
         MatrixGroup_generic.__init__(self, degree, base_ring, category=category)
-
-    def __cmp__(self, other):
-        """
-        Implement comparison.
-
-        EXAMPLES::
-
-            sage: m1 = matrix(SR, [[1,2],[3,4]])
-            sage: m2 = matrix(SR, [[1,3],[-1,0]])
-            sage: cmp(MatrixGroup(m1), MatrixGroup(m1))
-            0
-            sage: abs(cmp(MatrixGroup(m1), MatrixGroup(m1.change_ring(QQ))))
-            1
-            sage: abs(cmp(MatrixGroup(m1), MatrixGroup(m2)))
-            1
-            sage: abs(cmp(MatrixGroup(m1, m2), MatrixGroup(m2, m1)))
-            1
-        """
-        c = super(FinitelyGeneratedMatrixGroup_generic, self).__cmp__(other)
-        if c != 0:
-            return c
-        return cmp(self._gens_matrix, other._gens_matrix)
 
     @cached_method
     def gens(self):
@@ -425,6 +431,30 @@ class FinitelyGeneratedMatrixGroup_generic(MatrixGroup_generic):
         """
         return len(self._gens_matrix)
 
+    def __reduce__(self):
+        """
+        Used for pickling.
+
+        TESTS::
+
+            sage: G = MatrixGroup([matrix(CC, [[1,2],[3,4]]),
+            ....:                  matrix(CC, [[1,3],[-1,0]])])
+            sage: loads(dumps(G)) == G
+            True
+
+        Check that :trac:`22128` is fixed::
+
+            sage: R = MatrixSpace(SR, 2)
+            sage: G = MatrixGroup([R([[1, 1], [0, 1]])])
+            sage: G.register_embedding(R)
+            sage: loads(dumps(G))
+            Matrix group over Symbolic Ring with 1 generators (
+            [1 1]
+            [0 1]
+            )
+        """
+        return MatrixGroup, (self._gens_matrix, {'check': False})
+
     def _test_matrix_generators(self, **options):
         """
         EXAMPLES::
@@ -478,48 +508,6 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         """
         return (MatrixGroup,
                 tuple(g.matrix() for g in self.gens()) + ({'check':False},))
-
-    def __cmp__(self, other):
-        """
-        Implement comparison.
-
-        EXAMPLES::
-
-            sage: m1 = matrix(QQ, [[1,2],[3,4]])
-            sage: m2 = matrix(QQ, [[1,3],[-1,0]])
-            sage: cmp(MatrixGroup(m1), MatrixGroup(m1))
-            0
-            sage: abs(cmp(MatrixGroup(m1), MatrixGroup(m2)))
-            1
-            sage: abs(cmp(MatrixGroup(m1, m2), MatrixGroup(m2, m1)))
-            1
-
-            sage: G = GL(2, GF(3))
-            sage: H = G.as_matrix_group()
-            sage: cmp(H, G), cmp(G, H)
-            (0, 0)
-            sage: H == G, G == H
-            (True, True)
-        """
-        c = super(FinitelyGeneratedMatrixGroup_gap, self).__cmp__(other)
-        if c != 0:
-            return c
-        try:
-            other_ngens = other.ngens
-            other_gen = other.gen
-        except AttributeError:
-            return 1
-        n = self.ngens()
-        m = other_ngens()
-        if n != m:
-            return cmp(n, m)
-        for i in range(n):
-            g = self.gen(i)
-            h = other_gen(i)
-            c = cmp(g.gap(), h.gap())
-            if c != 0:
-                return c
-        return 0
 
     def as_permutation_group(self, algorithm=None):
         r"""

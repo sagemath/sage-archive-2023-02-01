@@ -844,6 +844,10 @@ class SetPartition(ClonableArray):
         """
         Return a list of refinements of ``self``.
 
+        .. SEEALSO::
+
+            :meth:`coarsenings`
+
         EXAMPLES::
 
             sage: SetPartition([[1,3],[2,4]]).refinements()
@@ -862,6 +866,10 @@ class SetPartition(ClonableArray):
     def coarsenings(self):
         """
         Return a list of coarsenings of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`refinements`
 
         EXAMPLES::
 

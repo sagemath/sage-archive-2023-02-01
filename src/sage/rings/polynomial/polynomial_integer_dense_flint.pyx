@@ -175,7 +175,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: type(pari(f))
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: type(R(pari(f)))
             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: R(pari(f))
@@ -756,11 +756,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
-            sage: R(0).__nonzero__()
+            sage: bool(R(0))
             False
-            sage: R(1).__nonzero__()
+            sage: bool(R(1))
             True
-            sage: x.__nonzero__()
+            sage: bool(x)
             True
         """
         return not (fmpz_poly_degree(self.__poly) == -1)

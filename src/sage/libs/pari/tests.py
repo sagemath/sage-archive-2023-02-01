@@ -9,55 +9,43 @@ The default precision is 64 bits, see :trac:`21425`::
 Deprecation checks::
 
     sage: pari.poltchebi(10)
-    doctest:...: DeprecationWarning: poltchebi is deprecated. Please use polchebyshev instead.
-    See http://trac.sagemath.org/18203 for details.
+    doctest:...: DeprecationWarning: the PARI/GP function poltchebi is obsolete (2013-04-03)
     512*x^10 - 1280*x^8 + 1120*x^6 - 400*x^4 + 50*x^2 - 1
     sage: pari("x^3 + 1").polsturm(-1, 1)
     doctest:...: DeprecationWarning: argument 2 of the PARI/GP function polsturm is undocumented and deprecated
     1
-    sage: pari.nth_prime(10)
-    doctest:...: DeprecationWarning: nth_prime is deprecated. Please use prime instead.
-    See http://trac.sagemath.org/20216 for details.
-    29
-    sage: pari.prime_list(10)
-    doctest:...: DeprecationWarning: prime_list is deprecated. Please use primes instead.
-    See http://trac.sagemath.org/20216 for details.
-    [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-    sage: pari.primes_up_to_n(20)
-    doctest:...: DeprecationWarning: pari.primes_up_to_n(n) is deprecated, use pari.primes(end=n) instead
-    See http://trac.sagemath.org/20216 for details.
-    [2, 3, 5, 7, 11, 13, 17, 19]
-    sage: pari.polcyclo_eval(8, 2)
-    doctest:...: DeprecationWarning: polcyclo_eval is deprecated. Please use polcyclo instead.
-    See http://trac.sagemath.org/20217 for details.
-    17
-    sage: pari('x^-2').printtex()
-    doctest:...: DeprecationWarning: printtex is deprecated. Please use Strtex instead.
-    See http://trac.sagemath.org/20219 for details.
-    "\\frac{1}{x^2}"
-    sage: pari(10).phi()
-    doctest:...: DeprecationWarning: phi is deprecated. Please use eulerphi instead.
-    See http://trac.sagemath.org/20219 for details.
+    sage: x = pari('10^100')
+    sage: x.Str().length()
+    101
+    sage: x.sizedigit()
+    doctest:...: DeprecationWarning: the PARI/GP function sizedigit is obsolete (2015-01-13)
+    101
+    sage: x = pari('1.234')
+    sage: x
+    1.23400000000000
+    sage: x.sizedigit()
+    1
+    sage: pari('7234.1').sizedigit()
     4
-    sage: pari("x^3 + 5*x").reverse()
-    doctest:...: DeprecationWarning: reverse is deprecated. Please use polrecip instead.
-    See http://trac.sagemath.org/20219 for details.
-    5*x^2 + 1
-    sage: nf = pari("x^2 + 1").nfinit()
-    sage: id = nf.idealhnf(2)
-    sage: nf.idealintersection(id, id)
-    doctest:...: DeprecationWarning: idealintersection is deprecated. Please use idealintersect instead.
-    See http://trac.sagemath.org/20219 for details.
-    [2, 0; 0, 2]
-    sage: e = pari([1,0,1,-19,26]).ellinit()
-    sage: e.elltors(flag=1)
-    doctest:...: DeprecationWarning: The flag argument to elltors() is deprecated and not used anymore
-    See http://trac.sagemath.org/20219 for details.
-    [12, [6, 2], [[1, 2], [3, -2]]]
-    sage: pari("Mod(2,5)").order()
-    doctest:...: DeprecationWarning: order is deprecated. Please use znorder instead.
-    See http://trac.sagemath.org/20219 for details.
-    4
+    sage: pari('9234.1').sizedigit()
+    5
+    sage: pari(8).bernvec()
+    doctest:...: DeprecationWarning: the PARI/GP function bernvec() is obsolete: use repeated calls to bernfrac() instead
+    [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
+    sage: [pari(2*n).bernfrac() for n in range(9)]
+    [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
+    sage: e = pari([0,1,1,-2,0]).ellinit()
+    sage: e.elllseries(2.1)
+    doctest:...: DeprecationWarning: the PARI/GP function elllseries is obsolete (2016-08-08)
+    0.402838047956645
+    sage: e.elllseries(1, precision=128)
+    3.19632265064095 E-40
+    sage: e.elllseries(1, precision=256)
+    8.68747983667209 E-79
+    sage: e.elllseries(-2)
+    0
+    sage: e.elllseries(2.1, A=1.1)
+    0.402838047956645
 
 A long list of doctests which used to be part of manually written code
 which is now automatically generated:
@@ -80,11 +68,11 @@ Constants::
 
     sage: pari.euler()
     0.577215664901533
-    sage: pari.euler(precision=100).python()
+    sage: pari.euler(precision=100).sage()
     0.577215664901532860606512090082...
     sage: pari.pi()
     3.14159265358979
-    sage: pari.pi(precision=100).python()
+    sage: pari.pi(precision=100).sage()
     3.1415926535897932384626433832...
 
 Polynomial functions::
@@ -886,19 +874,19 @@ Quadratic forms::
     sage: A = Matrix(3,3,[1,2,3,2,5,5,3,5,11])
     sage: A.is_positive_definite()
     True
-    sage: pari(A).qfminim(10, 5).python()
+    sage: pari(A).qfminim(10, 5).sage()
     [
              [17 14 15 16 13]
              [-4 -3 -3 -3 -2]
     146, 10, [-3 -3 -3 -3 -3]
     ]
-    sage: pari(A).qfminim().python()
+    sage: pari(A).qfminim().sage()
     [
           [ 5  2  1]
           [-1 -1  0]
     6, 1, [-1  0  0]
     ]
-    sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).python()
+    sage: pari(A.change_ring(RR)).qfminim(5, m=5, flag=2).sage()
     [
                              [ -5 -10  -2  -7   3]
                              [  1   2   1   2   0]
@@ -1207,18 +1195,6 @@ Elliptic curves::
     sage: e.elllocalred(3)
     [2, -10, [1, 0, 0, 0], 4]
 
-    sage: e = pari([0,1,1,-2,0]).ellinit()
-    sage: e.elllseries(2.1)
-    0.402838047956645
-    sage: e.elllseries(1, precision=128)
-    3.19632265064095 E-40
-    sage: e.elllseries(1, precision=256)
-    8.68747983667209 E-79
-    sage: e.elllseries(-2)
-    0
-    sage: e.elllseries(2.1, A=1.1)
-    0.402838047956645
-
     sage: e = pari(EllipticCurve('65a1').a_invariants()).ellinit()
     sage: e.ellorder([0,0])
     2
@@ -1387,6 +1363,7 @@ General number fields::
     sage: x = polygen(QQ)
     sage: K.<a> = NumberField(x^2 - 1/8)
     sage: pari(x^2 - 2).factornf(K.pari_polynomial("a"))
+    doctest:...: DeprecationWarning: the PARI/GP function factornf is obsolete (2016-08-08)
     [x + Mod(-a, a^2 - 2), 1; x + Mod(a, a^2 - 2), 1]
 
     sage: K.<z> = QuadraticField(-23)
@@ -1457,7 +1434,7 @@ General number fields::
     sage: x = pari('[1, -1, 2]~')
     sage: y = pari('[1, -1, 3]~')
     sage: nf.idealcoprime(x, y)
-    [1, 0, 0]~
+    1
 
     sage: y = pari('[2, -2, 4]~')
     sage: nf.idealcoprime(x, y)
@@ -1489,7 +1466,7 @@ General number fields::
     sage: nf = F._pari_()
     sage: I = pari('[1, -1, 2]~')
     sage: nf.idealstar(I)
-    [[[43, 9, 5; 0, 1, 0; 0, 0, 1], [0]], [42, [42]], Mat([[43, [9, 1, 0]~, 1, 1, [-5, 2, -18; -9, -5, 2; 1, -9, -5]], 1]), [[[[42], [3], [3], [Vecsmall([])], 1]], [[], [], []]], Mat(1)]
+    [[[43, 9, 5; 0, 1, 0; 0, 0, 1], [0]], [42, [42]], Mat([[43, [9, 1, 0]~, 1, 1, [-5, 2, -18; -9, -5, 2; 1, -9, -5]], 1]), [[[[[42], [3], [3], [Vecsmall([])], 1, [43, 9, 5; 0, 1, 0; 0, 0, 1]]]], [[], [], [], Vecsmall([])], Vecsmall([0])], Mat(1)]
 
     sage: x = polygen(QQ)
     sage: K.<a> = NumberField(x^3 - 17)
@@ -1520,7 +1497,7 @@ General number fields::
 
     sage: x = QQ['x'].0; nf = pari(x^2 + 2).nfinit()
     sage: nf.nfgaloisconj()
-    [-x, x]~
+    [x, -x]~
     sage: nf = pari(x^3 + 2).nfinit()
     sage: nf.nfgaloisconj()
     [x]~

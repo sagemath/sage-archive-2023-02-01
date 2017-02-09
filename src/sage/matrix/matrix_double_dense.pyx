@@ -2113,7 +2113,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             ([], [], [])
             sage: def shape(x): return (x.nrows(), x.ncols())
             sage: m = matrix(RDF, 2, 3, range(6))
-            sage: map(shape, m.SVD())
+            sage: list(map(shape, m.SVD()))
             [(2, 2), (2, 3), (3, 3)]
             sage: for x in m.SVD(): x.is_immutable()
             True

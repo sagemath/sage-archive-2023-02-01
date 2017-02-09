@@ -218,6 +218,7 @@ __append_to_doc(
      "line_graph_forbidden_subgraphs",
      "MathonPseudocyclicMergingGraph",
      "MathonPseudocyclicStronglyRegularGraph",
+     "MuzychukS6Graph",
      "MycielskiGraph",
      "MycielskiStep",
      "NKStarGraph",
@@ -294,6 +295,7 @@ __doc__ += """
 
 __append_to_doc(
     ["RandomBarabasiAlbert",
+     "RandomBicubicPlanar",
      "RandomBipartite",
      "RandomBoundedToleranceGraph",
      "RandomGNM",
@@ -1013,7 +1015,7 @@ class GraphGenerators():
         The first character is the number of vertices, followed by
         n11,...,n1k,null character,n21,...,n2k',null character, ...
 
-        where the n1* are all neighbors of n1 and all n2* are the 
+        where the n1* are all neighbors of n1 and all n2* are the
         neighbors of n2, ...
         Besides, these neighbors are enumerated in clockwise order.
 
@@ -1999,6 +2001,7 @@ class GraphGenerators():
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
     MathonPseudocyclicMergingGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicMergingGraph)
     MathonPseudocyclicStronglyRegularGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicStronglyRegularGraph)
+    MuzychukS6Graph        = staticmethod(sage.graphs.generators.families.MuzychukS6Graph)
     MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
     MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)
@@ -2064,6 +2067,7 @@ class GraphGenerators():
     import sage.graphs.generators.random
     RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
     RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
+    RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)

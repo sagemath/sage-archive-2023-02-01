@@ -317,8 +317,8 @@ class ComplexBallField(UniqueRepresentation, Field):
         """
         TESTS::
 
-            sage: CBF._real_field()
-            Real ball field with 53 bits precision
+            sage: CBF._real_field() is RBF
+            True
         """
         return self._base
 
@@ -1141,7 +1141,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1/3, 1).mid().parent()
             Complex Field with 53 bits of precision
             sage: CBF('inf', 'nan').mid()
-            +infinity - NaN*I
+            +infinity + NaN*I
             sage: CBF('nan', 'inf').mid()
             NaN + +infinity*I
             sage: CBF('nan').mid()

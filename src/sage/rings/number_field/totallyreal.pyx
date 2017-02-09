@@ -113,8 +113,8 @@ import math
 import sys
 
 from sage.libs.gmp.mpz cimport *
-from sage.libs.cypari2 import pari
-from sage.libs.cypari2.gen cimport gen as pari_gen
+from sage.libs.pari.all import pari
+from sage.libs.cypari2.gen cimport Gen as pari_gen
 from sage.libs.cypari2.convert cimport new_t_POL_from_int_star
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -251,7 +251,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         sage: enumerate_totallyreal_fields_prim(2, 10)
         [[5, x^2 - x - 1], [8, x^2 - 2]]
         sage: type(enumerate_totallyreal_fields_prim(2, 10)[0][1])
-        <type 'sage.libs.cypari2.gen.gen'>
+        <type 'sage.libs.cypari2.gen.Gen'>
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][0].parent()
         Integer Ring
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][1].parent()

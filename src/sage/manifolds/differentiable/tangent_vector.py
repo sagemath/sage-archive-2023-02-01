@@ -40,7 +40,7 @@ class TangentVector(FiniteRankFreeModuleElement):
       the tangent space to which the vector belongs
     - ``name`` -- (default: ``None``) string; symbol given to the vector
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
-      the the vector; if ``None``, ``name`` will be used
+      the vector; if ``None``, ``name`` will be used
 
     EXAMPLES:
 

@@ -184,7 +184,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 2 functionality
-    #    * cdef _add_
+    # X  * cdef _add_
     #    * cdef _mul_
     #    * cpdef _cmp_
     #    * __neg__
@@ -251,6 +251,52 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         if self._subdivisions is not None:
             A.subdivide(*self.subdivisions())
         return A
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef _add_(self, right):
+        """
+        Add two generic dense matrices with the same parent.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: a = matrix(R, 2, 2, [1,2,x*y,y*x])
+            sage: b = matrix(R, 2, 2, [1,2,y*x,y*x])
+            sage: a._add_(b)
+            [        2         4]
+            [x*y + y*x     2*y*x]
+        """
+        cdef Py_ssize_t k
+        cdef Matrix_generic_dense other = <Matrix_generic_dense> right
+        cdef Matrix_generic_dense res = self._new(self._nrows, self._ncols)
+        res._entries = [None]*(self._nrows*self._ncols)
+        for k in range(self._nrows*self._ncols):
+            res._entries[k] = self._entries[k] + other._entries[k]
+        return res
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef _sub_(self, right):
+        """
+        Subtract two generic dense matrices with the same parent.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: a = matrix(R, 2, 2, [1,2,x*y,y*x])
+            sage: b = matrix(R, 2, 2, [1,2,y*x,y*x])
+            sage: a._sub_(b)
+            [        0         0]
+            [x*y - y*x         0]
+        """
+        cdef Py_ssize_t k
+        cdef Matrix_generic_dense other = <Matrix_generic_dense> right
+        cdef Matrix_generic_dense res = self._new(self._nrows, self._ncols)
+        res._entries = [None]*(self._nrows*self._ncols)
+        for k in range(self._nrows*self._ncols):
+            res._entries[k] = self._entries[k] - other._entries[k]
+        return res
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

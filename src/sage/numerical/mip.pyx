@@ -1166,7 +1166,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 linear_function[i] = -1
                 linear_function.insert(0,ub)
                 inequalities.append(linear_function)
-        return Polyhedron(ieqs = inequalities, eqns = equalities)
+        return Polyhedron(ieqs = inequalities, eqns = equalities, **kwds)
 
     def show(self):
         r"""

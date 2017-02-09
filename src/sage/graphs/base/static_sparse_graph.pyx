@@ -186,8 +186,8 @@ cimport cpython
 from libc.string cimport memset
 from libc.limits cimport INT_MAX
 from sage.graphs.base.c_graph cimport CGraph
-from static_sparse_backend cimport StaticSparseCGraph
-from static_sparse_backend cimport StaticSparseBackend
+from .static_sparse_backend cimport StaticSparseCGraph
+from .static_sparse_backend cimport StaticSparseBackend
 from sage.ext.memory_allocator cimport MemoryAllocator
 include "cysignals/memory.pxi"
 from libcpp.vector cimport vector

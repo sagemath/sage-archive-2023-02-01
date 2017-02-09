@@ -11,4 +11,3 @@ fi
 TARGET="${SAGE_SHARE}/threejs"
 rm -rf "${TARGET}"
 cp -r 'src' "${TARGET}"
-

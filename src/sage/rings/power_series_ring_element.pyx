@@ -107,7 +107,6 @@ import sage.misc.latex
 import rational_field, integer_ring
 from integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.libs.pari.all import pari
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from warnings import warn
 
@@ -119,6 +118,7 @@ from sage.misc.derivative import multi_derivative
 Polynomial = sage.rings.polynomial.polynomial_element.Polynomial_generic_dense
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
+from sage.structure.sage_object cimport richcmp
 
 
 def is_PowerSeries(x):
@@ -313,7 +313,7 @@ cdef class PowerSeries(AlgebraElement):
         S = self._parent.change_ring(R)
         return S(self)
 
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         r"""
         Comparison of self and ``right``.
 
@@ -374,10 +374,6 @@ cdef class PowerSeries(AlgebraElement):
             sage: f == f.truncate()
             True
         """
-        # A very common case throughout code
-        if isinstance(right, int):
-            return self.is_zero()
-
         prec = self.common_prec(right)
         x = self.list()
         y = right.list()
@@ -386,7 +382,7 @@ cdef class PowerSeries(AlgebraElement):
             x = x[:prec] # truncate x to common prec
             y += [0]*(prec - len(y))
             y = y[:prec]
-        return cmp(x,y)
+        return richcmp(x, y, op)
 
     def __call__(self, x):
         """
@@ -1858,7 +1854,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: (-1 + t + O(t^10)).log()
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.rings.rational.Rational' object has no attribute 'log'
+            ArithmeticError: constant term of power series is not 1
 
             sage: R.<t> = PowerSeriesRing(RR)
             sage: (2+t).log().exp()
@@ -1871,7 +1867,7 @@ cdef class PowerSeries(AlgebraElement):
         const_off = zero
 
         if not self[0].is_one():
-            if self.base_ring() in _Fields:
+            if self.base_ring() in _Fields and self[0] > 0:
                 const_off = self[0].log()
             else:
                 raise ArithmeticError("constant term of power series is not 1")
@@ -2063,7 +2059,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def _pari_(self):
         """
-        Return PARI power series corresponding to this series.
+        Return a PARI representation of this series.
 
         There are currently limits to the possible base rings over which this
         function works.  See the documentation for
@@ -2076,9 +2072,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: pari(f) # indirect doctest
             1 + 17*w + 15*w^3 + O(w^5)
             sage: pari(1 - 19*w + w^5) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: series precision must be finite for conversion to pari object.
+            w^5 - 19*w + 1
             sage: R.<x> = Zmod(6)[[]]
             sage: pari(1 + x + 8*x^3 + O(x^8)) # indirect doctest
             Mod(1, 6) + Mod(1, 6)*x + Mod(2, 6)*x^3 + O(x^8)
@@ -2093,10 +2087,10 @@ cdef class PowerSeries(AlgebraElement):
             O(x^0)
         """
         n = self.prec()
-        if n is infinity:
-            raise ValueError("series precision must be finite for conversion to pari object.")
         s = self.truncate()._pari_()  # PARI polynomial
-        s += pari('O(%s^%d)' % (s.variable(), n))  # PARI series
+        if n is not infinity:
+            v = s.variable()
+            s = s.Ser(v, n - s.valuation(v) if s else n)
         return s
 
 def _solve_linear_de(R, N, L, a, b, f0):

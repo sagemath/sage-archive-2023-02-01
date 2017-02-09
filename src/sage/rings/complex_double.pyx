@@ -85,7 +85,7 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.libs.cypari2.gen cimport gen as pari_gen
+from sage.libs.cypari2.gen cimport Gen as pari_gen
 from sage.libs.cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
 
 import complex_number
@@ -96,7 +96,7 @@ cdef CC = complex_field.ComplexField()
 import real_mpfr
 cdef RR = real_mpfr.RealField()
 
-from real_double cimport RealDoubleElement, double_repr, double_str
+from .real_double cimport RealDoubleElement, double_repr, double_str
 from real_double import RDF
 from sage.rings.integer_ring import ZZ
 
@@ -179,8 +179,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: cmp(CDF, CDF)
-            0
+            sage: CDF == CDF
+            True
         """
         return (<Parent>left)._richcmp(right, op)
 
@@ -272,7 +272,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         if isinstance(x, ComplexDoubleField_class):
             return 0
-        return cmp(type(self), type(x))
+        return -1  # arbitrary
 
     def __call__(self, x, im=None):
         """

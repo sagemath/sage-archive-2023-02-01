@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 """
 Handle PARI documentation for Sage
 """
@@ -6,7 +6,6 @@ Handle PARI documentation for Sage
 from __future__ import unicode_literals
 import re
 import subprocess
-from six import unichr
 
 
 leading_ws = re.compile("^( +)", re.MULTILINE)
@@ -64,7 +63,7 @@ def sub_loop(regex, repl, text):
         sage: from sage_setup.autogen.pari.doc import sub_loop
         sage: import re
         sage: sub_loop(re.compile("xx"), "x x", "xxx_xx")
-        u'x x x_x x'
+        'x x x_x x'
     """
     while True:
         text, n = regex.subn(repl, text)
@@ -111,7 +110,7 @@ def raw_to_rest(doc):
     doc = doc.replace("@[lt]", "<")
     doc = doc.replace("@[gt]", ">")
     doc = doc.replace("@[pm]", "±")
-    doc = doc.replace("@[nbrk]", unichr(0xa0))
+    doc = doc.replace("@[nbrk]", "\xa0")
     doc = doc.replace("@[agrave]", "à")
     doc = doc.replace("@[aacute]", "á")
     doc = doc.replace("@[eacute]", "é")
@@ -128,7 +127,7 @@ def raw_to_rest(doc):
 
     # Sphinx dislikes inline markup immediately followed by a letter:
     # insert a non-breaking space
-    doc = end_space.sub("\\1" + unichr(0xa0) + "\\2", doc)
+    doc = end_space.sub("\\1\xa0\\2", doc)
 
     # Fix labels and references
     doc = label_define.sub("", doc)

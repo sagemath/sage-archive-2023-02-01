@@ -19,8 +19,8 @@ Run tests from the ``SAGE_SRC`` directory::
 
 import os, re
 
-from sage_setup.autogen.pari.args import pari_arg_types
-from sage_setup.autogen.pari.ret import pari_ret_types
+from .args import pari_arg_types
+from .ret import pari_ret_types
 
 
 def sage_src_pari():
@@ -37,6 +37,7 @@ def sage_src_pari():
     """
     return os.path.join('sage', 'libs', 'cypari2')
 
+
 def pari_share():
     r"""
     Return the directory where the PARI data files are stored.
@@ -49,7 +50,7 @@ def pari_share():
     """
     from subprocess import Popen, PIPE
     gp = Popen(["gp", "-f", "-q"], stdin=PIPE, stdout=PIPE)
-    out = gp.communicate("print(default(datadir))")[0]
+    out = gp.communicate(b"print(default(datadir))")[0]
     datadir = out.strip()
     if not os.path.isdir(datadir):
         raise EnvironmentError("PARI data directory {!r} does not exist".format(datadir))
@@ -80,7 +81,7 @@ def read_pari_desc():
          'prototype': 'Gp',
          'section': 'transcendental'}
     """
-    with open(os.path.join(pari_share(), 'pari.desc')) as f:
+    with open(os.path.join(pari_share(), b'pari.desc')) as f:
         lines = f.readlines()
 
     n = 0

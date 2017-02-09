@@ -1990,12 +1990,17 @@ class Func_jacobi_P(OrthogonalFunction):
         """
         EXAMPLES::
 
+            sage: _ = var('n a b x')
             sage: jacobi_P(1,n,n,n)
-            2*(n + 1)*n*gamma(2*n + 2)/gamma(n + 1)
+            (n + 1)*n
             sage: jacobi_P(2,n,n,n)
-            1/2*(2*n + 3)*(2*n - 1)*(n + 2)*(n + 1)*gamma(2*n + 3)/gamma(n + 1)
+            1/4*(2*n - 1)*(n + 2)*(n + 1)^2
             sage: jacobi_P(1,n,n,x)
-            2*(n + 1)*x*gamma(2*n + 2)/gamma(n + 1)
+            (n + 1)*x
+            sage: jacobi_P(3,2,1,x)
+            21/2*x^3 + 7/2*x^2 - 7/2*x - 1/2
+            sage: jacobi_P(1,a,b,x)
+            1/2*a*x + 1/2*b*x + 1/2*a - 1/2*b + x
 
         TESTS:
 
@@ -2026,7 +2031,7 @@ class Func_jacobi_P(OrthogonalFunction):
             return
         from sage.functions.other import gamma
         s = sum(binomial(n,m) * gamma(a+b+n+m+1) / gamma(a+m+1) * ((x-1)/2)**m for m in range(n+1))
-        r = gamma(2*n+a+b+1) / factorial(n) / gamma(n+a+b+1) * s
+        r = gamma(a+n+1) / factorial(n) / gamma(n+a+b+1) * s
         return r.to_gamma().gamma_normalize()
 
     def _evalf_(self, n, a, b, x, **kwds):

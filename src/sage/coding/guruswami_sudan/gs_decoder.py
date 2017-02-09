@@ -843,7 +843,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         return self._tau
 
 
-####################### registration ###############################
+####################### types ###############################
 
 GeneralizedReedSolomonCode._registered_decoders["GuruswamiSudan"] = GRSGuruswamiSudanDecoder
 GRSGuruswamiSudanDecoder._decoder_type = {"list-decoder", "always-succeed", "hard-decision"}

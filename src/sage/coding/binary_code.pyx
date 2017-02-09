@@ -1,5 +1,5 @@
 r"""
-Fast binary code routines
+Optimized low-level binary code representation
 
 Some computations with linear binary codes. Fix a basis for $GF(2)^n$.
 A linear binary code is a linear subspace of $GF(2)^n$, together with
@@ -1123,7 +1123,7 @@ cdef class BinaryCode:
         EXAMPLE::
 
             sage: from sage.coding.binary_code import *
-            sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().generator_matrix())
+            sage: B = BinaryCode(codes.GolayCode(GF(2)).generator_matrix())
             sage: B
             Binary [24,12] linear code, generator matrix
             [100000000000101011100011]
@@ -3807,8 +3807,8 @@ cdef class BinaryCodeClassifier:
 
             sage: from sage.coding.binary_code import *
             sage: BC = BinaryCodeClassifier()
-            sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().generator_matrix())
-            sage: B.apply_permutation(list(range(24,-1,-1)))
+            sage: B = BinaryCode(codes.GolayCode(GF(2)).generator_matrix())
+            sage: B.apply_permutation(range(24,-1,-1))
             sage: B
             Binary [24,12] linear code, generator matrix
             [011000111010100000000000]

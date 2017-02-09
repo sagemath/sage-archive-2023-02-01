@@ -254,41 +254,14 @@ class GolayCode(AbstractLinearCode):
         """
         n = self.length()
         if n == 23:
-            return ([1]+[0]*6+[253]+[506]+[0]*2+[1288]*[1288]+[0]*2+[506]
+            return ([1]+[0]*6+[253]+[506]+[0]*2+[1288]*2+[0]*2+[506]
                     +[253]+[0]*6+[1])
         if n == 24:
             return ([1]+[0]*7+[759]+[0]*3+[2576]+[0]*3+[759]+[0]*7+[1])
         if n == 11:
-            return [1]*[0]*4+[132]*2+[0]+[330]+[110]+[0]+[24]
+            return [1]+[0]*4+[132]*2+[0]+[330]+[110]+[0]+[24]
         if n == 12:
             return [1]+[0]*5+[264]+[0]*2+[440]+[0]*2+[24]
-
-    def weight_enumerator(self):
-        r"""
-        Return the polynomial whose coefficient to `x^i` is the number of
-        codewords of weight `i` in ``self``.
-
-        The weight distribution of all Golay codes are known, and are thus returned
-        by this method without performing any computation
-
-        EXAMPLES::
-
-            sage: C = codes.GolayCode(GF(3))
-            sage: C.weight_enumerator()
-            24*x^12 + 440*x^9 + 264*x^6 + 1
-        """
-        R = PolynomialRing(ZZ, "x")
-        x = R.gen()
-        n = self.length()
-        if n == 23:
-            return (1 + 253*x**7 + 506*x**8 + 1288*x**11 +
-                1288*x**12 + 506*x**15 + 253*x**16 + x**23)
-        if n == 24:
-            return 1 + 759*x**8 + 2576*x**12 + 759*x**16 + x**24
-        if n == 11:
-            return 1 + 132*x**5 + 132*x**6 + 330*x**8 + 110*x**9 + 24*x**11
-        if n == 12:
-            return 1 + 264*x**6 + 440*x**9 + 24*x**12
 
     def generator_matrix(self):
         r"""

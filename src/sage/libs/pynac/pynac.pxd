@@ -144,7 +144,9 @@ cdef extern from "sage/libs/pynac/wrap.h":
     object py_object_from_numeric(GEx e)     except +
 
     # Algorithms
-    GEx g_gcd "gcd"(GEx a, GEx b) except +
+    GEx g_gcd "gcd"(GEx a, GEx b)   except +
+    GEx to_gamma(GEx expr)          except +
+    GEx gamma_normalize(GEx expr)   except +
 
     # Pattern matching wildcards
     GEx g_wild "wild"(unsigned int label) except +

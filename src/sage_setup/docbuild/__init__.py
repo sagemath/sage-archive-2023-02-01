@@ -1454,9 +1454,9 @@ def setup_parser():
     standard.add_option("--no-plot", dest="no_plot",
                         action="store_true",
                         help="do not include graphics auto-generated using the '.. plot' markup")
-    standard.add_option("--no-tests", dest="skip_tests", default=False,
-                        action="store_true",
-                        help="do not include TESTS blocks in the reference manual")
+    standard.add_option("--include-tests-blocks", dest="skip_tests", default=True,
+                        action="store_false",
+                        help="include TESTS blocks in the reference manual")
     standard.add_option("--no-pdf-links", dest="no_pdf_links",
                         action="store_true",
                         help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")

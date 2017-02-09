@@ -403,15 +403,24 @@ class OrthogonalFunction(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3-x-1)
-            sage: chebyshev_T(5, a)
-            16*a^2 + a - 4
+            sage: chebyshev_T(5, x)
+            16*x^5 - 20*x^3 + 5*x
+            sage: chebyshev_T(5, x, algorithm='pari')
+            16*x^5 - 20*x^3 + 5*x
+            sage: chebyshev_T(5, x, algorithm='maxima')
+            16*x^5 - 20*x^3 + 5*x
+            sage: chebyshev_T(5, x, algorithm='recursive')
+            16*x^5 - 20*x^3 + 5*x
         """
         algorithm = kwds.get('algorithm', None)
         if algorithm == 'pari':
             return self.eval_pari(*args, **kwds)
         elif algorithm == 'recursive':
             return self.eval_recursive(*args, **kwds)
+        elif algorithm == 'maxima':
+            from sage.calculus.calculus import maxima
+            kwds['hold'] = True
+            return maxima(self._eval_(*args, **kwds))._sage_()
 
         return super(OrthogonalFunction,self).__call__(*args, **kwds)
 

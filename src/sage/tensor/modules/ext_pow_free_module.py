@@ -44,6 +44,9 @@ from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 
+import six
+
+
 class ExtPowerFreeModule(FiniteRankFreeModule):
     r"""
     Class for the exterior powers of the dual of a free module of finite rank
@@ -320,7 +323,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
                                          tensor.base_module() is self._fmodule:
                 resu = self.element_class(self._fmodule, 1, name=tensor._name,
                                           latex_name=tensor._latex_name)
-                for basis, comp in tensor._components.iteritems():
+                for basis, comp in six.iteritems(tensor._components):
                     resu._components[basis] = comp.copy()
                 return resu
             else:

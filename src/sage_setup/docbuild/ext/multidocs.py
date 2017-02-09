@@ -20,6 +20,7 @@
     - the javascript index;
     - the citations.
 """
+import six
 from six.moves import cPickle
 import os
 import sys
@@ -87,14 +88,14 @@ def merge_environment(app, env):
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
-            for ind, (path, tag) in docenv.citations.iteritems():
+            for ind, (path, tag) in six.iteritems(docenv.citations):
                 # TODO: Warn on conflicts
                 newcite[ind] = (fixpath(path), tag)
             env.citations.update(newcite)
             # merge the py:module indexes
             newmodules = {}
             for ind,(modpath,v1,v2,v3) in (
-                docenv.domaindata['py']['modules'].iteritems()):
+                six.iteritems(docenv.domaindata['py']['modules'])):
                 newmodules[ind] = (fixpath(modpath),v1,v2,v3)
             env.domaindata['py']['modules'].update(newmodules)
             app.info(", %s modules"%(len(newmodules)))
@@ -136,14 +137,14 @@ def merge_js_index(app):
         if index is not None:
             # merge the mappings
             app.info(" %s js index entries"%(len(index._mapping)))
-            for (ref, locs) in index._mapping.iteritems():
+            for (ref, locs) in six.iteritems(index._mapping):
                 newmapping = set(map(fixpath, locs))
                 if ref in mapping:
                     newmapping = mapping[ref] | newmapping
                 mapping[unicode(ref)] = newmapping
             # merge the titles
             titles = app.builder.indexer._titles
-            for (res, title) in index._titles.iteritems():
+            for (res, title) in six.iteritems(index._titles):
                 titles[fixpath(res)] = title
             # TODO: merge indexer._objtypes, indexer._objnames as well
 
@@ -244,7 +245,7 @@ def fetch_citation(app, env):
         cache = cPickle.load(f)
     app.builder.info("done (%s citations)."%len(cache))
     cite = env.citations
-    for ind, (path, tag) in cache.iteritems():
+    for ind, (path, tag) in six.iteritems(cache):
         if ind not in cite: # don't override local citation
             cite[ind]=(os.path.join("..", path), tag)
 

@@ -1948,9 +1948,10 @@ class Func_hermite(GinacFunction):
 
 hermite = Func_hermite()
 
-def jacobi_P(n, a, b, x):
+
+class Func_jacobi_P(OrthogonalFunction):
     r"""
-    Returns the Jacobi polynomial `P_n^{(a,b)}(x)` for
+    Return the Jacobi polynomial `P_n^{(a,b)}(x)` for
     integers `n > -1` and a and b symbolic or `a > -1`
     and `b > -1`. The Jacobi polynomials are actually defined
     for all a and b. However, the Jacobi polynomial weight
@@ -1966,31 +1967,89 @@ def jacobi_P(n, a, b, x):
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: jacobi_P(2,0,0,x)
         3/2*x^2 - 1/2
-        sage: jacobi_P(2,1,2,1.2)        # random output of low order bits
-        5.009999999999998
-
-    Check that :trac:`17192` is fixed::
-
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: jacobi_P(0,0,0,x)
-        1
-
-        sage: jacobi_P(-1,0,0,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -1
-
-        sage: jacobi_P(-7,0,0,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -7
+        sage: jacobi_P(2,1,2,1.2)
+        5.01000000000000
     """
-    if not (n > -1):
-        raise  ValueError("n must be greater than -1, got n = {0}".format(n))
+    def __init__(self):
+        r"""
+        Init method for the Jacobi polynomials.
 
-    _init()
-    return sage_eval(maxima.eval('jacobi_p(%s,%s,%s,x)'%(ZZ(n),a,b)), locals={'x':x})
+        EXAMPLES::
 
+            sage: _ = var('n a b x')
+            sage: loads(dumps(jacobi_P))
+            jacobi_P
+            sage: jacobi_P(n, a, b, x, hold=True)._sympy_()
+            jacobi(n, a, b, x)
+        """
+        OrthogonalFunction.__init__(self, "jacobi_P", nargs=4, latex_name=r"P",
+                conversions={'maxima':'jacobi_p', 'mathematica':'JacobiP',
+                    'maple':'JacobiP', 'sympy':'jacobi'})
+
+    def _eval_(self, n, a, b, x):
+        """
+        EXAMPLES::
+
+            sage: jacobi_P(1,n,n,n)
+            2*(n + 1)*n*gamma(2*n + 2)/gamma(n + 1)
+            sage: jacobi_P(2,n,n,n)
+            1/2*(2*n + 3)*(2*n - 1)*(n + 2)*(n + 1)*gamma(2*n + 3)/gamma(n + 1)
+            sage: jacobi_P(1,n,n,x)
+            2*(n + 1)*x*gamma(2*n + 2)/gamma(n + 1)
+
+        TESTS:
+
+        Check that :trac:`17192` is fixed::
+
+            sage: x = PolynomialRing(QQ, 'x').gen()
+            sage: jacobi_P(0,0,0,x)
+            1
+            sage: jacobi_P(-1,0,0,x)
+            1
+            sage: jacobi_P(-1,1,1,x)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be greater than -1, got n = -1
+
+            sage: jacobi_P(-7,0,0,x)
+            231/16*x^6 - 315/16*x^4 + 105/16*x^2 - 5/16
+            sage: jacobi_P(-7,0,2,x)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be greater than -1, got n = -7
+        """
+        if SR(a).is_trivial_zero() and SR(b).is_trivial_zero():
+            return legendre_P(n, x)
+        if SR(n).is_numeric() and not (n > -1):
+            raise ValueError("n must be greater than -1, got n = {0}".format(n))
+        if not n in ZZ:
+            return
+        from sage.functions.other import gamma
+        s = sum(binomial(n,m) * gamma(a+b+n+m+1) / gamma(a+m+1) * ((x-1)/2)**m for m in range(n+1))
+        r = gamma(2*n+a+b+1) / factorial(n) / gamma(n+a+b+1) * s
+        return r.to_gamma().gamma_normalize()
+
+    def _evalf_(self, n, a, b, x, **kwds):
+        """
+        EXAMPLES::
+
+            sage: jacobi_P(2, 1, 2, 1.2)
+            5.01000000000000
+            sage: jacobi_P(2, 1, 2, 1.2, hold=True).n(20)
+            5.0100
+            sage: jacobi_P(2, 1, 2, pi+I, hold=True).n(100)
+            41.103034125334442891187112674 + 31.486722862692829003857755524*I
+        """
+        from sage.rings.complex_arb import ComplexBallField as CBF
+        the_parent = kwds.get('parent', None)
+        if the_parent is None:
+            the_parent = parent(x)
+        prec = the_parent.precision()
+        BF = CBF(prec+5)
+        ret = BF(x).jacobi_P(BF(n), BF(a), BF(b))
+        return the_parent(ret)
+
+jacobi_P = Func_jacobi_P()
 
 
 class Func_ultraspherical(GinacFunction):

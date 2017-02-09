@@ -390,11 +390,15 @@ e.g. ::
 How can I wrote multiplication implicitly as in Mathematica?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Sage has a function that enables this::
+Sage has a function ``implicit_multiplication`` for that.
+It changes the preparser so that for example ``2 x 2`` will
+give ``2*x^2``::
 
+    sage: preparse("2 x 2")
+    'Integer(2) x Integer(2)'
     sage: implicit_multiplication(True)
-    sage: x 2 x
-    2*x^2
+    sage: preparse("2 x 2")
+    'Integer(2)*x*Integer(2)'
 
 See https://wiki.sagemath.org/sage_mathematica for more information
 about Mathematica vs. SageMath.

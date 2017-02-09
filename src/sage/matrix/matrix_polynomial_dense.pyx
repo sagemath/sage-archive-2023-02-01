@@ -115,7 +115,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return True
 
     def weak_popov_form(self, transformation=False, shifts=None):
-        """
+        r"""
         Return a weak Popov form of this matrix.
 
         A matrix is in weak Popov form if the leading positions of the nonzero
@@ -131,10 +131,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           transformation matrix is returned together with the weak Popov form.
 
         - ``shifts`` -- (default: ``None``) A tuple or list of integers
-          `s_1,\ldots,s_n`, where `n` is the column dimension this matrix. If
-          given, a "shifted weak Popov form" is computed, i.e. such that the
-          matrix `A \mathrm{diag}(x^{s_1},\ldots,x^{s_n})` is in weak Popov
-          form, where `\math{diag}` denotes a diagonal matrix..
+          `s_1, \ldots, s_n`, where `n` is the number of columns of the matrix.
+          If given, a "shifted weak Popov form" is computed, i.e. such that the
+          matrix `A\,\mathrm{diag}(x^{s_1}, \ldots, x^{s_n})` is in weak Popov
+          form, where `\mathrm{diag}` denotes a diagonal matrix.
 
         ALGORITHM:
 
@@ -299,10 +299,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           `W` is the output matrix.
 
         - ``shifts`` -- (default: ``None``) A tuple or list of integers
-          `s_1,\ldots,s_n`, where `n` is the column dimension this matrix. If
-          given, a "shifted row reduced form" is computed, i.e. such that the
-          matrix `A \mathrm{diag}(x^{s_1},\ldots,x^{s_n})` is row reduced, where
-          `\math{diag}` denotes a diagonal matrix..
+          `s_1, \ldots, s_n`, where `n` is the number of columns of the matrix.
+          If given, a "shifted row reduced form" is computed, i.e. such that the
+          matrix `A\,\mathrm{diag}(x^{s_1}, \ldots, x^{s_n})` is row reduced, where
+          `\mathrm{diag}` denotes a diagonal matrix.
 
         OUTPUT:
 

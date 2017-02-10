@@ -115,7 +115,7 @@ PyObject* _to_PyString_latex(const T *x)
 {
   std::ostringstream instore;
   instore << latex << (*x);
-  return PyString_FromString(instore.str().data());
+  return PyBytes_FromString(instore.str().data());
 }
 
 constant* GConstant_construct(void* mem, char* name, char* texname, unsigned domain)

@@ -501,8 +501,7 @@ cdef class Gen(Gen_auto):
             x^4 - 4*x^2 + 1
 
         For relative number fields, this returns the relative
-        polynomial. However, beware that ``pari(L)`` returns an absolute
-        number field::
+        polynomial::
 
             sage: y = pari.varhigher('y')
             sage: L = K.rnfinit(y^2 - 5)
@@ -1279,13 +1278,13 @@ cdef class Gen(Gen_auto):
 
             sage: cmp(pari('2/3'), pari('2/5'))
             -1
-            sage: two = pari(2)
+            sage: two = pari('2.000000000000000000000000')
             sage: cmp(two, pari(1.0))
-            -1
+            1
             sage: cmp(two, pari(2.0))
-            -1
+            1
             sage: cmp(two, pari(3.0))
-            -1
+            1
 
         Since :trac:`17026`, different elements with the same string
         representation can be distinguished by ``cmp()``::
@@ -1918,7 +1917,7 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: pari([1, -5/3, 8.0]).vecmax()
+            sage: pari([1, '-5/3', 8.0]).vecmax()
             8.00000000000000
         """
         sig_on()
@@ -1930,8 +1929,8 @@ cdef class Gen(Gen_auto):
 
         EXAMPLES::
 
-            sage: pari([-1, 5/3, -8.0]).vecmin()
-            -8.00000000000000
+            sage: pari([1, '-5/3', 8.0]).vecmin()
+            -5/3
         """
         sig_on()
         return new_gen(vecmin(x.g))

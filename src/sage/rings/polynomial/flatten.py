@@ -36,6 +36,7 @@ from __future__ import absolute_import, print_function
 from sage.misc.cachefunc import cached_method
 
 from sage.categories.morphism import Morphism
+import six
 
 from .polynomial_ring_constructor import PolynomialRing
 from .polynomial_ring import is_PolynomialRing
@@ -195,14 +196,14 @@ class FlatteningMorphism(Morphism):
         for ring in self._intermediate_rings:
             new_p = {}
             if is_PolynomialRing(ring):
-                for mon,pp in p.iteritems():
+                for mon,pp in six.iteritems(p):
                     assert pp.parent() == ring
-                    for i,j in pp.dict().iteritems():
+                    for i,j in six.iteritems(pp.dict()):
                         new_p[(i,)+(mon)] = j
             elif is_MPolynomialRing(ring):
-                for mon,pp in p.iteritems():
+                for mon,pp in six.iteritems(p):
                     assert pp.parent() == ring
-                    for mmon,q in pp.dict().iteritems():
+                    for mmon,q in six.iteritems(pp.dict()):
                         new_p[tuple(mmon)+mon] = q
             else:
                 raise RuntimeError
@@ -337,7 +338,7 @@ class UnflatteningMorphism(Morphism):
         """
         num = [len(R.gens()) for R in self._intermediate_rings]
         f = self.codomain().zero()
-        for mon,pp in p.dict().iteritems():
+        for mon,pp in six.iteritems(p.dict()):
             ind = 0
             g = pp
             for i in range(len(num)):

@@ -386,6 +386,10 @@ from sage.geometry.all import Cone, Fan
 
 from sage.schemes.generic.scheme import is_Scheme
 from sage.schemes.generic.morphism import (
+
+import six
+
+
     is_SchemeMorphism,
     SchemeMorphism, SchemeMorphism_point, SchemeMorphism_polynomial
 )
@@ -660,7 +664,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
         orbit = self.parent().domain()
         codomain_fan = self.parent().codomain().fan()
         reverse_ray_dict = dict()
-        for n1,n2 in self._ray_map.iteritems():
+        for n1,n2 in six.iteritems(self._ray_map):
             ray_index = codomain_fan.rays().index(n1)
             if n2.is_zero(): 
                 assert ray_index in self._defining_cone.ambient_ray_indices()
@@ -1970,7 +1974,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             pass
         multiplicity = None
         image_ray_index = None
-        for ray, index in self._ray_index_map.iteritems():
+        for ray, index in six.iteritems(self._ray_index_map):
             d = gcd(ray)
             if d*fiber_ray != ray:
                 continue

@@ -162,6 +162,9 @@ from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
 from sage.rings.all import invariant_theory
 
+import six
+
+
 ######################################################################
 #
 #  Discriminant and j-invariant
@@ -362,7 +365,7 @@ def Newton_polygon_embedded(polynomial, variables):
     embedding = newton_polytope.embed_in_reflexive_polytope('points')
     x, y = variables[0:2]
     embedded_polynomial = polynomial.parent().zero()
-    for e, c in p_dict.iteritems():
+    for e, c in six.iteritems(p_dict):
         e_embed = embedding[e]
         embedded_polynomial += c * x**(e_embed[0]) * y**(e_embed[1])
     return newton_polytope, embedded_polynomial, (x, y)

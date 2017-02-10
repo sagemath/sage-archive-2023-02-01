@@ -496,8 +496,9 @@ cdef class Gen(Gen_auto):
         EXAMPLES::
 
             sage: x = pari('x')
-            sage: K = (x**4 - 4*x**2 + 1).nfinit()
-            sage: K.nf_get_pol()
+            sage: K = (x**4 - 4*x**2 + 1).bnfinit()
+            sage: bnr = K.bnrinit(2*x)
+            sage: bnr.nf_get_pol()
             x^4 - 4*x^2 + 1
 
         For relative number fields, this returns the relative

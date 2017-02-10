@@ -130,7 +130,9 @@ def strong_orientations_iterator(self):
     # Each of these orientations can be extended to a strong orientation
     # of G by orienting properly the tree-edges
     previousWord = 0
-    for i in range(0, 2**(len(A)-1)):
+    i = 0
+    nr = 2**(len(A)-1)
+    while i < nr :
         word = (i >> 1) ^ i
         bitChanged = word ^ previousWord
         
@@ -147,11 +149,12 @@ def strong_orientations_iterator(self):
             Dg.reverse_edge(A[bit][1], A[bit][0])
             existingAedges[bit] = 0
         # launch the algorithm for enumeration of the solutions
-        for sol in _all_strong_orientations_of_a_mixed_graph(Dg, V, treeEdges):
+        for sol in _strong_orientations_of_a_mixed_graph(Dg, V, treeEdges):
             yield sol
+        i = i + 1
 
 
-def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
+def _strong_orientations_of_a_mixed_graph(Dg, V, E):
     r"""
     Helper function for the generation of all strong orientations.
 
@@ -174,10 +177,10 @@ def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
 
     EXAMPLES::
 
-        sage: from sage.graphs.strong_orientations_generator import _all_strong_orientations_of_a_mixed_graph
+        sage: from sage.graphs.strong_orientations_generator import _strong_orientations_of_a_mixed_graph
         sage: g = graphs.CycleGraph(5)
         sage: Dg = DiGraph(g) # all edges of g will be doubly oriented
-        sage: it = _all_strong_orientations_of_a_mixed_graph(Dg, g.vertices(), g.edges(labels=False))
+        sage: it = _strong_orientations_of_a_mixed_graph(Dg, g.vertices(), g.edges(labels=False))
         sage: len(list(it)) # there are two orientations of this multigraph
         2
     """
@@ -212,11 +215,11 @@ def _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
     else :
         (u,v) = E.pop()
         Dg.delete_edge((v,u))
-        for orientation in _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
+        for orientation in _strong_orientations_of_a_mixed_graph(Dg, V, E):
             yield orientation
         Dg.add_edge((v,u))
         Dg.delete_edge(u,v)
-        for orientation in _all_strong_orientations_of_a_mixed_graph(Dg, V, E):
+        for orientation in _strong_orientations_of_a_mixed_graph(Dg, V, E):
             yield orientation
         Dg.add_edge(u,v)
         E.append((u,v))

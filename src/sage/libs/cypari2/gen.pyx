@@ -353,7 +353,7 @@ cdef class Gen(Gen_auto):
             x^3 - 3*x^2 + 3*x - 1
             sage: pow(pari(5), pari(28), int(29))
             Mod(1, 29)
-            sage: int(2) ** pari(-5)
+            sage: 2 ** pari(-5)
             1/32
             sage: pari(2) ** -5
             1/32

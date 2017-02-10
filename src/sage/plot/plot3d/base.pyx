@@ -329,7 +329,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            "[{vertices:[{x:0,y:0,z:-1},..., color:'#6666ff', opacity:1}]"
+            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1}]'
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
@@ -2066,7 +2066,7 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = sphere() + sphere((1, 2, 3))
             sage: G.json_repr(G.default_render_params())
-            [[["{vertices:..."]], [["{vertices:..."]]]
+            [[['{"vertices":...']], [['{"vertices":...']]]
         """
         return [g.json_repr(render_params) for g in self.all]
 
@@ -2284,7 +2284,7 @@ class TransformGroup(Graphics3dGroup):
 
             sage: G = cube().rotateX(0.2)
             sage: G.json_repr(G.default_render_params())
-            [["{vertices:[{x:0.5,y:0.589368,z:0.390699},..."]]
+            [['{"vertices":[{"x":0.5,"y":0.589368,"z":0.390699},...']]
         """
 
         render_params.push_transform(self.get_transformation())

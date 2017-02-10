@@ -287,7 +287,7 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
             sage: s = P.json_repr(P.default_render_params())
             sage: s[0][:100]
-            '{vertices:[{x:-2,y:-2,z:0},{x:-2,y:-1.89744,z:0.399737},{x:-2,y:-1.79487,z:0.778435},{x:-2,y:-1.6923'
+            '{"vertices":[{"x":-2,"y":-2,"z":0},{"x":-2,"y":-1.89744,"z":0.399737},{"x":-2,"y":-1.79487,"z":0.778'
         """
         self.triangulate(render_params)
         return IndexFaceSet.json_repr(self, render_params)

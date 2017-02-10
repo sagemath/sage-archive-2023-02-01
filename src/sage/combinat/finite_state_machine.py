@@ -10553,7 +10553,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         (x, y, z) = R.gens()
         try:
             M = get_matrix(self, x, y)
-        except TypeError:
+        except (TypeError, ValueError):
             sage.misc.misc.verbose(
                 "Non-integer output weights lead to "
                 "significant performance degradation.", level=0)

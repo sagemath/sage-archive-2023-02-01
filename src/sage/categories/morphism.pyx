@@ -252,7 +252,7 @@ cdef class Morphism(Map):
             sage: x^2 + y
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': 'Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Integer Ring'
+            TypeError: unsupported operand parent(s) for +: 'Univariate Polynomial Ring in x over Integer Ring' and 'Univariate Polynomial Ring in y over Integer Ring'
 
         Let us declare a coercion from `\ZZ[x]` to `\ZZ[z]`::
 

@@ -225,7 +225,7 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
             sage: F1.gen() + F2.gen()
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': 'Number Field in a with defining polynomial x^3 + 2' and 'Number Field in a with defining polynomial x^3 + 2'
+            TypeError: unsupported operand parent(s) for +: 'Number Field in a with defining polynomial x^3 + 2' and 'Number Field in a with defining polynomial x^3 + 2'
 
         The following was fixed to raise a ``TypeError`` in :trac:`15331`::
 

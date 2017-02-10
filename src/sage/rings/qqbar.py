@@ -166,7 +166,7 @@ However, implicit coercion from `\QQ[I]` is not allowed::
     sage: QQbar(1) + im
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1'
+    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1'
 
 We can implicitly coerce from algebraic reals to algebraic numbers::
 

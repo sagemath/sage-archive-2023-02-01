@@ -909,7 +909,7 @@ def _rpow_(self, base):
         Traceback (most recent call last):
         ...
         ArithmeticError: Cannot construct 2^(x^2) in Growth Group QQ^x * x^ZZ
-        > *previous* TypeError: unsupported operand parent(s) for '*':
+        > *previous* TypeError: unsupported operand parent(s) for *:
         'Growth Group QQ^x * x^ZZ' and 'Growth Group ZZ^(x^2)'
 
     ::

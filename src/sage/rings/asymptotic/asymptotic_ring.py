@@ -2071,7 +2071,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot construct y^x in Growth Group x^ZZ
-            > *previous* TypeError: unsupported operand parent(s) for '*':
+            > *previous* TypeError: unsupported operand parent(s) for *:
             'Growth Group x^ZZ' and 'Growth Group SR^x'
 
         Check that :trac:`19946` is fixed::

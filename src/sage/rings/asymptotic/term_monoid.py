@@ -3684,7 +3684,7 @@ class ExactTerm(TermWithCoefficient):
             ...
             ArithmeticError: Cannot construct 2^(x^2) in
             Growth Group QQ^x * x^ZZ * log(x)^ZZ
-            > *previous* TypeError: unsupported operand parent(s) for '*':
+            > *previous* TypeError: unsupported operand parent(s) for *:
             'Growth Group QQ^x * x^ZZ * log(x)^ZZ' and 'Growth Group ZZ^(x^2)'
 
         ::

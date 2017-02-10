@@ -1133,7 +1133,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 ...
                 ArithmeticError: Cannot construct e^x in
                 Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ
-                > *previous* TypeError: unsupported operand parent(s) for '*':
+                > *previous* TypeError: unsupported operand parent(s) for *:
                 'Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ' and
                 'Growth Group (e^x)^ZZ'
 

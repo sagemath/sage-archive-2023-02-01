@@ -665,14 +665,29 @@ class DiGraphGenerators():
         - ``vertices`` -- 'strings' (default) or 'integers', specifying whether
           the vertices are words build upon an alphabet or integers.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        de Bruijn digraph of degree 2 and diameter 2::
 
             sage: db = digraphs.DeBruijn(2, 2); db
             De Bruijn digraph (k=2, n=2): Looped digraph on 4 vertices
-            sage: db.order()
-            4
-            sage: db.size()
-            8
+            sage: db.order(), db.size()
+            (4, 8)
+            sage: db.diameter()
+            2
+
+        Building a de Bruijn digraph on a different alphabet::
+
+            sage: g = digraphs.DeBruijn(['a','b'], 2)
+            sage: g.vertices()
+            ['aa', 'ab', 'ba', 'bb']
+            sage: g.is_isomorphic(db)
+            True
+            sage: g = digraphs.DeBruijn(['AA','BB'], 2)
+            sage: g.vertices()
+            ['AA,AA', 'AA,BB', 'BB,AA', 'BB,BB']
+            sage: g.is_isomorphic(db)
+            True
 
         TESTS:
 

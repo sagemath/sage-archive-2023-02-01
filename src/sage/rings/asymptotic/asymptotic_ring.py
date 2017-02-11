@@ -1091,7 +1091,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         INPUT:
 
         - ``monomial`` -- a monomial element which can be converted
-          into the parent of this element.
+          into the the asymptotic ring of this element
 
         OUTPUT:
 

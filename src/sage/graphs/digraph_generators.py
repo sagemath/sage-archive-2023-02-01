@@ -667,28 +667,47 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: db=digraphs.DeBruijn(2,2); db
+            sage: db = digraphs.DeBruijn(2, 2); db
             De Bruijn digraph (k=2, n=2): Looped digraph on 4 vertices
             sage: db.order()
             4
             sage: db.size()
             8
 
-        TESTS::
+        TESTS:
 
-            sage: digraphs.DeBruijn(5,0)
+        Alphabet of null size or words of length zero::
+
+            sage: digraphs.DeBruijn(5, 0)
             De Bruijn digraph (k=5, n=0): Looped multi-digraph on 1 vertex
-            sage: digraphs.DeBruijn(0,0)
+            sage: digraphs.DeBruijn(0, 0)
             De Bruijn digraph (k=0, n=0): Looped multi-digraph on 0 vertices
+
+        :trac:`22355`::
+
+            sage: db = digraphs.DeBruijn(2, 2, vertices='strings')
+            sage: db.vertices()
+            ['00', '01', '10', '11']
+            sage: h = digraphs.DeBruijn(2, 2, vertices='integers')
+            sage: h.vertices()
+            [0, 1, 2, 3]
+            sage: db.is_isomorphic(h)
+            True
+            sage: digraphs.DeBruijn(0, 0, vertices='integers')
+            De Bruijn digraph (k=0, n=0): Looped multi-digraph on 0 vertices
+            sage: digraphs.DeBruijn(2, 2, vertices='circles')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown type for vertices
         """
         from sage.combinat.words.words import Words
         from sage.rings.integer import Integer
 
-        W = Words(list(range(k)) if isinstance(k, Integer) else k, n)
-        A = Words(list(range(k)) if isinstance(k, Integer) else k, 1)
-        g = DiGraph(loops=True)
-
         if vertices == 'strings':
+            W = Words(list(range(k)) if isinstance(k, Integer) else k, n)
+            A = Words(list(range(k)) if isinstance(k, Integer) else k, 1)
+            g = DiGraph(loops=True)
+
             if n == 0 :
                 g.allow_multiple_edges(True)
                 v = W[0]
@@ -699,9 +718,16 @@ class DiGraphGenerators():
                     ww = w[1:]
                     for a in A:
                         g.add_edge(w.string_rep(), (ww*a).string_rep(), a.string_rep())
+
+        elif vertices == 'integers':
+            d = k if isinstance(k, Integer) else len(list(k))
+            if d == 0:
+                g = DiGraph(loops=True, multiedges=True)
+            else:
+                g = digraphs.GeneralizedDeBruijn(d**n, d)
+
         else:
-            d = W.size_of_alphabet()
-            g = digraphs.GeneralizedDeBruijn(d**n, d)
+            raise ValueError('unknown type for vertices')
 
         g.name( "De Bruijn digraph (k=%s, n=%s)"%(k,n) )
         return g

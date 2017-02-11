@@ -678,12 +678,12 @@ class DiGraphGenerators():
 
         Building a de Bruijn digraph on a different alphabet::
 
-            sage: g = digraphs.DeBruijn(['a','b'], 2)
+            sage: g = digraphs.DeBruijn(['a', 'b'], 2)
             sage: g.vertices()
             ['aa', 'ab', 'ba', 'bb']
             sage: g.is_isomorphic(db)
             True
-            sage: g = digraphs.DeBruijn(['AA','BB'], 2)
+            sage: g = digraphs.DeBruijn(['AA', 'BB'], 2)
             sage: g.vertices()
             ['AA,AA', 'AA,BB', 'BB,AA', 'BB,BB']
             sage: g.is_isomorphic(db)
@@ -956,20 +956,39 @@ class DiGraphGenerators():
             sage: G = digraphs.Kautz(0, 2)
             Traceback (most recent call last):
             ...
-            ValueError: Kautz digraphs are defined for degree at least one.
+            ValueError: Kautz digraphs are defined for degree at least one
 
             sage: G = digraphs.Kautz(['a'], 2)
             Traceback (most recent call last):
             ...
-            ValueError: Kautz digraphs are defined for degree at least one.
+            ValueError: Kautz digraphs are defined for degree at least one
 
         An exception is raised when the diameter of the graph is less than one::
 
             sage: G = digraphs.Kautz(2, 0)
             Traceback (most recent call last):
             ...
-            ValueError: Kautz digraphs are defined for diameter at least one.
+            ValueError: Kautz digraphs are defined for diameter at least one
 
+        :trac:`22355`::
+
+            sage: K = digraphs.Kautz(2, 2, vertices='strings')
+            sage: K.vertices()
+            ['01', '02', '10', '12', '20', '21']
+            sage: h = digraphs.Kautz(2, 2, vertices='integers')
+            sage: h.vertices()
+            [0, 1, 2, 3, 4, 5]
+            sage: h.is_isomorphic(K)
+            True
+            sage: h = digraphs.Kautz([1,'aA','BB'], 2, vertices='integers')
+            sage: h.is_isomorphic(K)
+            True
+            sage: h.vertices()
+            [0, 1, 2, 3, 4, 5]
+            sage: digraphs.Kautz(2, 2, vertices='circles')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown type for vertices
 
         REFERENCE:
 
@@ -978,16 +997,16 @@ class DiGraphGenerators():
           Final Rep., pp. 20-28, 1968.
         """
         if D < 1:
-            raise ValueError("Kautz digraphs are defined for diameter at least one.")
+            raise ValueError("Kautz digraphs are defined for diameter at least one")
 
         from sage.combinat.words.words import Words
         from sage.rings.integer import Integer
 
-        my_alphabet = Words([str(i) for i in range(k+1)] if isinstance(k, Integer) else k, 1)
-        if my_alphabet.alphabet().cardinality() < 2:
-            raise ValueError("Kautz digraphs are defined for degree at least one.")
-
         if vertices == 'strings':
+
+            my_alphabet = Words([str(i) for i in range(k+1)] if isinstance(k, Integer) else k, 1)
+            if my_alphabet.alphabet().cardinality() < 2:
+                raise ValueError("Kautz digraphs are defined for degree at least one")
 
             # We start building the set of vertices
             V = [i for i in my_alphabet]
@@ -1004,11 +1023,16 @@ class DiGraphGenerators():
                     if not u.has_suffix(a):
                         G.add_edge(u.string_rep(), (u[1:]*a).string_rep(), a.string_rep())
 
-        else:
-            d = my_alphabet.size_of_alphabet()-1
+        elif vertices == 'integers':
+            d = k if isinstance(k, Integer) else (len(list(k))-1)
+            if d < 1:
+                raise ValueError("Kautz digraphs are defined for degree at least one")
             G = digraphs.ImaseItoh( (d+1)*(d**(D-1)), d)
 
-        G.name( "Kautz digraph (k=%s, D=%s)"%(k,D) )
+        else:
+            raise ValueError('unknown type for vertices')
+
+        G.name( "Kautz digraph (k={}, D={})".format(k, D) )
         return G
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):

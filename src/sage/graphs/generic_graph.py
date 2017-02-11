@@ -312,7 +312,7 @@ Methods
 """
 from __future__ import print_function, absolute_import, division
 from six.moves import range
-from six import itervalues
+from six import itervalues, iteritems
 
 from copy import copy
 from sage.misc.decorators import options
@@ -366,7 +366,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: sage.structure.sage_object.unpickle_all() # indirect random
         """
-        for k,v in state.iteritems():
+        for k,v in iteritems(state):
             self.__dict__[k] = v
         from sage.graphs.base.graph_backends import NetworkXGraphBackend
         if isinstance(self._backend, NetworkXGraphBackend):
@@ -1087,7 +1087,7 @@ class GenericGraph(GenericGraph_pyx):
                 copy_attr = {}
                 old_attr = getattr(self, attr)
                 if isinstance(old_attr, dict):
-                    for v,value in old_attr.iteritems():
+                    for v, value in iteritems(old_attr):
                         try:
                             copy_attr[v] = value.copy()
                         except AttributeError:
@@ -2118,10 +2118,10 @@ class GenericGraph(GenericGraph_pyx):
         if M.is_sparse():
             row_sums = {}
             if indegree:
-                for (i,j), entry in M.dict().iteritems():
+                for (i,j), entry in iteritems(M.dict()):
                     row_sums[j] = row_sums.get(j, 0) + entry
             else:
-                for (i,j), entry in M.dict().iteritems():
+                for (i,j), entry in iteritems(M.dict()):
                     row_sums[i] = row_sums.get(i, 0) + entry
 
 
@@ -7282,7 +7282,7 @@ class GenericGraph(GenericGraph_pyx):
                     else:
                         e[u,v] = l
 
-                g.add_edges([(u,v) for (u,v),l in e.iteritems()])
+                g.add_edges([(u,v) for (u,v),l in iteritems(e)])
 
             else:
                 g.add_edges(multi)
@@ -8304,7 +8304,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Building and returning the flow graph
         g = DiGraph()
-        g.add_edges([(x,y,l) for ((x,y),l) in flow.iteritems() if l > 0])
+        g.add_edges([(x,y,l) for ((x,y),l) in iteritems(flow) if l > 0])
         g.set_pos(self.get_pos())
 
         return flow_intensity, g
@@ -8476,7 +8476,7 @@ class GenericGraph(GenericGraph_pyx):
         flow=p.get_values(flow)
 
         # building clean flow digraphs
-        flow_graphs = [g._build_flow_graph({e:f for (ii,e),f in flow.iteritems() if ii == i}, integer=integer)
+        flow_graphs = [g._build_flow_graph({e:f for (ii,e),f in iteritems(flow) if ii == i}, integer=integer)
                        for i in range(len(terminals))]
 
         # which could be .. graphs !
@@ -8534,7 +8534,7 @@ class GenericGraph(GenericGraph_pyx):
         g = DiGraph()
 
         # add significant edges
-        for (u,v),l in flow.iteritems():
+        for (u,v),l in iteritems(flow):
             if l > 0 and not (integer and l<.5):
                 g.add_edge(u,v,l)
 
@@ -13346,11 +13346,11 @@ class GenericGraph(GenericGraph_pyx):
         elif implementation == 'sparse_copy':
             from sage.graphs.base.static_sparse_graph import triangles_count
             return {v:coeff_from_triangle_count(v,count)
-                    for v,count in triangles_count(self).iteritems()}
+                    for v,count in iteritems(triangles_count(self))}
         elif implementation =="dense_copy":
             from sage.graphs.base.static_dense_graph import triangles_count
             return {v:coeff_from_triangle_count(v,count)
-                    for v,count in triangles_count(self).iteritems()}
+                    for v,count in iteritems(triangles_count(self))}
 
     def cluster_transitivity(self):
         r"""
@@ -14708,7 +14708,7 @@ class GenericGraph(GenericGraph_pyx):
                                                           distance = 'weight'
                                                           if by_weight
                                                           else None)
-                return {v:c for v,c in closeness.iteritems() if c != 0}
+                return {v:c for v,c in iteritems(closeness) if c != 0}
             closeness = {}
             degree = self.out_degree if self.is_directed else self.degree
             for x in v_iter:
@@ -15671,7 +15671,7 @@ class GenericGraph(GenericGraph_pyx):
         paths = self.shortest_paths(u, by_weight=by_weight, algorithm=algorithm,
                                     weight_function=weight_function)
         return {v:self._path_length(p, by_weight, weight_function)
-                for v,p in paths.iteritems()}
+                for v,p in iteritems(paths)}
 
 
     def shortest_path_all_pairs(self, by_weight=False, algorithm=None,
@@ -16000,9 +16000,9 @@ class GenericGraph(GenericGraph_pyx):
                                           weight_function=weight_function)
                 dist[u] = {v:self._path_length(p, by_weight=by_weight,
                                                weight_function=weight_function)
-                           for v,p in paths.iteritems()}
+                           for v,p in iteritems(paths)}
                 pred[u] = {v:None if len(p)<=1 else p[1]
-                           for v,p in paths.iteritems()}
+                           for v,p in iteritems(paths)}
             return dist, pred
 
         elif algorithm != "Floyd-Warshall-Python":
@@ -17760,7 +17760,7 @@ class GenericGraph(GenericGraph_pyx):
         Here is the list of all the available layout options::
 
             sage: from sage.graphs.graph_plot import layout_options
-            sage: for key, value in list(sorted(layout_options.iteritems())):
+            sage: for key, value in list(sorted(layout_options.items())):
             ....:     print("option {} : {}".format(key, value))
             option by_component : Whether to do the spring layout by connected component -- a boolean.
             option dim : The dimension of the layout -- 2 or 3.
@@ -18181,7 +18181,7 @@ class GenericGraph(GenericGraph_pyx):
                 stick.append(t)
 
         if tree_orientation in ['right', 'left']:
-            return {p: (py, px) for p, (px, py) in pos.iteritems()}
+            return {p: (py, px) for p, (px, py) in iteritems(pos)}
 
         return pos
 
@@ -18269,7 +18269,7 @@ class GenericGraph(GenericGraph_pyx):
         import dot2tex
         positions = dot2tex.dot2tex(self.graphviz_string(**options), format = "positions", prog = prog)
 
-        return dict( (key_to_vertex[key], pos) for (key, pos) in positions.iteritems() )
+        return dict( (key_to_vertex[key], pos) for (key, pos) in iteritems(positions) )
 
     def _layout_bounding_box(self, pos):
         """
@@ -18490,7 +18490,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: from sage.graphs.graph_plot import graphplot_options
-            sage: list(sorted(graphplot_options.iteritems()))
+            sage: list(sorted(graphplot_options.items()))
             [...]
 
             sage: from math import sin, cos, pi
@@ -20219,7 +20219,7 @@ class GenericGraph(GenericGraph_pyx):
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 new_attr = {}
-                for v,value in getattr(self, attr).iteritems():
+                for v,value in iteritems(getattr(self, attr)):
                     new_attr[perm[v]] = value
 
                 setattr(self, attr, new_attr)
@@ -20766,7 +20766,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 # We relabel the cycles using the vertices' names instead of integers
                 n = self.order()
-                int_to_vertex = {((i+1) if i != n else 1):v for v,i in b.iteritems()}
+                int_to_vertex = {((i+1) if i != n else 1):v for v,i in iteritems(b)}
                 gens = [ [ tuple([int_to_vertex[i] for i in cycle]) for cycle in gen] for gen in gens]
                 output.append(PermutationGroup(gens = gens, domain = int_to_vertex.values()))
             else:

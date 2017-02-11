@@ -19,6 +19,7 @@ Functions
 
 """
 from __future__ import absolute_import
+import six
 from six.moves import range
 
 
@@ -421,9 +422,9 @@ def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, conv
     if not all(isinstance(M[u], dict) for u in M):
         raise ValueError("Input dict must be a consistent format.")
 
-    if not loops and any(u in neighb for u,neighb in M.iteritems()):
+    if not loops and any(u in neighb for u,neighb in six.iteritems(M)):
         if loops is False:
-            u = next(u for u,neighb in M.iteritems() if u in neighb)
+            u = next(u for u,neighb in six.iteritems(M) if u in neighb)
             raise ValueError("The graph was built with loops=False but input M has a loop at {}.".format(u))
         loops = True
     if loops is None:
@@ -494,7 +495,7 @@ def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
                 if loops is None:
                     loops = True
                 elif loops is False:
-                    u = next(u for u,neighb in D.iteritems() if u in neighb)
+                    u = next(u for u,neighb in six.iteritems(D) if u in neighb)
                     raise ValueError("The graph was built with loops=False but input D has a loop at {}.".format(u))
                 break
         if loops is None:

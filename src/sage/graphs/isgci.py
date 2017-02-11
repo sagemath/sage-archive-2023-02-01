@@ -377,6 +377,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 from sage.misc.unknown import Unknown
 from sage.env import GRAPHS_DATA_DIR
+import six
 
 #*****************************************************************************
 #      Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -643,7 +644,7 @@ class GraphClass(SageObject, CachedRepresentation):
         print("Class of graphs : "+self._name)
         print("-" * (len(self._name)+18))
 
-        for key, value in cls.iteritems():
+        for key, value in six.iteritems(cls):
             if value != "" and key != "problem":
                 print("{:30} : {}".format(key, value))
 
@@ -982,7 +983,7 @@ class GraphClasses(UniqueRepresentation):
             MAX[key] = len(max((str(x.get(key,"")) for x in classes_list), key = len))
 
         # At most MAX characters per field
-        for key, length in MAX.iteritems():
+        for key, length in six.iteritems(MAX):
             MAX[key] = min(length, MAX_LEN)
 
         # Head of the table

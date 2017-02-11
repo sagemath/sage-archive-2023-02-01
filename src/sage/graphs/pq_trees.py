@@ -114,6 +114,7 @@ Methods and functions
 #                         http://www.gnu.org/licenses/                         #
 ################################################################################
 from __future__ import print_function
+from six import iteritems
 
 # Constants, to make the code more readable
 
@@ -541,7 +542,7 @@ class P(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = {x:len(y) for x,y in sorting.iteritems()}
+        counts = {x: len(y) for x, y in iteritems(sorting)}
 
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
@@ -828,7 +829,7 @@ class Q(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = {x:len(y) for x,y in sorting.iteritems()}
+        counts = {x: len(y) for x, y in iteritems(sorting)}
 
         ###################################################################
         #                                                                 #

@@ -204,14 +204,14 @@ def underlying_graph(G):
 
 def edge_multiplicities(G):
     r"""
-    Returns the a dictionary of multiplicities of the edges in the
+    Return the a dictionary of multiplicities of the edges in the
     graph `G`.
 
     EXAMPLES::
 
         sage: from sage.graphs.tutte_polynomial import edge_multiplicities
         sage: G = Graph({1: [2,2,3], 2: [2], 3: [4,4], 4: [2,2,2]})
-        sage: sorted(edge_multiplicities(G).iteritems())
+        sage: sorted(edge_multiplicities(G).items())
         [((1, 2), 2), ((1, 3), 1), ((2, 2), 1), ((2, 4), 3), ((3, 4), 2)]
     """
     d = {}

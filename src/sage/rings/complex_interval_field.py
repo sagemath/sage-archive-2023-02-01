@@ -465,7 +465,7 @@ class ComplexIntervalField_class(ring.Field):
             sage: CIF((2,1)) + x
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': 'Complex Interval
+            TypeError: unsupported operand parent(s) for +: 'Complex Interval
             Field with 53 bits of precision' and 'Complex Field with 25 bits of precision'
         """
         try:

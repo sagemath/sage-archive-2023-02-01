@@ -3142,7 +3142,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t*e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field
+            TypeError: unsupported operand parent(s) for *: 'Finite Field
             of size 7' and 'Finite Field of size 5'
 
         The same issue (with a different test case) was reported in
@@ -3152,7 +3152,7 @@ cdef class Expression(CommutativeRingElement):
             sage: i*b
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Number Field
+            TypeError: unsupported operand parent(s) for *: 'Number Field
             in I with defining polynomial x^2 + 1' and 'Finite Field in b of
             size 3^2'
 
@@ -11407,7 +11407,7 @@ cdef class Expression(CommutativeRingElement):
             sage: plot(2*sin, -4, 4)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<class 'sage.functions.trig.Function_sin'>'
+            TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.functions.trig.Function_sin'>'
 
         You should evaluate the function first::
 

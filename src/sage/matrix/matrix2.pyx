@@ -8053,7 +8053,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: E = C.tensor_product(B)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field of size 29' and 'Full MatrixSpace of 3 by 4 dense matrices over Finite Field of size 23'
+            TypeError: unsupported operand parent(s) for *: 'Finite Field of size 29' and 'Full MatrixSpace of 3 by 4 dense matrices over Finite Field of size 23'
 
         The input is checked to be sure it is a matrix.  ::
 

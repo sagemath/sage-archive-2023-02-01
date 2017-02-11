@@ -180,7 +180,7 @@ def WithRealizations(self):
         sage: In[{1}] * x
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for '*': 'The subset algebra of {1, 2, 3} over Rational Field in the In basis' and 'Univariate Polynomial Ring in x over The subset algebra of {1, 2, 3} over Rational Field'
+        TypeError: unsupported operand parent(s) for *: 'The subset algebra of {1, 2, 3} over Rational Field in the In basis' and 'Univariate Polynomial Ring in x over The subset algebra of {1, 2, 3} over Rational Field'
 
     .. RUBRIC:: The category of realizations of `A`
 

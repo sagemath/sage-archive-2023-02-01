@@ -965,7 +965,7 @@ class Cusp(Element):
             sage: Cusp(2,5) * g
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Set P^1(QQ) of all cusps' and 'Full MatrixSpace of 2 by 2 dense matrices over Integer Ring'
+            TypeError: unsupported operand parent(s) for *: 'Set P^1(QQ) of all cusps' and 'Full MatrixSpace of 2 by 2 dense matrices over Integer Ring'
             sage: h = matrix(ZZ, 2, [12,3,-100,7])
             sage: h * Cusp(2,5)
             -13/55

@@ -389,7 +389,7 @@ Dans l'exemple suivant, il n'y a pas de coercition vers un parent commun :
     sage: x+y
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
+    TypeError: unsupported operand parent(s) for +: 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
 En effet, Sage refuse de choisir entre les candidats  ``QQ['x']['y']``,
 ``QQ['y']['x']``, ``QQ['x','y']`` et ``QQ['y','x']``, car ces quatre structures

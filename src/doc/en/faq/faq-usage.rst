@@ -396,6 +396,9 @@ Sage has a function that enables this::
     sage: x 2 x  # Not tested
     2*x^2
 
+This is preparsed by Sage into Python code. It may not work in a
+complicated situation.
+
 See https://wiki.sagemath.org/sage_mathematica for more information
 about Mathematica vs. SageMath.
     

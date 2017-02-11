@@ -1161,6 +1161,13 @@ class GrowthDiagramSylvester(GrowthDiagram):
         sage: G._zero
         .
 
+        sage: for pi in Permutations(5):
+        ....:     G = GrowthDiagramSylvester(pi)
+        ....:     R = LabelledBinaryTree(None)
+        ....:     for i in pi:
+        ....:         R = R.binary_search_insert(i)
+        ....:     assert BinaryTree(R) == G.P_chain()[-1]
+
     """
     def __init__(self,
                  filling = None,
@@ -1177,7 +1184,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     @staticmethod
-    def _forward_rule(y, t, x, content):
+    def _forward_rule(x, t, y, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -1188,8 +1195,8 @@ class GrowthDiagramSylvester(GrowthDiagram):
         - ``y, t, x`` -- three binary trees from a cell in a growth
           diagram, labelled as::
 
-              t x
-              y
+              t y
+              x
 
         - ``content`` -- 0 or 1, the content of the cell.
 
@@ -1224,15 +1231,15 @@ class GrowthDiagramSylvester(GrowthDiagram):
 
             sage: ascii_art(G._forward_rule(R, N, L, 0))
               o
+             / \
+            o   o
+
+            sage: ascii_art(G._forward_rule(L, N, R, 0))
+              o
              /
             o
              \
               o
-
-            sage: ascii_art(G._forward_rule(L, N, R, 0))
-              o
-             / \
-            o   o
 
         if ``x == y != t``, obtain ``z`` from ``y`` by adding a node
         as left child to the right most node::
@@ -1247,6 +1254,18 @@ class GrowthDiagramSylvester(GrowthDiagram):
             o     o
                  /
                 o
+            sage: ascii_art(G._forward_rule(L, N, L, 0))
+                o
+               /
+              o
+             /
+            o
+            sage: ascii_art(G._forward_rule(R, N, R, 0))
+            o
+             \
+              o
+             /
+            o
 
         """
         def successors(b):
@@ -1282,18 +1301,6 @@ class GrowthDiagramSylvester(GrowthDiagram):
                     return t
             raise ValueError("Couldn't find union of %s and %s" %(x,y))
 
-        def add_left_child_to_right_most_node(b):
-            """
-            Return the tree obtained from ``b`` by adding a node as left
-            child to the right most node.
-            """
-            if b.is_empty():
-                raise ValueError("Cannot add left child to empty tree")
-            elif b == BinaryTree([]):
-                return BinaryTree([[], None])
-            else:
-                return BinaryTree([b[0], add_left_child_to_right_most_node(b[1])])
-
         if x == t == y:
             if content == 0:
                 z = x
@@ -1308,51 +1315,8 @@ class GrowthDiagramSylvester(GrowthDiagram):
         elif x == t != y:
             z = y
         else:
-            if x != y:
-                return union(x, y)
-            elif x == y != t:
-                z = add_left_child_to_right_most_node(y)
-            else:
-                raise NotImplementedError
+            z = union(x, y)
         return z
-
-    @staticmethod
-    def _backward_rule(y, z, x):
-        r"""
-        Return the content and the input shape.
-
-        See [Fom1995]_ Lemma 4.6.1, page 40.
-
-        - ``y, z, x`` -- three binary words from a cell in a growth diagram,
-          labelled as::
-
-                x
-              y z
-
-        OUTPUT:
-
-        A pair ``(t, content)`` consisting of the shape of the fourth
-        word and the content of the cell acording to Viennot's
-        bijection [Vie1983]_.
-
-        TEST::
-
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramBinWord(w);
-            sage: GrowthDiagramBinWord(labels=G.out_labels()).to_word() == w    # indirect doctest
-            True
-
-        """
-        if x == y == z:
-            return (x, 0)
-        elif x == z != y:
-            return (y, 0)
-        elif x != z == y:
-            return (x, 0)
-        else:
-            if x != y or (len(z) > 0 and z[-1] == 0):
-                return (x[:-1], 0)
-            elif x == y and len(z) > 0 and z[-1] == 1:
-                return (x, 1)
 
 class GrowthDiagramYoungFibonacci(GrowthDiagram):
     r"""

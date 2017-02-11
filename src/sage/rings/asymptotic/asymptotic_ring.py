@@ -1130,11 +1130,11 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: (n + 4).monomial_coefficient(n + 5)
             Traceback (most recent call last):
             ...
-            ValueError: not a monomial
+            ValueError: n + 5 not a monomial
             sage: n.monomial_coefficient(0)
             Traceback (most recent call last):
             ...
-            ValueError: not a monomial
+            ValueError: 0 not a monomial
 
         Cannot extract the coefficient of an O term::
 
@@ -1149,15 +1149,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: n.monomial_coefficient(O(n))
             Traceback (most recent call last):
             ...
-            ValueError: non-exact monomial
+            ValueError: non-exact monomial O(n)
 
         """
         monomial = self.parent()(monomial)
         if not monomial.is_exact():
-            raise ValueError("non-exact monomial")
+            raise ValueError("non-exact monomial {}".format(monomial))
 
         if len(monomial.summands) != 1:
-            raise ValueError("not a monomial")
+            raise ValueError("{} not a monomial".format(monomial))
 
         monomial_growth = next(monomial.summands.elements()).growth
         return self.summands.element(monomial_growth).coefficient

@@ -1103,6 +1103,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: ae = 13 + 42/n + 2/n/m + O(n^-2)
             sage: ae.monomial_coefficient(1/n)
             42
+            sage: ae.monomial_coefficient(1/n^3)
+            0
             sage: R.<n> = AsymptoticRing("n^QQ", ZZ)
             sage: ae.monomial_coefficient(1/n)
             42
@@ -1160,7 +1162,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             raise ValueError("{} not a monomial".format(monomial))
 
         monomial_growth = next(monomial.summands.elements()).growth
-        return self.summands.element(monomial_growth).coefficient
+        try:
+            return self.summands.element(monomial_growth).coefficient
+        except KeyError:
+            return self.parent().coefficient_ring(0)
 
     def _add_(self, other):
         r"""

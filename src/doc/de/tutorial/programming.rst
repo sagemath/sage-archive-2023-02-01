@@ -676,18 +676,6 @@ gleichen Typ konvertieren, falls dies möglich ist:
     True
     True
 
-Fast immer können zwei beliebige Objekte verglichen werden. Es gibt
-keine Voraussetzung die besagt, dass die Objekte mit einer totalen Ordnung
-versehen sein müssen.
-
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
-    True
-
 Nutzen Sie bool für symbolische Ungleichungen:
 
 ::

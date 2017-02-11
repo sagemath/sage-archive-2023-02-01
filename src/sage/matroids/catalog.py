@@ -1417,7 +1417,7 @@ def ExtendedBinaryGolayCode():
 
         sage: M = matroids.named_matroids.ExtendedBinaryGolayCode()
         sage: C = LinearCode(M.representation())
-        sage: C.is_permutation_equivalent(codes.GolayCode(GF(2)) # long time
+        sage: C.is_permutation_equivalent(codes.GolayCode(GF(2))) # long time
         True
         sage: M.is_valid()
         True

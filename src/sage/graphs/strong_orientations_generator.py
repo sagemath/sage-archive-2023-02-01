@@ -1,4 +1,6 @@
 r"""
+Strong orientations
+
 This module implements an algorithm for generating all strong orientations of
 an undirected graph.
 It is an adaptation of the algorithm published in [CGMRV16]_.
@@ -21,13 +23,13 @@ Works only for simple graphs (no multiple edges).
 
 AUTHORS:
 
-- Kolja Knauer and Petru Valicov (2017-01-10): initial version
+- Kolja Knauer and Petru Valicov (2017-01-10) --  initial version
 
 REFERENCE:
 
 .. [CGMRV16] A. Conte, R. Grossi, A. Marino, R. Rizzi, L. Versari,
   "Directing Road Networks by Listing Strong Orientations.",
-  Combinatorial Algorithms: Proceedings of 27th International Workshop,
+  Combinatorial Algorithms, Proceedings of 27th International Workshop,
   IWOCA 2016, August 17-19, 2016, pages 83--95
 """
 
@@ -68,7 +70,7 @@ def strong_orientations_iterator(self):
 
     In order to avoid symetries an orientation of an arbitrary edge is fixed.
 
-    EXAMPLES::
+    EXAMPLES:
 
     A cycle has one possible (non-symetric) strong orientation::
 
@@ -77,13 +79,13 @@ def strong_orientations_iterator(self):
         sage: len(list(it))
         1
 
-        A tree cannot be strongly oriented::
+    A tree cannot be strongly oriented::
 
         sage: g = graphs.RandomTree(100)
         sage: len(list(g.strong_orientations_iterator()))
         0
 
-        Neither can be a disconnected graph::
+    Neither can be a disconnected graph::
 
         sage: g = graphs.CompleteGraph(6)
         sage: g.add_vertex(7)
@@ -175,7 +177,7 @@ def _strong_orientations_of_a_mixed_graph(Dg, V, E):
     - an iterator which will produce all strong orientations of the input
       partially directed graph.
 
-    EXAMPLES::
+    EXAMPLES:
 
         sage: from sage.graphs.strong_orientations_generator import _strong_orientations_of_a_mixed_graph
         sage: g = graphs.CycleGraph(5)

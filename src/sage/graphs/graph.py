@@ -7571,7 +7571,7 @@ _additional_categories = {
     Graph.is_partial_cube           : "Graph properties",
     Graph.tutte_polynomial          : "Algorithmically hard stuff",
     Graph.lovasz_theta              : "Leftovers",
-    Graph.strong_orientations_iterator : "orientations"
+    Graph.strong_orientations_iterator : "Orientations"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

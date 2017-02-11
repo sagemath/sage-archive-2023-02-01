@@ -311,7 +311,6 @@ from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_field import is_ComplexField
-from sage.calculus.calculus import maxima
 
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
@@ -319,44 +318,6 @@ from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
 from sage.functions.other import factorial, binomial
 from sage.structure.all import parent
-
-_done = False
-def _init():
-    """
-    Internal function which checks if Maxima has loaded the
-    "orthopoly" package.  All functions using this in this
-    file should call this function first.
-
-    TEST:
-
-    The global starts ``False``::
-
-        sage: sage.functions.orthogonal_polys._done
-        False
-
-    Then after using one of these functions, it changes::
-
-        sage: from sage.functions.orthogonal_polys import laguerre
-        sage: laguerre(2,x)
-        1/2*x^2 - 2*x + 1
-        sage: sage.functions.orthogonal_polys._done
-        False
-
-
-    Note that because here we use a Pynac variable ``x``,
-    the representation of the function is different from
-    its actual doctest, where a polynomial indeterminate
-    ``x`` is used.
-    """
-    global _done
-    if _done:
-        return
-    maxima.eval('load("orthopoly");')
-    # TODO -- make it possible to use the intervals returned
-    # instead of just discarding this info!
-    maxima.eval('orthopoly_returns_intervals:false;')
-    _done = True
-
 
 class OrthogonalFunction(BuiltinFunction):
     """
@@ -389,20 +350,6 @@ class OrthogonalFunction(BuiltinFunction):
 
         super(OrthogonalFunction,self).__init__(name=name, nargs=nargs,
                                  latex_name=latex_name, conversions=conversions)
-
-    def _maxima_init_evaled_(self, *args):
-        r"""
-        Return a string which represents this function evaluated at
-        ``n, x`` in Maxima.
-
-        EXAMPLES::
-
-            sage: from sage.functions.orthogonal_polys import OrthogonalFunction
-            sage: P = OrthogonalFunction('testo_P')
-            sage: P._maxima_init_evaled_(2, 5) is None
-            True
-        """
-        return None
 
     def eval_formula(self, *args):
         """
@@ -456,9 +403,14 @@ class OrthogonalFunction(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3-x-1)
-            sage: chebyshev_T(5, a)
-            16*a^2 + a - 4
+            sage: chebyshev_T(5, x)
+            16*x^5 - 20*x^3 + 5*x
+            sage: chebyshev_T(5, x, algorithm='pari')
+            16*x^5 - 20*x^3 + 5*x
+            sage: chebyshev_T(5, x, algorithm='maxima')
+            16*x^5 - 20*x^3 + 5*x
+            sage: chebyshev_T(5, x, algorithm='recursive')
+            16*x^5 - 20*x^3 + 5*x
         """
         algorithm = kwds.get('algorithm', None)
         if algorithm == 'pari':
@@ -466,7 +418,9 @@ class OrthogonalFunction(BuiltinFunction):
         elif algorithm == 'recursive':
             return self.eval_recursive(*args, **kwds)
         elif algorithm == 'maxima':
-            return self._maxima_init_evaled_(*args, **kwds)
+            from sage.calculus.calculus import maxima
+            kwds['hold'] = True
+            return maxima(self._eval_(*args, **kwds))._sage_()
 
         return super(OrthogonalFunction,self).__call__(*args, **kwds)
 
@@ -606,12 +560,18 @@ class Func_chebyshev_T(ChebyshevFunction):
 
         EXAMPLES::
 
+            sage: var('n, x')
+            (n, x)
             sage: from sage.functions.orthogonal_polys import Func_chebyshev_T
             sage: chebyshev_T2 = Func_chebyshev_T()
             sage: chebyshev_T2(1,x)
             x
             sage: chebyshev_T(x, x)._sympy_()
             chebyshevt(x, x)
+            sage: maxima(chebyshev_T(1,x, hold=True))
+            _SAGE_VAR_x
+            sage: maxima(chebyshev_T(n, chebyshev_T(n, x)))
+            chebyshev_t(_SAGE_VAR_n,chebyshev_t(_SAGE_VAR_n,_SAGE_VAR_x))
         """
         ChebyshevFunction.__init__(self, 'chebyshev_T', nargs=2,
                                      conversions=dict(maxima='chebyshev_t',
@@ -732,21 +692,6 @@ class Func_chebyshev_T(ChebyshevFunction):
         from sage.libs.mpmath.all import chebyt as mpchebyt
 
         return mpcall(mpchebyt, n, x, parent=real_parent)
-
-    def _maxima_init_evaled_(self, n, x):
-        """
-        Evaluate the Chebyshev polynomial ``self`` with maxima.
-
-        EXAMPLES::
-
-            sage: var('n, x')
-            (n, x)
-            sage: chebyshev_T._maxima_init_evaled_(1,x)
-            '_SAGE_VAR_x'
-            sage: maxima(chebyshev_T(n, chebyshev_T(n, x)))
-            chebyshev_t(_SAGE_VAR_n,chebyshev_t(_SAGE_VAR_n,_SAGE_VAR_x))
-        """
-        return maxima.eval('chebyshev_t({0},{1})'.format(n._maxima_init_(), x._maxima_init_()))
 
     def eval_formula(self, n, x):
         """
@@ -924,12 +869,18 @@ class Func_chebyshev_U(ChebyshevFunction):
 
         EXAMPLES::
 
+            sage: var('n, x')
+            (n, x)
             sage: from sage.functions.orthogonal_polys import Func_chebyshev_U
             sage: chebyshev_U2 = Func_chebyshev_U()
             sage: chebyshev_U2(1,x)
             2*x
             sage: chebyshev_U(x, x)._sympy_()
             chebyshevu(x, x)
+            sage: maxima(chebyshev_U(2,x, hold=True))
+            3*((-(8*(1-_SAGE_VAR_x))/3)+(4*(1-_SAGE_VAR_x)^2)/3+1)
+            sage: maxima(chebyshev_U(n,x, hold=True))
+            chebyshev_u(_SAGE_VAR_n,_SAGE_VAR_x)
         """
         ChebyshevFunction.__init__(self, 'chebyshev_U', nargs=2,
                                      conversions=dict(maxima='chebyshev_u',
@@ -1062,23 +1013,6 @@ class Func_chebyshev_U(ChebyshevFunction):
             return (b+a)*(b-a), both and 2*b*(x*b-a)
         else:
             return 2*a*(b-x*a), both and (b+a)*(b-a)
-
-    def _maxima_init_evaled_(self, n, x):
-        """
-        Uses maxima to evaluate ``self``.
-
-        EXAMPLES::
-
-            sage: var('n, x')
-            (n, x)
-            sage: maxima(chebyshev_U(5,x))
-            32*_SAGE_VAR_x^5-32*_SAGE_VAR_x^3+6*_SAGE_VAR_x
-            sage: maxima(chebyshev_U(n,x))
-            chebyshev_u(_SAGE_VAR_n,_SAGE_VAR_x)
-            sage: maxima(chebyshev_U(2,x))
-            4*_SAGE_VAR_x^2-1
-        """
-        return maxima.eval('chebyshev_u({0},{1})'.format(n._maxima_init_(), x._maxima_init_()))
 
     def _evalf_(self, n, x, **kwds):
         """
@@ -1355,6 +1289,8 @@ class Func_legendre_Q(BuiltinFunction):
 
             sage: loads(dumps(legendre_Q))
             legendre_Q
+            sage: maxima(legendre_Q(20,x, hold=True))._sage_().coefficient(x,10)
+            -29113619535/131072*log(-(x + 1)/(x - 1))
         """
         BuiltinFunction.__init__(self, "legendre_Q", nargs=2, latex_name=r"Q",
                 conversions={'maxima':'legendre_q', 'mathematica':'LegendreQ',
@@ -1376,11 +1312,6 @@ class Func_legendre_Q(BuiltinFunction):
             -0.511424110789061 + 1.34356195297194*I
             sage: legendre_Q(-1,x)
             Infinity
-
-        NOTE::
-
-            Maxima (``algorithm='maxima'``) will output the complex
-            conjugate of the correct result, see :trac:`16813`.
         """
         ret = self._eval_special_values_(n, x)
         if ret is not None:
@@ -1390,24 +1321,6 @@ class Func_legendre_Q(BuiltinFunction):
                 from sage.rings.infinity import unsigned_infinity
                 return SR(unsigned_infinity);
             return self.eval_formula(n, x)
-
-    def _maxima_init_evaled_(self, n, x):
-        """
-        Return a string which represents this function evaluated at
-        ``n, x`` in Maxima.
-
-        NOTE::
-
-            Maxima will output the complex conjugate of the
-            correct result, see :trac:`16813`.
-
-        EXAMPLES::
-
-            sage: legendre_Q._maxima_init_evaled_(20,x).coefficient(x,10)
-            -29113619535/131072*log(-(x + 1)/(x - 1))
-        """
-        _init()
-        return sage_eval(maxima.eval('legendre_q(%s,x)'%ZZ(n)), locals={'x':x})
 
     def _eval_special_values_(self, n, x):
         """
@@ -1589,6 +1502,8 @@ class Func_assoc_legendre_P(BuiltinFunction):
 
             sage: loads(dumps(gen_legendre_P))
             gen_legendre_P
+            sage: maxima(gen_legendre_P(20,6,x, hold=True))._sage_().expand().coefficient(x,10)
+            2508866163428625/128
         """
         BuiltinFunction.__init__(self, "gen_legendre_P", nargs=3, latex_name=r"P",
                 conversions={'maxima':'assoc_legendre_p', 'mathematica':'LegendreP',
@@ -1616,19 +1531,6 @@ class Func_assoc_legendre_P(BuiltinFunction):
             and n >= 0 and m >= 0
             and (x in ZZ or not SR(x).is_numeric())):
             return self.eval_poly(n, m, x)
-
-    def _maxima_init_evaled_(self, n, m, x, **kwds):
-        """
-        Return a string which represents this function evaluated at
-        ``n, m, x`` in Maxima.
-
-        EXAMPLES::
-
-            sage: gen_legendre_P._maxima_init_evaled_(20,6,x).expand().coefficient(x,10)
-            2508866163428625/128
-        """
-        _init()
-        return sage_eval(maxima.eval('assoc_legendre_p(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
 
     def _eval_special_values_(self, n, m, x):
         """
@@ -1746,6 +1648,8 @@ class Func_assoc_legendre_Q(BuiltinFunction):
 
             sage: loads(dumps(gen_legendre_Q))
             gen_legendre_Q
+            sage: maxima(gen_legendre_Q(2,1,3, hold=True))._sage_().simplify_full()
+            1/4*sqrt(2)*(36*pi - 36*I*log(2) + 25*I)
         """
         BuiltinFunction.__init__(self, "gen_legendre_Q", nargs=3, latex_name=r"Q",
                 conversions={'maxima':'assoc_legendre_q', 'mathematica':'LegendreQ',
@@ -1767,20 +1671,6 @@ class Func_assoc_legendre_Q(BuiltinFunction):
             and n >= 0 and m >= 0
             and (x in ZZ or not SR(x).is_numeric())):
             return self.eval_recursive(n, m, x)
-
-    def _maxima_init_evaled_(self, n, m, x, **kwds):
-        """
-        Return a string which represents this function evaluated at
-        ``n, m, x`` in Maxima.
-
-        EXAMPLES::
-
-            sage: gen_legendre_Q._maxima_init_evaled_(2,1,3)
-            -3*sqrt(-2)*(3*I*pi + 3*log(2)) + 25/4*sqrt(-2)
-        """
-        if m <= n:
-            _init()
-            return sage_eval(maxima.eval('assoc_legendre_q(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
 
     def _eval_special_values_(self, n, m, x):
         """
@@ -2194,29 +2084,19 @@ class Func_laguerre(OrthogonalFunction):
 
         EXAMPLES::
 
+            sage: n,x = var('n,x')
             sage: loads(dumps(laguerre))
             laguerre
             sage: laguerre(x, x)._sympy_()
             laguerre(x, x)
+            sage: maxima(laguerre(1, x, hold=True))
+            1-_SAGE_VAR_x
+            sage: maxima(laguerre(n, laguerre(n, x)))
+            laguerre(_SAGE_VAR_n,laguerre(_SAGE_VAR_n,_SAGE_VAR_x))
         """
         OrthogonalFunction.__init__(self, "laguerre", nargs=2, latex_name=r"L",
                 conversions={'maxima':'laguerre', 'mathematica':'LaguerreL',
                     'maple':'LaguerreL', 'sympy':'laguerre'})
-
-    def _maxima_init_evaled_(self, n, x):
-        """
-        Evaluate the Laguerre polynomial ``self`` with maxima.
-
-        EXAMPLES::
-
-            sage: var('n, x')
-            (n, x)
-            sage: laguerre._maxima_init_evaled_(1,x)
-            '1-_SAGE_VAR_x'
-            sage: maxima(laguerre(n, laguerre(n, x)))
-            laguerre(_SAGE_VAR_n,laguerre(_SAGE_VAR_n,_SAGE_VAR_x))
-        """
-        return maxima.eval('laguerre({0},{1})'.format(n._maxima_init_(), x._maxima_init_()))
 
     def _eval_(self, n, x, *args, **kwds):
         r"""
@@ -2353,28 +2233,19 @@ class Func_gen_laguerre(OrthogonalFunction):
 
         EXAMPLES::
 
+            sage: a,n,x = var('a, n, x')
             sage: loads(dumps(gen_laguerre))
             gen_laguerre
             sage: gen_laguerre(x, x, x)._sympy_()
             assoc_laguerre(x, x, x)
+            sage: maxima(gen_laguerre(1,2,x, hold=True))
+            3*(1-_SAGE_VAR_x/3)
+            sage: maxima(gen_laguerre(n, a, gen_laguerre(n, a, x)))
+            gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,_SAGE_VAR_x))
         """
         OrthogonalFunction.__init__(self, "gen_laguerre", nargs=3, latex_name=r"L",
                 conversions={'maxima':'gen_laguerre', 'mathematica':'LaguerreL',
                     'maple':'LaguerreL', 'sympy':'assoc_laguerre'})
-
-    def _maxima_init_evaled_(self, n, a, x):
-        """
-        Evaluate the Laguerre polynomial ``self`` with maxima.
-
-        EXAMPLES::
-
-            sage: a,n,x = var('a, n, x')
-            sage: gen_laguerre._maxima_init_evaled_(1,2,x)
-            '3*(1-_SAGE_VAR_x/3)'
-            sage: maxima(gen_laguerre(n, a, gen_laguerre(n, a, x)))
-            gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,_SAGE_VAR_x))
-        """
-        return maxima.eval('gen_laguerre({0},{1},{2})'.format(n._maxima_init_(), a._maxima_init_(), x._maxima_init_()))
 
     def _eval_(self, n, a, x, *args, **kwds):
         r"""

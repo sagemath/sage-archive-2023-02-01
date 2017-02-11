@@ -4592,7 +4592,7 @@ def TutteGraph():
         69
         sage: g.is_planar()
         True
-        sage: g.vertex_connectivity() # long
+        sage: g.vertex_connectivity() # long time
         3
         sage: g.girth()
         4

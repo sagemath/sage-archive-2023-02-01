@@ -603,7 +603,7 @@ def tarjan_strongly_connected_components(G):
 
         sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
         sage: import random
-        sage: for i in range(10):                                     # long
+        sage: for i in range(10):                          # long time
         ....:     n = random.randint(2,20)
         ....:     m = random.randint(1, n*(n-1))
         ....:     g = digraphs.RandomDirectedGNM(n,m)
@@ -615,7 +615,7 @@ def tarjan_strongly_connected_components(G):
     Checking against NetworkX::
 
         sage: import networkx
-        sage: for i in range(10):                                     # long
+        sage: for i in range(10):                          # long time
         ....:      g = digraphs.RandomDirectedGNP(100,.05)
         ....:      h = g.networkx_graph()
         ....:      scc1 = g.strongly_connected_components()

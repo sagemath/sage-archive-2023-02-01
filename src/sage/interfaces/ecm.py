@@ -36,6 +36,7 @@ seed, but currently there is no facility to do so.
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 from __future__ import print_function
+from six import iteritems
 
 import os
 import re
@@ -175,7 +176,7 @@ class ECM(SageObject):
     def _make_cmd(self, B1, B2, kwds):
         ecm = ['ecm']
         options = []
-        for x, v in kwds.iteritems():
+        for x, v in iteritems(kwds):
             if v is False:
                 continue
             options.append('-{0}'.format(x))

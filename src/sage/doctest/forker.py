@@ -1326,7 +1326,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: D = DictAsObject({'cputime':[],'walltime':[],'err':None})
             sage: DTR.update_results(D)
             0
-            sage: sorted(list(D.iteritems()))
+            sage: sorted(list(D.items()))
             [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
         """
         for key in ["cputime","walltime"]:

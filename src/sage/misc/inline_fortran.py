@@ -1,7 +1,10 @@
 """
 Fortran compiler
 """
-import os, imp, shutil
+from six import iteritems
+import os
+import imp
+import shutil
 
 from sage.misc.temporary_file import tmp_dir
 
@@ -131,7 +134,7 @@ class InlineFortran:
                 # This can fail for example over NFS
                 pass
 
-        for k, x in m.__dict__.iteritems():
+        for k, x in iteritems(m.__dict__):
             if k[0] != '_':
                 globals[k] = x
 

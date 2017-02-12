@@ -23,6 +23,7 @@ Functions and classes
 #                  http://www.gnu.org/licenses/
 ########################################################################
 from __future__ import print_function
+from six import iteritems
 
 from warnings import warn
 import inspect
@@ -374,7 +375,7 @@ class DeprecatedFunctionAlias(object):
         """
         # first look through variables in stack frames
         for frame in inspect.stack():
-            for name, obj in frame[0].f_globals.iteritems():
+            for name, obj in iteritems(frame[0].f_globals):
                 if obj is self:
                     return name
         # then search object that contains self as method
@@ -390,7 +391,7 @@ class DeprecatedFunctionAlias(object):
         for ref in gc.get_referrers(search_for):
             if is_class(ref) and ref is not self.__dict__:
                 ref_copy = copy.copy(ref)
-                for key, val in ref_copy.iteritems():
+                for key, val in iteritems(ref_copy):
                     if val is search_for:
                         return key
         raise AttributeError("The name of this deprecated function can not be determined")

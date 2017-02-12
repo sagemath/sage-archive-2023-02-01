@@ -24,6 +24,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import iteritems
 
 from sage.matrix.constructor import Matrix
 from sage.rings.all import ZZ, QQ, FiniteField, GF
@@ -35,6 +36,7 @@ from sage.graphs.graph import Graph
 from sage.matrix.constructor import matrix
 from operator import itemgetter
 from sage.rings.number_field.number_field import NumberField
+
 
 def setprint(X):
     """
@@ -125,7 +127,7 @@ def setprint_s(X, toplevel=False):
     if isinstance(X, frozenset) or isinstance(X, set):
         return '{' + ', '.join([setprint_s(x) for x in sorted(X)]) + '}'
     elif isinstance(X, dict):
-        return '{' + ', '.join([setprint_s(key) + ': ' + setprint_s(val) for key, val in sorted(X.iteritems())]) + '}'
+        return '{' + ', '.join([setprint_s(key) + ': ' + setprint_s(val) for key, val in sorted(iteritems(X))]) + '}'
     elif isinstance(X, str):
         if toplevel:
             return X
@@ -551,7 +553,7 @@ def lift_cross_ratios(A, lift_map = None):
         True
 
     """
-    for s,t in lift_map.iteritems():
+    for s, t in iteritems(lift_map):
         source_ring = s.parent()
         target_ring = t.parent()
         break
@@ -622,13 +624,13 @@ def lift_cross_ratios(A, lift_map = None):
         div = True
         for entry2 in entries:
             if div:
-                for cr, degree in F[entry2].iteritems():
+                for cr, degree in iteritems(F[entry2]):
                     if cr in monomial:
                         monomial[cr] = monomial[cr]+ degree
                     else:
                         monomial[cr] = degree
             else:
-                for cr, degree in F[entry2].iteritems():
+                for cr, degree in iteritems(F[entry2]):
                     if cr in monomial:
                         monomial[cr] = monomial[cr] - degree
                     else:
@@ -640,9 +642,9 @@ def lift_cross_ratios(A, lift_map = None):
 
     # compute each entry of Z as the product of lifted cross ratios
     Z = Matrix(target_ring, A.nrows(), A.ncols())
-    for entry, monomial in F.iteritems():
+    for entry, monomial in iteritems(F):
         Z[entry] = plus_one2
-        for cr,degree in monomial.iteritems():
+        for cr,degree in iteritems(monomial):
             if cr == minus_one1:
                 Z[entry] = Z[entry] * (minus_one2**degree)
             else:

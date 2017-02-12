@@ -25,7 +25,6 @@ from __future__ import print_function, division
 from six.moves import range
 
 
-
 def Krawtchouk(n, q, l, x, check=True):
     r"""
     Compute ``K^{n,q}_l(x)``, the Krawtchouk (a.k.a. Kravchuk) polynomial.
@@ -188,7 +187,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
        sage: delsarte_bound_hamming_space(11, 6, 2)
        12
        sage: a, p, val = delsarte_bound_hamming_space(11, 6, 2, return_data=True)
-       sage: [j for i,j in p.get_values(a).iteritems()]
+       sage: [j for i,j in p.get_values(a).items()]
        [1, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0]
 
     The bound on the size of the `F_2`-codes of length 24 and minimal distance
@@ -197,7 +196,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
        sage: a,p,x=delsarte_bound_hamming_space(24,8,2,return_data=True)
        sage: x
        4096
-       sage: [j for i,j in p.get_values(a).iteritems()]
+       sage: [j for i,j in p.get_values(a).items()]
        [1, 0, 0, 0, 0, 0, 0, 0, 759, 0, 0, 0, 2576, 0, 0, 0, 759, 0, 0, 0, 0, 0, 0, 0, 1]
 
     The bound on the size of `F_4`-codes of length 11 and minimal distance 3::
@@ -209,7 +208,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
 
        sage: a,p,x= delsarte_bound_hamming_space(23,10,2,return_data=True,isinteger=True); x # long time
        148
-       sage: [j for i,j in p.get_values(a).iteritems()]                                      # long time
+       sage: [j for i,j in p.get_values(a).items()]                                      # long time
        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 95, 0, 2, 0, 36, 0, 14, 0, 0, 0, 0, 0, 0, 0]
 
     Note that a usual LP, without integer variables, won't do the trick ::
@@ -284,7 +283,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
        3
        sage: a,p,val=delsarte_bound_additive_hamming_space(11, 6, 2,\
                                       return_data=True)
-       sage: [j for i,j in p.get_values(a).iteritems()]
+       sage: [j for i,j in p.get_values(a).items()]
        [1, 0, 0, 0, 0, 0, 5, 2, 0, 0, 0, 0]
 
    The bound on the dimension of linear `F_4`-codes of length 11 and minimal distance 3::
@@ -307,7 +306,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
    TESTS::
 
        sage: a,p,x=delsarte_bound_additive_hamming_space(19,15,7,return_data=True,isinteger=True)
-       sage: [j for i,j in p.get_values(a).iteritems()]
+       sage: [j for i,j in p.get_values(a).items()]
        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 307, 0, 0, 1, 34]
        sage: delsarte_bound_additive_hamming_space(19,15,7,solver='glpk')
        3

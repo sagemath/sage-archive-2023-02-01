@@ -38,9 +38,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import iteritems
+import six
 
 import operator
-import six
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
@@ -488,7 +489,7 @@ class Interface(ParentWithBase):
         for i, arg in enumerate(args):
             if not isinstance(arg, InterfaceElement) or arg.parent() is not self:
                 args[i] = self(arg)
-        for key, value in kwds.iteritems():
+        for key, value in iteritems(kwds):
             if not isinstance(value, InterfaceElement) or value.parent() is not self:
                 kwds[key] = self(value)
 

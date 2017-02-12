@@ -125,7 +125,7 @@ All solutions can easily be recovered using the variety function for ideals.::
 
    sage: I = F.ideal()
    sage: for V in I.variety():
-   ....:    for k,v in sorted(V.iteritems()):
+   ....:    for k,v in sorted(V.items()):
    ....:       print("{} {}".format(k, v))
    ....:    print("\n")
    k003 0
@@ -2066,7 +2066,7 @@ class SR_generic(MPolynomialSystemGenerator):
             (C000, C001, C002, C003)
             sage: P = sr.vars("P",0)
             sage: F,s = sr.polynomial_system(P=P,C=C)
-            sage: [(k,v) for k,v in sorted(s.iteritems())] # this can be ignored
+            sage: [(k,v) for k,v in sorted(s.items())] # this can be ignored
             [(k003, 1), (k002, 1), (k001, 0), (k000, 1)]
             sage: F
             Polynomial Sequence with 36 Polynomials in 28 Variables

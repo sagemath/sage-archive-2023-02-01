@@ -62,6 +62,7 @@ EXAMPLES::
     sage: simplicial_complexes.MatchingComplex(6).homology()
     {0: 0, 1: Z^16, 2: 0}
 """
+from six import iteritems
 
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation
@@ -1406,7 +1407,7 @@ def RandomTwoSphere(n):
     graph = RandomTriangulation(n)
 
     graph = graph.relabel(inplace=False)
-    triangles = [(u, v, w) for u, L in graph._embedding.iteritems()
+    triangles = [(u, v, w) for u, L in iteritems(graph._embedding)
                  for v, w in zip(L, L[1:] + [L[0]]) if u < v and u < w]
 
     return SimplicialComplex(triangles, maximality_check=False)

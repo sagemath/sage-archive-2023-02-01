@@ -44,6 +44,7 @@ import six
 from sage.misc.cachefunc import cached_method
 from copy import copy
 from sage.misc.mrange import xmrange
+from sage.misc.all import prod
 from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer)
 from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer, CommutativeRing)
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
@@ -64,8 +65,8 @@ def is_ProductProjectiveSpaces(x):
     r"""
     Return True if ``x`` is a product of projective spaces.
 
-    This is an ambient space defined by`\mathbb{P}^n_R \times \cdots \times \mathbb{P}^m_R`,
-    where `R` is a ring and`n,\ldots,m\geq 0`are integers.
+    This is an ambient space defined by `\mathbb{P}^n_R \times \cdots \times \mathbb{P}^m_R`,
+    where `R` is a ring and `n,\ldots, m\geq 0` are integers.
 
     OUTPUT: Boolean.
 
@@ -893,11 +894,46 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
               -u1*u3 + u0*u4
               Defn: Defined by sending (z0 : z1 , z2 : z3 : z4) to
                     (z0*z2 : z0*z3 : z0*z4 : z1*z2 : z1*z3 : z1*z4).
+
+            ::
+
+            sage: T = ProductProjectiveSpaces([1, 2, 1], QQ, 'z')
+            sage: T.segre_embedding()
+            Scheme morphism:
+              From: Product of projective spaces P^1 x P^2 x P^1 over Rational Field
+              To:   Closed subscheme of Projective Space of dimension 11 over
+            Rational Field defined by:
+              -u9*u10 + u8*u11,
+              -u7*u10 + u6*u11,
+              -u7*u8 + u6*u9,
+              -u5*u10 + u4*u11,
+              -u5*u8 + u4*u9,
+              -u5*u6 + u4*u7,
+              -u5*u9 + u3*u11,
+              -u5*u8 + u3*u10,
+              -u5*u8 + u2*u11,
+              -u4*u8 + u2*u10,
+              -u3*u8 + u2*u9,
+              -u3*u6 + u2*u7,
+              -u3*u4 + u2*u5,
+              -u5*u7 + u1*u11,
+              -u5*u6 + u1*u10,
+              -u3*u7 + u1*u9,
+              -u3*u6 + u1*u8,
+              -u5*u6 + u0*u11,
+              -u4*u6 + u0*u10,
+              -u3*u6 + u0*u9,
+              -u2*u6 + u0*u8,
+              -u1*u6 + u0*u7,
+              -u1*u4 + u0*u5,
+              -u1*u2 + u0*u3
+              Defn: Defined by sending (z0 : z1 , z2 : z3 : z4 , z5 : z6) to
+                    (z0*z2*z5 : z0*z2*z6 : z0*z3*z5 : z0*z3*z6 : z0*z4*z5 : z0*z4*z6
+            : z1*z2*z5 : z1*z2*z6 : z1*z3*z5 : z1*z3*z6 : z1*z4*z5 : z1*z4*z6).
         """
         N = self._dims
-        if len(N) > 2:
-            raise NotImplementedError("cannot have more than two components.")
-        M = (N[0]+1) * (N[1]+1)-1
+        M = prod([n+1 for n in N]) - 1
+        CR = self.coordinate_ring()
 
         vars = list(self.coordinate_ring().variable_names()) + [var + str(i) for i in range(M+1)]
         R = PolynomialRing(self.base_ring(), self.ngens()+M+1, vars, order='lex')
@@ -905,10 +941,15 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         #set-up the elimination for the segre embedding
         mapping = []
         k = self.ngens()
-        for i in range(N[0]+1):
-            for j in range(N[0]+1, N[0] + N[1]+2):
-                mapping.append(R.gen(k) - R(self.gen(i) * self.gen(j)))
-                k += 1
+        index = self.num_components()*[0]
+        for count in range(M + 1):
+            mapping.append(R.gen(k+count)-prod([CR(self[i].gen(index[i])) for i in range(len(index))]))
+            for i in range(len(index)-1, -1, -1):
+                if index[i] == N[i]:
+                    index[i] = 0
+                else:
+                    index[i] += 1
+                    break #only increment once
 
         #change the defining ideal of the subscheme into the variables
         I = R.ideal(list(self.defining_polynomials()) + mapping)
@@ -922,21 +963,27 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         #create new subscheme
         if PP is None:
-            PS = ProjectiveSpace(self.base_ring(),M,R.gens()[self.ngens():])
+            PS = ProjectiveSpace(self.base_ring(), M, R.gens()[self.ngens():])
             Y = PS.subscheme(L)
         else:
-            if PP.dimension_relative()!= M:
+            if PP.dimension_relative() != M:
                 raise ValueError("projective Space %s must be dimension %s")%(PP, M)
             S = PP.coordinate_ring()
-            psi = R.hom([0] * (N[0] + N[1]+2) + list(S.gens()), S)
+            psi = R.hom([0]*k + list(S.gens()), S)
             L = [psi(l) for l in L]
             Y = PP.subscheme(L)
 
         #create embedding for points
         mapping = []
-        for i in range(N[0]+1):
-            for j in range(N[0]+1, N[0] + N[1]+2):
-                mapping.append(self.gen(i) * self.gen(j))
+        index = self.num_components()*[0]
+        for count in range(M + 1):
+            mapping.append(prod([CR(self[i].gen(index[i])) for i in range(len(index))]))
+            for i in range(len(index)-1, -1, -1):
+                if index[i] == N[i]:
+                    index[i] = 0
+                else:
+                    index[i] += 1
+                    break #only increment once
         phi = self.hom(mapping, Y)
 
         return phi

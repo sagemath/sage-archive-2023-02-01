@@ -51,6 +51,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.abstract_method import abstract_method
 from sage.structure.factory import UniqueFactory
 from sage.structure.element import MonoidElement
+from sage.structure.sage_object import richcmp
 from sage.categories.monoids import Monoids
 from sage.categories.morphism import Morphism
 from sage.structure.parent import Parent
@@ -272,7 +273,7 @@ class Sigma0Element(MonoidElement):
         """
         return self.parent()(self._mat * other._mat, check=False)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare two elements (of a common Sigma0 object).
 
@@ -286,12 +287,12 @@ class Sigma0Element(MonoidElement):
             sage: s == Sigma0(1)([1,4,3,3])
             True
 
-        This uses the coercion model to find a common parent, with occasionally surprising results:
+        This uses the coercion model to find a common parent, with occasionally surprising results::
 
             sage: t == Sigma0(5)([4, 0, 0, 1])
             False
         """
-        return cmp(self._mat, other._mat)
+        return richcmp(self._mat, other._mat, op)
 
     def _repr_(self):
         r"""
@@ -384,7 +385,7 @@ class _Sigma0Embedding(Morphism):
         """
         return x.matrix()
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Required for pickling.
 
@@ -396,7 +397,7 @@ class _Sigma0Embedding(Morphism):
             sage: x == loads(dumps(x))
             True
         """
-        return cmp(type(self), type(other)) or cmp(self.domain(), other.domain())
+        return richcmp(self.domain(), other.domain(), op)
 
 
 class Sigma0_class(Parent):

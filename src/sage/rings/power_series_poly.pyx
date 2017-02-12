@@ -4,13 +4,14 @@ Power Series Methods
 
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from infinity import infinity, is_Infinite
+from .infinity import infinity, is_Infinite
 from sage.libs.all import pari_gen, PariError
 from sage.misc.superseded import deprecated_function_alias
+
 
 cdef class PowerSeries_poly(PowerSeries):
 
@@ -49,9 +50,9 @@ cdef class PowerSeries_poly(PowerSeries):
                 pass
             elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
-            elif isinstance(f, PowerSeries_poly):
-                prec = (<PowerSeries_poly>f)._prec
-                f = R((<PowerSeries_poly>f).__f)
+            elif isinstance(f, PowerSeries):  # not only PowerSeries_poly
+                prec = (<PowerSeries>f)._prec
+                f = R(f.polynomial())
             else:
                 if f:
                     f = R(f, check=check)
@@ -1050,8 +1051,6 @@ cdef class PowerSeries_poly(PowerSeries):
             g += R(k.padded_list(i)[i - 1]/i)*t**i
         g = g.add_bigoh(out_prec)
         return PowerSeries_poly(out_parent, g, out_prec, check=False)
-
-    reversion = deprecated_function_alias(17724, reverse)
 
     def pade(self, m, n):
         r"""

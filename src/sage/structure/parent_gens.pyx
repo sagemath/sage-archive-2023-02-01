@@ -75,14 +75,15 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 include 'sage/ext/stdsage.pxi'
 
 import sage.misc.defaults
 from sage.misc.latex import latex_variable_name
-import gens_py
-cimport parent
+from . import gens_py
+cimport sage.structure.parent as parent
 from sage.structure.coerce_dict import MonoDict
 cimport sage.structure.category_object as category_object
 

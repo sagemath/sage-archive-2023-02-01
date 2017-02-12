@@ -709,7 +709,7 @@ class GraphClasses(UniqueRepresentation):
 
             sage: t = graph_classes.classes()
             sage: type(t)
-            <type 'dict'>
+            <... 'dict'>
             sage: sorted(t["gc_151"].keys())
             ['id', 'name', 'problem', 'type']
             sage: t["gc_151"]['name']

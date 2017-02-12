@@ -163,7 +163,7 @@ class SBox(SageObject):
         """
         return self.m
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         S-boxes are considered to be equal if all construction
         parameters match.
@@ -174,7 +174,20 @@ class SBox(SageObject):
             sage: loads(dumps(S)) == S
             True
         """
-        return cmp((self._S,self._big_endian), (other._S,self._big_endian))
+        return (self._S, self._big_endian) == (other._S, self._big_endian)
+
+    def __ne__(self, other):
+        """
+        S-boxes are considered to be equal if all construction
+        parameters match.
+
+        EXAMPLE::
+
+            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S != S
+            False
+        """
+        return not self.__eq__(other)
 
     def to_bits(self, x, n=None):
         """

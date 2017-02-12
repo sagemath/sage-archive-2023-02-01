@@ -687,12 +687,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(R100(1) + float(1))
-            <type 'float'>
+            <... 'float'>
             sage: cm.explain(QQ, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(QQ(1) + float(1))
-            <type 'float'>
+            <... 'float'>
 
 
         Special care is taken to deal with division::
@@ -884,7 +884,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.common_parent(4r, 5r)
             <... 'int'>
             sage: cm.common_parent(int, float, ZZ)
-            <type 'float'>
+            <... 'float'>
             sage: real_fields = [RealField(prec) for prec in [10,20..100]]
             sage: cm.common_parent(*real_fields)
             Real Field with 10 bits of precision

@@ -277,9 +277,8 @@ class SuffixTrie(SageObject):
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words([0,1])([0,1,0,1,1])
             sage: t = SuffixTrie(w)
-            sage: [t.transition_function(u,letter) == v \
-                    for ((u,letter),v) in t._transition_function.iteritems()] \
-                    == [True] * len(t._transition_function)
+            sage: all(t.transition_function(u, letter) == v
+            ....:     for ((u, letter), v) in t._transition_function.items())
             True
         """
         if node == -1:

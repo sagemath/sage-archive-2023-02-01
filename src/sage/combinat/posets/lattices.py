@@ -134,6 +134,9 @@ from sage.combinat.posets.elements import (LatticePosetElement,
                                            JoinSemilatticeElement)
 from sage.combinat.posets.hasse_diagram import LatticeError
 
+import six
+
+
 ####################################################################################
 
 def MeetSemilattice(data=None, *args, **options):
@@ -1383,7 +1386,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         for e1 in range(n-1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            for e3, c in C.iteritems():
+            for e3, c in six.iteritems(C):
                 if c == 1 and len(H.closed_interval(e1, e3)) == 3:
                     if not certificate:
                         return False

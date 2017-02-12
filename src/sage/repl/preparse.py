@@ -167,7 +167,7 @@ We create a raw float::
     sage: z
     1.5949
     sage: type(z)
-    <type 'float'>
+    <... 'float'>
 
 You can also use an upper case letter::
 
@@ -175,7 +175,7 @@ You can also use an upper case letter::
     sage: z
     3.1415
     sage: type(z)
-    <type 'float'>
+    <... 'float'>
 
 This next example illustrates how raw literals can be very useful in
 certain cases.  We make a list of even integers up to 10000::

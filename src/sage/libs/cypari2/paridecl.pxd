@@ -21,15 +21,22 @@ AUTHORS:
  - Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (:trac:`16997`)
 
 """
+
+#*****************************************************************************
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import print_function
 
-from .types cimport *
 from libc.stdio cimport FILE
+from cpython.getargs cimport va_list
 
-cdef extern from '<stdarg.h>':
-    ctypedef void* va_list
+from .types cimport *
 
-cdef extern from "sage/libs/cypari2/cypari.h":
+cdef extern from *:     # PARI headers already included by types.pxd
     char* PARIVERSION
 
     # parierr.h
@@ -4492,12 +4499,6 @@ cdef extern from "sage/libs/cypari2/cypari.h":
     GEN    uutoineg(ulong x, ulong y)
     long   vali(GEN x)
     int    varncmp(long x, long y)
-
-cdef extern from "sage/libs/cypari2/cypari.h":
-    GEN set_gel(GEN x, long n, GEN z)              # gel(x, n) = z
-    GEN set_gmael(GEN x, long i, long j, GEN z)    # gmael(x, i, j) = z
-    GEN set_gcoeff(GEN x, long i, long j, GEN z)   # gcoeff(x, i, j) = z
-    GEN set_uel(GEN x, long n, ulong z)            # uel(x, n) = z
 
 
 # Inline functions in separate file

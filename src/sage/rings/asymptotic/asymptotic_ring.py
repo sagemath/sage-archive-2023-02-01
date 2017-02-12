@@ -3153,6 +3153,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ``zeta`` will be dropped (as it will be part of the
             singular expansion) and expansions around infinity will no
             longer be accepted.
+
+        TESTS::
+
+            sage: C.<T> = AsymptoticRing('T^QQ', QQ)
+            sage: (1/T)._singularity_analysis_('n', 1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedOZero: T^(-1)
         """
         from .misc import NotImplementedOZero
         OZeroEncountered = False

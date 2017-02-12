@@ -1619,11 +1619,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         If point is specified, integral distances from the point to all
         facets of this polytope will be computed.
 
-        This function CAN be used for polytopes whose dimension is smaller
-        than the dimension of the ambient space. In this case distances are
-        computed in the affine subspace spanned by the polytope and if the
-        point is given, it must be in this subspace.
-
         EXAMPLES: The matrix of distances for a 3-dimensional octahedron::
 
             sage: o = lattice_polytope.cross_polytope(3)
@@ -1661,21 +1656,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [0 2 2 0 1]
             sage: p.distances((1/2, 3, 0))
             (9/2, -3/2, -5/2, 7/2)
+            
+        This point is not even in the affine subspace of the polytope::
+        
             sage: p.distances((1, 1, 1))
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: vector is not in free module
+            (3, 1, -1, 1)
         """
         if point is not None:
-            if self.dim() < self.lattice_dim():
-                self._compute_embedding()
-                return self._sublattice_polytope.distances(
-                                                        self._pullback(point))
             return (vector(QQ, point) * self.facet_normals() +
                     self.facet_constants())
-        if self.dim() < self.lattice_dim():
-            self._compute_embedding()
-            return self._sublattice_polytope.distances()
         try:
             return self._distances
         except AttributeError:

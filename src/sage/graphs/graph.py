@@ -2473,7 +2473,7 @@ class Graph(GenericGraph):
 
         Comparison of algorithms::
 
-            sage: for i in range(10): # long test
+            sage: for i in range(10): # long time
             ....:     G = graphs.RandomBarabasiAlbert(50,2)
             ....:     bm = G.is_triangle_free(algorithm='matrix')
             ....:     bb = G.is_triangle_free(algorithm='bitset')

@@ -279,8 +279,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
             sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
             sage: PCL = PseudoConwayLattice(2, use_database=False)
             sage: PCL.check_consistency(6)
-            sage: PCL.check_consistency(60)  # long
-
+            sage: PCL.check_consistency(60)  # long time
         """
         p = self.p
         K = FiniteField(p**n, modulus = self.polynomial(n), names='a')

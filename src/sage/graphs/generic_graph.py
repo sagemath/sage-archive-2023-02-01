@@ -14901,9 +14901,9 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Comparison on algorithms::
+        Comparison of algorithms::
 
-            sage: for i in range(10): # long test
+            sage: for i in range(10): # long time
             ....:     G = graphs.RandomBarabasiAlbert(50,2)
             ....:     results = []
             ....:     results.append(G.triangles_count(algorithm='matrix'))

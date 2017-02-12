@@ -430,6 +430,75 @@ ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
         return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
 }
 
+bool factorpoly(const ex& the_ex, ex& res_prod)
+{
+        if (is_exactly_a<numeric>(the_ex)
+            or is_exactly_a<function>(the_ex)
+            or is_exactly_a<constant>(the_ex)
+            or is_exactly_a<symbol>(the_ex))
+                return false;
+
+        if (is_exactly_a<mul>(the_ex)) {
+                const mul& m = ex_to<mul>(the_ex);
+                exvector ev;
+                bool mchanged = false;
+                for (size_t i=0; i<m.nops(); ++i) {
+                        ex r;
+                        const ex& e = m.op(i);
+                        bool res = factorpoly(e, r);
+                        if (res) {
+                                ev.push_back(r);
+                                mchanged = true;
+                        }
+                        else
+                                ev.push_back(e);
+                }
+                if (mchanged)
+                        res_prod = mul(ev);
+                return mchanged;
+        }
+
+        if (is_exactly_a<power>(the_ex)) {
+                const power& pow = ex_to<power>(the_ex);
+                ex prod;
+                bool res = factorpoly(pow.op(0), prod);
+                if (not res)
+                        return false;
+                res_prod = power(prod, pow.op(1));
+                return true;
+        }
+
+        if (not is_exactly_a<add>(the_ex))
+                throw(std::runtime_error("can't happen in factor"));
+
+        if (context_ptr == nullptr) {
+                context_ptr=new giac::context();
+                giac_zero = giac::gen(std::string("0"), context_ptr);
+                giac_one = giac::gen(std::string("1"), context_ptr);
+        }
+
+        exmap repl;
+        ex poly = the_ex.to_rational(repl);
+        symbolset s1 = poly.symbols();
+        the_dimension = s1.size();
+
+        ex_int_map map;
+        exvector revmap;
+        giac::polynome p = the_ex.to_polynome(map, revmap);
+        giac::polynome p_content(the_dimension);
+        giac::factorization f;
+        bool res = factor(p, p_content, f,
+                        false, false, false, giac_one, giac_one);
+        if (not res)
+                return false;
+        res_prod = polynome_to_ex(p_content, revmap).subs(repl, subs_options::no_pattern);
+        for (auto fpair : f)
+                res_prod = mul(res_prod,
+                                power(polynome_to_ex(fpair.fact, revmap).subs(repl, subs_options::no_pattern),
+                                        fpair.mult));
+        return true;
+}
+
 } // namespace GiNaC
 
 #endif // HAVE_LIBGIAC

@@ -537,8 +537,6 @@ ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
         return canonical_to_ex(d, revmap);
 }
 
-#endif //PYNAC_HAVE_LIBGIAC
-
 bool factorpoly(const ex& the_ex, ex& res_prod)
 {
         if (is_exactly_a<numeric>(the_ex)
@@ -601,6 +599,7 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
         }
         return true;
 }
+#endif //PYNAC_HAVE_LIBGIAC
 
 } // namespace GiNaC
 

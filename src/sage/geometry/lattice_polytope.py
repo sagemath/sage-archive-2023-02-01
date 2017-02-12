@@ -2031,9 +2031,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     def facet_constant(self, i):
         r"""
         Return the constant in the ``i``-th facet inequality of this polytope.
-
-        The i-th facet inequality is given by
-        self.facet_normal(i) * X + self.facet_constant(i) >= 0.
+        
+        This is equivalent to ``facet_constants()[i]``
 
         INPUT:
 
@@ -2043,76 +2042,20 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         - integer -- the constant in the ``i``-th facet inequality.
 
-        EXAMPLES:
-
-        Let's take a look at facets of the octahedron and some polytopes
-        inside it::
+        .. SEEALSO::
+        
+            :meth:`facet_constants`,
+            :meth:`facet_normal`,
+            :meth:`facet_normals`,
+            :meth:`facets`.
+        
+        EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
-            sage: o.vertices()
-            M( 1,  0,  0),
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
-            sage: o.facet_normal(0)
-            N(1, -1, -1)
             sage: o.facet_constant(0)
             1
-            sage: p = LatticePolytope(o.vertices()(1,2,3,4,5))
-            sage: p.vertices()
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(-1, 0, 0)
-            sage: p.facet_constant(0)
-            0
-            sage: p = LatticePolytope(o.vertices()(1,2,4,5))
-            sage: p.vertices()
-            M(0,  1,  0),
-            M(0,  0,  1),
-            M(0, -1,  0),
-            M(0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(0, 1, 1)
-            sage: p.facet_constant(0)
-            1
-
-        This is a 2-dimensional lattice polytope in a 4-dimensional space::
-
-            sage: p = LatticePolytope([(1,-1,1,3), (-1,-1,1,3), (0,0,0,0)])
-            sage: p
-            2-d lattice polytope in 4-d lattice M
-            sage: p.vertices()
-            M( 1, -1, 1, 3),
-            M(-1, -1, 1, 3),
-            M( 0,  0, 0, 0)
-            in 4-d lattice M
-            sage: fns = [p.facet_normal(i) for i in range(p.nfacets())]
-            sage: fns
-            [N(11, -1, 1, 3), N(0, 1, -1, -3), N(-11, -1, 1, 3)]
-            sage: fcs = [p.facet_constant(i) for i in range(p.nfacets())]
-            sage: fcs
-            [0, 11, 0]
-
-        Now we manually compute the distance matrix of this polytope. Since it
-        is a triangle, each line (corresponding to a facet) should have two
-        zeros (vertices of the corresponding facet) and one positive number
-        (since our normals are inner)::
-
-            sage: matrix([[fns[i] * p.vertex(j) + fcs[i]
-            ....:          for j in range(p.nvertices())]
-            ....:         for i in range(p.nfacets())])
-            [22  0  0]
-            [ 0  0 11]
-            [ 0 22  0]
+            sage: o.facet_constant(0) == o.facet_constants()[0]
+            True
         """
         return self.facet_constants()[i]
 
@@ -2120,10 +2063,20 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return facet constants of ``self``.
 
+        Facet inequalities have form `n \cdot x + c \geq 0` where `n` is the
+        inner normal and `c` is a constant.
+
         OUTPUT:
 
         - an integer vector.
 
+        .. SEEALSO::
+        
+            :meth:`facet_constant`,
+            :meth:`facet_normal`,
+            :meth:`facet_normals`,
+            :meth:`facets`.
+        
         EXAMPLES:
 
         For reflexive polytopes all constants are 1::
@@ -2152,7 +2105,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(-1, -1, 1, 3)
             in 4-d lattice M
             sage: p.facet_constants()
-            (0, 0, 10, 0)
+            (0, 0, 3, 0)
         """
         try:
             return self._facet_constants
@@ -2164,9 +2117,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return the inner normal to the ``i``-th facet of this polytope.
 
-        If this polytope is not full-dimensional, facet normals will be
-        orthogonal to the integer kernel of the affine subspace spanned by
-        this polytope.
+        This is equivalent to ``facet_normals()[i]``
 
         INPUT:
 
@@ -2174,80 +2125,22 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         OUTPUT:
 
-        - vectors -- the inner normal of the ``i``-th facet
-
-        EXAMPLES:
-
-        Let's take a look at facets of the octahedron and some polytopes
-        inside it::
+        - a vector
+        
+        .. SEEALSO::
+        
+            :meth:`facet_constant`,
+            :meth:`facet_constants`,
+            :meth:`facet_normals`,
+            :meth:`facets`.
+        
+        EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
-            sage: o.vertices()
-            M( 1,  0,  0),
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
             sage: o.facet_normal(0)
             N(1, -1, -1)
-            sage: o.facet_constant(0)
-            1
-            sage: p = LatticePolytope(o.vertices()(1,2,3,4,5))
-            sage: p.vertices()
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(-1, 0, 0)
-            sage: p.facet_constant(0)
-            0
-            sage: p = LatticePolytope(o.vertices()(1,2,4,5))
-            sage: p.vertices()
-            M(0,  1,  0),
-            M(0,  0,  1),
-            M(0, -1,  0),
-            M(0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(0, 1, 1)
-            sage: p.facet_constant(0)
-            1
-
-        Here is an example of a 3-dimensional polytope in a 4-dimensional
-        space::
-
-            sage: p = LatticePolytope([(0,0,0,0), (1,1,1,3),
-            ....:                      (1,-1,1,3), (-1,-1,1,3)])
-            sage: p.vertices()
-            M( 0,  0, 0, 0),
-            M( 1,  1, 1, 3),
-            M( 1, -1, 1, 3),
-            M(-1, -1, 1, 3)
-            in 4-d lattice M
-            sage: ker = p.vertices().column_matrix().integer_kernel().matrix()
-            sage: ker
-            [ 0  0  3 -1]
-            sage: ker * p.facet_normals()
-            [0 0 0 0]
-
-        Now we manually compute the distance matrix of this polytope. Since it
-        is a simplex, each line (corresponding to a facet) should consist of
-        zeros (indicating generating vertices of the corresponding facet) and
-        a single positive number (since our normals are inner)::
-
-            sage: matrix([[p.facet_normal(i) * p.vertex(j)
-            ....:          + p.facet_constant(i)
-            ....:          for j in range(p.nvertices())]
-            ....:         for i in range(p.nfacets())])
-            [ 0 20  0  0]
-            [ 0  0 20  0]
-            [10  0  0  0]
-            [ 0  0  0 20]
+            sage: o.facet_normal(0) is o.facet_normals()[0]
+            True
         """
         return self.facet_normals()[i]
 
@@ -2255,11 +2148,21 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return inner normals to the facets of ``self``.
 
+        If this polytope is not full-dimensional, facet normals will define
+        this polytope in the affine subspace spanned by it.
+
         OUTPUT:
 
         - a :class:`point collection <PointCollection>` in the
           :meth:`dual_lattice` of ``self``.
 
+        .. SEEALSO::
+        
+            :meth:`facet_constant`,
+            :meth:`facet_constants`,
+            :meth:`facet_normal`,
+            :meth:`facets`.
+        
         EXAMPLES:
 
         Normals to facets of an octahedron are vertices of a cube::
@@ -2296,11 +2199,25 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(-1, -1, 1, 3)
             in 4-d lattice M
             sage: p.facet_normals()
-            N(  0,  10,  1,  3),
-            N( 10, -10,  0,  0),
-            N(  0,   0, -1, -3),
-            N(-10,   0,  1,  3)
+            N( 0,  3, 0,  1),
+            N( 1, -1, 0,  0),
+            N( 0,  0, 0, -1),
+            N(-3,  0, 0,  1)
             in 4-d lattice N
+            sage: p.facet_constants()
+            (0, 0, 3, 0)
+
+        Now we manually compute the distance matrix of this polytope. Since it
+        is a simplex, each line (corresponding to a facet) should consist of
+        zeros (indicating generating vertices of the corresponding facet) and
+        a single positive number (since our normals are inner)::
+
+            sage: matrix([[n * v + c for v in p.vertices()]
+            ....:     for n, c in zip(p.facet_normals(), p.facet_constants())])
+            [0 6 0 0]
+            [0 0 2 0]
+            [3 0 0 0]
+            [0 0 0 6]
         """
         try:
             return self._facet_normals

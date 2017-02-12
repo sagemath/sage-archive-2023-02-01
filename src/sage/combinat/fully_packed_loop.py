@@ -636,9 +636,27 @@ class FullyPackedLoop(Element):
         self._end_point_dictionary == other._end_point_dictionary\
         and self._six_vertex_model == other._six_vertex_model
 
+    def __ne__(self, other):
+        """
+        Check unequality.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: M = A.random_element()
+            sage: FullyPackedLoop(M) != M.to_fully_packed_loop()
+            False
+
+            sage: f0 = FullyPackedLoop(A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]))
+            sage: f1 = FullyPackedLoop(A([[1, 0, 0],[0, 0, 1],[0, 1, 0]]))
+            sage: f0 != f1
+            True
+        """
+        return not self.__eq__(other)
+    
     def to_alternating_sign_matrix(self):
         """
-        Returns the alternating sign matrix corresponding to this class.
+        Return the alternating sign matrix corresponding to this class.
 
         .. SEEALSO::
 

@@ -124,9 +124,12 @@ COMPARISONS:
 
 Comparison operations (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``)
 return ``True`` if every value in the first interval has the given relation
-to every value in the second interval. The ``cmp(a, b)`` function works
+to every value in the second interval.
+
+The ``cmp(a, b)`` function works
 differently; it compares two intervals lexicographically. (However, the
 behavior is not specified if given a non-interval and an interval.)
+Note that ``cmp`` will disappear in Python3.
 
 This convention for comparison operators has good and bad points.  The
 good:
@@ -236,6 +239,7 @@ Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 import math # for log
@@ -246,12 +250,14 @@ include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
 from cpython.string cimport *
+from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
 
 cimport sage.rings.ring
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
+from sage.structure.sage_object cimport richcmp
 
-cimport real_mpfr
+cimport sage.rings.real_mpfr as real_mpfr
 from .real_mpfr cimport RealField_class, RealNumber, RealField
 from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDZ, MPFR_RNDU, MPFR_RNDD, MPFR_RNDA
 
@@ -752,7 +758,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         except TypeError as msg:
             raise TypeError("no canonical coercion of element into self")
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Compare ``self`` to ``other``.
 
@@ -768,12 +774,15 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             False
         """
         if not isinstance(other, RealIntervalField_class):
-            return -1
-        cdef RealIntervalField_class _other
-        _other = other  # to access C structure
-        if self.__prec == _other.__prec:
-            return 0
-        return 1
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+
+        cdef RealIntervalField_class left
+        cdef RealIntervalField_class right
+        left = self
+        right = other  # to access C structure
+        return richcmp(left.__prec, right.__prec, op)
 
     def __reduce__(self):
         """
@@ -3539,7 +3548,9 @@ cdef class RealIntervalFieldElement(RingElement):
 
     cpdef _richcmp_(left, right, int op):
         """
-        Implements comparisons between intervals. (See the file header
+        Implements comparisons between intervals.
+
+        (See the file header
         comment for more information on interval comparison.)
 
         EXAMPLES::
@@ -3713,22 +3724,22 @@ cdef class RealIntervalFieldElement(RingElement):
         lt = left
         rt = right
 
-        if op == 0: #<
+        if op == Py_LT:  # <
             return mpfr_less_p(&lt.value.right, &rt.value.left)
-        elif op == 2: #==
-            # a == b iff a<=b and b <= a
+        elif op == Py_EQ:  # ==
+            # a == b iff a <= b and b <= a
             # (this gives a result with two comparisons, where the
             # obvious approach would use three)
             return mpfr_lessequal_p(&lt.value.right, &rt.value.left) \
                 and mpfr_lessequal_p(&rt.value.right, &lt.value.left)
-        elif op == 4: #>
+        elif op == Py_GT:  # >
             return mpfr_less_p(&rt.value.right, &lt.value.left)
-        elif op == 1: #<=
+        elif op == Py_LE:  # <=
             return mpfr_lessequal_p(&lt.value.right, &rt.value.left)
-        elif op == 3: #!=
+        elif op == Py_NE:  # !=
             return mpfr_less_p(&lt.value.right, &rt.value.left) \
                 or mpfr_less_p(&rt.value.right, &lt.value.left)
-        elif op == 5: #>=
+        elif op == Py_GE:  # >=
             return mpfr_lessequal_p(&rt.value.right, &lt.value.left)
 
     def __nonzero__(self):

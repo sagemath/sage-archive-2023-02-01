@@ -50,6 +50,7 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import absolute_import
 from __future__ import print_function
 
 include "cysignals/signals.pxi"
@@ -60,8 +61,8 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
-cimport free_module_element
-from free_module_element import vector
+cimport sage.modules.free_module_element as free_module_element
+from .free_module_element import vector
 
 from sage.libs.gmp.mpq cimport *
 

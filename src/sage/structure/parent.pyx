@@ -2918,7 +2918,7 @@ cdef class Set_PythonType_class(Set_generic):
 
             sage: S = sage.structure.parent.Set_PythonType(tuple)
             sage: S.object()
-            <type 'tuple'>
+            <... 'tuple'>
         """
         return self._type
 

@@ -22,6 +22,9 @@ from sage.misc.all import prod
 from sage.misc.lazy_attribute import lazy_attribute
 
 
+import six
+
+
 class FullyPackedLoop(Element):
     r"""
     A class for fully packed loops.
@@ -1112,7 +1115,7 @@ class FullyPackedLoop(Element):
             for j in range(n):
                 vertices[(i, j)] = 0
 
-        for end, vertex in self._end_point_dictionary.iteritems():
+        for end, vertex in six.iteritems(self._end_point_dictionary):
             vertices[vertex] = end
 
         return vertices

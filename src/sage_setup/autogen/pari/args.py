@@ -172,11 +172,11 @@ class PariArgumentClass(PariArgument):
 class PariInstanceArgument(PariArgumentObject):
     """
     ``self`` argument for ``Pari`` object.
+
+    This argument is never actually used.
     """
     def __init__(self):
         PariArgument.__init__(self, iter(["self"]), None, 0)
-    def convert_code(self):
-        return "        cdef Pari pari_instance = <Pari>self\n"
     def _typerepr(self):
         return "Pari"
 
@@ -297,7 +297,7 @@ class PariArgumentSeriesPrec(PariArgumentClass):
         return "serprec"
     def convert_code(self):
         s  = "        if {name} < 0:\n"
-        s += "            {name} = pari_instance.get_series_precision()\n"
+        s += "            {name} = precdl  # Global PARI series precision\n"
         return s.format(name=self.name)
 
 

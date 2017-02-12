@@ -232,7 +232,7 @@ cdef class LazyImport(object):
            Now ``Bar`` has been replaced in the dictionary of ``Foo``::
 
                sage: type(Foo.__dict__['plot'])
-               <type 'function'>
+               <... 'function'>
         """
         if self._object is not None:
             return self._object
@@ -1041,7 +1041,7 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at
         sage: 'EXAMPLES' in Bar.plot.__doc__
         True
         sage: type(Foo.__dict__['plot'])
-        <type 'function'>
+        <... 'function'>
 
     If deprecated then a deprecation warning is issued::
 

@@ -17,6 +17,3 @@ cdef class Pari(Pari_auto):
     cdef Gen _empty_vector(self, long n)
 
 cdef long get_var(v) except -2
-
-# TODO: this should not be needed
-cdef Pari _pari_instance

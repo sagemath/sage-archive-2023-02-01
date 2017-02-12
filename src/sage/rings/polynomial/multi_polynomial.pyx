@@ -1899,6 +1899,57 @@ cdef class MPolynomial(CommutativeRingElement):
 
             return ans
 
+    def specialization(self, D=None, phi=None):
+        r"""
+        Specialization of this polynomial.
+
+        Given a family of polynomials defined over a polynomial ring. A specialization
+        is a particular member of that family. The specialization can be specified either
+        by a dictionary or a :class:`SpecializationMorphism`.
+
+        INPUT:
+
+        - ``D`` -- dictionary (optional)
+
+        - ``phi`` -- SpecializationMorphism (optional)
+
+        OUTPUT: a new polynomial
+
+        EXAMPLES::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: S.<x,y> = PolynomialRing(R)
+            sage: F = x^2 + c*y^2
+            sage: F.specialization({c:2})
+            x^2 + 2*y^2
+
+        ::
+
+            sage: S.<a,b> = PolynomialRing(QQ)
+            sage: P.<x,y,z> = PolynomialRing(S)
+            sage: RR.<c,d> = PolynomialRing(P)
+            sage: f = a*x^2 + b*y^3 + c*y^2 - b*a*d + d^2 - a*c*b*z^2
+            sage: f.specialization({a:2, z:4, d:2})
+            (y^2 - 32*b)*c + b*y^3 + 2*x^2 - 4*b + 4
+
+        Check that we preserve multi- versus uni-variate::
+
+            sage: R.<l> = PolynomialRing(QQ, 1)
+            sage: S.<k> = PolynomialRing(R)
+            sage: K.<a, b, c> = PolynomialRing(S)
+            sage: F = a*k^2 + b*l + c^2
+            sage: F.specialization({b:56, c:5}).parent()
+            Univariate Polynomial Ring in a over Univariate Polynomial Ring in k
+            over Multivariate Polynomial Ring in l over Rational Field
+        """
+        if D is None:
+            if phi is None:
+                raise ValueError("either the dictionary or the specialization must be provided")
+        else:
+            from sage.rings.polynomial.flatten import SpecializationMorphism
+            phi = SpecializationMorphism(self.parent(),D)
+        return phi(self)
+
     def reduced_form(self, prec=300, return_conjugation=True, error_limit=0.000001):
         r"""
         Returns a reduced form of this polynomial.

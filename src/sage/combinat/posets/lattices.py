@@ -134,6 +134,9 @@ from sage.combinat.posets.elements import (LatticePosetElement,
                                            JoinSemilatticeElement)
 from sage.combinat.posets.hasse_diagram import LatticeError
 
+import six
+
+
 ####################################################################################
 
 def MeetSemilattice(data=None, *args, **options):
@@ -1155,7 +1158,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return (True, None)
         return True
 
-    def is_join_semidistributive(self):
+    def is_join_semidistributive(self, certificate=False):
         r"""
         Return ``True`` if the lattice is join-semidistributive, and ``False``
         otherwise.
@@ -1167,6 +1170,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             e \vee x = e \vee y \implies
             e \vee x = e \vee (x \wedge y)
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (e, x, y))`` such that `e \vee x = e \vee y`
+          but `e \vee x \neq e \vee (x \wedge y)`.
+          If ``certificate=False`` return ``True`` or ``False``.
 
         .. SEEALSO::
 
@@ -1181,6 +1196,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:                   4:[7], 5:[7], 6:[7]})
             sage: L.is_join_semidistributive()
             False
+            sage: L.is_join_semidistributive(certificate=True)
+            (False, (5, 4, 6))
 
         TESTS::
 
@@ -1202,10 +1219,32 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # for explanation of this
         n = self.cardinality()
         if n == 0:
+            if certificate:
+                return (True, None)
             return True
         H = self._hasse_diagram
-        if H.size()*2 > n*_log_2(n):
+        if not certificate and H.size()*2 > n*_log_2(n):
             return False
+
+        for v in H:
+            if H.out_degree(v) == 1 and H.kappa_dual(v) is None:
+                if not certificate:
+                    return False
+                v_ = next(H.neighbor_out_iterator(v))
+                it = H.neighbor_in_iterator
+                t1 = set(H.depth_first_search(v_, neighbors = it))
+                t2 = set(H.depth_first_search(v, neighbors = it))
+                tmp = sorted(t1.difference(t2))
+                x = tmp[0]
+                for y in tmp:
+                    if H.are_incomparable(x, y):
+                        return (False,
+                                (self._vertex_to_element(v),
+                                 self._vertex_to_element(x),
+                                 self._vertex_to_element(y)))
+        if certificate:
+            return (True, None)
+        return True
 
         return all(H.kappa_dual(v) is not None
                    for v in H if H.out_degree(v) == 1)
@@ -1347,7 +1386,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         for e1 in range(n-1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            for e3, c in C.iteritems():
+            for e3, c in six.iteritems(C):
                 if c == 1 and len(H.closed_interval(e1, e3)) == 3:
                     if not certificate:
                         return False

@@ -1292,9 +1292,9 @@ class InterfaceElement(Element):
         The Maxima variable ``x`` is different from the Sage symbolic variable::
 
             sage: (f+maxima.cos(x))
-            cos(_SAGE_VAR_x)+sin(x)
+            sin(x)+cos(_SAGE_VAR_x)
             sage: (f+maxima.cos(y))
-            cos(_SAGE_VAR_y)+sin(x)
+            sin(x)+cos(_SAGE_VAR_y)
 
         Note that you may get unexpected results when calling symbolic expressions
         and not explicitly giving the variables::

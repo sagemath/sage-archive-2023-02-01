@@ -329,11 +329,11 @@ class GraphPlot(SageObject):
             sage: g = graphs.FruchtGraph()
             sage: gp = g.graphplot()
             sage: set(map(type, flatten(gp._pos.values())))
-            {<type 'float'>}
+            {<... 'float'>}
             sage: g = graphs.BullGraph()
             sage: gp = g.graphplot(save_pos=True)
             sage: set(map(type, flatten(gp._pos.values())))
-            {<type 'float'>}
+            {<... 'float'>}
 
         Non-ascii labels are also possible using unicode (:trac:`21008`)::
 

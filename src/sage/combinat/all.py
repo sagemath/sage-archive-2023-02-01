@@ -109,6 +109,9 @@ from .tuple import Tuples, UnorderedTuples
 #Alternating sign matrices
 from .alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices, MonotoneTriangles, ContreTableaux, TruncatedStaircases
 
+#Plane Partitions
+from .plane_partition import PlanePartition, PlanePartitions
+
 # Parking Functions
 from .non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
 from .parking_functions import ParkingFunctions, ParkingFunction
@@ -199,3 +202,8 @@ lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
 
 # Constellations
 lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
+
+# Growth diagrams
+lazy_import('sage.combinat.growth', ['GrowthDiagramRSK', 'GrowthDiagramBurge',
+                                     'GrowthDiagramBinWord', 'GrowthDiagramDomino',
+                                     'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])

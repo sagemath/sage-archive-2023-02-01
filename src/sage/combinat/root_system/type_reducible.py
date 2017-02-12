@@ -20,6 +20,7 @@ from . import ambient_space
 import sage.combinat.root_system as root_system
 from sage.structure.sage_object import SageObject
 
+
 class CartanType(SageObject, CartanType_abstract):
     r"""
     A class for reducible Cartan types.
@@ -83,7 +84,7 @@ class CartanType(SageObject, CartanType_abstract):
         Internally, this relabelling is stored as a dictionary::
 
             sage: t = CartanType(["A",4], ["BC",5,2], ["C",3])
-            sage: sorted(t._index_relabelling.iteritems())
+            sage: sorted(t._index_relabelling.items())
             [((0, 1), 1), ((0, 2), 2), ((0, 3), 3), ((0, 4), 4),
              ((1, 0), 5), ((1, 1), 6), ((1, 2), 7), ((1, 3), 8), ((1, 4), 9), ((1, 5), 10),
              ((2, 1), 11), ((2, 2), 12), ((2, 3), 13)]

@@ -362,9 +362,8 @@ Another graph::
 
     sage: x = var('x')
     sage: P = plot(sin(x)/x, -4, 4, color='blue') + \
-    ...       plot(x*cos(x), -4, 4, color='red') + \
-    ...       plot(tan(x), -4, 4, color='green')
-    ...
+    ....:     plot(x*cos(x), -4, 4, color='red') + \
+    ....:     plot(tan(x), -4, 4, color='green')
     sage: P.show(ymin=-pi, ymax=pi)
 
 .. PLOT::
@@ -2402,14 +2401,6 @@ def _plot(funcs, xrange, parametric=False,
         G += line(data[start_index:], legend_label=legend_label, **options)
     else:
         G += line(data, legend_label=legend_label, **options)
-
-    # Label?
-    if label:
-        from sage.misc.superseded import deprecation
-        deprecation(4342, "Consider using legend_label instead")
-        label = '  '+str(label)
-        G += text(label, data[-1], horizontal_alignment='left',
-                  vertical_alignment='center')
 
     return G
 

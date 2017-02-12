@@ -421,7 +421,7 @@ def ReflexivePolytopes(dim):
             p.normal_form.set_cache(p._vertices)
             p.index.set_cache(n)
             # Prevents dimension computation later
-            p._dim = dim
+            p.dim.set_cache(dim)
         # Compute "fast" data in one call to PALP
         all_polars(rp)
         # Construction of all points via PALP takes more time after the switch
@@ -665,44 +665,35 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         self.__dict__.update(state)
 
-    def _compute_dim(self):
+    def _compute_embedding(self):
         r"""
-        Compute the dimension of this polytope.
+        Compute embedding data for this polytope.
 
-        If the dimension of this polytope is not equal to its ambient dimension,
-        auxiliary polytope will be created and stored for using PALP commands.
+        Useful only if the dimension of this polytope is not equal to its
+        ambient dimension.
 
         TESTS::
 
             sage: p = LatticePolytope(([1], [2], [3]))
-            sage: hasattr(p, "_dim")
+            sage: hasattr(p, "_sublattice_polytope")
             False
-            sage: p._compute_dim()
-            sage: p._dim
-            1
+            sage: p._compute_embedding()
+            sage: p._sublattice_polytope
+            1-d lattice polytope in 1-d lattice M
         """
-        if hasattr(self, "_dim"):
+        if hasattr(self, "_sublattice_polytope"):
             return
-        N = self.lattice()
         points = self._vertices
         if not points:  # the empty lattice polytope
-            self._dim = -1
             return
-        p0 = points[0]
+        p0 = self._shift_vector = points[0]
         points = [point - p0 for point in points]
-        H = N.submodule(points)
-        self._dim = H.rank()
-        # Setup auxiliary polytope and maps
-        H = H.saturation()
-        H_points = [H.coordinates(point) for point in points]
-        H_polytope = LatticePolytope(H_points, compute_vertices=True)
-        self._sublattice = H
-        self._sublattice_polytope = H_polytope
-        self._embedding_matrix = H.basis_matrix().transpose()
-        self._shift_vector = p0
+        H = self._sublattice = self.lattice().submodule(points).saturation()
+        self._sublattice_polytope = LatticePolytope([H.coordinates(point)
+                                                     for point in points])
+        M = self._embedding_matrix = H.basis_matrix().transpose()
         # In order to use facet normals obtained from subpolytopes, we
         # need the following (see Trac #9188).
-        M = self._embedding_matrix
         # Basis for the ambient space with spanned subspace in front
         basis = M.columns() + M.integer_kernel().basis()
         # Let's represent it as columns of a matrix
@@ -745,7 +736,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if self.is_reflexive():
             polar = LatticePolytope(
                 normals, compute_vertices=False, lattice=N)
-            polar._dim = self._dim
+            polar.dim.set_cache(self.dim())
             polar.is_reflexive.set_cache(True)
             polar._polar = self
             self._polar = polar
@@ -803,6 +794,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self.lattice_dim() == self.dim():
             return data
+        self._compute_embedding()
         M = self.lattice()
         if is_PointCollection(data):
             r = [M(self._embedding_matrix * point + self._shift_vector)
@@ -969,6 +961,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self.lattice_dim() == self.dim():
             return data
+        self._compute_embedding()
         if data is self._vertices:
             return self._sublattice_polytope._vertices
         if is_PointCollection(data):
@@ -1061,7 +1054,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             data.seek(pos)
             polar = LatticePolytope(read_palp_matrix(data).columns(),
                                     compute_vertices=False, lattice=N)
-            polar._dim = self._dim
+            polar.dim.set_cache(self.dim())
             polar.is_reflexive.set_cache(True)
             polar._constructed_as_polar = True
             polar._polar = self
@@ -1592,6 +1585,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         return self.points(self.boundary_point_indices())
         
+    @cached_method
     def dim(self):
         r"""
         Return the dimension of this polytope.
@@ -1611,9 +1605,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p.lattice_dim()
             3
         """
-        if not hasattr(self, "_dim"):
-            self._compute_dim()
-        return self._dim
+        return self._PPL().affine_dimension() if self.nvertices() else -1
 
     def distances(self, point=None):
         r"""
@@ -1676,11 +1668,13 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if point is not None:
             if self.dim() < self.lattice_dim():
+                self._compute_embedding()
                 return self._sublattice_polytope.distances(
                                                         self._pullback(point))
             return (vector(QQ, point) * self.facet_normals() +
                     self.facet_constants())
         if self.dim() < self.lattice_dim():
+            self._compute_embedding()
             return self._sublattice_polytope.distances()
         try:
             return self._distances

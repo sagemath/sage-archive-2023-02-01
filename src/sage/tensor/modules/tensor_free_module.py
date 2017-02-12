@@ -68,6 +68,9 @@ from sage.tensor.modules.free_module_morphism import \
                                                    FiniteRankFreeModuleMorphism
 from sage.tensor.modules.free_module_automorphism import FreeModuleAutomorphism
 
+import six
+
+
 class TensorFreeModule(FiniteRankFreeModule):
     r"""
     Class for the free modules over a commutative ring `R` that are
@@ -447,7 +450,7 @@ class TensorFreeModule(FiniteRankFreeModule):
                 resu = self.element_class(self._fmodule, (1,1),
                                           name=endo._name,
                                           latex_name=endo._latex_name)
-                for basis, mat in endo._matrices.iteritems():
+                for basis, mat in six.iteritems(endo._matrices):
                     resu.add_comp(basis[0])[:] = mat
             else:
                 raise TypeError("cannot coerce the {}".format(endo) +
@@ -467,7 +470,7 @@ class TensorFreeModule(FiniteRankFreeModule):
             resu = self.element_class(self._fmodule, (0,p), name=form._name,
                                       latex_name=form._latex_name,
                                       antisym=asym)
-            for basis, comp in form._components.iteritems():
+            for basis, comp in six.iteritems(form._components):
                 resu._components[basis] = comp.copy()
         elif isinstance(comp, FreeModuleAutomorphism):
             # coercion of an automorphism to a type-(1,1) tensor:
@@ -478,7 +481,7 @@ class TensorFreeModule(FiniteRankFreeModule):
                                 " to an element of {}".format(self))
             resu = self.element_class(self._fmodule, (1,1), name=autom._name,
                                       latex_name=autom._latex_name)
-            for basis, comp in autom._components.iteritems():
+            for basis, comp in six.iteritems(autom._components):
                 resu._components[basis] = comp.copy()
         else:
             # Standard construction:

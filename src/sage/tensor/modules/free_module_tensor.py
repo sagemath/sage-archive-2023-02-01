@@ -193,6 +193,9 @@ from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
 
+import six
+
+
 class FreeModuleTensor(ModuleElement):
     r"""
     Tensor over a free module of finite rank over a commutative ring.
@@ -1431,7 +1434,7 @@ class FreeModuleTensor(ModuleElement):
 
         """
         resu = self._new_instance()
-        for basis, comp in self._components.iteritems():
+        for basis, comp in six.iteritems(self._components):
              resu._components[basis] = comp.copy()
         return resu
 

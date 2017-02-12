@@ -1,5 +1,5 @@
 r"""
-Encoder
+Base class for Encoders
 
 Representation of a bijection between a message space and a code.
 """

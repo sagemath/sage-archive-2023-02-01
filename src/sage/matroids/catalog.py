@@ -782,7 +782,7 @@ def Wheel(n, field=None, ring=None):
     INPUT:
 
     - ``n`` -- a positive integer. The rank of the desired matroid.
-    - ``ring`` -- any ring. If provided, output will be a linear matroid 
+    - ``ring`` -- any ring. If provided, output will be a linear matroid
       over the ring or field ``ring``. If the ring is `\ZZ`, then output
       will be a regular matroid.
     - ``field`` -- any field. Same as ``ring``, but only fields are allowed.
@@ -1410,14 +1410,14 @@ def ExtendedBinaryGolayCode():
     Return the matroid of the extended binary Golay code.
 
     See
-    :func:`ExtendedBinaryGolayCode <sage.coding.code_constructions.ExtendedBinaryGolayCode>`
+    :class:`GolayCode <sage.coding.golay_code.GolayCode>`
     documentation for more on this code.
 
     EXAMPLES::
 
         sage: M = matroids.named_matroids.ExtendedBinaryGolayCode()
         sage: C = LinearCode(M.representation())
-        sage: C.is_permutation_equivalent(codes.ExtendedBinaryGolayCode()) # long time
+        sage: C.is_permutation_equivalent(codes.GolayCode(GF(2))) # long time
         True
         sage: M.is_valid()
         True
@@ -1446,14 +1446,13 @@ def ExtendedTernaryGolayCode():
     Return the matroid of the extended ternary Golay code.
 
     See
-    :func:`ExtendedTernaryGolayCode <sage.coding.code_constructions.ExtendedTernaryGolayCode>`
-    documentation for more on this code.
+    :class:`GolayCode <sage.coding.golay_code.GolayCode>`
 
     EXAMPLES::
 
         sage: M = matroids.named_matroids.ExtendedTernaryGolayCode()
         sage: C = LinearCode(M.representation())
-        sage: C.is_permutation_equivalent(codes.ExtendedTernaryGolayCode()) # long time
+        sage: C.is_permutation_equivalent(codes.GolayCode(GF(3))) # long time
         True
         sage: M.is_valid()
         True

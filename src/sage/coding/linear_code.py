@@ -869,7 +869,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()             #  example 1
+            sage: C = codes.GolayCode(GF(2))             #  example 1
             sage: C.assmus_mattson_designs(5)
             ['weights from C: ',
             [8, 12, 16, 24],
@@ -1153,7 +1153,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: C.characteristic_polynomial()
             -4/3*x^3 + 64*x^2 - 2816/3*x + 4096
         """
@@ -1176,7 +1176,7 @@ class AbstractLinearCode(Module):
             sage: C = codes.HammingCode(GF(2), 3)
             sage: C.chinen_polynomial()       # long time
             1/5*(2*sqrt(2)*t^3 + 2*sqrt(2)*t^2 + 2*t^2 + sqrt(2)*t + 2*t + 1)/(sqrt(2) + 1)
-            sage: C = codes.TernaryGolayCode()
+            sage: C = codes.GolayCode(GF(3), False)
             sage: C.chinen_polynomial()       # long time
             1/7*(3*sqrt(3)*t^3 + 3*sqrt(3)*t^2 + 3*t^2 + sqrt(3)*t + 3*t + 1)/(sqrt(3) + 1)
 
@@ -1471,7 +1471,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: C.divisor()   # Type II self-dual
             4
             sage: C = codes.QuadraticResidueCodeEvenPair(17,GF(2))[0]
@@ -1498,7 +1498,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLE::
 
-            sage: C = codes.BinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2), False)
             sage: C.is_projective()
             True
             sage: C.dual_code().minimum_distance()
@@ -2290,7 +2290,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: C.is_self_dual()
             True
             sage: C = codes.HammingCode(GF(2), 3)
@@ -2308,7 +2308,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: C.is_self_orthogonal()
             True
             sage: C = codes.HammingCode(GF(2), 3)
@@ -2669,7 +2669,7 @@ class AbstractLinearCode(Module):
 
         ::
 
-            sage: C = codes.ExtendedTernaryGolayCode()
+            sage: C = codes.GolayCode(GF(3))
             sage: M11 = MathieuGroup(11)
             sage: M11.order()
             7920
@@ -2682,7 +2682,7 @@ class AbstractLinearCode(Module):
 
         Other examples::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: G = C.permutation_automorphism_group()
             sage: G.order()
             244823040
@@ -2703,9 +2703,9 @@ class AbstractLinearCode(Module):
             True
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
             Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
-            sage: C = codes.TernaryGolayCode()
+            sage: C = codes.GolayCode(GF(3), True)
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
-            Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
+            Permutation Group with generators [(5,7)(6,11)(8,9)(10,12), (4,6,11)(5,8,12)(7,10,9), (3,4)(6,8)(9,11)(10,12), (2,3)(6,11)(8,12)(9,10), (1,2)(5,10)(7,12)(8,9)]
 
         However, the option ``algorithm="gap+verbose"``, will print out::
 

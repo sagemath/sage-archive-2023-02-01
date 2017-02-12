@@ -510,6 +510,7 @@ ex gosper_term(ex e, ex n)
         }
         A = (A * ldq).normal(0, true, false);
         B = B.subs(n == n-1).expand();
+        C = C.expand();
         int N = A.degree(n);
         int M = B.degree(n);
         int K = C.degree(n);

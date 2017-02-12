@@ -389,7 +389,7 @@ static ex frac_cancel(const ex &n, const ex &d)
 	// Handle special cases where numerator or denominator is 0
 	if (num.is_zero())
 		return (new lst(num, _ex1))->setflag(status_flags::dynallocated);
-	if (den.expand().is_zero())
+	if (den.is_zero())
 		throw(std::overflow_error("frac_cancel: division by zero in frac_cancel"));
 
 	// Bring numerator and denominator to Z[X] by multiplying with

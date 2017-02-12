@@ -719,7 +719,9 @@ class CyclicCode(AbstractLinearCode):
         n = self.length()
         h = self.check_polynomial().reverse()
         l = _to_complete_list(h, n)
-        return matrix([l[-i:] + l[:-i] for i in range(n - k)])
+        M = matrix([l[-i:] + l[:-i] for i in range(n - k)])
+        M.set_immutable()
+        return M
 
     def bch_bound(self, arithmetic=False):
         r"""
@@ -1111,7 +1113,9 @@ class CyclicCodeVectorEncoder(Encoder):
         k = C.dimension()
         n = C.length()
         l = _to_complete_list(C.generator_polynomial(), n)
-        return matrix([l[-i:] + l[:-i] for i in range(k)])
+        M = matrix([l[-i:] + l[:-i] for i in range(k)])
+        M.set_immutable()
+        return M
 
     def message_space(self):
         r"""

@@ -1230,6 +1230,7 @@ class AbstractLinearCode(Module):
             f = CP/CP(1,s)
             return f(t,sqrt(q))
 
+    @cached_method
     def parity_check_matrix(self):
         r"""
         Returns the parity check matrix of ``self``.
@@ -1265,7 +1266,9 @@ class AbstractLinearCode(Module):
         """
         G = self.generator_matrix()
         H = G.right_kernel()
-        return H.basis_matrix()
+        M = H.basis_matrix()
+        M.set_immutable()
+        return M
 
     @cached_method
     def covering_radius(self):
@@ -3886,7 +3889,7 @@ class LinearCode(AbstractLinearCode):
             True
         """
         Str = str(self)
-        G = str(self.generator_matrix()) #str because mutable matrices are unhashable
+        G = self.generator_matrix()
         return hash((Str, G)) ^ hash(Str) ^ hash(G)
 
     def generator_matrix(self, encoder_name=None, **kwargs):
@@ -3911,9 +3914,11 @@ class LinearCode(AbstractLinearCode):
             [2 1 1]
         """
         if encoder_name is None or encoder_name is 'GeneratorMatrix':
-            return self._generator_matrix
-        return super(LinearCode, self).generator_matrix(encoder_name, **kwargs)
-
+            g = self._generator_matrix
+        else:
+            g = super(LinearCode, self).generator_matrix(encoder_name, **kwargs)
+        g.set_immutable()
+        return g
 
 
 
@@ -4007,7 +4012,9 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
             [0 1 0 1 0 1 0]
             [1 1 0 1 0 0 1]
         """
-        return self.code().generator_matrix()
+        g = self.code().generator_matrix()
+        g.set_immutable()
+        return g
 
 
 
@@ -4095,7 +4102,9 @@ class LinearCodeParityCheckEncoder(Encoder):
             [0 0 1 0 1 1 0]
             [0 0 0 1 1 1 1]
         """
-        return self.code().parity_check_matrix().right_kernel_matrix()
+        g = self.code().parity_check_matrix().right_kernel_matrix()
+        g.set_immutable()
+        return g
 
 
 

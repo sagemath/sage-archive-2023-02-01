@@ -92,7 +92,6 @@ The above is consistent with the following analytic computation::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-import six
 from six.moves import range
 
 from sage.misc.all import verbose, prod
@@ -4969,13 +4968,13 @@ class HeegnerQuatAlg(SageObject):
 
         OUTPUT:
 
-            - dictionary mapping 2-tuples (u,v) to ideals
+        - dictionary mapping 2-tuples (u,v) to ideals
 
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(7)
             sage: I = H.brandt_module().right_ideals()[0]
-            sage: sorted(six.iteritems(H.cyclic_subideal_p1(I,3)))
+            sage: sorted(H.cyclic_subideal_p1(I,3).items())
             [((0, 1),
               Fractional ideal (2 + 2*j + 32*k, 2*i + 8*j + 82*k, 12*j + 60*k, 132*k)),
              ((1, 0),

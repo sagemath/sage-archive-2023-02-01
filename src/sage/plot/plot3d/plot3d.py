@@ -1133,18 +1133,19 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
                 span = 0
             else:
                 span = (len(texture)-1) / (max_z - min_z)    # max to avoid dividing by 0
-            parts = P.partition(lambda x,y,z: int((z-min_z)*span))
+            parts = P.partition(lambda x, y, z: int((z-min_z)*span))
         all = []
-        for k, G in parts.iteritems():
+        for k, G in iteritems(parts):
             G.set_texture(texture[k], opacity=opacity)
             all.append(G)
         P = Graphics3dGroup(all)
     else:
         P.set_texture(texture)
 
-    P.frame_aspect_ratio([1.0,1.0,0.5])
+    P.frame_aspect_ratio([1.0, 1.0, 0.5])
     P._set_extra_kwds(kwds)
     return P
+
 
 def spherical_plot3d(f, urange, vrange, **kwds):
     """

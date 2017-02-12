@@ -23,9 +23,11 @@ pairs of integers.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
+
 
 def is_FreeMonoidElement(x):
     return isinstance(x, FreeMonoidElement)
@@ -204,12 +206,12 @@ class FreeMonoidElement(MonoidElement):
 
         if kwds:
             x = self.gens()
-            gens_dict = dict([(name, i) for i, name in enumerate(P.variable_names())])
-            for key, value in kwds.iteritems():
+            gens_dict = {name: i for i, name in enumerate(P.variable_names())}
+            for key, value in iteritems(kwds):
                 if key in gens_dict:
                     x[gens_dict[key]] = value
 
-        if isinstance(x[0],tuple):
+        if isinstance(x[0], tuple):
             x = x[0]
 
         if len(x) != self.parent().ngens():

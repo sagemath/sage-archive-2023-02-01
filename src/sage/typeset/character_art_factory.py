@@ -16,6 +16,7 @@ Factory for Character-Based Art
 #
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
+from six import iteritems
 
 from sage.structure.sage_object import SageObject
 
@@ -272,7 +273,7 @@ class CharacterArtFactory(SageObject):
             elt._breakpoints.remove(k._l + 1)
             return elt
         repr_elems = self.concatenate(
-                (concat_no_breakpoint(k,v) for k,v in d.iteritems()),
+                (concat_no_breakpoint(k, v) for k, v in iteritems(d)),
                 comma)
         return self.build_container(repr_elems,
                 self.left_curly_brace, self.right_curly_brace)

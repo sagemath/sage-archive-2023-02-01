@@ -4968,13 +4968,13 @@ class HeegnerQuatAlg(SageObject):
 
         OUTPUT:
 
-            - dictionary mapping 2-tuples (u,v) to ideals
+        - dictionary mapping 2-tuples (u,v) to ideals
 
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(7)
             sage: I = H.brandt_module().right_ideals()[0]
-            sage: sorted(H.cyclic_subideal_p1(I,3).iteritems())
+            sage: sorted(H.cyclic_subideal_p1(I,3).items())
             [((0, 1),
               Fractional ideal (2 + 2*j + 32*k, 2*i + 8*j + 82*k, 12*j + 60*k, 132*k)),
              ((1, 0),
@@ -5420,7 +5420,7 @@ class HeegnerQuatAlg(SageObject):
         return self.kolyvagin_sigma_operator(D, c, i)
 
         #w = 0
-        #for i, a in v.dict().iteritems():
+        #for i, a in six.iteritems(v.dict()):
         #    w += a * self.kolyvagin_sigma_operator(D, c, i)
         # return w
 

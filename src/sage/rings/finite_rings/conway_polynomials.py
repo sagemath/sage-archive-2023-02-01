@@ -10,6 +10,7 @@ AUTHORS:
 - Peter Bruin
 """
 from __future__ import absolute_import
+import six
 from six.moves import range
 
 from sage.misc.fast_methods import WithEqualityById
@@ -244,7 +245,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
         # Construct a compatible element having order the lcm of orders
         q, x = xi.popitem()
         v = p**(n//q) - 1
-        for q, xitem in xi.iteritems():
+        for q, xitem in six.iteritems(xi):
             w = p**(n//q) - 1
             g, alpha, beta = v.xgcd(w)
             x = x**beta * xitem**alpha
@@ -415,7 +416,7 @@ def _frobenius_shift(K, generators, check_only=False):
     from .integer_mod import mod
     for m in n.divisors():
         compatible[m] = {}
-    for q, x in generators.iteritems():
+    for q, x in six.iteritems(generators):
         for m in (n//q).divisors():
             compatible[m][q] = x**((p**(n//q)-1)//(p**m-1))
     if check_only:
@@ -424,7 +425,7 @@ def _frobenius_shift(K, generators, check_only=False):
                 q, x = compatible[m].popitem()
             except KeyError:
                 break
-            for qq, xx in compatible[m].iteritems():
+            for qq, xx in six.iteritems(compatible[m]):
                 assert x == xx
         return
     crt = {}

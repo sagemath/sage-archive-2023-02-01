@@ -463,6 +463,8 @@ Classes and Methods
 from __future__ import print_function
 from __future__ import absolute_import
 
+from six import iteritems
+
 from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
@@ -2513,7 +2515,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         # update with rules
         if isinstance(rules, dict):
-            for k, v in rules.iteritems():
+            for k, v in iteritems(rules):
                 if not isinstance(k, str) and k not in gens:
                     raise TypeError('Cannot substitute %s in %s '
                                     'since it is neither an '
@@ -2562,7 +2564,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             from .misc import combine_exceptions
             rules = '{' + ', '.join(
                 '%s: %s' % (k, v)
-                for k, v in sorted(locals.iteritems(),
+                for k, v in sorted(iteritems(locals),
                                    key=lambda k: str(k[0]))
                 if not k.startswith('_') and
                 not any(k == str(g) and v is g for g in gens)) + '}'
@@ -2570,9 +2572,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 TypeError('Cannot apply the substitution rules %s on %s '
                           'in %s.' % (rules, self, self.parent())), e)
 
-
     subs = substitute
-
 
     def _substitute_(self, rules):
         r"""
@@ -4315,6 +4315,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
 
 from sage.categories.pushout import ConstructionFunctor
+
+
 class AsymptoticRingFunctor(ConstructionFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`

@@ -728,48 +728,36 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 3-d lattice N
         """
         assert not hasattr(self, "_facet_normals")
-        if self.dim() == self.lattice_dim():
-            N = self.dual_lattice()
-            normals = []
-            constants = []
-            for c in self._PPL().minimized_constraints():
-                assert c.is_inequality()
+        N = self.dual_lattice()
+        normals = []
+        constants = []
+        for c in self._PPL().minimized_constraints():
+            if c.is_inequality():
                 normals.append(N(c.coefficients()))
                 normals[-1].set_immutable()
                 constants.append(c.inhomogeneous_term())
-            # Sort normals if facets are vertices
-            if (self.dim() == 1
-                and normals[0] * self.vertex(0) + constants[0] != 0):
-                normals = (normals[1], normals[0])
-                constants = (constants[1], constants[0])
-            self.is_reflexive.set_cache(all(c == 1 for c in constants))
-            if self.is_reflexive():
-                polar = LatticePolytope(
-                    normals, compute_vertices=False, lattice=N)
-                polar._dim = self._dim
-                polar.is_reflexive.set_cache(True)
-                polar._polar = self
-                self._polar = polar
-                self._facet_normals = polar._vertices
-                polar._facet_normals = self._vertices
-                self._facet_constants = vector(ZZ, [1] * polar.nvertices())
-                self._facet_constants.set_immutable()
-                polar._facet_constants = vector(ZZ, [1] * self.nvertices())
-                polar._facet_constants.set_immutable()
-            else:
-                self._facet_normals = PointCollection(normals, N)
-                self._facet_constants = vector(ZZ, constants)
-                self._facet_constants.set_immutable()
+        # Sort normals if facets are vertices
+        if (self.dim() == 1
+            and normals[0] * self.vertex(0) + constants[0] != 0):
+            normals = (normals[1], normals[0])
+            constants = (constants[1], constants[0])
+        self.is_reflexive.set_cache(all(c == 1 for c in constants))
+        if self.is_reflexive():
+            polar = LatticePolytope(
+                normals, compute_vertices=False, lattice=N)
+            polar._dim = self._dim
+            polar.is_reflexive.set_cache(True)
+            polar._polar = self
+            self._polar = polar
+            self._facet_normals = polar._vertices
+            polar._facet_normals = self._vertices
+            self._facet_constants = vector(ZZ, [1] * polar.nvertices())
+            self._facet_constants.set_immutable()
+            polar._facet_constants = vector(ZZ, [1] * self.nvertices())
+            polar._facet_constants.set_immutable()
         else:
-            sp = self._sublattice_polytope
-            N = self.dual_lattice()
-            normals = [N(_) for _ in sp.facet_normals() * self._dual_embedding_matrix]
-            for n in normals:
-                n.set_immutable()
             self._facet_normals = PointCollection(normals, N)
-            self._facet_constants = (
-                            sp.facet_constants() * self._dual_embedding_scale -
-                            self._shift_vector * self._facet_normals)
+            self._facet_constants = vector(ZZ, constants)
             self._facet_constants.set_immutable()
 
     def _compute_hodge_numbers(self):

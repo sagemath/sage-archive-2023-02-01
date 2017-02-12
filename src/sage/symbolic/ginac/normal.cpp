@@ -1012,13 +1012,40 @@ bool factor(const ex& the_ex, ex& res_ex)
             or is_exactly_a<symbol>(the_ex)
             or is_exactly_a<function>(the_ex)
             or is_exactly_a<constant>(the_ex)) {
-                res_ex = the_ex;
-                return true;
+                return false;
         }
+        if (is_exactly_a<mul>(the_ex)) {
+                const mul& m = ex_to<mul>(the_ex);
+                exvector ev;
+                bool mchanged = false;
+                for (size_t i=0; i<m.nops(); ++i) {
+                        ex r;
+                        const ex& e = m.op(i);
+                        bool res = factor(e, r);
+                        if (res) {
+                                ev.push_back(r);
+                                mchanged = true;
+                        }
+                        else
+                                ev.push_back(e);
+                }
+                if (mchanged)
+                        res_ex = mul(ev);
+                return mchanged;
+        }
+        else if (is_exactly_a<power>(the_ex)) {
+                const power& p = ex_to<power>(the_ex);
+                ex r;
+                bool pchanged = factor(p.op(0), r);
+                if (pchanged)
+                        res_ex = power(r, p.op(1));
+                return pchanged;
+        }
+        ex num, den;
         ex normalized = the_ex.numer_denom();
-        ex num = normalized.op(0);
+        num = normalized.op(0);
         bool nres = factorpoly(num, res_ex);
-        ex den = normalized.op(1);
+        den = normalized.op(1);
         ex res_den;
         bool dres = factorpoly(den, res_den);
         if (not nres and not dres)

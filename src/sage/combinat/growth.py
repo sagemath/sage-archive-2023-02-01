@@ -254,13 +254,13 @@ class GrowthDiagram(SageObject):
           initialise ``labels``.
         """
         try:
-            self._covers_1((self._zero, self._zero))
+            self._covers_1(self._zero, self._zero)
         except AttributeError:
-            self._covers_1 = lambda (a,b): True
+            self._covers_1 = lambda a,b: True
         try:
-            self._covers_2((self._zero, self._zero))
+            self._covers_2(self._zero, self._zero)
         except AttributeError:
-            self._covers_2 = lambda (a,b): True
+            self._covers_2 = lambda a,b: True
 
         if filling is None:
             if labels is None:
@@ -614,10 +614,10 @@ class GrowthDiagram(SageObject):
         """
         def right_left(la, mu):
             if self._rank_function(la) < self._rank_function(mu):
-                assert self._covers_1((mu, la)), "%s has smaller rank than %s but isn't covered by it!" %(la, mu)
+                assert self._covers_1(mu, la), "%s has smaller rank than %s but isn't covered by it!" %(la, mu)
                 return 1
             elif self._rank_function(la) > self._rank_function(mu):
-                assert self._covers_2((la, mu)), "%s has smaller rank than %s but isn't covered by it!" %(mu, la)
+                assert self._covers_2(la, mu), "%s has smaller rank than %s but isn't covered by it!" %(mu, la)
                 return 0
             else:
                 raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
@@ -1020,8 +1020,8 @@ class GrowthDiagramBinWord(GrowthDiagram):
             labels = [Word(la, alphabet=[0,1]) for la in labels]
         self._zero = Word([], alphabet=[0,1])
         self._rank_function = lambda w: len(w)
-        self._covers_1 = lambda (w, v): w[:-1] == v
-        self._covers_2 = lambda (w, v): v.is_subword_of(w)
+        self._covers_1 = lambda w, v: w[:-1] == v
+        self._covers_2 = lambda w, v: v.is_subword_of(w)
         super(GrowthDiagramBinWord, self).__init__(filling = filling,
                                                    shape = shape,
                                                    labels = labels)
@@ -1429,7 +1429,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
                     yield Word(d, alphabet=[1,2])
                     break
 
-        self._covers_1 = self._covers_2 = lambda (w, v): w in covers(v)
+        self._covers_1 = self._covers_2 = lambda w, v: w in covers(v)
 
         super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
                                                           shape = shape,

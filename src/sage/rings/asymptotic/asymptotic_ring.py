@@ -3171,7 +3171,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             else:
                 result += contribution
 
-        if OZeroEncountered and result.is_exact():
+        if OZeroEncountered and (isinstance(result, int) and result == 0
+                                 or result.is_exact()):
             raise NotImplementedOZero(self)
         return result
 

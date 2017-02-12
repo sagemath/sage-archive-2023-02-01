@@ -2399,7 +2399,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: graphs.KrackhardtKiteGraph().eccentricity("a")
             Traceback (most recent call last):
             ...
-            LookupError: Vertex ('a') is not a vertex of the graph.
+            LookupError: vertex 'a' is not a vertex of the graph
         """
         cdef list current_layer
         cdef list next_layer
@@ -2415,7 +2415,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         v_int = self.get_vertex(v)
         if v_int == -1:
-            raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(repr(v)))
+            raise LookupError(f"vertex {v!r} is not a vertex of the graph")
 
         bitset_init(seen, (<CGraph>self._cg).active_vertices.size)
         bitset_set_first_n(seen, 0)

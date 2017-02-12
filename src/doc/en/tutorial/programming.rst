@@ -459,7 +459,7 @@ You can turn the above dictionary into a list with the same data:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 A common idiom is to iterate through the pairs in a dictionary:
@@ -467,7 +467,7 @@ A common idiom is to iterate through the pairs in a dictionary:
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 A dictionary is unordered, as the last output illustrates.

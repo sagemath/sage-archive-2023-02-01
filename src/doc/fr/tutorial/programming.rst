@@ -472,7 +472,7 @@ contenant les mêmes données :
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 Le parcours itératifs des paires d'un dictionnaire est un idiome de
@@ -481,7 +481,7 @@ programmation fréquent :
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Comme le montre la dernière sortie ci-dessus, un dictionnaire stocke ses

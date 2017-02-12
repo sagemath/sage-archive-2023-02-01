@@ -27,6 +27,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import iteritems
 
 from sage.structure.sage_object import SageObject
 

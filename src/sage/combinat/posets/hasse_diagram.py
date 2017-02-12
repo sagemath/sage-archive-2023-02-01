@@ -2549,6 +2549,17 @@ class HasseDiagram(DiGraph):
             sage: H = HasseDiagram('HW_oC?@@O@?O@??')
             sage: H.congruence([[0, 1]]).number_of_subsets()
             1
+
+        Check :trac:`21861`::
+
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
+            sage: tmp = H.congruence([[1, 3]])
+            sage: tmp.number_of_subsets()
+            4
+            sage: H.congruence([[0, 1]], start=tmp).number_of_subsets()
+            2
+            sage: tmp.number_of_subsets()
+            4
         """
         from sage.sets.disjoint_set import DisjointSet
         from copy import copy

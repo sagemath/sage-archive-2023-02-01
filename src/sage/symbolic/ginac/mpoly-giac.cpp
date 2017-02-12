@@ -177,7 +177,9 @@ static ex gen2ex(const giac::gen& gen)
                         return gen2ex(gen.ref_FRACptr()->num) /
                                                 gen2ex(gen.ref_FRACptr()->den);
                 default:
-                        throw std::runtime_error("gen2ex: can't happen");
+                        std::ostringstream os;
+                        os << "gen2ex: can't happen: " << int(gen.type) << std::flush;
+                        throw std::runtime_error(os.str());
         }
 }
 

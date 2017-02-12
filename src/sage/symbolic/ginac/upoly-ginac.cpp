@@ -40,6 +40,7 @@
 #include "utils.h"
 
 #include <map>
+#include <sstream>
 
 namespace GiNaC {
 
@@ -308,8 +309,11 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 
 	// Find first symbol
 	ex x;
-	if (!a.get_first_symbol(x) && !b.get_first_symbol(x))
-		throw(std::invalid_argument("invalid expression in divide()"));
+	if (!a.get_first_symbol(x) && !b.get_first_symbol(x)) {
+                std::ostringstream os;
+                os << "invalid expression in divide(): " << a << " / " << b;
+		throw(std::invalid_argument(os.str()));
+        }
 
 	// Try to avoid expanding partially factored expressions.
 	if (is_exactly_a<mul>(b)) {

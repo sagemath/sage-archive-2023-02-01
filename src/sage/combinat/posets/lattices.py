@@ -3458,7 +3458,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return the quotient lattice by ``congruence``.
 
         Let `L` be a lattice and `\Theta` be a congruence of `L` with
-        congurence classes `\Theta_1, \Theta_2, \ldots`. The quotient
+        congruence classes `\Theta_1, \Theta_2, \ldots`. The quotient
         lattice `L/\Theta` is the lattice with elements
         `\{\Theta_1, \Theta_2, \ldots\}` and meet and join given by the
         original lattice. Explicitly, if `e_1 \in \Theta_1` and

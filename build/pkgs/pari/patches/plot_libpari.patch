@@ -1,0 +1,993 @@
+commit bd96c260a028ece5b5a76b43182d839591eac2c9
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Mon Jan 9 15:55:05 2017 +0100
+
+    Move plotting frontend to libpari; initial support for multiple plotting engines
+
+diff --git a/config/Makefile.SH b/config/Makefile.SH
+index ddebdac..a28f9b9 100644
+--- a/config/Makefile.SH
++++ b/config/Makefile.SH
+@@ -72,26 +72,32 @@ postconfig=:
+ plotrunpath=
+ case "$which_graphic_lib" in
+ none)
+-  graph=plotnull;;
++  graph="";;
+ ps)
++  enable_plot_ps=yes
+   graph=plotps;;
+ Qt)
++  enable_plot_qt=yes
+   PLOTCFLAGS='-D__FANCY_WIN__ -I$(QTDIR)/include'
+   PLOTLIBS="-L\$(QTDIR)/lib $QTLIB"
+   graph=plotQt;;
+ Qt4)
++  enable_plot_qt4=yes
+   PLOTCFLAGS='-D__FANCY_WIN__ -I$(QTDIR)/include'
+   PLOTLIBS="-L\$(QTDIR)/lib $QTLIB"
+   graph=plotQt4;;
+ fltk)
++  enable_plot_fltk=yes
+   PLOTCFLAGS=
+   PLOTLIBS="$FLTK_LIBS"
+   postconfig='fltk-config --post '
+   graph=plotfltk;;
+ win32)
++  enable_plot_win32=yes
+   PLOTLIBS="-lgdi32"
+   graph=plotWin32;;
+ X11)
++  enable_plot_x=yes
+   PLOTCFLAGS="$PLOTCFLAGS $X11_INC"
+   PLOTLIBS="$PLOTLIBS $X11_LIBS"
+   plotrunpath=$X11
+@@ -100,8 +106,7 @@ win32)
+   echo >&2 "### Unrecognized graphic library '$which_graphic_lib'."
+   exit 1;;
+ esac
+-graph="plotport $graph"
+-libgraph="plottty"
++libgraph="plotport plottty"
+ 
+ KERNOBJS=
+ for f in $kernel; do
+@@ -736,10 +741,6 @@ for dir in basemath modules language gp graph systems mt; do
+     depend="./paricfg.h"
+     cflags="$cflags \$(DLCFLAGS)"
+     ;;
+-  plotport)
+-    cflags="$cflags -I$src/graph"
+-    depend="$RECT_H"
+-    ;;
+   plotQt)
+     cflags="$cflags \$(PLOTCFLAGS)"
+     depend="$RECT_H"
+@@ -755,7 +756,7 @@ for dir in basemath modules language gp graph systems mt; do
+     depend="$RECT_H"
+     compile="\$(CXX)"
+     ;;
+-  plottty)
++  plotport|plottty)
+     depend="$RECT_H"
+     cflags="$cflags \$(DLCFLAGS)"
+     ;;
+diff --git a/config/paricfg.h.SH b/config/paricfg.h.SH
+index 6fb22fa..c0c9e04 100644
+--- a/config/paricfg.h.SH
++++ b/config/paricfg.h.SH
+@@ -188,4 +188,28 @@ case $enable_tls in
+ yes) echo '#define ENABLE_TLS' >> $file;;
+ esac
+ 
++case $enable_plot_ps in
++yes) echo '#define ENABLE_PLOT_PS' >> $file;;
++esac
++
++case $enable_plot_qt in
++yes) echo '#define ENABLE_PLOT_QT' >> $file;;
++esac
++
++case $enable_plot_qt4 in
++yes) echo '#define ENABLE_PLOT_QT4' >> $file;;
++esac
++
++case $enable_plot_fltk in
++yes) echo '#define ENABLE_PLOT_FLTK' >> $file;;
++esac
++
++case $enable_plot_win32 in
++yes) echo '#define ENABLE_PLOT_WIN32' >> $file;;
++esac
++
++case $enable_plot_x in
++yes) echo '#define ENABLE_PLOT_X' >> $file;;
++esac
++
+ echo '#endif' >> $file
+diff --git a/src/functions/graphic/plotbox b/src/functions/graphic/plotbox
+index 23622f3..f697015 100644
+--- a/src/functions/graphic/plotbox
++++ b/src/functions/graphic/plotbox
+@@ -1,5 +1,4 @@
+ Function: plotbox
+-Class: highlevel
+ Section: graphic
+ C-Name: rectbox
+ Prototype: vLGG
+diff --git a/src/functions/graphic/plotclip b/src/functions/graphic/plotclip
+index 367f25f..f0943e2 100644
+--- a/src/functions/graphic/plotclip
++++ b/src/functions/graphic/plotclip
+@@ -1,5 +1,4 @@
+ Function: plotclip
+-Class: highlevel
+ Section: graphic
+ C-Name: rectclip
+ Prototype: vL
+diff --git a/src/functions/graphic/plotcolor b/src/functions/graphic/plotcolor
+index 3754445..2350170 100644
+--- a/src/functions/graphic/plotcolor
++++ b/src/functions/graphic/plotcolor
+@@ -1,5 +1,4 @@
+ Function: plotcolor
+-Class: highlevel
+ Section: graphic
+ C-Name: rectcolor
+ Prototype: vLL
+diff --git a/src/functions/graphic/plotcopy b/src/functions/graphic/plotcopy
+index 2f32c64..2796f61 100644
+--- a/src/functions/graphic/plotcopy
++++ b/src/functions/graphic/plotcopy
+@@ -1,5 +1,4 @@
+ Function: plotcopy
+-Class: highlevel
+ Section: graphic
+ C-Name: rectcopy_gen
+ Prototype: vLLGGD0,L,
+diff --git a/src/functions/graphic/plotcursor b/src/functions/graphic/plotcursor
+index b685729..153527b 100644
+--- a/src/functions/graphic/plotcursor
++++ b/src/functions/graphic/plotcursor
+@@ -1,5 +1,4 @@
+ Function: plotcursor
+-Class: highlevel
+ Section: graphic
+ C-Name: rectcursor
+ Prototype: L
+diff --git a/src/functions/graphic/plotdraw b/src/functions/graphic/plotdraw
+index 0026d33..ced478c 100644
+--- a/src/functions/graphic/plotdraw
++++ b/src/functions/graphic/plotdraw
+@@ -1,5 +1,4 @@
+ Function: plotdraw
+-Class: highlevel
+ Section: graphic
+ C-Name: rectdraw_flag
+ Prototype: vGD0,L,
+diff --git a/src/functions/graphic/ploth b/src/functions/graphic/ploth
+index 63d4eca..28d2bca 100644
+--- a/src/functions/graphic/ploth
++++ b/src/functions/graphic/ploth
+@@ -1,5 +1,4 @@
+ Function: ploth
+-Class: highlevel
+ Section: graphic
+ C-Name: ploth
+ Prototype: V=GGEpD0,M,D0,L,\nParametric|1; Recursive|2; no_Rescale|4; no_X_axis|8; no_Y_axis|16; no_Frame|32; no_Lines|64; Points_too|128; Splines|256; no_X_ticks|512; no_Y_ticks|1024; Same_ticks|2048; Complex|4096
+@@ -112,3 +111,4 @@ Doc: high precision plot of the function $y=f(x)$ represented by the expression
+  ploth(X=0,2*Pi,[(1+I)*X,exp(I*X)], "Complex")
+  @eprog\noindent will draw respectively a circle and a circle cut by the line
+  $y=x$.
++ %\syn{NO}
+diff --git a/src/functions/graphic/plothraw b/src/functions/graphic/plothraw
+index 03ceccd..79fed03 100644
+--- a/src/functions/graphic/plothraw
++++ b/src/functions/graphic/plothraw
+@@ -1,5 +1,4 @@
+ Function: plothraw
+-Class: highlevel
+ Section: graphic
+ C-Name: plothraw
+ Prototype: GGD0,L,
+diff --git a/src/functions/graphic/plothsizes b/src/functions/graphic/plothsizes
+index 8d96047..cc247d8 100644
+--- a/src/functions/graphic/plothsizes
++++ b/src/functions/graphic/plothsizes
+@@ -1,5 +1,4 @@
+ Function: plothsizes
+-Class: highlevel
+ Section: graphic
+ C-Name: plothsizes_flag
+ Prototype: D0,L,
+diff --git a/src/functions/graphic/plotinit b/src/functions/graphic/plotinit
+index 0c6c709..4d66be6 100644
+--- a/src/functions/graphic/plotinit
++++ b/src/functions/graphic/plotinit
+@@ -1,5 +1,4 @@
+ Function: plotinit
+-Class: highlevel
+ Section: graphic
+ C-Name: initrect_gen
+ Prototype: vLDGDGD0,L,
+diff --git a/src/functions/graphic/plotkill b/src/functions/graphic/plotkill
+index 182b53b..77699bd 100644
+--- a/src/functions/graphic/plotkill
++++ b/src/functions/graphic/plotkill
+@@ -1,5 +1,4 @@
+ Function: plotkill
+-Class: highlevel
+ Section: graphic
+ C-Name: killrect
+ Prototype: vL
+diff --git a/src/functions/graphic/plotlines b/src/functions/graphic/plotlines
+index 903b50c..d1ed9f6 100644
+--- a/src/functions/graphic/plotlines
++++ b/src/functions/graphic/plotlines
+@@ -1,5 +1,4 @@
+ Function: plotlines
+-Class: highlevel
+ Section: graphic
+ C-Name: rectlines
+ Prototype: vLGGD0,L,
+diff --git a/src/functions/graphic/plotlinetype b/src/functions/graphic/plotlinetype
+index 7f96cba..bc23419 100644
+--- a/src/functions/graphic/plotlinetype
++++ b/src/functions/graphic/plotlinetype
+@@ -1,5 +1,4 @@
+ Function: plotlinetype
+-Class: highlevel
+ Section: graphic
+ C-Name: rectlinetype
+ Prototype: vLL
+diff --git a/src/functions/graphic/plotmove b/src/functions/graphic/plotmove
+index 6bdd6a6..a689794 100644
+--- a/src/functions/graphic/plotmove
++++ b/src/functions/graphic/plotmove
+@@ -1,5 +1,4 @@
+ Function: plotmove
+-Class: highlevel
+ Section: graphic
+ C-Name: rectmove
+ Prototype: vLGG
+diff --git a/src/functions/graphic/plotpoints b/src/functions/graphic/plotpoints
+index cc6f01d..14e7ee2 100644
+--- a/src/functions/graphic/plotpoints
++++ b/src/functions/graphic/plotpoints
+@@ -1,5 +1,4 @@
+ Function: plotpoints
+-Class: highlevel
+ Section: graphic
+ C-Name: rectpoints
+ Prototype: vLGG
+diff --git a/src/functions/graphic/plotpointsize b/src/functions/graphic/plotpointsize
+index d8ae632..1cc8a2e 100644
+--- a/src/functions/graphic/plotpointsize
++++ b/src/functions/graphic/plotpointsize
+@@ -1,5 +1,4 @@
+ Function: plotpointsize
+-Class: highlevel
+ Section: graphic
+ C-Name: rectpointsize
+ Prototype: vLG
+diff --git a/src/functions/graphic/plotpointtype b/src/functions/graphic/plotpointtype
+index e0b4c39..1dc06de 100644
+--- a/src/functions/graphic/plotpointtype
++++ b/src/functions/graphic/plotpointtype
+@@ -1,5 +1,4 @@
+ Function: plotpointtype
+-Class: highlevel
+ Section: graphic
+ C-Name: rectpointtype
+ Prototype: vLL
+diff --git a/src/functions/graphic/plotrbox b/src/functions/graphic/plotrbox
+index 503695e..b55d149 100644
+--- a/src/functions/graphic/plotrbox
++++ b/src/functions/graphic/plotrbox
+@@ -1,5 +1,4 @@
+ Function: plotrbox
+-Class: highlevel
+ Section: graphic
+ C-Name: rectrbox
+ Prototype: vLGG
+diff --git a/src/functions/graphic/plotrecth b/src/functions/graphic/plotrecth
+index dcb1528..7f6c66d 100644
+--- a/src/functions/graphic/plotrecth
++++ b/src/functions/graphic/plotrecth
+@@ -1,5 +1,4 @@
+ Function: plotrecth
+-Class: highlevel
+ Section: graphic
+ C-Name: rectploth
+ Prototype: LV=GGEpD0,M,D0,L,\nParametric|1; Recursive|2; no_Rescale|4; no_X_axis|8; no_Y_axis|16; no_Frame|32; no_Lines|64; Points_too|128; Splines|256; no_X_ticks|512; no_Y_ticks|1024; Same_ticks|2048; Complex|4096
+@@ -8,3 +7,4 @@ Help: plotrecth(w,X=a,b,expr,{flag=0},{n=0}):
+  ploth(w,X=a,b,expr,flag,n). Returns a vector for the bounding box.
+ Doc: writes to rectwindow $w$ the curve output of
+  \kbd{ploth}$(w,X=a,b,\var{expr},\fl,n)$. Returns a vector for the bounding box.
++ %\syn{NO}
+diff --git a/src/functions/graphic/plotrecthraw b/src/functions/graphic/plotrecthraw
+index 305456c..cef2f48 100644
+--- a/src/functions/graphic/plotrecthraw
++++ b/src/functions/graphic/plotrecthraw
+@@ -1,5 +1,4 @@
+ Function: plotrecthraw
+-Class: highlevel
+ Section: graphic
+ C-Name: rectplothraw
+ Prototype: LGD0,L,
+diff --git a/src/functions/graphic/plotrline b/src/functions/graphic/plotrline
+index 0720718..86d5b77 100644
+--- a/src/functions/graphic/plotrline
++++ b/src/functions/graphic/plotrline
+@@ -1,5 +1,4 @@
+ Function: plotrline
+-Class: highlevel
+ Section: graphic
+ C-Name: rectrline
+ Prototype: vLGG
+diff --git a/src/functions/graphic/plotrmove b/src/functions/graphic/plotrmove
+index b83c493..6d4afbc 100644
+--- a/src/functions/graphic/plotrmove
++++ b/src/functions/graphic/plotrmove
+@@ -1,5 +1,4 @@
+ Function: plotrmove
+-Class: highlevel
+ Section: graphic
+ C-Name: rectrmove
+ Prototype: vLGG
+diff --git a/src/functions/graphic/plotrpoint b/src/functions/graphic/plotrpoint
+index 37648ff..707335a 100644
+--- a/src/functions/graphic/plotrpoint
++++ b/src/functions/graphic/plotrpoint
+@@ -1,5 +1,4 @@
+ Function: plotrpoint
+-Class: highlevel
+ Section: graphic
+ C-Name: rectrpoint
+ Prototype: vLGG
+diff --git a/src/functions/graphic/plotscale b/src/functions/graphic/plotscale
+index 3c81e3d..a8524c9 100644
+--- a/src/functions/graphic/plotscale
++++ b/src/functions/graphic/plotscale
+@@ -1,5 +1,4 @@
+ Function: plotscale
+-Class: highlevel
+ Section: graphic
+ C-Name: rectscale
+ Prototype: vLGGGG
+diff --git a/src/functions/graphic/plotstring b/src/functions/graphic/plotstring
+index 54792dd..ca79084 100644
+--- a/src/functions/graphic/plotstring
++++ b/src/functions/graphic/plotstring
+@@ -1,5 +1,4 @@
+ Function: plotstring
+-Class: highlevel
+ Section: graphic
+ C-Name: rectstring3
+ Prototype: vLsD0,L,
+diff --git a/src/functions/graphic/psdraw b/src/functions/graphic/psdraw
+index 5d3f937..d2757db 100644
+--- a/src/functions/graphic/psdraw
++++ b/src/functions/graphic/psdraw
+@@ -1,5 +1,4 @@
+ Function: psdraw
+-Class: highlevel
+ Section: graphic
+ C-Name: postdraw_flag
+ Prototype: vGD0,L,
+diff --git a/src/functions/graphic/psploth b/src/functions/graphic/psploth
+index 0911e26..f6c1ffe 100644
+--- a/src/functions/graphic/psploth
++++ b/src/functions/graphic/psploth
+@@ -1,5 +1,4 @@
+ Function: psploth
+-Class: highlevel
+ Section: graphic
+ C-Name: postploth
+ Prototype: V=GGEpD0,L,D0,L,
+diff --git a/src/functions/graphic/psplothraw b/src/functions/graphic/psplothraw
+index e9b153d..4d99fe7 100644
+--- a/src/functions/graphic/psplothraw
++++ b/src/functions/graphic/psplothraw
+@@ -1,5 +1,4 @@
+ Function: psplothraw
+-Class: highlevel
+ Section: graphic
+ C-Name: postplothraw
+ Prototype: GGD0,L,
+diff --git a/src/gp/gp.c b/src/gp/gp.c
+index deaeec7..9f00381 100644
+--- a/src/gp/gp.c
++++ b/src/gp/gp.c
+@@ -540,6 +540,26 @@ cyg_environment(int argc, char ** argv)
+ }
+ #endif
+ 
++/* It's OK if none of the ENABLE_ macros are defined. This will give
++ * an error whenever ploth() is called. */
++static void
++set_graphic_engine()
++{
++#if defined(ENABLE_PLOT_X)
++  PARI_get_plot_X();
++#elif defined(ENABLE_PLOT_FLTK)
++  PARI_get_plot_fltk();
++#elif defined(ENABLE_PLOT_QT4)
++  PARI_get_plot_Qt4();
++#elif defined(ENABLE_PLOT_QT)
++  PARI_get_plot_Qt();
++#elif defined(ENABLE_PLOT_WIN32)
++  PARI_get_plot_Win32();
++#elif defined(ENABLE_PLOT_PS)
++  PARI_get_plot_ps();
++#endif
++}
++
+ int
+ main(int argc, char **argv)
+ {
+@@ -562,7 +582,7 @@ main(int argc, char **argv)
+   pari_init_defaults();
+   pari_library_path = DL_DFLT_NAME;
+   pari_stack_init(&s_A,sizeof(*A),(void**)&A);
+-  pari_init_opts(1000000 * sizeof(long), 0, INIT_SIGm | INIT_noPRIMEm | INIT_noIMTm);
++  pari_init_opts(1000000 * sizeof(long), 0, INIT_SIGm | INIT_noPRIMEm | INIT_noIMTm | INIT_GRAPHm);
+   cb_pari_err_recover = gp_err_recover;
+   cb_pari_pre_recover = gp_pre_recover;
+   cb_pari_break_loop = break_loop;
+@@ -576,7 +596,7 @@ main(int argc, char **argv)
+   pari_add_module(functions_gp);
+   pari_add_module(functions_highlevel);
+ 
+-  init_graph();
++  set_graphic_engine();
+   cb_pari_quit = gp_quit;
+   cb_pari_whatnow = whatnow;
+   cb_pari_sigint = gp_sigint_fun;
+@@ -643,8 +663,7 @@ dbg_up(long k)
+ void
+ gp_quit(long code)
+ {
+-  free_graph();
+-  pari_close();
++  pari_close_opts(INIT_JMPm | INIT_SIGm | INIT_DFTm | INIT_GRAPHm);
+   kill_buffers_upto(NULL);
+   if (!(GP_DATA->flags & gpd_QUIET)) pari_puts("Goodbye!\n");
+   if (cb_pari_end_output) cb_pari_end_output();
+diff --git a/src/gp/gp.h b/src/gp/gp.h
+index d89fdc9..6ee391f 100644
+--- a/src/gp/gp.h
++++ b/src/gp/gp.h
+@@ -33,4 +33,14 @@ extern void (*cb_gp_output)(GEN z);
+ extern void (*cb_pari_end_output)(void);
+ 
+ extern entree  functions_highlevel[], functions_gp[];
++
++/* Architecture-dependent plot files (src/graph/plotX.c ...).
++ * Note that not all these might be compiled! */
++void PARI_get_plot_X(void);
++void PARI_get_plot_fltk(void);
++void PARI_get_plot_Qt4(void);
++void PARI_get_plot_Qt(void);
++void PARI_get_plot_Win32(void);
++void PARI_get_plot_ps(void);
++
+ ENDEXTERN
+diff --git a/src/graph/plotQt.c b/src/graph/plotQt.c
+index 9aa3a81..d8adebf 100644
+--- a/src/graph/plotQt.c
++++ b/src/graph/plotQt.c
+@@ -566,20 +566,13 @@ void PlotWindow::save( int id) {
+ #endif // __FANCY_WIN__
+ 
+ 
+-
+-//
+-// Implementation of the two architecture-dependent functions
+-// (from rect.h) requested by pari's plotting routines
+-//
+-
+-
+-void
+-rectdraw0(long *w, long *x, long *y, long lw)
++/* Interface to PARI's plotting functions */
++static void
++draw(long *w, long *x, long *y, long lw)
+ {
+     if (pari_daemon()) return;  // parent process returns
+ 
+     pari_close();
+-    PARI_get_plot();
+ 
+     // launch Qt window
+     int argc = 1; char *argv[] = { "gp", "-qws"}; // set argc = 2 for cross
+@@ -606,10 +599,9 @@ rectdraw0(long *w, long *x, long *y, long lw)
+ }
+ 
+ void
+-PARI_get_plot(void)
++PARI_get_plot_Qt(void)
+ /* This function initialises the structure rect.h: pari_plot */
+ {
+-    if (pari_plot.init) return;      // pari_plot is already set
+ #ifdef __QPE__
+     pari_plot.width   = 240;         // width and
+     pari_plot.height  = 320;         //  height of plot window
+@@ -621,5 +613,6 @@ PARI_get_plot(void)
+     pari_plot.vunit   = 3;           //
+     pari_plot.fwidth  = 6;           // font width
+     pari_plot.fheight = 9;           //   and height
++    pari_plot.draw    = &draw;
+     pari_plot.init    = 1;           // flag: pari_plot is set now!
+ }
+diff --git a/src/graph/plotQt4.c b/src/graph/plotQt4.c
+index 1ef7c40..13c8905 100644
+--- a/src/graph/plotQt4.c
++++ b/src/graph/plotQt4.c
+@@ -553,20 +553,13 @@ void PlotWindow::save( int id)
+ #endif // __FANCY_WIN__
+ 
+ 
+-
+-//
+-// Implementation of the two architecture-dependent functions
+-// (from rect.h) requested by pari's plotting routines
+-//
+-
+-
+-void
+-rectdraw0(long *w, long *x, long *y, long lw)
++/* Interface to PARI's plotting functions */
++static void
++draw(long *w, long *x, long *y, long lw)
+ {
+     if (pari_daemon()) return;  // parent process returns
+ 
+     pari_close();
+-    PARI_get_plot();
+ 
+     // launch Qt window
+     int argc = 1;                         // set argc = 2 for cross
+@@ -593,10 +586,9 @@ rectdraw0(long *w, long *x, long *y, long lw)
+ }
+ 
+ void
+-PARI_get_plot(void)
++PARI_get_plot_Qt4(void)
+ /* This function initialises the structure rect.h: pari_plot */
+ {
+-    if (pari_plot.init) return;      // pari_plot is already set
+ #ifdef __QPE__
+     pari_plot.width   = 240;         // width and
+     pari_plot.height  = 320;         //  height of plot window
+@@ -608,5 +600,6 @@ PARI_get_plot(void)
+     pari_plot.vunit   = 3;           //
+     pari_plot.fwidth  = 6;           // font width
+     pari_plot.fheight = 9;           //   and height
++    pari_plot.draw    = &draw;
+     pari_plot.init    = 1;           // flag: pari_plot is set now!
+ }
+diff --git a/src/graph/plotWin32.c b/src/graph/plotWin32.c
+index 8af4d66..6ca8b9b 100644
+--- a/src/graph/plotWin32.c
++++ b/src/graph/plotWin32.c
+@@ -68,7 +68,10 @@ static void DrawString(void *data, long x, long y, char *text, long numtext)
+   TextOut((HDC)data, x, y, text, numtext);
+ }
+ 
+-void rectdraw0(long *w, long *x, long *y, long lw)
++
++/* Interface to PARI's plotting functions */
++static void
++draw(long *w, long *x, long *y, long lw)
+ {
+   char tmppath[MAX_PATH], fname[MAX_PATH];
+   struct plot_eng plotWin32;
+@@ -102,13 +105,11 @@ void rectdraw0(long *w, long *x, long *y, long lw)
+ }
+ 
+ void
+-PARI_get_plot(void)
++PARI_get_plot_Win32(void)
+ {
+   HDC hdc;
+   TEXTMETRIC tm;
+-  if (pari_plot.init) return;      /* pari_plot is already set */
+ 
+-  pari_plot.init    = 1;
+   pari_plot.width   = GetSystemMetrics(SM_CXSCREEN)/2;
+   pari_plot.height  = GetSystemMetrics(SM_CYSCREEN)/2;
+   pari_plot.hunit   = pari_plot.width/100;
+@@ -121,4 +122,6 @@ PARI_get_plot(void)
+ 
+   pari_plot.fwidth  = tm.tmAveCharWidth;
+   pari_plot.fheight = tm.tmHeight;
++  pari_plot.draw    = &draw;
++  pari_plot.init    = 1;
+ }
+diff --git a/src/graph/plotX.c b/src/graph/plotX.c
+index 13bf839..b0b6e4e 100644
+--- a/src/graph/plotX.c
++++ b/src/graph/plotX.c
+@@ -154,8 +154,10 @@ PARI_ColorSetUp(Display *display, GEN colors)
+   }
+ }
+ 
+-void
+-rectdraw0(long *w, long *x, long *y, long lw)
++
++/* Interface to PARI's plotting functions */
++static void
++draw(long *w, long *x, long *y, long lw)
+ {
+   long oldwidth,oldheight;
+   struct plot_eng plotX;
+@@ -173,7 +175,6 @@ rectdraw0(long *w, long *x, long *y, long lw)
+ 
+   if (pari_daemon()) return;  /* parent process returns */
+ 
+-  PARI_get_plot();
+   pari_close();
+ 
+   display = XOpenDisplay(NULL);
+@@ -279,13 +280,12 @@ EXIT:
+ }
+ 
+ void
+-PARI_get_plot(void)
++PARI_get_plot_X(void)
+ {
+   Display *display;
+   int screen;
+ 
+-  if (pari_plot.init) return;
+-  if (!(display = XOpenDisplay(NULL))) pari_err(e_MISC, "no X server");
++  if (!(display = XOpenDisplay(NULL))) {pari_warn(warner, "no X server"); return;}
+   screen = DefaultScreen(display);
+   pari_plot.width  = DisplayWidth(display, screen) - 40;
+   pari_plot.height = DisplayHeight(display, screen) - 60;
+@@ -293,6 +293,7 @@ PARI_get_plot(void)
+   pari_plot.fwidth  = 9;
+   pari_plot.hunit   = 5;
+   pari_plot.vunit   = 5;
+-  pari_plot.init = 1;
++  pari_plot.draw    = &draw;
++  pari_plot.init    = 1;
+   XCloseDisplay(display);
+ }
+diff --git a/src/graph/plotfltk.c b/src/graph/plotfltk.c
+index 3879728..92abcbd 100644
+--- a/src/graph/plotfltk.c
++++ b/src/graph/plotfltk.c
+@@ -189,20 +189,16 @@ int Plotter::handle(int event)
+   }
+ }
+ 
+-//
+-// Implementation of the two architecture-dependent functions
+-// (from rect.h) requested by pari's plotting routines
+-//
+ 
+-void
+-rectdraw0(long *w, long *x, long *y, long lw)
++/* Interface to PARI's plotting functions */
++static void
++fltk_draw(long *w, long *x, long *y, long lw)
+ {
+     Plotter *win;
+ 
+     if (pari_daemon()) return;  // parent process returns
+ 
+     pari_close();
+-    PARI_get_plot();
+ 
+     Fl::visual(FL_DOUBLE|FL_INDEX);
+     win = new Plotter( w, x, y, lw);
+@@ -215,15 +211,15 @@ rectdraw0(long *w, long *x, long *y, long lw)
+ }
+ 
+ void
+-PARI_get_plot(void)
++PARI_get_plot_fltk(void)
+ /* This function initialises the structure rect.h: pari_plot */
+ {
+-    if (pari_plot.init) return;      // pari_plot is already set
+     pari_plot.width   = 400;         // width and
+     pari_plot.height  = 300;         //  height of plot window
+     pari_plot.hunit   = 3;           //
+     pari_plot.vunit   = 3;           //
+     pari_plot.fwidth  = 6;           // font width
+     pari_plot.fheight = 9;           //   and height
++    pari_plot.draw    = &fltk_draw;
+     pari_plot.init    = 1;           // flag: pari_plot is set now!
+ }
+diff --git a/src/graph/plotnull.c b/src/graph/plotnull.c
+deleted file mode 100644
+index fdf26e3..0000000
+--- a/src/graph/plotnull.c
++++ /dev/null
+@@ -1,28 +0,0 @@
+-/* Copyright (C) 2000  The PARI group.
+-
+-This file is part of the PARI/GP package.
+-
+-PARI/GP is free software; you can redistribute it and/or modify it under the
+-terms of the GNU General Public License as published by the Free Software
+-Foundation. It is distributed in the hope that it will be useful, but WITHOUT
+-ANY WARRANTY WHATSOEVER.
+-
+-Check the License for details. You should have received a copy of it, along
+-with the package; see the file 'COPYING'. If not, write to the Free Software
+-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
+-
+-#include "pari.h"
+-#include "rect.h"
+-
+-void
+-rectdraw0(long *w, long *x, long *y, long lw)
+-{
+-  (void)w;
+-  (void)x;
+-  (void)y;
+-  (void)lw;
+-}
+-
+-void
+-PARI_get_plot(void)
+-{ pari_err(e_MISC,"high resolution graphics disabled"); }
+diff --git a/src/graph/plotport.c b/src/graph/plotport.c
+index c6de38f..71eba71 100644
+--- a/src/graph/plotport.c
++++ b/src/graph/plotport.c
+@@ -54,6 +54,13 @@ READ_EXPR(GEN code, GEN x) {
+ /**                                                                **/
+ /********************************************************************/
+ void
++PARI_get_plot(void)
++{
++  if (!pari_plot.init)
++    pari_err(e_MISC, "high resolution graphics disabled");
++}
++
++void
+ init_graph(void)
+ {
+   long n;
+@@ -1565,7 +1572,7 @@ rectplothrawin(long grect, dblPointList *data, long flags)
+   if (W)
+   {
+     if (W == &pari_plot)
+-      rectdraw0(w,wx,wy,2);
++      W->draw(w,wx,wy,2);
+     else
+       postdraw0(w,wx,wy,2, 0);
+     killrect(w[1]);
+@@ -1704,6 +1711,7 @@ PARI_get_psplot(void)
+   pari_psplot.fwidth = 6;
+   pari_psplot.hunit = 5;
+   pari_psplot.vunit = 5;
++  pari_psplot.draw = NULL;  /* Currently unused for ps plotting */
+ }
+ 
+ static void
+@@ -1736,7 +1744,13 @@ gendraw(GEN list, long ps, long flag)
+     ne = itos(win); check_rect(ne);
+     w[i] = ne;
+   }
+-  if (ps) postdraw0(w,x,y,n,flag); else rectdraw0(w,x,y,n);
++  if (ps)
++    postdraw0(w,x,y,n,flag);
++  else
++  {
++    PARI_get_plot();
++    pari_plot.draw(w,x,y,n);
++  }
+   pari_free(x); pari_free(y); pari_free(w);
+ }
+ 
+diff --git a/src/graph/plotps.c b/src/graph/plotps.c
+index dcdecc1..bee35bf 100644
+--- a/src/graph/plotps.c
++++ b/src/graph/plotps.c
+@@ -19,8 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
+ #include "paripriv.h"
+ #include "rect.h"
+ 
+-void
+-rectdraw0(long *w, long *x, long *y, long lw)
++
++/* Interface to PARI's plotting functions */
++static void
++draw(long *w, long *x, long *y, long lw)
+ {
+   struct plot_eng plot;
+   FILE *file;
+@@ -44,14 +46,14 @@ rectdraw0(long *w, long *x, long *y, long lw)
+ }
+ 
+ void
+-PARI_get_plot(void)
++PARI_get_plot_ps(void)
+ {
+-  if (pari_plot.init) return;
+   pari_plot.width  = 400;
+   pari_plot.height = 300;
+   pari_plot.fheight = 9;
+   pari_plot.fwidth  = 6;
+   pari_plot.hunit   = 3;
+   pari_plot.vunit   = 3;
+-  pari_plot.init = 1;
++  pari_plot.draw    = &draw;
++  pari_plot.init    = 1;
+ }
+diff --git a/src/graph/rect.h b/src/graph/rect.h
+index b8a3476..acc78a1 100644
+--- a/src/graph/rect.h
++++ b/src/graph/rect.h
+@@ -23,6 +23,7 @@ typedef struct PARI_plot {
+   long fheight;
+   long init;
+   char name[PLOT_NAME_LEN+1];
++  void (*draw)(long *w, long *x, long *y, long lw);
+ } PARI_plot;
+ 
+ extern PARI_plot pari_plot, pari_psplot;
+@@ -233,54 +234,12 @@ extern long  rectline_itype;
+ /* plotport.c */
+ typedef long (*col_counter)[ROt_MAX];
+ 
+-void  color_to_rgb(GEN c, int *r, int *g, int *b);
+-void  initrect(long ne, long x, long y);
+-void  initrect_gen(long ne, GEN x, GEN y, long flag);
+-void  killrect(long ne);
+ void  plot_count(long *w, long lw, col_counter rcolcnt);
+-GEN   ploth(GEN a, GEN b, GEN code, long prec, long flag, long numpoints);
+-GEN   ploth2(GEN a, GEN b, GEN code, long prec);
+-GEN   plothmult(GEN a, GEN b, GEN code, long prec);
+-GEN   plothraw(GEN listx, GEN listy, long flag);
+-GEN   plothsizes(void);
+-GEN   plothsizes_flag(long flag);
+-void  postdraw(GEN list);
+-void  postdraw_flag(GEN list, long flag);
+-GEN   postploth(GEN a,GEN b,GEN code,long prec,long flag,long numpoints);
+-GEN   postploth2(GEN a,GEN b,GEN code,long prec,long numpoints);
+-GEN   postplothraw(GEN listx, GEN listy, long flag);
+-void  psplot_init(struct plot_eng *S, FILE *f, double xscale, double yscale, long fontsize);
+ void  Printx(dblPointList *f);
+-void  rectbox(long ne, GEN gx2, GEN gy2);
+-void  rectcolor(long ne, long color);
+-void  rectcopy(long source, long dest, long xoff, long yoff);
+-void  rectcopy_gen(long source, long dest, GEN xoff, GEN yoff, long flag);
+-GEN   rectcursor(long ne);
+-void  rectdraw(GEN list);
+-void  rectdraw_flag(GEN list, long flag);
+-void  rectline(long ne, GEN gx2, GEN gy2);
+-void  rectlines(long ne, GEN listx, GEN listy, long flag);
+-void  rectlinetype(long ne, long t);
+-void  rectmove(long ne, GEN x, GEN y);
+-GEN   rectploth(long drawrect,GEN a, GEN b, GEN code, long prec, ulong flags, long testpoints);
+-GEN   rectplothraw(long drawrect, GEN data, long flags);
+-void  rectpoint(long ne, GEN x, GEN y);
+-void  rectpoints(long ne, GEN listx, GEN listy);
+-void  rectpointtype(long ne, long t);
+-void  rectpointsize(long ne, GEN size);
+-void  rectrbox(long ne, GEN gx2, GEN gy2);
+-void  rectrline(long ne, GEN gx2, GEN gy2);
+-void  rectrmove(long ne, GEN x, GEN y);
+-void  rectrpoint(long ne, GEN x, GEN y);
+-void  rectscale(long ne, GEN x1, GEN x2, GEN y1, GEN y2);
+-void  rectstring(long ne, char *x);
+-void  rectstring3(long ne, char *x, long dir);
+-void  rectclip(long rect);
+-
+-void gen_rectdraw0(struct plot_eng *eng, long *w, long *x, long *y, long lw, double xs, double ys);
+-
+-/* architecture-dependent plot file (plotX.c ...) */
++void  psplot_init(struct plot_eng *S, FILE *f, double xscale, double yscale, long fontsize);
++
++void  gen_rectdraw0(struct plot_eng *eng, long *w, long *x, long *y, long lw, double xs, double ys);
++
+ void  PARI_get_plot(void);
+-void  rectdraw0(long *w, long *x, long *y, long lw);
+ 
+ ENDEXTERN
+diff --git a/src/headers/paricom.h b/src/headers/paricom.h
+index 356ce51..85765c9 100644
+--- a/src/headers/paricom.h
++++ b/src/headers/paricom.h
+@@ -99,7 +99,8 @@ enum {
+   INIT_DFTm = 4,
+   INIT_noPRIMEm = 8,
+   INIT_noIMTm = 16,
+-  INIT_noINTGMPm = 32
++  INIT_noINTGMPm = 32,
++  INIT_GRAPHm = 64
+ };
+ 
+ #ifndef HAS_EXP2
+diff --git a/src/headers/paridecl.h b/src/headers/paridecl.h
+index 5565efe..98ee286 100644
+--- a/src/headers/paridecl.h
++++ b/src/headers/paridecl.h
+@@ -4054,6 +4054,53 @@ GEN     polmodular(long L, long inv, GEN x, long yvar, long compute_derivs);
+ GEN     polmodular_ZM(long L, long inv);
+ GEN     polmodular_ZXX(long L, long inv, long xvar, long yvar);
+ 
++/* plotport.c */
++
++void  color_to_rgb(GEN c, int *r, int *g, int *b);
++void  initrect(long ne, long x, long y);
++void  initrect_gen(long ne, GEN x, GEN y, long flag);
++void  killrect(long ne);
++GEN   ploth(GEN a, GEN b, GEN code, long prec, long flag, long numpoints);
++GEN   ploth2(GEN a, GEN b, GEN code, long prec);
++GEN   plothmult(GEN a, GEN b, GEN code, long prec);
++GEN   plothraw(GEN listx, GEN listy, long flag);
++GEN   plothsizes(void);
++GEN   plothsizes_flag(long flag);
++void  postdraw(GEN list);
++void  postdraw_flag(GEN list, long flag);
++GEN   postploth(GEN a,GEN b,GEN code,long prec,long flag,long numpoints);
++GEN   postploth2(GEN a,GEN b,GEN code,long prec,long numpoints);
++GEN   postplothraw(GEN listx, GEN listy, long flag);
++void  rectbox(long ne, GEN gx2, GEN gy2);
++void  rectcolor(long ne, long color);
++void  rectcopy(long source, long dest, long xoff, long yoff);
++void  rectcopy_gen(long source, long dest, GEN xoff, GEN yoff, long flag);
++GEN   rectcursor(long ne);
++void  rectdraw(GEN list);
++void  rectdraw_flag(GEN list, long flag);
++void  rectline(long ne, GEN gx2, GEN gy2);
++void  rectlines(long ne, GEN listx, GEN listy, long flag);
++void  rectlinetype(long ne, long t);
++void  rectmove(long ne, GEN x, GEN y);
++GEN   rectploth(long drawrect,GEN a, GEN b, GEN code, long prec, ulong flags, long testpoints);
++GEN   rectplothraw(long drawrect, GEN data, long flags);
++void  rectpoint(long ne, GEN x, GEN y);
++void  rectpoints(long ne, GEN listx, GEN listy);
++void  rectpointtype(long ne, long t);
++void  rectpointsize(long ne, GEN size);
++void  rectrbox(long ne, GEN gx2, GEN gy2);
++void  rectrline(long ne, GEN gx2, GEN gy2);
++void  rectrmove(long ne, GEN x, GEN y);
++void  rectrpoint(long ne, GEN x, GEN y);
++void  rectscale(long ne, GEN x1, GEN x2, GEN y1, GEN y2);
++void  rectstring(long ne, char *x);
++void  rectstring3(long ne, char *x, long dir);
++void  rectclip(long rect);
++
++/* plottty.c */
++
++void    pariplot(GEN a, GEN b, GEN code, GEN ysmlu, GEN ybigu, long prec);
++
+ /* prime.c */
+ 
+ long    BPSW_isprime(GEN x);
+@@ -4161,7 +4208,6 @@ GEN     derivfunk(void *E, GEN (*eval)(void *, GEN, long), GEN x, GEN ind0, long
+ int     forvec_init(forvec_t *T, GEN x, long flag);
+ GEN     forvec_next(forvec_t *T);
+ GEN     limitnum(void *E, GEN (*f)(void *,GEN,long), long muli, GEN alpha, long prec);
+-void    pariplot(GEN a, GEN b, GEN code, GEN ysmlu, GEN ybigu, long prec);
+ GEN     polzag(long n, long m);
+ GEN     prodeuler(void *E, GEN (*eval)(void *, GEN), GEN ga, GEN gb, long prec);
+ GEN     prodinf(void *E, GEN (*eval)(void *, GEN), GEN a, long prec);
+diff --git a/src/language/init.c b/src/language/init.c
+index 1524531..7c8e7de 100644
+--- a/src/language/init.c
++++ b/src/language/init.c
+@@ -883,6 +883,7 @@ pari_init_opts(size_t parisize, ulong maxprime, ulong init_opts)
+   try_to_recover = 1;
+   if (!(init_opts&INIT_noIMTm)) pari_mt_init();
+   if ((init_opts&INIT_SIGm)) pari_sig_init(pari_sighandler);
++  if ((init_opts&INIT_GRAPHm)) init_graph();
+ }
+ 
+ void
+@@ -936,6 +937,7 @@ pari_close_opts(ulong init_opts)
+     free((void*)GP_DATA->prompt_cont);
+     free((void*)GP_DATA->histfile);
+   }
++  if (init_opts&INIT_GRAPHm) free_graph();
+   BLOCK_SIGINT_END;
+ }
+ 

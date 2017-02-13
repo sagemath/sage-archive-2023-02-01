@@ -1,0 +1,228 @@
+commit 6ce728df0719490910a3f73cd075704af9e7b0e8
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Wed Jan 11 09:56:02 2017 +0100
+
+    Implement SVG plotting
+
+diff --git a/config/Makefile.SH b/config/Makefile.SH
+index a28f9b9..c50024e 100644
+--- a/config/Makefile.SH
++++ b/config/Makefile.SH
+@@ -106,7 +106,7 @@ win32)
+   echo >&2 "### Unrecognized graphic library '$which_graphic_lib'."
+   exit 1;;
+ esac
+-libgraph="plotport plottty"
++libgraph="plotport plottty plotsvg"
+ 
+ KERNOBJS=
+ for f in $kernel; do
+@@ -756,7 +756,7 @@ for dir in basemath modules language gp graph systems mt; do
+     depend="$RECT_H"
+     compile="\$(CXX)"
+     ;;
+-  plotport|plottty)
++  plotport|plotsvg|plottty)
+     depend="$RECT_H"
+     cflags="$cflags \$(DLCFLAGS)"
+     ;;
+diff --git a/src/graph/plotsvg.c b/src/graph/plotsvg.c
+new file mode 100644
+index 0000000..844ef2e
+--- /dev/null
++++ b/src/graph/plotsvg.c
+@@ -0,0 +1,177 @@
++/* Copyright (C) 2017  The PARI group.
++
++This file is part of the PARI/GP package.
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License along
++with this program; if not, write to the Free Software Foundation, Inc.,
++51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++*/
++
++#include "pari.h"
++#include "paripriv.h"
++#include "rect.h"
++
++/* Callback function to be called whenever an SVG plot is produced.
++ * The callback takes one argument, a const char* containing the text of
++ * the SVG file. */
++cb_plot_svg_t cb_plot_svg = pari_puts;
++
++struct svg_data {
++  pari_str str;
++  char hexcolor[8];  /* "#rrggbb\0" */
++};
++#define data_str(d) (&((struct svg_data*)(d))->str)
++#define data_hexcolor(d) (((struct svg_data*)(d))->hexcolor)
++
++static const char hexdigit[16] = "0123456789abcdef";
++
++/* Work with precision 1/scale */
++static const float scale = 1024.0;
++#define rescale(x) ((float)(x) / scale)
++
++
++static void
++svg_point(void *data, long x, long y)
++{
++  pari_str *S = data_str(data);
++
++  str_printf(S, "<circle cx='%.2f' cy='%.2f' r='0.5' ",
++    rescale(x), rescale(y));
++  str_printf(S, "style='fill:%s;stroke:none;'/>\n", data_hexcolor(data));
++}
++
++static void
++svg_line(void *data, long x1, long y1, long x2, long y2)
++{
++  pari_str *S = data_str(data);
++
++  str_printf(S, "<line x1='%.2f' y1='%.2f' x2='%.2f' y2='%.2f' ",
++    rescale(x1), rescale(y1), rescale(x2), rescale(y2));
++  str_printf(S, "style='fill:none;stroke:%s;'/>\n", data_hexcolor(data));
++}
++
++static void
++svg_rect(void *data, long x, long y, long w, long h)
++{
++  pari_str *S = data_str(data);
++
++  str_printf(S, "<rect x='%.2f' y='%.2f' width='%.2f' height='%.2f' ",
++    rescale(x), rescale(y), rescale(w), rescale(h));
++  str_printf(S, "style='fill:none;stroke:%s;'/>\n", data_hexcolor(data));
++}
++
++static void
++svg_points(void *data, long nb, struct plot_points *p)
++{
++  long i;
++  for (i = 0; i < nb; i++)
++    svg_point(data, p[i].x, p[i].y);
++}
++
++static void
++svg_color(void *data, long col)
++{
++  int r, g, b;
++  char *hexcolor = data_hexcolor(data);
++  color_to_rgb(gel(GP_DATA->colormap, col+1), &r, &g, &b);
++  hexcolor[0] = '#';
++  hexcolor[1] = hexdigit[r / 16];
++  hexcolor[2] = hexdigit[r & 15];
++  hexcolor[3] = hexdigit[g / 16];
++  hexcolor[4] = hexdigit[g & 15];
++  hexcolor[5] = hexdigit[b / 16];
++  hexcolor[6] = hexdigit[b & 15];
++  hexcolor[7] = '\0';
++}
++
++static void
++svg_lines(void *data, long nb, struct plot_points *p)
++{
++  long i;
++  pari_str *S = data_str(data);
++
++  str_printf(S, "<polyline points='");
++  for (i = 0; i < nb; i++)
++  {
++    if (i > 0) str_printf(S, " ");
++    str_printf(S, "%.2f,%.2f", rescale(p[i].x), rescale(p[i].y));
++  }
++  str_printf(S, "' style='fill:none;stroke:%s;'/>\n", data_hexcolor(data));
++}
++
++static void
++svg_text(void *data, long x, long y, char *text, long numtext)
++{
++  pari_str *S = data_str(data);
++
++  str_printf(S, "<text x='%.5f' y='%.5f' font-size='%ld' style='fill:%s;'>%s</text>\n",
++    rescale(x), rescale(y), pari_plot.fheight, data_hexcolor(data), text);
++}
++
++static void
++svg_head(pari_str *S)
++{
++  str_printf(S, "<svg width='%ld' height='%ld' version='1.1' xmlns='http://www.w3.org/2000/svg'>\n",
++    pari_plot.width, pari_plot.height);
++}
++
++static void
++svg_tail(pari_str *S)
++{
++  str_printf(S, "</svg>\n");
++}
++
++
++/* Interface to PARI's plotting functions */
++static void
++svg_draw(long *w, long *x, long *y, long lw)
++{
++  struct plot_eng pl;
++  struct svg_data data;
++
++  /* Initialize data */
++  str_init(&data.str, 0);
++  svg_color(&data, 0);
++
++  /* Initialize pl */
++  pl.data = &data;
++  pl.sc = &svg_color;
++  pl.pt = &svg_point;
++  pl.ln = &svg_line;
++  pl.bx = &svg_rect;
++  pl.mp = &svg_points;
++  pl.ml = &svg_lines;
++  pl.st = &svg_text;
++  pl.pl = &pari_plot;
++
++  svg_head(&data.str);
++  gen_rectdraw0(&pl, w, x, y, lw, scale, scale);
++  svg_tail(&data.str);
++
++  cb_plot_svg(data.str.string);
++  pari_free(data.str.string);
++}
++
++void
++PARI_get_plot_svg()
++/* This function initialises the structure rect.h: pari_plot */
++{
++  pari_plot.width   = 480;         // width and
++  pari_plot.height  = 320;         //  height of plot window
++  pari_plot.hunit   = 3;           //
++  pari_plot.vunit   = 3;           //
++  pari_plot.fwidth  = 9;           // font width
++  pari_plot.fheight = 12;          //   and height
++  pari_plot.draw    = &svg_draw;
++  pari_plot.init    = 1;           // flag: pari_plot is set now!
++}
+diff --git a/src/headers/paridecl.h b/src/headers/paridecl.h
+index 98ee286..293732f 100644
+--- a/src/headers/paridecl.h
++++ b/src/headers/paridecl.h
+@@ -4097,6 +4097,12 @@ void  rectstring(long ne, char *x);
+ void  rectstring3(long ne, char *x, long dir);
+ void  rectclip(long rect);
+ 
++/* plotsvg.c */
++
++typedef void (*cb_plot_svg_t)(const char *svg);
++void    PARI_get_plot_svg();
++extern  cb_plot_svg_t cb_plot_svg;
++
+ /* plottty.c */
+ 
+ void    pariplot(GEN a, GEN b, GEN code, GEN ysmlu, GEN ybigu, long prec);

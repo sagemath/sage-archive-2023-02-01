@@ -3359,10 +3359,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: Posets.DiamondPoset(5).is_isoform()  # Simple, so trivially isoform
             True
         """
-        # TODO: Think! Is the lattice isoform if every *principal* congruence
-        # is isoform? If every atom of the congruence lattice is isoform? If
-        # not, put an example to the tests-section.
-
         ok = (True, None) if certificate else True
 
         H = self._hasse_diagram
@@ -3425,9 +3421,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: Posets.DiamondPoset(5).is_uniform()  # Simple, so trivially uniform
             True
         """
-        # TODO: Think! Is the lattice uniform if every *principal* congruence
-        # is uniform? If every atom of the congruence lattice is uniform? If
-        # not, put an example to the tests-section.
         ok = (True, None) if certificate else True
 
         H = self._hasse_diagram
@@ -3487,9 +3480,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: [Posets.ChainPoset(i).is_regular() for i in range(5)]
             [True, True, True, False, False]
         """
-        # TODO: Think! Is the lattice regular if every *principal* congruence
-        # is regular? If every atom of the congruence lattice is regular? If
-        # not, put an example to the tests-section.
         H = self._hasse_diagram
         for cong in H.congruences_iterator():
             for part in cong:

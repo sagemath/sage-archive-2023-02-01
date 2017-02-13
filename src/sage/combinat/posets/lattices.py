@@ -1346,7 +1346,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_sectionally_complemented`
-            - Weaker properties: :meth:`is_complemented`
+            - Weaker properties: :meth:`is_complemented`, :meth:`is_coatomic`
             - Stronger properties :meth:`is_relatively_complemented`,
               :meth:`is_regular`
 

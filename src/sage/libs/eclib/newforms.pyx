@@ -134,6 +134,9 @@ cdef class ECModularSymbol:
         sage: mem2 = get_memory_usage()
         sage: (mem2-mem < 1) or (mem2 - mem)
         True
+
+        sage: ECModularSymbol.__new__(ECModularSymbol)
+        Modular symbol with sign 0 over Rational Field attached to None
     """
     def __init__(self, E, sign=1):
         """

@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Finite word
 
@@ -1303,7 +1303,7 @@ class FiniteWord_class(Word_class):
         TESTS::
 
             sage: type( Word('cacao').factor_iterator() )
-            <type 'generator'>
+            <... 'generator'>
         """
         return self.suffix_tree().factor_iterator(n)
 

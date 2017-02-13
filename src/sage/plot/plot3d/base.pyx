@@ -1610,8 +1610,8 @@ end_scene""" % (render_params.antialiasing,
             with open(filename, 'w') as outfile:
                 outfile.write(self.x3d())
         elif ext == '.stl':
-            with open(filename, 'w') as outfile:
-                outfile.write(self.stl_ascii_string())
+            with open(filename, 'wb') as outfile:
+                outfile.write(self.stl_binary())
         elif ext == '.amf':
             # todo : zip the output file ?
             with open(filename, 'w') as outfile:
@@ -1622,13 +1622,94 @@ end_scene""" % (render_params.antialiasing,
         else:
             raise ValueError('filetype {} not supported by save()'.format(ext))
 
+    def stl_binary(self):
+        """
+        Return an STL (STereoLithography) binary representation of the surface.
+
+        .. WARNING::
+
+            This only works for surfaces, not for general plot objects!
+
+        OUTPUT:
+
+        A binary string that represents the surface in the binary STL format.
+
+        See :wikipedia:`STL_(file_format)`
+
+        EXAMPLES::
+
+            sage: x,y,z = var('x,y,z')
+            sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
+            sage: astl = a.stl_binary()
+            sage: astl[:40]
+            'STL binary file / made by SageMath / ###'
+
+            sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
+            sage: p.stl_binary()[:40]
+            'STL binary file / made by SageMath / ###'
+
+        This works when faces have more then 3 sides::
+
+            sage: P = polytopes.dodecahedron()
+            sage: Q = P.plot().all[-1]
+            sage: Q.stl_binary()[:40]
+            'STL binary file / made by SageMath / ###'
+        """
+        import struct
+        from sage.modules.free_module import FreeModule
+        RR3 = FreeModule(RDF, 3)
+
+        header = b'STL binary file / made by SageMath / '
+        header += b'#' * (80 - len(header))
+        # header = 80 bytes, arbitrary ascii characters
+
+        faces = self.face_list()
+        if not faces:
+            self.triangulate()
+            faces = self.face_list()
+
+        faces_iter = faces.__iter__()
+
+        def chopped_faces_iter():
+            for face in faces_iter:
+                n = len(face)
+                if n == 3:
+                    yield face
+                else:
+                    # naive cut into triangles
+                    v = face[-1]
+                    for i in range(n - 2):
+                        yield [v, face[i], face[i + 1]]
+
+        main_data = []
+        N_triangles = 0
+        for i, j, k in chopped_faces_iter():
+            N_triangles += 1
+            ij = RR3(j) - RR3(i)
+            ik = RR3(k) - RR3(i)
+            n = ij.cross_product(ik)
+            n = n / n.norm()
+            fill = struct.pack('H', 0)
+            # 50 bytes per facet
+            # 12 times 4 bytes (float) for n, i, j, k
+            fill = b''.join(struct.pack('<f', x) for x in n)
+            fill += b''.join(struct.pack('<f', x) for x in i)
+            fill += b''.join(struct.pack('<f', x) for x in j)
+            fill += b''.join(struct.pack('<f', x) for x in k)
+            # plus 2 more bytes
+            fill += b'00'
+            main_data.append(fill)
+
+        main_data = [header, struct.pack('I', N_triangles)] + main_data
+        return b''.join(main_data)
+
     def stl_ascii_string(self, name="surface"):
         """
         Return an STL (STereoLithography) representation of the surface.
 
         .. WARNING::
 
-            This only works for triangulated surfaces!
+            This only works for surfaces, not for general plot objects!
 
         INPUT:
 
@@ -1665,6 +1746,18 @@ end_scene""" % (render_params.antialiasing,
                 endloop
             endfacet
             endsolid triangle
+
+        Now works when faces have more then 3 sides::
+
+            sage: P = polytopes.dodecahedron()
+            sage: Q = P.plot().all[-1]
+            sage: Q.stl_ascii_string().splitlines()[:6]
+            ['solid surface',
+            'facet normal 0.850650808352 -0.0 0.525731112119',
+            '    outer loop',
+            '        vertex 1.2360679775 -0.472135955 0.0',
+            '        vertex 1.2360679775 0.472135955 0.0',
+            '        vertex 0.7639320225 0.7639320225 0.7639320225']
         """
         from sage.modules.free_module import FreeModule
         RR3 = FreeModule(RDF, 3)
@@ -1674,9 +1767,6 @@ end_scene""" % (render_params.antialiasing,
             self.triangulate()
             faces = self.face_list()
 
-        if len(faces[0]) > 3:
-            raise ValueError('not made of triangles')
-
         code = ("facet normal {} {} {}\n"
                 "    outer loop\n"
                 "        vertex {} {} {}\n"
@@ -1685,8 +1775,21 @@ end_scene""" % (render_params.antialiasing,
                 "    endloop\n"
                 "endfacet\n")
 
+        faces_iter = faces.__iter__()
+
+        def chopped_faces_iter():
+            for face in faces_iter:
+                n = len(face)
+                if n == 3:
+                    yield face
+                else:
+                    # naive cut into triangles
+                    v = face[-1]
+                    for i in range(n - 2):
+                        yield [v, face[i], face[i + 1]]
+
         string_list = ["solid {}\n".format(name)]
-        for i, j, k in faces:
+        for i, j, k in chopped_faces_iter():
             ij = RR3(j) - RR3(i)
             ik = RR3(k) - RR3(i)
             n = ij.cross_product(ik)

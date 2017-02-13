@@ -16,6 +16,19 @@ TESTS::
 
     sage: m = matrix(ZZ['x'], 2, 3, [1..6])
     sage: TestSuite(m).run()
+
+Check that a pair consisting of a matrix and its echelon form is
+pickled correctly (this used to give a wrong answer due to a Python
+bug, see :trac:`17527`)::
+
+    sage: K.<x> = FractionField(QQ['x'])
+    sage: m = Matrix([[1], [x]])
+    sage: t = (m, m.echelon_form())
+    sage: loads(dumps(t))
+    (
+    [1]  [1]
+    [x], [0]
+    )
 """
 
 #*****************************************************************************

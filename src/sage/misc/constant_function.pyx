@@ -31,7 +31,7 @@ cdef class ConstantFunction(SageObject):
         sage: g == loads(dumps(g))
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+        PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
         sage: f == loads(dumps(f))
         True
 

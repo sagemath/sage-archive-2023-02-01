@@ -918,7 +918,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: float(maple(1/2))  # optional - maple
             0.5
             sage: type(_)            # optional - maple
-            <type 'float'>
+            <... 'float'>
         """
         return float(maple.eval('evalf(%s)' % self.name()))
 

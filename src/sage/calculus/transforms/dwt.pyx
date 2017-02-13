@@ -63,8 +63,8 @@ def WaveletTransform(n, wavelet_type, wavelet_k):
 
         sage: a = WaveletTransform(128,'daubechies',4)
         sage: for i in range(1, 11):
-        ...    a[i] = 1
-        ...    a[128-i] = 1
+        ....:     a[i] = 1
+        ....:     a[128-i] = 1
         sage: a.plot().show(ymin=0)
         sage: a.forward_transform()
         sage: a.plot().show()

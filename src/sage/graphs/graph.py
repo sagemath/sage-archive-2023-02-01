@@ -1441,15 +1441,17 @@ class Graph(GenericGraph):
         return False
 
     @doc_index("Connectivity, orientations, trees")
-    def bridges(self):
+    def bridges(self, labels=True):
         r"""
         Returns a list of the bridges (or cut edges).
 
         A bridge is an edge so that deleting it disconnects the graph.
+        A disconnected graph has no bridge.
 
-        .. NOTE::
+        INPUT:
 
-            This method assumes the graph is connected.
+        - ``labels`` -- (default: ``True``) if ``False``, each bridge is a tuple
+          `(u, v)` of vertices
 
         EXAMPLES::
 
@@ -1460,11 +1462,28 @@ class Graph(GenericGraph):
              sage: g.bridges()
              [(1, 10, None)]
         """
-        gs = self.strong_orientation()
-        bridges = []
-        for scc in gs.strongly_connected_components():
-            bridges.extend(gs.edge_boundary(scc))
-        return bridges
+        # Small graphs and disconnected graphs have no bridge
+        if self.order() < 2 or not self.is_connected():
+            return []
+
+        B,C = self.blocks_and_cut_vertices()
+
+        # A graph without cut-vertex has no bridge
+        if not C:
+            return []
+
+        # A block of size 2 is a bridge, unless the vertices are connected with
+        # multiple edges.
+        ME = set(self.multiple_edges(labels=False))
+        my_bridges = []
+        for b in B:
+            if len(b) == 2 and not tuple(b) in ME:
+                if labels:
+                    my_bridges.append((b[0], b[1], self.edge_label(b[0], b[1])))
+                else:
+                    my_bridges.append(tuple(b))
+
+        return my_bridges
 
     @doc_index("Connectivity, orientations, trees")
     def spanning_trees(self):
@@ -7478,6 +7497,9 @@ Graph.chromatic_polynomial      = types.MethodType(sage.graphs.chrompoly.chromat
 import sage.graphs.graph_decompositions.rankwidth
 Graph.rank_decomposition        = types.MethodType(sage.graphs.graph_decompositions.rankwidth.rank_decomposition, None, Graph)
 
+import sage.graphs.graph_decompositions.vertex_separation
+Graph.pathwidth                 = types.MethodType(sage.graphs.graph_decompositions.vertex_separation.pathwidth, None, Graph)
+
 import sage.graphs.matchpoly
 Graph.matching_polynomial       = types.MethodType(sage.graphs.matchpoly.matching_polynomial, None, Graph)
 
@@ -7516,6 +7538,7 @@ _additional_categories = {
     Graph.is_asteroidal_triple_free : "Graph properties",
     Graph.chromatic_polynomial      : "Algorithmically hard stuff",
     Graph.rank_decomposition        : "Algorithmically hard stuff",
+    Graph.pathwidth                 : "Algorithmically hard stuff",
     Graph.matching_polynomial       : "Algorithmically hard stuff",
     Graph.cliques_maximum           : "Clique-related methods",
     Graph.random_spanning_tree      : "Connectivity, orientations, trees",

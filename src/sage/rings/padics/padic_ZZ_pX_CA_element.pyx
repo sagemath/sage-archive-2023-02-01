@@ -2018,11 +2018,20 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             (10*a^2 + 2*a + 1) + (4*a^2 + 7)*11 + (5*a^2 + a + 3)*11^2 + (a^2 + 9*a + 6)*11^3 + (7*a^2 + 2*a + 3)*11^4 + O(11^5)
             sage: b^1331 == b
             True
+
+        TESTS:
+
+        Check that :trac:`22083` has been resolved::
+
+            sage: R.<a> = ZpCA(2).extension(x^2 - 2)
+            sage: R.teichmuller(a)
+            O(a^40)
+
         """
         if self.absprec == 0:
             raise ValueError("not enough precision known")
         elif self.valuation_c() > 0:
-            return self._new_c(self.prime_pow.ram_prec_cap)
+            self._set_inexact_zero(self.prime_pow.ram_prec_cap)
         else:
             self.prime_pow.teichmuller_set_c(&self.value, &self.value, self.absprec)
 

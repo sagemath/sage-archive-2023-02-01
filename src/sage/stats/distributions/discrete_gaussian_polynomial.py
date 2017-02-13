@@ -58,6 +58,7 @@ from sage.rings.all import RealField, RR, ZZ
 from .discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.structure.sage_object import SageObject
 
+
 class DiscreteGaussianDistributionPolynomialSampler(SageObject):
     r"""
     Discrete Gaussian sampler for polynomials.
@@ -117,8 +118,7 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
             8*x^7 - 11*x^5 - 19*x^4 + 6*x^3 - 34*x^2 - 21*x + 9
         """
         coeffs = [self.D() for _ in range(self.n)]
-        f = self.P(coeffs)
-        return f
+        return self.P(coeffs)
 
     def _repr_(self):
         """
@@ -128,4 +128,5 @@ class DiscreteGaussianDistributionPolynomialSampler(SageObject):
             sage: DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 3.0)
             Discrete Gaussian sampler for polynomials of degree < 8 with σ=3.000000 in each component
         """
-        return "Discrete Gaussian sampler for polynomials of degree < %d with σ=%f in each component"%(self.n, self.D.sigma)
+        # beware of unicode character in ascii string !
+        return "Discrete Gaussian sampler for polynomials of degree < %d with σ=%f in each component" % (self.n, self.D.sigma)

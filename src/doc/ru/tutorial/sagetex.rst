@@ -8,7 +8,7 @@
 копирование одного файла). См. :ref:`installation`, а также раздел "Make
 SageTeX known to TeX" `Руководства по установке Sage
 <http://doc.sagemath.org/html/en/installation/index.html>`_ (`данная ссылка
-<../installation/index.html>`_ ведет к локальному размещению копии руководства
+<../../en/installation/index.html>`_ ведет к локальному размещению копии руководства
 по установке).
 
 В этом уроке показан небольшой пример использования SageTeX. Полная документация

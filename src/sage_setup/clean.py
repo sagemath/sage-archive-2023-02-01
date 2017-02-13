@@ -39,6 +39,7 @@ def _remove(file_set, module_base, to_remove):
     EXAMPLES::
 
         sage: files = set(['a/b/c.py', 'a/b/d.py', 'a/b/c.pyx'])
+        sage: from sage_setup.clean import _remove
         sage: _remove(files, 'a.b', ['c.py', 'd.py'])
         sage: files
         {'a/b/c.pyx'}

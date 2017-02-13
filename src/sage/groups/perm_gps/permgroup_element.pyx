@@ -938,7 +938,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: v = x.domain(); v
             [2, 1, 4, 3]
             sage: type(v[0])
-            <type 'int'>
+            <... 'int'>
             sage: x = G([2,1]); x
             (1,2)
             sage: x.domain()
@@ -1026,7 +1026,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: v = g.dict(); v
             {1: 2, 2: 3, 3: 4, 4: 1}
             sage: type(v[1])
-            <type 'int'>
+            <... 'int'>
             sage: x = G([2,1]); x
             (1,2)
             sage: x.dict()

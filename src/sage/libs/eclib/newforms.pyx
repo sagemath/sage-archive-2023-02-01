@@ -132,9 +132,8 @@ cdef class ECModularSymbol:
         sage: mem = get_memory_usage()
         sage: for _ in range(10):  M = ECModularSymbol(E) # long time
         sage: mem2 = get_memory_usage()
-        sage: mem2-mem # random
-        0.75
-        sage: assert(mem2-mem < 1)
+        sage: (mem2-mem < 1) or (mem2 - mem)
+        True
     """
     def __init__(self, E, sign=1):
         """
@@ -215,12 +214,12 @@ cdef class ECModularSymbol:
         N = getconductor(CR)
         n = I2int(N)
         self.n = n
-        if not (sign==0 or sign==1):
+        if not (sign == 0 or sign == 1):
            sig_off()
-           raise ValueError, "ECModularSymbol can only be created with signs +1 or 0, not {}".format(sign)
+           raise ValueError("ECModularSymbol can only be created with signs +1 or 0, not {}".format(sign))
         self.sign = sign
 
-        self.nfs = new newforms(n,0)
+        self.nfs = new newforms(n, 0)
         self.nfs.createfromcurve(sign,CR)
         sig_off()
 

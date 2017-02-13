@@ -59,6 +59,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
     :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
+    :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
     :meth:`~FiniteLatticePoset.breadth` | Return the breadth of the lattice.
 
 **Specific elements**
@@ -132,6 +133,9 @@ from sage.combinat.posets.elements import (LatticePosetElement,
                                            MeetSemilatticeElement,
                                            JoinSemilatticeElement)
 from sage.combinat.posets.hasse_diagram import LatticeError
+
+import six
+
 
 ####################################################################################
 
@@ -1067,7 +1071,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                  H.out_degree_sequence().count(1)) and
                  self.is_meet_semidistributive() )
 
-    def is_meet_semidistributive(self):
+    def is_meet_semidistributive(self, certificate=False):
         r"""
         Return ``True`` if the lattice is meet-semidistributive, and ``False``
         otherwise.
@@ -1079,6 +1083,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             e \wedge x = e \wedge y \implies
             e \wedge x = e \wedge (x \vee y)
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (e, x, y))`` such that `e \wedge x = e \wedge y`
+          but `e \wedge x \neq e \wedge (x \vee y)`.
+          If ``certificate=False`` return ``True`` or ``False``.
 
         .. SEEALSO::
 
@@ -1093,6 +1109,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L_ = L.dual()
             sage: L_.is_meet_semidistributive()
             False
+            sage: L_.is_meet_semidistributive(certificate=True)
+            (False, (5, 4, 6))
 
         TESTS::
 
@@ -1102,26 +1120,45 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Smallest lattice that fails the quick check::
 
             sage: L = LatticePoset(DiGraph('IY_T@A?CC_@?W?O@??'))
-            sage: L.is_join_semidistributive()
+            sage: L.is_meet_semidistributive()
             False
 
         Confirm that :trac:`21340` is fixed::
 
-            sage: Posets.BooleanLattice(4).is_join_semidistributive()
+            sage: Posets.BooleanLattice(4).is_meet_semidistributive()
             True
         """
         # See http://www.math.hawaii.edu/~ralph/Preprints/algorithms-survey.pdf
         # for explanation of this
         n = self.cardinality()
         if n == 0:
+            if certificate:
+                return (True, None)
             return True
         H = self._hasse_diagram
-        if H.size()*2 > n*_log_2(n):
+        if not certificate and H.size()*2 > n*_log_2(n):
             return False
 
-        return all(H.kappa(v) is not None for v in H if H.in_degree(v) == 1)
+        for v in H:
+            if H.in_degree(v) == 1 and H.kappa(v) is None:
+                if not certificate:
+                    return False
+                v_ = next(H.neighbor_in_iterator(v))
+                t1 = set(H.depth_first_search(v_))
+                t2 = set(H.depth_first_search(v))
+                tmp = sorted(t1.difference(t2), reverse=True)
+                x = tmp[0]
+                for y in tmp:
+                    if H.are_incomparable(x, y):
+                        return (False,
+                                (self._vertex_to_element(v),
+                                 self._vertex_to_element(x),
+                                 self._vertex_to_element(y)))
+        if certificate:
+            return (True, None)
+        return True
 
-    def is_join_semidistributive(self):
+    def is_join_semidistributive(self, certificate=False):
         r"""
         Return ``True`` if the lattice is join-semidistributive, and ``False``
         otherwise.
@@ -1133,6 +1170,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             e \vee x = e \vee y \implies
             e \vee x = e \vee (x \wedge y)
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (e, x, y))`` such that `e \vee x = e \vee y`
+          but `e \vee x \neq e \vee (x \wedge y)`.
+          If ``certificate=False`` return ``True`` or ``False``.
 
         .. SEEALSO::
 
@@ -1147,6 +1196,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:                   4:[7], 5:[7], 6:[7]})
             sage: L.is_join_semidistributive()
             False
+            sage: L.is_join_semidistributive(certificate=True)
+            (False, (5, 4, 6))
 
         TESTS::
 
@@ -1168,10 +1219,32 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # for explanation of this
         n = self.cardinality()
         if n == 0:
+            if certificate:
+                return (True, None)
             return True
         H = self._hasse_diagram
-        if H.size()*2 > n*_log_2(n):
+        if not certificate and H.size()*2 > n*_log_2(n):
             return False
+
+        for v in H:
+            if H.out_degree(v) == 1 and H.kappa_dual(v) is None:
+                if not certificate:
+                    return False
+                v_ = next(H.neighbor_out_iterator(v))
+                it = H.neighbor_in_iterator
+                t1 = set(H.depth_first_search(v_, neighbors = it))
+                t2 = set(H.depth_first_search(v, neighbors = it))
+                tmp = sorted(t1.difference(t2))
+                x = tmp[0]
+                for y in tmp:
+                    if H.are_incomparable(x, y):
+                        return (False,
+                                (self._vertex_to_element(v),
+                                 self._vertex_to_element(x),
+                                 self._vertex_to_element(y)))
+        if certificate:
+            return (True, None)
+        return True
 
         return all(H.kappa_dual(v) is not None
                    for v in H if H.out_degree(v) == 1)
@@ -1313,7 +1386,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         for e1 in range(n-1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            for e3, c in C.iteritems():
+            for e3, c in six.iteritems(C):
                 if c == 1 and len(H.closed_interval(e1, e3)) == 3:
                     if not certificate:
                         return False
@@ -3239,6 +3312,65 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     result = v
             joinands.append(result)
         return [self._vertex_to_element(v) for v in joinands]
+
+    def is_simple(self, certificate=False):
+        """
+        Return ``True`` if the lattice is simple and ``False`` otherwise.
+
+        A lattice is *simple* if it has no nontrivial congruences; in
+        other words, for every two distinct elements `a` and `b` the
+        principal congruence generated by `(a, b)` has only one
+        component, i.e. the whole lattice.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate if the lattice is not simple
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, c)``, where `c` is a nontrivial congruence as a
+          :class:`sage.combinat.set_partition.SetPartition`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO:: :meth:`congruence`
+
+        EXAMPLES::
+
+            sage: Posets.DiamondPoset(5).is_simple()  # Smallest nontrivial example
+            True
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [6], 4: [6], 5: [6]})
+            sage: L.is_simple()
+            False
+            sage: L.is_simple(certificate=True)
+            (False, {{1, 3}, {2, 4, 5, 6}})
+
+        Two more examples. First is a non-simple lattice without any
+        2-element congruences::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3: [5], 4: [6, 7],
+            ....:                   5: [8], 6: [8], 7: [8]})
+            sage: L.is_simple()
+            False
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5], 3: [6, 7], 4: [8],
+            ....:                   5: [8], 6: [8], 7: [8]})
+            sage: L.is_simple()
+            True
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_simple() for i in range(5)]
+            [True, True, True, False, False]
+        """
+        from sage.combinat.set_partition import SetPartition
+        cong = self._hasse_diagram.find_nontrivial_congruence()
+        if cong is None:
+            return (True, None) if certificate else True
+        if not certificate:
+            return False
+        return (False, SetPartition([[self._vertex_to_element(v) for v in s]
+                                     for s in cong]))
 
     def congruence(self, S):
         """

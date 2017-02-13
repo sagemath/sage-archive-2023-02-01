@@ -1491,7 +1491,7 @@ class Polyhedron_base(Element):
             ....: except StopIteration: print("STOP")
             STOP
             sage: type(v_gen)
-            <type 'generator'>
+            <... 'generator'>
             sage: [ v for v in triangle.vertex_generator() ]
             [A vertex at (0, 1), A vertex at (1, 0), A vertex at (1, 1)]
         """
@@ -3616,7 +3616,7 @@ class Polyhedron_base(Element):
             sage: p = polytopes.hypercube(3)
             sage: p_solid = p.render_solid(opacity = .7)
             sage: type(p_solid)
-            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+            <type 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
         """
         proj = self.projection()
         if self.ambient_dim()==3:

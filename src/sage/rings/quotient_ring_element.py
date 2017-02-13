@@ -465,7 +465,7 @@ class QuotientRingElement(RingElement):
             sage: int(S(-3))                # indirect doctest
             -3
             sage: type(int(S(-3)))
-            <type 'int'>
+            <... 'int'>
             sage: int(a)
             Traceback (most recent call last):
             ...

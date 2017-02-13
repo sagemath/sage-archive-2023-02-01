@@ -336,6 +336,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__gens[True] = [self.point(x, check=True) for x in gens]
         self.__gens[True].sort()
 
+    def lmfdb_page(self):
+        r"""
+        Open the LMFDB web page of the elliptic curve in a browser.
+
+        See http://www.lmfdb.org
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('5077a1')
+            sage: E.lmfdb_page()  # optional -- webbrowser
+        """
+        import webbrowser
+        lmfdb_url = 'http://www.lmfdb.org/EllipticCurve/Q/{}'
+        if hasattr(self, "_lmfdb_label") and self._lmfdb_label:
+            url = lmfdb_url.format(self._lmfdb_label)
+        else:
+            url = lmfdb_url.format(self.cremona_label())
+        webbrowser.open(url)
 
     def is_p_integral(self, p):
         r"""
@@ -584,7 +602,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: e.type()
             't_VEC'
             sage: e.ellan(10)
@@ -890,7 +908,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: type(v[0])
             <type 'sage.rings.integer.Integer'>
             sage: type(e.aplist(13, python_ints=True)[0])
-            <type 'int'>
+            <... 'int'>
         """
         e = self.pari_mincurve()
         v = e.ellaplist(n, python_ints=True)

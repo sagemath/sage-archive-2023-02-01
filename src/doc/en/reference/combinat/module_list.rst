@@ -119,6 +119,7 @@ Comprehensive Module list
     sage/combinat/gelfand_tsetlin_patterns
     sage/combinat/graph_path
     sage/combinat/gray_codes
+    sage/combinat/growth
     sage/combinat/hall_polynomial
     sage/combinat/integer_lists/base
     sage/combinat/integer_lists/lists
@@ -157,6 +158,7 @@ Comprehensive Module list
     sage/combinat/ordered_tree
     sage/combinat/output
     sage/combinat/parking_functions
+    sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra
     sage/combinat/partition_tuple

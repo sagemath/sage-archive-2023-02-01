@@ -209,7 +209,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('*', ['sage/calculus/*.pyx']),
+    Extension('*', ['sage/calculus/**/*.pyx']),
 
     ################################
     ##
@@ -679,6 +679,14 @@ ext_modules = [
     Extension('sage.libs.gap.libgap',
               sources = ["sage/libs/gap/libgap.pyx"],
               libraries = ['gmp', 'gap', 'm']),
+
+    ###################################
+    ##
+    ## sage.libs.gsl
+    ##
+    ###################################
+
+    Extension('*', ["sage/libs/gsl/*.pyx"]),
 
     ###################################
     ##
@@ -1158,6 +1166,14 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.probability
+    ##
+    ################################
+
+    Extension('*', ['sage/probability/*.pyx']),
+
+    ################################
+    ##
     ## sage.quadratic_forms
     ##
     ################################
@@ -1258,6 +1274,9 @@ ext_modules = [
 
     Extension('sage.rings.power_series_poly',
               sources = ['sage/rings/power_series_poly.pyx']),
+
+    Extension('sage.rings.power_series_pari',
+              sources = ['sage/rings/power_series_pari.pyx']),
 
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']),

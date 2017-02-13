@@ -196,7 +196,7 @@ cdef class IntList:
             sage: type(a[5:-2])
             <type 'sage.stats.intlist.IntList'>
             sage: type(a[5])
-            <type 'int'>
+            <... 'int'>
         """
         cdef Py_ssize_t start, stop, step, j
         cdef IntList t
@@ -313,7 +313,7 @@ cdef class IntList:
             sage: list(a) == a.list()
             True
             sage: type(a.list()[0])
-            <type 'int'>
+            <... 'int'>
         """
         cdef Py_ssize_t i
         return [self._values[i] for i in range(self._length)]

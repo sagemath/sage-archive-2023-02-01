@@ -7,9 +7,13 @@ from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.nmod_vec cimport *
 from sage.libs.flint.fmpz_vec cimport *
 from sage.libs.flint.fmpz cimport fmpz_init, fmpz_one, fmpz_mul, fmpz_set, fmpz_get_mpz, fmpz_clear, fmpz_pow_ui, fmpz_set_mpz, fmpz_fdiv_q_2exp
+
+from cpython.object cimport Py_EQ, Py_NE
+from sage.structure.sage_object cimport richcmp_not_equal
 from sage.rings.integer cimport Integer
 from sage.rings.all import ZZ
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
+
 
 cdef class PowComputer_flint(PowComputer_class):
     """
@@ -109,7 +113,7 @@ cdef class PowComputer_flint(PowComputer_class):
             sage: A = PowComputer_flint(5, 20, 20, 20, False); A
             FLINT PowComputer for 5
         """
-        return "FLINT PowComputer for %s"%(self.prime)
+        return "FLINT PowComputer for %s" % self.prime
 
     cdef fmpz_t* pow_fmpz_t_tmp(self, unsigned long n) except NULL:
         """
@@ -294,9 +298,9 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             sage: A = PowComputer_flint_1step(5, 20, 20, 20, False, f); A
             FLINT PowComputer for 5 with polynomial x^3 - 8*x - 2
         """
-        return "FLINT PowComputer for %s with polynomial %s"%(self.prime, self.polynomial())
+        return "FLINT PowComputer for %s with polynomial %s" % (self.prime, self.polynomial())
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Comparison.
 
@@ -311,12 +315,40 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             sage: A == B
             False
         """
-        c = PowComputer_flint.__cmp__(self, other)
-        if c: return c
+        if not isinstance(other, PowComputer_flint_1step):
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+
+        cdef PowComputer_flint_1step s = self
         cdef PowComputer_flint_1step o = other
-        if fmpz_poly_equal(self.modulus, o.modulus): return 0
-        #return cmp(self.polynomial(), other.polynomial())
-        return 1
+
+        lx = s.prime
+        rx = o.prime
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = s.prec_cap
+        rx = o.prec_cap
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = s.cache_limit
+        rx = o.cache_limit
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = s.in_field
+        rx = o.in_field
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        if fmpz_poly_equal(s.modulus, o.modulus):
+            return (op == Py_EQ)
+        if op != Py_NE:
+            return NotImplemented
+        # return cmp(self.polynomial(), other.polynomial())
+        return False
 
     cdef fmpz_poly_t* get_modulus(self, unsigned long k):
         """
@@ -596,5 +628,5 @@ def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field
     elif prec_type == 'fixed-mod':
         from qadic_flint_FM import PowComputer_
     else:
-        raise ValueError("unknown prec_type `%s`"%prec_type)
+        raise ValueError("unknown prec_type `%s`" % prec_type)
     return PowComputer_(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)

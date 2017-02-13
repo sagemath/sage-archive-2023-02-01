@@ -890,7 +890,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: type(f.exponents()[0])
             <type 'sage.rings.polynomial.polydict.ETuple'>
             sage: type(f.exponents(as_ETuples=False)[0])
-            <type 'tuple'>
+            <... 'tuple'>
         """
         try:
             exp = self.__exponents

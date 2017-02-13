@@ -33,15 +33,15 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
-cimport free_module_element
-from free_module_element import vector
+cimport sage.modules.free_module_element as free_module_element
+from .free_module_element import vector
 
 from sage.libs.m4ri cimport *
 
@@ -215,9 +215,9 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         sage: VS = VectorSpace(GF(2),10^3)
         sage: import gc
         sage: for i in range(10):
-        ...      v = VS.random_element()
-        ...      del v
-        ...      _ = gc.collect()
+        ....:     v = VS.random_element()
+        ....:     del v
+        ....:     _ = gc.collect()
         """
         if self._entries:
             mzd_free(self._entries)

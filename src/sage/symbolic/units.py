@@ -1065,7 +1065,7 @@ class Units(ExtraTabCompletion):
             sage: type(units.__getstate__()[0])
             <... 'str'>
             sage: type(units.__getstate__()[1])
-            <type 'dict'>
+            <... 'dict'>
             sage: loads(dumps(units)) == units
             True
             sage: loads(dumps(units.area)) == units.area

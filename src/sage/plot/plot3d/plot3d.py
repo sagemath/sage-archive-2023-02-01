@@ -74,6 +74,10 @@ Or, we plot a very simple function indeed::
     
     sphinx_plot(plot3d(pi, (-1,1), (-1,1)))
     
+.. TODO::
+
+    Add support for smooth triangles.
+
 AUTHORS:
 
 - Tom Boothby: adaptive refinement triangles
@@ -87,10 +91,7 @@ AUTHORS:
 - Oscar Lazo, William Cauchois, Jason Grout (2009-2010): Adding coordinate transformations
 """
 from __future__ import absolute_import
-
-
-#TODO:
-#    -- smooth triangles
+from six import iteritems
 
 #*****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -118,6 +119,7 @@ from .texture import Texture
 from sage.ext.fast_eval import fast_float_arg
 
 from sage.functions.trig import cos, sin
+
 
 class _Coordinates(object):
     """

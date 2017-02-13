@@ -11,8 +11,8 @@ between each pair of vertices).
 
 ALGORITHM:
 
-It runs in `O(m*n)` amortized time, where `m` is the number of edges and
-`n` is the number of vertices. The amortized time can be improved to O(m)
+It runs in `O(mn)` amortized time, where `m` is the number of edges and
+`n` is the number of vertices. The amortized time can be improved to `O(m)`
 with a more involved method.
 In order to avoid trivial symetries, the orientation of an arbitrary edge
 is fixed before the start of the enumeration process.
@@ -23,33 +23,16 @@ Works only for simple graphs (no multiple edges).
 
 AUTHORS:
 
-- Kolja Knauer and Petru Valicov (2017-01-10) --  initial version
-
-REFERENCE:
-
-.. [CGMRV16] A. Conte, R. Grossi, A. Marino, R. Rizzi, L. Versari,
-  "Directing Road Networks by Listing Strong Orientations.",
-  Combinatorial Algorithms, Proceedings of 27th International Workshop,
-  IWOCA 2016, August 17-19, 2016, pages 83--95
+- Kolja Knauer, Petru Valicov (2017-01-10) --  initial version
 """
-
-#*****************************************************************************
-#       Copyright (C) 2016 YOUR NAME <petru.valicov@lif.univ-mrs.fr>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
-# (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
 
 
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.digraph import DiGraph
 
-def strong_orientations_iterator(self):
+def strong_orientations_iterator(G):
     r"""
-    Returns an iterator over all strong orientations of self.
+    Returns an iterator over all strong orientations of a graph `G`.
 
     First preprocesses the graph and generates a spanning tree.
     Then every orientation of the non-tree edges can be extended to at least
@@ -60,15 +43,15 @@ def strong_orientations_iterator(self):
 
     INPUT:
 
-    - an undirected graph.
+    - ``G`` -- an undirected graph.
 
     OUTPUT:
 
     - an iterator which will produce all strong orientations of this graph.
 
-    NOTE:
+    .. NOTE::
 
-    In order to avoid symetries an orientation of an arbitrary edge is fixed.
+        In order to avoid symetries an orientation of an arbitrary edge is fixed.
 
     EXAMPLES:
 
@@ -106,48 +89,50 @@ def strong_orientations_iterator(self):
     """
     # if the graph has a bridge or is disconnected,
     # then it cannot be strongly oriented
-    if not self.is_biconnected() :
+    if not G.is_biconnected():
         return
-    
-    V = self.vertices()
-    Dg = DiGraph([self.vertices(), self.edges()], pos=self.get_pos())
+
+    V = G.vertices()
+    Dg = DiGraph([G.vertices(), G.edges()], pos=G.get_pos())
 
     # compute an arbitrary spanning tree of the undirected graph
-    te = kruskal(self)
+    te = kruskal(G)
     treeEdges = [(u,v) for u,v,_ in te]
-    A = [edge for edge in self.edges(labels=False) if edge not in treeEdges]
-    
+    A = [edge for edge in G.edges(labels=False) if edge not in treeEdges]
+
     # initialization of the first binary word 00...0
     # corresponding to the current orientation of the non-tree edges
     existingAedges = [0]*len(A)
-    
+
     # Make the edges of the spanning tree doubly oriented
-    for e in treeEdges :
-        if Dg.has_edge(e) :
+    for e in treeEdges:
+        if Dg.has_edge(e):
             Dg.add_edge(e[1], e[0])
-        else :
+        else:
             Dg.add_edge(e)
-    
+
     # Generate all orientations for non-tree edges (using Gray code)
     # Each of these orientations can be extended to a strong orientation
     # of G by orienting properly the tree-edges
     previousWord = 0
     i = 0
+
+    # the orientation of one edge is fixed so we consider one edge less
     nr = 2**(len(A)-1)
-    while i < nr :
+    while i < nr:
         word = (i >> 1) ^ i
         bitChanged = word ^ previousWord
         
         bit = 0
-        while bitChanged > 1 :
+        while bitChanged > 1:
             bitChanged >>= 1;
             bit += 1;
 
         previousWord = word;
-        if existingAedges[bit] == 0 :
+        if existingAedges[bit] == 0:
             Dg.reverse_edge(A[bit])
             existingAedges[bit] = 1
-        else :
+        else:
             Dg.reverse_edge(A[bit][1], A[bit][0])
             existingAedges[bit] = 0
         # launch the algorithm for enumeration of the solutions
@@ -167,9 +152,9 @@ def _strong_orientations_of_a_mixed_graph(Dg, V, E):
 
     INPUT:
 
-    - Dg -- the mixed graph. The undirected edges are doubly oriented.
-    - V -- the set of vertices
-    - E -- the set of undirected edges (these edges are oriented in both ways).
+    - ``Dg`` -- the mixed graph. The undirected edges are doubly oriented.
+    - ``V`` -- the set of vertices
+    - ``E`` -- the set of undirected edges (they are oriented in both ways);
       No labels are allowed.
 
     OUTPUT:
@@ -189,32 +174,31 @@ def _strong_orientations_of_a_mixed_graph(Dg, V, E):
     length = len(E)
     i = 0
     boundEdges = []
-    while i < length :
+    while i < length:
         (u,v) = E[i];
         Dg.delete_edge(u,v)
-        if not (v in Dg.depth_first_search(u)) :
+        if not (v in Dg.depth_first_search(u)):
             del E[i]
             length -= 1
             Dg.add_edge((u,v))
             Dg.delete_edge((v,u))
             boundEdges.append((v,u))
-        else :
+        else:
             Dg.add_edge((u,v))
             Dg.delete_edge((v,u))
-            if not (u in Dg.depth_first_search(v)) :
+            if not (u in Dg.depth_first_search(v)):
                 del E[i]
                 length -= 1
                 boundEdges.append((u,v))
                 Dg.delete_edge(u,v)
-            else :
+            else:
                 i += 1
             Dg.add_edge((v,u))
-    
+
     # if true the obtained orientation is strong
-    if not E :
+    if not E:
         yield Dg.copy()
-        
-    else :
+    else:
         (u,v) = E.pop()
         Dg.delete_edge((v,u))
         for orientation in _strong_orientations_of_a_mixed_graph(Dg, V, E):

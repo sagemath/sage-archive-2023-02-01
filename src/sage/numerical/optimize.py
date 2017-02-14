@@ -11,6 +11,7 @@ Functions and Methods
 ----------------------
 """
 from six.moves import range
+from six import iteritems
 
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
@@ -821,15 +822,12 @@ def binpacking(items,maximum=1,k=None):
     except MIPSolverException:
         raise ValueError("This problem has no solution !")
 
-    box=p.get_values(box)
+    box = p.get_values(box)
 
-    boxes=[[] for i in range(k)]
+    boxes = [[] for i in range(k)]
 
-    for (i,b),value in box.iteritems():
+    for (i, b), value in iteritems(box):
         if value == 1:
             boxes[b].append(items[i])
 
     return boxes
-
-
-

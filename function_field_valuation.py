@@ -140,7 +140,7 @@ from sage.structure.factory import UniqueFactory
 from sage.rings.all import QQ, ZZ, infinity
 from sage.misc.abstract_method import abstract_method
 
-from valuation import DiscreteValuation
+from valuation import DiscreteValuation, DiscretePseudoValuation, InfiniteDiscretePseudoValuation
 from trivial_valuation import TrivialValuation
 from mapped_valuation import FiniteExtensionFromLimitValuation, MappedValuation_base
 
@@ -486,7 +486,14 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 if valuation == FunctionFieldValuation(valuation.domain(), valuation.domain().gen()):
                     # the classical valuation at the place 1/x
                     return parent.__make_element_class__(InfiniteRationalFunctionFieldValuation)(parent)
-                return parent.__make_element_class__(RationalFunctionFieldMappedValuation)(parent, valuation, to_valuation_domain, from_valuation_domain)
+
+                from sage.structure.dynamic_class import dynamic_class
+                clazz = RationalFunctionFieldMappedValuation
+                if valuation.is_discrete_valuation():
+                    clazz = dynamic_class("RationalFunctionFieldMappedValuation_discrete", (clazz, DiscreteValuation))
+                else:
+                    clazz = dynamic_class("RationalFunctionFieldMappedValuation_infinite", (clazz, InfiniteDiscretePseudoValuation))
+                return parent.__make_element_class__(clazz)(parent, valuation, to_valuation_domain, from_valuation_domain)
             return parent.__make_element_class__(FunctionFieldExtensionMappedValuation)(parent, valuation, to_valuation_domain, from_valuation_domain)
 
         if domain is valuation.domain():
@@ -500,7 +507,13 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 # valuation corresponds to a finite place
                 return parent.__make_element_class__(FiniteRationalFunctionFieldValuation)(parent, valuation)
             else:
-                return parent.__make_element_class__(NonClassicalRationalFunctionFieldValuation)(parent, valuation)
+                from sage.structure.dynamic_class import dynamic_class
+                clazz = NonClassicalRationalFunctionFieldValuation
+                if valuation.is_discrete_valuation():
+                    clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_discrete", (clazz, DiscreteValuation))
+                else:
+                    clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_infinite", (clazz, InfiniteDiscretePseudoValuation))
+                return parent.__make_element_class__(clazz)(parent, valuation)
         else:
             # valuation is a limit valuation that singles out an extension
             return parent.__make_element_class__(FunctionFieldFromLimitValuation)(parent, valuation, domain.polynomial(), extra_args['approximants'])
@@ -509,9 +522,11 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
 FunctionFieldValuation = FunctionFieldValuationFactory("FunctionFieldValuation")
 
-class FunctionFieldValuation_base(DiscreteValuation):
+
+class FunctionFieldValuation_base(DiscretePseudoValuation):
     r"""
-    Base class for valuations on function fields.
+    Abstract base class for any discrete (pseudo-)valuation on a function
+    field.
 
     TESTS::
 
@@ -519,6 +534,21 @@ class FunctionFieldValuation_base(DiscreteValuation):
         sage: K.<x> = FunctionField(QQ)
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, FunctionFieldValuation_base)
+        True
+
+    """
+
+
+class DiscreteFunctionFieldValuation_base(DiscreteValuation):
+    r"""
+    Base class for discrete valuations on function fields.
+
+    TESTS::
+
+        sage: from mac_lane import * # optional: standalone
+        sage: K.<x> = FunctionField(QQ)
+        sage: v = FunctionFieldValuation(K, x) # indirect doctest
+        sage: isinstance(v, DiscreteFunctionFieldValuation_base)
         True
 
     """
@@ -592,13 +622,13 @@ class FunctionFieldValuation_base(DiscreteValuation):
                     return reduce(add, A, [])
                 elif L.constant_field() is not K.constant_field() and K.constant_field().is_subring(L):
                     # subclasses should override this method and handle this case, so we never get here
-                    raise NotImplementedError("Can not compute the extensions of %r from %r to %r since the base ring changes."%(self, self.domain(), ring))
+                    raise NotImplementedError("Can not compute the extensions of %r from %r to %r since the base ring changes."%(self, self.domain(), L))
         raise NotImplementedError("extension of %r from %r to %r not implemented"%(self, K, L))
 
 
 class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
     r"""
-    Base class for discrete valuations on rational function fields.
+    Base class for valuations on rational function fields.
 
     TESTS::
 
@@ -611,7 +641,7 @@ class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
     """
 
 
-class ClassicalFunctionFieldValuation_base(FunctionFieldValuation_base):
+class ClassicalFunctionFieldValuation_base(DiscreteFunctionFieldValuation_base):
     r"""
     Base class for discrete valuations on rational function fields that come
     from points on the projective line.
@@ -663,6 +693,7 @@ class ClassicalFunctionFieldValuation_base(FunctionFieldValuation_base):
         if isinstance(other, ClassicalFunctionFieldValuation_base):
             return self == other
         super(ClassicalFunctionFieldValuation_base, self)._ge_(other)
+
 
 class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
     r"""
@@ -884,7 +915,8 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         """
         return self._base_valuation.residue_ring().fraction_field()
 
-class FiniteRationalFunctionFieldValuation(ClassicalFunctionFieldValuation_base, InducedFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
+
+class FiniteRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
     r"""
     Valuation of a finite place of a function field.
 
@@ -924,8 +956,8 @@ class FiniteRationalFunctionFieldValuation(ClassicalFunctionFieldValuation_base,
             True
     
         """
-        ClassicalFunctionFieldValuation_base.__init__(self, parent)
         InducedFunctionFieldValuation_base.__init__(self, parent, base_valuation)
+        ClassicalFunctionFieldValuation_base.__init__(self, parent)
         RationalFunctionFieldValuation_base.__init__(self, parent)
 
 
@@ -945,20 +977,29 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
     """
     def __init__(self, parent, base_valuation):
         r"""
-        TESTS::
+        TESTS:
+
+        There is some support for discrete pseudo-valuations on rational
+        function fields in the code. However, since these valuations must send
+        elments to `-\infty`, they are not supported yet::
 
             sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2)).augmentation(x, infinity)
             sage: K.<x> = FunctionField(QQ)
-            sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2))
             sage: w = FunctionFieldValuation(K, v)
-            sage: isinstance(w, NonClassicalRationalFunctionFieldValuation)
+            Traceback (most recent call last):
+            ...
+            ValueError: valuation must be a discrete valuation but [ Gauss valuation induced by 2-adic valuation, v(x) = +Infinity ] is not.
+            sage: isinstance(w, NonClassicalRationalFunctionFieldValuation) # not tested
             True
 
         """
         InducedFunctionFieldValuation_base.__init__(self, parent, base_valuation)
         RationalFunctionFieldValuation_base.__init__(self, parent)
 
-class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
+
+class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation, DiscreteFunctionFieldValuation_base):
     r"""
     A valuation on a finite extensions of function fields `L=K[y]/(G)` where `K` is
     another function field.
@@ -979,6 +1020,23 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation):
         True
 
     """
+    def __init__(self, parent, approximant, G, approximants):
+        r"""
+        TESTS::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - (x^2 + x + 1))
+            sage: v = FunctionFieldValuation(K, x - 1) # indirect doctest
+            sage: w = v.extension(L)
+            sage: isinstance(w, FunctionFieldFromLimitValuation)
+            True
+
+        """
+        FiniteExtensionFromLimitValuation.__init__(self, parent, approximant, G, approximants)
+        DiscreteFunctionFieldValuation_base.__init__(self, parent)
+
     def _to_base_domain(self, f):
         r"""
         Return ``f`` as an element of the domain of the underlying limit valuation.
@@ -1125,6 +1183,7 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
             to_base = self._to_base._repr_defn().replace('\n', ', ')
         return "%r (in %r after %s)"%(self._base_valuation, self._base_valuation.domain(), to_base)
 
+
 class RationalFunctionFieldMappedValuation(FunctionFieldMappedValuation_base, RationalFunctionFieldValuation_base):
     r"""
     Valuation on a rational function field that is implemented after a map to
@@ -1157,6 +1216,7 @@ class RationalFunctionFieldMappedValuation(FunctionFieldMappedValuation_base, Ra
         """
         FunctionFieldMappedValuation_base.__init__(self, parent, base_valuation, to_base_valuation_doain, from_base_valuation_domain)
         RationalFunctionFieldValuation_base.__init__(self, parent)
+
 
 class InfiniteRationalFunctionFieldValuation(FunctionFieldMappedValuation_base, RationalFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base):
     r"""

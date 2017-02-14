@@ -2,10 +2,10 @@ r"""
 Reed-Solomon codes and Generalized Reed-Solomon codes
 
 Given `n` different evaluation points `\alpha_1, \dots, \alpha_n` from some
-finite field `F`, the corresponding Reed-Solomon code (RS code) of dimension `k`
-is the set:
+finite field `F`, the corresponding Reed-Solomon code (RS code) of dimension
+`k` is the set:
 
-.. math::
+.. MATH::
 
     \{ f(\alpha_1), \ldots, f(\alpha_n)  \mid  f \in F[x], \deg f < k \}
 
@@ -15,19 +15,24 @@ the set:
 
 .. MATH::
 
-    \{ (\beta_1 f(\alpha_1), \ldots, \beta_n f(\alpha_n)  \mid  f \in F[x], \deg f < k \}
+    \{ (\beta_1 f(\alpha_1), \ldots, \beta_n f(\alpha_n)
+    \mid f \in F[x], \deg f < k \}
 
 This file contains the following elements:
 
-    - :class:`GeneralizedReedSolomonCode`, the class for GRS codes
-    - :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message space
-    - :class:`GRSEvaluationPolynomialEncoder`, an encoder with a polynomial message space
-    - :class:`GRSBerlekampWelchDecoder`, a decoder which corrects errors using Berlekamp-Welch algorithm
-    - :class:`GRSGaoDecoder`, a decoder which corrects errors using Gao algorithm
-    - :class:`GRSErrorErasureDecoder`, a decoder which corrects both errors and erasures
-    - :class:`GRSKeyEquationSyndromeDecoder`, a decoder which corrects errors using the key equation on syndrome polynomials
+- :class:`GeneralizedReedSolomonCode`, the class for GRS codes
+- :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message
+  space
+- :class:`GRSEvaluationPolynomialEncoder`, an encoder with a polynomial
+  message space
+- :class:`GRSBerlekampWelchDecoder`, a decoder which corrects errors using
+  Berlekamp-Welch algorithm
+- :class:`GRSGaoDecoder`, a decoder which corrects errors using Gao algorithm
+- :class:`GRSErrorErasureDecoder`, a decoder which corrects both errors
+  and erasures
+- :class:`GRSKeyEquationSyndromeDecoder`, a decoder which corrects errors
+  using the key equation on syndrome polynomials
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
@@ -38,6 +43,8 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from __future__ import absolute_import
 from six.moves import range
 
 from sage.matrix.constructor import matrix, diagonal_matrix
@@ -64,12 +71,14 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     INPUT:
 
-    - ``evaluation_points`` -- A list of distinct elements of some finite field `F`.
+    - ``evaluation_points`` -- a list of distinct elements of some
+      finite field `F`
 
-    - ``dimension`` -- The dimension of the resulting code.
+    - ``dimension`` -- the dimension of the resulting code
 
-    - ``column_multipliers`` -- (default: ``None``) List of non-zero elements of `F`.
-      All column multipliers are set to 1 if default value is kept.
+    - ``column_multipliers`` -- (default: ``None``) list of non-zero
+      elements of `F`; all column multipliers are set to 1 if default
+      value is kept
 
     EXAMPLES:
 
@@ -273,9 +282,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         r"""
         Return the minimum distance between any two words in ``self``.
 
-        Since a GRS code is always
-        Maximum-Distance-Separable (MDS), this returns ``C.length() -
-        C.dimension() + 1``.
+        Since a GRS code is always Maximum-Distance-Separable (MDS),
+        this returns ``C.length() - C.dimension() + 1``.
 
         EXAMPLES::
 
@@ -317,8 +325,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def is_generalized(self):
         r"""
-        Return whether ``self`` is a Generalized Reed-Solomon code or a regular
-        Reed-Solomon code
+        Return whether ``self`` is a Generalized Reed-Solomon code or
+        a regular Reed-Solomon code.
 
         ``self`` is a Generalized Reed-Solomon code if its column multipliers
         are not all 1.
@@ -359,8 +367,8 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         """
         a = self.evaluation_points()
         one = self.base_ring().one()
-        return [ one/prod([ a[i] - a[h] for h in range(0, len(a)) if h != i ])
-                    for i in range(0,len(a)) ]
+        return [one / prod(ai - ah for h, ah in enumerate(a) if h != i)
+                for i, ai in enumerate(a)]
 
     @cached_method
     def parity_column_multipliers(self):
@@ -380,7 +388,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         n = self.length()
         col_mults = self.column_multipliers()
         etas = self.multipliers_product()
-        return [ etas[i]/col_mults[i] for i in range(n) ]
+        return [etas[i] / col_mults[i] for i in range(n)]
 
     @cached_method
     def parity_check_matrix(self):
@@ -420,15 +428,17 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             True
         """
         col_mults = self.parity_column_multipliers()
-        return GeneralizedReedSolomonCode(self.evaluation_points(), self.length() - self.dimension(), col_mults)
+        return GeneralizedReedSolomonCode(self.evaluation_points(),
+                                          self.length() - self.dimension(),
+                                          col_mults)
 
     def covering_radius(self):
         r"""
         Return the covering radius of ``self``.
 
         The covering radius of a linear code `C` is the smallest
-        number `r` s.t. any element of the ambient space of `C` is at most at
-        distance `r` to `C`.
+        number `r` s.t. any element of the ambient space of `C` is
+        at most at distance `r` to `C`.
 
         As GRS codes are Maximum Distance Separable codes (MDS), their covering
         radius is always `d-1`, where `d` is the minimum distance. This is
@@ -469,17 +479,19 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         wd = [1] + [0] * (d - 1)
         for i in range(d, n+1):
             tmp = binomial(n, i) * (q - 1)
-            wd.append(tmp * symbolic_sum(binomial(i-1, s) * (-1) ** s * q ** (i - d - s), s, 0, i-d))
+            wd.append(tmp * symbolic_sum(binomial(i-1, s) * (-1)**s * q**(i - d - s), s, 0, i-d))
         return wd
 
     def weight_enumerator(self):
         r"""
-        Return the generating function of the weight distribution of ``self``:
-        this is the polynomial whose coefficient of degree `i` is the number of
-        codewords of weight `i` in ``self``.
+        Return the generating function of the weight distribution of ``self``.
 
-        Computing the weight enumerator for a GRS code is very fast. Note that
-        for random linear codes, it is computationally hard.
+        The generating function of the weight distribution of a GRS code `c`
+        is the polynomial whose coefficient of degree `i` is the number of
+        codewords of weight `i` in `c`.
+
+        Computing the weight enumerator for a GRS code is very fast.
+        Note that for random linear codes, it is computationally hard.
 
         EXAMPLES::
 
@@ -502,7 +514,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def _punctured_form(self, points):
         r"""
-        Return a representation of self as a
+        Return a representation of ``self`` as a
         :class:`GeneralizedReedSolomonCode` punctured in ``points``.
 
         INPUT:
@@ -531,7 +543,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def decode_to_message(self, r):
         r"""
-        Decode ``r`` to an element in message space of ``self``
+        Decode ``r`` to an element in message space of ``self``.
 
         .. NOTE::
 
@@ -568,23 +580,28 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
 class GRSEvaluationVectorEncoder(Encoder):
     r"""
-    Encoder for (Generalized) Reed-Solomon codes which encodes vectors into codewords.
+    Encoder for (Generalized) Reed-Solomon codes that encodes vectors
+    into codewords.
 
-    Let `C` be a GRS code of length `n` and dimension `k` over some finite field `F`.
-    We denote by `\alpha_i` its evaluations points and by `\beta_i` its column multipliers,
-    `i` ranging from `1` to `n` (inclusive).
-    Let `m = (m_1, \dots, m_k)` a vector over F be the message.
+    Let `C` be a GRS code of length `n` and dimension `k` over some
+    finite field `F`. We denote by `\alpha_i` its evaluations points
+    and by `\beta_i` its column multipliers, where `1 \leq i \leq n`.
+    Let `m = (m_1, \dots, m_k)`, a vector over `F`, be the message.
     We build a polynomial using the coordinates of `m` as coefficients:
-    `p = \Sigma_{i=1}^{m} m_i \times x^i`.
+
+    .. MATH::
+
+        p = \Sigma_{i=1}^{m} m_i \times x^i.
 
     The encoding of `m` will be the following codeword:
 
-    `(\beta_1\times p(\alpha_1), \dots, \beta_n\times p(\alpha_n))`
+    .. MATH::
 
+        (\beta_1 \times p(\alpha_1), \dots, \beta_n \times p(\alpha_n)).
 
     INPUT:
 
-    - ``code`` -- The associated code of this encoder.
+    - ``code`` -- the associated code of this encoder
 
     EXAMPLES::
 
@@ -660,7 +677,8 @@ class GRSEvaluationVectorEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = codes.encoders.GRSEvaluationVectorEncoder(C)
             sage: latex(E)
-            \textnormal{Evaluation vector-style encoder for }[40, 12, 29] \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Evaluation vector-style encoder for }[40, 12, 29]
+             \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
         """
         return "\\textnormal{Evaluation vector-style encoder for }%s" % self.code()._latex_()
 
@@ -670,11 +688,13 @@ class GRSEvaluationVectorEncoder(Encoder):
         Return a generator matrix of ``self``
 
         Considering a GRS code of length `n`, dimension `k`, with
-        evaluation points `(\alpha_1, \dots \alpha_n)` and column multipliers
-        `(\beta_1, \dots \beta_n)`, its generator matrix `G` is built using
+        evaluation points `(\alpha_1, \dots, \alpha_n)` and column multipliers
+        `(\beta_1, \dots, \beta_n)`, its generator matrix `G` is built using
         the following formula:
 
-        `G = [g_{i,j}], g_{i,j} = \beta_j \times \alpha_{j}^{i}`
+        .. MATH::
+
+            G = [g_{i,j}], g_{i,j} = \beta_j \times \alpha_{j}^{i}.
 
         This matrix is a Vandermonde matrix.
 
@@ -698,32 +718,29 @@ class GRSEvaluationVectorEncoder(Encoder):
 
 
 
-
-
-
-
-
 class GRSEvaluationPolynomialEncoder(Encoder):
     r"""
     Encoder for (Generalized) Reed-Solomon codes which uses evaluation of
     polynomials to obtain codewords.
 
-    Let `C` be a GRS code of length `n` and dimension `k` over some finite field `F`.
-    We denote by `\alpha_i` its evaluations points and by `\beta_i` its column multipliers,
-    `i` ranging from `1` to `n` (inclusive).
+    Let `C` be a GRS code of length `n` and dimension `k` over some
+    finite field `F`. We denote by `\alpha_i` its evaluations points
+    and by `\beta_i` its column multipliers, where `1 \leq i \leq n`.
     Let `p` be a polynomial of degree at most `k-1` in `F[x]` be the message.
 
     The encoding of `m` will be the following codeword:
 
-    `(\beta_1\times p(\alpha_1), \dots, \beta_n\times p(\alpha_n))`
+    .. MATH::
+
+        (\beta_1 \times p(\alpha_1), \dots, \beta_n \times p(\alpha_n)).
 
     INPUT:
 
-    - ``code`` -- The associated code of this encoder.
+    - ``code`` -- the associated code of this encoder
 
-    - ``polynomial_ring`` -- (default: ``None``)  A polynomial ring to specify
-      the message space of ``self``, if needed. It is set to `F[x]` (where `F`
-      is the base field of ``code``) if default value is kept.
+    - ``polynomial_ring`` -- (default: ``None``) a polynomial ring to specify
+      the message space of ``self``, if needed; it is set to `F[x]` (where `F`
+      is the base field of ``code``) if default value is kept
 
     EXAMPLES::
 
@@ -750,11 +767,12 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         Univariate Polynomial Ring in y over Finite Field of size 59
     """
 
-    def __init__(self, code, polynomial_ring = None):
+    def __init__(self, code, polynomial_ring=None):
         r"""
         TESTS:
 
-        If ``polynomial_ring`` is not a polynomial ring, an exception is raised::
+        If ``polynomial_ring`` is not a polynomial ring, an exception
+        is raised::
 
             sage: F = GF(59)
             sage: n, k = 40, 12
@@ -844,7 +862,8 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: E = C.encoder("EvaluationPolynomial")
             sage: latex(E)
-            \textnormal{Evaluation polynomial-style encoder for }[40, 12, 29] \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Evaluation polynomial-style encoder for }[40, 12, 29]
+             \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
         """
         return "\\textnormal{Evaluation polynomial-style encoder for }%s" % self.code()._latex_()
 
@@ -852,18 +871,19 @@ class GRSEvaluationPolynomialEncoder(Encoder):
         r"""
         Transform the polynomial ``p`` into a codeword of :meth:`code`.
 
-        One can use the following shortcut to encode a word with an encoder ``E``::
+        One can use the following shortcut to encode a word with
+        an encoder ``E``::
 
             E(word)
 
         INPUT:
 
-        - ``p`` -- A polynomial from the message space of ``self`` of degree
-          less than ``self.code().dimension()``.
+        - ``p`` -- a polynomial from the message space of ``self`` of degree
+          less than ``self.code().dimension()``
 
         OUTPUT:
 
-        - A codeword in associated code of ``self``
+        - a codeword in associated code of ``self``
 
         EXAMPLES::
 
@@ -930,11 +950,11 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
         INPUT:
 
-        - ``c`` -- A codeword of :meth:`code`.
+        - ``c`` -- a codeword of :meth:`code`
 
         OUTPUT:
 
-        - An polynomial of degree less than ``self.code().dimension()``.
+        - an polynomial of degree less than ``self.code().dimension()``
 
         EXAMPLES::
 
@@ -993,10 +1013,6 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
 
 
-
-
-
-
 ####################### decoders ###############################
 
 class GRSBerlekampWelchDecoder(Decoder):
@@ -1004,12 +1020,12 @@ class GRSBerlekampWelchDecoder(Decoder):
     Decoder for (Generalized) Reed-Solomon codes which uses Berlekamp-Welch
     decoding algorithm to correct errors in codewords.
 
-    This algorithm recovers the error locator polynomial by solving a linear system.
-    See [HJ2004]_ pp. 51-52 for details.
+    This algorithm recovers the error locator polynomial by solving a
+    linear system. See [HJ2004]_ pp. 51-52 for details.
 
     INPUT:
 
-    - ``code`` -- A code associated to this decoder
+    - ``code`` -- a code associated to this decoder
 
     EXAMPLES::
 
@@ -1060,9 +1076,9 @@ class GRSBerlekampWelchDecoder(Decoder):
             sage: D1 is D2
             False
         """
-        return isinstance(other, GRSBerlekampWelchDecoder) \
-                and self.code() == other.code()\
-                and self.input_space() == other.input_space()
+        return (isinstance(other, GRSBerlekampWelchDecoder)
+                and self.code() == other.code()
+                and self.input_space() == other.input_space())
 
     def _repr_(self):
         r"""
@@ -1090,7 +1106,8 @@ class GRSBerlekampWelchDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSBerlekampWelchDecoder(C)
             sage: latex(D)
-            \textnormal{Berlekamp Welch decoder for }[40, 12, 29] \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Berlekamp Welch decoder for }[40, 12, 29]
+             \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
         """
         return "\\textnormal{Berlekamp Welch decoder for }%s"\
                 % self.code()._latex_()
@@ -1106,9 +1123,11 @@ class GRSBerlekampWelchDecoder(Decoder):
 
         OUTPUT:
 
-        - ``(c, f)`` -- ``c`` is the representation of ``r`` decoded in the ambient
-          space of the associated code of ``self``, ``f`` its representation in
-          the message space of ``self``.
+        - a pair ``(c, f)``, where
+
+          * ``c`` is the representation of ``r`` decoded in the ambient
+            space of the associated code of ``self``
+          *``f`` its representation in the message space of ``self``
 
         EXAMPLES::
 
@@ -1311,7 +1330,7 @@ class GRSGaoDecoder(Decoder):
 
     INPUT:
 
-    - ``code`` -- The associated code of this decoder.
+    - ``code`` -- the associated code of this decoder
 
     EXAMPLES::
 
@@ -1344,7 +1363,7 @@ class GRSGaoDecoder(Decoder):
         if not isinstance(code, GeneralizedReedSolomonCode):
             raise ValueError("code has to be a generalized Reed-Solomon code")
         super(GRSGaoDecoder, self).__init__(code, code.ambient_space(),
-                "EvaluationPolynomial")
+                                            "EvaluationPolynomial")
 
     def __eq__(self, other):
         r"""
@@ -1362,9 +1381,9 @@ class GRSGaoDecoder(Decoder):
             sage: D1 is D2
             False
         """
-        return isinstance(other, GRSGaoDecoder) \
-                and self.code() == other.code()\
-                and self.input_space() == other.input_space()
+        return (isinstance(other, GRSGaoDecoder)
+                and self.code() == other.code()
+                and self.input_space() == other.input_space())
 
     def _repr_(self):
         r"""
@@ -1392,14 +1411,16 @@ class GRSGaoDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSGaoDecoder(C)
             sage: latex(D)
-            \textnormal{Gao decoder for }[40, 12, 29] \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Gao decoder for }[40, 12, 29]
+             \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
         """
         return "\\textnormal{Gao decoder for }%s" % self.code()._latex_()
 
     @cached_method
     def _polynomial_vanishing_at_alphas(self, PolRing):
         r"""
-        Return the unique minimal-degree polynomial vanishing at all the evaluation points.
+        Return the unique minimal-degree polynomial vanishing at all
+        the evaluation points.
 
         INPUT:
 
@@ -1666,13 +1687,7 @@ class GRSGaoDecoder(Decoder):
             sage: D.decoding_radius()
             14
         """
-        return (self.code().minimum_distance()-1)//2
-
-
-
-
-
-
+        return (self.code().minimum_distance() - 1) // 2
 
 
 
@@ -1684,19 +1699,22 @@ class GRSErrorErasureDecoder(Decoder):
 
     Let `C` be a GRS code of length `n` and dimension `k`.
     Considering `y` a codeword with at most `t` errors
-    (`t` being the `\lfloor \frac{d-1}{2}\rfloor` decoding radius), and `e` the
-    erasure vector,
+    (`t` being the `\left\lfloor \frac{d-1}{2} \right\rfloor`
+    decoding radius), and `e` the erasure vector,
     this decoder works as follows:
 
     - Puncture the erased coordinates which are identified in `e`.
-    - Create a new GRS code of length `n-hamming\_weight(e)`, dimension `k`.
-    - Use Gao decoder over this new code one the punctured word built on the first step.
-    - Recover the original message from the decoded word computed on the previous step.
+    - Create a new GRS code of length equal to the `n`-hamming weight of `e`
+      and of dimension `k`.
+    - Use Gao decoder over this new code one the punctured word built on
+      the first step.
+    - Recover the original message from the decoded word computed on the
+      previous step.
     - Encode this message using an encoder over `C`.
 
     INPUT:
 
-    - ``code`` -- The associated code of this decoder.
+    - ``code`` -- the associated code of this decoder
 
     EXAMPLES::
 
@@ -1777,7 +1795,8 @@ class GRSErrorErasureDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: D = codes.decoders.GRSErrorErasureDecoder(C)
             sage: latex(D)
-            \textnormal{Error-Erasure decoder for }[40, 12, 29] \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Error-Erasure decoder for }[40, 12, 29]
+             \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
         """
         return "\\textnormal{Error-Erasure decoder for }%s"\
                 % self.code()._latex_()
@@ -1790,8 +1809,10 @@ class GRSErrorErasureDecoder(Decoder):
         INPUT:
 
         - word_and_erasure_vector -- a tuple whose:
-          - first element is an element of the ambient space of the code
-          - second element is a vector over GF(2) whose length is the same as the code's
+
+          * first element is an element of the ambient space of the code
+          * second element is a vector over `\GF{2}` whose length is the
+            same as the code's
 
         .. NOTE::
 
@@ -1880,7 +1901,7 @@ class GRSErrorErasureDecoder(Decoder):
     def decoding_radius(self, number_erasures):
         r"""
         Return maximal number of errors that ``self`` can decode according
-        to how many erasures it receives
+        to how many erasures it receives.
 
         INPUT:
 
@@ -1910,11 +1931,8 @@ class GRSErrorErasureDecoder(Decoder):
         diff = self.code().minimum_distance() - 1 - number_erasures
         if diff <= 0:
             raise ValueError("The number of erasures exceed decoding capability")
-        else :
+        else:
             return diff // 2
-
-
-
 
 
 
@@ -2022,7 +2040,8 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
             sage: D = codes.decoders.GRSKeyEquationSyndromeDecoder(C)
             sage: latex(D)
-            \textnormal{Key equation decoder for }[40, 12, 29] \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
+            \textnormal{Key equation decoder for }[40, 12, 29]
+             \textnormal{ Reed-Solomon Code over } \Bold{F}_{59}
         """
         return "\\textnormal{Key equation decoder for }%s" % self.code()._latex_()
 
@@ -2268,7 +2287,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
             sage: D.decoding_radius()
             14
         """
-        return (self.code().minimum_distance()-1)//2
+        return (self.code().minimum_distance()-1) // 2
 
 
 # Make an alias to make everyone happy
@@ -2287,3 +2306,4 @@ GeneralizedReedSolomonCode._registered_decoders["ErrorErasure"] = GRSErrorErasur
 GRSErrorErasureDecoder._decoder_type = {"error-erasure", "unique", "always-succeed"}
 GeneralizedReedSolomonCode._registered_decoders["KeyEquationSyndrome"] = GRSKeyEquationSyndromeDecoder
 GRSKeyEquationSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
+

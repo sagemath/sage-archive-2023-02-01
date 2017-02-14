@@ -60,6 +60,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
+    :meth:`~FiniteLatticePoset.is_subdirectly_reducible` | Return ``True`` if the lattice is a sublattice of the product of smaller lattices.
     :meth:`~FiniteLatticePoset.breadth` | Return the breadth of the lattice.
 
 **Specific elements**
@@ -3190,6 +3191,79 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not certificate:
             return True
         return (True, [self[e] for e in cert])
+
+    def is_subdirectly_reducible(self, certificate=False):
+        r"""
+        Return ``True`` if the lattice is subdirectly reducible.
+
+        A lattice `M` is a *subdirect product* of `K` and `L` if it
+        is a sublattice of `K \times L`. Lattice `M` is *subdirectly
+        reducible* if there exists such lattices `K` and `L` so that
+        `M` is not a sublattice of either.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - if ``certificate=False``, return only ``True`` or ``False``
+        - if ``certificate=True``, return either
+
+          * ``(True, (K, L))`` such that the lattice is isomorphic to
+            a sublattice of `K \times L`.
+          * ``(False, (a, b))``, where `a` and `b` are elements that are
+            in the same congruence class for every nontrivial congruence
+            of the lattice. Special case: If the lattice has zero or one element,
+            return ``(False, None)``.
+
+        EXAMPLES::
+
+            sage: N5 = Posets.PentagonPoset()
+            sage: N5.is_subdirectly_reducible()
+            False
+
+            sage: hex = LatticePoset({1: [2, 3], 2: [4], 3: [5], 4: [6], 5: [6]})
+            sage: hex.is_subdirectly_reducible()
+            True
+
+            sage: N5.is_subdirectly_reducible(certificate=True)
+            (False, (2, 3))
+            sage: res, cert = hex.is_subdirectly_reducible(certificate=True)
+            sage: cert[0].is_isomorphic(N5)
+            True
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_subdirectly_reducible() for i in range(5)]
+            [False, False, False, True, True]
+        """
+        # Todo: Add seealso-link to subdirect_decomposition() when it is done.
+
+        H = self._hasse_diagram
+        A = H.atoms_of_congruence_lattice()
+
+        if not certificate:
+            return len(A) > 1
+
+        # Kind of special cases. How should we define this for empty,
+        # one-element and two-element lattices?
+        if self.cardinality() < 2:
+            return (False, None)
+
+        if len(A) == 1:
+            for a in A[0]:
+                if len(a) > 1:
+                    return (False, (self._vertex_to_element(a[0]),
+                                    self._vertex_to_element(a[1])))
+
+        H_closure = H.transitive_closure()
+        a0 = [min(v) for v in A[0]]
+        a1 = [min(v) for v in A[1]]
+        K0 = LatticePoset(H_closure.subgraph(a0).transitive_reduction())
+        K1 = LatticePoset(H_closure.subgraph(a1).transitive_reduction())
+        return (False, (K0, K1))
 
     def canonical_meetands(self, e):
         r"""

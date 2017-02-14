@@ -95,8 +95,8 @@ class LimitValuationFactory(UniqueFactory):
     INPUT:
 
     - ``base_valuation`` -- a discrete (pseudo-)valuation on a polynomial ring
-      which can be augmented (possibly only in the limit) to a pseudo-valuation
-      that sends ``G`` to infinity.
+      which can be unqiuely augmented (possibly only in the limit) to a
+      pseudo-valuation that sends ``G`` to infinity.
 
     - ``G`` -- a squarefree polynomial in the domain of ``base_valuation``.
 

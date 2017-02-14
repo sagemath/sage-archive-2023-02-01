@@ -3317,6 +3317,187 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             joinands.append(result)
         return [self._vertex_to_element(v) for v in joinands]
 
+    def is_isoform(self, certificate=False):
+        """
+        Return ``True`` if the lattice is isoform and ``False`` otherwise.
+
+        A congruence is *isoform* if all blocks are isomorphic
+        sublattices. A lattice is isoform if it has only isoform
+        congruences.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate if the lattice is not isoform
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, C)``, where `C` is a non-isoform congruence as a
+          :class:`sage.combinat.set_partition.SetPartition`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO:: :meth:`congruence`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1:[2, 3, 4], 2: [5, 6], 3: [6, 7], 4: [7], 5: [8], 6: [8], 7: [8]})
+            sage: L.is_isoform()
+            True
+
+        Every isoform lattice is (trivially) uniform, but the converse is
+        not true::
+
+            sage: L = LatticePoset({1: [2, 3, 6], 2: [4, 5], 3: [5], 4: [9, 8], 5: [7, 8], 6: [9], 7: [10], 8: [10], 9: [10]})
+            sage: L.is_isoform(), L.is_uniform()
+            (False, True)
+
+            sage: L.is_isoform(certificate=True)
+            (False, {{1, 2, 4, 6, 9}, {3, 5, 7, 8, 10}})
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_isoform() for i in range(5)]
+            [True, True, True, False, False]
+
+            sage: Posets.DiamondPoset(5).is_isoform()  # Simple, so trivially isoform
+            True
+        """
+        ok = (True, None) if certificate else True
+
+        H = self._hasse_diagram
+        if H.order() == 0:
+            return ok
+        for c in H.congruences_iterator():
+            cong = list(c)
+            d = H.subgraph(cong[0])
+            for part in cong:
+                if not H.subgraph(part).is_isomorphic(d):
+                    if certificate:
+                        from sage.combinat.set_partition import SetPartition
+                        return (False,
+                                SetPartition([[self._vertex_to_element(v) for v in p] for p in cong]))
+                    return False
+        return ok
+
+    def is_uniform(self, certificate=False):
+        """
+        Return ``True`` if the lattice is uniform and ``False`` otherwise.
+
+        A congruence is *uniform* if all blocks are have equal number
+        of elements. A lattice is uniform if it has only uniform
+        congruences.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate if the lattice is not regular
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, C)``, where `C` is a non-uniform congruence as a
+          :class:`sage.combinat.set_partition.SetPartition`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO:: :meth:`congruence`
+
+        EXAMPLES:
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [6, 7], 3: [5], 4: [5], 5: [9, 8], 6: [9], 7: [10], 8: [10], 9: [10]})
+            sage: L.is_uniform()
+            True
+
+        Every uniform lattice is regular, but the converse is not true::
+
+            sage: N6 = LatticePoset({1: [2, 3, 5], 2: [4], 3: [4], 5: [6], 4: [6]})
+            sage: N6.is_uniform(), N6.is_regular()
+            (False, True)
+
+            sage: N6.is_uniform(certificate=True)
+            (False, {{1, 2, 3, 4}, {5, 6}})
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_uniform() for i in range(5)]
+            [True, True, True, False, False]
+
+            sage: Posets.DiamondPoset(5).is_uniform()  # Simple, so trivially uniform
+            True
+        """
+        ok = (True, None) if certificate else True
+
+        H = self._hasse_diagram
+        if H.order() == 0:
+            return ok
+
+        for c in H.congruences_iterator():
+            cong = list(c)
+            n = len(cong[0])
+            for part in cong:
+                if len(part) != n:
+                    if certificate:
+                        from sage.combinat.set_partition import SetPartition
+                        return (False,
+                                SetPartition([[self._vertex_to_element(v) for v in p] for p in c]))
+                    return False
+        return ok
+
+    def is_regular(self, certificate=False):
+        """
+        Return ``True`` if the lattice is regular and ``False`` otherwise.
+
+        A congruence of a lattice is *regular* if it is generated
+        by any of it's part. A lattice is regular if it has only
+        regular congruences.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate if the lattice is not regular
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (C, p))``, where `C` is a non-regular congruence as a
+          :class:`sage.combinat.set_partition.SetPartition` and `p` is a
+          congruence class of `C` such that the congruence generated by `p`
+          is not `C`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO:: :meth:`congruence`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [8, 7], 4: [6, 7], 5: [8], 6: [9], 7: [9], 8: [9]})
+            sage: L.is_regular()
+            True
+
+            sage: N5 = Posets.PentagonPoset()
+            sage: N5.is_regular()
+            False
+            sage: N5.is_regular(certificate=True)
+            (False, ({{0}, {1}, {2, 3}, {4}}, [0]))
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_regular() for i in range(5)]
+            [True, True, True, False, False]
+        """
+        H = self._hasse_diagram
+        for cong in H.congruences_iterator():
+            for part in cong:
+                if H.congruence([part]) != cong:
+                    if certificate:
+                        from sage.combinat.set_partition import SetPartition
+                        return (False,
+                                (SetPartition([[self._vertex_to_element(v) for v in p] for p in cong]),
+                                 [self._vertex_to_element(v) for v in part]))
+                    return False
+        if certificate:
+            return (True, None)
+        return True
+
     def is_simple(self, certificate=False):
         """
         Return ``True`` if the lattice is simple and ``False`` otherwise.

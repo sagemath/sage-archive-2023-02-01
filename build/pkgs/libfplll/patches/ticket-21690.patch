@@ -1,0 +1,13 @@
+diff -ruN a/fplll/lll.h b/fplll/lll.h
+--- a/fplll/lll.h	2016-10-12 12:07:05.211645300 +0200
++++ b/fplll/lll.h	2016-10-12 12:07:15.049432000 +0200
+@@ -36,7 +36,9 @@
+    */
+   LLLReduction(MatGSO<ZT, FT> &m, double delta, double eta, int flags);
+ 
++#ifdef FPLLL_WITH_LONG_DOUBLE
+   ~LLLReduction() { LDConvHelper::free(); }
++#endif
+ 
+   bool lll(int kappa_min = 0, int kappa_start = 0, int kappa_end = -1);
+   inline bool size_reduction(int kappa_min = 0, int kappa_end = -1);

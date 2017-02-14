@@ -2393,6 +2393,13 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: paths = g._backend.shortest_path_all_vertices(0)
             sage: all([ (v not in paths and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
             True
+
+        TESTS::
+
+            sage: graphs.KrackhardtKiteGraph().eccentricity("a")
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex 'a' is not a vertex of the graph
         """
         cdef list current_layer
         cdef list next_layer
@@ -2407,6 +2414,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         d = 0
 
         v_int = self.get_vertex(v)
+        if v_int == -1:
+            raise LookupError(f"vertex {v!r} is not a vertex of the graph")
 
         bitset_init(seen, (<CGraph>self._cg).active_vertices.size)
         bitset_set_first_n(seen, 0)

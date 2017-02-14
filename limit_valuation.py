@@ -470,6 +470,39 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         """
         return self._initial_approximation.uniformizer()
 
+    def _call_(self, f):
+        r"""
+        Return the valuation of ``f``.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<x> = K[]
+            sage: vK = pAdicValuation(K, 2)
+            sage: f = (x^2 + 7) * (x^2 + 9)
+            sage: V = vK.mac_lane_approximants(f, require_incomparability=True)
+            sage: V = sorted(V, key=str)
+
+            sage: w = LimitValuation(V[0], f)
+            sage: w((x^2 + 7) * (x + 3))
+            3/2
+
+            sage: w = LimitValuation(V[1], f)
+            sage: w((x^2 + 7) * (x + 3))
+            +Infinity
+
+            sage: w = LimitValuation(V[2], f)
+            sage: w((x^2 + 7) * (x + 3))
+            +Infinity
+
+        """
+        self._improve_approximation_for_call(f)
+        if self._G.divides(f):
+            from sage.rings.all import infinity
+            return infinity
+        return self._approximation(f)
+
     def _improve_approximation(self):
         r"""
         Perform one step of the Mac Lane algorithm to improve our approximation.
@@ -539,18 +572,24 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             of ``f`` in `K[x]` (of minimal degree.) Write `v` for
             ``self._approximation` and `\phi` for the last key polynomial of
             `v`. With repeated quotient and remainder `g` has a unique
-            expansion as `g=\sum a_i\phi^i`. Suppose that `g` is an
+            expansion as `g=\sum a_i\phi^i`.  Suppose that `g` is an
             equivalence-unit with respect to ``self._approximation``, i.e.,
             `v(a_0) < v(a_i\phi^i)` for all `i\ne 0`. If we denote the limit
             valuation as `w`, then `v(a_i\phi^i)=w(a_i\phi^i)` since the
             valuation of key polynomials does not change during augmentations
             (Theorem 6.4 in [ML1936'].) By the strict triangle inequality,
             `w(g)=v(g)`.
-            Note that any `g` which  is not in `(G)` is an equivalence-unit
+            Note that any `g` which is coprime to `G` is an equivalence-unit
             after finitely many steps of the Mac Lane algorithm. Indeed,
             otherwise the valuation of `g` would be infinite (follows from
             Theorem 5.1 in [ML1936']) since the valuation of the key
             polynomials increases.
+            When `f` is not coprime to `G`, consider `s=gcd(f,G)` and write
+            `G=st`. Since `G` is squarefree, either `s` or `t` have finite
+            valuation. With the above algorithm, this can be decided in
+            finitely many steps. From this we can deduce the valuation of `s`
+            (and in fact replace `G` with the factor with infinite valuation
+            for all future computations.)
 
         """
         from sage.rings.all import infinity
@@ -564,12 +603,25 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             # zero coefficients.)
             return
 
-        if self._approximation.is_equivalence_unit(f):
-            # see ALGORITHM above
-            return
+        while not self._approximation.is_equivalence_unit(f):
+            # TODO: I doubt that this really works over inexact fields
+            s = self._G.gcd(f)
+            if s.is_constant():
+                self._improve_approximation()
+            else:
+                t = self._G // s
 
-        self._improve_approximation()
-        return self._improve_approximation_for_call(f)
+                while True:
+                    if self._approximation.is_equivalence_unit(s):
+                        # t has infinite valuation
+                        self._G = t
+                        return self._improve_approximation_for_call(f // s)
+                    if self._approximation.is_equivalence_unit(t):
+                        # s has infinite valuation
+                        self._G = s
+                        return
+
+                    self._improve_approximation()
 
     def _improve_approximation_for_reduce(self, f):
         r"""

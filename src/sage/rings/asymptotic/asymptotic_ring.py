@@ -1085,6 +1085,89 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)
 
+    def monomial_coefficient(self, monomial):
+        r"""
+        Return the coefficient in the base ring of the given monomial
+        in this expansion.
+
+        INPUT:
+
+        - ``monomial`` -- a monomial element which can be converted
+          into the the asymptotic ring of this element
+
+        OUTPUT:
+
+        An element of the coefficient ring.
+
+        EXAMPLES::
+
+            sage: R.<m, n> = AsymptoticRing("m^QQ*n^QQ", QQ)
+            sage: ae = 13 + 42/n + 2/n/m + O(n^-2)
+            sage: ae.monomial_coefficient(1/n)
+            42
+            sage: ae.monomial_coefficient(1/n^3)
+            0
+            sage: R.<n> = AsymptoticRing("n^QQ", ZZ)
+            sage: ae.monomial_coefficient(1/n)
+            42
+            sage: ae.monomial_coefficient(1)
+            13
+
+        TESTS:
+
+        Conversion of ``monomial`` the parent of this element must be
+        possible::
+
+            sage: R.<m> = AsymptoticRing("m^QQ", QQ)
+            sage: S.<n> = AsymptoticRing("n^QQ", QQ)
+            sage: m.monomial_coefficient(n)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot include n with parent Exact Term Monoid
+            n^QQ with coefficients in Rational Field in Asymptotic Ring
+            <m^QQ> over Rational Field
+            > *previous* ValueError: n is not in Growth Group m^QQ
+
+        Only monomials are allowed::
+
+            sage: R.<n> = AsymptoticRing("n^QQ", QQ)
+            sage: (n + 4).monomial_coefficient(n + 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: n + 5 not a monomial
+            sage: n.monomial_coefficient(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 not a monomial
+
+        Cannot extract the coefficient of an O term::
+
+            sage: O(n).monomial_coefficient(n)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'OTermMonoid_with_category.element_class'
+            object has no attribute 'coefficient'
+
+        The ``monomial`` must be exact::
+
+            sage: n.monomial_coefficient(O(n))
+            Traceback (most recent call last):
+            ...
+            ValueError: non-exact monomial O(n)
+
+        """
+        monomial = self.parent()(monomial)
+        if not monomial.is_exact():
+            raise ValueError("non-exact monomial {}".format(monomial))
+
+        if len(monomial.summands) != 1:
+            raise ValueError("{} not a monomial".format(monomial))
+
+        monomial_growth = next(monomial.summands.elements()).growth
+        try:
+            return self.summands.element(monomial_growth).coefficient
+        except KeyError:
+            return self.parent().coefficient_ring(0)
 
     def _add_(self, other):
         r"""

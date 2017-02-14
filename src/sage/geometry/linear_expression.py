@@ -38,6 +38,7 @@ add them and multiply them with scalars::
 """
 
 from sage.structure.parent import Parent
+from sage.structure.sage_object import richcmp
 from sage.structure.element import ModuleElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
@@ -389,7 +390,7 @@ class LinearExpression(ModuleElement):
         """
         return hash(self._coeffs) ^ hash(self._const)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare two linear expressions.
 
@@ -416,8 +417,8 @@ class LinearExpression(ModuleElement):
             sage: x == 'test'
             False
         """
-        assert type(self) is type(other) and self.parent() is other.parent()  # guaranteed by framework
-        return cmp(self._coeffs, other._coeffs) or cmp(self._const, other._const)
+        return richcmp((self._coeffs, self._const),
+                (other._coeffs, other._const), op)
 
     def evaluate(self, point):
         """

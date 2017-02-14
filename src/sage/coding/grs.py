@@ -1,7 +1,7 @@
 r"""
 Reed-Solomon codes and Generalized Reed-Solomon codes
 
-Given `n` different "evaluation points" `\alpha_1, \dots, \alpha_n` from some
+Given `n` different evaluation points `\alpha_1, \dots, \alpha_n` from some
 finite field `F`, the corresponding Reed-Solomon code (RS code) of dimension `k`
 is the set:
 
@@ -209,7 +209,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def __eq__(self, other):
         r"""
-        Tests equality between Generalized Reed-Solomon codes.
+        Test equality between Generalized Reed-Solomon codes.
 
         EXAMPLES::
 
@@ -229,7 +229,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -250,7 +250,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
@@ -271,7 +271,9 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def minimum_distance(self):
         r"""
-        Returns the minimum distance of ``self``. Since a GRS code is always
+        Return the minimum distance between any two words in ``self``.
+
+        Since a GRS code is always
         Maximum-Distance-Separable (MDS), this returns ``C.length() -
         C.dimension() + 1``.
 
@@ -287,7 +289,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def evaluation_points(self):
         r"""
-        Returns the evaluation points of ``self`` as a vector.
+        Return the vector of field elements used for the polynomial evaluations.
 
         EXAMPLES::
 
@@ -301,7 +303,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def column_multipliers(self):
         r"""
-        Returns the column multipliers of ``self`` as a vector.
+        Return the vector of column multipliers of ``self``.
 
         EXAMPLES::
 
@@ -340,11 +342,11 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     @cached_method
     def multipliers_product(self):
         r"""
-        Returns the component-wise product of the column multipliers of ``self``
+        Return the component-wise product of the column multipliers of ``self``
         with the column multipliers of the dual GRS code.
 
         This is a simple Cramer's rule-like expression on the evaluation points
-        of ``self``. Recall that the column multipliers of the dual GRS code is
+        of ``self``. Recall that the column multipliers of the dual GRS code are
         also the column multipliers of the parity check matrix of ``self``.
 
         EXAMPLES::
@@ -363,7 +365,9 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     @cached_method
     def parity_column_multipliers(self):
         r"""
-        Returns the list of column multipliers of ``self``'s parity check matrix.
+        Return the list of column multipliers of the parity check matrix of 
+        ``self``. They are also column multipliers of the generator matrix for 
+        the dual GRS code of ``self``.
 
         EXAMPLES::
 
@@ -381,7 +385,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     @cached_method
     def parity_check_matrix(self):
         r"""
-        Returns the parity check matrix of ``self``.
+        Return the parity check matrix of ``self``.
 
         EXAMPLES::
 
@@ -400,7 +404,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     @cached_method
     def dual_code(self):
         r"""
-        Returns the dual code of ``self``, which is also a GRS code.
+        Return the dual code of ``self``, which is also a GRS code.
 
         EXAMPLES::
 
@@ -420,7 +424,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def covering_radius(self):
         r"""
-        Returns the covering radius of ``self``.
+        Return the covering radius of ``self``.
 
         The covering radius of a linear code `C` is the smallest
         number `r` s.t. any element of the ambient space of `C` is at most at
@@ -444,7 +448,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     @cached_method
     def weight_distribution(self):
         r"""
-        Returns the list whose `i`'th entry is the number of words of weight `i`
+        Return the list whose `i`'th entry is the number of words of weight `i`
         in ``self``.
 
         Computing the weight distribution for a GRS code is very fast. Note that
@@ -468,9 +472,37 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             wd.append(tmp * symbolic_sum(binomial(i-1, s) * (-1) ** s * q ** (i - d - s), s, 0, i-d))
         return wd
 
+    def weight_enumerator(self):
+        r"""
+        Return the generating function of the weight distribution of ``self``:
+        this is the polynomial whose coefficient of degree `i` is the number of
+        codewords of weight `i` in ``self``.
+
+        Computing the weight enumerator for a GRS code is very fast. Note that
+        for random linear codes, it is computationally hard.
+
+        EXAMPLES::
+
+            sage: F = GF(11)
+            sage: n, k = 10, 5
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: C.weight_enumerator()
+            62200*x^10 + 61500*x^9 + 29250*x^8 + 6000*x^7 + 2100*x^6 + 1
+        """
+        PolRing = ZZ['x']
+        x = PolRing.gen()
+        s = var('s')
+        wd = self.weight_distribution()
+        d = self.minimum_distance()
+        n = self.length()
+        w_en = PolRing(1)
+        for i in range(n + 1 - d):
+            w_en += wd[i + d] * x ** (i + d)
+        return w_en
+
     def _punctured_form(self, points):
         r"""
-        Returns a representation of self as a
+        Return a representation of self as a
         :class:`GeneralizedReedSolomonCode` punctured in ``points``.
 
         INPUT:
@@ -499,7 +531,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
     def decode_to_message(self, r):
         r"""
-        Decodes``r`` to an element in message space of ``self``
+        Decode ``r`` to an element in message space of ``self``
 
         .. NOTE::
 
@@ -538,6 +570,18 @@ class GRSEvaluationVectorEncoder(Encoder):
     r"""
     Encoder for (Generalized) Reed-Solomon codes which encodes vectors into codewords.
 
+    Let `C` be a GRS code of length `n` and dimension `k` over some finite field `F`.
+    We denote by `\alpha_i` its evaluations points and by `\beta_i` its column multipliers,
+    `i` ranging from `1` to `n` (inclusive).
+    Let `m = (m_1, \dots, m_k)` a vector over F be the message.
+    We build a polynomial using the coordinates of `m` as coefficients:
+    `p = \Sigma_{i=1}^{m} m_i \times x^i`.
+
+    The encoding of `m` will be the following codeword:
+
+    `(\beta_1\times p(\alpha_1), \dots, \beta_n\times p(\alpha_n))`
+
+
     INPUT:
 
     - ``code`` -- The associated code of this encoder.
@@ -573,7 +617,7 @@ class GRSEvaluationVectorEncoder(Encoder):
 
     def __eq__(self, other):
         r"""
-        Tests equality between GRSEvaluationVectorEncoder objects.
+        Test equality between GRSEvaluationVectorEncoder objects.
 
         EXAMPLES::
 
@@ -592,7 +636,7 @@ class GRSEvaluationVectorEncoder(Encoder):
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -607,7 +651,7 @@ class GRSEvaluationVectorEncoder(Encoder):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
@@ -623,7 +667,16 @@ class GRSEvaluationVectorEncoder(Encoder):
     @cached_method
     def generator_matrix(self):
         r"""
-        Returns a generator matrix of ``self``
+        Return a generator matrix of ``self``
+
+        Considering a GRS code of length `n`, dimension `k`, with
+        evaluation points `(\alpha_1, \dots \alpha_n)` and column multipliers
+        `(\beta_1, \dots \beta_n)`, its generator matrix `G` is built using
+        the following formula:
+
+        `G = [g_{i,j}], g_{i,j} = \beta_j \times \alpha_{j}^{i}`
+
+        This matrix is a Vandermonde matrix.
 
         EXAMPLES::
 
@@ -654,6 +707,15 @@ class GRSEvaluationPolynomialEncoder(Encoder):
     r"""
     Encoder for (Generalized) Reed-Solomon codes which uses evaluation of
     polynomials to obtain codewords.
+
+    Let `C` be a GRS code of length `n` and dimension `k` over some finite field `F`.
+    We denote by `\alpha_i` its evaluations points and by `\beta_i` its column multipliers,
+    `i` ranging from `1` to `n` (inclusive).
+    Let `p` be a polynomial of degree at most `k-1` in `F[x]` be the message.
+
+    The encoding of `m` will be the following codeword:
+
+    `(\beta_1\times p(\alpha_1), \dots, \beta_n\times p(\alpha_n))`
 
     INPUT:
 
@@ -734,7 +796,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     def __eq__(self, other):
         r"""
-        Tests equality between GRSEvaluationPolynomialEncoder objects.
+        Test equality between GRSEvaluationPolynomialEncoder objects.
 
         EXAMPLES::
 
@@ -758,7 +820,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -773,7 +835,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
@@ -788,7 +850,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     def encode(self, p):
         r"""
-        Transforms the polynomial ``p`` into a codeword of :meth:`code`.
+        Transform the polynomial ``p`` into a codeword of :meth:`code`.
 
         One can use the following shortcut to encode a word with an encoder ``E``::
 
@@ -860,7 +922,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     def unencode_nocheck(self, c):
         r"""
-        Returns the message corresponding to the codeword ``c``.
+        Return the message corresponding to the codeword ``c``.
 
         Use this method with caution: it does not check if ``c``
         belongs to the code, and if this is not the case, the output is
@@ -912,7 +974,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
     def message_space(self):
         r"""
-        Returns the message space of ``self``
+        Return the message space of ``self``
 
         EXAMPLES::
 
@@ -984,7 +1046,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     def __eq__(self, other):
         r"""
-        Tests equality between GRSBerlekampWelchDecoder objects.
+        Test equality between GRSBerlekampWelchDecoder objects.
 
         EXAMPLES::
 
@@ -1004,7 +1066,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -1019,7 +1081,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
@@ -1035,7 +1097,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     def _decode_to_code_and_message(self, r):
         r"""
-        Decodes ``r`` to an element in message space of ``self`` and its
+        Decode ``r`` to an element in message space of ``self`` and its
         representation in the ambient space of the code associated to ``self``.
 
         INPUT:
@@ -1101,7 +1163,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     def decode_to_message(self, r):
         r"""
-        Decodes ``r`` to an element in message space of ``self``.
+        Decode ``r`` to an element in message space of ``self``.
 
         .. NOTE::
 
@@ -1163,7 +1225,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Corrects the errors in ``r`` and returns a codeword.
+        Correct the errors in ``r`` and returns a codeword.
 
         .. NOTE::
 
@@ -1221,7 +1283,7 @@ class GRSBerlekampWelchDecoder(Decoder):
 
     def decoding_radius(self):
         r"""
-        Returns maximal number of errors that ``self`` can decode.
+        Return maximal number of errors that ``self`` can decode.
 
         OUTPUT:
 
@@ -1286,7 +1348,7 @@ class GRSGaoDecoder(Decoder):
 
     def __eq__(self, other):
         r"""
-        Tests equality of GRSGaoDecoder objects.
+        Test equality of GRSGaoDecoder objects.
 
         EXAMPLES::
 
@@ -1409,7 +1471,7 @@ class GRSGaoDecoder(Decoder):
 
     def _decode_to_code_and_message(self, r):
         r"""
-        Decodes ``r`` to an element in message space of ``self`` and its
+        Decode ``r`` to an element in message space of ``self`` and its
         representation in the ambient space of the code associated to ``self``.
 
         INPUT:
@@ -1467,7 +1529,7 @@ class GRSGaoDecoder(Decoder):
 
     def decode_to_message(self, r):
         r"""
-        Decodes ``r`` to an element in message space of ``self``.
+        Decode ``r`` to an element in message space of ``self``.
 
         .. NOTE::
 
@@ -1529,7 +1591,7 @@ class GRSGaoDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Corrects the errors in ``r`` and returns a codeword.
+        Correct the errors in ``r`` and returns a codeword.
 
         .. NOTE::
 
@@ -1617,8 +1679,20 @@ class GRSGaoDecoder(Decoder):
 
 class GRSErrorErasureDecoder(Decoder):
     r"""
-    Decoder for (Generalized) Reed-Solomon codes which is able to correct both errors
-    and erasures in codewords.
+    Decoder for (Generalized) Reed-Solomon codes which is able to correct both 
+    errors and erasures in codewords.
+
+    Let `C` be a GRS code of length `n` and dimension `k`.
+    Considering `y` a codeword with at most `t` errors
+    (`t` being the `\lfloor \frac{d-1}{2}\rfloor` decoding radius), and `e` the
+    erasure vector,
+    this decoder works as follows:
+
+    - Puncture the erased coordinates which are identified in `e`.
+    - Create a new GRS code of length `n-hamming\_weight(e)`, dimension `k`.
+    - Use Gao decoder over this new code one the punctured word built on the first step.
+    - Recover the original message from the decoded word computed on the previous step.
+    - Encode this message using an encoder over `C`.
 
     INPUT:
 
@@ -1904,7 +1978,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def __eq__(self, other):
         r"""
-        Tests equality of GRSKeyEquationSyndromeDecoder objects.
+        Test equality of GRSKeyEquationSyndromeDecoder objects.
 
         EXAMPLES::
 
@@ -1997,7 +2071,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def _syndrome(self, r):
         r"""
-        Returns the coefficients of the syndrome polynomial of ``r``.
+        Return the coefficients of the syndrome polynomial of ``r``.
 
         INPUT:
 
@@ -2034,7 +2108,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def _forney_formula(self, error_evaluator, error_locator):
         r"""
-        Returns the error vector computed through Forney's formula.
+        Return the error vector computed through Forney's formula.
 
         INPUT:
 
@@ -2074,7 +2148,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Corrects the errors in ``r`` and returns a codeword.
+        Correct the errors in ``r`` and returns a codeword.
 
         .. NOTE::
 
@@ -2144,7 +2218,7 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
 
     def decode_to_message(self, r):
         r"""
-        Decodes``r`` to an element in message space of ``self``
+        Decode ``r`` to an element in message space of ``self``
 
         .. NOTE::
 

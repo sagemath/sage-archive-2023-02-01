@@ -954,7 +954,7 @@ class GRSEvaluationPolynomialEncoder(Encoder):
 
         OUTPUT:
 
-        - an polynomial of degree less than ``self.code().dimension()``
+        - a polynomial of degree less than ``self.code().dimension()``
 
         EXAMPLES::
 
@@ -1704,8 +1704,8 @@ class GRSErrorErasureDecoder(Decoder):
     this decoder works as follows:
 
     - Puncture the erased coordinates which are identified in `e`.
-    - Create a new GRS code of length equal to the `n`-hamming weight of `e`
-      and of dimension `k`.
+    - Create a new GRS code of length `n - H(e)`, where `H` is
+      the Hamming weight, and dimension `k`.
     - Use Gao decoder over this new code one the punctured word built on
       the first step.
     - Recover the original message from the decoded word computed on the

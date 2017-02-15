@@ -395,9 +395,17 @@ Sage has a function that enables this::
     sage: implicit_multiplication(True)
     sage: x 2 x  # Not tested
     2*x^2
+    sage: implicit_multiplication(False)
 
 This is preparsed by Sage into Python code. It may not work in a
-complicated situation.
+complicated situation. To see what the preparser does::
+
+    sage: implicit_multiplication(True)
+    sage: preparse("2 x")
+    'Integer(2)*x'
+    sage: implicit_multiplication(False)
+    sage: preparse("2 x")
+    'Integer(2) x'
 
 See https://wiki.sagemath.org/sage_mathematica for more information
 about Mathematica vs. SageMath.

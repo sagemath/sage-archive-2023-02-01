@@ -1,29 +1,31 @@
 r"""
-Strong orientations
+Orientations
 
-This module implements an algorithm for generating all strong orientations of
-an undirected graph.
-It is an adaptation of the algorithm published in [CGMRV16]_.
+This module implements several methods to compute orientations of undirected
+graphs subject to specific constraints (e.g., acyclic, strongly connected,
+etc.). It also implements some iterators over all these orientations.
 
-A strong orientation of a graph is an orientation of its edges such that
-the obtained digraph is strongly connected (i.e. there exist a directed path
-between each pair of vertices).
+**This module contains the following methods**
 
-ALGORITHM:
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
 
-It runs in `O(mn)` amortized time, where `m` is the number of edges and
-`n` is the number of vertices. The amortized time can be improved to `O(m)`
-with a more involved method.
-In order to avoid trivial symetries, the orientation of an arbitrary edge
-is fixed before the start of the enumeration process.
+    :meth:`strong_orientations_iterator` | Return an iterator over all strong orientations of a graph `G`
 
-NOTE:
 
-Works only for simple graphs (no multiple edges).
+REFERENCES
+----------
 
-AUTHORS:
+Authors
+-------
 
-- Kolja Knauer, Petru Valicov (2017-01-10) --  initial version
+- Kolja Knauer, Petru Valicov (2017-01-10) -- initial version
+
+
+Methods
+-------
 """
 
 
@@ -34,12 +36,25 @@ def strong_orientations_iterator(G):
     r"""
     Returns an iterator over all strong orientations of a graph `G`.
 
-    First preprocesses the graph and generates a spanning tree.
-    Then every orientation of the non-tree edges can be extended to at least
-    one new strong orientation by orienting properly the edges of the spanning
-    tree (this property is proved in [CGMRV16]_). Therefore, this function
-    generates all partial orientations of the non-tree edges and then launches
-    the generation algorithm described in [CGMRV16]_.
+    A strong orientation of a graph is an orientation of its edges such that
+    the obtained digraph is strongly connected (i.e. there exist a directed path
+    between each pair of vertices).
+
+    ALGORITHM:
+    It is an adaptation of the algorithm published in [CGMRV16]_.
+    It runs in `O(mn)` amortized time, where `m` is the number of edges and
+    `n` is the number of vertices. The amortized time can be improved to `O(m)`
+    with a more involved method.
+    In this function, first the graph is preprocessed and a spanning tree is
+    generated. Then every orientation of the non-tree edges of the graph can be
+    extended to at least one new strong orientation by orienting properly
+    the edges of the spanning tree (this property is proved in [CGMRV16]_).
+    Therefore, this function generates all partial orientations of the non-tree
+    edges and then launches `_strong_orientations_of_a_mixed_graph` which is
+    the helper function corresponding to the generation algorithm described
+    in [CGMRV16]_.
+    In order to avoid trivial symetries, the orientation of an arbitrary edge
+    is fixed before the start of the enumeration process.
 
     INPUT:
 
@@ -51,7 +66,9 @@ def strong_orientations_iterator(G):
 
     .. NOTE::
 
+        Works only for simple graphs (no multiple edges).
         In order to avoid symetries an orientation of an arbitrary edge is fixed.
+
 
     EXAMPLES:
 
@@ -76,6 +93,14 @@ def strong_orientations_iterator(G):
         0
 
     TESTS:
+
+        sage: g = graphs.CubeGraph(3)
+        sage: b = True
+        sage: for orientedGraph in g.strong_orientations_iterator():
+        ....:     if not orientedGraph.is_strongly_connected():
+        ....:         b = False
+        sage: b
+        True
 
     The total number of strong orientations of a graph can be counted using
     the Tutte polynomial evaluated at points (0,2)::
@@ -164,7 +189,7 @@ def _strong_orientations_of_a_mixed_graph(Dg, V, E):
 
     EXAMPLES:
 
-        sage: from sage.graphs.strong_orientations_generator import _strong_orientations_of_a_mixed_graph
+        sage: from sage.graphs.orientations import _strong_orientations_of_a_mixed_graph
         sage: g = graphs.CycleGraph(5)
         sage: Dg = DiGraph(g) # all edges of g will be doubly oriented
         sage: it = _strong_orientations_of_a_mixed_graph(Dg, g.vertices(), g.edges(labels=False))

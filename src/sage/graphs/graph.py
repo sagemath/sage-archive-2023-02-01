@@ -7551,7 +7551,7 @@ Graph.lovasz_theta              = lovasz_theta
 from sage.graphs.partial_cube import is_partial_cube
 Graph.is_partial_cube           = is_partial_cube
 
-from sage.graphs.strong_orientations_generator import strong_orientations_iterator
+from sage.graphs.orientations import strong_orientations_iterator
 Graph.strong_orientations_iterator    =    strong_orientations_iterator
 
 _additional_categories = {

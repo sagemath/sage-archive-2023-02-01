@@ -5151,7 +5151,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 -1/2*S[1, 1] + S[2]
             """
             S = self.realization_of().S()
-            if n == 0 or n == 1:
+            if n <= 1:
                 return S[n]
 
             from sage.combinat.partitions import ZS1_iterator
@@ -5310,7 +5310,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             S = self.realization_of().S()
 
-            if n == 0 or n == 1:
+            if n <= 1:
                 return S[n]
 
             from sage.combinat.partitions import ZS1_iterator

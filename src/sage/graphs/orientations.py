@@ -150,10 +150,10 @@ def strong_orientations_iterator(G):
         
         bit = 0
         while bitChanged > 1:
-            bitChanged >>= 1;
-            bit += 1;
+            bitChanged >>= 1
+            bit += 1
 
-        previousWord = word;
+        previousWord = word
         if existingAedges[bit] == 0:
             Dg.reverse_edge(A[bit])
             existingAedges[bit] = 1
@@ -200,7 +200,7 @@ def _strong_orientations_of_a_mixed_graph(Dg, V, E):
     i = 0
     boundEdges = []
     while i < length:
-        (u,v) = E[i];
+        (u,v) = E[i]
         Dg.delete_edge(u,v)
         if not (v in Dg.depth_first_search(u)):
             del E[i]

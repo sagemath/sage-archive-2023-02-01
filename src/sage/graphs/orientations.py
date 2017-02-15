@@ -114,7 +114,7 @@ def strong_orientations_iterator(G):
     """
     # if the graph has a bridge or is disconnected,
     # then it cannot be strongly oriented
-    if not G.is_biconnected():
+    if G.order() < 3 or not G.is_biconnected():
         return
 
     V = G.vertices()

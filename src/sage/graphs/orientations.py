@@ -94,6 +94,10 @@ def strong_orientations_iterator(G):
 
     TESTS:
 
+        sage: g = graphs.CompleteGraph(2)
+        sage: len(list(g.strong_orientations_iterator()))
+        0
+
         sage: g = graphs.CubeGraph(3)
         sage: b = True
         sage: for orientedGraph in g.strong_orientations_iterator():

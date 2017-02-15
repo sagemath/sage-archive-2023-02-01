@@ -15,9 +15,6 @@ etc.). It also implements some iterators over all these orientations.
     :meth:`strong_orientations_iterator` | Return an iterator over all strong orientations of a graph `G`
 
 
-REFERENCES
-----------
-
 Authors
 -------
 
@@ -41,6 +38,7 @@ def strong_orientations_iterator(G):
     between each pair of vertices).
 
     ALGORITHM:
+
     It is an adaptation of the algorithm published in [CGMRV16]_.
     It runs in `O(mn)` amortized time, where `m` is the number of edges and
     `n` is the number of vertices. The amortized time can be improved to `O(m)`
@@ -50,9 +48,8 @@ def strong_orientations_iterator(G):
     extended to at least one new strong orientation by orienting properly
     the edges of the spanning tree (this property is proved in [CGMRV16]_).
     Therefore, this function generates all partial orientations of the non-tree
-    edges and then launches `_strong_orientations_of_a_mixed_graph` which is
-    the helper function corresponding to the generation algorithm described
-    in [CGMRV16]_.
+    edges and then launches a helper function corresponding to the generation
+    algorithm described in [CGMRV16]_.
     In order to avoid trivial symetries, the orientation of an arbitrary edge
     is fixed before the start of the enumeration process.
 

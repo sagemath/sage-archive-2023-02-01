@@ -671,16 +671,6 @@ deux membres en des nombres du même type lorsque c'est possible :
     True
     True
 
-Deux objets quelconques ou presque peuvent être comparés, sans hypothèse
-sur l'existence d'un ordre total sous-jacent.
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # random
-    True
-
 Pour évaluer des inégalités symboliques, utilisez ``bool`` :
 
 ::

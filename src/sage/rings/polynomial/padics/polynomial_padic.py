@@ -23,6 +23,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from builtins import zip
 
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.polynomial.polynomial_element import Polynomial

@@ -50,6 +50,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division, absolute_import
+import six
 from six.moves import range
 
 from . import constructor
@@ -5209,7 +5210,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
         v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
-        v = dict([(i, j.exp().round() if j else 0) for i,j in v.iteritems()])
+        v = dict([(i, j.exp().round() if j else 0) for i,j in six.iteritems(v)])
         return isocls.curves, v
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
@@ -5242,7 +5243,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # enumeration is complete (which need not be the case a priori!), the LCM
         # of these numbers is a multiple of the degree of the isogeny
         # to the optimal curve.
-        v = [deg for num, deg in v.iteritems() if deg]  # get just the degrees
+        v = [deg for num, deg in six.iteritems(v) if deg]  # get just the degrees
         return arith.LCM(v)
 
     ##########################################################

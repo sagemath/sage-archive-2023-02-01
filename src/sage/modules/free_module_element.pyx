@@ -63,7 +63,7 @@ Since there is no canonical coercion map to the finite field from
     sage: V.0 + M.0
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Vector space of dimension 5 over Rational Field' and 'Vector space of dimension 5 over Finite Field of size 7'
+    TypeError: unsupported operand parent(s) for +: 'Vector space of dimension 5 over Rational Field' and 'Vector space of dimension 5 over Finite Field of size 7'
 
 However, there is a map from `\ZZ` to the finite
 field, so the following is defined, and the result is in the finite
@@ -413,7 +413,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     a possible input.  ::
 
         sage: type(i^2 for i in range(3))
-        <type 'generator'>
+        <... 'generator'>
         sage: v = vector(i^2 for i in range(3)); v
         (0, 1, 4)
 
@@ -1010,7 +1010,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: vector([1, 1/2, QQ['x'].0]).numpy(dtype=float)
             Traceback (most recent call last):
             ...
-            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <type 'float'>: setting an array element with a sequence.
+            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <... 'float'>: setting an array element with a sequence.
         """
         from numpy import array
         try:
@@ -3330,7 +3330,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: z = w.outer_product(v)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 1 dense matrices over Finite Field of size 5' and 'Full MatrixSpace of 1 by 4 dense matrices over Finite Field of size 7'
+            TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 2 by 1 dense matrices over Finite Field of size 5' and 'Full MatrixSpace of 1 by 4 dense matrices over Finite Field of size 7'
 
         And some inputs don't make any sense at all. ::
 

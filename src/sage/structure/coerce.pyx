@@ -87,7 +87,7 @@ from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
 from .sage_object cimport SageObject, rich_to_bool
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
-from .element cimport bin_op_exception, parent_c, Element
+from .element cimport bin_op_exception, parent as parent_c, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from .coerce_exceptions import CoercionException
 from sage.categories.map cimport Map
@@ -278,7 +278,7 @@ cpdef bint is_numpy_type(t):
         sage: 1 + object()
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for '+': 'Integer Ring' and '<type 'object'>'
+        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<type 'object'>'
     """
     if not isinstance(t, type):
         return False
@@ -603,7 +603,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: 1/2 + GF(3)(2)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': 'Rational Field' and 'Finite Field of size 3'
+            TypeError: unsupported operand parent(s) for +: 'Rational Field' and 'Finite Field of size 3'
 
         Now see what the actual problem was::
 
@@ -687,12 +687,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(R100(1) + float(1))
-            <type 'float'>
+            <... 'float'>
             sage: cm.explain(QQ, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(QQ(1) + float(1))
-            <type 'float'>
+            <... 'float'>
 
 
         Special care is taken to deal with division::
@@ -884,7 +884,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.common_parent(4r, 5r)
             <... 'int'>
             sage: cm.common_parent(int, float, ZZ)
-            <type 'float'>
+            <... 'float'>
             sage: real_fields = [RealField(prec) for prec in [10,20..100]]
             sage: cm.common_parent(*real_fields)
             Real Field with 10 bits of precision
@@ -1012,7 +1012,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: print(H*3)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': '<type 'instance'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for *: '<type 'instance'>' and 'Integer Ring'
 
             sage: class Nonsense:
             ....:     def __init__(self, s):

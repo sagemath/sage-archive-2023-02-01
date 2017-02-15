@@ -3142,7 +3142,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t*e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field
+            TypeError: unsupported operand parent(s) for *: 'Finite Field
             of size 7' and 'Finite Field of size 5'
 
         The same issue (with a different test case) was reported in
@@ -3152,7 +3152,7 @@ cdef class Expression(CommutativeRingElement):
             sage: i*b
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Number Field
+            TypeError: unsupported operand parent(s) for *: 'Number Field
             in I with defining polynomial x^2 + 1' and 'Finite Field in b of
             size 3^2'
 
@@ -4354,7 +4354,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x,y = var('x,y', domain='real')
             sage: p,q = var('p,q', domain='positive')
             sage: (c/2*(5*(3*a*b*x*y*p*q)^2)^(7/2*c)).expand()
-            1/2*45^(7/2*c)*(a^2*b^2)^(7/2*c)*c*p^(7*c)*q^(7*c)*(x^2)^(7/2*c)*(y^2)^(7/2*c)
+            1/2*45^(7/2*c)*(a^2*b^2*x^2*y^2)^(7/2*c)*c*p^(7*c)*q^(7*c)
             sage: ((-(-a*x*p)^3*(b*y*p)^3)^(c/2)).expand()
             (a^3*b^3*x^3*y^3)^(1/2*c)*p^(3*c)
             sage: x,y,p,q = var('x,y,p,q', domain='complex')
@@ -5206,14 +5206,14 @@ cdef class Expression(CommutativeRingElement):
             sage: t._unpack_operands()
             (1, 2, x, x + 1, x + 2)
             sage: type(t._unpack_operands())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: list(map(type, t._unpack_operands()))
             [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
             sage: u = SR._force_pyobject((t, x^2))
             sage: u._unpack_operands()
             ((1, 2, x, x + 1, x + 2), x^2)
             sage: type(u._unpack_operands()[0])
-            <type 'tuple'>
+            <... 'tuple'>
         """
         from sage.libs.pynac.pynac import unpack_operands
         return unpack_operands(self)
@@ -5290,7 +5290,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (x >= y).operator()
             <built-in function ge>
             sage: SR._force_pyobject( (x, x + 1, x + 2) ).operator()
-            <type 'tuple'>
+            <... 'tuple'>
         """
         cdef operators o
         cdef unsigned serial
@@ -5343,7 +5343,7 @@ cdef class Expression(CommutativeRingElement):
         """
         EXAMPLES::
 
-            sage: a = range(10)
+            sage: a = list(range(10))
             sage: a[:SR(5)]
             [0, 1, 2, 3, 4]
         """
@@ -9614,6 +9614,53 @@ cdef class Expression(CommutativeRingElement):
 
     factorial_simplify = simplify_factorial
 
+    def to_gamma(self):
+        """
+        Convert factorial, binomial, and Pochhammer symbol
+        expressions to their gamma function equivalents.
+
+        EXAMPLES::
+
+            sage: m,n = var('m n', domain='integer')
+            sage: factorial(n).to_gamma()
+            gamma(n + 1)
+            sage: binomial(m,n).to_gamma()
+            gamma(m + 1)/(gamma(m - n + 1)*gamma(n + 1))
+        """
+        cdef GEx x
+        sig_on()
+        try:
+            x = to_gamma(self._gobj)
+        finally:
+            sig_off()
+        return new_Expression_from_GEx(self._parent, x)
+
+    def gamma_normalize(self):
+        """
+        Return the expression with any gamma functions that have
+        a common base converted to that base.
+
+        Addtionally the expression is normalized so any fractions
+        can be simplified through cancellation.
+
+        EXAMPLES::
+
+            sage: m,n = var('m n', domain='integer')
+            sage: (gamma(n+2)/gamma(n)).gamma_normalize()
+            (n + 1)*n
+            sage: (gamma(n+2)*gamma(n)).gamma_normalize()
+            (n + 1)*n*gamma(n)^2
+            sage: (gamma(n+2)*gamma(m-1)/gamma(n)/gamma(m+1)).gamma_normalize()
+            (n + 1)*n/((m - 1)*m)
+        """
+        cdef GEx x
+        sig_on()
+        try:
+            x = gamma_normalize(self._gobj)
+        finally:
+            sig_off()
+        return new_Expression_from_GEx(self._parent, x)
+
     def expand_sum(self):
         r"""
         For every symbolic sum in the given expression, try to expand it,
@@ -11025,7 +11072,7 @@ cdef class Expression(CommutativeRingElement):
             solutions = [tuple(s._sage_() for s in sol) for sol in solutions]
         if x is None:
             wanted_vars = ex.variables()
-            var_idx = range(len(ex.variables()))
+            var_idx = list(xrange(len(ex.variables())))
         else:
             if isinstance(x, (list, tuple)):
                 wanted_vars = x
@@ -11033,7 +11080,7 @@ cdef class Expression(CommutativeRingElement):
                 wanted_vars = [x]
             var_idx = [ex.variables().index(v) for v in wanted_vars]
 
-        if solution_dict == False:
+        if solution_dict is False:
             if len(wanted_vars) == 1:
                 ret = sorted([sol[var_idx[0]] for sol in solutions])
             else:
@@ -11271,7 +11318,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ff(1.0)
             1.4142135623730951
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
         """
         from sage.symbolic.expression_conversions import fast_float
         return fast_float(self, *vars)
@@ -11360,7 +11407,7 @@ cdef class Expression(CommutativeRingElement):
             sage: plot(2*sin, -4, 4)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<class 'sage.functions.trig.Function_sin'>'
+            TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.functions.trig.Function_sin'>'
 
         You should evaluate the function first::
 

@@ -272,7 +272,7 @@ class Function_cot(GinacFunction):
             sage: cot(float(0.1))
             9.966644423259238
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
 
             sage: cot(float(0))
             Infinity
@@ -281,7 +281,7 @@ class Function_cot(GinacFunction):
             sage: cot(float(0.1))
             9.966644423259238
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
 
         Test complex input::
 

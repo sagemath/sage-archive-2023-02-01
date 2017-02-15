@@ -33,15 +33,15 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
-cimport free_module_element
-from free_module_element import vector
+cimport sage.modules.free_module_element as free_module_element
+from .free_module_element import vector
 
 from sage.libs.m4ri cimport *
 

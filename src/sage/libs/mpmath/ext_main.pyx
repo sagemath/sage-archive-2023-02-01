@@ -2068,7 +2068,7 @@ cdef class mpf(mpf_base):
             sage: float(mpf(2.5))
             2.5
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
         """
         return MPF_to_double(&self.value, False)
 

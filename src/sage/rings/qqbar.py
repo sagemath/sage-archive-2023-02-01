@@ -166,7 +166,7 @@ However, implicit coercion from `\QQ[I]` is not allowed::
     sage: QQbar(1) + im
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1'
+    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1'
 
 We can implicitly coerce from algebraic reals to algebraic numbers::
 
@@ -505,6 +505,7 @@ from six.moves import range
 
 import itertools
 import operator
+import six
 
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
@@ -1660,7 +1661,7 @@ def clear_denominators(poly):
             min_e = (e + (deg-i) - 1) // (deg-i)
             factors[f] = max(oe, min_e)
     change = 1
-    for f, e in factors.iteritems():
+    for f, e in six.iteritems(factors):
         change = change * f**e
     poly = poly * (change ** deg)
     poly = poly(poly.parent().gen() / change)

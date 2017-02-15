@@ -838,7 +838,7 @@ class Sandpile(DiGraph):
             sage: H.sink()
             (0, 0)
             sage: type(H.sink())
-            <type 'tuple'>
+            <... 'tuple'>
         """
         return self._sink
 

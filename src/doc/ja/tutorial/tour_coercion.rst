@@ -355,7 +355,7 @@ Sageが宗とするのは歩み寄りだ．
     sage: x+y
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
+    TypeError: unsupported operand parent(s) for +: 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
 だめな理由は，Sageが有望そうな候補 ``QQ['x']['y']`` ， ``QQ['y']['x']`` ， ``QQ['x','y']`` あるいは ``QQ['y','x']`` のどれも選択できないことである．
 と言うのも，これら4つの相異なる構造はどれも共通なペアレントとして相応しく，基準となるべき選択肢にならないからだ．

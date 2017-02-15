@@ -919,7 +919,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         sage: loads(dumps(C))
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+        PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
 
     This works in the command line but apparently not as a doctest::
 
@@ -928,7 +928,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
         sage: loads(dumps(C))
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+        PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
     """
     breadth_first_search_iterator = RecursivelyEnumeratedSet_generic._breadth_first_search_iterator_from_graded_component_iterator
 

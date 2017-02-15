@@ -33,16 +33,22 @@ Parents, Elements and Categories
 * :doc:`Categories <categories/index>`
 * :doc:`Base Classes for Rings and Related Objects  <rings/index>`
 
-Standard Rings and Fields
--------------------------
+Algebraic Structures
+--------------------
 
-* :doc:`Integers, Rationals, etc. <rings_standard/index>`
+* :doc:`Monoids <monoids/index>`
+* :doc:`Groups <groups/index>`
+* :doc:`Semirings <semirings/index>`
+* :doc:`Algebras <algebras/index>`
+
+Basic Rings and Fields
+----------------------
+
+* :doc:`Integers and Rational Numbers <rings_standard/index>`
 * :doc:`Real and Complex Numbers <rings_numerical/index>`
 * :doc:`Finite Rings and Fields <finite_rings/index>`
-* :doc:`Algebraic Numbers <number_fields/index>`
 * :doc:`Polynomials <polynomial_rings/index>`
 * :doc:`Formal Power Series <power_series/index>`
-* :doc:`Function Fields <function_fields/index>`
 * :doc:`p-Adic Numbers <padics/index>`
 * :doc:`Quaternion Algebras <quat_algebras/index>`
 
@@ -52,14 +58,6 @@ Linear Algebra
 * :doc:`Matrices and Spaces of Matrices <matrices/index>`
 * :doc:`Vectors and Modules <modules/index>`
 * :doc:`Tensors on free modules of finite rank <tensor_free_modules/index>`
-
-Other Algebraic Structures
---------------------------
-
-* :doc:`Monoids <monoids/index>`
-* :doc:`Groups <groups/index>`
-* :doc:`Semirings <semirings/index>`
-* :doc:`Algebras <algebras/index>`
 
 Discrete Mathematics
 --------------------
@@ -80,6 +78,13 @@ Calculus
 * :doc:`Elementary and Special Functions <functions/index>`
 * :doc:`Asymptotic Expansions <asymptotic/index>` (experimental)
 
+Probability and Statistics
+--------------------------
+
+* :doc:`Probability <probability/index>`
+* :doc:`Statistics <stats/index>`
+* :doc:`Quantitative Finance <finance/index>`
+
 Geometry and Topology
 ---------------------
 
@@ -90,14 +95,23 @@ Geometry and Topology
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 * :doc:`Knot Theory <knots/index>`
 
-Number Theory, Algebraic Geometry
+Algebraic Geometry
+------------------
+* :doc:`Schemes <schemes/index>`
+* :doc:`Elliptic, Plane, and Hyperelliptic Curves <curves/index>`
+
+Number Fields and Function Fields
 ---------------------------------
+
+* :doc:`Number Fields <number_fields/index>`
+* :doc:`Function Fields <function_fields/index>`
+
+Number Theory
+-------------
 
 * :doc:`Diophantine approximation <diophantine_approximation/index>`
 * :doc:`Quadratic Forms <quadratic_forms/index>`
 * :doc:`L-Functions <lfunctions/index>`
-* :doc:`Schemes <schemes/index>`
-* :doc:`Elliptic, Plane, and Hyperelliptic Curves <curves/index>`
 * :doc:`Arithmetic Subgroups of SL_2(Z) <arithgroup/index>`
 * :doc:`General Hecke Algebras and Hecke Modules <hecke/index>`
 * :doc:`Modular Symbols <modsym/index>`
@@ -111,13 +125,6 @@ Logic
 
 * :doc:`Symbolic Logic <logic/index>`
 * :doc:`SAT solvers <sat/index>`
-
-Probability and Statistics
---------------------------
-
-* :doc:`Probability <probability/index>`
-* :doc:`Statistics <stats/index>`
-* :doc:`Quantitative Finance <finance/index>`
 
 Miscellaneous
 -------------

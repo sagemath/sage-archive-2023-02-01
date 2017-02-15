@@ -17,10 +17,13 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import zip
+
 from . import classical
 import sage.libs.symmetrica.all as symmetrica
 import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.rings.all import ZZ, QQ, Integer
+
 
 class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, Sym):
@@ -475,8 +478,8 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                     ns = len_lam + ((- len_lam) % n)
                     s = ns // n   # This is actually ns / n, as we have n | ns.
                     beta_list = lam.beta_numbers(ns)
-                    zipped_beta_list = zip(beta_list, range(1, ns + 1))
-                    zipped_beta_list.sort(key = lambda a: (- 1 - a[0]) % n)
+                    zipped_beta_list = list(zip(beta_list, range(1, ns + 1)))
+                    zipped_beta_list.sort(key=lambda a: (- 1 - a[0]) % n)
                     # We are using the fact that sort is a stable sort.
                     perm_list = [a[1] for a in zipped_beta_list]
                     if Permutation(perm_list).sign() == 1:

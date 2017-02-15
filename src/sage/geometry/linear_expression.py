@@ -36,6 +36,7 @@ add them and multiply them with scalars::
     sage: m-m
     0*x + 0*y + 0*z + 0
 """
+from six.moves import zip
 
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement
@@ -263,8 +264,8 @@ class LinearExpression(ModuleElement):
             '0'
         """
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
-        names = [multiplication+n for n in self.parent()._names]
-        terms = zip(self._coeffs, names)
+        names = [multiplication + n for n in self.parent()._names]
+        terms = list(zip(self._coeffs, names))
         if include_constant:
             terms += [(self._const, '')]
         if not include_zero:

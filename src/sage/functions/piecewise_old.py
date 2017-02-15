@@ -71,6 +71,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import zip
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.sage_eval import sage_eval
@@ -1759,8 +1760,8 @@ class PiecewisePolynomial:
         G = other.extend_by_zero_to(a,b)
         endpts = list(set(F.end_points()).union(set(G.end_points())))
         endpts.sort()
-        return F, G, zip(endpts, endpts[1:])
-   
+        return F, G, list(zip(endpts, endpts[1:]))
+
     def __add__(self,other):
         """
         Returns the piecewise defined function which is the sum of self and

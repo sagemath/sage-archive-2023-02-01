@@ -782,7 +782,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
                 # ascending valuation of the quadratic form
                 lst = sorted(zip(e_n, [f[m][1].mod(2) for m in range(4)]),
                              key = itemgetter(1))
-                e_n = list(zip(*lst)[0])
+                e_n = list(zip(*lst))[0]
 
                 # Final step: Enlarge the basis at p
                 if p != 2:

@@ -88,29 +88,34 @@ In the second case, the precision can be given as the argument
 ``precision`` in the function call, with a default of 53 bits.
 The real precision set by
 :meth:`Pari.set_real_precision_bits` or
-:meth:`Pari.set_real_precision` is irrelevant.
+:meth:`Pari.set_real_precision` only affects printing.
 
 As explained before, the precision increases to a multiple of the
 wordsize. ::
 
-    sage: s = pari(1).sin(precision=180); s
+    sage: a = pari(1).sin(precision=180); a
     0.841470984807897
-    sage: s.bitprecision()
+    sage: a.bitprecision()
     192
-    sage: s = pari(1).sin(precision=40); s
+    sage: b = pari(1).sin(precision=40); b
     0.841470984807897
-    sage: s.bitprecision()
+    sage: b.bitprecision()
     64
-    sage: s = pari(1).sin(); s
+    sage: c = pari(1).sin(); c
     0.841470984807897
-    sage: s.bitprecision()
+    sage: c.bitprecision()
     64
+    sage: pari.set_real_precision_bits(90)
+    sage: print(a); print(b); print(c)
+    0.841470984807896506652502322
+    0.8414709848078965067
+    0.8414709848078965067
 
 In the third case, the precision is determined only by the inexact
 inputs and the ``precision`` argument is ignored::
 
-    sage: pari(float(1.0)).sin(precision=180) - pari(1).sin(precision=180)
-    5.42101086242752 E-20
+    sage: pari(float(1.0)).sin(precision=180) - pari(1).sin(precision=180) == 0
+    False
 
 Elliptic curve functions
 ------------------------

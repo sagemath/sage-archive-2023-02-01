@@ -2692,7 +2692,6 @@ def autoregressive_fit(acvs):
         ....:     s1.append(sum([(v[:-i].autoregressive_forecast(F)-v[-i])^2 for i in range(1,20)]))
         ....:     F2 = v[:-len(F)].autoregressive_fit(len(F))
         ....:     s2.append(sum([(v[:-i].autoregressive_forecast(F2)-v[-i])^2 for i in range(1,20)]))
-        ...
 
     We find that overall the model beats naive linear forecasting by 35
     percent! ::

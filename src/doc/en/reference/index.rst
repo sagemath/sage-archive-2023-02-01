@@ -33,14 +33,6 @@ Parents, Elements and Categories
 * :doc:`Categories <categories/index>`
 * :doc:`Base Classes for Rings and Related Objects  <rings/index>`
 
-Algebraic Structures
---------------------
-
-* :doc:`Monoids <monoids/index>`
-* :doc:`Groups <groups/index>`
-* :doc:`Semirings <semirings/index>`
-* :doc:`Algebras <algebras/index>`
-
 Basic Rings and Fields
 ----------------------
 
@@ -51,6 +43,14 @@ Basic Rings and Fields
 * :doc:`Formal Power Series <power_series/index>`
 * :doc:`p-Adic Numbers <padics/index>`
 * :doc:`Quaternion Algebras <quat_algebras/index>`
+
+Algebraic Structures
+--------------------
+
+* :doc:`Monoids <monoids/index>`
+* :doc:`Groups <groups/index>`
+* :doc:`Semirings <semirings/index>`
+* :doc:`Algebras <algebras/index>`
 
 Linear Algebra
 --------------

@@ -688,17 +688,41 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         EXAMPLES::
 
             sage: from mac_lane import * # optional: standalone
-            sage: K = QQ
-            sage: R.<t> = K[]
-            sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
-            sage: w = v.extension(L)
-            sage: w >= w
+            sage: R.<x> = QQ[]
+            sage: F = (x^2 + 7) * (x^2 + 9)
+            sage: G = (x^2 + 7)
+            sage: V = pAdicValuation(QQ, 2).mac_lane_approximants(F, require_incomparability=True)
+            sage: V = sorted(V, key=str)
+            sage: LimitValuation(V[0], F) >= LimitValuation(V[1], F)
+            False
+            sage: LimitValuation(V[1], F) >= LimitValuation(V[1], G)
+            True
+            sage: LimitValuation(V[2], F) >= LimitValuation(V[2], G)
             True
 
         """
         if other.is_trivial():
             return other.is_discrete_valuation()
+        if isinstance(other, MacLaneLimitValuation):
+            if self._approximation.restriction(self._approximation.domain().base_ring()) == other._approximation.restriction(other._approximation.domain().base_ring()):
+                # Two MacLane limit valuations v,w over the same constant
+                # valuation are either equal or incomparable; neither v>w nor
+                # v<w can hold everywhere.
+                # They are equal iff they approximate the same factor of their
+                # defining G. Note that they can be equal even if the defining
+                # G is different, so we need to make sure that this can not be
+                # the case.
+                self._improve_approximation_for_call(other._G)
+                other._improve_approximation_for_call(self._G)
+                if self._G != other._G:
+                    assert self._G.gcd(other._G).is_one()
+                    return False
+
+                # If the valuations are comparable, they must approximate the
+                # same factor of G (see the documentation of LimitValuation:
+                # the approximation must *uniquely* single out a valuation.)
+                return self._initial_approximation >= other._initial_approximation or self._initial_approximation <= other._initial_approximation
+
         return super(MacLaneLimitValuation, self)._ge_(other)
 
     def restriction(self, ring):

@@ -615,8 +615,7 @@ cdef class TimeSeries:
             sage: t[0]=1
             sage: t[1]=2
             sage: for i in range(2,2000):
-            ...     t[i]=t[i-1]-0.5*t[i-2]+z[i]
-            ...
+            ....:     t[i]=t[i-1]-0.5*t[i-2]+z[i]
             sage: c=t[0:-1].autoregressive_fit(2)  #recovers recurrence relation
             sage: c #should be close to [1,-0.5]
             [1.0371, -0.5199]
@@ -2690,10 +2689,9 @@ def autoregressive_fit(acvs):
         sage: y_out = finance.multifractal_cascade_random_walk_simulation(3700,0.02,0.01,0.01,1000,100)
         sage: s1 = []; s2 = []
         sage: for v in y_out:
-        ...       s1.append(sum([(v[:-i].autoregressive_forecast(F)-v[-i])^2 for i in range(1,20)]))
-        ...       F2 = v[:-len(F)].autoregressive_fit(len(F))
-        ...       s2.append(sum([(v[:-i].autoregressive_forecast(F2)-v[-i])^2 for i in range(1,20)]))
-        ...
+        ....:     s1.append(sum([(v[:-i].autoregressive_forecast(F)-v[-i])^2 for i in range(1,20)]))
+        ....:     F2 = v[:-len(F)].autoregressive_fit(len(F))
+        ....:     s2.append(sum([(v[:-i].autoregressive_forecast(F2)-v[-i])^2 for i in range(1,20)]))
 
     We find that overall the model beats naive linear forecasting by 35
     percent! ::

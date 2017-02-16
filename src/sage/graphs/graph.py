@@ -1746,7 +1746,7 @@ class Graph(GenericGraph):
             sage: g.is_forest(certificate=True)
             (True, None)
             sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate=True)
-            (False, [63, 62, 61, 60, 64])
+            (False, [62, 63, 68, 66, 61])
         """
         number_of_connected_components = len(self.connected_components())
         isit = (self.num_verts() ==
@@ -7513,8 +7513,7 @@ class Graph(GenericGraph):
 
             sage: G = Graph([[1,-1,'a'], [2,-2, 'b'], [1,-2,'x'], [2,-1,'y']])
             sage: list(G.perfect_matchings(labels=True))
-            [[(-2, 1, 'x'), (-1, 2, 'y')],
-             [(-1, 1, 'a'), (-2, 2, 'b')]]
+            [[(-2, 1, 'x'), (-1, 2, 'y')], [(-2, 2, 'b'), (-1, 1, 'a')]]
 
             sage: G = graphs.CompleteGraph(8)
             sage: mpc = G.matching_polynomial().coefficients(sparse=False)[0]
@@ -7523,9 +7522,9 @@ class Graph(GenericGraph):
 
             sage: G = graphs.PetersenGraph().copy(immutable=True)
             sage: list(G.perfect_matchings())
-            [[(0, 1), (2, 3), (4, 9), (6, 8), (5, 7)],
+            [[(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)],
              [(0, 1), (2, 7), (3, 4), (5, 8), (6, 9)],
-             [(0, 4), (1, 2), (3, 8), (6, 9), (5, 7)],
+             [(0, 4), (1, 2), (3, 8), (5, 7), (6, 9)],
              [(0, 4), (1, 6), (2, 3), (5, 8), (7, 9)],
              [(0, 5), (1, 2), (3, 4), (6, 8), (7, 9)],
              [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]]

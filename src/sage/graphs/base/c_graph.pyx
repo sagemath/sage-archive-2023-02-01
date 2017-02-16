@@ -1823,9 +1823,12 @@ cdef class CGraphBackend(GenericGraphBackend):
         - If ``verts=None``, return an iterator over all vertices of this
           graph.
 
-        - If ``verts`` is an iterable container of vertices, find the
-          intersection of ``verts`` with the vertex set of this graph and
-          return an iterator over the resulting intersection.
+        - If ``verts`` is a single vertex of the graph, treat it as the
+          container ``[verts]``.
+
+        - If ``verts`` is a iterable container of vertices, find the
+          intersection of ``verts`` with the vertex set of this graph
+          and return an iterator over the resulting intersection.
 
         .. SEEALSO::
 
@@ -1844,28 +1847,29 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_verts([1, 2, 10]))
             [1, 2]
         """
-        cdef int i
+        cdef long i
         if verts is None:
-            S = set(self.vertex_ints)
-            for i in range((<CGraph>self._cg).active_vertices.size):
-                if (i not in self.vertex_labels and
-                    bitset_in((<CGraph>self._cg).active_vertices, i)):
-                    S.add(i)
-            return iter(S)
-        cdef bint is_hashable = False
+            for x in self.vertex_ints:
+                yield x
+            for i in range(self._cg.active_vertices.size):
+                if (bitset_in(self._cg.active_vertices, i)
+                    and i not in self.vertex_labels
+                    and i not in self.vertex_ints):
+                        yield i
+            return
+
         try:
             hash(verts)
-            is_hashable = True
         except Exception:
             pass
-        if is_hashable and self.has_vertex(verts):
-            return iter([verts])
         else:
-            L = []
-            for v in verts:
-                if self.has_vertex(v):
-                    L.append(v)
-            return iter(L)
+            if self.has_vertex(verts):
+                yield verts
+                return
+
+        for v in verts:
+            if self.has_vertex(v):
+                yield v
 
     def loops(self, new=None):
         """

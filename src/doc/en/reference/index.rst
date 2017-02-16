@@ -44,6 +44,13 @@ Basic Rings and Fields
 * :doc:`p-Adic Numbers <padics/index>`
 * :doc:`Quaternion Algebras <quat_algebras/index>`
 
+Linear Algebra
+--------------
+
+* :doc:`Matrices and Spaces of Matrices <matrices/index>`
+* :doc:`Vectors and Modules <modules/index>`
+* :doc:`Tensors on free modules of finite rank <tensor_free_modules/index>`
+
 Algebraic Structures
 --------------------
 
@@ -51,13 +58,6 @@ Algebraic Structures
 * :doc:`Groups <groups/index>`
 * :doc:`Semirings <semirings/index>`
 * :doc:`Algebras <algebras/index>`
-
-Linear Algebra
---------------
-
-* :doc:`Matrices and Spaces of Matrices <matrices/index>`
-* :doc:`Vectors and Modules <modules/index>`
-* :doc:`Tensors on free modules of finite rank <tensor_free_modules/index>`
 
 Discrete Mathematics
 --------------------

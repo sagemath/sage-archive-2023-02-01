@@ -125,14 +125,16 @@ cdef class ECModularSymbol:
     TESTS:
 
     Until :trac:`22164`, eclib had a memory leak.  Here we test that
-    it has gone::
+    it has gone.  After one call to create an ECModularSymbol, which
+    may use up some memory, further calls use no more::
 
         sage: from sage.libs.eclib.newforms import ECModularSymbol
         sage: E = EllipticCurve([1,1,0,-108,-432]) # conductor 930
+        sage: for _ in range(2):  M = ECModularSymbol(E) # long time
         sage: mem = get_memory_usage()
         sage: for _ in range(10):  M = ECModularSymbol(E) # long time
         sage: mem2 = get_memory_usage()
-        sage: (mem2-mem < 1) or (mem2 - mem)
+        sage: (mem2==mem) or (mem2 - mem)
         True
 
         sage: ECModularSymbol.__new__(ECModularSymbol)

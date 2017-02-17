@@ -512,7 +512,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             sage: X = DisjointUnionEnumeratedSets({i: Partitions(i) for i in range(5)})
             sage: X([1]).parent()
             Partitions of the integer 1
-            sage: X([2,1,1]).parent()
+            sage: X([2,1,1]).parent()  # indirect doctest
             Partitions of the integer 4
             sage: X([6])
             Traceback (most recent call last):
@@ -527,7 +527,17 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             ....:                                 keepkey=True)
             sage: p = X._element_constructor_((0, []))
             sage: p[1].parent()
-            Partitions of the integer 0
+           Partitions of the integer 0
+ 
+    Test that facade parents can create and properly access elements that are tuples (fixed by :trac:`22382`)::
+
+        sage: tabs = DisjointUnionEnumeratedSets(Family(Partitions(4), lambda mu: cartesian_product([mu.standard_tableaux(),mu.standard_tableaux()])))
+        sage: s=StandardTableau([[1,3],[2,4]])
+        sage: (s,s) in tabs
+        True
+        sage: ss = tabs( (s,s) )
+        sage: ss[0]
+        [[1, 3], [2, 4]]
         """
         if self._keepkey:
             P = self._family[el[0]]

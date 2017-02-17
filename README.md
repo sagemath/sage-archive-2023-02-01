@@ -72,7 +72,7 @@ Installation Guide:
 __1. Make sure you have the dependencies and 5 GB of free disk space.__
 
    >* __All Linux versions:__ gcc, make, m4, perl, ranlib, and tar.  
-   
+
    >* __Fedora or RedHat systems:__ the perl-ExtUtils-MakeMaker package.  
    (install these using your package manager)  
 
@@ -243,6 +243,72 @@ __10. Optional__: Read this if you are intending to run a Sage notebook
 
    >* Note that this command requires internet access. Alternatively,  
    "make ssl" builds Sage and installs pyOpenSSL.
+
+Installation from Docker
+------------------------
+__1. Installing Docker__
+
+If you don't have docker install on your system, the following steps would guide you through.
+
+    sudo apt-get update
+
+    sudo apt-get install curl
+
+    curl -fsSL https://get.docker.com/ | sh
+
+    curl -fsSL https://get.docker.com/gpg | sudo apt-key add
+
+If you're not willing to run a random shell script, please see the installation instructions for your distribution.
+
+__2. Docker Build for Sage__  
+
+There is a prebuilt docker image at https://registry.hub.docker.com/u/sagemath/sage/. Docker will automatically download and use it if you ask it to run the sagemath/sage image. So just running the following command will bring up a Sage command line without having installed anything before (except docker of course):
+
+    docker run --rm -i -t sagemath/sage
+
+All arguments after the sagemath/sage are passed to sage. If you want to run a sage notebook server you probably want to run it detached -d instead of interactively -i, which you can do like this:
+
+    docker run --rm -p 127.0.0.1:8080:8080 -d -t sagemath/sage --notebook=sagenb
+    docker run --rm -p 127.0.0.1:8080:8080 -d -t sagemath/sage --notebook=ipython --ip='*' --port=8080
+
+Note that the sage notebook server runs on port 8080 inside the container. The above command maps it to 8080 outside of the container, so you can connect with your usual web browser at http://127.0.0.1:8080. But only from the computer running docker. If you want everybody on the internet to be able to connect, use -p 0.0.0.0:8080:8080 instead. You can change the port to any other port number.
+
+     docker run --rm -i -t sagemath/sage -sh
+
+Each docker run commant creates a new container, independent of all other containers. In particular, there is no storage shared: Each container is a completely independent file system. To keep files files after you quit the dockerized Sage, you should:
+
+ * Not delete the container when exiting Sage (leave out the --rm command line option above).
+
+ * Give containers a name so you know which one is which (add the --name=... commandline option).
+
+ If you then start a container again you will get back the same files that you had when you quit that particular container. For example, say you run the container for the first time using:
+
+        docker run --name=sage-cmdline -i -t sagemath/sage
+
+ Then interact with Sage, create files, etc. Then quit Sage, the containers exits but is still stored (does not appear in docker ps but does appear in docker ps -a). To restart the container named sage-cmdline again, you would then just call
+
+        docker start -i sage-cmdline
+
+Only when you delete the container using docker rm sage-cmdline any file modifications that you made in that container are permanently lost, unless you explicitly save them with docker commit.
+
+__Or__
+
+You can see the containers in the docker with:
+
+      sudo docker ps -a
+
+And then start the sage container with :
+
+      sudo docker start -ai ID-NAME
+
+ID-NAME is the container ID which contains the sage. This will launch the jupyter notebook in the localhost with the port you provided before.
+
+
+Following the steps would install Sage 6.7. Similar steps could be followed for the latest build, just you have to get the docker 7.5 image and build it.
+
+
+
+
 
 
 Problems

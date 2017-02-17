@@ -202,9 +202,9 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 # python3
-from __future__ import division, print_function
-from __future__ import absolute_import
+from __future__ import division, print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
 from sage.modules.module import Module
 from sage.categories.modules import Modules
@@ -2780,7 +2780,7 @@ class AbstractLinearCode(Module):
                         weights[wt].append(c)
                 weights.pop(0)
                 AutGps = []
-                for wt, words in weights.iteritems():
+                for wt, words in iteritems(weights):
                     M = MatrixStruct(matrix(words))
                     autgp = M.automorphism_group()
                     L = [[j+1 for j in gen] for gen in autgp[0]]

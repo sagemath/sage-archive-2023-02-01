@@ -710,7 +710,8 @@ class ClusterAlgebraSeed(SageObject):
             sage: A = ClusterAlgebra(['A', 3])
             sage: S = A.initial_seed()
             sage: hash(S)
-            6108559638409052534
+            6108559638409052534 # 64-bit
+            1755906422  # 32-bit
         """
         return hash(frozenset(self.g_vectors()))
 

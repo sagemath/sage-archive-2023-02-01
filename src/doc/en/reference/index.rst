@@ -98,7 +98,7 @@ Geometry and Topology
 Algebraic Geometry
 ------------------
 * :doc:`Schemes <schemes/index>`
-* :doc:`Elliptic, Plane, and Hyperelliptic Curves <curves/index>`
+* :doc:`Plane Curves <curves/index>`
 
 Number Fields and Function Fields
 ---------------------------------
@@ -119,6 +119,11 @@ Number Theory
 * :doc:`Modular Forms for Hecke Triangle Groups <modfrm_hecketriangle/index>`
 * :doc:`Modular Abelian Varieties <modabvar/index>`
 * :doc:`Miscellaneous Modular-Form-Related Modules <modmisc/index>`
+
+Arithmetic Gemetry
+------------------
+
+* :doc:`Elliptic and Hyperelliptic Curves <curves/index>`
 
 Logic
 -----

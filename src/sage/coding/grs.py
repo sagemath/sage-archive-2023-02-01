@@ -1704,8 +1704,8 @@ class GRSErrorErasureDecoder(Decoder):
     this decoder works as follows:
 
     - Puncture the erased coordinates which are identified in `e`.
-    - Create a new GRS code of length `n - H(e)`, where `H` is
-      the Hamming weight, and dimension `k`.
+    - Create a new GRS code of length `n - w(e)`, where `w` is
+      the Hamming weight function, and dimension `k`.
     - Use Gao decoder over this new code one the punctured word built on
       the first step.
     - Recover the original message from the decoded word computed on the

@@ -121,6 +121,9 @@ from sage.categories.all import Rings, GroupAlgebras, Hom
 from sage.categories.morphism import SetMorphism
 
 
+import six
+
+
 class GroupAlgebraFunctor(ConstructionFunctor):
     r"""
     For a fixed group, a functor sending a commutative ring to the
@@ -209,7 +212,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
             (1,2,3)
         """
         codomain = self(f.codomain())
-        return SetMorphism(Hom(self(f.domain()), codomain, Rings()), lambda x: sum(codomain(g) * f(c) for (g, c) in dict(x).iteritems()))
+        return SetMorphism(Hom(self(f.domain()), codomain, Rings()), lambda x: sum(codomain(g) * f(c) for (g, c) in six.iteritems(dict(x))))
 
 class GroupAlgebra(CombinatorialFreeModule):
     r"""

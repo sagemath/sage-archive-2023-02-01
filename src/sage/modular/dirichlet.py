@@ -782,7 +782,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: d[0]*d[1] == c
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Group of Dirichlet characters modulo 4 with values in Cyclotomic Field of order 4 and degree 2' and 'Group of Dirichlet characters modulo 5 with values in Cyclotomic Field of order 4 and degree 2'
+            TypeError: unsupported operand parent(s) for *: 'Group of Dirichlet characters modulo 4 with values in Cyclotomic Field of order 4 and degree 2' and 'Group of Dirichlet characters modulo 5 with values in Cyclotomic Field of order 4 and degree 2'
 
         We can multiply if we're explicit about where we want the
         multiplication to take place.

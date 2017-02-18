@@ -1016,7 +1016,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # If indices is None, we actually want to return all constraints
         if indices is None:
-          indices = range(b.nrows())
+          indices = list(xrange(b.nrows()))
 
         # Only one constraint
         if isinstance(indices, int) or isinstance(indices, Integer):

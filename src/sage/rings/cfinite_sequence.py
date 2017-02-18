@@ -568,6 +568,32 @@ class CFiniteSequence(FieldElement):
             return False
         return self.ogf() == other.ogf()
 
+    def __ne__(self, other):
+        """
+        Compare two CFiniteSequences.
+
+        EXAMPLES::
+
+            sage: f = CFiniteSequence((2-x)/(1-x-x^2))
+            sage: f2 = CFiniteSequence((2-x)/(1-x-x^2))
+            sage: f != f2
+            False
+            sage: f != (2-x)/(1-x-x^2)
+            True
+            sage: (2-x)/(1-x-x^2) != f
+            True
+            sage: C.<x> = CFiniteSequences(QQ)
+            sage: r = C.from_recurrence([1,1],[2,1])
+            sage: s = C.from_recurrence([-1],[1])
+            sage: r != s
+            True
+            sage: r = C.from_recurrence([-1],[1])
+            sage: s = C(1/(1+x))
+            sage: r != s
+            False
+        """
+        return not self.__eq__(other)
+    
     def __getitem__(self, key):
         r"""
         Return a slice of the sequence.

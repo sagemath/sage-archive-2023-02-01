@@ -95,11 +95,6 @@ Geometry and Topology
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 * :doc:`Knot Theory <knots/index>`
 
-Algebraic Geometry
-------------------
-* :doc:`Schemes <schemes/index>`
-* :doc:`Plane Curves <curves/index>`
-
 Number Fields and Function Fields
 ---------------------------------
 
@@ -120,10 +115,10 @@ Number Theory
 * :doc:`Modular Abelian Varieties <modabvar/index>`
 * :doc:`Miscellaneous Modular-Form-Related Modules <modmisc/index>`
 
-Arithmetic Gemetry
-------------------
-
-* :doc:`Elliptic and Hyperelliptic Curves <curves/index>`
+Algebraic and Arithemtic Geometry
+---------------------------------
+* :doc:`Schemes <schemes/index>`
+* :doc:`Plane, Elliptic and Hyperelliptic Curves <curves/index>`
 
 Logic
 -----

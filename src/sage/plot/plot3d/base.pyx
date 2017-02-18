@@ -367,9 +367,22 @@ cdef class Graphics3d(SageObject):
         options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
         options['decimals'] = int(kwds.get('decimals', 2))
         options['frame'] = kwds.get('frame', True)
+        options['online'] = kwds.get('online', False)
 
         if not options['frame']:
             options['axes_labels'] = False
+
+        if options['online']:
+            scripts = ( """
+<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js></script>
+<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js></script>
+            """ )
+        else:
+            from sage.env import SAGE_SHARE
+            scripts = ( """
+<script src={0}/threejs/three.min.js></script>
+<script src={0}/threejs/OrbitControls.js></script>
+            """.format( SAGE_SHARE ) )
 
         lights = "[{x:0, y:0, z:10}, {x:0, y:0, z:-10}]"
 
@@ -413,6 +426,7 @@ cdef class Graphics3d(SageObject):
         html = f.read()
         f.close()
 
+        html = html.replace('SAGE_SCRIPTS', scripts)
         html = html.replace('SAGE_OPTIONS', json.dumps(options))
         html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_BOUNDS', bounds)

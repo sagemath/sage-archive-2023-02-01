@@ -120,18 +120,18 @@ Algebraic and Arithemtic Geometry
 * :doc:`Schemes <schemes/index>`
 * :doc:`Plane, Elliptic and Hyperelliptic Curves <curves/index>`
 
-Logic
------
+Special Topics
+--------------
 
+* :doc:`Cryptography <cryptography/index>`
 * :doc:`Symbolic Logic <logic/index>`
-* :doc:`SAT solvers <sat/index>`
+* :doc:`Numerical Optimization <numerical/index>`
 
 Miscellaneous
 -------------
 
-* :doc:`Cryptography <cryptography/index>`
-* :doc:`Numerical Optimization <numerical/index>`
 * :doc:`Databases <databases/index>`
+* :doc:`SAT solvers <sat/index>`
 * :doc:`Games <games/index>`
 
 Programming

@@ -1,4 +1,4 @@
-$(BLAS) iconv readline xz | pkgconf
+$(BLAS) iconv readline xz pcre | pkgconf
 
 ----------
 All lines of this file are ignored except the first.

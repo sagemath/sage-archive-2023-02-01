@@ -371,11 +371,12 @@ cdef class Graphics3d(SageObject):
         if not options['frame']:
             options['axes_labels'] = False
 
-        lights = "[{x:0, y:0, z:10}, {x:0, y:0, z:-10}]"
-
         b = self.bounding_box()
         bounds = "[{{x:{}, y:{}, z:{}}}, {{x:{}, y:{}, z:{}}}]".format(
                  b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
+
+        lights = '[{"x":10, "y":0, "z":0, "parent":"camera"}, \
+                   {"x":-10, "y":0, "z":0, "parent":"camera"}]'
 
         import json
         points, lines, texts = [], [], []
@@ -414,8 +415,8 @@ cdef class Graphics3d(SageObject):
         f.close()
 
         html = html.replace('SAGE_OPTIONS', json.dumps(options))
-        html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_BOUNDS', bounds)
+        html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_TEXTS', str(texts))
         html = html.replace('SAGE_POINTS', str(points))
         html = html.replace('SAGE_LINES', str(lines))

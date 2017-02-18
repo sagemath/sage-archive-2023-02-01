@@ -83,21 +83,21 @@
         var offsetRatio = 0.1;
         var al = options.axes_labels;
 
-        var offset = offsetRatio * ( b[1].y - b[0].y );
+        var offset = offsetRatio * a[1]*( b[1].y - b[0].y );
         var xm = xMid.toFixed(d);
         if ( /^-0.?0*$/.test(xm) ) xm = xm.substr(1);
         addLabel( al[0] + '=' + xm, a[0]*xMid, a[1]*b[1].y+offset, a[2]*b[0].z );
         addLabel( ( b[0].x ).toFixed(d), a[0]*b[0].x, a[1]*b[1].y+offset, a[2]*b[0].z );
         addLabel( ( b[1].x ).toFixed(d), a[0]*b[1].x, a[1]*b[1].y+offset, a[2]*b[0].z );
 
-        var offset = offsetRatio * ( b[1].x - b[0].x );
+        var offset = offsetRatio * a[0]*( b[1].x - b[0].x );
         var ym = yMid.toFixed(d);
         if ( /^-0.?0*$/.test(ym) ) ym = ym.substr(1);
         addLabel( al[1] + '=' + ym, a[0]*b[1].x+offset, a[1]*yMid, a[2]*b[0].z );
         addLabel( ( b[0].y ).toFixed(d), a[0]*b[1].x+offset, a[1]*b[0].y, a[2]*b[0].z );
         addLabel( ( b[1].y ).toFixed(d), a[0]*b[1].x+offset, a[1]*b[1].y, a[2]*b[0].z );
 
-        var offset = offsetRatio * ( b[1].y - b[0].y );
+        var offset = offsetRatio * a[1]*( b[1].y - b[0].y );
         var zm = zMid.toFixed(d);
         if ( /^-0.?0*$/.test(zm) ) zm = zm.substr(1);
         addLabel( al[2] + '=' + zm, a[0]*b[1].x, a[1]*b[0].y-offset, a[2]*zMid );

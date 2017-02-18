@@ -105,7 +105,7 @@ This came up in some subtle bug once::
 from __future__ import print_function
 
 from types import MethodType
-from sage.structure.element cimport parent_c, coercion_model
+from sage.structure.element cimport parent, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.debug_options cimport debug
@@ -935,7 +935,7 @@ cdef class Parent(category_object.CategoryObject):
             except (AttributeError, AssertionError):
                 raise NotImplementedError
         cdef Py_ssize_t i
-        cdef R = parent_c(x)
+        cdef R = parent(x)
         cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
         if R is self and no_extra_args:
             return x
@@ -1139,7 +1139,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: 15/36 in Integers(6)
             False
         """
-        P = parent_c(x)
+        P = parent(x)
         if P is self or P == self:
             return True
         try:
@@ -1185,14 +1185,14 @@ cdef class Parent(category_object.CategoryObject):
             sage: V.coerce(0)
             (0, 0, 0, 0, 0, 0, 0)
         """
-        mor = self._internal_coerce_map_from(parent_c(x))
+        mor = self._internal_coerce_map_from(parent(x))
         if mor is None:
             if is_Integer(x) and not x:
                 try:
                     return self(0)
                 except Exception:
                     _record_exception()
-            raise TypeError("no canonical coercion from %s to %s" % (parent_c(x), self))
+            raise TypeError("no canonical coercion from %s to %s" % (parent(x), self))
         else:
             return (<map.Map>mor)._call_(x)
 
@@ -2918,7 +2918,7 @@ cdef class Set_PythonType_class(Set_generic):
 
             sage: S = sage.structure.parent.Set_PythonType(tuple)
             sage: S.object()
-            <type 'tuple'>
+            <... 'tuple'>
         """
         return self._type
 
@@ -3021,8 +3021,8 @@ cdef bint _register_pair(x, y, tag) except -1:
     both = EltPair(x,y,tag)
 
     if both in _coerce_test_dict:
-        xp = type(x) if isinstance(x, Parent) else parent_c(x)
-        yp = type(y) if isinstance(y, Parent) else parent_c(y)
+        xp = type(x) if isinstance(x, Parent) else parent(x)
+        yp = type(y) if isinstance(y, Parent) else parent(y)
         raise CoercionException("Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp))
     _coerce_test_dict[both] = True
     return 0

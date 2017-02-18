@@ -42,7 +42,7 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    has_edge,
                                                    free_short_digraph,
                                                    edge_label)
-from c_graph cimport CGraphBackend
+from .c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
 include 'sage/data_structures/bitset.pxi'
@@ -191,7 +191,7 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g.verts()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-        return range(self.g.n)
+        return list(xrange(self.g.n))
 
     cdef int has_arc_unsafe(self, int u, int v) except -1:
         return ((0 <= u) and

@@ -281,7 +281,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Some more types of ODE's::
 
         sage: desolve(x*diff(y,x)^2-(1+x*y)*diff(y,x)+y==0,y,contrib_ode=True,show_method=True)
-        [[y(x) == _C*e^x, y(x) == _C + log(x)], 'factor']
+        [[y(x) == _C + log(x), y(x) == _C*e^x], 'factor']
 
     ::
 

@@ -199,7 +199,7 @@ class DefiniteIntegral(BuiltinFunction):
             sage: integrate(x^2.7 * e^(-2.4*x), x, 0, 3).n()
             0.154572952320790
         """
-        from sage.gsl.integration import numerical_integral
+        from sage.calculus.integration import numerical_integral
         # The gsl routine returns a tuple, which also contains the error.
         # We only return the result.
         return numerical_integral(f, a, b)[0]
@@ -277,7 +277,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
     EXAMPLES::
 
         sage: from sage.symbolic.integration.integral import \
-        ...       _normalize_integral_input
+        ....:     _normalize_integral_input
         sage: _normalize_integral_input(x^2, x, 0, 3)
         (x^2, x, 0, 3)
         sage: _normalize_integral_input(x^2, [x, 0, 3], None, None)
@@ -347,7 +347,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
        - 'mathematica_free' - use http://integrals.wolfram.com/
 
-       - 'fricas' - use FriCAS (the optional fricas spkg has to be installed) 
+       - 'fricas' - use FriCAS (the optional fricas spkg has to be installed)
 
     To prevent automatic evaluation use the ``hold`` argument.
 
@@ -631,10 +631,12 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         ValueError: invalid input (x, 1, 2, 3) - please use variable, with or without two endpoints
 
     Note that this used to be the test, but it is actually divergent
-    (though Maxima currently returns the principal value)::
+    (Maxima currently asks for assumptions on theta)::
 
         sage: integrate(t*cos(-theta*t),(t,-oo,oo))
-        0
+        Traceback (most recent call last):
+        ...
+        ValueError: Computation failed since Maxima requested additional constraints;...
 
     Check if :trac:`6189` is fixed::
 

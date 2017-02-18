@@ -1,3 +1,3 @@
-from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 
-cpdef gen_to_sage(gen z, locals=*)
+cpdef gen_to_sage(Gen z, locals=*)

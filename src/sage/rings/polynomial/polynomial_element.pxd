@@ -6,6 +6,7 @@ from .polynomial_compiled cimport CompiledPolynomialFunction
 
 
 cdef class Polynomial(CommutativeAlgebraElement):
+    cdef Polynomial _new_generic(self, list coeffs)
     cdef char _is_gen
     cdef CompiledPolynomialFunction _compiled
     cpdef Polynomial truncate(self, long n)
@@ -13,6 +14,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef long _hash_c(self) except -1
     cpdef constant_coefficient(self)
     cpdef Polynomial _new_constant_poly(self, a, Parent P)
+    cpdef list list(self, bint copy=*)
+    cpdef _mul_generic(self, right)
+    cdef _square_generic(self)
 
     cpdef bint is_zero(self)
     cpdef bint is_one(self)
@@ -31,9 +35,12 @@ cdef class Polynomial_generic_dense(Polynomial):
     cdef Polynomial_generic_dense _new_c(self, list coeffs, Parent P)
     cdef list __coeffs
     cdef int __normalize(self) except -1
+    cpdef list list(self, bint copy=*)
 
 cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
     pass
 
 cpdef is_Polynomial(f)
 cpdef Polynomial generic_power_trunc(Polynomial p, Integer n, long prec)
+cpdef list _dict_to_list(dict x, zero)
+

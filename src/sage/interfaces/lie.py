@@ -252,13 +252,13 @@ which evaluates a polynomial at a point.  Below is a (roughly) direct
 translation of that program into Python / Sage. ::
 
     sage: def eval_pol(p, pt): # optional - lie
-    ...       s = 0
-    ...       for i in range(1,p.length().sage()+1):
-    ...           m = 1
-    ...           for j in range(1,pt.size().sage()+1):
-    ...               m *= pt[j]^p.expon(i)[j]
-    ...           s += p.coef(i)*m
-    ...       return s
+    ....:     s = 0
+    ....:     for i in range(1,p.length().sage()+1):
+    ....:         m = 1
+    ....:         for j in range(1,pt.size().sage()+1):
+    ....:             m *= pt[j]^p.expon(i)[j]
+    ....:         s += p.coef(i)*m
+    ....:     return s
     sage: a = lie('X[1,2]') # optional - lie
     sage: b1 = lie('[1,2]') # optional - lie
     sage: b2 = lie('[2,3]') # optional - lie

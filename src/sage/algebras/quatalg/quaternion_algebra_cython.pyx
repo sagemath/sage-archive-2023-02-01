@@ -28,7 +28,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
-from quaternion_algebra_element cimport QuaternionAlgebraElement_rational_field
+from .quaternion_algebra_element cimport QuaternionAlgebraElement_rational_field
 
 from sage.libs.gmp.mpz cimport mpz_t, mpz_lcm, mpz_init, mpz_set, mpz_clear, mpz_init_set, mpz_mul, mpz_fdiv_q, mpz_cmp_si
 from sage.libs.gmp.mpq cimport mpq_set_num, mpq_set_den, mpq_canonicalize

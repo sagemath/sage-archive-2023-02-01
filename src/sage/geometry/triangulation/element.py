@@ -282,16 +282,18 @@ class Triangulation(Element):
 
             sage: pconfig = PointConfiguration([[0,0],[0,1],[1,0]])
             sage: pconfig
-            A point configuration in QQ^2 consisting of 3 points. The
-            triangulations of this point configuration are assumed to
-            be connected, not necessarily fine, not necessarily regular.
+            A point configuration in affine 2-space over Integer Ring
+            consisting of 3 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
             sage: triangulation = pconfig.triangulate()
             sage: triangulation
             (<0,1,2>)
             sage: triangulation.point_configuration()
-            A point configuration in QQ^2 consisting of 3 points. The
-            triangulations of this point configuration are assumed to
-            be connected, not necessarily fine, not necessarily regular.
+            A point configuration in affine 2-space over Integer Ring
+            consisting of 3 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
             sage: pconfig == triangulation.point_configuration()
             True
         """

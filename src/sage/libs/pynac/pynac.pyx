@@ -25,7 +25,7 @@ from sage.libs.gsl.complex cimport *
 from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
-from sage.structure.element cimport Element, parent_c
+from sage.structure.element cimport Element, parent as parent_c
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -84,7 +84,7 @@ cdef object exprseq_to_PyTuple(GEx seq):
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
         sage: tfunc(u, x, SR._force_pyobject((3.0, 2^x)))
-        len(args): 3, types: [<type 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <type 'tuple'>]
+        len(args): 3, types: [<... 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <... 'tuple'>]
         argument 0 is a tuple, with types [<type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.rings.integer.Integer'>]
         argument 2 is a tuple, with types [<type 'sage.rings.real_mpfr.RealLiteral'>, <type 'sage.symbolic.expression.Expression'>]
         tfunc((1, x + 1, 2), x, (3.00000000000000, 2^x))
@@ -109,14 +109,14 @@ def unpack_operands(Expression ex):
         sage: unpack_operands(t)
         (1, 2, x, x + 1, x + 2)
         sage: type(unpack_operands(t))
-        <type 'tuple'>
+        <... 'tuple'>
         sage: list(map(type, unpack_operands(t)))
         [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
         sage: u = SR._force_pyobject((t, x^2))
         sage: unpack_operands(u)
         ((1, 2, x, x + 1, x + 2), x^2)
         sage: type(unpack_operands(u)[0])
-        <type 'tuple'>
+        <... 'tuple'>
     """
     return exprseq_to_PyTuple(ex._gobj)
 
@@ -142,7 +142,7 @@ cdef object exvector_to_PyTuple(GExVector seq):
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
         sage: tfunc(u, x, 3.0, 5.0r)
-        len(args): 4, types: [<type 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.rings.real_mpfr.RealLiteral'>, <type 'float'>]
+        len(args): 4, types: [<... 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.rings.real_mpfr.RealLiteral'>, <... 'float'>]
         tfunc((1, x + 1, 2), x, 3.00000000000000, 5.0)
 
     TESTS:
@@ -285,7 +285,7 @@ cdef object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExV
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)
         len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>,
-          <type 'int'>,        # 64-bit
+          <... 'int'>,        # 64-bit
           <type 'long'>,       # 32-bit
           <type 'sage.symbolic.expression.Expression'>]
         x
@@ -1506,7 +1506,7 @@ cdef object py_sin(object x) except +:
         sage: sin(2.*I)
         3.62686040784702*I
         sage: sin(QQbar(I))
-        1.17520119364380*I
+        sin(I)
     """
     try:
         return x.sin()
@@ -1528,7 +1528,7 @@ cdef object py_cos(object x) except +:
         sage: cos(2.*I)
         3.76219569108363
         sage: cos(QQbar(I))
-        1.54308063481524
+        cos(I)
     """
     try:
         return x.cos()

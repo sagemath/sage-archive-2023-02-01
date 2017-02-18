@@ -320,7 +320,11 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
             sage: H([1,2,0,1]).parent()
             Modular Group SL(2,Z)
         """
-        return ([a,b,c,d] in self.image_mod_n())
+        try:
+            self.image_mod_n()([a, b, c, d])
+        except (TypeError, ValueError):
+            return False
+        return True
 
     def to_even_subgroup(self):
         r"""

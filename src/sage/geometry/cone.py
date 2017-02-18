@@ -196,7 +196,7 @@ import copy
 import warnings
 
 from sage.combinat.posets.posets import FinitePoset
-from sage.geometry.lattice_polytope import LatticePolytope, integral_length
+from sage.geometry.lattice_polytope import integral_length
 from sage.geometry.point_collection import PointCollection
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
@@ -207,7 +207,6 @@ from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
-from sage.misc.superseded import deprecation
 from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, RR, ZZ
 from sage.arith.all import gcd
@@ -3069,77 +3068,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     break
             self._is_strictly_convex = convex
         return self._is_strictly_convex
-
-    def lattice_polytope(self):
-        r"""
-        Return the lattice polytope associated to ``self``.
-
-        The vertices of this polytope are primitive vectors along the
-        generating rays of ``self`` and the origin, if ``self`` is strictly
-        convex. In this case the origin is the last vertex, so the `i`-th ray
-        of the cone always corresponds to the `i`-th vertex of the polytope.
-
-        See also :meth:`polyhedron`.
-
-        OUTPUT:
-
-        - :class:`LatticePolytope
-          <sage.geometry.lattice_polytope.LatticePolytopeClass>`.
-
-        EXAMPLES::
-
-            sage: quadrant = Cone([(1,0), (0,1)])
-            sage: lp = quadrant.lattice_polytope()
-            doctest:...: DeprecationWarning: lattice_polytope(...) is deprecated!
-            See http://trac.sagemath.org/16180 for details.            
-            sage: lp
-            2-d lattice polytope in 2-d lattice N
-            sage: lp.vertices()
-            N(1, 0),
-            N(0, 1),
-            N(0, 0)
-            in 2-d lattice N
-
-            sage: line = Cone([(1,0), (-1,0)])
-            sage: lp = line.lattice_polytope()
-            sage: lp
-            1-d lattice polytope in 2-d lattice N
-            sage: lp.vertices()
-            N( 1, 0),
-            N(-1, 0)
-            in 2-d lattice N
-        """
-        deprecation(16180, "lattice_polytope(...) is deprecated!")
-        return LatticePolytope(tuple(self.rays()) + (self.lattice().zero(),),
-                               compute_vertices=not self.is_strictly_convex())
-
-    def line_set(self):
-        r"""
-        Return a set of lines generating the linear subspace of ``self``.
-
-        OUTPUT:
-
-        - ``frozenset`` of primitive vectors in the lattice of ``self``
-          giving directions of lines that span the linear subspace of
-          ``self``. These lines are arbitrary, but fixed. See also
-          :meth:`lines`.
-
-        EXAMPLES::
-
-            sage: halfplane = Cone([(1,0), (0,1), (-1,0)])
-            sage: halfplane.line_set()
-            doctest:...: DeprecationWarning: line_set(...) is deprecated, please use lines().set() instead!
-            See http://trac.sagemath.org/12544 for details.
-            frozenset({N(1, 0)})
-            sage: fullplane = Cone([(1,0), (0,1), (-1,-1)])
-            sage: fullplane.line_set()
-            frozenset({N(0, 1), N(1, 0)})
-        """
-        deprecation(12544, "line_set(...) is deprecated, "
-                    "please use lines().set() instead!")
-        if "_line_set" not in self.__dict__:
-            self._line_set = frozenset(self.lines())
-        return self._line_set
 
     @cached_method
     def linear_subspace(self):

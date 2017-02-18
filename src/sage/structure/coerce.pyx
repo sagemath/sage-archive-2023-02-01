@@ -87,7 +87,7 @@ from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
 from .sage_object cimport SageObject, rich_to_bool
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
-from .element cimport bin_op_exception, parent_c, Element
+from .element cimport bin_op_exception, parent as parent_c, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from .coerce_exceptions import CoercionException
 from sage.categories.map cimport Map
@@ -278,7 +278,7 @@ cpdef bint is_numpy_type(t):
         sage: 1 + object()
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for '+': 'Integer Ring' and '<type 'object'>'
+        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<type 'object'>'
     """
     if not isinstance(t, type):
         return False
@@ -603,7 +603,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: 1/2 + GF(3)(2)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': 'Rational Field' and 'Finite Field of size 3'
+            TypeError: unsupported operand parent(s) for +: 'Rational Field' and 'Finite Field of size 3'
 
         Now see what the actual problem was::
 
@@ -687,12 +687,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(R100(1) + float(1))
-            <type 'float'>
+            <... 'float'>
             sage: cm.explain(QQ, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(QQ(1) + float(1))
-            <type 'float'>
+            <... 'float'>
 
 
         Special care is taken to deal with division::
@@ -882,9 +882,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.common_parent(ZZT, QQT, RDF)
             Power Series Ring in T over Real Double Field
             sage: cm.common_parent(4r, 5r)
-            <type 'int'>
+            <... 'int'>
             sage: cm.common_parent(int, float, ZZ)
-            <type 'float'>
+            <... 'float'>
             sage: real_fields = [RealField(prec) for prec in [10,20..100]]
             sage: cm.common_parent(*real_fields)
             Real Field with 10 bits of precision
@@ -1002,9 +1002,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         TESTS::
 
             sage: class Foo:
-            ...      def __rmul__(self, left):
-            ...          return 'hello'
-            ...
+            ....:    def __rmul__(self, left):
+            ....:        return 'hello'
             sage: H = Foo()
             sage: print(int(3)*H)
             hello
@@ -1013,20 +1012,19 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: print(H*3)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': '<type 'instance'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for *: '<type 'instance'>' and 'Integer Ring'
 
             sage: class Nonsense:
-            ...       def __init__(self, s):
-            ...           self.s = s
-            ...       def __repr__(self):
-            ...           return self.s
-            ...       def __mul__(self, x):
-            ...           return Nonsense(self.s + chr(x%256))
-            ...       __add__ = __mul__
-            ...       def __rmul__(self, x):
-            ...           return Nonsense(chr(x%256) + self.s)
-            ...       __radd__ = __rmul__
-            ...
+            ....:     def __init__(self, s):
+            ....:         self.s = s
+            ....:     def __repr__(self):
+            ....:         return self.s
+            ....:     def __mul__(self, x):
+            ....:         return Nonsense(self.s + chr(x%256))
+            ....:     __add__ = __mul__
+            ....:     def __rmul__(self, x):
+            ....:         return Nonsense(chr(x%256) + self.s)
+            ....:     __radd__ = __rmul__
             sage: a = Nonsense('blahblah')
             sage: a*80
             blahblahP
@@ -1139,11 +1137,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: x, y = cm.canonical_coercion(int(5), complex(3))
             sage: type(x), type(y)
-            (<type 'complex'>, <type 'complex'>)
+            (<... 'complex'>, <... 'complex'>)
 
             sage: class MyClass:
-            ...       def _sage_(self):
-            ...           return 13
+            ....:     def _sage_(self):
+            ....:         return 13
             sage: a, b = cm.canonical_coercion(MyClass(), 1/3)
             sage: a, b
             (13, 1/3)

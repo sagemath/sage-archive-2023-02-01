@@ -3279,7 +3279,7 @@ cdef class BinaryMatroid(LinearMatroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -4340,7 +4340,7 @@ cdef class TernaryMatroid(LinearMatroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -5978,7 +5978,7 @@ cdef class RegularMatroid(LinearMatroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -6084,6 +6084,15 @@ cdef class RegularMatroid(LinearMatroid):
         OUTPUT:
 
         - a dictionary, if the hypergraphs are isomorphic; ``None`` otherwise.
+
+        TESTS:
+
+        Check that :trac:`22263` was fixed::
+
+            sage: m1 = Matroid(graph='H?ABC~}')
+            sage: m2 = Matroid(graph='H?ACNr}')
+            sage: m1.is_isomorphic(m2)
+            False
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
         HS = self._hypergraph()
@@ -6092,7 +6101,7 @@ cdef class RegularMatroid(LinearMatroid):
         for X in HO[0]:
             VO.extend(X)
         m = isomorphic(HS[2], HO[2], HS[0], VO, 1, 1)
-        if m is not None:
+        if m:
             idx={str(f):f for f in other.groundset()}
             return {e:idx[m[str(e)]] for e in self.groundset() if str(e) in m}
     

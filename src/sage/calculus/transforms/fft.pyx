@@ -4,9 +4,9 @@ Fast Fourier Transforms Using GSL
 AUTHORS:
 
 - William Stein (2006-9): initial file (radix2)
-- D. Joyner (2006-10): Minor modifications (from radix2 to general case\
+- D. Joyner (2006-10): Minor modifications (from radix2 to general case\
                         and some documentation).
-- M. Hansen (2013-3): Fix radix2 backwards transformation
+- M. Hansen (2013-3): Fix radix2 backwards transformation
 - L.F. Tabera Alonso (2013-3): Documentation
 """
 

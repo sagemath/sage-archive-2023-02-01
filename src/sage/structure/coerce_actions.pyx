@@ -19,7 +19,7 @@ include "cysignals/signals.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
 
-from .element cimport (parent_c, coercion_model,
+from .element cimport (parent, coercion_model,
         Element, ModuleElement, RingElement)
 from .parent cimport Parent
 from .coerce_exceptions import CoercionException
@@ -91,7 +91,7 @@ cdef class GenericAction(Action):
             res = self.act(G.an_element(), S.an_element())
             if res is None:
                 raise CoercionException
-            _codomain = parent_c(res)
+            _codomain = parent(res)
 
     def codomain(self):
         """
@@ -120,7 +120,7 @@ cdef class GenericAction(Action):
 
         """
         if self._codomain is None:
-            self._codomain = parent_c(self.act(an_element(self.G),
+            self._codomain = parent(self.act(an_element(self.G),
                                                an_element(self.underlying_set())))
         return self._codomain
 
@@ -212,13 +212,13 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
         RuntimeError: an_element() for <class '__main__.MyParent'> returned None
     """
     cdef Element x
-    if X_el is None or (parent_c(X_el) is not X):
+    if X_el is None or (parent(X_el) is not X):
         x = an_element(X)
     else:
         x = X_el
     if x is None:
         raise RuntimeError("an_element() for %s returned None" % X)
-    if Y_el is None or (parent_c(Y_el) is not Y):
+    if Y_el is None or (parent(Y_el) is not Y):
         y = an_element(Y)
     else:
         y = Y_el
@@ -366,16 +366,16 @@ cdef class ModuleAction(Action):
             return
         if g is None:
             g = G.an_element()
-        if parent_c(g) is not G:
-            raise CoercionException("The parent of %s is not %s but %s"%(g,G,parent_c(g)))
+        if parent(g) is not G:
+            raise CoercionException("The parent of %s is not %s but %s"%(g,G,parent(g)))
         if a is None:
             a = S.an_element()
-        if parent_c(a) is not S:
-            raise CoercionException("The parent of %s is not %s but %s"%(a,S,parent_c(a)))
+        if parent(a) is not S:
+            raise CoercionException("The parent of %s is not %s but %s"%(a,S,parent(a)))
         if not isinstance(g, RingElement) or not isinstance(a, ModuleElement):
             raise CoercionException("Not a ring element acting on a module element.")
         res = self.act(g, a)
-        if parent_c(res) is not the_set:
+        if parent(res) is not the_set:
             # In particular we will raise an error if res is None
             raise CoercionException("Result is None or has wrong parent.")
 
@@ -794,7 +794,7 @@ cdef inline fast_mul_long(a, long s):
         n = s
     if n < 4:
         if n == 0:
-            p = parent_c(a)
+            p = parent(a)
             try:
                 return p.zero()
             except AttributeError:

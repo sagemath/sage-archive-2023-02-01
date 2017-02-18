@@ -609,14 +609,14 @@ def ComplexProjectiveSpace(n):
                            latex_name='CP^{2}')
         return K
     if n == 3:
-        file = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'CP3.txt')
+        file = os.path.join(SAGE_ENV['SAGE_EXTCODE'], 'kenzo', 'CP3.txt')
         data = simplicial_data_from_kenzo_output(file)
         v = [_ for _ in data.keys() if _.dimension() == 0][0]
         K = SimplicialSet_finite(data, base_point=v, name='CP^3',
                                  latex_name='CP^{3}')
         return K
     if n == 4:
-        file = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'CP4.txt')
+        file = os.path.join(SAGE_ENV['SAGE_EXTCODE'], 'kenzo', 'CP4.txt')
         data = simplicial_data_from_kenzo_output(file)
         v = [_ for _ in data.keys() if _.dimension() == 0][0]
         K = SimplicialSet_finite(data, base_point=v, name='CP^4',
@@ -642,7 +642,7 @@ def simplicial_data_from_kenzo_output(filename):
 
         sage: from sage.homology.simplicial_set_examples import simplicial_data_from_kenzo_output
         sage: from sage.homology.simplicial_set import SimplicialSet
-        sage: sphere = os.path.join(SAGE_ENV['SAGE_SRC'], 'ext', 'kenzo', 'S4.txt')
+        sage: sphere = os.path.join(SAGE_ENV['SAGE_EXTCODE'], 'kenzo', 'S4.txt')
         sage: S4 = SimplicialSet(simplicial_data_from_kenzo_output(sphere))
         sage: S4.homology(reduced=False)
         {0: Z, 1: 0, 2: 0, 3: 0, 4: Z}

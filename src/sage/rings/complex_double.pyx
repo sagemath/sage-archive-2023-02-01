@@ -61,6 +61,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 import operator
@@ -85,19 +86,19 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.libs.cypari2.gen cimport gen as pari_gen
+from sage.libs.cypari2.gen cimport Gen as pari_gen
 from sage.libs.cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
 
-import complex_number
+from . import complex_number
 
-import complex_field
-cdef CC = complex_field.ComplexField()
+from .complex_field import ComplexField
+cdef CC = ComplexField()
 
-import real_mpfr
-cdef RR = real_mpfr.RealField()
+from .real_mpfr import RealField
+cdef RR = RealField()
 
-from real_double cimport RealDoubleElement, double_repr, double_str
-from real_double import RDF
+from .real_double cimport RealDoubleElement, double_repr, double_str
+from .real_double import RDF
 from sage.rings.integer_ring import ZZ
 
 
@@ -205,8 +206,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF.characteristic()
             0
         """
-        import integer
-        return integer.Integer(0)
+        from .integer import Integer
+        return Integer(0)
 
     def random_element(self, double xmin=-1, double xmax=1, double ymin=-1, double ymax=1):
         """
@@ -400,12 +401,10 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         if S is int or S is float:
             return FloatToCDF(S)
-        from rational_field import QQ
-        from real_lazy import RLF
-        from real_mpfr import RR, RealField_class
-        from complex_field import ComplexField, ComplexField_class
-        CC = ComplexField()
-        from complex_number import CCtoCDF
+        from .rational_field import QQ
+        from .real_lazy import RLF
+        from .real_mpfr import RR, RealField_class
+        from .complex_field import ComplexField_class
         if S is ZZ or S is QQ or S is RDF or S is RLF:
             return FloatToCDF(S)
         if isinstance(S, RealField_class):
@@ -424,9 +423,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         elif RR.has_coerce_map_from(S):
             return FloatToCDF(RR) * RR._internal_coerce_map_from(S)
         elif isinstance(S, ComplexField_class) and S.prec() >= 53:
-            return CCtoCDF(S, self)
+            return complex_number.CCtoCDF(S, self)
         elif CC.has_coerce_map_from(S):
-            return CCtoCDF(CC, self) * CC._internal_coerce_map_from(S)
+            return complex_number.CCtoCDF(CC, self) * CC._internal_coerce_map_from(S)
 
     def _magma_init_(self, magma):
         r"""
@@ -475,7 +474,6 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         if prec == 53:
             return self
         else:
-            from complex_field import ComplexField
             return ComplexField(prec)
 
 
@@ -529,8 +527,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF.real_double_field()
             Real Double Field
         """
-        import real_double
-        return real_double.RDF
+        return RDF
 
     def pi(self):
         r"""
@@ -595,7 +592,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             ...
             ValueError: n must be a positive integer
         """
-        from integer import Integer
+        from .integer import Integer
         try:
            n = Integer(n)
         except TypeError:
@@ -2314,8 +2311,8 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         if self._complex.dat[1] == 0:
             if self._complex.dat[0] == 0:
-                import infinity
-                return infinity.unsigned_infinity
+                from .infinity import unsigned_infinity
+                return unsigned_infinity
             try:
                 from sage.rings.all import Integer, CC
                 if Integer(self._complex.dat[0]) < 0:
@@ -2354,8 +2351,8 @@ cdef class ComplexDoubleElement(FieldElement):
             Infinity
         """
         if self._complex.dat[0] == 1 and self._complex.dat[1] == 0:
-            import infinity
-            return infinity.unsigned_infinity
+            from .infinity import unsigned_infinity
+            return unsigned_infinity
         return pari_to_cdf(self._pari_().zeta())
 
     def algdep(self, long n):
@@ -2386,8 +2383,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,5).algdep(2)
             x^2 - 2*x + 26
         """
-        from polynomial.polynomial_ring_constructor import PolynomialRing
-        from integer_ring import ZZ
+        from .polynomial.polynomial_ring_constructor import PolynomialRing
+        from .integer_ring import ZZ
         R = PolynomialRing(ZZ ,'x')
         return R(self._pari_().algdep(n))
 

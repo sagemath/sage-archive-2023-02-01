@@ -345,7 +345,7 @@ cdef class ntl_zz_p(object):
             sage: int(ntl.zz_p(3,next_prime(100)))
             3
             sage: type(int(ntl.zz_p(3,next_prime(100))))
-            <type 'int'>
+            <... 'int'>
         """
         return zz_p_rep(self.x)
 

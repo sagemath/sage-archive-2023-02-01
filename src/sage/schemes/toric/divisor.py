@@ -185,6 +185,9 @@ from sage.schemes.toric.variety import CohomologyRing, is_ToricVariety
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import is_Vector
 
+import six
+
+
 # forward declaration
 class ToricDivisor_generic(Divisor_generic):
     pass
@@ -1623,7 +1626,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         HH = cplx.homology(base_ring=QQ, cohomology=True)
         HH_list = [0]*(d+1)
-        for h in HH.iteritems():
+        for h in six.iteritems(HH):
             degree = h[0]+1
             cohomology_dim = h[1].dimension()
             if degree>d or degree<0:

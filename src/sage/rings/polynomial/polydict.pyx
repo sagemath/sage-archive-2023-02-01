@@ -41,7 +41,8 @@ from __future__ import print_function
 include "cysignals/memory.pxi"
 from libc.string cimport memcpy
 from cpython.dict cimport *
-from cpython.object cimport PyObject_RichCompare
+from cpython.object cimport (PyObject_RichCompare, Py_EQ, Py_NE,
+                             Py_LT, Py_LE, Py_GT, Py_GE)
 
 import copy
 from functools import reduce
@@ -95,10 +96,10 @@ cdef class PolyDict:
             else:
                 raise TypeError("pdict must be a list.")
 
-        if isinstance(pdict,dict) and force_etuples==True:
+        if isinstance(pdict, dict) and force_etuples is True:
             pdict2 = []
-            for k,v in pdict.iteritems():
-                pdict2.append((ETuple(k),v))
+            for k, v in pdict.iteritems():
+                pdict2.append((ETuple(k), v))
 
             pdict = dict(pdict2)
 
@@ -107,17 +108,17 @@ cdef class PolyDict:
             if remove_zero:
                 for k, c in pdict.iteritems():
                     if not c == zero:
-                        new_pdict[ETuple(map(int,k))] = c
+                        new_pdict[ETuple(map(int, k))] = c
             else:
                 for k, c in pdict.iteritems():
-                    new_pdict[ETuple(map(int,k))] = c
+                    new_pdict[ETuple(map(int, k))] = c
             pdict = new_pdict
         else:
             if remove_zero:
                 for k in pdict.keys():
                     if pdict[k] == zero:
                         del pdict[k]
-        self.__repn  = pdict
+        self.__repn = pdict
         self.__zero = zero
 
     def __richcmp__(PolyDict self, PolyDict right, int op):
@@ -126,12 +127,11 @@ cdef class PolyDict:
     def compare(PolyDict self, PolyDict other, key=None):
         if key is not None:
             # start with biggest
-            left  = iter(sorted(self.__repn, key=key, reverse=True))
+            left = iter(sorted(self.__repn, key=key, reverse=True))
             right = iter(sorted(other.__repn, key=key, reverse=True))
         else:
             # in despair, do that
-            assert False
-            return cmp(self.__repn, other.__repn)
+            raise ValueError('no key provided')
 
         for m in left:
             try:
@@ -247,7 +247,7 @@ cdef class PolyDict:
         return self.__repn[ETuple(e)]
 
     def __repr__(PolyDict self):
-        return 'PolyDict with representation %s'%self.__repn
+        return 'PolyDict with representation %s' % self.__repn
 
     def degree(PolyDict self, PolyDict x=None):
         if x is None:
@@ -267,7 +267,7 @@ cdef class PolyDict:
             _max.append(v[i])
         return max(_max or [-1])
 
-    def valuation(PolyDict self, PolyDict x = None):
+    def valuation(PolyDict self, PolyDict x=None):
         L = x.__repn.keys()
         if x is None:
             _min = []
@@ -285,7 +285,7 @@ cdef class PolyDict:
             else:
                 return min(_min)
             for k in self.__repn.keys():
-                _min.append(sum([m for m in self.__repn[k].nonzero_values(sort=False) if m < 0]))
+                _min.append(sum(m for m in self.__repn[k].nonzero_values(sort=False) if m < 0))
             return min(_min)
         L = x.__repn.keys()
         if len(L) != 1:
@@ -369,7 +369,7 @@ cdef class PolyDict:
         sum is over terms T in f that are exactly divisible by mon.
         """
         K = mon.keys()[0]
-        nz = K.nonzero_positions() #set([i for i in range(len(K)) if K[i] != 0])
+        nz = K.nonzero_positions()  # set([i for i in range(len(K)) if K[i] != 0])
         ans = {}
         for S in self.__repn.keys():
             exactly_divides = True
@@ -472,13 +472,13 @@ cdef class PolyDict:
                     if len(poly) > 0:
                         sign_switch = True
                     else:
-                        multi = "-%s"%(multi)
+                        multi = "-%s" % multi
                 elif c != pos_one:
                     if not atomic_coefficients:
                         c = latex(c)
                         if c.find("+") != -1 or c.find("-") != -1 or c.find(" ") != -1:
-                            c = "(%s)"%c
-                    multi = "%s %s"%(c,multi)
+                            c = "(%s)" % c
+                    multi = "%s %s" % (c, multi)
 
                 # Now add on coefficiented multinomials
                 if len(poly) > 0:
@@ -492,7 +492,6 @@ cdef class PolyDict:
         if len(poly) == 0:
             return "0"
         return poly
-
 
     def poly_repr(PolyDict self, vars, atomic_exponents=True,
                   atomic_coefficients=True, cmpfn=None, sortkey=None):
@@ -565,9 +564,9 @@ cdef class PolyDict:
                     multi = multi + vars[j]
                     if e[j] != 1:
                         if atomic_exponents:
-                            multi = multi + "^%s"%e[j]
+                            multi = multi + "^%s" % e[j]
                         else:
-                            multi = multi + "^(%s)"%e[j]
+                            multi = multi + "^(%s)" % e[j]
                 # Next determine coefficient of multinomial
                 if len(multi) == 0:
                     multi = str(c)
@@ -576,13 +575,13 @@ cdef class PolyDict:
                     if len(poly) > 0:
                         sign_switch = True
                     else:
-                        multi = "-%s"%(multi)
+                        multi = "-%s" % multi
                 elif not c == pos_one:
                     if not atomic_coefficients:
                         c = str(c)
                         if c.find("+") != -1 or c.find("-") != -1 or c.find(" ") != -1:
-                            c = "(%s)"%c
-                    multi = "%s*%s"%(c,multi)
+                            c = "(%s)" % c
+                    multi = "%s*%s" % (c, multi)
 
                 # Now add on coefficiented multinomials
                 if len(poly) > 0:
@@ -597,12 +596,12 @@ cdef class PolyDict:
             return "0"
         return poly
 
-
     def __add__(PolyDict self,PolyDict other):
         """
         Add two PolyDict's in the same number of variables.
 
         EXAMPLES:
+
         We add two polynomials in 2 variables::
 
             sage: from sage.rings.polynomial.polydict import PolyDict
@@ -620,16 +619,16 @@ cdef class PolyDict:
             #PolyDict with representation {(1, 2, 1): 3, (2/3, 3, 5): 5, (2, 1, 1): 4}
         """
         zero = self.__zero
-        #D = copy.copy(self.__repn)
-        D = self.__repn.copy() #faster!
+        # D = copy.copy(self.__repn)
+        D = self.__repn.copy()  # faster!
         R = other.__repn
-        for e,c in R.iteritems():
+        for e, c in R.iteritems():
             try:
                 D[e] += c
             except KeyError:
                 D[e] = c
-        F = PolyDict(D, zero=zero, remove_zero=True, force_int_exponents=False,  force_etuples=False)
-        return F
+        return PolyDict(D, zero=zero, remove_zero=True,
+                        force_int_exponents=False, force_etuples=False)
 
     def __mul__(PolyDict self,PolyDict  right):
         """
@@ -777,7 +776,7 @@ cdef class PolyDict:
         try:
             return ETuple(reduce(greater_etuple,self.__repn.keys()))
         except KeyError:
-            raise ArithmeticError("%s not supported",greater_etuple)
+            raise ArithmeticError("%s not supported", greater_etuple)
 
     def __reduce__(PolyDict self):
         """
@@ -1015,11 +1014,11 @@ cdef class ETuple:
             result._data[2*index] = self._data[2*index]
             result._data[2*index+1] = self._data[2*index+1]
         for index from 0 <= index < other._nonzero:
-            result._data[2*(index+self._nonzero)] = other._data[2*index]+self._length # offset the second tuple (append to end!)
+            result._data[2*(index+self._nonzero)] = other._data[2*index]+self._length  # offset the second tuple (append to end!)
             result._data[2*(index+self._nonzero)+1] = other._data[2*index+1]
         return result
 
-    def __mul__(ETuple self,factor):
+    def __mul__(ETuple self, factor):
         """
         x.__mul__(n) <==> x*n
 
@@ -1037,8 +1036,8 @@ cdef class ETuple:
             return result
         cdef size_t index
         cdef size_t f
-        result._length = self._length*factor
-        result._nonzero = self._nonzero*factor
+        result._length = self._length * factor
+        result._nonzero = self._nonzero * factor
         result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
         for index from 0 <= index < self._nonzero:
             for f from 0 <= f < factor:
@@ -1167,7 +1166,7 @@ cdef class ETuple:
             False
         """
         cdef size_t ind = 0
-        if op == 2: #==
+        if op == Py_EQ:  # ==
             if self._nonzero != other._nonzero:
                 return False
             for ind from 0 <= ind < self._nonzero:
@@ -1177,7 +1176,7 @@ cdef class ETuple:
                     return False
             return self._length == other._length
 
-        if op == 0:  #<
+        if op == Py_LT:  # <
             while ind < self._nonzero and ind < other._nonzero:
                 if self._data[2*ind] < other._data[2*ind]:
                     return self._data[2*ind+1] < 0
@@ -1192,7 +1191,7 @@ cdef class ETuple:
                 return other._data[2*ind+1] > 0
             return self._length < other._length
 
-        if op == 4: #>
+        if op == Py_GT:  # >
             while ind < self._nonzero and ind < other._nonzero:
                 if self._data[2*ind] < other._data[2*ind]:
                     return self._data[2*ind+1] > 0
@@ -1209,13 +1208,13 @@ cdef class ETuple:
 
         # the rest of these are not particularly fast
 
-        if op == 1: #<=
+        if op == Py_LE:  # <=
             return tuple(self) <= tuple(other)
 
-        if op == 3: #!=
+        if op == Py_NE:  # !=
             return tuple(self) != tuple(other)
 
-        if op == 5: #>=
+        if op == Py_GE:  # >=
             return tuple(self) >= tuple(other)
 
     def __iter__(ETuple self):
@@ -1296,7 +1295,7 @@ cdef class ETuple:
             s = exp1 + exp2
             # Check for overflow and underflow
             if (exp2 > 0 and s < exp1) or (exp2 < 0 and s > exp1):
-                raise OverflowError("Exponent overflow (%s)."%(int(exp1)+int(exp2)))
+                raise OverflowError("Exponent overflow (%s)." % (int(exp1)+int(exp2)))
             if s != 0:
                 result._data[2*result._nonzero] = index
                 result._data[2*result._nonzero+1] = s
@@ -1326,7 +1325,7 @@ cdef class ETuple:
         cdef int new_value
         cdef int need_to_add = 1
         if pos < 0 or pos >= self._length:
-            raise ValueError("pos must be between 0 and %s"%self._length)
+            raise ValueError("pos must be between 0 and %s" % self._length)
 
         cdef size_t alloc_len = self._nonzero + 1
 
@@ -1400,7 +1399,7 @@ cdef class ETuple:
             # Check for overflow and underflow
             d = exp1 - exp2
             if (exp2 > 0 and d > exp1) or (exp2 < 0 and d < exp1):
-                raise OverflowError("Exponent overflow (%s)."%(int(exp1)-int(exp2)))
+                raise OverflowError("Exponent overflow (%s)." % (int(exp1)-int(exp2)))
             if d != 0:
                 result._data[2*result._nonzero] = index
                 result._data[2*result._nonzero+1] = d
@@ -1634,8 +1633,11 @@ cdef class ETuple:
         m = self.emin(other)
         return m, self.esub(m), other.esub(m)
 
-def make_PolyDict(data):
-    return PolyDict(data,remove_zero=False, force_int_exponents=False, force_etuples=False)
 
-def make_ETuple(data,length):
-    return ETuple(data,length)
+def make_PolyDict(data):
+    return PolyDict(data,remove_zero=False, force_int_exponents=False,
+                    force_etuples=False)
+
+
+def make_ETuple(data, length):
+    return ETuple(data, length)

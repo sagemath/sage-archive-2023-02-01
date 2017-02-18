@@ -1361,8 +1361,8 @@ class FGP_Module_class(Module):
         EXAMPLE::
 
             sage: class SillyModule(sage.modules.fg_pid.fgp_module.FGP_Module_class):
-            ...       def gens(self):
-            ...           return tuple(flatten([[x,x] for x in self.smith_form_gens()]))
+            ....:     def gens(self):
+            ....:         return tuple(flatten([[x,x] for x in self.smith_form_gens()]))
             sage: A = SillyModule(ZZ**1, span([[3]], ZZ))
             sage: A.gen(0)
             (1)
@@ -1402,8 +1402,8 @@ class FGP_Module_class(Module):
         EXAMPLE::
 
             sage: class SillyModule(sage.modules.fg_pid.fgp_module.FGP_Module_class):
-            ...       def gens(self):
-            ...           return tuple(flatten([[x,x] for x in self.smith_form_gens()]))
+            ....:     def gens(self):
+            ....:         return tuple(flatten([[x,x] for x in self.smith_form_gens()]))
             sage: A = SillyModule(ZZ**1, span([[3]], ZZ))
             sage: A.gen(0)
             (1)

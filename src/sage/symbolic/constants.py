@@ -59,7 +59,7 @@ can be coerced into other systems or evaluated.
     sage: a = pi + e*4/5; a
     pi + 4/5*e
     sage: maxima(a)
-    %pi+4*%e/5
+    %pi+(4*%e)/5
     sage: RealField(15)(a)           # 15 *bits* of precision
     5.316
     sage: gp(a)

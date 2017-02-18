@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Set of words
 
@@ -497,7 +497,7 @@ class FiniteWords(AbstractLanguage):
 
             sage: d = FiniteWords()._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: e = FiniteWords('abcdefg')._element_classes
@@ -1436,7 +1436,7 @@ class InfiniteWords(AbstractLanguage):
 
             sage: d = InfiniteWords()._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             4
             sage: e = InfiniteWords('abcdefg')._element_classes

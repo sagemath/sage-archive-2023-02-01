@@ -408,7 +408,7 @@ class Simplex(SageObject):
         are not the same type::
 
             sage: type(Simplex(3).tuple())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: type(Simplex(3))
             <class 'sage.homology.simplicial_complex.Simplex'>
         """

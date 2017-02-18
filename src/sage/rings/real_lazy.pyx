@@ -1155,7 +1155,7 @@ cdef class LazyBinop(LazyFieldElement):
             sage: float(a)
             2.5
             sage: type(float(a))
-            <type 'float'>
+            <... 'float'>
         """
         cdef double left = self._left
         cdef double right = self._right

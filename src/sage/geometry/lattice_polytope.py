@@ -4886,12 +4886,8 @@ class NefPartition(SageObject,
             raise ValueError("the origin belongs to all parts!")
         point = self._Delta_polar.point(i)
         for part, nabla in enumerate(self.nablas()):
-            try:
-                if min(nabla.distances(point)) >= 0:
-                    return part
-            except ArithmeticError:
-                # point is not even in the affine subspace of nabla
-                continue
+            if point in nabla:
+                return part
 
 
 _palp_dimension = None

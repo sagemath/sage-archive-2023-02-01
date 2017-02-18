@@ -2058,7 +2058,7 @@ def jordan_block(eigenvalue, size, sparse=False):
     -  ``sparse`` - (default: False) - if True, return a sparse matrix
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: jordan_block(5, 3)
         [5 1 0]

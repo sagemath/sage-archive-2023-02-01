@@ -738,7 +738,7 @@ def all_labeled_graphs(n):
     classifying isomorphism types (naive approach), and more importantly
     in benchmarking the search algorithm.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import all_labeled_graphs
         sage: st = sage.groups.perm_gps.partn_ref.refinement_graphs.search_tree

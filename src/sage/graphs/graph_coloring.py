@@ -394,7 +394,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
     - If ``k`` is set and ``value_only=True``, test whether the graph is
       `k`-colorable, and return ``True`` or ``False`` accordingly.
 
-    EXAMPLE::
+    EXAMPLES::
 
        sage: from sage.graphs.graph_coloring import vertex_coloring
        sage: g = graphs.PetersenGraph()
@@ -981,7 +981,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
        can sometimes be much faster, and it is a bad idea to compute
        the whole coloring if you do not need it !
 
-    EXAMPLE::
+    EXAMPLES::
 
        sage: from sage.graphs.graph_coloring import edge_coloring
        sage: g = graphs.PetersenGraph()

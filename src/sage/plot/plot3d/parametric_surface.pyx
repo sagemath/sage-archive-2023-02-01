@@ -747,7 +747,7 @@ class MoebiusStrip(ParametricSurface):
            which helps determine the increment for the `v` range for the
            MoebiusStrip object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
             sage: N = MoebiusStrip(7,3,2) # two twists
@@ -766,7 +766,7 @@ class MoebiusStrip(ParametricSurface):
         Return a tuple for `x,y,z` coordinates for the given ``u`` and ``v``
         for this MoebiusStrip instance.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
             sage: N = MoebiusStrip(7,3,2) # two twists

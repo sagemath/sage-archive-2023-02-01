@@ -803,7 +803,7 @@ class Tableau(ClonableList):
 
         This function exists mainly for compatibility with :class:`TableauTuple`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Tableau([[1,2,3],[4,5]]).level()
             1

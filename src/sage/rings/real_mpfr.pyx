@@ -597,7 +597,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         Return ``False``, since a real field (represented using finite
         precision) is not exact.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RR.is_exact()
             False
@@ -858,7 +858,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         """
         Return a list of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RR.gens()
             [1.00000000000000]
@@ -1732,7 +1732,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         will have the same hash, but allows them to play nicely with other
         real types.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: hash(RR(1.2)) == hash(1.2r)
             True
@@ -2056,7 +2056,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         OUTPUT: a Sage Integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = 119.41212
             sage: a.integer_part()
@@ -5078,7 +5078,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         Uses the PARI C-library ``algdep`` command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: r = sqrt(2.0); r
             1.41421356237310

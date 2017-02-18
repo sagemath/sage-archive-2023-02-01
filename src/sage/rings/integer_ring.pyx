@@ -864,7 +864,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         See :meth:`sage.structure.parent._repr_option` for details.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ZZ._repr_option('element_is_atomic')
             True
@@ -1208,7 +1208,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         - an ``n``-th root of unity in `\ZZ`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ZZ.zeta()
             -1

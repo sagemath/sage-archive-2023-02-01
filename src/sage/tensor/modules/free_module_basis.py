@@ -350,7 +350,7 @@ class FreeModuleBasis(Basis_abstract):
           :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
           representing the free module of which ``self`` is a basis
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')

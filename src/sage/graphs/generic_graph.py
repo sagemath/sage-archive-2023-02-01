@@ -362,7 +362,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Also converts old NetworkX backends into a more recent one.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.structure.sage_object.unpickle_all() # indirect random
         """
@@ -538,7 +538,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Only immutable graphs are hashable. The resulting value is cached.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = graphs.PetersenGraph()
             sage: {G:1}[G]
@@ -1163,7 +1163,7 @@ class GenericGraph(GenericGraph_pyx):
             This functions uses the ``write_*`` functions defined in NetworkX
             (see http://networkx.lanl.gov/reference/readwrite.html).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
             sage: filename = tmp_filename(ext=".pajek")
@@ -10098,7 +10098,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``vertices`` -- the set of vertices to be merged
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g=graphs.CycleGraph(3)
             sage: g.merge_vertices([0,1])
@@ -19054,7 +19054,7 @@ class GenericGraph(GenericGraph_pyx):
         is a string not starting with a number, as required by
         dot2tex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.Grid2dGraph(5,5)
             sage: g._keys_for_vertices()

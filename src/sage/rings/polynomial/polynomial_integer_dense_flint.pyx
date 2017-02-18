@@ -123,7 +123,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         The given value has to be in the base ring of P. This assumption is not
         verified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: x._new_constant_poly(2,R)

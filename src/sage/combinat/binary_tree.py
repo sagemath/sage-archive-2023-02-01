@@ -4450,7 +4450,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
         """
         Return a labelled binary tree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledBinaryTrees().an_element()   # indirect doctest
             toto[42[3[., .], 3[., .]], 5[None[., .], None[., .]]]

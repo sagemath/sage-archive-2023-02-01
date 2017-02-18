@@ -746,7 +746,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         which gives the coordinates of opposite corners of the
         bounding box.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x,y = var('x,y')
             sage: p = plot3d(sqrt(sin(x)*sin(y)), (x,0,2*pi),(y,0,2*pi))
@@ -1155,7 +1155,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         Graphics3dGroup of stickers
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Box
             sage: B = Box(.5,.4,.3, color='black')

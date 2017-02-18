@@ -88,7 +88,7 @@ def trivial_character(N, base_ring=rings.RationalField()):
     Return the trivial character of the given modulus, with values in the given
     base ring.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: t = trivial_character(7)
         sage: [t(x) for x in [0..20]]
@@ -347,7 +347,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
           base ring of ``self``, or a ring homomorphism with the base
           ring of ``self`` as its domain
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: e = DirichletGroup(7, QQ).0
             sage: f = e.change_ring(QuadraticField(3, 'a'))
@@ -470,7 +470,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         Return a (shallow) copy of this Dirichlet character.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G.<a> = DirichletGroup(11)
             sage: b = copy(a)
@@ -1512,7 +1512,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         Synonym for modulus.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: e = DirichletGroup(100, QQ).0
             sage: e.level()

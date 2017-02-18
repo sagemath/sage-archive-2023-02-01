@@ -734,7 +734,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - an exact copy of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -771,7 +771,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the homomorphism `-f`, where `f` is ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')

@@ -938,7 +938,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         fields.  This is an internal function used by
         :meth:.S_class_group, :meth:.S_units and :meth:.selmer_group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(-5)
             sage: R.<x> = K[]

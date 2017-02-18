@@ -290,7 +290,7 @@ cdef inline int celement_inv(ZZ_pEX_c* res, ZZ_pEX_c* a, cparent parent) except 
 
 cdef inline int celement_pow(ZZ_pEX_c* res, ZZ_pEX_c* x, long e, ZZ_pEX_c *modulus, cparent parent) except -2:
     """
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<a> = GF(next_prime(2**60)**3)
         sage: P.<x> = PolynomialRing(K,implementation='NTL')

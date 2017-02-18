@@ -967,7 +967,7 @@ cdef class Parent(category_object.CategoryObject):
         be inherited. This is, e.g., used when creating twosided
         ideals of matrix algebras. See :trac:`7797`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: MS = MatrixSpace(QQ,2,2)
 

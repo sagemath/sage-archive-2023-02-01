@@ -1318,7 +1318,7 @@ class CoxeterGroups(Category_singleton):
             See :meth:`CoxeterGroups.ParentMethods.simple_projections`
             for the definition of the simple projections.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: W=CoxeterGroups().example()
                 sage: w=W.an_element()

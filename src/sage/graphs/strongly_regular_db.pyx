@@ -1841,7 +1841,7 @@ def SRG_100_44_18_20():
     This graph is built as a Cayley graph, using the construction for `\Delta_1`
     with group `H_3` presented in Table 8.1 of [JK03]_
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_100_44_18_20
         sage: G = SRG_100_44_18_20()                 # long time
@@ -1868,7 +1868,7 @@ def SRG_100_45_20_20():
     This graph is built as a Cayley graph, using the construction for `\Gamma_3`
     with group `H_3` presented in Table 8.1 of [JK03]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_100_45_20_20
         sage: G = SRG_100_45_20_20()              # long time
@@ -1891,7 +1891,7 @@ def SRG_105_32_4_12():
     the point `b` is  on the line `A`, and `a \neq b`, `A \neq B`. See
     Theorem 2.7 in [GS70]_, and [Co06]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_105_32_4_12
         sage: G = SRG_105_32_4_12(); G
@@ -1931,7 +1931,7 @@ def SRG_120_77_52_44():
     points. We then build the intersection graph of blocks with intersection
     size 3.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_120_77_52_44
         sage: G = SRG_120_77_52_44()                 # optional - gap_packages
@@ -1952,7 +1952,7 @@ def SRG_144_39_6_12():
     (among 2 such orbits) of the group `PGL_3(3)` acting on the (right) cosets of
     a subgroup of order 39.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_144_39_6_12
         sage: G = SRG_144_39_6_12()
@@ -1983,7 +1983,7 @@ def SRG_176_49_12_14():
     'polarity with all universal points'). The graph is then built by making two
     vertices `u,v` adjacent whenever `v\in \sigma(u)`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_176_49_12_14
         sage: G = SRG_176_49_12_14()                 # optional - gap_packages # long time
@@ -2024,7 +2024,7 @@ def SRG_176_105_68_54():
     points. We then build the intersection graph of blocks with intersection
     size 3. Known as S.7 in [Hu75]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_176_105_68_54
         sage: G = SRG_176_105_68_54()                # optional - gap_packages
@@ -2048,7 +2048,7 @@ def SRG_210_99_48_45():
     found a megring of them, explicitly described in [KPRWZ10]_, resulting in
     this graph.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_210_99_48_45
         sage: g=SRG_210_99_48_45()
@@ -2104,7 +2104,7 @@ def SRG_243_110_37_60():
         A strongly regular graph with the same parameters is also obtained from
         the database of 2-weight codes.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_243_110_37_60
         sage: G = SRG_243_110_37_60()
@@ -2132,7 +2132,7 @@ def SRG_253_140_87_65():
     a `2-(23,7,21)` design. We then build the intersection graph of blocks with
     intersection size 3. Known as S.6 in [Hu75]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_253_140_87_65
         sage: G = SRG_253_140_87_65()                # optional - gap_packages
@@ -2191,7 +2191,7 @@ def SRG_220_84_38_28():
     :func:`~sage.combinat.designs.database.BIBD_45_9_8`. This construction
     appears in VII.11.2 from [DesignHandbook]_
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_220_84_38_28
         sage: g=SRG_220_84_38_28()
@@ -2214,7 +2214,7 @@ def SRG_276_140_58_84():
     :meth:`~Graph.seidel_switching` on a set of 28 disjoint 5-cliques, which
     exist by cf. [HT96]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_276_140_58_84
         sage: g=SRG_276_140_58_84()                  # long time # optional - gap_packages
@@ -2249,7 +2249,7 @@ def SRG_280_135_70_60():
     This graph is built from the action of `J_2` on a `3.PGL(2,9)` subgroup it
     contains.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_280_135_70_60
         sage: g=SRG_280_135_70_60()                  # long time # optional - gap_packages
@@ -2284,7 +2284,7 @@ def SRG_280_117_44_52():
         set to be adjacent if the cross-intersection of their respective
         partitions does not contain exactly 7 nonempty sets.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_280_117_44_52
         sage: g=SRG_280_117_44_52()
@@ -2329,7 +2329,7 @@ def strongly_regular_from_two_weight_code(L):
 
     - ``L`` -- a two-weight linear code, or its generating matrix.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import strongly_regular_from_two_weight_code
         sage: x=("100022021001111",
@@ -2373,7 +2373,7 @@ def SRG_416_100_36_20():
     <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>` induced on
     the neighbors of a vertex. Known as S.14 in [Hu75]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_416_100_36_20
         sage: g = SRG_416_100_36_20()                # optional - gap_packages # long time
@@ -2395,7 +2395,7 @@ def SRG_560_208_72_80():
     This graph is obtained as the union of 4 orbits of sets of cardinality 2
     (among the 13 that exists) of the group `Sz(8)`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_560_208_72_80
         sage: g = SRG_560_208_72_80()                # optional - database_gap # not tested (~2s)
@@ -2443,7 +2443,7 @@ def strongly_regular_from_two_intersection_set(M):
 
     The implementation does not check that `S` is actually a 2-intersection set.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import strongly_regular_from_two_intersection_set
         sage: S=Matrix([(0,0,1),(0,1,0)] + map(lambda x: (1,x^2,x), GF(4,'b')))
@@ -2625,7 +2625,7 @@ def SRG_1288_792_476_504():
         :func:`strongly_regular_from_two_weight_code` -- build a strongly regular graph from
         a two-weight code.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_1288_792_476_504
         sage: G = SRG_1288_792_476_504()             # long time
@@ -3174,7 +3174,7 @@ def _check_database():
 
     The function also outputs some statistics on the database.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time

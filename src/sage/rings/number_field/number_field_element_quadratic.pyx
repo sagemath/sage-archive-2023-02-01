@@ -154,7 +154,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         Standard initialisation function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<a> = QuadraticField(-7)
             sage: c = a + 7
@@ -216,7 +216,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         Quickly creates a new initialized NumberFieldElement_quadratic with the
         same parent as self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<b> = CyclotomicField(3)
             sage: b + b # indirect doctest
@@ -235,7 +235,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         Cython cdef method, it is not directly accessible by the user, but the
         function "_number_field" calls this one.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<b> = QuadraticField(-7)
             sage: b._number_field() # indirect doctest
@@ -288,7 +288,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         r"""
         Initialisation function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: QuadraticField(-3, 'a').gen() # indirect doctest
             a
@@ -616,7 +616,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         r"""
         Returns true if self is `\sqrt{D}`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<b> = NumberField(x^2 - x + 7)
             sage: b.denominator() # indirect doctest
@@ -2099,7 +2099,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         r"""
         Standard initialisation function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: OK.<y> = EquationOrder(x^2 + 5)
             sage: v = OK.1 # indirect doctest
@@ -2317,7 +2317,7 @@ cdef class Z_to_quadratic_field_element(Morphism):
         """
         ``K`` is the target quadratic field
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(3)
             sage: phi = K.coerce_map_from(ZZ) # indirect doctest
@@ -2375,7 +2375,7 @@ cdef class Z_to_quadratic_field_element(Morphism):
         r"""
         Evaluate at an integer ``x``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(3)
             sage: phi = K.coerce_map_from(ZZ)
@@ -2438,7 +2438,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
         """
         ``K`` is the target quadratic field
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(3)
             sage: phi = K.coerce_map_from(QQ) # indirect doctest
@@ -2502,7 +2502,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
         r"""
         Evaluate at a rational ``x``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(3)
             sage: phi = K.coerce_map_from(QQ)

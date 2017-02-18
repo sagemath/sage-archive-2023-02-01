@@ -60,7 +60,7 @@ cdef class SolverConf(object):
         - ``kwds`` - see string representation of any instance of this
                      class for a list of options.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -92,7 +92,7 @@ cdef class SolverConf(object):
         """
         Set options using dictionary notation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -135,7 +135,7 @@ cdef class SolverConf(object):
         """
         Set options using attributes.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -156,7 +156,7 @@ cdef class SolverConf(object):
         """
         Read options using dictionary notation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -197,7 +197,7 @@ cdef class SolverConf(object):
         """
         Read options using dictionary notation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -218,7 +218,7 @@ cdef class SolverConf(object):
         """
         Print the current configuration.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf(); s                                   # optional - cryptominisat
@@ -254,7 +254,7 @@ cdef class SolverConf(object):
         """
         Return list of all option names.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat
@@ -300,7 +300,7 @@ cdef class SolverConf(object):
         """
         Return a copy.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import SolverConf # optional - cryptominisat
             sage: s = SolverConf()                                      # optional - cryptominisat

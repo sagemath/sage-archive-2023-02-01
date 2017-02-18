@@ -233,7 +233,7 @@ class _uniq(object):
         """
         This ensures uniqueness of these objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class()
             True
@@ -907,7 +907,7 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         """
         Converts ``unsigned_infinity`` to sympy ``zoo``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: sympy.sympify(unsigned_infinity)
@@ -1593,7 +1593,7 @@ class PlusInfinity(_uniq, AnInfinity, InfinityElement):
         Then you don't have to worry which ``oo`` you use, like in these
         examples:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: bool(oo == sympy.oo) # indirect doctest

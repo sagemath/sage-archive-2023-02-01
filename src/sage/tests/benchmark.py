@@ -1959,7 +1959,7 @@ def mpoly_all(include_maple=False):
        * mathematica is sometimes amazing.
        * macaulay2 is also quite bad (though not as bad as maple).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.tests.benchmark import mpoly_all
         sage: mpoly_all() # not tested

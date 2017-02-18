@@ -601,7 +601,7 @@ class DiGraphGenerators():
         - ``integers`` -- the list of integers such that there is an edge from
           `i` to `j` if and only if ``(j-i)%n in integers``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: digraphs.Circulant(13,[3,5,7])
             Circulant graph ([3, 5, 7]): Digraph on 13 vertices
@@ -730,7 +730,7 @@ class DiGraphGenerators():
               checks whether a (di)graph is circulant, and/or returns all
               possible sets of parameters.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: GB = digraphs.GeneralizedDeBruijn(8, 2)
             sage: GB.is_isomorphic(digraphs.DeBruijn(2, 3), certificate = True)
@@ -991,7 +991,7 @@ class DiGraphGenerators():
         -  ``seed`` - for the random number generator
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGN(25)
             sage: D.edges(labels=False)
@@ -1027,7 +1027,7 @@ class DiGraphGenerators():
         -  ``seed`` - for the random number generator
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNC(25)
             sage: D.edges(labels=False)
@@ -1071,7 +1071,7 @@ class DiGraphGenerators():
         PLOTTING: When plotting, this graph will use the default spring-layout
         algorithm, unless a position dictionary is specified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: set_random_seed(0)
             sage: D = digraphs.RandomDirectedGNP(10, .2)
@@ -1105,7 +1105,7 @@ class DiGraphGenerators():
         PLOTTING: When plotting, this graph will use the default spring-layout
         algorithm, unless a position dictionary is specified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNM(10, 5)
             sage: D.num_verts()
@@ -1238,7 +1238,7 @@ class DiGraphGenerators():
         -  ``seed`` - for the random number generator.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNR(25, .2)
             sage: D.edges(labels=False)

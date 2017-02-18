@@ -11,7 +11,7 @@ from sage.structure.sage_object import SageObject
 class MethodDecorator(SageObject):
     def __init__(self, f):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.method_decorator import MethodDecorator
             sage: class Foo:

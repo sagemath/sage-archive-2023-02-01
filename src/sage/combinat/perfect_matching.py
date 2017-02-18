@@ -343,7 +343,7 @@ class PerfectMatching(ElementWrapper):
         Returns the conjugate of the perfect matching ``self`` by the
         permutation ``p`` of the ground set.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: m = PerfectMatching([(1,4),(2,6),(3,5)])
             sage: m.conjugate_by_permutation(Permutation([4,1,5,6,3,2]))

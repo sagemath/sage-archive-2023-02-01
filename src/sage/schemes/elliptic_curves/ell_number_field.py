@@ -17,7 +17,7 @@ Currently Sage can obtain local information about `E/K_v` for finite places
 the torsion subgroup of the Mordell-Weil group `E(K)`, and it can work with
 isogenies defined over `K`.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: K.<i> = NumberField(x^2+1)
     sage: E = EllipticCurve([0,4+i])
@@ -2573,7 +2573,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         Return the canonical height function attached to self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 - 5)
             sage: E = EllipticCurve(K, '11a3')

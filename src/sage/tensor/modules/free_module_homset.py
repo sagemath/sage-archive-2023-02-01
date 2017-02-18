@@ -406,7 +406,7 @@ class FreeModuleHomset(Homset):
         r"""
         Construct some (unamed) element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')

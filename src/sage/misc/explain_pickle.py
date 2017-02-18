@@ -3027,7 +3027,7 @@ class TestGlobalFunnyName(object):
         r"""
         Print a TestGlobalFunnyName.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.explain_pickle import *
             sage: v = TestGlobalFunnyName()

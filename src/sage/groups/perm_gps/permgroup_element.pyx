@@ -608,7 +608,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         OUTPUT: a permutation group element
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = PermutationGroup([[(1,2,3),(4,5)]],5)
             sage: g = G.gen(0)
@@ -671,7 +671,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         Alternately, if i is a list, tuple or string, returns the result of
         self acting on i.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: G
@@ -1443,7 +1443,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         functions "EpimorphismFromFreeGroup" and
         "PreImagesRepresentative".
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]], canonicalize=False)
             sage: g1, g2 = G.gens()

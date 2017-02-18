@@ -952,7 +952,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Use :meth:`diff_map` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M'); X.<x,y> = M.chart()
             sage: N = Manifold(2, 'N'); Y.<u,v> = N.chart()
@@ -2716,7 +2716,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Use :meth:`riemannian_metric` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(3, 'M')
             sage: g = M.riemann_metric('g')
@@ -2808,7 +2808,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Use :meth:`lorentzian_metric` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(4, 'M')
             sage: g = M.lorentz_metric('g')

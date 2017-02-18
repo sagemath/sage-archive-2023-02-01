@@ -14,7 +14,7 @@ AUTHORS:
 - Robert Bradshaw (2007-04): Cython version
 - Simon King (2012-08): use category and coercion framework, :trac:`13412`
 
-EXAMPLE::
+EXAMPLES::
 
     sage: R.<x> = PowerSeriesRing(ZZ)
     sage: TestSuite(R).run()

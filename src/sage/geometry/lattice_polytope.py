@@ -4377,7 +4377,7 @@ class NefPartition(SageObject,
         See :class:`nef-partition <NefPartition>` class documentation for
         definitions and notation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]

@@ -332,7 +332,7 @@ class Expect(Interface):
         :meth:`quit`, a new sub-process with a new PID is
         automatically started.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: pid = gap.pid()
             sage: gap.eval('quit;')
@@ -1173,7 +1173,7 @@ If this all works, you can then make calls like:
         r"""
         Show a message if the interface crashed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: singular._crash_msg()
             Singular crashed -- automatically restarting.
@@ -1448,7 +1448,7 @@ class StdOutContext:
 
         - ``stdout`` - optional parameter for alternative stdout device (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(Gp()) as g:
@@ -1461,7 +1461,7 @@ class StdOutContext:
 
     def __enter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(singular):
@@ -1482,7 +1482,7 @@ class StdOutContext:
 
     def __exit__(self, typ, value, tb):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(gap):

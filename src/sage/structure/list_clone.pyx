@@ -1354,7 +1354,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         Iterate over the items of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: I = IncreasingIntArrays()(range(5))
@@ -1369,7 +1369,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         Convert self into a Python list.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: I = IncreasingIntArrays()(range(5))

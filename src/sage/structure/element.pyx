@@ -2122,7 +2122,7 @@ cdef class ElementWithCachedMethod(Element):
             string of this class. Here, we demonstrate lazy
             attributes.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: cython('''
             ....: from sage.structure.element cimport ElementWithCachedMethod
@@ -2366,7 +2366,7 @@ cdef class RingElement(ModuleElement):
         """
         Return the (integral) power of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Integers(389)['x']['y'](37)
             sage: p = sage.structure.element.RingElement.__pow__

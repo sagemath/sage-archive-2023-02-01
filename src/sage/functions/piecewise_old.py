@@ -1283,7 +1283,7 @@ class PiecewisePolynomial:
         
         as a string.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
@@ -1311,7 +1311,7 @@ class PiecewisePolynomial:
         as a string. This is a "smoother" partial sum - the Gibbs
         phenomenon is mollified.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
@@ -1339,7 +1339,7 @@ class PiecewisePolynomial:
         as a string, where `H_N(x) = (1+\cos(\pi x/N))/2`. This is
         a "smoother" partial sum - the Gibbs phenomenon is mollified.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
@@ -1368,7 +1368,7 @@ class PiecewisePolynomial:
         of length `N` consisting of real numbers. This can be used
         to plot FS solutions to the heat and wave PDEs.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
@@ -1394,7 +1394,7 @@ class PiecewisePolynomial:
         
         over xmin x xmin.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f1(x) = -2
             sage: f2(x) = 1
@@ -1427,7 +1427,7 @@ class PiecewisePolynomial:
         over xmin x xmin. This is a "smoother" partial sum - the Gibbs
         phenomenon is mollified.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f1(x) = -2
             sage: f2(x) = 1
@@ -1460,7 +1460,7 @@ class PiecewisePolynomial:
         over xmin x xmin, where H_N(x) = (0.5)+(0.5)\*cos(x\*pi/N) is the
         N-th Hann filter.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f1(x) = -2
             sage: f2(x) = 1
@@ -1494,7 +1494,7 @@ class PiecewisePolynomial:
         list of length `N` consisting of real numbers. This can be
         used to plot FS solutions to the heat and wave PDEs.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f1(x) = -2
             sage: f2(x) = 1

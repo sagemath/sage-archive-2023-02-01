@@ -5171,7 +5171,7 @@ class FiniteWord_class(Word_class):
         is found in the same manner from the remaining letters.  In the
         following example, `w1, w2, w3` are the charge subwords of `w`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: w = Word([5,2,3,4,4,1,1,1,2,2,3])
             sage: w1 = Word([5, 2, 4, 1, 3])

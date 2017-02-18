@@ -193,7 +193,7 @@ def RandomBipartite(n1, n2, p):
         - ``p``   : Probability for an edge to exist
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g=graphs.RandomBipartite(5,2,0.5)
         sage: g.vertices()
@@ -549,7 +549,7 @@ def RandomTree(n):
 
     -  ``n`` - number of vertices in the tree
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.RandomTree(10)
         sage: G.is_tree()
@@ -710,7 +710,7 @@ def RandomShell(constructor, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.RandomShell([(10,20,0.8),(20,40,0.8)])
         sage: G.edges(labels=False)

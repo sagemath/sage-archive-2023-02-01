@@ -513,7 +513,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
               common value.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve([1, -1, 1, -29372, -1932937])
             sage: E.conductor(algorithm="pari")
@@ -7139,7 +7139,7 @@ def elliptic_curve_congruence_graph(curves):
     label) and an edge from `E` to `F` labelled `p` if and only if `E` is
     congruent to `F` mod `p`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.ell_rational_field import elliptic_curve_congruence_graph
         sage: curves = list(cremona_optimal_curves([11..30]))

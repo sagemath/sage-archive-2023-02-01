@@ -624,7 +624,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         r"""
         Return the class to be used for creating elements of this group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SymmetricGroup(17)._element_class()
             <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>

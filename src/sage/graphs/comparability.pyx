@@ -517,7 +517,7 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
       yes-certificates are indeed transitive. As it is very quick
       compared to the rest of the operation, it is enabled by default.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.comparability import is_comparability
         sage: g = graphs.PetersenGraph()
@@ -711,7 +711,7 @@ def is_transitive(g, certificate = False):
         or yield a pair of vertices `uv` such that there exists a `uv`-path in
         `G` but `uv\not\in G`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: digraphs.Circuit(4).is_transitive()
         False

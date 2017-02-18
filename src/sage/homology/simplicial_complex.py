@@ -1213,7 +1213,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         If ``simplex`` is a simplex in this complex, return it.
         Otherwise, raise a ``ValueError``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = SimplicialComplex([(0,1,2), (0,2,3)])
             sage: K(Simplex((1,2)))

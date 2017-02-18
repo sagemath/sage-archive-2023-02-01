@@ -352,7 +352,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         Return the image of ``self`` under the map that sends the
         generators of the parent to ``im_gens``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Mod(7, 10)
             sage: R = ZZ.quotient(5)

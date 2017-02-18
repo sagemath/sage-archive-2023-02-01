@@ -2573,7 +2573,7 @@ cdef class Gen(Gen_auto):
 
         OUTPUT: int (a Python int)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: pari('1').sizebyte()
             12           # 32-bit
@@ -4347,7 +4347,7 @@ cdef class Gen(Gen_auto):
         r"""
         Show the internal structure of self (like the ``\x`` command in gp).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: pari('[1/2, 1.0*I]').debug()  # random addresses
             [&=0000000004c5f010] VEC(lg=3):2200000000000003 0000000004c5eff8 0000000004c5efb0

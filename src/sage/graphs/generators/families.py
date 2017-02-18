@@ -89,7 +89,7 @@ def KneserGraph(n,k):
     For example, the Petersen Graph can be defined
     as the Kneser Graph with parameters `5,2`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: KG=graphs.KneserGraph(5,2)
         sage: print(KG.vertices())
@@ -718,7 +718,7 @@ def GoethalsSeidelGraph(k,r):
 
         - :func:`~sage.graphs.strongly_regular_db.is_goethals_seidel`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: graphs.GoethalsSeidelGraph(3,3)
         Graph on 28 vertices
@@ -766,7 +766,7 @@ def DorogovtsevGoltsevMendesGraph(n):
     Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes
     graph.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.DorogovtsevGoltsevMendesGraph(8)
         sage: G.size()
@@ -1553,7 +1553,7 @@ def OddGraph(n):
     For example, the Petersen Graph can be defined
     as the Odd Graph with parameter `3`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: OG=graphs.OddGraph(3)
         sage: print(OG.vertices())
@@ -1967,7 +1967,7 @@ def line_graph_forbidden_subgraphs():
     The graphs are returned in the ordering given by the Wikipedia
     drawing, read from left to right and from top to bottom.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: graphs.line_graph_forbidden_subgraphs()
         [Claw graph: Graph on 4 vertices,
@@ -2057,7 +2057,7 @@ def petersen_family(generate=False):
       `\Delta-Y` transformations. When set to ``False`` (default) a hardcoded
       version of the graphs (with a prettier layout) is returned.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: graphs.petersen_family()
         [Petersen graph: Graph on 10 vertices,
@@ -2377,7 +2377,7 @@ def RingedTree(k, vertex_labels = True):
     - ``vertex_labels`` (boolean) -- whether to label vertices as binary words
       (default) or as integers.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.RingedTree(5)
         sage: P = G.plot(vertex_labels=False, vertex_size=10)

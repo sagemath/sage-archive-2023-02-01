@@ -199,7 +199,7 @@ class _Coordinates(object):
          - ``params`` - The parameters of func. Corresponds to the dependent
            variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates
             sage: x, y, z = var('x y z')
@@ -414,7 +414,7 @@ class _ArbitraryCoordinates(_Coordinates):
 
     def transform(self, **kwds):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates
             sage: x, y, z = var('x y z')
@@ -486,7 +486,7 @@ class Spherical(_Coordinates):
         """
         A spherical coordinates transform.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = Spherical('radius', ['azimuth', 'inclination'])
             sage: T.transform(radius=var('r'), azimuth=var('theta'), inclination=var('phi'))
@@ -599,7 +599,7 @@ class SphericalElevation(_Coordinates):
         """
         A spherical elevation coordinates transform.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = SphericalElevation('radius', ['azimuth', 'elevation'])
             sage: T.transform(radius=var('r'), azimuth=var('theta'), elevation=var('phi'))
@@ -669,7 +669,7 @@ class Cylindrical(_Coordinates):
         """
         A cylindrical coordinates transform.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = Cylindrical('height', ['azimuth', 'radius'])
             sage: T.transform(radius=var('r'), azimuth=var('theta'), height=var('z'))

@@ -1020,7 +1020,7 @@ class TransducerGenerators(object):
 
         Cf. the :wikipedia:`Gray_code` for a description of the Gray code.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = transducers.GrayCode()
             sage: G
@@ -1093,7 +1093,7 @@ class TransducerGenerators(object):
         A ``RecursionRule`` if the equation is of the first form
         described above and a dictionary ``{r: [t]}`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('n')
             n

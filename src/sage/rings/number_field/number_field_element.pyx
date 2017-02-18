@@ -106,7 +106,7 @@ def __create__NumberFieldElement_version0(parent, poly):
     """
     Used in unpickling elements of number fields pickled under very old Sage versions.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: k.<a> = NumberField(x^3 - 2)
         sage: R.<z> = QQ[]
@@ -202,7 +202,7 @@ cdef class NumberFieldElement(FieldElement):
         r"""
 
         Return the number field of self. Only accessible from Cython.
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 3)
             sage: a._number_field() # indirect doctest
@@ -212,7 +212,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def _number_field(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 3)
             sage: a._number_field()
@@ -2201,7 +2201,7 @@ cdef class NumberFieldElement(FieldElement):
 
     cpdef _add_(self, right):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<s> = QuadraticField(2)
             sage: s + s # indirect doctest
@@ -2336,7 +2336,7 @@ cdef class NumberFieldElement(FieldElement):
 
     cpdef _neg_(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: -a # indirect doctest
@@ -2350,7 +2350,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def __copy__(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: b = copy(a)
@@ -2811,7 +2811,7 @@ cdef class NumberFieldElement(FieldElement):
         Return hash of this number field element, which is just the
         hash of the underlying polynomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 2)
             sage: hash(b^2 + 1) == hash((b^2 + 1).polynomial()) # indirect doctest
@@ -3229,7 +3229,7 @@ cdef class NumberFieldElement(FieldElement):
         r"""
         Return the characteristic polynomial of this number field element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 7)
             sage: a.charpoly()
@@ -3901,7 +3901,7 @@ cdef class NumberFieldElement(FieldElement):
         Return the list of coefficients of self written in terms of a power
         basis.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - x + 2); ((a + 1)/(a + 2)).list()
             [1/4, 1/2, -1/4]
@@ -4295,7 +4295,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         Return the list of coefficients of self written in terms of a power
         basis.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<z> = CyclotomicField(3)
             sage: (2+3/5*z).list()
@@ -4389,7 +4389,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
     """
     def __init__(self, parent, f):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a, b> = NumberField([x^2 + 1, x^2 + 2])
             sage: type(a) # indirect doctest
@@ -4486,7 +4486,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
 
     def _repr_(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a, b> = NumberField([x^3 - x + 1, x^2 + 23])
             sage: repr(a^4*b) # indirect doctest
@@ -4678,7 +4678,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
     """
     def __init__(self, order, f):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: O2 = K.order(2*a)
@@ -4715,7 +4715,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         r"""
         Return the number field of self. Only accessible from Cython.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = NumberField(x^3 - 17, 'a')
             sage: OK = K.ring_of_integers()
@@ -4788,7 +4788,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
 
         See :trac:`4190`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = NumberField(x^3 -x + 2, 'a')
             sage: OK = K.ring_of_integers()
@@ -4816,7 +4816,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
     """
     def __init__(self, order, f):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: O = EquationOrder([x^2 + x + 1, x^3 - 2],'a,b')
             sage: type(O.1) # indirect doctest
@@ -5043,7 +5043,7 @@ class CoordinateFunction:
     This class provides a callable object which expresses
     elements in terms of powers of a fixed field generator `\alpha`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<a> = NumberField(x^2 + x + 3)
         sage: f = (a + 1).coordinates_in_terms_of_powers(); f
@@ -5057,7 +5057,7 @@ class CoordinateFunction:
     """
     def __init__(self, NumberFieldElement alpha, W, to_V):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + x + 3)
             sage: f = (a + 1).coordinates_in_terms_of_powers(); f # indirect doctest
@@ -5070,7 +5070,7 @@ class CoordinateFunction:
 
     def __repr__(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + x + 3)
             sage: f = (a + 1).coordinates_in_terms_of_powers(); repr(f) # indirect doctest
@@ -5080,7 +5080,7 @@ class CoordinateFunction:
 
     def alpha(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: (a + 2).coordinates_in_terms_of_powers().alpha()
@@ -5090,7 +5090,7 @@ class CoordinateFunction:
 
     def __call__(self, x):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: f = (a + 2).coordinates_in_terms_of_powers()
@@ -5118,7 +5118,7 @@ class CoordinateFunction:
         """
         Test equality
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: c = (a + 2).coordinates_in_terms_of_powers()
@@ -5143,7 +5143,7 @@ class CoordinateFunction:
         """
         Test inequality
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: c = (a + 2).coordinates_in_terms_of_powers()

@@ -94,7 +94,7 @@ cdef class MatrixStruct:
         """
         Display the matrix, and associated data.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
             sage: M = MatrixStruct(Matrix(GF(5), [[0,1,1,4,4],[0,4,4,1,1]]))
@@ -181,7 +181,7 @@ cdef class MatrixStruct:
 
         For more examples, see self.run().
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
 

@@ -1499,7 +1499,7 @@ class AbstractLinearCode(Module):
         `C` are linearly independent (cf. definition 3 from [BS2011]_ or 9.8.1 from
         [BH12]).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = codes.GolayCode(GF(2), False)
             sage: C.is_projective()

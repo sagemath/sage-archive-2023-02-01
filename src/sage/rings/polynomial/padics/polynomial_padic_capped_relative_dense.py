@@ -161,7 +161,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         The value a must be an element of the base ring of P. That
         assumption is not verified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = Zp(5)[]
             sage: t._new_constant_poly(O(5),R)

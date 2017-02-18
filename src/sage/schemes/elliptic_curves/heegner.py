@@ -6299,7 +6299,7 @@ def ell_heegner_discriminants_list(self, n):
     OUTPUT: The list of the first n Heegner discriminants smaller than
     -5 for the given elliptic curve.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: E=EllipticCurve('11a')
         sage: E.heegner_discriminants_list(4)                     # indirect doctest
@@ -6338,7 +6338,7 @@ def heegner_point_height(self, D, prec=2, check_rank=True):
 
     OUTPUT: Interval that contains the height of the Heegner point.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: E = EllipticCurve('11a')
         sage: E.heegner_point_height(-7)

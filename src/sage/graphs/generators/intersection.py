@@ -518,7 +518,7 @@ def IntersectionGraph(S):
             The elements of `S` must be finite, hashable, and the elements of
             any `s\in S` must be hashable too.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: graphs.IntersectionGraph([(1,2,3),(3,4,5),(5,6,7)])
         Intersection Graph: Graph on 3 vertices

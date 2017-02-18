@@ -2139,7 +2139,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
           :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
           representing a field of symmetric bilinear forms
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()

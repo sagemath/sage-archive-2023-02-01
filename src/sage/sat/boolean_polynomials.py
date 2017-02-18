@@ -251,7 +251,7 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
 
         A sequence of Boolean polynomials.
 
-    EXAMPLE::
+    EXAMPLES::
 
        sage: from sage.sat.boolean_polynomials import learn as learn_sat # optional - cryptominisat
 

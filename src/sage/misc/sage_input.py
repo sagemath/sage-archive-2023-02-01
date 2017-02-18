@@ -1602,6 +1602,20 @@ class SageInputExpression(object):
         """
         return self._sie_unop('-')
 
+    def __pos__(self):
+        r"""
+        Compute an expression tree for ``+self``.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: sie = sib(3)
+            sage: +sie
+            {unop:+ {atomic:3}}
+        """
+        return self._sie_unop('+')
+
     def __invert__(self):
         r"""
         Compute an expression tree for ``~self``.
@@ -2593,6 +2607,16 @@ class SIE_unary(SageInputExpression):
             --x
             sage: sib.result(x-(-y))
             x - -y
+            sage: sib.result((+x)+y)
+            +x + y
+            sage: sib.result(x+(+y))
+            x + +y
+            sage: sib.result(+(x+y))
+            +(x + y)
+            sage: sib.result(+(+x))
+            ++x
+            sage: sib.result(x+(+y))
+            x + +y
 
         We assume that -(x*y) is always equal to (-x)*y.  Using this
         assumption, we print -(x*y) as -x*y, which parses as (-x)*y.::
@@ -2603,6 +2627,12 @@ class SIE_unary(SageInputExpression):
             -x*y
             sage: sib.result(x*(-y))
             x*-y
+
+        We don't do that for unary +, assuming that the user really
+        means to express something by using unary +.::
+
+            sage: sib.result(+(x*y))
+            +(x*y)
         """
         op = self._sie_op
         fop = op
@@ -2612,6 +2642,8 @@ class SIE_unary(SageInputExpression):
             # (-a)*b.
             prec = _prec_muldiv
             rprec = _prec_negate
+        elif op == '+':
+            prec = _prec_negate
         elif op == '~':
             prec = _prec_bitnot
         else:

@@ -114,6 +114,8 @@ config()
 {
     ./configure \
         --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+	--enable-R-shlib \
+	--with-recommended-packages \
         --with-readline=yes \
         --with-x=$XSUPPORT \
         "$R_CONFIGURE_BLAS" \

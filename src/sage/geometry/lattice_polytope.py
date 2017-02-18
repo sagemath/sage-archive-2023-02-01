@@ -103,9 +103,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-from sage.arith.all import gcd, lcm
 from sage.combinat.posets.posets import FinitePoset
 from sage.env import POLYTOPE_DATA_DIR
+from sage.geometry.cone import _ambient_space_point, integral_length
 from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
 from sage.geometry.point_collection import PointCollection, is_PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
@@ -115,7 +115,7 @@ from sage.libs.ppl import C_Polyhedron, Generator_System, Linear_Expression,\
     point as PPL_point
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
-from sage.misc.all import cached_method, tmp_filename
+from sage.misc.all import cached_method, flatten, tmp_filename
 from sage.misc.superseded import deprecated_function_alias
 from sage.modules.all import vector
 from sage.numerical.mip import MixedIntegerLinearProgram
@@ -132,6 +132,7 @@ import collections
 from six.moves import copyreg
 import os
 import subprocess
+import warnings
 from six import StringIO
 from functools import reduce
 
@@ -540,6 +541,25 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             self._ambient_facet_indices = tuple(ambient_facet_indices)
             self._vertices = ambient.vertices(self._ambient_vertex_indices)
 
+    def __contains__(self, point):
+        r"""
+        Check if ``point`` is contained in ``self``.
+
+        See :meth:`_contains` (which is called by this function) for
+        documentation.
+
+        TESTS::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: (1,0) in p
+            True
+            sage: [1,0] in p
+            True
+            sage: (-2,0) in p
+            False
+        """
+        return self._contains(point)
+    
     def __eq__(self, other):
         r"""
         Compare ``self`` with ``other``.
@@ -767,6 +787,60 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
         """
         raise NotImplementedError("use nef_partitions(hodge_numbers=True)!")
+
+    def _contains(self, point, region='whole polytope'):
+        r"""
+        Check if ``point`` is contained in ``self``.
+
+        This function is called by :meth:`__contains__` and :meth:`contains`
+        to ensure the same call depth for warning messages.
+
+        INPUT:
+
+        - ``point`` -- anything. An attempt will be made to convert it into a
+          single element of the ambient space of ``self``. If it fails,
+          ``False`` is returned;
+
+        - ``region`` -- string. Can be either 'whole polytope' (default),
+          'interior', or 'relative interior'.
+
+        OUTPUT:
+
+        - ``True`` if ``point`` is contained in the specified ``region`` of
+          ``self``, ``False`` otherwise.
+
+        Raises a ``ValueError`` if ``region`` is not one of the
+        three allowed values.
+
+        TESTS::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: p._contains((1,0))
+            True
+        """
+        try:
+            point = _ambient_space_point(self, point)
+        except TypeError as ex:
+            if str(ex).endswith("have incompatible lattices!"):
+                warnings.warn("you have checked if a cone contains a point "
+                              "from an incompatible lattice, this is False!",
+                              stacklevel=3)
+            return False
+
+        if region not in ("whole polytope", "relative interior", "interior"):
+            raise ValueError("%s is an unknown region" % region)
+        if region == "interior" and self.dim() < self.lattice_dim():
+            return False
+        need_strict = region.endswith("interior")
+        N = self.dual_lattice()
+        for c in self._PPL().minimized_constraints():
+            pr = N(c.coefficients()) * point + c.inhomogeneous_term()
+            if c.is_equality():
+                if pr != 0:
+                    return False
+            elif pr < 0 or need_strict and pr == 0:
+                return False
+        return True
 
     def _embed(self, data):
         r"""
@@ -1584,6 +1658,38 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 2-d lattice N
         """
         return self.points(self.boundary_point_indices())
+
+    def contains(self, *args):
+        r"""
+        Check if a given point is contained in ``self``.
+
+        INPUT:
+
+        - anything. An attempt will be made to convert all arguments into a
+          single element of the ambient space of ``self``. If it fails,
+          ``False`` will be returned.
+
+        OUTPUT:
+
+        - ``True`` if the given point is contained in ``self``, ``False``
+          otherwise.
+
+        EXAMPLES::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: p.contains(p.lattice()(1,0))
+            True
+            sage: p.contains((1,0))
+            True
+            sage: p.contains(1,0)
+            True
+            sage: p.contains((2,0))
+            False
+        """
+        point = flatten(args)
+        if len(point) == 1:
+           point = point[0]
+        return self._contains(point)
         
     @cached_method
     def dim(self):
@@ -5313,32 +5419,6 @@ def cross_polytope(dim):
     vertices = list(M.gens())
     vertices += [-v for v in vertices]
     return LatticePolytope(vertices, compute_vertices=False)
-
-
-def integral_length(v):
-    """
-    Compute the integral length of a given rational vector.
-
-    INPUT:
-
-    -  ``v`` - any object which can be converted to a list of rationals
-
-    OUTPUT: Rational number ``r`` such that ``v = r u``, where ``u`` is the
-    primitive integral vector in the direction of ``v``.
-
-    EXAMPLES::
-
-        sage: lattice_polytope.integral_length([1, 2, 4])
-        1
-        sage: lattice_polytope.integral_length([2, 2, 4])
-        2
-        sage: lattice_polytope.integral_length([2/3, 2, 4])
-        2/3
-    """
-    data = [QQ(e) for e in list(v)]
-    ns = [e.numerator() for e in data]
-    ds = [e.denominator() for e in data]
-    return gcd(ns)/lcm(ds)
 
 
 def minkowski_sum(points1, points2):

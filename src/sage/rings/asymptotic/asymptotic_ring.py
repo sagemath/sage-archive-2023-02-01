@@ -4402,8 +4402,18 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
             sage: AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ).construction()[0]  # indirect doctest
             AsymptoticRing<x^ZZ>
+
+        ::
+
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing
+            sage: class MyAsymptoticRing(AsymptoticRing):
+            ....:     pass
+            sage: A = MyAsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: A.construction()
+            (MyAsymptoticRing<x^ZZ>, Rational Field)
         """
-        return 'AsymptoticRing<%s>' % (self.growth_group._repr_(condense=True),)
+        return '{}<{}>'.format(self.cls.__name__,
+                               self.growth_group._repr_(condense=True))
 
 
     def _apply_functor(self, coefficient_ring):

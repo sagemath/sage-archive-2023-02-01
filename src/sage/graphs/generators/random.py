@@ -554,7 +554,7 @@ def RandomTree(n):
         sage: G = graphs.RandomTree(10)
         sage: G.is_tree()
         True
-        sage: G.show() # long
+        sage: G.show() # long time
 
     TESTS:
 

@@ -17,14 +17,16 @@ the set:
 
     \{ (\beta_1 f(\alpha_1), \ldots, \beta_n f(\alpha_n)  \mid  f \in F[x], \deg f < k \}
 
-This file contains the following elements:
+Here is a list of all content related to GRS codes:
 
     - :class:`GeneralizedReedSolomonCode`, the class for GRS codes
-    - :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message space
     - :class:`GRSEvaluationPolynomialEncoder`, an encoder with a polynomial message space
+    - :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message space
     - :class:`GRSBerlekampWelchDecoder`, a decoder which corrects errors using Berlekamp-Welch algorithm
-    - :class:`GRSGaoDecoder`, a decoder which corrects errors using Gao algorithm
     - :class:`GRSErrorErasureDecoder`, a decoder which corrects both errors and erasures
+    - :class:`GRSGaoDecoder`, a decoder which corrects errors using Gao algorithm
+    - :class:`sage.coding.guruswami_sudan.gs_decoder.GRSGuruswamiSudanDecoder`,
+      a list decoder using Guruswami-Sudan algorithm
     - :class:`GRSKeyEquationSyndromeDecoder`, a decoder which corrects errors using the key equation on syndrome polynomials
 """
 from __future__ import absolute_import
@@ -641,7 +643,9 @@ class GRSEvaluationVectorEncoder(Encoder):
         C = self.code()
         alphas = C.evaluation_points()
         col_mults = C.column_multipliers()
-        return matrix(C.base_field(), C.dimension(), C.length(), lambda i,j: col_mults[j] * alphas[j]**i)
+        g = matrix(C.base_field(), C.dimension(), C.length(), lambda i,j: col_mults[j] * alphas[j]**i)
+        g.set_immutable()
+        return g
 
 
 

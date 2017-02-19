@@ -3142,7 +3142,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t*e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field
+            TypeError: unsupported operand parent(s) for *: 'Finite Field
             of size 7' and 'Finite Field of size 5'
 
         The same issue (with a different test case) was reported in
@@ -3152,7 +3152,7 @@ cdef class Expression(CommutativeRingElement):
             sage: i*b
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Number Field
+            TypeError: unsupported operand parent(s) for *: 'Number Field
             in I with defining polynomial x^2 + 1' and 'Finite Field in b of
             size 3^2'
 
@@ -5343,7 +5343,7 @@ cdef class Expression(CommutativeRingElement):
         """
         EXAMPLES::
 
-            sage: a = range(10)
+            sage: a = list(range(10))
             sage: a[:SR(5)]
             [0, 1, 2, 3, 4]
         """
@@ -9614,6 +9614,53 @@ cdef class Expression(CommutativeRingElement):
 
     factorial_simplify = simplify_factorial
 
+    def to_gamma(self):
+        """
+        Convert factorial, binomial, and Pochhammer symbol
+        expressions to their gamma function equivalents.
+
+        EXAMPLES::
+
+            sage: m,n = var('m n', domain='integer')
+            sage: factorial(n).to_gamma()
+            gamma(n + 1)
+            sage: binomial(m,n).to_gamma()
+            gamma(m + 1)/(gamma(m - n + 1)*gamma(n + 1))
+        """
+        cdef GEx x
+        sig_on()
+        try:
+            x = to_gamma(self._gobj)
+        finally:
+            sig_off()
+        return new_Expression_from_GEx(self._parent, x)
+
+    def gamma_normalize(self):
+        """
+        Return the expression with any gamma functions that have
+        a common base converted to that base.
+
+        Addtionally the expression is normalized so any fractions
+        can be simplified through cancellation.
+
+        EXAMPLES::
+
+            sage: m,n = var('m n', domain='integer')
+            sage: (gamma(n+2)/gamma(n)).gamma_normalize()
+            (n + 1)*n
+            sage: (gamma(n+2)*gamma(n)).gamma_normalize()
+            (n + 1)*n*gamma(n)^2
+            sage: (gamma(n+2)*gamma(m-1)/gamma(n)/gamma(m+1)).gamma_normalize()
+            (n + 1)*n/((m - 1)*m)
+        """
+        cdef GEx x
+        sig_on()
+        try:
+            x = gamma_normalize(self._gobj)
+        finally:
+            sig_off()
+        return new_Expression_from_GEx(self._parent, x)
+
     def expand_sum(self):
         r"""
         For every symbolic sum in the given expression, try to expand it,
@@ -11025,7 +11072,7 @@ cdef class Expression(CommutativeRingElement):
             solutions = [tuple(s._sage_() for s in sol) for sol in solutions]
         if x is None:
             wanted_vars = ex.variables()
-            var_idx = range(len(ex.variables()))
+            var_idx = list(xrange(len(ex.variables())))
         else:
             if isinstance(x, (list, tuple)):
                 wanted_vars = x
@@ -11033,7 +11080,7 @@ cdef class Expression(CommutativeRingElement):
                 wanted_vars = [x]
             var_idx = [ex.variables().index(v) for v in wanted_vars]
 
-        if solution_dict == False:
+        if solution_dict is False:
             if len(wanted_vars) == 1:
                 ret = sorted([sol[var_idx[0]] for sol in solutions])
             else:
@@ -11360,7 +11407,7 @@ cdef class Expression(CommutativeRingElement):
             sage: plot(2*sin, -4, 4)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<class 'sage.functions.trig.Function_sin'>'
+            TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.functions.trig.Function_sin'>'
 
         You should evaluate the function first::
 

@@ -18,7 +18,7 @@ from __future__ import division
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport Element, parent_c
+from sage.structure.element cimport Element, parent
 from .expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
@@ -450,7 +450,7 @@ cdef class Function(SageObject):
 
         # if the given input is a symbolic expression, we don't convert it back
         # to a numeric type at the end
-        if any(parent_c(arg) is SR for arg in args):
+        if any(parent(arg) is SR for arg in args):
             symbolic_input = True
         else:
             symbolic_input = False

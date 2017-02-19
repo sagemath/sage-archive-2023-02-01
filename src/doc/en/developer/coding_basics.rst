@@ -421,20 +421,21 @@ information. You can use the existing functions of Sage as templates.
 
   For the purposes of removal, A "TESTS" block is a block starting
   with "TEST:" or "TESTS:" (or the same with two colons), on a line on
-  its own, and ending with an unindented line (that is, the same level
-  of indentation as "TESTS") matching one of the following:
+  its own, and ending either with a line indented less than "TESTS",
+  or with a line with the same level of indentation -- not more --
+  matching one of the following:
 
-  - a line which starts with whitespace and then a Sphinx directive
-    of the form ".. FOO:", optionally followed by other text.
+  - a Sphinx directive of the form ".. foo:", optionally followed by
+    other text.
 
-  - a line which starts with whitespace and then text of the form
-    "UPPERCASE:", optionally followed by other text.
+  - text of the form "UPPERCASE:", optionally followed by other
+    text.
 
   - lines which look like a reST header: one line containing
     anything, followed by a line consisting only of whitespace,
-    followed by a string of hyphens, equal signs, or other
-    characters which are valid markers for reST headers:
-    ``- = ` : ' " ~ _ ^ * + # < >``.
+    followed by a string of hyphens, equal signs, or other 
+    characters which are valid markers for reST 
+    headers: ``- = ` : ' " ~ _ ^ * + # < >``.
 
 Sage documentation style
 ^^^^^^^^^^^^^^^^^^^^^^^^

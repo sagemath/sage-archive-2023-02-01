@@ -3261,7 +3261,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             permutations = {k:permutations[k] for k in permutations if k < n_s}
             # If the automorphisms are not already completely restricted,
             # update them
-            if not S == range(1, n_v + 1):
+            if not S == list(range(1, n_v + 1)):
                 # Take the old automorphisms and update by
                 # the restrictions the last worked out
                 # row imposes.

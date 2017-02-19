@@ -1399,7 +1399,7 @@ cdef class Gen(Gen_auto):
         """
         Convert ``self`` to a Python integer.
 
-        If the number is too large to fit into a Pyhon ``int``, a
+        If the number is too large to fit into a Python ``int``, a
         Python ``long`` is returned instead.
 
         EXAMPLES::
@@ -1428,6 +1428,31 @@ cdef class Gen(Gen_auto):
             sage: int(pari(RealField(63)(2^63+2)))
             9223372036854775810L
         """
+        return gen_to_integer(self)
+
+    def __index__(self):
+        """
+        Coerce ``self`` (which must be a :class:`Gen` of type
+        ``t_INT``) to a Python integer.
+
+        EXAMPLES::
+
+            >>> from operator import index
+            >>> i = pari(2)
+            >>> index(i)
+            2
+            >>> L = [0, 1, 2, 3, 4]
+            >>> L[i]
+            2
+            >>> print(index(pari("2^100")))
+            1267650600228229401496703205376
+            >>> index(pari("2.5"))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce 2.50000000000000 (type t_REAL) to integer
+        """
+        if typ(self.g) != t_INT:
+            raise TypeError(f"cannot coerce {self!r} (type {self.type()}) to integer")
         return gen_to_integer(self)
 
     def python_list_small(self):

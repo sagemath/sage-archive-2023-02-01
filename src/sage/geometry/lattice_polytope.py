@@ -3680,10 +3680,22 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if not hasattr(self, "_points"):
             if self.dim() <= 0:
-                self._points = self._vertices
+                points = self._vertices
+            elif self.dim() == 1:
+                points = list(self.vertices())
+                v = (points[1] - points[0]).base_extend(QQ)
+                l = integral_length(v)
+                v /= l
+                current = points[0]
+                for i in range(l - 1):
+                    current += v
+                    points.append(current)
             else:
                 points = self._embed(read_palp_matrix(
                             self.poly_x("p", reduce_dimension=True))).columns()
+            if len(points) == self.nvertices():
+                self._points = self.vertices()
+            else:
                 M = self.lattice()
                 points = [M(_) for _ in points]
                 for point in points:

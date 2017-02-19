@@ -1334,7 +1334,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         A sectionally and cosectionally but not relatively complemented
         lattice::
 
-            sage: L = L = LatticePoset(DiGraph('MYi@O?P??D?OG?@?O_?C?Q??O?W?@??O??'))
+            sage: L = LatticePoset(DiGraph('MYi@O?P??D?OG?@?O_?C?Q??O?W?@??O??'))
             sage: L.is_sectionally_complemented() and L.is_cosectionally_complemented()
             True
             sage: L.is_relatively_complemented()

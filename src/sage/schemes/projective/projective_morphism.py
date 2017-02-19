@@ -855,6 +855,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
+            sage: P.<x,y> = ProjectiveSpace(CC, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2-CC.0/5*y^2, y^2])
+            sage: f.dynatomic_polynomial(2)
+            x^2 + x*y + (1.00000000000000 - 0.200000000000000*I)*y^2
+
+        ::
+
             sage: L.<t> = PolynomialRing(QuadraticField(2).maximal_order())
             sage: P.<x, y> = ProjectiveSpace(L.fraction_field() , 1)
             sage: H = Hom(P,P)
@@ -894,6 +902,25 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
+            sage: R.<c> = QQ[]
+            sage: P.<x,y> = ProjectiveSpace(R,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + c*y^2, y^2])
+            sage: f.dynatomic_polynomial([1,2]).parent()
+            Multivariate Polynomial Ring in x, y over Univariate
+            Polynomial Ring in c over Rational Field
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: P.<x,y> = ProjectiveSpace(ZZ,1)
+            sage: H=End(P)
+            sage: f=H([x^2 + y^2, (1)*y^2 + (1)*x*y])
+            sage: f.dynatomic_polynomial([1,2]).parent()
+            Multivariate Polynomial Ring in x, y over Integer Ring
+
+        ::
+
             sage: P.<x, y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2, y^2])
@@ -901,6 +928,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             0
             sage: f.dynatomic_polynomial([0,0])
             0
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: P.<x,y> = ProjectiveSpace(R,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + c*y^2,y^2])
+            sage: f.dynatomic_polynomial([1,2]).parent()
+            Multivariate Polynomial Ring in x, y over Univariate Polynomial Ring in
+            c over Rational Field
 
         Some rings still return Symoblic Ring elements::
 
@@ -947,18 +984,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if m != 0:
             fm = self.nth_iterate_map(m)
             fm1 = self.nth_iterate_map(m - 1)
-            try:
-                QR= PHI(fm._polys).quo_rem(PHI(fm1._polys))
-                if QR[1]==0:
-                    PHI=QR[0]
-            except (TypeError, NotImplementedError): # something Singular can't handle
-                PHI=PHI(fm._polys)/PHI(fm1._polys)
         try:
             QR = PHI.numerator().quo_rem(PHI.denominator())
             if not QR[1]:
-                return(QR[0])
+                PHI = QR[0]
+            if m != 0:
+                PHI = PHI(fm._polys)/(PHI(fm1._polys))
+                QR = PHI.numerator().quo_rem(PHI.denominator())
+                if QR[1] == 0:
+                    PHI = QR[0]
+            return PHI
         except (TypeError, NotImplementedError): # something Singular can't handle
-            pass
+            if m != 0:
+                PHI = PHI(fm._polys)/PHI(fm1._polys)
         #even when the ring can be passed to singular in quo_rem,
         #it can't always do the division, so we call Maxima
         from sage.rings.padics.generic_nodes import is_pAdicField, is_pAdicRing

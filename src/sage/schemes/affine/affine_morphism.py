@@ -48,6 +48,8 @@ from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.ext.fast_callable import fast_callable
 import sys
+from sage.symbolic.ring import is_SymbolicExpressionRing
+from sage.symbolic.ring import var
 
 class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     """
@@ -626,7 +628,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: K.<c> = FunctionField(QQ)
             sage: A.<x> = AffineSpace(K, 1)
-            sage: f = Hom(A, A)([x^2 + c])
+            sage: H = Hom(A, A)
+            sage: f = H([x^2 + c])
             sage: f.dynatomic_polynomial(4)
             x^12 + 6*c*x^10 + x^9 + (15*c^2 + 3*c)*x^8 + 4*c*x^7 + (20*c^3 + 12*c^2 + 1)*x^6
             + (6*c^2 + 2*c)*x^5 + (15*c^4 + 18*c^3 + 3*c^2 + 4*c)*x^4 + (4*c^3 + 4*c^2 + 1)*x^3
@@ -647,8 +650,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: A.<z> = AffineSpace(R,1)
             sage: H = End(A)
             sage: f = H([z^2 + c])
-            sage: f.dynatomic_polynomial([0,1]).parent()
-            Multivariate Polynomial Ring in z over Univariate Polynomial Ring in c over Rational Field
+            sage: f.dynatomic_polynomial([1,1])
+            z^2 + z + c
         """
         if self.domain() != self.codomain():
             raise TypeError("must have same domain and codomain to iterate")
@@ -659,8 +662,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             raise TypeError("does not make sense in dimension >1")
         F = self.homogenize(1).dynatomic_polynomial(period)
         S = self.domain().coordinate_ring()
-
-        if S(F.denominator()).degree() == 0:
+        if is_SymbolicExpressionRing(F.parent()):
+            u = var(self.domain().coordinate_ring().variable_name())
+            return F.subs({F.variables()[0]:u,F.variables()[1]:1})
+        elif S(F.denominator()).degree() == 0:
             R = F.parent()
             phi = R.hom([S.gen(0), 1], S)
             return(phi(F))

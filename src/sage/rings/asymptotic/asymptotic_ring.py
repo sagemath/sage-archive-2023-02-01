@@ -4424,9 +4424,26 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: F, C = A.construction()
             sage: F(C)  # indirect doctest
             Asymptotic Ring <x^ZZ> over Rational Field
+
+        TESTS:
+
+        :trac:`22392`::
+
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing
+            sage: class MyAsymptoticRing(AsymptoticRing):
+            ....:     pass
+            sage: A = MyAsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: type(A.construction()[0](ZZ))
+            <class '__main__.MyAsymptoticRing_with_category'>
+
+
+            sage: C = CyclotomicField(3)
+            sage: P = C['z']
+            sage: type(P(2) * A.gen())
+            <class '...MyAsymptoticRing_with_category.element_class'>
         """
-        return AsymptoticRing(growth_group=self.growth_group,
-                              coefficient_ring=coefficient_ring)
+        return self.cls(growth_group=self.growth_group,
+                        coefficient_ring=coefficient_ring)
 
 
     def merge(self, other):
@@ -4455,7 +4472,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
         if self == other:
             return self
 
-        if isinstance(other, AsymptoticRingFunctor):
+        if isinstance(other, AsymptoticRingFunctor) and self.cls == other.cls:
             from sage.structure.element import get_coercion_model
             cm = get_coercion_model()
             try:
@@ -4463,7 +4480,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             except TypeError:
                 pass
             else:
-                return AsymptoticRingFunctor(G)
+                return AsymptoticRingFunctor(G, self.cls)
 
 
     def __eq__(self, other):
@@ -4489,8 +4506,9 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: F_X == F_Y
             False
         """
-        return type(self) == type(other) and \
-            self.growth_group == other.growth_group
+        return (type(self) == type(other)
+                and self.growth_group == other.growth_group
+                and self.cls == other.cls)
 
 
     def __ne__(self, other):

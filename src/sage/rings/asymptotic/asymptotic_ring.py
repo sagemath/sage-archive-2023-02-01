@@ -4320,6 +4320,8 @@ class AsymptoticRingFunctor(ConstructionFunctor):
       :class:`AsymptoticRing` or
       :doc:`growth_group` for details).
 
+    - ``cls`` -- :class:`AsymptoticRing` (default) or a derived class.
+
     EXAMPLES::
 
         sage: AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ).construction()  # indirect doctest
@@ -4354,7 +4356,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
     rank = 13
 
 
-    def __init__(self, growth_group):
+    def __init__(self, growth_group, cls=None):
         r"""
         See :class:`AsymptoticRingFunctor` for details.
 
@@ -4366,6 +4368,10 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             AsymptoticRing<x^ZZ>
         """
         self.growth_group = growth_group
+        if cls is None:
+            self.cls = AsymptoticRing
+        else:
+            self.cls = cls
 
         from sage.categories.rings import Rings
         super(ConstructionFunctor, self).__init__(

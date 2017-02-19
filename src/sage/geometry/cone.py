@@ -4642,16 +4642,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         TESTS:
 
-        The vectors `L(x)` and `s` are orthogonal for every pair `(x,s)`
-        in the :meth:`discrete_complementarity_set` of the cone::
+        Every operator in a :meth:`lyapunov_like_basis` is Lyapunov-like
+        on the cone::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
-            sage: dcs = K.discrete_complementarity_set()
             sage: LL = K.lyapunov_like_basis()
-            sage: ips = [ s*(L*x) for (x,s) in dcs for L in LL ]
-            sage: sum(map(abs, ips))
-            0
+            sage: all([ L.is_lyapunov_like_on(K) for L in LL ])
+            True
 
         The Lyapunov-like transformations on a cone and its dual are
         transposes of one another. However, there's no reason to expect
@@ -5639,8 +5637,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
             sage: cp_gens = K.cross_positive_operators_gens()
-            sage: dcs = K.discrete_complementarity_set()
-            sage: all([ s*(g*x) >= 0 for g in cp_gens for (x,s) in dcs ])
+            sage: all([ L.is_cross_positive_on(K) for L in cp_gens ])
             True
 
         The lineality space of the cone of cross-positive operators is
@@ -5840,8 +5837,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
             sage: Z_gens = K.Z_operators_gens()
-            sage: dcs = K.discrete_complementarity_set()
-            sage: all([ s*(z*x) <= 0 for z in Z_gens for (x,s) in dcs ])
+            sage: all([ L.is_Z_operator_on(K) for L in Z_gens ])
             True
         """
         return [ -cp for cp in self.cross_positive_operators_gens() ]

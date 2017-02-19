@@ -14510,14 +14510,13 @@ cdef class Matrix(matrix1.Matrix):
             True
 
         Everything in ``K1.positive_operators_gens(K2)`` should be
-        positive on ``K1`` with respect to ``K2``::
+        positive on ``K1`` with respect to ``K2``, even if we make
+        the underlying ring symbolic (the usual case is tested by
+        the ``positive_operators_gens`` method)::
 
             sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=5)
             sage: K2 = random_cone(max_ambient_dim=5)
-            sage: all([ L.is_positive_operator_on(K1,K2)
-            ....:       for L in K1.positive_operators_gens(K2) ]) # long time
-            True
             sage: all([ L.change_ring(SR).is_positive_operator_on(K1,K2)
             ....:       for L in K1.positive_operators_gens(K2) ]) # long time
             True
@@ -14655,16 +14654,14 @@ cdef class Matrix(matrix1.Matrix):
             True
 
         Everything in ``K.cross_positive_operators_gens()`` should be
-        cross-positive on ``K``::
+        cross-positive on ``K``, even if we make the underlying ring
+        symbolic (the usual case is tested by the
+        ``cross_positive_operators_gens`` method)::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
-            sage: cp_gens = K.cross_positive_operators_gens()
-            sage: all([ L.is_cross_positive_on(K)
-            ....:       for L in cp_gens ]) # long time
-            True
-            sage: all([ L.change_ring(SR).is_cross_positive_on(K)
-            ....:       for L in cp_gens ]) # long time
+            sage: all([L.change_ring(SR).is_cross_positive_on(K)
+            ....:      for L in K.cross_positive_operators_gens()]) # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -14789,16 +14786,14 @@ cdef class Matrix(matrix1.Matrix):
             sage: L.is_Z_operator_on(K)
             True
 
-        Everything in ``K.Z_operators_gens()`` should be a
-        Z-operator on ``K``::
+        Everything in ``K.Z_operators_gens()`` should be a Z-operator on
+        ``K``, , even if we make the underlying ring symbolic (the usual
+        case is tested by the ``Z_operators_gens`` method)::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
-            sage: z_gens = K.Z_operators_gens()
-            sage: all([ L.is_Z_operator_on(K) for L in z_gens ]) # long time
-            True
             sage: all([ L.change_ring(SR).is_Z_operator_on(K)
-            ....:       for L in z_gens ]) # long time
+            ....:       for L in K.Z_operators_gens() ]) # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -14912,17 +14907,15 @@ cdef class Matrix(matrix1.Matrix):
             sage: L.is_lyapunov_like_on(K)
             True
 
-        Everything in ``K.lyapunov_like_basis()`` should be Lyapunov-like
-        on ``K``::
+        Everything in ``K.lyapunov_like_basis()`` should be
+        Lyapunov-like on ``K``, even if we make the underlying ring
+        symbolic (the usual case is tested by the
+        ``lyapunov_like_basis`` method)::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
-            sage: ll_basis = K.lyapunov_like_basis()
-            sage: all([ L.is_lyapunov_like_on(K) # long time
-            ....:       for L in ll_basis ])     # long time
-            True
             sage: all([ L.change_ring(SR).is_lyapunov_like_on(K)
-            ....:       for L in ll_basis ])                     # long time
+            ....:       for L in K.lyapunov_like_basis() ]) # long time
             True
 
         Technically we could test this, but for now only closed convex cones

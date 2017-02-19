@@ -4304,8 +4304,20 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             :doc:`asymptotic_ring`,
             :class:`AsymptoticRing`,
             :class:`AsymptoticRingFunctor`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing
+            sage: class MyAsymptoticRing(AsymptoticRing):
+            ....:     pass
+            sage: A = MyAsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: A.construction()[0].cls
+            <class '__main__.MyAsymptoticRing'>
         """
-        return AsymptoticRingFunctor(self.growth_group), self.coefficient_ring
+        from .misc import underlying_class
+        return (AsymptoticRingFunctor(self.growth_group,
+                                      cls=underlying_class(self)),
+                self.coefficient_ring)
 
 
 from sage.categories.pushout import ConstructionFunctor

@@ -1,5 +1,5 @@
 r"""
-Decoder
+Base class for Decoders
 
 Representation of an error-correction algorithm for a code.
 

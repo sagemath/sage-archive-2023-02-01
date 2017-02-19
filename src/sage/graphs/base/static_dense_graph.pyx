@@ -66,9 +66,9 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
     binary_matrix_init(m, n, n)
 
     # If the vertices are 0...n-1, let's avoid an unnecessary dictionary
-    if g.vertices() == range(n):
+    if g.vertices() == list(xrange(n)):
         if translation:
-            d_translation = {i:i for i in range(n)}
+            d_translation = {i: i for i in range(n)}
 
         for i,j in g.edge_iterator(labels = False):
             binary_matrix_set1(m, i, j)

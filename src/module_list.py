@@ -901,6 +901,9 @@ ext_modules = [
     Extension('sage.matrix.matrix_mpolynomial_dense',
               sources = ['sage/matrix/matrix_mpolynomial_dense.pyx']),
 
+    Extension('sage.matrix.matrix_polynomial_dense',
+              sources = ['sage/matrix/matrix_polynomial_dense.pyx']),
+
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               extra_compile_args = ["-std=c99", "-D_XPG6"] + m4ri_extra_compile_args,
@@ -1213,7 +1216,7 @@ ext_modules = [
 
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx'],
-              libraries=['ntl'],
+              libraries=['ntl', 'gmp'],
               language = 'c++'),
 
     Extension("sage.rings.complex_arb",
@@ -1377,7 +1380,7 @@ ext_modules = [
 
     Extension('sage.rings.number_field.number_field_element_quadratic',
               sources = ['sage/rings/number_field/number_field_element_quadratic.pyx'],
-              libraries=['ntl', 'mpfi'],
+              libraries=['ntl', 'mpfr', 'mpfi'],
               language = 'c++'),
 
     Extension('sage.rings.number_field.number_field_morphisms',
@@ -1527,7 +1530,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_zz_pex',
               sources = ['sage/rings/polynomial/polynomial_zz_pex.pyx'],
-              libraries = ['ntl'],
+              libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_zmod_flint',
@@ -1542,7 +1545,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
               sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
-              libraries = ['ntl'],
+              libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_rational_flint',
@@ -1552,7 +1555,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
               sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
-              libraries = ['ntl'],
+              libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_ring_homomorphism',

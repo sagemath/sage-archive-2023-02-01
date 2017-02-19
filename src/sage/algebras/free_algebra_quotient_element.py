@@ -32,6 +32,9 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.algebras.free_algebra_element import FreeAlgebraElement
 
 
+import six
+
+
 def is_FreeAlgebraQuotientElement(x):
     """
     EXAMPLES::
@@ -107,11 +110,11 @@ class FreeAlgebraQuotientElement(AlgebraElement):
             # Need to do more work here to include monomials not
             # represented in the monomial basis.
             self.__vector = M(0)
-            for m, c in x._FreeAlgebraElement__monomial_coefficients.iteritems():
+            for m, c in six.iteritems(x._FreeAlgebraElement__monomial_coefficients):
                 self.__vector += c*M.gen(B.index(m))
         elif isinstance(x, dict):
             self.__vector = M(0)
-            for m, c in x.iteritems():
+            for m, c in six.iteritems(x):
                 self.__vector += c*M.gen(B.index(m))
         elif isinstance(x, AlgebraElement) and x.parent().ambient_algebra() is A:
             self.__vector = x.ambient_algebra_element().vector()

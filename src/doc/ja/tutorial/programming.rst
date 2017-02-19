@@ -630,17 +630,6 @@ Sageに付属している関数 ``kronecker`` は，PARIのCライブラリを�
     True
     True
 
-比較演算は，ほとんどいかなる組合せの二つのオブジェクトに対しても行ないうると考えてよい．
-対象となるオブジェクトは，全順序付け(total ordering)されなくても構わない．
-
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # random 出力は一定しない。
-    False
-
 記号を含む不等号の判定には  ``bool`` 関数を用いる:
 
 ::

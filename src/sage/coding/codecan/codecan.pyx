@@ -81,6 +81,13 @@ is returned by generators::
     sage: A = P.get_autom_gens()
     sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
     True
+
+REFERENCES:
+
+.. [Feu2009] Thomas Feulner, The Automorphism Groups of Linear Codes and
+  Canonical Representatives of Their Semilinear Isometry Classes, Advances in
+  Mathematics of Communications 3 (4), pp. 363-383, 2009.
+
 """
 
 #*******************************************************************************

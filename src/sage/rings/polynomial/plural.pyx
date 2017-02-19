@@ -2289,10 +2289,10 @@ cdef class NCPolynomial_plural(RingElement):
         p = self._poly
 
         pl = list()
-        ml = range(r.N)
+        ml = list(xrange(r.N))
         while p:
             for v from 1 <= v <= r.N:
-                ml[v-1] = p_GetExp(p,v,r)
+                ml[v - 1] = p_GetExp(p, v, r)
 
             if as_ETuples:
                 pl.append(ETuple(ml))

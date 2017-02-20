@@ -378,6 +378,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if isinstance(right, IntegerRing_class):
             return rich_to_bool(op, 0)
 
+        if isinstance(right, sage.rings.rational_field.RationalField):
+            return rich_to_bool(op, -1)
+
         return op == Py_NE
 
     def _repr_(self):

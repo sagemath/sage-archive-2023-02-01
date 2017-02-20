@@ -368,6 +368,8 @@ class Set_object(Set_generic):
 
             sage: Set(ZZ) == Set(QQ)
             False
+            sage: Set(ZZ) < Set(QQ)
+            True
             sage: Primes() == Set(QQ)
             False
 

@@ -4316,6 +4316,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         """
         from .misc import underlying_class
         return (AsymptoticRingFunctor(self.growth_group,
+                                      default_prec=self.default_prec,
+                                      category=self.category(),
                                       cls=underlying_class(self)),
                 self.coefficient_ring)
 

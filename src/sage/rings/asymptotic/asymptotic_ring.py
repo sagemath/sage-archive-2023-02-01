@@ -4539,6 +4539,8 @@ class AsymptoticRingFunctor(ConstructionFunctor):
         """
         return (type(self) == type(other)
                 and self.growth_group == other.growth_group
+                and self._default_prec_ == other._default_prec_
+                and self._category_ == other._category_
                 and self.cls == other.cls)
 
 

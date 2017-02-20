@@ -408,7 +408,7 @@ class Simplex(SageObject):
         are not the same type::
 
             sage: type(Simplex(3).tuple())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: type(Simplex(3))
             <class 'sage.homology.simplicial_complex.Simplex'>
         """
@@ -3463,41 +3463,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             True
         """
         return self == self.graph().clique_complex()
-
-    def is_connected(self):
-        """
-        Returns ``True`` if and only if ``self`` is connected.
-
-        .. WARNING::
-
-           This may give the wrong answer if the simplicial complex
-           was constructed with ``maximality_check`` set to ``False``.
-
-        EXAMPLES::
-
-            sage: V = SimplicialComplex([[0,1,2],[3]])
-            sage: V
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (3,)}
-            sage: V.is_connected()
-            False
-
-            sage: X = SimplicialComplex([[0,1,2]])
-            sage: X.is_connected()
-            True
-
-            sage: U = simplicial_complexes.ChessboardComplex(3,3)
-            sage: U.is_connected()
-            True
-
-            sage: W = simplicial_complexes.Sphere(3)
-            sage: W.is_connected()
-            True
-
-            sage: S = SimplicialComplex([[0,1],[2,3]])
-            sage: S.is_connected()
-            False
-        """
-        return self.graph().is_connected()
 
     def n_skeleton(self, n):
         """

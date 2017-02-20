@@ -163,8 +163,10 @@ graphplot_options.update(
                         '(larger and white).',
                     'graph_border': 'Whether or not to draw a frame around the graph.'})
 
+from six import iteritems
+
 _PLOT_OPTIONS_TABLE = ""
-for key, value in graphplot_options.iteritems():
+for key, value in iteritems(graphplot_options):
     _PLOT_OPTIONS_TABLE += "    ``"+str(key)+"`` | "+str(value)+"\n"
 __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 
@@ -188,6 +190,7 @@ from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
 from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
+import six
 from six import text_type as str
 
 DEFAULT_SHOW_OPTIONS = {
@@ -249,7 +252,7 @@ class GraphPlot(SageObject):
 
         """
         # Setting the default values if needed
-        for k,value in DEFAULT_PLOT_OPTIONS.iteritems():
+        for k, value in iteritems(DEFAULT_PLOT_OPTIONS):
             if k not in options:
                 options[k] = value
         self._plot_components = {}
@@ -329,11 +332,11 @@ class GraphPlot(SageObject):
             sage: g = graphs.FruchtGraph()
             sage: gp = g.graphplot()
             sage: set(map(type, flatten(gp._pos.values())))
-            {<type 'float'>}
+            {<... 'float'>}
             sage: g = graphs.BullGraph()
             sage: gp = g.graphplot(save_pos=True)
             sage: set(map(type, flatten(gp._pos.values())))
-            {<type 'float'>}
+            {<... 'float'>}
 
         Non-ascii labels are also possible using unicode (:trac:`21008`)::
 
@@ -342,7 +345,8 @@ class GraphPlot(SageObject):
         """
         self._pos = self._graph.layout(**self._options)
         # make sure the positions are floats (trac #10124)
-        self._pos = dict((k,(float(v[0]), float(v[1]))) for k,v in self._pos.iteritems())
+        self._pos = dict((k, (float(v[0]), float(v[1])))
+                         for k, v in iteritems(self._pos))
 
     def set_vertices(self, **vertex_options):
         """
@@ -866,7 +870,7 @@ class GraphPlot(SageObject):
 
         """
         # Setting the default values if needed
-        for k,value in DEFAULT_SHOW_OPTIONS.iteritems():
+        for k, value in iteritems(DEFAULT_SHOW_OPTIONS):
             if k not in kwds:
                 kwds[k] = value
 

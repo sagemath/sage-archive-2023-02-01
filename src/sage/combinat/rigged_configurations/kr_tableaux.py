@@ -237,38 +237,41 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         if not ct.is_affine():
             raise ValueError("The Cartan type must be affine")
 
-        type = ct.type()
+        typ = ct.type()
         if ct.is_untwisted_affine():
-            if type == 'A':
+            if typ == 'A':
                 return KRTableauxRectangle(ct, r, s)
-            if type == 'B':
+            if typ == 'B':
                 if r == ct.classical().rank():
                     return KRTableauxBn(ct, r, s)
                 return KRTableauxTypeVertical(ct, r, s)
-            if type == 'C':
+            if typ == 'C':
                 if r == ct.classical().rank():
                     return KRTableauxRectangle(ct, r, s)
                 return KRTableauxTypeHorizonal(ct, r, s)
-            if type == 'D':
+            if typ == 'D':
                 if r == ct.classical().rank() or r == ct.classical().rank() - 1:
                     return KRTableauxSpin(ct, r, s)
                 return KRTableauxTypeVertical(ct, r, s)
+            if typ == 'E':
+                return KRTableauxTypeFromRC(ct, r, s)
         else:
-            if type == 'BC': # A_{2n}^{(2)}
+            if typ == 'BC': # A_{2n}^{(2)}
                 return KRTableauxTypeBox(ct, r, s)
-            if ct.dual().type() == 'BC': # A_{2n}^{(2)\dagger}
+            typ = ct.dual().type()
+            if typ == 'BC': # A_{2n}^{(2)\dagger}
                 return KRTableauxTypeHorizonal(ct, r, s)
-            if ct.dual().type() == 'B': # A_{2n-1}^{(2)}
+            if typ == 'B': # A_{2n-1}^{(2)}
                 return KRTableauxTypeVertical(ct, r, s)
-            if ct.dual().type() == 'C': # D_{n+1}^{(2)}
+            if typ == 'C': # D_{n+1}^{(2)}
                 if r == ct.dual().classical().rank():
                     return KRTableauxDTwistedSpin(ct, r, s)
                 return KRTableauxTypeBox(ct, r, s)
-            #if ct.dual().type() == 'F': # E_6^{(2)}
-            if ct.dual().type() == 'G': # D_4^{(3)}
+            #if typ == 'F': # E_6^{(2)}
+            if typ == 'G': # D_4^{(3)}
                 if r == 1:
                     return KRTableauxTypeBox(ct, r, s)
-                return KRTableauxTypeDTri2(ct, r, s)
+                return KRTableauxTypeFromRC(ct, r, s)
 
         raise NotImplementedError
         #return super(KirillovReshetikhinTableaux, cls).__classcall__(cls, ct, r, s)
@@ -565,6 +568,19 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
                     dims.append([B._r, B._s])
             return TensorProductOfKirillovReshetikhinTableaux(ct, dims)
         return super(KirillovReshetikhinTableaux, self).tensor(*crystals, **options)
+
+    @lazy_attribute
+    def _tableau_height(self):
+        """
+        The height of the tableaux in ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A', 3, 1], 3, 2, model='KR')
+            sage: K._tableau_height
+            3
+        """
+        return self._r
 
 class KRTableauxRectangle(KirillovReshetikhinTableaux):
     r"""
@@ -1199,7 +1215,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             [[2, 1], [4, 3]]
         """
         ret_list = []
-        h = self.parent()._r
+        h = self.parent()._tableau_height
         s = self.parent()._s
         if rows:
             for i in reversed(range(h)):
@@ -1653,9 +1669,10 @@ class KRTableauxDTwistedSpin(KRTableauxRectangle):
     """
     Element = KRTableauxSpinElement
 
-class KRTableauxTypeDTri2Element(KirillovReshetikhinTableauxElement):
+class KRTableauxTypeFromRCElement(KirillovReshetikhinTableauxElement):
     r"""
-    A Kirillov-Reshetikhin tableau in `B^{2,s}` of type `D_4^{(3)}`.
+    A Kirillov-Reshetikhin tableau constructed from rigged configurations
+    under the bijection `\Phi`.
     """
     def e(self, i):
         """
@@ -1759,9 +1776,10 @@ class KRTableauxTypeDTri2Element(KirillovReshetikhinTableauxElement):
             return rc.phi(0)
         return TensorProductOfRegularCrystalsElement.phi(self, i)
 
-class KRTableauxTypeDTri2(KirillovReshetikhinTableaux):
+class KRTableauxTypeFromRC(KirillovReshetikhinTableaux):
     r"""
-    Kirillov-Reshetikhin tableaux `B^{2,s}` of type `D_4^{(3)}`.
+    Kirillov-Reshetikhin tableaux `B^{r,s}` constructed from rigged
+    configurations under the bijecton `\Phi`.
 
     .. WARNING::
 
@@ -1813,5 +1831,49 @@ class KRTableauxTypeDTri2(KirillovReshetikhinTableaux):
         return tuple(mg.to_tensor_product_of_kirillov_reshetikhin_tableaux()[0]
                      for mg in RC.module_generators)
 
-    Element = KRTableauxTypeDTri2Element
+    @lazy_attribute
+    def _tableau_height(self):
+        """
+        The height of the tableaux in ``self``.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['E',6,1])
+            sage: [crystals.KirillovReshetikhin(ct, r, 1, model='KR')._tableau_height
+            ....:  for r in ct.classical().index_set()]
+            [1, 3, 2, 3, 4, 2]
+        """
+        if self._cartan_type.type() == 'E':
+            if self._cartan_type.classical().rank() == 6:
+                #       6   2 - 5
+                #      /   /
+                # 0 - 1 - 3 - 4
+                if self._r == 1:
+                    return 1
+                if self._r == [3, 6]:
+                    return 2
+                if self._r in [2, 4]:
+                    return 3
+                if self._r == 5:
+                    return 4
+            if self._cartan_type.classical().rank() == 7:
+                #     1-2-3
+                #    /
+                # 0-7-6-5-4
+                if self._r <= 3:
+                    return self._r + 1
+                return 8 - self._r
+            if self._cartan_type.classical().rank() == 8:
+                #     1-2-3
+                #    /
+                # 0-8-7-6-5-4
+                if self._r <= 3:
+                    return self._r + 1
+                return 9 - self._r
+        if not self._cartan_type.is_untwisted_affine():
+            if self._cartan_type.dual().type() == 'G':
+                return self._r
+        return len(self.module_generators[0]) // self._s
+
+    Element = KRTableauxTypeFromRCElement
 

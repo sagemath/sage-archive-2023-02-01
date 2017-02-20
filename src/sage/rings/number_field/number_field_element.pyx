@@ -27,6 +27,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 import operator
@@ -54,8 +55,7 @@ import sage.rings.integer
 
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
-cimport number_field_base
-import number_field
+cimport sage.rings.number_field.number_field_base as number_field_base
 
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.rational cimport Rational
@@ -67,7 +67,7 @@ from sage.modules.free_module_element import vector
 from sage.structure.element cimport Element, generic_power_c, FieldElement
 from sage.structure.element import canonical_coercion, parent, coerce_binop
 
-from sage.libs.cypari2 import pari
+from sage.libs.pari import pari
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -366,8 +366,9 @@ cdef class NumberFieldElement(FieldElement):
           quadratic field elements)
         """
         if check:
-            if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
-                   or not isinstance(new_parent, number_field.NumberField_cyclotomic):
+            from .number_field import NumberField_cyclotomic
+            if not isinstance(self.number_field(), NumberField_cyclotomic) \
+                   or not isinstance(new_parent, NumberField_cyclotomic):
                 raise TypeError("The field and the new parent field must both be cyclotomic fields.")
 
         if rel == 0:
@@ -1157,6 +1158,55 @@ cdef class NumberFieldElement(FieldElement):
             upp = a.upper().ceil()
         return low
 
+    def round(self):
+        r"""
+        Return the round (nearest integer) of this number field element.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p = x**7 - 5*x**2 + x + 1
+            sage: a_AA = AA.polynomial_root(p, RIF(1,2))
+            sage: K.<a> = NumberField(p, embedding=a_AA)
+            sage: b = a**5 + a/2 - 1/7
+            sage: RR(b)
+            4.13444473767055
+            sage: b.round()
+            4
+            sage: (-b).round()
+            -4
+            sage: (b+1/2).round()
+            5
+            sage: (-b-1/2).round()
+            -5
+
+        This function always succeeds even if a tremendous precision is needed::
+
+            sage: c = b - 5678322907931/1225243417356 + 3
+            sage: c.round()
+            3
+            sage: RIF(c).unique_round()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique round (nearest integer)
+
+        If the number field is not embedded, this function is valid only if the
+        element is rational::
+
+            sage: p = x**5 - 3
+            sage: K.<a> = NumberField(p)
+            sage: [K(k/3).round() for k in range(-3,4)]
+            [-1, -1, 0, 0, 0, 1, 1]
+            sage: a.round()
+            Traceback (most recent call last):
+            ...
+            TypeError: floor not uniquely defined since no real embedding is specified
+        """
+        if ZZX_deg(self.__numerator) <= 0:
+            return self._rational_().round()
+
+        return (self + QQ((1,2))).floor()
+
     def abs(self, prec=None, i=None):
         r"""Return the absolute value of this element.
 
@@ -1607,7 +1657,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: t[0].norm(K)
             -a
             sage: t = K(3)._rnfisnorm(L); t
-            ((a^2 + 1)*b^3 - b^2 - a*b - a^2, -3*a^2 + 3*a - 3)
+            (-b^3 - a*b^2 - a^2*b + 1, 3*a^2 - 3*a + 6)
             sage: t[0].norm(K)*t[1]
             3
 
@@ -1851,7 +1901,7 @@ cdef class NumberFieldElement(FieldElement):
         if R.is_field():
             return R.one()
 
-        from order import is_NumberFieldOrder
+        from .order import is_NumberFieldOrder
         if not is_NumberFieldOrder(R) or not R.is_maximal():
             raise NotImplementedError("gcd() for %r is not implemented" % R)
 
@@ -2495,7 +2545,8 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError("need a real or complex embedding to convert "
                              "a non rational element of a number field "
                              "into an algebraic number")
-        emb = number_field.refine_embedding(emb, infinity)
+        from .number_field import refine_embedding
+        emb = refine_embedding(emb, infinity)
         return parent(emb(self))
 
     def _symbolic_(self, SR):
@@ -2593,7 +2644,8 @@ cdef class NumberFieldElement(FieldElement):
         if embedding is None:
             raise TypeError("an embedding into RR or CC must be specified")
 
-        if isinstance(K, number_field.NumberField_cyclotomic):
+        from .number_field import NumberField_cyclotomic
+        if isinstance(K, NumberField_cyclotomic):
             # solution by radicals may be difficult, but we have a closed form
             from sage.all import exp, I, pi, ComplexField, RR
             CC = ComplexField(53)
@@ -2602,8 +2654,9 @@ cdef class NumberFieldElement(FieldElement):
             gen_image = exp(k*two_pi_i/K._n())
             return self.polynomial()(gen_image)
         else:
+            from .number_field import refine_embedding
             # Convert the embedding to an embedding into AA or QQbar
-            embedding = number_field.refine_embedding(embedding, infinity)
+            embedding = refine_embedding(embedding, infinity)
             a = embedding(self).radical_expression()
             if a.parent() == SR:
                 return a
@@ -2880,6 +2933,7 @@ cdef class NumberFieldElement(FieldElement):
 
         """
         if self.__multiplicative_order is None:
+            from .number_field import NumberField_cyclotomic
             if self.is_rational():
                 if self.is_one():
                     self.__multiplicative_order = ZZ(1)
@@ -2889,7 +2943,7 @@ cdef class NumberFieldElement(FieldElement):
                     self.__multiplicative_order = sage.rings.infinity.infinity
             elif not (self.is_integral() and self.norm().is_one()):
                 self.__multiplicative_order = sage.rings.infinity.infinity
-            elif isinstance(self.number_field(), number_field.NumberField_cyclotomic):
+            elif isinstance(self.number_field(), NumberField_cyclotomic):
                 t = self.number_field()._multiplicative_order_table()
                 f = self.polynomial()
                 if f in t:
@@ -3343,11 +3397,12 @@ cdef class NumberFieldElement(FieldElement):
             sage: foo.matrix(R) == matrix(1,1,[foo])
             True
         """
-        import sage.matrix.matrix_space
+        from sage.matrix.matrix_space import MatrixSpace
         if base is self.parent():
-            return sage.matrix.matrix_space.MatrixSpace(base,1)([self])
+            return MatrixSpace(base,1)([self])
         if base is not None and base is not self.base_ring():
-            if number_field.is_NumberField(base):
+            from sage.rings.number_field.number_field_base import is_NumberField
+            if is_NumberField(base):
                 return self._matrix_over_base(base)
             else:
                 return self._matrix_over_base_morphism(base)
@@ -3364,7 +3419,7 @@ cdef class NumberFieldElement(FieldElement):
             for n in range(d-1):
                 cur = cur * X
                 v += cur.list()
-            M = sage.matrix.matrix_space.MatrixSpace(K.base_ring(), d)
+            M = MatrixSpace(K.base_ring(), d)
             self.__matrix = M(v)
             self.__matrix.set_immutable()
         return self.__matrix
@@ -3404,7 +3459,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: [L(6).valuation(P) for P in L.primes_above(3)]
             [2, 2]
         """
-        from number_field_ideal import is_NumberFieldIdeal
+        from .number_field_ideal import is_NumberFieldIdeal
         if not is_NumberFieldIdeal(P):
             if is_NumberFieldElement(P):
                 P = self.number_field().fractional_ideal(P)
@@ -5059,9 +5114,16 @@ class CoordinateFunction:
             raise TypeError("Cannot coerce element into this number field")
         return self.__W.coordinates(self.__to_V(self.__K(x)))
 
-    def __cmp__(self, other):
-        r"""
+    def __eq__(self, other):
+        """
+        Test equality
+
         EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: c = (a + 2).coordinates_in_terms_of_powers()
+            sage: c == (a - 3).coordinates_in_terms_of_powers()
+            False
 
             sage: K.<a> = NumberField(x^4 + 1)
             sage: f = (a + 1).coordinates_in_terms_of_powers()
@@ -5072,8 +5134,23 @@ class CoordinateFunction:
             sage: f == NumberField(x^2 + 3,'b').gen().coordinates_in_terms_of_powers()
             False
         """
-        return cmp(self.__class__, other.__class__) or cmp(self.__K, other.__K) or cmp(self.__alpha, other.__alpha)
+        if not isinstance(other, CoordinateFunction):
+            return False
 
+        return self.__K == other.__K and self.__alpha ==  other.__alpha
+
+    def __ne__(self, other):
+        """
+        Test inequality
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: c = (a + 2).coordinates_in_terms_of_powers()
+            sage: c != (a - 3).coordinates_in_terms_of_powers()
+            True
+        """
+        return not self.__eq__(other)
 
 
 #################

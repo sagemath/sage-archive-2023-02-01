@@ -599,7 +599,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              2-dimensional topological manifold M,
              Open subset U of the 2-dimensional topological manifold M}
             sage: type(M.subsets())
-            <type 'frozenset'>
+            <... 'frozenset'>
             sage: U in M.subsets()
             True
 

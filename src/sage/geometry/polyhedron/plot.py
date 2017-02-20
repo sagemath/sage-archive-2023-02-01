@@ -10,8 +10,7 @@ Functions for plotting polyhedra
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.rings.all import RDF
 from sage.structure.sage_object import SageObject
@@ -23,7 +22,7 @@ from sage.symbolic.constants import pi
 from sage.structure.sequence import Sequence
 
 from sage.plot.all import Graphics, point2d, line2d, arrow, polygon2d
-from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygon3d
+from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygons3d
 from sage.plot.plot3d.transform import rotate_arbitrary
 
 from .base import is_Polyhedron
@@ -105,6 +104,7 @@ def render_3d(projection, *args, **kwds):
     if is_Polyhedron(projection):
         projection = Projection(projection)
     return projection.render_3d(*args, **kwds)
+
 
 def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projection_direction=None):
     """
@@ -246,7 +246,7 @@ def cyclic_sort_vertices_2d(Vlist):
     adjacency_matrix = Vlist[0].polyhedron().vertex_adjacency_matrix()
 
     # Any object in Vlist has 0,1, or 2 adjacencies. Break into connected chains:
-    chain = [ Vlist.pop() ]
+    chain = [Vlist.pop()]
     while Vlist:
         first_index = chain[0].index()
         last_index = chain[-1].index()
@@ -772,7 +772,6 @@ class Projection(SageObject):
         self._init_lines_arrows(polyhedron)
         self._init_solid_3d(polyhedron)
 
-
     def _init_points(self, polyhedron):
         """
         Internal function: Initialize points (works in arbitrary
@@ -790,7 +789,6 @@ class Projection(SageObject):
         """
         for v in polyhedron.vertex_generator():
             self.points.append( self.coord_index_of(v.vector()) )
-
 
     def _init_lines_arrows(self, polyhedron):
         """
@@ -886,8 +884,6 @@ class Projection(SageObject):
         polygons = [ self.coord_indices_of(p) for p in polygons ]
         self.polygons.extend(polygons)
 
-
-
     def _init_solid_3d(self, polyhedron):
         """
         Internal function: Initialize facet polygons for 3d polyhedron.
@@ -899,7 +895,7 @@ class Projection(SageObject):
             sage: proj.polygons = Sequence([])
             sage: proj._init_solid_3d(p)
             sage: proj.polygons
-            [[2, 0, 1], [3, 0, 1], [3, 0, 2], [3, 1, 2]]
+            [[1, 0, 2], [3, 0, 1], [2, 0, 3], [3, 1, 2]]
         """
         assert polyhedron.ambient_dim() == 3, "Requires polyhedron in 3d"
 
@@ -919,6 +915,11 @@ class Projection(SageObject):
             vertices = [v for v in facet_equation.incident()]
             face_inequalities.append(facet_equation)
             vertices = cyclic_sort_vertices_2d(vertices)
+            if len(vertices) >= 3:
+                v0, v1, v2 = [vector(v) for v in vertices[:3]]
+                normal = (v2 - v0).cross_product(v1 - v0)
+                if normal.dot_product(facet_equation.A()) < 0:
+                    vertices.reverse()
             coords = []
 
             def adjacent_vertices(i):
@@ -1113,10 +1114,11 @@ class Projection(SageObject):
             sage: p = polytopes.hypercube(3).projection()
             sage: p_solid = p.render_solid_3d(opacity = .7)
             sage: type(p_solid)
-            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+            <type 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
         """
-        return sum([ polygon3d(self.coordinates_of(f), **kwds)
-                     for f in self.polygons ])
+        polys = self.polygons
+        N = max([-1] + [i for p in polys for i in p]) + 1
+        return polygons3d(polys, self.coordinates_of(range(N)), **kwds)
 
     def render_0d(self, point_opts={}, line_opts={}, polygon_opts={}):
         """

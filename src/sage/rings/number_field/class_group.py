@@ -470,7 +470,7 @@ class ClassGroup(AbelianGroupWithValues_class):
             sage: CK = K.class_group()
             sage: CL = L.class_group()
             sage: [CL(I).exponents() for I in CK]
-            [(0,), (2,), (4,)]
+            [(0,), (4,), (2,)]
         """
         if isinstance(args[0], FractionalIdealClass):
             return self.element_class(self, None, self._number_field.ideal(args[0].ideal()))

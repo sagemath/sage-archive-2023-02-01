@@ -58,7 +58,7 @@ Functions
 from __future__ import print_function, absolute_import
 
 from builtins import zip
-from six import itervalues
+from six import itervalues, iteritems
 from six.moves import range
 
 from sage.misc.cachefunc import cached_function
@@ -1374,9 +1374,11 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         return orthogonal_array(k,n,existence=existence)
 
     # From a quasi-difference matrix
-    elif number_of_holes==1 and any(uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1 for (nn,lmbda,mu,uu),(kk,_) in QDM.get((n,1),{}).iteritems()):
-        for (nn,lmbda,mu,uu),(kk,f) in QDM[n,1].iteritems():
-            if uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1:
+    elif (number_of_holes == 1 and
+          any(uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1
+              for (nn,lmbda,mu,uu),(kk,_) in iteritems(QDM.get((n,1),{})))):
+        for (nn,lmbda,mu,uu),(kk,f) in iteritems(QDM[n,1]):
+            if uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1:
                 break
         G,M = f()
         OA  = OA_from_quasi_difference_matrix(M,G,fill_hole=False)
@@ -1805,10 +1807,10 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     G_to_int = {x:i for i,x in enumerate(G)}
 
     # A cache for addition in G
-    G_sum = [[0]*Gn for _ in range(Gn)]
-    for x,i in G_to_int.iteritems():
-        for xx,ii in G_to_int.iteritems():
-            G_sum[i][ii] = G_to_int[x+xx]
+    G_sum = [[0] * Gn for _ in range(Gn)]
+    for x, i in iteritems(G_to_int):
+        for xx, ii in iteritems(G_to_int):
+            G_sum[i][ii] = G_to_int[x + xx]
 
     # Convert M to integers
     M = [[None if x is None else G_to_int[G(x)] for x in line] for line in M]

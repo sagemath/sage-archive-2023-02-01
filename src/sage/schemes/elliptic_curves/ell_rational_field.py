@@ -50,6 +50,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division, absolute_import
+import six
 from six.moves import range
 
 from . import constructor
@@ -336,6 +337,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__gens[True] = [self.point(x, check=True) for x in gens]
         self.__gens[True].sort()
 
+    def lmfdb_page(self):
+        r"""
+        Open the LMFDB web page of the elliptic curve in a browser.
+
+        See http://www.lmfdb.org
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('5077a1')
+            sage: E.lmfdb_page()  # optional -- webbrowser
+        """
+        import webbrowser
+        lmfdb_url = 'http://www.lmfdb.org/EllipticCurve/Q/{}'
+        if hasattr(self, "_lmfdb_label") and self._lmfdb_label:
+            url = lmfdb_url.format(self._lmfdb_label)
+        else:
+            url = lmfdb_url.format(self.cremona_label())
+        webbrowser.open(url)
 
     def is_p_integral(self, p):
         r"""
@@ -584,7 +603,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: e.type()
             't_VEC'
             sage: e.ellan(10)
@@ -890,7 +909,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: type(v[0])
             <type 'sage.rings.integer.Integer'>
             sage: type(e.aplist(13, python_ints=True)[0])
-            <type 'int'>
+            <... 'int'>
         """
         e = self.pari_mincurve()
         v = e.ellaplist(n, python_ints=True)
@@ -1131,19 +1150,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def modular_symbol(self, sign = +1, use_eclib = None, normalize = None, implementation = 'eclib'):
         r"""
         Return the modular symbol associated to this elliptic curve,
-        with given sign and base ring.  This is the map that sends `r/s`
-        to a fixed multiple of the integral of `2 \pi i f(z) dz`
-        from `\infty` to `r/s`, normalized so that all values of this map take
-        values in `\QQ`.
-
-        The normalization is such that for sign +1,
-        the value at the cusp 0 is equal to the quotient of `L(E,1)`
-        by the least positive period of `E` (unlike in ``L_ratio``
-        of ``lseries()``, where the value is also divided by the
-        number of connected components of `E(\RR)`). In particular the
-        modular symbol depends on `E` and not only the isogeny class of `E`.
-        For the negative part the corresponding period is purely imaginary of
-        smallest positive imaginary part.
+        with given sign.
 
         INPUT:
 
@@ -1151,30 +1158,52 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``use_eclib`` - Deprecated. Use the ``implementation`` parameter instead.
 
-        -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio',
-           'period', or 'none';
-           For 'L_ratio', the modular symbol tries to normalized correctly
-           as explained above by comparing it to ``L_ratio`` for the
-           curve and some small twists.
-           The normalization 'period' is only available if the implementation
-           ``sage`` is chosen. It uses the ``integral_period_map`` for modular
-           symbols and is known to be equal to the above normalization
-           up to the sign and a possible power of 2.
-           For 'none', the modular symbol is almost certainly
-           not correctly normalized, i.e. all values will be a
-           fixed scalar multiple of what they should be.  But
-           the initial computation of the modular symbol is
-           much faster in implementation ``sage`` is chosen,
-           though evaluation of it after computing it won't be any faster.
+        -  ``normalize`` - (default: None); either 'L_ratio', 'period',
+           or 'none' when ``implementation`` is 'sage'; ignored if
+           ``implementation`` is ``eclib``.  For 'L_ratio', the
+           modular symbol tries to normalize correctly as explained
+           below by comparing it to ``L_ratio`` for the curve and some
+           small twists.  The normalization 'period' uses the
+           ``integral_period_map`` for modular symbols which is known
+           to be equal to the desired normalization, up to the sign
+           and a possible power of 2.  With normalization 'none', the
+           modular symbol is almost certainly not correctly
+           normalized, i.e. all values will be a fixed scalar multiple
+           of what they should be.  However, the initial computation
+           of the modular symbol is much faster when implementation
+           ``sage`` is chosen, though evaluation of it after computing
+           it is no faster.
 
-        -  ``implementation`` - either 'eclib' (default) or 'sage'. Here 'eclib' uses
-           John Cremona's implementation in his library eclib; it only works
-           for ``sign`` +1 currently. Instead 'sage' uses the implementation within
-           sage which is often quite a bit slower.
+        -  ``implementation`` - either 'eclib' (default) or
+           'sage'. Here 'eclib' uses John Cremona's implementation in
+           the eclib library, while 'sage' uses an implementation
+           in Sage which is often quite a bit slower.
 
         .. SEEALSO::
 
             :meth:`modular_symbol_numerical`
+
+        .. note::
+
+           The value at a rational number `r` is proportional to the
+           real or imaginary part of the integral of `2 \pi i f(z) dz`
+           from `\infty` to `r`, where `f` is the newform attached to
+           `E`, suitably normalized so that all values of this map
+           take values in `\QQ`.
+
+           The normalization is such that for sign +1, the value at
+           the cusp `r` is equal to the quotient of the real part of
+           `\int_{\infty}^{r}2\pi i f(z)dz` by the least positive
+           period of `E`, where `f` is the newform attached to the
+           isogeny class of `E`.  This is in contrast to the method
+           ``L_ratio`` of ``lseries()``, where the value is also
+           divided by the number of connected components of
+           `E(\RR)`). In particular the modular symbol depends on `E`
+           and not only the isogeny class of `E`.  For negative
+           modular symbols, the value is the quotient of the imaginary
+           part of the above integral by the imaginary part of the
+           smallest positive imaginary period.
+
 
         EXAMPLES::
 
@@ -1190,61 +1219,75 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('121b1')
             sage: M = E.modular_symbol(implementation="sage")
-            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1 and a power of 2
             sage: M(1/7)
             -1/2
 
-        ::
+        Different curves in an isogeny class have modular symbols
+        which differ by a nonzero rational factor::
+
+            sage: E1 = EllipticCurve('11a1')
+            sage: M1 = E1.modular_symbol()
+            sage: M1(0)
+            1/5
+            sage: E2 = EllipticCurve('11a2')
+            sage: M2 = E2.modular_symbol()
+            sage: M2(0)
+            1
+            sage: E3 = EllipticCurve('11a3')
+            sage: M3 = E3.modular_symbol()
+            sage: M3(0)
+            1/25
+            sage: all(5*M1(r)==M2(r)==25*M3(r) for r in QQ.range_by_height(10))
+            True
+
+        With the default implementation using ``eclib``, the symbols
+        are correctly normalized automatically.  With the ``Sage``
+        implementation we can choose to normalize using the L-ratio,
+        unless that is 0 (for curves of positive rank) or using
+        periods.  Here is an example where the symbol is already
+        normalized::
+
+            sage: E = EllipticCurve('11a2')
+            sage: E.modular_symbol(implementation = 'eclib')(0)
+            1
+            sage: E.modular_symbol(implementation = 'sage', normalize='L_ratio')(0)
+            1
+            sage: E.modular_symbol(implementation = 'sage', normalize='none')(0)
+            1
+            sage: E.modular_symbol(implementation = 'sage', normalize='period')(0)
+            1
+
+        Here is an example where both normalization methods work,
+        while the non-normalized symbol is incorrect::
+
+            sage: E = EllipticCurve('11a3')
+            sage: E.modular_symbol(implementation = 'eclib')(0)
+            1/25
+            sage: E.modular_symbol(implementation = 'sage', normalize='none')(0)
+            1
+            sage: E.modular_symbol(implementation = 'sage', normalize='L_ratio')(0)
+            1/25
+            sage: E.modular_symbol(implementation = 'sage', normalize='period')(0)
+            1/25
+
+
+        Since :trac:`10256`, the interface for negative modular symbols in eclib is available::
 
             sage: E = EllipticCurve('11a1')
-            sage: E.modular_symbol()(0)
-            1/5
-            sage: E = EllipticCurve('11a2')
-            sage: E.modular_symbol()(0)
-            1
-            sage: E = EllipticCurve('11a3')
-            sage: E.modular_symbol()(0)
-            1/25
+            sage: Mplus = E.modular_symbol(+1); Mplus
+            Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: [Mplus(1/i) for i in [1..11]]
+            [1/5, -4/5, -3/10, 7/10, 6/5, 6/5, 7/10, -3/10, -4/5, 1/5, 0]
+            sage: Mminus = E.modular_symbol(-1); Mminus
+            Modular symbol with sign -1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: [Mminus(1/i) for i in [1..11]]
+            [0, 0, 1/2, 1/2, 0, 0, -1/2, -1/2, 0, 0, 0]
 
-        ::
-
-            sage: E = EllipticCurve('11a2')
-            sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
-            1
-            sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
-            2/5
-            sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(implementation = 'sage', normalize='L_ratio')(0)
-            1
-            sage: E.modular_symbol(implementation = 'sage', normalize='none')(0)
-            1
-            sage: E.modular_symbol(implementation = 'sage', normalize='period')(0)
-            1
-
-        ::
-
-            sage: E = EllipticCurve('11a3')
-            sage: E.modular_symbol(implementation = 'eclib', normalize='L_ratio')(0)
-            1/25
-            sage: E.modular_symbol(implementation = 'eclib', normalize='none')(0)
-            2/5
-            sage: E.modular_symbol(implementation = 'eclib', normalize='period')(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: no normalization 'period' known for modular symbols using John Cremona's eclib
-            sage: E.modular_symbol(implementation = 'sage', normalize='L_ratio')(0)
-            1/25
-            sage: E.modular_symbol(implementation = 'sage', normalize='none')(0)
-            1
-            sage: E.modular_symbol(implementation = 'sage', normalize='period')(0)
-            1/25
         """
         sign, normalize, implementation = self._modular_symbol_normalize(sign, use_eclib, normalize, implementation)
         if implementation == 'eclib':
-            M = ell_modular_symbols.ModularSymbolECLIB(self, sign, normalize=normalize)
+            M = ell_modular_symbols.ModularSymbolECLIB(self, sign)
         else: # implementation == 'sage':
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
         return M
@@ -1490,7 +1533,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if algorithm == 'pari':
             rank_lead = self.pari_curve().ellanalyticrank()
             if leading_coefficient:
-                return (rings.Integer(rank_lead[0]), rank_lead[1].python())
+                return (rings.Integer(rank_lead[0]), rank_lead[1].sage())
             else:
                 return rings.Integer(self.pari_curve().ellanalyticrank()[0])
         elif algorithm == 'rubinstein':
@@ -1805,7 +1848,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('389a1')
             sage: E._known_points = []  # clear cached points
             sage: E.simon_two_descent()
-            (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
+            (2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: E.simon_two_descent()
             (3, 3, [(1 : 0 : 1), (2 : 0 : 1), (0 : 2 : 1)])
@@ -1829,7 +1872,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (4, 4, [(6 : -1 : 1), (4 : 3 : 1), (5 : -2 : 1), (8 : 7 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
             sage: E.simon_two_descent()  # long time (9s on sage.math, 2011)
-            (5, 5, [(7 : 11 : 1), (-1 : 20 : 1), (0 : 18 : 1), (3 : 11 : 1), (-3 : 23 : 1)])
+            (5, 5, [(5 : 8 : 1), (10 : 23 : 1), (3 : 11 : 1), (-3 : 23 : 1), (0 : 18 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: r, s, G = E.simon_two_descent(); r,s
             (6, 6)
@@ -3194,7 +3237,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__tamagawa_product
         except AttributeError:
-            self.__tamagawa_product = Integer(self.pari_mincurve().ellglobalred()[2].python())
+            self.__tamagawa_product = Integer(self.pari_mincurve().ellglobalred()[2].sage())
             return self.__tamagawa_product
 
     def real_components(self):
@@ -5058,7 +5101,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return the Manin constant of this elliptic curve. If `\phi: X_0(N) \to E` is the modular
         parametrization of minimal degree, then the Manin constant `c` is defined to be the rational
-        number `c` such that `\phi^*(\omega_E) = c\cdot \omega_f` where `\omega_E` is a Neron differential and `\omega_f = f(q) dq/q` is the differential on `X_0(N)` corresponding to the
+        number `c` such that `\phi^*(\omega_E) = c\cdot \omega_f` where `\omega_E` is a Néron differential and `\omega_f = f(q) dq/q` is the differential on `X_0(N)` corresponding to the
         newform `f` attached to the isogeny class of `E`.
 
         It is known that the Manin constant is an integer. It is conjectured that in each class there is at least one, more precisely the so-called strong Weil curve or `X_0(N)`-optimal curve, that has Manin constant `1`.
@@ -5167,7 +5210,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
         v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
-        v = dict([(i, j.exp().round() if j else 0) for i,j in v.iteritems()])
+        v = dict([(i, j.exp().round() if j else 0) for i,j in six.iteritems(v)])
         return isocls.curves, v
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
@@ -5200,7 +5243,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # enumeration is complete (which need not be the case a priori!), the LCM
         # of these numbers is a multiple of the degree of the isogeny
         # to the optimal curve.
-        v = [deg for num, deg in v.iteritems() if deg]  # get just the degrees
+        v = [deg for num, deg in six.iteritems(v) if deg]  # get just the degrees
         return arith.LCM(v)
 
     ##########################################################
@@ -5559,7 +5602,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             for n in range(1, prec):
                 s += an[n-1]*r
                 r *= r0
-            ans.append(s.python())
+            ans.append(s.sage())
         return ans
 
 

@@ -1056,25 +1056,25 @@ def is_polhill(int v,int k,int l,int mu):
     # We now define the P_{i,j}. see section 6.
 
     P = {}
-    P[0,1] = range((-1) + 1                  , 2**(s-2)+1)
-    P[1,1] = range((-1) + 2**(s-2)+2         , 2**(s-1)+1)
-    P[2,1] = range((-1) + 2**(s-1)+2         , 2**(s-1)+2**(s-2)+1)
-    P[3,1] = range((-1) + 2**(s-1)+2**(s-2)+2, 2**(s)+1)
+    P[0,1] = list(xrange((-1) + 1                  , 2**(s-2)+1))
+    P[1,1] = list(xrange((-1) + 2**(s-2)+2         , 2**(s-1)+1))
+    P[2,1] = list(xrange((-1) + 2**(s-1)+2         , 2**(s-1)+2**(s-2)+1))
+    P[3,1] = list(xrange((-1) + 2**(s-1)+2**(s-2)+2, 2**(s)+1))
 
-    P[0,2] = range((-1) + 2**(s-2)+2         , 2**(s-1)+2)
-    P[1,2] = range((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+2)
-    P[2,2] = range((-1) + 2**(s-1)+2**(s-2)+3, 2**(s)+1) + [0]
-    P[3,2] = range((-1) + 2                  , 2**(s-2)+1)
+    P[0,2] = list(xrange((-1) + 2**(s-2)+2         , 2**(s-1)+2))
+    P[1,2] = list(xrange((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+2))
+    P[2,2] = list(xrange((-1) + 2**(s-1)+2**(s-2)+3, 2**(s)+1)) + [0]
+    P[3,2] = list(xrange((-1) + 2                  , 2**(s-2)+1))
 
-    P[0,3] = range((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+3)
-    P[1,3] = range((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1) + [0,1]
-    P[2,3] = range((-1) + 3                  , 2**(s-2)+2)
-    P[3,3] = range((-1) + 2**(s-2)+3         , 2**(s-1)+2)
+    P[0,3] = list(xrange((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+3))
+    P[1,3] = list(xrange((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1)) + [0,1]
+    P[2,3] = list(xrange((-1) + 3                  , 2**(s-2)+2))
+    P[3,3] = list(xrange((-1) + 2**(s-2)+3         , 2**(s-1)+2))
 
-    P[0,4] = range((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1)
-    P[1,4] = range((-1) + 3                  , 2**(s-2)+1) + [2**(s-1)+1,2**(s-1)+2**(s-2)+2]
-    P[2,4] = range((-1) + 2**(s-2)+3         , 2**(s-1)+1) + [2**(s-1)+2**(s-2)+1,1]
-    P[3,4] = range((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+1) + [2**(s-2)+1,0]
+    P[0,4] = list(xrange((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1))
+    P[1,4] = list(xrange((-1) + 3                  , 2**(s-2)+1)) + [2**(s-1)+1,2**(s-1)+2**(s-2)+2]
+    P[2,4] = list(xrange((-1) + 2**(s-2)+3         , 2**(s-1)+1)) + [2**(s-1)+2**(s-2)+1,1]
+    P[3,4] = list(xrange((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+1)) + [2**(s-2)+1,0]
 
     R = {x:copy(P[x]) for x in P}
 
@@ -1088,10 +1088,10 @@ def is_polhill(int v,int k,int l,int mu):
 
     # We now define the R_{i,j}. see *end* of section 6.
 
-    R[0,3] = range((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+2)
-    R[1,3] = range((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1) + [0,1,2**(s-1)+2**(s-2)+2]
-    R[0,4] = range((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1) + [2**(s-1)+2**(s-2)+2]
-    R[1,4] = range((-1) + 3                  , 2**(s-2)+1) + [2**(s-1)+1]
+    R[0,3] = list(xrange((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+2))
+    R[1,3] = list(xrange((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1)) + [0,1,2**(s-1)+2**(s-2)+2]
+    R[0,4] = list(xrange((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1)) + [2**(s-1)+2**(s-2)+2]
+    R[1,4] = list(xrange((-1) + 3                  , 2**(s-2)+1)) + [2**(s-1)+1]
 
     for x in R:
         R[x] = [K[i] for i in R[x]]
@@ -2073,8 +2073,8 @@ def SRG_210_99_48_45():
     from sage.combinat.permutation import Permutation
     def ekg(g0): # return arcs of the Cayley digraph of <g> on {g,g^4}
         g = Permutation(g0)
-        return libgap.Set(map(lambda x: (x,g(x)), range(1,8))\
-                        + map(lambda x: (x,g(g(g(g(x))))), range(1,8)))
+        return libgap.Set([(x, g(x)) for x in range(1,8)] +
+                          [(x, g(g(g(g(x))))) for x in range(1,8)])
 
     kd=map(ekg,
         [(7, 1, 2, 3, 4, 5), (7, 1, 3, 4, 5, 6),
@@ -2118,10 +2118,10 @@ def SRG_243_110_37_60():
        Discrete Mathematics 12, no. 2 (1975): 143-158.
        http://dx.doi.org/10.1016/0012-365X(75)90029-1
     """
-    from sage.coding.code_constructions import TernaryGolayCode
-    M = TernaryGolayCode().generator_matrix()
+    from sage.coding.golay_code import GolayCode
+    M = GolayCode(GF(3), False).generator_matrix()
     V = list(M.right_kernel())
-    return Graph([range(len(V)), lambda x,y:(V[x]-V[y]).hamming_weight() == 9 ])
+    return Graph([list(xrange(len(V))), lambda x,y:(V[x]-V[y]).hamming_weight() == 9 ])
 
 def SRG_253_140_87_65():
     r"""
@@ -2639,8 +2639,8 @@ def SRG_1288_792_476_504():
       Journal of Algebraic Combinatorics (1992), vol.1, n.4, pp329-346,
       http://dx.doi.org/10.1023/A%3A1022438616684
     """
-    from sage.coding.code_constructions import BinaryGolayCode
-    C = BinaryGolayCode()
+    from sage.coding.golay_code import GolayCode
+    C = GolayCode(GF(2), False)
     C = [[i for i,v in enumerate(c) if v]
          for c in C]
     C = [s for s in C if len(s) == 12]

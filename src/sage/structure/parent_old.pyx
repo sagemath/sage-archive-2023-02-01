@@ -25,12 +25,13 @@ This came up in some subtle bug once.
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import absolute_import
 from __future__ import print_function
 
-cimport sage_object
+cimport sage.structure.sage_object as sage_object
 import operator
-from parent import Set_PythonType, Set_PythonType_class
-from coerce import py_scalar_parent
+from .parent import Set_PythonType, Set_PythonType_class
+from .coerce import py_scalar_parent
 from sage.structure.coerce_dict import MonoDict, TripleDict
 
 from cpython.object cimport *

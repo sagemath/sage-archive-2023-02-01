@@ -357,10 +357,21 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     cpdef int _cmp_(left, right) except -2:
         if not is_MPolynomialRing(right):
-            return cmp(type(left),type(right))
-        else:
-            return cmp((left.base_ring(), left.__ngens, left.variable_names(), left.__term_order),
-                       (right.base_ring(), (<MPolynomialRing_generic>right).__ngens, right.variable_names(), (<MPolynomialRing_generic>right).__term_order))
+            return -1  # arbitrary
+
+        other = <MPolynomialRing_generic>right
+
+        lx = (left.base_ring(), left.__ngens,
+              left.variable_names(),
+              left.__term_order)
+        rx = (other.base_ring(), other.__ngens,
+              other.variable_names(),
+              other.__term_order)
+        if lx < rx:
+            return -1
+        if lx > rx:
+            return 1
+        return 0
 
     def _repr_(self):
         """

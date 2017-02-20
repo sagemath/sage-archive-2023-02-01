@@ -1,6 +1,6 @@
-commit bce6fb9c22e2150ccff95b68034f1a09fe06f59c
+commit 9caeaf8307f33069744fca275112ab7c9492a78f
 Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
-Date:   Fri Sep 23 22:01:46 2016 +0200
+Date:   Tue Nov 22 13:39:20 2016 +0100
 
     Use PROT_NONE for unused virtual stack memory
 
@@ -27,10 +27,10 @@ index 87d93cf..fa79053 100644
    return 0;
  }
 diff --git a/src/language/init.c b/src/language/init.c
-index 439e279..be87a79 100644
+index a079cdf..d7543d8 100644
 --- a/src/language/init.c
 +++ b/src/language/init.c
-@@ -624,14 +624,11 @@ pari_add_defaults_module(entree *ep)
+@@ -622,14 +622,11 @@ pari_add_defaults_module(entree *ep)
  #ifndef MAP_ANONYMOUS
  #define MAP_ANONYMOUS MAP_ANON
  #endif
@@ -46,25 +46,51 @@ index 439e279..be87a79 100644
    return (b == MAP_FAILED) ? NULL: b;
  }
  
-@@ -641,10 +638,39 @@ pari_mainstack_mfree(void *s, size_t size)
+@@ -639,10 +636,56 @@ pari_mainstack_mfree(void *s, size_t size)
    munmap(s, size);
  }
  
--static void
++/* Completely discard the memory mapped between the addresses "from"
++ * and "to" (which must be page-aligned).
++ *
++ * We use mmap() with PROT_NONE, which means that the memory is
++ * completely freed and that the kernel should not commit memory for it.
++ *
++ * NOTE: remapping with MAP_FIXED and PROT_NONE is not the same as
++ * calling mprotect(..., PROT_NONE) because the latter will keep the
++ * memory committed (this is in particular relevant on Linux with
++ * vm.overcommit = 2). This remains true even when calling
++ * madvise(..., MADV_DONTNEED). */
+ static void
 -pari_mainstack_mreset(void *s, size_t size)
++pari_mainstack_mreset(pari_sp from, pari_sp to)
+ {
+-  madvise(s, size, MADV_DONTNEED);
++  size_t s = to - from;
++  mmap((void*)from, s, PROT_NONE, MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
++}
++
++/* Commit (make available) the virtual memory mapped between the
++ * addresses "from" and "to" (which must be page-aligned).
++ * Return 0 if successful, -1 if failed. */
++static int
++pari_mainstack_mextend(pari_sp from, pari_sp to)
++{
++  size_t s = to - from;
++  return mprotect((void*)from, s, PROT_READ|PROT_WRITE);
++}
++
 +/* Set actual stack size to the given size. This sets st->size and
 + * st->bot. If not enough system memory is available, this can fail.
 + * Return 1 if successful, 0 if failed (in that case, st->size is not
 + * changed) */
 +static int
 +pari_mainstack_setsize(struct pari_mainstack *st, size_t size)
- {
--  madvise(s, size, MADV_DONTNEED);
++{
 +  pari_sp newbot = st->top - size;
 +  /* Align newbot to pagesize */
 +  pari_sp alignbot = newbot & ~(pari_sp)(PARI_STACK_ALIGN - 1);
-+  /* Commit (make available) the virtual memory on the stack. */
-+  if (mprotect((void*)alignbot, st->top - alignbot, PROT_READ|PROT_WRITE))
++  if (pari_mainstack_mextend(alignbot, st->top))
 +  {
 +    /* Making the memory available did not work: limit vsize to the
 +     * current actual stack size. */
@@ -72,29 +98,23 @@ index 439e279..be87a79 100644
 +    pari_warn(warnstack, st->vsize);
 +    return 0;
 +  }
-+  /* Overwrite the existing mapping (MAP_FIXED) to discard it completely.
-+   * Using PROT_NONE means that the memory is completely freed and that
-+   * the kernel should not commit memory for it.
-+   *
-+   * NOTE: remapping with MAP_FIXED and PROT_NONE is not the same as
-+   * calling mprotect(..., PROT_NONE) because the latter will keep the
-+   * memory committed (this is in particular relevant on Linux with
-+   * vm.overcommit = 2). This remains true even when calling
-+   * madvise(..., MADV_DONTNEED). */
-+  mmap((void*)st->vbot, alignbot - st->vbot, PROT_NONE,
-+       MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
++  pari_mainstack_mreset(st->vbot, alignbot);
 +  st->bot = newbot;
 +  st->size = size;
 +  return 1;
  }
  
  #else
-@@ -658,8 +684,13 @@ pari_mainstack_malloc(size_t s)
- static void
+@@ -657,7 +700,18 @@ static void
  pari_mainstack_mfree(void *s, size_t size) { (void) size; free(s); }
  
--static void
+ static void
 -pari_mainstack_mreset(void *s, size_t size) { (void) s; (void) size; }
++pari_mainstack_mreset(pari_sp from, pari_sp to) { (void) from; (void) to; }
++
++static int
++pari_mainstack_mextend(pari_sp from, pari_sp to) { (void) from; (void) to; return 0; }
++
 +static int
 +pari_mainstack_setsize(struct pari_mainstack *st, size_t size)
 +{
@@ -105,7 +125,7 @@ index 439e279..be87a79 100644
  
  #endif
  
-@@ -688,9 +719,12 @@ pari_mainstack_alloc(struct pari_mainstack *st, size_t rsize, size_t vsize)
+@@ -686,9 +740,12 @@ pari_mainstack_alloc(struct pari_mainstack *st, size_t rsize, size_t vsize)
    }
    st->vsize = vsize ? s: 0;
    st->rsize = minuu(rsize, s);
@@ -120,7 +140,7 @@ index 439e279..be87a79 100644
    st->memused = 0;
  }
  
-@@ -699,7 +733,7 @@ pari_mainstack_free(struct pari_mainstack *st)
+@@ -697,7 +754,7 @@ pari_mainstack_free(struct pari_mainstack *st)
  {
    pari_mainstack_mfree((void*)st->vbot, st->vsize ? st->vsize : fix_size(st->rsize));
    st->top = st->bot = st->vbot = 0;
@@ -129,13 +149,20 @@ index 439e279..be87a79 100644
  }
  
  static void
-@@ -768,27 +802,28 @@ paristack_resize(ulong newsize)
+@@ -762,31 +819,47 @@ paristack_newrsize(ulong newsize)
+ void
+ paristack_resize(ulong newsize)
+ {
+-  size_t vsize = pari_mainstack->vsize;
    if (!newsize)
-     newsize = pari_mainstack->size << 1;
-   newsize = maxuu(minuu(newsize, vsize), pari_mainstack->size);
+-    newsize = pari_mainstack->size << 1;
+-  newsize = maxuu(minuu(newsize, vsize), pari_mainstack->size);
 -  pari_mainstack->size = newsize;
 -  pari_mainstack->bot = pari_mainstack->top - pari_mainstack->size;
 -  pari_warn(warner,"increasing stack size to %lu",newsize);
++    newsize = 2 * pari_mainstack->size;
++  newsize = minuu(newsize, pari_mainstack->vsize);
++  if (newsize <= pari_mainstack->size) return;
 +  if (pari_mainstack_setsize(pari_mainstack, newsize))
 +  {
 +    pari_warn(warner, "increasing stack size to %lu", pari_mainstack->size);
@@ -152,19 +179,57 @@ index 439e279..be87a79 100644
 +  pari_mainstack_setsize(pari_mainstack, pari_mainstack->rsize);
  }
  
++/* Enlarge the stack if needed such that the unused portion of the stack
++ * (between bot and avma) is large enough to contain x longs. */
  void
  new_chunk_resize(size_t x)
  {
 -  if (pari_mainstack->vsize==0
 -    || x > (avma-pari_mainstack->vbot) / sizeof(long)) pari_err(e_STACK);
 -  while (x > (avma-pari_mainstack->bot) / sizeof(long))
-+  pari_sp bot;
-+  while (bot = pari_mainstack->bot, x > (avma - bot) / sizeof(long))
+-    paristack_resize(0);
++  ulong size, newsize, avail;
++  avail = (avma - pari_mainstack->bot) / sizeof(long);
++  if (avail >= x) return;
++
++  /* We need to enlarge the stack. We try to at least double the
++   * stack, to avoid increasing the stack a lot of times by a small
++   * amount. */
++  size = pari_mainstack->size;
++  newsize = size + maxuu((x - avail) * sizeof(long), size);
++  paristack_resize(newsize);
++
++  /* Verify that we have enough space. Using a division here instead
++   * of a multiplication is safe against overflow. */
++  avail = (avma - pari_mainstack->bot) / sizeof(long);
++  if (avail < x)
 +  {
-     paristack_resize(0);
-+    /* We did not manage to increase memory => error */
-+    if (pari_mainstack->bot == bot) pari_err(e_STACK);
++    /* Restore old size and error out */
++    pari_mainstack_setsize(pari_mainstack, size);
++    pari_err(e_STACK);
 +  }
  }
  
  /*********************************************************************/
+diff --git a/src/test/32/memory b/src/test/32/memory
+new file mode 100644
+index 0000000..e865a17
+--- /dev/null
++++ b/src/test/32/memory
+@@ -0,0 +1,8 @@
++  ***   Warning: new stack size = 1048576 (1.000 Mbytes).
++  ***   at top-level: vector(100000,k,k)
++  ***                                 ^--
++  ***   the PARI stack overflows !
++  current stack size: 1048576 (1.000 Mbytes)
++  [hint] set 'parisizemax' to a non-zero value in your GPRC
++
++Total time spent: 10
+diff --git a/src/test/in/memory b/src/test/in/memory
+new file mode 100644
+index 0000000..2a36a9b
+--- /dev/null
++++ b/src/test/in/memory
+@@ -0,0 +1,2 @@
++default(parisize, 2^20);
++vector(100000, k, k);        \\ #1881

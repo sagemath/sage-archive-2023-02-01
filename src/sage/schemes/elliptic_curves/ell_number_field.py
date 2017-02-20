@@ -246,21 +246,19 @@ class EllipticCurve_number_field(EllipticCurve_field):
               C = Mod(y, y^2 + 7)
             <BLANKLINE>
               Computing L(S,2)
-              L(S,2) = [Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y + 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              L(S,2) = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
             <BLANKLINE>
               Computing the Selmer group
               #LS2gen = 2
-               LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+               LS2gen = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
               Search for trivial points on the curve
              Trivial points on the curve = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)], [1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
-              zc = Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              Hilbert symbol (Mod(2, y^2 + 7),Mod(-5, y^2 + 7)) =
-              zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              Hilbert symbol (Mod(-2*y + 2, y^2 + 7),Mod(1, y^2 + 7)) =
-              sol of quadratic equation = [1, 0, 1]~
-              zc*z1^2 = Mod(Mod(2*y - 2, y^2 + 7)*x + Mod(2*y + 10, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              quartic: (-1/2*y + 1/2)*Y^2 = x^4 + (-3*y - 15)*x^2 + (-8*y - 16)*x + (-11/2*y - 15/2)
-              reduced: Y^2 = (-1/2*y + 1/2)*x^4 - 4*x^3 + (-3*y + 3)*x^2 + (2*y - 2)*x + (1/2*y + 3/2)
+              zc = Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+              Hilbert symbol (Mod(1, y^2 + 7),Mod(-2*y + 2, y^2 + 7)) =
+              sol of quadratic equation = [1, 1, 0]~
+              zc*z1^2 = Mod(Mod(4, y^2 + 7)*x + Mod(-2*y + 6, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+              quartic: (-1)*Y^2 = x^4 + (3*y - 9)*x^2 + (-8*y + 16)*x + (9/2*y - 11/2)
+              reduced: Y^2 = -x^4 + (-3*y + 9)*x^2 + (-8*y + 16)*x + (-9/2*y + 11/2)
               not ELS at [2, [0, 1]~, 1, 1, [1, -2; 1, 0]]
               zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
               comes from the trivial point [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]
@@ -300,7 +298,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K = CyclotomicField(43).subfields(3)[0][0]
             sage: E = EllipticCurve(K, '37')
             sage: E.simon_two_descent()  # long time (4s on sage.math, 2013)
-            (3, 3, [(0 : 0 : 1), (-1/4*zeta43_0^2 - 1/2*zeta43_0 + 3 : -3/8*zeta43_0^2 - 3/4*zeta43_0 + 4 : 1)])
+            (3,
+             3,
+             [(0 : 0 : 1),
+              (-1/2*zeta43_0^2 - 1/2*zeta43_0 + 7 : -3/2*zeta43_0^2 - 5/2*zeta43_0 + 18 : 1)])
         """
         verbose = int(verbose)
         if known_points is None:
@@ -2465,8 +2466,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
             sage: E.gens(lim1=1, lim3=1)
             []
-            sage: E.rank(), E.gens()  # long time (about 3 s)
-            (1, [(9/25*y^2 + 26/25 : -229/125*y^3 - 67/25*y^2 - 731/125*y - 213/25 : 1)])
+            sage: E.rank(), E.gens(lim3=12)  # long time (about 4s)
+            (1,
+             [(369/25*y^3 + 539/25*y^2 + 1178/25*y + 1718/25 : -29038/125*y^3 - 43003/125*y^2 - 92706/125*y - 137286/125 : 1)])
 
         Here is a curve of rank 2, yet the list contains many points::
 
@@ -3333,7 +3335,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         r = len(points)
         if height_matrix is None:
             height_matrix = self.height_pairing_matrix(points, precision)
-        U = height_matrix._pari_().lllgram().python()
+        U = height_matrix._pari_().lllgram().sage()
         new_points = [sum([U[j, i]*points[j] for j in range(r)])
                       for i in range(r)]
         return new_points, U

@@ -313,7 +313,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR(int)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert <type 'int'> to a symbolic expression
+            TypeError: unable to convert <... 'int'> to a symbolic expression
             sage: r^(1/2)
             Traceback (most recent call last):
             ...
@@ -1080,7 +1080,7 @@ cdef class NumpyToSRMorphism(Morphism):
             sage: NumpyToSRMorphism(str)
             Traceback (most recent call last):
             ...
-            TypeError: <type 'str'> is not a numpy number type
+            TypeError: <... 'str'> is not a numpy number type
         """
         Morphism.__init__(self, numpy_type, SR)
 

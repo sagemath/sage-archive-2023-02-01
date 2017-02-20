@@ -965,7 +965,7 @@ class Cusp(Element):
             sage: Cusp(2,5) * g
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Set P^1(QQ) of all cusps' and 'Full MatrixSpace of 2 by 2 dense matrices over Integer Ring'
+            TypeError: unsupported operand parent(s) for *: 'Set P^1(QQ) of all cusps' and 'Full MatrixSpace of 2 by 2 dense matrices over Integer Ring'
             sage: h = matrix(ZZ, 2, [12,3,-100,7])
             sage: h * Cusp(2,5)
             -13/55
@@ -1089,8 +1089,8 @@ class Cusp(Element):
             sage: G=Gamma1(48)
             sage: C=G.cusps()
             sage: for i in Integers(48).unit_gens():
-            ...     C_permuted = [G.reduce_cusp(c.galois_action(i,48)) for c in C]
-            ...     assert len(set(C_permuted))==len(C)
+            ....:   C_permuted = [G.reduce_cusp(c.galois_action(i,48)) for c in C]
+            ....:   assert len(set(C_permuted))==len(C)
 
         We test that Gamma1(19) has 9 rational cusps and check that :trac:`8998`
         is fixed. ::

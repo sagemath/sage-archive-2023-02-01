@@ -42,6 +42,7 @@ other types will also coerce to the integers, when it makes sense.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 include "sage/ext/cdefs.pxi"
@@ -68,10 +69,10 @@ from sage.misc.misc_c import prod
 from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 from sage.libs.ntl.convert cimport ZZ_to_mpz
 
-cimport integer
-cimport rational
+cimport sage.rings.integer as integer
+cimport sage.rings.rational as rational
 
-import ring
+from . import ring
 
 arith = None
 cdef void late_import():
@@ -135,7 +136,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     ``0o`` are interpreted as octal::
 
         sage: parent('37')
-        <type 'str'>
+        <... 'str'>
         sage: parent(Z('37'))
         Integer Ring
         sage: Z('0x10')
@@ -363,10 +364,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         TESTS::
 
             sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: cmp(ZZ,ZZ)
-            0
-            sage: cmp(ZZ,QQ)
-            -1
+            sage: ZZ == ZZ
+            True
+            sage: ZZ != QQ
+            True
         """
         return (<Parent>left)._richcmp(right, op)
 
@@ -382,11 +383,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: IntegerRing_class._cmp_(ZZ,QQ)
             -1
         """
-        if isinstance(right,IntegerRing_class):
+        if isinstance(right, IntegerRing_class):
             return 0
         if isinstance(right, sage.rings.rational_field.RationalField):
             return -1
-        return cmp(type(left), type(right))
+        return -1  # arbitrary
 
     def _repr_(self):
         """
@@ -1378,12 +1379,12 @@ def crt_basis(X, xgcd=None):
 
     Y = []
     # 2. Compute extended GCD's
-    ONE=X[0].parent()(1)
+    ONE = X[0].parent().one()
     for i in range(len(X)):
         p = X[i]
-        others = P//p
-        g,s,t = p.xgcd(others)
+        others = P // p
+        g, s, t = p.xgcd(others)
         if g != ONE:
             raise ArithmeticError("the elements of the list X must be coprime in pairs")
-        Y.append(t*others)
+        Y.append(t * others)
     return Y

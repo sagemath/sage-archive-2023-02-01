@@ -303,7 +303,7 @@ class Function_Bessel_J(BuiltinFunction):
         1/24*x^3*hypergeometric((3/2,), (5/2, 3), -1/4*x^2)
         sage: m = maxima(bessel_J(2, x))
         sage: m.integrate(x)
-        hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3/24
+        (hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3)/24
 
     Visualization (set plot_points to a higher value to get more detail)::
 
@@ -1120,7 +1120,7 @@ def Bessel(*args, **kwds):
         sage: x,y = var('x,y')
         sage: f = maxima(Bessel(typ='K')(x,y))
         sage: f.derivative('_SAGE_VAR_x')
-        %pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
+        (%pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
         sage: f.derivative('_SAGE_VAR_y')
         -(bessel_k(_SAGE_VAR_x+1,_SAGE_VAR_y)+bessel_k(_SAGE_VAR_x-1,_SAGE_VAR_y))/2
 

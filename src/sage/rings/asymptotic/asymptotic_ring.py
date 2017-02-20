@@ -4332,6 +4332,10 @@ class AsymptoticRingFunctor(ConstructionFunctor):
       :class:`AsymptoticRing` or
       :doc:`growth_group` for details).
 
+    - ``default_prec`` -- ``None`` (default) or an integer.
+
+    - ``category`` -- ``None`` (default) or a category.
+
     - ``cls`` -- :class:`AsymptoticRing` (default) or a derived class.
 
     EXAMPLES::
@@ -4368,7 +4372,9 @@ class AsymptoticRingFunctor(ConstructionFunctor):
     rank = 13
 
 
-    def __init__(self, growth_group, cls=None):
+    def __init__(self, growth_group,
+                 default_prec=None, category=None,
+                 cls=None):
         r"""
         See :class:`AsymptoticRingFunctor` for details.
 
@@ -4384,6 +4390,8 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             self.cls = AsymptoticRing
         else:
             self.cls = cls
+        self._default_prec_ = default_prec
+        self._category_ = category
 
         from sage.categories.rings import Rings
         super(ConstructionFunctor, self).__init__(
@@ -4452,8 +4460,13 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: type(P(2) * A.gen())
             <class '...MyAsymptoticRing_with_category.element_class'>
         """
-        return self.cls(growth_group=self.growth_group,
-                        coefficient_ring=coefficient_ring)
+        kwds = {'growth_group': self.growth_group,
+                'coefficient_ring': coefficient_ring}
+        if self._category_ is not None:
+            kwds['category'] = self._category_
+        if self._default_prec_ is not None:
+            kwds['default_prec'] = self._default_prec_
+        return self.cls(**kwds)
 
 
     def merge(self, other):

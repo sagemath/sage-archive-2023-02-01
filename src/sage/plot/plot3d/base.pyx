@@ -372,7 +372,7 @@ cdef class Graphics3d(SageObject):
             options['axes_labels'] = False
 
         b = self.bounding_box()
-        bounds = "[{{x:{}, y:{}, z:{}}}, {{x:{}, y:{}, z:{}}}]".format(
+        bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
                  b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
 
         lights = '[{"x":-5, "y":3, "z":0, "parent":"camera"}]'
@@ -385,18 +385,18 @@ cdef class Graphics3d(SageObject):
             if hasattr(p, 'loc'):
                 color = p._extra_kwds.get('color', 'blue')
                 opacity = p._extra_kwds.get('opacity', 1)
-                points.append("{{point:{}, size:{}, color:'{}', opacity:{}}}".format(
+                points.append('{{"point":{}, "size":{}, "color":"{}", "opacity":{}}}'.format(
                               json.dumps(p.loc), p.size, color, opacity))
             if hasattr(p, 'points'):
                 color = p._extra_kwds.get('color', 'blue')
                 opacity = p._extra_kwds.get('opacity', 1)
                 thickness = p._extra_kwds.get('thickness', 1)
-                lines.append("{{points:{}, color:'{}', opacity:{}, linewidth:{}}}".format(
+                lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
                              json.dumps(p.points), color, opacity, thickness))
             if hasattr(p, '_trans'):
                 if hasattr(p.all[0], 'string'):
                     m = p.get_transformation().get_matrix()
-                    texts.append("{{text:'{}', x:{}, y:{}, z:{}}}".format(
+                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
                                   p.all[0].string, m[0,3], m[1,3], m[2,3]))
 
         points = '[' + ','.join(points) + ']'

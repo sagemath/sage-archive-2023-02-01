@@ -4511,7 +4511,31 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             except TypeError:
                 pass
             else:
-                return AsymptoticRingFunctor(G, self.cls)
+                if (self._default_prec_ is None
+                    and other._default_prec_ is None):
+                    default_prec = None
+                elif self._default_prec_ is None:
+                    default_prec = other._default_prec_
+                elif other._default_prec_ is None:
+                    default_prec = self._default_prec_
+                else:
+                    default_prec = min(self._default_prec_,
+                                       other._default_prec_)
+                if (self._category_ is None
+                    and other._category_ is None):
+                    category = None
+                elif self._category_ is None:
+                    category = other._category_
+                elif other._category_ is None:
+                    category = self._category_
+                else:
+                    category = self._category_ | other._category_
+
+                return AsymptoticRingFunctor(
+                    G,
+                    default_prec=default_prec,
+                    category=category,
+                    cls=self.cls)
 
 
     def __eq__(self, other):

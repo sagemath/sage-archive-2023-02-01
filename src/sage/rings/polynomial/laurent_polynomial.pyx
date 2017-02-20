@@ -1530,6 +1530,17 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair
             sage: LaurentPolynomial_mpair(L, {(1,2): 1/42}, mon=(-3, -3))
             1/42*w^-2*z^-1
+
+        :trac:`TODO`::
+
+            sage: LQ = LaurentPolynomialRing(QQ, 'x0, x1, x2, y0, y1, y2, y3, y4, y5')
+            sage: LZ = LaurentPolynomialRing(ZZ, 'x0, x1, x2, y0, y1, y2, y3, y4, y5')
+            sage: LQ.inject_variables()
+            Defining x0, x1, x2, y0, y1, y2, y3, y4, y5
+            sage: x2^-1*y0*y1*y2*y3*y4*y5 + x1^-1*x2^-1*y0*y1*y3*y4 + x0^-1 in LZ
+            True
+            sage: x2^-1*y0*y1*y2*y3*y4*y5 + x1^-1*x2^-1*y0*y1*y3*y4 + x0^-1*x1^-1*y0*y3 + x0^-1 in LZ
+            True
         """
         if isinstance(x, PolyDict):
             x = x.dict()
@@ -1538,7 +1549,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         else:
             if isinstance(x, dict):
                 self._mon = ETuple({},int(parent.ngens()))
-                for k in x: # ETuple-ize keys, set _mon
+                from copy import copy
+                for k in copy(x): # ETuple-ize keys, set _mon
                     if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
                         self._mon = ETuple({}, int(parent.ngens()))
                         break

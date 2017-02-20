@@ -375,8 +375,7 @@ cdef class Graphics3d(SageObject):
         bounds = "[{{x:{}, y:{}, z:{}}}, {{x:{}, y:{}, z:{}}}]".format(
                  b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
 
-        lights = '[{"x":10, "y":0, "z":0, "parent":"camera"}, \
-                   {"x":-10, "y":0, "z":0, "parent":"camera"}]'
+        lights = '[{"x":-5, "y":3, "z":0, "parent":"camera"}]'
 
         import json
         points, lines, texts = [], [], []

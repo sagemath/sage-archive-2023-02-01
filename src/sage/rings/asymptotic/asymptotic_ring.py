@@ -4461,6 +4461,12 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: P = C['z']
             sage: type(P(2) * A.gen())
             <class '...MyAsymptoticRing_with_category.element_class'>
+
+        :trac:`22396`::
+
+            sage: A.<n> = AsymptoticRing('ZZ^n * n^ZZ', ZZ, default_prec=3)
+            sage: 1/(QQ(1)+n)
+            n^(-1) - n^(-2) + n^(-3) + O(n^(-4))
         """
         kwds = {'growth_group': self.growth_group,
                 'coefficient_ring': coefficient_ring}

@@ -1531,7 +1531,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: LaurentPolynomial_mpair(L, {(1,2): 1/42}, mon=(-3, -3))
             1/42*w^-2*z^-1
 
-        :trac:`TODO`::
+        :trac:`22398`::
 
             sage: LQ = LaurentPolynomialRing(QQ, 'x0, x1, x2, y0, y1, y2, y3, y4, y5')
             sage: LZ = LaurentPolynomialRing(ZZ, 'x0, x1, x2, y0, y1, y2, y3, y4, y5')

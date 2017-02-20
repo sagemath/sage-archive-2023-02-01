@@ -4499,6 +4499,40 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             AsymptoticRing<x^ZZ>
             sage: F_X.merge(F_Y)
             AsymptoticRing<x^ZZ * y^ZZ>
+
+        TESTS::
+
+            sage: AN = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
+            sage: F_AN = AN.construction()[0]; F_AN._default_prec_ = None
+            sage: A3 = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ, default_prec=3)
+            sage: F_A3 = A3.construction()[0]
+            sage: A5 = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ, default_prec=5)
+            sage: F_A5 = A5.construction()[0]
+
+            sage: F_AN.merge(F_AN)(ZZ).default_prec
+            20
+            sage: F_AN.merge(F_A3)(ZZ).default_prec
+            3
+            sage: F_AN.merge(F_A5)(ZZ).default_prec
+            5
+            sage: F_A3.merge(F_AN)(ZZ).default_prec
+            3
+            sage: F_A3.merge(F_A3)(ZZ).default_prec
+            3
+            sage: F_A3.merge(F_A5)(ZZ).default_prec
+            3
+            sage: F_A5.merge(F_AN)(ZZ).default_prec
+            5
+            sage: F_A5.merge(F_A3)(ZZ).default_prec
+            3
+            sage: F_A5.merge(F_A5)(ZZ).default_prec
+            5
+
+            sage: A = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
+            sage: F1 = A.construction()[0]
+            sage: F2 = A.construction()[0]; F2._category_ = Rings()
+            sage: F1.merge(F2)._category_
+            Category of rings
         """
         if self == other:
             return self

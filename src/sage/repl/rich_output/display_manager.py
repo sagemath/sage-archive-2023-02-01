@@ -731,7 +731,7 @@ class DisplayManager(SageObject):
             sage: dm.types.OutputPlainText in dm.supported_output()
             True
             sage: type(dm.supported_output())
-            <type 'frozenset'>
+            <... 'frozenset'>
         """
         return self._supported_output
 

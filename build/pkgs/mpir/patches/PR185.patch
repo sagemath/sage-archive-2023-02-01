@@ -1,0 +1,39 @@
+From fdb590023f7ca4b2e881a2e9573718e7ed180f03 Mon Sep 17 00:00:00 2001
+From: Tommy Hofmann <thofma@gmail.com>
+Date: Fri, 13 Jan 2017 08:30:56 +0100
+Subject: [PATCH] Adjust to new sed version
+
+Change [:space] to [[:space]].
+sed requires character classes to be inside square brackets.
+As of sed 4.3, missing the brackets raises an error.
+---
+ configure    | 2 +-
+ configure.ac | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure b/configure
+index 4d010b7..9faebcd 100755
+--- a/configure
++++ b/configure
+@@ -24301,7 +24301,7 @@ esac
+             sed -n 's/^[ 	]*MULFUNC_PROLOGUE(\(.*\))/\1/p' $tmp_file ;
+             sed -n 's/^[ 	]*PROLOGUE(\([^,]*\).*)/\1/p' $tmp_file ;
+             sed -n 's/^;[ 	]*PROLOGUE(\([^,]*\).*)/\1/p' $tmp_file ;
+-            sed -n 's/[^G]*GLOBAL_FUNC[:space:]*\(.*\)/\1/p' $tmp_file ;
++            sed -n 's/[^G]*GLOBAL_FUNC[[:space:]]*\(.*\)/\1/p' $tmp_file ;
+           `
+           for gmp_tmp in $gmp_ep; do
+             cat >>confdefs.h <<_ACEOF
+diff --git a/configure.ac b/configure.ac
+index bde9f09..170b9e4 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2595,7 +2595,7 @@ for tmp_fn in $gmp_mpn_functions; do
+             sed -n 's/^[ 	]*MULFUNC_PROLOGUE(\(.*\))/\1/p' $tmp_file ;
+             sed -n 's/^[ 	]*PROLOGUE(\([^,]*\).*)/\1/p' $tmp_file ;
+             sed -n 's/^;[ 	]*PROLOGUE(\([^,]*\).*)/\1/p' $tmp_file ;
+-            sed -n 's/[^G]*GLOBAL_FUNC[:space:]*\(.*\)/\1/p' $tmp_file ;
++            sed -n 's/[^G]*GLOBAL_FUNC[[:space:]]*\(.*\)/\1/p' $tmp_file ;
+           `]
+           for gmp_tmp in $gmp_ep; do
+             AC_DEFINE_UNQUOTED(HAVE_NATIVE_$gmp_tmp)

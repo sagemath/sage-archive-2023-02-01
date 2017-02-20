@@ -233,6 +233,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+import six
 from six.moves import range
 
 from sage.interfaces.all import (singular as singular_default,
@@ -463,33 +464,25 @@ class MPolynomialIdeal_singular_base_repr:
     @libsingular_gb_standard_options
     def _groebner_basis_libsingular(self, algorithm="groebner", *args, **kwds):
         """
-        Return the reduced Groebner basis of this ideal. If the
-        Groebner basis for this ideal has been calculated before the
-        cached Groebner basis is returned regardless of the requested
-        algorithm.
+        Return the reduced Groebner basis of this ideal.
+
+        If the Groebner basis for this ideal has been calculated
+        before, the cached Groebner basis is returned regardless
+        of the requested algorithm.
 
         INPUT:
 
-        -  ``algorithm`` - see below for available algorithms
-        - ``redsb`` - return a reduced Groebner basis (default: ``True``)
-        - ``red_tail`` - perform tail reduction (default: ``True``)
+        - ``algorithm`` -- see below for available algorithms
+        - ``redsb`` -- (default: ``True``) return a reduced Groebner basis
+        - ``red_tail`` -- (default: ``True``) perform tail reduction
 
         ALGORITHMS:
 
-        'groebner'
-            Singular's heuristic script (default)
-
-        'std'
-            Buchberger's algorithm
-
-        'slimgb'
-            the *SlimGB* algorithm
-
-        'stdhilb'
-            Hilbert Basis driven Groebner basis
-
-        'stdfglm'
-            Buchberger and FGLM
+        - ``'groebner'`` -- Singular's heuristic script (default)
+        - ``'std'`` -- Buchberger's algorithm
+        - ``'slimgb'`` -- the *SlimGB* algorithm
+        - ``'stdhilb'`` -- Hilbert Basis driven Groebner basis
+        - ``'stdfglm'`` -- Buchberger and FGLM
 
         EXAMPLES:
 
@@ -509,9 +502,20 @@ class MPolynomialIdeal_singular_base_repr:
             b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
             b^2 + 2*b*d + d^2, a + b + c + d]
 
-        ALGORITHM:
+        TESTS:
 
-        Uses libSINGULAR.
+        We check that :trac:`17676` is fixed::
+
+            sage: R.<x,y,z> = PolynomialRing(ZZ, 3, order='lex')
+            sage: I = Ideal(13*x*y*z+6*x*y+78*x*z+36*x-11*y^2*z-66*y*z,
+            ....:           168*x*y*z+84*x*y+1008*x*z+504*x+12*y^3
+            ....:            -154*y^2*z+72*y^2-924*y*z,
+            ....:           -168*x^2*y*z^2-84*x^2*y*z-1008*x^2*z^2-504*x^2*z
+            ....:            +x*y^3*z+6*x*y^3+154*x*y^2*z^2+6*x*y^2*z
+            ....:            +36*x*y^2+924*x*y*z^2-11*y^4*z-66*y^3*z);
+            sage: gI = R * (I.groebner_basis())
+            sage: len(gI.gens())
+            3
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
         from sage.libs.singular.function import singular_function
@@ -523,21 +527,17 @@ class MPolynomialIdeal_singular_base_repr:
 
         if get_verbose()>=2:
             opt['prot'] = True
-        for name,value in kwds.iteritems():
+        for name,value in six.iteritems(kwds):
             if value is not None:
                 opt[name] = value
 
         T = self.ring().term_order()
 
         if algorithm == "std":
-            if self.base_ring() == ZZ:
-                stopgap("Singular's std() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676)
             S = std_libsingular(self)
         elif algorithm == "slimgb":
             S = slimgb_libsingular(self)
         elif algorithm == "groebner":
-            if self.base_ring() == ZZ:
-                stopgap("Singular's groebner() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676)
             S = groebner(self)
         else:
             try:
@@ -1404,7 +1404,7 @@ class MPolynomialIdeal_singular_repr(
         if get_verbose() >= 2:
             kwds['prot'] = True
 
-        for o,v in kwds.iteritems():
+        for o,v in six.iteritems(kwds):
             o = _options_py_to_singular.get(o,o)
             if v:
                 if o in ['degBound','multBound']:
@@ -3149,7 +3149,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             if other_new.groebner_basis.is_in_cache():
                 r = other_new.groebner_basis()
             elif len(other_new._gb_by_ordering) != 0:
-                o, r = next(other_new._gb_by_ordering.iteritems())
+                o, r = next(six.iteritems(other_new._gb_by_ordering))
                 l = self.change_ring(R.change_ring(order=o)).gens()
             else: # use easy GB otherwise
                 l = self.change_ring(R.change_ring(order="degrevlex")).gens()
@@ -3597,20 +3597,20 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: set_verbose(2)
             sage: I = R*[x^3+y^2,x^2*y+1]
             sage: I.groebner_basis()  # not tested
-            std in (0),(x,y),(dp(2),C)
+            std in (QQ),(x,y),(dp(2),C)
             [...:2]3ss4s6
             (S:2)--
             product criterion:1 chain criterion:0
             [x^3 + y^2, x^2*y + 1, y^3 - x]
             sage: I.groebner_basis(prot=False)
-            std in (0),(x,y),(dp(2),C)
+            std in (QQ),(x,y),(dp(2),C)
             [...:2]3ss4s6
             (S:2)--
             product criterion:1 chain criterion:0
             [x^3 + y^2, x^2*y + 1, y^3 - x]
             sage: set_verbose(0)
             sage: I.groebner_basis(prot=True)  # not tested
-            std in (0),(x,y),(dp(2),C)
+            std in (QQ),(x,y),(dp(2),C)
             [...:2]3ss4s6
             (S:2)--
             product criterion:1 chain criterion:0

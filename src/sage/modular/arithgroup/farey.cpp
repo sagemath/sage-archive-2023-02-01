@@ -302,9 +302,9 @@ FareySymbol::FareySymbol(istream& is) {
 // User defined group and restoring from pickle
 
 FareySymbol::FareySymbol(PyObject* o) {
-  if( PyString_Check(o) ) {
+  if( PyBytes_Check(o) ) {
     // restoration from data
-    istringstream is(PyString_AsString(o));
+    istringstream is(PyBytes_AsString(o));
     is >> (*this);
   } else {
     // init with user defined group
@@ -1132,7 +1132,7 @@ PyObject* FareySymbol::get_pairing_matrices() const {
 PyObject* FareySymbol::dumps() const {
   std::ostringstream os(ostringstream::out|ostringstream::binary);
   os << (*this);
-  PyObject* d = PyString_FromString(os.str().c_str());
+  PyObject* d = PyBytes_FromString(os.str().c_str());
   return d;
 }
 

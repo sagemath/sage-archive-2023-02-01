@@ -170,7 +170,7 @@ class MapVectorSpaceToNumberField(NumberFieldIsomorphism):
 
             sage: K.<c> = NumberField(x^9 + 3)
             sage: V, fr, to = K.vector_space()
-            sage: map(fr, V.gens()) # indirect doctest
+            sage: list(map(fr, V.gens()))  # indirect doctest
             [1, c, c^2, c^3, c^4, c^5, c^6, c^7, c^8]
         """
         K = self.codomain()
@@ -359,6 +359,7 @@ class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
         # Convert the coefficients to elements of the base field.
         B, from_B, _ = K.absolute_base_field()
         return self.codomain()([from_B(B(z.lift(), check=False)) for z in g.Vecrev(-K.relative_degree())])
+
 
 class NameChangeMap(NumberFieldIsomorphism):
     r"""

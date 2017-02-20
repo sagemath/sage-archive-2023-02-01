@@ -931,6 +931,7 @@ Methods
 from __future__ import print_function
 
 from builtins import zip
+import six
 from six.moves import range
 
 from six import itervalues
@@ -2062,7 +2063,7 @@ class FSMState(sage.structure.sage_object.SageObject):
         _epsilon_successors_dict_[self].remove([])  # delete starting state
         if not _epsilon_successors_dict_[self]:
             del _epsilon_successors_dict_[self]
-        for s, outputs in _epsilon_successors_dict_.iteritems():
+        for s, outputs in six.iteritems(_epsilon_successors_dict_):
             _epsilon_successors_dict_[s] = [t for t, _ in
                                             itertools.groupby(sorted(outputs))]
         return _epsilon_successors_dict_
@@ -3202,10 +3203,10 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         elif hasattr(data, 'iteritems'):
             # data is a dict (or something similar),
             # format: key = from_state, value = iterator of transitions
-            for (sf, iter_transitions) in data.iteritems():
+            for (sf, iter_transitions) in six.iteritems(data):
                 self.add_state(sf)
                 if hasattr(iter_transitions, 'iteritems'):
-                    for (st, transition) in iter_transitions.iteritems():
+                    for (st, transition) in six.iteritems(iter_transitions):
                         self.add_state(st)
                         if is_FSMTransition(transition):
                             self.add_transition(transition)
@@ -3895,7 +3896,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             <... 'list'>
             sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
             ....:               automatic_output_type=True))
-            <type 'tuple'>
+            <... 'tuple'>
         """
         if len(args) == 0:
             raise TypeError("Called with too few arguments.")
@@ -4277,7 +4278,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         EXAMPLES::
 
             sage: A = Automaton([(0, 0, -1)])
-            sage: map(A.format_letter_negative, [-1, 0, 1, 'a', None])
+            sage: list(map(A.format_letter_negative, [-1, 0, 1, 'a', None]))
             ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mathrm{None}]
             sage: A.latex_options(format_letter=A.format_letter_negative)
             sage: print(latex(A))
@@ -4955,7 +4956,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 key=key_function
                 ))
 
-        for ((source, target), transitions) in adjacent.iteritems():
+        for ((source, target), transitions) in six.iteritems(adjacent):
             if len(transitions) > 0:
                 labels = []
                 for transition in transitions:
@@ -6582,14 +6583,14 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                                    "'simple' iterator cannot be used "
                                    "here." %
                                    (len(current),))
-            pos, states = next(current.iteritems())
+            pos, states = next(six.iteritems(current))
             if len(states) > 1:
                 raise RuntimeError("Process has branched "
                                    "(visiting %s states in branch). The "
                                    "'simple' iterator cannot be used "
                                    "here." %
                                    (len(states),))
-            state, branch = next(states.iteritems())
+            state, branch = next(six.iteritems(states))
             if len(branch.outputs) > 1:
                 raise RuntimeError("Process has branched. "
                                    "(%s different outputs in branch). The "
@@ -9839,7 +9840,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         # have been computed as it may not be permissible to stop at a
         # formerly non-final state unless a cycle has been completed.
 
-        for (state, position), final_word_out in cache.iteritems():
+        for (state, position), final_word_out in six.iteritems(cache):
             if position == 0 and final_word_out is not None:
                 state.is_final = True
                 state.final_word_out = final_word_out
@@ -11764,7 +11765,7 @@ class Automaton(FiniteStateMachine):
 
         B = other.minimization().relabeled()
         labels = {B.process(path)[1].label(): state.label()
-                  for (state, path) in address.iteritems()}
+                  for (state, path) in six.iteritems(address)}
         try:
             return A == B.relabeled(labels=labels)
         except KeyError:
@@ -14423,8 +14424,8 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             """
             data = sorted(
                 (state, pos, tape_cache, outputs)
-                for pos, states in self.iteritems()
-                for state, (tape_cache, outputs) in states.iteritems())
+                for pos, states in six.iteritems(self)
+                for state, (tape_cache, outputs) in six.iteritems(states))
             branch = "branch" if len(data) == 1 else "branches"
             result = "process (%s %s)" % (len(data), branch)
             for s, sdata in itertools.groupby(data, lambda x: x[0]):
@@ -14702,7 +14703,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
                     'but output is written.' % (state,))
 
         for eps_state, eps_outputs in \
-                state._epsilon_successors_(self.fsm).iteritems():
+                six.iteritems(state._epsilon_successors_(self.fsm)):
             if eps_state == state:
                 continue
                 # "eps_state == state" means epsilon cycle
@@ -14903,7 +14904,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
             return
 
         states_dict = self._current_.pop(heapq.heappop(self._current_positions_))
-        for state, branch in states_dict.iteritems():
+        for state, branch in six.iteritems(states_dict):
             step(state, branch.tape_cache, branch.outputs)
 
         return self._current_

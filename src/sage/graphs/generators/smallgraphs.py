@@ -16,6 +16,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+import six
 from six.moves import range
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -155,13 +156,13 @@ def HarriesGraph(embedding=1):
                   20: 14, 22: 56, 62: 42}
 
         # Position for the vertices from the first copy
-        for v, i in g_to_p.iteritems():
+        for v, i in six.iteritems(g_to_p):
             gpos[v] = ppos[i]
 
         # Position for the vertices in the second copy. Moves the first,
         # too.
         offset = 3.5
-        for v, i in g_to_g.iteritems():
+        for v, i in six.iteritems(g_to_g):
             x, y = gpos[i]
             gpos[v] = (x + offset*0.5, y)
             gpos[i] = (x - offset*0.5, y)
@@ -3564,7 +3565,7 @@ def LjubljanaGraph(embedding=1):
         # The vertices of each 8-set are plotted on a circle, and the
         # circles are slowly shifted to obtain a symmetric drawing.
 
-        for i, (u, vertices) in enumerate(d.iteritems()):
+        for i, (u, vertices) in enumerate(six.iteritems(d)):
             _circle_embedding(g, vertices, center=dh[u], radius=.1,
                     shift=8.*i/14)
 
@@ -4457,7 +4458,7 @@ def TruncatedIcosidodecahedralGraph():
         (120, 180)
     """
     from sage.geometry.polyhedron.library import polytopes
-    G = polytopes.icosidodecahedron(exact=False).edge_truncation().graph()
+    G = polytopes.icosidodecahedron(exact=False).truncation().graph()
     G.name("Truncated Icosidodecahedron")
     return G
 
@@ -4474,7 +4475,7 @@ def TruncatedTetrahedralGraph():
         Truncated Tetrahedron: Graph on 12 vertices
         sage: g.order(), g.size()
         (12, 18)
-        sage: g.is_isomorphic(polytopes.simplex(3).edge_truncation().graph())
+        sage: g.is_isomorphic(polytopes.simplex(3).truncation().graph())
         True
     """
     g = Graph(':K`ESwC_EOyDl\\MCi', loops=False, multiedges=False)
@@ -4592,7 +4593,7 @@ def TutteGraph():
         69
         sage: g.is_planar()
         True
-        sage: g.vertex_connectivity() # long
+        sage: g.vertex_connectivity() # long time
         3
         sage: g.girth()
         4
@@ -4930,7 +4931,7 @@ def JankoKharaghaniGraph(v):
               for R in W]
         D = (D+matrix.block(D2))/2
 
-    return Graph([e for e,v in D.dict().iteritems() if v == 1],
+    return Graph([e for e,v in six.iteritems(D.dict()) if v == 1],
                  multiedges=False,
                  name="Janko-Kharaghani")
 
@@ -5128,7 +5129,7 @@ def IoninKharaghani765Graph():
         for i in range(4):
             L[i,phi[i](p)].add(p)
 
-    L = {k:frozenset(v) for k,v in L.iteritems()}
+    L = {k:frozenset(v) for k,v in six.iteritems(L)}
 
     # Defining pi
     pi = {L[i,j]:L[i,(j+1)%3] for (i,j) in L}
@@ -5138,13 +5139,16 @@ def IoninKharaghani765Graph():
     A = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,0), (0,1), (1,-1), (1,0), (1,1)]
 
     def M(S):
-        S = set([(K(x),K(y)) for x,y in S])
-        difference = lambda (x,y),(xx,yy): (K(x-xx),K(y-yy))
-        return matrix([[1 if difference(A[8-i],A[j]) in S else 0 for i in range(9)]
+        S = set((K(x), K(y)) for x, y in S)
+
+        def difference(xy, xxyy):
+            return (K(xy[0] - xxyy[0]), K(xy[1] - xxyy[1]))
+        return matrix([[1 if difference(A[8-i],A[j]) in S else 0
+                        for i in range(9)]
                        for j in range(9)])
 
     def N(Xi):
-        Xi = map(M,Xi)
+        Xi = map(M, Xi)
         return matrix.block([Xi[i:]+Xi[:i]
                              for i in range(len(Xi))])
 

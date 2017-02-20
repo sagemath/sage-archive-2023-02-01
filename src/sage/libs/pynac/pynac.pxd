@@ -144,7 +144,9 @@ cdef extern from "sage/libs/pynac/wrap.h":
     object py_object_from_numeric(GEx e)     except +
 
     # Algorithms
-    GEx g_gcd "gcd"(GEx a, GEx b) except +
+    GEx g_gcd "gcd"(GEx a, GEx b)   except +
+    GEx to_gamma(GEx expr)          except +
+    GEx gamma_normalize(GEx expr)   except +
     GEx g_resultant "resultant"(GEx a, GEx b, GEx v) except +
 
     # Pattern matching wildcards
@@ -217,6 +219,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
     GEx g_Pi "Pi"
     GEx g_Catalan "Catalan"
     GEx g_Euler "Euler"
+    GEx g_NaN "NaN"
 
     GConstant* GConstant_construct(void *mem, char* name, char* texname, unsigned domain)
     bint is_a_constant "is_a<constant>" (GEx e)
@@ -294,13 +297,13 @@ cdef extern from "sage/libs/pynac/wrap.h":
     void g_list_symbols "list_symbols" (GEx e, GExSet s)
 
     # more is_a tests
-    bint is_a_add "is_a<add>" (GEx e)
-    bint is_a_mul "is_a<mul>" (GEx e)
-    bint is_a_power "is_a<power>" (GEx e)
-    bint is_a_fderivative "is_a<fderivative>" (GEx e)
-    bint is_a_function "is_a<function>" (GEx e)
-    bint is_exactly_a_function "is_exactly_a<function>" (GEx e)
-    bint is_a_ncmul "is_a<ncmul>" (GEx e)
+    bint is_a_add "is_a<GiNaC::add>" (GEx e)
+    bint is_a_mul "is_a<GiNaC::mul>" (GEx e)
+    bint is_a_power "is_a<GiNaC::power>" (GEx e)
+    bint is_a_fderivative "is_a<GiNaC::fderivative>" (GEx e)
+    bint is_a_function "is_a<GiNaC::function>" (GEx e)
+    bint is_exactly_a_function "is_exactly_a<GiNaC::function>" (GEx e)
+    bint is_a_ncmul "is_a<GiNaC::ncmul>" (GEx e)
 
     # Arithmetic
     int ginac_error()

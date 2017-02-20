@@ -86,13 +86,13 @@ class Function_zeta(GinacFunction):
 
             sage: s = SR('s')
             sage: zeta(s).series(s==1, 2)
-            1*(s - 1)^(-1) + (euler_gamma) + (-1/2*stieltjes(1))*(s - 1) + Order((s - 1)^2)
+            1*(s - 1)^(-1) + (euler_gamma) + (-stieltjes(1))*(s - 1) + Order((s - 1)^2)
 
         Generally, the Stieltjes constants occur in the Laurent
         expansion of `\zeta`-type singularities::
 
             sage: zeta(2*s/(s+1)).series(s==1, 2)
-            2*(s - 1)^(-1) + (euler_gamma + 1) + (-1/4*stieltjes(1))*(s - 1) + Order((s - 1)^2)
+            2*(s - 1)^(-1) + (euler_gamma + 1) + (-1/2*stieltjes(1))*(s - 1) + Order((s - 1)^2)
 
 
         TESTS::

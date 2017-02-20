@@ -1016,7 +1016,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # If indices is None, we actually want to return all constraints
         if indices is None:
-          indices = range(b.nrows())
+          indices = list(xrange(b.nrows()))
 
         # Only one constraint
         if isinstance(indices, int) or isinstance(indices, Integer):
@@ -1166,7 +1166,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 linear_function[i] = -1
                 linear_function.insert(0,ub)
                 inequalities.append(linear_function)
-        return Polyhedron(ieqs = inequalities, eqns = equalities)
+        return Polyhedron(ieqs = inequalities, eqns = equalities, **kwds)
 
     def show(self):
         r"""

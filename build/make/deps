@@ -78,7 +78,7 @@ toolchain-deps:
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
-SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect)
+SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect) $(inst_psutil)
 
 
 # Start Sage at least once to check that it works

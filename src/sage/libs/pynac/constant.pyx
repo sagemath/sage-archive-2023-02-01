@@ -61,6 +61,8 @@ cdef class PynacConstant:
             self.pointer = <GConstant *>&g_Catalan
         elif self._name == "euler_gamma":
             self.pointer = <GConstant *>&g_Euler
+        elif self._name == "NaN":
+            self.pointer = <GConstant *>&g_NaN
         else:
             GConstant_construct(&self.object, name, texname, domain)
             self.pointer = &self.object
@@ -116,7 +118,7 @@ cdef class PynacConstant:
             sage: f + 2
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': '<type 'sage.libs.pynac.constant.PynacConstant'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for +: '<type 'sage.libs.pynac.constant.PynacConstant'>' and 'Integer Ring'
 
             sage: foo = f.expression(); foo
             foo

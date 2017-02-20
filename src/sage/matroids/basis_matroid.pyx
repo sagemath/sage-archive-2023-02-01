@@ -721,7 +721,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
     cpdef _bases_invariant2(self):
         """
-        Return an isomophism invariant of the matroid.
+        Return an isomorphism invariant of the matroid.
 
         Compared to BasisMatroid._bases_invariant() this invariant
         distinguishes more frequently between nonisomorphic matroids but
@@ -1044,7 +1044,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 

@@ -555,7 +555,7 @@ cdef class ntl_zz_pX(object):
             sage: f.list()
             [3, 5, 0, 1]
             sage: type(f.list()[0])
-            <type 'int'>
+            <... 'int'>
         """
         cdef long i
         self.c.restore_c()

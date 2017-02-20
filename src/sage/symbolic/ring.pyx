@@ -313,11 +313,25 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR(int)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert <type 'int'> to a symbolic expression
+            TypeError: unable to convert <... 'int'> to a symbolic expression
             sage: r^(1/2)
             Traceback (most recent call last):
             ...
             TypeError: unable to convert R Interpreter to a symbolic expression
+
+        Check that :trac:`22068` is fixed::
+
+            sage: _ = var('x')
+            sage: sin(x).subs(x=RR('NaN'))
+            sin(NaN)
+            sage: SR(RR('NaN')).is_real()
+            False
+            sage: sin(x).subs(x=float('NaN'))
+            sin(NaN)
+            sage: SR(float('NaN')).is_real()
+            False
+            sage: sin(x).subs(x=complex('NaN'))
+            sin(NaN)
         """
         cdef GEx exp
         if is_Expression(x):
@@ -339,7 +353,17 @@ cdef class SymbolicRing(CommutativeRing):
                                          unsigned_infinity)
         from sage.structure.factorization import Factorization
 
-        if isinstance(x, (Integer, RealNumber, float, long, complex)):
+        if isinstance(x, RealNumber):
+            if x.is_NaN():
+                from sage.symbolic.constants import NaN
+                return NaN
+            GEx_construct_pyobject(exp, x)
+        elif isinstance(x, (float, complex)):
+            if not (x == x):
+                from sage.symbolic.constants import NaN
+                return NaN
+            GEx_construct_pyobject(exp, x)
+        elif isinstance(x, (Integer, long)):
             GEx_construct_pyobject(exp, x)
         elif isinstance(x, int):
             GEx_construct_long(&exp, x)
@@ -1056,7 +1080,7 @@ cdef class NumpyToSRMorphism(Morphism):
             sage: NumpyToSRMorphism(str)
             Traceback (most recent call last):
             ...
-            TypeError: <type 'str'> is not a numpy number type
+            TypeError: <... 'str'> is not a numpy number type
         """
         Morphism.__init__(self, numpy_type, SR)
 

@@ -240,7 +240,7 @@ def set_gap_memory_pool_size(size_in_bytes):
     EXAMPLES::
 
         sage: from sage.interfaces.gap import \
-        ...       get_gap_memory_pool_size, set_gap_memory_pool_size
+        ....:     get_gap_memory_pool_size, set_gap_memory_pool_size
         sage: n = get_gap_memory_pool_size()
         sage: set_gap_memory_pool_size(n)
         sage: n == get_gap_memory_pool_size()
@@ -294,7 +294,7 @@ def _get_gap_memory_pool_size_MB():
     EXAMPLES:
 
         sage: from sage.interfaces.gap import \
-        ...       _get_gap_memory_pool_size_MB
+        ....:     _get_gap_memory_pool_size_MB
         sage: _get_gap_memory_pool_size_MB()   # random output
         '1467m'
     """

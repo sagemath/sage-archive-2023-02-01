@@ -67,7 +67,7 @@ from sage.modules.free_module_element import vector
 from sage.plot.colors import Color, float_to_integer
 from sage.plot.plot3d.base import Graphics3dGroup
 
-from transform cimport Transformation
+from .transform cimport Transformation
 
 
 # --------------------------------------------------------------------

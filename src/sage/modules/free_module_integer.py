@@ -625,7 +625,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
                 qf = B*B.transpose()
 
             count, length, vectors = qf._pari_().qfminim()
-            v = vectors.python().columns()[0]
+            v = vectors.sage().columns()[0]
             w = v*B
         elif algorithm == "fplll":
             from fpylll import IntegerMatrix, SVP

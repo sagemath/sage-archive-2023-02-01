@@ -69,6 +69,7 @@ def is_SchubertPolynomial(x):
     """
     return isinstance(x, SchubertPolynomial_class)
 
+
 class SchubertPolynomial_class(CombinatorialFreeModule.Element):
     def expand(self):
         """
@@ -77,7 +78,7 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
             sage: X = SchubertPolynomialRing(ZZ)
             sage: X([2,1,3]).expand()
             x0
-            sage: map(lambda x: x.expand(), [X(p) for p in Permutations(3)])
+            sage: [X(p).expand() for p in Permutations(3)]
             [1, x0 + x1, x0, x0*x1, x0^2, x0^2*x1]
 
         TESTS:

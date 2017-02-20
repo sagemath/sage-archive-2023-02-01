@@ -277,6 +277,10 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         (:mod:`~sage.geometry.polyhedron.backend_cdd`) with `\QQ` or
         `\RDF` coefficients depending on ``base_ring``.
 
+      * ``'normaliz'``: use normaliz
+        (:mod:`~sage.geometry.polyhedron.backend_normaliz`) with `\ZZ` or
+        `\QQ` coefficients depending on ``base_ring``.
+
       * ``'ppl'``: use ppl
         (:mod:`~sage.geometry.polyhedron.backend_ppl`) with `\ZZ` or
         `\QQ` coefficients depending on ``base_ring``.

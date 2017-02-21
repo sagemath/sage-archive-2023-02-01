@@ -263,7 +263,7 @@ def p_part(f, p):
     
     Return value is supposed to be a polynomial, see :trac:`22402` 
            
-        sage: g = p_part(X+1,2)
+        sage: g = p_part(X+1, 2)
         sage: g.parent()
         Univariate Polynomial Ring in X over Integer Ring
 

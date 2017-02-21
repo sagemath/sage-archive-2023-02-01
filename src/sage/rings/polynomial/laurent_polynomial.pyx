@@ -1549,8 +1549,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         else:
             if isinstance(x, dict):
                 self._mon = ETuple({},int(parent.ngens()))
-                from copy import copy
-                for k in copy(x): # ETuple-ize keys, set _mon
+                for k in tuple(x): # ETuple-ize keys, set _mon
                     if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
                         self._mon = ETuple({}, int(parent.ngens()))
                         break

@@ -5409,9 +5409,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             return cmp(type(self), type(other))
         c = cmp(self.ambient_vector_space(), other.ambient_vector_space())
         if c: return c
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
         c = cmp(self.dimension(), other.dimension())
+        if c: return c
+        c = cmp(self.base_ring(), other.base_ring())
         if c: return c
         # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         # with the matrix to avoid a circular reference.

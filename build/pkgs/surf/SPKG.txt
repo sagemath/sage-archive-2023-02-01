@@ -1,0 +1,18 @@
+= surf =
+
+== Description ==
+
+surf is a tool to visualize some real algebraic geometry: plane algebraic
+curves, algebraic surfaces and hyperplane sections of surfaces. surf is script
+driven and has (optionally) a nifty GUI using the Gtk widget set.
+
+This is used by the Singular Jupyter kernel to produce 3D plots.
+
+== License ==
+
+GPL version 2 or later
+
+== Upstream Contact ==
+
+http://surf.sourceforge.net
+(although the project is essentially dead)

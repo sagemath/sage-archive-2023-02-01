@@ -64,6 +64,7 @@ AUTHORS:
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.sets_cat import Sets
 from sage.rings.all import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
@@ -615,8 +616,12 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3))
+            sage: R = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3)); R
             (0, 1] + [2, 3)
+
+        TESTS::
+
+            sage: TestSuite(R).run()
         """
         if len(args) == 1 and isinstance(args[0], RealSet):
             return args[0]   # common optimization
@@ -644,9 +649,9 @@ class RealSet(UniqueRepresentation, Parent):
             else:
                 raise ValueError(str(arg) + ' does not determine real interval')
         intervals = RealSet.normalize(intervals)
-        return UniqueRepresentation.__classcall__(cls, intervals)
+        return UniqueRepresentation.__classcall__(cls, *intervals)
                 
-    def __init__(self, intervals):
+    def __init__(self, *intervals):
         """
         A subset of the real line
 
@@ -671,6 +676,7 @@ class RealSet(UniqueRepresentation, Parent):
             sage: RealSet(i, [3,4])    # list of two numbers = closed set
             (0, 1) + [3, 4]
         """
+        Parent.__init__(self, category = Sets())
         self._intervals = intervals
     
     def __cmp__(self, other):

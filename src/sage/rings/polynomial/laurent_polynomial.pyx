@@ -1558,12 +1558,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                         k = ETuple(k)
                     D[k] = x_k
                     self._mon = self._mon.emin(k) # point-wise min of _mon and k
-                if len(self._mon.nonzero_positions()) != 0: # factor out _mon
-                    D = {}
-                    for k in x:
-                        D[k.esub(self._mon)] = x[k]
                 else:
                     x = D
+                if len(self._mon.nonzero_positions()) != 0: # factor out _mon
+                    x = {k.esub(self._mon): x_k for k, x_k in iteritems(x)}
             else: # since x should coerce into parent, _mon should be (0,...,0)
                 self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)

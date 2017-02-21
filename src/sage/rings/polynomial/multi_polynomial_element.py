@@ -1362,7 +1362,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: g.is_constant()
             True
         """
-        if len(self.dict()) <= 1 and len(self.degrees().nonzero_positions()) == 0:
+        if len(self.dict()) <= 1 and self.degrees().is_constant():
             return True
         else:
             return False

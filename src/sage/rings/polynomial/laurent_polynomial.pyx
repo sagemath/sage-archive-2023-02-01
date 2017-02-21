@@ -1549,20 +1549,20 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         else:
             if isinstance(x, dict):
                 self._mon = ETuple({},int(parent.ngens()))
-                for k in tuple(x): # ETuple-ize keys, set _mon
+                D = {}
+                for k, x_k in iteritems(x): # ETuple-ize keys, set _mon
                     if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
                         self._mon = ETuple({}, int(parent.ngens()))
                         break
                     if isinstance(k, tuple):
-                        a = x[k]
-                        del x[k]
                         k = ETuple(k)
-                        x[k] = a
+                    D[k] = x_k
                     self._mon = self._mon.emin(k) # point-wise min of _mon and k
                 if len(self._mon.nonzero_positions()) != 0: # factor out _mon
                     D = {}
                     for k in x:
                         D[k.esub(self._mon)] = x[k]
+                else:
                     x = D
             else: # since x should coerce into parent, _mon should be (0,...,0)
                 self._mon = ETuple({}, int(parent.ngens()))

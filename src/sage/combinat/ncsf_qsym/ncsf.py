@@ -5173,7 +5173,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             from sage.combinat.partitions import ZS1_iterator
             from sage.rings.integer_ring import ZZ
             it = ZS1_iterator(n)
-            it.next() # Skip the unique length 1 partition
+            next(it) # Skip the unique length 1 partition
             res = S[n]
             for p in it:
                 d = {}
@@ -5349,7 +5349,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             from sage.combinat.partitions import ZS1_iterator
             from sage.rings.integer_ring import ZZ
             it = ZS1_iterator(n)
-            it.next() # Skip the unique length 1 partition
+            next(it) # Skip the unique length 1 partition
             res = S[n]
             for p in it:
                 d = {}

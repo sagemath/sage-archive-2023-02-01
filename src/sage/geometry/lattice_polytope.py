@@ -103,6 +103,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from sage.arith.all import gcd
 from sage.combinat.posets.posets import FinitePoset
 from sage.env import POLYTOPE_DATA_DIR
 from sage.geometry.cone import _ambient_space_point, integral_length
@@ -3679,27 +3680,31 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 1-d lattice M
         """
         if not hasattr(self, "_points"):
-            if self.dim() <= 0:
-                points = self._vertices
-            elif self.dim() == 1:
-                points = list(self.vertices())
-                v = (points[1] - points[0]).base_extend(QQ)
-                l = integral_length(v)
-                v /= l
-                current = points[0]
-                for i in range(l - 1):
-                    current += v
-                    points.append(current)
-            else:
-                points = self._embed(read_palp_matrix(
-                            self.poly_x("p", reduce_dimension=True))).columns()
-            if len(points) == self.nvertices():
-                self._points = self.vertices()
-            else:
-                M = self.lattice()
-                points = [M(_) for _ in points]
-                for point in points:
-                    point.set_immutable()
+            M = self.lattice()
+            self._points = points = self._vertices
+            if self.dim() == 1:
+                v = points[1] - points[0]
+                l = gcd(v)
+                if l > 1:
+                    v = M(v.base_extend(QQ) / l)
+                    points = list(points)
+                    current = points[0]
+                    for i in range(l - 1):
+                        current += v
+                        current.set_immutable()
+                        points.append(current)
+            if self.dim() > 1:
+                m = self._embed(read_palp_matrix(
+                        self.poly_x("p", reduce_dimension=True)))
+                if m.ncols() > self.nvertices():
+                    points = list(points)
+                    for j in range(self.nvertices(), m.ncols()):
+                        current = M.zero_vector()
+                        for i in range(M.rank()):
+                            current[i] = m[i, j]
+                        current.set_immutable()
+                        points.append(current)
+            if len(points) > self.nvertices():
                 self._points = PointCollection(points, M)
         if args or kwds:
             return self._points(*args, **kwds)
@@ -5304,15 +5309,20 @@ def all_points(polytopes):
     result_name = _palp("poly.x -fp", polytopes, reduce_dimension=True)
     result = open(result_name)
     for p in polytopes:
-        points = p._embed(read_palp_matrix(result))
-        if points.nrows() == 0:
-            raise RuntimeError("Cannot read points of a polytope!"
-                                                        +"\nPolytope: %s" % p)
-        M = p.lattice()
-        points = [M(_) for _ in points.columns()]
-        for point in points:
-            point.set_immutable()
-        p._points = PointCollection(points, M)
+        m = p._embed(read_palp_matrix(result))
+        if m.nrows() == 0:
+            raise RuntimeError("Cannot read points of {}".format(p))
+        p._points = points = p._vertices
+        if m.ncols() > p.nvertices():
+            points = list(points)
+            M = p.lattice()
+            for j in range(p.nvertices(), m.ncols()):
+                current = M.zero_vector()
+                for i in range(M.rank()):
+                    current[i] = m[i, j]
+                current.set_immutable()
+                points.append(current)
+            p._points = PointCollection(points, M)
     result.close()
     os.remove(result_name)
 

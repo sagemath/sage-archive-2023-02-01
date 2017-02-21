@@ -544,6 +544,25 @@ class AnInfinity(object):
         else:
             return abs(self)
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        TESTS::
+
+            sage: sage_input(-oo)
+            -oo
+            sage: sage_input(oo)
+            oo
+            sage: sage_input(unsigned_infinity)
+            unsigned_infinity
+        """
+        if self._sign == 0:
+            return sib.name('unsigned_infinity')
+        elif self._sign > 0:
+            return sib.name('oo')
+        else:
+            return -sib.name('oo')
 
 class UnsignedInfinityRing_class(Singleton, Ring):
 

@@ -5071,7 +5071,23 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            \sigma_1 = \cdots exp(Z_n) \cdots exp(Z_2) exp(Z_1).
+            \sigma_1 = \cdots exp(Z_n) \cdots exp(Z_2) exp(Z_1),
+
+        where
+
+        .. MATH::
+
+            \sigma_1 = \sum_{n \geq 0} S_n .
+
+        It can be recursively computed by the formula
+
+        .. MATH::
+
+            S_n = \sum_{\lambda \vdash n}
+            \frac{1}{m_1(\lambda)! m_2(\lambda)! m_3(\lambda)! \cdots}
+            Z_{\lambda_1} Z_{\lambda_2} Z_{\lambda_3} \cdots
+
+        for all `n \geq 0`.
         """
         def __init__(self, NCSF):
             r"""
@@ -5139,7 +5155,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            The expansion of the Zassenhaus generator indexed by ``n``
+            The expansion of the (left) Zassenhaus generator indexed by ``n``
             into the complete basis.
 
             TESTS::
@@ -5222,10 +5238,27 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            \sigma_1 = exp(Z_1) exp(Z_2) exp(Z_3) \cdots exp(Z_n) \cdots.
+            \sigma_1 = exp(Z_1) exp(Z_2) exp(Z_3) \cdots exp(Z_n) \cdots
+
+        where
+
+        .. MATH::
+
+            \sigma_1 = \sum_{n \geq 0} S_n .
             
-        Note that there is a variant in Equation 5.26 of [NCSF2]_
-        that satisfies:
+        It can be recursively computed by the formula
+
+        .. MATH::
+
+            S_n = \sum_{\lambda \vdash n}
+            \frac{1}{m_1(\lambda)! m_2(\lambda)! m_3(\lambda)! \cdots}
+            \cdots Z_{\lambda_3} Z_{\lambda_2} Z_{\lambda_1}
+
+        for all `n \geq 0`.
+
+        Note that there is a variant (called the "noncommutative
+        power sum symmetric functions of the third kind")
+        in Definition 5.26 of [NCSF2]_ that satisfies:
 
         .. MATH::
 
@@ -5282,13 +5315,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                                 codomain=S)
             to_complete.register_as_coercion()
 
-            from_complete = S.module_morphism(self._from_complete_on_basis,
+            from_complete = S.module_morphism(on_basis=self._from_complete_on_basis,
                                               codomain=self)
             from_complete.register_as_coercion()
 
         def _to_complete_on_generator(self, n):
             r"""
-            Expand a Zassenhaus generator of non-commutative symmetric
+            Expand a (right) Zassenhaus generator of non-commutative symmetric
             functions in the complete basis.
 
             INPUT:
@@ -5297,7 +5330,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            The expansion of the Zassenhaus generator indexed by ``n``
+            The expansion of the (right) Zassenhaus generator indexed by ``n``
             into the complete basis.
 
             TESTS::
@@ -5362,10 +5395,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                  + 1/2*ZR[1, 1, 2, 1, 1] + ZR[1, 1, 2, 2]
                  + 1/2*ZR[1, 3, 1, 1] + ZR[1, 3, 2]
             """
-            m = self._complete_to_zassenhaus_transition_matrix_inverse(I.size())
-            i = Compositions(I.size()).list().index(I)
-            coeffs = m[i]
-            return self._from_dict(dict(zip(Compositions(I.size()), coeffs)))
+            n = I.size()
+            m = self._complete_to_zassenhaus_transition_matrix_inverse(n)
+            C = Compositions(n)
+            coeffs = m[C.rank(I)]
+            return self._from_dict({J: coeffs[i] for i,J in enumerate(C)})
 
     ZR = Zassenhaus_right
 

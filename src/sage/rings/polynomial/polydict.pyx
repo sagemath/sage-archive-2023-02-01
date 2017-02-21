@@ -1119,7 +1119,6 @@ cdef class ETuple:
         """
         x.__contains__(n) <==> n in x
 
-
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import ETuple
@@ -1249,14 +1248,15 @@ cdef class ETuple:
         cdef size_t ind
         # this is not particularly fast, but I doubt many people care
         # if you do, feel free to tweak!
-        d = dict([(self._data[2*ind],self._data[2*ind+1]) for ind from 0<=ind<self._nonzero])
-        return make_ETuple,(d,int(self._length))
+        d = {self._data[2*ind]: self._data[2*ind+1]
+             for ind from 0 <= ind < self._nonzero}
+        return make_ETuple, (d, int(self._length))
 
     # additional methods
 
-    cpdef ETuple eadd(ETuple self,ETuple other):
+    cpdef ETuple eadd(ETuple self, ETuple other):
         """
-        Vector addition of self with other.
+        Vector addition of ``self`` with ``other``.
 
         EXAMPLES::
 
@@ -1274,7 +1274,7 @@ cdef class ETuple:
             sage: y^(2^32)
             Traceback (most recent call last):
             ...
-            OverflowError: Exponent overflow (2147483648).
+            OverflowError: exponent overflow (2147483648)
         """
         if self._length!=other._length:
             raise ArithmeticError
@@ -1295,7 +1295,7 @@ cdef class ETuple:
             s = exp1 + exp2
             # Check for overflow and underflow
             if (exp2 > 0 and s < exp1) or (exp2 < 0 and s > exp1):
-                raise OverflowError("Exponent overflow (%s)." % (int(exp1)+int(exp2)))
+                raise OverflowError("exponent overflow (%s)" % (int(exp1)+int(exp2)))
             if s != 0:
                 result._data[2*result._nonzero] = index
                 result._data[2*result._nonzero+1] = s
@@ -1304,7 +1304,7 @@ cdef class ETuple:
 
     cpdef ETuple eadd_p(ETuple self, int other, int pos):
         """
-        Adds other to self at position pos.
+        Add ``other`` to ``self`` at position ``pos``.
 
         EXAMPLES::
 
@@ -1368,9 +1368,9 @@ cdef class ETuple:
 
         return result
 
-    cpdef ETuple esub(ETuple self,ETuple other):
+    cpdef ETuple esub(ETuple self, ETuple other):
         """
-        Vector subtraction of self with other.
+        Vector subtraction of ``self`` with ``other``.
 
         EXAMPLES::
 
@@ -1406,9 +1406,9 @@ cdef class ETuple:
                 result._nonzero += 1
         return result
 
-    cpdef ETuple emul(ETuple self,int factor):
+    cpdef ETuple emul(ETuple self, int factor):
         """
-        Scalar Vector multiplication of self.
+        Scalar Vector multiplication of ``self``.
 
         EXAMPLES::
 
@@ -1430,9 +1430,9 @@ cdef class ETuple:
                 result._data[2*ind+1] = self._data[2*ind+1]*factor
         return result
 
-    cpdef ETuple emax(ETuple self,ETuple other):
+    cpdef ETuple emax(ETuple self, ETuple other):
         """
-        Vector of maximum of components of self and other.
+        Vector of maximum of components of ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -1441,12 +1441,12 @@ cdef class ETuple:
             sage: f = ETuple([0,1,1])
             sage: e.emax(f)
             (1, 1, 2)
-            sage: e=ETuple((1,2,3,4))
-            sage: f=ETuple((4,0,2,1))
+            sage: e = ETuple((1,2,3,4))
+            sage: f = ETuple((4,0,2,1))
             sage: f.emax(e)
             (4, 2, 3, 4)
-            sage: e=ETuple((1,-2,-2,4))
-            sage: f=ETuple((4,0,0,0))
+            sage: e = ETuple((1,-2,-2,4))
+            sage: f = ETuple((4,0,0,0))
             sage: f.emax(e)
             (4, 0, 0, 4)
             sage: f.emax(e).nonzero_positions()
@@ -1477,9 +1477,9 @@ cdef class ETuple:
                 result._nonzero += 1
         return result
 
-    cpdef ETuple emin(ETuple self,ETuple other):
+    cpdef ETuple emin(ETuple self, ETuple other):
         """
-        Vector of minimum of components of self and other.
+        Vector of minimum of components of ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -1493,7 +1493,7 @@ cdef class ETuple:
             sage: e.emin(f)
             (0, -2, -1)
         """
-        if self._length!=other._length:
+        if self._length != other._length:
             raise ArithmeticError
 
         cdef size_t ind1 = 0
@@ -1518,14 +1518,30 @@ cdef class ETuple:
                 result._nonzero += 1
         return result
 
-    def nonzero_positions(ETuple self,sort=False):
+    cpdef bint is_constant(ETuple self):
         """
-        Returns the positions of non-zero exponents in the tuple.
+        Return if all exponents are zero in the tuple.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: e.is_constant()
+            False
+            sage: e = ETuple([0,0])
+            sage: e.is_constant()
+            True
+        """
+        return self._nonzero == 0
+
+    cpdef list nonzero_positions(ETuple self, bint sort=False):
+        """
+        Return the positions of non-zero exponents in the tuple.
 
         INPUT:
 
-        - ``sort`` -- if True a sorted list is returned. If False an unsorted
-          list is returned. (default: False)
+        - ``sort`` -- (default: ``False``) if ``True`` a sorted list is
+          returned; if ``False`` an unsorted list is returned
 
         EXAMPLES::
 
@@ -1537,7 +1553,7 @@ cdef class ETuple:
         cdef size_t ind
         return [self._data[2*ind] for ind from 0 <= ind < self._nonzero]
 
-    def common_nonzero_positions(ETuple self, ETuple other,sort=False):
+    cpdef common_nonzero_positions(ETuple self, ETuple other, bint sort=False):
         """
         Returns an optionally sorted list of non zero positions either
         in self or other, i.e. the only positions that need to be
@@ -1560,14 +1576,14 @@ cdef class ETuple:
         else:
             return res
 
-    def nonzero_values(ETuple self, sort=True):
+    cpdef list nonzero_values(ETuple self, bint sort=True):
         """
-        Returns the non-zero values of the tuple.
+        Return the non-zero values of the tuple.
 
         INPUT:
 
-        - ``sort`` -- if True the values are sorted by their indices. Otherwise
-          the values are returned unsorted. (default: True)
+        - ``sort`` -- (default: ``True``) if ``True`` the values are sorted
+          by their indices; otherwise the values are returned unsorted
 
         EXAMPLES::
 
@@ -1582,9 +1598,9 @@ cdef class ETuple:
         cdef size_t ind
         return [self._data[2*ind+1] for ind from 0 <= ind < self._nonzero]
 
-    def reversed(ETuple self):
+    cpdef ETuple reversed(ETuple self):
         """
-        Returns the reversed ETuple of self.
+        Return the reversed ETuple of ``self``.
 
         EXAMPLES::
 
@@ -1598,14 +1614,14 @@ cdef class ETuple:
         result._nonzero = self._nonzero
         result._data = <int*>sig_malloc(sizeof(int)*result._nonzero*2)
         for ind from 0 <= ind < self._nonzero:
-            result._data[2*(result._nonzero-ind-1)] = self._length-self._data[2*ind]-1
+            result._data[2*(result._nonzero-ind-1)] = self._length - self._data[2*ind] - 1
             result._data[2*(result._nonzero-ind-1)+1] = self._data[2*ind+1]
         return result
 
     def sparse_iter(ETuple self):
         """
-        Iterator over the elements of self where the elements are returned as
-        ``(i,e)`` where ``i`` is the position of ``e`` in the tuple.
+        Iterator over the elements of ``self`` where the elements are returned
+        as ``(i,e)`` where ``i`` is the position of ``e`` in the tuple.
 
         EXAMPLES::
 
@@ -1615,12 +1631,14 @@ cdef class ETuple:
             [(0, 1), (2, 2), (4, 3)]
         """
         cdef size_t ind
-        d = dict([(self._data[2*ind],self._data[2*ind+1]) for ind from 0<=ind<self._nonzero])
-        return d.iteritems()
+        for ind from 0 <= ind < self._nonzero:
+            yield (self._data[2*ind], self._data[2*ind+1])
 
     def combine_to_positives(ETuple self, ETuple other):
         """
-        Given a pair of ETuples (self, other), returns a triple of ETuples (a, b, c) so that self = a + b,other = a + c and b and c have all positive entries.
+        Given a pair of ETuples (self, other), returns a triple of
+        ETuples (a, b, c) so that self = a + b, other = a + c and b and c
+        have all positive entries.
 
         EXAMPLES::
 

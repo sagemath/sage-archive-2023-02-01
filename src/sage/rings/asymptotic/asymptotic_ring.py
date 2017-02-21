@@ -4500,7 +4500,9 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: F_X.merge(F_Y)
             AsymptoticRing<x^ZZ * y^ZZ>
 
-        TESTS::
+        TESTS:
+
+        :trac:`22396`::
 
             sage: AN = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
             sage: F_AN = AN.construction()[0]; F_AN._default_prec_ = None

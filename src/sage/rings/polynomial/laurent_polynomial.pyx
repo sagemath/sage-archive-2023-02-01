@@ -1550,13 +1550,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: v = D[k]
             sage: type(k), type(v)
             (<type 'tuple'>, <type 'sage.rings.integer.Integer'>)
-            sage: id_k = id(k)
-            sage: id_v = id(v)
             sage: LQ(D)
             x^-1*y
-            sage: id(tuple(D)[0]) == id_k
+            sage: tuple(D)[0] is k
             True
-            sage: id(D[k]) == id_v
+            sage: D[k] is v
             True
         """
         if isinstance(x, PolyDict):

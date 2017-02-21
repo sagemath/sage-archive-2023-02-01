@@ -720,9 +720,15 @@ class SBox(SageObject):
 
         row = 0
         for exponent in exponents:
-            A[row,ncols-1] = mul([gens[i]**exponent[i] for i in range(len(exponent))])
             for col in range(1<<m):
                 A[row,col] = mul([bits[col][i] for i in range(len(exponent)) if exponent[i]])
+            row +=1
+
+        rankSize = A.rank()
+
+        row = 0
+        for exponent in exponents:
+            A[row,ncols-1] = mul([gens[i]**exponent[i] for i in range(len(exponent))])
             row +=1
 
         for c in range(ncols):
@@ -731,7 +737,7 @@ class SBox(SageObject):
         RR = A.echelon_form(algorithm='row_reduction')
 
         # extract spanning stet
-        gens = (RR.column(ncols-1)[1<<m:]).list()
+        gens = (RR.column(ncols-1)[rankSize:]).list()
 
         if not groebner:
             return gens

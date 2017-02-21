@@ -1541,6 +1541,23 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             True
             sage: x2^-1*y0*y1*y2*y3*y4*y5 + x1^-1*x2^-1*y0*y1*y3*y4 + x0^-1*x1^-1*y0*y3 + x0^-1 in LZ
             True
+
+        Check that input is not modified::
+
+            sage: LQ.<x,y> = LaurentPolynomialRing(QQ)
+            sage: D = {(-1, 1): 1}
+            sage: k = tuple(D)[0]
+            sage: v = D[k]
+            sage: type(k), type(v)
+            (<type 'tuple'>, <type 'sage.rings.integer.Integer'>)
+            sage: id_k = id(k)
+            sage: id_v = id(v)
+            sage: LQ(D)
+            x^-1*y
+            sage: id(tuple(D)[0]) == id_k
+            True
+            sage: id(D[k]) == id_v
+            True
         """
         if isinstance(x, PolyDict):
             x = x.dict()

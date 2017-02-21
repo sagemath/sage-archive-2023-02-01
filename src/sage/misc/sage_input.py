@@ -174,7 +174,7 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 
-from six import itervalues
+from six import itervalues, iteritems
 
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
@@ -1895,7 +1895,8 @@ class SIE_call(SageInputExpression):
         """
         func = repr(self._sie_func)
         args = [repr(arg) for arg in self._sie_args]
-        kwargs = sorted(k + '=' + repr(v) for k, v in self._sie_kwargs.iteritems())
+        kwargs = sorted(k + '=' + repr(v)
+                        for k, v in iteritems(self._sie_kwargs))
         all_args = ', '.join(args + kwargs)
         return "{call: %s(%s)}" % (func, all_args)
 
@@ -1935,9 +1936,11 @@ class SIE_call(SageInputExpression):
         """
         func = sif.format(self._sie_func, _prec_attribute)
         args = [sif.format(arg, 0) for arg in self._sie_args]
-        kwargs = sorted(k + '=' + sif.format(v, 0) for k, v in self._sie_kwargs.iteritems())
+        kwargs = sorted(k + '=' + sif.format(v, 0)
+                        for k, v in iteritems(self._sie_kwargs))
         all_args = ', '.join(args + kwargs)
         return ('%s(%s)' % (func, all_args), _prec_funcall)
+
 
 class SIE_subscript(SageInputExpression):
     r"""
@@ -3599,6 +3602,6 @@ class SageInputAnswer(tuple):
             return self[0] + self[1]
 
         locals = self[2]
-        locals_text = ''.join('  %s: %r\n' % (k, v) for k, v in locals.iteritems())
+        locals_text = ''.join('  %s: %r\n' % (k, v)
+                              for k, v in iteritems(locals))
         return 'LOCALS:\n' + locals_text + self[0] + self[1]
-

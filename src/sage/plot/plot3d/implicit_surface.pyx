@@ -89,7 +89,6 @@ from sage.rings.all import RDF
 from sage.plot.misc import setup_for_eval_on_grid
 
 from sage.libs.gsl.math cimport gsl_isnan
-from cpython.string cimport *
 
 include "point_c.pxi"
 

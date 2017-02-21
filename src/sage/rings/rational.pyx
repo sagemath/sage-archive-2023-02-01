@@ -46,6 +46,7 @@ from __future__ import absolute_import
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 from cpython cimport *
+from cpython.bytes cimport PyBytes_FromString
 
 import sys
 import operator
@@ -2000,7 +2001,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_on()
         mpq_get_str(s, base, self.value)
         sig_off()
-        k = <object> PyString_FromString(s)
+        k = <object> PyBytes_FromString(s)
         PyMem_Free(s)
         return k
 

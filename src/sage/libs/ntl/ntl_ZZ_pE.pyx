@@ -19,7 +19,8 @@ include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
-from cpython.string cimport PyString_AsString
+from cpython.bytes cimport *
+
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -126,7 +127,7 @@ cdef class ntl_ZZ_pE(object):
                 self.x = ZZ_to_ZZ_pE(temp)
             else:
                 v = str(v)
-                ZZ_pE_from_str(&self.x, PyString_AsString(v))
+                ZZ_pE_from_str(&self.x, PyBytes_AsString(v))
             sig_off()
 
     def __cinit__(ntl_ZZ_pE self, v=None, modulus=None):

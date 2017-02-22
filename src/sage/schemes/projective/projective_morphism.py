@@ -928,6 +928,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             0
             sage: f.dynatomic_polynomial([0,0])
             0
+            sage: f.dynatomic_polynomial(-1)
+            Traceback (most recent call last):
+            ...
+            TypeError: period must be a postive integer
 
         ::
 
@@ -970,7 +974,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         f0, f1 = F0, F1 = self._polys
         PHI = self.base_ring().one()
         m = period[0]
-        n = period[1]
+        n = int(period[1])
+        if n < 0:
+            raise TypeError("period must be a postive integer")
         if m == 0:
             if n == 0:
                 return self[0].parent().zero()

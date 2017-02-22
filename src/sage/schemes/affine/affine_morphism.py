@@ -508,12 +508,23 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: A.<z> = AffineSpace(QQbar, 1)
             sage: H = End(A)
-            sage: f = H([2*z / (z^2+2*z+3)])
+            sage: f = H([2*z / (z^2 + 2*z + 3)])
             sage: f.homogenize(1)
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic
             Field
                 Defn: Defined on coordinates by sending (x0 : x1) to
                     (x0*x1 : 1/2*x0^2 + x0*x1 + 3/2*x1^2)
+
+        ::
+
+            sage: R.<c,d> = QQbar[]
+            sage: A.<x> = AffineSpace(R, 1)
+            sage: H = Hom(A, A)
+            sage: F = H([d*x^2 + c])
+            sage: F.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Multivariate Polynomial Ring in c, d over Algebraic Field
+            Defn: Defined on coordinates by sending (x0 : x1) to
+            (d*x0^2 + c*x1^2 : x1^2)
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n, (tuple, list)):
@@ -552,7 +563,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
             F = [S(f/gc) for f in F]
-        except (AttributeError, ValueError, NotImplementedError): #no gcd
+        except (AttributeError, ValueError, NotImplementedError, TypeError): #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])
         F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]
@@ -652,6 +663,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([z^2 + c])
             sage: f.dynatomic_polynomial([1,1])
             z^2 + z + c
+
+        ::
+
+            sage: A.<x> = AffineSpace(CC,1)
+            sage: H = Hom(A,A)
+            sage: F = H([1/2*x^2 + sqrt(3)])
+            sage: F.dynatomic_polynomial([1,1])
+            (2.00000000000000*x^4 + 5.85640646055102*x^2 + 24.0000000000000)/(x^2 + (-2.00000000000000)*x + 3.46410161513775)
         """
         if self.domain() != self.codomain():
             raise TypeError("must have same domain and codomain to iterate")
@@ -660,12 +679,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             raise NotImplementedError("not implemented for subschemes")
         if self.domain().dimension_relative()>1:
             raise TypeError("does not make sense in dimension >1")
-        F = self.homogenize(1).dynatomic_polynomial(period)
+        G = self.homogenize(1)
+        F = G.dynatomic_polynomial(period)
+        T = G.domain().coordinate_ring()
         S = self.domain().coordinate_ring()
         if is_SymbolicExpressionRing(F.parent()):
             u = var(self.domain().coordinate_ring().variable_name())
             return F.subs({F.variables()[0]:u,F.variables()[1]:1})
-        elif S(F.denominator()).degree() == 0:
+        elif T(F.denominator()).degree() == 0:
             R = F.parent()
             phi = R.hom([S.gen(0), 1], S)
             return(phi(F))

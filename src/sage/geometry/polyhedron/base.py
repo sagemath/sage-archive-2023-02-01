@@ -28,7 +28,7 @@ from sage.rings.all import QQ, ZZ
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
-from sage.functions.other import sqrt, floor, ceil
+from sage.functions.other import sqrt, floor, ceil, binomial
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 
@@ -2890,7 +2890,7 @@ class Polyhedron_base(Element):
 
     def truncation(self, cut_frac=None):
         r"""
-        Return a new polyhedron formed from two points on each edge
+        Return a new polyhedron formed from two points on each edgeis
         between two vertices.
 
         INPUT:
@@ -4169,6 +4169,84 @@ class Polyhedron_base(Element):
         """
         return self.is_compact() and (self.dim()+1 == self.n_vertices())
 
+    def neighborliness(self):
+        r"""
+        Returns the largest k, such that the polyhedron is k-neighborly.
+        (Returns ``d+1`` in case of the d-dimensional simplex)
+
+
+        EXAMPLES::
+            sage: cube = polytopes.cube()
+            sage: cube.neighborliness()
+            1
+            sage: P=Polyhedron(); P
+            The empty polyhedron in ZZ^0
+            sage: P.neighborliness()
+            0
+            sage: C=polytopes.cyclic_polytope(7,10); C
+            A 7-dimensional polyhedron in QQ^7 defined as the convex hull of 10 vertices
+            sage: C.neighborliness()
+            3
+            sage: C=polytopes.cyclic_polytope(6,11); C
+            A 6-dimensional polyhedron in QQ^6 defined as the convex hull of 11 vertices
+            sage: C.neighborliness()
+            3
+            sage: [polytopes.cyclic_polytope(5,n).neighborliness() for n in range(6,10)]
+            [6, 2, 2, 2]
+        """
+        if self.is_simplex():
+            return self.dim() + 1
+        else:
+            k = 1
+            while(True):
+                if len(self.faces(k))==binomial(self.n_vertices(),k+1):
+                    k += 1
+                else:
+                    return k
+
+
+    def is_neighborly(self, k=None):
+        r"""
+        Return whether the polyhedron is neighborly.
+        If the input k is provided then return whether the polyhedron is k-neighborly
+
+        INPUT:
+        - ``k`` -- the dimension up to which to check if every set of k
+          vertices forms a face. If no k is provided, check up to floor
+          of half the dimension of the polyhedron.
+
+        OUTPUT:
+
+        ``True`` if the every set of up to k vertices forms a face,
+        ``False`` otherwise
+
+        EXAMPLES::
+
+        Cyclic polytopes are neighborly:
+
+            sage: all([polytopes.cyclic_polytope(i,i+1+j).is_neighborly() for i in range(5) for j in range(3)])
+            True
+
+            sage: cube = polytopes.hypercube(3)
+            sage: cube.is_neighborly()
+            True
+            sage: cube = polytopes.hypercube(4)
+            sage: cube.is_neighborly()
+            False
+
+        The neighborliness of a polyhedron equals floor of dimension half
+        (or is large in case of a simplex) if and only if the polyhedron
+        is neighborly:
+
+            sage: [(P.neighborliness()>=floor(P.dim()/2)) == P.is_neighborly() for P in  [polytopes.cube(), polytopes.cyclic_polytope(6,9), polytopes.simplex(6)]]
+            [True, True, True]
+
+        """
+        if k == None:
+            k = floor(self.dim()/2)
+        return all(len(self.faces(l))==binomial(self.n_vertices(),l+1) for l in range(1,k))
+
+
     @cached_method
     def is_lattice_polytope(self):
         r"""
@@ -4718,7 +4796,7 @@ class Polyhedron_base(Element):
 
         - For ``output="matrixlist"``: a list of matrices.
 
-        REFERENCES: 
+        REFERENCES:
 
         - [BSS2009]_
 

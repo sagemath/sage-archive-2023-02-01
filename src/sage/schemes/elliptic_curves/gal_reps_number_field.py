@@ -820,6 +820,15 @@ def _semistable_reducible_primes(E, verbose=False):
         sage: E = EllipticCurve([0, -1, 1, -10, -20]) # X_0(11)
         sage: 5 in sage.schemes.elliptic_curves.gal_reps_number_field._semistable_reducible_primes(E)
         True
+
+    This example, over a quintic field with Galois group $S_5$, took a
+    very long time before :trac:`22343`::
+
+        sage: K.<a> = NumberField(x^5 - 6*x^3 + 8*x - 1)
+        sage: E = EllipticCurve(K, [a^3 - 2*a, a^4 - 2*a^3 - 4*a^2 + 6*a + 1, a + 1, -a^3 + a + 1, -a])
+        sage: from sage.schemes.elliptic_curves.gal_reps_number_field import _semistable_reducible_primes
+        sage: _semistable_reducible_primes(E)
+        [2, 5, 53, 1117]
     """
     if verbose: print("In _semistable_reducible_primes with E={}".format(E.ainvs()))
     K = E.base_field()
